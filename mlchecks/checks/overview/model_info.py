@@ -1,8 +1,9 @@
 from mlchecks import ModelOnlyBaseCheck, CheckResult
 import pandas as pd
 from sklearn.base import BaseEstimator
-
 from mlchecks.utils import model_type_validation
+
+__all__ = ['model_info', 'ModelInfo']
 
 
 def model_info(model: BaseEstimator):
