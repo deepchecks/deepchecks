@@ -26,15 +26,24 @@ pipeline{
         }//steps
       }//Calculate Runtime
 
+      stage("Linter") {
+        steps{
+          script{
+            log.info ("checking lint and docstrings")
+            catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+              sh 'make check'
+            }
+          }
+        }
+      }
+
       stage("Test") {
         steps{
           script {
-            if (is_pr) {
-              log.info ("checking ")
-              sh "make tox"
-            } else {
-              sh "make ci"
-            }
+            log.info ("Testing")
+              catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                sh "make tox"
+              }
           }//script
         }//steps
       }//tests
