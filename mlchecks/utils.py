@@ -7,7 +7,7 @@ import catboost
 SUPPORTED_BASE_MODELS = [sklearn.base.BaseEstimator, catboost.CatBoost]
 
 
-class MLChecksException(Exception):
+class MLChecksValueError(ValueError):
     pass
 
 
@@ -18,4 +18,4 @@ def model_type_validation(model: Any):
         MLChecksException: If the object is not of a supported type
     """
     if not any([isinstance(model, base) for base in SUPPORTED_BASE_MODELS]):
-        raise MLChecksException(f'Model must inherit from one of supported models: {SUPPORTED_BASE_MODELS}')
+        raise MLChecksValueError(f'Model must inherit from one of supported models: {SUPPORTED_BASE_MODELS}')
