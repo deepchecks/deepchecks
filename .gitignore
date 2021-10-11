@@ -11,5 +11,4 @@ venv*
 test/AutogluonModels
 test/.agModels
 datasets/
-*.ipynb
 mlchecks/__pycache__/
