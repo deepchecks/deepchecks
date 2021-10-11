@@ -1,3 +1,13 @@
+history/
+.vscode/
+.idea/
+.DS_Store
+*.pdf
+test/AutogluonModels
+test/.agModels
+datasets/
+*.ipynb
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -26,7 +36,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# Requirements Logs 
+# Requirements Logs
 .requirements.log
 
 # Unit test / coverage reports
