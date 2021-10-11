@@ -1,1 +1,1 @@
-from .model_info import model_info, ModelInfo
+from .model_info import *
