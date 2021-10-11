@@ -83,10 +83,14 @@ class Dataset(pd.DataFrame):
     def __init__(self,
                  df: pd.DataFrame,
                  features: List[str] = None, cat_features: List[str] = None,
-                 label: str = None, index: str = None, date: str = None,
+                 label: str = None, use_index: bool = False, index: str = None, date: str = None,
                  *args, **kwargs):
 
         super().__init__(df, *args, **kwargs)
+
+        # Validations
+        if use_index is True and index is not None:
+            raise ValueError('parameter use_index cannot be True if index is given')
 
         if features:
             self._features = features
@@ -94,6 +98,7 @@ class Dataset(pd.DataFrame):
             self._features = [x for x in df.columns if x not in {label, index, date}]
 
         self._label = label
+        self._use_index = use_index
         self._index_name = index
         self._date_name = date
 
@@ -106,17 +111,25 @@ class Dataset(pd.DataFrame):
         # TODO: add infer logic here
         return []
 
-    def features(self) -> List[str]:
-        return self._features
+    def index_col(self) -> str:
+        if self.use_index is True:
+            return pd.Series(self.index)
+        elif self._index_name is not None:
+            return self[self._index_name]
+        else:  # No meaningful index to use: Index column not configured, and use_column is False
+            return None
 
-    def index_name(self) -> str:
-        return self._index_name
-
-    def date_name(self) -> str:
-        return self._date_name
+    def date_col(self) -> str:
+        if self._date_name:
+            return self[self._date_name]
+        else:  # Date column not configured in Dataset
+            return None
 
     def cat_features(self) -> List[str]:
         return self._cat_features
+
+    def features(self) -> List[str]:
+        return self._features
 
     def _get_profile(self):
         profile = ProfileReport(self, title="Dataset Report", explorative=True, minimal=True)
