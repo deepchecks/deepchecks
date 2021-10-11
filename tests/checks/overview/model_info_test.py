@@ -9,18 +9,18 @@ def assert_model_result(result):
                                                              n_estimators=50)))
 
 
-def test_model_info_function(skmodel):
+def test_model_info_function(iris_adaboost):
     # Act
-    result = model_info(skmodel)
+    result = model_info(iris_adaboost)
 
     # Assert
     assert_model_result(result)
 
 
-def test_model_info_object(skmodel):
+def test_model_info_object(iris_adaboost):
     # Arrange
     mi = ModelInfo()
     # Act
-    result = mi.run(skmodel)
+    result = mi.run(iris_adaboost)
     # Assert
     assert_model_result(result)
