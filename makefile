@@ -36,6 +36,8 @@ TOX := $(BIN)/tox
 PKGDIR := $(or $(PACKAGE), ./)
 SOURCES := $(or $(PACKAGE), $(wildcard *.py))
 
+INSTALLATION_PKGS = wheel setuptools
+
 REQUIREMENTS := $(shell find . -name $(REQUIRE))
 REQUIREMENTS_LOG := .requirements.log
 
@@ -79,9 +81,11 @@ $(PIP):
 	@echo "external python_exe is $(ext_py)"
 	test -d $(ENV) || $(ext_py) -m venv $(ENV) 
 $(REQUIREMENTS_LOG): $(PIP) $(REQUIREMENTS)
+	$(PIP) install $(INSTALLATION_PKGS)
 	for f in $(REQUIREMENTS); do \
 	  $(PIP) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
 	done
+
 
 
 ### Static Analysis ######################################################
