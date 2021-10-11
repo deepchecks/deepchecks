@@ -1,8 +1,9 @@
 import abc
-from typing import Callable, Dict, List, Any, Tuple
+from typing import Callable, Dict, List, Any
+from copy import deepcopy
 
 __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainValidationBaseCheck',
-           'ModelOnlyBaseCheck']
+           'ModelOnlyBaseCheck', 'Decidable']
 
 
 class CheckResult:
@@ -34,7 +35,10 @@ class CheckResult:
 
 
 class BaseCheck(metaclass=abc.ABCMeta):
-    pass
+    params: Dict
+
+    def __init__(self, **params):
+        self.params = params
 
 
 class SingleDatasetBaseCheck(BaseCheck):
@@ -73,22 +77,37 @@ class ModelOnlyBaseCheck(BaseCheck):
     def run(self, model) -> CheckResult:
         pass
 
-#
-# class Decidable(Checkable):
-#     """
-#     Check is a utility class which gives the option to combine a check and a decision function to be used together
-#     """
-#     deciders: List[Callable]
-#
-#     def __init__(self, deciders: List[Callable]=None, **check_params):
-#         self.deciders = deciders or []
-#         self.check_params = check_params
-#
-#     def run_and_decide(self, model=None, train_data=None, validation_data=None) -> Tuple[CheckResult, bool]:
-#         result = self.run(model=model, train_data=train_data, validation_data=validation_data)
-#         decisions = [x(result.value) for x in self.deciders] or None
-#         return result, decisions
-#
-#     def decider(self, decider: Callable[[Any], bool]):
-#         deciders = [*self.deciders, decider]
-#         return self.__class__(deciders=deciders, **self.check_params)
+
+class Decidable(object):
+    """
+    Decidable is a utility class which gives the option to combine a check and a decision function to be used together
+
+    Example of usage:
+    ```
+    class MyCheck(Decidable, SingleDatasetBaseCheck):
+        # run function signaute is inherited from the check class
+        def run(self, dataset, model=None) -> CheckResult:
+            # Parameters are automaticlly sets on params property
+            param1 = self.params.get('param1')
+            # Do stuff...
+            value, html = x, y
+            return CheckResult(value, display={'text/html': html})
+
+    my_check = MyCheck(param1='foo').decider(threshold(10))
+    # Execute the run function and pass result to decide function
+    my_check.decide(my_check.run())
+    ```
+    """
+    _deciders: List[Callable]
+
+    def __init__(self, deciders: List[Callable] = None, **params):
+        self._deciders = deciders or []
+        super().__init__(**params)
+
+    def decide(self, result: CheckResult) -> List[bool]:
+        return [x(result.value) for x in self._deciders] or None
+
+    def decider(self, decider: Callable[[Any], bool]):
+        new_copy = deepcopy(self)
+        new_copy._deciders.append(decider)
+        return new_copy
