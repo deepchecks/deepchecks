@@ -1,5 +1,5 @@
 import abc
-from typing import Callable, Dict, List, Any, Tuple
+from typing import Dict, Any
 
 __all__ = ['CheckResult', 'Checkable']
 
@@ -23,9 +23,9 @@ class CheckResult:
             return None
         data = self.display
         if include:
-            data = {k:v for (k,v) in data.items() if k in include}
+            data = {k: v for (k, v) in data.items() if k in include}
         if exclude:
-            data = {k:v for (k,v) in data.items() if k not in exclude}
+            data = {k: v for (k, v) in data.items() if k not in exclude}
         return data
 
     def __repr__(self):
@@ -40,7 +40,8 @@ class Checkable(metaclass=abc.ABCMeta):
 #
 # class Decidable(Checkable):
 #     """
-#     Check is a utility class which gives the option to combine a check and a decision function to be used together
+#     Check is a utility class which gives the option to combine a check and a decision function
+#     to be used together
 #     """
 #     deciders: List[Callable]
 #
@@ -48,7 +49,8 @@ class Checkable(metaclass=abc.ABCMeta):
 #         self.deciders = deciders or []
 #         self.check_params = check_params
 #
-#     def run_and_decide(self, model=None, train_data=None, validation_data=None) -> Tuple[CheckResult, bool]:
+#     def run_and_decide(self, model=None, train_data=None, validation_data=None)
+#     -> Tuple[CheckResult, bool]:
 #         result = self.run(model=model, train_data=train_data, validation_data=validation_data)
 #         decisions = [x(result.value) for x in self.deciders] or None
 #         return result, decisions

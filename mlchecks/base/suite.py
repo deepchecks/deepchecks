@@ -1,6 +1,6 @@
-from typing import Callable, Dict, List, Any, Tuple
+from typing import List
 
-from check import Checkable
+from mlchecks import Checkable
 
 __all__ = ['CheckSuite']
 
