@@ -16,5 +16,5 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install tox
+    - name: Run Tests
       run: make test
