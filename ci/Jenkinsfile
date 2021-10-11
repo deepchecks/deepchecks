@@ -50,10 +50,4 @@ pipeline{
 
     }//stages
 
-    post{
-      cleanup{
-        cleanWs deleteDirs: true, notFailBuild: true
-      }
-    }
-
 }//pipeline
