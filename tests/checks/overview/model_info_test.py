@@ -1,6 +1,8 @@
 from mlchecks.checks.overview.model_info import *
 from hamcrest import *
 
+from mlchecks.utils import MLChecksException
+
 
 def assert_model_result(result):
     assert_that(result.value, has_entries(type='AdaBoostClassifier',
