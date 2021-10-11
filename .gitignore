@@ -10,3 +10,6 @@ venv*
 *.egg-info
 test/AutogluonModels
 test/.agModels
+datasets/
+*.ipynb
+mlchecks/__pycache__/
