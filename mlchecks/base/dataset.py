@@ -1,3 +1,5 @@
+from typing import List
+
 import pandas as pd
 from pandas_profiling import ProfileReport
 from typing import List

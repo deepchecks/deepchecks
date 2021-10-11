@@ -1,4 +1,4 @@
-from mlchecks import Checkable, CheckResult
+from mlchecks import BaseCheck, CheckResult
 import pandas as pd
 from sklearn.base import BaseEstimator
 
@@ -13,7 +13,7 @@ def model_info(model: BaseEstimator):
     return CheckResult(None, display={'text/html': html})
 
 
-class ModelInfo(Checkable):
+class ModelInfo(BaseCheck):
     def run(self, model=None, train_data=None, validation_data=None) -> CheckResult:
         return model_info(model)
 

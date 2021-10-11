@@ -1,16 +1,16 @@
-from typing import Callable, Dict, List, Any, Tuple
+from typing import List
+from mlchecks.base.check import BaseCheck
 
-from mlchecks.base.check import Checkable
 
 __all__ = ['CheckSuite']
 
 
 class CheckSuite:
-    checks: List[Checkable]
+    checks: List[BaseCheck]
 
     def __init__(self, *checks):
         for check in checks:
-            if not isinstance(check, Checkable):
+            if not isinstance(check, BaseCheck):
                 raise Exception(f'CheckSuite receives only `Checkable` objects but got: {check.__class__.__name__}')
         self.checks = checks
 
