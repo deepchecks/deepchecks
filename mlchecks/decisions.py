@@ -1,6 +1,8 @@
 from numbers import Number
 import typing
 
+__all__ = ['threshold']
+
 
 def threshold(min=None, max=None) -> typing.Callable[[Number], bool]:
     if min is None and max is None:

@@ -1,2 +1,2 @@
-from .model_info import model_info, ModelInfo
-from .dataset_info import dataset_info, DatasetInfo
+from .model_info import *
+from .dataset_info import *
