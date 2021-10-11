@@ -30,7 +30,9 @@ def model_info(model: BaseEstimator):
 
 class ModelInfo(ModelOnlyBaseCheck):
     """
-    Class that wraps the usage of `model_info` to be used in `Suite`
+    Summarize given model parameters.
+
+    Can be used inside `Suite`
     """
     def run(self, model: BaseEstimator) -> CheckResult:
         return model_info(model)
