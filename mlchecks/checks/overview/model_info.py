@@ -10,10 +10,12 @@ def model_info(model: BaseEstimator):
     model_param_df.reset_index(inplace=True)
 
     html = f'<h2>{_type}</h2><br>{model_param_df.to_html(index=False)}'
-    return CheckResult(None, display={'text/html': html})
+    value = {'type': _type, 'params': model.get_params()}
+
+    return CheckResult(value, display={'text/html': html})
 
 
 class ModelInfo(Checkable):
-    def run(self, model=None, train_data=None, validation_data=None) -> CheckResult:
+    def run(self, model) -> CheckResult:
         return model_info(model)
 
