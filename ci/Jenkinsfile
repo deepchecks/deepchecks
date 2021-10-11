@@ -5,7 +5,7 @@ def l = library("jenkins-shared").com.deepchecks.jenkins.SharedLib
 def MR_REGEX = '^MR-\\d+$'
 def is_branch = false
 
-def agentLabel = "main-agent"
+def agentLabel = "oss-agent"
 
 pipeline{
     agent{
@@ -30,7 +30,7 @@ pipeline{
         steps{
           script{
             log.info ("checking lint and docstrings")
-            catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
               sh 'make check'
             }
           }
@@ -41,7 +41,7 @@ pipeline{
         steps{
           script {
             log.info ("Testing")
-              catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+              catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                 sh "make tox"
               }
           }//script
@@ -49,5 +49,11 @@ pipeline{
       }//tests
 
     }//stages
+
+    post{
+      cleanup{
+        cleanWs deleteDirs: true, notFailBuild: true
+      }
+    }
 
 }//pipeline
