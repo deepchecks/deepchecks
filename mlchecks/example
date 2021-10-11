@@ -1,0 +1,8 @@
+from mlchecks.checks.overview.model_info import model_info
+from mlchecks import Model
+import joblib
+
+m = Model()
+m.model_obj = joblib.load('/Users/matan/deepchecksv2/mlchecks/model.joblib')
+
+model_info(m)

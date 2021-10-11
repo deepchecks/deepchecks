@@ -1,0 +1,4 @@
+requests
+
+[:python_version == "2.6"]
+importlib
