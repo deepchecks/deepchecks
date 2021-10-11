@@ -24,3 +24,9 @@ def test_model_info_object(iris_adaboost):
     result = mi.run(iris_adaboost)
     # Assert
     assert_model_result(result)
+
+
+def test_model_info_wrong_input():
+    # Act
+    assert_that(calling(model_info).with_args('some string'),
+                raises(MLChecksException, 'Model must inherit from one of supported models:'))

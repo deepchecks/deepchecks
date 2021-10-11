@@ -2,6 +2,8 @@ from mlchecks import ModelOnlyBaseCheck, CheckResult
 import pandas as pd
 from sklearn.base import BaseEstimator
 
+from mlchecks.utils import SUPPORTED_BASE_MODELS, MLChecksException
+
 
 def model_info(model: BaseEstimator):
     """Summarize given model parameters
@@ -12,6 +14,9 @@ def model_info(model: BaseEstimator):
     Returns:
         CheckResult: value is dictionary in format {type: <model_type>, params: <model_params_dict>}
     """
+    if not any([isinstance(model, base) for base in SUPPORTED_BASE_MODELS]):
+        raise MLChecksException(f'Model must inherit from one of supported models: {SUPPORTED_BASE_MODELS}')
+
     _type = type(model).__name__
     model_param_df = pd.DataFrame.from_dict(model.get_params(), orient='index', columns=['value'])
     model_param_df.index.name = 'parameter'
