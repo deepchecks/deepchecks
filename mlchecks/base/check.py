@@ -29,7 +29,7 @@ class CheckResult:
         return data
 
     def __repr__(self):
-        return self.value
+        return self.value.__repr__()
 
 
 class Checkable(metaclass=abc.ABCMeta):
