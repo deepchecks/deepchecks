@@ -29,7 +29,7 @@ PIP := $(BIN)/pip
 PYTHON := $(BIN)/$(python)
 ANALIZE := $(BIN)/pylint
 COVERAGE := $(BIN)/coverage
-TEST_RUNNER := $(BIN)/py.test
+TEST_RUNNER := $(BIN)/pytest
 TOX := $(BIN)/tox
 
 # Project Settings
@@ -107,7 +107,7 @@ $(ANALIZE):
 
 .PHONY: test coverage
 
-test: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
+test: $(REQUIREMENTS_LOG) $(TEST_RUNNER) develop
 	$(TEST_RUNNER) $(args) $(TESTDIR)
 
 $(TEST_RUNNER):
