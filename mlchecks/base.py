@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Callable, Dict, List, Any, Tuple
 import pandas as pd
+from pandas_profiling import ProfileReport
 
-__all__ = ['CheckResult', 'Checkable', 'Check', 'CheckSuite', 'Model', 'Dataset']
+__all__ = ['CheckResult', 'Checkable', 'Check', 'CheckSuite', 'Dataset']
 
 
 class CheckResult:
@@ -122,3 +123,10 @@ class Dataset(pd.DataFrame):
 
     def cat_features(self) -> List[str]:
         return self._cat_features
+
+    def _get_profile(self):
+        profile = ProfileReport(self, title="Dataset Report", explorative=True, minimal=True)
+        return profile
+
+    def _repr_mimebundle_(self, include, exclude):
+        return {'text/html': self._get_profile().to_notebook_iframe()}
