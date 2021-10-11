@@ -1,0 +1,12 @@
+history/
+__pycache__/
+.vscode/
+.idea/
+venv*
+*.ipynb_checkpoints*
+.env
+.DS_Store
+*.pdf
+*.egg-info
+test/AutogluonModels
+test/.agModels
