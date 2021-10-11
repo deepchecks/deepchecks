@@ -109,5 +109,5 @@ class Decidable(object):
 
     def decider(self, decider: Callable[[Any], bool]):
         new_copy = deepcopy(self)
-        new_copy._deciders.append(decider)
-        return new_copy
+        new_copy._deciders.append(decider) # pylint: disable=protected-access
+        return new_copy                    # we access this variable from within its own class after deep copy

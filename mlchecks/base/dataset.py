@@ -2,7 +2,6 @@ from typing import List, Union
 
 import pandas as pd
 from pandas_profiling import ProfileReport
-from typing import List
 
 __all__ = ['Dataset']
 
@@ -24,9 +23,10 @@ class Dataset(pd.DataFrame):
 
     def __init__(self,
                  df: pd.DataFrame,
+                 *args,
                  features: List[str] = None, cat_features: List[str] = None,
                  label: str = None, use_index: bool = False, index: str = None, date: str = None,
-                 *args, **kwargs):
+                 **kwargs):
         """Initiates the Dataset using a pandas DataFrame and Metadata
 
         Args:
@@ -110,8 +110,8 @@ class Dataset(pd.DataFrame):
         return self._features
 
     def _get_profile(self):
-        profile = ProfileReport(self, title="Dataset Report", explorative=True, minimal=True)
+        profile = ProfileReport(self, title='Dataset Report', explorative=True, minimal=True)
         return profile
 
-    def _repr_mimebundle_(self, include, exclude):
+    def _repr_mimebundle_(self, include, exclude): # pylint: disable=unused-argument TODO: use arguments
         return {'text/html': self._get_profile().to_notebook_iframe()}
