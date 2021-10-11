@@ -1,10 +1,11 @@
-from mlchecks import Model, Check, CheckResult
+from mlchecks import Checkable, CheckResult
 import pandas as pd
+from sklearn.base import BaseEstimator
 
 
-def model_info(model: Model):
-    _type = type(model.model_obj).__name__
-    model_param_df = pd.DataFrame.from_dict(model.model_obj.get_params(), orient='index', columns=['value'])
+def model_info(model: BaseEstimator):
+    _type = type(model).__name__
+    model_param_df = pd.DataFrame.from_dict(model.get_params(), orient='index', columns=['value'])
     model_param_df.index.name = 'parameter'
     model_param_df.reset_index(inplace=True)
 
@@ -12,7 +13,7 @@ def model_info(model: Model):
     return CheckResult(None, display={'text/html': html})
 
 
-class ModelInfo(Check):
+class ModelInfo(Checkable):
     def run(self, model=None, train_data=None, validation_data=None) -> CheckResult:
         return model_info(model)
 
