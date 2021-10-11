@@ -1,1 +1,2 @@
-from .base import Decidable, CheckResult, Dataset, Checkable
+from .base import Dataset, CheckResult, Checkable, CheckSuite
+
