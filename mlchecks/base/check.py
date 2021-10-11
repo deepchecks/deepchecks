@@ -1,7 +1,8 @@
 import abc
 from typing import Callable, Dict, List, Any, Tuple
 
-__all__ = ['CheckResult', 'Checkable']
+__all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainValidationBaseCheck',
+           'ModelOnlyBaseCheck']
 
 
 class CheckResult:
@@ -32,9 +33,44 @@ class CheckResult:
         return self.value.__repr__()
 
 
-class Checkable(metaclass=abc.ABCMeta):
+class BaseCheck(metaclass=abc.ABCMeta):
+    pass
+
+
+class SingleDatasetBaseCheck(BaseCheck):
+    """
+    Parent class for checks that only use one dataset
+    """
     @abc.abstractmethod
-    def run(self, model=None, train_data=None, validation_data=None) -> CheckResult:
+    def run(self, dataset, model=None) -> CheckResult:
+        pass
+
+
+class CompareDatasetsBaseCheck(BaseCheck):
+    """
+    Parent class for checks that compare between two datasets
+    """
+    @abc.abstractmethod
+    def run(self, dataset, compared_dataset, model=None) -> CheckResult:
+        pass
+
+
+class TrainValidationBaseCheck(BaseCheck):
+    """
+    Parent class for checks that compare two datasets - train dataset and validation dataset
+    for model training and validation
+    """
+    @abc.abstractmethod
+    def run(self, train_dataset, validation_dataset, model=None) -> CheckResult:
+        pass
+
+
+class ModelOnlyBaseCheck(BaseCheck):
+    """
+    Parent class for checks that only use a model and no datasets
+    """
+    @abc.abstractmethod
+    def run(self, model) -> CheckResult:
         pass
 
 #
