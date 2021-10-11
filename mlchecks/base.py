@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+import abc
 from typing import Callable, Dict, List, Any, Tuple
 import pandas as pd
 from pandas_profiling import ProfileReport
@@ -30,40 +30,35 @@ class CheckResult:
             data = {k:v for (k,v) in data.items() if k not in exclude}
         return data
 
-    def _repr_(self):
+    def __repr__(self):
         return self.value
 
 
-class Checkable(ABC):
-    @abstractmethod
+class Checkable(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
     def run(self, model=None, train_data=None, validation_data=None) -> CheckResult:
         pass
 
-    @abstractmethod
-    def run_and_decide(self, model=None, train_data=None, validation_data=None) -> Tuple[CheckResult, bool]:
-        pass
 
-
-class Check(Checkable):
+class Decidable(Checkable):
     """
     Check is a utility class which gives the option to combine a check and a decision function to be used together
     """
-    decision_func: Callable
-    decision_params: Dict
-    check_params: Dict
+    deciders: List[Callable]
 
-    def __init__(self, decision_func=None, decision_params=None, **check_params):
-        self.decision_func = decision_func
-        self.decision_params = decision_params
+    def __init__(self, deciders: List[Callable]=None, **check_params):
+        self.deciders = deciders or []
         self.check_params = check_params
 
     def run_and_decide(self, model=None, train_data=None, validation_data=None) -> Tuple[CheckResult, bool]:
         result = self.run(model=model, train_data=train_data, validation_data=validation_data)
-        if self.decision_func:
-            decision = self.decision_func(result, **self.decision_params)
-        else:
-            decision = True
-        return result, decision
+        decisions = [x(result.value) for x in self.deciders] or None
+        return result, decisions
+
+    def decider(self, decider: Callable[[Any], bool]):
+        deciders = [*self.deciders, decider]
+        return self.__class__(deciders=deciders, **self.check_params)
+
 
 
 class CheckSuite:
@@ -85,7 +80,6 @@ class CheckSuite:
 
 
 class Dataset(pd.DataFrame):
-
     def __init__(self,
                  df: pd.DataFrame,
                  features: List[str] = None, cat_features: List[str] = None,
