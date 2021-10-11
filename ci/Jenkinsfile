@@ -1,0 +1,44 @@
+
+//shared lib vars
+def l = library("jenkins-shared").com.deepchecks.jenkins.SharedLib
+
+def MR_REGEX = '^MR-\\d+$'
+def is_branch = false
+
+def agentLabel = "main-agent"
+
+pipeline{
+    agent{
+        label agentLabel
+    }
+    stages{
+
+      stage("Init") {
+        steps{
+          script {
+            log.info ("initialazing Shared Library")
+            lib = l.new(this,this,this)
+
+            log.info ("checking if pr or branch")
+            is_pr = BRANCH_NAME.matches(MR_REGEX)
+
+          }//script
+        }//steps
+      }//Calculate Runtime
+
+      stage("Test") {
+        steps{
+          script {
+            if (is_pr) {
+              log.info ("checking ")
+              sh "make tox"
+            } else {
+              sh "make ci"
+            }
+          }//script
+        }//steps
+      }//tests
+
+    }//stages
+
+}//pipeline
