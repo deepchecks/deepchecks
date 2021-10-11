@@ -41,7 +41,7 @@ REQUIREMENTS_LOG := .requirements.log
 
 ANALIZE_PKGS = pylint pydocstyle
 TEST_CODE := $(wildcard $(TESTDIR)/*.py)
-TEST_RUNNER_PKGS = pytest
+TEST_RUNNER_PKGS = pytest pyhamcrest
 
 COVERAGE_FILE = default.coveragerc
 COVERAGE_PKGS = pytest-cov
@@ -59,7 +59,7 @@ help:
 	@echo "env        Create virtual environment and install requirements"
 	@echo "             python=PYTHON_EXE   interpreter to use, default=python,"
 	@echo "							when creating new env and python binary is 2.X, use 'make env python=python3'"
-	@echo "check      Run style checks 'pylint' and 'docstring'"
+	@echo "validate      Run style checks 'pylint' and 'docstring'"
 	@echo "test       TEST_RUNNER on '$(TESTDIR)'"
 	@echo "             args=\"-x --pdb --ff\"  optional arguments"
 	@echo "coverage   Get coverage information, optional 'args' like test"
@@ -67,10 +67,10 @@ help:
 	@echo "upload     Upload package to PyPI"
 	@echo "clean clean-all  Clean up and clean up removing virtualenv"
 
-all: check test
+all: validate test
 
 # CI is same as all, but they may be different in the future so we'll have them both
-ci: check test
+ci: validate test
 
 
 env: $(REQUIREMENTS_LOG)
@@ -86,13 +86,13 @@ $(REQUIREMENTS_LOG): $(PIP) $(REQUIREMENTS)
 
 ### Static Analysis ######################################################
 
-.PHONY: check pylint docstring
+.PHONY: validate pylint docstring
 
-check: $(REQUIREMENTS_LOG) pylint docstring
+validate: $(REQUIREMENTS_LOG) pylint docstring
 
 pylint: $(ANALIZE)
 	$(ANALIZE) $(SOURCES) $(TEST_CODE)
-docstring: # We Use Google Style Python Docstring
+docstring: $(ANALIZE) # We Use Google Style Python Docstring
 	$(PYTHON) -m pydocstyle $(SOURCES) $(TEST_CODE)
 
 $(ANALIZE):
