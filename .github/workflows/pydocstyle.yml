@@ -19,4 +19,4 @@ jobs:
     - name: Set Up Env
       run: make env
     - name: Run Pydocstyle
-      run: make pydocstyle
+      run: make docstring
