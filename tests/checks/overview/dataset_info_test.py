@@ -17,7 +17,7 @@ def test_dataset_wrong_input():
     X = "wrong_input"
     # Act & Assert
     assert_that(calling(dataset_info).with_args(X),
-                raises(MLChecksValueError, 'dataset must be of type DataFrame or Dataset instead got: str'))
+                raises(MLChecksValueError, 'dataset must be of type DataFrame or Dataset. instead got: str'))
 
 
 def test_dataset_info_object(iris_dataset):
