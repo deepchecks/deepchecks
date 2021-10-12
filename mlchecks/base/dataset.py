@@ -3,7 +3,7 @@ from typing import Union, List
 import pandas as pd
 from pandas_profiling import ProfileReport
 
-__all__ = ['Dataset', 'validate_dataset_or_dataframe']
+__all__ = ['Dataset', 'validate_dataset_or_dataframe', 'validate_dataset']
 
 from mlchecks.utils import MLChecksValueError
 
@@ -149,7 +149,7 @@ class Dataset(pd.DataFrame):
 
     def validate_label(self, function_name: str):
         """
-        Throws error if dataset does not have a label
+        Throws error if dataset does not have a label.
 
         Args:
             function_name (str): function name to print in error
@@ -163,7 +163,7 @@ class Dataset(pd.DataFrame):
 
     def validate_date(self, function_name: str):
         """
-        Throws error if dataset does not have a date column
+        Throws error if dataset does not have a date column.
 
         Args:
             function_name (str): function name to print in error
@@ -172,7 +172,6 @@ class Dataset(pd.DataFrame):
             MLChecksValueError if dataset does not have a date column
 
         """
-
         if self.date_name() is None:
             raise MLChecksValueError(f'function {function_name} requires dataset to have a date column')
 

@@ -17,9 +17,9 @@ def util_generate_dataframe_and_expected():
     df['label'] = df['x2'] + 0.1 * df['x1']
     df['x5'] = df['label'].apply(lambda x: 'v1' if x < 0 else 'v2')
 
-    return df, {'x2': 0.841523366731384,
-                'x4': 0.5334285394903233,
-                'x5': 0.42269099121738773,
+    return df, {'x2': 0.84,
+                'x4': 0.53,
+                'x5': 0.42,
                 'x1': 0.0,
                 'x3': 0.0}
 
@@ -28,7 +28,9 @@ def test_assert_single_feature_contribution():
     df, expected = util_generate_dataframe_and_expected()
     result = single_feature_contribution(dataset=Dataset(df, label='label'))
     print(result.value)
-    assert_that(result.value, equal_to(expected))
+    for key, value in result.value.items():
+        assert_that(key, is_in(expected.keys()))
+        assert_that(value, close_to(expected[key], 0.1))
 
 
 def test_dataset_wrong_input():

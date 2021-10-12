@@ -18,11 +18,6 @@ class MLChecksValueError(ValueError):
 
     pass
 
-def validate_is_dataset(obj):
-    if not isinstance(obj, Dataset):
-        raise MLChecksValueError("single_feature_contribution check must receive a Dataset object")
-
-
 
 def get_plt_base64():
     """Convert plot to base64.
