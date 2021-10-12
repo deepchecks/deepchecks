@@ -2,7 +2,8 @@
 from typing import Union
 import pandas as pd
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
-from mlchecks.utils import is_notebook, MLChecksValueError, validate_dataset
+from mlchecks.base.dataset import validate_dataset
+from mlchecks.utils import is_notebook
 
 __all__ = ['dataset_info', 'DatasetInfo']
 

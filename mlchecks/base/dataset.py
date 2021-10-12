@@ -5,7 +5,7 @@ from typing import Union, List
 import pandas as pd
 from pandas_profiling import ProfileReport
 
-__all__ = ['Dataset']
+__all__ = ['Dataset', 'validate_dataset']
 
 from mlchecks.utils import MLChecksValueError
 
@@ -47,9 +47,9 @@ class Dataset(pd.DataFrame):
         # Validations
         if use_index is True and index is not None:
             raise MLChecksValueError('parameter use_index cannot be True if index is given')
-        if date not in self.columns:
+        if date and date not in self.columns:
             raise MLChecksValueError(f'date column {date} not found in dataset columns')
-        if label not in self.columns:
+        if label and label not in self.columns:
             raise MLChecksValueError(f'label column {label} not found in dataset columns')
 
         if features:
@@ -131,3 +131,19 @@ class Dataset(pd.DataFrame):
             The pandas profiling object including the statistics of the dataset
         """
         return self._profile
+
+
+def validate_dataset(ds) -> Dataset:
+    """
+    Receive an object and throws error if it's not pandas DataFrame or MLChecks Dataset.
+    Also returns the object as MLChecks Dataset
+    Returns
+        (Dataset): object converted to MLChecks dataset
+    """
+    if isinstance(ds, Dataset):
+        return ds
+    elif isinstance(ds, pd.DataFrame):
+        return Dataset(ds)
+    else:
+        raise MLChecksValueError(f"dataset must be of type DataFrame or Dataset instead got: "
+                                 f"{type(ds).__name__}")

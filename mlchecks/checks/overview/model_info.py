@@ -35,4 +35,3 @@ class ModelInfo(ModelOnlyBaseCheck):
     """
     def run(self, model: BaseEstimator) -> CheckResult:
         return model_info(model)
-
