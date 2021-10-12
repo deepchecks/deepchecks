@@ -1,10 +1,11 @@
-from typing import List, Iterable, Dict, Mapping
+from typing import List, Iterable
 
 import numpy as np
 import pandas as pd
 from pandas import DataFrame, StringDtype
 
 from mlchecks import Dataset, CheckResult
+from mlchecks.base.check import SingleDatasetBaseCheck
 from mlchecks.utils import MLChecksValueError, validate_dataset
 
 __all__ = ['mixed_nulls']
@@ -122,3 +123,12 @@ def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, colu
     df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percentage'])
 
     return CheckResult(column_to_nulls, display={'text/html': df_graph.to_html()})
+
+
+class MixNulls(SingleDatasetBaseCheck):
+    """
+    """
+    def run(self, dataset, model=None) -> CheckResult:
+        return mixed_nulls(dataset,
+                           null_string_list=self.params.get('null_string_list'),
+                           column=self.params.get('column'))
