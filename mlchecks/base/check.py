@@ -82,12 +82,14 @@ class Decidable(object):
     """
     Decidable is a utility class which gives the option to combine a check and a decision function to be used together
 
+    WARNING: This class should always come first in the inheritance
+
     Example of usage:
     ```
     class MyCheck(Decidable, SingleDatasetBaseCheck):
-        # run function signaute is inherited from the check class
+        # run function signature is inherited from the check class
         def run(self, dataset, model=None) -> CheckResult:
-            # Parameters are automaticlly sets on params property
+            # Parameters are automatically sets on params property
             param1 = self.params.get('param1')
             # Do stuff...
             value, html = x, y
@@ -98,14 +100,15 @@ class Decidable(object):
     my_check.decide(my_check.run())
     ```
     """
-    _deciders: List[Callable]
+    _deciders: List[Callable] = []
 
     def __init__(self, deciders: List[Callable] = None, **params):
+        print("HI")
         self._deciders = deciders or []
         super().__init__(**params)
 
-    def decide(self, result: CheckResult) -> List[bool]:
-        return [x(result.value) for x in self._deciders] or None
+    def decide(self, result: CheckResult) -> bool:
+        return all((x(result.value) for x in self._deciders))
 
     def decider(self, decider: Callable[[Any], bool]):
         new_copy = deepcopy(self)
