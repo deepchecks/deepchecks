@@ -1,8 +1,10 @@
-"""Module containing the MLChecks dataset object"""
-from typing import List, Union
-
+"""
+The Dataset module containing the dataset Class and its functions
+"""
+from typing import Union, List
 import pandas as pd
 from pandas_profiling import ProfileReport
+from typing import List
 
 __all__ = ['Dataset']
 
@@ -61,6 +63,8 @@ class Dataset(pd.DataFrame):
         else:
             self._cat_features = self.infer_categorical_features()
 
+        self._profile = ProfileReport(self, title='Dataset Report', explorative=True, minimal=True)
+
     def infer_categorical_features(self) -> List[str]:
         """Infers which features are categorical by checking types and number of unique values
 
@@ -110,9 +114,9 @@ class Dataset(pd.DataFrame):
         """
         return self._features
 
-    def _get_profile(self):
-        profile = ProfileReport(self, title='Dataset Report', explorative=True, minimal=True)
-        return profile
-
-    def _repr_mimebundle_(self, include, exclude): # pylint: disable=unused-argument TODO: use arguments
-        return {'text/html': self._get_profile().to_notebook_iframe()}
+    def get_profile(self):
+        """
+        Returns:
+            The pandas profiling object including the statistics of the dataset
+        """
+        return self._profile
