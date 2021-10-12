@@ -1,3 +1,4 @@
+"""Module pytest fixtures"""
 import pytest
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.datasets import load_iris

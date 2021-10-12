@@ -1,3 +1,4 @@
+"""Module containing base classes for all checks"""
 import abc
 from typing import Callable, Dict, List, Any
 from copy import deepcopy

@@ -1,3 +1,4 @@
+"""Module containing the suite object, used for running a set of checks together"""
 from typing import List
 
 from mlchecks.base.check import BaseCheck, CheckResult, TrainValidationBaseCheck, CompareDatasetsBaseCheck, \

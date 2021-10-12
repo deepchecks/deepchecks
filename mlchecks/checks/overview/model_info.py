@@ -1,3 +1,4 @@
+"""Module for the model info check"""
 from mlchecks import ModelOnlyBaseCheck, CheckResult
 import pandas as pd
 from sklearn.base import BaseEstimator

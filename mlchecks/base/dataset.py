@@ -1,3 +1,4 @@
+"""Module containing the MLChecks dataset object"""
 from typing import List, Union
 
 import pandas as pd

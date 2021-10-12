@@ -1,3 +1,4 @@
+"""Module for common functionalities throughout the package"""
 from typing import Any
 import sklearn
 import catboost
