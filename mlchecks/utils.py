@@ -26,6 +26,7 @@ def get_plt_base64():
         string of base64 encoding of the matplotlib.pyplot graph
     """
     plt_buffer = io.BytesIO()
+    plt.style.use('seaborn')
     plt.savefig(plt_buffer, format='jpg')
     plt_buffer.seek(0)
     return base64.b64encode(plt_buffer.read()).decode('utf-8')
