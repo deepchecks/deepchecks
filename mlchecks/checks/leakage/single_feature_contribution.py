@@ -2,13 +2,13 @@
 from typing import Union
 import pandas as pd
 import ppscore as pps
-import matplotlib.pyplot as plt
 
-from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
+from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck, TrainValidationBaseCheck
 from mlchecks.base.dataset import validate_dataset
 from mlchecks.utils import get_plt_html_str
 
-__all__ = ['single_feature_contribution', 'SingleFeatureContribution']
+__all__ = ['single_feature_contribution', 'single_feature_contribution_train_validation',
+           'SingleFeatureContribution', 'SingleFeatureContributionTrainValidation']
 
 
 def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_params=None):
@@ -43,10 +43,63 @@ def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_p
     s_ppscore = df_pps['ppscore']
 
     # Create graph:
-    s_ppscore.plot(kind='bar', ylabel='ppscore')
+    s_ppscore.plot(kind='bar', ylabel='ppscore', ylim=(0, 1), grid=True)
+
     html = get_plt_html_str()  # Catches graph into html
 
     return CheckResult(value=s_ppscore.to_dict(), display={'text/html': html})
+
+
+def single_feature_contribution_train_validation(train_dataset: Dataset, validation_dataset: Dataset, ppscore_params=None):
+    """
+    Return the difference in PPS (Predictive Power Score) of all features between train and validation datasets.
+
+    The PPS represents the ability of a feature to single-handedly predict another feature or label.
+    A high PPS (close to 1) can mean that this feature's success in predicting the label is actually due to data
+    leakage - meaning that the feature holds information that is based on the label to begin with.
+    A high difference in PPS between train and validation can indicate leakage as well.
+
+    Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
+
+    Args:
+        train_dataset (Dataset): A dataset object. Must contain a label
+        validation_dataset (Dataset): A dataset object. Must contain a label
+        ppscore_params (dict): dictionary of addional paramaters for the ppscore.predictors function
+
+    Returns:
+        CheckResult:
+            value is a dictionary with PPS per feature column.
+            data is a bar graph of the PPS of each feature.
+
+    Raises:
+        MLChecksValueError: If the object is not a Dataset instance with a label
+
+    """
+    func_name = 'single_feature_contribution'
+    train_dataset = validate_dataset(train_dataset, func_name)
+    train_dataset.validate_label(func_name)
+    validation_dataset = validate_dataset(validation_dataset, func_name)
+    validation_dataset.validate_label(func_name)
+    features_names = train_dataset.validate_shared_features(validation_dataset, func_name)
+    label_name = train_dataset.validate_shared_label(validation_dataset, func_name)
+    ppscore_params = ppscore_params or dict()
+
+    relevant_columns = features_names + [label_name]
+    df_pps_train = pps.predictors(df=train_dataset[relevant_columns], y=train_dataset.label_name(), random_seed=42,
+                                  **ppscore_params)
+    df_pps_validation = pps.predictors(df=validation_dataset[relevant_columns], y=validation_dataset.label_name(),
+                                       random_seed=42, **ppscore_params)
+    s_pps_train = df_pps_train.set_index('x', drop=True)['ppscore']
+    s_pps_validation = df_pps_validation.set_index('x', drop=True)['ppscore']
+
+    s_difference = s_pps_validation - s_pps_train
+
+    # Create graph:
+    s_difference.plot(kind='bar', ylabel='ppscore', ylim=(-1, 1))
+
+    html = get_plt_html_str()  # Catches graph into html
+
+    return CheckResult(value=s_difference.to_dict(), display={'text/html': html})
 
 
 class SingleFeatureContribution(SingleDatasetBaseCheck):
@@ -74,3 +127,30 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         """
         return single_feature_contribution(dataset=dataset, ppscore_params=self.params.get('ppscore_params'))
 
+
+class SingleFeatureContributionTrainValidation(TrainValidationBaseCheck):
+    """
+    Return the difference in PPS (Predictive Power Score) of all features between train and validation datasets.
+
+    The PPS represents the ability of a feature to single-handedly predict another feature or label.
+    A high PPS (close to 1) can mean that this feature's success in predicting the label is actually due to data
+    leakage - meaning that the feature holds information that is based on the label to begin with.
+
+    Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
+
+    """
+
+    def run(self, train_dataset: Dataset, validation_dataset: Dataset, model=None) -> CheckResult:
+        """
+        Run the single_feature_contribution check.
+
+        Arguments:
+            train_dataset (Dataset): A dataset object. Must contain a label
+            validation_dataset (Dataset): A dataset object. Must contain a label
+            model: any = None - not used in the check
+
+        Returns:
+            the output of the dataset_info check
+        """
+        return single_feature_contribution_train_validation(train_dataset=train_dataset, validation_dataset=validation_dataset,
+                                                            ppscore_params=self.params.get('ppscore_params'))
