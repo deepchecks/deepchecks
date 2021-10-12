@@ -5,12 +5,12 @@ import ppscore as pps
 import seaborn as sns
 
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
-from mlchecks.utils import MLChecksValueError, get_plt_html_str
+from mlchecks.utils import is_notebook, MLChecksValueError, get_plt_html_str
 
 __all__ = ['single_feature_contribution', 'SingleFeatureContribution']
 
 
-def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_params):
+def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_params=dict()):
     """
     Return the PPS (Predictive Power Score) of all features in relation to the label.
     The PPS represents the ability of a feature to single-handedly predict another feature or label.
