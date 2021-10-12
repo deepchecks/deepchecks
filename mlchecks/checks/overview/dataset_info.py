@@ -12,9 +12,9 @@ def dataset_info(dataset: Union[Dataset, pd.DataFrame]):
     """
     Summarize given dataset information based on pandas_profiling package.
 
-   Args:
+    Args:
        dataset (Dataset): A dataset object
-   Returns:
+    Returns:
        CheckResult: value is tuple that represents the shape of the dataset
 
     Raises:
@@ -31,14 +31,11 @@ def dataset_info(dataset: Union[Dataset, pd.DataFrame]):
 
 
 class DatasetInfo(SingleDatasetBaseCheck):
-    """
-    Summarize given dataset information based on pandas_profiling package.
-    Can be used inside `Suite`
-    """
+    """Summarize given dataset information based on pandas_profiling package. Can be used inside `Suite`."""
 
     def run(self, dataset: Dataset, model=None) -> CheckResult:
         """
-        Runs the dataset_info check
+        Run the dataset_info check.
 
         Arguments:
             dataset: Dataset - The dataset object

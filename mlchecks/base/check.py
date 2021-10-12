@@ -1,6 +1,4 @@
-"""
-Module containing all the base classes for checks
-"""
+"""Module containing all the base classes for checks."""
 import abc
 from typing import Dict, Any
 
@@ -9,13 +7,14 @@ __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDataset
 
 
 class CheckResult:
-    """Class which returns from a check with result that can later be used for automatic pipelines and display value
-    """
+    """Class which returns from a check with result that can later be used for automatic pipelines and display value."""
+
     value: Any
     display: Dict
 
     def __init__(self, value, display=None):
-        """
+        """Init check result.
+
         Args:
             value (Any):
             display (Dict): Dictionary with formatters for display. possible
@@ -35,49 +34,56 @@ class CheckResult:
         return data
 
     def __repr__(self):
+        """If _repr_mimebundle_ is empty ipython will display this instead."""
         return self.value.__repr__()
 
 
 class BaseCheck(metaclass=abc.ABCMeta):
-    """Base class for check"""
+    """Base class for check."""
 
     params: Dict
 
     def __init__(self, **params):
+        """Init base check parameters to pass to be used in the implementing check."""
         self.params = params
 
 
 class SingleDatasetBaseCheck(BaseCheck):
-    """Parent class for checks that only use one dataset"""
+    """Parent class for checks that only use one dataset."""
 
     @abc.abstractmethod
     def run(self, dataset, model=None) -> CheckResult:
+        """Define run signature."""
         pass
 
 
 class CompareDatasetsBaseCheck(BaseCheck):
-    """Parent class for checks that compare between two datasets"""
+    """Parent class for checks that compare between two datasets."""
 
     @abc.abstractmethod
     def run(self, dataset, compared_dataset, model=None) -> CheckResult:
+        """Define run signature."""
         pass
 
 
 class TrainValidationBaseCheck(BaseCheck):
-    """Parent class for checks that compare two datasets - train dataset and validation dataset
-    for model training and validation
+    """Parent class for checks that compare two datasets.
+
+    The class checks train dataset and validation dataset for model training and validation.
     """
 
     @abc.abstractmethod
     def run(self, train_dataset, validation_dataset, model=None) -> CheckResult:
+        """Define run signature."""
         pass
 
 
 class ModelOnlyBaseCheck(BaseCheck):
-    """Parent class for checks that only use a model and no datasets"""
+    """Parent class for checks that only use a model and no datasets."""
 
     @abc.abstractmethod
     def run(self, model) -> CheckResult:
+        """Define run signature."""
         pass
 
 

@@ -1,3 +1,4 @@
+"""Module contains model_info check."""
 from mlchecks import ModelOnlyBaseCheck, CheckResult
 import pandas as pd
 from sklearn.base import BaseEstimator
@@ -7,7 +8,8 @@ __all__ = ['model_info', 'ModelInfo']
 
 
 def model_info(model: BaseEstimator):
-    """Summarize given model parameters
+    """
+    Summarize given model parameters.
 
     Args:
         model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
@@ -28,10 +30,15 @@ def model_info(model: BaseEstimator):
 
 
 class ModelInfo(ModelOnlyBaseCheck):
-    """
-    Summarize given model parameters.
+    """Summarize given model parameters."""
 
-    Can be used inside `Suite`
-    """
     def run(self, model: BaseEstimator) -> CheckResult:
+        """Run model_info check.
+
+        Args:
+            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
+
+        Returns:
+            CheckResult: value is dictionary in format {type: <model_type>, params: <model_params_dict>}
+        """
         return model_info(model)
