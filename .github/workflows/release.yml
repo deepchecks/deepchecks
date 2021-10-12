@@ -1,0 +1,23 @@
+name: Build
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: [self-hosted]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: "Upload Package"
+      run: |
+        make release version=${{ github.event.release.tag_name }}
+      env:
+        TWINE_REPOSITORY_URL: ${{ secrets.REPOSITORY_URL }}
+        TWINE_USERNAME: ${{ secrets.REPOSITORY_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.REPOSITORY_PASSWORD }}
