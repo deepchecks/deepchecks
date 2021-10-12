@@ -1,3 +1,4 @@
+"""Module contains CheckSuite which bundle separate checks."""
 from typing import List
 
 from mlchecks.base.check import BaseCheck, CheckResult, TrainValidationBaseCheck, CompareDatasetsBaseCheck, \
@@ -7,9 +8,12 @@ __all__ = ['CheckSuite']
 
 
 class CheckSuite:
+    """Class which bundles separate checks into a single class."""
+
     checks: List[BaseCheck]
 
     def __init__(self, *checks):
+        """Get `Check`s and `CheckSuite`s to run in given order."""
         for check in checks:
             if not isinstance(check, BaseCheck):
                 raise Exception(f'CheckSuite receives only `BaseCheck` objects but got: {check.__class__.__name__}')
@@ -17,7 +21,8 @@ class CheckSuite:
 
     def run(self, model=None, train_dataset=None, validation_dataset=None, check_datasets_policy: str = 'validation') \
             -> List[CheckResult]:
-        """
+        """Run all checks.
+
         Args:
           model: A scikit-learn-compatible fitted estimator instance
           train_dataset: Dataset object, representing data an estimator was fitted on
@@ -55,8 +60,3 @@ class CheckSuite:
                                 f'instead')
 
         return results
-
-    def decide(self, model=None, train_dataset=None, validation_dataset=None, check_datasets_policy: str = 'validation'
-               ) -> List[CheckResult]:
-        #TODO: Complete
-        pass
