@@ -3,16 +3,12 @@
 from typing import Any
 import sklearn
 import catboost
+from IPython import get_ipython
+from pandas import DataFrame
+from mlchecks import Dataset
 
 __all__ = ['SUPPORTED_BASE_MODELS', 'MLChecksValueError', 'model_type_validation', 'is_notebook']
 
-<<<<<<< Updated upstream
-from IPython import get_ipython
-=======
-from pandas import DataFrame
-
-from mlchecks import Dataset
->>>>>>> Stashed changes
 
 SUPPORTED_BASE_MODELS = [sklearn.base.BaseEstimator, catboost.CatBoost]
 
