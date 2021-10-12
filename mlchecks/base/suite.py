@@ -90,12 +90,3 @@ class CheckSuite(BaseCheck):
             -> Dict[str, Union[Dict, List[Union[CheckResult, bool]]]]:
 
         return self._run(model, train_dataset, validation_dataset, check_datasets_policy, decide=True)
-
-
-
-
-# [dataset_info, model_info, Suite("itay", mode_info)]
-# {
-#     "aaa" [sgdfg],
-#
-# }
