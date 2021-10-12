@@ -5,12 +5,12 @@ import ppscore as pps
 import seaborn as sns
 
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
-from mlchecks.utils import is_notebook, MLChecksValueError, get_plt_html_str
+from mlchecks.utils import MLChecksValueError, get_plt_html_str
 
 __all__ = ['single_feature_contribution', 'SingleFeatureContribution']
 
 
-def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame]):
+def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_params):
     """
     Return the PPS (Predictive Power Score) of all features in relation to the label.
     The PPS represents the ability of a feature to single-handedly predict another feature or label.
@@ -35,14 +35,15 @@ def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame]):
         raise MLChecksValueError("single_feature_contribution requires dataset to have a label.")
 
     relevant_columns = dataset.features + [dataset.label()]
-    df_pps = pps.predictors(dataset[relevant_columns], dataset.label())
-    max_pps = df_pps.ppscore.max()
+    df_pps = pps.predictors(df=dataset[relevant_columns], y=dataset.label(), random_seed=42, **ppscore_params)
+    df_pps = df_pps.set_index('x', drop=True)
+    s_ppscore = df_pps['ppscore']
 
     # Create graph:
-    sns.barplot(data=df_pps, x="x", y="ppscore")
+    sns.barplot(x=s_ppscore.index, y=s_ppscore)
     html = get_plt_html_str()  # Catches graph into html
 
-    return CheckResult(value=max_pps, display={'text/html': html})
+    return CheckResult(value=s_ppscore.to_dict(), display={'text/html': html})
 
 
 class SingleFeatureContribution(SingleDatasetBaseCheck):
@@ -64,5 +65,5 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         Returns:
             the output of the dataset_info check
         """
-        return single_feature_contribution(dataset)
+        return single_feature_contribution(dataset=dataset, ppscore_params=self.params.get('ppscore_params'))
 
