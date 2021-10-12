@@ -14,11 +14,14 @@ SUPPORTED_BASE_MODELS = [sklearn.base.BaseEstimator, catboost.CatBoost]
 
 
 class MLChecksValueError(ValueError):
+    """Exception class that represent a fault parameter was passed to MLChecks."""
+
     pass
 
 
 def get_plt_base64():
-    """
+    """Convert plot to base64.
+
     Returns:
         string of base64 encoding of the matplotlib.pyplot graph
     """
@@ -29,7 +32,8 @@ def get_plt_base64():
 
 
 def get_plt_html_str():
-    """
+    """Convert plot to html image tag.
+
     Returns:
         string in text/html format in order to display the plot in html
     """
@@ -38,7 +42,7 @@ def get_plt_html_str():
 
 
 def model_type_validation(model: Any):
-    """Receive any object and check if it's an instance of a model we support
+    """Receive any object and check if it's an instance of a model we support.
 
     Raises
         MLChecksException: If the object is not of a supported type
@@ -48,8 +52,7 @@ def model_type_validation(model: Any):
 
 
 def is_notebook():
-    """
-    check if we're in an interactive context (Notebook, GUI support) or terminal-based.
+    """Check if we're in an interactive context (Notebook, GUI support) or terminal-based.
 
     Returns:
         True if we are in a notebook context, False otherwise

@@ -28,7 +28,6 @@ def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame]):
         MLChecksValueError: If the object is not a Dataset instance with a label
 
     """
-
     if not isinstance(dataset, pd.DataFrame):
         raise MLChecksValueError("single_feature_contribution check must receive a Dataset object")
     if not dataset.label():

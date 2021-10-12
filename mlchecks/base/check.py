@@ -39,6 +39,8 @@ class CheckResult:
 
 
 class BaseCheck(metaclass=abc.ABCMeta):
+    """Base class for check"""
+
     params: Dict
 
     def __init__(self, **params):
@@ -46,37 +48,34 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
 
 class SingleDatasetBaseCheck(BaseCheck):
-    """
-    Parent class for checks that only use one dataset
-    """
+    """Parent class for checks that only use one dataset"""
+
     @abc.abstractmethod
     def run(self, dataset, model=None) -> CheckResult:
         pass
 
 
 class CompareDatasetsBaseCheck(BaseCheck):
-    """
-    Parent class for checks that compare between two datasets
-    """
+    """Parent class for checks that compare between two datasets"""
+
     @abc.abstractmethod
     def run(self, dataset, compared_dataset, model=None) -> CheckResult:
         pass
 
 
 class TrainValidationBaseCheck(BaseCheck):
-    """
-    Parent class for checks that compare two datasets - train dataset and validation dataset
+    """Parent class for checks that compare two datasets - train dataset and validation dataset
     for model training and validation
     """
+
     @abc.abstractmethod
     def run(self, train_dataset, validation_dataset, model=None) -> CheckResult:
         pass
 
 
 class ModelOnlyBaseCheck(BaseCheck):
-    """
-    Parent class for checks that only use a model and no datasets
-    """
+    """Parent class for checks that only use a model and no datasets"""
+
     @abc.abstractmethod
     def run(self, model) -> CheckResult:
         pass
