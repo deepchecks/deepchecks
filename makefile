@@ -23,6 +23,7 @@ ENV = venv
 
 # System Envs
 BIN := $(ENV)/bin
+pythonpath= PYTHONPATH=.
 
 # Venv Executables
 PIP := $(BIN)/pip
@@ -81,6 +82,7 @@ $(PIP):
 	@echo "external python_exe is $(ext_py)"
 	test -d $(ENV) || $(ext_py) -m venv $(ENV) 
 $(REQUIREMENTS_LOG): $(PIP) $(REQUIREMENTS)
+	$(PIP) install --upgrade pip
 	$(PIP) install $(INSTALLATION_PKGS)
 	for f in $(REQUIREMENTS); do \
 	  $(PIP) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
@@ -99,7 +101,7 @@ pylint: $(ANALIZE)
 docstring: $(ANALIZE) # We Use Google Style Python Docstring
 	$(PYTHON) -m pydocstyle $(SOURCES) $(TEST_CODE)
 
-$(ANALIZE):
+$(ANALIZE): $(PIP)
 	$(PIP) install --upgrade $(ANALIZE_PKGS) | tee -a $(REQUIREMENTS_LOG)
 
 
@@ -107,14 +109,15 @@ $(ANALIZE):
 
 .PHONY: test coverage
 
-test: $(REQUIREMENTS_LOG) $(TEST_RUNNER) develop
-	$(TEST_RUNNER) $(args) $(TESTDIR)
+test: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
+	
+	$(pythonpath) $(TEST_RUNNER) $(args) $(TESTDIR)
 
 $(TEST_RUNNER):
 	$(PIP) install $(TEST_RUNNER_PKGS) | tee -a $(REQUIREMENTS_LOG)
 
 coverage: $(REQUIREMENTS_LOG) $(COVERAGE) $(COVERAGE_FILE)
-	$(TEST_RUNNER) $(args) $(COVER_ARG) $(TESTDIR)
+	$(pythonpath) $(TEST_RUNNER) $(args) $(COVER_ARG) $(TESTDIR)
 
 
 # This is Here For Legacy || future use case,
