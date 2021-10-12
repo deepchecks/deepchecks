@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame, StringDtype
 
-from mlchecks import Dataset, CheckResult, validate_dataset, validate_column
+from mlchecks import Dataset, CheckResult, validate_dataset_or_dataframe, validate_column
 from mlchecks.base.check import SingleDatasetBaseCheck
 from mlchecks.utils import MLChecksValueError
 
@@ -63,7 +63,7 @@ def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, colu
         more than 1 null values.
     """
     # Validate parameters
-    dataset: Dataset = validate_dataset(dataset)
+    dataset: Dataset = validate_dataset_or_dataframe(dataset)
     null_string_list: set = validate_null_string_list(null_string_list)
     null_string_list.add(np.NaN)
     columns: List[str] = validate_column(column, dataset)
