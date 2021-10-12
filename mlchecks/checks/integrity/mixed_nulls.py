@@ -10,6 +10,7 @@ from mlchecks.base.check import SingleDatasetBaseCheck
 from mlchecks.utils import MLChecksValueError
 
 __all__ = ['mixed_nulls', 'MixedNulls']
+
 DEFAULT_NULL_VALUES = {'none', 'null', 'nan', 'na', '', "\x00", "\x00\x00"}
 SPECIAL_CHARS: str = " !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~\n"
 
@@ -88,12 +89,12 @@ def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, colu
         # other_nulls_counts = null_counts.drop(null_counts.index[0])
         # Save the column info
         for key, count in null_counts.iteritems():
-            display_array.append([column_name, key, count, count / dataset.size])
+            display_array.append([column_name, key, count, round(count / dataset.size, 2)])
 
     # Create dataframe to display graph
     df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percentage'])
 
-    return CheckResult(df_graph, display={'text/html': df_graph.to_html()})
+    return CheckResult(df_graph, display={'text/html': df_graph.to_html(index=False)})
 
 
 class MixedNulls(SingleDatasetBaseCheck):
