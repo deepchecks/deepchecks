@@ -7,6 +7,8 @@ __all__ = ['Dataset', 'validate_dataset']
 
 from mlchecks.utils import MLChecksValueError
 
+MAX_CATEGORY_RATIO = 0.001
+MAX_CATEGORIES = 100
 
 class Dataset(pd.DataFrame):
     """Dataset extends pandas DataFrame to provide ML related metadata.
@@ -73,8 +75,14 @@ class Dataset(pd.DataFrame):
         Returns:
            Out of the list of feature names, returns list of categorical features
         """
-        # TODO: add infer logic here
-        return []
+        cat_columns = []
+
+        for col in self.columns:
+            num_unique = self[col].nunique(dropna=True)
+            if num_unique / len(self[col].dropna()) < MAX_CATEGORY_RATIO or num_unique <= MAX_CATEGORIES:
+                cat_columns.append(col)
+
+        return cat_columns
 
     def index_col(self) -> Union[pd.Series, None]:
         """Return index column. Index can be a named column or DataFrame index.
