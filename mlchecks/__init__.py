@@ -1,5 +1,6 @@
 """Top module for MLChecks library."""
 from .base import *
+from .checks import *
 import matplotlib
 import matplotlib.pyplot as plt
 

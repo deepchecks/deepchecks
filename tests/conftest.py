@@ -3,7 +3,7 @@
 #pylint: disable=redefined-outer-name
 
 import pytest
-from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.datasets import load_iris
 import pandas as pd
 from mlchecks import Dataset
@@ -36,3 +36,31 @@ def iris_adaboost(iris):
 def iris_labled_dataset(iris):
     """Return t Iris dataset as Dataset object with label."""
     return Dataset(iris, label='target')
+
+
+@pytest.fixture(scope='session')
+def iris_random_forest(iris):
+    """Return trained RandomForestClassifier on iris data."""
+    clf = RandomForestClassifier()
+    features = iris.drop('target', axis=1)
+    target = iris.target
+    clf.fit(features, target)
+    return clf
+
+@pytest.fixture(scope='session')
+def iris_random_forest_single_class(iris):
+    """Return trained RandomForestClassifier on iris data modified to a binary label."""
+    clf = RandomForestClassifier()
+    idx = iris.target != 2
+    features = iris.drop('target', axis=1)[idx]
+    target = iris.target[idx]
+    clf.fit(features, target)
+    return clf
+
+@pytest.fixture(scope='session')
+def iris_dataset_single_class(iris):
+    """Return Iris dataset modified to a binary label as Dataset object."""
+    idx = iris.target != 2
+    df = iris[idx]
+    dataset = Dataset(df)
+    return dataset
