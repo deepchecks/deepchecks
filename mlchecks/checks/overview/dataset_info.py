@@ -2,7 +2,7 @@
 from typing import Union
 import pandas as pd
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
-from mlchecks.base.dataset import validate_dataset
+from mlchecks.base.dataset import validate_dataset_or_dataframe
 from mlchecks.utils import is_notebook
 
 __all__ = ['dataset_info', 'DatasetInfo']
@@ -20,7 +20,7 @@ def dataset_info(dataset: Union[Dataset, pd.DataFrame]):
     Raises:
         MLChecksValueError: If the object is not of a supported type
     """
-    dataset = validate_dataset(dataset)
+    dataset = validate_dataset_or_dataframe(dataset)
 
     if is_notebook():
         html = dataset.get_profile().to_notebook_iframe()
