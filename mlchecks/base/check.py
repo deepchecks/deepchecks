@@ -103,7 +103,6 @@ class Decidable(object):
     _deciders: List[Callable] = []
 
     def __init__(self, deciders: List[Callable] = None, **params):
-        print("HI")
         self._deciders = deciders or []
         super().__init__(**params)
 
