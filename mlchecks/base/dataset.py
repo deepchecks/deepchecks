@@ -3,7 +3,7 @@ from typing import Union, List
 import pandas as pd
 from pandas_profiling import ProfileReport
 
-__all__ = ['Dataset', 'validate_dataset']
+__all__ = ['Dataset', 'validate_dataset', 'validate_column']
 
 from mlchecks.utils import MLChecksValueError
 
@@ -149,3 +149,29 @@ def validate_dataset(ds) -> Dataset:
     else:
         raise MLChecksValueError(f'dataset must be of type DataFrame or Dataset instead got: '
                                  f'{type(ds).__name__}')
+
+
+def validate_column(column: str, dataset: Dataset) -> List[str]:
+    """Validate given column on dataset.
+
+    If column is not None, make sure it exists in the datasets, and return list column name.
+    If column is None return list of all columns in the dataset.
+
+    Args:
+        column ([None, str]): column name or None
+        dataset (Dataset): Dataset working on
+
+    Returns:
+        (List[str]): List with column names to work on
+    """
+    if column is None:
+        # If column is None works on all columns
+        return [dataset.columns]
+    else:
+        if not isinstance(column, str):
+            raise MLChecksValueError(f"column type must be 'None' or 'str' but got: {type(column).__name__}")
+        if len(column) == 0:
+            raise MLChecksValueError("column can't be empty string")
+        if column not in dataset.columns:
+            raise MLChecksValueError(f"column {column} isn't found in the dataset")
+        return [column]
