@@ -1,36 +1,49 @@
 """
-Contains unit tests for the dataset_info check
+Contains unit tests for the single_feature_contribution check
 """
-from mlchecks.checks.overview.dataset_info import *
+import numpy as np
+import pandas as pd
+
+from mlchecks import Dataset
+from mlchecks.checks.leakage.single_feature_contribution import single_feature_contribution
 from hamcrest import *
 from mlchecks.utils import MLChecksValueError
 
 
-def test_assert_dataset_info(iris_dataset):
-    # Act
-    result = dataset_info(iris_dataset)
-    # Assert
-    assert_that(result.value, equal_to((150, 5)))
+def util_generate_dataframe_and_expected():
+    np.random.seed(42)
+    df = pd.DataFrame(np.random.randn(100, 3), columns=['x1', 'x2', 'x3'])
+    df['x4'] = df['x1'] * 0.5 + df['x2']
+    df['label'] = df['x2'] + 0.1 * df['x1']
+    df['x5'] = df['label'].apply(lambda x: 'v1' if x < 0 else 'v2')
+
+    return df, {'x2': 0.84,
+                'x4': 0.53,
+                'x5': 0.42,
+                'x1': 0.0,
+                'x3': 0.0}
+
+
+def test_assert_single_feature_contribution():
+    df, expected = util_generate_dataframe_and_expected()
+    result = single_feature_contribution(dataset=Dataset(df, label='label'))
+    print(result.value)
+    for key, value in result.value.items():
+        assert_that(key, is_in(expected.keys()))
+        assert_that(value, close_to(expected[key], 0.1))
 
 
 def test_dataset_wrong_input():
     X = "wrong_input"
-    # Act & Assert
-    assert_that(calling(dataset_info).with_args(X),
-                raises(MLChecksValueError, 'dataset must be of type DataFrame or Dataset instead got: str'))
+    assert_that(
+        calling(single_feature_contribution).with_args(X),
+        raises(MLChecksValueError, 'function single_feature_contribution requires dataset to be of type Dataset. '
+                                   'instead got: str'))
 
 
-def test_dataset_info_object(iris_dataset):
-    # Arrange
-    di = DatasetInfo()
-    # Act
-    result = di.run(iris_dataset, model=None)
-    # Assert
-    assert_that(result.value, equal_to((150, 5)))
-
-
-def test_dataset_info_dataframe(iris):
-    # Act
-    result = dataset_info(iris)
-    # Assert
-    assert_that(result.value, equal_to((150, 5)))
+def test_dataset_no_label():
+    df, _ = util_generate_dataframe_and_expected()
+    df = Dataset(df)
+    assert_that(
+        calling(single_feature_contribution).with_args(dataset=df),
+        raises(MLChecksValueError, 'function single_feature_contribution requires dataset to have a label column'))
