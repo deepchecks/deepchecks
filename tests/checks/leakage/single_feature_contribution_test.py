@@ -14,7 +14,7 @@ def util_generate_dataframe_and_expected():
     df = pd.DataFrame(np.random.randn(100, 3), columns=['x1', 'x2', 'x3'])
     df['x4'] = df['x1'] * 0.5 + df['x2']
     df['label'] = df['x2'] + 0.1 * df['x1']
-    df['x5'] = df['label'].apply(lambda x: 'gabay creates bugs' if x < 0 else 'and matan solves them')
+    df['x5'] = df['label'].apply(lambda x: 'v1' if x < 0 else 'v2')
 
     return df, {'x2': 0.8410436710134066,
                 'x4': 0.5196251242216743,

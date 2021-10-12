@@ -18,19 +18,21 @@ def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_p
     A high PPS (close to 1) can mean that this feature's success in predicting the label is actually due to data
     leakage - meaning that the feature holds information that is based on the label to begin with.
 
+    Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
+
     Args:
         dataset (Dataset): A dataset object. Must contain a label
         ppscore_params (dict): dictionary of addional paramaters for the ppscore.predictors function
     Returns:
         CheckResult:
-            value is the highest PPS a feature has got.
+            value is a dictionary with PPS per feature column.
             data is a bar graph of the PPS of each feature.
 
     Raises:
         MLChecksValueError: If the object is not a Dataset instance with a label
 
     """
-    if not isinstance(dataset, pd.DataFrame):
+    if not isinstance(dataset, Dataset):
         raise MLChecksValueError("single_feature_contribution check must receive a Dataset object")
     if not dataset.label():
         raise MLChecksValueError("single_feature_contribution requires dataset to have a label")
@@ -55,6 +57,8 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
     The PPS represents the ability of a feature to single-handedly predict another feature or label.
     A high PPS (close to 1) can mean that this feature's success in predicting the label is actually due to data
     leakage - meaning that the feature holds information that is based on the label to begin with.
+
+    Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
 
     """
 
