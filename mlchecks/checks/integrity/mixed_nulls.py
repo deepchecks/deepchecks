@@ -92,9 +92,14 @@ def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, colu
             display_array.append([column_name, key, count, round(count / dataset.size, 2)])
 
     # Create dataframe to display graph
-    df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percentage'])
+    df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Fraction of data'])
     df_graph = df_graph.set_index(['Column Name', 'Value'])
-    return CheckResult(df_graph, display={'text/html': df_graph.to_html()})
+
+    if len(df_graph) > 0:
+        html = df_graph.to_html()
+    else:
+        html = '<p><b>OK!</b> Ran mixed nulls check and no issue found</p>'
+    return CheckResult(df_graph, display={'text/html': html})
 
 
 class MixedNulls(SingleDatasetBaseCheck):

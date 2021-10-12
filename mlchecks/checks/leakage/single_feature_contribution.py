@@ -35,7 +35,7 @@ def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_p
     """
     dataset = validate_dataset(dataset, 'single_feature_contribution')
     dataset.validate_label('single_feature_contribution')
-    ppscore_params = ppscore_params or dict()
+    ppscore_params = ppscore_params or {}
 
     relevant_columns = dataset.features() + [dataset.label_name()]
     df_pps = pps.predictors(df=dataset[relevant_columns], y=dataset.label_name(), random_seed=42, **ppscore_params)
