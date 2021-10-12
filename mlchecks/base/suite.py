@@ -1,4 +1,4 @@
-"""Module containing the Suite object, used for running a set of checks together"""
+"""Module containing the Suite object, used for running a set of checks together."""
 from typing import List
 
 from mlchecks.base.check import BaseCheck, CheckResult, TrainValidationBaseCheck, CompareDatasetsBaseCheck, \
@@ -13,6 +13,7 @@ class CheckSuite:
     Attributes:
         checks: A list of checks to run.
     """
+
     checks: List[BaseCheck]
 
     def __init__(self, *checks):

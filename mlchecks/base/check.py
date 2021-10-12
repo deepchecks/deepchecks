@@ -18,6 +18,7 @@ class CheckResult:
         value (Any): Value calculated by check. Can be used to decide if decidable check passed.
         display (Dict): Dictionary with formatters for display. possible formatters are: 'text/html', 'image/png'
     """
+
     value: Any
     display: Dict
 
