@@ -17,7 +17,7 @@ def dataset_info(dataset: Union[Dataset, pd.DataFrame]):
        CheckResult: value is tuple that represents the shape of the dataset
 
     Raises:
-        MLChecksException: If the object is not of a supported type
+        MLChecksValueError: If the object is not of a supported type
     """
 
     if not isinstance(dataset, pd.DataFrame):
@@ -44,6 +44,16 @@ class DatasetInfo(SingleDatasetBaseCheck):
     Can be used inside `Suite`
     """
 
-    def run(self, dataset, model=None) -> CheckResult:
+    def run(self, dataset: Dataset, model=None) -> CheckResult:
+        """
+        Runs the dataset_info check
+
+        Arguments:
+            dataset: Dataset - The dataset object
+            model: any = None - not used in the check
+
+        Returns:
+            the output of the dataset_info check
+        """
         return dataset_info(dataset)
 
