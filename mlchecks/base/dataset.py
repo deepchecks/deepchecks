@@ -1,8 +1,9 @@
-from typing import List, Union
-
+"""
+The Dataset module containing the dataset Class and its functions
+"""
+from typing import Union, List
 import pandas as pd
 from pandas_profiling import ProfileReport
-from typing import List
 
 __all__ = ['Dataset']
 
@@ -60,7 +61,7 @@ class Dataset(pd.DataFrame):
         else:
             self._cat_features = self.infer_categorical_features()
 
-        self._profile = ProfileReport(self, title="Dataset Report", explorative=True, minimal=True)
+        self._profile = ProfileReport(self, title='Dataset Report', explorative=True, minimal=True)
 
     def infer_categorical_features(self) -> List[str]:
         """Infers which features are categorical by checking types and number of unique values
