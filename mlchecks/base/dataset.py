@@ -1,12 +1,11 @@
-"""
-The Dataset module containing the dataset Class and its functions
-"""
+"""The Dataset module containing the dataset Class and its functions."""
 from typing import Union, List
 import pandas as pd
 from pandas_profiling import ProfileReport
-from typing import List
 
-__all__ = ['Dataset']
+__all__ = ['Dataset', 'validate_dataset']
+
+from mlchecks.utils import MLChecksValueError
 
 
 class Dataset(pd.DataFrame):
@@ -26,10 +25,9 @@ class Dataset(pd.DataFrame):
 
     def __init__(self,
                  df: pd.DataFrame,
-                 *args,
                  features: List[str] = None, cat_features: List[str] = None,
                  label: str = None, use_index: bool = False, index: str = None, date: str = None,
-                 **kwargs):
+                 *args, **kwargs):
         """Initiates the Dataset using a pandas DataFrame and Metadata
 
         Args:
@@ -46,7 +44,11 @@ class Dataset(pd.DataFrame):
 
         # Validations
         if use_index is True and index is not None:
-            raise ValueError('parameter use_index cannot be True if index is given')
+            raise MLChecksValueError('parameter use_index cannot be True if index is given')
+        if date is not None and date not in self.columns:
+            raise MLChecksValueError(f'date column {date} not found in dataset columns')
+        if label is not None and label not in self.columns:
+            raise MLChecksValueError(f'label column {label} not found in dataset columns')
 
         if features:
             self._features = features
@@ -66,17 +68,16 @@ class Dataset(pd.DataFrame):
         self._profile = ProfileReport(self, title='Dataset Report', explorative=True, minimal=True)
 
     def infer_categorical_features(self) -> List[str]:
-        """Infers which features are categorical by checking types and number of unique values
+        """Infers which features are categorical by checking types and number of unique values.
 
         Returns:
            Out of the list of feature names, returns list of categorical features
-
         """
         # TODO: add infer logic here
         return []
 
     def index_col(self) -> Union[pd.Series, None]:
-        """Returns index column. Index can be a named column or DataFrame index.
+        """Return index column. Index can be a named column or DataFrame index.
 
         Returns:
            If date column exists, returns a pandas Series of the index column.
@@ -90,9 +91,10 @@ class Dataset(pd.DataFrame):
             return None
 
     def date_col(self) -> Union[pd.Series, None]:
-        """
+        """If date column exists, returns a pandas Series of the index column.
+
         Returns:
-           If date column exists, returns a pandas Series of the index column.
+           (Series): Series of the index column
         """
 
         if self._date_name:
@@ -100,23 +102,63 @@ class Dataset(pd.DataFrame):
         else:  # Date column not configured in Dataset
             return None
 
-    def cat_features(self) -> List[str]:
+    def label(self) -> str:
+        """Return label column name.
+
+        Returns:
+           Label name
         """
+        return self._label
+
+    def label_col(self) -> Union[pd.Series, None]:
+        """Return label column.
+
+        Returns:
+           Label column
+        """
+        if self._label:
+            return self[self._label]
+        else:
+            return None
+
+    def cat_features(self) -> List[str]:
+        """Return List of categorical feature names.
+
         Returns:
            List of categorical feature names.
         """
         return self._cat_features
 
     def features(self) -> List[str]:
-        """
+        """Return list of feature names.
+
         Returns:
            List of feature names.
         """
         return self._features
 
     def get_profile(self):
-        """
+        """Return the pandas profiling object including the statistics of the dataset.
+
         Returns:
             The pandas profiling object including the statistics of the dataset
         """
         return self._profile
+
+
+def validate_dataset(ds) -> Dataset:
+    """Throws error if object is not pandas DataFrame or MLChecks Dataset and returns the object as MLChecks Dataset.
+
+    Args:
+        ds: object to validate as dataset
+
+    Returns:
+        (Dataset): object converted to MLChecks dataset
+    """
+    if isinstance(ds, Dataset):
+        return ds
+    elif isinstance(ds, pd.DataFrame):
+        return Dataset(ds)
+    else:
+        raise MLChecksValueError(f'dataset must be of type DataFrame or Dataset instead got: '
+                                 f'{type(ds).__name__}')
