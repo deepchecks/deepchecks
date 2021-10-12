@@ -42,3 +42,4 @@ class ModelInfo(ModelOnlyBaseCheck):
             CheckResult: value is dictionary in format {type: <model_type>, params: <model_params_dict>}
         """
         return model_info(model)
+

@@ -82,6 +82,7 @@ class Dataset(pd.DataFrame):
         Returns:
            If date column exists, returns a pandas Series of the index column.
         """
+
         if self.use_index is True:
             return pd.Series(self.index)
         elif self._index_name is not None:
@@ -95,24 +96,28 @@ class Dataset(pd.DataFrame):
         Returns:
            (Series): Series of the index column
         """
+
         if self._date_name:
             return self[self._date_name]
         else:  # Date column not configured in Dataset
             return None
 
-    def label(self) -> Union[pd.Series, None]:
-        """Return label column name.
+    def label_col(self) -> Union[pd.Series, None]:
+        """Return label column.
 
         Returns:
-           (str)
+           Label column
         """
-        return self._label
+        if self._label:
+            return self[self._label]
+        else:
+            return None
 
     def cat_features(self) -> List[str]:
         """Return List of categorical feature names.
 
         Returns:
-           (List[str])
+           List of categorical feature names.
         """
         return self._cat_features
 
@@ -120,7 +125,7 @@ class Dataset(pd.DataFrame):
         """Return list of feature names.
 
         Returns:
-            (List[str])
+           List of feature names.
         """
         return self._features
 
@@ -128,7 +133,7 @@ class Dataset(pd.DataFrame):
         """Return the pandas profiling object including the statistics of the dataset.
 
         Returns:
-            (ProfileReport)
+            The pandas profiling object including the statistics of the dataset
         """
         return self._profile
 

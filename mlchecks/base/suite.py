@@ -1,4 +1,4 @@
-"""Module contains CheckSuite which bundle separate checks."""
+"""Module containing the Suite object, used for running a set of checks together"""
 from typing import List
 
 from mlchecks.base.check import BaseCheck, CheckResult, TrainValidationBaseCheck, CompareDatasetsBaseCheck, \
@@ -8,8 +8,11 @@ __all__ = ['CheckSuite']
 
 
 class CheckSuite:
-    """Class which bundles separate checks into a single class."""
+    """Class for running a set of checks together, and returning a unified pass / no-pass.
 
+    Attributes:
+        checks: A list of checks to run.
+    """
     checks: List[BaseCheck]
 
     def __init__(self, *checks):
