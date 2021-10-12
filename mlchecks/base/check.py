@@ -7,9 +7,9 @@ __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDataset
 
 
 class CheckResult:
-    """Class which returns from a check with result that can later be used for automatic pipelines and display value."""
+    """Class which returns from a check with result that can later be used for automatic pipelines and display value.
 
-    """Class containing the result of a check
+    Class containing the result of a check
 
     The class stores the results and display of the check. Evaluating the result in an IPython console / notebook
     will show the result display output.

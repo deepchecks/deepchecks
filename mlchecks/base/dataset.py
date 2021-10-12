@@ -25,9 +25,10 @@ class Dataset(pd.DataFrame):
 
     def __init__(self,
                  df: pd.DataFrame,
+                 *args,
                  features: List[str] = None, cat_features: List[str] = None,
                  label: str = None, use_index: bool = False, index: str = None, date: str = None,
-                 *args, **kwargs):
+                 **kwargs):
         """Initiates the Dataset using a pandas DataFrame and Metadata
 
         Args:
