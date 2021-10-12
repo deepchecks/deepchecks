@@ -212,15 +212,15 @@ def validate_dataset(obj, function_name: str) -> Dataset:
                                  f'{type(obj).__name__}')
 
 
-def validate_column(column: str, dataset: Dataset) -> List[str]:
+def validate_column(dataset: Dataset, column: str = None) -> List[str]:
     """Validate given column on dataset.
 
-    If column is not None, make sure it exists in the datasets, and return list column name.
+    If column is not None, make sure it exists in the datasets, and return list containing only column name.
     If column is None return list of all columns in the dataset.
 
     Args:
-        column ([None, str]): column name or None
         dataset (Dataset): Dataset working on
+        column ([None, str]): column name or None
 
     Returns:
         (List[str]): List with column names to work on

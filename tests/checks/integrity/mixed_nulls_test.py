@@ -34,7 +34,7 @@ def test_single_column_two_null_types():
     assert_that(result.value, has_length(2))
 
 
-def test_single_column_different_case_is_count_separated():
+def test_single_column_different_case_is_count_separately():
     # Arrange
     data = {'col1': ['foo', 'bar', 'Nan', 'nan', 'NaN']}
     dataframe = pd.DataFrame(data=data)
