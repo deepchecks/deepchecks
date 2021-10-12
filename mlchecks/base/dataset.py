@@ -24,12 +24,11 @@ class Dataset(pd.DataFrame):
     """
 
     def __init__(self,
-                 df: pd.DataFrame,
-                 *args,
+                 df: pd.DataFrame, *args,
                  features: List[str] = None, cat_features: List[str] = None,
                  label: str = None, use_index: bool = False, index: str = None, date: str = None,
                  **kwargs):
-        """Initiates the Dataset using a pandas DataFrame and Metadata
+        """Initiate the Dataset using a pandas DataFrame and Metadata.
 
         Args:
           df: A pandas DataFrame containing data relevant for the training or validating of a ML models
@@ -102,14 +101,6 @@ class Dataset(pd.DataFrame):
             return self[self._date_name]
         else:  # Date column not configured in Dataset
             return None
-
-    def label(self) -> str:
-        """Return label column name.
-
-        Returns:
-           Label name
-        """
-        return self._label
 
     def label_col(self) -> Union[pd.Series, None]:
         """Return label column.
