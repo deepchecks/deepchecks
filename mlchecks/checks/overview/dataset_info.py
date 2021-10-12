@@ -30,7 +30,7 @@ def dataset_info(dataset: Union[Dataset, pd.DataFrame]):
         d = dataset
 
     if is_notebook():
-        html = d.get_profile().to_notebook_iframe()
+        html = d.get_profile().to_html()
     else:
         html = d.to_html()
 
