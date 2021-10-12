@@ -1,6 +1,4 @@
-"""
-Contains unit tests for the single_feature_contribution check
-"""
+"""Contains unit tests for the single_feature_contribution check."""
 import numpy as np
 import pandas as pd
 

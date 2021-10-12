@@ -11,8 +11,8 @@ from mlchecks.utils import MLChecksValueError
 
 __all__ = ['mixed_nulls', 'MixedNulls']
 
-DEFAULT_NULL_VALUES = {'none', 'null', 'nan', 'na', '', "\x00", "\x00\x00"}
-SPECIAL_CHARS: str = " !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~\n"
+DEFAULT_NULL_VALUES = {'none', 'null', 'nan', 'na', '', '\x00', '\x00\x00'}
+SPECIAL_CHARS: str = ' !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~\n'
 
 
 def validate_null_string_list(nsl) -> set:
