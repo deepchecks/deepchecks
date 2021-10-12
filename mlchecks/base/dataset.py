@@ -169,7 +169,7 @@ def validate_column(column: str, dataset: Dataset) -> List[str]:
     """
     if column is None:
         # If column is None works on all columns
-        return [dataset.columns]
+        return list(dataset.columns)
     else:
         if not isinstance(column, str):
             raise MLChecksValueError(f"column type must be 'None' or 'str' but got: {type(column).__name__}")

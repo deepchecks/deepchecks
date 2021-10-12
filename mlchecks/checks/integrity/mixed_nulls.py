@@ -47,7 +47,7 @@ def string_baseform(string: str):
     """
     if not isinstance(string, str):
         return string
-    return string.translate(str.maketrans('', '', SPECIAL_CHARS))
+    return string.translate(str.maketrans('', '', SPECIAL_CHARS)).lower()
 
 
 def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, column: str = None) -> CheckResult:
@@ -79,7 +79,7 @@ def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, colu
         # Get counts of all values in series including NaNs, in sorted order of count
         column_counts: pd.Series = column_data.value_counts(dropna=False)
         # Filter out values not in the nulls list
-        keys_to_drop = [key for key in column_counts.keys() if string_baseform(key) in null_string_list]
+        keys_to_drop = [key for key in column_counts.keys() if string_baseform(key) not in null_string_list]
         null_counts = column_counts.drop(labels=keys_to_drop)
         if null_counts.size < 2:
             continue
@@ -100,7 +100,7 @@ class MixedNulls(SingleDatasetBaseCheck):
     """Search for various types of null values in a string column(s), including string representations of null."""
 
     def run(self, dataset, model=None) -> CheckResult:
-        """
+        """Run mix_nulls.
 
         Args:
             dataset (Dataset):
