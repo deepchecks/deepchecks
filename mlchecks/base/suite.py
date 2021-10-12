@@ -1,3 +1,6 @@
+"""
+Module contains CheckSuite which bundle separate checks
+"""
 from typing import List
 
 from mlchecks.base.check import BaseCheck, CheckResult, TrainValidationBaseCheck, CompareDatasetsBaseCheck, \
@@ -7,6 +10,8 @@ __all__ = ['CheckSuite']
 
 
 class CheckSuite:
+    """Class which bundles separate checks into a single class
+    """
     checks: List[BaseCheck]
 
     def __init__(self, *checks):
@@ -55,8 +60,3 @@ class CheckSuite:
                                 f'instead')
 
         return results
-
-    def decide(self, model=None, train_dataset=None, validation_dataset=None, check_datasets_policy: str = 'validation'
-               ) -> List[CheckResult]:
-        #TODO: Complete
-        pass

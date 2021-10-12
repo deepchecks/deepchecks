@@ -1,4 +1,7 @@
 """Represents fixtures for unit testing using pytest."""
+# Disable this pylint check since we use this convention in pytest fixtures
+#pylint: disable=redefined-outer-name
+
 import pytest
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.datasets import load_iris

@@ -26,10 +26,10 @@ class Dataset(pd.DataFrame):
     """
 
     def __init__(self,
-                 df: pd.DataFrame,
+                 df: pd.DataFrame, *args,
                  features: List[str] = None, cat_features: List[str] = None,
                  label: str = None, use_index: bool = False, index: str = None, date: str = None,
-                 *args, **kwargs):
+                 **kwargs):
         """Initiates the Dataset using a pandas DataFrame and Metadata
 
         Args:
@@ -47,9 +47,9 @@ class Dataset(pd.DataFrame):
         # Validations
         if use_index is True and index is not None:
             raise MLChecksValueError('parameter use_index cannot be True if index is given')
-        if date and date not in self.columns:
+        if date is not None and date not in self.columns:
             raise MLChecksValueError(f'date column {date} not found in dataset columns')
-        if label and label not in self.columns:
+        if label is not None and label not in self.columns:
             raise MLChecksValueError(f'label column {label} not found in dataset columns')
 
         if features:
@@ -145,5 +145,5 @@ def validate_dataset(ds) -> Dataset:
     elif isinstance(ds, pd.DataFrame):
         return Dataset(ds)
     else:
-        raise MLChecksValueError(f"dataset must be of type DataFrame or Dataset instead got: "
-                                 f"{type(ds).__name__}")
+        raise MLChecksValueError(f'dataset must be of type DataFrame or Dataset instead got: '
+                                 f'{type(ds).__name__}')

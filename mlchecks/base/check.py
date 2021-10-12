@@ -1,3 +1,6 @@
+"""
+Module containing all the base classes for checks
+"""
 import abc
 from typing import Dict, Any
 
@@ -6,6 +9,8 @@ __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDataset
 
 
 class CheckResult:
+    """Class which returns from a check with result that can later be used for automatic pipelines and display value
+    """
     value: Any
     display: Dict
 
@@ -24,9 +29,9 @@ class CheckResult:
             return None
         data = self.display
         if include:
-            data = {k:v for (k,v) in data.items() if k in include}
+            data = {k: v for (k, v) in data.items() if k in include}
         if exclude:
-            data = {k:v for (k,v) in data.items() if k not in exclude}
+            data = {k: v for (k, v) in data.items() if k not in exclude}
         return data
 
     def __repr__(self):
@@ -123,7 +128,8 @@ class ModelOnlyBaseCheck(BaseCheck):
 #
 #     def add_validator(self, validator: Callable[[CheckResult], bool]):
 #         if not not isinstance(validator, Callable):
-#             raise MLChecksValueError(f'Validator must be a function in signature `(CheckResult) -> bool`, but got: {type(decider).__name__}')
+#             raise MLChecksValueError(f'Validator must be a function in signature `(CheckResult) -> bool`,'
+#                                       'but got: {type(decider).__name__}')
 #         new_copy = deepcopy(self)
 #         new_copy._validators.append(validator)
 #         return new_copy
