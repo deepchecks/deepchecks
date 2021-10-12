@@ -7,6 +7,8 @@ from pandas_profiling import ProfileReport
 
 __all__ = ['Dataset']
 
+from mlchecks.utils import MLChecksValueError
+
 
 class Dataset(pd.DataFrame):
     """Dataset extends pandas DataFrame to provide ML related metadata.
@@ -44,7 +46,11 @@ class Dataset(pd.DataFrame):
 
         # Validations
         if use_index is True and index is not None:
-            raise ValueError('parameter use_index cannot be True if index is given')
+            raise MLChecksValueError('parameter use_index cannot be True if index is given')
+        if date not in self.columns:
+            raise MLChecksValueError(f'date column {date} not found in dataset columns')
+        if label not in self.columns:
+            raise MLChecksValueError(f'label column {label} not found in dataset columns')
 
         if features:
             self._features = features
@@ -97,6 +103,13 @@ class Dataset(pd.DataFrame):
             return self[self._date_name]
         else:  # Date column not configured in Dataset
             return None
+
+    def label(self) -> Union[pd.Series, None]:
+        """
+        Returns:
+           label column name
+        """
+        return self._label
 
     def cat_features(self) -> List[str]:
         """
