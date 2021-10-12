@@ -2,7 +2,7 @@
 from typing import Union
 import pandas as pd
 import ppscore as pps
-import seaborn as sns
+import matplotlib.pyplot as plt
 
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset
@@ -43,7 +43,7 @@ def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_p
     s_ppscore = df_pps['ppscore']
 
     # Create graph:
-    sns.barplot(x=s_ppscore.index, y=s_ppscore)
+    s_ppscore.plot(kind='bar', ylabel='ppscore')
     html = get_plt_html_str()  # Catches graph into html
 
     return CheckResult(value=s_ppscore.to_dict(), display={'text/html': html})
