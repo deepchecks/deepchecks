@@ -99,13 +99,11 @@ def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, colu
         # TODO if the user explicitly asked for column and it's not a string, throw error?
         if column_data.dtype != StringDtype:
             continue
-        # Change to base-form
-        column_data = column_data.apply(string_baseform)
         # Get counts of all values in series including NaNs, in sorted order of count
-        base_form_counts: pd.Series = column_data.value_counts(dropna=False)
+        column_counts: pd.Series = column_data.value_counts(dropna=False)
         # Filter out values not in the nulls list
-        keys_to_drop = base_form_counts.keys() - null_string_list
-        null_counts = base_form_counts.drop(labels=keys_to_drop)
+        keys_to_drop = [key for key in column_counts.keys() if string_baseform(key) in null_string_list]
+        null_counts = column_counts.drop(labels=keys_to_drop)
         if null_counts.size < 2:
             continue
         # Get the dominant (the series is sorted), and drop it
