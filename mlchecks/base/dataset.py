@@ -82,7 +82,6 @@ class Dataset(pd.DataFrame):
         Returns:
            If date column exists, returns a pandas Series of the index column.
         """
-
         if self.use_index is True:
             return pd.Series(self.index)
         elif self._index_name is not None:
@@ -96,7 +95,6 @@ class Dataset(pd.DataFrame):
         Returns:
            (Series): Series of the index column
         """
-
         if self._date_name:
             return self[self._date_name]
         else:  # Date column not configured in Dataset

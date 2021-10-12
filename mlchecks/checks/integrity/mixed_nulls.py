@@ -1,3 +1,4 @@
+"""Module contains Mixed Nulls check."""
 from typing import List, Iterable
 
 import numpy as np
@@ -50,7 +51,7 @@ def string_baseform(string: str):
 
 
 def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, column: str = None) -> CheckResult:
-    """searches for various types of null values in a string column(s), including string representations of null.
+    """Search for various types of null values in a string column(s), including string representations of null.
 
     Args:
         dataset (Dataset):
@@ -96,8 +97,18 @@ def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, colu
 
 
 class MixedNulls(SingleDatasetBaseCheck):
-    """searches for various types of null values in a string column(s), including string representations of null."""
+    """Search for various types of null values in a string column(s), including string representations of null."""
+
     def run(self, dataset, model=None) -> CheckResult:
+        """
+
+        Args:
+            dataset (Dataset):
+
+        Returns:
+            (CheckResult): DataFrame with columns ('Column Name', 'Value', 'Count', 'Percentage') for any column which
+            have more than 1 null values.
+        """
         return mixed_nulls(dataset,
                            null_string_list=self.params.get('null_string_list'),
                            column=self.params.get('column'))
