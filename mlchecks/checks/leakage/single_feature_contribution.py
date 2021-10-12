@@ -5,7 +5,8 @@ import ppscore as pps
 import seaborn as sns
 
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
-from mlchecks.utils import MLChecksValueError, get_plt_html_str
+from mlchecks.base.dataset import validate_dataset
+from mlchecks.utils import get_plt_html_str
 
 __all__ = ['single_feature_contribution', 'SingleFeatureContribution']
 
@@ -32,14 +33,12 @@ def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_p
         MLChecksValueError: If the object is not a Dataset instance with a label
 
     """
-    if not isinstance(dataset, Dataset):
-        raise MLChecksValueError("single_feature_contribution check must receive a Dataset object")
-    if not dataset.label():
-        raise MLChecksValueError("single_feature_contribution requires dataset to have a label")
+    dataset = validate_dataset(dataset, 'single_feature_contribution')
+    dataset.validate_label('single_feature_contribution')
     ppscore_params = ppscore_params or dict()
 
-    relevant_columns = dataset.features() + [dataset.label()]
-    df_pps = pps.predictors(df=dataset[relevant_columns], y=dataset.label(), random_seed=42, **ppscore_params)
+    relevant_columns = dataset.features() + [dataset.label_name()]
+    df_pps = pps.predictors(df=dataset[relevant_columns], y=dataset.label_name(), random_seed=42, **ppscore_params)
     df_pps = df_pps.set_index('x', drop=True)
     s_ppscore = df_pps['ppscore']
 
