@@ -93,8 +93,8 @@ def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, colu
 
     # Create dataframe to display graph
     df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percentage'])
-
-    return CheckResult(df_graph, display={'text/html': df_graph.to_html(index=False)})
+    df_graph = df_graph.set_index(['Column Name', 'Value'])
+    return CheckResult(df_graph, display={'text/html': df_graph.to_html()})
 
 
 class MixedNulls(SingleDatasetBaseCheck):

@@ -8,7 +8,6 @@ history/
 test/AutogluonModels
 test/.agModels
 datasets/
-*.ipynb
 
 
 # Byte-compiled / optimized / DLL files
