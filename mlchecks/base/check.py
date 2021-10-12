@@ -7,15 +7,23 @@ __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDataset
 
 
 class CheckResult:
+    """Class containing the result of a check
+
+    The class stores the results and display of the check. Evaluating the result in an IPython console / notebook
+    will show the result display output.
+
+    Attributes:
+        value (Any): Value calculated by check. Can be used to decide if decidable check passed.
+        display (Dict): Dictionary with formatters for display. possible formatters are: 'text/html', 'image/png'
+    """
     value: Any
     display: Dict
 
     def __init__(self, value, display=None):
         """
         Args:
-            value (Any):
-            display (Dict): Dictionary with formatters for display. possible
-            foramtters are: 'text/html', 'image/png'
+            value (Any): Value calculated by check. Can be used to decide if decidable check passed.
+            display (Dict): Dictionary with formatters for display. possible formatters are: 'text/html', 'image/png'
         """
         self.value = value
         self.display = display

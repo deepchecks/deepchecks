@@ -7,6 +7,11 @@ __all__ = ['CheckSuite']
 
 
 class CheckSuite:
+    """Class for running a set of checks together, and returning a unified pass / no-pass.
+
+    Attributes:
+        checks: A list of checks to run.
+    """
     checks: List[BaseCheck]
 
     def __init__(self, *checks):
