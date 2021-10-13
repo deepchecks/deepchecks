@@ -11,11 +11,24 @@ __all__ = ['confusion_matrix_report', 'ConfusionMatrixReport']
 
 
 def confusion_matrix_report(ds: Dataset, model):
+    """
+    Return the confusion_matrix
+
+
+    Args:
+        model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
+        ds: a Dataset object
+    Returns:
+        CheckResult: value is numpy array of the confusion matrix, displays the confusion matrix
+
+    Raises:
+        MLChecksValueError: If the object is not a Dataset instance with a label
+
+    """
     validate_dataset(ds, 'confusion_matrix_report')
     ds.validate_label('confusion_matrix_report')
 
     label = ds.label_name()
-    res = dict()
     ds_x = ds[ds.features()]
     ds_y = ds[label]
     y_pred = model.predict(ds_x)
@@ -23,7 +36,7 @@ def confusion_matrix_report(ds: Dataset, model):
     confusion_matrix = sklearn.metrics.confusion_matrix(ds_y, y_pred)
     sklearn.metrics.ConfusionMatrixDisplay(confusion_matrix).plot()
     
-    return CheckResult(res, display={'text/html': get_plt_html_str()})
+    return CheckResult(confusion_matrix, display={'text/html': get_plt_html_str()})
 
 
 class ConfusionMatrixReport(SingleDatasetBaseCheck):
@@ -38,6 +51,4 @@ class ConfusionMatrixReport(SingleDatasetBaseCheck):
         Returns:
             CheckResult: value is numpy array of the confusion matrix, displays the confusion matrix
         """
-        if not dataset.label_name():
-            raise MLChecksValueError("Dataset doesn't have label column configured")
         return confusion_matrix_report(dataset, model)

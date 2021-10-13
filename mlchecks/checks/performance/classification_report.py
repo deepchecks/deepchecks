@@ -13,6 +13,20 @@ __all__ = ['classification_report', 'ClassificationReport']
 
 
 def classification_report(ds: Dataset, model):
+    """
+    Return the sklearn classification_report in dict format
+
+
+    Args:
+        model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
+        ds: a Dataset object
+    Returns:
+        CheckResult: value is dictionary in format {<target>: , ['precision': <score>, 'recall': <score>, 'f_score': <score>, 'support': <score>]}
+
+    Raises:
+        MLChecksValueError: If the object is not a Dataset instance with a label
+
+    """
     validate_dataset(ds, 'classification_report')
     ds.validate_label('classification_report')
 
@@ -38,6 +52,4 @@ class ClassificationReport(SingleDatasetBaseCheck):
         Returns:
             CheckResult: value is dictionary in format {<target>: , ['precision': <score>, 'recall': <score>, 'f_score': <score>, 'support': <score>]}
         """
-        if not dataset.label_name():
-            raise MLChecksValueError("Dataset doesn't have label column configured")
         return classification_report(dataset, model)

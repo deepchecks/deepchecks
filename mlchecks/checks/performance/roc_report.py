@@ -16,6 +16,20 @@ __all__ = ['roc_report', 'RocReport']
 
 
 def roc_report(ds: Dataset, model):
+    """
+    Return the auc for each class
+
+
+    Args:
+        model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
+        ds: a Dataset object
+    Returns:
+        CheckResult: value is dictionary of class and it's auc score, displays the roc graph with each class
+
+    Raises:
+        MLChecksValueError: If the object is not a Dataset instance with a label
+
+    """
     validate_dataset(ds, 'roc_report')
     ds.validate_label('roc_report')
 
@@ -63,6 +77,4 @@ class RocReport(SingleDatasetBaseCheck):
         Returns:
             CheckResult: value is dictionary of class and it's auc score, displays the roc graph with each class
         """
-        if not dataset.label_name():
-            raise MLChecksValueError("Dataset doesn't have label column configured")
         return roc_report(dataset, model)
