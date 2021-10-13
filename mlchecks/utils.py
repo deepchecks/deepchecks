@@ -9,11 +9,10 @@ import catboost
 from IPython import get_ipython
 
 __all__ = ['SUPPORTED_BASE_MODELS', 'MLChecksValueError', 'model_type_validation', 'is_notebook', 'get_plt_html_str',
-           'get_txt_html_str']
+           'get_txt_html_str', 'TaskType', 'task_type_check']
 
 from sklearn.base import ClassifierMixin, RegressorMixin
 
-from mlchecks import Dataset, validate_dataset
 
 SUPPORTED_BASE_MODELS = [sklearn.base.BaseEstimator, catboost.CatBoost]
 
@@ -98,7 +97,7 @@ def is_notebook():
         return False      # Probably standard Python interpreter
 
 
-def task_type_check(model: Union[ClassifierMixin, RegressorMixin], dataset: Dataset) -> TaskType:
+def task_type_check(model: Union[ClassifierMixin, RegressorMixin], dataset) -> TaskType:
     """Check task type (regression, binary, multiclass) according to model object and label column
 
     Args:
@@ -110,7 +109,6 @@ def task_type_check(model: Union[ClassifierMixin, RegressorMixin], dataset: Data
     """
 
     model_type_validation(model)
-    validate_dataset(dataset, task_type_check.__name__)
     dataset.validate_label(task_type_check.__name__)
 
     if getattr(model, "predict_proba", None):
