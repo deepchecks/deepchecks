@@ -17,7 +17,7 @@ def format_check_display(title: str, function: Callable, content: str = None):
     """
     docs = function.__doc__
     summary = docs[:docs.find('\n')]
-    content = content or '<p><b>&#x2713;</b> Nothing Found</p>'
+    content = content or '<p><b>&#x2713;</b> Nothing found</p>'
     return f"""
     <h4>{title}</h4>
     <p>{summary}</p>

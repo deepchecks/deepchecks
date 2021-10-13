@@ -9,8 +9,7 @@ __all__ = ['model_info', 'ModelInfo']
 
 
 def model_info(model: BaseEstimator):
-    """
-    Summarize given model parameters.
+    """Summarize given model parameters.
 
     Args:
         model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
