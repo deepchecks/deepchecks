@@ -6,7 +6,7 @@ import pytest
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.datasets import load_iris
 import pandas as pd
-from mlchecks import Dataset
+from mlchecks.base import Dataset
 
 
 @pytest.fixture(scope='session')
