@@ -2,6 +2,7 @@
 from .base import *
 import matplotlib
 import matplotlib.pyplot as plt
+
 from .utils import is_notebook
 # This is a TEMPORARY solution because currently we use matplotlib, which does not allow us to control the output
 # of the graphs, so if the user is in an interactive mode, graphs may be drawed twice. In the near future, we should
@@ -12,5 +13,3 @@ plt.ioff()
 # we can't use a GUI backend. Thus we must use a non-GUI backend.
 if not is_notebook():
     matplotlib.use('Agg')
-
-
