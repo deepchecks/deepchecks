@@ -195,21 +195,18 @@ def dataset_drift(dataset: Dataset,
             raise MLChecksValueError(f'Column name {column_names} must exist in both datasets')
 
     if over_time:
-        if not isinstance(dataset.date_col(), pd.Series):
+        if not dataset.date_name():
             raise MLChecksValueError("dataset does not contain a date column and over_time=True")
 
-        if not isinstance(dataset.date_col(), pd.Series):
-            raise MLChecksValueError("compared_dataset does not contain a date column and over_time=True")
-
-    all_columns = column_names if column_names is not None else set(dataset.columns)
-    categorical_features = set(dataset.cat_features())
+    all_columns = (set([column_names]) if column_names is not None else set(dataset.columns)) - \
+                  {dataset.index_name(), dataset.date_name()}
+    categorical_features = set(dataset.cat_features()) | {dataset.label_name()}
 
     comp_all_columns = set(compared_dataset.columns)
-    comp_cat_features = set(compared_dataset.features())
+    comp_cat_features = set(compared_dataset.cat_features()) | {compared_dataset.label_name()}
     display_items = []
     result = dict()
     for col in all_columns:
-        print(col)
         calculate_drift = False
         if col not in comp_all_columns:
             logger.warning(f"The column {col} does not exist in the compared_dataset. "
@@ -239,7 +236,7 @@ def dataset_drift(dataset: Dataset,
         if drift_df is not None:
             result[col] = drift_df
 
-    return CheckResult(result, {'html': '<br>'.join(display_items)})
+    return CheckResult(result, {'text/html': '<br>'.join(display_items)})
 
 
 class DatasetDrift(CompareDatasetsBaseCheck):
