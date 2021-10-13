@@ -4,11 +4,11 @@ from typing import Union, List, Set, Dict
 
 from pandas import DataFrame, StringDtype, Series
 
-from mlchecks import validate_dataset_or_dataframe, CheckResult
+from mlchecks import validate_dataset_or_dataframe, CheckResult, SingleDatasetBaseCheck
 from mlchecks.checks.integrity.string_utils import string_baseform
 from mlchecks.display import format_check_display
 
-__all__ = ['string_mismatch']
+__all__ = ['string_mismatch', 'StringMismatch']
 
 
 def string_mismatch(dataset: DataFrame, ignore_columns: Union[str, List[str]] = None) -> CheckResult:
@@ -60,3 +60,11 @@ def get_base_form_to_variants_dict(uniques):
     for item in uniques:
         base_form_to_variants[string_baseform(item)].add(item)
     return base_form_to_variants
+
+
+class StringMismatch(SingleDatasetBaseCheck):
+    """Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column."""
+
+    def run(self, dataset, model=None) -> CheckResult:
+        return string_mismatch(dataset, ignore_columns=self.params.get('ignore_columns'))
+
