@@ -80,7 +80,7 @@ def rare_format_detection(dataset: Union[Dataset, pd.DataFrame], column_names: U
         if value is not None and not value.empty:
             html += f'Column {key}:<br><br>{value.to_html()}<br>'
 
-    return CheckResult(res, {'text/html': format_check_display('rare_format_detection', rare_format_detection, html)})
+    return CheckResult(res, {'text/html': format_check_display('Rare Format Detection', rare_format_detection, html)})
 
 
 def _detect_per_column(column: pd.Series, patterns, rarity_threshold):
