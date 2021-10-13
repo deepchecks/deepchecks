@@ -5,8 +5,9 @@ from scipy.stats import wasserstein_distance
 from sklearn.preprocessing import LabelEncoder
 
 from mlchecks import Dataset, CompareDatasetsBaseCheck, CheckResult
-from mlchecks.utils import MLChecksValueError, get_plt_base64, get_plt_html_str
+from mlchecks.utils import MLChecksValueError, get_plt_html_str
 from logging import getLogger
+import matplotlib.pyplot as plt
 
 logger = getLogger("dataset_drift")
 
@@ -72,11 +73,31 @@ def _wass_distance(dataset: pd.DataFrame, compared_dataset: pd.DataFrame,column_
 
     return wasserstein_distance(dataset_col, compared_dataset_col)
 
-def _overtime_numerical_dist(dataset: pd.DataFrame, compared_dataset: pd.DataFrame, column_name: str):
+
+def _overtime_numerical_dist(dataset: pd.DataFrame, compared_dataset: pd.DataFrame, column_name: str, drift_scores = None):
     pass
 
-def _overtime_categorical_dist(dataset: pd.DataFrame, compared_dataset: pd.DataFrame, column_name: str):
-    pass
+
+def _overtime_categorical_dist(dataset: pd.DataFrame, compared_dataset: pd.DataFrame, column_name: str, drift_scores = None):
+    stats_df = dataset.groupby(pd.Grouper(freq='W', key='date'))[column_name].apply(
+        lambda ser: ser.value_counts() / ser.shape[0]).reset_index()
+    stats_df.columns = ['date', 'category', 'percent']
+    stats_df = stats_df.set_index(['date', 'category']).unstack('category')
+    stats_df.index = stats_df.index.to_period('W')
+
+    compared_dataset_stats = (compared_dataset['gender'].value_counts() / compared_dataset.shape[0]).reset_index()
+
+    compared_dataset_stats.columns = ['category', 'percent']
+    compared_dataset_stats = compared_dataset_stats.set_index(['category']).unstack('category')
+
+    stats_df.loc['compared_dataset'] = compared_dataset_stats
+
+    stats_df.plot(kind='bar', stacked=True, figsize=(25, 5))
+    plt.legend(bbox_to_anchor=(1.01, 1), loc='upper left')
+    plt.title(f"Distribution plot of feature {column_name} over time")
+
+    return get_plt_html_str()
+
 
 def _static_numerical_dist(dataset: pd.DataFrame, compared_dataset: pd.DataFrame, column_name: str):
     dataset[column_name].plot(kind='density', label='Dataset')
@@ -84,12 +105,14 @@ def _static_numerical_dist(dataset: pd.DataFrame, compared_dataset: pd.DataFrame
     try:
         compared_dataset[column_name].plot(kind='density', label="Compared Dataset")
     except:
-        logger.info(f"Unable to draw compared_dataset plot for {column_name}")
+        logger.info(f"Unable to draw compared_dataset distribution plot for {column_name}")
 
     return get_plt_html_str()
 
+
 def _static_categorical_dist(dataset: pd.DataFrame, compared_dataset: pd.DataFrame, column_name: str):
     pass
+
 
 def dataset_drift(dataset: Dataset,
                   compared_dataset: Dataset,
