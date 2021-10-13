@@ -41,10 +41,19 @@ def data_leakage_report(validation_dataset: Dataset, test_dataset: Dataset):
     duplicateRowsDF = appended_df[appended_df.duplicated(features, keep=False)]
     duplicateRowsDF.sort_values(features, inplace=True)
     
-    return CheckResult(duplicateRowsDF.to_dict(), display={'text/html': format_check_display('Classification Report', data_leakage_report, duplicateRowsDF.to_html())})
+    count_dups = 0
+    for index in duplicateRowsDF.index:
+        if not index.startswith('test'):
+            continue
+        count_dups += len(index.split(','))
+        
+    dup_ratio = count_dups / len(val_f) * 100
+    user_msg = 'You have {1:0.2f} data sample leakage'.format(dup_ratio)
+    return CheckResult(dup_ratio, display={'text/html': format_check_display('Classification Report', data_leakage_report, f'<p>{user_msg}</p>{duplicateRowsDF.to_html()}')})
+
 
 class ClassificationReport(TrainValidationBaseCheck):
-    """Summarize given model parameters."""
+    """Finds data sample leakage."""
 
     def run(self, dataset: Dataset) -> CheckResult:
         """Run classification_report check.
@@ -53,6 +62,6 @@ class ClassificationReport(TrainValidationBaseCheck):
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
             ds: a Dataset object
         Returns:
-            CheckResult: value is dictionary in format {<target>: , ['precision': <score>, 'recall': <score>, 'f_score': <score>, 'support': <score>]}
+            CheckResult: value is sample leakage ratio in %, displays a dataframe that shows the duplicated rows between the datasets
         """
         return data_leakage_report(dataset)
