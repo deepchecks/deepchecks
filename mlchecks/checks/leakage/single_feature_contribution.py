@@ -6,6 +6,7 @@ import seaborn as sns
 
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset
+from mlchecks.display import format_check_display
 from mlchecks.utils import get_plt_html_str
 
 __all__ = ['single_feature_contribution', 'SingleFeatureContribution']
@@ -45,8 +46,9 @@ def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_p
     # Create graph:
     sns.barplot(x=s_ppscore.index, y=s_ppscore)
     html = get_plt_html_str()  # Catches graph into html
+    formatted_html = format_check_display('Single Feature Contribution', single_feature_contribution, html)
 
-    return CheckResult(value=s_ppscore.to_dict(), display={'text/html': html})
+    return CheckResult(value=s_ppscore.to_dict(), display={'text/html': formatted_html})
 
 
 class SingleFeatureContribution(SingleDatasetBaseCheck):
