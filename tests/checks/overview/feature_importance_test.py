@@ -1,15 +1,12 @@
 from mlchecks.checks.overview.feature_importance import *
 from hamcrest import *
 
-def assert_result(result):
-    pass
-
 def test_feature_importance_function(iris_random_forest, iris_dataset ):
     # Act
     result = feature_importance(iris_dataset, iris_random_forest)
 
     # Assert
-    assert(result.value)
+    assert result.value
 
 def test_feature_importance_not_binary(iris_random_forest, iris_dataset ):
     # Act
@@ -33,7 +30,7 @@ def test_feature_importance_object(iris_random_forest, iris_dataset):
     # Act
     result = suit_runner.run(iris_dataset, iris_random_forest)
     # Assert
-    assert_result(result)
+    assert result.value is not None
 
 
 def test_feature_importance_unsuported_model(iris_adaboost, iris_dataset):
