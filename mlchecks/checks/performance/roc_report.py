@@ -17,7 +17,7 @@ __all__ = ['roc_report', 'RocReport']
 
 def roc_report(ds: Dataset, model):
     """
-    Return the auc for each class.
+    Return the AUC for each class.
 
     Args:
         model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
