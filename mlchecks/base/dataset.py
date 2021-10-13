@@ -177,7 +177,7 @@ class Dataset(pd.DataFrame):
             raise MLChecksValueError(f'function {function_name} requires dataset to have a date column')
 
     def validate_columns(self, *columns):
-        """Validate given columns exists
+        """Validate given columns exists.
 
         Args:
             columns: Column names to check
@@ -206,7 +206,6 @@ class Dataset(pd.DataFrame):
 
         Raises:
             MLChecksValueError if datasets don't have the same features
-
         """
         validate_dataset(other, function_name)
         if sorted(self.features()) == sorted(other.features()):
