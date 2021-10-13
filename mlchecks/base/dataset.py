@@ -208,6 +208,48 @@ class Dataset(pd.DataFrame):
         if self.index_name() is None:
             raise MLChecksValueError(f'function {function_name} requires dataset to have an index column')
 
+    def validate_shared_features(self, other, function_name: str) -> List[str]:
+        """
+        Return the list of shared features if both datasets have the same feature column names. Else, raise error.
+
+        Args:
+            other: Expected to be Dataset type. dataset to compare features list
+            function_name (str): function name to print in error
+
+        Returns:
+            List[str] - list of shared features names
+
+        Raises:
+            MLChecksValueError if datasets don't have the same features
+
+        """
+        validate_dataset(other, function_name)
+        if sorted(self.features()) == sorted(other.features()):
+            return self.features()
+        else:
+            raise MLChecksValueError(f'function {function_name} requires datasets to share the same features')
+
+    def validate_shared_label(self, other, function_name: str) -> str:
+        """
+        Return the list of shared features if both datasets have the same feature column names. Else, raise error.
+
+        Args:
+            other: Expected to be Dataset type. dataset to compare features list
+            function_name (str): function name to print in error
+
+        Returns:
+            List[str] - list of shared features names
+
+        Raises:
+            MLChecksValueError if datasets don't have the same features
+
+        """
+        validate_dataset(other, function_name)
+        if sorted(self.label_name()) == sorted(other.label_name()):
+            return self.label_name()
+        else:
+            raise MLChecksValueError(f'function {function_name} requires datasets to share the same label')
+
 
 def validate_dataset_or_dataframe(obj) -> Dataset:
     """Throws error if object is not pandas DataFrame or MLChecks Dataset and returns the object as MLChecks Dataset.
@@ -231,8 +273,8 @@ def validate_dataset(obj, function_name: str) -> Dataset:
     """Throws error if object is not MLChecks Dataset and returns the object if MLChecks Dataset.
 
     Args:
-        function_name (str): function name to print in error
         obj: object to validate as dataset
+        function_name (str): function name to print in error
 
     Returns:
         (Dataset): object that is MLChecks dataset
