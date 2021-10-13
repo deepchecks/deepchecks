@@ -8,6 +8,7 @@ import ppscore as pps
 
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck, TrainValidationBaseCheck
 from mlchecks.base.dataset import validate_dataset
+from mlchecks.display import format_check_display
 from mlchecks.utils import get_plt_html_str
 
 __all__ = ['single_feature_contribution', 'single_feature_contribution_train_validation',
@@ -53,8 +54,9 @@ def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_p
         ['The PPS represents the ability of a feature to single-handedly predict another feature or label.',
          'A high PPS (close to 1) can mean that this feature\'s success in predicting the label is actually due to data'
          , 'leakage - meaning that the feature holds information that is based on the label to begin with.'])
+    formatted_html = format_check_display('Single Feature Contribution', single_feature_contribution, html)
 
-    return CheckResult(value=s_ppscore.to_dict(), display={'text/html': html_txt + html_plot})
+    return CheckResult(value=s_ppscore.to_dict(), display={'text/html': formatted_html})
 
 
 def single_feature_contribution_train_validation(train_dataset: Dataset, validation_dataset: Dataset,
@@ -85,7 +87,7 @@ def single_feature_contribution_train_validation(train_dataset: Dataset, validat
         MLChecksValueError: If the object is not a Dataset instance with a label
 
     """
-    func_name = 'single_feature_contribution'
+    func_name = 'single_feature_contribution_train_validation'
     train_dataset = validate_dataset(train_dataset, func_name)
     train_dataset.validate_label(func_name)
     validation_dataset = validate_dataset(validation_dataset, func_name)
@@ -116,8 +118,9 @@ def single_feature_contribution_train_validation(train_dataset: Dataset, validat
          'When we compare train PPS to validation PPS, A high difference can strongly indicate leakage, as a feature',
          'that was powerful in train but not in validation can be explained by leakage in train that does not affect a'
          'new dataset.'])
+    formatted_html = format_check_display('Single Feature Contribution', single_feature_contribution, html)
 
-    return CheckResult(value=s_difference.to_dict(), display={'text/html': html_txt + html_plot})
+    return CheckResult(value=s_difference.to_dict(), display={'text/html': formatted_html})
 
 
 class SingleFeatureContribution(SingleDatasetBaseCheck):
