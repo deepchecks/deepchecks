@@ -76,6 +76,11 @@ class Dataset(pd.DataFrame):
             self._profile = ProfileReport(self, title='Dataset Report', explorative=True, minimal=True)
 
     def n_samples(self):
+        """Return number of samples in dataframe.
+
+        Returns:
+           Number of samples in dataframe
+        """
         return self.shape[0]
 
     def infer_categorical_features(self) -> List[str]:

@@ -25,7 +25,6 @@ def index_train_val_leakage(train_dataset: Dataset, validation_dataset: Dataset,
     Raises:
         MLChecksValueError: If the object is not a Dataset instance with an index
     """
-
     train_dataset = validate_dataset(train_dataset, index_train_val_leakage.__name__)
     validation_dataset = validate_dataset(validation_dataset, index_train_val_leakage.__name__)
     train_dataset.validate_index(index_train_val_leakage.__name__)
@@ -53,13 +52,11 @@ def index_train_val_leakage(train_dataset: Dataset, validation_dataset: Dataset,
 
 
 class IndexTrainValLeakage(TrainValidationBaseCheck):
-    """
-    Check if validation indexes are present in train data.
-    """
+    """Check if validation indexes are present in train data."""
 
     def run(self, train_dataset: Dataset, validation_dataset: Dataset, model=None) -> CheckResult:
         """
-        Runs the index_train_val_leakage check
+        Run the index_train_val_leakage check.
 
         Arguments:
             train_dataset (Dataset): The training dataset object. Must contain an index.
