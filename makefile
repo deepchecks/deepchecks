@@ -106,7 +106,7 @@ validate: $(REQUIREMENTS_LOG) pylint docstring
 pylint: $(ANALIZE)
 	$(ANALIZE) $(SOURCES) $(TEST_CODE) | tee -a $(PYLINT_LOG)
 docstring: $(ANALIZE) # We Use Google Style Python Docstring
-	$(PYTHON) -m pydocstyle $(SOURCES) $(TEST_CODE)
+	$(PYTHON) -m pydocstyle $(SOURCES)
 
 $(ANALIZE): $(PIP)
 	$(PIP) install --upgrade $(ANALIZE_PKGS) | tee -a $(REQUIREMENTS_LOG)
