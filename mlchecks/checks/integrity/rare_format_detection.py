@@ -1,5 +1,6 @@
 """The single_feature_contribution check module."""
 import re
+from copy import deepcopy
 from typing import Union, List
 
 import pandas as pd
@@ -7,24 +8,28 @@ import pandas as pd
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset_or_dataframe
 from mlchecks.display import format_check_display
-from mlchecks.utils import MLChecksValueError
 
 __all__ = ['rare_format_detection', 'RareFormatDetection', 'SubStr', 'Pattern']
 
 
 class SubStr:
+    """Supporting class for regex subbing in pattern."""
 
     def __init__(self, regex_str: str, filler: str):
+        """Initiate the SubStr class."""
         self.regex_str = regex_str
         self.filler = filler
 
     def sub(self, s: str) -> str:
+        """Replace matching patterns to the regex_str by the filler."""
         return re.sub(self.regex_str, self.filler, s)
 
 
 class Pattern:
+    """Supporting class for creating complicated patterns for rare_format_detection."""
 
     def __init__(self, name: str, substrs: List[SubStr]):
+        """Initiate the Pattern class."""
         self.name = name
         self.substrs = substrs
 
@@ -44,30 +49,31 @@ DEFAULT_PATTERNS = [
 
 
 def rare_format_detection(dataset: Union[Dataset, pd.DataFrame], column_names: Union[str, List[str]] = None,
-                          patterns: List[Pattern] = DEFAULT_PATTERNS, rarity_threshold: float = 0.05) -> CheckResult:
+                          patterns: List[Pattern] = deepcopy(DEFAULT_PATTERNS), rarity_threshold: float = 0.05) \
+        -> CheckResult:
     """
-    Checks whether columns have common formats (e.g. "XX-XX-XXXX" for dates") and detects values that don't match.
+    Check whether columns have common formats (e.g. "XX-XX-XXXX" for dates") and detects values that don't match.
 
     Args:
-        dataset:
-        column_names:
-        patterns:
-        rarity_threshold:
+        dataset (Dataset): A dataset object
+        column_names: list of columns or name of column to run on. Uses all feature columns if not specified.
+        patterns: patterns to look for when comparing common vs. rare formats. Uses DEFAULT_PATTERNS if not specified
+        rarity_threshold: threshold for get_rare_vs_common_values function
 
     Returns:
-
+        CheckResult:
+            - value: dictionary of all columns and found patterns
+            - display: pandas Dataframe per column, showing the rare-to-common-ratio, common formats, examples for
+                       common values and rare values
     """
-
     dataset = validate_dataset_or_dataframe(dataset)
     column_names = column_names or dataset.features()
 
     if isinstance(column_names, str):
-        res = {column_names: _string_format_validation_column(dataset[column_names], patterns, rarity_threshold)}
-    elif isinstance(column_names, list):
-        res = {column_name: _string_format_validation_column(dataset[column_name], patterns, rarity_threshold)
-               for column_name in column_names}
-    else:
-        raise MLChecksValueError(f'column_names must be either list or str. instead got {type(column_names).__name__}')
+        column_names = [column_names]
+
+    res = {column_name: _detect_per_column(dataset[column_name], patterns, rarity_threshold)
+           for column_name in column_names}
 
     html = ''
     for key, value in res.items():
@@ -77,14 +83,40 @@ def rare_format_detection(dataset: Union[Dataset, pd.DataFrame], column_names: U
     return CheckResult(res, {'text/html': format_check_display('rare_format_detection', rare_format_detection, html)})
 
 
-def _string_format_validation_column(column: pd.Series, patterns, rarity_threshold):
-    all_pattern_janus_results = {pattern.name: _check_formats_and_values(column, pattern, rarity_threshold)
+def _detect_per_column(column: pd.Series, patterns, rarity_threshold):
+    """
+    Check whether a column has common formats (e.g. "XX-XX-XXXX" for dates") and detects values that don't match.
+
+    Args:
+        column: A pandas Series object
+        patterns: patterns to look for when comparing common vs. rare formats
+        rarity_threshold: threshold for get_rare_vs_common_values function
+
+    Returns:
+        pandas Dataframe: table showing the rare-to-common-ratio, common formats, examples for common values and
+                          rare values
+    """
+    all_pattern_janus_results = {pattern.name: _detect_per_column_and_pattern(column, pattern, rarity_threshold)
                                  for pattern in patterns}
 
     return pd.DataFrame(all_pattern_janus_results).dropna(axis=1, how='all')
 
 
-def _check_formats_and_values(column, pattern, rarity_threshold):
+def _detect_per_column_and_pattern(column, pattern, rarity_threshold):
+    """
+    Check whether a column has common formats (e.g. "XX-XX-XXXX" for dates") and detects values that don't match.
+
+    This function checks one pattern per column.
+
+    Args:
+        column: A pandas Series object
+        pattern: pattern to look for when comparing common vs. rare formats
+        rarity_threshold: threshold for get_rare_vs_common_values function
+
+    Returns:
+        dict: dictionary with values representing the rare-to-common-ratio, common formats, examples for common values
+              and rare values
+    """
     column = column.astype(str)
 
     # find rare formats by replacing every pattern with the filler.
@@ -96,7 +128,8 @@ def _check_formats_and_values(column, pattern, rarity_threshold):
 
     patterned_column = column.apply(lambda s: replace_pattern(s, pattern))
 
-    rare_to_common_format_ratio, rare_formats, common_formats = detect_rare(patterned_column, rarity_threshold)
+    rare_to_common_format_ratio, rare_formats, common_formats = get_rare_vs_common_values(patterned_column,
+                                                                                          rarity_threshold)
 
     if rare_to_common_format_ratio == 0: return {}
 
@@ -109,14 +142,25 @@ def _check_formats_and_values(column, pattern, rarity_threshold):
             'values in rare formats': list(rare_values.unique())}
 
 
-def detect_rare(col: pd.Series, sharp_drop_ratio_threshold: float = 0.05):
+def get_rare_vs_common_values(col: pd.Series, sharp_drop_ratio_threshold: float = 0.05):
     """
-    apply the function over the col and look for rare values in the result.
-    To detect rare values, the function runs a value_count over the result, and look for a count that is at least
-    MINIMAL_RATIO_BETWEEN_OUT_OF_FORMAT_TO_FORMAT_PORTIONS smaller than the previous count.
-    If such exist, any value that has this count or smaller will be count as rare.
-    """
+    Look for a sudden drop in prevalence of values, and returns ratio of rare to common values and the actual values.
 
+    The function defines which values are rare or common by the following logic:
+    For each value, by descending order of commonness, we check how common this value is compared to the previous
+    (more common) value. if there's a sudden drop (e.g. from 100 samples of previous value to 1), we consider this and
+    all subsequent values to be "rare", and the previous ones to be "common".
+
+    Args:
+        col: pandas Series to check for rare values
+        sharp_drop_ratio_threshold: threshold under which values are considered "rare", as described above.
+
+    Returns:
+        rare_to_common_format_ratio (float): ratio of all rare samples to common samples
+        rare_values (list): list of rare values
+        common_values (list): list of common values
+
+    """
     # should do: analyze numeric data differently - consider analyze the range of the numbers in cols and detect
     #  rare values that are out of this range
 
@@ -134,8 +178,8 @@ def detect_rare(col: pd.Series, sharp_drop_ratio_threshold: float = 0.05):
         return 0, None, None
 
     # returns the rare values and their portion compared to the most common value
-    rare_values = value_counts.iloc[i + 1:]
-    common_values = value_counts.iloc[:i + 1]
+    rare_values = value_counts.iloc[i + 1:]  # pylint: disable=undefined-loop-variable
+    common_values = value_counts.iloc[:i + 1]  # pylint: disable=undefined-loop-variable
 
     rare_to_common_format_ratio = rare_values.sum() / common_values.sum()
 
@@ -143,6 +187,20 @@ def detect_rare(col: pd.Series, sharp_drop_ratio_threshold: float = 0.05):
 
 
 class RareFormatDetection(SingleDatasetBaseCheck):
+    """Checks whether columns have common formats (e.g. "XX-XX-XXXX" for dates") and detects values that don't match."""
 
     def run(self, dataset: Dataset, model=None) -> CheckResult:
+        """
+        Run the rare_format_detection function.
+
+        Args:
+            dataset: Dataset - The dataset object
+            model: any = None - not used in the check
+
+        Returns:
+            CheckResult:
+                - value: dictionary of all columns and found patterns
+                - display: pandas Dataframe per column, showing the rare-to-common-ratio, common formats, examples for
+                           common values and rare values
+        """
         return rare_format_detection(dataset=dataset, rarity_threshold=self.params.get('rarity_threshold', 0.05))
