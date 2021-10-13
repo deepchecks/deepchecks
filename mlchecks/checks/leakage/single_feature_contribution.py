@@ -79,7 +79,7 @@ def single_feature_contribution_train_validation(train_dataset: Dataset, validat
 
     Returns:
         CheckResult:
-            value is a dictionary with PPS per feature column.
+            value is a dictionary with PPS difference per feature column.
             data is a bar graph of the PPS of each feature.
 
     Raises:
@@ -142,7 +142,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
             model: any = None - not used in the check
 
         Returns:
-            the output of the dataset_info check
+            the output of the single_feature_contribution check
         """
         return single_feature_contribution(dataset=dataset, ppscore_params=self.params.get('ppscore_params'))
 
@@ -169,7 +169,7 @@ class SingleFeatureContributionTrainValidation(TrainValidationBaseCheck):
             model: any = None - not used in the check
 
         Returns:
-            the output of the dataset_info check
+            the output of the single_feature_contribution_train_validation check
         """
         return single_feature_contribution_train_validation(train_dataset=train_dataset,
                                                             validation_dataset=validation_dataset,
