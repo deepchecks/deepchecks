@@ -85,7 +85,7 @@ def _draw_overtime_results(comp_dist: pd.DataFrame,
                            column_name: str,
                            drift_res: pd.DataFrame = None):
     fig = plt.figure(figsize=(15, 10))
-    gs = gridspec.GridSpec(1, 2, width_ratios=[1, 3])
+    gs = gridspec.GridSpec(1, 3, width_ratios=[1, 3, 3])
     ax1 = plt.subplot(gs[0])
 
     compared_dataset_stats = (comp_dist[column_name].value_counts() / comp_dist.shape[0]).reset_index()
@@ -99,15 +99,17 @@ def _draw_overtime_results(comp_dist: pd.DataFrame,
     ax2 = plt.subplot(gs[1])
     overtime_dist.plot(kind='bar', stacked=True, ax=ax2)
     if drift_res is not None:
-        twin1 = ax2.twinx()
-        p2, = twin1.plot(drift_res, "r-", label="Drift Score")
-        twin1.yaxis.label.set_color(p2.get_color())
+        ax3 = plt.subplot(gs[2])
+
+        # twin1 = ax2.twinx()
+        p2, = ax3.plot(drift_res, "r-", label="Drift Score")
+        # twin1.yaxis.label.set_color(p2.get_color())
 
     plt.legend(bbox_to_anchor=(1.01, 1), loc='upper left')
     plt.title(f"Distribution plot of feature {column_name} over time")
     fig.autofmt_xdate()
     ax2.fmt_xdata = DateFormatter('%Y-%m-%d')
-
+    fig.tight_layout()
     return get_plt_html_str()
 
 
