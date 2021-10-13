@@ -75,7 +75,7 @@ class Dataset(pd.DataFrame):
             else:
                 self._cat_features = self.infer_categorical_features()
 
-            self._profile = ProfileReport(self, title='Dataset Report', explorative=True, minimal=True)
+        self._profile = ProfileReport(self, title='Dataset Report', explorative=True, minimal=True)
 
     def n_samples(self):
         """Return number of samples in dataframe.
@@ -214,6 +214,23 @@ class Dataset(pd.DataFrame):
         """
         if self.index_name() is None:
             raise MLChecksValueError(f'function {function_name} requires dataset to have an index column')
+
+    def validate_columns_exists(self, *columns):
+        """Validate given columns exists in dataset.
+
+        Args:
+            columns: Column names to check
+
+        Raise:
+            MLChecksValueError: In case one of columns given don't exists raise error
+        """
+        if not columns:
+            raise MLChecksValueError('Got empty columns')
+        if any((not isinstance(s, str) for s in columns)):
+            raise MLChecksValueError(f'Columns must be of type str: {", ".join(columns)}')
+        non_exists = set(columns) - set(self.columns)
+        if non_exists:
+            raise MLChecksValueError(f'Given columns are not exists on dataset: {", ".join(non_exists)}')
 
     def validate_shared_features(self, other, function_name: str) -> List[str]:
         """

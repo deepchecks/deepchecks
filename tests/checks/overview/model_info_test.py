@@ -1,7 +1,10 @@
-from mlchecks.checks.overview.model_info import *
-from hamcrest import *
-
+"""Tests for Model Info."""
+from mlchecks.checks.overview.model_info import model_info, ModelInfo
 from mlchecks.utils import MLChecksValueError
+
+# Disable wildcard import check for hamcrest
+#pylint: disable=unused-wildcard-import,wildcard-import
+from hamcrest import *
 
 
 def assert_model_result(result):
