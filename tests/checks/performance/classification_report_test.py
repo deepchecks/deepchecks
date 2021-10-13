@@ -1,4 +1,3 @@
-import numpy as np
 from mlchecks.checks.performance import ClassificationReport, classification_report
 from hamcrest import *
 from mlchecks.utils import MLChecksValueError

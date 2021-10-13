@@ -1,3 +1,4 @@
+from typing import Dict
 from mlchecks import Dataset
 
 from mlchecks.base.check import CheckResult, TrainValidationBaseCheck
@@ -7,7 +8,16 @@ from mlchecks.display import format_check_display
 __all__ = ['data_sample_leakage_report', 'DataSampleLeakageReport']
 
 
-def get_dup_indexes_map(df, features):
+def get_dup_indexes_map(df, features) -> Dict:
+    """Find duplicated indexes in the dataframe.
+
+        Args:
+            df: a Dataframe object
+            features: the features name list
+        Returns:
+            dictionary of each of the first indexes and its' duplicated indexes
+    
+    """
     dup = df[df.duplicated(features, keep=False)].groupby(features).groups.values()
     dup_map = dict()
     for i_arr in dup:
@@ -16,7 +26,16 @@ def get_dup_indexes_map(df, features):
     return dup_map
 
 
-def get_dup_txt(i, dup_map):
+def get_dup_txt(i, dup_map) -> str:
+    """Return a prettyfied text for a key in the dict.
+
+        Args:
+            i: the index key
+            dup_map: the dict of the duplicated indexes
+        Returns:
+            prettyfied text for a key in the dict
+    
+    """
     val = dup_map.get(i)
     if not val:
         return i
@@ -36,7 +55,7 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
             CheckResult: value is sample leakage ratio in %, displays a dataframe that shows the duplicated rows between the datasets
         
     Raises:
-        MLChecksValueError: If the object is not a Dataset instance with features
+        MLChecksValueError: If the object is not a Dataset instance
 
     """
     validate_dataset(validation_dataset, 'data_sample_leakage_report')
