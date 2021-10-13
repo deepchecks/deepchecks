@@ -52,8 +52,8 @@ def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_p
     html_plot = get_plt_html_str()  # Catches graph into html
     html_txt = get_txt_html_str(
         ['The PPS represents the ability of a feature to single-handedly predict another feature or label.',
-         'A high PPS (close to 1) can mean that this feature\'s success in predicting the label is actually due to data',
-         'leakage - meaning that the feature holds information that is based on the label to begin with.'])
+         'A high PPS (close to 1) can mean that this feature\'s success in predicting the label is actually due to data'
+         , 'leakage - meaning that the feature holds information that is based on the label to begin with.'])
 
     return CheckResult(value=s_ppscore.to_dict(), display={'text/html': html_txt + html_plot})
 
@@ -91,7 +91,7 @@ def single_feature_contribution_train_validation(train_dataset: Dataset, validat
     validation_dataset.validate_label(func_name)
     features_names = train_dataset.validate_shared_features(validation_dataset, func_name)
     label_name = train_dataset.validate_shared_label(validation_dataset, func_name)
-    ppscore_params = ppscore_params or dict()
+    ppscore_params = ppscore_params or {}
 
     relevant_columns = features_names + [label_name]
     df_pps_train = pps.predictors(df=train_dataset[relevant_columns], y=train_dataset.label_name(), random_seed=42,
@@ -110,8 +110,8 @@ def single_feature_contribution_train_validation(train_dataset: Dataset, validat
     html_plot = get_plt_html_str()  # Catches graph into html
     html_txt = get_txt_html_str(
         ['The PPS represents the ability of a feature to single-handedly predict another feature or label.',
-         'A high PPS (close to 1) can mean that this feature\'s success in predicting the label is actually due to data',
-         'leakage - meaning that the feature holds information that is based on the label to begin with.',
+         'A high PPS (close to 1) can mean that this feature\'s success in predicting the label is actually due to data'
+         , 'leakage - meaning that the feature holds information that is based on the label to begin with.',
          'A high difference in PPS between train and validation can indicate leakage as well.'])
 
     return CheckResult(value=s_difference.to_dict(), display={'text/html': html_txt + html_plot})
@@ -176,11 +176,11 @@ class SingleFeatureContributionTrainValidation(TrainValidationBaseCheck):
 
 
 def create_colorbar_barchart_for_check(x: np.array, y: np.array):
-    fig, ax = plt.subplots(figsize=(15, 4))
+    fig, ax = plt.subplots(figsize=(15, 4))  # pylint: disable=unused-variable
 
     my_cmap = plt.cm.get_cmap('RdYlGn_r')
-    colors = my_cmap([h for h in y])
-    rects = ax.bar(x, y, color=colors)
+    colors = my_cmap(list(y))
+    rects = ax.bar(x, y, color=colors)  # pylint: disable=unused-variable
 
     sm = ScalarMappable(cmap=my_cmap, norm=plt.Normalize(0, 1))
     sm.set_array([])

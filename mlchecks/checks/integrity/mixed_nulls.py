@@ -57,7 +57,7 @@ def string_baseform(string: str):
     return string.translate(str.maketrans('', '', SPECIAL_CHARS)).lower()
 
 
-def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, column: str = None, check_nan: bool = True) \
+def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, column: str = None, check_nan: bool = True)\
         -> CheckResult:
     """Search for various types of null values in a string column(s), including string representations of null.
 
