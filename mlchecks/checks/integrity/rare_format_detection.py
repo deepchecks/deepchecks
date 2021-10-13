@@ -4,10 +4,10 @@ from typing import Union, List
 
 import pandas as pd
 
-from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck, TrainValidationBaseCheck
-from mlchecks.base.dataset import validate_dataset, validate_dataset_or_dataframe
+from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
+from mlchecks.base.dataset import validate_dataset_or_dataframe
 from mlchecks.display import format_check_display
-from mlchecks.utils import get_plt_html_str, get_txt_html_str, MLChecksValueError
+from mlchecks.utils import MLChecksValueError
 
 __all__ = ['rare_format_detection', 'RareFormatDetection', 'SubStr', 'Pattern']
 
