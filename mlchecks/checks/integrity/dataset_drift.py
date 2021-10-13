@@ -1,6 +1,9 @@
 from collections import Counter
+from typing import Union, List
+
 import numpy as np
 import pandas as pd
+from matplotlib import gridspec
 from matplotlib.dates import DateFormatter
 from scipy.stats import wasserstein_distance
 from sklearn.preprocessing import LabelEncoder
@@ -72,11 +75,64 @@ def _wass_distance(dataset: pd.DataFrame, compared_dataset: pd.DataFrame,column_
     dataset_col = (dataset_col - val_min) / val_max
     compared_dataset_col = (compared_dataset_col - val_min) / val_max
 
+    if len(dataset) == 0 or len(compared_dataset) == 0:
+        return 0
     return wasserstein_distance(dataset_col, compared_dataset_col)
 
 
-def _overtime_numerical_dist(dataset: Dataset, compared_dataset: Dataset, column_name: str, drift_scores = None):
-    pass
+def _draw_overtime_results(comp_dist: pd.DataFrame,
+                           overtime_dist: pd.DataFrame,
+                           column_name: str,
+                           drift_res: pd.DataFrame = None):
+    fig = plt.figure(figsize=(15, 10))
+    gs = gridspec.GridSpec(1, 2, width_ratios=[1, 3])
+    ax1 = plt.subplot(gs[0])
+
+    compared_dataset_stats = (comp_dist[column_name].value_counts() / comp_dist.shape[0]).reset_index()
+
+    compared_dataset_stats.columns = ['category', 'percent']
+    compared_dataset_stats['Compared Dataset'] = ""
+    compared_dataset_stats = compared_dataset_stats.set_index(['Compared Dataset', 'category']).unstack('category')
+
+    compared_dataset_stats.plot(kind='bar', stacked=True, ax=ax1)
+
+    ax2 = plt.subplot(gs[1])
+    overtime_dist.plot(kind='bar', stacked=True, ax=ax2)
+    if drift_res is not None:
+        twin1 = ax2.twinx()
+        p2, = twin1.plot(drift_res, "r-", label="Drift Score")
+        twin1.yaxis.label.set_color(p2.get_color())
+
+    plt.legend(bbox_to_anchor=(1.01, 1), loc='upper left')
+    plt.title(f"Distribution plot of feature {column_name} over time")
+    fig.autofmt_xdate()
+    ax2.fmt_xdata = DateFormatter('%Y-%m-%d')
+
+    return get_plt_html_str()
+
+
+def overtime_numerical_dist(dataset: Dataset, compared_dataset: Dataset, column_name: str, calculate_drift=False):
+    percentiles = compared_dataset[column_name].quantile(np.linspace(.1, 1, 9, 0))
+    compared_dataset[f'{column_name}_percentiles'] = pd.qcut(compared_dataset[column_name], 10, labels=False)
+    dataset[f'{column_name}_percentiles'] = pd.cut(dataset[column_name], percentiles, labels=False, include_lowest=True)
+
+    orig_col_name = column_name
+    column_name = f'{column_name}_percentiles'
+    grouped_by = dataset.groupby(pd.Grouper(freq='W', key='date'))
+    stats_df = grouped_by[column_name].apply(
+        lambda ser: ser.value_counts() / ser.shape[0]).reset_index()
+
+    stats_df.columns = ['date', 'category', 'percent']
+    stats_df = stats_df.set_index(['date', 'category']).unstack('category')
+    drifts_df = None
+
+    if calculate_drift:
+        drifts_df = grouped_by.apply(lambda x: _wass_distance(x, compared_dataset, orig_col_name))
+        drifts_df = drifts_df[stats_df.index]
+
+    html_plot = _draw_overtime_results(compared_dataset, stats_df, column_name, drifts_df)
+
+    return html_plot
 
 
 def overtime_categorical_dist(dataset: Dataset, compared_dataset: Dataset, column_name: str, calculate_drift=False):
@@ -86,33 +142,15 @@ def overtime_categorical_dist(dataset: Dataset, compared_dataset: Dataset, colum
 
     stats_df.columns = ['date', 'category', 'percent']
     stats_df = stats_df.set_index(['date', 'category']).unstack('category')
+    drifts_df = None
 
     if calculate_drift:
         drifts_df = grouped_by.apply(lambda x: _psi(x, compared_dataset, column_name))
         drifts_df = drifts_df[stats_df.index]
-    # stats_df.index = stats_df.index.to_period('W')
 
-    # compared_dataset_stats = (compared_dataset['gender'].value_counts() / compared_dataset.shape[0]).reset_index()
-    #
-    # compared_dataset_stats.columns = ['category', 'percent']
-    # compared_dataset_stats = compared_dataset_stats.set_index(['category']).unstack('category')
+    html_plot = _draw_overtime_results(compared_dataset, stats_df, column_name, drifts_df)
 
-    # stats_df.loc['compared_dataset'] = compared_dataset_stats
-
-    fig, ax = plt.subplots(figsize=(25, 10))
-
-    stats_df.plot(kind='bar', stacked=True, ax=ax)
-    if calculate_drift:
-        twin1 = ax.twinx()
-        p2, = twin1.plot(drifts_df, "r-", label="Drift Score")
-        twin1.yaxis.label.set_color(p2.get_color())
-
-    plt.legend(bbox_to_anchor=(1.01, 1), loc='upper left')
-    plt.title(f"Distribution plot of feature {column_name} over time")
-    fig.autofmt_xdate()
-    ax.fmt_xdata = DateFormatter('%Y-%m-%d')
-
-    return get_plt_html_str(), stats_df, drifts_df
+    return html_plot
 
 
 def _static_numerical_dist(dataset: pd.DataFrame, compared_dataset: pd.DataFrame, column_name: str):
@@ -132,7 +170,7 @@ def _static_categorical_dist(dataset: pd.DataFrame, compared_dataset: pd.DataFra
 
 def dataset_drift(dataset: Dataset,
                   compared_dataset: Dataset,
-                  column_name: str = None,
+                  column_names: Union[List[str], str] = None,
                   over_time: bool = False) -> CheckResult:
 
     if not isinstance(dataset, Dataset):
@@ -141,9 +179,9 @@ def dataset_drift(dataset: Dataset,
     if not isinstance(compared_dataset, Dataset):
         raise MLChecksValueError("compared_dataset must be of instance Dataset")
 
-    if column_name:
-        if column_name not in set(dataset.columns) or column_name not in set(compared_dataset.columns):
-            raise MLChecksValueError(f'Column name {column_name} must exist in both datasets')
+    if column_names:
+        if column_names not in set(dataset.columns) or column_names not in set(compared_dataset.columns):
+            raise MLChecksValueError(f'Column name {column_names} must exist in both datasets')
 
     if over_time:
         if not dataset.date_col():
@@ -152,7 +190,7 @@ def dataset_drift(dataset: Dataset,
         if not compared_dataset.date_col():
             raise MLChecksValueError("compared_dataset does not contain a date column and over_time=True")
 
-    all_columns = column_name if column_name is not None else set(dataset.columns)
+    all_columns = column_names if column_names is not None else set(dataset.columns)
     categorical_features = set(dataset.cat_features())
 
     comp_all_columns = set(compared_dataset.columns)
@@ -176,7 +214,7 @@ def dataset_drift(dataset: Dataset,
             if col not in categorical_features:
                 image = _overtime_numerical_dist(dataset, compared_dataset, col)
             else:
-                image = _overtime_categorical_dist(dataset, compared_dataset, col)
+                image = overtime_categorical_dist(dataset, compared_dataset, col)
         else:
             if col not in categorical_features:
                 image = _static_numerical_dist(dataset, compared_dataset, col)
@@ -187,15 +225,9 @@ def dataset_drift(dataset: Dataset,
         # If we can calculate drift
 
 
-
-
-
-
-
-
 class DatasetDrift(CompareDatasetsBaseCheck):
     def run(self, dataset, compared_dataset, model=None) -> CheckResult:
-        column_name = self.params.get('column_name')
+        column_names = self.params.get('column_names')
         over_time = self.params.get('over_time')
 
-        return dataset_drift(dataset, compared_dataset, column_name, over_time)
+        return dataset_drift(dataset, compared_dataset, column_names, over_time)
