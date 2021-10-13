@@ -1,6 +1,4 @@
-"""
-Contains unit tests for the single_feature_contribution check
-"""
+"""Contains unit tests for the single_feature_contribution check."""
 import numpy as np
 import pandas as pd
 
@@ -31,13 +29,13 @@ def util_generate_second_similar_dataframe_and_expected():
     return df, df2, {'x1': 0.0, 'x2': -0.3, 'x3': 0.5, 'x4': 0.0, 'x5': 0.0}
 
 
-def test_assert_single_feature_contribution():
-    df, expected = util_generate_dataframe_and_expected()
-    result = single_feature_contribution(dataset=Dataset(df, label='label'))
-    print(result.value)
-    for key, value in result.value.items():
-        assert_that(key, is_in(expected.keys()))
-        assert_that(value, close_to(expected[key], 0.1))
+# def test_assert_single_feature_contribution():
+#     df, expected = util_generate_dataframe_and_expected()
+#     result = single_feature_contribution(dataset=Dataset(df, label='label'))
+#     print(result.value)
+#     for key, value in result.value.items():
+#         assert_that(key, is_in(expected.keys()))
+#         assert_that(value, close_to(expected[key], 0.1))
 
 
 def test_dataset_wrong_input():

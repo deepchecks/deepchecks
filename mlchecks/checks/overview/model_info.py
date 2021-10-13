@@ -1,8 +1,8 @@
 """Module contains model_info check."""
 from mlchecks import ModelOnlyBaseCheck, CheckResult
+from mlchecks.utils import model_type_validation
 import pandas as pd
 from sklearn.base import BaseEstimator
-from mlchecks.utils import model_type_validation
 
 __all__ = ['model_info', 'ModelInfo']
 
@@ -18,13 +18,13 @@ def model_info(model: BaseEstimator):
         CheckResult: value is dictionary in format {type: <model_type>, params: <model_params_dict>}
     """
     model_type_validation(model)
-    _type = type(model).__name__
+    model_type = type(model).__name__
     model_param_df = pd.DataFrame.from_dict(model.get_params(), orient='index', columns=['value'])
     model_param_df.index.name = 'parameter'
     model_param_df.reset_index(inplace=True)
 
-    html = f'<h2>{_type}</h2><br>{model_param_df.to_html(index=False)}'
-    value = {'type': _type, 'params': model.get_params()}
+    html = f'<h2>{model_type}</h2><br>{model_param_df.to_html(index=False)}'
+    value = {'type': model_type, 'params': model.get_params()}
 
     return CheckResult(value, display={'text/html': html})
 

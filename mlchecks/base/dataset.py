@@ -3,7 +3,8 @@ from typing import Union, List
 import pandas as pd
 from pandas_profiling import ProfileReport
 
-__all__ = ['Dataset', 'validate_dataset_or_dataframe', 'validate_dataset']
+
+__all__ = ['Dataset', 'validate_dataset_or_dataframe', 'validate_dataset', 'single_column_or_all']
 
 from mlchecks.utils import MLChecksValueError
 
@@ -251,3 +252,29 @@ def validate_dataset(obj, function_name: str) -> Dataset:
     else:
         raise MLChecksValueError(f'function {function_name} requires dataset to be of type Dataset. instead got: '
                                  f'{type(obj).__name__}')
+
+
+def single_column_or_all(dataset: Dataset, column: str = None) -> List[str]:
+    """Validate given column on dataset.
+
+    If column is not None, make sure it exists in the datasets, and return list containing only column name.
+    If column is None return list of all columns in the dataset.
+
+    Args:
+        dataset (Dataset): Dataset working on
+        column ([None, str]): column name or None
+
+    Returns:
+        (List[str]): List with column names to work on
+    """
+    if column is None:
+        # If column is None works on all columns
+        return list(dataset.columns)
+    else:
+        if not isinstance(column, str):
+            raise MLChecksValueError(f"column type must be 'None' or 'str' but got: {type(column).__name__}")
+        if len(column) == 0:
+            raise MLChecksValueError("column can't be empty string")
+        if column not in dataset.columns:
+            raise MLChecksValueError(f"column {column} isn't found in the dataset")
+        return [column]
