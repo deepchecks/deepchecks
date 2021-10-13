@@ -1,5 +1,5 @@
 """Module contains is_single_value check."""
-from typing import Union
+from typing import Union, List
 import pandas as pd
 from mlchecks import SingleDatasetBaseCheck, CheckResult, validate_dataset_or_dataframe
 from mlchecks.display import format_check_display
