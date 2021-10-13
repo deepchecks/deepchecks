@@ -3,11 +3,16 @@ from typing import Union, List
 import pandas as pd
 from pandas_profiling import ProfileReport
 import warnings
+from mlchecks.utils import MLChecksValueError
+
+
+PANDAS_USER_ATTR_WARNING_STR = "Pandas doesn't allow columns to be created via a new attribute name - "\
+                               "see "\
+                               "https://pandas.pydata.org/pandas-docs/stable/indexing.html#attribute"\
+                               "-access"
 
 
 __all__ = ['Dataset', 'validate_dataset_or_dataframe', 'validate_dataset', 'single_column_or_all']
-
-from mlchecks.utils import MLChecksValueError
 
 
 class Dataset(pd.DataFrame):
@@ -54,10 +59,7 @@ class Dataset(pd.DataFrame):
 
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore",
-                                    message="Pandas doesn't allow columns to be created via a new attribute name - "
-                                            "see "
-                                            "https://pandas.pydata.org/pandas-docs/stable/indexing.html#attribute"
-                                            "-access")
+                                    message=PANDAS_USER_ATTR_WARNING_STR)
             if features:
                 self._features = features
             else:
