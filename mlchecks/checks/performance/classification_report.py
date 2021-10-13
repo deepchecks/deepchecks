@@ -14,8 +14,7 @@ __all__ = ['classification_report', 'ClassificationReport']
 
 def classification_report(ds: Dataset, model):
     """
-    Return the sklearn classification_report in dict format
-
+    Return the sklearn classification_report in dict format.
 
     Args:
         model (BaseEstimator): A scikit-learn-compatible fitted estimator instance

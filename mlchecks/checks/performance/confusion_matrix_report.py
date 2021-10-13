@@ -12,8 +12,7 @@ __all__ = ['confusion_matrix_report', 'ConfusionMatrixReport']
 
 def confusion_matrix_report(ds: Dataset, model):
     """
-    Return the confusion_matrix
-
+    Return the confusion_matrix.
 
     Args:
         model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
