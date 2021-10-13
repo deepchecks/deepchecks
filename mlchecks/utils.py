@@ -1,14 +1,14 @@
 """Utils module containing useful global functions."""
 import base64
 import io
-from typing import Any
+from typing import Any, List, Union
 import sklearn
 import matplotlib.pyplot as plt
 import catboost
 from IPython import get_ipython
 
-
-__all__ = ['SUPPORTED_BASE_MODELS', 'MLChecksValueError', 'model_type_validation', 'is_notebook']
+__all__ = ['SUPPORTED_BASE_MODELS', 'MLChecksValueError', 'model_type_validation', 'is_notebook', 'get_plt_html_str',
+           'get_txt_html_str']
 
 
 SUPPORTED_BASE_MODELS = [sklearn.base.BaseEstimator, catboost.CatBoost]
@@ -33,7 +33,7 @@ def get_plt_base64():
     return base64.b64encode(plt_buffer.read()).decode('utf-8')
 
 
-def get_plt_html_str():
+def get_plt_html_str() -> str:
     """Convert plot to html image tag.
 
     Returns:
@@ -41,6 +41,23 @@ def get_plt_html_str():
     """
     jpg = get_plt_base64()
     return f'<img src="data:image/jpg;base64, {jpg}"/>'
+
+
+def get_txt_html_str(txt: Union[str, List[str]], txt_type: str = 'p') -> str:
+    """
+    Return an html-formatted text string to display.
+
+    Args:
+        txt: the string to be printed.
+        txt_type: type of text to be presented. default is h3 (header-3).
+
+    Returns:
+        string in text/html format in order to display the text in html
+
+    """
+    if isinstance(txt, list):
+        txt = '<br>'.join(txt)
+    return f'<{txt_type}>{txt}</{txt_type}'
 
 
 def model_type_validation(model: Any):
