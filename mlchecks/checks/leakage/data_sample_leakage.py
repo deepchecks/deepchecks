@@ -1,5 +1,4 @@
 from mlchecks import Dataset
-import pandas as pd
 
 from mlchecks.base.check import CheckResult, TrainValidationBaseCheck
 from mlchecks.display import format_check_display
