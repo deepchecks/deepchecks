@@ -1,9 +1,10 @@
-"""
-Contains unit tests for the dataset_info check
-"""
-from mlchecks.checks.overview.dataset_info import *
-from hamcrest import *
+"""Contains unit tests for the dataset_info check."""
+from mlchecks.checks.overview.dataset_info import dataset_info, DatasetInfo
 from mlchecks.utils import MLChecksValueError
+
+# Disable wildcard import check for hamcrest
+#pylint: disable=unused-wildcard-import,wildcard-import
+from hamcrest import *
 
 
 def test_assert_dataset_info(iris_dataset):
@@ -14,9 +15,9 @@ def test_assert_dataset_info(iris_dataset):
 
 
 def test_dataset_wrong_input():
-    X = "wrong_input"
+    wrong = 'wrong_input'
     # Act & Assert
-    assert_that(calling(dataset_info).with_args(X),
+    assert_that(calling(dataset_info).with_args(wrong),
                 raises(MLChecksValueError, 'dataset must be of type DataFrame or Dataset. instead got: str'))
 
 
