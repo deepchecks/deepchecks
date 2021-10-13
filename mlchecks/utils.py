@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import catboost
 from IPython import get_ipython
 
+
 __all__ = ['SUPPORTED_BASE_MODELS', 'MLChecksValueError', 'model_type_validation', 'is_notebook']
 
 
