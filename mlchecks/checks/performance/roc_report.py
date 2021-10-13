@@ -7,6 +7,7 @@ import sklearn
 from sklearn.base import BaseEstimator
 from mlchecks.base.check import SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset
+from mlchecks.display import format_check_display
 
 from mlchecks.utils import MLChecksValueError, get_plt_html_str
 from mlchecks import CheckResult, Dataset
@@ -62,7 +63,7 @@ def roc_report(ds: Dataset, model):
     plt.title('Receiver operating characteristic for multi-class data')
     plt.legend(loc="lower right")
 
-    return CheckResult(res, display={'text/html': get_plt_html_str()})
+    return CheckResult(res, display={'text/html': format_check_display('ROC Report', roc_report, get_plt_html_str())})
 
 class RocReport(SingleDatasetBaseCheck):
     """Summarize given model parameters."""

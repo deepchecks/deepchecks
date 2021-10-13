@@ -3,6 +3,7 @@ import sklearn
 from sklearn.base import BaseEstimator
 from mlchecks.base.check import SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset
+from mlchecks.display import format_check_display
 
 from mlchecks.utils import MLChecksValueError, get_plt_html_str
 from mlchecks import CheckResult, Dataset
@@ -35,7 +36,7 @@ def confusion_matrix_report(ds: Dataset, model):
     confusion_matrix = sklearn.metrics.confusion_matrix(ds_y, y_pred)
     sklearn.metrics.ConfusionMatrixDisplay(confusion_matrix).plot()
     
-    return CheckResult(confusion_matrix, display={'text/html': get_plt_html_str()})
+    return CheckResult(confusion_matrix, display={'text/html': format_check_display('Confusion Matrix Report', confusion_matrix_report, get_plt_html_str())})
 
 
 class ConfusionMatrixReport(SingleDatasetBaseCheck):
