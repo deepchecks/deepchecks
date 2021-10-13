@@ -66,13 +66,15 @@ def single_feature_contribution_train_validation(train_dataset: Dataset, validat
     The PPS represents the ability of a feature to single-handedly predict another feature or label.
     A high PPS (close to 1) can mean that this feature's success in predicting the label is actually due to data
     leakage - meaning that the feature holds information that is based on the label to begin with.
-    A high difference in PPS between train and validation can indicate leakage as well.
+
+    When we compare train PPS to validation PPS, A high difference can strongly indicate leakage, as a feature that was
+    "powerful" in train but not in validation can be explained by leakage in train that does not affect a new dataset.
 
     Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
 
     Args:
-        train_dataset (Dataset): A dataset object. Must contain a label
-        validation_dataset (Dataset): A dataset object. Must contain a label
+        train_dataset (Dataset): The training dataset object. Must contain a label
+        validation_dataset (Dataset): The validation dataset object. Must contain a label
         ppscore_params (dict): dictionary of addional paramaters for the ppscore.predictors function
 
     Returns:
@@ -111,8 +113,10 @@ def single_feature_contribution_train_validation(train_dataset: Dataset, validat
     html_txt = get_txt_html_str(
         ['The PPS represents the ability of a feature to single-handedly predict another feature or label.',
          'A high PPS (close to 1) can mean that this feature\'s success in predicting the label is actually due to data'
-         , 'leakage - meaning that the feature holds information that is based on the label to begin with.',
-         'A high difference in PPS between train and validation can indicate leakage as well.'])
+         , 'leakage - meaning that the feature holds information that is based on the label to begin with.', '',
+         'When we compare train PPS to validation PPS, A high difference can strongly indicate leakage, as a feature',
+         'that was powerful in train but not in validation can be explained by leakage in train that does not affect a'
+         'new dataset.'])
 
     return CheckResult(value=s_difference.to_dict(), display={'text/html': html_txt + html_plot})
 
@@ -160,8 +164,8 @@ class SingleFeatureContributionTrainValidation(TrainValidationBaseCheck):
         Run the single_feature_contribution check.
 
         Arguments:
-            train_dataset (Dataset): A dataset object. Must contain a label
-            validation_dataset (Dataset): A dataset object. Must contain a label
+        train_dataset (Dataset): The training dataset object. Must contain a label
+        validation_dataset (Dataset): The validation dataset object. Must contain a label
             model: any = None - not used in the check
 
         Returns:
