@@ -1,4 +1,5 @@
 """Module contains is_single_value check."""
+from typing import Union
 import pandas as pd
 from mlchecks import SingleDatasetBaseCheck, CheckResult, validate_dataset_or_dataframe
 from mlchecks.display import format_check_display
@@ -6,7 +7,7 @@ from mlchecks.display import format_check_display
 __all__ = ['is_single_value', 'IsSingleValue']
 
 
-def is_single_value(dataset: pd.DataFrame, ignore_columns=None):
+def is_single_value(dataset: pd.DataFrame, ignore_columns: Union[str, List[str]] = None):
     """Check if there are columns which have only a single unique value in all rows.
 
     If found, returns column names and the single value in each of them.
@@ -42,7 +43,7 @@ def is_single_value(dataset: pd.DataFrame, ignore_columns=None):
 
 
 class IsSingleValue(SingleDatasetBaseCheck):
-    """Summarize given dataset parameters."""
+    """Check if there are columns which have only a single unique value in all rows."""
 
     def run(self, dataset, model=None) -> CheckResult:
         """
