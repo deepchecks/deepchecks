@@ -30,3 +30,9 @@ def iris_adaboost(iris):
     target = iris.target
     clf.fit(features, target)
     return clf
+
+
+@pytest.fixture(scope='session')
+def iris_labled_dataset(iris):
+    """Return t Iris dataset as Dataset object with label."""
+    return Dataset(iris, label='target')
