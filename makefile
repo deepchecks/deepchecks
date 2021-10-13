@@ -216,7 +216,7 @@ ammend:
 		exit -1;                                  \
 	fi;
 
-release: version dist upload ammend
+release: version dist upload
 
 
 $(TWINE): $(PIP)
