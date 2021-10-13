@@ -29,7 +29,7 @@ def classification_report(ds: Dataset, model):
 class ClassificationReport(SingleDatasetBaseCheck):
     """Summarize given model parameters."""
 
-    def run(self, model: BaseEstimator, ds: Dataset) -> CheckResult:
+    def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run classification_report check.
 
         Args:
@@ -38,6 +38,6 @@ class ClassificationReport(SingleDatasetBaseCheck):
         Returns:
             CheckResult: value is dictionary in format {<target>: , ['precision': <score>, 'recall': <score>, 'f_score': <score>, 'support': <score>]}
         """
-        if not ds.label_col():
+        if not dataset.label_name():
             raise MLChecksValueError("Dataset doesn't have label column configured")
-        return classification_report(model)
+        return classification_report(dataset, model)

@@ -18,7 +18,7 @@ __all__ = ['roc_report', 'RocReport']
 def roc_report(ds: Dataset, model):
     validate_dataset(ds, 'roc_report')
     ds.validate_label('roc_report')
-    
+
     label = ds.label_name()
     res = dict()
     ds_x = ds[ds.features()]
@@ -54,7 +54,7 @@ def roc_report(ds: Dataset, model):
 class RocReport(SingleDatasetBaseCheck):
     """Summarize given model parameters."""
 
-    def run(self, model: BaseEstimator, ds: Dataset) -> CheckResult:
+    def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run roc_report check.
 
         Args:
@@ -63,6 +63,6 @@ class RocReport(SingleDatasetBaseCheck):
         Returns:
             CheckResult: value is dictionary of class and it's auc score, displays the roc graph with each class
         """
-        if not ds.label_col():
+        if not dataset.label_name():
             raise MLChecksValueError("Dataset doesn't have label column configured")
-        return roc_report(model)
+        return roc_report(dataset, model)

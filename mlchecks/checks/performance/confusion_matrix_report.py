@@ -23,13 +23,13 @@ def confusion_matrix_report(ds: Dataset, model):
     confusion_matrix = sklearn.metrics.confusion_matrix(ds_y, y_pred)
     sklearn.metrics.ConfusionMatrixDisplay(confusion_matrix).plot()
     
-    return CheckResult(res, display={'text/html': get_plt_html_str})
+    return CheckResult(res, display={'text/html': get_plt_html_str()})
 
 
 class ConfusionMatrixReport(SingleDatasetBaseCheck):
     """Summarize given model parameters."""
 
-    def run(self, model: BaseEstimator, ds: Dataset) -> CheckResult:
+    def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run confusion_matrix_report check.
 
         Args:
@@ -38,6 +38,6 @@ class ConfusionMatrixReport(SingleDatasetBaseCheck):
         Returns:
             CheckResult: value is numpy array of the confusion matrix, displays the confusion matrix
         """
-        if not ds.label_col():
+        if not dataset.label_name():
             raise MLChecksValueError("Dataset doesn't have label column configured")
-        return confusion_matrix_report(model)
+        return confusion_matrix_report(dataset, model)
