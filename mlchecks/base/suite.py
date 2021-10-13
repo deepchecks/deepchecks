@@ -9,7 +9,7 @@ __all__ = ['CheckSuite']
 
 from mlchecks.utils import MLChecksValueError
 
-class CheckSuite:
+class CheckSuite(BaseCheck):
     """Class for running a set of checks together, and returning a unified pass / no-pass.
 
     Attributes:
