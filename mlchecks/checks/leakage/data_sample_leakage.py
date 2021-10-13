@@ -85,12 +85,12 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
         
     dup_ratio = count_dups / len(val_f) * 100
     user_msg = 'You have {0:0.2f}% of the validation data in the train data.'.format(dup_ratio)
+
     if dup_ratio:
         html = f'<p>{user_msg}</p>{duplicateRowsDF.to_html()}'
     else:
         html = None
     return CheckResult(dup_ratio, display={'text/html': format_check_display('Data Sample Leakage Report', data_sample_leakage_report, html)})
-
 
 class DataSampleLeakageReport(TrainValidationBaseCheck):
     """Finds data sample leakage."""

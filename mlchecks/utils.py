@@ -1,5 +1,6 @@
 """Utils module containing useful global functions."""
 import base64
+import enum
 import io
 from typing import Any, List, Union
 import sklearn
@@ -8,10 +9,17 @@ import catboost
 from IPython import get_ipython
 
 __all__ = ['SUPPORTED_BASE_MODELS', 'MLChecksValueError', 'model_type_validation', 'is_notebook', 'get_plt_html_str',
-           'get_txt_html_str']
+           'get_txt_html_str', 'TaskType', 'task_type_check']
 
+from sklearn.base import ClassifierMixin, RegressorMixin
 
 SUPPORTED_BASE_MODELS = [sklearn.base.BaseEstimator, catboost.CatBoost]
+
+
+class TaskType(enum.Enum):
+    regression = 'regression'  # regression
+    binary = 'binary'  # binary classification
+    multiclass = 'multiclass'  # multiclass classification
 
 
 class MLChecksValueError(ValueError):
@@ -28,7 +36,7 @@ def get_plt_base64():
     """
     plt_buffer = io.BytesIO()
     plt.style.use('seaborn')
-    plt.savefig(plt_buffer, format='jpg')
+    plt.savefig(plt_buffer, format='jpg', bbox_inches='tight')
     plt_buffer.seek(0)
     return base64.b64encode(plt_buffer.read()).decode('utf-8')
 
@@ -79,10 +87,54 @@ def is_notebook():
     try:
         shell = get_ipython().__class__.__name__
         if shell == 'ZMQInteractiveShell':
-            return True   # Jupyter notebook or qtconsole
+            return True  # Jupyter notebook or qtconsole
         elif shell == 'TerminalInteractiveShell':
             return False  # Terminal running IPython
         else:
             return False  # Other type (?)
     except NameError:
         return False      # Probably standard Python interpreter
+
+
+def task_type_check(model: Union[ClassifierMixin, RegressorMixin], dataset) -> TaskType:
+    """Check task type (regression, binary, multiclass) according to model object and label column
+
+    Args:
+        model (Union[ClassifierMixin, RegressorMixin]): Model object - used to check if has predict_proba()
+        dataset (Dataset): dataset - used to count the number of unique labels
+
+    Returns:
+
+    """
+
+    model_type_validation(model)
+    dataset.validate_label(task_type_check.__name__)
+
+    if getattr(model, "predict_proba", None):
+        model: ClassifierMixin
+        if dataset.label_col().nunique() > 2:
+            return TaskType.multiclass
+        else:
+            return TaskType.binary
+    else:
+        return TaskType.regression
+
+
+def model_dataset_shape_validation(model: Any, dataset: Any):
+    """Check if number of dataset features matches the number model features.
+
+    Raise:
+        MLChecksException: if dataset does not match model
+    """
+    feature_count = None
+    if isinstance(model, sklearn.base.BaseEstimator):
+        feature_count = model.n_features_in_
+    elif isinstance(model, catboost.CatBoost):
+        feature_count = model.get_feature_count()
+
+    if feature_count:
+        if feature_count != len(dataset.features()):
+            raise MLChecksValueError(f'model and dataset do not contain the same number of features:'
+                                     f' model({feature_count}) dataset({len(dataset.features())})')
+    else:
+        raise MLChecksValueError('unable to extract number of features from model')

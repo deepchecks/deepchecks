@@ -6,13 +6,14 @@ import warnings
 from mlchecks.utils import MLChecksValueError
 
 
-PANDAS_USER_ATTR_WARNING_STR = "Pandas doesn't allow columns to be created via a new attribute name - "\
-                               "see "\
-                               "https://pandas.pydata.org/pandas-docs/stable/indexing.html#attribute"\
-                               "-access"
+PANDAS_USER_ATTR_WARNING_STR = ("Pandas doesn't allow columns to be created via a new attribute name - see"
+                                " https://pandas.pydata.org/pandas-docs/stable/indexing.html#attribute-access")
+
 
 __all__ = ['Dataset', 'validate_dataset_or_dataframe', 'validate_dataset']
 
+MAX_CATEGORY_RATIO = 0.001
+MAX_CATEGORIES = 100
 
 class Dataset(pd.DataFrame):
     """Dataset extends pandas DataFrame to provide ML related metadata.
@@ -57,8 +58,7 @@ class Dataset(pd.DataFrame):
             raise MLChecksValueError(f'label column {label} not found in dataset columns')
 
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore",
-                                    message=PANDAS_USER_ATTR_WARNING_STR)
+            warnings.filterwarnings('ignore', message=PANDAS_USER_ATTR_WARNING_STR)
             if features:
                 self._features = features
             else:
@@ -90,7 +90,14 @@ class Dataset(pd.DataFrame):
         Returns:
            Out of the list of feature names, returns list of categorical features
         """
-        # TODO: add infer logic here
+        # cat_columns = []
+        #
+        # for col in self.columns:
+        #     num_unique = self[col].nunique(dropna=True)
+        #     if num_unique / len(self[col].dropna()) < MAX_CATEGORY_RATIO or num_unique <= MAX_CATEGORIES:
+        #         cat_columns.append(col)
+        #
+        # return cat_columns
         return []
 
     def index_name(self) -> Union[str, None]:
