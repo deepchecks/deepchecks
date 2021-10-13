@@ -1,7 +1,10 @@
 from mlchecks import Dataset
 
 from mlchecks.base.check import CheckResult, TrainValidationBaseCheck
+from mlchecks.base.dataset import validate_dataset
 from mlchecks.display import format_check_display
+
+__all__ = ['data_sample_leakage_report', 'DataSampleLeakageReport']
 
 
 def get_dup_indexes_map(df, features):
@@ -23,7 +26,22 @@ def get_dup_txt(i, dup_map):
     return txt[:-2]
 
 
-def data_leakage_report(validation_dataset: Dataset, test_dataset: Dataset):
+def data_sample_leakage_report(validation_dataset: Dataset, test_dataset: Dataset):
+    """Run classification_report check.
+
+        Args:
+            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
+            ds: a Dataset object
+        Returns:
+            CheckResult: value is sample leakage ratio in %, displays a dataframe that shows the duplicated rows between the datasets
+        
+    Raises:
+        MLChecksValueError: If the object is not a Dataset instance with features
+
+    """
+    validate_dataset(validation_dataset, 'data_sample_leakage_report')
+    validate_dataset(test_dataset, 'data_sample_leakage_report')
+
     features = test_dataset.features()
     test_f = test_dataset[features]
     val_f = validation_dataset[features]
@@ -47,14 +65,14 @@ def data_leakage_report(validation_dataset: Dataset, test_dataset: Dataset):
         count_dups += len(index.split(','))
         
     dup_ratio = count_dups / len(val_f) * 100
-    user_msg = 'You have {1:0.2f} data sample leakage'.format(dup_ratio)
-    return CheckResult(dup_ratio, display={'text/html': format_check_display('Classification Report', data_leakage_report, f'<p>{user_msg}</p>{duplicateRowsDF.to_html()}')})
+    user_msg = 'You have {0:0.2f}% data sample leakage'.format(dup_ratio)
+    return CheckResult(dup_ratio, display={'text/html': format_check_display('Classification Report', data_sample_leakage_report, f'<p>{user_msg}</p>{duplicateRowsDF.to_html()}')})
 
 
-class ClassificationReport(TrainValidationBaseCheck):
+class DataSampleLeakageReport(TrainValidationBaseCheck):
     """Finds data sample leakage."""
 
-    def run(self, dataset: Dataset) -> CheckResult:
+    def run(self, validation_dataset: Dataset, test_dataset: Dataset) -> CheckResult:
         """Run classification_report check.
 
         Args:
@@ -63,4 +81,4 @@ class ClassificationReport(TrainValidationBaseCheck):
         Returns:
             CheckResult: value is sample leakage ratio in %, displays a dataframe that shows the duplicated rows between the datasets
         """
-        return data_leakage_report(dataset)
+        return data_sample_leakage_report(validation_dataset=validation_dataset, test_dataset=test_dataset)
