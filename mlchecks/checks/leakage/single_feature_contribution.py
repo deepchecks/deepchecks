@@ -8,7 +8,7 @@ import ppscore as pps
 
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck, TrainValidationBaseCheck
 from mlchecks.base.dataset import validate_dataset
-from mlchecks.utils import get_plt_html_str, get_txt_html_str
+from mlchecks.utils import get_plt_html_str
 
 __all__ = ['single_feature_contribution', 'single_feature_contribution_train_validation',
            'SingleFeatureContribution', 'SingleFeatureContributionTrainValidation']
@@ -46,7 +46,6 @@ def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_p
     s_ppscore = df_pps['ppscore']
 
     # Create graph:
-    # s_ppscore.plot(kind='bar', ylabel='ppscore', ylim=(0, 1), grid=True)
     create_colorbar_barchart_for_check(x=s_ppscore.index, y=s_ppscore.values)
 
     html_plot = get_plt_html_str()  # Catches graph into html
