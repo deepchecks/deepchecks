@@ -27,7 +27,7 @@ def get_dup_txt(i, dup_map):
 
 
 def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Dataset):
-    """Runs data_sample_leakage_report check.
+    """Run data_sample_leakage_report check.
 
         Args:
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
