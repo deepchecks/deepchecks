@@ -3,6 +3,7 @@ import pandas as pd
 
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck, TrainValidationBaseCheck
 from mlchecks.base.dataset import validate_dataset
+from mlchecks.display import format_check_display
 from mlchecks.utils import is_notebook, MLChecksValueError, get_plt_html_str
 
 __all__ = ['index_train_val_leakage', 'IndexTrainValLeakage']
@@ -39,13 +40,16 @@ def index_train_val_leakage(train_dataset: Dataset, validation_dataset: Dataset,
         text = f'{size_in_test:.1%} of validation data indexes appear in training data'
         table = pd.DataFrame([list(index_intersection)[:n_index_to_show]],
                              index=['Sample of validation indexes in train'])
-        display_str = f'<b>{text}</b><br>{table.to_html(header=False)}'
+        display_str = f'{text}<br>{table.to_html(header=False)}'
         return_value = size_in_test
     else:
         display_str = None
         return_value = 0
 
-    return CheckResult(value=return_value, display={'text/html': display_str})
+    return CheckResult(value=return_value,
+                       display={'text/html':
+                                format_check_display('Index Train-Validation Leakage', index_train_val_leakage,
+                                                     display_str)})
 
 
 class IndexTrainValLeakage(TrainValidationBaseCheck):
@@ -65,4 +69,5 @@ class IndexTrainValLeakage(TrainValidationBaseCheck):
         Returns:
             the output of the index_train_val_leakage check
         """
-        return index_train_val_leakage(train_dataset, validation_dataset)
+        return index_train_val_leakage(train_dataset, validation_dataset,
+                                       n_index_to_show=self.params.get('n_index_to_show'))
