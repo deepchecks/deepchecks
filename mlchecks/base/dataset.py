@@ -176,8 +176,8 @@ class Dataset(pd.DataFrame):
         if self.date_name() is None:
             raise MLChecksValueError(f'function {function_name} requires dataset to have a date column')
 
-    def validate_columns(self, *columns):
-        """Validate given columns exists.
+    def validate_columns_exists(self, *columns):
+        """Validate given columns exists in dataset.
 
         Args:
             columns: Column names to check
