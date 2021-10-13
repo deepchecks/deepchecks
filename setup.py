@@ -6,6 +6,7 @@ main_ns = {}
 ver_path = convert_path('mlchecks/version.py')
 with open(ver_path) as ver_file:
     exec(ver_file.read(), main_ns)
+VER = main_ns['__version__']
 
 requirementPath = os.path.dirname(os.path.realpath(__file__)) + '/requirements.txt'
 install_requires = []
@@ -15,7 +16,26 @@ if os.path.isfile(requirementPath):
 
 setup(
     name='mlchecks',
-    version=main_ns['__version__'],
+    version=VER,
     packages=['mlchecks'],
-    install_requires=install_requires
+    install_requires=install_requires,
+    license='Propietery', #TODO: what is the license
+    description = 'TYPE YOUR DESCRIPTION HERE', # TODO: Give me a one line Description
+    author = 'deepchecks',  
+    author_email = 'info@deepchecks.com', 
+    url = 'https://github.com/deepchecks/MLChecks',
+    download_url = "https://github.com/deepchecks/MLChecks/releases/download/{0}/mlchecks-{0}.tar.gz".format(VER), 
+    keywords = ['Software Development', 'Machine Learning'],   
+    classifiers         = [
+        'Intended Audience :: Developers',
+        'Intended Audience :: Science/Research',
+        'Topic :: Software Development :: Test Tools', #TODO: Gabbay is this good?
+        'License :: OSI Approved :: MIT License', # TODO: WHAT IS THE LICENSE?!?
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+    ],
 )
