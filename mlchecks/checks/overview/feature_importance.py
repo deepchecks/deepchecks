@@ -18,9 +18,10 @@ def feature_importance(dataset: Dataset, model: BaseEstimator, plot_type: str = 
     Returns:
         CheckResult: value is the SHAP values
     """
+    check_name = 'feature_importance'
     model_type_validation(model)
-    validate_dataset(dataset, 'feature_importance')
-    dataset.validate_label('feature_importance')
+    validate_dataset(dataset, check_name)
+    dataset.validate_label(check_name)
     model_dataset_shape_validation(model, dataset)
 
 

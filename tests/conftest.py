@@ -61,6 +61,6 @@ def iris_dataset_single_class(iris):
     """Return Iris dataset modified to a binary label as Dataset object."""
     idx = iris.target != 2
     df = iris[idx]
-    dataset = Dataset(df, label="target")
+    dataset = Dataset(df, label='target')
     return dataset
 

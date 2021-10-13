@@ -88,7 +88,7 @@ def is_notebook():
 
 
 def model_dataset_shape_validation(model: Any, dataset: Any):
-    """Check if number of dataset features matches the number model features
+    """Check if number of dataset features matches the number model features.
 
     Raise:
         MLChecksException: if dataset does not match model
@@ -104,4 +104,4 @@ def model_dataset_shape_validation(model: Any, dataset: Any):
             raise MLChecksValueError(f'model and dataset do not contain the same number of features:'
                                      f' model({feature_count}) dataset({len(dataset.features())})')
     else:
-        raise MLChecksValueError(f'unable to extract number of features from model')
+        raise MLChecksValueError('unable to extract number of features from model')
