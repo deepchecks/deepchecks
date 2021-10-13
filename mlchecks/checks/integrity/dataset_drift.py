@@ -124,7 +124,7 @@ def _overtime_numerical_dist(dataset: Dataset, compared_dataset: Dataset, column
 
     orig_col_name = column_name
     column_name = f'{column_name}_percentiles'
-    grouped_by = dataset.groupby(pd.Grouper(freq='W', key='date'))
+    grouped_by = dataset.groupby(pd.Grouper(freq='W', key=dataset.date_name()))
     stats_df = grouped_by[column_name].apply(
         lambda ser: ser.value_counts() / ser.shape[0]).reset_index()
 
@@ -143,7 +143,7 @@ def _overtime_numerical_dist(dataset: Dataset, compared_dataset: Dataset, column
 
 
 def _overtime_categorical_dist(dataset: Dataset, compared_dataset: Dataset, column_name: str, calculate_drift=False):
-    grouped_by = dataset.groupby(pd.Grouper(freq='W', key='date'))
+    grouped_by = dataset.groupby(pd.Grouper(freq='W', key=dataset.date_name()))
     stats_df = grouped_by[column_name].apply(
         lambda ser: ser.value_counts() / ser.shape[0]).reset_index()
 
