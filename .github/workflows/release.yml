@@ -19,8 +19,8 @@ jobs:
 
     - name: "Upload Package"
       run: |
-
-        make release version=${{ github.event.ref }}
+        TAG=$(echo -n "${{ github.event.ref }}" | cut -d '/' -f3)
+        make release version=$TAG
       env:
         TWINE_REPOSITORY_URL: ${{ secrets.REPOSITORY_URL }}
         TWINE_USERNAME: ${{ secrets.REPOSITORY_USERNAME }}
