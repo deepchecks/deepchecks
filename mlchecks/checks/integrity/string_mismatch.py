@@ -11,7 +11,7 @@ from mlchecks.display import format_check_display
 __all__ = ['string_mismatch']
 
 
-def string_mismatch(dataset: DataFrame, ignore_columns: Union[str, List[str]]) -> CheckResult:
+def string_mismatch(dataset: DataFrame, ignore_columns: Union[str, List[str]] = None) -> CheckResult:
     """Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column.
 
     Args:

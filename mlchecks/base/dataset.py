@@ -6,8 +6,9 @@ import warnings
 from mlchecks.utils import MLChecksValueError
 
 
-PANDAS_USER_ATTR_WARNING_STR = """Pandas doesn't allow columns to be created via a new attribute name - see
-                               " https://pandas.pydata.org/pandas-docs/stable/indexing.html#attribute -access"""
+PANDAS_USER_ATTR_WARNING_STR = ("Pandas doesn't allow columns to be created via a new attribute name - see"
+                                " https://pandas.pydata.org/pandas-docs/stable/indexing.html#attribute-access")
+
 
 __all__ = ['Dataset', 'validate_dataset_or_dataframe', 'validate_dataset']
 
