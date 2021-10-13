@@ -11,4 +11,3 @@ ppscore==1.2.0
 seaborn>=0.11.2
 matplotlib>=3.3.3
 shap>=0.39.0
-pyqt5>=5.15.4
