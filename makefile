@@ -104,7 +104,7 @@ $(REQUIREMENTS_LOG): $(PIP) $(REQUIREMENTS)
 validate: $(REQUIREMENTS_LOG) pylint docstring
 
 pylint: $(ANALIZE)
-	$(ANALIZE) $(SOURCES) $(TEST_CODE) | tee -a $(PYLINT_LOG)
+	$(ANALIZE) $(SOURCES) $(TEST_CODE)
 docstring: $(ANALIZE) # We Use Google Style Python Docstring
 	$(PYTHON) -m pydocstyle $(SOURCES)
 

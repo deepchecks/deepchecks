@@ -47,8 +47,7 @@ jobs:
     - name: Validate Code Style
       id: validate
       run: |
-        make validate
-        PYLINT=$(cat .pylint.log | sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p')
+        PYLINT=$(make validate | sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p')
         echo "::set-output name=pylint_score::$PYLINT"
 
     - name: Generate & Publish Badges
