@@ -1,6 +1,7 @@
 from collections import Counter
 import numpy as np
 import pandas as pd
+from matplotlib.dates import DateFormatter
 from scipy.stats import wasserstein_distance
 from sklearn.preprocessing import LabelEncoder
 
@@ -74,29 +75,44 @@ def _wass_distance(dataset: pd.DataFrame, compared_dataset: pd.DataFrame,column_
     return wasserstein_distance(dataset_col, compared_dataset_col)
 
 
-def _overtime_numerical_dist(dataset: pd.DataFrame, compared_dataset: pd.DataFrame, column_name: str, drift_scores = None):
+def _overtime_numerical_dist(dataset: Dataset, compared_dataset: Dataset, column_name: str, drift_scores = None):
     pass
 
 
-def _overtime_categorical_dist(dataset: pd.DataFrame, compared_dataset: pd.DataFrame, column_name: str, drift_scores = None):
-    stats_df = dataset.groupby(pd.Grouper(freq='W', key='date'))[column_name].apply(
+def overtime_categorical_dist(dataset: Dataset, compared_dataset: Dataset, column_name: str, calculate_drift=False):
+    grouped_by = dataset.groupby(pd.Grouper(freq='W', key='date'))
+    stats_df = grouped_by[column_name].apply(
         lambda ser: ser.value_counts() / ser.shape[0]).reset_index()
+
     stats_df.columns = ['date', 'category', 'percent']
     stats_df = stats_df.set_index(['date', 'category']).unstack('category')
-    stats_df.index = stats_df.index.to_period('W')
 
-    compared_dataset_stats = (compared_dataset['gender'].value_counts() / compared_dataset.shape[0]).reset_index()
+    if calculate_drift:
+        drifts_df = grouped_by.apply(lambda x: _psi(x, compared_dataset, column_name))
+        drifts_df = drifts_df[stats_df.index]
+    # stats_df.index = stats_df.index.to_period('W')
 
-    compared_dataset_stats.columns = ['category', 'percent']
-    compared_dataset_stats = compared_dataset_stats.set_index(['category']).unstack('category')
+    # compared_dataset_stats = (compared_dataset['gender'].value_counts() / compared_dataset.shape[0]).reset_index()
+    #
+    # compared_dataset_stats.columns = ['category', 'percent']
+    # compared_dataset_stats = compared_dataset_stats.set_index(['category']).unstack('category')
 
-    stats_df.loc['compared_dataset'] = compared_dataset_stats
+    # stats_df.loc['compared_dataset'] = compared_dataset_stats
 
-    stats_df.plot(kind='bar', stacked=True, figsize=(25, 5))
+    fig, ax = plt.subplots(figsize=(25, 10))
+
+    stats_df.plot(kind='bar', stacked=True, ax=ax)
+    if calculate_drift:
+        twin1 = ax.twinx()
+        p2, = twin1.plot(drifts_df, "r-", label="Drift Score")
+        twin1.yaxis.label.set_color(p2.get_color())
+
     plt.legend(bbox_to_anchor=(1.01, 1), loc='upper left')
     plt.title(f"Distribution plot of feature {column_name} over time")
+    fig.autofmt_xdate()
+    ax.fmt_xdata = DateFormatter('%Y-%m-%d')
 
-    return get_plt_html_str()
+    return get_plt_html_str(), stats_df, drifts_df
 
 
 def _static_numerical_dist(dataset: pd.DataFrame, compared_dataset: pd.DataFrame, column_name: str):
@@ -169,9 +185,7 @@ def dataset_drift(dataset: Dataset,
         # Generate the distribution chart
         display_items.append(image)
         # If we can calculate drift
-        if calculate_drift:
-            # TODO: calculate the drift based on over time
-            pass
+
 
 
 
