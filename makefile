@@ -47,7 +47,7 @@ REQUIREMENTS_LOG := .requirements.log
 
 # Test and Analyize
 ANALIZE_PKGS = pylint pydocstyle
-TEST_CODE := $(wildcard $(TESTDIR)/*.py)
+TEST_CODE := tests/
 TEST_RUNNER_PKGS = pytest pyhamcrest
 
 PYLINT_LOG = .pylint.log
