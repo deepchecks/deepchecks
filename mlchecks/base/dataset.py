@@ -2,12 +2,18 @@
 from typing import Union, List
 import pandas as pd
 from pandas_profiling import ProfileReport
-
-
-__all__ = ['Dataset', 'validate_dataset_or_dataframe', 'validate_dataset', 'single_column_or_all']
-
+import warnings
 from mlchecks.utils import MLChecksValueError
 
+
+PANDAS_USER_ATTR_WARNING_STR = ("Pandas doesn't allow columns to be created via a new attribute name - see"
+                                " https://pandas.pydata.org/pandas-docs/stable/indexing.html#attribute-access")
+
+
+__all__ = ['Dataset', 'validate_dataset_or_dataframe', 'validate_dataset']
+
+MAX_CATEGORY_RATIO = 0.001
+MAX_CATEGORIES = 100
 
 class Dataset(pd.DataFrame):
     """Dataset extends pandas DataFrame to provide ML related metadata.
@@ -51,22 +57,32 @@ class Dataset(pd.DataFrame):
         if label is not None and label not in self.columns:
             raise MLChecksValueError(f'label column {label} not found in dataset columns')
 
-        if features:
-            self._features = features
-        else:
-            self._features = [x for x in df.columns if x not in {label, index, date}]
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', message=PANDAS_USER_ATTR_WARNING_STR)
+            if features:
+                self._features = features
+            else:
+                self._features = [x for x in df.columns if x not in {label, index, date}]
 
-        self._label_name = label
-        self._use_index = use_index
-        self._index_name = index
-        self._date_name = date
+            self._label_name = label
+            self._use_index = use_index
+            self._index_name = index
+            self._date_name = date
 
-        if cat_features:
-            self._cat_features = cat_features
-        else:
-            self._cat_features = self.infer_categorical_features()
+            if cat_features:
+                self._cat_features = cat_features
+            else:
+                self._cat_features = self.infer_categorical_features()
 
         self._profile = ProfileReport(self, title='Dataset Report', explorative=True, minimal=True)
+
+    def n_samples(self):
+        """Return number of samples in dataframe.
+
+        Returns:
+           Number of samples in dataframe
+        """
+        return self.shape[0]
 
     def infer_categorical_features(self) -> List[str]:
         """Infers which features are categorical by checking types and number of unique values.
@@ -74,8 +90,23 @@ class Dataset(pd.DataFrame):
         Returns:
            Out of the list of feature names, returns list of categorical features
         """
-        # TODO: add infer logic here
+        # cat_columns = []
+        #
+        # for col in self.columns:
+        #     num_unique = self[col].nunique(dropna=True)
+        #     if num_unique / len(self[col].dropna()) < MAX_CATEGORY_RATIO or num_unique <= MAX_CATEGORIES:
+        #         cat_columns.append(col)
+        #
+        # return cat_columns
         return []
+
+    def index_name(self) -> Union[str, None]:
+        """If index column exists, return its name.
+
+        Returns:
+           (str) index column name
+        """
+        return self._index_name
 
     def index_col(self) -> Union[pd.Series, None]:
         """Return index column. Index can be a named column or DataFrame index.
@@ -83,7 +114,7 @@ class Dataset(pd.DataFrame):
         Returns:
            If date column exists, returns a pandas Series of the index column.
         """
-        if self.use_index is True:
+        if self._use_index is True:
             return pd.Series(self.index)
         elif self._index_name is not None:
             return self[self._index_name]
@@ -176,8 +207,22 @@ class Dataset(pd.DataFrame):
         if self.date_name() is None:
             raise MLChecksValueError(f'function {function_name} requires dataset to have a date column')
 
-    def validate_columns_exists(self, *columns):
-        """Validate given columns exists in dataset.
+    def validate_index(self, function_name: str):
+        """
+        Throws error if dataset does not have an index column / does not use dataframe index as index.
+
+        Args:
+            function_name (str): function name to print in error
+
+        Raises:
+            MLChecksValueError if dataset does not have an index
+
+        """
+        if self.index_name() is None:
+            raise MLChecksValueError(f'function {function_name} requires dataset to have an index column')
+
+    def validate_columns_exist(self, columns):
+        """Validate given columns exist in dataset.
 
         Args:
             columns: Column names to check
@@ -185,13 +230,34 @@ class Dataset(pd.DataFrame):
         Raise:
             MLChecksValueError: In case one of columns given don't exists raise error
         """
-        if not columns:
+        if columns is None:
             raise MLChecksValueError('Got empty columns')
-        if any((not isinstance(s, str) for s in columns)):
-            raise MLChecksValueError(f'Columns must be of type str: {", ".join(columns)}')
+        if isinstance(columns, str):
+            columns = [columns]
+        elif isinstance(columns, List):
+            if any((not isinstance(s, str) for s in columns)):
+                raise MLChecksValueError(f'Columns must be of type str: {", ".join(columns)}')
+        else:
+            raise MLChecksValueError('Columns must be of types `str` or `List[str]`')
+        # Check columns exists
         non_exists = set(columns) - set(self.columns)
         if non_exists:
             raise MLChecksValueError(f'Given columns are not exists on dataset: {", ".join(non_exists)}')
+
+    def drop_columns_with_validation(self, columns: Union[str, List[str]]):
+        """If columns are given validate they are exists and drop them.
+
+        Args:
+            columns (Union[str, List[str]]): Column names to check
+
+        Raise:
+            MLChecksValueError: In case one of columns given don't exists raise error
+        """
+        if columns:
+            self.validate_columns_exist(columns)
+            return self.drop(labels=columns, axis='columns')
+        else:
+            return self
 
     def validate_shared_features(self, other, function_name: str) -> List[str]:
         """
@@ -206,6 +272,7 @@ class Dataset(pd.DataFrame):
 
         Raises:
             MLChecksValueError if datasets don't have the same features
+
         """
         validate_dataset(other, function_name)
         if sorted(self.features()) == sorted(other.features()):
@@ -268,31 +335,3 @@ def validate_dataset(obj, function_name: str) -> Dataset:
     else:
         raise MLChecksValueError(f'function {function_name} requires dataset to be of type Dataset. instead got: '
                                  f'{type(obj).__name__}')
-
-
-
-
-def single_column_or_all(dataset: Dataset, column: str = None) -> List[str]:
-    """Validate given column on dataset.
-
-    If column is not None, make sure it exists in the datasets, and return list containing only column name.
-    If column is None return list of all columns in the dataset.
-
-    Args:
-        dataset (Dataset): Dataset working on
-        column ([None, str]): column name or None
-
-    Returns:
-        (List[str]): List with column names to work on
-    """
-    if column is None:
-        # If column is None works on all columns
-        return list(dataset.columns)
-    else:
-        if not isinstance(column, str):
-            raise MLChecksValueError(f"column type must be 'None' or 'str' but got: {type(column).__name__}")
-        if len(column) == 0:
-            raise MLChecksValueError("column can't be empty string")
-        if column not in dataset.columns:
-            raise MLChecksValueError(f"column {column} isn't found in the dataset")
-        return [column]

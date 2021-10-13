@@ -6,7 +6,7 @@ import pytest
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.datasets import load_iris
 import pandas as pd
-from mlchecks import Dataset
+from mlchecks.base import Dataset
 
 
 @pytest.fixture(scope='session')
@@ -30,3 +30,9 @@ def iris_adaboost(iris):
     target = iris.target
     clf.fit(features, target)
     return clf
+
+
+@pytest.fixture(scope='session')
+def iris_labled_dataset(iris):
+    """Return t Iris dataset as Dataset object with label."""
+    return Dataset(iris, label='target')
