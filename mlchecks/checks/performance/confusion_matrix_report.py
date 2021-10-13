@@ -5,7 +5,7 @@ from mlchecks.base.check import SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset
 from mlchecks.display import format_check_display
 
-from mlchecks.utils import MLChecksValueError, get_plt_html_str
+from mlchecks.utils import get_plt_html_str
 from mlchecks import CheckResult, Dataset
 
 __all__ = ['confusion_matrix_report', 'ConfusionMatrixReport']
