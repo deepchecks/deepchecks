@@ -2,6 +2,7 @@
 from typing import Union, List
 import pandas as pd
 from pandas_profiling import ProfileReport
+import warnings
 
 
 __all__ = ['Dataset', 'validate_dataset_or_dataframe', 'validate_dataset', 'single_column_or_all']
@@ -51,22 +52,31 @@ class Dataset(pd.DataFrame):
         if label is not None and label not in self.columns:
             raise MLChecksValueError(f'label column {label} not found in dataset columns')
 
-        if features:
-            self._features = features
-        else:
-            self._features = [x for x in df.columns if x not in {label, index, date}]
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore",
+                                    message="Pandas doesn't allow columns to be created via a new attribute name - "
+                                            "see "
+                                            "https://pandas.pydata.org/pandas-docs/stable/indexing.html#attribute"
+                                            "-access")
+            if features:
+                self._features = features
+            else:
+                self._features = [x for x in df.columns if x not in {label, index, date}]
 
-        self._label_name = label
-        self._use_index = use_index
-        self._index_name = index
-        self._date_name = date
+            self._label_name = label
+            self._use_index = use_index
+            self._index_name = index
+            self._date_name = date
 
-        if cat_features:
-            self._cat_features = cat_features
-        else:
-            self._cat_features = self.infer_categorical_features()
+            if cat_features:
+                self._cat_features = cat_features
+            else:
+                self._cat_features = self.infer_categorical_features()
 
-        self._profile = ProfileReport(self, title='Dataset Report', explorative=True, minimal=True)
+            self._profile = ProfileReport(self, title='Dataset Report', explorative=True, minimal=True)
+
+    def n_samples(self):
+        return self.shape[0]
 
     def infer_categorical_features(self) -> List[str]:
         """Infers which features are categorical by checking types and number of unique values.
@@ -77,13 +87,21 @@ class Dataset(pd.DataFrame):
         # TODO: add infer logic here
         return []
 
+    def index_name(self) -> Union[str, None]:
+        """If index column exists, return its name.
+
+        Returns:
+           (str) index column name
+        """
+        return self._index_name
+
     def index_col(self) -> Union[pd.Series, None]:
         """Return index column. Index can be a named column or DataFrame index.
 
         Returns:
            If date column exists, returns a pandas Series of the index column.
         """
-        if self.use_index is True:
+        if self._use_index is True:
             return pd.Series(self.index)
         elif self._index_name is not None:
             return self[self._index_name]
@@ -175,6 +193,20 @@ class Dataset(pd.DataFrame):
         """
         if self.date_name() is None:
             raise MLChecksValueError(f'function {function_name} requires dataset to have a date column')
+
+    def validate_index(self, function_name: str):
+        """
+        Throws error if dataset does not have an index column / does not use dataframe index as index.
+
+        Args:
+            function_name (str): function name to print in error
+
+        Raises:
+            MLChecksValueError if dataset does not have an index
+
+        """
+        if self.index_name() is None:
+            raise MLChecksValueError(f'function {function_name} requires dataset to have an index column')
 
 
 def validate_dataset_or_dataframe(obj) -> Dataset:
