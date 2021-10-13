@@ -176,6 +176,23 @@ class Dataset(pd.DataFrame):
         if self.date_name() is None:
             raise MLChecksValueError(f'function {function_name} requires dataset to have a date column')
 
+    def validate_columns(self, *columns):
+        """Validate given columns exists.
+
+        Args:
+            columns: Column names to check
+
+        Raise:
+            MLChecksValueError: In case one of columns given don't exists raise error
+        """
+        if not columns:
+            raise MLChecksValueError('Got empty columns')
+        if any((not isinstance(s, str) for s in columns)):
+            raise MLChecksValueError(f'Columns must be of type str: {", ".join(columns)}')
+        non_exists = set(columns) - set(self.columns)
+        if non_exists:
+            raise MLChecksValueError(f'Given columns are not exists on dataset: {", ".join(non_exists)}')
+
     def validate_shared_features(self, other, function_name: str) -> List[str]:
         """
         Return the list of shared features if both datasets have the same feature column names. Else, raise error.
@@ -189,7 +206,6 @@ class Dataset(pd.DataFrame):
 
         Raises:
             MLChecksValueError if datasets don't have the same features
-
         """
         validate_dataset(other, function_name)
         if sorted(self.features()) == sorted(other.features()):
@@ -252,6 +268,8 @@ def validate_dataset(obj, function_name: str) -> Dataset:
     else:
         raise MLChecksValueError(f'function {function_name} requires dataset to be of type Dataset. instead got: '
                                  f'{type(obj).__name__}')
+
+
 
 
 def single_column_or_all(dataset: Dataset, column: str = None) -> List[str]:

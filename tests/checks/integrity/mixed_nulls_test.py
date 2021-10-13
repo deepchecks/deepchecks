@@ -1,5 +1,8 @@
+"""Tests for Mixed Nulls check"""
 import numpy as np
 import pandas as pd
+# Disable wildcard import check for hamcrest
+#pylint: disable=unused-wildcard-import,wildcard-import
 from hamcrest import *
 
 from mlchecks.checks.integrity.mixed_nulls import mixed_nulls
