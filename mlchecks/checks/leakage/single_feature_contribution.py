@@ -1,14 +1,18 @@
 """The single_feature_contribution check module."""
 from typing import Union
+import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.cm import ScalarMappable
 import ppscore as pps
-import seaborn as sns
 
-from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
+from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck, TrainValidationBaseCheck
 from mlchecks.base.dataset import validate_dataset
-from mlchecks.utils import get_plt_html_str
+from mlchecks.display import format_check_display
+from mlchecks.utils import get_plt_html_str, get_txt_html_str
 
-__all__ = ['single_feature_contribution', 'SingleFeatureContribution']
+__all__ = ['single_feature_contribution', 'single_feature_contribution_train_validation',
+           'SingleFeatureContribution', 'SingleFeatureContributionTrainValidation']
 
 
 def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_params=None):
@@ -43,10 +47,81 @@ def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_p
     s_ppscore = df_pps['ppscore']
 
     # Create graph:
-    sns.barplot(x=s_ppscore.index, y=s_ppscore)
-    html = get_plt_html_str()  # Catches graph into html
+    create_colorbar_barchart_for_check(x=s_ppscore.index, y=s_ppscore.values)
 
-    return CheckResult(value=s_ppscore.to_dict(), display={'text/html': html})
+    html_plot = get_plt_html_str()  # Catches graph into html
+    additional_text = get_txt_html_str(
+        ['The PPS represents the ability of a feature to single-handedly predict another feature or label.',
+         'A high PPS (close to 1) can mean that this feature\'s success in predicting the label is actually due to data'
+         , 'leakage - meaning that the feature holds information that is based on the label to begin with.'])
+    formatted_html = format_check_display('Single Feature Contribution', single_feature_contribution, html_plot)
+
+    return CheckResult(value=s_ppscore.to_dict(), display={'text/html': formatted_html + additional_text})
+
+
+def single_feature_contribution_train_validation(train_dataset: Dataset, validation_dataset: Dataset,
+                                                 ppscore_params=None):
+    """
+    Return the difference in PPS (Predictive Power Score) of all features between train and validation datasets.
+
+    The PPS represents the ability of a feature to single-handedly predict another feature or label.
+    A high PPS (close to 1) can mean that this feature's success in predicting the label is actually due to data
+    leakage - meaning that the feature holds information that is based on the label to begin with.
+
+    When we compare train PPS to validation PPS, A high difference can strongly indicate leakage, as a feature that was
+    "powerful" in train but not in validation can be explained by leakage in train that does not affect a new dataset.
+
+    Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
+
+    Args:
+        train_dataset (Dataset): The training dataset object. Must contain a label
+        validation_dataset (Dataset): The validation dataset object. Must contain a label
+        ppscore_params (dict): dictionary of addional paramaters for the ppscore.predictors function
+
+    Returns:
+        CheckResult:
+            value is a dictionary with PPS difference per feature column.
+            data is a bar graph of the PPS of each feature.
+
+    Raises:
+        MLChecksValueError: If the object is not a Dataset instance with a label
+
+    """
+    func_name = 'single_feature_contribution_train_validation'
+    train_dataset = validate_dataset(train_dataset, func_name)
+    train_dataset.validate_label(func_name)
+    validation_dataset = validate_dataset(validation_dataset, func_name)
+    validation_dataset.validate_label(func_name)
+    features_names = train_dataset.validate_shared_features(validation_dataset, func_name)
+    label_name = train_dataset.validate_shared_label(validation_dataset, func_name)
+    ppscore_params = ppscore_params or {}
+
+    relevant_columns = features_names + [label_name]
+    df_pps_train = pps.predictors(df=train_dataset[relevant_columns], y=train_dataset.label_name(), random_seed=42,
+                                  **ppscore_params)
+    df_pps_validation = pps.predictors(df=validation_dataset[relevant_columns], y=validation_dataset.label_name(),
+                                       random_seed=42, **ppscore_params)
+    s_pps_train = df_pps_train.set_index('x', drop=True)['ppscore']
+    s_pps_validation = df_pps_validation.set_index('x', drop=True)['ppscore']
+
+    s_difference = s_pps_train - s_pps_validation
+    s_difference = s_difference.apply(lambda x: 0 if x < 0 else x)
+
+    # Create graph:
+    create_colorbar_barchart_for_check(x=s_difference.index, y=s_difference.values, ylabel='PPS Difference')
+
+    html_plot = get_plt_html_str()  # Catches graph into html
+    additional_text = get_txt_html_str(
+        ['The PPS represents the ability of a feature to single-handedly predict another feature or label.',
+         'A high PPS (close to 1) can mean that this feature\'s success in predicting the label is actually due to data'
+         , 'leakage - meaning that the feature holds information that is based on the label to begin with.', '',
+         'When we compare train PPS to validation PPS, A high difference can strongly indicate leakage, as a feature',
+         'that was powerful in train but not in validation can be explained by leakage in train that does not affect a'
+         'new dataset.'])
+    formatted_html = format_check_display('Single Feature Contribution Train Validation',
+                                          single_feature_contribution_train_validation, html_plot)
+
+    return CheckResult(value=s_difference.to_dict(), display={'text/html': formatted_html + additional_text})
 
 
 class SingleFeatureContribution(SingleDatasetBaseCheck):
@@ -70,7 +145,56 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
             model: any = None - not used in the check
 
         Returns:
-            the output of the dataset_info check
+            the output of the single_feature_contribution check
         """
         return single_feature_contribution(dataset=dataset, ppscore_params=self.params.get('ppscore_params'))
 
+
+class SingleFeatureContributionTrainValidation(TrainValidationBaseCheck):
+    """
+    Return the difference in PPS (Predictive Power Score) of all features between train and validation datasets.
+
+    The PPS represents the ability of a feature to single-handedly predict another feature or label.
+    A high PPS (close to 1) can mean that this feature's success in predicting the label is actually due to data
+    leakage - meaning that the feature holds information that is based on the label to begin with.
+
+    Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
+
+    """
+
+    def run(self, train_dataset: Dataset, validation_dataset: Dataset, model=None) -> CheckResult:
+        """
+        Run the single_feature_contribution check.
+
+        Arguments:
+        train_dataset (Dataset): The training dataset object. Must contain a label
+        validation_dataset (Dataset): The validation dataset object. Must contain a label
+            model: any = None - not used in the check
+
+        Returns:
+            the output of the single_feature_contribution_train_validation check
+        """
+        return single_feature_contribution_train_validation(train_dataset=train_dataset,
+                                                            validation_dataset=validation_dataset,
+                                                            ppscore_params=self.params.get('ppscore_params'))
+
+
+# Utils:
+
+
+def create_colorbar_barchart_for_check(x: np.array, y: np.array, ylabel: str='PPS'):
+    fig, ax = plt.subplots(figsize=(15, 4))  # pylint: disable=unused-variable
+
+    my_cmap = plt.cm.get_cmap('RdYlGn_r')
+    colors = my_cmap(list(y))
+    rects = ax.bar(x, y, color=colors)  # pylint: disable=unused-variable
+
+    sm = ScalarMappable(cmap=my_cmap, norm=plt.Normalize(0, 1))
+    sm.set_array([])
+
+    cbar = plt.colorbar(sm)
+    cbar.set_label('Color', rotation=270, labelpad=25)
+
+    plt.yticks(np.arange(0, 1, 0.1))
+    plt.ylabel(ylabel)
+    plt.xlabel('Features')

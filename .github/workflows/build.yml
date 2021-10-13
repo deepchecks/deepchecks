@@ -42,7 +42,6 @@ jobs:
       run: |
         make coverage
         COVERAGE=$(cat .cover.log |  grep TOTAL | tr -s ' ' | cut -d ' ' -f4 | tr -dc '0-9' )
-        COVERAGE=51
         echo "::set-output name=code_coverage::$COVERAGE"
 
     - name: Validate Code Style

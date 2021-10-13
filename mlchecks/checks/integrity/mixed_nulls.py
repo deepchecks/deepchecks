@@ -7,6 +7,7 @@ from pandas import DataFrame, StringDtype
 
 from mlchecks import Dataset, CheckResult, validate_dataset_or_dataframe, single_column_or_all
 from mlchecks.base.check import SingleDatasetBaseCheck
+from mlchecks.display import format_check_display
 from mlchecks.utils import MLChecksValueError
 
 __all__ = ['mixed_nulls', 'MixedNulls']
@@ -57,7 +58,7 @@ def string_baseform(string: str):
     return string.translate(str.maketrans('', '', SPECIAL_CHARS)).lower()
 
 
-def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, column: str = None, check_nan: bool = True) \
+def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, column: str = None, check_nan: bool = True)\
         -> CheckResult:
     """Search for various types of null values in a string column(s), including string representations of null.
 
@@ -65,7 +66,7 @@ def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, colu
         dataset (Dataset):
         null_string_list (List[str]): List of strings to be considered alternative null representations
         column(str): Single column to check. if none given checks all the string columns
-        check_na(bool): Whether to add to null list to check also NaN valuees
+        check_nan(bool): Whether to add to null list to check also NaN valuees
 
     Returns
         (CheckResult): DataFrame with columns ('Column Name', 'Value', 'Count', 'Percentage') for any column which have
@@ -102,11 +103,9 @@ def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, colu
     df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Fraction of data'])
     df_graph = df_graph.set_index(['Column Name', 'Value'])
 
-    if len(df_graph) > 0:
-        html = df_graph.to_html()
-    else:
-        html = '<p><b>OK!</b> Ran mixed nulls check and no issue found</p>'
-    return CheckResult(df_graph, display={'text/html': html})
+    visual = df_graph.to_html() if len(df_graph) > 0 else None
+    formatted_html = format_check_display('Mixed Nulls', mixed_nulls, visual)
+    return CheckResult(df_graph, display={'text/html': formatted_html})
 
 
 class MixedNulls(SingleDatasetBaseCheck):

@@ -47,7 +47,7 @@ REQUIREMENTS_LOG := .requirements.log
 
 # Test and Analyize
 ANALIZE_PKGS = pylint pydocstyle
-TEST_CODE := $(wildcard $(TESTDIR)/*.py)
+TEST_CODE := tests/
 TEST_RUNNER_PKGS = pytest pyhamcrest
 
 PYLINT_LOG = .pylint.log
@@ -106,7 +106,7 @@ validate: $(REQUIREMENTS_LOG) pylint docstring
 pylint: $(ANALIZE)
 	$(ANALIZE) $(SOURCES) $(TEST_CODE) | tee -a $(PYLINT_LOG)
 docstring: $(ANALIZE) # We Use Google Style Python Docstring
-	$(PYTHON) -m pydocstyle $(SOURCES) $(TEST_CODE)
+	$(PYTHON) -m pydocstyle $(SOURCES)
 
 $(ANALIZE): $(PIP)
 	$(PIP) install --upgrade $(ANALIZE_PKGS) | tee -a $(REQUIREMENTS_LOG)
