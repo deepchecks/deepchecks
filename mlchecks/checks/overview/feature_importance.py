@@ -55,6 +55,10 @@ def feature_importance(dataset: Dataset, model: BaseEstimator, plot_type: str = 
 
     plot = get_plt_html_str()
 
+    # SHAP prints the plot despite show=False, here we clear the plot frame
+    plt.cla()
+    plt.clf()
+
     return CheckResult(shap_values, {'text/html': format_check_display('Feature Importance', feature_importance, plot)})
 
 
