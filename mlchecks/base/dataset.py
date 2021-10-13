@@ -90,14 +90,15 @@ class Dataset(pd.DataFrame):
         Returns:
            Out of the list of feature names, returns list of categorical features
         """
-        cat_columns = []
-
-        for col in self.columns:
-            num_unique = self[col].nunique(dropna=True)
-            if num_unique / len(self[col].dropna()) < MAX_CATEGORY_RATIO or num_unique <= MAX_CATEGORIES:
-                cat_columns.append(col)
-
-        return cat_columns
+        # cat_columns = []
+        #
+        # for col in self.columns:
+        #     num_unique = self[col].nunique(dropna=True)
+        #     if num_unique / len(self[col].dropna()) < MAX_CATEGORY_RATIO or num_unique <= MAX_CATEGORIES:
+        #         cat_columns.append(col)
+        #
+        # return cat_columns
+        return []
 
     def index_name(self) -> Union[str, None]:
         """If index column exists, return its name.
