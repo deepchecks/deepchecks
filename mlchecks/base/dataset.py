@@ -11,8 +11,7 @@ PANDAS_USER_ATTR_WARNING_STR = "Pandas doesn't allow columns to be created via a
                                "https://pandas.pydata.org/pandas-docs/stable/indexing.html#attribute"\
                                "-access"
 
-
-__all__ = ['Dataset', 'validate_dataset_or_dataframe', 'validate_dataset', 'single_column_or_all']
+__all__ = ['Dataset', 'validate_dataset_or_dataframe', 'validate_dataset']
 
 
 class Dataset(pd.DataFrame):
@@ -215,8 +214,8 @@ class Dataset(pd.DataFrame):
         if self.index_name() is None:
             raise MLChecksValueError(f'function {function_name} requires dataset to have an index column')
 
-    def validate_columns_exists(self, *columns):
-        """Validate given columns exists in dataset.
+    def validate_columns_exist(self, columns):
+        """Validate given columns exist in dataset.
 
         Args:
             columns: Column names to check
@@ -224,13 +223,34 @@ class Dataset(pd.DataFrame):
         Raise:
             MLChecksValueError: In case one of columns given don't exists raise error
         """
-        if not columns:
+        if columns is None:
             raise MLChecksValueError('Got empty columns')
-        if any((not isinstance(s, str) for s in columns)):
-            raise MLChecksValueError(f'Columns must be of type str: {", ".join(columns)}')
+        if isinstance(columns, str):
+            columns = [columns]
+        elif isinstance(columns, List):
+            if any((not isinstance(s, str) for s in columns)):
+                raise MLChecksValueError(f'Columns must be of type str: {", ".join(columns)}')
+        else:
+            raise MLChecksValueError('Columns must be of types `str` or `List[str]`')
+        # Check columns exists
         non_exists = set(columns) - set(self.columns)
         if non_exists:
             raise MLChecksValueError(f'Given columns are not exists on dataset: {", ".join(non_exists)}')
+
+    def drop_columns_with_validation(self, columns: Union[str, List[str]]):
+        """If columns are given validate they are exists and drop them.
+
+        Args:
+            columns (Union[str, List[str]]): Column names to check
+
+        Raise:
+            MLChecksValueError: In case one of columns given don't exists raise error
+        """
+        if columns:
+            self.validate_columns_exist(columns)
+            return self.drop(labels=columns, axis='columns')
+        else:
+            return self
 
     def validate_shared_features(self, other, function_name: str) -> List[str]:
         """
@@ -308,29 +328,3 @@ def validate_dataset(obj, function_name: str) -> Dataset:
     else:
         raise MLChecksValueError(f'function {function_name} requires dataset to be of type Dataset. instead got: '
                                  f'{type(obj).__name__}')
-
-
-def single_column_or_all(dataset: Dataset, column: str = None) -> List[str]:
-    """Validate given column on dataset.
-
-    If column is not None, make sure it exists in the datasets, and return list containing only column name.
-    If column is None return list of all columns in the dataset.
-
-    Args:
-        dataset (Dataset): Dataset working on
-        column ([None, str]): column name or None
-
-    Returns:
-        (List[str]): List with column names to work on
-    """
-    if column is None:
-        # If column is None works on all columns
-        return list(dataset.columns)
-    else:
-        if not isinstance(column, str):
-            raise MLChecksValueError(f"column type must be 'None' or 'str' but got: {type(column).__name__}")
-        if len(column) == 0:
-            raise MLChecksValueError("column can't be empty string")
-        if column not in dataset.columns:
-            raise MLChecksValueError(f"column {column} isn't found in the dataset")
-        return [column]
