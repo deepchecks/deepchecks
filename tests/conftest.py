@@ -15,8 +15,15 @@ def iris():
     df = load_iris(return_X_y=False, as_frame=True)
     return pd.concat([df.data, df.target], axis=1)
 
+
 @pytest.fixture(scope='session')
 def iris_dataset(iris):
+    """Return Iris dataset as Dataset object."""
+    return Dataset(iris)
+
+
+@pytest.fixture(scope='session')
+def iris_dataset_labeled(iris):
     """Return Iris dataset as Dataset object."""
     return Dataset(iris, label='target')
 
@@ -61,6 +68,13 @@ def iris_dataset_single_class(iris):
     """Return Iris dataset modified to a binary label as Dataset object."""
     idx = iris.target != 2
     df = iris[idx]
-    dataset = Dataset(df, label='target')
+    dataset = Dataset(df)
     return dataset
 
+@pytest.fixture(scope='session')
+def iris_dataset_single_class_labeled(iris):
+    """Return Iris dataset modified to a binary label as Dataset object."""
+    idx = iris.target != 2
+    df = iris[idx]
+    dataset = Dataset(df, label='target')
+    return dataset
