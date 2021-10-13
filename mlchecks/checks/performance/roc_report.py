@@ -1,15 +1,15 @@
 """The roc_report check module."""
 from itertools import cycle
 from matplotlib import pyplot as plt
+
 import numpy as np
-import pandas as pd
 import sklearn
 from sklearn.base import BaseEstimator
 from mlchecks.base.check import SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset
 from mlchecks.display import format_check_display
 
-from mlchecks.utils import MLChecksValueError, get_plt_html_str
+from mlchecks.utils import get_plt_html_str
 from mlchecks import CheckResult, Dataset
 
 
@@ -37,7 +37,7 @@ def roc_report(ds: Dataset, model):
     res = dict()
     ds_x = ds[ds.features()]
     ds_y = ds[label]
-    multi_y = (ds_y[:,None] == np.unique(ds_y)).astype(int)
+    multi_y = (np.array(ds_y)[:,None] == np.unique(ds_y)).astype(int)
     n_classes = ds_y.nunique()
     y_pred_prob = model.predict_proba(ds_x)
 
