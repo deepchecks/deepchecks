@@ -1,0 +1,20 @@
+name: Pull Request
+on:
+  pull_request:
+    types: [opened, labeled, unlabeled, synchronize]
+jobs:
+  labels:
+    name: Validate Label 
+    runs-on: [self-hosted]
+
+    steps:
+      - uses: mheap/github-action-required-labels@v1
+        with:
+          mode: exactly
+          count: 1
+          labels: "kind/feature, kind/fix, kind/tests, breaking-backwards-compitabillity, chore/ci, chore/documentation"
+      - uses: mheap/github-action-required-labels@v1
+        with:
+          mode: exactly
+          count: 0
+          labels: 'help wanted, wontfix, question, good first issue, invalid, duplicate'

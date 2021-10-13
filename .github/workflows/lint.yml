@@ -1,4 +1,4 @@
-name: Pylint
+name: Code Style
 
 on:
   push:
@@ -7,18 +7,28 @@ on:
     branches: [ master ]
 
 jobs:
-  test-latest:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [self-hosted]
-        python-version: ["3.9"]
+  pylint:
+    runs-on: [self-hosted]
+
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.9
     - name: Run Pylint
       run: make pylint
+
+  docstring:
+    runs-on: [self-hosted]
+
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Run Pydocstyle
+      run: make docstring

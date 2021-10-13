@@ -20,6 +20,7 @@ ext_py := $(shell which python3 || which python)
 python = $(shell echo ${ext_py} | rev | cut -d '/' -f 1 | rev)
 TESTDIR = tests
 ENV = venv
+repo = pypi
 
 # System Envs
 BIN := $(ENV)/bin
@@ -32,20 +33,26 @@ ANALIZE := $(BIN)/pylint
 COVERAGE := $(BIN)/coverage
 TEST_RUNNER := $(BIN)/pytest
 TOX := $(BIN)/tox
+TWINE := $(BIN)/twine
 
 # Project Settings
 PKGDIR := $(or $(PACKAGE), ./)
 SOURCES := $(or $(PACKAGE), $(wildcard *.py))
 
+# Installation packages
 INSTALLATION_PKGS = wheel setuptools
 
 REQUIREMENTS := $(shell find . -name $(REQUIRE))
 REQUIREMENTS_LOG := .requirements.log
 
+# Test and Analyize
 ANALIZE_PKGS = pylint pydocstyle
 TEST_CODE := $(wildcard $(TESTDIR)/*.py)
 TEST_RUNNER_PKGS = pytest pyhamcrest
 
+PYLINT_LOG = .pylint.log
+# Coverage vars
+COVERAGE_LOG = .cover.log
 COVERAGE_FILE = default.coveragerc
 COVERAGE_PKGS = pytest-cov
 COVERAGE_RC := $(wildcard $(COVERAGE_FILE))
@@ -59,16 +66,16 @@ EGG_INFO := $(subst -,_,$(PROJECT)).egg-info
 .PHONY: help env all ci activate
 
 help:
-	@echo "env        Create virtual environment and install requirements"
-	@echo "             python=PYTHON_EXE   interpreter to use, default=python,"
-	@echo "							when creating new env and python binary is 2.X, use 'make env python=python3'"
-	@echo "validate      Run style checks 'pylint' and 'docstring'"
-	@echo "test       TEST_RUNNER on '$(TESTDIR)'"
-	@echo "             args=\"-x --pdb --ff\"  optional arguments"
-	@echo "coverage   Get coverage information, optional 'args' like test"
-	@echo "tox        Test against multiple versions of python"
-	@echo "upload     Upload package to PyPI"
-	@echo "clean clean-all  Clean up and clean up removing virtualenv"
+	@echo "env      -  Create virtual environment and install requirements"
+	@echo "               python=PYTHON_EXE   interpreter to use, default=python,"
+	@echo "						    	when creating new env and python binary is 2.X, use 'make env python=python3'"
+	@echo "validate - Run style checks 'pylint' and 'docstring'"
+	@echo "		pylint docstring -   sub commands of validate"
+	@echo "test -      TEST_RUNNER on '$(TESTDIR)'"
+	@echo "              args=\"<pytest Arguements>\"  optional arguments"
+	@echo "coverage -  Get coverage information, optional 'args' like test"
+	@echo "tox      -  Test against multiple versions of python as defined in tox.ini"
+	@echo "clean | clean-all -  Clean up | clean up & removing virtualenv"
 
 all: validate test
 
@@ -97,7 +104,7 @@ $(REQUIREMENTS_LOG): $(PIP) $(REQUIREMENTS)
 validate: $(REQUIREMENTS_LOG) pylint docstring
 
 pylint: $(ANALIZE)
-	$(ANALIZE) $(SOURCES) $(TEST_CODE)
+	$(ANALIZE) $(SOURCES) $(TEST_CODE) | tee -a $(PYLINT_LOG)
 docstring: $(ANALIZE) # We Use Google Style Python Docstring
 	$(PYTHON) -m pydocstyle $(SOURCES) $(TEST_CODE)
 
@@ -116,8 +123,8 @@ test: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 $(TEST_RUNNER):
 	$(PIP) install $(TEST_RUNNER_PKGS) | tee -a $(REQUIREMENTS_LOG)
 
-coverage: $(REQUIREMENTS_LOG) $(COVERAGE) $(COVERAGE_FILE)
-	$(pythonpath) $(TEST_RUNNER) $(args) $(COVER_ARG) $(TESTDIR)
+coverage: $(REQUIREMENTS_LOG) $(TEST_RUNNER) $(COVERAGE)
+	$(pythonpath) $(TEST_RUNNER) $(args) $(COVER_ARG) $(TESTDIR) | tee -a $(COVERAGE_LOG)
 
 
 # This is Here For Legacy || future use case,
@@ -156,6 +163,8 @@ clean: clean-dist clean-test clean-build
 clean-env: clean
 	-@rm -rf $(ENV)
 	-@rm -rf $(REQUIREMENTS_LOG)
+	-@rm -rf $(COVERAGE_LOG)
+	-@rm -rf $(PYLINT_LOG)
 	-@rm -rf .tox
 
 clean-all: clean clean-env
@@ -177,22 +186,25 @@ clean-dist:
 
 
 ### Release ######################################################
-.PHONY: authors register dist upload .git-no-changes
+.PHONY: authors register dist upload .git-no-changes ammend release
 
 authors:
 	echo "Authors\n=======\n\nA huge thanks to all of our contributors:\n\n" > AUTHORS.md
 	git log --raw | grep "^Author: " | cut -d ' ' -f2- | cut -d '<' -f1 | sed 's/^/- /' | sort | uniq >> AUTHORS.md
 
-register:
-	$(PYTHON) setup.py register -r pypi
-
 dist: test
 	$(PYTHON) setup.py sdist
 	$(PYTHON) setup.py bdist_wheel
 
-upload: .git-no-changes register
-	$(PYTHON) setup.py sdist upload -r pypi
-	$(PYTHON) setup.py bdist_wheel upload -r pypi
+# upload expects to get all twine args as environment,
+# refer to https://twine.readthedocs.io/en/latest/ for more information
+upload: $(TWINE) 
+	$(TWINE) upload dist/*
+
+ammend:
+	git add mlchecks/version.py
+	git commit --amend --no-edit
+
 
 .git-no-changes:
 	@if git diff --name-only --exit-code;       \
@@ -204,6 +216,19 @@ upload: .git-no-changes register
 		exit -1;                                  \
 	fi;
 
+release: version dist upload
+
+
+$(TWINE): $(PIP)
+	$(PIP) install twine
+
+#if version variable is passed, the release version will be modified to this version.
+version: 
+ifeq ($(version),)
+else
+	@sed -i -E "s/__version__\ +=\ +'.*+'/__version__ = '${version}'/g" mlchecks/version.py
+endif
+
 
 ### System Installation ######################################################
 .PHONY: develop install download
@@ -211,7 +236,7 @@ upload: .git-no-changes register
 develop:
 	$(PYTHON) setup.py develop
 
-install:
+install: 
 	$(PYTHON) setup.py install
 
 download:
