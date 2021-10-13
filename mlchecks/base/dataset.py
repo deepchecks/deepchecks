@@ -4,7 +4,7 @@ import pandas as pd
 from pandas_profiling import ProfileReport
 
 
-__all__ = ['Dataset', 'validate_dataset_or_dataframe', 'validate_dataset']
+__all__ = ['Dataset', 'validate_dataset_or_dataframe', 'validate_dataset', 'single_column_or_all']
 
 from mlchecks.utils import MLChecksValueError
 
@@ -212,7 +212,7 @@ def validate_dataset(obj, function_name: str) -> Dataset:
                                  f'{type(obj).__name__}')
 
 
-def validate_column(dataset: Dataset, column: str = None) -> List[str]:
+def single_column_or_all(dataset: Dataset, column: str = None) -> List[str]:
     """Validate given column on dataset.
 
     If column is not None, make sure it exists in the datasets, and return list containing only column name.

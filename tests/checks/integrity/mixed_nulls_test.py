@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from hamcrest import *
 
@@ -22,6 +23,46 @@ def test_single_column_one_null_type():
     result = mixed_nulls(dataframe)
     # Assert - Single null type is allowed so return is 0
     assert_that(result.value, has_length(0))
+
+
+def test_empty_dataframe():
+    # Arrange
+    data = {'col1': []}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = mixed_nulls(dataframe)
+    # Assert
+    assert_that(result.value, has_length(0))
+
+
+def test_different_null_types():
+    # Arrange
+    data = {'col1': [np.NAN, np.NaN, pd.NA, '$$$$$$$$', 'NULL']}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = mixed_nulls(dataframe)
+    # Assert
+    assert_that(result.value, has_length(3))
+
+
+def test_null_list_param():
+    # Arrange
+    data = {'col1': ['foo', 'bar', 'cat', 'earth', 'earth?', '!E!A!R!T!H', np.NaN, 'null']}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = mixed_nulls(dataframe, null_string_list=['earth', 'cat'])
+    # Assert
+    assert_that(result.value, has_length(5))
+
+
+def test_check_nan_false_param():
+    # Arrange
+    data = {'col1': ['foo', 'bar', 'cat', 'earth', 'earth?', '!E!A!R!T!H', np.NaN, 'null']}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = mixed_nulls(dataframe, null_string_list=['earth'], check_nan=False)
+    # Assert
+    assert_that(result.value, has_length(3))
 
 
 def test_single_column_two_null_types():

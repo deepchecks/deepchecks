@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame, StringDtype
 
-from mlchecks import Dataset, CheckResult, validate_dataset_or_dataframe, validate_column
+from mlchecks import Dataset, CheckResult, validate_dataset_or_dataframe, single_column_or_all
 from mlchecks.base.check import SingleDatasetBaseCheck
 from mlchecks.utils import MLChecksValueError
 
@@ -15,15 +15,17 @@ DEFAULT_NULL_VALUES = {'none', 'null', 'nan', 'na', '', '\x00', '\x00\x00'}
 SPECIAL_CHARS: str = ' !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~\n'
 
 
-def validate_null_string_list(nsl) -> set:
+def validate_null_string_list(nsl, check_nan: bool) -> set:
     """Validate the object given is a list of strings. If null is given return default list of null values.
 
     Args:
         nsl: Object to validate
+        check_na (bool): Whether to add to null list to check also NaN values
 
     Returns:
         (set): Returns list of null values as set object
     """
+    result: set
     if nsl:
         if not isinstance(nsl, Iterable):
             raise MLChecksValueError('null_string_list must be an iterable')
@@ -31,10 +33,14 @@ def validate_null_string_list(nsl) -> set:
             raise MLChecksValueError("null_string_list can't be empty list")
         if any((not isinstance(string, str) for string in nsl)):
             raise MLChecksValueError("null_string_list must contain only items of type 'str'")
-        return set(nsl)
+        result = set(nsl)
     else:
         # Default values
-        return DEFAULT_NULL_VALUES
+        result = set(DEFAULT_NULL_VALUES)
+    if check_nan is None or check_nan is True:
+        result.add(np.NaN)
+
+    return result
 
 
 def string_baseform(string: str):
@@ -51,13 +57,15 @@ def string_baseform(string: str):
     return string.translate(str.maketrans('', '', SPECIAL_CHARS)).lower()
 
 
-def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, column: str = None) -> CheckResult:
+def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, column: str = None, check_nan: bool = True) \
+        -> CheckResult:
     """Search for various types of null values in a string column(s), including string representations of null.
 
     Args:
         dataset (Dataset):
         null_string_list (List[str]): List of strings to be considered alternative null representations
         column(str): Single column to check. if none given checks all the string columns
+        check_na(bool): Whether to add to null list to check also NaN valuees
 
     Returns
         (CheckResult): DataFrame with columns ('Column Name', 'Value', 'Count', 'Percentage') for any column which have
@@ -65,9 +73,8 @@ def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, colu
     """
     # Validate parameters
     dataset: Dataset = validate_dataset_or_dataframe(dataset)
-    null_string_list: set = validate_null_string_list(null_string_list)
-    null_string_list.add(np.NaN)
-    columns: List[str] = validate_column(dataset, column)
+    null_string_list: set = validate_null_string_list(null_string_list, check_nan)
+    columns: List[str] = single_column_or_all(dataset, column)
 
     # Result value
     display_array = []
@@ -117,4 +124,5 @@ class MixedNulls(SingleDatasetBaseCheck):
         """
         return mixed_nulls(dataset,
                            null_string_list=self.params.get('null_string_list'),
-                           column=self.params.get('column'))
+                           column=self.params.get('column'),
+                           check_nan=self.params.get('check_nan'))
