@@ -1,6 +1,5 @@
 """The single_feature_contribution check module."""
 import re
-from collections import OrderedDict
 from typing import Union, List
 
 import pandas as pd
@@ -118,7 +117,8 @@ def detect_rare(col: pd.Series, sharp_drop_ratio_threshold: float = 0.05):
     If such exist, any value that has this count or smaller will be count as rare.
     """
 
-    # TODO: analyze numeric data differently - consider analyze the range of the numbers in cols and detect rare values that are out of this range
+    # should do: analyze numeric data differently - consider analyze the range of the numbers in cols and detect
+    #  rare values that are out of this range
 
     # apply the func over the col
     value_counts = col.value_counts().drop('', errors='ignore')  # Ignoring patterns that result in empty string
