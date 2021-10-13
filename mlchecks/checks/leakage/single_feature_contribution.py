@@ -9,7 +9,7 @@ import ppscore as pps
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck, TrainValidationBaseCheck
 from mlchecks.base.dataset import validate_dataset
 from mlchecks.display import format_check_display
-from mlchecks.utils import get_plt_html_str
+from mlchecks.utils import get_plt_html_str, get_txt_html_str
 
 __all__ = ['single_feature_contribution', 'single_feature_contribution_train_validation',
            'SingleFeatureContribution', 'SingleFeatureContributionTrainValidation']
@@ -50,13 +50,13 @@ def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_p
     create_colorbar_barchart_for_check(x=s_ppscore.index, y=s_ppscore.values)
 
     html_plot = get_plt_html_str()  # Catches graph into html
-    html_txt = get_txt_html_str(
+    additional_text = get_txt_html_str(
         ['The PPS represents the ability of a feature to single-handedly predict another feature or label.',
          'A high PPS (close to 1) can mean that this feature\'s success in predicting the label is actually due to data'
          , 'leakage - meaning that the feature holds information that is based on the label to begin with.'])
-    formatted_html = format_check_display('Single Feature Contribution', single_feature_contribution, html)
+    formatted_html = format_check_display('Single Feature Contribution', single_feature_contribution, html_plot)
 
-    return CheckResult(value=s_ppscore.to_dict(), display={'text/html': formatted_html})
+    return CheckResult(value=s_ppscore.to_dict(), display={'text/html': formatted_html + additional_text})
 
 
 def single_feature_contribution_train_validation(train_dataset: Dataset, validation_dataset: Dataset,
@@ -108,19 +108,20 @@ def single_feature_contribution_train_validation(train_dataset: Dataset, validat
     s_difference = s_difference.apply(lambda x: 0 if x < 0 else x)
 
     # Create graph:
-    create_colorbar_barchart_for_check(x=s_difference.index, y=s_difference.values)
+    create_colorbar_barchart_for_check(x=s_difference.index, y=s_difference.values, ylabel='PPS Difference')
 
     html_plot = get_plt_html_str()  # Catches graph into html
-    html_txt = get_txt_html_str(
+    additional_text = get_txt_html_str(
         ['The PPS represents the ability of a feature to single-handedly predict another feature or label.',
          'A high PPS (close to 1) can mean that this feature\'s success in predicting the label is actually due to data'
          , 'leakage - meaning that the feature holds information that is based on the label to begin with.', '',
          'When we compare train PPS to validation PPS, A high difference can strongly indicate leakage, as a feature',
          'that was powerful in train but not in validation can be explained by leakage in train that does not affect a'
          'new dataset.'])
-    formatted_html = format_check_display('Single Feature Contribution', single_feature_contribution, html)
+    formatted_html = format_check_display('Single Feature Contribution Train Validation',
+                                          single_feature_contribution_train_validation, html_plot)
 
-    return CheckResult(value=s_difference.to_dict(), display={'text/html': formatted_html})
+    return CheckResult(value=s_difference.to_dict(), display={'text/html': formatted_html + additional_text})
 
 
 class SingleFeatureContribution(SingleDatasetBaseCheck):
@@ -181,7 +182,7 @@ class SingleFeatureContributionTrainValidation(TrainValidationBaseCheck):
 # Utils:
 
 
-def create_colorbar_barchart_for_check(x: np.array, y: np.array):
+def create_colorbar_barchart_for_check(x: np.array, y: np.array, ylabel: str='PPS'):
     fig, ax = plt.subplots(figsize=(15, 4))  # pylint: disable=unused-variable
 
     my_cmap = plt.cm.get_cmap('RdYlGn_r')
@@ -195,5 +196,5 @@ def create_colorbar_barchart_for_check(x: np.array, y: np.array):
     cbar.set_label('Color', rotation=270, labelpad=25)
 
     plt.yticks(np.arange(0, 1, 0.1))
-    plt.ylabel('ppscore')
+    plt.ylabel(ylabel)
     plt.xlabel('Features')

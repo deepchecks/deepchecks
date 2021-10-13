@@ -68,8 +68,9 @@ def test_trainval_dataset_wrong_input():
     X = "wrong_input"
     assert_that(
         calling(single_feature_contribution_train_validation).with_args(X, X),
-        raises(MLChecksValueError, 'function single_feature_contribution requires dataset to be of type Dataset. '
-                                   'instead got: str'))
+        raises(MLChecksValueError,
+               'function single_feature_contribution_train_validation requires dataset to be of type Dataset. '
+               'instead got: str'))
 
 
 def test_trainval_dataset_no_label():
@@ -77,7 +78,8 @@ def test_trainval_dataset_no_label():
     assert_that(
         calling(single_feature_contribution_train_validation).with_args(train_dataset=Dataset(df),
                                                                         validation_dataset=Dataset(df2)),
-        raises(MLChecksValueError, 'function single_feature_contribution requires dataset to have a label column'))
+        raises(MLChecksValueError,
+               'function single_feature_contribution_train_validation requires dataset to have a label column'))
 
 
 def test_trainval_dataset_diff_columns():
@@ -86,4 +88,5 @@ def test_trainval_dataset_diff_columns():
     assert_that(
         calling(single_feature_contribution_train_validation).with_args(train_dataset=Dataset(df, label='label'),
                                                                         validation_dataset=Dataset(df2, label='label')),
-        raises(MLChecksValueError, 'function single_feature_contribution requires datasets to share the same features'))
+        raises(MLChecksValueError,
+               'function single_feature_contribution_train_validation requires datasets to share the same features'))
