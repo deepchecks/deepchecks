@@ -15,7 +15,7 @@ def string_mismatch(dataset: DataFrame, ignore_columns: Union[str, List[str]] = 
     """Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column.
 
     Args:
-        dataset (DataFrame)
+        dataset (DataFrame): A dataset or pd.FataFrame object.
         ignore_columns (Union[str, List[str]]): columns to ignore
     """
     # Validate parameters
@@ -51,7 +51,7 @@ def string_mismatch(dataset: DataFrame, ignore_columns: Union[str, List[str]] = 
 def get_base_form_to_variants_dict(uniques):
     """Create dict of base-form of the uniques to their values.
 
-    function gets a set of strings, and returns a dictionary of shape Dict[str]=set,
+    function gets a set of strings, and returns a dictionary of shape Dict[str]=Set,
     the key being the "base_form" (a clean version of the string),
     and the value being a set of all existing original values.
     This is done using the StringCategory class.
