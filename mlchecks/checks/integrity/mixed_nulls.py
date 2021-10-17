@@ -1,8 +1,6 @@
 """Module contains Mixed Nulls check."""
 from typing import List, Iterable, Union
 
-from re import search
-
 import numpy as np
 import pandas as pd
 from pandas import DataFrame, StringDtype

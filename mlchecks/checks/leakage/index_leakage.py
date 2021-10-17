@@ -4,7 +4,6 @@ import pandas as pd
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck, TrainValidationBaseCheck
 from mlchecks.base.dataset import validate_dataset
 from mlchecks.display import format_check_display
-from mlchecks.utils import is_notebook, MLChecksValueError, get_plt_html_str
 
 __all__ = ['index_train_validation_leakage', 'IndexTrainValidationLeakage']
 

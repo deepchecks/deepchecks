@@ -4,7 +4,6 @@ import pandas as pd
 from pandas import DataFrame
 from pandas.api.types import infer_dtype
 
-import numpy as np
 
 from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
@@ -17,7 +16,7 @@ __all__ = ['invalid_chars', 'InvalidChars']
 
 
 SPECIAL_CHARS = [' ', '!', '"', '#', '$', '%', '&', '\'','(', ')',
-                 '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', 
+                 '*', '+', ',', '-', '.', '/', ':', ';', '<', '=',
                  '>', '?', '@', '[', ']', '\\', '^', '_', '`', '{',
                  '}', '|', '~', '\n']
 
@@ -51,11 +50,11 @@ def invalid_chars(dataset: DataFrame, columns: Iterable[str]=None, ignore_column
             continue
         inv = get_invalid_chars(column_data)
         if inv is not None:
-          display_array.append([column_name,inv])
+            display_array.append([column_name,inv])
 
-    df_graph = pd.DataFrame(display_array, columns=['Column Name', '% Invalid'])
+    df_graph = pd.DataFrame(display_array, columns=['Column Name', '% Invalid Samples'])
 
-    
+
     visual = df_graph.to_html(index=False, justify='left') if len(df_graph) > 0 else None
     formatted_html = format_check_display('Invalid Chars', invalid_chars, visual)
     return CheckResult(df_graph, display={'text/html': formatted_html})
@@ -73,8 +72,8 @@ def check_invalid_chars(column_data: pd.Series) -> str:
     total_rows = column_data.count()
 
     def is_invalid_char(x):
-        if (isinstance(x, str) ):
-          return any(element in x for element in SPECIAL_CHARS)
+        if isinstance(x, str):
+            return any(element in x for element in SPECIAL_CHARS)
         return False
 
     invalids = sum(column_data.apply(is_invalid_char))

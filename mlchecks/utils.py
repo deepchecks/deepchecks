@@ -112,3 +112,4 @@ def validate_column_list(cl) -> set:
         result = None
 
     return result
+    
