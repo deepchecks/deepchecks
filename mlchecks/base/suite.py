@@ -66,7 +66,7 @@ class CheckSuite(BaseCheck):
             elif isinstance(check, CheckSuite):
                 suite_res = check.run(model, train_dataset, validation_dataset, check_datasets_policy)
                 if check.name in results:
-                    raise MLChecksValueError("Each suite must have a unique name")
+                    raise MLChecksValueError('Each suite must have a unique name')
                 results.append(suite_res)
             else:
                 raise TypeError(f'Expected check of type SingleDatasetBaseCheck, CompareDatasetsBaseCheck, '
