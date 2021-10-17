@@ -7,13 +7,13 @@ from pandas import DataFrame, StringDtype
 
 from mlchecks import Dataset, CheckResult, validate_dataset_or_dataframe
 from mlchecks.base.check import SingleDatasetBaseCheck
+from mlchecks.checks.integrity.string_utils import string_baseform
 from mlchecks.display import format_check_display
 from mlchecks.utils import MLChecksValueError, validate_column_list
 
 __all__ = ['mixed_nulls', 'MixedNulls']
 
 DEFAULT_NULL_VALUES = {'none', 'null', 'nan', 'na', '', '\x00', '\x00\x00'}
-SPECIAL_CHARS: str = ' !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~\n'
 
 
 def validate_null_string_list(nsl, check_nan: bool) -> set:
@@ -42,20 +42,6 @@ def validate_null_string_list(nsl, check_nan: bool) -> set:
         result.add(np.NaN)
 
     return result
-
-
-def string_baseform(string: str):
-    """Remove special characters from given string.
-
-    Args:
-        string (str): string to remove special characters from
-
-    Returns:
-        (str): string without special characters
-    """
-    if not isinstance(string, str):
-        return string
-    return string.translate(str.maketrans('', '', SPECIAL_CHARS)).lower()
 
 
 def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None,
