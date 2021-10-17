@@ -6,8 +6,10 @@ from mlchecks.base.check import BaseCheck, CheckResult, TrainValidationBaseCheck
 
 __all__ = ['CheckSuite']
 
+from mlchecks.utils import MLChecksValueError
 
-class CheckSuite:
+
+class CheckSuite(BaseCheck):
     """Class for running a set of checks together, and returning a unified pass / no-pass.
 
     Attributes:
@@ -15,13 +17,16 @@ class CheckSuite:
     """
 
     checks: List[BaseCheck]
+    name: str
 
-    def __init__(self, *checks):
+    def __init__(self, name, *checks):
         """Get `Check`s and `CheckSuite`s to run in given order."""
+        super().__init__()
         for check in checks:
             if not isinstance(check, BaseCheck):
                 raise Exception(f'CheckSuite receives only `BaseCheck` objects but got: {check.__class__.__name__}')
         self.checks = checks
+        self.name = name
 
     def run(self, model=None, train_dataset=None, validation_dataset=None, check_datasets_policy: str = 'validation') \
             -> List[CheckResult]:
@@ -58,9 +63,15 @@ class CheckSuite:
                     results.append(check.run(dataset=validation_dataset))
             elif isinstance(check, ModelOnlyBaseCheck):
                 results.append(check.run(model=model))
+            elif isinstance(check, CheckSuite):
+                suite_res = check.run(model, train_dataset, validation_dataset, check_datasets_policy)
+                if check.name in results:
+                    raise MLChecksValueError("Each suite must have a unique name")
+                results.append(suite_res)
             else:
                 raise TypeError(f'Expected check of type SingleDatasetBaseCheck, CompareDatasetsBaseCheck, '
                                 f'TrainValidationBaseCheck or ModelOnlyBaseCheck. Got  {check.__class__.__name__} '
                                 f'instead')
 
-        return results
+        text = f'<h2>{self.name}</h2>' + '<br>'.join([c.display['text/html'] for c in results])
+        return CheckResult(results, display={'text/html': text})
