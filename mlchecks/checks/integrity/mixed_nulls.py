@@ -1,6 +1,8 @@
 """Module contains Mixed Nulls check."""
 from typing import List, Iterable, Union
 
+from re import search
+
 import numpy as np
 import pandas as pd
 from pandas import DataFrame, StringDtype
@@ -8,7 +10,7 @@ from pandas import DataFrame, StringDtype
 from mlchecks import Dataset, CheckResult, validate_dataset_or_dataframe
 from mlchecks.base.check import SingleDatasetBaseCheck
 from mlchecks.display import format_check_display
-from mlchecks.utils import MLChecksValueError
+from mlchecks.utils import MLChecksValueError, validate_column_list
 
 __all__ = ['mixed_nulls', 'MixedNulls']
 

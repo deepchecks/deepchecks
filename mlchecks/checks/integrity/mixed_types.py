@@ -10,37 +10,10 @@ from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset_or_dataframe
 from mlchecks.display import format_check_display
-from mlchecks.utils import MLChecksValueError
+from mlchecks.utils import validate_column_list
 
 
 __all__ = ['mixed_types', 'MixedTypes']
-
-
-
-def validate_column_list(cl) -> set:
-    """Validate the object given is a list of strings or None.
-
-    Args:
-        cl: the object to validate
-
-    Returns:
-        (set): Returns a list of columns names as set object or None
-    """
-    var_names = 'columns & ignore_columns '
-
-    result: set
-    if cl is not None:
-        if not isinstance(cl, Iterable):
-            raise MLChecksValueError(var_names + 'must be an iterable')
-        if len(cl) == 0:
-            raise MLChecksValueError(var_names + "can't be an emptry string")
-        if any((not isinstance(string, str) for string in cl)):
-            raise MLChecksValueError(var_names + "must contain only items of type 'str'")
-        result = set(cl)
-    else:
-        result = None
-
-    return result
 
 
 
