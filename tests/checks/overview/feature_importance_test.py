@@ -1,7 +1,10 @@
+"""Tests for Feature Importance."""
 import pandas as pd
 
-from mlchecks.checks.overview.feature_importance import *
-from hamcrest import *
+from mlchecks.checks.overview.feature_importance import feature_importance, FeatureImportance
+from mlchecks.base import Dataset
+from mlchecks.utils import MLChecksValueError
+from hamcrest import assert_that, calling, raises
 
 def test_feature_importance_function(iris_random_forest, iris_dataset_labeled):
     # Act
@@ -19,7 +22,9 @@ def test_feature_importance_not_binary(iris_random_forest, iris_dataset_labeled)
 
 def test_feature_importance_binary(iris_random_forest_single_class, iris_dataset_single_class_labeled):
     # Act
-    result = feature_importance(iris_dataset_single_class_labeled, iris_random_forest_single_class, plot_type='beeswarm')
+    result = feature_importance(iris_dataset_single_class_labeled,
+                                iris_random_forest_single_class,
+                                plot_type='beeswarm')
 
     # Assert
     assert result.value
