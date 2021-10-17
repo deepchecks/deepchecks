@@ -90,7 +90,7 @@ $(PIP):
 	test -d $(ENV) || $(ext_py) -m venv $(ENV) 
 $(REQUIREMENTS_LOG): $(PIP) $(REQUIREMENTS)
 	$(PIP) install --upgrade pip
-	$(PIP) install $(INSTALLATION_PKGS)
+	$(PIP) install --upgrade $(INSTALLATION_PKGS)
 	for f in $(REQUIREMENTS); do \
 	  $(PIP) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
 	done

@@ -1,3 +1,4 @@
+import setuptools
 from setuptools import setup
 from distutils.util import convert_path
 import os
