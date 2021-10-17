@@ -66,5 +66,10 @@ class StringMismatch(SingleDatasetBaseCheck):
     """Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column."""
 
     def run(self, dataset, model=None) -> CheckResult:
+        """Run string_mismatch check.
+
+        Args:
+            dataset (DataFrame): A dataset or pd.FataFrame object.
+        """
         return string_mismatch(dataset, ignore_columns=self.params.get('ignore_columns'))
 
