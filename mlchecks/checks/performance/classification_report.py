@@ -18,7 +18,9 @@ def classification_report(ds: Dataset, model):
         model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
         ds: a Dataset object
     Returns:
-        CheckResult: value is dictionary in format {<target>: , ['precision': <score>, 'recall': <score>, 'f_score': <score>, 'support': <score>]}
+        CheckResult:
+            value is dictionary in format
+                {<target>: , ['precision': <score>, 'recall': <score>, 'f_score': <score>, 'support': <score>]}
 
     Raises:
         MLChecksValueError: If the object is not a Dataset instance with a label
@@ -51,6 +53,8 @@ class ClassificationReport(SingleDatasetBaseCheck):
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
             ds: a Dataset object
         Returns:
-            CheckResult: value is dictionary in format {<target>: , ['precision': <score>, 'recall': <score>, 'f_score': <score>, 'support': <score>]}
+            CheckResult:
+                value is dictionary in format
+                    {<target>: , ['precision': <score>, 'recall': <score>, 'f_score': <score>, 'support': <score>]}
         """
         return classification_report(dataset, model)

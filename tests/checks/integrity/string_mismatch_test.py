@@ -1,3 +1,4 @@
+"""Contains unit tests for the string_mismatch check."""
 import pandas as pd
 
 from mlchecks.checks import string_mismatch

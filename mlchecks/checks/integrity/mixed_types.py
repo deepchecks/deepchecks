@@ -109,7 +109,7 @@ def check_mixed_percentage(column_data: pd.Series) -> dict:
             return False
 
     nums = sum(column_data.apply(is_float))
-    if nums == total_rows or nums == 0:
+    if nums in (total_rows, 0):
         return {}
 
     # Then we've got a mix

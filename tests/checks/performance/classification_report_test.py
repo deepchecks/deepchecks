@@ -5,9 +5,9 @@ from hamcrest import assert_that, calling, raises
 
 
 def test_dataset_wrong_input():
-    X = 'wrong_input'
+    bad_dataset = 'wrong_input'
     # Act & Assert
-    assert_that(calling(classification_report).with_args(X, None),
+    assert_that(calling(classification_report).with_args(bad_dataset, None),
                 raises(MLChecksValueError,
                        'function classification_report requires dataset to be of type Dataset. instead got: str'))
 
