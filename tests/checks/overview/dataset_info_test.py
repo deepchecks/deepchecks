@@ -2,9 +2,7 @@
 from mlchecks.checks.overview.dataset_info import dataset_info, DatasetInfo
 from mlchecks.utils import MLChecksValueError
 
-# Disable wildcard import check for hamcrest
-#pylint: disable=unused-wildcard-import,wildcard-import
-from hamcrest import *
+from hamcrest import assert_that, equal_to, calling, raises
 
 
 def test_assert_dataset_info(iris_dataset):

@@ -5,10 +5,7 @@ from sklearn.base import BaseEstimator
 from mlchecks.base.check import SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset
 from mlchecks.display import format_check_display
-
-from mlchecks.utils import MLChecksValueError
 from mlchecks import CheckResult, Dataset
-
 
 __all__ = ['classification_report', 'ClassificationReport']
 
@@ -21,7 +18,9 @@ def classification_report(ds: Dataset, model):
         model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
         ds: a Dataset object
     Returns:
-        CheckResult: value is dictionary in format {<target>: , ['precision': <score>, 'recall': <score>, 'f_score': <score>, 'support': <score>]}
+        CheckResult:
+            value is dictionary in format
+                {<target>: , ['precision': <score>, 'recall': <score>, 'f_score': <score>, 'support': <score>]}
 
     Raises:
         MLChecksValueError: If the object is not a Dataset instance with a label
@@ -38,7 +37,11 @@ def classification_report(ds: Dataset, model):
     macro_performance = pd.DataFrame(sklearn.metrics.precision_recall_fscore_support(ds_y, y_pred))
     macro_performance.index = ['precision', 'recall', 'f_score', 'support']
 
-    return CheckResult(macro_performance.to_dict(), display={'text/html': format_check_display('Classification Report', classification_report, macro_performance.to_html())})
+    return CheckResult(macro_performance.to_dict(), display={'text/html':
+                                                                 format_check_display('Classification Report',
+                                                                                      classification_report,
+                                                                                      macro_performance.to_html())})
+
 
 class ClassificationReport(SingleDatasetBaseCheck):
     """Summarize given model parameters."""
@@ -50,6 +53,8 @@ class ClassificationReport(SingleDatasetBaseCheck):
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
             ds: a Dataset object
         Returns:
-            CheckResult: value is dictionary in format {<target>: , ['precision': <score>, 'recall': <score>, 'f_score': <score>, 'support': <score>]}
+            CheckResult:
+                value is dictionary in format
+                    {<target>: , ['precision': <score>, 'recall': <score>, 'f_score': <score>, 'support': <score>]}
         """
         return classification_report(dataset, model)
