@@ -1,10 +1,12 @@
 """Tests for Invalid Chars check"""
 import pandas as pd
 
-from hamcrest import assert_that
-from hamcrest.library.object.haslength import has_length
-
+# Disable wildcard import check for hamcrest
+#pylint: disable=unused-wildcard-import,wildcard-import
+from hamcrest import *
 from mlchecks.checks.integrity.invalid_chars import invalid_chars
+from mlchecks.utils import MLChecksValueError
+
 
 def test_single_column_no_invalid():
     # Arrange
@@ -64,17 +66,16 @@ def test_double_column_specific_invalid():
 
 def test_double_column_specific_and_ignored_invalid():
     # Arrange
-    data = {'col1': ['1', 'bar()', 'cat'], 'col2': [ 6,66,666.66 ]}
+    data = {'col1': ['1', 'bar()', 'cat'], 'col2': [6, 66, 666.66]}
     dataframe = pd.DataFrame(data=data)
-    # Act
-    result = invalid_chars(dataframe,ignore_columns=['col1'],columns=['col1'])
-    # Assert
-    assert_that(result.value, has_length(0))
+    # Act & Assert
+    assert_that(calling(invalid_chars).with_args(dataframe, ignore_columns=['col1'], columns=['col1']),
+                raises(MLChecksValueError))
 
 
 def test_double_column_double_invalid():
     # Arrange
-    data = {'col1': ['1_', 'bar', 'cat}'], 'col2': [ 6,'66&.66.6',666.66 ]}
+    data = {'col1': ['1_', 'bar', 'cat}'], 'col2': [6, '66&.66.6', 666.66]}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = invalid_chars(dataframe)

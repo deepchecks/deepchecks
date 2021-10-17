@@ -10,12 +10,9 @@ from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset_or_dataframe
 from mlchecks.display import format_check_display
-from mlchecks.utils import validate_column_list
-
+from mlchecks.utils import MLChecksValueError
 
 __all__ = ['mixed_types', 'MixedTypes']
-
-
 
 
 def mixed_types(dataset: DataFrame, columns: Iterable[str]=None, ignore_columns: Iterable[str]=None ) -> CheckResult:
@@ -31,13 +28,16 @@ def mixed_types(dataset: DataFrame, columns: Iterable[str]=None, ignore_columns:
     """
     # Validate parameters
     dataset: Dataset = validate_dataset_or_dataframe(dataset)
+    common = set(columns).intersection(set(ignore_columns))
+    if common:
+        raise MLChecksValueError(f'Same column can not appear in "columns" and "ignore_columns": {", ".join(common)}')
     dataset = dataset.drop_columns_with_validation(ignore_columns)
     dataset = dataset.keep_only_columns_with_validation(columns)
 
     # Result value: { Column Name: {string: pct, numbers: pct}}
     display_dict = {}
 
-    for column_name in columns:
+    for column_name in dataset.columns:
         try:
             column_data = dataset[column_name]
         except KeyError: #Column is not in data
