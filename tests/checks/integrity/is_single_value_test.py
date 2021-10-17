@@ -3,8 +3,7 @@ import pandas as pd
 from mlchecks.utils import MLChecksValueError
 from mlchecks.checks.integrity.is_single_value import is_single_value, IsSingleValue
 from hamcrest import assert_that, calling, raises
-# Disable wildcard import check for hamcrest
-#pylint: disable=unused-wildcard-import,wildcard-import
+
 
 
 def helper_test_df_and_result(df, expected_result_value, ignore_columns=None):

@@ -1,9 +1,8 @@
 import pandas as pd
 
 from mlchecks.checks import string_mismatch
-# Disable wildcard import check for hamcrest
-#pylint: disable=unused-wildcard-import,wildcard-import
-from hamcrest import *
+
+from hamcrest import assert_that, has_length
 
 
 def test_double_col_mismatch():

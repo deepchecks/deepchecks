@@ -6,9 +6,8 @@ from mlchecks import Dataset
 from mlchecks.checks.leakage.single_feature_contribution import single_feature_contribution, \
     single_feature_contribution_train_validation
 from mlchecks.utils import MLChecksValueError
-# Disable wildcard import check for hamcrest
-#pylint: disable=unused-wildcard-import,wildcard-import
-from hamcrest import *
+
+from hamcrest import assert_that, is_in, close_to, calling, raises
 
 
 def util_generate_dataframe_and_expected():

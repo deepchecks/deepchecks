@@ -61,7 +61,7 @@ def roc_report(ds: Dataset, model):
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
     plt.title('Receiver operating characteristic for multi-class data')
-    plt.legend(loc="lower right")
+    plt.legend(loc='lower right')
 
     return CheckResult(res, display={'text/html': format_check_display('ROC Report', roc_report, get_plt_html_str())})
 

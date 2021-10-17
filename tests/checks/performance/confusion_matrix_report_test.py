@@ -1,14 +1,16 @@
+"""Contains unit tests for the confusion_matrix_report check."""
 import numpy as np
 from mlchecks.checks.performance import ConfusionMatrixReport, confusion_matrix_report
-from hamcrest import *
 from mlchecks.utils import MLChecksValueError
+from hamcrest import assert_that, calling, raises
 
 
 def test_dataset_wrong_input():
-    X = "wrong_input"
+    X = 'wrong_input'
     # Act & Assert
     assert_that(calling(confusion_matrix_report).with_args(X, None),
-                raises(MLChecksValueError, 'function confusion_matrix_report requires dataset to be of type Dataset. instead got: str'))
+                raises(MLChecksValueError,
+                       'function confusion_matrix_report requires dataset to be of type Dataset. instead got: str'))
 
 
 def test_dataset_no_label(iris_dataset, iris_adaboost):
@@ -25,4 +27,4 @@ def test_model_info_object(iris_labled_dataset, iris_adaboost):
     # Assert
     for i in range(len(result)):
         for j in range(len(result[i])):
-            assert(isinstance(result[i][j] , np.int64))
+            assert isinstance(result[i][j] , np.int64)
