@@ -8,17 +8,12 @@ from pandas.api.types import infer_dtype
 from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset_or_dataframe
+from mlchecks.checks.integrity.string_utils import string_baseform
 from mlchecks.display import format_check_display
 from mlchecks.utils import validate_column_list
 
 
 __all__ = ['invalid_chars', 'InvalidChars']
-
-
-SPECIAL_CHARS = [' ', '!', '"', '#', '$', '%', '&', '\'','(', ')',
-                 '*', '+', ',', '-', '.', '/', ':', ';', '<', '=',
-                 '>', '?', '@', '[', ']', '\\', '^', '_', '`', '{',
-                 '}', '|', '~', '\n']
 
 
 def invalid_chars(dataset: DataFrame, columns: Iterable[str]=None, ignore_columns: Iterable[str]=None ) -> CheckResult:
@@ -35,11 +30,7 @@ def invalid_chars(dataset: DataFrame, columns: Iterable[str]=None, ignore_column
     # Validate parameters
     dataset: Dataset = validate_dataset_or_dataframe(dataset)
     dataset = dataset.drop_columns_with_validation(ignore_columns)
-    if columns is None:
-        columns: List[str] = dataset.columns
-    else:
-        columns: set = validate_column_list(columns)
-
+    dataset = dataset.keep_only_columns_with_validation(columns)
     # Result value: { Column Name: {invalid: pct}}
     display_array = []
 
@@ -54,7 +45,6 @@ def invalid_chars(dataset: DataFrame, columns: Iterable[str]=None, ignore_column
 
     df_graph = pd.DataFrame(display_array, columns=['Column Name', '% Invalid Samples'])
 
-
     visual = df_graph.to_html(index=False, justify='left') if len(df_graph) > 0 else None
     formatted_html = format_check_display('Invalid Chars', invalid_chars, visual)
     return CheckResult(df_graph, display={'text/html': formatted_html})
@@ -65,16 +55,16 @@ def get_invalid_chars(column_data: pd.Series) -> str :
         return check_invalid_chars(column_data)
     return None
 
+
 def is_stringed_type(col):
     return infer_dtype(col) not in ['integer', 'decimal', 'floating']
+
 
 def check_invalid_chars(column_data: pd.Series) -> str:
     total_rows = column_data.count()
 
     def is_invalid_char(x):
-        if isinstance(x, str):
-            return any(element in x for element in SPECIAL_CHARS)
-        return False
+        return string_baseform(x) != x
 
     invalids = sum(column_data.apply(is_invalid_char))
     if invalids == 0:

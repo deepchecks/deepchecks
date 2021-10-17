@@ -32,10 +32,7 @@ def mixed_types(dataset: DataFrame, columns: Iterable[str]=None, ignore_columns:
     # Validate parameters
     dataset: Dataset = validate_dataset_or_dataframe(dataset)
     dataset = dataset.drop_columns_with_validation(ignore_columns)
-    if columns is None:
-        columns: List[str] = dataset.columns
-    else:
-        columns: set = validate_column_list(columns)
+    dataset = dataset.keep_only_columns_with_validation(columns)
 
     # Result value: { Column Name: {string: pct, numbers: pct}}
     display_dict = {}
