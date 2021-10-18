@@ -250,18 +250,24 @@ class Dataset(pd.DataFrame):
         else:
             return self
 
-    def keep_only_columns_with_validation(self, columns: Union[str, List[str]]):
-        """Keep only given columns in the dataframe. Make sure they are all exists.
+    def filter_columns_with_validation(self, columns: Union[str, List[str], None],
+                                       ignore_columns: Union[str, List[str], None]) -> 'Dataset':
+        """Filter dataset columns by given params.
 
         Args:
-            columns (Union[str, List[str]]): Column names to keep.
-
+            columns (Union[str, List[str], None]): Column names to keep.
+            ignore_columns (Union[str, List[str], None]): Column names to drop.
         Raise:
             MLChecksValueError: In case one of columns given don't exists raise error
         """
-        if columns:
+        if columns and ignore_columns:
+            raise MLChecksValueError('Can\'t have columns and ignore_columns together')
+        elif columns:
             self.validate_columns_exist(columns)
             return Dataset(self[columns])
+        elif ignore_columns:
+            self.validate_columns_exist(ignore_columns)
+            return Dataset(self.drop(labels=ignore_columns, axis='columns'))
         else:
             return self
 

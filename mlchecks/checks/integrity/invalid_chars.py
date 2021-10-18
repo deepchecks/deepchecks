@@ -8,7 +8,6 @@ from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset_or_dataframe
 from mlchecks.checks.integrity.string_utils import string_baseform
-from mlchecks.utils import MLChecksValueError
 
 __all__ = ['invalid_characters', 'InvalidCharacters']
 
@@ -27,11 +26,8 @@ def invalid_characters(dataset: DataFrame, columns: Iterable[str] = None, ignore
     """
     # Validate parameters
     dataset: Dataset = validate_dataset_or_dataframe(dataset)
-    common = set(columns or []).intersection(set(ignore_columns or []))
-    if common:
-        raise MLChecksValueError(f'Same column can not appear in "columns" and "ignore_columns": {", ".join(common)}')
-    dataset = dataset.drop_columns_with_validation(ignore_columns)
-    dataset = dataset.keep_only_columns_with_validation(columns)
+    dataset = dataset.filter_columns_with_validation(columns, ignore_columns)
+
     # Result value: { Column Name: {invalid: pct}}
     display_array = []
 
