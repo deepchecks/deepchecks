@@ -32,6 +32,10 @@ class CheckResult:
 
         Args:
             value (Any): Value calculated by check. Can be used to decide if decidable check passed.
+            header (str): Header to be displayed in python notebook.
+            check (Callable): The check function which created this result. Used to extract the summary to be
+            displayed in notebook.
+            display (Callable): Function which is used for custom display.
         """
         self.value = value
         self.display = display
