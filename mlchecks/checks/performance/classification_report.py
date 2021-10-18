@@ -1,7 +1,6 @@
 """The classification_report check module."""
 import pandas as pd
 import sklearn
-from IPython.core.display import display_html
 from sklearn.base import BaseEstimator
 from mlchecks.base.dataset import validate_dataset
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck

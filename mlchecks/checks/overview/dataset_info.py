@@ -3,7 +3,6 @@ from typing import Union
 import pandas as pd
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset_or_dataframe
-from mlchecks.utils import is_notebook
 
 __all__ = ['dataset_info', 'DatasetInfo']
 

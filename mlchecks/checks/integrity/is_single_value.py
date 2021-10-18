@@ -1,8 +1,6 @@
 """Module contains is_single_value check."""
 from typing import Union, List
 import pandas as pd
-from IPython.core.display import display_html
-
 from mlchecks import SingleDatasetBaseCheck, CheckResult, validate_dataset_or_dataframe
 
 __all__ = ['is_single_value', 'IsSingleValue']

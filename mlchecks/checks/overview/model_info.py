@@ -1,6 +1,4 @@
 """Module contains model_info check."""
-from IPython.core.display import display_html
-
 from mlchecks import ModelOnlyBaseCheck, CheckResult
 from mlchecks.utils import model_type_validation
 import pandas as pd

@@ -79,7 +79,7 @@ class CheckResult:
             display_html('<p><b>&#x2713;</b> Nothing found</p>', raw=True)
 
     def __repr__(self):
-        """Default __repr__"""
+        """Return default __repr__ function uses value."""
         return self.value.__repr__()
 
 

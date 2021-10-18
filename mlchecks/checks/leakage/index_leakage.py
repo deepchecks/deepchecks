@@ -1,6 +1,5 @@
 """The index_leakage check module."""
 import pandas as pd
-from IPython.core.display import display_html
 
 from mlchecks import CheckResult, Dataset, TrainValidationBaseCheck
 from mlchecks.base.dataset import validate_dataset

@@ -3,7 +3,6 @@ from typing import List, Iterable, Union
 
 import numpy as np
 import pandas as pd
-from IPython.core.display import display_html
 from pandas import DataFrame, StringDtype
 
 from mlchecks import Dataset, CheckResult, validate_dataset_or_dataframe

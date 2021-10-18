@@ -1,5 +1,4 @@
 """The feature_importance check module."""
-from matplotlib import pyplot as plt
 from sklearn.base import BaseEstimator
 from mlchecks import SingleDatasetBaseCheck, CheckResult, Dataset, validate_dataset
 from mlchecks.utils import model_type_validation, MLChecksValueError, model_dataset_shape_validation
