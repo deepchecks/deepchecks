@@ -1,7 +1,7 @@
 """Utils module containing useful global functions."""
 import base64
 import io
-from typing import Any, List, Iterable, Union
+from typing import Any, List, Union
 import sklearn
 import matplotlib.pyplot as plt
 import catboost
@@ -84,33 +84,7 @@ def is_notebook():
         else:
             return False  # Other type (?)
     except NameError:
-        return False      # Probably standard Python interpreter
-
-
-def validate_column_list(cl) -> set:
-    """Validate the object given is a list of strings or None.
-
-    Args:
-        cl: the object to validate
-
-    Returns:
-        (set): Returns a list of columns names as set object or None
-    """
-    var_names = 'columns & ignore_columns '
-
-    result: set
-    if cl is not None:
-        if not isinstance(cl, Iterable):
-            raise MLChecksValueError(var_names + 'must be an iterable')
-        if len(cl) == 0:
-            raise MLChecksValueError(var_names + "can't be an emptry string")
-        if any((not isinstance(string, str) for string in cl)):
-            raise MLChecksValueError(var_names + "must contain only items of type 'str'")
-        result = set(cl)
-    else:
-        result = None
-
-    return result
+        return False  # Probably standard Python interpreter
 
 
 def model_dataset_shape_validation(model: Any, dataset: Any):
