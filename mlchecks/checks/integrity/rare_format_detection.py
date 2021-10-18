@@ -1,6 +1,6 @@
 """The single_feature_contribution check module."""
 import re
-from copy import deepcopy
+from copy import deepcopy, copy
 from typing import Union, List
 
 import pandas as pd
@@ -32,6 +32,12 @@ class Pattern:
         """Initiate the Pattern class."""
         self.name = name
         self.substrs = substrs
+
+    def sub(self, s: str) -> str:
+        """Replace matching patterns to the regex_str by the filler."""
+        for subs in self.substrs:
+            s = subs.sub(s)
+        return s
 
 
 DEFAULT_PATTERNS = [
@@ -121,12 +127,7 @@ def _detect_per_column_and_pattern(column, pattern, rarity_threshold):
 
     # find rare formats by replacing every pattern with the filler.
     # For example if the pattern is \d+ and column contains dates, the formats that will be found is _._._
-    def replace_pattern(s: str, pattern):
-        for substr in pattern.substrs:
-            s = substr.sub(s)
-        return s
-
-    patterned_column = column.apply(lambda s: replace_pattern(s, pattern))
+    patterned_column = column.apply(lambda s: pattern.sub(s))
 
     rare_to_common_format_ratio, rare_formats, common_formats = get_rare_vs_common_values(patterned_column,
                                                                                           rarity_threshold)
