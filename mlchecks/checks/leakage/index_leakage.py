@@ -37,18 +37,13 @@ def index_train_validation_leakage(train_dataset: Dataset, validation_dataset: D
     if len(index_intersection) > 0:
         size_in_test = len(index_intersection) / validation_dataset.n_samples()
         return_value = size_in_test
+        text = f'{size_in_test:.1%} of validation data indexes appear in training data'
+        table = pd.DataFrame([[list(index_intersection)[:n_index_to_show]]],
+                             index=['Sample of validation indexes in train:'])
+        display = [text, table]
     else:
         return_value = 0
-
-    def display():
-        if return_value > 0:
-            text = f'{size_in_test:.1%} of validation data indexes appear in training data'
-            table = pd.DataFrame([[list(index_intersection)[:n_index_to_show]]],
-                                 index=['Sample of validation indexes in train:'])
-            display_str = f'{text}<br>{table.to_html(header=False)}'
-            display_html(display_str, raw=True)
-        else:
-            return None
+        display = None
 
     return CheckResult(value=return_value, header='Index Train-Validation Leakage',
                        check=index_train_validation_leakage, display=display)

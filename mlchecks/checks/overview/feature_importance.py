@@ -2,8 +2,7 @@
 from matplotlib import pyplot as plt
 from sklearn.base import BaseEstimator
 from mlchecks import SingleDatasetBaseCheck, CheckResult, Dataset, validate_dataset
-from mlchecks.utils import model_type_validation, get_plt_html_str, MLChecksValueError, model_dataset_shape_validation
-from mlchecks.display import format_check_display
+from mlchecks.utils import model_type_validation, MLChecksValueError, model_dataset_shape_validation
 
 import shap
 
@@ -31,35 +30,29 @@ def feature_importance(dataset: Dataset, model: BaseEstimator, plot_type: str = 
     # because we don't want to affect the suite
     # pylint: disable=broad-except
     except Exception:
-        return CheckResult(None,
-                           {'text/html': format_check_display('Feature Importance', feature_importance,
-                                                              '<p style="color:red;">Model type not currently supported'
-                                                              ' for SHAP calculation</p>')})
+        display = '<p style="color:red;">Model type not currently supported for SHAP calculation</p>'
+        return CheckResult(None, header='Feature Importance', check=feature_importance, display=display)
 
     shap_values = explainer.shap_values(dataset[dataset.features()])
 
-    if plot_type == 'bar':
-        shap.summary_plot(shap_values, dataset[dataset.features()], dataset.features(), plot_type=plot_type, show=False)
-    elif plot_type == 'beeswarm' or plot_type is None:
-        if isinstance(shap_values, list):
-            if len(shap_values) == 2:
-                shap.summary_plot(shap_values[1], dataset[dataset.features()], dataset.features(), show=False)
-            elif plot_type is None:
-                shap.summary_plot(shap_values, dataset[dataset.features()], dataset.features(), show=False)
+    def plot():
+        if plot_type == 'bar':
+            shap.summary_plot(shap_values, dataset[dataset.features()], dataset.features(), plot_type=plot_type,
+                              show=False)
+        elif plot_type == 'beeswarm' or plot_type is None:
+            if isinstance(shap_values, list):
+                if len(shap_values) == 2:
+                    shap.summary_plot(shap_values[1], dataset[dataset.features()], dataset.features(), show=False)
+                elif plot_type is None:
+                    shap.summary_plot(shap_values, dataset[dataset.features()], dataset.features(), show=False)
+                else:
+                    raise MLChecksValueError('Only plot_type = \'bar\' is supported for multi-class models</p>')
             else:
-                raise MLChecksValueError('Only plot_type = \'bar\' is supported for multi-class models</p>')
+                shap.summary_plot(shap_values, dataset[dataset.features()], dataset.features(), show=False)
         else:
-            shap.summary_plot(shap_values, dataset[dataset.features()], dataset.features(), show=False)
-    else:
-        raise MLChecksValueError(f'plot_type=\'{plot_type}\' currently not supported. Use \'beeswarm\' or \'bar\'')
+            raise MLChecksValueError(f'plot_type=\'{plot_type}\' currently not supported. Use \'beeswarm\' or \'bar\'')
 
-    plot = get_plt_html_str()
-
-    # SHAP prints the plot despite show=False, here we clear the plot frame
-    plt.cla()
-    plt.clf()
-
-    return CheckResult(shap_values, {'text/html': format_check_display('Feature Importance', feature_importance, plot)})
+    return CheckResult(shap_values, display=plot)
 
 
 class FeatureImportance(SingleDatasetBaseCheck):

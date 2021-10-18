@@ -25,10 +25,7 @@ def model_info(model: BaseEstimator):
     model_param_df.reset_index(inplace=True)
 
     value = {'type': model_type, 'params': model.get_params()}
-
-    def display():
-        display_html(f'Model Type: {model_type}', raw=True)
-        display_html(model_param_df.to_html(index=False), raw=True)
+    display = [f'Model Type: {model_type}', model_param_df]
 
     return CheckResult(value, header='Model Info', check=model_info, display=display)
 

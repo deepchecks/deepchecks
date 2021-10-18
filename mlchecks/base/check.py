@@ -1,11 +1,12 @@
 """Module containing all the base classes for checks."""
 import abc
 import re
-from typing import Dict, Any, Callable
+from typing import Dict, Any, Callable, List, Union
 
 __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainValidationBaseCheck',
            'ModelOnlyBaseCheck']
 
+import pandas as pd
 from IPython.core.display import display_html
 from matplotlib import pyplot as plt
 
@@ -28,9 +29,9 @@ class CheckResult:
     value: Any
     header: str
     check: Callable
-    display: Callable
+    display: List[Union[Callable, str, pd.DataFrame]]
 
-    def __init__(self, value, header: str = None, check: Callable = None, display: Callable = None):
+    def __init__(self, value, header: str = None, check: Callable = None, display: Any = None):
         """Init check result.
 
         Args:
@@ -42,12 +43,18 @@ class CheckResult:
         """
         if check and not isinstance(check, Callable):
             raise MLChecksValueError('`check` parameter of CheckResult must be callable')
-        if display and not isinstance(display, Callable):
-            raise MLChecksValueError('`display` parameter of CheckResult must be callable')
         self.value = value
         self.header = header
         self.check = check
-        self.display = display or (lambda: False)
+
+        if display is not None and not isinstance(display, List):
+            self.display = [display]
+        else:
+            self.display = display or []
+
+        for item in self.display:
+            if not isinstance(item, (str, pd.DataFrame, Callable)):
+                raise MLChecksValueError(f'Can\'t display item of type: {type(item)}')
 
     def _ipython_display_(self):
         if self.header:
@@ -58,9 +65,17 @@ class CheckResult:
             summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
             display_html(f'<p>{summary}</p>', raw=True)
 
-        res = self.display()
-        plt.show()
-        if res is False:
+        for item in self.display:
+            if isinstance(item, pd.DataFrame):
+                display_html(item.to_html(justify='left'), raw=True)
+            elif isinstance(item, str):
+                display_html(item, raw=True)
+            elif isinstance(item, Callable):
+                item()
+                plt.show()
+            else:
+                raise Exception(f'Unable to display item of type: {type(item)}')
+        if not self.display:
             display_html('<p><b>&#x2713;</b> Nothing found</p>', raw=True)
 
     def __repr__(self):

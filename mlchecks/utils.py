@@ -4,8 +4,7 @@ import sklearn
 import catboost
 from IPython import get_ipython
 
-__all__ = ['SUPPORTED_BASE_MODELS', 'MLChecksValueError', 'model_type_validation', 'is_notebook', 'get_plt_html_str',
-           'get_txt_html_str']
+__all__ = ['SUPPORTED_BASE_MODELS', 'MLChecksValueError', 'model_type_validation', 'is_notebook']
 
 SUPPORTED_BASE_MODELS = [sklearn.base.BaseEstimator, catboost.CatBoost]
 
@@ -14,23 +13,6 @@ class MLChecksValueError(ValueError):
     """Exception class that represent a fault parameter was passed to MLChecks."""
 
     pass
-
-
-def get_txt_html_str(txt: Union[str, List[str]], txt_type: str = 'p') -> str:
-    """
-    Return an html-formatted text string to display.
-
-    Args:
-        txt: the string to be printed.
-        txt_type: type of text to be presented. default is h3 (header-3).
-
-    Returns:
-        string in text/html format in order to display the text in html
-
-    """
-    if isinstance(txt, list):
-        txt = '<br>'.join(txt)
-    return f'<{txt_type}>{txt}</{txt_type}'
 
 
 def model_type_validation(model: Any):

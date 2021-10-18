@@ -86,11 +86,10 @@ def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None,
     df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Fraction of data'])
     df_graph = df_graph.set_index(['Column Name', 'Value'])
 
-    def display():
-        if len(df_graph) > 0:
-            display_html(df_graph.to_html(), raw=True)
-        else:
-            return False
+    if len(df_graph) > 0:
+        display = df_graph
+    else:
+        display = None
 
     return CheckResult(df_graph, header='Mixed Nulls', check=mixed_nulls, display=display)
 

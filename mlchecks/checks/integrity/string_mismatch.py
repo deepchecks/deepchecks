@@ -43,13 +43,12 @@ def string_mismatch(dataset: DataFrame, ignore_columns: Union[str, List[str]] = 
     df_graph = DataFrame(results, columns=['Column Name', 'Base form', 'Value', 'Count', 'Fraction of data'])
     df_graph = df_graph.set_index(['Column Name', 'Base form'])
 
-    def display_func():
-        if len(df_graph) > 0:
-            display_html(df_graph.to_html(), raw=True)
-        else:
-            return False
+    if len(df_graph) > 0:
+        display = df_graph
+    else:
+        display = None
 
-    return CheckResult(df_graph, header='String Mismatch', check=string_mismatch, display=display_func)
+    return CheckResult(df_graph, header='String Mismatch', check=string_mismatch, display=display)
 
 
 def get_base_form_to_variants_dict(uniques):
