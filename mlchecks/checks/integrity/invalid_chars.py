@@ -29,8 +29,6 @@ def invalid_chars(dataset: DataFrame, columns: Iterable[str] = None, ignore_colu
     """
     # Validate parameters
     dataset: Dataset = validate_dataset_or_dataframe(dataset)
-    columns: Iterable[str] = validate_column_list(columns)
-    ignore_columns: Iterable[str] = validate_column_list(ignore_columns)
     common = set(columns or []).intersection(set(ignore_columns or []))
     if common:
         raise MLChecksValueError(f'Same column can not appear in "columns" and "ignore_columns": {", ".join(common)}')

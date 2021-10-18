@@ -3,7 +3,7 @@ import pandas as pd
 
 # Disable wildcard import check for hamcrest
 #pylint: disable=unused-wildcard-import,wildcard-import
-from hamcrest import assert_that, has_length
+from hamcrest import assert_that, has_length, calling, raises
 
 from mlchecks.checks.integrity.mixed_types import mixed_types
 from mlchecks.utils import MLChecksValueError
