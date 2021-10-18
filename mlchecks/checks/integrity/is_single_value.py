@@ -2,7 +2,6 @@
 from typing import Union, List
 import pandas as pd
 from mlchecks import SingleDatasetBaseCheck, CheckResult, validate_dataset_or_dataframe
-from mlchecks.display import format_check_display
 
 __all__ = ['is_single_value', 'IsSingleValue']
 
@@ -23,23 +22,19 @@ def is_single_value(dataset: pd.DataFrame, ignore_columns: Union[str, List[str]]
     dataset = validate_dataset_or_dataframe(dataset)
     dataset = dataset.drop_columns_with_validation(ignore_columns)
 
-    is_single_unique_value = (dataset.nunique(dropna=False)==1)
+    is_single_unique_value = (dataset.nunique(dropna=False) == 1)
 
     if is_single_unique_value.any():
         value = True
-        # get names of columns with one unique value
         cols_with_single = is_single_unique_value[is_single_unique_value].index.to_list()
         uniques = dataset.loc[:, cols_with_single].head(1)
         uniques.index = ['Single unique value']
-        display_text = f'The following columns have only one unique value<br>{uniques.to_html(index=True)}'
-
+        display = ['The following columns have only one unique value', uniques]
     else:
         value = False
-        display_text = None
+        display = None
 
-    html = format_check_display('Single Value in Column', is_single_value, display_text) # pylint: disable=E1136
-
-    return CheckResult(value, display={'text/html': html})
+    return CheckResult(value, header='Single Value in Column', check=is_single_value, display=display)
 
 
 class IsSingleValue(SingleDatasetBaseCheck):

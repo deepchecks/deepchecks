@@ -1,9 +1,16 @@
 """Module containing all the base classes for checks."""
 import abc
-from typing import Dict, Any
+import re
+from typing import Dict, Any, Callable, List, Union
 
 __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainValidationBaseCheck',
            'ModelOnlyBaseCheck']
+
+import pandas as pd
+from IPython.core.display import display_html
+from matplotlib import pyplot as plt
+
+from mlchecks.utils import MLChecksValueError
 
 
 class CheckResult:
@@ -20,30 +27,59 @@ class CheckResult:
     """
 
     value: Any
-    display: Dict
+    header: str
+    check: Callable
+    display: List[Union[Callable, str, pd.DataFrame]]
 
-    def __init__(self, value, display=None):
+    def __init__(self, value, header: str = None, check: Callable = None, display: Any = None):
         """Init check result.
 
         Args:
             value (Any): Value calculated by check. Can be used to decide if decidable check passed.
-            display (Dict): Dictionary with formatters for display. possible formatters are: 'text/html', 'image/png'
+            header (str): Header to be displayed in python notebook.
+            check (Callable): The check function which created this result. Used to extract the summary to be
+            displayed in notebook.
+            display (Callable): Function which is used for custom display.
         """
+        if check and not isinstance(check, Callable):
+            raise MLChecksValueError('`check` parameter of CheckResult must be callable')
         self.value = value
-        self.display = display
+        self.header = header
+        self.check = check
 
-    def _repr_mimebundle_(self, include, exclude):
+        if display is not None and not isinstance(display, List):
+            self.display = [display]
+        else:
+            self.display = display or []
+
+        for item in self.display:
+            if not isinstance(item, (str, pd.DataFrame, Callable)):
+                raise MLChecksValueError(f'Can\'t display item of type: {type(item)}')
+
+    def _ipython_display_(self):
+        if self.header:
+            display_html(f'<h4>{self.header}</h4>', raw=True)
+        if self.check:
+            docs = self.check.__doc__
+            # Take first non-whitespace line.
+            summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
+            display_html(f'<p>{summary}</p>', raw=True)
+
+        for item in self.display:
+            if isinstance(item, pd.DataFrame):
+                display_html(item.to_html(justify='left'), raw=True)
+            elif isinstance(item, str):
+                display_html(item, raw=True)
+            elif isinstance(item, Callable):
+                item()
+                plt.show()
+            else:
+                raise Exception(f'Unable to display item of type: {type(item)}')
         if not self.display:
-            return None
-        data = self.display
-        if include:
-            data = {k: v for (k, v) in data.items() if k in include}
-        if exclude:
-            data = {k: v for (k, v) in data.items() if k not in exclude}
-        return data
+            display_html('<p><b>&#x2713;</b> Nothing found</p>', raw=True)
 
     def __repr__(self):
-        """If _repr_mimebundle_ is empty ipython will display this instead."""
+        """Return default __repr__ function uses value."""
         return self.value.__repr__()
 
 
