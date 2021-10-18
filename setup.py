@@ -20,7 +20,7 @@ setup(
     packages=['mlchecks'],
     install_requires=install_requires,
     license='Propietery', #TODO: what is the license
-    description = 'TYPE YOUR DESCRIPTION HERE', # TODO: Give me a one line Description
+    description = 'TYPE YOUR DESCRIPTION HERE', # TODO: Give me a one line Description 
     author = 'deepchecks',  
     author_email = 'info@deepchecks.com', 
     url = 'https://github.com/deepchecks/MLChecks',
@@ -29,8 +29,9 @@ setup(
     classifiers         = [
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
-        'Topic :: Software Development :: Test Tools', #TODO: Gabbay is this good?
-        'License :: OSI Approved :: MIT License', # TODO: WHAT IS THE LICENSE?!?
+        'Topic :: Software Development',
+        'Topic :: Scientific/Engineering',
+        'License :: OSI Approved :: BSD License',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
