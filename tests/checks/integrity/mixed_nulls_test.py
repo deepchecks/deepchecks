@@ -1,9 +1,8 @@
 """Tests for Mixed Nulls check"""
 import numpy as np
 import pandas as pd
-# Disable wildcard import check for hamcrest
-#pylint: disable=unused-wildcard-import,wildcard-import
-from hamcrest import *
+
+from hamcrest import assert_that, has_length
 
 from mlchecks.checks.integrity.mixed_nulls import mixed_nulls
 
@@ -98,12 +97,22 @@ def test_single_column_nulls_with_special_characters():
     assert_that(result.value, has_length(5))
 
 
-def test_single_column_in_dataset_no_nulls():
+def test_ignore_columns_single():
     # Arrange
-    data = {'col1': ['foo', 'bar', 'cat'], 'col2': ['nan', 'null', ''], 'col3': ['1', '2', '3']}
+    data = {'col1': ['foo', 'bar', 'cat'], 'col2': ['nan', 'null', ''], 'col3': [np.NAN, 'none', '3']}
     dataframe = pd.DataFrame(data=data)
     # Act
-    result = mixed_nulls(dataframe, column='col1')
+    result = mixed_nulls(dataframe, ignore_columns='col3')
+    # Assert - Only col 2 should have results
+    assert_that(result.value, has_length(3))
+
+
+def test_ignore_columns_multi():
+    # Arrange
+    data = {'col1': ['foo', 'bar', 'cat'], 'col2': ['nan', 'null', ''], 'col3': [np.NAN, 'none', '3']}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = mixed_nulls(dataframe, ignore_columns=['col3', 'col2'])
     # Assert
     assert_that(result.value, has_length(0))
 

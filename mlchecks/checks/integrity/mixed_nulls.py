@@ -1,19 +1,18 @@
 """Module contains Mixed Nulls check."""
-from typing import List, Iterable
+from typing import List, Iterable, Union
 
 import numpy as np
 import pandas as pd
 from pandas import DataFrame, StringDtype
 
-from mlchecks import Dataset, CheckResult, validate_dataset_or_dataframe, single_column_or_all
+from mlchecks import Dataset, CheckResult, validate_dataset_or_dataframe
 from mlchecks.base.check import SingleDatasetBaseCheck
-from mlchecks.display import format_check_display
+from mlchecks.checks.integrity.string_utils import string_baseform
 from mlchecks.utils import MLChecksValueError
 
 __all__ = ['mixed_nulls', 'MixedNulls']
 
 DEFAULT_NULL_VALUES = {'none', 'null', 'nan', 'na', '', '\x00', '\x00\x00'}
-SPECIAL_CHARS: str = ' !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~\n'
 
 
 def validate_null_string_list(nsl, check_nan: bool) -> set:
@@ -21,7 +20,7 @@ def validate_null_string_list(nsl, check_nan: bool) -> set:
 
     Args:
         nsl: Object to validate
-        check_na (bool): Whether to add to null list to check also NaN values
+        check_nan (bool): Whether to add to null list to check also NaN values
 
     Returns:
         (set): Returns list of null values as set object
@@ -44,43 +43,29 @@ def validate_null_string_list(nsl, check_nan: bool) -> set:
     return result
 
 
-def string_baseform(string: str):
-    """Remove special characters from given string.
-
-    Args:
-        string (str): string to remove special characters from
-
-    Returns:
-        (str): string without special characters
-    """
-    if not isinstance(string, str):
-        return string
-    return string.translate(str.maketrans('', '', SPECIAL_CHARS)).lower()
-
-
-def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, column: str = None, check_nan: bool = True)\
-        -> CheckResult:
+def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None,
+                ignore_columns: Union[str, List[str]] = None, check_nan: bool = True) -> CheckResult:
     """Search for various types of null values in a string column(s), including string representations of null.
 
     Args:
-        dataset (Dataset):
+        dataset (DataFrame): dataset to check
         null_string_list (List[str]): List of strings to be considered alternative null representations
-        column(str): Single column to check. if none given checks all the string columns
-        check_nan(bool): Whether to add to null list to check also NaN valuees
+        ignore_columns(str): Columns to ignore in the check
+        check_nan(bool): Whether to add to null list to check also NaN values
 
     Returns
-        (CheckResult): DataFrame with columns ('Column Name', 'Value', 'Count', 'Percentage') for any column which have
-        more than 1 null values.
+        (CheckResult): DataFrame with columns ('Column Name', 'Value', 'Count', 'Fraction of data') for any column
+         which have more than 1 null values.
     """
     # Validate parameters
     dataset: Dataset = validate_dataset_or_dataframe(dataset)
     null_string_list: set = validate_null_string_list(null_string_list, check_nan)
-    columns: List[str] = single_column_or_all(dataset, column)
+    dataset = dataset.drop_columns_with_validation(ignore_columns)
 
     # Result value
     display_array = []
 
-    for column_name in columns:
+    for column_name in list(dataset.columns):
         column_data = dataset[column_name]
         # TODO: Modify this once Dataset type casting mechanism is done
         if column_data.dtype != StringDtype:
@@ -92,9 +77,6 @@ def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, colu
         null_counts = column_counts.drop(labels=keys_to_drop)
         if null_counts.size < 2:
             continue
-        # Get the dominant (the series is sorted), and drop it
-        # dominant_null = null_counts.index[0], null_counts.iloc[0]
-        # other_nulls_counts = null_counts.drop(null_counts.index[0])
         # Save the column info
         for key, count in null_counts.iteritems():
             display_array.append([column_name, key, count, round(count / dataset.size, 2)])
@@ -103,9 +85,12 @@ def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None, colu
     df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Fraction of data'])
     df_graph = df_graph.set_index(['Column Name', 'Value'])
 
-    visual = df_graph.to_html() if len(df_graph) > 0 else None
-    formatted_html = format_check_display('Mixed Nulls', mixed_nulls, visual)
-    return CheckResult(df_graph, display={'text/html': formatted_html})
+    if len(df_graph) > 0:
+        display = df_graph
+    else:
+        display = None
+
+    return CheckResult(df_graph, header='Mixed Nulls', check=mixed_nulls, display=display)
 
 
 class MixedNulls(SingleDatasetBaseCheck):
@@ -123,5 +108,5 @@ class MixedNulls(SingleDatasetBaseCheck):
         """
         return mixed_nulls(dataset,
                            null_string_list=self.params.get('null_string_list'),
-                           column=self.params.get('column'),
+                           ignore_columns=self.params.get('ignore_columns'),
                            check_nan=self.params.get('check_nan'))

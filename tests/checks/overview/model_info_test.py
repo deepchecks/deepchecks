@@ -2,9 +2,7 @@
 from mlchecks.checks.overview.model_info import model_info, ModelInfo
 from mlchecks.utils import MLChecksValueError
 
-# Disable wildcard import check for hamcrest
-#pylint: disable=unused-wildcard-import,wildcard-import
-from hamcrest import *
+from hamcrest import assert_that, has_entries, calling, raises
 
 
 def assert_model_result(result):
