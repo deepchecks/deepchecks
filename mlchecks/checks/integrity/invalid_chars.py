@@ -1,5 +1,5 @@
 """module contains Invalid Chars check."""
-from typing import List, Iterable
+from typing import Iterable
 import pandas as pd
 from pandas import DataFrame
 from pandas.api.types import infer_dtype
@@ -15,7 +15,8 @@ from mlchecks.utils import validate_column_list, MLChecksValueError
 __all__ = ['invalid_chars', 'InvalidChars']
 
 
-def invalid_chars(dataset: DataFrame, columns: Iterable[str] = None, ignore_columns: Iterable[str] = None) -> CheckResult:
+def invalid_chars(dataset: DataFrame, columns: Iterable[str] = None, ignore_columns: Iterable[str] = None) \
+    -> CheckResult:
     """Search for invalid chars in column[s].
 
     Args:
@@ -28,6 +29,8 @@ def invalid_chars(dataset: DataFrame, columns: Iterable[str] = None, ignore_colu
     """
     # Validate parameters
     dataset: Dataset = validate_dataset_or_dataframe(dataset)
+    columns: Iterable[str] = validate_column_list(columns)
+    ignore_columns: Iterable[str] = validate_column_list(ignore_columns)
     common = set(columns or []).intersection(set(ignore_columns or []))
     if common:
         raise MLChecksValueError(f'Same column can not appear in "columns" and "ignore_columns": {", ".join(common)}')

@@ -1,5 +1,5 @@
 """module contains Mixed Types check."""
-from typing import List, Iterable
+from typing import Iterable
 import pandas as pd
 from pandas import DataFrame
 from pandas.api.types import infer_dtype

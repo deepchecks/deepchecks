@@ -9,7 +9,7 @@ from mlchecks import Dataset, CheckResult, validate_dataset_or_dataframe
 from mlchecks.base.check import SingleDatasetBaseCheck
 from mlchecks.checks.integrity.string_utils import string_baseform
 from mlchecks.display import format_check_display
-from mlchecks.utils import MLChecksValueError, validate_column_list
+from mlchecks.utils import MLChecksValueError
 
 __all__ = ['mixed_nulls', 'MixedNulls']
 
