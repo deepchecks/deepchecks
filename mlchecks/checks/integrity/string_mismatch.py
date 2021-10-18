@@ -1,12 +1,10 @@
 """String mismatch functions."""
 from collections import defaultdict
 from typing import Union, List, Set, Dict
-
 from pandas import DataFrame, StringDtype, Series
 
 from mlchecks import validate_dataset_or_dataframe, CheckResult, SingleDatasetBaseCheck
 from mlchecks.checks.integrity.string_utils import string_baseform
-from mlchecks.display import format_check_display
 
 __all__ = ['string_mismatch', 'StringMismatch']
 
@@ -43,9 +41,12 @@ def string_mismatch(dataset: DataFrame, ignore_columns: Union[str, List[str]] = 
     df_graph = DataFrame(results, columns=['Column Name', 'Base form', 'Value', 'Count', 'Fraction of data'])
     df_graph = df_graph.set_index(['Column Name', 'Base form'])
 
-    visual = df_graph.to_html() if len(df_graph) > 0 else None
-    formatted_html = format_check_display('String Mismatch', string_mismatch, visual)
-    return CheckResult(df_graph, display={'text/html': formatted_html})
+    if len(df_graph) > 0:
+        display = df_graph
+    else:
+        display = None
+
+    return CheckResult(df_graph, header='String Mismatch', check=string_mismatch, display=display)
 
 
 def get_base_form_to_variants_dict(uniques):

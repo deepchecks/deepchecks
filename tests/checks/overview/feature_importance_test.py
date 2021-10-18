@@ -14,9 +14,12 @@ def test_feature_importance_function(iris_random_forest, iris_dataset_labeled):
     assert result.value
 
 def test_feature_importance_not_binary(iris_random_forest, iris_dataset_labeled):
-    # Act
+    # Arrange
+    result = feature_importance(iris_dataset_labeled, iris_random_forest, plot_type='beeswarm')
+    # Act & Assert
     assert_that(
-        calling(feature_importance).with_args(iris_dataset_labeled, iris_random_forest, plot_type='beeswarm'),
+        # pylint: disable=protected-access
+        calling(result._ipython_display_).with_args(),
         raises(MLChecksValueError, 'Only plot_type = \'bar\' is supported for multi-class models</p>'))
 
 
@@ -46,15 +49,19 @@ def test_feature_importance_unsuported_model(iris_adaboost, iris_dataset_labeled
     assert result.value is None
 
 def test_feature_importance_bad_plot(iris_random_forest, iris_dataset_labeled):
-    # Assert
+    # Arrange
+    result = feature_importance(iris_dataset_labeled, iris_random_forest, plot_type='bad_plot')
+    # Act & Assert
     assert_that(
-        calling(feature_importance).with_args(iris_dataset_labeled, iris_random_forest, plot_type='bad_plot'),
+        # pylint: disable=protected-access
+        calling(result._ipython_display_).with_args(),
         raises(MLChecksValueError, 'plot_type=\'bad_plot\' currently not supported. Use \'beeswarm\' or \'bar\''))
 
 def test_feature_importance_unmatching_dataset(iris_random_forest):
     data = {'col1': ['foo', 'bar', 'null'], 'col2': ['Nan', 'bar', 1], 'col3': [1, 2, 3]}
     dataframe = pd.DataFrame(data=data)
     dataset = Dataset(dataframe, label='col3')
+
     # Assert
     assert_that(
         calling(feature_importance).with_args(dataset, iris_random_forest),
