@@ -9,7 +9,6 @@ from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset_or_dataframe
 from mlchecks.checks.integrity.string_utils import string_baseform
-from mlchecks.display import format_check_display
 from mlchecks.utils import MLChecksValueError
 
 __all__ = ['invalid_chars', 'InvalidChars']
@@ -47,10 +46,9 @@ def invalid_chars(dataset: DataFrame, columns: Iterable[str] = None, ignore_colu
             display_array.append([column_name,inv])
 
     df_graph = pd.DataFrame(display_array, columns=['Column Name', '% Invalid Samples'])
+    display = df_graph if len(df_graph) > 0 else None
 
-    visual = df_graph.to_html(index=False, justify='left') if len(df_graph) > 0 else None
-    formatted_html = format_check_display('Invalid Chars', invalid_chars, visual)
-    return CheckResult(df_graph, display={'text/html': formatted_html})
+    return CheckResult(df_graph, header='Invalid Chars', check=invalid_chars, display=display)
 
 
 def get_invalid_chars(column_data: pd.Series) -> str :
