@@ -1,10 +1,9 @@
 """The index_leakage check module."""
 import pandas as pd
+from IPython.core.display import display_html
 
-from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck, TrainValidationBaseCheck
+from mlchecks import CheckResult, Dataset, TrainValidationBaseCheck
 from mlchecks.base.dataset import validate_dataset
-from mlchecks.display import format_check_display
-from mlchecks.utils import is_notebook, MLChecksValueError, get_plt_html_str
 
 __all__ = ['index_train_validation_leakage', 'IndexTrainValidationLeakage']
 
@@ -37,19 +36,22 @@ def index_train_validation_leakage(train_dataset: Dataset, validation_dataset: D
     index_intersection = list(set(train_index).intersection(val_index))
     if len(index_intersection) > 0:
         size_in_test = len(index_intersection) / validation_dataset.n_samples()
-        text = f'{size_in_test:.1%} of validation data indexes appear in training data'
-        table = pd.DataFrame([[list(index_intersection)[:n_index_to_show]]],
-                             index=['Sample of validation indexes in train:'])
-        display_str = f'{text}<br>{table.to_html(header=False)}'
         return_value = size_in_test
     else:
-        display_str = None
         return_value = 0
 
-    return CheckResult(value=return_value,
-                       display={'text/html':
-                                format_check_display('Index Train-Validation Leakage', index_train_validation_leakage,
-                                                     display_str)})
+    def display():
+        if return_value > 0:
+            text = f'{size_in_test:.1%} of validation data indexes appear in training data'
+            table = pd.DataFrame([[list(index_intersection)[:n_index_to_show]]],
+                                 index=['Sample of validation indexes in train:'])
+            display_str = f'{text}<br>{table.to_html(header=False)}'
+            display_html(display_str, raw=True)
+        else:
+            return None
+
+    return CheckResult(value=return_value, header='Index Train-Validation Leakage',
+                       check=index_train_validation_leakage, display=display)
 
 
 class IndexTrainValidationLeakage(TrainValidationBaseCheck):

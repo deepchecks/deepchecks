@@ -1,9 +1,6 @@
 """Utils module containing useful global functions."""
-import base64
-import io
 from typing import Any, List, Union
 import sklearn
-import matplotlib.pyplot as plt
 import catboost
 from IPython import get_ipython
 
@@ -18,29 +15,6 @@ class MLChecksValueError(ValueError):
     """Exception class that represent a fault parameter was passed to MLChecks."""
 
     pass
-
-
-def get_plt_base64():
-    """Convert plot to base64.
-
-    Returns:
-        string of base64 encoding of the matplotlib.pyplot graph
-    """
-    plt_buffer = io.BytesIO()
-    plt.style.use('seaborn')
-    plt.savefig(plt_buffer, format='jpg')
-    plt_buffer.seek(0)
-    return base64.b64encode(plt_buffer.read()).decode('utf-8')
-
-
-def get_plt_html_str() -> str:
-    """Convert plot to html image tag.
-
-    Returns:
-        string in text/html format in order to display the plot in html
-    """
-    jpg = get_plt_base64()
-    return f'<img src="data:image/jpg;base64, {jpg}"/>'
 
 
 def get_txt_html_str(txt: Union[str, List[str]], txt_type: str = 'p') -> str:

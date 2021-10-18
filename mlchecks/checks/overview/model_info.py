@@ -1,6 +1,7 @@
 """Module contains model_info check."""
+from IPython.core.display import display_html
+
 from mlchecks import ModelOnlyBaseCheck, CheckResult
-from mlchecks.display import format_check_display
 from mlchecks.utils import model_type_validation
 import pandas as pd
 from sklearn.base import BaseEstimator
@@ -24,9 +25,12 @@ def model_info(model: BaseEstimator):
     model_param_df.reset_index(inplace=True)
 
     value = {'type': model_type, 'params': model.get_params()}
-    formatted_html = format_check_display('Model Info', model_info, model_param_df.to_html(index=False))
 
-    return CheckResult(value, display={'text/html': formatted_html})
+    def display():
+        display_html(f'Model Type: {model_type}', raw=True)
+        display_html(model_param_df.to_html(index=False), raw=True)
+
+    return CheckResult(value, header='Model Info', check=model_info, display=display)
 
 
 class ModelInfo(ModelOnlyBaseCheck):

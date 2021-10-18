@@ -3,12 +3,12 @@ from typing import List, Iterable, Union
 
 import numpy as np
 import pandas as pd
+from IPython.core.display import display_html
 from pandas import DataFrame, StringDtype
 
 from mlchecks import Dataset, CheckResult, validate_dataset_or_dataframe
 from mlchecks.base.check import SingleDatasetBaseCheck
 from mlchecks.checks.integrity.string_utils import string_baseform
-from mlchecks.display import format_check_display
 from mlchecks.utils import MLChecksValueError
 
 __all__ = ['mixed_nulls', 'MixedNulls']
@@ -86,9 +86,13 @@ def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None,
     df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Fraction of data'])
     df_graph = df_graph.set_index(['Column Name', 'Value'])
 
-    visual = df_graph.to_html() if len(df_graph) > 0 else None
-    formatted_html = format_check_display('Mixed Nulls', mixed_nulls, visual)
-    return CheckResult(df_graph, display={'text/html': formatted_html})
+    def display():
+        if len(df_graph) > 0:
+            display_html(df_graph.to_html(), raw=True)
+        else:
+            return False
+
+    return CheckResult(df_graph, header='Mixed Nulls', check=mixed_nulls, display=display)
 
 
 class MixedNulls(SingleDatasetBaseCheck):

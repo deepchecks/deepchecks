@@ -22,12 +22,10 @@ def dataset_info(dataset: Union[Dataset, pd.DataFrame]):
     """
     dataset = validate_dataset_or_dataframe(dataset)
 
-    if is_notebook():
-        html = dataset.get_profile().to_notebook_iframe()
-    else:
-        html = dataset.to_html()
+    def display():
+        dataset.get_profile().to_notebook_iframe()
 
-    return CheckResult(dataset.shape, display={'text/html': html})
+    return CheckResult(dataset.shape, header='Dataset Info', check=dataset_info, display=display)
 
 
 class DatasetInfo(SingleDatasetBaseCheck):

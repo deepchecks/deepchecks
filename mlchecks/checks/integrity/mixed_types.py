@@ -1,6 +1,7 @@
 """module contains Mixed Types check."""
 from typing import List, Iterable
 import pandas as pd
+from IPython.core.display import display_html
 from pandas import DataFrame
 from pandas.api.types import infer_dtype
 
@@ -9,7 +10,6 @@ import numpy as np
 from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset_or_dataframe
-from mlchecks.display import format_check_display
 from mlchecks.utils import MLChecksValueError
 
 
@@ -41,8 +41,6 @@ def validate_column_list(cl) -> set:
         result = None
 
     return result
-
-
 
 
 def mixed_types(dataset: DataFrame, columns: Iterable[str]=None, ignore_columns: Iterable[str]=None ) -> CheckResult:
@@ -78,9 +76,13 @@ def mixed_types(dataset: DataFrame, columns: Iterable[str]=None, ignore_columns:
 
     df_graph = pd.DataFrame.from_dict(display_dict)
 
-    visual = df_graph.to_html() if len(df_graph) > 0 else None
-    formatted_html = format_check_display('Mixed Types', mixed_types, visual)
-    return CheckResult(df_graph, display={'text/html': formatted_html})
+    def display():
+        if len(df_graph) > 0:
+            display_html(df_graph.to_html(), raw=True)
+        else:
+            return False
+
+    return CheckResult(df_graph, header='Mixed Types', check=mixed_types, display=display)
 
 
 def get_data_mix(column_data: pd.Series) -> dict :

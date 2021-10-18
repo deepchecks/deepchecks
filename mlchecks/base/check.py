@@ -1,5 +1,6 @@
 """Module containing all the base classes for checks."""
 import abc
+import re
 from typing import Dict, Any, Callable
 
 __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainValidationBaseCheck',
@@ -53,8 +54,9 @@ class CheckResult:
             display_html(f'<h4>{self.header}</h4>', raw=True)
         if self.check:
             docs = self.check.__doc__
-            summary = docs[:docs.find('\n')]
-            display_html(f'<p>{summary}</p>')
+            # Take first non-whitespace line.
+            summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
+            display_html(f'<p>{summary}</p>', raw=True)
 
         res = self.display()
         plt.show()
