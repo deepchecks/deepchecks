@@ -8,6 +8,8 @@ __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDataset
 from IPython.core.display import display_html
 from matplotlib import pyplot as plt
 
+from mlchecks.utils import MLChecksValueError
+
 
 class CheckResult:
     """Class which returns from a check with result that can later be used for automatic pipelines and display value.
@@ -37,10 +39,14 @@ class CheckResult:
             displayed in notebook.
             display (Callable): Function which is used for custom display.
         """
+        if check and not isinstance(check, Callable):
+            raise MLChecksValueError('`check` parameter of CheckResult must be callable')
+        if display and not isinstance(display, Callable):
+            raise MLChecksValueError('`display` parameter of CheckResult must be callable')
         self.value = value
-        self.display = display or (lambda: False)
         self.header = header
         self.check = check
+        self.display = display or (lambda: False)
 
     def _ipython_display_(self):
         if self.header:
