@@ -28,7 +28,7 @@ def is_single_value(dataset: pd.DataFrame, ignore_columns: Union[str, List[str]]
     if is_single_unique_value.any():
         value = True
         # get names of columns with one unique value
-        cols_with_single = is_single_unique_value[is_single_unique_value].index.to_list() # pylint: disable=unsubscriptable-object
+        cols_with_single = is_single_unique_value[is_single_unique_value].index.to_list()
         uniques = dataset.loc[:, cols_with_single].head(1)
         uniques.index = ['Single unique value']
         display_text = f'The following columns have only one unique value<br>{uniques.to_html(index=True)}'

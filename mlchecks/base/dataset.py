@@ -246,22 +246,7 @@ class Dataset(pd.DataFrame):
         """
         if columns:
             self.validate_columns_exist(columns)
-            return Dataset(self.drop(labels=columns, axis='columns'))
-        else:
-            return self
-
-    def keep_only_columns_with_validation(self, columns: Union[str, List[str]]):
-        """Keep only given columns in the dataframe. Make sure they are all exists.
-
-        Args:
-            columns (Union[str, List[str]]): Column names to keep.
-
-        Raise:
-            MLChecksValueError: In case one of columns given don't exists raise error
-        """
-        if columns:
-            self.validate_columns_exist(columns)
-            return Dataset(self[columns])
+            return self.drop(labels=columns, axis='columns')
         else:
             return self
 
