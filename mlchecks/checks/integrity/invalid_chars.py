@@ -80,7 +80,7 @@ class InvalidCharacters(SingleDatasetBaseCheck):
     """Search in column[s] for values that contains only special characters."""
 
     def run(self, dataset, model=None) -> CheckResult:
-        """Run invalid_chars check.
+        """Run invalid_characters check.
 
         Args:
           dataset(Dataset):
