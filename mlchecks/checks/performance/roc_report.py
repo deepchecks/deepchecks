@@ -32,7 +32,7 @@ def roc_report(ds: Dataset, model):
     label = ds.label_name()
     ds_x = ds[ds.features()]
     ds_y = ds[label]
-    multi_y = (np.array(ds_y)[:,None] == np.unique(ds_y)).astype(int)
+    multi_y = (np.array(ds_y)[:, None] == np.unique(ds_y)).astype(int)
     n_classes = ds_y.nunique()
     y_pred_prob = model.predict_proba(ds_x)
 
