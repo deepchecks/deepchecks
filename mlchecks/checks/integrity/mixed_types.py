@@ -28,7 +28,7 @@ def mixed_types(dataset: DataFrame, columns: Iterable[str]=None, ignore_columns:
     """
     # Validate parameters
     dataset: Dataset = validate_dataset_or_dataframe(dataset)
-    common = set(columns).intersection(set(ignore_columns))
+    common = set(columns or []).intersection(set(ignore_columns or []))
     if common:
         raise MLChecksValueError(f'Same column can not appear in "columns" and "ignore_columns": {", ".join(common)}')
     dataset = dataset.drop_columns_with_validation(ignore_columns)

@@ -15,7 +15,7 @@ from mlchecks.utils import validate_column_list, MLChecksValueError
 __all__ = ['invalid_chars', 'InvalidChars']
 
 
-def invalid_chars(dataset: DataFrame, columns: Iterable[str]=None, ignore_columns: Iterable[str]=None ) -> CheckResult:
+def invalid_chars(dataset: DataFrame, columns: Iterable[str] = None, ignore_columns: Iterable[str] = None) -> CheckResult:
     """Search for invalid chars in column[s].
 
     Args:
@@ -28,7 +28,7 @@ def invalid_chars(dataset: DataFrame, columns: Iterable[str]=None, ignore_column
     """
     # Validate parameters
     dataset: Dataset = validate_dataset_or_dataframe(dataset)
-    common = set(columns).intersection(set(ignore_columns))
+    common = set(columns or []).intersection(set(ignore_columns or []))
     if common:
         raise MLChecksValueError(f'Same column can not appear in "columns" and "ignore_columns": {", ".join(common)}')
     dataset = dataset.drop_columns_with_validation(ignore_columns)
