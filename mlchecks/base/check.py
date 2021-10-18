@@ -38,7 +38,7 @@ class CheckResult:
             display (Callable): Function which is used for custom display.
         """
         self.value = value
-        self.display = display
+        self.display = display or (lambda: False)
         self.header = header
         self.check = check
 
@@ -49,10 +49,10 @@ class CheckResult:
             docs = self.check.__doc__
             summary = docs[:docs.find('\n')]
             display_html(f'<p>{summary}</p>')
-        if self.display:
-            self.display()
-            plt.show()
-        else:
+
+        res = self.display()
+        plt.show()
+        if res is False:
             display_html('<p><b>&#x2713;</b> Nothing found</p>', raw=True)
 
     def __repr__(self):
