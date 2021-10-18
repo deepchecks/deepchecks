@@ -17,15 +17,15 @@ __all__ = ['invalid_chars', 'InvalidChars']
 
 def invalid_chars(dataset: DataFrame, columns: Iterable[str] = None, ignore_columns: Iterable[str] = None) \
     -> CheckResult:
-    """Search for invalid chars in column[s].
+    """Search in column[s] for values that contains only special characters.
 
     Args:
-        dataset (Dataset):
+        dataset (Dataset): a Dataset or DataFrame object.
         columns (List[str]): List of columns to check, if none given checks all columns Except ignored ones.
         ignore_columns (List[str]): List of columns to ignore, if none given checks based on columns variable
 
     Returns:
-        (CheckResult): DataFrame with columns('Column Name', 'Precentage') for any column that contains invalid chars.
+        (CheckResult): DataFrame with columns('Column Name', 'Percentage') for any column that contains invalid chars.
     """
     # Validate parameters
     dataset: Dataset = validate_dataset_or_dataframe(dataset)
@@ -66,10 +66,10 @@ def is_stringed_type(col):
 def check_invalid_chars(column_data: pd.Series) -> str:
     total_rows = column_data.count()
 
-    def is_invalid_char(x):
-        return string_baseform(x) != x
+    def is_all_invalid_char(x):
+        return isinstance(x, str) and len(x) > 0 and len(string_baseform(x)) == 0
 
-    invalids = sum(column_data.apply(is_invalid_char))
+    invalids = sum(column_data.apply(is_all_invalid_char))
     if invalids == 0:
         return None
 
@@ -80,10 +80,10 @@ def check_invalid_chars(column_data: pd.Series) -> str:
 
 
 class InvalidChars(SingleDatasetBaseCheck):
-    """Search for invalid chars in (a) coulmn[s]."""
+    """Search in column[s] for values that contains only special characters."""
 
     def run(self, dataset, model=None) -> CheckResult:
-        """Run invalid_chars.
+        """Run invalid_chars check.
 
         Args:
           dataset(Dataset):
