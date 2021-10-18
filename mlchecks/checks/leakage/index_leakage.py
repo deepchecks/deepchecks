@@ -1,7 +1,7 @@
 """The index_leakage check module."""
 import pandas as pd
 
-from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck, TrainValidationBaseCheck
+from mlchecks import CheckResult, Dataset, TrainValidationBaseCheck
 from mlchecks.base.dataset import validate_dataset
 from mlchecks.display import format_check_display
 

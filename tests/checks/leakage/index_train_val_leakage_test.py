@@ -3,9 +3,9 @@ Contains unit tests for the single_feature_contribution check
 """
 import pandas as pd
 
-from mlchecks import Dataset
-from hamcrest import *
+from hamcrest import assert_that, close_to, calling, raises
 
+from mlchecks import Dataset
 from mlchecks.checks.leakage.index_leakage import index_train_validation_leakage, IndexTrainValidationLeakage
 from mlchecks.utils import MLChecksValueError
 
@@ -40,7 +40,7 @@ def test_no_indexes_from_val_in_train():
 
 
 def test_dataset_wrong_input():
-    x = "wrong_input"
+    x = 'wrong_input'
     assert_that(
         calling(index_train_validation_leakage).with_args(x, x),
         raises(MLChecksValueError, 'function index_train_validation_leakage requires dataset to be of type Dataset. '
