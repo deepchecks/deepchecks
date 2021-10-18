@@ -1,9 +1,12 @@
 """Module containing all the base classes for checks."""
 import abc
-from typing import Dict, Any
+from typing import Dict, Any, Callable
 
 __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainValidationBaseCheck',
            'ModelOnlyBaseCheck']
+
+from IPython.core.display import display_html
+from matplotlib import pyplot as plt
 
 
 class CheckResult:
@@ -20,30 +23,36 @@ class CheckResult:
     """
 
     value: Any
-    display: Dict
+    header: str
+    check: Callable
+    display: Callable
 
-    def __init__(self, value, display=None):
+    def __init__(self, value, header: str = None, check: Callable = None, display: Callable = None):
         """Init check result.
 
         Args:
             value (Any): Value calculated by check. Can be used to decide if decidable check passed.
-            display (Dict): Dictionary with formatters for display. possible formatters are: 'text/html', 'image/png'
         """
         self.value = value
         self.display = display
+        self.header = header
+        self.check = check
 
-    def _repr_mimebundle_(self, include, exclude):
-        if not self.display:
-            return None
-        data = self.display
-        if include:
-            data = {k: v for (k, v) in data.items() if k in include}
-        if exclude:
-            data = {k: v for (k, v) in data.items() if k not in exclude}
-        return data
+    def _ipython_display_(self):
+        if self.header:
+            display_html(f'<h4>{self.header}</h4>', raw=True)
+        if self.check:
+            docs = self.check.__doc__
+            summary = docs[:docs.find('\n')]
+            display_html(f'<p>{summary}</p>')
+        if self.display:
+            self.display()
+            plt.show()
+        else:
+            display_html('<p><b>&#x2713;</b> Nothing found</p>', raw=True)
 
     def __repr__(self):
-        """If _repr_mimebundle_ is empty ipython will display this instead."""
+        """Default __repr__"""
         return self.value.__repr__()
 
 

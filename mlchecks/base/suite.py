@@ -1,6 +1,8 @@
 """Module containing the Suite object, used for running a set of checks together."""
 from typing import List
 
+from IPython.core.display import display_html
+
 from mlchecks.base.check import BaseCheck, CheckResult, TrainValidationBaseCheck, CompareDatasetsBaseCheck, \
     SingleDatasetBaseCheck, ModelOnlyBaseCheck
 
@@ -57,9 +59,9 @@ class CheckSuite(BaseCheck):
             elif isinstance(check, CompareDatasetsBaseCheck):
                 results.append(check.run(dataset=train_dataset, compared_dataset=validation_dataset, model=model))
             elif isinstance(check, SingleDatasetBaseCheck):
-                if check_datasets_policy in ['both', 'train']:
+                if check_datasets_policy in ['both', 'train'] and train_dataset is not None:
                     results.append(check.run(dataset=train_dataset))
-                if check_datasets_policy in ['both', 'validation']:
+                if check_datasets_policy in ['both', 'validation'] and validation_dataset is not None:
                     results.append(check.run(dataset=validation_dataset))
             elif isinstance(check, ModelOnlyBaseCheck):
                 results.append(check.run(model=model))
@@ -73,5 +75,9 @@ class CheckSuite(BaseCheck):
                                 f'TrainValidationBaseCheck or ModelOnlyBaseCheck. Got  {check.__class__.__name__} '
                                 f'instead')
 
-        text = f'<h2>{self.name}</h2>' + '<br>'.join([c.display['text/html'] for c in results])
-        return CheckResult(results, display={'text/html': text})
+        def display():
+            display_html(f'<h3>{self.name}</h3>', raw=True)
+            for result in results:
+                result._ipython_display_()
+
+        return CheckResult(results, display=display)
