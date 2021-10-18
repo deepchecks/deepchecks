@@ -18,6 +18,7 @@ def test_feature_importance_not_binary(iris_random_forest, iris_dataset_labeled)
     result = feature_importance(iris_dataset_labeled, iris_random_forest, plot_type='beeswarm')
     # Act & Assert
     assert_that(
+        # pylint: disable=protected-access
         calling(result._ipython_display_).with_args(),
         raises(MLChecksValueError, 'Only plot_type = \'bar\' is supported for multi-class models</p>'))
 
@@ -52,6 +53,7 @@ def test_feature_importance_bad_plot(iris_random_forest, iris_dataset_labeled):
     result = feature_importance(iris_dataset_labeled, iris_random_forest, plot_type='bad_plot')
     # Act & Assert
     assert_that(
+        # pylint: disable=protected-access
         calling(result._ipython_display_).with_args(),
         raises(MLChecksValueError, 'plot_type=\'bad_plot\' currently not supported. Use \'beeswarm\' or \'bar\''))
 
