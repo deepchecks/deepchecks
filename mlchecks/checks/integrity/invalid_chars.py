@@ -10,7 +10,7 @@ from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset_or_dataframe
 from mlchecks.checks.integrity.string_utils import string_baseform
 from mlchecks.display import format_check_display
-from mlchecks.utils import validate_column_list, MLChecksValueError
+from mlchecks.utils import MLChecksValueError
 
 __all__ = ['invalid_chars', 'InvalidChars']
 
