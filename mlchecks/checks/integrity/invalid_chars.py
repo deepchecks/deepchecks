@@ -4,17 +4,16 @@ import pandas as pd
 from pandas import DataFrame
 from pandas.api.types import infer_dtype
 
-
 from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset_or_dataframe
 from mlchecks.checks.integrity.string_utils import string_baseform
 from mlchecks.utils import MLChecksValueError
 
-__all__ = ['invalid_chars', 'InvalidChars']
+__all__ = ['invalid_characters', 'InvalidCharacters']
 
 
-def invalid_chars(dataset: DataFrame, columns: Iterable[str] = None, ignore_columns: Iterable[str] = None) \
+def invalid_characters(dataset: DataFrame, columns: Iterable[str] = None, ignore_columns: Iterable[str] = None) \
     -> CheckResult:
     """Search in column[s] for values that contains only special characters.
 
@@ -48,7 +47,7 @@ def invalid_chars(dataset: DataFrame, columns: Iterable[str] = None, ignore_colu
     df_graph = pd.DataFrame(display_array, columns=['Column Name', '% Invalid Samples'])
     display = df_graph if len(df_graph) > 0 else None
 
-    return CheckResult(df_graph, header='Invalid Characters', check=invalid_chars, display=display)
+    return CheckResult(df_graph, header='Invalid Characters', check=invalid_characters, display=display)
 
 
 def get_invalid_chars(column_data: pd.Series) -> str :
@@ -77,7 +76,7 @@ def check_invalid_chars(column_data: pd.Series) -> str:
     return invalids_pct
 
 
-class InvalidChars(SingleDatasetBaseCheck):
+class InvalidCharacters(SingleDatasetBaseCheck):
     """Search in column[s] for values that contains only special characters."""
 
     def run(self, dataset, model=None) -> CheckResult:
@@ -89,6 +88,6 @@ class InvalidChars(SingleDatasetBaseCheck):
         Returns:
           (CheckResult): DataFrame with ('invalids') for any column with invalid chars.
         """
-        return invalid_chars(dataset,
-                            columns=self.params.get('columns'),
-                            ignore_columns=self.params.get('ignore_columns'))
+        return invalid_characters(dataset,
+                                  columns=self.params.get('columns'),
+                                  ignore_columns=self.params.get('ignore_columns'))
