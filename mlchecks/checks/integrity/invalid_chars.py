@@ -48,7 +48,7 @@ def invalid_chars(dataset: DataFrame, columns: Iterable[str] = None, ignore_colu
     df_graph = pd.DataFrame(display_array, columns=['Column Name', '% Invalid Samples'])
     display = df_graph if len(df_graph) > 0 else None
 
-    return CheckResult(df_graph, header='Invalid Chars', check=invalid_chars, display=display)
+    return CheckResult(df_graph, header='Invalid Characters', check=invalid_chars, display=display)
 
 
 def get_invalid_chars(column_data: pd.Series) -> str :
