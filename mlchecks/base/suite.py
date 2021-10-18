@@ -78,6 +78,8 @@ class CheckSuite(BaseCheck):
         def display():
             display_html(f'<h3>{self.name}</h3>', raw=True)
             for result in results:
+                # Disable protected access warning
+                #pylint: disable=protected-access
                 result._ipython_display_()
 
         return CheckResult(results, display=display)

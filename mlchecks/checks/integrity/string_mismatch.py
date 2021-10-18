@@ -4,7 +4,6 @@ from typing import Union, List, Set, Dict
 
 from IPython.display import display_html
 from pandas import DataFrame, StringDtype, Series
-import matplotlib.pyplot as plt
 
 from mlchecks import validate_dataset_or_dataframe, CheckResult, SingleDatasetBaseCheck
 from mlchecks.checks.integrity.string_utils import string_baseform
