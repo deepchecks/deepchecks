@@ -60,7 +60,7 @@ def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None,
     # Validate parameters
     dataset: Dataset = validate_dataset_or_dataframe(dataset)
     null_string_list: set = validate_null_string_list(null_string_list, check_nan)
-    dataset = dataset.drop_columns_with_validation(ignore_columns)
+    dataset = dataset.filter_columns_with_validation(ignore_columns=ignore_columns)
 
     # Result value
     display_array = []

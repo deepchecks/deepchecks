@@ -10,6 +10,7 @@ from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset_or_dataframe
 
+
 __all__ = ['mixed_types', 'MixedTypes']
 
 
@@ -32,10 +33,7 @@ def mixed_types(dataset: DataFrame, columns: Iterable[str] = None, ignore_column
     display_dict = {}
 
     for column_name in dataset.columns:
-        try:
-            column_data = dataset[column_name]
-        except KeyError: #Column is not in data
-            continue
+        column_data = dataset[column_name]
         mix = get_data_mix(column_data)
         if mix:
             display_dict[column_name] = mix

@@ -32,10 +32,7 @@ def invalid_characters(dataset: DataFrame, columns: Iterable[str] = None, ignore
     display_array = []
 
     for column_name in dataset.columns:
-        try:
-            column_data = dataset[column_name]
-        except KeyError: #Column is not in data
-            continue
+        column_data = dataset[column_name]
         inv = get_invalid_chars(column_data)
         if inv is not None:
             display_array.append([column_name,inv])

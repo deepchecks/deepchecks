@@ -20,7 +20,7 @@ def is_single_value(dataset: pd.DataFrame, ignore_columns: Union[str, List[str]]
                      display is a series with columns that have only one unique
     """
     dataset = validate_dataset_or_dataframe(dataset)
-    dataset = dataset.drop_columns_with_validation(ignore_columns)
+    dataset = dataset.filter_columns_with_validation(ignore_columns=ignore_columns)
 
     is_single_unique_value = (dataset.nunique(dropna=False) == 1)
 
