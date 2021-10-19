@@ -72,6 +72,9 @@ class Dataset(pd.DataFrame):
             else:
                 self._cat_features = self.infer_categorical_features()
 
+            if self._date_name:
+                self[self._date_name] = self[self._date_name].apply(pd.Timestamp)
+
         self._profile = ProfileReport(self, title='Dataset Report', explorative=True, minimal=True)
 
     def n_samples(self):
