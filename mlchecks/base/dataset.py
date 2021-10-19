@@ -250,8 +250,8 @@ class Dataset(pd.DataFrame):
         else:
             return self
 
-    def filter_columns_with_validation(self, columns: Union[str, List[str], None],
-                                       ignore_columns: Union[str, List[str], None]) -> 'Dataset':
+    def filter_columns_with_validation(self, columns: Union[str, List[str], None] = None,
+                                       ignore_columns: Union[str, List[str], None] = None) -> 'Dataset':
         """Filter dataset columns by given params.
 
         Args:
