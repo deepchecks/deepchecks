@@ -3,7 +3,6 @@ import pandas as pd
 
 from mlchecks import CheckResult, Dataset, TrainValidationBaseCheck
 from mlchecks.base.dataset import validate_dataset
-from mlchecks.display import format_check_display
 
 __all__ = ['validation_dates_before_train_leakage',
            'ValidationDatesBeforeTrainLeakage',
@@ -47,10 +46,9 @@ def validation_dates_before_train_leakage(train_dataset: Dataset, validation_dat
         return_value = 0
 
     return CheckResult(value=return_value,
-                       display={'text/html':
-                                format_check_display('Date Train-Validation Leakage',
-                                                     validation_dates_before_train_leakage,
-                                                     display_str)})
+                       header='Date Train-Validation Leakage (overlap)',
+                       check=validation_dates_before_train_leakage,
+                       display=display_str)
 
 
 class ValidationDatesBeforeTrainLeakage(TrainValidationBaseCheck):
@@ -109,9 +107,9 @@ def date_train_validation_leakage(train_dataset: Dataset, validation_dataset: Da
         return_value = 0
 
     return CheckResult(value=return_value,
-                       display={'text/html':
-                                format_check_display('Index Train-Validation Leakage', date_train_validation_leakage,
-                                                     display_str)})
+                       header='Date Train-Validation Leakage (duplicates)',
+                       check=date_train_validation_leakage,
+                       display=display_str)
 
 
 class DateTrainValidationLeakage(TrainValidationBaseCheck):
