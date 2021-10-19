@@ -91,10 +91,10 @@ def date_train_validation_leakage(train_dataset: Dataset, validation_dataset: Da
     train_dataset.validate_date(date_train_validation_leakage.__name__)
     validation_dataset.validate_date(date_train_validation_leakage.__name__)
 
-    train_index = train_dataset.date_col()
-    val_index = validation_dataset.date_col()
+    train_date = train_dataset.date_col()
+    val_date = validation_dataset.date_col()
 
-    date_intersection = list(set(train_index).intersection(val_index))
+    date_intersection = list(set(train_date).intersection(val_date))
     if len(date_intersection) > 0:
         size_in_test = len(date_intersection) / validation_dataset.n_samples()
         text = f'{size_in_test:.1%} of validation data dates appear in training data'
@@ -125,7 +125,7 @@ class DateTrainValidationLeakage(TrainValidationBaseCheck):
             model: any = None - not used in the check
 
         Returns:
-            the output of the index_train_validation_leakage check
+            the output of the date_train_validation_leakage check
         """
         return date_train_validation_leakage(train_dataset, validation_dataset,
                                               n_dates_to_show=self.params.get('n_dates_to_show'))
