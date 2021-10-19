@@ -1,5 +1,5 @@
 """module contains Mixed Types check."""
-from typing import List, Iterable
+from typing import Iterable
 import pandas as pd
 from pandas import DataFrame
 from pandas.api.types import infer_dtype
@@ -9,39 +9,12 @@ import numpy as np
 from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset_or_dataframe
-from mlchecks.utils import MLChecksValueError
 
 
 __all__ = ['mixed_types', 'MixedTypes']
 
 
-def validate_column_list(cl) -> set:
-    """Validate the object given is a list of strings or None.
-
-    Args:
-        cl: the object to validate
-
-    Returns:
-        (set): Returns a list of columns names as set object or None
-    """
-    var_names = 'columns & ignore_columns '
-
-    result: set
-    if cl is not None:
-        if not isinstance(cl, Iterable):
-            raise MLChecksValueError(var_names + 'must be an iterable')
-        if len(cl) == 0:
-            raise MLChecksValueError(var_names + "can't be an emptry string")
-        if any((not isinstance(string, str) for string in cl)):
-            raise MLChecksValueError(var_names + "must contain only items of type 'str'")
-        result = set(cl)
-    else:
-        result = None
-
-    return result
-
-
-def mixed_types(dataset: DataFrame, columns: Iterable[str]=None, ignore_columns: Iterable[str]=None ) -> CheckResult:
+def mixed_types(dataset: DataFrame, columns: Iterable[str] = None, ignore_columns: Iterable[str] = None) -> CheckResult:
     """Search for mixed types of Data in a single column[s].
 
     Args:
@@ -54,20 +27,13 @@ def mixed_types(dataset: DataFrame, columns: Iterable[str]=None, ignore_columns:
     """
     # Validate parameters
     dataset: Dataset = validate_dataset_or_dataframe(dataset)
-    dataset = dataset.drop_columns_with_validation(ignore_columns)
-    if columns is None:
-        columns: List[str] = dataset.columns
-    else:
-        columns: set = validate_column_list(columns)
+    dataset = dataset.filter_columns_with_validation(columns, ignore_columns)
 
     # Result value: { Column Name: {string: pct, numbers: pct}}
     display_dict = {}
 
-    for column_name in columns:
-        try:
-            column_data = dataset[column_name]
-        except KeyError: #Column is not in data
-            continue
+    for column_name in dataset.columns:
+        column_data = dataset[column_name]
         mix = get_data_mix(column_data)
         if mix:
             display_dict[column_name] = mix
