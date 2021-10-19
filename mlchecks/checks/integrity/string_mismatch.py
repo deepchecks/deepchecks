@@ -18,7 +18,7 @@ def string_mismatch(dataset: DataFrame, ignore_columns: Union[str, List[str]] = 
     """
     # Validate parameters
     dataset = validate_dataset_or_dataframe(dataset)
-    dataset = dataset.drop_columns_with_validation(ignore_columns)
+    dataset = dataset.filter_columns_with_validation(ignore_columns=ignore_columns)
 
     results = []
 
