@@ -1,4 +1,5 @@
 """The Dataset module containing the dataset Class and its functions."""
+import inspect
 from typing import Union, List
 import pandas as pd
 from pandas_profiling import ProfileReport
@@ -27,6 +28,12 @@ class Dataset(pd.DataFrame):
         _date_name: Name of the date column in the DataFrame.
         _cat_features: List of names for the categorical features in the DataFrame.
     """
+    _features: List[str]
+    _cat_features: List[str]
+    _label: str
+    _use_index: bool
+    _index_name: str
+    _date_name: str
 
     def __init__(self,
                  df: pd.DataFrame, *args,
@@ -235,18 +242,31 @@ class Dataset(pd.DataFrame):
         if non_exists:
             raise MLChecksValueError(f'Given columns are not exists on dataset: {", ".join(non_exists)}')
 
-    def drop_columns_with_validation(self, columns: Union[str, List[str]]):
-        """If columns are given validate they are exists and drop them.
+    def filter_columns_with_validation(self, columns: Union[str, List[str], None],
+                                       ignore_columns: Union[str, List[str], None]) -> 'Dataset':
+        """Filter dataset columns by given params.
 
         Args:
-            columns (Union[str, List[str]]): Column names to check
-
+            columns (Union[str, List[str], None]): Column names to keep.
+            ignore_columns (Union[str, List[str], None]): Column names to drop.
         Raise:
             MLChecksValueError: In case one of columns given don't exists raise error
         """
-        if columns:
+        if columns and ignore_columns:
+            raise MLChecksValueError('Can\'t have columns and ignore_columns together')
+        elif columns:
             self.validate_columns_exist(columns)
-            return self.drop(labels=columns, axis='columns')
+            return Dataset(self[columns])
+        elif ignore_columns:
+            self.validate_columns_exist(ignore_columns)
+            new_ds = Dataset(self[columns])
+            self._copy_params_to(new_ds)
+            return new_ds
+        elif ignore_columns:
+            self.validate_columns_exist(ignore_columns)
+            new_ds = Dataset(self.drop(labels=ignore_columns, axis='columns'))
+            self._copy_params_to(new_ds)
+            return new_ds
         else:
             return self
 
@@ -291,6 +311,14 @@ class Dataset(pd.DataFrame):
             return self.label_name()
         else:
             raise MLChecksValueError(f'function {function_name} requires datasets to share the same label')
+
+    def _copy_params_to(self, other):
+        # Get only properties that were added on Dataset class
+        ds_properties = set(dir(self)) - set(dir(pd.DataFrame))
+        # Filter only properties that aren't methods
+        self_props = {p: self.__getattr__(p) for p in ds_properties if not inspect.ismethod(self.__getattr__(p))}
+        for name, val in self_props.items():
+            setattr(other, name, val)
 
 
 def validate_dataset_or_dataframe(obj) -> Dataset:
