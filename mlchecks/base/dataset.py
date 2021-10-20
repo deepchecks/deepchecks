@@ -31,6 +31,8 @@ class Dataset:
     _date_name: Union[str, None]
     _cat_features: List[str]
     _data: pd.DataFrame
+    _max_categorical_ratio: float
+    _max_categories: int
 
     def __init__(self, df: pd.DataFrame,
                  features: List[str] = None, cat_features: List[str] = None, label: str = None, use_index: bool = False,
@@ -50,6 +52,10 @@ class Dataset:
           date_unit_type: Unit used for conversion if date column is of type int or float.
                           The valid values are 'D', 'h', 'm', 's', 'ms', 'us', and 'ns'.
                           e.g. 's' for seconds, 'ns' for nanoseconds. See pandas.Timestamp unit arg for more detail.
+          max_categorical_ratio: The max ratio of unique values in a column in order for it to be inferred as a
+                                 categorical feature.
+          max_categories: The maximum number of categories in a column in order for it to be inferred as a categorical
+                          feature.
 
         """
         self._data = df.convert_dtypes()
@@ -98,7 +104,8 @@ class Dataset:
         date = self._date_name if self._date_name in new_data.columns else None
 
         return Dataset(new_data, features=features, cat_features=cat_features, label=label, use_index=self._use_index,
-                       index=index, date=date, _convert_date=False)
+                       index=index, date=date, _convert_date=False, max_categorical_ratio=self._max_categorical_ratio,
+                       max_categories=self._max_categories)
 
     def n_samples(self):
         """Return number of samples in dataframe.
