@@ -13,14 +13,14 @@ __all__ = ['special_characters', 'SpecialCharacters']
 
 
 def special_characters(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, Iterable[str]] = None,
-                       ignore_columns: Union[str, Iterable[str]] = None) -> CheckResult:
+                       ignore_columns: Union[str, Iterable[str]] = None, n_most_common: int = 2) -> CheckResult:
     """Search in column[s] for values that contains only special characters.
 
     Args:
         dataset (Dataset): a Dataset or DataFrame object.
         columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored ones.
         ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns variable
-
+        n_most_common (int): Number of most common special-only samples to show in results
     Returns:
         (CheckResult): DataFrame with columns ('Column Name', '% Invalid Samples', 'Most Common Invalids Samples')
          for any column that contains invalid chars.
@@ -38,9 +38,9 @@ def special_characters(dataset: Union[pd.DataFrame, Dataset], columns: Union[str
         special_samples = get_special_samples(column_data)
         if special_samples:
             percent = f'{sum(special_samples.values()) / column_data.size:.2%}'
-            top_two_samples_items = sorted(special_samples.items(), key=lambda x: x[1], reverse=True)[:2]
-            top_two_samples_values = [item[0] for item in top_two_samples_items]
-            display_array.append([column_name, percent, top_two_samples_values])
+            top_n_samples_items = sorted(special_samples.items(), key=lambda x: x[1], reverse=True)[:n_most_common]
+            top_n_samples_values = [item[0] for item in top_n_samples_items]
+            display_array.append([column_name, percent, top_n_samples_values])
 
     df_graph = pd.DataFrame(display_array,
                             columns=['Column Name', '% Special-Only Samples', 'Most Common Special-Only Samples'])
@@ -79,4 +79,5 @@ class SpecialCharacters(SingleDatasetBaseCheck):
         """
         return special_characters(dataset,
                                   columns=self.params.get('columns'),
-                                  ignore_columns=self.params.get('ignore_columns'))
+                                  ignore_columns=self.params.get('ignore_columns'),
+                                  n_most_common=self.params.get('n_most_common'))
