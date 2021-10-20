@@ -30,8 +30,8 @@ def roc_report(dataset: Dataset, model):
     dataset.validate_label(self.__name__)
 
     label = dataset.label_name()
-    ds_x = dataset[dataset.features()]
-    ds_y = dataset[label]
+    ds_x = dataset.data[dataset.features()]
+    ds_y = dataset.data[label]
     multi_y = (np.array(ds_y)[:, None] == np.unique(ds_y)).astype(int)
     n_classes = ds_y.nunique()
     y_pred_prob = model.predict_proba(ds_x)
@@ -62,14 +62,14 @@ def roc_report(dataset: Dataset, model):
 
 
 class RocReport(SingleDatasetBaseCheck):
-    """Summarize given model parameters."""
+    """Return the AUC for each class."""
 
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run roc_report check.
 
         Args:
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
-            ds: a Dataset object
+            dataset: a Dataset object
         Returns:
             CheckResult: value is dictionary of class and it's auc score, displays the roc graph with each class
         """

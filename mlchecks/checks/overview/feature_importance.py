@@ -31,22 +31,22 @@ def feature_importance(dataset: Dataset, model: BaseEstimator, plot_type: str = 
         display = '<p style="color:red;">Model type not currently supported for SHAP calculation</p>'
         return CheckResult(None, header='Feature Importance', check=feature_importance, display=display)
 
-    shap_values = explainer.shap_values(dataset[dataset.features()])
+    shap_values = explainer.shap_values(dataset.data[dataset.features()])
 
     def plot():
         if plot_type == 'bar':
-            shap.summary_plot(shap_values, dataset[dataset.features()], dataset.features(), plot_type=plot_type,
+            shap.summary_plot(shap_values, dataset.data[dataset.features()], dataset.features(), plot_type=plot_type,
                               show=False)
         elif plot_type == 'beeswarm' or plot_type is None:
             if isinstance(shap_values, list):
                 if len(shap_values) == 2:
-                    shap.summary_plot(shap_values[1], dataset[dataset.features()], dataset.features(), show=False)
+                    shap.summary_plot(shap_values[1], dataset.data[dataset.features()], dataset.features(), show=False)
                 elif plot_type is None:
-                    shap.summary_plot(shap_values, dataset[dataset.features()], dataset.features(), show=False)
+                    shap.summary_plot(shap_values, dataset.data[dataset.features()], dataset.features(), show=False)
                 else:
                     raise MLChecksValueError('Only plot_type = \'bar\' is supported for multi-class models</p>')
             else:
-                shap.summary_plot(shap_values, dataset[dataset.features()], dataset.features(), show=False)
+                shap.summary_plot(shap_values, dataset.data[dataset.features()], dataset.features(), show=False)
         else:
             raise MLChecksValueError(f'plot_type=\'{plot_type}\' currently not supported. Use \'beeswarm\' or \'bar\'')
 

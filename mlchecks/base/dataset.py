@@ -78,10 +78,6 @@ class Dataset:
         """Return the data of dataset."""
         return self._data
 
-    def __getitem__(self, arg):
-        """Access dataset with square brackets and pass it to the underlying dataframe."""
-        return self._data[arg]
-
     def copy(self, new_data):
         """Create a copy of this Dataset with new data."""
         # Filter out if columns were dropped

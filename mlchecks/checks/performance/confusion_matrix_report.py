@@ -26,8 +26,8 @@ def confusion_matrix_report(dataset: Dataset, model):
     dataset.validate_label(self.__name__)
 
     label = dataset.label_name()
-    ds_x = dataset[dataset.features()]
-    ds_y = dataset[label]
+    ds_x = dataset.data[dataset.features()]
+    ds_y = dataset.data[label]
     y_pred = model.predict(ds_x)
 
     confusion_matrix = sklearn.metrics.confusion_matrix(ds_y, y_pred)
@@ -39,14 +39,14 @@ def confusion_matrix_report(dataset: Dataset, model):
 
 
 class ConfusionMatrixReport(SingleDatasetBaseCheck):
-    """Summarize given model parameters."""
+    """Return the confusion_matrix."""
 
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run confusion_matrix_report check.
 
         Args:
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
-            ds: a Dataset object
+            dataset: a Dataset object
         Returns:
             CheckResult: value is numpy array of the confusion matrix, displays the confusion matrix
         """

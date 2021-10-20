@@ -1,7 +1,5 @@
 """The single_feature_contribution check module."""
-from typing import Union
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.cm import ScalarMappable
 import ppscore as pps
@@ -12,7 +10,7 @@ __all__ = ['single_feature_contribution', 'single_feature_contribution_train_val
            'SingleFeatureContribution', 'SingleFeatureContributionTrainValidation']
 
 
-def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_params=None):
+def single_feature_contribution(dataset: Dataset, ppscore_params=None):
     """
     Return the PPS (Predictive Power Score) of all features in relation to the label.
 
@@ -35,12 +33,12 @@ def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_p
 
     """
     self = single_feature_contribution
-    dataset = Dataset.validate_dataset(dataset, self.__name__)
+    Dataset.validate_dataset(dataset, self.__name__)
     dataset.validate_label(self.__name__)
     ppscore_params = ppscore_params or {}
 
     relevant_columns = dataset.features() + [dataset.label_name()]
-    df_pps = pps.predictors(df=dataset[relevant_columns], y=dataset.label_name(), random_seed=42, **ppscore_params)
+    df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name(), random_seed=42, **ppscore_params)
     df_pps = df_pps.set_index('x', drop=True)
     s_ppscore = df_pps['ppscore']
 
@@ -94,9 +92,9 @@ def single_feature_contribution_train_validation(train_dataset: Dataset, validat
     ppscore_params = ppscore_params or {}
 
     relevant_columns = features_names + [label_name]
-    df_pps_train = pps.predictors(df=train_dataset[relevant_columns], y=train_dataset.label_name(), random_seed=42,
+    df_pps_train = pps.predictors(df=train_dataset.data[relevant_columns], y=train_dataset.label_name(), random_seed=42,
                                   **ppscore_params)
-    df_pps_validation = pps.predictors(df=validation_dataset[relevant_columns], y=validation_dataset.label_name(),
+    df_pps_validation = pps.predictors(df=validation_dataset.data[relevant_columns], y=validation_dataset.label_name(),
                                        random_seed=42, **ppscore_params)
     s_pps_train = df_pps_train.set_index('x', drop=True)['ppscore']
     s_pps_validation = df_pps_validation.set_index('x', drop=True)['ppscore']

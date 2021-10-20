@@ -30,8 +30,8 @@ def classification_report(dataset: Dataset, model):
     dataset.validate_label(self.__name__)
 
     label = dataset.label_name()
-    ds_x = dataset[dataset.features()]
-    ds_y = dataset[label]
+    ds_x = dataset.data[dataset.features()]
+    ds_y = dataset.data[label]
     y_pred = model.predict(ds_x)
 
     macro_performance = pd.DataFrame(sklearn.metrics.precision_recall_fscore_support(ds_y, y_pred))
@@ -41,14 +41,14 @@ def classification_report(dataset: Dataset, model):
 
 
 class ClassificationReport(SingleDatasetBaseCheck):
-    """Summarize given model parameters."""
+    """Return the sklearn classification_report in dict format."""
 
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run classification_report check.
 
         Args:
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
-            ds: a Dataset object
+            dataset: a Dataset object
         Returns:
             CheckResult:
                 value is dictionary in format
