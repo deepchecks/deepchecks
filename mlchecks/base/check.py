@@ -69,9 +69,9 @@ class CheckResult:
         for item in self.display:
             if isinstance(item, pd.DataFrame):
                 # Align everything to the left
-                dfStyler = item.style.set_properties(**{'text-align': 'left'})
-                dfStyler.set_table_styles([dict(selector='th', props=[('text-align', 'left')])])
-                display_html(dfStyler.render(), raw=True)
+                df_styler = item.style.set_properties(**{'text-align': 'left'})
+                df_styler.set_table_styles([dict(selector='th', props=[('text-align', 'left')])])
+                display_html(df_styler.render(), raw=True)
             elif isinstance(item, str):
                 display_html(item, raw=True)
             elif isinstance(item, Callable):

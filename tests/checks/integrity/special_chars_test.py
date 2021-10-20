@@ -1,7 +1,7 @@
 """Tests for Invalid Chars check"""
 import pandas as pd
 
-from hamcrest import assert_that, has_length, calling, raises
+from hamcrest import assert_that, has_length, calling, raises, has_items
 from mlchecks.checks.integrity.special_chars import special_characters
 from mlchecks.utils import MLChecksValueError
 
@@ -24,6 +24,7 @@ def test_single_column_invalid():
     result = special_characters(dataframe)
     # Assert
     assert_that(result.value, has_length(1))
+    assert_that(result.value.iloc[0]['Most Common Special-Only Samples'], has_items('#@$%'))
 
 
 def test_single_column_multi_invalid():
@@ -38,12 +39,13 @@ def test_single_column_multi_invalid():
 
 def test_double_column_one_invalid():
     # Arrange
-    data = {'col1': ['1', 'BAR', '!!!', 'hey-oh'], 'col2': ['', 6, 66, 666.66]}
+    data = {'col1': ['^', '?!', '!!!', '?!', '!!!', '?!'], 'col2': ['', 6, 66, 666.66, 7, 5]}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = special_characters(dataframe)
     # Assert
     assert_that(result.value, has_length(1))
+    assert_that(result.value.iloc[0]['Most Common Special-Only Samples'], has_items('!!!', '?!'))
 
 
 def test_double_column_ignored_invalid():
@@ -64,6 +66,7 @@ def test_double_column_specific_invalid():
     result = special_characters(dataframe, columns=['col1'])
     # Assert
     assert_that(result.value, has_length(1))
+    assert_that(result.value.iloc[0]['Most Common Special-Only Samples'], has_items('^?!'))
 
 
 def test_double_column_specific_and_ignored_invalid():
@@ -83,3 +86,5 @@ def test_double_column_double_invalid():
     result = special_characters(dataframe)
     # Assert
     assert_that(result.value, has_length(2))
+    assert_that(result.value.loc['col1']['Most Common Special-Only Samples'], has_items('{}'))
+    assert_that(result.value.loc['col2']['Most Common Special-Only Samples'], has_items('&!'))
