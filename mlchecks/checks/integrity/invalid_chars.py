@@ -1,32 +1,31 @@
 """module contains Invalid Chars check."""
-from typing import Iterable
+from typing import Iterable, Union
 import pandas as pd
-from pandas import DataFrame
 from pandas.api.types import infer_dtype
 
-from mlchecks import Dataset
+from mlchecks import Dataset, validate_dataframe_type
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
-from mlchecks.base.dataset import validate_dataset_or_dataframe
+from mlchecks.base.dataframe_utils import filter_columns_with_validation
 from mlchecks.checks.integrity.string_utils import string_baseform
 
 __all__ = ['invalid_characters', 'InvalidCharacters']
 
 
-def invalid_characters(dataset: DataFrame, columns: Iterable[str] = None, ignore_columns: Iterable[str] = None) \
-    -> CheckResult:
+def invalid_characters(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, Iterable[str]] = None,
+                       ignore_columns: Union[str, Iterable[str]] = None) -> CheckResult:
     """Search in column[s] for values that contains only special characters.
 
     Args:
         dataset (Dataset): a Dataset or DataFrame object.
-        columns (List[str]): List of columns to check, if none given checks all columns Except ignored ones.
-        ignore_columns (List[str]): List of columns to ignore, if none given checks based on columns variable
+        columns (Union[str, Iterable[str]]): Columns to check, if none given checks all columns Except ignored ones.
+        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns variable
 
     Returns:
         (CheckResult): DataFrame with columns('Column Name', 'Percentage') for any column that contains invalid chars.
     """
     # Validate parameters
-    dataset: Dataset = validate_dataset_or_dataframe(dataset)
-    dataset = dataset.filter_columns_with_validation(columns, ignore_columns)
+    dataset: pd.DataFrame = validate_dataframe_type(dataset)
+    dataset = filter_columns_with_validation(dataset, columns, ignore_columns)
 
     # Result value: { Column Name: {invalid: pct}}
     display_array = []
@@ -43,7 +42,7 @@ def invalid_characters(dataset: DataFrame, columns: Iterable[str] = None, ignore
     return CheckResult(df_graph, header='Invalid Characters', check=invalid_characters, display=display)
 
 
-def get_invalid_chars(column_data: pd.Series) -> str :
+def get_invalid_chars(column_data: pd.Series) -> str:
     if is_stringed_type(column_data):
         return check_invalid_chars(column_data)
     return None

@@ -1,26 +1,31 @@
 """Module contains is_single_value check."""
-from typing import Union, List
+from typing import Union, Iterable
 import pandas as pd
-from mlchecks import SingleDatasetBaseCheck, CheckResult, validate_dataset_or_dataframe
+from mlchecks import SingleDatasetBaseCheck, CheckResult, validate_dataframe_type, Dataset
 
 __all__ = ['is_single_value', 'IsSingleValue']
 
+from mlchecks.base.dataframe_utils import filter_columns_with_validation
 
-def is_single_value(dataset: pd.DataFrame, ignore_columns: Union[str, List[str]] = None):
+
+def is_single_value(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, Iterable[str]] = None,
+                       ignore_columns: Union[str, Iterable[str]] = None) -> CheckResult:
     """Check if there are columns which have only a single unique value in all rows.
 
     If found, returns column names and the single value in each of them.
 
     Args:
         dataset (pd.DataFrame): A Dataset object or a pd.DataFrame
-        ignore_columns: single column or list of columns to exclude when checking for single values
+        columns (Union[str, Iterable[str]]): Columns to check, if none given checks all columns Except ignored ones.
+        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns variable
 
     Returns:
         CheckResult: value is a boolean if there was at least one column with only one unique,
                      display is a series with columns that have only one unique
     """
-    dataset = validate_dataset_or_dataframe(dataset)
-    dataset = dataset.filter_columns_with_validation(ignore_columns=ignore_columns)
+    # Validate parameters
+    dataset: pd.DataFrame = validate_dataframe_type(dataset)
+    dataset = filter_columns_with_validation(dataset, columns, ignore_columns)
 
     is_single_unique_value = (dataset.nunique(dropna=False) == 1)
 
@@ -54,4 +59,6 @@ class IsSingleValue(SingleDatasetBaseCheck):
             CheckResult: value is a boolean if there was at least one column with only one unique,
             display is a series with columns that have only one unique
         """
-        return is_single_value(dataset, ignore_columns=self.params.get('ignore_columns'))
+        return is_single_value(dataset,
+                               columns=self.params.get('columns'),
+                               ignore_columns=self.params.get('ignore_columns'))

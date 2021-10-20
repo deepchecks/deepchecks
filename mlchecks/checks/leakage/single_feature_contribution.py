@@ -7,7 +7,6 @@ from matplotlib.cm import ScalarMappable
 import ppscore as pps
 
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck, TrainValidationBaseCheck
-from mlchecks.base.dataset import validate_dataset
 
 __all__ = ['single_feature_contribution', 'single_feature_contribution_train_validation',
            'SingleFeatureContribution', 'SingleFeatureContributionTrainValidation']
@@ -35,8 +34,9 @@ def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_p
         MLChecksValueError: If the object is not a Dataset instance with a label
 
     """
-    dataset = validate_dataset(dataset, 'single_feature_contribution')
-    dataset.validate_label('single_feature_contribution')
+    self = single_feature_contribution
+    dataset = Dataset.validate_dataset(dataset, self.__name__)
+    dataset.validate_label(self.__name__)
     ppscore_params = ppscore_params or {}
 
     relevant_columns = dataset.features() + [dataset.label_name()]
@@ -53,7 +53,8 @@ def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_p
             'data',
             'leakage - meaning that the feature holds information that is based on the label to begin with.']
 
-    return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text])
+    return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text], check=self,
+                       header='Single Feature Contribution')
 
 
 def single_feature_contribution_train_validation(train_dataset: Dataset, validation_dataset: Dataset,
@@ -84,13 +85,13 @@ def single_feature_contribution_train_validation(train_dataset: Dataset, validat
         MLChecksValueError: If the object is not a Dataset instance with a label
 
     """
-    func_name = 'single_feature_contribution_train_validation'
-    train_dataset = validate_dataset(train_dataset, func_name)
-    train_dataset.validate_label(func_name)
-    validation_dataset = validate_dataset(validation_dataset, func_name)
-    validation_dataset.validate_label(func_name)
-    features_names = train_dataset.validate_shared_features(validation_dataset, func_name)
-    label_name = train_dataset.validate_shared_label(validation_dataset, func_name)
+    self = single_feature_contribution_train_validation
+    train_dataset = Dataset.validate_dataset(train_dataset, self.__name__)
+    train_dataset.validate_label(self.__name__)
+    validation_dataset = Dataset.validate_dataset(validation_dataset, self.__name__)
+    validation_dataset.validate_label(self.__name__)
+    features_names = train_dataset.validate_shared_features(validation_dataset, self.__name__)
+    label_name = train_dataset.validate_shared_label(validation_dataset, self.__name__)
     ppscore_params = ppscore_params or {}
 
     relevant_columns = features_names + [label_name]
@@ -118,7 +119,8 @@ def single_feature_contribution_train_validation(train_dataset: Dataset, validat
             'that was powerful in train but not in validation can be explained by leakage in train that does not '
             'affect a new dataset.']
 
-    return CheckResult(value=s_difference.to_dict(), display=[plot, *text])
+    return CheckResult(value=s_difference.to_dict(), display=[plot, *text], check=self,
+                       header='Single Feature Contribution Train Validation')
 
 
 class SingleFeatureContribution(SingleDatasetBaseCheck):

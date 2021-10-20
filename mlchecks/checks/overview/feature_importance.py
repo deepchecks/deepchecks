@@ -1,6 +1,6 @@
 """The feature_importance check module."""
 from sklearn.base import BaseEstimator
-from mlchecks import SingleDatasetBaseCheck, CheckResult, Dataset, validate_dataset
+from mlchecks import SingleDatasetBaseCheck, CheckResult, Dataset
 from mlchecks.utils import model_type_validation, MLChecksValueError, model_dataset_shape_validation
 
 import shap
@@ -16,12 +16,11 @@ def feature_importance(dataset: Dataset, model: BaseEstimator, plot_type: str = 
     Returns:
         CheckResult: value is the SHAP values
     """
-    check_name = 'feature_importance'
+    self = feature_importance
+    Dataset.validate_dataset(dataset, self.__name__)
+    dataset.validate_label(self.__name__)
     model_type_validation(model)
-    validate_dataset(dataset, check_name)
-    dataset.validate_label(check_name)
     model_dataset_shape_validation(model, dataset)
-
 
     try:
         explainer = shap.Explainer(model)
@@ -51,7 +50,7 @@ def feature_importance(dataset: Dataset, model: BaseEstimator, plot_type: str = 
         else:
             raise MLChecksValueError(f'plot_type=\'{plot_type}\' currently not supported. Use \'beeswarm\' or \'bar\'')
 
-    return CheckResult(shap_values, display=plot)
+    return CheckResult(shap_values, display=plot, header='Feature Importance', check=self)
 
 
 class FeatureImportance(SingleDatasetBaseCheck):

@@ -2,16 +2,16 @@
 import pandas as pd
 from mlchecks.utils import MLChecksValueError
 from mlchecks.checks.integrity.is_single_value import is_single_value, IsSingleValue
-from hamcrest import assert_that, calling, raises
+from hamcrest import assert_that, calling, raises, equal_to
 
 
 
 def helper_test_df_and_result(df, expected_result_value, ignore_columns=None):
     # Act
-    result = is_single_value(df, ignore_columns)
+    result = is_single_value(df, ignore_columns=ignore_columns)
 
     # Assert
-    assert_that(result.value==expected_result_value)
+    assert_that(result.value, equal_to(expected_result_value))
 
 
 def test_single_column_dataset_more_than_single_value():
@@ -32,7 +32,7 @@ def test_single_column_dataset_single_value():
 
 def test_multi_column_dataset_single_value():
     # Arrange
-    df = pd.DataFrame({'a': ['b', 'b', 'b'], 'b':['a', 'a', 'a'], 'f':[1, 2, 3]})
+    df = pd.DataFrame({'a': ['b', 'b', 'b'], 'b': ['a', 'a', 'a'], 'f': [1, 2, 3]})
 
     # Act & Assert
     helper_test_df_and_result(df, True)
@@ -40,7 +40,7 @@ def test_multi_column_dataset_single_value():
 
 def test_multi_column_dataset_single_value_with_ignore():
     # Arrange
-    df = pd.DataFrame({'a': ['b', 'b', 'b'], 'b':['a', 'a', 'a'], 'f':[1, 2, 3]})
+    df = pd.DataFrame({'a': ['b', 'b', 'b'], 'b': ['a', 'a', 'a'], 'f': [1, 2, 3]})
 
     # Act & Assert
     helper_test_df_and_result(df, False, ignore_columns=['a', 'b'])
