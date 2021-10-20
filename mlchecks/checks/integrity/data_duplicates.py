@@ -1,7 +1,6 @@
 """module contains Data Duplicates check."""
-from typing import List, Iterable
+from typing import Iterable
 from pandas import DataFrame
-
 
 from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
@@ -45,7 +44,7 @@ def data_duplicates(dataset: DataFrame,
 
     if percent_duplicate > 0:
         duplicates_counted = group_unique_data.reset_index().rename(columns={0: 'duplicate_count'})
-        most_duplicates = duplicates_counted[duplicates_counted['duplicate_count'] > 1].\
+        most_duplicates = duplicates_counted[duplicates_counted['duplicate_count'] > 1]. \
             nlargest(n_to_show if n_to_show is not None else 5, ['duplicate_count'])
         text = f'{percent_duplicate:.1%} of data are duplicates'
         display = [text, most_duplicates]
@@ -58,7 +57,7 @@ def data_duplicates(dataset: DataFrame,
 class DataDuplicates(SingleDatasetBaseCheck):
     """Search for duplicate data in dataset."""
 
-    def run(self, dataset, model=None) -> CheckResult:
+    def run(self, dataset: Dataset, model=None) -> CheckResult:
         """Run data_duplicates.
 
         Args:

@@ -1,5 +1,5 @@
 """Utils module containing useful global functions."""
-from typing import Any, List, Iterable
+from typing import Any
 import sklearn
 import catboost
 from IPython import get_ipython
