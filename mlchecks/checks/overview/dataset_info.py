@@ -3,7 +3,7 @@ from typing import Union
 import pandas as pd
 from pandas_profiling import ProfileReport
 
-from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck, validate_dataframe_type
+from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ensure_dataframe_type
 
 __all__ = ['dataset_info', 'DatasetInfo']
 
@@ -20,7 +20,7 @@ def dataset_info(dataset: Union[Dataset, pd.DataFrame]):
     Raises:
         MLChecksValueError: If the object is not of a supported type
     """
-    dataset: pd.DataFrame = validate_dataframe_type(dataset)
+    dataset: pd.DataFrame = ensure_dataframe_type(dataset)
 
     def display():
         profile = ProfileReport(dataset, title='Dataset Report', explorative=True, minimal=True)

@@ -3,7 +3,7 @@ from typing import Iterable, Union
 import pandas as pd
 from pandas.api.types import infer_dtype
 
-from mlchecks import Dataset, validate_dataframe_type
+from mlchecks import Dataset, ensure_dataframe_type
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 from mlchecks.base.string_utils import string_baseform
@@ -24,7 +24,7 @@ def invalid_characters(dataset: Union[pd.DataFrame, Dataset], columns: Union[str
         (CheckResult): DataFrame with columns('Column Name', 'Percentage') for any column that contains invalid chars.
     """
     # Validate parameters
-    dataset: pd.DataFrame = validate_dataframe_type(dataset)
+    dataset: pd.DataFrame = ensure_dataframe_type(dataset)
     dataset = filter_columns_with_validation(dataset, columns, ignore_columns)
 
     # Result value: { Column Name: {invalid: pct}}

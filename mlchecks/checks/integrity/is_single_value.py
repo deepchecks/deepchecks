@@ -1,7 +1,7 @@
 """Module contains is_single_value check."""
 from typing import Union, Iterable
 import pandas as pd
-from mlchecks import SingleDatasetBaseCheck, CheckResult, validate_dataframe_type, Dataset
+from mlchecks import SingleDatasetBaseCheck, CheckResult, ensure_dataframe_type, Dataset
 
 __all__ = ['is_single_value', 'IsSingleValue']
 
@@ -24,7 +24,7 @@ def is_single_value(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, I
                      display is a series with columns that have only one unique
     """
     # Validate parameters
-    dataset: pd.DataFrame = validate_dataframe_type(dataset)
+    dataset: pd.DataFrame = ensure_dataframe_type(dataset)
     dataset = filter_columns_with_validation(dataset, columns, ignore_columns)
 
     is_single_unique_value = (dataset.nunique(dropna=False) == 1)

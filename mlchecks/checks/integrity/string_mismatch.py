@@ -5,7 +5,7 @@ from typing import Union, Set, Dict, Iterable
 import pandas as pd
 from pandas import DataFrame, StringDtype, Series
 
-from mlchecks import CheckResult, SingleDatasetBaseCheck, Dataset, validate_dataframe_type
+from mlchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_dataframe_type
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 from mlchecks.base.string_utils import string_baseform
 
@@ -22,7 +22,7 @@ def string_mismatch(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, I
         ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns variable
     """
     # Validate parameters
-    dataset: pd.DataFrame = validate_dataframe_type(dataset)
+    dataset: pd.DataFrame = ensure_dataframe_type(dataset)
     dataset = filter_columns_with_validation(dataset, columns, ignore_columns)
 
     results = []

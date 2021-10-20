@@ -5,7 +5,7 @@ from pandas.api.types import infer_dtype
 
 import numpy as np
 
-from mlchecks import Dataset, validate_dataframe_type
+from mlchecks import Dataset, ensure_dataframe_type
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 
 
@@ -27,7 +27,7 @@ def mixed_types(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, Itera
         (CheckResult): DataFrame with columns('Column Name', 'Precentage') for any column that is not single typed.
     """
     # Validate parameters
-    dataset: pd.DataFrame = validate_dataframe_type(dataset)
+    dataset: pd.DataFrame = ensure_dataframe_type(dataset)
     dataset = filter_columns_with_validation(dataset, columns, ignore_columns)
 
     # Result value: { Column Name: {string: pct, numbers: pct}}

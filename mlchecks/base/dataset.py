@@ -1,23 +1,18 @@
 """The Dataset module containing the dataset Class and its functions."""
 from typing import Union, List, Any
 import pandas as pd
-import warnings
 
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 from mlchecks.utils import MLChecksValueError
 
 
-PANDAS_USER_ATTR_WARNING_STR = ('Pandas doesn\'t allow columns to be created via a new attribute name - see'
-                                ' https://pandas.pydata.org/pandas-docs/stable/indexing.html#attribute-access')
-
-
-__all__ = ['Dataset', 'validate_dataframe_type']
+__all__ = ['Dataset', 'ensure_dataframe_type']
 
 
 class Dataset:
-    """Dataset extends pandas DataFrame to provide ML related metadata.
+    """Dataset wraps pandas DataFrame together with ML related metadata.
 
-    The Dataset class is a pandas DataFrame containing additional data and method intended for easily accessing
+    The Dataset class is containing additional data and methods intended for easily accessing
     metadata relevant for the training or validating of a ML models.
 
     Attributes:
@@ -53,7 +48,7 @@ class Dataset:
           date: Name of the date column in the DataFrame.
 
         """
-        self._data = df
+        self._data = df.copy()
 
         # Validations
         if use_index is True and index is not None:
@@ -63,22 +58,20 @@ class Dataset:
         if label is not None and label not in self._data.columns:
             raise MLChecksValueError(f'label column {label} not found in dataset columns')
 
-        with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=PANDAS_USER_ATTR_WARNING_STR)
-            if features:
-                self._features = features
-            else:
-                self._features = [x for x in self._data.columns if x not in {label, index, date}]
+        if features:
+            self._features = features
+        else:
+            self._features = [x for x in self._data.columns if x not in {label, index, date}]
 
-            self._label_name = label
-            self._use_index = use_index
-            self._index_name = index
-            self._date_name = date
+        self._label_name = label
+        self._use_index = use_index
+        self._index_name = index
+        self._date_name = date
 
-            if cat_features:
-                self._cat_features = cat_features
-            else:
-                self._cat_features = self.infer_categorical_features()
+        if cat_features:
+            self._cat_features = cat_features
+        else:
+            self._cat_features = self.infer_categorical_features()
 
     @property
     def data(self):
@@ -292,7 +285,7 @@ class Dataset:
     @classmethod
     def validate_dataset_or_dataframe(cls, obj) -> 'Dataset':
         """
-        Throws error if object is not pandas DataFrame or MLChecks Dataset and returns the object as MLChecks Dataset.
+        Raise error if object is not pandas DataFrame or MLChecks Dataset and returns the object as MLChecks Dataset.
 
         Args:
             obj: object to validate as dataset
@@ -326,12 +319,18 @@ class Dataset:
                                      f'{type(obj).__name__}')
 
 
-def validate_dataframe_type(obj: Any) -> pd.DataFrame:
-    """Validate that given object is of type DataFrame. else raises error."""
+def ensure_dataframe_type(obj: Any) -> pd.DataFrame:
+    """Ensure that given object is of type DataFrame or Dataset and return it as DataFrame. else raise error.
+
+    Args:
+        obj: Object to ensure it is DataFrame or Dataset
+
+    Returns:
+        (pd.DataFrame)
+    """
     if isinstance(obj, pd.DataFrame):
         return obj
     elif isinstance(obj, Dataset):
         return obj.data
     else:
-        raise MLChecksValueError(f'dataset must be of type DataFrame or Dataset. instead got: '
-                                 f'{type(obj).__name__}')
+        raise MLChecksValueError(f'dataset must be of type DataFrame or Dataset, but got: {type(obj).__name__}')

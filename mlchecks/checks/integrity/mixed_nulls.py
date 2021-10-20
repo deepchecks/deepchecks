@@ -4,7 +4,7 @@ from typing import Iterable, Union
 import numpy as np
 import pandas as pd
 
-from mlchecks import Dataset, CheckResult, validate_dataframe_type
+from mlchecks import Dataset, CheckResult, ensure_dataframe_type
 from mlchecks.base.check import SingleDatasetBaseCheck
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 from mlchecks.base.string_utils import string_baseform
@@ -60,7 +60,7 @@ def mixed_nulls(dataset: Union[pd.DataFrame, Dataset], null_string_list: Iterabl
          which have more than 1 null values.
     """
     # Validate parameters
-    dataset: pd.DataFrame = validate_dataframe_type(dataset)
+    dataset: pd.DataFrame = ensure_dataframe_type(dataset)
     dataset = filter_columns_with_validation(dataset, columns, ignore_columns)
     null_string_list: set = validate_null_string_list(null_string_list, check_nan)
 

@@ -42,7 +42,7 @@ class CheckResult:
             displayed in notebook.
             display (Callable): Function which is used for custom display.
         """
-        if check and not isinstance(check, Callable):
+        if check is not None and not isinstance(check, Callable):
             raise MLChecksValueError('`check` parameter of CheckResult must be callable')
         self.value = value
         self.header = header or (check and underscore_to_capitalize(check.__name__)) or None
