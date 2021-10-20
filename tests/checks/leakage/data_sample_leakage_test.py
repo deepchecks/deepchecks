@@ -10,9 +10,9 @@ from hamcrest import assert_that, calling, raises
 
 
 def test_dataset_wrong_input():
-    X = 'wrong_input'
+    x = 'wrong_input'
     # Act & Assert
-    assert_that(calling(data_sample_leakage_report).with_args(X, X),
+    assert_that(calling(data_sample_leakage_report).with_args(x, x),
                 raises(MLChecksValueError,
                 'function data_sample_leakage_report requires dataset to be of type Dataset. instead got: str'))
 
