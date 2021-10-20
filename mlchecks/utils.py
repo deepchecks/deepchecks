@@ -1,6 +1,6 @@
 """Utils module containing useful global functions."""
 import enum
-from typing import Any, Union
+from typing import Any, Union, Dict, Callable
 import sklearn
 import catboost
 from IPython import get_ipython
@@ -8,9 +8,28 @@ from sklearn.base import ClassifierMixin, RegressorMixin
 
 
 __all__ = ['SUPPORTED_BASE_MODELS', 'MLChecksValueError', 'model_type_validation', 'is_notebook',
-           'TaskType', 'task_type_check']
+           'TaskType', 'task_type_check', 'get_metrics_list']
+
+from sklearn.metrics import get_scorer, make_scorer, accuracy_score, precision_score, recall_score, mean_squared_error
 
 SUPPORTED_BASE_MODELS = [sklearn.base.BaseEstimator, catboost.CatBoost]
+
+DEFAULT_BINARY_METRICS = {
+    'Accuracy': make_scorer(accuracy_score),
+    'Precision': make_scorer(precision_score),
+    'Recall': make_scorer(recall_score)
+}
+
+DEFAULT_MULTICLASS_METRICS = {
+    'Accuracy': make_scorer(accuracy_score),
+    'Precision - Macro Average': make_scorer(precision_score, average='macro'),
+    'Recall - Macro Average': make_scorer(recall_score, average='macro')
+}
+
+DEFAULT_REGRESSION_METRICS = {
+    'RMSE': make_scorer(mean_squared_error, squared=False),
+    'MSE': make_scorer(mean_squared_error),
+}
 
 
 class TaskType(enum.Enum):
@@ -95,3 +114,42 @@ def task_type_check(model: Union[ClassifierMixin, RegressorMixin], dataset) -> T
             return TaskType.binary
     else:
         return TaskType.regression
+
+
+def get_metrics_list(model, dataset: 'Dataset', alternative_metrics: Dict[str, Callable] = None):
+    if alternative_metrics:
+        metrics = {}
+        for name, scorer in alternative_metrics.items():
+            # If string, get scorer from sklearn. If callable, do heuristic to see if valid
+            if isinstance(scorer, str):
+                metrics[name] = get_scorer(scorer)
+            elif callable(scorer):
+                # Heuristic to ensure user has not passed a metric
+                module = getattr(scorer, "__module__", None)
+                if (
+                        hasattr(module, "startswith")
+                        and module.startswith("sklearn.metrics.")
+                        and not module.startswith("sklearn.metrics._scorer")
+                        and not module.startswith("sklearn.metrics.tests.")
+                ):
+                    raise ValueError(
+                        "scoring value %r looks like it is a metric "
+                        "function rather than a scorer. A scorer should "
+                        "require an estimator as its first parameter. "
+                        "Please use `make_scorer` to convert a metric "
+                        "to a scorer." % scorer
+                    )
+                metrics[name] = scorer
+    else:
+        # Check for model type
+        model_type = task_type_check(model, dataset)
+        if model_type == TaskType.binary:
+            metrics = DEFAULT_BINARY_METRICS
+        elif model_type == TaskType.multiclass:
+            metrics = DEFAULT_MULTICLASS_METRICS
+        elif model_type == TaskType.regression:
+            metrics = DEFAULT_REGRESSION_METRICS
+        else:
+            raise(Exception('Inferred model_type is invalid'))
+
+    return metrics
