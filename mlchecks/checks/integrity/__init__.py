@@ -3,4 +3,4 @@ from .mixed_nulls import *
 from .string_mismatch import *
 from .mixed_types import *
 from .is_single_value import *
-from .invalid_chars import *
+from .special_chars import *
