@@ -1,4 +1,5 @@
 """module contains Invalid Chars check."""
+from collections import defaultdict
 from typing import Iterable, Union
 import pandas as pd
 from pandas.api.types import infer_dtype
@@ -17,7 +18,7 @@ def invalid_characters(dataset: Union[pd.DataFrame, Dataset], columns: Union[str
 
     Args:
         dataset (Dataset): a Dataset or DataFrame object.
-        columns (Union[str, Iterable[str]]): Columns to check, if none given checks all columns Except ignored ones.
+        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored ones.
         ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns variable
 
     Returns:
@@ -32,40 +33,33 @@ def invalid_characters(dataset: Union[pd.DataFrame, Dataset], columns: Union[str
 
     for column_name in dataset.columns:
         column_data = dataset[column_name]
+        # Get dict of samples to count
         inv = get_invalid_chars(column_data)
         if inv is not None:
-            display_array.append([column_name,inv])
+            percent = f'{sum(inv.values()) / column_data.size:.2%}'
+            top_two_samples_items = sorted(inv.items(), key=lambda x: x[1], reverse=True)[:2]
+            top_two_samples_values = ', '.join([item[0] for item in top_two_samples_items])
+            display_array.append([column_name, percent, top_two_samples_values])
 
-    df_graph = pd.DataFrame(display_array, columns=['Column Name', '% Invalid Samples'])
+    df_graph = pd.DataFrame(display_array, columns=['Column Name', '% Invalid Samples', 'Most Common Invalids'])
     display = df_graph if len(df_graph) > 0 else None
 
     return CheckResult(df_graph, check=invalid_characters, display=display)
 
 
-def get_invalid_chars(column_data: pd.Series) -> str:
-    if is_stringed_type(column_data):
-        return check_invalid_chars(column_data)
-    return None
+def get_invalid_chars(column_data: pd.Series) -> Union[dict, None]:
+    if not is_stringed_type(column_data):
+        return None
+    invalids = defaultdict(lambda: 0)
+    for sample in column_data:
+        if isinstance(sample, str) and len(sample) > 0 and len(string_baseform(sample)) == 0:
+            invalids[sample] = invalids[sample] + 1
+
+    return invalids or None
 
 
 def is_stringed_type(col):
     return infer_dtype(col) not in ['integer', 'decimal', 'floating']
-
-
-def check_invalid_chars(column_data: pd.Series) -> str:
-    total_rows = column_data.count()
-
-    def is_all_invalid_char(x):
-        return isinstance(x, str) and len(x) > 0 and len(string_baseform(x)) == 0
-
-    invalids = sum(column_data.apply(is_all_invalid_char))
-    if invalids == 0:
-        return None
-
-    # Then we've got a mix
-    invalids_pct = f'{invalids/total_rows:.2%}'
-
-    return invalids_pct
 
 
 class InvalidCharacters(SingleDatasetBaseCheck):
