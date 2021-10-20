@@ -53,8 +53,7 @@ def single_feature_contribution(dataset: Union[Dataset, pd.DataFrame], ppscore_p
             'data',
             'leakage - meaning that the feature holds information that is based on the label to begin with.']
 
-    return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text], check=self,
-                       header='Single Feature Contribution')
+    return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text], check=self)
 
 
 def single_feature_contribution_train_validation(train_dataset: Dataset, validation_dataset: Dataset,
@@ -120,7 +119,7 @@ def single_feature_contribution_train_validation(train_dataset: Dataset, validat
             'affect a new dataset.']
 
     return CheckResult(value=s_difference.to_dict(), display=[plot, *text], check=self,
-                       header='Single Feature Contribution Train Validation')
+                       header='Single Feature Contribution Train-Validation')
 
 
 class SingleFeatureContribution(SingleDatasetBaseCheck):

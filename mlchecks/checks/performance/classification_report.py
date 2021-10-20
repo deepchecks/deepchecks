@@ -37,8 +37,7 @@ def classification_report(dataset: Dataset, model):
     macro_performance = pd.DataFrame(sklearn.metrics.precision_recall_fscore_support(ds_y, y_pred))
     macro_performance.index = ['precision', 'recall', 'f_score', 'support']
 
-    return CheckResult(macro_performance.to_dict(), header='Classification Report', check=self,
-                       display=macro_performance)
+    return CheckResult(macro_performance.to_dict(), check=self, display=macro_performance)
 
 
 class ClassificationReport(SingleDatasetBaseCheck):

@@ -50,7 +50,7 @@ def feature_importance(dataset: Dataset, model: BaseEstimator, plot_type: str = 
         else:
             raise MLChecksValueError(f'plot_type=\'{plot_type}\' currently not supported. Use \'beeswarm\' or \'bar\'')
 
-    return CheckResult(shap_values, display=plot, header='Feature Importance', check=self)
+    return CheckResult(shap_values, display=plot, check=self)
 
 
 class FeatureImportance(SingleDatasetBaseCheck):

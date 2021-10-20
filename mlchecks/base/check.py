@@ -10,6 +10,7 @@ import pandas as pd
 from IPython.core.display import display_html
 from matplotlib import pyplot as plt
 
+from mlchecks.base.string_utils import underscore_to_capitalize
 from mlchecks.utils import MLChecksValueError
 
 
@@ -44,7 +45,7 @@ class CheckResult:
         if check and not isinstance(check, Callable):
             raise MLChecksValueError('`check` parameter of CheckResult must be callable')
         self.value = value
-        self.header = header
+        self.header = header or (check and underscore_to_capitalize(check.__name__)) or None
         self.check = check
 
         if display is not None and not isinstance(display, List):

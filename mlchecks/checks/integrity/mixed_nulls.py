@@ -7,7 +7,7 @@ import pandas as pd
 from mlchecks import Dataset, CheckResult, validate_dataframe_type
 from mlchecks.base.check import SingleDatasetBaseCheck
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
-from mlchecks.checks.integrity.string_utils import string_baseform
+from mlchecks.base.string_utils import string_baseform
 from mlchecks.utils import MLChecksValueError
 
 __all__ = ['mixed_nulls', 'MixedNulls']
@@ -92,7 +92,7 @@ def mixed_nulls(dataset: Union[pd.DataFrame, Dataset], null_string_list: Iterabl
     else:
         display = None
 
-    return CheckResult(df_graph, header='Mixed Nulls', check=mixed_nulls, display=display)
+    return CheckResult(df_graph, check=mixed_nulls, display=display)
 
 
 class MixedNulls(SingleDatasetBaseCheck):

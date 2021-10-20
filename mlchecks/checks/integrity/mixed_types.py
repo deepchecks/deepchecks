@@ -46,7 +46,7 @@ def mixed_types(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, Itera
     else:
         display = None
 
-    return CheckResult(df_graph, header='Mixed Types', check=mixed_types, display=display)
+    return CheckResult(df_graph, check=mixed_types, display=display)
 
 
 def get_data_mix(column_data: pd.Series) -> dict :

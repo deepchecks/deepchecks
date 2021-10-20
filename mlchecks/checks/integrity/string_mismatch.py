@@ -7,7 +7,7 @@ from pandas import DataFrame, StringDtype, Series
 
 from mlchecks import CheckResult, SingleDatasetBaseCheck, Dataset, validate_dataframe_type
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
-from mlchecks.checks.integrity.string_utils import string_baseform
+from mlchecks.base.string_utils import string_baseform
 
 __all__ = ['string_mismatch', 'StringMismatch']
 
@@ -51,7 +51,7 @@ def string_mismatch(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, I
     else:
         display = None
 
-    return CheckResult(df_graph, header='String Mismatch', check=string_mismatch, display=display)
+    return CheckResult(df_graph, check=string_mismatch, display=display)
 
 
 def get_base_form_to_variants_dict(uniques):

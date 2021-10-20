@@ -6,7 +6,7 @@ from pandas.api.types import infer_dtype
 from mlchecks import Dataset, validate_dataframe_type
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
-from mlchecks.checks.integrity.string_utils import string_baseform
+from mlchecks.base.string_utils import string_baseform
 
 __all__ = ['invalid_characters', 'InvalidCharacters']
 
@@ -39,7 +39,7 @@ def invalid_characters(dataset: Union[pd.DataFrame, Dataset], columns: Union[str
     df_graph = pd.DataFrame(display_array, columns=['Column Name', '% Invalid Samples'])
     display = df_graph if len(df_graph) > 0 else None
 
-    return CheckResult(df_graph, header='Invalid Characters', check=invalid_characters, display=display)
+    return CheckResult(df_graph, check=invalid_characters, display=display)
 
 
 def get_invalid_chars(column_data: pd.Series) -> str:

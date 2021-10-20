@@ -35,8 +35,7 @@ def confusion_matrix_report(dataset: Dataset, model):
     def display():
         sklearn.metrics.ConfusionMatrixDisplay(confusion_matrix).plot()
 
-    return CheckResult(confusion_matrix, header='Confusion Matrix Report', check=self,
-                       display=display)
+    return CheckResult(confusion_matrix, check=self, display=display)
 
 
 class ConfusionMatrixReport(SingleDatasetBaseCheck):

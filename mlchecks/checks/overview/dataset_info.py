@@ -26,7 +26,7 @@ def dataset_info(dataset: Union[Dataset, pd.DataFrame]):
         profile = ProfileReport(dataset, title='Dataset Report', explorative=True, minimal=True)
         profile.to_notebook_iframe()
 
-    return CheckResult(dataset.shape, header='Dataset Info', check=dataset_info, display=display)
+    return CheckResult(dataset.shape, check=dataset_info, display=display)
 
 
 class DatasetInfo(SingleDatasetBaseCheck):
