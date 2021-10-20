@@ -5,7 +5,6 @@ import pandas as pd
 from mlchecks import Dataset
 
 from mlchecks.base.check import CheckResult, TrainValidationBaseCheck
-from mlchecks.base.dataset import validate_dataset
 
 __all__ = ['data_sample_leakage_report', 'DataSampleLeakageReport']
 
@@ -61,14 +60,14 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
         MLChecksValueError: If the object is not a Dataset instance
 
     """
-    validate_dataset(validation_dataset, data_sample_leakage_report.__name__)
-    validate_dataset(train_dataset, data_sample_leakage_report.__name__)
+    validation_dataset = Dataset.validate_dataset_or_dataframe(validation_dataset)
+    train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
 
     columns = train_dataset.features() + [train_dataset.label_name()]
-    train_f = train_dataset[columns]
-    val_f = validation_dataset[columns]
+    train_f = train_dataset.data[columns]
+    val_f = validation_dataset.data[columns]
 
-    train_dups = get_dup_indexes_map(train_dataset, columns)
+    train_dups = get_dup_indexes_map(train_f, columns)
     train_f.index = [f'test indexes: {get_dup_txt(i, train_dups)}' for i in train_f.index]
     train_f.drop_duplicates(columns, inplace = True)
 

@@ -14,7 +14,7 @@ def test_dataset_wrong_input():
     # Act & Assert
     assert_that(calling(data_sample_leakage_report).with_args(x, x),
                 raises(MLChecksValueError,
-                'function data_sample_leakage_report requires dataset to be of type Dataset. instead got: str'))
+                'dataset must be of type DataFrame or Dataset. instead got: str'))
 
 
 def test_no_leakage(iris_clean):
@@ -46,7 +46,7 @@ def test_leakage(iris_clean):
                 label='target')
 
     test_df = pd.concat([x_test, y_test], axis=1)
-    bad_test = test_df.append(train_dataset.iloc[[0, 1, 2, 3, 4]], ignore_index=True)
+    bad_test = test_df.append(train_dataset.data.iloc[[0, 1, 2, 3, 4]], ignore_index=True)
 
     validation_dataset = Dataset(bad_test,
                 features=iris_clean.feature_names,
