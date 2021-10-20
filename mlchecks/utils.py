@@ -121,6 +121,8 @@ def get_metrics_list(model, dataset: 'Dataset', alternative_metrics: Dict[str, C
         metrics = {}
         for name, scorer in alternative_metrics.items():
             # If string, get scorer from sklearn. If callable, do heuristic to see if valid
+            # Borrowed code from:
+            # https://github.com/scikit-learn/scikit-learn/blob/844b4be24d20fc42cc13b957374c718956a0db39/sklearn/metrics/_scorer.py#L421
             if isinstance(scorer, str):
                 metrics[name] = get_scorer(scorer)
             elif callable(scorer):
