@@ -20,9 +20,9 @@ def string_baseform(string: str):
 
 
 def underscore_to_capitalize(string: str):
-    """Replace underscore with space and capitalize first letters in each word
+    """Replace underscore with space and capitalize first letters in each word.
 
-        Args:
+    Args:
         string (str): string to change
     """
     return ' '.join([s.capitalize() for s in string.split('_')])
