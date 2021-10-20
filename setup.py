@@ -19,8 +19,8 @@ setup(
     version=VER,
     packages=['mlchecks'],
     install_requires=install_requires,
-    license='Propietery', #TODO: what is the license
-    description = 'TYPE YOUR DESCRIPTION HERE', # TODO: Give me a one line Description 
+    #license='Propietery', #TODO: what is the license
+    description = 'Package for validating your machine learning model and data',
     author = 'deepchecks',  
     author_email = 'info@deepchecks.com', 
     url = 'https://github.com/deepchecks/MLChecks',
