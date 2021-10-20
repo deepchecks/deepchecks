@@ -246,7 +246,28 @@ class Dataset(pd.DataFrame):
         """
         if columns:
             self.validate_columns_exist(columns)
-            return self.drop(labels=columns, axis='columns')
+            return Dataset(self.drop(labels=columns, axis='columns'))
+        else:
+            return self
+
+    def filter_columns_with_validation(self, columns: Union[str, List[str], None] = None,
+                                       ignore_columns: Union[str, List[str], None] = None) -> 'Dataset':
+        """Filter dataset columns by given params.
+
+        Args:
+            columns (Union[str, List[str], None]): Column names to keep.
+            ignore_columns (Union[str, List[str], None]): Column names to drop.
+        Raise:
+            MLChecksValueError: In case one of columns given don't exists raise error
+        """
+        if columns and ignore_columns:
+            raise MLChecksValueError('Can\'t have columns and ignore_columns together')
+        elif columns:
+            self.validate_columns_exist(columns)
+            return Dataset(self[columns])
+        elif ignore_columns:
+            self.validate_columns_exist(ignore_columns)
+            return Dataset(self.drop(labels=ignore_columns, axis='columns'))
         else:
             return self
 

@@ -41,7 +41,7 @@ def is_notebook():
         else:
             return False  # Other type (?)
     except NameError:
-        return False  # Probably standard Python interpreter
+        return False      # Probably standard Python interpreter
 
 
 def model_dataset_shape_validation(model: Any, dataset: Any):

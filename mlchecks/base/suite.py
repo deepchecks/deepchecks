@@ -60,9 +60,13 @@ class CheckSuite(BaseCheck):
                 results.append(check.run(dataset=train_dataset, compared_dataset=validation_dataset, model=model))
             elif isinstance(check, SingleDatasetBaseCheck):
                 if check_datasets_policy in ['both', 'train'] and train_dataset is not None:
-                    results.append(check.run(dataset=train_dataset))
+                    res = check.run(dataset=train_dataset)
+                    res.header = f'{res.header} - Train Dataset'
+                    results.append(res)
                 if check_datasets_policy in ['both', 'validation'] and validation_dataset is not None:
-                    results.append(check.run(dataset=validation_dataset))
+                    res = check.run(dataset=validation_dataset)
+                    res.header = f'{res.header} - Validation Dataset'
+                    results.append(res)
             elif isinstance(check, ModelOnlyBaseCheck):
                 results.append(check.run(model=model))
             elif isinstance(check, CheckSuite):

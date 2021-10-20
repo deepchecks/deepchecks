@@ -1,5 +1,5 @@
 """module contains Mixed Types check."""
-from typing import List, Iterable
+from typing import Iterable
 import pandas as pd
 from pandas import DataFrame
 from pandas.api.types import infer_dtype
@@ -9,13 +9,12 @@ import numpy as np
 from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset_or_dataframe
-from mlchecks.utils import validate_column_list
 
 
 __all__ = ['mixed_types', 'MixedTypes']
 
 
-def mixed_types(dataset: DataFrame, columns: Iterable[str]=None, ignore_columns: Iterable[str]=None ) -> CheckResult:
+def mixed_types(dataset: DataFrame, columns: Iterable[str] = None, ignore_columns: Iterable[str] = None) -> CheckResult:
     """Search for mixed types of Data in a single column[s].
 
     Args:
@@ -28,20 +27,13 @@ def mixed_types(dataset: DataFrame, columns: Iterable[str]=None, ignore_columns:
     """
     # Validate parameters
     dataset: Dataset = validate_dataset_or_dataframe(dataset)
-    dataset = dataset.drop_columns_with_validation(ignore_columns)
-    if columns is None:
-        columns: List[str] = dataset.columns
-    else:
-        columns: List[str] = validate_column_list(columns)
+    dataset = dataset.filter_columns_with_validation(columns, ignore_columns)
 
     # Result value: { Column Name: {string: pct, numbers: pct}}
     display_dict = {}
 
-    for column_name in columns:
-        try:
-            column_data = dataset[column_name]
-        except KeyError: #Column is not in data
-            continue
+    for column_name in dataset.columns:
+        column_data = dataset[column_name]
         mix = get_data_mix(column_data)
         if mix:
             display_dict[column_name] = mix
