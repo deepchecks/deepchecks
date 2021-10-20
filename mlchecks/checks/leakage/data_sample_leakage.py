@@ -46,7 +46,7 @@ def get_dup_txt(i, dup_map) -> str:
 
 
 def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Dataset):
-    """Run data_sample_leakage_report check.
+    """Find which percent of the validation data in the train data.
 
     Args:
         model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
@@ -98,7 +98,7 @@ class DataSampleLeakageReport(TrainValidationBaseCheck):
     """Finds data sample leakage."""
 
     def run(self, validation_dataset: Dataset, train_dataset: Dataset) -> CheckResult:
-        """Run classification_report check.
+        """Run data_sample_leakage_report check.
 
         Args:
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
