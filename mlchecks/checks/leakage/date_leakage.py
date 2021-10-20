@@ -2,7 +2,6 @@
 import pandas as pd
 
 from mlchecks import CheckResult, Dataset, TrainValidationBaseCheck
-from mlchecks.base.dataset import validate_dataset
 
 __all__ = ['date_train_validation_leakage_overlap',
            'DateTrainValidationLeakageOverlap',
@@ -26,8 +25,8 @@ def date_train_validation_leakage_overlap(train_dataset: Dataset, validation_dat
         MLChecksValueError: If one of the datasets is not a Dataset instance with an date
     """
     self = date_train_validation_leakage_overlap
-    train_dataset = validate_dataset(train_dataset, self.__name__)
-    validation_dataset = validate_dataset(validation_dataset, self.__name__)
+    train_dataset = Dataset.validate_dataset(train_dataset, self.__name__)
+    validation_dataset = Dataset.validate_dataset(validation_dataset, self.__name__)
     train_dataset.validate_date(self.__name__)
     validation_dataset.validate_date(self.__name__)
 
@@ -47,7 +46,7 @@ def date_train_validation_leakage_overlap(train_dataset: Dataset, validation_dat
 
     return CheckResult(value=return_value,
                        header='Date Train-Validation Leakage (overlap)',
-                       check=date_train_validation_leakage_overlap,
+                       check=self,
                        display=display)
 
 
@@ -87,8 +86,8 @@ def date_train_validation_leakage_duplicates(train_dataset: Dataset, validation_
         MLChecksValueError: If one of the datasets is not a Dataset instance with an date
     """
     self = date_train_validation_leakage_duplicates
-    train_dataset = validate_dataset(train_dataset, self.__name__)
-    validation_dataset = validate_dataset(validation_dataset, self.__name__)
+    train_dataset = Dataset.validate_dataset(train_dataset, self.__name__)
+    validation_dataset = Dataset.validate_dataset(validation_dataset, self.__name__)
     train_dataset.validate_date(self.__name__)
     validation_dataset.validate_date(self.__name__)
 

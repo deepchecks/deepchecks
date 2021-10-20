@@ -1,33 +1,34 @@
 """module contains Mixed Types check."""
-from typing import Iterable
+from typing import Iterable, Union
 import pandas as pd
-from pandas import DataFrame
 from pandas.api.types import infer_dtype
 
 import numpy as np
 
-from mlchecks import Dataset
+from mlchecks import Dataset, ensure_dataframe_type
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
-from mlchecks.base.dataset import validate_dataset_or_dataframe
 
 
 __all__ = ['mixed_types', 'MixedTypes']
 
+from mlchecks.base.dataframe_utils import filter_columns_with_validation
 
-def mixed_types(dataset: DataFrame, columns: Iterable[str] = None, ignore_columns: Iterable[str] = None) -> CheckResult:
+
+def mixed_types(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, Iterable[str]] = None,
+                ignore_columns: Union[str, Iterable[str]] = None) -> CheckResult:
     """Search for mixed types of Data in a single column[s].
 
     Args:
         dataset (Dataset):
-        columns (List[str]): List of columns to check, if none given checks all columns Except ignored ones.
-        ignore_columns (List[str]): List of columns to ignore, if none given checks based on columns variable
+        columns (Union[str, Iterable[str]]): Columns to check, if none given checks all columns Except ignored ones.
+        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns variable
 
     Returns:
         (CheckResult): DataFrame with columns('Column Name', 'Precentage') for any column that is not single typed.
     """
     # Validate parameters
-    dataset: Dataset = validate_dataset_or_dataframe(dataset)
-    dataset = dataset.filter_columns_with_validation(columns, ignore_columns)
+    dataset: pd.DataFrame = ensure_dataframe_type(dataset)
+    dataset = filter_columns_with_validation(dataset, columns, ignore_columns)
 
     # Result value: { Column Name: {string: pct, numbers: pct}}
     display_dict = {}
@@ -45,7 +46,7 @@ def mixed_types(dataset: DataFrame, columns: Iterable[str] = None, ignore_column
     else:
         display = None
 
-    return CheckResult(df_graph, header='Mixed Types', check=mixed_types, display=display)
+    return CheckResult(df_graph, check=mixed_types, display=display)
 
 
 def get_data_mix(column_data: pd.Series) -> dict :
