@@ -3,7 +3,6 @@ from mlchecks import Dataset
 
 from mlchecks.base.check import CheckResult, TrainValidationBaseCheck
 from mlchecks.base.dataset import validate_dataset
-from mlchecks.display import format_check_display
 
 __all__ = ['data_sample_leakage_report', 'DataSampleLeakageReport']
 
@@ -90,7 +89,8 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
         display = [user_msg, duplicate_rows_dF]
     else:
         display = None
-    return CheckResult(dup_ratio, display=display)
+    return CheckResult(dup_ratio, header='Data Sample Leakage Report',
+                       check=data_sample_leakage_report, display=display)
 
 class DataSampleLeakageReport(TrainValidationBaseCheck):
     """Finds data sample leakage."""
