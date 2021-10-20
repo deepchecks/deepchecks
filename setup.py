@@ -17,6 +17,6 @@ if os.path.isfile(requirementPath):
 setup(
     name='mlchecks',
     version=main_ns['__version__'],
-    packages=['mlchecks'],
+    packages=setuptools.find_packages(),
     install_requires=install_requires
 )

@@ -15,7 +15,7 @@ from mlchecks.utils import MLChecksValueError
 __all__ = ['mixed_types', 'MixedTypes']
 
 
-def validate_column_list(cl) -> set:
+def validate_column_list(cl) -> List[str]:
     """Validate the object given is a list of strings or None.
 
     Args:
@@ -34,7 +34,7 @@ def validate_column_list(cl) -> set:
             raise MLChecksValueError(var_names + "can't be an emptry string")
         if any((not isinstance(string, str) for string in cl)):
             raise MLChecksValueError(var_names + "must contain only items of type 'str'")
-        result = set(cl)
+        result = list(cl)
     else:
         result = None
 
@@ -58,7 +58,7 @@ def mixed_types(dataset: DataFrame, columns: Iterable[str]=None, ignore_columns:
     if columns is None:
         columns: List[str] = dataset.columns
     else:
-        columns: set = validate_column_list(columns)
+        columns: List[str] = validate_column_list(columns)
 
     # Result value: { Column Name: {string: pct, numbers: pct}}
     display_dict = {}
