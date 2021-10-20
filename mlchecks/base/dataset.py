@@ -8,6 +8,8 @@ from mlchecks.utils import MLChecksValueError
 
 __all__ = ['Dataset', 'ensure_dataframe_type']
 
+MAX_CATEGORY_RATIO = 0.001
+MAX_CATEGORIES = 100
 
 class Dataset:
     """Dataset wraps pandas DataFrame together with ML related metadata.
@@ -50,7 +52,7 @@ class Dataset:
                           e.g. 's' for seconds, 'ns' for nanoseconds. See pandas.Timestamp unit arg for more detail.
 
         """
-        self._data = df.copy()
+        self._data = df.convert_dtypes()
 
         # Validations
         if use_index is True and index is not None:
@@ -96,7 +98,6 @@ class Dataset:
         return Dataset(new_data, features=features, cat_features=cat_features, label=label, use_index=self._use_index,
                        index=index, date=date, _convert_date=False)
 
-
     def n_samples(self):
         """Return number of samples in dataframe.
 
@@ -111,8 +112,14 @@ class Dataset:
         Returns:
            Out of the list of feature names, returns list of categorical features
         """
-        # TODO: add infer logic here
-        return []
+        cat_columns = []
+
+        for col in self.columns:
+            num_unique = self[col].nunique(dropna=True)
+            if num_unique / len(self[col].dropna()) < MAX_CATEGORY_RATIO or num_unique <= MAX_CATEGORIES:
+                cat_columns.append(col)
+
+        return cat_columns
 
     def index_name(self) -> Union[str, None]:
         """If index column exists, return its name.
