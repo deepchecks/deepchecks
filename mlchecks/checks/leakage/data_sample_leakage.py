@@ -16,7 +16,7 @@ def get_dup_indexes_map(df, features) -> Dict:
         features: the features name list
     Returns:
         dictionary of each of the first indexes and its' duplicated indexes
-    
+
     """
     dup = df[df.duplicated(features, keep=False)].groupby(features).groups.values()
     dup_map = dict()
@@ -34,7 +34,7 @@ def get_dup_txt(i, dup_map) -> str:
         dup_map: the dict of the duplicated indexes
     Returns:
         prettyfied text for a key in the dict
-    
+
     """
     val = dup_map.get(i)
     if not val:
@@ -52,8 +52,9 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
         model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
         ds: a Dataset object
     Returns:
-        CheckResult: value is sample leakage ratio in %, displays a dataframe that shows the duplicated rows between the datasets
-        
+        CheckResult: value is sample leakage ratio in %, 
+                     displays a dataframe that shows the duplicated rows between the datasets
+ 
     Raises:
         MLChecksValueError: If the object is not a Dataset instance
 
@@ -74,20 +75,20 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
     val_f.drop_duplicates(features, inplace = True)
 
     appended_df = train_f.append(val_f)
-    duplicate_rows_dF = appended_df[appended_df.duplicated(features, keep=False)]
-    duplicate_rows_dF.sort_values(features, inplace=True)
-    
+    duplicate_rows_df = appended_df[appended_df.duplicated(features, keep=False)]
+    duplicate_rows_df.sort_values(features, inplace=True)
+
     count_dups = 0
-    for index in duplicate_rows_dF.index:
+    for index in duplicate_rows_df.index:
         if not index.startswith('test'):
             continue
         count_dups += len(index.split(','))
-        
+
     dup_ratio = count_dups / len(val_f) * 100
     user_msg = 'You have {0:0.2f}% of the validation data in the train data.'.format(dup_ratio)
 
     if dup_ratio:
-        display = [user_msg, duplicate_rows_dF]
+        display = [user_msg, duplicate_rows_df]
     else:
         display = None
     return CheckResult(dup_ratio, header='Data Sample Leakage Report',
