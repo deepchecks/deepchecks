@@ -67,7 +67,7 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
     val_f = validation_dataset[features]
 
     train_dups = get_dup_indexes_map(train_dataset, features)
-    train_f.index = [f'test indexs: {get_dup_txt(i, train_dups)}' for i in train_f.index]
+    train_f.index = [f'test indexes: {get_dup_txt(i, train_dups)}' for i in train_f.index]
     train_f.drop_duplicates(features, inplace = True)
 
     val_dups = get_dup_indexes_map(val_f, features)
