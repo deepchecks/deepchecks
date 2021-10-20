@@ -20,7 +20,7 @@ def mixed_types(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, Itera
 
     Args:
         dataset (Dataset):
-        columns (Union[str, Iterable[str]]): Columns to check, if none given checks all columns Except ignored ones.
+        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored ones.
         ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns variable
 
     Returns:

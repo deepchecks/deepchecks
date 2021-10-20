@@ -52,7 +52,7 @@ def mixed_nulls(dataset: Union[pd.DataFrame, Dataset], null_string_list: Iterabl
         dataset (DataFrame): dataset to check
         null_string_list (List[str]): List of strings to be considered alternative null representations
         check_nan(bool): Whether to add to null list to check also NaN values
-        columns (Union[str, Iterable[str]]): Columns to check, if none given checks all columns Except ignored ones.
+        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored ones.
         ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns variable
 
     Returns
