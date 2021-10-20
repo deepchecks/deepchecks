@@ -2,19 +2,18 @@
 import sklearn
 from sklearn.base import BaseEstimator
 from mlchecks.base.check import SingleDatasetBaseCheck
-from mlchecks.base.dataset import validate_dataset
 from mlchecks import CheckResult, Dataset
 
 __all__ = ['confusion_matrix_report', 'ConfusionMatrixReport']
 
 
-def confusion_matrix_report(ds: Dataset, model):
+def confusion_matrix_report(dataset: Dataset, model):
     """
     Return the confusion_matrix.
 
     Args:
+        dataset: a Dataset object
         model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
-        ds: a Dataset object
     Returns:
         CheckResult: value is numpy array of the confusion matrix, displays the confusion matrix
 
@@ -22,12 +21,13 @@ def confusion_matrix_report(ds: Dataset, model):
         MLChecksValueError: If the object is not a Dataset instance with a label
 
     """
-    validate_dataset(ds, 'confusion_matrix_report')
-    ds.validate_label('confusion_matrix_report')
+    self = confusion_matrix_report
+    Dataset.validate_dataset(dataset, self.__name__)
+    dataset.validate_label(self.__name__)
 
-    label = ds.label_name()
-    ds_x = ds[ds.features()]
-    ds_y = ds[label]
+    label = dataset.label_name()
+    ds_x = dataset.data[dataset.features()]
+    ds_y = dataset.data[label]
     y_pred = model.predict(ds_x)
 
     confusion_matrix = sklearn.metrics.confusion_matrix(ds_y, y_pred)
@@ -35,19 +35,18 @@ def confusion_matrix_report(ds: Dataset, model):
     def display():
         sklearn.metrics.ConfusionMatrixDisplay(confusion_matrix).plot()
 
-    return CheckResult(confusion_matrix, header='Confusion Matrix Report', check=confusion_matrix_report,
-                       display=display)
+    return CheckResult(confusion_matrix, check=self, display=display)
 
 
 class ConfusionMatrixReport(SingleDatasetBaseCheck):
-    """Summarize given model parameters."""
+    """Return the confusion_matrix."""
 
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run confusion_matrix_report check.
 
         Args:
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
-            ds: a Dataset object
+            dataset: a Dataset object
         Returns:
             CheckResult: value is numpy array of the confusion matrix, displays the confusion matrix
         """

@@ -1,24 +1,29 @@
 """String mismatch functions."""
 from collections import defaultdict
-from typing import Union, List, Set, Dict
+from typing import Union, Set, Dict, Iterable
+
+import pandas as pd
 from pandas import DataFrame, StringDtype, Series
 
-from mlchecks import validate_dataset_or_dataframe, CheckResult, SingleDatasetBaseCheck
-from mlchecks.checks.integrity.string_utils import string_baseform
+from mlchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_dataframe_type
+from mlchecks.base.dataframe_utils import filter_columns_with_validation
+from mlchecks.base.string_utils import string_baseform
 
 __all__ = ['string_mismatch', 'StringMismatch']
 
 
-def string_mismatch(dataset: DataFrame, ignore_columns: Union[str, List[str]] = None) -> CheckResult:
+def string_mismatch(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, Iterable[str]] = None,
+                    ignore_columns: Union[str, Iterable[str]] = None) -> CheckResult:
     """Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column.
 
     Args:
         dataset (DataFrame): A dataset or pd.FataFrame object.
-        ignore_columns (Union[str, List[str]]): columns to ignore
+        columns (Union[str, Iterable[str]]): Columns to check, if none given checks all columns Except ignored ones.
+        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns variable
     """
     # Validate parameters
-    dataset = validate_dataset_or_dataframe(dataset)
-    dataset = dataset.filter_columns_with_validation(ignore_columns=ignore_columns)
+    dataset: pd.DataFrame = ensure_dataframe_type(dataset)
+    dataset = filter_columns_with_validation(dataset, columns, ignore_columns)
 
     results = []
 
@@ -46,7 +51,7 @@ def string_mismatch(dataset: DataFrame, ignore_columns: Union[str, List[str]] = 
     else:
         display = None
 
-    return CheckResult(df_graph, header='String Mismatch', check=string_mismatch, display=display)
+    return CheckResult(df_graph, check=string_mismatch, display=display)
 
 
 def get_base_form_to_variants_dict(uniques):
@@ -72,5 +77,6 @@ class StringMismatch(SingleDatasetBaseCheck):
         Args:
             dataset (DataFrame): A dataset or pd.FataFrame object.
         """
-        return string_mismatch(dataset, ignore_columns=self.params.get('ignore_columns'))
-
+        return string_mismatch(dataset,
+                               columns=self.params.get('columns'),
+                               ignore_columns=self.params.get('ignore_columns'))

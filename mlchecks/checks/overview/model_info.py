@@ -25,7 +25,7 @@ def model_info(model: BaseEstimator):
     value = {'type': model_type, 'params': model.get_params()}
     display = [f'Model Type: {model_type}', model_param_df]
 
-    return CheckResult(value, header='Model Info', check=model_info, display=display)
+    return CheckResult(value, check=model_info, display=display)
 
 
 class ModelInfo(ModelOnlyBaseCheck):
