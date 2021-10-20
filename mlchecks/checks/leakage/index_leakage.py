@@ -2,7 +2,6 @@
 import pandas as pd
 
 from mlchecks import CheckResult, Dataset, TrainValidationBaseCheck
-from mlchecks.base.dataset import validate_dataset
 
 __all__ = ['index_train_validation_leakage', 'IndexTrainValidationLeakage']
 
@@ -24,10 +23,11 @@ def index_train_validation_leakage(train_dataset: Dataset, validation_dataset: D
     Raises:
         MLChecksValueError: If the if one of the datasets is not a Dataset instance with an index
     """
-    train_dataset = validate_dataset(train_dataset, index_train_validation_leakage.__name__)
-    validation_dataset = validate_dataset(validation_dataset, index_train_validation_leakage.__name__)
-    train_dataset.validate_index(index_train_validation_leakage.__name__)
-    validation_dataset.validate_index(index_train_validation_leakage.__name__)
+    self = index_train_validation_leakage
+    train_dataset = Dataset.validate_dataset(train_dataset, self.__name__)
+    validation_dataset = Dataset.validate_dataset(validation_dataset, self.__name__)
+    train_dataset.validate_index(self.__name__)
+    validation_dataset.validate_index(self.__name__)
 
     train_index = train_dataset.index_col()
     val_index = validation_dataset.index_col()
@@ -43,8 +43,7 @@ def index_train_validation_leakage(train_dataset: Dataset, validation_dataset: D
         size_in_test = 0
         display = None
 
-    return CheckResult(value=size_in_test, header='Index Train-Validation Leakage',
-                       check=index_train_validation_leakage, display=display)
+    return CheckResult(value=size_in_test, header='Index Train-Validation Leakage', check=self, display=display)
 
 
 class IndexTrainValidationLeakage(TrainValidationBaseCheck):

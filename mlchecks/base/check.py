@@ -10,6 +10,7 @@ import pandas as pd
 from IPython.core.display import display_html
 from matplotlib import pyplot as plt
 
+from mlchecks.base.string_utils import underscore_to_capitalize
 from mlchecks.utils import MLChecksValueError
 
 
@@ -41,10 +42,10 @@ class CheckResult:
             displayed in notebook.
             display (Callable): Function which is used for custom display.
         """
-        if check and not isinstance(check, Callable):
+        if check is not None and not isinstance(check, Callable):
             raise MLChecksValueError('`check` parameter of CheckResult must be callable')
         self.value = value
-        self.header = header
+        self.header = header or (check and underscore_to_capitalize(check.__name__)) or None
         self.check = check
 
         if display is not None and not isinstance(display, List):
@@ -67,7 +68,10 @@ class CheckResult:
 
         for item in self.display:
             if isinstance(item, pd.DataFrame):
-                display_html(item.to_html(justify='left'), raw=True)
+                # Align everything to the left
+                df_styler = item.style.set_properties(**{'text-align': 'left'})
+                df_styler.set_table_styles([dict(selector='th', props=[('text-align', 'left')])])
+                display_html(df_styler.render(), raw=True)
             elif isinstance(item, str):
                 display_html(item, raw=True)
             elif isinstance(item, Callable):

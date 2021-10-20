@@ -17,3 +17,12 @@ def string_baseform(string: str):
     if not isinstance(string, str):
         return string
     return string.translate(str.maketrans('', '', SPECIAL_CHARS)).lower()
+
+
+def underscore_to_capitalize(string: str):
+    """Replace underscore with space and capitalize first letters in each word.
+
+    Args:
+        string (str): string to change
+    """
+    return ' '.join([s.capitalize() for s in string.split('_')])
