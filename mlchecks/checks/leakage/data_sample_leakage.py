@@ -63,7 +63,10 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
     validation_dataset = Dataset.validate_dataset_or_dataframe(validation_dataset)
     train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
 
-    columns = train_dataset.features() + [train_dataset.label_name()]
+    columns = train_dataset.features()
+    if train_dataset.label_name():
+        columns += [train_dataset.label_name()]
+    
     train_f = train_dataset.data[columns]
     val_f = validation_dataset.data[columns]
 
@@ -86,7 +89,8 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
         count_dups += len(index.split(','))
 
     dup_ratio = count_dups / len(val_f) * 100
-    user_msg = f'You have {dup_ratio:0.2f}% ({count_dups} / {len(val_f)}) of the validation data samples appear in train data'
+    user_msg = f'You have {dup_ratio:0.2f}% ({count_dups} / {len(val_f)}) \
+                 of the validation data samples appear in train data'
     display = [user_msg, duplicate_rows_df.head(10)] if dup_ratio else None
 
     return CheckResult(dup_ratio, header='Data Sample Leakage Report',
