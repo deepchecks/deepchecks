@@ -6,10 +6,9 @@ import warnings
 from mlchecks.utils import MLChecksValueError
 
 
-PANDAS_USER_ATTR_WARNING_STR = "Pandas doesn't allow columns to be created via a new attribute name - "\
-                               "see "\
-                               "https://pandas.pydata.org/pandas-docs/stable/indexing.html#attribute"\
-                               "-access"
+PANDAS_USER_ATTR_WARNING_STR = ('Pandas doesn\'t allow columns to be created via a new attribute name - see'
+                                ' https://pandas.pydata.org/pandas-docs/stable/indexing.html#attribute-access')
+
 
 __all__ = ['Dataset', 'validate_dataset_or_dataframe', 'validate_dataset']
 
@@ -33,6 +32,7 @@ class Dataset(pd.DataFrame):
                  df: pd.DataFrame, *args,
                  features: List[str] = None, cat_features: List[str] = None,
                  label: str = None, use_index: bool = False, index: str = None, date: str = None,
+                 date_unit_type: str = None,
                  **kwargs):
         """Initiate the Dataset using a pandas DataFrame and Metadata.
 
@@ -44,6 +44,9 @@ class Dataset(pd.DataFrame):
           use_index: Name of the index column in the DataFrame.
           index: Name of the index column in the DataFrame.
           date: Name of the date column in the DataFrame.
+          date_unit_type: Unit used for conversion if date column is of type int or float.
+                          The valid values are 'D', 'h', 'm', 's', 'ms', 'us', and 'ns'.
+                          e.g. 's' for seconds, 'ns' for nanoseconds. See pandas.Timestamp unit arg for more detail.
 
         """
         super().__init__(df, *args, **kwargs)
@@ -57,8 +60,7 @@ class Dataset(pd.DataFrame):
             raise MLChecksValueError(f'label column {label} not found in dataset columns')
 
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore",
-                                    message=PANDAS_USER_ATTR_WARNING_STR)
+            warnings.filterwarnings('ignore', message=PANDAS_USER_ATTR_WARNING_STR)
             if features:
                 self._features = features
             else:
@@ -73,6 +75,9 @@ class Dataset(pd.DataFrame):
                 self._cat_features = cat_features
             else:
                 self._cat_features = self.infer_categorical_features()
+
+            if self._date_name:
+                self[self._date_name] = self[self._date_name].apply(pd.Timestamp, unit=date_unit_type)
 
         self._profile = ProfileReport(self, title='Dataset Report', explorative=True, minimal=True)
 
@@ -248,7 +253,28 @@ class Dataset(pd.DataFrame):
         """
         if columns:
             self.validate_columns_exist(columns)
-            return self.drop(labels=columns, axis='columns')
+            return Dataset(self.drop(labels=columns, axis='columns'))
+        else:
+            return self
+
+    def filter_columns_with_validation(self, columns: Union[str, List[str], None] = None,
+                                       ignore_columns: Union[str, List[str], None] = None) -> 'Dataset':
+        """Filter dataset columns by given params.
+
+        Args:
+            columns (Union[str, List[str], None]): Column names to keep.
+            ignore_columns (Union[str, List[str], None]): Column names to drop.
+        Raise:
+            MLChecksValueError: In case one of columns given don't exists raise error
+        """
+        if columns and ignore_columns:
+            raise MLChecksValueError('Can\'t have columns and ignore_columns together')
+        elif columns:
+            self.validate_columns_exist(columns)
+            return Dataset(self[columns])
+        elif ignore_columns:
+            self.validate_columns_exist(ignore_columns)
+            return Dataset(self.drop(labels=ignore_columns, axis='columns'))
         else:
             return self
 

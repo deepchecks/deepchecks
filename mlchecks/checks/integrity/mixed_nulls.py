@@ -7,13 +7,12 @@ from pandas import DataFrame, StringDtype
 
 from mlchecks import Dataset, CheckResult, validate_dataset_or_dataframe
 from mlchecks.base.check import SingleDatasetBaseCheck
-from mlchecks.display import format_check_display
+from mlchecks.checks.integrity.string_utils import string_baseform
 from mlchecks.utils import MLChecksValueError
 
 __all__ = ['mixed_nulls', 'MixedNulls']
 
 DEFAULT_NULL_VALUES = {'none', 'null', 'nan', 'na', '', '\x00', '\x00\x00'}
-SPECIAL_CHARS: str = ' !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~\n'
 
 
 def validate_null_string_list(nsl, check_nan: bool) -> set:
@@ -44,20 +43,6 @@ def validate_null_string_list(nsl, check_nan: bool) -> set:
     return result
 
 
-def string_baseform(string: str):
-    """Remove special characters from given string.
-
-    Args:
-        string (str): string to remove special characters from
-
-    Returns:
-        (str): string without special characters
-    """
-    if not isinstance(string, str):
-        return string
-    return string.translate(str.maketrans('', '', SPECIAL_CHARS)).lower()
-
-
 def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None,
                 ignore_columns: Union[str, List[str]] = None, check_nan: bool = True) -> CheckResult:
     """Search for various types of null values in a string column(s), including string representations of null.
@@ -75,7 +60,7 @@ def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None,
     # Validate parameters
     dataset: Dataset = validate_dataset_or_dataframe(dataset)
     null_string_list: set = validate_null_string_list(null_string_list, check_nan)
-    dataset = dataset.drop_columns_with_validation(ignore_columns)
+    dataset = dataset.filter_columns_with_validation(ignore_columns=ignore_columns)
 
     # Result value
     display_array = []
@@ -100,9 +85,12 @@ def mixed_nulls(dataset: DataFrame, null_string_list: Iterable[str] = None,
     df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Fraction of data'])
     df_graph = df_graph.set_index(['Column Name', 'Value'])
 
-    visual = df_graph.to_html() if len(df_graph) > 0 else None
-    formatted_html = format_check_display('Mixed Nulls', mixed_nulls, visual)
-    return CheckResult(df_graph, display={'text/html': formatted_html})
+    if len(df_graph) > 0:
+        display = df_graph
+    else:
+        display = None
+
+    return CheckResult(df_graph, header='Mixed Nulls', check=mixed_nulls, display=display)
 
 
 class MixedNulls(SingleDatasetBaseCheck):

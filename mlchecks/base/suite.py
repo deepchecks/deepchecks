@@ -1,13 +1,17 @@
 """Module containing the Suite object, used for running a set of checks together."""
 from typing import List
 
+from IPython.core.display import display_html
+
 from mlchecks.base.check import BaseCheck, CheckResult, TrainValidationBaseCheck, CompareDatasetsBaseCheck, \
     SingleDatasetBaseCheck, ModelOnlyBaseCheck
 
 __all__ = ['CheckSuite']
 
+from mlchecks.utils import MLChecksValueError
 
-class CheckSuite:
+
+class CheckSuite(BaseCheck):
     """Class for running a set of checks together, and returning a unified pass / no-pass.
 
     Attributes:
@@ -15,13 +19,16 @@ class CheckSuite:
     """
 
     checks: List[BaseCheck]
+    name: str
 
-    def __init__(self, *checks):
+    def __init__(self, name, *checks):
         """Get `Check`s and `CheckSuite`s to run in given order."""
+        super().__init__()
         for check in checks:
             if not isinstance(check, BaseCheck):
                 raise Exception(f'CheckSuite receives only `BaseCheck` objects but got: {check.__class__.__name__}')
         self.checks = checks
+        self.name = name
 
     def run(self, model=None, train_dataset=None, validation_dataset=None, check_datasets_policy: str = 'validation') \
             -> List[CheckResult]:
@@ -52,15 +59,31 @@ class CheckSuite:
             elif isinstance(check, CompareDatasetsBaseCheck):
                 results.append(check.run(dataset=train_dataset, compared_dataset=validation_dataset, model=model))
             elif isinstance(check, SingleDatasetBaseCheck):
-                if check_datasets_policy in ['both', 'train']:
-                    results.append(check.run(dataset=train_dataset))
-                if check_datasets_policy in ['both', 'validation']:
-                    results.append(check.run(dataset=validation_dataset))
+                if check_datasets_policy in ['both', 'train'] and train_dataset is not None:
+                    res = check.run(dataset=train_dataset)
+                    res.header = f'{res.header} - Train Dataset'
+                    results.append(res)
+                if check_datasets_policy in ['both', 'validation'] and validation_dataset is not None:
+                    res = check.run(dataset=validation_dataset)
+                    res.header = f'{res.header} - Validation Dataset'
+                    results.append(res)
             elif isinstance(check, ModelOnlyBaseCheck):
                 results.append(check.run(model=model))
+            elif isinstance(check, CheckSuite):
+                suite_res = check.run(model, train_dataset, validation_dataset, check_datasets_policy)
+                if check.name in results:
+                    raise MLChecksValueError('Each suite must have a unique name')
+                results.append(suite_res)
             else:
                 raise TypeError(f'Expected check of type SingleDatasetBaseCheck, CompareDatasetsBaseCheck, '
                                 f'TrainValidationBaseCheck or ModelOnlyBaseCheck. Got  {check.__class__.__name__} '
                                 f'instead')
 
-        return results
+        def display():
+            display_html(f'<h3>{self.name}</h3>', raw=True)
+            for result in results:
+                # Disable protected access warning
+                #pylint: disable=protected-access
+                result._ipython_display_()
+
+        return CheckResult(results, display=display)
