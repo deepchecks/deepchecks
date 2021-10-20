@@ -62,13 +62,14 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
     """
     validation_dataset = Dataset.validate_dataset_or_dataframe(validation_dataset)
     train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
+    validation_dataset.validate_shared_features(train_dataset, data_sample_leakage_report.__name__)
 
     columns = train_dataset.features()
     if train_dataset.label_name():
-        columns += [train_dataset.label_name()]
+        columns = columns + [train_dataset.label_name()]
     
-    train_f = train_dataset.data[columns]
-    val_f = validation_dataset.data[columns]
+    train_f = train_dataset.data
+    val_f = validation_dataset.data
 
     train_dups = get_dup_indexes_map(train_f, columns)
     train_f.index = [f'test indexes: {get_dup_txt(i, train_dups)}' for i in train_f.index]
