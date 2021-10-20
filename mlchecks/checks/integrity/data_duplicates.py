@@ -1,35 +1,32 @@
 """module contains Data Duplicates check."""
 from typing import List, Iterable
-import pandas as pd
 from pandas import DataFrame
-from pandas.api.types import infer_dtype
 
-import numpy as np
 
 from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset_or_dataframe
-from mlchecks.checks.integrity.mixed_types import validate_column_list
-from mlchecks.utils import MLChecksValueError
-
+from mlchecks.utils import validate_column_list, MLChecksValueError
 
 __all__ = ['data_duplicates', 'DataDuplicates']
-
 
 
 def data_duplicates(dataset: DataFrame,
                     columns: Iterable[str] = None,
                     ignore_columns: Iterable[str] = None,
                     n_to_show: int = 5):
-    """Search for Data duplicats in dataset.
+    """Search for Data duplicates in dataset.
 
     Args:
-        dataset (Dataset):
+        dataset (DataFrame): any dataset.
         columns (List[str]): List of columns to check, if none given checks all columns Except ignored ones.
-        ignore_columns (List[str]): List of columns to ignore, if none given checks based on columns variable
-
+        ignore_columns (List[str]): List of columns to ignore, if none given checks based on columns variable.
+        n_to_show (int): number of most duplicated to show.
     Returns:
-        (CheckResult):
+        (CheckResult): percentage of duplicates and display of the top n_to_show most duplicated.
+
+    Raises:
+        MLChecksValueError: If the dataset is empty or columns not in dataset.
     """
     dataset: Dataset = validate_dataset_or_dataframe(dataset)
     dataset = dataset.drop_columns_with_validation(ignore_columns)
@@ -42,24 +39,23 @@ def data_duplicates(dataset: DataFrame,
     n_samples = dataset.shape[0]
 
     if n_samples == 0:
-        return CheckResult(0, header="Data Duplicates", check=data_duplicates, display=None)
+        raise MLChecksValueError('Dataset does not contain any data')
 
-    print(columns, type(columns))
-
-    unique_data_counted = dataset[columns].groupby(columns).size()
-    n_unique = len(unique_data_counted)
+    group_unique_data = dataset[columns].groupby(columns).size()
+    n_unique = len(group_unique_data)
 
     percent_duplicate = 1 - (1.0 * int(n_unique)) / (1.0 * int(n_samples))
 
     if percent_duplicate > 0:
-        unique_rows_counted = unique_data_counted.reset_index().rename(columns={0: "duplicate_count"})
-        most_duplicates = unique_rows_counted[unique_rows_counted["duplicate_count"] > 1].nlargest(n_to_show, ["duplicate_count"])
+        duplicates_counted = group_unique_data.reset_index().rename(columns={0: 'duplicate_count'})
+        most_duplicates = duplicates_counted[duplicates_counted['duplicate_count'] > 1].nlargest(n_to_show,
+                                                                                                 ['duplicate_count'])
         text = f'{percent_duplicate:.1%} of data are duplicates'
         display = [text, most_duplicates]
     else:
         display = None
 
-    return CheckResult(value=percent_duplicate, header="Data Duplicates", check=data_duplicates, display=display)
+    return CheckResult(value=percent_duplicate, header='Data Duplicates', check=data_duplicates, display=display)
 
 
 class DataDuplicates(SingleDatasetBaseCheck):
@@ -69,12 +65,12 @@ class DataDuplicates(SingleDatasetBaseCheck):
         """Run data_duplicates.
 
         Args:
-          dataset(Dataset):
+          dataset(Dataset): any dataset.
 
         Returns:
-          (CheckResult): DataFrame with rows ('strings', 'numbers') for any column with mixed types.
-          numbers will also include hidden numbers in string representation.
+          (CheckResult): percentage of duplicates and display of the top n_to_show most duplicated.
         """
         return data_duplicates(dataset,
-                            columns=self.params.get('columns'),
-                            ignore_columns=self.params.get('ignore_columns'))
+                               columns=self.params.get('columns'),
+                               ignore_columns=self.params.get('ignore_columns'),
+                               n_to_show=self.params.get('n_to_show'))
