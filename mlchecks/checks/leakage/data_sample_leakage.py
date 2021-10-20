@@ -92,7 +92,7 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
             if not 'tot.' in index:
                 count_dups += len(index.split(','))
             else:
-                count_dups += int(re.findall("Tot. (\d+)", index)[0])
+                count_dups += int(re.findall(r'Tot. (\d+)', index)[0])
 
     dup_ratio = count_dups / len(val_f) * 100
     user_msg = f'You have {dup_ratio:0.2f}% ({count_dups} / {len(val_f)}) \
