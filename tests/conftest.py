@@ -5,7 +5,6 @@
 import pytest
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.datasets import load_iris
-import pandas as pd
 from mlchecks import Dataset
 
 

@@ -19,7 +19,7 @@ def get_dup_indexes_map(df, features) -> Dict:
 
     """
     dup = df[df.duplicated(features, keep=False)].groupby(features).groups.values()
-    dup_map = dict()
+    dup_map = {}
     for i_arr in dup:
         key = i_arr[0]
         dup_map[key] = [int(i) for i in i_arr[1:]]
@@ -52,9 +52,9 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
         model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
         ds: a Dataset object
     Returns:
-        CheckResult: value is sample leakage ratio in %, 
+        CheckResult: value is sample leakage ratio in %,
                      displays a dataframe that shows the duplicated rows between the datasets
- 
+
     Raises:
         MLChecksValueError: If the object is not a Dataset instance
 
@@ -85,7 +85,7 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
         count_dups += len(index.split(','))
 
     dup_ratio = count_dups / len(val_f) * 100
-    user_msg = 'You have {0:0.2f}% of the validation data in the train data.'.format(dup_ratio)
+    user_msg = 'You have {0:0.2f}% of the validation data in the train data.'.format(dup_ratio) # pylint: disable=locally-disabled, consider-using-f-string
 
     if dup_ratio:
         display = [user_msg, duplicate_rows_df]
@@ -104,6 +104,7 @@ class DataSampleLeakageReport(TrainValidationBaseCheck):
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
             ds: a Dataset object
         Returns:
-            CheckResult: value is sample leakage ratio in %, displays a dataframe that shows the duplicated rows between the datasets
+            CheckResult: value is sample leakage ratio in %,
+                         displays a dataframe that shows the duplicated rows between the datasets
         """
         return data_sample_leakage_report(validation_dataset=validation_dataset, train_dataset=train_dataset)
