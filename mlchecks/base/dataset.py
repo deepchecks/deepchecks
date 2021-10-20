@@ -32,6 +32,7 @@ class Dataset(pd.DataFrame):
                  df: pd.DataFrame, *args,
                  features: List[str] = None, cat_features: List[str] = None,
                  label: str = None, use_index: bool = False, index: str = None, date: str = None,
+                 date_unit_type: str = None,
                  **kwargs):
         """Initiate the Dataset using a pandas DataFrame and Metadata.
 
@@ -43,6 +44,9 @@ class Dataset(pd.DataFrame):
           use_index: Name of the index column in the DataFrame.
           index: Name of the index column in the DataFrame.
           date: Name of the date column in the DataFrame.
+          date_unit_type: Unit used for conversion if date column is of type int or float.
+                          The valid values are 'D', 'h', 'm', 's', 'ms', 'us', and 'ns'.
+                          e.g. 's' for seconds, 'ns' for nanoseconds. See pandas.Timestamp unit arg for more detail.
 
         """
         super().__init__(df, *args, **kwargs)
@@ -71,6 +75,9 @@ class Dataset(pd.DataFrame):
                 self._cat_features = cat_features
             else:
                 self._cat_features = self.infer_categorical_features()
+
+            if self._date_name:
+                self[self._date_name] = self[self._date_name].apply(pd.Timestamp, unit=date_unit_type)
 
         self._profile = ProfileReport(self, title='Dataset Report', explorative=True, minimal=True)
 
