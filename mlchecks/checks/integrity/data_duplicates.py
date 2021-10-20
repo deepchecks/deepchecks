@@ -1,25 +1,24 @@
 """module contains Data Duplicates check."""
-from typing import Iterable
-from pandas import DataFrame
+from typing import Iterable, Union
 
-from mlchecks import Dataset
+import pandas as pd
+
+from mlchecks import Dataset, ensure_dataframe_type
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
-from mlchecks.base.dataset import validate_dataset_or_dataframe
+from mlchecks.base.dataframe_utils import filter_columns_with_validation
 from mlchecks.utils import MLChecksValueError
 
 __all__ = ['data_duplicates', 'DataDuplicates']
 
 
-def data_duplicates(dataset: DataFrame,
-                    columns: Iterable[str] = None,
-                    ignore_columns: Iterable[str] = None,
-                    n_to_show: int = 5):
+def data_duplicates(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, Iterable[str]] = None,
+                    ignore_columns: Union[str, Iterable[str]] = None, n_to_show: int = 5) -> CheckResult:
     """Search for Data duplicates in dataset.
 
     Args:
-        dataset (DataFrame): any dataset.
-        columns (List[str]): List of columns to check, if none given checks all columns Except ignored ones.
-        ignore_columns (List[str]): List of columns to ignore, if none given checks based on columns variable.
+        dataset (DataFrame or Dataset): any dataset.
+        columns (str, Iterable[str]): List of columns to check, if none given checks all columns Except ignored ones.
+        ignore_columns (str, Iterable[str]): List of columns to ignore, if none given checks based on columns variable.
         n_to_show (int): number of most duplicated to show.
     Returns:
         (CheckResult): percentage of duplicates and display of the top n_to_show most duplicated.
@@ -27,8 +26,8 @@ def data_duplicates(dataset: DataFrame,
     Raises:
         MLChecksValueError: If the dataset is empty or columns not in dataset.
     """
-    dataset: Dataset = validate_dataset_or_dataframe(dataset)
-    dataset = dataset.filter_columns_with_validation(columns, ignore_columns)
+    dataset: pd.DataFrame = ensure_dataframe_type(dataset)
+    dataset = filter_columns_with_validation(dataset, columns, ignore_columns)
 
     data_columns = list(dataset.columns)
 
