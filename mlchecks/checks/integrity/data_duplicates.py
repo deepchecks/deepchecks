@@ -6,7 +6,7 @@ from pandas import DataFrame
 from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset_or_dataframe
-from mlchecks.utils import validate_column_list, MLChecksValueError
+from mlchecks.utils import MLChecksValueError
 
 __all__ = ['data_duplicates', 'DataDuplicates']
 
@@ -29,27 +29,24 @@ def data_duplicates(dataset: DataFrame,
         MLChecksValueError: If the dataset is empty or columns not in dataset.
     """
     dataset: Dataset = validate_dataset_or_dataframe(dataset)
-    dataset = dataset.drop_columns_with_validation(ignore_columns)
+    dataset = dataset.filter_columns_with_validation(columns, ignore_columns)
 
-    if columns is None:
-        columns: List[str] = dataset.columns.tolist()
-    else:
-        columns: List[str] = validate_column_list(columns)
+    data_columns = list(dataset.columns)
 
     n_samples = dataset.shape[0]
 
     if n_samples == 0:
         raise MLChecksValueError('Dataset does not contain any data')
 
-    group_unique_data = dataset[columns].groupby(columns).size()
+    group_unique_data = dataset[data_columns].groupby(data_columns).size()
     n_unique = len(group_unique_data)
 
     percent_duplicate = 1 - (1.0 * int(n_unique)) / (1.0 * int(n_samples))
 
     if percent_duplicate > 0:
         duplicates_counted = group_unique_data.reset_index().rename(columns={0: 'duplicate_count'})
-        most_duplicates = duplicates_counted[duplicates_counted['duplicate_count'] > 1].nlargest(n_to_show,
-                                                                                                 ['duplicate_count'])
+        most_duplicates = duplicates_counted[duplicates_counted['duplicate_count'] > 1].\
+            nlargest(n_to_show if n_to_show is not None else 5, ['duplicate_count'])
         text = f'{percent_duplicate:.1%} of data are duplicates'
         display = [text, most_duplicates]
     else:

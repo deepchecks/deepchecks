@@ -5,7 +5,7 @@ import catboost
 from IPython import get_ipython
 
 __all__ = ['SUPPORTED_BASE_MODELS', 'MLChecksValueError', 'model_type_validation', 'is_notebook',
-           'model_dataset_shape_validation', 'validate_column_list']
+           'model_dataset_shape_validation']
 
 SUPPORTED_BASE_MODELS = [sklearn.base.BaseEstimator, catboost.CatBoost]
 
@@ -62,29 +62,3 @@ def model_dataset_shape_validation(model: Any, dataset: Any):
                                      f' model({feature_count}) dataset({len(dataset.features())})')
     else:
         raise MLChecksValueError('unable to extract number of features from model')
-
-
-def validate_column_list(cl) -> List[str]:
-    """Validate the object given is a list of strings or None.
-
-    Args:
-        cl: the object to validate
-
-    Returns:
-        (set): Returns a list of columns names as set object or None
-    """
-    var_names = 'columns & ignore_columns '
-
-    result: set
-    if cl is not None:
-        if not isinstance(cl, Iterable):
-            raise MLChecksValueError(var_names + 'must be an iterable')
-        if len(cl) == 0:
-            raise MLChecksValueError(var_names + "can't be an emptry string")
-        if any((not isinstance(string, str) for string in cl)):
-            raise MLChecksValueError(var_names + "must contain only items of type 'str'")
-        result = list(cl)
-    else:
-        result = None
-
-    return result
