@@ -87,10 +87,8 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
     dup_ratio = count_dups / len(val_f) * 100
     user_msg = 'You have {0:0.2f}% of the validation data in the train data.'.format(dup_ratio) # pylint: disable=locally-disabled, consider-using-f-string
 
-    if dup_ratio:
-        display = [user_msg, duplicate_rows_df]
-    else:
-        display = None
+    display = [user_msg, duplicate_rows_df] if dup_ratio else None
+    
     return CheckResult(dup_ratio, header='Data Sample Leakage Report',
                        check=data_sample_leakage_report, display=display)
 
