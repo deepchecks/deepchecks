@@ -8,11 +8,11 @@ import pandas as pd
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
 from mlchecks.base.dataset import validate_dataset_or_dataframe
 
-# from mlchecks.display import format_check_display
 
 __all__ = ['rare_format_detection', 'RareFormatDetection', 'Pattern']
 
 from mlchecks.checks.integrity.string_utils import split_and_keep, split_and_keep_by_many
+from mlchecks.utils import MLChecksValueError
 
 
 class Pattern:
@@ -20,7 +20,18 @@ class Pattern:
 
     def __init__(self, name: str, substituters: Union[List[Tuple[str, str]], Tuple[str, str]], ignore: str = None,
                  refine: bool = False, is_sequence: bool = False):
-        """Initiate the Pattern class."""
+        """
+        Initiate the Pattern class.
+
+        Args:
+            name: name of pattern, will be shown in the results.
+            substituters: list of tuples or just a tuple. first argument in the tuple is the regex string, to find
+                relevant patterns. second argument in the tuple is a substring to replace all relevant substrings.
+            ignore: regex string indicating which substrings should be ignored (replaced with '')
+            refine: boolean. Indicates whether this pattern should be refined later (see _refine_formats)
+            is_sequence: boolean. Indicates whether the substituters are for one characters or for a sequence. Relevant
+                only when refine is True.
+        """
         self.name = name
         if isinstance(substituters, tuple):
             substituters = [substituters]
@@ -48,46 +59,69 @@ class Pattern:
 
 
 DEFAULT_PATTERNS = [
-    Pattern(name='digits only format (ignoring letters)', substituters=(r'\d', '0'), ignore=r'[A-Z|a-z]',
-            refine=True),
-    Pattern(name='sequences of digits only format (ignoring letters)', substituters=(r'\d+', '000'),
-            ignore=r'[A-Z|a-z]', refine=True, is_sequence=True),
-    Pattern(name='letters only format (ignoring digits)', substituters=(r'[A-Z|a-z]', 'X'), ignore=r'\d',
-            refine=True),
-    Pattern(name='sequences of letters only format (ignoring letters)', ignore=r'\d',
-            substituters=(r'[A-Z|a-z]+', 'XXX'), refine=True, is_sequence=True),
-    Pattern(name='digits and letters format', substituters=[(r'\d', '0'), (r'[A-Z|a-z]', 'X')]),
     Pattern(name='digits and letters format (case sensitive)',
             substituters=[(r'\d', '0'), (r'[A-Z]', 'X'), (r'[a-z]', 'x')]),
+    Pattern(name='digits and letters format', substituters=[(r'\d', '0'), (r'[A-Z|a-z]', 'X')]),
+    Pattern(name='digits only format (ignoring letters)', substituters=(r'\d', '0'), ignore=r'[A-Z|a-z]',
+            refine=True),
+    Pattern(name='letters only format (ignoring digits)', substituters=(r'[A-Z|a-z]', 'X'), ignore=r'\d',
+            refine=True),
     Pattern(name='digits or letters format', substituters=(r'[A-Z|a-z|d]', 'X'), refine=True, is_sequence=True),
+    Pattern(name='sequences of digits only format (ignoring letters)', substituters=(r'\d+', '000'),
+            ignore=r'[A-Z|a-z]', refine=True, is_sequence=True),
+    Pattern(name='sequences of letters only format (ignoring letters)', ignore=r'\d',
+            substituters=(r'[A-Z|a-z]+', 'XXX'), refine=True, is_sequence=True),
     Pattern(name='any sequence format', substituters=(r'[A-Z|a-z|d]+', 'XXX'), refine=True, is_sequence=True),
 ]
 
 
 def rare_format_detection(dataset: Union[Dataset, pd.DataFrame], column_names: Union[str, List[str]] = None,
-                          patterns: List[Pattern] = deepcopy(DEFAULT_PATTERNS), rarity_threshold: float = 0.05) \
+                          patterns: List[Pattern] = deepcopy(DEFAULT_PATTERNS), rarity_threshold: float = 0.05,
+                          pattern_match_method: str = 'first') \
         -> CheckResult:
     """Check whether columns have common formats (e.g. "XX-XX-XXXX" for dates") and detects values that don't match.
 
     Args:
         dataset (Dataset): A dataset object
-        column_names: list of columns or name of column to run on. Uses all feature columns if not specified.
-        patterns: patterns to look for when comparing common vs. rare formats. Uses DEFAULT_PATTERNS if not specified
-        rarity_threshold: threshold for get_rare_vs_common_values function
+        column_names (List[str]): list of columns or name of column to run on. Uses all feature columns if not specified
+        patterns (List[Pattern]): patterns to look for when comparing common vs. rare formats. Uses DEFAULT_PATTERNS
+            if not specified.
+            Note that if pattern_match_method='first' (which it is by default), then the order of patterns matter.
+            In this case, it is advised to order the patterns from specific to general.
+        rarity_threshold (float): threshold to indicate what is considered a "sharp" drop in commonness of values. This
+            is used by the function get_rare_vs_common_values which divides data into "common" and "rare" values, and
+            is used here to determine which formats are common and which are rare.
+        pattern_match_method (str): 'first' or 'all'. If 'first', returns only the pattern where a "rare format" sample
+            was found for the first time. If 'all', returns all patterns in which anything was found.
 
     Returns:
         CheckResult:
             - value: dictionary of all columns and found patterns
             - display: pandas Dataframe per column, showing the rare-to-common-ratio, common formats, examples for
                        common values and rare values
+
+    Example for a Pattern:
+            Pattern(name='digits or letters format', substituters=(r'[A-Z|a-z|d]', 'X'))
+            This pattern looks for either digits or letters and replaces them with the character 'X'. By replacing
+            these, we can find all strings matching this certain pattern and see how common (or rare) it is.
+
+            In this example, the string "nir123@deepchecks.com" would be changed to "XXXXXX@XXXXXXXXXX.XXX". All other
+            strings matching this format (e.g. "noam12@deepchecks.com") would be identified as having the same pattern.
+
+            If we also mark "refine = True" in the Pattern class, the check will further try and make the pattern more
+            accurate, by trying to find common characters in all samples of the same pattern. In this example,
+            the refined format found would be "XXXXXX@deepchecks.com.
     """
     dataset = validate_dataset_or_dataframe(dataset)
     column_names = column_names or dataset.features()
 
+    if pattern_match_method not in ['first', 'all']:
+        raise MLChecksValueError(f'pattern_match_method must be "first" or "all", got {pattern_match_method}')
+
     if isinstance(column_names, str):
         column_names = [column_names]
 
-    res = {column_name: _detect_per_column(dataset[column_name], patterns, rarity_threshold)
+    res = {column_name: _detect_per_column(dataset[column_name], patterns, rarity_threshold, pattern_match_method)
            for column_name in column_names}
 
     display = []
@@ -98,35 +132,48 @@ def rare_format_detection(dataset: Union[Dataset, pd.DataFrame], column_names: U
     return CheckResult(value=res, header='Rare Format Detection', check=rare_format_detection, display=display)
 
 
-def _detect_per_column(column: pd.Series, patterns, rarity_threshold):
+def _detect_per_column(column: pd.Series, patterns: List[Pattern], rarity_threshold: float, pattern_match_method: str)\
+        -> pd.DataFrame:
     """
     Check whether a column has common formats (e.g. "XX-XX-XXXX" for dates") and detects values that don't match.
 
     Args:
-        column: A pandas Series object
-        patterns: patterns to look for when comparing common vs. rare formats
-        rarity_threshold: threshold for get_rare_vs_common_values function
+        column (pd.Series): A pandas Series object
+        patterns (List[Pattern]): patterns to look for when comparing common vs. rare formats
+        rarity_threshold (float): threshold for get_rare_vs_common_values function
+        pattern_match_method (str): 'first' or 'all'. If 'first', returns only the pattern where a "rare format" sample
+            was found for the first time. If 'all', returns all patterns in which anything was found.
+
 
     Returns:
         pandas Dataframe: table showing the rare-to-common-ratio, common formats, examples for common values and
                           rare values
     """
-    all_pattern_janus_results = {pattern.name: _detect_per_column_and_pattern(column, pattern, rarity_threshold)
-                                 for pattern in patterns}
+    # all_pattern_results = {pattern.name: _detect_per_column_and_pattern(column, pattern, rarity_threshold)
+    #                        for pattern in patterns}
+    all_pattern_results = {}
+    formats_to_ignore = []
+    for pattern in patterns:
+        res = _detect_per_column_and_pattern(column, pattern, rarity_threshold, formats_to_ignore)
+        if res and pattern_match_method == 'first':
+            formats_to_ignore.extend(res['values in rare formats'])
+        all_pattern_results[pattern.name] = res
 
-    return pd.DataFrame(all_pattern_janus_results).dropna(axis=1, how='all')
+    return pd.DataFrame(all_pattern_results).dropna(axis=1, how='all')
 
 
-def _detect_per_column_and_pattern(column, pattern, rarity_threshold):
+def _detect_per_column_and_pattern(column: pd.Series, pattern: Pattern, rarity_threshold: float,
+                                   exclude_samples: list = None) -> dict:
     """
     Check whether a column has common formats (e.g. "XX-XX-XXXX" for dates") and detects values that don't match.
 
     This function checks one pattern per column.
 
     Args:
-        column: A pandas Series object
-        pattern: pattern to look for when comparing common vs. rare formats
-        rarity_threshold: threshold for get_rare_vs_common_values function
+        column (pd.Series): A pandas Series object
+        pattern (Pattern): pattern to look for when comparing common vs. rare formats
+        rarity_threshold (float): threshold for get_rare_vs_common_values function
+        exclude_samples (List[str]): list of samples to ignore
 
     Returns:
         dict: dictionary with values representing the rare-to-common-ratio, common formats, examples for common values
@@ -144,6 +191,9 @@ def _detect_per_column_and_pattern(column, pattern, rarity_threshold):
     if not any(pattern.is_format_significant(common_format) for common_format in common_formats): return {}
 
     rare_values = column[patterned_column.isin(rare_formats)]
+    rare_values = rare_values[~rare_values.isin(exclude_samples)]
+    if rare_values.empty: return {}
+
     common_values_examples = [column[patterned_column == common_format].values[0] for common_format in common_formats]
 
     if pattern.refine is True:
@@ -151,7 +201,7 @@ def _detect_per_column_and_pattern(column, pattern, rarity_threshold):
             format_samples = column[patterned_column == fmt].apply(pattern.clean).values
             common_formats[i] = _refine_formats(fmt=fmt, substr=pattern.substituters[0][1], samples=format_samples,
                                                 is_substr_sequence=pattern.is_sequence)
-            #TODO: using pattern.substituters[0][1] right now. should be all fillers - substr should get a list
+            # TODO: using pattern.substituters[0][1] right now. should be all fillers - substr should get a list
 
     return {'ratio of rare patterns to common patterns': f'{rare_to_common_format_ratio:.2%}',
             'common formats': common_formats,
@@ -267,4 +317,6 @@ class RareFormatDetection(SingleDatasetBaseCheck):
                 - display: pandas Dataframe per column, showing the rare-to-common-ratio, common formats, examples for
                            common values and rare values
         """
-        return rare_format_detection(dataset=dataset, rarity_threshold=self.params.get('rarity_threshold', 0.05))
+        return rare_format_detection(dataset=dataset, patterns=self.params.get('patterns', deepcopy(DEFAULT_PATTERNS)),
+                                     rarity_threshold=self.params.get('rarity_threshold', 0.05),
+                                     pattern_match_method=self.params.get('pattern_match_method', 'first'))
