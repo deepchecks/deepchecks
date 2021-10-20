@@ -5,20 +5,19 @@ from matplotlib import pyplot as plt
 import numpy as np
 import sklearn
 from sklearn.base import BaseEstimator
-from mlchecks.base.dataset import validate_dataset
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
 
 
 __all__ = ['roc_report', 'RocReport']
 
 
-def roc_report(ds: Dataset, model):
+def roc_report(dataset: Dataset, model):
     """
     Return the AUC for each class.
 
     Args:
+        dataset: a Dataset object
         model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
-        ds: a Dataset object
     Returns:
         CheckResult: value is dictionary of class and it's auc score, displays the roc graph with each class
 
@@ -26,12 +25,13 @@ def roc_report(ds: Dataset, model):
         MLChecksValueError: If the object is not a Dataset instance with a label
 
     """
-    validate_dataset(ds, 'roc_report')
-    ds.validate_label('roc_report')
+    self = roc_report
+    Dataset.validate_dataset(dataset, self.__name__)
+    dataset.validate_label(self.__name__)
 
-    label = ds.label_name()
-    ds_x = ds[ds.features()]
-    ds_y = ds[label]
+    label = dataset.label_name()
+    ds_x = dataset.data[dataset.features()]
+    ds_y = dataset.data[label]
     multi_y = (np.array(ds_y)[:, None] == np.unique(ds_y)).astype(int)
     n_classes = ds_y.nunique()
     y_pred_prob = model.predict_proba(ds_x)
@@ -58,18 +58,18 @@ def roc_report(ds: Dataset, model):
         plt.title('Receiver operating characteristic for multi-class data')
         plt.legend(loc='lower right')
 
-    return CheckResult(roc_auc, header='ROC Report', check=roc_report, display=display)
+    return CheckResult(roc_auc, header='ROC Report', check=self, display=display)
 
 
 class RocReport(SingleDatasetBaseCheck):
-    """Summarize given model parameters."""
+    """Return the AUC for each class."""
 
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run roc_report check.
 
         Args:
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
-            ds: a Dataset object
+            dataset: a Dataset object
         Returns:
             CheckResult: value is dictionary of class and it's auc score, displays the roc graph with each class
         """
