@@ -95,10 +95,10 @@ def test_wrong_ignore_columns_single_value():
 
     # Act
     assert_that(calling(is_single_value).with_args(df, ignore_columns=['bbb', 'd']),
-                raises(MLChecksValueError, 'Given columns are not exists on dataset:'))
+                raises(MLChecksValueError, 'Given columns do not exist in dataset: d'))
 
 
 def test_wrong_input_single_value():
     # Act
     assert_that(calling(is_single_value).with_args('some string'),
-                raises(MLChecksValueError, 'dataset must be of type DataFrame or Dataset. instead got: '))
+                raises(MLChecksValueError, 'dataset must be of type DataFrame or Dataset, but got: str'))
