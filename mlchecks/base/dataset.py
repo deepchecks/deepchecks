@@ -8,8 +8,6 @@ from mlchecks.utils import MLChecksValueError
 
 __all__ = ['Dataset', 'ensure_dataframe_type']
 
-MAX_CATEGORY_RATIO = 0.001
-MAX_CATEGORIES = 100
 
 class Dataset:
     """Dataset wraps pandas DataFrame together with ML related metadata.
@@ -36,13 +34,15 @@ class Dataset:
 
     def __init__(self, df: pd.DataFrame,
                  features: List[str] = None, cat_features: List[str] = None, label: str = None, use_index: bool = False,
-                 index: str = None, date: str = None, date_unit_type: str = None, _convert_date: bool = True):
+                 index: str = None, date: str = None, date_unit_type: str = None, _convert_date: bool = True,
+                 max_categorical_ratio: float = 0.001, max_categories: int = 100):
         """Initiate the Dataset using a pandas DataFrame and Metadata.
 
         Args:
           df: A pandas DataFrame containing data relevant for the training or validating of a ML models
           features: List of names for the feature columns in the DataFrame.
-          cat_features: List of names for the categorical features in the DataFrame.
+          cat_features: List of names for the categorical features in the DataFrame. In order to disable categorical
+                        features inference, pass cat_features=[]
           label: Name of the label column in the DataFrame.
           use_index: Name of the index column in the DataFrame.
           index: Name of the index column in the DataFrame.
@@ -72,8 +72,10 @@ class Dataset:
         self._index_name = index
         self._date_name = date
         self._date_unit_type = date_unit_type
+        self._max_categorical_ratio = max_categorical_ratio
+        self._max_categories = max_categories
 
-        if cat_features:
+        if cat_features is not None:
             self._cat_features = cat_features
         else:
             self._cat_features = self.infer_categorical_features()
@@ -114,9 +116,10 @@ class Dataset:
         """
         cat_columns = []
 
-        for col in self.columns:
-            num_unique = self[col].nunique(dropna=True)
-            if num_unique / len(self[col].dropna()) < MAX_CATEGORY_RATIO or num_unique <= MAX_CATEGORIES:
+        for col in self.data.columns:
+            num_unique = self.data[col].nunique(dropna=True)
+            if num_unique / len(self.data[col].dropna()) < self._max_categorical_ratio\
+                    or num_unique <= self._max_categories:
                 cat_columns.append(col)
 
         return cat_columns
