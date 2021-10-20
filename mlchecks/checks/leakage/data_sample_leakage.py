@@ -46,7 +46,7 @@ def get_dup_txt(i: int, dup_map: Dict) -> str:
     txt = txt[:-2]
     if len(txt) < 30:
         return txt
-    return f'{txt[:30]}.. tot. {(1 + len(val))}'
+    return f'{txt[:30]}.. Tot. {(1 + len(val))}'
 
 
 def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Dataset):
@@ -92,7 +92,7 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
             if not 'tot.' in index:
                 count_dups += len(index.split(','))
             else:
-                count_dups += int(re.findall("tot. (\d+)", index)[0])
+                count_dups += int(re.findall("Tot. (\d+)", index)[0])
 
     dup_ratio = count_dups / len(val_f) * 100
     user_msg = f'You have {dup_ratio:0.2f}% ({count_dups} / {len(val_f)}) \
