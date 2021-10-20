@@ -58,7 +58,6 @@ class Dataset:
                           feature.
 
         """
-
         # We wish to convert only Object dtype into its appropriate dtype. Ints, bools and floats should remain
         # in their numpy dtype
         self._data = df.convert_dtypes(convert_integer=False,
