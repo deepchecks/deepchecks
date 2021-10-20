@@ -14,8 +14,8 @@ def get_dup_indexes_map(df: pd.DataFrame, columns: List) -> Dict:
     """Find duplicated indexes in the dataframe.
 
     Args:
-        df: a Dataframe object
-        columns: the columns to check on.
+        df: a Dataframe object of the dataset
+        columns: list of column that duplicates are defined by
     Returns:
         dictionary of each of the first indexes and its' duplicated indexes
 
@@ -87,9 +87,8 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
         count_dups += len(index.split(','))
 
     dup_ratio = count_dups / len(val_f) * 100
-    user_msg = 'You have {0:0.2f}% of the validation data samples appear in train data'.format(dup_ratio) # pylint: disable=locally-disabled, consider-using-f-string
-
-    display = [user_msg, duplicate_rows_df] if dup_ratio else None
+    user_msg = f'You have {dup_ratio:0.2f}% ({count_dups} / {len(val_f)}) of the validation data samples appear in train data'
+    display = [user_msg, duplicate_rows_df.head(10)] if dup_ratio else None
 
     return CheckResult(dup_ratio, header='Data Sample Leakage Report',
                        check=data_sample_leakage_report, display=display)
