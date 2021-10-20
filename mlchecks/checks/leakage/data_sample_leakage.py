@@ -1,3 +1,4 @@
+"""The data_sample_leakage_report check module."""
 from typing import Dict
 from mlchecks import Dataset
 
@@ -10,11 +11,11 @@ __all__ = ['data_sample_leakage_report', 'DataSampleLeakageReport']
 def get_dup_indexes_map(df, features) -> Dict:
     """Find duplicated indexes in the dataframe.
 
-        Args:
-            df: a Dataframe object
-            features: the features name list
-        Returns:
-            dictionary of each of the first indexes and its' duplicated indexes
+    Args:
+        df: a Dataframe object
+        features: the features name list
+    Returns:
+        dictionary of each of the first indexes and its' duplicated indexes
     
     """
     dup = df[df.duplicated(features, keep=False)].groupby(features).groups.values()
@@ -28,11 +29,11 @@ def get_dup_indexes_map(df, features) -> Dict:
 def get_dup_txt(i, dup_map) -> str:
     """Return a prettyfied text for a key in the dict.
 
-        Args:
-            i: the index key
-            dup_map: the dict of the duplicated indexes
-        Returns:
-            prettyfied text for a key in the dict
+    Args:
+        i: the index key
+        dup_map: the dict of the duplicated indexes
+    Returns:
+        prettyfied text for a key in the dict
     
     """
     val = dup_map.get(i)
@@ -47,11 +48,11 @@ def get_dup_txt(i, dup_map) -> str:
 def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Dataset):
     """Run data_sample_leakage_report check.
 
-        Args:
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
-            ds: a Dataset object
-        Returns:
-            CheckResult: value is sample leakage ratio in %, displays a dataframe that shows the duplicated rows between the datasets
+    Args:
+        model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
+        ds: a Dataset object
+    Returns:
+        CheckResult: value is sample leakage ratio in %, displays a dataframe that shows the duplicated rows between the datasets
         
     Raises:
         MLChecksValueError: If the object is not a Dataset instance
