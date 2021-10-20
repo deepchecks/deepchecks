@@ -59,8 +59,8 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
         MLChecksValueError: If the object is not a Dataset instance
 
     """
-    validate_dataset(validation_dataset, 'data_sample_leakage_report')
-    validate_dataset(train_dataset, 'data_sample_leakage_report')
+    validate_dataset(validation_dataset, data_sample_leakage_report.__name__)
+    validate_dataset(train_dataset, data_sample_leakage_report.__name__)
 
     features = train_dataset.features()
     train_f = train_dataset[features]
