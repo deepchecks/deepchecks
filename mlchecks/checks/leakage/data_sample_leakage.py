@@ -89,7 +89,7 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
     count_dups = 0
     for index in duplicate_rows_df.index:
         if index.startswith('test'):
-            if not 'tot.' in index:
+            if not 'Tot.' in index:
                 count_dups += len(index.split(','))
             else:
                 count_dups += int(re.findall(r'Tot. (\d+)', index)[0])
