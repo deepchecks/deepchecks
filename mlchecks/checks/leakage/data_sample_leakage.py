@@ -67,7 +67,7 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
     columns = train_dataset.features()
     if train_dataset.label_name():
         columns = columns + [train_dataset.label_name()]
-    
+
     train_f = train_dataset.data
     val_f = validation_dataset.data
 
