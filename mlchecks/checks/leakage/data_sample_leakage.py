@@ -99,8 +99,8 @@ class DataSampleLeakageReport(TrainValidationBaseCheck):
         """Run data_sample_leakage_report check.
 
         Args:
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
-            ds: a Dataset object
+            train_dataset (Dataset): The training dataset object. Must contain an index.
+            validation_dataset (Dataset): The validation dataset object. Must contain an index.
         Returns:
             CheckResult: value is sample leakage ratio in %,
                          displays a dataframe that shows the duplicated rows between the datasets
