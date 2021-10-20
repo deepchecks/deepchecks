@@ -49,8 +49,8 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
     """Find which percent of the validation data in the train data.
 
     Args:
-        model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
-        ds: a Dataset object
+        train_dataset (Dataset): The training dataset object. Must contain an index.
+        validation_dataset (Dataset): The validation dataset object. Must contain an index.
     Returns:
         CheckResult: value is sample leakage ratio in %,
                      displays a dataframe that shows the duplicated rows between the datasets
