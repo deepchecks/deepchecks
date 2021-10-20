@@ -1,6 +1,6 @@
 """The data_sample_leakage_report check module."""
 from typing import Dict, List
-
+import re
 import pandas as pd
 from mlchecks import Dataset
 
@@ -43,7 +43,10 @@ def get_dup_txt(i: int, dup_map: Dict) -> str:
     txt = f'{i}, '
     for j in val:
         txt += f'{j}, '
-    return txt[:-2]
+    txt = txt[:-2]
+    if len(txt) < 30:
+        return txt
+    return f'{txt[:30]}.. tot. {(1 + len(val))}'
 
 
 def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Dataset):
@@ -85,9 +88,11 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
 
     count_dups = 0
     for index in duplicate_rows_df.index:
-        if not index.startswith('test'):
-            continue
-        count_dups += len(index.split(','))
+        if index.startswith('test'):
+            if not 'tot.' in index:
+                count_dups += len(index.split(','))
+            else:
+                count_dups += int(re.findall("tot. (\d+)", index)[0])
 
     dup_ratio = count_dups / len(val_f) * 100
     user_msg = f'You have {dup_ratio:0.2f}% ({count_dups} / {len(val_f)}) \
