@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from mlchecks.base import Dataset
 from mlchecks.utils import MLChecksValueError
 from mlchecks.checks.leakage import DataSampleLeakageReport, data_sample_leakage_report
-from hamcrest import assert_that, calling, raises
+from hamcrest import assert_that, calling, raises, equal_to
 
 
 def test_dataset_wrong_input():
@@ -35,7 +35,7 @@ def test_no_leakage(iris_clean):
     # Act X
     result = check.run(validation_dataset=validation_dataset, train_dataset=train_dataset).value
     # Assert
-    assert_that(result == 0)
+    assert_that(result, equal_to(0))
 
 def test_leakage(iris_clean):
     x = iris_clean.data
@@ -56,4 +56,4 @@ def test_leakage(iris_clean):
     # Act X
     result = check.run(validation_dataset=validation_dataset, train_dataset=train_dataset).value
     # Assert
-    assert_that(result == 12)
+    assert_that(result, equal_to(12))
