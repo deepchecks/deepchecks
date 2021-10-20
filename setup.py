@@ -18,7 +18,7 @@ if os.path.isfile(requirementPath):
 setup(
     name='mlchecks',
     version=VER,
-    packages=['mlchecks'],
+    packages=setuptools.find_packages(),
     install_requires=install_requires,
     #license='Propietery', #TODO: what is the license
     description = 'Package for validating your machine learning model and data',

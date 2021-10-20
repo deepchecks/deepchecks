@@ -32,10 +32,9 @@ class Dataset:
     _cat_features: List[str]
     _data: pd.DataFrame
 
-    def __init__(self,
-                 df: pd.DataFrame,
-                 features: List[str] = None, cat_features: List[str] = None,
-                 label: str = None, use_index: bool = False, index: str = None, date: str = None):
+    def __init__(self, df: pd.DataFrame,
+                 features: List[str] = None, cat_features: List[str] = None, label: str = None, use_index: bool = False,
+                 index: str = None, date: str = None, date_unit_type: str = None, _convert_date: bool = True):
         """Initiate the Dataset using a pandas DataFrame and Metadata.
 
         Args:
@@ -46,6 +45,9 @@ class Dataset:
           use_index: Name of the index column in the DataFrame.
           index: Name of the index column in the DataFrame.
           date: Name of the date column in the DataFrame.
+          date_unit_type: Unit used for conversion if date column is of type int or float.
+                          The valid values are 'D', 'h', 'm', 's', 'ms', 'us', and 'ns'.
+                          e.g. 's' for seconds, 'ns' for nanoseconds. See pandas.Timestamp unit arg for more detail.
 
         """
         self._data = df.copy()
@@ -67,11 +69,15 @@ class Dataset:
         self._use_index = use_index
         self._index_name = index
         self._date_name = date
+        self._date_unit_type = date_unit_type
 
         if cat_features:
             self._cat_features = cat_features
         else:
             self._cat_features = self.infer_categorical_features()
+
+        if self._date_name and _convert_date:
+            self._data[self._date_name] = self._data[self._date_name].apply(pd.Timestamp, unit=date_unit_type)
 
     @property
     def data(self):
@@ -88,7 +94,8 @@ class Dataset:
         date = self._date_name if self._date_name in new_data.columns else None
 
         return Dataset(new_data, features=features, cat_features=cat_features, label=label, use_index=self._use_index,
-                       index=index, date=date)
+                       index=index, date=date, _convert_date=False)
+
 
     def n_samples(self):
         """Return number of samples in dataframe.
