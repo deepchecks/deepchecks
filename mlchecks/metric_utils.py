@@ -5,7 +5,7 @@ from typing import Union, Dict, Callable
 from sklearn.metrics import get_scorer, make_scorer, accuracy_score, precision_score, recall_score, mean_squared_error
 from sklearn.base import ClassifierMixin, RegressorMixin
 
-__all__ = ['TaskType', 'task_type_check', 'get_metrics_list']
+__all__ = ['ModelType', 'task_type_check', 'get_metrics_list']
 
 from mlchecks.utils import model_type_validation
 
