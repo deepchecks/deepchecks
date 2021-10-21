@@ -32,3 +32,17 @@ jobs:
         python-version: 3.9
     - name: Run Pydocstyle
       run: make docstring
+
+  notebook:
+    runs-on: [self-hosted]
+
+    needs: pylint #rather consuming task, run only after linting succeed
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Run notebooke lint
+      run: make notebook
