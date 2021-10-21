@@ -1,13 +1,12 @@
 """String mismatch functions."""
-from collections import defaultdict
-from typing import Union, Set, Dict, Iterable
+from typing import Union, Iterable
 
 import pandas as pd
 from pandas import DataFrame, StringDtype, Series
 
 from mlchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_dataframe_type
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
-from mlchecks.base.string_utils import string_baseform
+from mlchecks.base.string_utils import get_base_form_to_variants_dict
 
 __all__ = ['string_mismatch', 'StringMismatch']
 
@@ -52,20 +51,6 @@ def string_mismatch(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, I
         display = None
 
     return CheckResult(df_graph, check=string_mismatch, display=display)
-
-
-def get_base_form_to_variants_dict(uniques):
-    """Create dict of base-form of the uniques to their values.
-
-    function gets a set of strings, and returns a dictionary of shape Dict[str]=Set,
-    the key being the "base_form" (a clean version of the string),
-    and the value being a set of all existing original values.
-    This is done using the StringCategory class.
-    """
-    base_form_to_variants: Dict[str, Set] = defaultdict(set)
-    for item in uniques:
-        base_form_to_variants[string_baseform(item)].add(item)
-    return base_form_to_variants
 
 
 class StringMismatch(SingleDatasetBaseCheck):
