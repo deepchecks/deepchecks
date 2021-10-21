@@ -80,7 +80,7 @@ class Dataset:
             self._data[self._date_name] = self._data[self._date_name].apply(pd.Timestamp, unit=date_unit_type)
 
     @property
-    def data(self):
+    def data(self) -> pd.DataFrame:
         """Return the data of dataset."""
         return self._data
 

@@ -78,12 +78,14 @@ def train_validation_difference_overfit(train_dataset: Dataset, validation_datas
         MLChecksValueError: If the object is not a Dataset instance with a label
     """
     # Validate parameters
-    func_name = 'performance_overfit'
-    model_type_validation(model)
+    func_name = train_validation_difference_overfit.__name__
     Dataset.validate_dataset(train_dataset, func_name)
     Dataset.validate_dataset(validation_dataset, func_name)
+    train_dataset.validate_label(func_name)
+    validation_dataset.validate_label(func_name)
     train_dataset.validate_shared_label(validation_dataset, func_name)
     train_dataset.validate_shared_features(validation_dataset, func_name)
+    model_type_validation(model)
 
     metrics = get_metrics_list(model, train_dataset, alternative_metrics)
 
