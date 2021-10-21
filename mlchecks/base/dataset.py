@@ -61,8 +61,7 @@ class Dataset:
         # We wish to convert only Object dtype into its appropriate dtype. Ints, bools and floats should remain
         # in their numpy dtype
         self._data = df.convert_dtypes(convert_integer=False,
-                                       convert_boolean=False,
-                                       convert_floating=False)
+                                       convert_boolean=False)
 
         # Validations
         if use_index is True and index is not None:
