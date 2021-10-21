@@ -20,7 +20,7 @@ def string_mismatch_comparison(dataset: Union[pd.DataFrame, Dataset],
                                compared_dataset: Union[pd.DataFrame, Dataset],
                                columns: Union[str, Iterable[str]] = None,
                                ignore_columns: Union[str, Iterable[str]] = None) -> CheckResult:
-    """Detect different variants of string categories between the same categorical column in two datasets.'
+    """Detect different variants of string categories between the same categorical column in two datasets.
 
     This check compares the same categorical column within 2 different datasets and checks whether
     there are variants of similar strings that do not exist in both.
@@ -63,18 +63,26 @@ def string_mismatch_comparison(dataset: Union[pd.DataFrame, Dataset],
         for baseform in common_baseforms:
             tested_values = tested_baseforms[baseform]
             compared_values = compared_baseforms[baseform]
-            # If at least one value is unique to either of the datasets, add all values
+            # If at least one value is unique to either of the datasets, add the column to results
             if tested_values.symmetric_difference(compared_values):
-                mismatches.append([column_name, baseform, tested_values, compared_values,
-                                   percentage_in_series(tested_column, tested_values),
-                                   percentage_in_series(compared_column, compared_values)])
+                # Calculate all values to be shown
+                variants_only_in_dataset = tested_values - compared_values
+                variants_only_in_compared = compared_values - tested_values
+                common_variants = tested_values & compared_values
+                percent_variants_only_in_dataset = percentage_in_series(tested_column, variants_only_in_dataset)
+                percent_variants_in_compared = percentage_in_series(compared_column, variants_only_in_compared)
 
-    # Create dataframe to display graph
-    df_graph = DataFrame(mismatches, columns=['Column Name', 'Base form', 'Values', 'Values in Compared Dataset',
-                                              '% Samples', '% Samples in Compared Dataset'])
-    df_graph = df_graph.set_index(['Column Name', 'Base form'])
+                mismatches.append([column_name, baseform, variants_only_in_dataset, variants_only_in_compared,
+                                   common_variants, percent_variants_only_in_dataset, percent_variants_in_compared])
 
-    display = df_graph if len(df_graph) > 0 else None
+    # Create result dataframe
+    df_graph = DataFrame(mismatches,
+                         columns=['Column name', 'Base form', 'Variants only in dataset',
+                                  'Variants only  in comparison Dataset', 'Common variants',
+                                  '% Variants only in dataset', '% Variants only  in comparison dataset'])
+    df_graph = df_graph.set_index(['Column name', 'Base form'])
+    # For display transpose the dataframe
+    display = df_graph.T if len(df_graph) > 0 else None
 
     return CheckResult(df_graph, check=string_mismatch_comparison, display=display)
 
