@@ -3,6 +3,7 @@ import pandas as pd
 
 from mlchecks.checks import string_mismatch_comparison
 
+# pylint:disable=unused-wildcard-import,wildcard-import
 from hamcrest import *
 
 
