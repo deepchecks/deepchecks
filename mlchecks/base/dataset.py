@@ -31,16 +31,20 @@ class Dataset:
     _date_name: Union[str, None]
     _cat_features: List[str]
     _data: pd.DataFrame
+    _max_categorical_ratio: float
+    _max_categories: int
 
     def __init__(self, df: pd.DataFrame,
                  features: List[str] = None, cat_features: List[str] = None, label: str = None, use_index: bool = False,
-                 index: str = None, date: str = None, date_unit_type: str = None, _convert_date: bool = True):
+                 index: str = None, date: str = None, date_unit_type: str = None, _convert_date: bool = True,
+                 max_categorical_ratio: float = 0.001, max_categories: int = 100):
         """Initiate the Dataset using a pandas DataFrame and Metadata.
 
         Args:
           df: A pandas DataFrame containing data relevant for the training or validating of a ML models
           features: List of names for the feature columns in the DataFrame.
-          cat_features: List of names for the categorical features in the DataFrame.
+          cat_features: List of names for the categorical features in the DataFrame. In order to disable categorical
+                        features inference, pass cat_features=[]
           label: Name of the label column in the DataFrame.
           use_index: Name of the index column in the DataFrame.
           index: Name of the index column in the DataFrame.
@@ -48,9 +52,16 @@ class Dataset:
           date_unit_type: Unit used for conversion if date column is of type int or float.
                           The valid values are 'D', 'h', 'm', 's', 'ms', 'us', and 'ns'.
                           e.g. 's' for seconds, 'ns' for nanoseconds. See pandas.Timestamp unit arg for more detail.
+          max_categorical_ratio: The max ratio of unique values in a column in order for it to be inferred as a
+                                 categorical feature.
+          max_categories: The maximum number of categories in a column in order for it to be inferred as a categorical
+                          feature.
 
         """
-        self._data = df.copy()
+        # We wish to convert only Object dtype into its appropriate dtype. Ints, bools and floats should remain
+        # in their numpy dtype
+        self._data = df.convert_dtypes(convert_integer=False,
+                                       convert_boolean=False)
 
         # Validations
         if use_index is True and index is not None:
@@ -70,8 +81,10 @@ class Dataset:
         self._index_name = index
         self._date_name = date
         self._date_unit_type = date_unit_type
+        self._max_categorical_ratio = max_categorical_ratio
+        self._max_categories = max_categories
 
-        if cat_features:
+        if cat_features is not None:
             self._cat_features = cat_features
         else:
             self._cat_features = self.infer_categorical_features()
@@ -94,8 +107,8 @@ class Dataset:
         date = self._date_name if self._date_name in new_data.columns else None
 
         return Dataset(new_data, features=features, cat_features=cat_features, label=label, use_index=self._use_index,
-                       index=index, date=date, _convert_date=False)
-
+                       index=index, date=date, _convert_date=False, max_categorical_ratio=self._max_categorical_ratio,
+                       max_categories=self._max_categories)
 
     def n_samples(self):
         """Return number of samples in dataframe.
@@ -111,8 +124,15 @@ class Dataset:
         Returns:
            Out of the list of feature names, returns list of categorical features
         """
-        # TODO: add infer logic here
-        return []
+        cat_columns = []
+
+        for col in self.data.columns:
+            num_unique = self.data[col].nunique(dropna=True)
+            if num_unique / len(self.data[col].dropna()) < self._max_categorical_ratio\
+                    or num_unique <= self._max_categories:
+                cat_columns.append(col)
+
+        return cat_columns
 
     def index_name(self) -> Union[str, None]:
         """If index column exists, return its name.

@@ -5,15 +5,19 @@
 import pytest
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.datasets import load_iris
-import pandas as pd
 from mlchecks import Dataset
 
 
 @pytest.fixture(scope='session')
-def iris():
+def iris_clean():
     """Return Iris dataset as DataFrame."""
-    df = load_iris(return_X_y=False, as_frame=True)
-    return pd.concat([df.data, df.target], axis=1)
+    iris = load_iris(return_X_y=False, as_frame=True)
+    return iris
+
+@pytest.fixture(scope='session')
+def iris(iris_clean):
+    """Return Iris dataset as DataFrame."""
+    return iris_clean.frame
 
 
 @pytest.fixture(scope='session')
