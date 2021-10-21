@@ -5,7 +5,8 @@ import pandas as pd
 
 from mlchecks import Dataset
 from mlchecks.checks import train_validation_difference_overfit, TrainValidationDifferenceOverfit
-from mlchecks.utils import MLChecksValueError, DEFAULT_MULTICLASS_METRICS
+from mlchecks.utils import MLChecksValueError
+from mlchecks.metric_utils import DEFAULT_MULTICLASS_METRICS
 from hamcrest import assert_that, calling, raises, close_to, starts_with
 
 
