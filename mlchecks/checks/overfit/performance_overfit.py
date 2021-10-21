@@ -1,10 +1,11 @@
-from typing import List, Dict, Callable
+"""The train_validation_difference_overfit check module."""
+from typing import Dict, Callable
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from mlchecks.utils import model_type_validation, MLChecksValueError, get_metrics_list
+from mlchecks.utils import model_type_validation, get_metrics_list
 from mlchecks import Dataset, CheckResult, TrainValidationBaseCheck
 
 __all__ = ['train_validation_difference_overfit', 'TrainValidationDifferenceOverfit']
@@ -12,7 +13,7 @@ __all__ = ['train_validation_difference_overfit', 'TrainValidationDifferenceOver
 
 def calculate_metrics(train_dataset: Dataset, validation_dataset: Dataset, model,
                       metrics: Dict[str, Callable]) -> CheckResult:
-    """Calculates overfit result for a dict of metric scoring functions
+    """Calculate overfit result for a dict of metric scoring functions.
 
     Args:
         train_dataset (Dataset): The training dataset object. Must contain a label column.

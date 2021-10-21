@@ -6,8 +6,8 @@ from typing import Tuple
 import pytest
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.datasets import load_iris
-import pandas as pd
 from sklearn.model_selection import train_test_split
+import pandas as pd
 
 from mlchecks import Dataset
 
@@ -26,12 +26,6 @@ def iris_dataset(iris):
 
 
 @pytest.fixture(scope='session')
-def iris_dataset_labeled(iris):
-    """Return Iris dataset as Dataset object."""
-    return Dataset(iris, label='target')
-
-
-@pytest.fixture(scope='session')
 def iris_adaboost(iris):
     """Return trained AdaBoostClassifier on iris data."""
     clf = AdaBoostClassifier()
@@ -43,7 +37,7 @@ def iris_adaboost(iris):
 
 @pytest.fixture(scope='session')
 def iris_labeled_dataset(iris):
-    """Return t Iris dataset as Dataset object with label."""
+    """Return Iris dataset as Dataset object with label."""
     return Dataset(iris, label='target')
 
 

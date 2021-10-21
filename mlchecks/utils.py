@@ -33,9 +33,11 @@ DEFAULT_REGRESSION_METRICS = {
 
 
 class TaskType(enum.Enum):
-    regression = 'regression'  # regression
-    binary = 'binary'  # binary classification
-    multiclass = 'multiclass'  # multiclass classification
+    """Enum containing suppoerted task types."""
+
+    REGRESSION = 'regression'  # regression
+    BINARY = 'binary'  # binary classification
+    MULTICLASS = 'multiclass'  # multiclass classification
 
 
 class MLChecksValueError(ValueError):
@@ -92,31 +94,44 @@ def model_dataset_shape_validation(model: Any, dataset: Any):
         raise MLChecksValueError('unable to extract number of features from model')
 
 
-def task_type_check(model: Union[ClassifierMixin, RegressorMixin], dataset) -> TaskType:
-    """Check task type (regression, binary, multiclass) according to model object and label column
+def task_type_check(model: Union[ClassifierMixin, RegressorMixin], dataset: 'Dataset') -> TaskType:
+    """Check task type (regression, binary, multiclass) according to model object and label column.
 
     Args:
         model (Union[ClassifierMixin, RegressorMixin]): Model object - used to check if has predict_proba()
         dataset (Dataset): dataset - used to count the number of unique labels
 
     Returns:
-
+        TaskType enum corresponding to the model and dataset
     """
-
     model_type_validation(model)
     dataset.validate_label(task_type_check.__name__)
 
-    if getattr(model, "predict_proba", None):
+    if getattr(model, 'predict_proba', None):
         model: ClassifierMixin
         if dataset.label_col().nunique() > 2:
-            return TaskType.multiclass
+            return TaskType.MULTICLASS
         else:
-            return TaskType.binary
+            return TaskType.BINARY
     else:
-        return TaskType.regression
+        return TaskType.REGRESSION
 
 
-def get_metrics_list(model, dataset: 'Dataset', alternative_metrics: Dict[str, Callable] = None):
+def get_metrics_list(model, dataset: 'Dataset', alternative_metrics: Dict[str, Callable] = None
+                     ) -> Dict[str, Callable]:
+    """Return list of scorer objects to use in a metrics-dependant check.
+
+    If no alternative_metrics is supplied, then a default list of metrics is used per task type, as it is inferred
+    from the dataset and model. If a list is supplied, then the scorer functions are checked and used instead.
+
+    Args:
+        model (BaseEstimator): Model object for which the metrics would be calculated
+        dataset (Dataset): Dataset object on which the metrics would be calculated
+        alternative_metrics (Dict[str, Callable]): Optional dictionary of sklearn scorers to use instead of default list
+
+    Returns:
+        Dictionary containing names of metrics and scorer functions for the metrics.
+    """
     if alternative_metrics:
         metrics = {}
         for name, scorer in alternative_metrics.items():
@@ -127,31 +142,33 @@ def get_metrics_list(model, dataset: 'Dataset', alternative_metrics: Dict[str, C
                 metrics[name] = get_scorer(scorer)
             elif callable(scorer):
                 # Heuristic to ensure user has not passed a metric
-                module = getattr(scorer, "__module__", None)
+                module = getattr(scorer, '__module__', None)
                 if (
-                        hasattr(module, "startswith")
-                        and module.startswith("sklearn.metrics.")
-                        and not module.startswith("sklearn.metrics._scorer")
-                        and not module.startswith("sklearn.metrics.tests.")
+                        hasattr(module, 'startswith')
+                        and module.startswith('sklearn.metrics.')
+                        and not module.startswith('sklearn.metrics._scorer')
+                        and not module.startswith('sklearn.metrics.tests.')
                 ):
                     raise ValueError(
-                        "scoring value %r looks like it is a metric "
-                        "function rather than a scorer. A scorer should "
-                        "require an estimator as its first parameter. "
-                        "Please use `make_scorer` to convert a metric "
-                        "to a scorer." % scorer
+                        f'scoring value {scorer} looks like it is a metric '
+                        'function rather than a scorer. A scorer should '
+                        'require an estimator as its first parameter. '
+                        'Please use `make_scorer` to convert a metric '
+                        'to a scorer.'
                     )
+                # Check that scorer runs for given model and data
+                scorer(model, dataset.data[dataset.features()].head(2), dataset.label_col().head(2))
                 metrics[name] = scorer
     else:
         # Check for model type
         model_type = task_type_check(model, dataset)
-        if model_type == TaskType.binary:
+        if model_type == TaskType.BINARY:
             metrics = DEFAULT_BINARY_METRICS
-        elif model_type == TaskType.multiclass:
+        elif model_type == TaskType.MULTICLASS:
             metrics = DEFAULT_MULTICLASS_METRICS
-        elif model_type == TaskType.regression:
+        elif model_type == TaskType.REGRESSION:
             metrics = DEFAULT_REGRESSION_METRICS
         else:
-            raise(Exception('Inferred model_type is invalid'))
+            raise Exception('Inferred model_type is invalid')
 
     return metrics
