@@ -35,6 +35,13 @@ class ModelType(enum.Enum):
     MULTICLASS = 'multiclass'  # multiclass classification
 
 
+DEFAULT_METRICS_DICT = {
+    ModelType.BINARY: DEFAULT_BINARY_METRICS,
+    ModelType.MULTICLASS: DEFAULT_MULTICLASS_METRICS,
+    ModelType.REGRESSION: DEFAULT_REGRESSION_METRICS
+}
+
+
 def task_type_check(model: Union[ClassifierMixin, RegressorMixin], dataset: 'Dataset') -> ModelType:
     """Check task type (regression, binary, multiclass) according to model object and label column.
 
@@ -89,13 +96,6 @@ def get_metrics_list(model, dataset: 'Dataset', alternative_metrics: Dict[str, C
     else:
         # Check for model type
         model_type = task_type_check(model, dataset)
-        if model_type == ModelType.BINARY:
-            metrics = DEFAULT_BINARY_METRICS
-        elif model_type == ModelType.MULTICLASS:
-            metrics = DEFAULT_MULTICLASS_METRICS
-        elif model_type == ModelType.REGRESSION:
-            metrics = DEFAULT_REGRESSION_METRICS
-        else:
-            raise Exception('Inferred model_type is invalid')
+        metrics = DEFAULT_METRICS_DICT[model_type]
 
     return metrics

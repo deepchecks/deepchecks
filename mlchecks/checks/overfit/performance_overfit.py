@@ -18,9 +18,9 @@ def train_validation_difference_overfit(train_dataset: Dataset, validation_datas
 
     The check would display the selected metrics for the training and validation data, helping the user visualize
     the difference in performance between the two datasets. If no alternative_metrics are supplied, the check would
-    use a list of default metrics. If they are supplied alternative_metrics must be a dictionary, with the keys
-    being metrics names and the values being either string of sklearn scoring functions
-    (https://scikit-learn.org/stable/modules/model_evaluation.html#scoring) or sklearn scoring functions.
+    use a list of default metrics. If they are supplied, alternative_metrics must be a dictionary, with the keys
+    being metric names and the values being either a name of an sklearn scoring function
+    (https://scikit-learn.org/stable/modules/model_evaluation.html#scoring) or an sklearn scoring function.
 
     Args:
         train_dataset (Dataset): The training dataset object. Must contain a label column.
@@ -34,7 +34,7 @@ def train_validation_difference_overfit(train_dataset: Dataset, validation_datas
             data is a bar graph of the metrics for training and validation data.
 
     Raises:
-        MLChecksValueError: If the object is not a Dataset instance with a label
+        MLChecksValueError: If either of the dataset objects are not a Dataset instance with a label
     """
     # Validate parameters
     func_name = train_validation_difference_overfit.__name__
@@ -48,7 +48,7 @@ def train_validation_difference_overfit(train_dataset: Dataset, validation_datas
 
     metrics = get_metrics_list(model, train_dataset, alternative_metrics)
 
-    train_metrics = {key: scorer(model, train_dataset.data[train_dataset.features()], train_dataset.label_col())
+    train_metrics = {key: scorer(model, train_dataset. data[train_dataset.features()], train_dataset.label_col())
                      for key, scorer in metrics.items()}
 
     val_metrics = {key: scorer(model, validation_dataset.data[validation_dataset.features()],
@@ -86,9 +86,9 @@ class TrainValidationDifferenceOverfit(TrainValidationBaseCheck):
 
         The check would display the selected metrics for the training and validation data, helping the user visualize
         the difference in performance between the two datasets. If no alternative_metrics are supplied, the check would
-        use a list of default metrics. If they are supplied alternative_metrics must be a dictionary, with the keys
-        being metrics names and the values being either string of sklearn scoring functions
-        (https://scikit-learn.org/stable/modules/model_evaluation.html#scoring) or sklearn scoring functions.
+        use a list of default metrics. If they are supplied, alternative_metrics must be a dictionary, with the keys
+        being metric names and the values being either a name of an sklearn scoring function
+        (https://scikit-learn.org/stable/modules/model_evaluation.html#scoring) or an sklearn scoring function.
 
         Args:
             train_dataset (Dataset): The training dataset object. Must contain a label column.
@@ -102,7 +102,7 @@ class TrainValidationDifferenceOverfit(TrainValidationBaseCheck):
                 data is a bar graph of the metrics for training and validation data.
 
         Raises:
-            MLChecksValueError: If the object is not a Dataset instance with a label
+            MLChecksValueError: If either of the dataset objects are not a Dataset instance with a label
         """
         return train_validation_difference_overfit(train_dataset, validation_dataset, model,
                                                    alternative_metrics=self.params.get('alternative_metrics'))
