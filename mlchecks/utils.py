@@ -1,10 +1,12 @@
 """Utils module containing useful global functions."""
 from typing import Any
+
 import sklearn
 import catboost
 from IPython import get_ipython
 
-__all__ = ['SUPPORTED_BASE_MODELS', 'MLChecksValueError', 'model_type_validation', 'is_notebook']
+__all__ = ['SUPPORTED_BASE_MODELS', 'MLChecksValueError', 'model_type_validation', 'is_notebook',
+           'model_dataset_shape_validation']
 
 SUPPORTED_BASE_MODELS = [sklearn.base.BaseEstimator, catboost.CatBoost]
 
@@ -40,7 +42,7 @@ def is_notebook():
         else:
             return False  # Other type (?)
     except NameError:
-        return False  # Probably standard Python interpreter
+        return False      # Probably standard Python interpreter
 
 
 def model_dataset_shape_validation(model: Any, dataset: Any):

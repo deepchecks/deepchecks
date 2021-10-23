@@ -22,6 +22,15 @@ def string_baseform(string: str):
     return string.translate(str.maketrans('', '', SPECIAL_CHARS)).lower()
 
 
+def underscore_to_capitalize(string: str):
+    """Replace underscore with space and capitalize first letters in each word.
+
+    Args:
+        string (str): string to change
+    """
+    return ' '.join([s.capitalize() for s in string.split('_')])
+
+
 def split_and_keep(s: str, separator: str) -> List[str]:
     """
     Split string by a another substring into a list. Like str.split(), but keeps the separator occurrences in the list.

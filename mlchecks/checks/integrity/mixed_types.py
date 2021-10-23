@@ -1,73 +1,40 @@
 """module contains Mixed Types check."""
-from typing import List, Iterable
+from typing import Iterable, Union
 import pandas as pd
-from pandas import DataFrame
 from pandas.api.types import infer_dtype
 
 import numpy as np
 
-from mlchecks import Dataset
+from mlchecks import Dataset, ensure_dataframe_type
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
-from mlchecks.base.dataset import validate_dataset_or_dataframe
-from mlchecks.utils import MLChecksValueError
 
 
 __all__ = ['mixed_types', 'MixedTypes']
 
-
-def validate_column_list(cl) -> set:
-    """Validate the object given is a list of strings or None.
-
-    Args:
-        cl: the object to validate
-
-    Returns:
-        (set): Returns a list of columns names as set object or None
-    """
-    var_names = 'columns & ignore_columns '
-
-    result: set
-    if cl is not None:
-        if not isinstance(cl, Iterable):
-            raise MLChecksValueError(var_names + 'must be an iterable')
-        if len(cl) == 0:
-            raise MLChecksValueError(var_names + "can't be an emptry string")
-        if any((not isinstance(string, str) for string in cl)):
-            raise MLChecksValueError(var_names + "must contain only items of type 'str'")
-        result = set(cl)
-    else:
-        result = None
-
-    return result
+from mlchecks.base.dataframe_utils import filter_columns_with_validation
 
 
-def mixed_types(dataset: DataFrame, columns: Iterable[str]=None, ignore_columns: Iterable[str]=None ) -> CheckResult:
+def mixed_types(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, Iterable[str]] = None,
+                ignore_columns: Union[str, Iterable[str]] = None) -> CheckResult:
     """Search for mixed types of Data in a single column[s].
 
     Args:
         dataset (Dataset):
-        columns (List[str]): List of columns to check, if none given checks all columns Except ignored ones.
-        ignore_columns (List[str]): List of columns to ignore, if none given checks based on columns variable
+        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored ones.
+        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns variable
 
     Returns:
         (CheckResult): DataFrame with columns('Column Name', 'Precentage') for any column that is not single typed.
     """
     # Validate parameters
-    dataset: Dataset = validate_dataset_or_dataframe(dataset)
-    dataset = dataset.drop_columns_with_validation(ignore_columns)
-    if columns is None:
-        columns: List[str] = dataset.columns
-    else:
-        columns: set = validate_column_list(columns)
+    dataset: pd.DataFrame = ensure_dataframe_type(dataset)
+    dataset = filter_columns_with_validation(dataset, columns, ignore_columns)
 
     # Result value: { Column Name: {string: pct, numbers: pct}}
     display_dict = {}
 
-    for column_name in columns:
-        try:
-            column_data = dataset[column_name]
-        except KeyError: #Column is not in data
-            continue
+    for column_name in dataset.columns:
+        column_data = dataset[column_name]
         mix = get_data_mix(column_data)
         if mix:
             display_dict[column_name] = mix
@@ -79,7 +46,7 @@ def mixed_types(dataset: DataFrame, columns: Iterable[str]=None, ignore_columns:
     else:
         display = None
 
-    return CheckResult(df_graph, header='Mixed Types', check=mixed_types, display=display)
+    return CheckResult(df_graph, check=mixed_types, display=display)
 
 
 def get_data_mix(column_data: pd.Series) -> dict :

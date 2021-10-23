@@ -1,8 +1,9 @@
 """The dataset_info check module."""
 from typing import Union
 import pandas as pd
-from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
-from mlchecks.base.dataset import validate_dataset_or_dataframe
+from pandas_profiling import ProfileReport
+
+from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ensure_dataframe_type
 
 __all__ = ['dataset_info', 'DatasetInfo']
 
@@ -19,12 +20,13 @@ def dataset_info(dataset: Union[Dataset, pd.DataFrame]):
     Raises:
         MLChecksValueError: If the object is not of a supported type
     """
-    dataset = validate_dataset_or_dataframe(dataset)
+    dataset: pd.DataFrame = ensure_dataframe_type(dataset)
 
     def display():
-        dataset.get_profile().to_notebook_iframe()
+        profile = ProfileReport(dataset, title='Dataset Report', explorative=True, minimal=True)
+        profile.to_notebook_iframe()
 
-    return CheckResult(dataset.shape, header='Dataset Info', check=dataset_info, display=display)
+    return CheckResult(dataset.shape, check=dataset_info, display=display)
 
 
 class DatasetInfo(SingleDatasetBaseCheck):

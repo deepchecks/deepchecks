@@ -2,7 +2,6 @@
 import pandas as pd
 
 from mlchecks import CheckResult, Dataset, TrainValidationBaseCheck
-from mlchecks.base.dataset import validate_dataset
 
 __all__ = ['index_train_validation_leakage', 'IndexTrainValidationLeakage']
 
@@ -24,10 +23,11 @@ def index_train_validation_leakage(train_dataset: Dataset, validation_dataset: D
     Raises:
         MLChecksValueError: If the if one of the datasets is not a Dataset instance with an index
     """
-    train_dataset = validate_dataset(train_dataset, index_train_validation_leakage.__name__)
-    validation_dataset = validate_dataset(validation_dataset, index_train_validation_leakage.__name__)
-    train_dataset.validate_index(index_train_validation_leakage.__name__)
-    validation_dataset.validate_index(index_train_validation_leakage.__name__)
+    self = index_train_validation_leakage
+    train_dataset = Dataset.validate_dataset(train_dataset, self.__name__)
+    validation_dataset = Dataset.validate_dataset(validation_dataset, self.__name__)
+    train_dataset.validate_index(self.__name__)
+    validation_dataset.validate_index(self.__name__)
 
     train_index = train_dataset.index_col()
     val_index = validation_dataset.index_col()
@@ -35,17 +35,15 @@ def index_train_validation_leakage(train_dataset: Dataset, validation_dataset: D
     index_intersection = list(set(train_index).intersection(val_index))
     if len(index_intersection) > 0:
         size_in_test = len(index_intersection) / validation_dataset.n_samples()
-        return_value = size_in_test
         text = f'{size_in_test:.1%} of validation data indexes appear in training data'
         table = pd.DataFrame([[list(index_intersection)[:n_index_to_show]]],
                              index=['Sample of validation indexes in train:'])
         display = [text, table]
     else:
-        return_value = 0
+        size_in_test = 0
         display = None
 
-    return CheckResult(value=return_value, header='Index Train-Validation Leakage',
-                       check=index_train_validation_leakage, display=display)
+    return CheckResult(value=size_in_test, header='Index Train-Validation Leakage', check=self, display=display)
 
 
 class IndexTrainValidationLeakage(TrainValidationBaseCheck):
