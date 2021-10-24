@@ -39,10 +39,10 @@ def string_mismatch(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, I
                 continue
             for variant in variants:
                 count = sum(column == variant)
-                results.append([column_name, base_form, variant, count, round(count / dataset.size, 2)])
+                results.append([column_name, base_form, variant, count, f'{count / dataset.size:.2%}'])
 
     # Create dataframe to display graph
-    df_graph = DataFrame(results, columns=['Column Name', 'Base form', 'Value', 'Count', 'Fraction of data'])
+    df_graph = DataFrame(results, columns=['Column Name', 'Base form', 'Value', 'Count', '% In data'])
     df_graph = df_graph.set_index(['Column Name', 'Base form'])
 
     if len(df_graph) > 0:
