@@ -5,7 +5,7 @@ from typing import Union, Dict, Callable
 from sklearn.metrics import get_scorer, make_scorer, accuracy_score, precision_score, recall_score, mean_squared_error
 from sklearn.base import ClassifierMixin, RegressorMixin
 
-__all__ = ['ModelType', 'task_type_check', 'get_metrics_list']
+__all__ = ['ModelType', 'task_type_check', 'get_metrics_list', 'validate_scorer']
 
 from mlchecks.utils import model_type_validation
 
@@ -83,19 +83,23 @@ def get_metrics_list(model, dataset: 'Dataset', alternative_metrics: Dict[str, C
     if alternative_metrics:
         metrics = {}
         for name, scorer in alternative_metrics.items():
-            # If string, get scorer from sklearn. If callable, do heuristic to see if valid
-            # Borrowed code from:
-            # https://github.com/scikit-learn/scikit-learn/blob/844b4be24d20fc42cc13b957374c718956a0db39/sklearn/metrics/_scorer.py#L421
-            if isinstance(scorer, str):
-                metrics[name] = get_scorer(scorer)
-            elif callable(scorer):
-                # Check that scorer runs for given model and data
-                assert isinstance(scorer(model, dataset.data[dataset.features()].head(2), dataset.label_col().head(2)),
-                                  Number)
-                metrics[name] = scorer
+            metrics[name] = validate_scorer(scorer)
     else:
         # Check for model type
         model_type = task_type_check(model, dataset)
         metrics = DEFAULT_METRICS_DICT[model_type]
 
     return metrics
+
+
+def validate_scorer(scorer, model, dataset):
+    # If string, get scorer from sklearn. If callable, do heuristic to see if valid
+    # Borrowed code from:
+    # https://github.com/scikit-learn/scikit-learn/blob/844b4be24d20fc42cc13b957374c718956a0db39/sklearn/metrics/_scorer.py#L421
+    if isinstance(scorer, str):
+        return get_scorer(scorer)
+    elif callable(scorer):
+        # Check that scorer runs for given model and data
+        assert isinstance(scorer(model, dataset.data[dataset.features()].head(2), dataset.label_col().head(2)),
+                          Number)
+        return scorer

@@ -200,6 +200,14 @@ class Dataset:
         """
         return self._features
 
+    def features_columns(self) -> Union[pd.DataFrame, None]:
+        """Return features columns if exists.
+
+        Returns:
+           Features columns
+        """
+        return self.data[self._features] if self._features else None
+
     # Validations:
 
     def validate_label(self, function_name: str):
