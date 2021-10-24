@@ -89,5 +89,6 @@ class CheckSuite(BaseCheck):
         return CheckResult(results, display=display_suite)
 
     def __repr__(self):
+        """Representation of suite as string."""
         checks_str = ','.join([str(c) for c in self.checks])
         return f'{self.name} [{checks_str}]'

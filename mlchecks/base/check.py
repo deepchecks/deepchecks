@@ -97,6 +97,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
         self.params = params
 
     def __repr__(self):
+        """Representation of check as string."""
         return f'{self.__class__.__name__}({self.params})'
 
 
