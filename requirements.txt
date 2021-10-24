@@ -1,4 +1,6 @@
 pandas>=1.1.5
+# Numba requires python <1.20 for now
+numpy~= 1.19.0
 # Contains a bug in 3.1.1
 pandas_profiling~=3.0.0
 scikit-learn>=0.24.2
@@ -11,3 +13,4 @@ ppscore==1.2.0
 seaborn>=0.11.2
 matplotlib>=3.3.3
 shap>=0.39.0
+ipywidgets>=7.6.5

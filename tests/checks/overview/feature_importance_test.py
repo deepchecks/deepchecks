@@ -6,16 +6,18 @@ from mlchecks.base import Dataset
 from mlchecks.utils import MLChecksValueError
 from hamcrest import assert_that, calling, raises
 
-def test_feature_importance_function(iris_random_forest, iris_dataset_labeled):
+
+def test_feature_importance_function(iris_random_forest, iris_labeled_dataset):
     # Act
-    result = feature_importance(iris_dataset_labeled, iris_random_forest)
+    result = feature_importance(iris_labeled_dataset, iris_random_forest)
 
     # Assert
     assert result.value
 
-def test_feature_importance_not_binary(iris_random_forest, iris_dataset_labeled):
+
+def test_feature_importance_not_binary(iris_random_forest, iris_labeled_dataset):
     # Arrange
-    result = feature_importance(iris_dataset_labeled, iris_random_forest, plot_type='beeswarm')
+    result = feature_importance(iris_labeled_dataset, iris_random_forest, plot_type='beeswarm')
     # Act & Assert
     assert_that(
         # pylint: disable=protected-access
@@ -33,29 +35,31 @@ def test_feature_importance_binary(iris_random_forest_single_class, iris_dataset
     assert result.value
 
 
-def test_feature_importance_object(iris_random_forest, iris_dataset_labeled):
+def test_feature_importance_object(iris_random_forest, iris_labeled_dataset):
     # Arrange
     suit_runner = FeatureImportance()
     # Act
-    result = suit_runner.run(iris_dataset_labeled, iris_random_forest)
+    result = suit_runner.run(iris_labeled_dataset, iris_random_forest)
     # Assert
     assert result.value is not None
 
 
-def test_feature_importance_unsuported_model(iris_adaboost, iris_dataset_labeled):
+def test_feature_importance_unsuported_model(iris_adaboost, iris_labeled_dataset):
     # Act
-    result = feature_importance(iris_dataset_labeled, iris_adaboost)
+    result = feature_importance(iris_labeled_dataset, iris_adaboost)
     # Assert
     assert result.value is None
 
-def test_feature_importance_bad_plot(iris_random_forest, iris_dataset_labeled):
+
+def test_feature_importance_bad_plot(iris_random_forest, iris_labeled_dataset):
     # Arrange
-    result = feature_importance(iris_dataset_labeled, iris_random_forest, plot_type='bad_plot')
+    result = feature_importance(iris_labeled_dataset, iris_random_forest, plot_type='bad_plot')
     # Act & Assert
     assert_that(
         # pylint: disable=protected-access
         calling(result._ipython_display_).with_args(),
         raises(MLChecksValueError, 'plot_type=\'bad_plot\' currently not supported. Use \'beeswarm\' or \'bar\''))
+
 
 def test_feature_importance_unmatching_dataset(iris_random_forest):
     data = {'col1': ['foo', 'bar', 'null'], 'col2': ['Nan', 'bar', 1], 'col3': [1, 2, 3]}
