@@ -48,7 +48,8 @@ REQUIREMENTS_LOG := .requirements.log
 # Test and Analyize
 ANALIZE_PKGS = pylint pydocstyle
 TEST_CODE := tests/
-TEST_RUNNER_PKGS = pytest pyhamcrest
+TEST_RUNNER_PKGS = pytest pyhamcrest nbval
+NOTEBOOK_DIR = ./notebooks
 
 PYLINT_LOG = .pylint.log
 # Coverage vars
@@ -68,12 +69,14 @@ EGG_INFO := $(subst -,_,$(PROJECT)).egg-info
 help:
 	@echo "env      -  Create virtual environment and install requirements"
 	@echo "               python=PYTHON_EXE   interpreter to use, default=python,"
-	@echo "						    	when creating new env and python binary is 2.X, use 'make env python=python3'"
-	@echo "validate - Run style checks 'pylint' and 'docstring'"
-	@echo "		pylint docstring -   sub commands of validate"
+	@echo "						    	when creating new env and python binary is 2.X, use 'make env python=python3' \n"
+	@echo "validate - Run style checks 'pylint' , 'docstring' and 'notebook'"
+	@echo "		pylint docstring notebook -   sub commands of validate \n"
 	@echo "test -      TEST_RUNNER on '$(TESTDIR)'"
-	@echo "              args=\"<pytest Arguements>\"  optional arguments"
-	@echo "coverage -  Get coverage information, optional 'args' like test"
+	@echo "            args=\"<pytest Arguements>\"  optional arguments"
+	@echo "coverage -  Get coverage information, optional 'args' like test\n"
+	@echo "jupyter - Deploy jupyer-notebook using './notebook' directory
+	@echo "					 args=\"<jupyter Arguments\" -passable"\n"
 	@echo "tox      -  Test against multiple versions of python as defined in tox.ini"
 	@echo "clean | clean-all -  Clean up | clean up & removing virtualenv"
 
@@ -114,11 +117,14 @@ $(ANALIZE): $(PIP)
 
 ### Testing ######################################################
 
-.PHONY: test coverage
+.PHONY: test coverage notebook
 
 test: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
-	
 	$(pythonpath) $(TEST_RUNNER) $(args) $(TESTDIR)
+
+notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER) 
+	$(PIP) install -e .
+	$(pythonpath) $(TEST_RUNNER) --nbval --nbval-lax $(NOTEBOOK_DIR)
 
 $(TEST_RUNNER):
 	$(PIP) install $(TEST_RUNNER_PKGS) | tee -a $(REQUIREMENTS_LOG)
@@ -231,7 +237,7 @@ endif
 
 
 ### System Installation ######################################################
-.PHONY: develop install download
+.PHONY: develop install download jupyter
 
 develop:
 	$(PYTHON) setup.py develop
@@ -241,3 +247,7 @@ install:
 
 download:
 	$(PIP) install $(PROJECT)
+
+jupyter: 
+	$(PIP) install jupyter
+	jupyter-notebook $(args) --notebook-dir=$(NOTEBOOK_DIR)
