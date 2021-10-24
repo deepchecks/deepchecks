@@ -1,13 +1,12 @@
 """String functions."""
 from collections import defaultdict
-from typing import Dict, Set
+from typing import Dict, Set, List
+from copy import copy
+
 
 __all__ = ['string_baseform', 'get_base_form_to_variants_dict', 'underscore_to_capitalize', 'split_and_keep',
            'split_and_keep_by_many']
 
-
-from copy import copy
-from typing import List
 
 SPECIAL_CHARS: str = ' !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~\n'
 
