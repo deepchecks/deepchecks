@@ -20,15 +20,18 @@ class PartialBoostingModel:
     """    """
 
     def __init__(self, model, step):
-        self.model = model
         self.model_class = model.__class__.__name__
         self.step = step
+        if self.model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
+                                'GradientBoostingRegressor']:
+            self.model = deepcopy(model)
+            self.model.estimators_ = self.model.estimators_[:self.step]
+        else:
+            self.model = model
 
     def predict_proba(self, x):
         if self.model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier']:
-            model_copy = deepcopy(self.model)
-            model_copy.estimators_ = model_copy.estimators_[:self.step]
-            return model_copy.predict_proba(x)
+            return self.model.predict_proba(x)
         elif self.model_class == 'LGBMClassifier':
             return self.model.predict_proba(x, num_iteration=self.step)
         elif self.model_class == 'XGBClassifier':
@@ -41,9 +44,7 @@ class PartialBoostingModel:
     def predict(self, x):
         if self.model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
                                 'GradientBoostingRegressor']:
-            model_copy = deepcopy(self.model)
-            model_copy.estimators_ = model_copy.estimators_[:self.step]
-            return model_copy.predict(x)
+            return self.model.predict(x)
         elif self.model_class in ['LGBMClassifier', 'LGBMRegressor']:
             return self.model.predict(x, num_iteration=self.step)
         elif self.model_class in ['XGBClassifier', 'XGBRegressor']:
