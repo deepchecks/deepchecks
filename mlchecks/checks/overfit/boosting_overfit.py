@@ -4,16 +4,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from mlchecks import Dataset, CheckResult
-from mlchecks.metric_utils import ModelType, task_type_check, DEFAULT_METRICS_DICT, validate_scorer
+from mlchecks.metric_utils import task_type_check, DEFAULT_METRICS_DICT, validate_scorer, DEFAULT_SINGLE_METRIC
 from mlchecks.utils import MLChecksValueError
 
 __all__ = ['boosting_overfit']
-
-DEFAULT_SINGLE_METRIC = {
-    ModelType.BINARY: 'Accuracy',
-    ModelType.MULTICLASS: 'Accuracy',
-    ModelType.REGRESSION: 'RMSE'
-}
 
 
 class PartialBoostingModel:
@@ -70,7 +64,7 @@ class PartialBoostingModel:
             raise Exception()
 
 
-def make_score(scorer, dataset, model, step):
+def partial_score(scorer, dataset, model, step):
     partial_model = PartialBoostingModel(model, step)
     return scorer(partial_model, dataset.features_columns(), dataset.label_col())
 
@@ -103,8 +97,8 @@ def boosting_overfit(train_dataset: Dataset, validation_dataset: Dataset, model,
     train_scores = []
     val_scores = []
     for step in estimator_steps:
-        train_scores.append(make_score(scorer, train_dataset, model, step))
-        val_scores.append(make_score(scorer, validation_dataset, model, step))
+        train_scores.append(partial_score(scorer, train_dataset, model, step))
+        val_scores.append(partial_score(scorer, validation_dataset, model, step))
 
     def display_func():
         estimator_percents = [x / num_estimators for x in estimator_steps]

@@ -2,14 +2,10 @@
 from typing import Any
 
 import sklearn
-import catboost
 from IPython import get_ipython
 
 
-__all__ = ['SUPPORTED_BASE_MODELS', 'MLChecksValueError', 'model_type_validation', 'is_notebook']
-
-
-SUPPORTED_BASE_MODELS = [sklearn.base.BaseEstimator, catboost.CatBoost]
+__all__ = ['MLChecksValueError', 'model_type_validation', 'is_notebook']
 
 
 class MLChecksValueError(ValueError):
@@ -24,8 +20,13 @@ def model_type_validation(model: Any):
     Raises
         MLChecksException: If the object is not of a supported type
     """
-    if not any((isinstance(model, base) for base in SUPPORTED_BASE_MODELS)):
-        raise MLChecksValueError(f'Model must inherit from one of supported models: {SUPPORTED_BASE_MODELS}')
+    SUPPORTED_BY_CLASS_NAME = ['CatBoostClassifier', 'CatBoostRegressor']
+    SUPPORTED_BY_CLASS_INSTANCE = (sklearn.base.BaseEstimator,)
+    if not isinstance(model, SUPPORTED_BY_CLASS_INSTANCE) or model.__class__.__name__ in SUPPORTED_BY_CLASS_NAME:
+        return
+    else:
+        raise MLChecksValueError(f'Model must inherit from one of supported models: sklearn.base.BaseEstimator or '
+                                 f'CatBoost')
 
 
 def is_notebook():
@@ -55,7 +56,7 @@ def model_dataset_shape_validation(model: Any, dataset: Any):
     feature_count = None
     if isinstance(model, sklearn.base.BaseEstimator):
         feature_count = model.n_features_in_
-    elif isinstance(model, catboost.CatBoost):
+    elif model.__class__.__name__ in ['CatBoostClassifier', 'CatBoostRegressor']:
         feature_count = model.get_feature_count()
 
     if feature_count:
