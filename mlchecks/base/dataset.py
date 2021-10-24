@@ -313,7 +313,6 @@ class Dataset:
         Returns:
             (Dataset): object converted to MLChecks dataset
         """
-
         if isinstance(obj, Dataset):
             if len(obj.data) == 0:
                 raise MLChecksValueError('dataset cannot be empty')

@@ -1,7 +1,7 @@
+"""Contains unit tests for the Dataset class."""
 from mlchecks import Dataset
-from hamcrest import assert_that, equal_to, calling, raises
-
 from mlchecks.utils import MLChecksValueError
+from hamcrest import assert_that, calling, raises
 
 
 def test_validate_dataset_empty_df(empty_df):
