@@ -6,13 +6,11 @@ from typing import Union, List, Tuple
 import pandas as pd
 
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
-from mlchecks.base.dataset import validate_dataset_or_dataframe
+from mlchecks.base.string_utils import split_and_keep, split_and_keep_by_many
+from mlchecks.utils import MLChecksValueError
 
 
 __all__ = ['rare_format_detection', 'RareFormatDetection', 'Pattern']
-
-from mlchecks.checks.integrity.string_utils import split_and_keep, split_and_keep_by_many
-from mlchecks.utils import MLChecksValueError
 
 
 class Pattern:
@@ -112,7 +110,7 @@ def rare_format_detection(dataset: Union[Dataset, pd.DataFrame], column_names: U
             accurate, by trying to find common characters in all samples of the same pattern. In this example,
             the refined format found would be "XXXXXX@deepchecks.com.
     """
-    dataset = validate_dataset_or_dataframe(dataset)
+    dataset = Dataset.validate_dataset_or_dataframe(dataset)
     column_names = column_names or dataset.features()
 
     if pattern_match_method not in ['first', 'all']:

@@ -92,6 +92,13 @@ class Dataset:
         if self._date_name and _convert_date:
             self._data[self._date_name] = self._data[self._date_name].apply(pd.Timestamp, unit=date_unit_type)
 
+    def __getitem__(self, item):
+        if isinstance(self.data, pd.DataFrame):
+            return self.data[item]
+        else:
+            raise MLChecksValueError(f'Calling Dataset as subscriptable is not implemented for data type '
+                                     f'{type(self.data).__name__}')
+
     @property
     def data(self):
         """Return the data of dataset."""

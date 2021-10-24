@@ -1,6 +1,6 @@
 """String functions."""
 
-__all__ = ['string_baseform']
+__all__ = ['string_baseform', 'split_and_keep', 'split_and_keep_by_many']
 
 from copy import copy
 from typing import List
