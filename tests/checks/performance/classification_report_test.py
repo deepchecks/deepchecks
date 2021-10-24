@@ -18,11 +18,11 @@ def test_dataset_no_label(iris_dataset, iris_adaboost):
                 raises(MLChecksValueError, 'function classification_report requires dataset to have a label column'))
 
 
-def test_model_info_object(iris_labled_dataset, iris_adaboost):
+def test_model_info_object(iris_labeled_dataset, iris_adaboost):
     # Arrange
     check = ClassificationReport()
     # Act X
-    result = check.run(iris_labled_dataset, iris_adaboost).value
+    result = check.run(iris_labeled_dataset, iris_adaboost).value
     # Assert
     assert len(result.values()) == 3 # iris has 3 targets
     for col in result.values():

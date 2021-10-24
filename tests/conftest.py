@@ -1,10 +1,14 @@
 """Represents fixtures for unit testing using pytest."""
 # Disable this pylint check since we use this convention in pytest fixtures
 #pylint: disable=redefined-outer-name
+from typing import Tuple
 
 import pytest
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+import pandas as pd
+
 from mlchecks import Dataset
 
 
@@ -27,12 +31,6 @@ def iris_dataset(iris):
 
 
 @pytest.fixture(scope='session')
-def iris_dataset_labeled(iris):
-    """Return Iris dataset as Dataset object."""
-    return Dataset(iris, label='target')
-
-
-@pytest.fixture(scope='session')
 def iris_adaboost(iris):
     """Return trained AdaBoostClassifier on iris data."""
     clf = AdaBoostClassifier()
@@ -43,8 +41,8 @@ def iris_adaboost(iris):
 
 
 @pytest.fixture(scope='session')
-def iris_labled_dataset(iris):
-    """Return t Iris dataset as Dataset object with label."""
+def iris_labeled_dataset(iris):
+    """Return Iris dataset as Dataset object with label."""
     return Dataset(iris, label='target')
 
 
@@ -57,6 +55,7 @@ def iris_random_forest(iris):
     clf.fit(features, target)
     return clf
 
+
 @pytest.fixture(scope='session')
 def iris_random_forest_single_class(iris):
     """Return trained RandomForestClassifier on iris data modified to a binary label."""
@@ -67,6 +66,7 @@ def iris_random_forest_single_class(iris):
     clf.fit(features, target)
     return clf
 
+
 @pytest.fixture(scope='session')
 def iris_dataset_single_class(iris):
     """Return Iris dataset modified to a binary label as Dataset object."""
@@ -75,6 +75,7 @@ def iris_dataset_single_class(iris):
     dataset = Dataset(df)
     return dataset
 
+
 @pytest.fixture(scope='session')
 def iris_dataset_single_class_labeled(iris):
     """Return Iris dataset modified to a binary label as Dataset object."""
@@ -82,3 +83,22 @@ def iris_dataset_single_class_labeled(iris):
     df = iris[idx]
     dataset = Dataset(df, label='target')
     return dataset
+
+
+@pytest.fixture(scope='session')
+def iris_split_dataset_and_model(iris) -> Tuple[Dataset, Dataset, AdaBoostClassifier]:
+    """Return Iris train and val datasets and trained RF model."""
+    iris = load_iris(as_frame=True)
+    x = iris.data
+    y = iris.target
+    x_train, x_test, y_train, y_test = train_test_split(
+        x, y, test_size=0.33, random_state=42)
+    train_ds = Dataset(pd.concat([x_train, y_train], axis=1),
+                       features=iris.feature_names,
+                       label='target')
+    val_ds = Dataset(pd.concat([x_test, y_test], axis=1),
+                     features=iris.feature_names,
+                     label='target')
+    clf = AdaBoostClassifier()
+    clf.fit(x_train, y_train)
+    return train_ds, val_ds, clf
