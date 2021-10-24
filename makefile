@@ -46,16 +46,15 @@ REQUIREMENTS := $(shell find . -name $(REQUIRE))
 REQUIREMENTS_LOG := .requirements.log
 
 # Test and Analyize
-ANALIZE_PKGS = pylint pydocstyle
+ANALIZE_PKGS = pylint pydocstyle 
 TEST_CODE := tests/
-TEST_RUNNER_PKGS = pytest pyhamcrest nbval
+TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval
 NOTEBOOK_DIR = ./notebooks
 
 PYLINT_LOG = .pylint.log
 # Coverage vars
 COVERAGE_LOG = .cover.log
 COVERAGE_FILE = default.coveragerc
-COVERAGE_PKGS = pytest-cov
 COVERAGE_RC := $(wildcard $(COVERAGE_FILE))
 COVER_ARG := --cov-report term-missing --cov=$(PKGDIR) \
 	$(if $(COVERAGE_RC), --cov-config $(COVERAGE_RC))
@@ -129,7 +128,7 @@ notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 $(TEST_RUNNER):
 	$(PIP) install $(TEST_RUNNER_PKGS) | tee -a $(REQUIREMENTS_LOG)
 
-coverage: $(REQUIREMENTS_LOG) $(TEST_RUNNER) $(COVERAGE)
+coverage: $(REQUIREMENTS_LOG) $(TEST_RUNNER) 
 	$(pythonpath) $(TEST_RUNNER) $(args) $(COVER_ARG) $(TESTDIR) | tee -a $(COVERAGE_LOG)
 
 
@@ -147,8 +146,6 @@ ifeq (,$(COVERAGE_RC))
 endif
 endif
 
-$(COVERAGE): $(PIP)
-	$(PIP) install $(COVERAGE_PKGS) | tee -a $(REQUIREMENTS_LOG)
 
 # tox checks for all python versions matrix
 tox: $(TOX)
