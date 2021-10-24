@@ -20,13 +20,13 @@ def model_type_validation(model: Any):
     Raises
         MLChecksException: If the object is not of a supported type
     """
-    SUPPORTED_BY_CLASS_NAME = ['CatBoostClassifier', 'CatBoostRegressor']
-    SUPPORTED_BY_CLASS_INSTANCE = (sklearn.base.BaseEstimator,)
-    if not isinstance(model, SUPPORTED_BY_CLASS_INSTANCE) or model.__class__.__name__ in SUPPORTED_BY_CLASS_NAME:
+    supported_by_class_name = ['CatBoostClassifier', 'CatBoostRegressor']
+    supported_by_class_instance = (sklearn.base.BaseEstimator,)
+    if isinstance(model, supported_by_class_instance) or model.__class__.__name__ in supported_by_class_name:
         return
     else:
-        raise MLChecksValueError(f'Model must inherit from one of supported models: sklearn.base.BaseEstimator or '
-                                 f'CatBoost')
+        raise MLChecksValueError('Model must inherit from one of supported models: sklearn.base.BaseEstimator or '
+                                 'CatBoost')
 
 
 def is_notebook():

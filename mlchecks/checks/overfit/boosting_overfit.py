@@ -1,3 +1,4 @@
+"""Boosting overfit check module."""
 from copy import deepcopy
 from typing import Callable
 import matplotlib.pyplot as plt
@@ -11,7 +12,7 @@ __all__ = ['boosting_overfit']
 
 
 class PartialBoostingModel:
-    """    """
+    """Wrapper for boosting models which limits the number of estimators being used in the prediction."""
 
     def __init__(self, model, step):
         self.model_class = model.__class__.__name__
@@ -33,7 +34,7 @@ class PartialBoostingModel:
         elif self.model_class == 'CatBoostClassifier':
             return self.model.predict_proba(x, ntree_end=self.step)
         else:
-            raise Exception()
+            raise MLChecksValueError(f'Unsupported model of type: {self.model_class}')
 
     def predict(self, x):
         if self.model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
@@ -46,7 +47,7 @@ class PartialBoostingModel:
         elif self.model_class in ['CatBoostClassifier', 'CatBoostRegressor']:
             return self.model.predict(x, ntree_end=self.step)
         else:
-            raise Exception()
+            raise MLChecksValueError(f'Unsupported model of type: {self.model_class}')
 
     @classmethod
     def n_estimators(cls, model):
@@ -61,7 +62,7 @@ class PartialBoostingModel:
         elif model_class in ['CatBoostClassifier', 'CatBoostRegressor']:
             return model.tree_count_
         else:
-            raise Exception()
+            raise MLChecksValueError(f'Unsupported model of type: {model_class}')
 
 
 def partial_score(scorer, dataset, model, step):
@@ -102,14 +103,14 @@ def boosting_overfit(train_dataset: Dataset, validation_dataset: Dataset, model,
 
     def display_func():
         estimator_percents = [x / num_estimators for x in estimator_steps]
-        fig, axes = plt.subplots(1, 1, figsize=(7, 4))
+        _, axes = plt.subplots(1, 1, figsize=(7, 4))
         axes.set_xlabel('Percent estimators used')
         axes.set_ylabel(metric_name)
         axes.grid()
-        axes.plot(estimator_percents, np.array(train_scores), 'o-', color="r",
-                  label="Training score")
-        axes.plot(estimator_percents, np.array(val_scores), 'o-', color="g",
-                  label="Validation score")
-        axes.legend(loc="best")
+        axes.plot(estimator_percents, np.array(train_scores), 'o-', color='r',
+                  label='Training score')
+        axes.plot(estimator_percents, np.array(val_scores), 'o-', color='g',
+                  label='Validation score')
+        axes.legend(loc='best')
 
     return CheckResult(val_scores[-1], check=boosting_overfit, display=display_func)

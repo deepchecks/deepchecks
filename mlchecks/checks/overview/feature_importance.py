@@ -21,6 +21,7 @@ def feature_importance(dataset: Dataset, model: BaseEstimator, plot_type: str = 
     dataset.validate_label(self.__name__)
     model_type_validation(model)
     model_dataset_shape_validation(model, dataset)
+    print('run!')
 
     try:
         explainer = shap.Explainer(model)
