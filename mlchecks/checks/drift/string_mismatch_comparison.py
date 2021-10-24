@@ -12,8 +12,8 @@ __all__ = ['string_mismatch_comparison', 'StringMismatchComparison']
 
 
 def percentage_in_series(series, values):
-    percentage = sum(series.isin(values)) / series.size
-    return f'{percentage:.2%}'
+    count = sum(series.isin(values))
+    return f'{count} | {count / series.size:.2%}'
 
 
 def string_mismatch_comparison(dataset: Union[pd.DataFrame, Dataset],
@@ -49,12 +49,11 @@ def string_mismatch_comparison(dataset: Union[pd.DataFrame, Dataset],
     columns = set(df.columns).intersection(compared_df.columns)
 
     for column_name in columns:
-        tested_column: Series = dataset[column_name]
-        # TODO: change to check column if is categorical
-        if tested_column.dtype != StringDtype:
+        tested_column: Series = dataset[column_name].convert_dtypes()
+        compared_column: Series = compared_df[column_name].convert_dtypes()
+        # If one of the columns isn't string type, continue
+        if not StringDtype.is_dtype(tested_column.dtype) or not StringDtype.is_dtype(compared_column.dtype):
             continue
-        # TODO: check that also reference is categorical?
-        compared_column: Series = compared_df[column_name]
 
         tested_baseforms = get_base_form_to_variants_dict(tested_column.unique())
         compared_baseforms = get_base_form_to_variants_dict(compared_column.unique())
@@ -78,7 +77,7 @@ def string_mismatch_comparison(dataset: Union[pd.DataFrame, Dataset],
     # Create result dataframe
     df_graph = DataFrame(mismatches,
                          columns=['Column name', 'Base form', 'Variants only in dataset',
-                                  'Variants only  in comparison Dataset', 'Common variants',
+                                  'Variants only  in comparison dataset', 'Common variants',
                                   '% Variants only in dataset', '% Variants only  in comparison dataset'])
     df_graph = df_graph.set_index(['Column name', 'Base form'])
     # For display transpose the dataframe

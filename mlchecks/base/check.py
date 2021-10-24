@@ -96,6 +96,9 @@ class BaseCheck(metaclass=abc.ABCMeta):
         """Init base check parameters to pass to be used in the implementing check."""
         self.params = params
 
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self.params})'
+
 
 class SingleDatasetBaseCheck(BaseCheck):
     """Parent class for checks that only use one dataset."""
