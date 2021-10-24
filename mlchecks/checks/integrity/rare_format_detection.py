@@ -119,13 +119,14 @@ def rare_format_detection(dataset: Union[Dataset, pd.DataFrame], column_names: U
     if isinstance(column_names, str):
         column_names = [column_names]
 
-    res = {column_name: _detect_per_column(dataset[column_name], patterns, rarity_threshold, pattern_match_method)
+    res = {column_name: _detect_per_column(dataset.data[column_name], patterns, rarity_threshold, pattern_match_method)
            for column_name in column_names}
 
     display = []
     for key, value in res.items():
-        display.append(f'\n\nColumn {key}:')
-        display.append(value)
+        if value.shape[0] > 0:
+            display.append(f'\n\nColumn {key}:')
+            display.append(value)
 
     return CheckResult(value=res, header='Rare Format Detection', check=rare_format_detection, display=display)
 

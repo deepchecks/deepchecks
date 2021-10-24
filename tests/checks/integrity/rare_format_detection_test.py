@@ -1,5 +1,4 @@
 """Contains unit tests for the rare_format_detection check."""
-from collections import OrderedDict
 from datetime import datetime
 
 import numpy as np
@@ -49,3 +48,19 @@ def test_assert_change_in_format2():
     res = c.run(dataset=Dataset(df))
     assert_that(res.value['date'], empty())
     assert_that(res.value['email'].loc['ratio of rare patterns to common patterns'].values[0], equal_to('1.01%'))
+
+
+def test_runs_on_numbers():
+    df = pd.DataFrame(np.ones((100, 1)) * 11111, columns=['numbers'])
+    df.iloc[0, 0] = 1111
+    c = RareFormatDetection()
+    res = c.run(dataset=Dataset(df))
+    assert_that(res.value['numbers'].loc['ratio of rare patterns to common patterns'].values[0], equal_to('1.01%'))
+
+
+def test_runs_on_mixed():
+    df = pd.DataFrame(np.ones((100, 1)) * 11111, columns=['mixed'])
+    df.iloc[0, 0] = 'aaaaa'
+    c = RareFormatDetection()
+    res = c.run(dataset=Dataset(df))
+    assert_that(res.value['mixed'].loc['ratio of rare patterns to common patterns'].values[0], equal_to('1.01%'))
