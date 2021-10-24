@@ -58,6 +58,8 @@ class Dataset:
                           feature.
 
         """
+        self._data = df.copy()
+
         # Validations
         if use_index is True and index is not None:
             raise MLChecksValueError('parameter use_index cannot be True if index is given')
