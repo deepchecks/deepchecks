@@ -1,10 +1,12 @@
 """The data_sample_leakage_report check module."""
 from typing import Dict, List
 import re
-import pandas as pd
-from mlchecks import Dataset
 
+from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, TrainValidationBaseCheck
+
+import pandas as pd
+pd.options.mode.chained_assignment = None
 
 __all__ = ['data_sample_leakage_report', 'DataSampleLeakageReport']
 
