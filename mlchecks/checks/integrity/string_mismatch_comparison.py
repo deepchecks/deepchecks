@@ -63,9 +63,9 @@ def string_mismatch_comparison(dataset: Union[pd.DataFrame, Dataset],
             # If at least one unique value in tested dataset, add the column to results
             if len(tested_values - baseline_values) > 0:
                 # Calculate all values to be shown
-                variants_only_in_dataset = tested_values - baseline_values
-                variants_only_in_baseline = baseline_values - tested_values
-                common_variants = tested_values & baseline_values
+                variants_only_in_dataset = list(tested_values - baseline_values)
+                variants_only_in_baseline = list(baseline_values - tested_values)
+                common_variants = list(tested_values & baseline_values)
                 percent_variants_only_in_dataset = percentage_in_series(tested_column, variants_only_in_dataset)
                 percent_variants_in_baseline = percentage_in_series(baseline_column, variants_only_in_baseline)
 

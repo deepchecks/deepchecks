@@ -13,7 +13,7 @@ SingleDatasetIntegrityCheckSuite = CheckSuite(
     MixedTypes(),
     StringMismatch(),
     DataDuplicates(),
-    RareFormatDetection(),
+    # RareFormatDetection(),  # Commented out until fixed
     SpecialCharacters()
 )
 
