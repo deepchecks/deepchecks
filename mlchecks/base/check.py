@@ -114,7 +114,7 @@ class CompareDatasetsBaseCheck(BaseCheck):
     """Parent class for checks that compare between two datasets."""
 
     @abc.abstractmethod
-    def run(self, dataset, compared_dataset, model=None) -> CheckResult:
+    def run(self, dataset, baseline_dataset, model=None) -> CheckResult:
         """Define run signature."""
         pass
 
