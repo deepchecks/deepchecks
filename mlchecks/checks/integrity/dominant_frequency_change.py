@@ -86,13 +86,23 @@ def dominant_frequency_change(dataset: Dataset, baseline_dataset: Dataset, p_val
         top_test = test_df[column].value_counts()
         
         if(top_ref.iloc[0] > top_ref.iloc[1] * dominance_ratio):
-            p_val = find_p_val(top_ref.index[0], top_test, top_ref, test_len, ref_len, ratio_change_thres)
+            value = top_test.index[0]
+            p_val = find_p_val(value, top_test, top_ref, test_len, ref_len, ratio_change_thres)
             if p_val < p_val_thres:
-                p_df[column] = {'value': top_ref.index[0], 'p value': p_val}
+                count_ref = top_ref[value]
+                count_test = top_test.get(value, 0)
+                p_df[column] = {'Value': value,
+                                'Reference data': f'{count_ref} ({count_ref / ref_len * 100:0.2f})',
+                                'Tested data': f'{count_test} ({count_test / test_len * 100:0.2f})'}
         elif(top_test.iloc[0] > top_test.iloc[1] * dominance_ratio):
-            p_val = find_p_val(top_test.index[0], top_test, top_ref, test_len, ref_len, ratio_change_thres)
-            if p_val < p_val_thres:
-                p_df[column] = {'value': top_test.index[0], 'p value': p_val}
+            value = top_test.index[0]
+            p_val = find_p_val(value, top_test, top_ref, test_len, ref_len, ratio_change_thres)
+            if p_val < p_val_thres:  
+                count_test = top_test[value]
+                count_ref = top_ref.get(value, 0)
+                p_df[column] = {'Value': value,
+                                'Reference data': f'{count_ref} ({count_ref / ref_len * 100:0.2f})',
+                                'Tested data': f'{count_test} ({count_test / test_len * 100:0.2f})'}
 
     p_df = pd.DataFrame.from_dict(p_df, orient='index')
     
