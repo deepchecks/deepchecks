@@ -13,6 +13,10 @@ from mlchecks import Dataset
 
 
 @pytest.fixture(scope='session')
+def empty_df():
+    return pd.DataFrame([])
+
+@pytest.fixture(scope='session')
 def iris_clean():
     """Return Iris dataset as DataFrame."""
     iris = load_iris(return_X_y=False, as_frame=True)
