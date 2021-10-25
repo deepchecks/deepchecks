@@ -12,7 +12,23 @@ from mlchecks.base.dataframe_utils import filter_columns_with_validation
 __all__ = ['dominant_frequency_change', 'DominantFrequencyChange']
 
 
-def find_p_val(key, ref_hist: Dict, test_hist: Dict, ref_count: int, test_count: int, ratio_change_thres: float):
+def find_p_val(key: str, ref_hist: Dict, test_hist: Dict, ref_count: int, test_count: int, ratio_change_thres: float) -> float:
+    """find p value for column frequency change between the reference dataset to the test dataset
+
+    Args:
+        key (str): key of the dominant value.
+        ref_hist (Dict): The reference dataset histogram.
+        test_hist (Dict): The test dataset histogram.
+        ref_count (int): The reference dataset row count.
+        test_count (int): The test dataset row count.
+        ratio_change_thres (float): The dominant frequency has to change by at least this ratio (0-inf).
+    Returns:
+        float: p value for the key.
+
+    Raises:
+        MLChecksValueError: If the object is not a Dataset or DataFrame instance
+
+    """
     contingency_matrix_df = pd.DataFrame(np.zeros((2, 2)), index=["dominant", "others"], columns=["ref", "test"])
     contingency_matrix_df.loc["dominant", "ref"] = ref_hist.get(key, 0)
     contingency_matrix_df.loc["dominant", "test"] = test_hist.get(key, 0)
@@ -38,7 +54,7 @@ def find_p_val(key, ref_hist: Dict, test_hist: Dict, ref_count: int, test_count:
 
 
 def dominant_frequency_change(validation_dataset: Dataset, train_dataset: Dataset, p_val_thres: float = 0.0001, dominance_ratio: float = 2,  ratio_change_thres: float = 1.5):
-    """Find which percent of the validation data in the train data.
+    """Detect values highly represented in the tested and reference data and checks if their relative and absolute percentage have increased significantly
 
     Args:
         train_dataset (Dataset): The training dataset object. Must contain an index.
@@ -47,8 +63,7 @@ def dominant_frequency_change(validation_dataset: Dataset, train_dataset: Datase
         dominance_ratio (float = 2): Next most abundance value has to be THIS times less than the first (0-inf).
         ratio_change_thres (float = 1.5): The dominant frequency has to change by at least this ratio (0-inf).
     Returns:
-        CheckResult: Detects values highly represented in the tested and reference data and checks if their
-                     relative and absolute percentage have increased significantly and makes a report in a dataframe.
+        CheckResult:  result value is dataframe that containes the dominant value change for each column.
 
     Raises:
         MLChecksValueError: If the object is not a Dataset or DataFrame instance
@@ -71,12 +86,12 @@ def dominant_frequency_change(validation_dataset: Dataset, train_dataset: Datase
         top_val = val_f[column].value_counts()
         top_train = train_f[column].value_counts()
         
-        if(top_val.iloc[0] > top_val.iloc[1] * 2):
-            p_val = check_drift(top_val.iloc[0], top_train, top_val, train_len, val_len, ratio_change_thres)
+        if(top_val.iloc[0] > top_val.iloc[1] * dominance_ratio):
+            p_val = find_p_val(top_val.iloc[0], top_train, top_val, train_len, val_len, ratio_change_thres)
             if p_val < p_val_thres:
                 p_df[column] = {'value': top_val.iloc[0], 'p value': p_val}
-        elif(top_train.iloc[0] > top_train.iloc[1] * 2):
-            p_val = check_drift(top_val.iloc[0], top_train, top_val, train_len, val_len, ratio_change_thres)
+        elif(top_train.iloc[0] > top_train.iloc[1] * dominance_ratio):
+            p_val = find_p_val(top_val.iloc[0], top_train, top_val, train_len, val_len, ratio_change_thres)
             if p_val < p_val_thres:
                 p_df[column] = {'value': top_train.iloc[0], 'p value': p_val}
 
@@ -98,7 +113,7 @@ class DominantFrequencyChange(TrainValidationBaseCheck):
             dominance_ratio (float = 2): Next most abundance value has to be THIS times less than the first (0-inf).
             ratio_change_thres (float = 1.5): The dominant frequency has to change by at least this ratio (0-inf).
         Returns:
-            CheckResult: value is sample leakage ratio in %,
-                         displays a dataframe that shows the duplicated rows between the datasets
+            CheckResult: Detects values highly represented in the tested and reference data and checks if their
+                         relative and absolute percentage have increased significantly and makes a report in a dataframe.
         """
-        return dominant_frequency_change(validation_dataset=validation_dataset, train_dataset=train_dataset)
+        return dominant_frequency_change(validation_dataset=validation_dataset, train_dataset=train_dataset, **self.params)
