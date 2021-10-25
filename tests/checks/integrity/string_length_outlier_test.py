@@ -1,4 +1,4 @@
-"""Contains unit tests for the string_mismatch check."""
+"""Contains unit tests for the string_length_outlier check."""
 import pandas as pd
 
 from mlchecks.checks import string_length_outlier

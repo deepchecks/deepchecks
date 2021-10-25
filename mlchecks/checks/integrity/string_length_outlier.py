@@ -1,12 +1,14 @@
 """String mismatch functions."""
 from functools import reduce
 from typing import Union, Dict, Iterable, Tuple
+from math import ceil, floor
 
 import numpy as np
 import pandas as pd
 from pandas import DataFrame, StringDtype, Series
 
 from mlchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_dataframe_type
+from mlchecks.base import string_utils
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 
 __all__ = ['string_length_outlier', 'StringLengthOutlier']
@@ -40,16 +42,13 @@ def string_length_outlier(dataset: Union[pd.DataFrame, Dataset], columns: Union[
     for column_name in df.columns:
         column: Series = df[column_name]
 
-        if column.dtype != StringDtype:
+        if not string_utils.is_string_column(column):
             continue
 
         string_length_column = column.map(len)
 
         quantile_list = list(np.linspace(0.0, 100.0, num_percentiles + 1))
         quantile_values = np.percentile(string_length_column, quantile_list)
-
-        if quantile_values is None:
-            raise MLChecksValueError('Unable to create quantile_values from column')
 
         percentile_histogram = dict(zip(quantile_list, list(quantile_values)))
 
@@ -63,17 +62,16 @@ def string_length_outlier(dataset: Union[pd.DataFrame, Dataset], columns: Union[
             # add to result
             for outlier_section in outlier_sections:
                 n_outlier_samples = reduce(lambda value, x, ph=percentile_histogram, os=outlier_section:
-                                                value + in_range(x,
-                                                                 ph[os[0]],
-                                                                 ph[os[1]]),
+                                                value + in_range(x, ph[os[0]], ph[os[1]]),
                                            string_length_column, 0)
-                results.append([column_name,
-                                f'{percentile_histogram[non_outlier_section[0]]:.1f} -'
-                                f' {percentile_histogram[non_outlier_section[1]]:.1f}',
-                                f'{percentile_histogram[outlier_section[0]]:.1f} -'
-                                f' {percentile_histogram[outlier_section[1]]:.1f}',
-                                f'{n_outlier_samples}'
-                                ])
+                if n_outlier_samples:
+                    results.append([column_name,
+                                    f'{ceil(percentile_histogram[non_outlier_section[0]])} -'
+                                    f' {floor(percentile_histogram[non_outlier_section[1]])}',
+                                    f'{ceil(percentile_histogram[outlier_section[0]])} -'
+                                    f' {floor(percentile_histogram[outlier_section[1]])}',
+                                    f'{n_outlier_samples}'
+                                    ])
 
     # Create dataframe to display graph
     df_graph = DataFrame(results,
@@ -85,10 +83,7 @@ def string_length_outlier(dataset: Union[pd.DataFrame, Dataset], columns: Union[
                                    'Range of Detected Normal String Lengths',
                                    'Range of Detected Outlier String Lengths'])
 
-    if len(df_graph) > 0:
-        display = df_graph
-    else:
-        display = None
+    display = df_graph if len(df_graph) > 0 else None
 
     return CheckResult(df_graph, check=string_length_outlier, display=display)
 
@@ -117,11 +112,11 @@ def outlier_on_percentile_histogram(percentile_histogram: Dict[float, float], iq
     percentile_df = pd.DataFrame.from_dict(percentile_histogram, orient='index')
 
     # calculate IQR with iqr_percent
-    closest_point = np.argmin(np.abs(iqr_percent - percentile_df.index.values))
+    closest_point_upper = np.argmin(np.abs(iqr_percent - percentile_df.index.values))
     closest_point_lower = np.argmin(np.abs(100 - iqr_percent - percentile_df.index.values))
     center_point = np.argmin(np.abs(50 - percentile_df.index.values))
 
-    iqr = np.abs(percentile_df.iloc[closest_point] - percentile_df.iloc[closest_point_lower])
+    iqr = np.abs(percentile_df.iloc[closest_point_upper] - percentile_df.iloc[closest_point_lower])
 
     outlier_df = percentile_df[
         (np.abs(percentile_df - percentile_df.iloc[center_point])
@@ -149,6 +144,4 @@ class StringLengthOutlier(SingleDatasetBaseCheck):
         Args:
             dataset (DataFrame): A dataset or pd.FataFrame object.
         """
-        return string_length_outlier(dataset,
-                                     columns=self.params.get('columns'),
-                                     ignore_columns=self.params.get('ignore_columns'))
+        return string_length_outlier(dataset, **self.params)
