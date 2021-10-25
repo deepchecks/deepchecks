@@ -5,15 +5,13 @@ from math import ceil, floor
 
 import numpy as np
 import pandas as pd
-from pandas import DataFrame, StringDtype, Series
+from pandas import DataFrame, Series
 
 from mlchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_dataframe_type
 from mlchecks.base.string_utils import is_string_column
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 
 __all__ = ['string_length_outlier', 'StringLengthOutlier']
-
-from mlchecks.utils import MLChecksValueError
 
 
 def string_length_outlier(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, Iterable[str]] = None,
