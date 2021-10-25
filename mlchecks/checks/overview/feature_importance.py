@@ -1,7 +1,7 @@
 """The feature_importance check module."""
 from sklearn.base import BaseEstimator
 from mlchecks import SingleDatasetBaseCheck, CheckResult, Dataset
-from mlchecks.utils import model_type_validation, MLChecksValueError, model_dataset_shape_validation
+from mlchecks.utils import model_type_validation, MLChecksValueError, model_dataset_validation
 
 import shap
 
@@ -20,7 +20,7 @@ def feature_importance(dataset: Dataset, model: BaseEstimator, plot_type: str = 
     Dataset.validate_dataset(dataset, self.__name__)
     dataset.validate_label(self.__name__)
     model_type_validation(model)
-    model_dataset_shape_validation(model, dataset)
+    model_dataset_validation(model, dataset)
 
     try:
         explainer = shap.Explainer(model)

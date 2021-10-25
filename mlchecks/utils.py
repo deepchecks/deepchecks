@@ -5,7 +5,7 @@ import sklearn
 from IPython import get_ipython
 
 
-__all__ = ['MLChecksValueError', 'model_type_validation', 'is_notebook']
+__all__ = ['MLChecksValueError', 'model_type_validation', 'is_notebook', 'model_dataset_validation']
 
 
 class MLChecksValueError(ValueError):
@@ -47,21 +47,13 @@ def is_notebook():
         return False      # Probably standard Python interpreter
 
 
-def model_dataset_shape_validation(model: Any, dataset: Any):
+def model_dataset_validation(model: Any, dataset: Any):
     """Check if number of dataset features matches the number model features.
 
     Raise:
         MLChecksException: if dataset does not match model
     """
-    feature_count = None
-    if isinstance(model, sklearn.base.BaseEstimator):
-        feature_count = model.n_features_in_
-    elif model.__class__.__name__ in ['CatBoostClassifier', 'CatBoostRegressor']:
-        feature_count = model.get_feature_count()
-
-    if feature_count:
-        if feature_count != len(dataset.features()):
-            raise MLChecksValueError(f'model and dataset do not contain the same number of features:'
-                                     f' model({feature_count}) dataset({len(dataset.features())})')
-    else:
-        raise MLChecksValueError('unable to extract number of features from model')
+    try:
+        model.predict(dataset.features_columns().head(1))
+    except Exception as exc:
+        raise MLChecksValueError('Got error when trying to predict with model on dataset') from exc
