@@ -87,13 +87,13 @@ def dominant_frequency_change(validation_dataset: Dataset, train_dataset: Datase
         top_train = train_f[column].value_counts()
         
         if(top_val.iloc[0] > top_val.iloc[1] * dominance_ratio):
-            p_val = find_p_val(top_val.iloc[0], top_train, top_val, train_len, val_len, ratio_change_thres)
+            p_val = find_p_val(top_val.index[0], top_train, top_val, train_len, val_len, ratio_change_thres)
             if p_val < p_val_thres:
-                p_df[column] = {'value': top_val.iloc[0], 'p value': p_val}
+                p_df[column] = {'value': top_val.index[0], 'p value': p_val}
         elif(top_train.iloc[0] > top_train.iloc[1] * dominance_ratio):
-            p_val = find_p_val(top_val.iloc[0], top_train, top_val, train_len, val_len, ratio_change_thres)
+            p_val = find_p_val(top_val.index[0], top_train, top_val, train_len, val_len, ratio_change_thres)
             if p_val < p_val_thres:
-                p_df[column] = {'value': top_train.iloc[0], 'p value': p_val}
+                p_df[column] = {'value': top_train.index[0], 'p value': p_val}
 
     p_df = pd.DataFrame.from_dict(p_df, orient='index')
     
