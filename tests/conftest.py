@@ -19,7 +19,7 @@ def empty_df():
 
 @pytest.fixture(scope='session')
 def diabetes():
-    """Return Iris dataset as DataFrame."""
+    """Return diabetes dataset as DataFrame."""
     return load_diabetes(return_X_y=False, as_frame=True).frame
 
 
