@@ -47,7 +47,7 @@ def string_mismatch_comparison(dataset: Union[pd.DataFrame, Dataset],
     columns = set(df.columns).intersection(baseline_df.columns)
 
     for column_name in columns:
-        tested_column: pd.Series = dataset[column_name]
+        tested_column: pd.Series = df[column_name]
         baseline_column: pd.Series = baseline_df[column_name]
         # If one of the columns isn't string type, continue
         if not is_string_column(tested_column) or not is_string_column(baseline_column):
