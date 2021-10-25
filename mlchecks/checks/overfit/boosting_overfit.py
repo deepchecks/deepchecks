@@ -8,7 +8,7 @@ import numpy as np
 
 from mlchecks import Dataset, CheckResult, TrainValidationBaseCheck
 from mlchecks.metric_utils import task_type_check, DEFAULT_METRICS_DICT, validate_scorer, DEFAULT_SINGLE_METRIC
-from mlchecks.utils import MLChecksValueError, model_dataset_validation
+from mlchecks.utils import MLChecksValueError
 
 __all__ = ['boosting_overfit', 'BoostingOverfit']
 
@@ -128,7 +128,7 @@ def boosting_overfit(train_dataset: Dataset, validation_dataset: Dataset, model,
     validation_dataset.validate_label(self.__name__)
     train_dataset.validate_shared_features(validation_dataset, self.__name__)
     train_dataset.validate_shared_label(validation_dataset, self.__name__)
-    model_dataset_validation(model, train_dataset)
+    train_dataset.validate_model(model)
 
     # Get default metric
     model_type = task_type_check(model, train_dataset)

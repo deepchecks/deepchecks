@@ -1,11 +1,10 @@
 """Utils module containing useful global functions."""
 from typing import Any
-
 import sklearn
 from IPython import get_ipython
 
 
-__all__ = ['MLChecksValueError', 'model_type_validation', 'is_notebook', 'model_dataset_validation']
+__all__ = ['MLChecksValueError', 'model_type_validation', 'is_notebook']
 
 
 class MLChecksValueError(ValueError):
@@ -45,15 +44,3 @@ def is_notebook():
             return False  # Other type (?)
     except NameError:
         return False      # Probably standard Python interpreter
-
-
-def model_dataset_validation(model: Any, dataset: Any):
-    """Check if number of dataset features matches the number model features.
-
-    Raise:
-        MLChecksException: if dataset does not match model
-    """
-    try:
-        model.predict(dataset.features_columns().head(1))
-    except Exception as exc:
-        raise MLChecksValueError('Got error when trying to predict with model on dataset') from exc
