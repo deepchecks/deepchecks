@@ -322,8 +322,12 @@ class Dataset:
             (Dataset): object converted to MLChecks dataset
         """
         if isinstance(obj, Dataset):
+            if len(obj.data) == 0:
+                raise MLChecksValueError('dataset cannot be empty')
             return obj
         elif isinstance(obj, pd.DataFrame):
+            if len(obj) == 0:
+                raise MLChecksValueError('dataset cannot be empty')
             return Dataset(obj)
         else:
             raise MLChecksValueError(f'dataset must be of type DataFrame or Dataset. instead got: '
@@ -340,11 +344,13 @@ class Dataset:
         Returns:
             (Dataset): object that is MLChecks dataset
         """
-        if isinstance(obj, Dataset):
-            return obj
-        else:
+        if not isinstance(obj, Dataset):
             raise MLChecksValueError(f'function {function_name} requires dataset to be of type Dataset. instead got: '
                                      f'{type(obj).__name__}')
+        if len(obj.data) == 0:
+            raise MLChecksValueError(f'function {function_name} required a non-empty dataset')
+
+        return obj
 
 
 def ensure_dataframe_type(obj: Any) -> pd.DataFrame:

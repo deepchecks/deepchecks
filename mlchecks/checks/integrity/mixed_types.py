@@ -1,7 +1,6 @@
 """module contains Mixed Types check."""
 from typing import Iterable, Union
 import pandas as pd
-from pandas.api.types import infer_dtype
 
 import numpy as np
 
@@ -12,6 +11,7 @@ from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 __all__ = ['mixed_types', 'MixedTypes']
 
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
+from mlchecks.base.string_utils import is_string_column
 
 
 def mixed_types(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, Iterable[str]] = None,
@@ -49,21 +49,10 @@ def mixed_types(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, Itera
     return CheckResult(df_graph, check=mixed_types, display=display)
 
 
-def get_data_mix(column_data: pd.Series) -> dict :
-    if is_mixed_type(column_data):
-        try:
-            #string casted numbers are castable, so if we fail this the column is mixed.
-            pd.to_numeric(column_data)
-        except ValueError:
-            #column is truely mixed.
-            return check_mixed_percentage(column_data)
+def get_data_mix(column_data: pd.Series) -> dict:
+    if is_string_column(column_data):
+        return check_mixed_percentage(column_data)
     return {}
-
-
-def is_mixed_type(col):
-    # infer_dtype returns a 'mixed[-xxx]' even if real value is number
-    # if it returns string, we still need to validate no hidden numbers present
-    return infer_dtype(col) in ['mixed', 'mixed-integer', 'string']
 
 
 def check_mixed_percentage(column_data: pd.Series) -> dict:

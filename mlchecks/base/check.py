@@ -96,6 +96,10 @@ class BaseCheck(metaclass=abc.ABCMeta):
         """Init base check parameters to pass to be used in the implementing check."""
         self.params = params
 
+    def __repr__(self):
+        """Representation of check as string."""
+        return f'{self.__class__.__name__}({self.params})'
+
 
 class SingleDatasetBaseCheck(BaseCheck):
     """Parent class for checks that only use one dataset."""
@@ -110,7 +114,7 @@ class CompareDatasetsBaseCheck(BaseCheck):
     """Parent class for checks that compare between two datasets."""
 
     @abc.abstractmethod
-    def run(self, dataset, compared_dataset, model=None) -> CheckResult:
+    def run(self, dataset, baseline_dataset, model=None) -> CheckResult:
         """Define run signature."""
         pass
 

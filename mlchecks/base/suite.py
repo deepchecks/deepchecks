@@ -57,7 +57,7 @@ class CheckSuite(BaseCheck):
                 results.append(check.run(train_dataset=train_dataset, validation_dataset=validation_dataset,
                                          model=model))
             elif isinstance(check, CompareDatasetsBaseCheck):
-                results.append(check.run(dataset=train_dataset, compared_dataset=validation_dataset, model=model))
+                results.append(check.run(dataset=validation_dataset, baseline_dataset=train_dataset, model=model))
             elif isinstance(check, SingleDatasetBaseCheck):
                 if check_datasets_policy in ['both', 'train'] and train_dataset is not None:
                     res = check.run(dataset=train_dataset)
@@ -79,11 +79,16 @@ class CheckSuite(BaseCheck):
                                 f'TrainValidationBaseCheck or ModelOnlyBaseCheck. Got  {check.__class__.__name__} '
                                 f'instead')
 
-        def display():
+        def display_suite():
             display_html(f'<h3>{self.name}</h3>', raw=True)
             for result in results:
                 # Disable protected access warning
                 #pylint: disable=protected-access
                 result._ipython_display_()
 
-        return CheckResult(results, display=display)
+        return CheckResult(results, display=display_suite)
+
+    def __repr__(self):
+        """Representation of suite as string."""
+        checks_str = ','.join([str(c) for c in self.checks])
+        return f'{self.name} [{checks_str}]'
