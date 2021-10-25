@@ -7,7 +7,7 @@ import pandas as pd
 
 
 __all__ = ['string_baseform', 'get_base_form_to_variants_dict', 'underscore_to_capitalize', 'split_and_keep',
-           'split_and_keep_by_many', 'is_string_column']
+           'split_and_keep_by_many', 'is_string_column', 'format_percent', 'format_number']
 
 from pandas.core.dtypes.common import is_numeric_dtype
 

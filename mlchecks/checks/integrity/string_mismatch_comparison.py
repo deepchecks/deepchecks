@@ -5,14 +5,14 @@ import pandas as pd
 
 from mlchecks import CheckResult, Dataset, ensure_dataframe_type, CompareDatasetsBaseCheck
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
-from mlchecks.string_utils import get_base_form_to_variants_dict, is_string_column
+from mlchecks.string_utils import get_base_form_to_variants_dict, is_string_column, format_percent
 
 __all__ = ['string_mismatch_comparison', 'StringMismatchComparison']
 
 
 def percentage_in_series(series, values):
     count = sum(series.isin(values))
-    return f'{count / series.size:.2%} ({count})'
+    return f'{format_percent(count / series.size)} ({count})'
 
 
 def string_mismatch_comparison(dataset: Union[pd.DataFrame, Dataset],
