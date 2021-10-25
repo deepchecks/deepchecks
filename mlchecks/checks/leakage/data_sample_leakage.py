@@ -62,7 +62,7 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
                      displays a dataframe that shows the duplicated rows between the datasets
 
     Raises:
-        MLChecksValueError: If the object is not a Dataset instance
+        MLChecksValueError: If the object is not a Dataset or DataFrame instance
 
     """
     validation_dataset = Dataset.validate_dataset_or_dataframe(validation_dataset)
