@@ -34,6 +34,8 @@ COVERAGE := $(BIN)/coverage
 TEST_RUNNER := $(BIN)/pytest
 TOX := $(BIN)/tox
 TWINE := $(BIN)/twine
+APIDOC = $(BIN)/sphinx-apidoc
+SPHINX_BUILD = $(BIN)/sphinx-build
 
 # Project Settings
 PKGDIR := $(or $(PACKAGE), ./)
@@ -58,6 +60,10 @@ COVERAGE_FILE = default.coveragerc
 COVERAGE_RC := $(wildcard $(COVERAGE_FILE))
 COVER_ARG := --cov-report term-missing --cov=$(PKGDIR) \
 	$(if $(COVERAGE_RC), --cov-config $(COVERAGE_RC))
+
+# Sphinx
+SPHINX_PKGS = sphinx sphinx_rtd_theme
+
 
 EGG_INFO := $(subst -,_,$(PROJECT)).egg-info
 
@@ -157,11 +163,9 @@ $(TOX): $(PIP)
 
 ### Cleanup ######################################################
 
-.PHONY: clean clean-env clean-all clean-build clean-test clean-dist
+.PHONY: clean clean-env clean-all clean-build clean-test clean-dist clean-docs
 
-.PHONY: clean clean-env clean-all clean-build clean-test clean-dist
-
-clean: clean-dist clean-test clean-build
+clean: clean-dist clean-test clean-build clean-docs
 
 clean-env: clean
 	-@rm -rf $(ENV)
@@ -187,6 +191,9 @@ clean-test:
 clean-dist:
 	-@rm -rf dist build
 
+clean-docs:
+	-@rm -rf docs/_build
+	-@rm -rf docs/mlchecks
 
 ### Release ######################################################
 .PHONY: authors register dist upload .git-no-changes ammend release
@@ -231,6 +238,17 @@ ifeq ($(version),)
 else
 	@sed -i -E "s/__version__\ +=\ +'.*+'/__version__ = '${version}'/g" mlchecks/version.py
 endif
+
+
+### Documentation
+.PHONY: docs
+
+docs: $(APIDOC)
+	$(pythonpath) $(APIDOC) -f ../mlchecks -o docs/mlchecks
+	$(pythonpath) $(SPHINX_BUILD) -M html docs docs/_build 
+
+$(APIDOC): env
+	$(PIP) install $(SPHINX_PKGS)
 
 
 ### System Installation ######################################################
