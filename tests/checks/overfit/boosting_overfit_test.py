@@ -1,5 +1,5 @@
 """Boosting overfit tests."""
-from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
 
 from mlchecks import Dataset

@@ -2,7 +2,6 @@
 from typing import Callable, Dict
 
 import pandas as pd
-from sklearn.base import BaseEstimator
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
 
 

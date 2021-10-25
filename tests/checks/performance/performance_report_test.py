@@ -9,13 +9,13 @@ def test_dataset_wrong_input():
     # Act & Assert
     assert_that(calling(performance_report).with_args(bad_dataset, None),
                 raises(MLChecksValueError,
-                       'function classification_report requires dataset to be of type Dataset. instead got: str'))
+                       'function performance_report requires dataset to be of type Dataset. instead got: str'))
 
 
 def test_dataset_no_label(iris_dataset, iris_adaboost):
     # Assert
     assert_that(calling(performance_report).with_args(iris_dataset, iris_adaboost),
-                raises(MLChecksValueError, 'function classification_report requires dataset to have a label column'))
+                raises(MLChecksValueError, 'function performance_report requires dataset to have a label column'))
 
 
 def test_classification(iris_labeled_dataset, iris_adaboost):
