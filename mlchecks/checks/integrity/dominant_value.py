@@ -12,7 +12,7 @@ from mlchecks.base.dataframe_utils import filter_columns_with_validation
 __all__ = ['data_duplicates', 'DataDuplicates']
 
 
-def check_drift(key, ref_hist: Dict, test_hist: Dict, ref_count, test_count):
+def check_drift(key, ref_hist: Dict, test_hist: Dict, ref_count: int, test_count: int, percent_change_thres: float):
     contingency_matrix_df = pd.DataFrame(np.zeros((2, 2)), index=["dominant", "others"], columns=["ref", "test"])
     contingency_matrix_df.loc["dominant", "ref"] = ref_hist.get(key, 0)
     contingency_matrix_df.loc["dominant", "test"] = test_hist.get(key, 0)
@@ -37,7 +37,7 @@ def check_drift(key, ref_hist: Dict, test_hist: Dict, ref_count, test_count):
     return p_val
 
 
-def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Dataset, thres: float = 0.7):
+def dominant_frequency_change_report(validation_dataset: Dataset, train_dataset: Dataset, p_val_thres: float = 0.7,  percent_change_thres: float = 1.5):
     """Find which percent of the validation data in the train data.
 
     Args:
@@ -53,7 +53,7 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
     """
     validation_dataset = Dataset.validate_dataset_or_dataframe(validation_dataset)
     train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
-    validation_dataset.validate_shared_features(train_dataset, '')
+    validation_dataset.validate_shared_features(train_dataset, dominant_frequency_change_report.__name__)
 
     columns = train_dataset.features()
 
@@ -70,25 +70,23 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
         
         if(top_val.iloc[0] > top_val.iloc[1] * 2):
             p_val = check_drift(top_val.iloc[0], top_train, top_val, train_len, val_len)
-            p_df[column] = {'value': top_val.iloc[0], 'p value': p_val}
+            if p_val < p_val_thres:
+                p_df[column] = {'value': top_val.iloc[0], 'p value': p_val}
         elif(top_train.iloc[0] > top_train.iloc[1] * 2):
             p_val = check_drift(top_val.iloc[0], top_train, top_val, train_len, val_len)
-            p_df[column] = {'value': top_train.iloc[0], 'p value': p_val}
+            if p_val < p_val_thres:
+                p_df[column] = {'value': top_train.iloc[0], 'p value': p_val}
 
     p_df = pd.DataFrame.from_dict(p_df, orient='index')
-
-
-
-
     
-    return CheckResult(dup_ratio, header='Data Sample Leakage Report',
-                       check=data_sample_leakage_report, display=display)
+    return CheckResult(p_df, header='Data Sample Leakage Report',
+                       check=dominant_frequency_change_report, display=p_df)
 
-class DataSampleLeakageReport(TrainValidationBaseCheck):
-    """Finds data sample leakage."""
+class DominantFrequencyChangeReport(TrainValidationBaseCheck):
+    """Finds dominant frequency change."""
 
     def run(self, validation_dataset: Dataset, train_dataset: Dataset) -> CheckResult:
-        """Run data_sample_leakage_report check.
+        """Run dominant_frequency_change_report check.
 
         Args:
             train_dataset (Dataset): The training dataset object. Must contain an index.
@@ -97,4 +95,4 @@ class DataSampleLeakageReport(TrainValidationBaseCheck):
             CheckResult: value is sample leakage ratio in %,
                          displays a dataframe that shows the duplicated rows between the datasets
         """
-        return data_sample_leakage_report(validation_dataset=validation_dataset, train_dataset=train_dataset)
+        return dominant_frequency_change_report(validation_dataset=validation_dataset, train_dataset=train_dataset)
