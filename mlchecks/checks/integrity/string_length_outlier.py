@@ -1,4 +1,4 @@
-"""String mismatch functions."""
+"""String length outlier check."""
 from functools import reduce
 from typing import Union, Dict, Iterable, Tuple
 from math import ceil, floor
@@ -8,7 +8,7 @@ import pandas as pd
 from pandas import DataFrame, StringDtype, Series
 
 from mlchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_dataframe_type
-from mlchecks.base import string_utils
+from mlchecks.base.string_utils import is_string_column
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 
 __all__ = ['string_length_outlier', 'StringLengthOutlier']
@@ -20,7 +20,7 @@ def string_length_outlier(dataset: Union[pd.DataFrame, Dataset], columns: Union[
                           ignore_columns: Union[str, Iterable[str]] = None,
                           num_percentiles: int = 1000, inner_quantile_range: int = 94,
                           outlier_factor: int = 4) -> CheckResult:
-    """Detect outliers in a categorical column[s].
+    """Detect outliers in string length.
 
     Args:
         dataset (DataFrame): A dataset or pd.FataFrame object.
@@ -42,7 +42,7 @@ def string_length_outlier(dataset: Union[pd.DataFrame, Dataset], columns: Union[
     for column_name in df.columns:
         column: Series = df[column_name]
 
-        if not string_utils.is_string_column(column):
+        if not is_string_column(column):
             continue
 
         string_length_column = column.map(len)
@@ -97,9 +97,9 @@ def outlier_on_percentile_histogram(percentile_histogram: Dict[float, float], iq
     """Get outlier ranges on histogram.
 
     Args:
-        percentile_histogram (Dict[float, float]):
-        iqr_percent (float): Interquartile range percentage, start searching from
-        outlier_factor (float): a factor to consider outlier
+        percentile_histogram (Dict[float, float]): histogram to search for outliers in shape [0.0-100.0]->[float]
+        iqr_percent (float): Interquartile range upper percentage, start searching for outliers outside IQR.
+        outlier_factor (float): a factor to consider outlier.
 
     Returns:
          (Tuple[Tuple[float, float]]): percent ranges in the histogram that are outliers, empty tuple if none is found
@@ -136,10 +136,10 @@ def outlier_on_percentile_histogram(percentile_histogram: Dict[float, float], iq
 
 
 class StringLengthOutlier(SingleDatasetBaseCheck):
-    """Search for string length outlier in categorical column[s]."""
+    """Search for string length outliers in categorical column[s]."""
 
     def run(self, dataset, model=None) -> CheckResult:
-        """Run string_length_outlier check.
+        """Detect outliers in string length.
 
         Args:
             dataset (DataFrame): A dataset or pd.FataFrame object.
