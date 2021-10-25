@@ -1,13 +1,30 @@
 """The predefined Integrity suite module."""
+from mlchecks.checks.integrity.data_duplicates import DataDuplicates
 
 from mlchecks import CheckSuite
-from mlchecks.checks import IsSingleValue, MixedNulls, MixedTypes, StringMismatch
+from mlchecks.checks.integrity import *
 
-__all__ = ['IntegrityCheckSuite']
+__all__ = ['SingleDatasetIntegrityCheckSuite', 'ComparativeIntegrityCheckSuite', 'IntegrityCheckSuite']
 
-IntegrityCheckSuite = CheckSuite('Integrity Suite',
+SingleDatasetIntegrityCheckSuite = CheckSuite(
+    'Single Dataset Integrity Suite',
     IsSingleValue(),
     MixedNulls(),
     MixedTypes(),
-    StringMismatch()
+    StringMismatch(),
+    DataDuplicates(),
+    RareFormatDetection(),
+    SpecialCharacters()
+)
+
+
+ComparativeIntegrityCheckSuite = CheckSuite(
+    'Comparative Integrity Suite',
+    StringMismatchComparison()
+)
+
+IntegrityCheckSuite = CheckSuite(
+    'Integrity Suite',
+    SingleDatasetIntegrityCheckSuite,
+    ComparativeIntegrityCheckSuite
 )
