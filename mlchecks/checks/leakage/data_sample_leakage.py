@@ -6,6 +6,9 @@ from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, TrainValidationBaseCheck
 
 import pandas as pd
+
+from mlchecks.string_utils import format_percent
+
 pd.options.mode.chained_assignment = None
 
 __all__ = ['data_sample_leakage_report', 'DataSampleLeakageReport']
@@ -52,7 +55,7 @@ def get_dup_txt(i: int, dup_map: Dict) -> str:
 
 
 def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Dataset):
-    """Find which percent of the validation data in the train data.
+    """Find what percent of the validation data is in the train data.
 
     Args:
         train_dataset (Dataset): The training dataset object. Must contain an index.
@@ -96,23 +99,25 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
             else:
                 count_dups += int(re.findall(r'Tot. (\d+)', index)[0])
 
-    dup_ratio = count_dups / len(val_f) * 100
-    user_msg = f'You have {dup_ratio:0.2f}% ({count_dups} / {len(val_f)}) \
-                 of the validation data samples appear in train data'
+    dup_ratio = count_dups / len(val_f)
+    user_msg = f'{format_percent(dup_ratio)} ({count_dups} / {len(val_f)}) \
+                 of validation data samples appear in train data'
     display = [user_msg, duplicate_rows_df.head(10)] if dup_ratio else None
 
     return CheckResult(dup_ratio, header='Data Sample Leakage Report',
                        check=data_sample_leakage_report, display=display)
 
+
 class DataSampleLeakageReport(TrainValidationBaseCheck):
     """Finds data sample leakage."""
 
-    def run(self, validation_dataset: Dataset, train_dataset: Dataset) -> CheckResult:
+    def run(self, validation_dataset: Dataset, train_dataset: Dataset, model=None) -> CheckResult:
         """Run data_sample_leakage_report check.
 
         Args:
             train_dataset (Dataset): The training dataset object. Must contain an index.
             validation_dataset (Dataset): The validation dataset object. Must contain an index.
+            model (): any = None - not used in the check
         Returns:
             CheckResult: value is sample leakage ratio in %,
                          displays a dataframe that shows the duplicated rows between the datasets

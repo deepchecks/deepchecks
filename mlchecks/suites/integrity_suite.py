@@ -1,6 +1,4 @@
 """The predefined Integrity suite module."""
-from mlchecks.checks.integrity.data_duplicates import DataDuplicates
-
 from mlchecks import CheckSuite
 from mlchecks.checks.integrity import *
 
