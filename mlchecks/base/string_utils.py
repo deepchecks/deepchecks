@@ -1,15 +1,19 @@
 """String functions."""
-
-__all__ = ['string_baseform', 'split_and_keep', 'split_and_keep_by_many']
-
+import re
+from collections import defaultdict
+from typing import Dict, Set, List
 from copy import copy
-from typing import List
+import pandas as pd
 
-SPECIAL_CHARS: str = ' !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~\n'
+
+__all__ = ['string_baseform', 'get_base_form_to_variants_dict', 'underscore_to_capitalize', 'split_and_keep',
+           'split_and_keep_by_many', 'is_string_column']
+
+from pandas.core.dtypes.common import is_numeric_dtype
 
 
 def string_baseform(string: str):
-    """Remove special characters from given string.
+    """Remove special characters from given string, leaving only a-z, A-Z, 0-9 characters.
 
     Args:
         string (str): string to remove special characters from
@@ -19,7 +23,18 @@ def string_baseform(string: str):
     """
     if not isinstance(string, str):
         return string
-    return string.translate(str.maketrans('', '', SPECIAL_CHARS)).lower()
+    return re.sub('[^A-Za-z0-9]+', '', string).lower()
+
+
+def is_string_column(column: pd.Series):
+    """Determine whether a pandas series is string type."""
+    if is_numeric_dtype(column):
+        return False
+    try:
+        pd.to_numeric(column)
+        return False
+    except ValueError:
+        return True
 
 
 def underscore_to_capitalize(string: str):
@@ -29,6 +44,20 @@ def underscore_to_capitalize(string: str):
         string (str): string to change
     """
     return ' '.join([s.capitalize() for s in string.split('_')])
+
+
+def get_base_form_to_variants_dict(uniques):
+    """Create dict of base-form of the uniques to their values.
+
+    function gets a set of strings, and returns a dictionary of shape Dict[str]=Set,
+    the key being the "base_form" (a clean version of the string),
+    and the value being a set of all existing original values.
+    This is done using the StringCategory class.
+    """
+    base_form_to_variants: Dict[str, Set] = defaultdict(set)
+    for item in uniques:
+        base_form_to_variants[string_baseform(item)].add(item)
+    return base_form_to_variants
 
 
 def split_and_keep(s: str, separator: str) -> List[str]:

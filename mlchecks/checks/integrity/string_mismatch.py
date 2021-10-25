@@ -1,13 +1,11 @@
 """String mismatch functions."""
-from collections import defaultdict
-from typing import Union, Set, Dict, Iterable
+from typing import Union, Iterable
 
 import pandas as pd
-from pandas import DataFrame, StringDtype, Series
 
 from mlchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_dataframe_type
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
-from mlchecks.base.string_utils import string_baseform
+from mlchecks.base.string_utils import get_base_form_to_variants_dict, is_string_column
 
 __all__ = ['string_mismatch', 'StringMismatch']
 
@@ -28,9 +26,8 @@ def string_mismatch(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, I
     results = []
 
     for column_name in dataset.columns:
-        column: Series = dataset[column_name]
-        # TODO: change to if check column is categorical
-        if column.dtype != StringDtype:
+        column: pd.Series = dataset[column_name]
+        if not is_string_column(column):
             continue
 
         uniques = column.unique()
@@ -40,10 +37,10 @@ def string_mismatch(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, I
                 continue
             for variant in variants:
                 count = sum(column == variant)
-                results.append([column_name, base_form, variant, count, round(count / dataset.size, 2)])
+                results.append([column_name, base_form, variant, count, f'{count / dataset.size:.2%}'])
 
     # Create dataframe to display graph
-    df_graph = DataFrame(results, columns=['Column Name', 'Base form', 'Value', 'Count', 'Fraction of data'])
+    df_graph = pd.DataFrame(results, columns=['Column Name', 'Base form', 'Value', 'Count', '% In data'])
     df_graph = df_graph.set_index(['Column Name', 'Base form'])
 
     if len(df_graph) > 0:
@@ -52,20 +49,6 @@ def string_mismatch(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, I
         display = None
 
     return CheckResult(df_graph, check=string_mismatch, display=display)
-
-
-def get_base_form_to_variants_dict(uniques):
-    """Create dict of base-form of the uniques to their values.
-
-    function gets a set of strings, and returns a dictionary of shape Dict[str]=Set,
-    the key being the "base_form" (a clean version of the string),
-    and the value being a set of all existing original values.
-    This is done using the StringCategory class.
-    """
-    base_form_to_variants: Dict[str, Set] = defaultdict(set)
-    for item in uniques:
-        base_form_to_variants[string_baseform(item)].add(item)
-    return base_form_to_variants
 
 
 class StringMismatch(SingleDatasetBaseCheck):
