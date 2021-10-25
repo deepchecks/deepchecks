@@ -10,7 +10,7 @@ import pandas as pd
 from IPython.core.display import display_html
 from matplotlib import pyplot as plt
 
-from mlchecks.base.string_utils import underscore_to_capitalize
+from mlchecks.string_utils import underscore_to_capitalize
 from mlchecks.utils import MLChecksValueError
 
 

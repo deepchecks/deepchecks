@@ -5,7 +5,7 @@ import pandas as pd
 
 from mlchecks import CheckResult, Dataset, ensure_dataframe_type, CompareDatasetsBaseCheck
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
-from mlchecks.base.string_utils import get_base_form_to_variants_dict, is_string_column
+from mlchecks.string_utils import get_base_form_to_variants_dict, is_string_column
 
 __all__ = ['string_mismatch_comparison', 'StringMismatchComparison']
 

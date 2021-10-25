@@ -11,7 +11,7 @@ from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 __all__ = ['mixed_types', 'MixedTypes']
 
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
-from mlchecks.base.string_utils import is_string_column
+from mlchecks.string_utils import is_string_column
 
 
 def mixed_types(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, Iterable[str]] = None,

@@ -49,7 +49,7 @@ def data_duplicates(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, I
 
         most_duplicates = most_duplicates.set_index('Number of Duplicates')
 
-        text = f'{percent_duplicate:.1%} of data are duplicates'
+        text = f'{percent_duplicate:.1%} of data samples are duplicates'
         display = [text, most_duplicates]
     else:
         display = None

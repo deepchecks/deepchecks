@@ -7,7 +7,7 @@ import pandas as pd
 from mlchecks import Dataset, CheckResult, ensure_dataframe_type
 from mlchecks.base.check import SingleDatasetBaseCheck
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
-from mlchecks.base.string_utils import string_baseform
+from mlchecks.string_utils import string_baseform
 from mlchecks.utils import MLChecksValueError
 
 __all__ = ['mixed_nulls', 'MixedNulls']

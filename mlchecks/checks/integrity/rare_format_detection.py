@@ -6,7 +6,7 @@ from typing import Union, List, Tuple
 import pandas as pd
 
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
-from mlchecks.base.string_utils import split_and_keep, split_and_keep_by_many
+from mlchecks.string_utils import split_and_keep, split_and_keep_by_many
 from mlchecks.utils import MLChecksValueError
 
 

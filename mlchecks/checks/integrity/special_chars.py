@@ -7,7 +7,7 @@ from pandas.api.types import infer_dtype
 from mlchecks import Dataset, ensure_dataframe_type
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
-from mlchecks.base.string_utils import string_baseform
+from mlchecks.string_utils import string_baseform
 
 __all__ = ['special_characters', 'SpecialCharacters']
 
