@@ -91,14 +91,22 @@ def calculate_steps(num_steps, num_estimators):
 def boosting_overfit(train_dataset: Dataset, validation_dataset: Dataset, model, metric: Union[Callable, str] = None,
                      metric_name: str = None, num_steps: int = 20) \
         -> CheckResult:
-    """Test for overfit in boosting models.
+    """Check for overfit occurring by number of iterations in boosting models.
+
+    The check runs a defined number of steps, and in each step is limiting the boosting model to use up to X estimators
+    (number of estimators is monotonic rising). It plots the given metric in each step for both the train dataset
+    and the validation dataset.
 
     Args:
-        train_dataset (Dataset)
-        validation_dataset (Dataset)
-        model
-        metric (Union[Callable, str])
-        metric_name (str)
+        train_dataset (Dataset):
+        validation_dataset (Dataset):
+        model: Boosting model.
+        metric (Union[Callable, str]): Metric to use verify the model, either function or sklearn scorer name.
+        metric_name (str): Name to be displayed in the plot on y-axis.
+        num_steps (int): Number of splits of the model iterations to check.
+
+    Returns:
+        The metric value on the validation dataset.
     """
     # Validate params
     self = boosting_overfit
@@ -108,8 +116,10 @@ def boosting_overfit(train_dataset: Dataset, validation_dataset: Dataset, model,
         raise MLChecksValueError('num_steps must be an integer larger than 1')
     Dataset.validate_dataset(train_dataset, self.__name__)
     Dataset.validate_dataset(validation_dataset, self.__name__)
+    train_dataset.validate_label(self.__name__)
+    validation_dataset.validate_label(self.__name__)
     train_dataset.validate_shared_features(validation_dataset, self.__name__)
-    train_dataset.validate_label(validation_dataset, self.__name__)
+    train_dataset.validate_shared_label(validation_dataset, self.__name__)
 
     # Get default metric
     model_type = task_type_check(model, train_dataset)
@@ -145,8 +155,9 @@ def boosting_overfit(train_dataset: Dataset, validation_dataset: Dataset, model,
 
 
 class BoostingOverfit(TrainValidationBaseCheck):
-    """Boosting overfit."""
+    """Check for overfit occurring by number of iterations in boosting models."""
 
     def run(self, train_dataset, validation_dataset, model=None) -> CheckResult:
+        """Run boosting_overfit on given parameters."""
         return boosting_overfit(train_dataset, validation_dataset, model=model,
                                 **self.params)
