@@ -2,9 +2,11 @@
 from copy import deepcopy
 from typing import Callable
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
+
 import numpy as np
 
-from mlchecks import Dataset, CheckResult
+from mlchecks import Dataset, CheckResult, TrainValidationBaseCheck
 from mlchecks.metric_utils import task_type_check, DEFAULT_METRICS_DICT, validate_scorer, DEFAULT_SINGLE_METRIC
 from mlchecks.utils import MLChecksValueError
 
@@ -70,6 +72,22 @@ def partial_score(scorer, dataset, model, step):
     return scorer(partial_model, dataset.features_columns(), dataset.label_col())
 
 
+def calculate_steps(num_steps, num_estimators):
+    if num_steps >= num_estimators:
+        return list(range(1, num_estimators + 1))
+    if num_steps <= 5:
+        steps_percents = np.linspace(0, 1.0, num_steps + 1)[1:]
+        steps_numbers = np.ceil(steps_percents * num_estimators)
+        steps_set = {int(s) for s in steps_numbers}
+    else:
+        steps_percents = np.linspace(5 / num_estimators, 1.0, num_steps - 4)[1:]
+        steps_numbers = np.ceil(steps_percents * num_estimators)
+        steps_set = {int(s) for s in steps_numbers}
+        steps_set.update({1, 2, 3, 4, 5})
+
+    return sorted(steps_set)
+
+
 def boosting_overfit(train_dataset: Dataset, validation_dataset: Dataset, model, metric: Callable = None,
                      metric_name: str = None, num_steps: int = 20) \
         -> CheckResult:
@@ -90,10 +108,7 @@ def boosting_overfit(train_dataset: Dataset, validation_dataset: Dataset, model,
 
     # Get number of estimators on model
     num_estimators = PartialBoostingModel.n_estimators(model)
-    # Calculate estimator steps
-    steps_percents = np.linspace(0, 1.0, num_steps)[1:]
-    steps_numbers = np.ceil(steps_percents * num_estimators)
-    estimator_steps = sorted({int(s) for s in steps_numbers})
+    estimator_steps = calculate_steps(num_steps, num_estimators)
 
     train_scores = []
     val_scores = []
@@ -102,15 +117,24 @@ def boosting_overfit(train_dataset: Dataset, validation_dataset: Dataset, model,
         val_scores.append(partial_score(scorer, validation_dataset, model, step))
 
     def display_func():
-        estimator_percents = [x / num_estimators for x in estimator_steps]
         _, axes = plt.subplots(1, 1, figsize=(7, 4))
-        axes.set_xlabel('Percent estimators used')
+        axes.set_xlabel('Number of boosting iterations')
         axes.set_ylabel(metric_name)
         axes.grid()
-        axes.plot(estimator_percents, np.array(train_scores), 'o-', color='r',
+        axes.plot(estimator_steps, np.array(train_scores), 'o-', color='r',
                   label='Training score')
-        axes.plot(estimator_percents, np.array(val_scores), 'o-', color='g',
+        axes.plot(estimator_steps, np.array(val_scores), 'o-', color='g',
                   label='Validation score')
         axes.legend(loc='best')
+        # Display x ticks as integers
+        axes.xaxis.set_major_locator(MaxNLocator(integer=True))
 
     return CheckResult(val_scores[-1], check=boosting_overfit, display=display_func)
+
+
+class BoostingOverfit(TrainValidationBaseCheck):
+    """Boosting overfit"""
+
+    def run(self, train_dataset, validation_dataset, model=None) -> CheckResult:
+        return boosting_overfit(train_dataset, validation_dataset, model=model,
+                                **self.params)
