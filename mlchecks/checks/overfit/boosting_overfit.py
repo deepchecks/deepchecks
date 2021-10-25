@@ -17,7 +17,8 @@ class PartialBoostingModel:
     """Wrapper for boosting models which limits the number of estimators being used in the prediction."""
 
     def __init__(self, model, step):
-        """
+        """Construct wrapper for model with `predict` and `predict_proba` methods.
+
         Args:
             model: boosting model to wrap.
             step: Number of iterations/estimators to limit the model on predictions.
@@ -78,7 +79,7 @@ def partial_score(scorer, dataset, model, step):
 
 
 def calculate_steps(num_steps, num_estimators):
-    """Calculate steps (integers between 1 to num_estimators) to work on"""
+    """Calculate steps (integers between 1 to num_estimators) to work on."""
     if num_steps >= num_estimators:
         return list(range(1, num_estimators + 1))
     if num_steps <= 5:
