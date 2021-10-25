@@ -1,5 +1,5 @@
 """module contains Dominant Frequency Change check."""
-from typing import Union, Dict
+from typing import  Dict
 
 from scipy.stats import chi2_contingency, fisher_exact
 import numpy as np
@@ -7,7 +7,6 @@ import pandas as pd
 
 from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, TrainValidationBaseCheck
-from mlchecks.base.dataframe_utils import filter_columns_with_validation
 
 __all__ = ['dominant_frequency_change', 'DominantFrequencyChange']
 
