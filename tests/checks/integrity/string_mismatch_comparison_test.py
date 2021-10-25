@@ -42,3 +42,39 @@ def test_no_mismatch():
 
     # Assert
     assert_that(result, has_length(0))
+
+
+def test_no_mismatch_on_numeric_column():
+    # Arrange
+    data = {'col1': ['foo', 'bar', 'cat'], 'col2': [10, 2.3, 1]}
+    compared_data = {'col1': ['foo', 'foo', 'foo'], 'col2': [1, 2.30, 1.0]}
+
+    # Act
+    result = string_mismatch_comparison(pd.DataFrame(data=data), pd.DataFrame(data=compared_data)).value
+
+    # Assert
+    assert_that(result, has_length(0))
+
+
+def test_no_mismatch_on_numeric_string_column():
+    # Arrange
+    data = {'num_str': ['10', '2.3', '1']}
+    compared_data = {'num_str': ['1', '2.30', '1.0']}
+
+    # Act
+    result = string_mismatch_comparison(pd.DataFrame(data=data), pd.DataFrame(data=compared_data)).value
+
+    # Assert
+    assert_that(result, has_length(0))
+
+
+def test_no_mismatch_on_one_column_numeric():
+    # Arrange
+    data = {'num_str': ['10', '2.3', '1']}
+    compared_data = {'num_str': [1, 2.30, 1.0]}
+
+    # Act
+    result = string_mismatch_comparison(pd.DataFrame(data=data), pd.DataFrame(data=compared_data)).value
+
+    # Assert
+    assert_that(result, has_length(0))

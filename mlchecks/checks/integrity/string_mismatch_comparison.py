@@ -88,7 +88,7 @@ def string_mismatch_comparison(dataset: Union[pd.DataFrame, Dataset],
 class StringMismatchComparison(CompareDatasetsBaseCheck):
     """Detect different variants of string categories between the same categorical column in two datasets."""
 
-    def run(self, dataset, compared_dataset, model=None) -> CheckResult:
+    def run(self, dataset, baseline_dataset, model=None) -> CheckResult:
         """Run string_mismatch_comparison check.
 
         Args:
@@ -97,6 +97,6 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
             model: Not used in this check.
         """
         return string_mismatch_comparison(dataset,
-                                          compared_dataset,
+                                          baseline_dataset,
                                           columns=self.params.get('columns'),
                                           ignore_columns=self.params.get('ignore_columns'))
