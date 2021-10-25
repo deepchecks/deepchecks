@@ -93,7 +93,7 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
 
         Args:
             dataset (Dataset): A dataset object.
-            compared_dataset (Dataset): A dataset object.
+            baseline_dataset (Dataset): A dataset object.
             model: Not used in this check.
         """
         return string_mismatch_comparison(dataset,
