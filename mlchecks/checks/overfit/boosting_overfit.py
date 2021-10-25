@@ -17,6 +17,11 @@ class PartialBoostingModel:
     """Wrapper for boosting models which limits the number of estimators being used in the prediction."""
 
     def __init__(self, model, step):
+        """
+        Args:
+            model: boosting model to wrap.
+            step: Number of iterations/estimators to limit the model on predictions.
+        """
         self.model_class = model.__class__.__name__
         self.step = step
         if self.model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
@@ -73,6 +78,7 @@ def partial_score(scorer, dataset, model, step):
 
 
 def calculate_steps(num_steps, num_estimators):
+    """Calculate steps (integers between 1 to num_estimators) to work on"""
     if num_steps >= num_estimators:
         return list(range(1, num_estimators + 1))
     if num_steps <= 5:
@@ -83,6 +89,7 @@ def calculate_steps(num_steps, num_estimators):
         steps_percents = np.linspace(5 / num_estimators, 1.0, num_steps - 4)[1:]
         steps_numbers = np.ceil(steps_percents * num_estimators)
         steps_set = {int(s) for s in steps_numbers}
+        # We want to forcefully take the first 5 estimators, since they have the largest affect on the model performance
         steps_set.update({1, 2, 3, 4, 5})
 
     return sorted(steps_set)
@@ -94,7 +101,7 @@ def boosting_overfit(train_dataset: Dataset, validation_dataset: Dataset, model,
     """Check for overfit occurring by number of iterations in boosting models.
 
     The check runs a defined number of steps, and in each step is limiting the boosting model to use up to X estimators
-    (number of estimators is monotonic rising). It plots the given metric in each step for both the train dataset
+    (number of estimators is monotonic increasing). It plots the given metric in each step for both the train dataset
     and the validation dataset.
 
     Args:
@@ -102,7 +109,7 @@ def boosting_overfit(train_dataset: Dataset, validation_dataset: Dataset, model,
         validation_dataset (Dataset):
         model: Boosting model.
         metric (Union[Callable, str]): Metric to use verify the model, either function or sklearn scorer name.
-        metric_name (str): Name to be displayed in the plot on y-axis.
+        metric_name (str): Name to be displayed in the plot on y-axis. must be used together with 'metric'
         num_steps (int): Number of splits of the model iterations to check.
 
     Returns:
