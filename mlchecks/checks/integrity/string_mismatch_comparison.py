@@ -12,7 +12,7 @@ __all__ = ['string_mismatch_comparison', 'StringMismatchComparison']
 
 def percentage_in_series(series, values):
     count = sum(series.isin(values))
-    return f'{count / series.size:.2%}'
+    return f'{count / series.size:.2%} ({count})'
 
 
 def string_mismatch_comparison(dataset: Union[pd.DataFrame, Dataset],
@@ -76,8 +76,8 @@ def string_mismatch_comparison(dataset: Union[pd.DataFrame, Dataset],
     # Create result dataframe
     df_graph = pd.DataFrame(mismatches,
                             columns=['Column name', 'Base form', 'Common variants', 'Variants only in dataset',
-                                     '% Unique variants out of all dataset samples', 'Variants only in baseline',
-                                     '% Unique variants out of all baseline samples'])
+                                     '% Unique variants out of all dataset samples (count)', 'Variants only in baseline',
+                                     '% Unique variants out of all baseline samples (count)'])
     df_graph = df_graph.set_index(['Column name', 'Base form'])
     # For display transpose the dataframe
     display = df_graph.T if len(df_graph) > 0 else None
