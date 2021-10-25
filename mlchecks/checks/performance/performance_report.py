@@ -1,15 +1,11 @@
-"""The classification_report check module."""
+"""Module containing performance report check."""
 from typing import Callable, Dict
-
 import pandas as pd
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
-
+from mlchecks.metric_utils import get_metrics_list
+from mlchecks.utils import model_type_validation
 
 __all__ = ['performance_report', 'PerformanceReport']
-
-from mlchecks.metric_utils import get_metrics_list
-
-from mlchecks.utils import model_type_validation
 
 
 def performance_report(dataset: Dataset, model, alternative_metrics: Dict[str, Callable] = None):

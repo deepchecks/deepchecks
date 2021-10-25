@@ -1,4 +1,4 @@
-"""Contains unit tests for the classification_report check."""
+"""Contains unit tests for the performance report check."""
 from mlchecks.checks.performance import PerformanceReport, performance_report
 from mlchecks.utils import MLChecksValueError
 from hamcrest import assert_that, calling, raises, close_to, has_entries
@@ -9,7 +9,7 @@ def test_dataset_wrong_input():
     # Act & Assert
     assert_that(calling(performance_report).with_args(bad_dataset, None),
                 raises(MLChecksValueError,
-                       'function performance_report requires dataset to be of type Dataset. instead got: str'))
+                       'function performance_report p requires dataset to be of type Dataset. instead got: str'))
 
 
 def test_dataset_no_label(iris_dataset, iris_adaboost):
