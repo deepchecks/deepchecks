@@ -76,7 +76,8 @@ def string_mismatch_comparison(dataset: Union[pd.DataFrame, Dataset],
     # Create result dataframe
     df_graph = pd.DataFrame(mismatches,
                             columns=['Column name', 'Base form', 'Common variants', 'Variants only in dataset',
-                                     '% Unique variants out of all dataset samples (count)', 'Variants only in baseline',
+                                     '% Unique variants out of all dataset samples (count)',
+                                     'Variants only in baseline',
                                      '% Unique variants out of all baseline samples (count)'])
     df_graph = df_graph.set_index(['Column name', 'Base form'])
     # For display transpose the dataframe
