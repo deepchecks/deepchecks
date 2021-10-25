@@ -5,3 +5,4 @@ from .mixed_types import *
 from .is_single_value import *
 from .special_chars import *
 from .string_length_outlier import *
+from .rare_format_detection import *
