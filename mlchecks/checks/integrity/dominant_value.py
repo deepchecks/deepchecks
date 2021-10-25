@@ -1,14 +1,40 @@
 """module contains Data Duplicates check."""
-from typing import Iterable, Union
+from typing import Union, Dict
 
+from scipy.stats import chi2_contingency, fisher_exact
+import numpy as np
 import pandas as pd
 
-from mlchecks import Dataset, ensure_dataframe_type
-from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck, TrainValidationBaseCheck
+from mlchecks import Dataset
+from mlchecks.base.check import CheckResult, TrainValidationBaseCheck
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
-from mlchecks.utils import MLChecksValueError
 
 __all__ = ['data_duplicates', 'DataDuplicates']
+
+
+def check_drift(key, ref_hist: Dict, test_hist: Dict, ref_count, test_count):
+    contingency_matrix_df = pd.DataFrame(np.zeros((2, 2)), index=["dominant", "others"], columns=["ref", "test"])
+    contingency_matrix_df.loc["dominant", "ref"] = ref_hist.get(key, 0)
+    contingency_matrix_df.loc["dominant", "test"] = test_hist.get(key, 0)
+    contingency_matrix_df.loc["others", "ref"] = ref_count - ref_hist.get(key, 0)
+    contingency_matrix_df.loc["others", "test"] = test_count - test_hist.get(key, 0)
+
+    test_percent = contingency_matrix_df.loc["dominant", "test"] / test_count
+    ref_percent = contingency_matrix_df.loc["dominant", "ref"] / ref_count
+    if ref_percent == 0 or test_percent == 0:
+        percent_change = np.inf
+    else:
+        percent_change = max(test_percent, ref_percent) / min(test_percent, ref_percent)
+    if percent_change < 1.5:
+        return 1
+
+    # if somehow the data is small or has a zero frequency in it, use fisher. Otherwise chi2
+    if ref_count + test_count > 100 and (contingency_matrix_df.values != 0).all():
+        _, p_val, *_ = chi2_contingency(contingency_matrix_df.values)
+    else:
+        _, p_val = fisher_exact(contingency_matrix_df.values)
+
+    return p_val
 
 
 def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Dataset, thres: float = 0.7):
@@ -27,16 +53,29 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
     """
     validation_dataset = Dataset.validate_dataset_or_dataframe(validation_dataset)
     train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
-    validation_dataset.validate_shared_features(train_dataset, data_sample_leakage_report.__name__)
+    validation_dataset.validate_shared_features(train_dataset, '')
 
     columns = train_dataset.features()
 
     train_f = train_dataset.data
     val_f = validation_dataset.data
 
+    val_len = len(val_f)
+    train_len = len(train_f)
+    p_df = {}
+
     for column in columns:
-        top_val10 = val_f[column].value_counts().head(10)
-        top_train10 = train_f[column].value_counts().head(10)
+        top_val = val_f[column].value_counts()
+        top_train = train_f[column].value_counts()
+        
+        if(top_val.iloc[0] > top_val.iloc[1] * 2):
+            p_val = check_drift(top_val.iloc[0], top_train, top_val, train_len, val_len)
+            p_df[column] = {'value': top_val.iloc[0], 'p value': p_val}
+        elif(top_train.iloc[0] > top_train.iloc[1] * 2):
+            p_val = check_drift(top_val.iloc[0], top_train, top_val, train_len, val_len)
+            p_df[column] = {'value': top_train.iloc[0], 'p value': p_val}
+
+    p_df = pd.DataFrame.from_dict(p_df, orient='index')
 
 
 
