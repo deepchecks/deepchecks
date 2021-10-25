@@ -1,18 +1,19 @@
 """String functions."""
+import re
 from collections import defaultdict
 from typing import Dict, Set, List
 from copy import copy
+import pandas as pd
 
 
 __all__ = ['string_baseform', 'get_base_form_to_variants_dict', 'underscore_to_capitalize', 'split_and_keep',
-           'split_and_keep_by_many']
+           'split_and_keep_by_many', 'is_string_column']
 
-
-SPECIAL_CHARS: str = ' !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~\n'
+from pandas.core.dtypes.common import is_numeric_dtype
 
 
 def string_baseform(string: str):
-    """Remove special characters from given string.
+    """Remove special characters from given string, leaving only a-z, A-Z, 0-9 characters.
 
     Args:
         string (str): string to remove special characters from
@@ -22,7 +23,18 @@ def string_baseform(string: str):
     """
     if not isinstance(string, str):
         return string
-    return string.translate(str.maketrans('', '', SPECIAL_CHARS)).lower()
+    return re.sub('[^A-Za-z0-9]+', '', string).lower()
+
+
+def is_string_column(column: pd.Series):
+    """Determine whether a pandas series is string type."""
+    if is_numeric_dtype(column):
+        return False
+    try:
+        pd.to_numeric(column)
+        return False
+    except ValueError:
+        return True
 
 
 def underscore_to_capitalize(string: str):

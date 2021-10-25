@@ -2,11 +2,10 @@
 from typing import Union, Iterable
 
 import pandas as pd
-from pandas import DataFrame, StringDtype, Series
 
 from mlchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_dataframe_type
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
-from mlchecks.base.string_utils import get_base_form_to_variants_dict
+from mlchecks.base.string_utils import get_base_form_to_variants_dict, is_string_column
 
 __all__ = ['string_mismatch', 'StringMismatch']
 
@@ -27,9 +26,8 @@ def string_mismatch(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, I
     results = []
 
     for column_name in dataset.columns:
-        column: Series = dataset[column_name]
-        # TODO: change to if check column is categorical
-        if column.dtype != StringDtype:
+        column: pd.Series = dataset[column_name]
+        if not is_string_column(column):
             continue
 
         uniques = column.unique()
@@ -42,7 +40,7 @@ def string_mismatch(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, I
                 results.append([column_name, base_form, variant, count, f'{count / dataset.size:.2%}'])
 
     # Create dataframe to display graph
-    df_graph = DataFrame(results, columns=['Column Name', 'Base form', 'Value', 'Count', '% In data'])
+    df_graph = pd.DataFrame(results, columns=['Column Name', 'Base form', 'Value', 'Count', '% In data'])
     df_graph = df_graph.set_index(['Column Name', 'Base form'])
 
     if len(df_graph) > 0:
