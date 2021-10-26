@@ -56,7 +56,7 @@ def find_p_val(key: str, ref_hist: Dict, test_hist: Dict, ref_count: int,
 def dominant_frequency_change(dataset: Dataset, baseline_dataset: Dataset,
                               p_val_thres: float = 0.0001, dominance_ratio: float = 2,
                               ratio_change_thres: float = 1.5):
-    """Detect values highly represented in the tested and reference data and check
+    """Detect values highly represented in the tested and reference data and check...
        if their relative and absolute percentage have increased significantly.
 
     Args:
@@ -90,7 +90,7 @@ def dominant_frequency_change(dataset: Dataset, baseline_dataset: Dataset,
         top_ref = ref_df[column].value_counts()
         top_test = test_df[column].value_counts()
 
-        if (top_ref.iloc[0] > top_ref.iloc[1] * dominance_ratio):
+        if top_ref.iloc[0] > top_ref.iloc[1] * dominance_ratio:
             value = top_ref.index[0]
             p_val = find_p_val(value, top_test, top_ref, test_len, ref_len, ratio_change_thres)
             if p_val and p_val < p_val_thres:
@@ -99,7 +99,7 @@ def dominant_frequency_change(dataset: Dataset, baseline_dataset: Dataset,
                 p_df[column] = {'Value': value,
                                 'Reference data': f'{count_ref} ({count_ref / ref_len * 100:0.2f})',
                                 'Tested data': f'{count_test} ({count_test / test_len * 100:0.2f})'}
-        elif (top_test.iloc[0] > top_test.iloc[1] * dominance_ratio):
+        elif top_test.iloc[0] > top_test.iloc[1] * dominance_ratio:
             value = top_test.index[0]
             p_val = find_p_val(value, top_test, top_ref, test_len, ref_len, ratio_change_thres)
             if p_val and p_val < p_val_thres:
@@ -128,7 +128,7 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
             dominance_ratio (float = 2): Next most abundance value has to be THIS times less than the first (0-inf).
             ratio_change_thres (float = 1.5): The dominant frequency has to change by at least this ratio (0-inf).
         Returns:
-            CheckResult: Detects values highly represented in the tested and reference data and checks if their
+            CheckResult: Detects values highly represented in the tested and reference data and checks if their..
                          relative and absolute percentage have increased significantly and makes a report.
         """
         return dominant_frequency_change(dataset=dataset, baseline_dataset=baseline_dataset, **self.params)
