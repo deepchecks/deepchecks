@@ -41,7 +41,7 @@ def find_p_val(key: str, ref_hist: Dict, test_hist: Dict, ref_count: int, test_c
     else:
         percent_change = max(test_percent, ref_percent) / min(test_percent, ref_percent)
     if percent_change < ratio_change_thres:
-        return 1
+        return None
 
     # if somehow the data is small or has a zero frequency in it, use fisher. Otherwise chi2
     if ref_count + test_count > 100 and (contingency_matrix_df.values != 0).all():
@@ -86,9 +86,9 @@ def dominant_frequency_change(dataset: Dataset, baseline_dataset: Dataset, p_val
         top_test = test_df[column].value_counts()
         
         if(top_ref.iloc[0] > top_ref.iloc[1] * dominance_ratio):
-            value = top_test.index[0]
+            value = top_ref.index[0]
             p_val = find_p_val(value, top_test, top_ref, test_len, ref_len, ratio_change_thres)
-            if p_val < p_val_thres:
+            if p_val and p_val < p_val_thres:
                 count_ref = top_ref[value]
                 count_test = top_test.get(value, 0)
                 p_df[column] = {'Value': value,
@@ -97,12 +97,12 @@ def dominant_frequency_change(dataset: Dataset, baseline_dataset: Dataset, p_val
         elif(top_test.iloc[0] > top_test.iloc[1] * dominance_ratio):
             value = top_test.index[0]
             p_val = find_p_val(value, top_test, top_ref, test_len, ref_len, ratio_change_thres)
-            if p_val < p_val_thres:  
+            if p_val and p_val < p_val_thres:  
                 count_test = top_test[value]
                 count_ref = top_ref.get(value, 0)
                 p_df[column] = {'Value': value,
-                                'Reference data': f'{count_ref} ({count_ref / ref_len * 100:0.2f})',
-                                'Tested data': f'{count_test} ({count_test / test_len * 100:0.2f})'}
+                                'Reference data': f'{count_ref} ({count_ref / ref_len * 100:0.2f}%)',
+                                'Tested data': f'{count_test} ({count_test / test_len * 100:0.2f}%)'}
 
     p_df = pd.DataFrame.from_dict(p_df, orient='index') if len(p_df) else None
     
