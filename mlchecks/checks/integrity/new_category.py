@@ -26,6 +26,7 @@ def new_category_train_validation(validation_dataset: Dataset, train_dataset: Da
 
     Raises:
         MLChecksValueError: If the object is not a Dataset instance
+
     """
     self = new_category_train_validation
 
