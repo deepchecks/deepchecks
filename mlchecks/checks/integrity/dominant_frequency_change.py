@@ -12,7 +12,7 @@ __all__ = ['dominant_frequency_change', 'DominantFrequencyChange']
 
 
 def find_p_val(key: str, ref_hist: Dict, test_hist: Dict, ref_count: int, test_count: int, ratio_change_thres: float) -> float:
-    """find p value for column frequency change between the reference dataset to the test dataset
+    """Find p value for column frequency change between the reference dataset to the test dataset.
 
     Args:
         key (str): key of the dominant value.
@@ -53,7 +53,7 @@ def find_p_val(key: str, ref_hist: Dict, test_hist: Dict, ref_count: int, test_c
 
 
 def dominant_frequency_change(dataset: Dataset, baseline_dataset: Dataset, p_val_thres: float = 0.0001, dominance_ratio: float = 2,  ratio_change_thres: float = 1.5):
-    """Detect values highly represented in the tested and reference data and checks if their relative and absolute percentage have increased significantly
+    """Detect values highly represented in the tested and reference data and checks if their relative and absolute percentage have increased significantly.
 
     Args:
         dataset (Dataset): The dataset object. Must contain an index.
