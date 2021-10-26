@@ -99,7 +99,7 @@ class Dataset:
         # Filter out if columns were dropped
         features = list(set(self._features).intersection(new_data.columns))
         cat_features = list(set(self._cat_features).intersection(new_data.columns))
-        label = self._label if self._label in new_data.columns else None
+        label = self._label_name if self._label_name in new_data.columns else None
         index = self._index_name if self._index_name in new_data.columns else None
         date = self._date_name if self._date_name in new_data.columns else None
 
@@ -263,7 +263,7 @@ class Dataset:
             MLChecksValueError: In case one of columns given don't exists raise error
         """
         new_data = filter_columns_with_validation(self.data, columns, ignore_columns)
-        if new_data == self.data:
+        if new_data.equals(self.data):
             return self
         else:
             return self.copy(new_data)

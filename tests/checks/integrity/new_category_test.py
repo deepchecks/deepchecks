@@ -87,3 +87,34 @@ def test_multiple_categories():
     # Assert
     assert_that(result, has_length(1))
     assert_that(result['col1'], close_to(0.25, 0.01))
+
+
+def test_ignore_column():
+    train_data = {'col1': ['a', 'b', 'c', 'd'], 'col2': ['a', 'b', 'c', 'd']}
+    validation_data = {'col1': ['a', 'b', 'c', 'e'], 'col2': ['a', 'b', 'c', 'd']}
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), cat_features=['col1', 'col2'])
+    validation_dataset = Dataset(pd.DataFrame(data=validation_data, columns=['col1', 'col2']),
+                                 cat_features=['col1', 'col2'])
+
+    # Arrange
+    check = CategoryMismatchTrainValidation(ignore_columns='col1')
+    # Act X
+    result = check.run(validation_dataset=validation_dataset, train_dataset=train_dataset).value
+    # Assert
+    assert_that(result, has_length(0))
+
+
+def test_specific_column():
+    train_data = {'col1': ['a', 'b', 'c', 'd'], 'col2': ['a', 'b', 'c', 'd']}
+    validation_data = {'col1': ['a', 'b', 'c', 'e'], 'col2': ['a', 'b', 'c', 'd']}
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), cat_features=['col1', 'col2'])
+    validation_dataset = Dataset(pd.DataFrame(data=validation_data, columns=['col1', 'col2']),
+                                 cat_features=['col1', 'col2'])
+
+    # Arrange
+    check = CategoryMismatchTrainValidation(columns=['col1'])
+    # Act X
+    result = check.run(validation_dataset=validation_dataset, train_dataset=train_dataset).value
+    # Assert
+    assert_that(result, has_length(1))
+    assert_that(result['col1'], close_to(0.25, 0.01))
