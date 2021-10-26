@@ -200,6 +200,14 @@ class Dataset:
         """
         return self._features
 
+    def features_columns(self) -> Union[pd.DataFrame, None]:
+        """Return features columns if exists.
+
+        Returns:
+           Features columns
+        """
+        return self.data[self._features] if self._features else None
+
     # Validations:
 
     def validate_label(self, function_name: str):
@@ -346,6 +354,17 @@ class Dataset:
         else:
             raise MLChecksValueError(f'dataset must be of type DataFrame or Dataset. instead got: '
                                      f'{type(obj).__name__}')
+
+    def validate_model(self, model):
+        """Check model is able to predict on the dataset.
+
+        Raise:
+            MLChecksValueError: if dataset does not match model
+        """
+        try:
+            model.predict(self.features_columns().head(1))
+        except Exception as exc:
+            raise MLChecksValueError('Got error when trying to predict with model on dataset') from exc
 
     @classmethod
     def validate_dataset(cls, obj, function_name: str) -> 'Dataset':
