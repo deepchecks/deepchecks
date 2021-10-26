@@ -99,7 +99,7 @@ class Dataset:
         # Filter out if columns were dropped
         features = list(set(self._features).intersection(new_data.columns))
         cat_features = list(set(self._cat_features).intersection(new_data.columns))
-        label = self._label if self._label in new_data.columns else None
+        label = self._label_name if self._label_name in new_data.columns else None
         index = self._index_name if self._index_name in new_data.columns else None
         date = self._date_name if self._date_name in new_data.columns else None
 
@@ -263,7 +263,7 @@ class Dataset:
             MLChecksValueError: In case one of columns given don't exists raise error
         """
         new_data = filter_columns_with_validation(self.data, columns, ignore_columns)
-        if new_data == self.data:
+        if new_data.equals(self.data):
             return self
         else:
             return self.copy(new_data)
@@ -288,6 +288,28 @@ class Dataset:
             return self.features()
         else:
             raise MLChecksValueError(f'function {function_name} requires datasets to share the same features')
+
+    def validate_shared_categorical_features(self, other, function_name: str) -> List[str]:
+        """
+        Return list of categorical features if both datasets have the same categorical features. Else, raise error.
+
+        Args:
+            other: Expected to be Dataset type. dataset to compare features list
+            function_name (str): function name to print in error
+
+        Returns:
+            List[str] - list of shared features names
+
+        Raises:
+            MLChecksValueError if datasets don't have the same features
+
+        """
+        Dataset.validate_dataset(other, function_name)
+        if sorted(self.cat_features()) == sorted(other.cat_features()):
+            return self.cat_features()
+        else:
+            raise MLChecksValueError(f'function {function_name} requires datasets to share'
+                                     f' the same categorical features')
 
     def validate_shared_label(self, other, function_name: str) -> str:
         """
