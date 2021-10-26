@@ -71,7 +71,9 @@ def test_show_none_p_val(iris_split_dataset_and_model):
 def test_show_none_dominance_ratio(iris_split_dataset_and_model):
     train_ds, val_ds, _ = iris_split_dataset_and_model
     # because of dominance_ratio no value should be included
-    check = DominantFrequencyChange(p_value_threshold=2, dominance_ratio=len(train_ds.features()) + 1, ratio_change_thres=-1)
+    check = DominantFrequencyChange(p_value_threshold=2,
+                                    dominance_ratio=len(train_ds.features()) + 1,
+                                    ratio_change_thres=-1)
     # Act
     result = check.run(dataset=val_ds, baseline_dataset=train_ds).value
     # Assert
