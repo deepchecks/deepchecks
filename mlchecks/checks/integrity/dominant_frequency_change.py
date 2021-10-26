@@ -11,7 +11,8 @@ from mlchecks.base.check import CheckResult, CompareDatasetsBaseCheck
 __all__ = ['dominant_frequency_change', 'DominantFrequencyChange']
 
 
-def find_p_val(key: str, ref_hist: Dict, test_hist: Dict, ref_count: int, test_count: int, ratio_change_thres: float) -> float:
+def find_p_val(key: str, ref_hist: Dict, test_hist: Dict, ref_count: int,
+               test_count: int, ratio_change_thres: float) -> float:
     """Find p value for column frequency change between the reference dataset to the test dataset.
 
     Args:
@@ -52,8 +53,11 @@ def find_p_val(key: str, ref_hist: Dict, test_hist: Dict, ref_count: int, test_c
     return p_val
 
 
-def dominant_frequency_change(dataset: Dataset, baseline_dataset: Dataset, p_val_thres: float = 0.0001, dominance_ratio: float = 2,  ratio_change_thres: float = 1.5):
-    """Detect values highly represented in the tested and reference data and checks if their relative and absolute percentage have increased significantly.
+def dominant_frequency_change(dataset: Dataset, baseline_dataset: Dataset,
+                              p_val_thres: float = 0.0001, dominance_ratio: float = 2,
+                              ratio_change_thres: float = 1.5):
+    """Detect values highly represented in the tested and reference data and check
+       if their relative and absolute percentage have increased significantly.
 
     Args:
         dataset (Dataset): The dataset object. Must contain an index.
@@ -118,11 +122,12 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
         Args:
             train_dataset (Dataset): The training dataset object. Must contain an index.
             validation_dataset (Dataset): The validation dataset object. Must contain an index.
-            p_val_thres (float = 0.0001): Maximal p-value to pass the statistical test determining if the value abundance has changed significantly (0-1).
+            p_val_thres (float = 0.0001): Maximal p-value to pass the statistical test 
+                                          determining if the value abundance has changed significantly (0-1).
             dominance_ratio (float = 2): Next most abundance value has to be THIS times less than the first (0-inf).
             ratio_change_thres (float = 1.5): The dominant frequency has to change by at least this ratio (0-inf).
         Returns:
             CheckResult: Detects values highly represented in the tested and reference data and checks if their
-                         relative and absolute percentage have increased significantly and makes a report in a dataframe.
+                         relative and absolute percentage have increased significantly and makes a report.
         """
         return dominant_frequency_change(dataset=dataset, baseline_dataset=baseline_dataset, **self.params)
