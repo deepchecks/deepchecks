@@ -5,7 +5,7 @@ from typing import Tuple
 
 import pytest
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_iris, load_diabetes
 from sklearn.model_selection import train_test_split
 import pandas as pd
 
@@ -16,11 +16,19 @@ from mlchecks import Dataset
 def empty_df():
     return pd.DataFrame([])
 
+
+@pytest.fixture(scope='session')
+def diabetes():
+    """Return diabetes dataset as DataFrame."""
+    return load_diabetes(return_X_y=False, as_frame=True).frame
+
+
 @pytest.fixture(scope='session')
 def iris_clean():
     """Return Iris dataset as DataFrame."""
     iris = load_iris(return_X_y=False, as_frame=True)
     return iris
+
 
 @pytest.fixture(scope='session')
 def iris(iris_clean):
