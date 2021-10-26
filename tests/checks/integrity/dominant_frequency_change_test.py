@@ -53,7 +53,7 @@ def test_leakage(iris_clean):
 def test_show_any(iris_split_dataset_and_model):
     train_ds, val_ds, _ = iris_split_dataset_and_model
     # those params means any value should be included
-    check = DominantFrequencyChange(p_val_thres=2, dominance_ratio=0, ratio_change_thres=-1)
+    check = DominantFrequencyChange(p_value_threshold=2, dominance_ratio=0, ratio_change_thres=-1)
     # Act
     result = check.run(dataset=val_ds, baseline_dataset=train_ds).value
     # Assert
@@ -62,7 +62,7 @@ def test_show_any(iris_split_dataset_and_model):
 def test_show_none_p_val(iris_split_dataset_and_model):
     train_ds, val_ds, _ = iris_split_dataset_and_model
     # because of p_val no value should be included
-    check = DominantFrequencyChange(p_val_thres=-1, dominance_ratio=0, ratio_change_thres=-1)
+    check = DominantFrequencyChange(p_value_threshold=-1, dominance_ratio=0, ratio_change_thres=-1)
     # Act
     result = check.run(dataset=val_ds, baseline_dataset=train_ds).value
     # Assert
@@ -71,7 +71,7 @@ def test_show_none_p_val(iris_split_dataset_and_model):
 def test_show_none_dominance_ratio(iris_split_dataset_and_model):
     train_ds, val_ds, _ = iris_split_dataset_and_model
     # because of dominance_ratio no value should be included
-    check = DominantFrequencyChange(p_val_thres=2, dominance_ratio=len(train_ds.features()) + 1, ratio_change_thres=-1)
+    check = DominantFrequencyChange(p_value_threshold=2, dominance_ratio=len(train_ds.features()) + 1, ratio_change_thres=-1)
     # Act
     result = check.run(dataset=val_ds, baseline_dataset=train_ds).value
     # Assert
@@ -80,7 +80,7 @@ def test_show_none_dominance_ratio(iris_split_dataset_and_model):
 def test_show_none_ratio_change_thres(iris_split_dataset_and_model):
     train_ds, val_ds, _ = iris_split_dataset_and_model
     # because of ratio_change_thres no value should be included
-    check = DominantFrequencyChange(p_val_thres=2, dominance_ratio=0, ratio_change_thres=100)
+    check = DominantFrequencyChange(p_value_thresholds=2, dominance_ratio=0, ratio_change_thres=100)
     # Act
     result = check.run(dataset=val_ds, baseline_dataset=train_ds).value
     # Assert
