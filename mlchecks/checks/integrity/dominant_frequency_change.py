@@ -56,7 +56,7 @@ def find_p_val(key: str, ref_hist: Dict, test_hist: Dict, ref_count: int,
 def dominant_frequency_change(dataset: Dataset, baseline_dataset: Dataset,
                               p_val_thres: float = 0.0001, dominance_ratio: float = 2,
                               ratio_change_thres: float = 1.5):
-    """check if dominant values have increased significantly between test and reference data.
+    """Check if dominant values have increased significantly between test and reference data.
 
     Args:
         dataset (Dataset): The dataset object. Must contain an index.
