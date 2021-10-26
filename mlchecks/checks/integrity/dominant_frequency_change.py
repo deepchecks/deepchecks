@@ -62,7 +62,8 @@ def dominant_frequency_change(dataset: Dataset, baseline_dataset: Dataset,
     Args:
         dataset (Dataset): The dataset object. Must contain an index.
         baseline_dataset (Dataset): The baseline dataset object. Must contain an index.
-        p_val_thres (float = 0.0001): Maximal p-value to pass the statistical test determining if the value abundance has changed significantly (0-1).
+        p_val_thres (float = 0.0001): Maximal p-value to pass the statistical test determining
+                                      if the value abundance has changed significantly (0-1).
         dominance_ratio (float = 2): Next most abundance value has to be THIS times less than the first (0-inf).
         ratio_change_thres (float = 1.5): The dominant frequency has to change by at least this ratio (0-inf).
     Returns:
@@ -88,7 +89,7 @@ def dominant_frequency_change(dataset: Dataset, baseline_dataset: Dataset,
     for column in columns:
         top_ref = ref_df[column].value_counts()
         top_test = test_df[column].value_counts()
-        
+
         if (top_ref.iloc[0] > top_ref.iloc[1] * dominance_ratio):
             value = top_ref.index[0]
             p_val = find_p_val(value, top_test, top_ref, test_len, ref_len, ratio_change_thres)
@@ -122,7 +123,7 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
         Args:
             train_dataset (Dataset): The training dataset object. Must contain an index.
             validation_dataset (Dataset): The validation dataset object. Must contain an index.
-            p_val_thres (float = 0.0001): Maximal p-value to pass the statistical test 
+            p_val_thres (float = 0.0001): Maximal p-value to pass the statistical test
                                           determining if the value abundance has changed significantly (0-1).
             dominance_ratio (float = 2): Next most abundance value has to be THIS times less than the first (0-inf).
             ratio_change_thres (float = 1.5): The dominant frequency has to change by at least this ratio (0-inf).
