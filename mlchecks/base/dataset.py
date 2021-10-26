@@ -283,8 +283,7 @@ class Dataset:
 
     def validate_shared_categorical_features(self, other, function_name: str) -> List[str]:
         """
-        Return the list of shared categorical features if both datasets have the same categorical feature column names.
-        Else, raise error.
+        Return list of categorical features if both datasets have the same categorical features. Else, raise error.
 
         Args:
             other: Expected to be Dataset type. dataset to compare features list
