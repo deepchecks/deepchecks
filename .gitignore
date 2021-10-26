@@ -71,3 +71,6 @@ ENV/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+
+# Sphinx Docs
+_build/
