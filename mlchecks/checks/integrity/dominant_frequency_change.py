@@ -101,7 +101,7 @@ def dominant_frequency_change(dataset: Dataset, baseline_dataset: Dataset,
         elif (top_test.iloc[0] > top_test.iloc[1] * dominance_ratio):
             value = top_test.index[0]
             p_val = find_p_val(value, top_test, top_ref, test_len, ref_len, ratio_change_thres)
-            if p_val and p_val < p_val_thres:  
+            if p_val and p_val < p_val_thres:
                 count_test = top_test[value]
                 count_ref = top_ref.get(value, 0)
                 p_df[column] = {'Value': value,
@@ -109,7 +109,7 @@ def dominant_frequency_change(dataset: Dataset, baseline_dataset: Dataset,
                                 'Tested data': f'{count_test} ({count_test / test_len * 100:0.2f}%)'}
 
     p_df = pd.DataFrame.from_dict(p_df, orient='index') if len(p_df) else None
-    
+
     return CheckResult(p_df, header='Data Sample Leakage Report',
                        check=dominant_frequency_change, display=p_df)
 
