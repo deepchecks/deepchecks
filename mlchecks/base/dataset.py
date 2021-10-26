@@ -281,6 +281,29 @@ class Dataset:
         else:
             raise MLChecksValueError(f'function {function_name} requires datasets to share the same features')
 
+    def validate_shared_categorical_features(self, other, function_name: str) -> List[str]:
+        """
+        Return the list of shared categorical features if both datasets have the same categorical feature column names.
+        Else, raise error.
+
+        Args:
+            other: Expected to be Dataset type. dataset to compare features list
+            function_name (str): function name to print in error
+
+        Returns:
+            List[str] - list of shared features names
+
+        Raises:
+            MLChecksValueError if datasets don't have the same features
+
+        """
+        Dataset.validate_dataset(other, function_name)
+        if sorted(self.cat_features()) == sorted(other.cat_features()):
+            return self.cat_features()
+        else:
+            raise MLChecksValueError(f'function {function_name} requires datasets to share'
+                                     f' the same categorical features')
+
     def validate_shared_label(self, other, function_name: str) -> str:
         """
         Return the list of shared features if both datasets have the same feature column names. Else, raise error.
