@@ -60,7 +60,7 @@ def dominant_frequency_change(dataset: Dataset, baseline_dataset: Dataset,
 
     Args:
         dataset (Dataset): The dataset object. Must contain an index.
-        baseline_dataset (Dataset): The baseline dataset object. Must contain an index.
+        baseline_dataset (Dataset): The baseline (reference) dataset object. Must contain an index.
         p_value_threshold (float = 0.0001): Maximal p-value to pass the statistical test determining
                                       if the value abundance has changed significantly (0-1).
         dominance_ratio (float = 2): Next most abundance value has to be THIS times less than the first (0-inf).
