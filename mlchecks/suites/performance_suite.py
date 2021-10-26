@@ -1,6 +1,6 @@
 """The predefined performance suite module."""
 from mlchecks import CheckSuite
-from mlchecks.checks.performance import *
+from mlchecks.checks.performance import PerformanceReport, ConfusionMatrixReport, RocReport
 
 
 __all__ = ['PerformanceCheckSuite']

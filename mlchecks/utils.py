@@ -1,5 +1,4 @@
 """Utils module containing useful global functions."""
-from decimal import Decimal
 from typing import Any
 import sklearn
 from IPython import get_ipython

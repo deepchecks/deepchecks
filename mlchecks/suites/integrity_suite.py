@@ -1,6 +1,14 @@
 """The predefined Integrity suite module."""
 from mlchecks import CheckSuite
-from mlchecks.checks.integrity import *
+from mlchecks.checks.integrity import (
+    IsSingleValue,
+    MixedNulls,
+    MixedTypes,
+    StringMismatch,
+    DataDuplicates,
+    SpecialCharacters,
+    StringMismatchComparison
+)
 
 __all__ = ['SingleDatasetIntegrityCheckSuite', 'ComparativeIntegrityCheckSuite', 'IntegrityCheckSuite']
 

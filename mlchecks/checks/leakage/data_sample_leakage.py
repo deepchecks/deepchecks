@@ -4,10 +4,10 @@ import re
 
 from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, TrainValidationBaseCheck
+from mlchecks.string_utils import format_percent
+
 
 import pandas as pd
-
-from mlchecks.string_utils import format_percent
 
 pd.options.mode.chained_assignment = None
 
@@ -111,7 +111,7 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
 class DataSampleLeakageReport(TrainValidationBaseCheck):
     """Finds data sample leakage."""
 
-    def run(self, validation_dataset: Dataset, train_dataset: Dataset, model=None) -> CheckResult:
+    def run(self, train_dataset: Dataset, validation_dataset: Dataset,  model=None) -> CheckResult:
         """Run data_sample_leakage_report check.
 
         Args:

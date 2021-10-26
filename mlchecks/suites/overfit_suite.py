@@ -1,6 +1,6 @@
 """The predefined overfit suite module."""
 from mlchecks import CheckSuite
-from mlchecks.checks.overfit import *
+from mlchecks.checks.overfit import TrainValidationDifferenceOverfit
 
 
 __all__ = ['OverfitCheckSuite']

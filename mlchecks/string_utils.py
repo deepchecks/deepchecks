@@ -1,6 +1,7 @@
 """String functions."""
 import re
 from collections import defaultdict
+from decimal import Decimal
 from typing import Dict, Set, List
 from copy import copy
 import pandas as pd
@@ -144,7 +145,7 @@ def format_percent(ratio: float, floating_point: int = 2) -> str:
 
 
 def format_number(x, floating_point: int = 2) -> str:
-    """Format number for elegant display
+    """Format number for elegant display.
 
     Args:
         x (): Number to be displayed
@@ -161,7 +162,7 @@ def format_number(x, floating_point: int = 2) -> str:
         return '0'
 
     # If x is a very small number, that would be rounded to 0, we would prefer to return it as the format 1.0E-3.
-    if abs(x) < 10 ** (-(floating_point)):
+    if abs(x) < 10 ** (-floating_point):
         return f'{Decimal(x):.{floating_point}E}'
 
     # If x is an integer, or if x when rounded is an integer (e.g. 1.999999), then return as integer:
