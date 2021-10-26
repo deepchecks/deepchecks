@@ -333,6 +333,17 @@ class Dataset:
             raise MLChecksValueError(f'dataset must be of type DataFrame or Dataset. instead got: '
                                      f'{type(obj).__name__}')
 
+    def validate_model(self, model):
+        """Check model is able to predict on the dataset.
+
+        Raise:
+            MLChecksValueError: if dataset does not match model
+        """
+        try:
+            model.predict(self.features_columns().head(1))
+        except Exception as exc:
+            raise MLChecksValueError('Got error when trying to predict with model on dataset') from exc
+
     @classmethod
     def validate_dataset(cls, obj, function_name: str) -> 'Dataset':
         """Throws error if object is not MLChecks Dataset and returns the object if MLChecks Dataset.

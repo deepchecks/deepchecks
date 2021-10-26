@@ -1,6 +1,5 @@
 """Utils module containing useful global functions."""
 from typing import Any
-
 import sklearn
 from IPython import get_ipython
 
@@ -45,23 +44,3 @@ def is_notebook():
             return False  # Other type (?)
     except NameError:
         return False      # Probably standard Python interpreter
-
-
-def model_dataset_shape_validation(model: Any, dataset: Any):
-    """Check if number of dataset features matches the number model features.
-
-    Raise:
-        MLChecksException: if dataset does not match model
-    """
-    feature_count = None
-    if isinstance(model, sklearn.base.BaseEstimator):
-        feature_count = model.n_features_in_
-    elif model.__class__.__name__ in ['CatBoostClassifier', 'CatBoostRegressor']:
-        feature_count = model.get_feature_count()
-
-    if feature_count:
-        if feature_count != len(dataset.features()):
-            raise MLChecksValueError(f'model and dataset do not contain the same number of features:'
-                                     f' model({feature_count}) dataset({len(dataset.features())})')
-    else:
-        raise MLChecksValueError('unable to extract number of features from model')
