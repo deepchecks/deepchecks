@@ -4,7 +4,7 @@
 from typing import Tuple
 
 import pytest
-from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, GradientBoostingRegressor
 from sklearn.datasets import load_iris, load_diabetes
 from sklearn.model_selection import train_test_split
 import pandas as pd
@@ -19,8 +19,19 @@ def empty_df():
 
 @pytest.fixture(scope='session')
 def diabetes():
-    """Return diabetes dataset as DataFrame."""
-    return load_diabetes(return_X_y=False, as_frame=True).frame
+    """Return diabetes dataset splited to train and validation as Datasets."""
+    diabetes = load_diabetes(return_X_y=False, as_frame=True).frame
+    train_df, validation_df = train_test_split(diabetes, test_size=0.33)
+    train = Dataset(train_df, label='target')
+    validation = Dataset(validation_df, label='target')
+    return train, validation
+
+
+@pytest.fixture(scope='session')
+def diabetes_model(diabetes):
+    clf = GradientBoostingRegressor()
+    train, _ = diabetes
+    return clf.fit(train.features_columns(), train.label_col())
 
 
 @pytest.fixture(scope='session')

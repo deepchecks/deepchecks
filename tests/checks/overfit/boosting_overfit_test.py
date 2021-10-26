@@ -1,5 +1,5 @@
 """Boosting overfit tests."""
-from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
 
 from mlchecks import Dataset
@@ -23,17 +23,12 @@ def test_boosting_classifier(iris):
     assert_that(result.value, close_to(0.93, 0.05))
 
 
-def test_boosting_regressor(diabetes):
+def test_boosting_regressor(diabetes, diabetes_model):
     # Arrange
-    train_df, validation_df = train_test_split(diabetes, test_size=0.33)
-    train = Dataset(train_df, label='target')
-    validation = Dataset(validation_df, label='target')
-
-    clf = GradientBoostingRegressor()
-    clf.fit(train.features_columns(), train.label_col())
+    train, validation = diabetes
 
     # Act
-    result = boosting_overfit(train, validation, clf)
+    result = boosting_overfit(train, validation, diabetes_model)
 
     # Assert
     assert_that(result.value, close_to(57, 5))
