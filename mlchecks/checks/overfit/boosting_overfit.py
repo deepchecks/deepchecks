@@ -99,8 +99,8 @@ def calculate_steps(num_steps, num_estimators):
 def boosting_overfit(train_dataset: Dataset, validation_dataset: Dataset, model, metric: Union[Callable, str] = None,
                      metric_name: str = None, num_steps: int = 20) \
         -> CheckResult:
-    f"""Check for overfit occurring by number of iterations in boosting models.
-    
+    """Check for overfit occurring by number of iterations in boosting models.
+
     The check runs a defined number of steps, and in each step is limiting the boosting model to use up to X estimators
     (number of estimators is monotonic increasing). It plots the given metric in each step for both the train dataset
     and the validation dataset.
@@ -164,22 +164,17 @@ def boosting_overfit(train_dataset: Dataset, validation_dataset: Dataset, model,
 
 
 class BoostingOverfit(TrainValidationBaseCheck):
-    f"""Check for overfit occurring by number of iterations in boosting models.
+    """Check for overfit occurring by number of iterations in boosting models.
 
     The check runs a defined number of steps, and in each step is limiting the boosting model to use up to X estimators
     (number of estimators is monotonic increasing). It plots the given metric in each step for both the train dataset
     and the validation dataset.
+
+    Constructor Args:
+        metric (Union[Callable, str]): Metric to use verify the model, either function or sklearn scorer name.
+        metric_name (str): Name to be displayed in the plot on y-axis. must be used together with 'metric'
+        num_steps (int): Number of splits of the model iterations to check.
     """
-
-    def __init__(self, **kwargs):
-        """Construct instance with given parameters
-
-        Args:
-            metric (Union[Callable, str]): Metric to use verify the model, either function or sklearn scorer name.
-            metric_name (str): Name to be displayed in the plot on y-axis. must be used together with 'metric'
-            num_steps (int): Number of splits of the model iterations to check.
-        """
-        super().__init__(**kwargs)
 
     def run(self, train_dataset, validation_dataset, model=None) -> CheckResult:
         """Run boosting_overfit on given parameters.
