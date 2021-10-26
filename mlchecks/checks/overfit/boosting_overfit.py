@@ -99,11 +99,11 @@ def calculate_steps(num_steps, num_estimators):
 def boosting_overfit(train_dataset: Dataset, validation_dataset: Dataset, model, metric: Union[Callable, str] = None,
                      metric_name: str = None, num_steps: int = 20) \
         -> CheckResult:
-    """Check for overfit occurring by number of iterations in boosting models.
+    """Check for overfit occurring when increasing the number of iterations in boosting models.
 
-    The check runs a defined number of steps, and in each step is limiting the boosting model to use up to X estimators
-    (number of estimators is monotonic increasing). It plots the given metric in each step for both the train dataset
-    and the validation dataset.
+    The check runs a pred-defined number of steps, and in each step it limits the boosting model to use up to X
+    estimators (number of estimators is monotonic increasing). It plots the given metric calculated for each step for
+    both the train dataset and the validation dataset.
 
     Args:
         train_dataset (Dataset):
@@ -164,11 +164,11 @@ def boosting_overfit(train_dataset: Dataset, validation_dataset: Dataset, model,
 
 
 class BoostingOverfit(TrainValidationBaseCheck):
-    """Check for overfit occurring by number of iterations in boosting models.
+    """Check for overfit occurring when increasing the number of iterations in boosting models.
 
-    The check runs a defined number of steps, and in each step is limiting the boosting model to use up to X estimators
-    (number of estimators is monotonic increasing). It plots the given metric in each step for both the train dataset
-    and the validation dataset.
+    The check runs a pred-defined number of steps, and in each step it limits the boosting model to use up to X
+    estimators (number of estimators is monotonic increasing). It plots the given metric calculated for each step for
+    both the train dataset and the validation dataset.
 
     Constructor Args:
         metric (Union[Callable, str]): Metric to use verify the model, either function or sklearn scorer name.
