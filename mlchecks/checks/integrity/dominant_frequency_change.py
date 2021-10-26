@@ -104,7 +104,7 @@ def dominant_frequency_change(dataset: Dataset, baseline_dataset: Dataset, p_val
                                 'Reference data': f'{count_ref} ({count_ref / ref_len * 100:0.2f})',
                                 'Tested data': f'{count_test} ({count_test / test_len * 100:0.2f})'}
 
-    p_df = pd.DataFrame.from_dict(p_df, orient='index')
+    p_df = pd.DataFrame.from_dict(p_df, orient='index') if len(p_df) else None
     
     return CheckResult(p_df, header='Data Sample Leakage Report',
                        check=dominant_frequency_change, display=p_df)

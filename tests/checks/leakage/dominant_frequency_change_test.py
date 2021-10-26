@@ -20,7 +20,7 @@ def test_dataset_wrong_input():
 def test_no_leakage(iris_clean):
     x = iris_clean.data
     y = iris_clean.target
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=55)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=33)
     train_dataset = Dataset(pd.concat([x_train, y_train], axis=1),
                 features=iris_clean.feature_names,
                 label='target')
@@ -33,9 +33,9 @@ def test_no_leakage(iris_clean):
     # Arrange
     check = DominantFrequencyChange()
     # Act X
-    result = check.run(validation_dataset=validation_dataset, train_dataset=train_dataset).value
+    result = check.run(dataset=validation_dataset, baseline_dataset=train_dataset).value
     # Assert
-    assert_that(result, equal_to(0))
+    assert_that(result, equal_to(None))
 
 def test_leakage(iris_clean):
     x = iris_clean.data
@@ -52,8 +52,8 @@ def test_leakage(iris_clean):
                 features=iris_clean.feature_names,
                 label='target')
     # Arrange
-    check = DataSampleLeakageReport()
+    check = DominantFrequencyChange()
     # Act X
-    result = check.run(validation_dataset=validation_dataset, train_dataset=train_dataset).value
+    result = check.run(dataset=validation_dataset, baseline_dataset=train_dataset).value
     # Assert
     assert_that(result, equal_to(12))
