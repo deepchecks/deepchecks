@@ -10,60 +10,56 @@ __all__ = ['new_label_train_validation', 'NewLabelTrainValidation']
 
 
 def new_label_train_validation(validation_dataset: Dataset, train_dataset: Dataset):
-    """Find new categories in validation.
+    """Find new labels in validation.
 
     Args:
         train_dataset (Dataset): The training dataset object.
         validation_dataset (Dataset): The validation dataset object.
     Returns:
-        CheckResult:
+        CheckResult: value is a dictionary that shows label column with new labels
+                     displays a dataframe that label columns with new labels
 
     Raises:
-        MLChecksValueError: If the object is not a Dataset instance
-
+        MLChecksValueError: If the datasets are not a Dataset instance or do not contain label column
     """
     self = new_label_train_validation
     validation_dataset = Dataset.validate_dataset_or_dataframe(validation_dataset)
     train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
+    validation_dataset.validate_label(self)
+    train_dataset.validate_label(self)
     validation_dataset.validate_shared_label(train_dataset, self.__name__)
 
-    label_columns = train_dataset.validate_shared_label(validation_dataset, self.__name__)
+    label_column = train_dataset.validate_shared_label(validation_dataset, self.__name__)
 
-    result = []
     n_validation_samples = validation_dataset.n_samples()
 
-    for column in label_columns:
-        train_column = train_dataset.data[column]
-        validation_column = validation_dataset.data[column]
+    train_label = train_dataset.data[label_column]
+    validation_label = validation_dataset.data[label_column]
 
-        unique_training_values = set(train_column.unique())
-        unique_validation_values = set(validation_column.unique())
+    unique_training_values = set(train_label.unique())
+    unique_validation_values = set(validation_label.unique())
 
-        new_labels = unique_validation_values.difference(unique_training_values)
+    new_labels = unique_validation_values.difference(unique_training_values)
 
-        if new_labels:
-            n_new_label = len(validation_column[validation_column.isin(new_labels)])
+    if new_labels:
+        n_new_label = len(validation_label[validation_label.isin(new_labels)])
 
-            result.append([column,
-                                   n_new_label/n_validation_samples,
-                                   new_labels])
-
-    if result:
-        dataframe = pd.DataFrame(data=result,
+        dataframe = pd.DataFrame(data=[[label_column, n_new_label/n_validation_samples, new_labels]],
                                  columns=['label column', 'ratio of new labels in sample', 'new labels'])
-        dataframe = dataframe.set_index(['column'])
+        dataframe = dataframe.set_index(['label column'])
 
         display = dataframe
 
-        result = dict(map(lambda category: (category[0], category[1]), result))
+        result = {label_column: n_new_label/n_validation_samples}
     else:
         display = None
         result = {}
+
     return CheckResult(result, check=self, display=display)
 
 
 class NewLabelTrainValidation(TrainValidationBaseCheck):
-    """Find new categories in validation."""
+    """Find new labels in validation."""
 
     def run(self, validation_dataset: Dataset, train_dataset: Dataset) -> CheckResult:
         """Find new categories in validation.
@@ -72,8 +68,8 @@ class NewLabelTrainValidation(TrainValidationBaseCheck):
             train_dataset (Dataset): The training dataset object.
             validation_dataset (Dataset): The validation dataset object.
         Returns:
-            CheckResult: value is a dataframe that shows columns with new categories
-                         displays a dataframe that shows columns with new categories
+            CheckResult: value is a dictionary that shows label column with new labels
+                         displays a dataframe that label columns with new labels
         """
         return new_label_train_validation(validation_dataset=validation_dataset,
                                           train_dataset=train_dataset,

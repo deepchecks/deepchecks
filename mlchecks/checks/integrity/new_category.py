@@ -21,11 +21,11 @@ def new_category_train_validation(validation_dataset: Dataset, train_dataset: Da
         ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns variable
 
     Returns:
-        CheckResult:
+        CheckResult: value is a dictionary that shows columns with new categories
+                     displays a dataframe that shows columns with new categories
 
     Raises:
         MLChecksValueError: If the object is not a Dataset instance
-
     """
     self = new_category_train_validation
 
@@ -91,7 +91,7 @@ class CategoryMismatchTrainValidation(TrainValidationBaseCheck):
             train_dataset (Dataset): The training dataset object.
             validation_dataset (Dataset): The validation dataset object.
         Returns:
-            CheckResult: value is a dataframe that shows columns with new categories
+            CheckResult: value is a dictionary that shows columns with new categories
                          displays a dataframe that shows columns with new categories
         """
         return new_category_train_validation(validation_dataset=validation_dataset,
