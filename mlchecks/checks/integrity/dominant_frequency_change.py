@@ -28,14 +28,14 @@ def find_p_val(key: str, ref_hist: Dict, test_hist: Dict, ref_count: int, test_c
         MLChecksValueError: If the object is not a Dataset or DataFrame instance
 
     """
-    contingency_matrix_df = pd.DataFrame(np.zeros((2, 2)), index=["dominant", "others"], columns=["ref", "test"])
-    contingency_matrix_df.loc["dominant", "ref"] = ref_hist.get(key, 0)
-    contingency_matrix_df.loc["dominant", "test"] = test_hist.get(key, 0)
-    contingency_matrix_df.loc["others", "ref"] = ref_count - ref_hist.get(key, 0)
-    contingency_matrix_df.loc["others", "test"] = test_count - test_hist.get(key, 0)
+    contingency_matrix_df = pd.DataFrame(np.zeros((2, 2)), index=['dominant', 'others'], columns=['ref', 'test'])
+    contingency_matrix_df.loc['dominant', 'ref'] = ref_hist.get(key, 0)
+    contingency_matrix_df.loc['dominant', 'test'] = test_hist.get(key, 0)
+    contingency_matrix_df.loc['others', 'ref'] = ref_count - ref_hist.get(key, 0)
+    contingency_matrix_df.loc['others', 'test'] = test_count - test_hist.get(key, 0)
 
-    test_percent = contingency_matrix_df.loc["dominant", "test"] / test_count
-    ref_percent = contingency_matrix_df.loc["dominant", "ref"] / ref_count
+    test_percent = contingency_matrix_df.loc['dominant', 'test'] / test_count
+    ref_percent = contingency_matrix_df.loc['dominant', 'ref'] / ref_count
     if ref_percent == 0 or test_percent == 0:
         percent_change = np.inf
     else:
@@ -85,7 +85,7 @@ def dominant_frequency_change(dataset: Dataset, baseline_dataset: Dataset, p_val
         top_ref = ref_df[column].value_counts()
         top_test = test_df[column].value_counts()
         
-        if(top_ref.iloc[0] > top_ref.iloc[1] * dominance_ratio):
+        if (top_ref.iloc[0] > top_ref.iloc[1] * dominance_ratio):
             value = top_ref.index[0]
             p_val = find_p_val(value, top_test, top_ref, test_len, ref_len, ratio_change_thres)
             if p_val and p_val < p_val_thres:
@@ -94,7 +94,7 @@ def dominant_frequency_change(dataset: Dataset, baseline_dataset: Dataset, p_val
                 p_df[column] = {'Value': value,
                                 'Reference data': f'{count_ref} ({count_ref / ref_len * 100:0.2f})',
                                 'Tested data': f'{count_test} ({count_test / test_len * 100:0.2f})'}
-        elif(top_test.iloc[0] > top_test.iloc[1] * dominance_ratio):
+        elif (top_test.iloc[0] > top_test.iloc[1] * dominance_ratio):
             value = top_test.index[0]
             p_val = find_p_val(value, top_test, top_ref, test_len, ref_len, ratio_change_thres)
             if p_val and p_val < p_val_thres:  
