@@ -1,3 +1,4 @@
+"""Module of preprocessing functions."""
 import numpy as np
 import pandas as pd
 from typing import List, Tuple
@@ -13,7 +14,9 @@ __all__ = ['preprocess_dataset_to_scaled_numerics']
 def preprocess_dataset_to_scaled_numerics(baseline_features: pd.DataFrame, test_features: pd.DataFrame,
                                           categorical_columns: List[str], max_num_categories) \
         -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """
+    """Preprocess given features to scaled numerics
+
+    Args:
     :param baseline_features: DataFrame. Will be used for fit and also transformed. Expect to get only features
     :param test_features: DataFrame. Will be transformed according to baseline_data. Expect to get only features
     :param categorical_columns: List[str]. Indicates names of categorical columns in both DataFrames.

@@ -1,3 +1,4 @@
+"""Module of RareCategoryEncoder."""
 from collections import defaultdict
 import pandas as pd
 from typing import List
@@ -6,13 +7,20 @@ __all__ = ['RareCategoryEncoder']
 
 
 class RareCategoryEncoder:
-    """
-    Encodes rare categories into an "other" parameter.
+    """Encodes rare categories into an "other" parameter.
+
     Note that this encoder assumes data is received as a DataFrame.
     """
+
     DEFAULT_OTHER_VALUE = 'OTHER_RARE_CATEGORY'
 
-    def __init__(self, max_num_categories: int = 10, cols: List[str]=None):
+    def __init__(self, max_num_categories: int = 10, cols: List[str] = None):
+        """Initialize RareCategoryEncoder.
+
+        Args:
+            max_num_categories
+            cols
+        """
         self.max_num_categories = max_num_categories
         self.cols = cols
         self._col_mapping = None

@@ -1,3 +1,4 @@
+"""Module of confidence change check."""
 import numpy as np
 import pandas as pd
 from mlchecks import Dataset, CheckResult
@@ -33,12 +34,12 @@ def validate_parameters(k_filter, alpha, bin_size, max_number_categories, min_ba
 def confidence_change(dataset, baseline_dataset, model,
                       k_filter: int = 10, alpha: float = 0.001, bin_size: float = 0.01,
                       max_number_categories: int = 10, min_baseline_samples: int = 300):
-    """"""
+    """Confidence"""
     self = confidence_change
     # Validations
     validate_parameters(k_filter, alpha, bin_size, max_number_categories, min_baseline_samples)
     # tested dataset can be also dataframe
-    dataset: Dataset = Dataset.validate_dataset_or_dataframe(dataset, self.__name__)
+    dataset: Dataset = Dataset.validate_dataset_or_dataframe(dataset)
     model_type_validation(model)
     model_type = task_type_check(model, dataset)
     dataset.validate_model(model)

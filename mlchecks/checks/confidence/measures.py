@@ -1,3 +1,5 @@
+"""Module of measures functions."""
+# pylint: disable=invalid-name
 import warnings
 from typing import Tuple
 
@@ -12,8 +14,8 @@ class TrustScore:
 
     def __init__(self, k_filter: int = 10, alpha: float = 0., filter_type: str = 'distance_knn',
                  leaf_size: int = 40, metric: str = 'euclidean', dist_filter_type: str = 'point') -> None:
-        """
-        Initialize trust scores.
+        """Initialize trust scores.
+
         Parameters
         ----------
         k_filter
@@ -41,9 +43,11 @@ class TrustScore:
         self.dist_filter_type = dist_filter_type
 
     def filter_by_distance_knn(self, X: np.ndarray) -> np.ndarray:
-        """
-        Filter out instances with low kNN density. Calculate distance to k-nearest point in the data for each
-        instance and remove instances above a cutoff distance.
+        """Filter out instances with low kNN density.
+
+        Calculate distance to k-nearest point in the data for each instance and remove instances above a cutoff
+        distance.
+
         Parameters
         ----------
         X
@@ -63,8 +67,8 @@ class TrustScore:
         return X_keep
 
     def filter_by_probability_knn(self, X: np.ndarray, Y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Filter out instances with high label disagreement amongst its k nearest neighbors.
+        """Filter out instances with high label disagreement amongst its k nearest neighbors.
+
         Parameters
         ----------
         X
@@ -91,8 +95,8 @@ class TrustScore:
         return X_keep, Y_keep
 
     def fit(self, X: np.ndarray, Y: np.ndarray, classes: int = None) -> None:
-        """
-        Build KDTrees for each prediction class.
+        """Build KDTrees for each prediction class.
+
         Parameters
         ----------
         X
@@ -108,8 +112,8 @@ class TrustScore:
 
         # KDTree and kNeighborsClassifier need 2D data
         if len(X.shape) > 2:
-            warnings.warn('Reshaping data from {0} to {1} so k-d trees can '
-                          'be built.'.format(X.shape, X.reshape(X.shape[0], -1).shape))
+            warnings.warn(f'Reshaping data from {X.shape} to {X.reshape(X.shape[0], -1).shape} so k-d trees can '
+                          'be built.')
             X = X.reshape(X.shape[0], -1)
 
         # make sure Y represents predicted classes, not one-hot encodings
@@ -128,7 +132,7 @@ class TrustScore:
             elif self.filter == 'probability_knn':
                 X_fit = X_filter[np.where(Y_filter == c)[0]]
             else:
-                raise (Exception(f'self.filter must be one of ["distance_knn", "probability_knn", None]'))
+                raise Exception('self.filter must be one of ["distance_knn", "probability_knn", None]')
 
             no_x_fit = len(X_fit) == 0
             if no_x_fit or len(X[np.where(Y == c)[0]]) == 0:
@@ -143,9 +147,9 @@ class TrustScore:
 
     def score(self, X: np.ndarray, Y: np.ndarray, k: int = 2, dist_type: str = 'point') \
             -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Calculate trust scores = ratio of distance to closest class other than the
-        predicted class to distance to predicted class.
+        """Calculate trust scores = ratio of distance to closest class other than the predicted class to distance to
+        predicted class.
+
         Parameters
         ----------
         X
@@ -192,6 +196,7 @@ class TrustScore:
 
     @staticmethod
     def process_confidence_scores(baseline_scores: np.ndarray, test_scores: np.ndarray):
+        """Process confidence scores."""
         # code to filter extreme confidence values
         filter_center_factor = 4
         filter_center_size = 40.  # % of data
