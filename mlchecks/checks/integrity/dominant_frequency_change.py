@@ -89,7 +89,7 @@ def dominant_frequency_change(dataset: Dataset, baseline_dataset: Dataset,
         top_ref = ref_df[column].value_counts()
         top_test = test_df[column].value_counts()
 
-        if top_ref.iloc[0] > top_ref.iloc[1] * dominance_ratio:
+        if len(top_ref) ==1 or top_ref.iloc[0] > top_ref.iloc[1] * dominance_ratio:
             value = top_ref.index[0]
             p_val = find_p_val(value, top_test, top_ref, test_len, ref_len, ratio_change_thres)
             if p_val and p_val < p_val_thres:
@@ -98,7 +98,7 @@ def dominant_frequency_change(dataset: Dataset, baseline_dataset: Dataset,
                 p_df[column] = {'Value': value,
                                 'Reference data': f'{count_ref} ({count_ref / ref_len * 100:0.2f})',
                                 'Tested data': f'{count_test} ({count_test / test_len * 100:0.2f})'}
-        elif top_test.iloc[0] > top_test.iloc[1] * dominance_ratio:
+        elif len(top_test) ==1 or top_test.iloc[0] > top_test.iloc[1] * dominance_ratio:
             value = top_test.index[0]
             p_val = find_p_val(value, top_test, top_ref, test_len, ref_len, ratio_change_thres)
             if p_val and p_val < p_val_thres:
