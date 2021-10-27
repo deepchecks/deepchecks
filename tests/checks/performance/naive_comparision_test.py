@@ -24,7 +24,7 @@ def test_0(iris_split_dataset_and_model):
 def test_1(iris_split_dataset_and_model):
     train_ds, val_ds, clf = iris_split_dataset_and_model
     # Arrange
-    check = NaiveComparision(native_model_order=1)
+    check = NaiveComparision(native_model_type=1)
     # Act X
     result = check.run(train_ds, val_ds, clf).value
     # Assert
@@ -33,7 +33,7 @@ def test_1(iris_split_dataset_and_model):
 def test_2(iris_split_dataset_and_model):
     train_ds, val_ds, clf = iris_split_dataset_and_model
     # Arrange
-    check = NaiveComparision(native_model_order=2)
+    check = NaiveComparision(native_model_type=2)
     # Act X
     result = check.run(train_ds, val_ds, clf).value
     # Assert
