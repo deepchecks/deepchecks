@@ -80,11 +80,11 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
     val_f = validation_dataset.data
 
     train_dups = get_dup_indexes_map(train_f, columns)
-    train_f.index = [f'test indexes: {get_dup_txt(i, train_dups)}' for i in train_f.index]
+    train_f.index = [f'Train indexes: {get_dup_txt(i, train_dups)}' for i in train_f.index]
     train_f.drop_duplicates(columns, inplace = True)
 
     val_dups = get_dup_indexes_map(val_f, columns)
-    val_f.index = [f'validation indexes: {get_dup_txt(i, val_dups)}' for i in val_f.index]
+    val_f.index = [f'Validation indexes: {get_dup_txt(i, val_dups)}' for i in val_f.index]
     val_f.drop_duplicates(columns, inplace = True)
 
     appended_df = train_f.append(val_f)
@@ -93,7 +93,7 @@ def data_sample_leakage_report(validation_dataset: Dataset, train_dataset: Datas
 
     count_dups = 0
     for index in duplicate_rows_df.index:
-        if index.startswith('test'):
+        if index.startswith('Train'):
             if not 'Tot.' in index:
                 count_dups += len(index.split(','))
             else:
