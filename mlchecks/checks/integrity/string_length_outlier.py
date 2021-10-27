@@ -49,7 +49,7 @@ def string_length_outlier(dataset: Union[pd.DataFrame, Dataset], columns: Union[
         if string_length_column.nunique() < num_percentiles:
             string_length_column = string_length_column.to_numpy()
             string_length_column.sort()
-            quantile_list = 100 * stats.rankdata(string_length_column, "ordinal") / len(string_length_column)
+            quantile_list = 100 * stats.rankdata(string_length_column, 'ordinal') / len(string_length_column)
             percentile_histogram = {quantile_list[i]: string_length_column[i] for i in range(len(string_length_column))}
         else:
             quantile_list = list(np.linspace(0.0, 100.0, num_percentiles + 1))
