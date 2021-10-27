@@ -1,14 +1,14 @@
 """String length outlier check."""
 from functools import reduce
 from typing import Union, Dict, Iterable, Tuple
-from math import ceil, floor
 
 import numpy as np
 import pandas as pd
 from pandas import DataFrame, Series
+from scipy import stats
 
 from mlchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_dataframe_type
-from mlchecks.base.string_utils import is_string_column
+from mlchecks.string_utils import is_string_column, format_number
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 
 __all__ = ['string_length_outlier', 'StringLengthOutlier']
@@ -45,10 +45,16 @@ def string_length_outlier(dataset: Union[pd.DataFrame, Dataset], columns: Union[
 
         string_length_column = column.map(len)
 
-        quantile_list = list(np.linspace(0.0, 100.0, num_percentiles + 1))
-        quantile_values = np.percentile(string_length_column, quantile_list)
-
-        percentile_histogram = dict(zip(quantile_list, list(quantile_values)))
+        # If not a lot of unique values, calculate the percentiles for existing values.
+        if string_length_column.nunique() < num_percentiles:
+            string_length_column = string_length_column.to_numpy()
+            string_length_column.sort()
+            quantile_list = 100 * stats.rankdata(string_length_column, "ordinal") / len(string_length_column)
+            percentile_histogram = {quantile_list[i]: string_length_column[i] for i in range(len(string_length_column))}
+        else:
+            quantile_list = list(np.linspace(0.0, 100.0, num_percentiles + 1))
+            quantile_values = np.percentile(string_length_column, quantile_list, interpolation='nearest')
+            percentile_histogram = dict(zip(quantile_list, list(quantile_values)))
 
         outlier_sections = outlier_on_percentile_histogram(percentile_histogram, inner_quantile_range,
                                                            outlier_factor)
@@ -64,10 +70,10 @@ def string_length_outlier(dataset: Union[pd.DataFrame, Dataset], columns: Union[
                                            string_length_column, 0)
                 if n_outlier_samples:
                     results.append([column_name,
-                                    f'{ceil(percentile_histogram[non_outlier_section[0]])} -'
-                                    f' {floor(percentile_histogram[non_outlier_section[1]])}',
-                                    f'{ceil(percentile_histogram[outlier_section[0]])} -'
-                                    f' {floor(percentile_histogram[outlier_section[1]])}',
+                                    f'{format_number(percentile_histogram[non_outlier_section[0]])} -'
+                                    f' {format_number(percentile_histogram[non_outlier_section[1]])}',
+                                    f'{format_number(percentile_histogram[outlier_section[0]])} -'
+                                    f' {format_number(percentile_histogram[outlier_section[1]])}',
                                     f'{n_outlier_samples}'
                                     ])
 
