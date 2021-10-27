@@ -1,0 +1,31 @@
+name: Release
+
+on:
+  push:
+    branches: [ master ]
+  pull_request: 
+    branches: [ master ]
+
+jobs:
+  CI:
+    runs-on: [self-hosted]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+
+    - name: Set Up Env
+      run: make env  
+
+    - name: Run Code Style Validations
+      run: make validate
+
+    - name: Run Tox Test Matrix
+      run: make tox
+
+    - name: Run Notebook Validations
+      run: make notebook
