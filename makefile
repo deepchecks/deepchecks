@@ -127,9 +127,10 @@ $(ANALIZE): $(PIP)
 test: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 	$(pythonpath) $(TEST_RUNNER) $(args) $(TESTDIR)
 
-notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER) 
+NOTEBOOK_SANITIZER_FILE=$(NOTEBOOK_DIR)/.nbval-sanitizer 
+notebook: env $(TEST_RUNNER) 
 	$(PIP) install -e .
-	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_DIR)
+	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_DIR) --sanitize-with $(NOTEBOOK_SANITIZER_FILE)
 
 $(TEST_RUNNER):
 	$(PIP) install $(TEST_RUNNER_PKGS) | tee -a $(REQUIREMENTS_LOG)
