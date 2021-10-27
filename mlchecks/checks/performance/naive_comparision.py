@@ -1,4 +1,4 @@
-"""Module containing performance report check."""
+"""Module containing naive comparision check."""
 import numpy as np
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 import matplotlib.pyplot as plt
@@ -19,14 +19,16 @@ class dummy_model():
 
 def run_on_df(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
               native_model_type: str, metric = None, metric_name = None):
-        """Find p value for column frequency change between the reference dataset to the test dataset.
+        """Find the naive model score for given metric.
 
         Args:
             train_ds (Dataset): The training dataset object. Must contain an index.
             val_ds (Dataset): The validation dataset object. Must contain an index.
-            task_type (ModelType): the model type
+            task_type (ModelType): the model type.
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
             native_model_type (str):  Type of the naive model ['random' 'statistical' 'tree'].
+            metric: a custume metric given by user.
+            metric_name: name of a default metric.
         Returns:
             float: p value for the key.
 
@@ -87,7 +89,8 @@ def run_on_df(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
 
 
 def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset,
-                      model, native_model_type: str = 'random', max_ratio: float = 10):
+                      model, native_model_type: str = 'random', max_ratio: float = 10,
+                      metric = None, metric_name = None):
     """Summarize given metrics on a dataset and model.
 
     Args:
@@ -97,9 +100,11 @@ def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset,
         native_model_type (str = 'random'):  Type of the naive model ['random' 'statistical' 'tree'].
         max_ratio (float = 10):  Value to return in case the loss of the naive model is very low (or 0)
                                  and the loss of the predictions is positive (1 to inf).
+        metric: a custume metric given by user.
+        metric_name: name of a default metric.
 
     Returns:
-        CheckResult: value is dictionary in format `{metric: score, ...}`
+        CheckResult: value is ratio between model prediction to naive prediction
     
     Raises:
         MLChecksValueError: If the object is not a Dataset instance.
@@ -112,8 +117,8 @@ def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset,
     model_type_validation(model)
 
     naive_metric, pred_metric, metric_name = run_on_df(train_dataset, validation_dataset,
-                                                                   task_type_check(model, train_dataset), model,
-                                                                   native_model_type)
+                                                       task_type_check(model, train_dataset), model,
+                                                       native_model_type, metric, metric_name)
 
     res = min(pred_metric / naive_metric, max_ratio) \
             if naive_metric != 0 else (1 if pred_metric == 0 else max_ratio)
@@ -143,6 +148,6 @@ class NaiveComparision(TrainValidationBaseCheck):
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
 
         Returns:
-            CheckResult: value is dictionary in format `{<metric>: score}`
+            CheckResult: value is ratio between model prediction to naive prediction
         """
         return naive_comparision(train_dataset, validation_dataset, model, **self.params)
