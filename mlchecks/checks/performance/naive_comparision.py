@@ -80,7 +80,7 @@ def run_on_df(train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model,
         return res, metric_name, model_type
 
 
-def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset, model):
+def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset, model, NAIVE_MODEL_ORDER: int = 0, MAX_RATIO: float = 10):
     """Summarize given metrics on a dataset and model.
 
     Args:
@@ -99,7 +99,7 @@ def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset, model
     validation_dataset.validate_label(self.__name__)
     model_type_validation(model)
 
-    value = run_on_df(train_dataset, validation_dataset, task_type_check(model, train_dataset), model)
+    value = run_on_df(train_dataset, validation_dataset, task_type_check(model, train_dataset), model, NAIVE_MODEL_ORDER, MAX_RATIO)
 
     return CheckResult(value, check=self, display=None)
 
@@ -117,4 +117,4 @@ class NaiveComparision(TrainValidationBaseCheck):
         Returns:
             CheckResult: value is dictionary in format `{<metric>: score}`
         """
-        return naive_comparision(train_dataset, validation_dataset, model)
+        return naive_comparision(train_dataset, validation_dataset, model, **self.params)
