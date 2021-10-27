@@ -129,7 +129,7 @@ test: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 
 notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER) 
 	$(PIP) install -e .
-	$(pythonpath) $(TEST_RUNNER) --nbval --nbval-lax $(NOTEBOOK_DIR)
+	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_DIR)
 
 $(TEST_RUNNER):
 	$(PIP) install $(TEST_RUNNER_PKGS) | tee -a $(REQUIREMENTS_LOG)
