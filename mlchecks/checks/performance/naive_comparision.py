@@ -111,7 +111,7 @@ def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset,
     validation_dataset.validate_label(self.__name__)
     model_type_validation(model)
 
-    naive_metric, pred_metric, metric_name, model_type = run_on_df(train_dataset, validation_dataset,
+    naive_metric, pred_metric, metric_name = run_on_df(train_dataset, validation_dataset,
                                                                    task_type_check(model, train_dataset), model,
                                                                    native_model_type)
 
