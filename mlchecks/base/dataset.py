@@ -327,7 +327,7 @@ class Dataset:
 
         """
         Dataset.validate_dataset(other, function_name)
-        if sorted(self.label_name()) == sorted(other.label_name()):
+        if self.label_name() == other.label_name():
             return self.label_name()
         else:
             raise MLChecksValueError(f'function {function_name} requires datasets to share the same label')
