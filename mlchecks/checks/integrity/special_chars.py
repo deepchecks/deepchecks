@@ -7,7 +7,7 @@ from pandas.api.types import infer_dtype
 from mlchecks import Dataset, ensure_dataframe_type
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
-from mlchecks.base.string_utils import string_baseform
+from mlchecks.string_utils import string_baseform, format_percent
 
 __all__ = ['special_characters', 'SpecialCharacters']
 
@@ -37,7 +37,7 @@ def special_characters(dataset: Union[pd.DataFrame, Dataset], columns: Union[str
         # Get dict of samples to count
         special_samples = get_special_samples(column_data)
         if special_samples:
-            percent = f'{sum(special_samples.values()) / column_data.size:.2%}'
+            percent = format_percent(sum(special_samples.values()) / column_data.size)
             top_n_samples_items = sorted(special_samples.items(), key=lambda x: x[1], reverse=True)[:n_most_common]
             top_n_samples_values = [item[0] for item in top_n_samples_items]
             display_array.append([column_name, percent, top_n_samples_values])

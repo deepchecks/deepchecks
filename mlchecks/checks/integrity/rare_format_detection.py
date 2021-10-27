@@ -6,7 +6,7 @@ from typing import Union, List, Tuple
 import pandas as pd
 
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
-from mlchecks.base.string_utils import split_and_keep, split_and_keep_by_many
+from mlchecks.string_utils import split_and_keep, split_and_keep_by_many, format_percent
 from mlchecks.utils import MLChecksValueError
 
 
@@ -202,7 +202,7 @@ def _detect_per_column_and_pattern(column: pd.Series, pattern: Pattern, rarity_t
                                                 is_substr_sequence=pattern.is_sequence)
             # TODO: using pattern.substituters[0][1] right now. should be all fillers - substr should get a list
 
-    return {'ratio of rare patterns to common patterns': f'{rare_to_common_format_ratio:.2%}',
+    return {'ratio of rare patterns to common patterns': f'{format_percent(rare_to_common_format_ratio)}',
             'common formats': common_formats,
             'examples for values in common formats': common_values_examples,
             'values in rare formats': list(rare_values.unique())}
