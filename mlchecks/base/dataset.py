@@ -69,6 +69,10 @@ class Dataset:
             raise MLChecksValueError(f'label column {label} not found in dataset columns')
 
         if features:
+            if any(x not in self._data.columns for x in features):
+                raise MLChecksValueError(f'Features must be names of columns in dataframe.'
+                                         f' Features {set(features) - set(self._data.columns)} have not been '
+                                         f'found in input dataframe.')
             self._features = features
         else:
             self._features = [x for x in self._data.columns if x not in {label, index, date}]
@@ -82,6 +86,10 @@ class Dataset:
         self._max_categories = max_categories
 
         if cat_features is not None:
+            if set(cat_features).intersection(set(self._features)) != set(cat_features):
+                raise MLChecksValueError(f'Categorical features must be a subset of features. '
+                                         f'Categorical features {set(cat_features) - set(self._features)} '
+                                         f'have not been found in feature list.')
             self._cat_features = cat_features
         else:
             self._cat_features = self.infer_categorical_features()
@@ -99,7 +107,7 @@ class Dataset:
         # Filter out if columns were dropped
         features = list(set(self._features).intersection(new_data.columns))
         cat_features = list(set(self._cat_features).intersection(new_data.columns))
-        label = self._label if self._label in new_data.columns else None
+        label = self._label_name if self._label_name in new_data.columns else None
         index = self._index_name if self._index_name in new_data.columns else None
         date = self._date_name if self._date_name in new_data.columns else None
 
@@ -200,6 +208,14 @@ class Dataset:
         """
         return self._features
 
+    def features_columns(self) -> Union[pd.DataFrame, None]:
+        """Return features columns if exists.
+
+        Returns:
+           Features columns
+        """
+        return self.data[self._features] if self._features else None
+
     # Validations:
 
     def validate_label(self, function_name: str):
@@ -255,7 +271,7 @@ class Dataset:
             MLChecksValueError: In case one of columns given don't exists raise error
         """
         new_data = filter_columns_with_validation(self.data, columns, ignore_columns)
-        if new_data == self.data:
+        if new_data.equals(self.data):
             return self
         else:
             return self.copy(new_data)
@@ -281,6 +297,28 @@ class Dataset:
         else:
             raise MLChecksValueError(f'function {function_name} requires datasets to share the same features')
 
+    def validate_shared_categorical_features(self, other, function_name: str) -> List[str]:
+        """
+        Return list of categorical features if both datasets have the same categorical features. Else, raise error.
+
+        Args:
+            other: Expected to be Dataset type. dataset to compare features list
+            function_name (str): function name to print in error
+
+        Returns:
+            List[str] - list of shared features names
+
+        Raises:
+            MLChecksValueError if datasets don't have the same features
+
+        """
+        Dataset.validate_dataset(other, function_name)
+        if sorted(self.cat_features()) == sorted(other.cat_features()):
+            return self.cat_features()
+        else:
+            raise MLChecksValueError(f'function {function_name} requires datasets to share'
+                                     f' the same categorical features')
+
     def validate_shared_label(self, other, function_name: str) -> str:
         """
         Return the list of shared features if both datasets have the same feature column names. Else, raise error.
@@ -297,7 +335,7 @@ class Dataset:
 
         """
         Dataset.validate_dataset(other, function_name)
-        if sorted(self.label_name()) == sorted(other.label_name()):
+        if self.label_name() == other.label_name():
             return self.label_name()
         else:
             raise MLChecksValueError(f'function {function_name} requires datasets to share the same label')
@@ -324,6 +362,17 @@ class Dataset:
         else:
             raise MLChecksValueError(f'dataset must be of type DataFrame or Dataset. instead got: '
                                      f'{type(obj).__name__}')
+
+    def validate_model(self, model):
+        """Check model is able to predict on the dataset.
+
+        Raise:
+            MLChecksValueError: if dataset does not match model
+        """
+        try:
+            model.predict(self.features_columns().head(1))
+        except Exception as exc:
+            raise MLChecksValueError('Got error when trying to predict with model on dataset') from exc
 
     @classmethod
     def validate_dataset(cls, obj, function_name: str) -> 'Dataset':

@@ -11,7 +11,7 @@ from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 __all__ = ['mixed_types', 'MixedTypes']
 
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
-from mlchecks.base.string_utils import is_string_column
+from mlchecks.string_utils import is_string_column, format_percent
 
 
 def mixed_types(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, Iterable[str]] = None,
@@ -19,7 +19,7 @@ def mixed_types(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, Itera
     """Search for mixed types of Data in a single column[s].
 
     Args:
-        dataset (Dataset):
+        dataset (Dataset): Dataset to be tested.
         columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored ones.
         ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns variable
 
@@ -70,8 +70,8 @@ def check_mixed_percentage(column_data: pd.Series) -> dict:
         return {}
 
     # Then we've got a mix
-    nums_pct = f'{nums/total_rows:.2%}'
-    strs_pct = f'{(np.abs(nums-total_rows))/total_rows:.2%}'
+    nums_pct = format_percent(nums/total_rows)
+    strs_pct = format_percent((np.abs(nums-total_rows)) / total_rows)
 
     return {'strings': strs_pct, 'numbers': nums_pct}
 
@@ -83,7 +83,8 @@ class MixedTypes(SingleDatasetBaseCheck):
         """Run mixed_types.
 
         Args:
-          dataset(Dataset):
+          dataset(Dataset): Dataset to be tested.
+          model (): Model is ignored for this check.
 
         Returns:
           (CheckResult): DataFrame with rows ('strings', 'numbers') for any column with mixed types.
