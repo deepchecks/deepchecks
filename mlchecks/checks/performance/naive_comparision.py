@@ -83,9 +83,7 @@ def run_on_df(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
         naive_metric = scorer(dummy_model, naive_pred, y_val)
         pred_metric = scorer(model, val_df[features], y_val)
 
-        model_type = 'regressor' if task_type == ModelType.REGRESSION else 'classifier'
-
-        return naive_metric, pred_metric, metric_name, model_type
+        return naive_metric, pred_metric, metric_name
 
 
 def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset,
