@@ -1,19 +1,26 @@
 """Module containing performance report check."""
 import numpy as np
-import pandas as pd
-from sklearn import preprocessing
 from sklearn.metrics import mean_squared_error, log_loss
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.utils.validation import check_array
 
 from mlchecks import CheckResult, Dataset
 from mlchecks.base.check import TrainValidationBaseCheck
-from mlchecks.metric_utils import get_metrics_list, task_type_check, ModelType
+from mlchecks.metric_utils import DEFAULT_BINARY_METRICS, DEFAULT_METRICS_DICT, DEFAULT_SINGLE_METRIC, task_type_check, ModelType, validate_scorer
 from mlchecks.utils import model_type_validation
 
 __all__ = ['naive_comparision', 'NaiveComparision']
 
 
-def run_on_df(train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model, NAIVE_MODEL_ORDER: int = 0, MAX_RATIO: float = 10):
+class dummy_model():
+    def predict(a):
+        return a
+    def predict_proba(a):
+        return a
+
+def run_on_df(train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model,
+              metric = None, metric_name = None,
+              NAIVE_MODEL_ORDER: int = 0, MAX_RATIO: float = 10):
         
         label_col_name = train_ds.label_name()
         features = train_ds.features()
@@ -53,29 +60,26 @@ def run_on_df(train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model, 
         else:
             raise (NotImplementedError(f'{NAIVE_MODEL_ORDER} not legal NAIVE_MODEL_ORDER'))
 
-        y_pred = model.predict(test_df.data[test_df.features()])
         y_test = test_df[label_col_name]
-
-        if task_type == ModelType.REGRESSION:
-            metric_type = 'mse'
-            pred_metric = mean_squared_error(y_pred, y_test)
-            naive_metric = mean_squared_error(naive_pred, y_test)
-
-        elif task_type == ModelType.BINARY or task_type == ModelType.MULTICLASS:
-            metric_type = 'log-loss'
-            naive_metric = log_loss(y_test, naive_pred)
-            pred_metric = log_loss(y_test, y_pred)
+        
+        if metric is not None:
+            scorer = validate_scorer(metric, model, train_ds)
+            metric_name = metric_name or metric if isinstance(metric, str) else 'User metric'
         else:
-            raise (NotImplementedError(f'{task_type} not legal task_type'))
+            metric_name = DEFAULT_SINGLE_METRIC[task_type]
+            scorer = DEFAULT_METRICS_DICT[task_type][metric_name]
+
+        naive_metric = scorer(dummy_model, naive_pred, y_test)
+        pred_metric = scorer(model, test_df[features], y_test)
 
         res = min(pred_metric / naive_metric, MAX_RATIO) \
             if naive_metric != 0 else (1 if pred_metric == 0 else MAX_RATIO)
 
         model_type = 'regressor' if task_type == ModelType.REGRESSION else 'classifier'
 
-        return res, metric_type, model_type
+        return res, metric_name, model_type
 
-    
+
 def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset, model):
     """Summarize given metrics on a dataset and model.
 
@@ -95,7 +99,7 @@ def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset, model
     validation_dataset.validate_label(self.__name__)
     model_type_validation(model)
 
-    value = run_on_df(train_dataset, validation_dataset, task_type_check(model), model)
+    value = run_on_df(train_dataset, validation_dataset, task_type_check(model, train_dataset), model)
 
     return CheckResult(value, check=self, display=None)
 
@@ -104,7 +108,7 @@ class NaiveComparision(TrainValidationBaseCheck):
     """Summarize given metrics on a dataset and model."""
 
     def run(self, train_dataset, validation_dataset, model) -> CheckResult:
-        """Run performance_report check.
+        """Run naive_comparision check.
 
         Args:
             dataset (Dataset): a Dataset object
