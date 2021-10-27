@@ -1,8 +1,7 @@
 """Module containing performance report check."""
 import numpy as np
-from sklearn.metrics import mean_squared_error, log_loss
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from sklearn.utils.validation import check_array
+import matplotlib.pyplot as plt
 
 from mlchecks import CheckResult, Dataset
 from mlchecks.base.check import TrainValidationBaseCheck
@@ -56,23 +55,23 @@ def run_on_df(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
         elif native_model_type == 'tree':
             X_train = train_df[features]
             y_train = train_df[label_col_name]
-            X_test = val_df[features]
+            X_val = val_df[features]
 
             if task_type == ModelType.REGRESSION:
                 clf = DecisionTreeRegressor()
                 clf = clf.fit(X_train, y_train)
-                naive_pred = clf.predict(X_test)
+                naive_pred = clf.predict(X_val)
 
             elif task_type == ModelType.BINARY or task_type == ModelType.MULTICLASS:
 
                 clf = DecisionTreeClassifier()
                 clf = clf.fit(X_train, y_train)
-                naive_pred = clf.predict(X_test)
+                naive_pred = clf.predict(X_val)
    
         else:
             raise (NotImplementedError(f'{native_model_type} not legal native_model_type'))
 
-        y_test = val_df[label_col_name]
+        y_val = val_df[label_col_name]
    
         if metric is not None:
             scorer = validate_scorer(metric, model, train_ds)
@@ -81,8 +80,8 @@ def run_on_df(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
             metric_name = DEFAULT_SINGLE_METRIC[task_type]
             scorer = DEFAULT_METRICS_DICT[task_type][metric_name]
 
-        naive_metric = scorer(dummy_model, naive_pred, y_test)
-        pred_metric = scorer(model, val_df[features], y_test)
+        naive_metric = scorer(dummy_model, naive_pred, y_val)
+        pred_metric = scorer(model, val_df[features], y_val)
 
         model_type = 'regressor' if task_type == ModelType.REGRESSION else 'classifier'
 
@@ -121,10 +120,17 @@ def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset,
     res = min(pred_metric / naive_metric, max_ratio) \
             if naive_metric != 0 else (1 if pred_metric == 0 else max_ratio)
 
-    text = f'Naive {model_type} has achieved {res:.2f} times ' \
-           f'better {metric_name} compared to model prediction on tested data.'
+    text = f'model prediction has achieved {res:.2f} times ' \
+           f'better {metric_name} compared to naive {native_model_type} prediction on tested data.'
+    
+    def display_func():
+        fig = plt.figure()
+        ax = fig.add_axes([0,0,1,1])
+        models = [f'Naive model - {native_model_type}', f'{type(model).__name__} model']
+        metrics_results = [naive_metric, pred_metric]
+        ax.bar(models,metrics_results)
 
-    return CheckResult((naive_metric, pred_metric, metric_name, model_type), check=self, display=[text])
+    return CheckResult(res, check=self, display=[text, display_func])
 
 
 class NaiveComparision(TrainValidationBaseCheck):
