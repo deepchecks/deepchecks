@@ -19,8 +19,8 @@ class dummy_model():
         return a
 
 def run_on_df(train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model,
-              metric = None, metric_name = None,
-              NAIVE_MODEL_ORDER: int = 0, MAX_RATIO: float = 10):
+              native_model_order: int, max_ratio: float = 10,
+              metric = None, metric_name = None):
         
         label_col_name = train_ds.label_name()
         features = train_ds.features()
@@ -29,10 +29,10 @@ def run_on_df(train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model,
 
         np.random.seed(0)
 
-        if NAIVE_MODEL_ORDER == 0:
+        if native_model_order == 0:
             naive_pred = np.random.choice(train_df[label_col_name], test_df.shape[0])
 
-        elif NAIVE_MODEL_ORDER == 1:
+        elif native_model_order == 1:
             if task_type == ModelType.REGRESSION:
                 naive_pred = np.array([np.mean(train_df[label_col_name])] * len(test_df))
 
@@ -41,7 +41,7 @@ def run_on_df(train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model,
                 counts = train_df[label_col_name].value_counts()
                 naive_pred = np.array([counts.index[0]] * len(test_df))
 
-        elif NAIVE_MODEL_ORDER == 2:
+        elif native_model_order == 2:
             X_train = train_df[features]
             y_train = train_df[label_col_name]
             X_test = test_df[features]
@@ -58,7 +58,7 @@ def run_on_df(train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model,
                 naive_pred = clf.predict(X_test)
         
         else:
-            raise (NotImplementedError(f'{NAIVE_MODEL_ORDER} not legal NAIVE_MODEL_ORDER'))
+            raise (NotImplementedError(f'{native_model_order} not legal NAIVE_MODEL_ORDER'))
 
         y_test = test_df[label_col_name]
         
@@ -72,15 +72,15 @@ def run_on_df(train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model,
         naive_metric = scorer(dummy_model, naive_pred, y_test)
         pred_metric = scorer(model, test_df[features], y_test)
 
-        res = min(pred_metric / naive_metric, MAX_RATIO) \
-            if naive_metric != 0 else (1 if pred_metric == 0 else MAX_RATIO)
+        res = min(pred_metric / naive_metric, max_ratio) \
+            if naive_metric != 0 else (1 if pred_metric == 0 else max_ratio)
 
         model_type = 'regressor' if task_type == ModelType.REGRESSION else 'classifier'
 
         return res, metric_name, model_type
 
 
-def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset, model, NAIVE_MODEL_ORDER: int = 0, MAX_RATIO: float = 10):
+def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset, model, native_model_order: int = 0, max_ratio: float = 10):
     """Summarize given metrics on a dataset and model.
 
     Args:
@@ -99,7 +99,7 @@ def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset, model
     validation_dataset.validate_label(self.__name__)
     model_type_validation(model)
 
-    value = run_on_df(train_dataset, validation_dataset, task_type_check(model, train_dataset), model, NAIVE_MODEL_ORDER, MAX_RATIO)
+    value = run_on_df(train_dataset, validation_dataset, task_type_check(model, train_dataset), model, native_model_order, max_ratio)
 
     return CheckResult(value, check=self, display=None)
 
