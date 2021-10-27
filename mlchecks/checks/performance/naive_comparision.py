@@ -19,8 +19,7 @@ class dummy_model():
         return a
 
 def run_on_df(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
-              native_model_type: str, max_ratio: float = 10,
-              metric = None, metric_name = None):
+              native_model_type: str, metric = None, metric_name = None):
         """Find p value for column frequency change between the reference dataset to the test dataset.
 
         Args:
@@ -29,8 +28,6 @@ def run_on_df(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
             task_type (ModelType): the model type
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
             native_model_type (str):  Type of the naive model ['random' 'statistical' 'tree'].
-            max_ratio (float):  Value to return in case the loss of the naive model is very low (or 0)
-                                    and the loss of the predictions is positive (1 to inf).
         Returns:
             float: p value for the key.
 
@@ -87,12 +84,9 @@ def run_on_df(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
         naive_metric = scorer(dummy_model, naive_pred, y_test)
         pred_metric = scorer(model, val_df[features], y_test)
 
-        res = min(pred_metric / naive_metric, max_ratio) \
-            if naive_metric != 0 else (1 if pred_metric == 0 else max_ratio)
-
         model_type = 'regressor' if task_type == ModelType.REGRESSION else 'classifier'
 
-        return res, metric_name, model_type
+        return naive_metric, pred_metric, metric_name, model_type
 
 
 def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset,
@@ -109,7 +103,6 @@ def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset,
 
     Returns:
         CheckResult: value is dictionary in format `{metric: score, ...}`
-
     
     Raises:
         MLChecksValueError: If the object is not a Dataset instance.
@@ -121,9 +114,16 @@ def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset,
     validation_dataset.validate_label(self.__name__)
     model_type_validation(model)
 
-    value = run_on_df(train_dataset, validation_dataset, task_type_check(model, train_dataset), model, native_model_type, max_ratio)
+    naive_metric, pred_metric, metric_name, model_type = run_on_df(train_dataset, validation_dataset,
+                                                                   task_type_check(model, train_dataset), model,
+                                                                   native_model_type)
 
-    return CheckResult(value, check=self, display=None)
+    res = min(pred_metric / naive_metric, max_ratio) \
+            if naive_metric != 0 else (1 if pred_metric == 0 else max_ratio)
+    text = f'Naive {model_type} has achieved {res:.2f} times ' \
+           f'better {metric_name} compared to model prediction on tested data.'
+
+    return CheckResult((naive_metric, pred_metric, metric_name, model_type), check=self, display=[text])
 
 
 class NaiveComparision(TrainValidationBaseCheck):
