@@ -6,7 +6,7 @@ regex: _.{5}_
 replace: _ELE_
 
 [random_ids]
-regex: (\u0023|\=)?[a-zA-Z0-9\-\_]+
+regex: (\u0023|\=)[a-zA-Z0-9\-\_]+
 replace: random
 
 

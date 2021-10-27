@@ -1,13 +1,14 @@
 """String functions."""
 import re
 from collections import defaultdict
+from decimal import Decimal
 from typing import Dict, Set, List
 from copy import copy
 import pandas as pd
 
 
 __all__ = ['string_baseform', 'get_base_form_to_variants_dict', 'underscore_to_capitalize', 'split_and_keep',
-           'split_and_keep_by_many', 'is_string_column']
+           'split_and_keep_by_many', 'is_string_column', 'format_percent', 'format_number']
 
 from pandas.core.dtypes.common import is_numeric_dtype
 
@@ -114,3 +115,61 @@ def split_and_keep_by_many(s: str, separators: List[str], keep: bool = True) -> 
             split_s.append(s)
             break
     return split_s
+
+
+def format_percent(ratio: float, floating_point: int = 2) -> str:
+    """Format percent for elegant display.
+
+    Args:
+        ratio (float): Number [0-1] to be displayed as percent
+        floating_point (int): Number of floating points to display
+
+    Returns:
+        String of ratio as percent
+    """
+    if (ratio > 1) or (ratio < 0):
+        Exception(ValueError('ratio must be between 0 and 1'))
+    if ratio == 0:
+        return '0%'
+    if ratio == 1:
+        return '100%'
+    if ratio < 10**(-(2+floating_point)):
+        return f'{Decimal(ratio * 100):.{floating_point}E}%'
+    elif ratio > (1-10**(-(2+floating_point))):
+        if floating_point > 0:
+            return f'99.{"".join(["9"]*floating_point)}%'
+        else:
+            return '99%'
+    else:
+        return f'{ratio:.{floating_point}%}'
+
+
+def format_number(x, floating_point: int = 2) -> str:
+    """Format number for elegant display.
+
+    Args:
+        x (): Number to be displayed
+        floating_point (int): Number of floating points to display
+
+    Returns:
+        String of beautified number
+    """
+    def add_commas(x):
+        return f'{x:,}'  # yes this actually formats the number 1000 to "1,000"
+
+    # 0 is lost in the next if case, so we have it here as a special use-case
+    if x == 0:
+        return '0'
+
+    # If x is a very small number, that would be rounded to 0, we would prefer to return it as the format 1.0E-3.
+    if abs(x) < 10 ** (-floating_point):
+        return f'{Decimal(x):.{floating_point}E}'
+
+    # If x is an integer, or if x when rounded is an integer (e.g. 1.999999), then return as integer:
+    if round(x) == round(x, floating_point):
+        return add_commas(round(x))
+
+    # If not, return as a float, but don't print unnecessary zeros at end:
+    else:
+        ret_x = round(x, floating_point)
+        return add_commas(ret_x).rstrip('0')

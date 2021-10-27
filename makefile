@@ -52,8 +52,10 @@ ANALIZE_PKGS = pylint pydocstyle
 TEST_CODE := tests/
 TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval
 NOTEBOOK_DIR = ./notebooks
+NOTEBOOK_SANITIZER_FILE=$(NOTEBOOK_DIR)/.nbval-sanitizer 
 
 PYLINT_LOG = .pylint.log
+
 # Coverage vars
 COVERAGE_LOG = .cover.log
 COVERAGE_FILE = default.coveragerc
@@ -66,10 +68,11 @@ SPHINX_PKGS = sphinx sphinx_rtd_theme
 
 
 EGG_INFO := $(subst -,_,$(PROJECT)).egg-info
+EGG_LINK = venv/lib/python3.7/site-packages/mlchecks.egg-link
 
 ### Main Targets ######################################################
 
-.PHONY: help env all ci activate
+.PHONY: help env all 
 
 help:
 	@echo "env      -  Create virtual environment and install requirements"
@@ -85,10 +88,7 @@ help:
 	@echo "tox      -  Test against multiple versions of python as defined in tox.ini"
 	@echo "clean | clean-all -  Clean up | clean up & removing virtualenv"
 
-all: validate test
-
-# CI is same as all, but they may be different in the future so we'll have them both
-ci: validate test
+all: validate test notebook
 
 
 env: $(REQUIREMENTS_LOG)
@@ -127,9 +127,12 @@ $(ANALIZE): $(PIP)
 test: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 	$(pythonpath) $(TEST_RUNNER) $(args) $(TESTDIR)
 
-NOTEBOOK_SANITIZER_FILE=$(NOTEBOOK_DIR)/.nbval-sanitizer 
-notebook: env $(TEST_RUNNER) 
-	$(PIP) install -e .
+
+notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
+# if mlchecks is not installed, we need to install it for testing porpuses,
+# as the only time you'll need to run make is in dev mode, we're installing
+# mlchecks in development mode
+	$(PIP) install --no-deps -e .
 	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_DIR) --sanitize-with $(NOTEBOOK_SANITIZER_FILE)
 
 $(TEST_RUNNER):

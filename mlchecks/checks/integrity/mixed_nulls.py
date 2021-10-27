@@ -7,7 +7,7 @@ import pandas as pd
 from mlchecks import Dataset, CheckResult, ensure_dataframe_type
 from mlchecks.base.check import SingleDatasetBaseCheck
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
-from mlchecks.base.string_utils import string_baseform
+from mlchecks.string_utils import string_baseform, format_percent
 from mlchecks.utils import MLChecksValueError
 
 __all__ = ['mixed_nulls', 'MixedNulls']
@@ -81,10 +81,10 @@ def mixed_nulls(dataset: Union[pd.DataFrame, Dataset], null_string_list: Iterabl
             continue
         # Save the column info
         for key, count in null_counts.iteritems():
-            display_array.append([column_name, key, count, round(count / dataset.size, 2)])
+            display_array.append([column_name, key, count, format_percent(count / dataset.size)])
 
     # Create dataframe to display graph
-    df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Fraction of data'])
+    df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percent of data'])
     df_graph = df_graph.set_index(['Column Name', 'Value'])
 
     if len(df_graph) > 0:
