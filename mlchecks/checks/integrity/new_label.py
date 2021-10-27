@@ -2,9 +2,12 @@
 
 from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, TrainValidationBaseCheck
+from mlchecks.string_utils import format_percent
 
 import pandas as pd
+
 pd.options.mode.chained_assignment = None
+
 
 __all__ = ['new_label_train_validation', 'NewLabelTrainValidation']
 
@@ -25,8 +28,8 @@ def new_label_train_validation(train_dataset: Dataset, validation_dataset: Datas
     self = new_label_train_validation
     validation_dataset = Dataset.validate_dataset_or_dataframe(validation_dataset)
     train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
-    validation_dataset.validate_label(self)
-    train_dataset.validate_label(self)
+    validation_dataset.validate_label(self.__name__)
+    train_dataset.validate_label(self.__name__)
     validation_dataset.validate_shared_label(train_dataset, self.__name__)
 
     label_column = train_dataset.validate_shared_label(validation_dataset, self.__name__)
@@ -44,9 +47,9 @@ def new_label_train_validation(train_dataset: Dataset, validation_dataset: Datas
     if new_labels:
         n_new_label = len(validation_label[validation_label.isin(new_labels)])
 
-        dataframe = pd.DataFrame(data=[[label_column, n_new_label/n_validation_samples, new_labels]],
-                                 columns=['label column', 'ratio of new labels in sample', 'new labels'])
-        dataframe = dataframe.set_index(['label column'])
+        dataframe = pd.DataFrame(data=[[label_column, format_percent(n_new_label/n_validation_samples), new_labels]],
+                                 columns=['Label column', 'Percent new labels in sample', 'New labels'])
+        dataframe = dataframe.set_index(['Label column'])
 
         display = dataframe
 

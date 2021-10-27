@@ -1,10 +1,12 @@
 """The data_sample_leakage_report check module."""
-from typing import Union,Iterable
+from typing import Union, Iterable
 
 from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, TrainValidationBaseCheck
+from mlchecks.string_utils import format_percent
 
 import pandas as pd
+
 
 __all__ = ['new_category_train_validation', 'CategoryMismatchTrainValidation']
 
@@ -59,13 +61,14 @@ def new_category_train_validation(train_dataset: Dataset, validation_dataset: Da
             n_new_cat = len(validation_column[validation_column.isin(new_category_values)])
 
             new_categories.append([feature,
-                                   n_new_cat/n_validation_samples,
+                                   n_new_cat / n_validation_samples,
                                    new_category_values])
 
     if new_categories:
-        dataframe = pd.DataFrame(data=new_categories,
-                                 columns=['column', 'ratio of new categories in sample', 'new categories'])
-        dataframe = dataframe.set_index(['column'])
+        dataframe = pd.DataFrame(data=[[new_category[0], format_percent(new_category[1]), new_category[2]]
+                                       for new_category in new_categories],
+                                 columns=['Column', 'Percent of new categories in sample', 'New categories'])
+        dataframe = dataframe.set_index(['Column'])
 
         display = dataframe
 
