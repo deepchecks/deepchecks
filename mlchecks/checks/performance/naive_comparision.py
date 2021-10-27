@@ -127,6 +127,7 @@ def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset,
         models = [f'Naive model - {native_model_type}', f'{type(model).__name__} model']
         metrics_results = [naive_metric, pred_metric]
         ax.bar(models,metrics_results)
+        ax.set_ylabel(metric_name)
 
     return CheckResult(res, check=self, display=[text, display_func])
 
