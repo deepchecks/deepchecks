@@ -95,14 +95,9 @@ def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset, model
     validation_dataset.validate_label(self.__name__)
     model_type_validation(model)
 
-    # Get default metrics if no alternative, or validate alternatives
-    metrics = get_metrics_list(model, dataset, alternative_metrics)
-    scores = {key: scorer(model, dataset.features_columns(), dataset.label_col()) for key, scorer in metrics.items()}
+    value = run_on_df(train_dataset, validation_dataset, task_type_check(model), model)
 
-    display_df = pd.DataFrame(scores.values(), columns=['Score'], index=scores.keys())
-    display_df.index.name = 'Metric'
-
-    return CheckResult(scores, check=self, display=display_df)
+    return CheckResult(value, check=self, display=None)
 
 
 class NaiveComparision(TrainValidationBaseCheck):
@@ -118,4 +113,4 @@ class NaiveComparision(TrainValidationBaseCheck):
         Returns:
             CheckResult: value is dictionary in format `{<metric>: score}`
         """
-        return performance_report(train_dataset, validation_dataset, model)
+        return naive_comparision(train_dataset, validation_dataset, model)
