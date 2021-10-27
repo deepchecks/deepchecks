@@ -7,7 +7,8 @@ from mlchecks.checks.integrity import (
     StringMismatch,
     DataDuplicates,
     SpecialCharacters,
-    StringMismatchComparison
+    StringMismatchComparison,
+    CategoryMismatchTrainValidation
 )
 
 __all__ = ['SingleDatasetIntegrityCheckSuite', 'ComparativeIntegrityCheckSuite', 'IntegrityCheckSuite']
@@ -26,7 +27,8 @@ SingleDatasetIntegrityCheckSuite = CheckSuite(
 
 ComparativeIntegrityCheckSuite = CheckSuite(
     'Comparative Integrity Suite',
-    StringMismatchComparison()
+    StringMismatchComparison(),
+    CategoryMismatchTrainValidation()
 )
 
 IntegrityCheckSuite = CheckSuite(

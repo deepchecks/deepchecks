@@ -84,12 +84,13 @@ class CategoryMismatchTrainValidation(TrainValidationBaseCheck):
 
     """
 
-    def run(self, validation_dataset: Dataset, train_dataset: Dataset) -> CheckResult:
+    def run(self, validation_dataset: Dataset, train_dataset: Dataset, model = None) -> CheckResult:
         """Find new categories in validation.
 
         Args:
             train_dataset (Dataset): The training dataset object.
             validation_dataset (Dataset): The validation dataset object.
+            model: Not used in this check.
         Returns:
             CheckResult: value is a dataframe that shows columns with new categories
                          displays a dataframe that shows columns with new categories
