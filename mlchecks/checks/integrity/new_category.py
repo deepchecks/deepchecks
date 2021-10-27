@@ -1,15 +1,17 @@
 """The data_sample_leakage_report check module."""
-from typing import Union,Iterable
+from typing import Union, Iterable
 
 from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, TrainValidationBaseCheck
+from mlchecks.string_utils import format_percent
 
 import pandas as pd
+
 
 __all__ = ['new_category_train_validation', 'CategoryMismatchTrainValidation']
 
 
-def new_category_train_validation(validation_dataset: Dataset, train_dataset: Dataset,
+def new_category_train_validation(train_dataset: Dataset, validation_dataset: Dataset,
                                   columns: Union[str, Iterable[str]] = None,
                                   ignore_columns: Union[str, Iterable[str]] = None):
     """Find new categories in validation.
@@ -21,7 +23,8 @@ def new_category_train_validation(validation_dataset: Dataset, train_dataset: Da
         ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns variable
 
     Returns:
-        CheckResult:
+        CheckResult: value is a dictionary that shows columns with new categories
+                     displays a dataframe that shows columns with new categories
 
     Raises:
         MLChecksValueError: If the object is not a Dataset instance
@@ -58,13 +61,14 @@ def new_category_train_validation(validation_dataset: Dataset, train_dataset: Da
             n_new_cat = len(validation_column[validation_column.isin(new_category_values)])
 
             new_categories.append([feature,
-                                   n_new_cat/n_validation_samples,
+                                   n_new_cat / n_validation_samples,
                                    new_category_values])
 
     if new_categories:
-        dataframe = pd.DataFrame(data=new_categories,
-                                 columns=['column', 'ratio of new categories in sample', 'new categories'])
-        dataframe = dataframe.set_index(['column'])
+        dataframe = pd.DataFrame(data=[[new_category[0], format_percent(new_category[1]), new_category[2]]
+                                       for new_category in new_categories],
+                                 columns=['Column', 'Percent of new categories in sample', 'New categories'])
+        dataframe = dataframe.set_index(['Column'])
 
         display = dataframe
 
@@ -84,16 +88,17 @@ class CategoryMismatchTrainValidation(TrainValidationBaseCheck):
 
     """
 
-    def run(self, validation_dataset: Dataset, train_dataset: Dataset) -> CheckResult:
+    def run(self, train_dataset: Dataset, validation_dataset: Dataset, model=None) -> CheckResult:
         """Find new categories in validation.
 
         Args:
             train_dataset (Dataset): The training dataset object.
             validation_dataset (Dataset): The validation dataset object.
+            model: any = None - not used in the check
         Returns:
-            CheckResult: value is a dataframe that shows columns with new categories
+            CheckResult: value is a dictionary that shows columns with new categories
                          displays a dataframe that shows columns with new categories
         """
-        return new_category_train_validation(validation_dataset=validation_dataset,
-                                             train_dataset=train_dataset,
+        return new_category_train_validation(train_dataset=train_dataset,
+                                             validation_dataset=validation_dataset,
                                              **self.params)

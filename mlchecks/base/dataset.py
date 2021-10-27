@@ -69,6 +69,10 @@ class Dataset:
             raise MLChecksValueError(f'label column {label} not found in dataset columns')
 
         if features:
+            if any(x not in self._data.columns for x in features):
+                raise MLChecksValueError(f'Features must be names of columns in dataframe.'
+                                         f' Features {set(features) - set(self._data.columns)} have not been '
+                                         f'found in input dataframe.')
             self._features = features
         else:
             self._features = [x for x in self._data.columns if x not in {label, index, date}]
@@ -82,6 +86,10 @@ class Dataset:
         self._max_categories = max_categories
 
         if cat_features is not None:
+            if set(cat_features).intersection(set(self._features)) != set(cat_features):
+                raise MLChecksValueError(f'Categorical features must be a subset of features. '
+                                         f'Categorical features {set(cat_features) - set(self._features)} '
+                                         f'have not been found in feature list.')
             self._cat_features = cat_features
         else:
             self._cat_features = self.infer_categorical_features()
@@ -327,7 +335,7 @@ class Dataset:
 
         """
         Dataset.validate_dataset(other, function_name)
-        if sorted(self.label_name()) == sorted(other.label_name()):
+        if self.label_name() == other.label_name():
             return self.label_name()
         else:
             raise MLChecksValueError(f'function {function_name} requires datasets to share the same label')
