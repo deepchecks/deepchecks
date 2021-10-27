@@ -9,7 +9,7 @@ import pandas as pd
 __all__ = ['new_category_train_validation', 'CategoryMismatchTrainValidation']
 
 
-def new_category_train_validation(validation_dataset: Dataset, train_dataset: Dataset,
+def new_category_train_validation(train_dataset: Dataset, validation_dataset: Dataset,
                                   columns: Union[str, Iterable[str]] = None,
                                   ignore_columns: Union[str, Iterable[str]] = None):
     """Find new categories in validation.
@@ -85,16 +85,17 @@ class CategoryMismatchTrainValidation(TrainValidationBaseCheck):
 
     """
 
-    def run(self, validation_dataset: Dataset, train_dataset: Dataset) -> CheckResult:
+    def run(self, train_dataset: Dataset, validation_dataset: Dataset, model=None) -> CheckResult:
         """Find new categories in validation.
 
         Args:
             train_dataset (Dataset): The training dataset object.
             validation_dataset (Dataset): The validation dataset object.
+            model: any = None - not used in the check
         Returns:
             CheckResult: value is a dictionary that shows columns with new categories
                          displays a dataframe that shows columns with new categories
         """
-        return new_category_train_validation(validation_dataset=validation_dataset,
-                                             train_dataset=train_dataset,
+        return new_category_train_validation(train_dataset=train_dataset,
+                                             validation_dataset=validation_dataset,
                                              **self.params)

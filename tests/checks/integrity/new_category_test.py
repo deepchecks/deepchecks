@@ -24,7 +24,7 @@ def test_no_new_category():
     # Arrange
     check = CategoryMismatchTrainValidation()
     # Act X
-    result = check.run(validation_dataset=validation_dataset, train_dataset=train_dataset).value
+    result = check.run(train_dataset=train_dataset, validation_dataset=validation_dataset).value
     # Assert
     assert_that(result, has_length(0))
 
@@ -38,7 +38,7 @@ def test_new_category():
     # Arrange
     check = CategoryMismatchTrainValidation()
     # Act X
-    result = check.run(validation_dataset=validation_dataset, train_dataset=train_dataset).value
+    result = check.run(train_dataset=train_dataset, validation_dataset=validation_dataset).value
     # Assert
     assert_that(result, has_length(1))
     assert_that(result['col1'], close_to(0.25, 0.01))
@@ -53,7 +53,7 @@ def test_missing_category():
     # Arrange
     check = CategoryMismatchTrainValidation()
     # Act X
-    result = check.run(validation_dataset=validation_dataset, train_dataset=train_dataset).value
+    result = check.run(train_dataset=train_dataset, validation_dataset=validation_dataset).value
     # Assert
     assert_that(result, has_length(0))
 
@@ -67,7 +67,7 @@ def test_missing_new_category():
     # Arrange
     check = CategoryMismatchTrainValidation()
     # Act X
-    result = check.run(validation_dataset=validation_dataset, train_dataset=train_dataset).value
+    result = check.run(train_dataset=train_dataset, validation_dataset=validation_dataset).value
     # Assert
     assert_that(result, has_length(1))
     assert_that(result['col1'], close_to(0.25, 0.01))
@@ -83,7 +83,7 @@ def test_multiple_categories():
     # Arrange
     check = CategoryMismatchTrainValidation()
     # Act X
-    result = check.run(validation_dataset=validation_dataset, train_dataset=train_dataset).value
+    result = check.run(train_dataset=train_dataset, validation_dataset=validation_dataset).value
     # Assert
     assert_that(result, has_length(1))
     assert_that(result['col1'], close_to(0.25, 0.01))
@@ -99,7 +99,7 @@ def test_ignore_column():
     # Arrange
     check = CategoryMismatchTrainValidation(ignore_columns='col1')
     # Act X
-    result = check.run(validation_dataset=validation_dataset, train_dataset=train_dataset).value
+    result = check.run(train_dataset=train_dataset, validation_dataset=validation_dataset).value
     # Assert
     assert_that(result, has_length(0))
 
@@ -114,7 +114,7 @@ def test_specific_column():
     # Arrange
     check = CategoryMismatchTrainValidation(columns=['col1'])
     # Act X
-    result = check.run(validation_dataset=validation_dataset, train_dataset=train_dataset).value
+    result = check.run(train_dataset=train_dataset, validation_dataset=validation_dataset).value
     # Assert
     assert_that(result, has_length(1))
     assert_that(result['col1'], close_to(0.25, 0.01))
