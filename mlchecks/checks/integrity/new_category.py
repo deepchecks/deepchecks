@@ -84,7 +84,7 @@ class CategoryMismatchTrainValidation(TrainValidationBaseCheck):
 
     """
 
-    def run(self, validation_dataset: Dataset, train_dataset: Dataset, model = None) -> CheckResult:
+    def run(self, train_dataset: Dataset, validation_dataset: Dataset, model=None) -> CheckResult:
         """Find new categories in validation.
 
         Args:
