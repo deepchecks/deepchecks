@@ -73,7 +73,7 @@ def run_on_df(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
             naive_pred = clf.predict(x_val)
 
     else:
-        raise (NotImplementedError(f'{native_model_type} not legal native_model_type'))
+        raise NotImplementedError(f'{native_model_type} not legal native_model_type')
 
     y_val = val_df[label_col_name]
 
