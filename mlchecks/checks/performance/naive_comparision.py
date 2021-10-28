@@ -97,8 +97,8 @@ def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset,
         validation_dataset (Dataset): The validation dataset object. Must contain an index.
         model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
         native_model_type (str = 'random'):  Type of the naive model ['random' 'statistical' 'tree'].
-        max_ratio (float = 10):  Value to return in case the loss of the naive model is very low (or 0)
-                                 and the loss of the predictions is positive (1 to inf).
+        max_ratio (float = 10):  Value to return in case the score of the naive model is very low (or 0)
+                                 and the score of the predictions is positive (1 to inf).
         metric: a custume metric given by user.
         metric_name: name of a default metric.
 
