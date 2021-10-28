@@ -38,28 +38,26 @@ def run_on_df(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
         NotImplementedError: If the native_model_type is not a legal native_model_type
 
     """
-    label_col_name = train_ds.label_name()
-    features = train_ds.features()
     train_df = train_ds.data
     val_df = val_ds.data
 
     np.random.seed(0)
 
     if native_model_type == 'random':
-        naive_pred = np.random.choice(train_df[label_col_name], val_df.shape[0])
+        naive_pred = np.random.choice(train_ds.label_col(), val_df.shape[0])
 
     elif native_model_type == 'statistical':
         if task_type == ModelType.REGRESSION:
-            naive_pred = np.array([np.mean(train_df[label_col_name])] * len(val_df))
+            naive_pred = np.array([np.mean(train_ds.label_col())] * len(val_df))
 
         elif task_type in (ModelType.BINARY, ModelType.MULTICLASS):
-            counts = train_df[label_col_name].value_counts()
+            counts = train_ds.label_col().value_counts()
             naive_pred = np.array([counts.index[0]] * len(val_df))
 
     elif native_model_type == 'tree':
-        x_train = train_df[features]
-        y_train = train_df[label_col_name]
-        x_val = val_df[features]
+        x_train = train_ds.features_columns()
+        y_train = train_ds.label_col()
+        x_val = val_ds.features_columns()
 
         if task_type == ModelType.REGRESSION:
             clf = DecisionTreeRegressor()
@@ -75,7 +73,7 @@ def run_on_df(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
     else:
         raise NotImplementedError(f'{native_model_type} not legal native_model_type')
 
-    y_val = val_df[label_col_name]
+    y_val = val_ds.label_col()
 
     if metric is not None:
         scorer = validate_scorer(metric, model, train_ds)
@@ -85,7 +83,7 @@ def run_on_df(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
         scorer = DEFAULT_METRICS_DICT[task_type][metric_name]
 
     naive_metric = scorer(DummyModel, naive_pred, y_val)
-    pred_metric = scorer(model, val_df[features], y_val)
+    pred_metric = scorer(model, val_ds.features_columns(), y_val)
 
     return naive_metric, pred_metric, metric_name
 
