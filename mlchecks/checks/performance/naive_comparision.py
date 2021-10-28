@@ -19,7 +19,7 @@ class DummyModel():
     def predict_proba(a):
         return a
 
-def run_on_df(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
+def find_score(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
               native_model_type: str, metric = None, metric_name = None):
     """Find the naive model score for given metric.
 
@@ -38,7 +38,6 @@ def run_on_df(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
         NotImplementedError: If the native_model_type is not a legal native_model_type
 
     """
-    train_df = train_ds.data
     val_df = val_ds.data
 
     np.random.seed(0)
@@ -91,7 +90,7 @@ def run_on_df(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
 def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset,
                       model, native_model_type: str = 'random', max_ratio: float = 10,
                       metric = None, metric_name = None):
-    """Summarize given metrics on a dataset and model.
+    """Compare naive model score to given model score.
 
     Args:
         train_dataset (Dataset): The training dataset object. Must contain an index.
@@ -116,7 +115,7 @@ def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset,
     validation_dataset.validate_label(self.__name__)
     model_type_validation(model)
 
-    naive_metric, pred_metric, metric_name = run_on_df(train_dataset, validation_dataset,
+    naive_metric, pred_metric, metric_name = find_score(train_dataset, validation_dataset,
                                                        task_type_check(model, train_dataset), model,
                                                        native_model_type, metric, metric_name)
 
@@ -138,14 +137,15 @@ def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset,
 
 
 class NaiveComparision(TrainValidationBaseCheck):
-    """Summarize given metrics on a dataset and model."""
+    """Compare naive model score to given model score."""
 
     def run(self, train_dataset, validation_dataset, model) -> CheckResult:
         """Run naive_comparision check.
 
         Args:
-            dataset (Dataset): a Dataset object
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
+            train_dataset (Dataset): The training dataset object. Must contain an index.
+            validation_dataset (Dataset): The validation dataset object. Must contain an index.
+            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
 
         Returns:
             CheckResult: value is ratio between model prediction to naive prediction
