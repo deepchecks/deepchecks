@@ -14,15 +14,17 @@ __all__ = ['preprocess_dataset_to_scaled_numerics']
 def preprocess_dataset_to_scaled_numerics(baseline_features: pd.DataFrame, test_features: pd.DataFrame,
                                           categorical_columns: List[str], max_num_categories) \
         -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """Preprocess given features to scaled numerics
+    """Preprocess given features to scaled numerics.
 
     Args:
-    :param baseline_features: DataFrame. Will be used for fit and also transformed. Expect to get only features
-    :param test_features: DataFrame. Will be transformed according to baseline_data. Expect to get only features
-    :param categorical_columns: List[str]. Indicates names of categorical columns in both DataFrames.
-    :param max_num_categories: int. Indicates the maximum number of unique categories in a single categorical column
-                                    (rare categories will be changed to a form of "other")
-    :return: (DataFrame, DataFrame), returns both datasets transformed.
+        baseline_features (DataFrame): Will be used for fit and also transformed. Expect to get only features
+        test_features (DataFrame): Will be transformed according to baseline_data. Expect to get only features
+        categorical_columns (List[str]): Indicates names of categorical columns in both DataFrames.
+        max_num_categories (int): Indicates the maximum number of unique categories in a single categorical column
+                                  (rare categories will be changed to a form of "other")
+
+    Returns:
+        (DataFrame, DataFrame): returns both datasets transformed.
     """
     x_baseline = baseline_features.copy()
     x_test = test_features.copy()

@@ -123,7 +123,7 @@ class Dataset:
         """
         cat_columns = []
 
-        for col in self.data.columns:
+        for col in self._features:
             num_unique = self.data[col].nunique(dropna=True)
             if num_unique / len(self.data[col].dropna()) < self._max_categorical_ratio\
                     or num_unique <= self._max_categories:
