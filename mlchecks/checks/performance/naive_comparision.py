@@ -126,7 +126,7 @@ def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset,
             if naive_metric != 0 else (1 if pred_metric == 0 else max_ratio)
 
     text = f'Model prediction has achieved {res:.2f} times ' \
-           f'better {metric_name} compared to Naive {native_model_type} prediction on tested data.'
+           f'more {metric_name} compared to Naive {native_model_type} prediction on tested data.'
 
     def display_func():
         fig = plt.figure()
