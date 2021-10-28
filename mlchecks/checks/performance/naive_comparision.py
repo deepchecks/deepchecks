@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 from mlchecks import CheckResult, Dataset
 from mlchecks.base.check import TrainValidationBaseCheck
-from mlchecks.metric_utils import DEFAULT_BINARY_METRICS, DEFAULT_METRICS_DICT, DEFAULT_SINGLE_METRIC, task_type_check, ModelType, validate_scorer
+from mlchecks.metric_utils import DEFAULT_METRICS_DICT, DEFAULT_SINGLE_METRIC, task_type_check, ModelType, validate_scorer
 from mlchecks.utils import model_type_validation
 
 __all__ = ['naive_comparision', 'NaiveComparision']
@@ -52,25 +52,25 @@ def run_on_df(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
         if task_type == ModelType.REGRESSION:
             naive_pred = np.array([np.mean(train_df[label_col_name])] * len(val_df))
 
-        elif task_type == ModelType.BINARY or task_type == ModelType.MULTICLASS:
+        elif task_type in (ModelType.BINARY, ModelType.MULTICLASS):
             counts = train_df[label_col_name].value_counts()
             naive_pred = np.array([counts.index[0]] * len(val_df))
 
     elif native_model_type == 'tree':
-        X_train = train_df[features]
+        x_train = train_df[features]
         y_train = train_df[label_col_name]
-        X_val = val_df[features]
+        x_val = val_df[features]
 
         if task_type == ModelType.REGRESSION:
             clf = DecisionTreeRegressor()
-            clf = clf.fit(X_train, y_train)
-            naive_pred = clf.predict(X_val)
+            clf = clf.fit(x_train, y_train)
+            naive_pred = clf.predict(x_val)
 
-        elif task_type == ModelType.BINARY or task_type == ModelType.MULTICLASS:
+        elif task_type in (ModelType.BINARY, ModelType.MULTICLASS):
 
             clf = DecisionTreeClassifier()
-            clf = clf.fit(X_train, y_train)
-            naive_pred = clf.predict(X_val)
+            clf = clf.fit(x_train, y_train)
+            naive_pred = clf.predict(x_val)
 
     else:
         raise (NotImplementedError(f'{native_model_type} not legal native_model_type'))
