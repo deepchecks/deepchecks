@@ -50,7 +50,7 @@ def test_dataset_only_label():
         raises(MLChecksValueError, 'Dataset needs to hae name or index column'))
 
 
-def test_assert_identifier_leakage():
+def test_assert_identifier_leakage_class():
     df, expected = util_generate_dataframe_and_expected()
     identifier_leakage_check = IdentifierLeakage()
     result = identifier_leakage_check.run(dataset=Dataset(df, label='label', date='x2', index='x3'))
