@@ -11,81 +11,83 @@ from mlchecks.utils import model_type_validation
 __all__ = ['naive_comparision', 'NaiveComparision']
 
 
-class dummy_model():
+class DummyModel():
+    @staticmethod
     def predict(a):
         return a
+    @staticmethod
     def predict_proba(a):
         return a
 
 def run_on_df(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
               native_model_type: str, metric = None, metric_name = None):
-        """Find the naive model score for given metric.
+    """Find the naive model score for given metric.
 
-        Args:
-            train_ds (Dataset): The training dataset object. Must contain an index.
-            val_ds (Dataset): The validation dataset object. Must contain an index.
-            task_type (ModelType): the model type.
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
-            native_model_type (str):  Type of the naive model ['random' 'statistical' 'tree'].
-            metric: a custom metric given by user.
-            metric_name: name of a default metric.
-        Returns:
-            float: p value for the key.
+    Args:
+        train_ds (Dataset): The training dataset object. Must contain an index.
+        val_ds (Dataset): The validation dataset object. Must contain an index.
+        task_type (ModelType): the model type.
+        model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
+        native_model_type (str):  Type of the naive model ['random' 'statistical' 'tree'].
+        metric: a custom metric given by user.
+        metric_name: name of a default metric.
+    Returns:
+        float: p value for the key.
 
-        Raises:
-            NotImplementedError: If the native_model_type is not a legal native_model_type
+    Raises:
+        NotImplementedError: If the native_model_type is not a legal native_model_type
 
-        """
-        label_col_name = train_ds.label_name()
-        features = train_ds.features()
-        train_df = train_ds.data
-        val_df = val_ds.data
+    """
+    label_col_name = train_ds.label_name()
+    features = train_ds.features()
+    train_df = train_ds.data
+    val_df = val_ds.data
 
-        np.random.seed(0)
+    np.random.seed(0)
 
-        if native_model_type == 'random':
-            naive_pred = np.random.choice(train_df[label_col_name], val_df.shape[0])
+    if native_model_type == 'random':
+        naive_pred = np.random.choice(train_df[label_col_name], val_df.shape[0])
 
-        elif native_model_type == 'statistical':
-            if task_type == ModelType.REGRESSION:
-                naive_pred = np.array([np.mean(train_df[label_col_name])] * len(val_df))
+    elif native_model_type == 'statistical':
+        if task_type == ModelType.REGRESSION:
+            naive_pred = np.array([np.mean(train_df[label_col_name])] * len(val_df))
 
-            elif task_type == ModelType.BINARY or task_type == ModelType.MULTICLASS:
-                counts = train_df[label_col_name].value_counts()
-                naive_pred = np.array([counts.index[0]] * len(val_df))
+        elif task_type == ModelType.BINARY or task_type == ModelType.MULTICLASS:
+            counts = train_df[label_col_name].value_counts()
+            naive_pred = np.array([counts.index[0]] * len(val_df))
 
-        elif native_model_type == 'tree':
-            X_train = train_df[features]
-            y_train = train_df[label_col_name]
-            X_val = val_df[features]
+    elif native_model_type == 'tree':
+        X_train = train_df[features]
+        y_train = train_df[label_col_name]
+        X_val = val_df[features]
 
-            if task_type == ModelType.REGRESSION:
-                clf = DecisionTreeRegressor()
-                clf = clf.fit(X_train, y_train)
-                naive_pred = clf.predict(X_val)
+        if task_type == ModelType.REGRESSION:
+            clf = DecisionTreeRegressor()
+            clf = clf.fit(X_train, y_train)
+            naive_pred = clf.predict(X_val)
 
-            elif task_type == ModelType.BINARY or task_type == ModelType.MULTICLASS:
+        elif task_type == ModelType.BINARY or task_type == ModelType.MULTICLASS:
 
-                clf = DecisionTreeClassifier()
-                clf = clf.fit(X_train, y_train)
-                naive_pred = clf.predict(X_val)
-   
-        else:
-            raise (NotImplementedError(f'{native_model_type} not legal native_model_type'))
+            clf = DecisionTreeClassifier()
+            clf = clf.fit(X_train, y_train)
+            naive_pred = clf.predict(X_val)
 
-        y_val = val_df[label_col_name]
-   
-        if metric is not None:
-            scorer = validate_scorer(metric, model, train_ds)
-            metric_name = metric_name or metric if isinstance(metric, str) else 'User metric'
-        else:
-            metric_name = DEFAULT_SINGLE_METRIC[task_type]
-            scorer = DEFAULT_METRICS_DICT[task_type][metric_name]
+    else:
+        raise (NotImplementedError(f'{native_model_type} not legal native_model_type'))
 
-        naive_metric = scorer(dummy_model, naive_pred, y_val)
-        pred_metric = scorer(model, val_df[features], y_val)
+    y_val = val_df[label_col_name]
 
-        return naive_metric, pred_metric, metric_name
+    if metric is not None:
+        scorer = validate_scorer(metric, model, train_ds)
+        metric_name = metric_name or metric if isinstance(metric, str) else 'User metric'
+    else:
+        metric_name = DEFAULT_SINGLE_METRIC[task_type]
+        scorer = DEFAULT_METRICS_DICT[task_type][metric_name]
+
+    naive_metric = scorer(DummyModel, naive_pred, y_val)
+    pred_metric = scorer(model, val_df[features], y_val)
+
+    return naive_metric, pred_metric, metric_name
 
 
 def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset,
@@ -105,7 +107,7 @@ def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset,
 
     Returns:
         CheckResult: value is ratio between model prediction to naive prediction
-    
+
     Raises:
         MLChecksValueError: If the object is not a Dataset instance.
     """
@@ -125,7 +127,7 @@ def naive_comparision(train_dataset: Dataset, validation_dataset: Dataset,
 
     text = f'Model prediction has achieved {res:.2f} times ' \
            f'better {metric_name} compared to Naive {native_model_type} prediction on tested data.'
-    
+
     def display_func():
         fig = plt.figure()
         ax = fig.add_axes([0,0,1,1])
