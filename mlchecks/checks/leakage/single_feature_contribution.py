@@ -55,7 +55,7 @@ def single_feature_contribution(dataset: Dataset, ppscore_params=None):
 
 
 def single_feature_contribution_train_validation(train_dataset: Dataset, validation_dataset: Dataset,
-                                                 ppscore_params=None):
+                                                 ppscore_params=None, n_show_top: int = 5):
     """
     Return the difference in PPS (Predictive Power Score) of all features between train and validation datasets.
 
@@ -71,7 +71,8 @@ def single_feature_contribution_train_validation(train_dataset: Dataset, validat
     Args:
         train_dataset (Dataset): The training dataset object. Must contain a label
         validation_dataset (Dataset): The validation dataset object. Must contain a label
-        ppscore_params (dict): dictionary of addional paramaters for the ppscore.predictors function
+        ppscore_params (dict): dictionary of additional parameters for the ppscore predictor function
+        n_show_top (int): Number of features to show, sorted by the magnitude of difference in PPS
 
     Returns:
         CheckResult:
@@ -101,6 +102,7 @@ def single_feature_contribution_train_validation(train_dataset: Dataset, validat
 
     s_difference = s_pps_train - s_pps_validation
     s_difference = s_difference.apply(lambda x: 0 if x < 0 else x)
+    s_difference = s_difference.sort_values(ascending=False).head(n_show_top)
 
     def plot():
         # Create graph:
@@ -113,8 +115,8 @@ def single_feature_contribution_train_validation(train_dataset: Dataset, validat
             '',
             'When we compare train PPS to validation PPS, A high difference can strongly indicate leakage, as a '
             'feature',
-            'that was powerful in train but not in validation can be explained by leakage in train that does not '
-            'affect a new dataset.']
+            'that was powerful in train but not in validation can be explained by leakage in train that is not '
+            'relevant to a new dataset.']
 
     return CheckResult(value=s_difference.to_dict(), display=[plot, *text], check=self,
                        header='Single Feature Contribution Train-Validation')

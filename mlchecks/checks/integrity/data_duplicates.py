@@ -7,6 +7,8 @@ from mlchecks import Dataset, ensure_dataframe_type
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 from mlchecks.utils import MLChecksValueError
+from mlchecks.string_utils import format_percent
+
 
 __all__ = ['data_duplicates', 'DataDuplicates']
 
@@ -49,7 +51,7 @@ def data_duplicates(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, I
 
         most_duplicates = most_duplicates.set_index('Number of Duplicates')
 
-        text = f'{percent_duplicate:.1%} of data are duplicates'
+        text = f'{format_percent(percent_duplicate)} of data samples are duplicates'
         display = [text, most_duplicates]
     else:
         display = None

@@ -5,14 +5,14 @@ import pandas as pd
 
 from mlchecks import CheckResult, Dataset, ensure_dataframe_type, CompareDatasetsBaseCheck
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
-from mlchecks.base.string_utils import get_base_form_to_variants_dict, is_string_column
+from mlchecks.string_utils import get_base_form_to_variants_dict, is_string_column, format_percent
 
 __all__ = ['string_mismatch_comparison', 'StringMismatchComparison']
 
 
 def percentage_in_series(series, values):
     count = sum(series.isin(values))
-    return f'{count / series.size:.2%} ({count})'
+    return f'{format_percent(count / series.size)} ({count})'
 
 
 def string_mismatch_comparison(dataset: Union[pd.DataFrame, Dataset],
@@ -47,7 +47,7 @@ def string_mismatch_comparison(dataset: Union[pd.DataFrame, Dataset],
     columns = set(df.columns).intersection(baseline_df.columns)
 
     for column_name in columns:
-        tested_column: pd.Series = dataset[column_name]
+        tested_column: pd.Series = df[column_name]
         baseline_column: pd.Series = baseline_df[column_name]
         # If one of the columns isn't string type, continue
         if not is_string_column(tested_column) or not is_string_column(baseline_column):
@@ -63,9 +63,9 @@ def string_mismatch_comparison(dataset: Union[pd.DataFrame, Dataset],
             # If at least one unique value in tested dataset, add the column to results
             if len(tested_values - baseline_values) > 0:
                 # Calculate all values to be shown
-                variants_only_in_dataset = tested_values - baseline_values
-                variants_only_in_baseline = baseline_values - tested_values
-                common_variants = tested_values & baseline_values
+                variants_only_in_dataset = list(tested_values - baseline_values)
+                variants_only_in_baseline = list(baseline_values - tested_values)
+                common_variants = list(tested_values & baseline_values)
                 percent_variants_only_in_dataset = percentage_in_series(tested_column, variants_only_in_dataset)
                 percent_variants_in_baseline = percentage_in_series(baseline_column, variants_only_in_baseline)
 
