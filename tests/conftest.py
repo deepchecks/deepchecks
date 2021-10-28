@@ -35,6 +35,13 @@ def diabetes_model(diabetes):
 
 
 @pytest.fixture(scope='session')
+def diabetes_split_dataset_and_model(diabetes, diabetes_model):
+    train, validation = diabetes
+    clf = diabetes_model
+    return train, validation, clf
+
+
+@pytest.fixture(scope='session')
 def iris_clean():
     """Return Iris dataset as DataFrame."""
     iris = load_iris(return_X_y=False, as_frame=True)
