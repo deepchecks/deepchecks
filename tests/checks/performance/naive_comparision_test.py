@@ -1,7 +1,7 @@
 """Contains unit tests for the confusion_matrix_report check."""
 from mlchecks.checks.performance import naive_comparision, NaiveComparision
 from mlchecks.utils import MLChecksValueError
-from hamcrest import assert_that, calling, raises, equal_to
+from hamcrest import assert_that, calling, raises, close_to
 
 
 def test_dataset_wrong_input():
@@ -19,7 +19,7 @@ def test_classification_random(iris_split_dataset_and_model):
     # Act X
     result = check.run(train_ds, val_ds, clf).value
     # Assert
-    assert_that(result, equal_to(0))
+    assert_that(result, close_to(4.6, 0.05))
 
 def test_classification_statistical(iris_split_dataset_and_model):
     train_ds, val_ds, clf = iris_split_dataset_and_model
@@ -28,7 +28,7 @@ def test_classification_statistical(iris_split_dataset_and_model):
     # Act X
     result = check.run(train_ds, val_ds, clf).value
     # Assert
-    assert_that(result, equal_to(0))
+    assert_that(result, close_to(3, 0.5))
 
 def test_classification_tree(iris_split_dataset_and_model):
     train_ds, val_ds, clf = iris_split_dataset_and_model
@@ -37,7 +37,16 @@ def test_classification_tree(iris_split_dataset_and_model):
     # Act X
     result = check.run(train_ds, val_ds, clf).value
     # Assert
-    assert_that(result, equal_to(0))
+    assert_that(result, close_to(0.95, 0.05))
+
+def test_classification_tree_custom_metric(iris_split_dataset_and_model):
+    train_ds, val_ds, clf = iris_split_dataset_and_model
+    # Arrange
+    check = NaiveComparision(native_model_type='tree', metric='recall_micro')
+    # Act X
+    result = check.run(train_ds, val_ds, clf).value
+    # Assert
+    assert_that(result, close_to(0.95, 0.05))
 
 def test_regression_random(diabetes_split_dataset_and_model):
     train_ds, val_ds, clf = diabetes_split_dataset_and_model
@@ -46,7 +55,7 @@ def test_regression_random(diabetes_split_dataset_and_model):
     # Act X
     result = check.run(train_ds, val_ds, clf).value
     # Assert
-    assert_that(result, equal_to(0))
+    assert_that(result, close_to(0.5, 0.05))
 
 def test_regression_statistical(diabetes_split_dataset_and_model):
     train_ds, val_ds, clf = diabetes_split_dataset_and_model
@@ -55,7 +64,7 @@ def test_regression_statistical(diabetes_split_dataset_and_model):
     # Act X
     result = check.run(train_ds, val_ds, clf).value
     # Assert
-    assert_that(result, equal_to(0))
+    assert_that(result, close_to(0.7, 0.5))
 
 def test_regression_tree(diabetes_split_dataset_and_model):
     train_ds, val_ds, clf = diabetes_split_dataset_and_model
@@ -64,4 +73,4 @@ def test_regression_tree(diabetes_split_dataset_and_model):
     # Act X
     result = check.run(train_ds, val_ds, clf).value
     # Assert
-    assert_that(result, equal_to(0))
+    assert_that(result, close_to(0.7, 0.05))

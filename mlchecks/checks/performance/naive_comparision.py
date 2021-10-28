@@ -27,7 +27,7 @@ def run_on_df(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
             task_type (ModelType): the model type.
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
             native_model_type (str):  Type of the naive model ['random' 'statistical' 'tree'].
-            metric: a custume metric given by user.
+            metric: a custom metric given by user.
             metric_name: name of a default metric.
         Returns:
             float: p value for the key.

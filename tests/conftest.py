@@ -21,7 +21,7 @@ def empty_df():
 def diabetes():
     """Return diabetes dataset splited to train and validation as Datasets."""
     diabetes = load_diabetes(return_X_y=False, as_frame=True).frame
-    train_df, validation_df = train_test_split(diabetes, test_size=0.33)
+    train_df, validation_df = train_test_split(diabetes, test_size=0.33, random_state=42)
     train = Dataset(train_df, label='target')
     validation = Dataset(validation_df, label='target')
     return train, validation
@@ -116,19 +116,11 @@ def iris_dataset_single_class_labeled(iris):
 
 
 @pytest.fixture(scope='session')
-def iris_split_dataset_and_model(iris) -> Tuple[Dataset, Dataset, AdaBoostClassifier]:
+def iris_split_dataset_and_model(iris_clean) -> Tuple[Dataset, Dataset, AdaBoostClassifier]:
     """Return Iris train and val datasets and trained RF model."""
-    iris = load_iris(as_frame=True)
-    x = iris.data
-    y = iris.target
-    x_train, x_test, y_train, y_test = train_test_split(
-        x, y, test_size=0.33, random_state=42)
-    train_ds = Dataset(pd.concat([x_train, y_train], axis=1),
-                       features=iris.feature_names,
-                       label='target')
-    val_ds = Dataset(pd.concat([x_test, y_test], axis=1),
-                     features=iris.feature_names,
-                     label='target')
+    train, test = train_test_split(iris_clean.frame, test_size=0.33, random_state=42)
+    train_ds = Dataset(train, label='target')
+    val_ds = Dataset(test, label='target')
     clf = AdaBoostClassifier()
-    clf.fit(x_train, y_train)
+    clf.fit(train_ds.features_columns(), train_ds.label_col())
     return train_ds, val_ds, clf
