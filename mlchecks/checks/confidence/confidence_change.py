@@ -38,13 +38,13 @@ def confidence_change(train_dataset, validation_dataset, model,
 
     The process is as follows:
     * Pre-process the train and validation data into scaled numerics
-    * Train a TrustScore regressor based on train data + label.
-    * Project TrustScore scores on train data + label to uniform distribution (binning into percentiles)
+    * Train a TrustScore (https://arxiv.org/abs/1805.11783) regressor based on train data + label.
+    * Project the TrustScore scores on train data + label to uniform distribution (binning into percentiles)
     * Use TrustScore to score the prediction of the model, and project to the same uniform distribution.
     * The mean of the above distribution should be 0.5 if data is identical to train data. In practice, even data that
     belongs to the train data but wasn't trained on, is a bit skewed, so preferably we would use a validation dataset
     which we know isn't skewed (NOT IMPLEMENTED NOW).
-    * The check measure the distance between the baseline mean of the distribution (0.5) to the observed, and projects
+    * The check measures the distance between the baseline mean of the distribution (0.5) to the observed, and projects
     it to [-1, 1]. A score around 0 means no drift in confidence, a score around 1 means drift to the worse, and a score
     around -1 means a drift that improves results (usually will not happen).
     * Currently, as we don't compare to the validation data, the result will rarely be around 0. Therefore, it is
@@ -80,7 +80,7 @@ def confidence_change(train_dataset, validation_dataset, model,
                'samples needed to run with parameter "min_baseline_samples"</i>')
         return CheckResult(None, check=self, display=msg)
     if model_type != ModelType.BINARY:
-        raise MLChecksValueError('Can\'t run confidence check on non-binary model')
+        raise MLChecksValueError('Only binary models are supported currently for confidence change')
 
     x_baseline, x_tested = preprocess_dataset_to_scaled_numerics(baseline_features=baseline_dataset.features_columns(),
                                                                  test_features=validation_dataset.features_columns(),
@@ -99,9 +99,11 @@ def confidence_change(train_dataset, validation_dataset, model,
     # Calculate y on tested dataset using the model
     y_tested = model.predict(validation_dataset.features_columns())
     tested_confidences = trust_score_model.score(x_tested.to_numpy(), y_tested)[0].astype('float64')
+    transposed_tested_confidences = np.digitize(tested_confidences, fitted_bins, right=True) * bin_size
+
     # Add confidence and prediction and sort by confidence
     x_tested.insert(0, 'y', y_tested)
-    x_tested.insert(0, 'confidence', tested_confidences)
+    x_tested.insert(0, 'confidence', transposed_tested_confidences)
     x_tested = x_tested.sort_values(by=['confidence'], ascending=False)
     x_tested = x_tested.set_index(['confidence', 'y'])
 
@@ -113,7 +115,6 @@ def confidence_change(train_dataset, validation_dataset, model,
     bottom_k.index.names = ['Worst Confidence', 'Model Prediction']
     display = [top_k, bottom_k]
 
-    transposed_tested_confidences = np.digitize(tested_confidences, fitted_bins, right=True) * bin_size
     tested_confidence_mean = np.mean(transposed_tested_confidences)
 
     # def display_plot():
@@ -152,13 +153,13 @@ class ConfidenceChange(TrainValidationBaseCheck):
 
     The process is as follows:
     * Pre-process the train and validation data into scaled numerics
-    * Train a TrustScore regressor based on train data + label.
-    * Project TrustScore scores on train data + label to uniform distribution (binning into percentiles)
+    * Train a TrustScore (https://arxiv.org/abs/1805.11783) regressor based on train data + label.
+    * Project the TrustScore scores on train data + label to uniform distribution (binning into percentiles)
     * Use TrustScore to score the prediction of the model, and project to the same uniform distribution.
     * The mean of the above distribution should be 0.5 if data is identical to train data. In practice, even data that
     belongs to the train data but wasn't trained on, is a bit skewed, so preferably we would use a validation dataset
     which we know isn't skewed (NOT IMPLEMENTED NOW).
-    * The check measure the distance between the baseline mean of the distribution (0.5) to the observed, and projects
+    * The check measures the distance between the baseline mean of the distribution (0.5) to the observed, and projects
     it to [-1, 1]. A score around 0 means no drift in confidence, a score around 1 means drift to the worse, and a score
     around -1 means a drift that improves results (usually will not happen).
     * Currently, as we don't compare to the validation data, the result will rarely be around 0. Therefore, it is
