@@ -93,10 +93,10 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
     params: Dict
 
-    def __init__(self, *params, **kwargs):
+    def __init__(self, *parameters, **kwargs):
         """Init base check parameters to pass to be used in the implementing check."""
         self.params = kwargs
-        super().__init__(params, kwargs)
+        super().__init__(*parameters, **kwargs)
 
     def __repr__(self):
         """Representation of check as string."""
