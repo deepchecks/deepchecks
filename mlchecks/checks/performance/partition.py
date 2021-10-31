@@ -5,7 +5,7 @@ import pandas as pd
 from mlchecks import Dataset
 
 
-__all__ = ['partition_feature_to_bins', 'MLChecksFilter']
+__all__ = ['partition_column', 'MLChecksFilter']
 
 from mlchecks.string_utils import format_number
 
@@ -34,19 +34,19 @@ def numeric_segmentation_edges(column: pd.Series, max_segments: int) -> List[MLC
             repeating_values.append(percentile_values[i])
 
     return return_percentile_values
-    # # add an epsilon to last edge because segment is [a,b)
-    # if percentile_values[-1] in repeating_values:
-    #     eps = np.finfo(np.float32).eps
-    #     return_percentile_values.append(percentile_values[-1] + eps)
-    # else:
-    #     return_percentile_values.append(percentile_values[-1])
 
-def partition_feature_to_bins(
-    dataset: Dataset, column_name: str, max_segments: int, max_cat_proportions: float = 0.9
-):
-    """for categorical we'll have a max of max_segments+1, for the "Others".
-    categories will contain at most max_cat_proportions% of the data, the rest will go to Other even if less then
-    max_segments
+
+def partition_column(dataset: Dataset, column_name: str, max_segments: int, max_cat_proportions: float = 0.9)\
+        -> List[MLChecksFilter]:
+    """for categorical we'll have a max of max_segments+1, for the 'Others'.
+    categories will contain at most max_cat_proportions% of the data, the rest will go to 'Others' even if less then
+    max_segments.
+
+    Args:
+        dataset (Dataset):
+        column_name (str):
+        max_segments (int):
+        max_cat_proportions (float):
     """
     column = dataset.data[column_name]
     if column_name not in dataset.cat_features():
@@ -55,37 +55,36 @@ def partition_feature_to_bins(
         for start, end in zip(percentile_values[:-1], percentile_values[1:]):
             # In case of the last edge, the end is closed.
             if end == percentile_values[-1]:
-                f = lambda df: (df[column_name] >= start) & (df[column_name] <= end)
+                f = lambda df, a=start, b=end: (df[column_name] >= a) & (df[column_name] <= b)
                 label = f'[{format_number(start)} - {format_number(end)}]'
             else:
-                f = lambda df: (df[column_name] >= start) & (df[column_name] < end)
+                f = lambda df, a=start, b=end: (df[column_name] >= a) & (df[column_name] < b)
                 label = f'[{format_number(start)} - {format_number(end)})'
 
             filters.append(MLChecksFilter(f, label))
         return filters
     else:
-        cat_hist_dict = column.value_counts().to_dict()
-        sorted_hist = {k: v for k, v in sorted(cat_hist_dict.items(), key=lambda item: item[1], reverse=True)}
-        argsorted_keys = np.array(list(sorted_hist.keys()))
-        argsorted_keys = pd.Series(argsorted_keys).astype(column.dtypes).values
-
+        # Get sorted histogram
+        cat_hist_dict = column.value_counts()
+        # Find first value which accumulated sum is larger than max proportion
         first_less_then_max_cat_proportions_idx = np.argwhere(
-            np.array(list(sorted_hist.values())).cumsum() > len(column) * max_cat_proportions
+            cat_hist_dict.values.cumsum() > len(column) * max_cat_proportions
         )
         if first_less_then_max_cat_proportions_idx.shape[0] > 0:  # if there is such a category
             first_less_then_max_cat_proportions_idx = first_less_then_max_cat_proportions_idx[0][0]
         else:
             first_less_then_max_cat_proportions_idx = max_segments
 
-        n_large_cats = min(max_segments, len(argsorted_keys), first_less_then_max_cat_proportions_idx + 1)
+        # Get index of last value in histogram to show
+        n_large_cats = min(max_segments, len(cat_hist_dict), first_less_then_max_cat_proportions_idx + 1)
 
         filters = []
         for i in range(n_large_cats):
-            f = lambda df: df[column_name] == argsorted_keys[i]
-            filters.append(MLChecksFilter(f, argsorted_keys[i]))
+            f = lambda df, val = cat_hist_dict.index[i]: df[column_name] == val
+            filters.append(MLChecksFilter(f, cat_hist_dict.index[i]))
 
-        if len(argsorted_keys) > n_large_cats:
-            f = lambda df: ~df[column_name].isin(argsorted_keys[:n_large_cats])
+        if len(cat_hist_dict) > n_large_cats:
+            f = lambda df, values=cat_hist_dict.index[n_large_cats:]: ~df[column_name].isin(values)
             filters.append(MLChecksFilter(f, 'Others'))
 
         return filters

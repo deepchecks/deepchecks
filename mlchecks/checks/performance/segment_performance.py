@@ -1,36 +1,16 @@
-from typing import Callable, Union, Tuple
+from typing import Callable, Union
 
 import numpy as np
-import pandas as pd
 from matplotlib.axes import Axes
 
 from mlchecks import Dataset, CheckResult
-from mlchecks.checks.performance.partition import partition_feature_to_bins, MLChecksFilter
+from mlchecks.checks.performance.partition import partition_column
 from mlchecks.metric_utils import validate_scorer, task_type_check, DEFAULT_SINGLE_METRIC, DEFAULT_METRICS_DICT
 from mlchecks.string_utils import format_number
 from mlchecks.utils import MLChecksValueError
 import matplotlib.pyplot as plt
 
 __all__ = ['segment_performance']
-
-
-# def filter_dataframe(data: pd.DataFrame, column: str, value):
-#     if isinstance(value, Tuple):
-#         return data.loc[(data[column] >= value[0]) & (data[column] < value[1])]
-#     else:
-#         if isinstance(value, MLChecksFilter):
-# #             return data.loc[data[column] == value]
-#
-#
-# def create_labels(values):
-#     if isinstance(values[0], Tuple):
-#         start_values, last_value = values[:-1], values[-1]
-#         labels = [f'[{format_number(start)} - {format_number(end)})' for start, end in start_values]
-#         # Last range is closed in the end
-#         labels.append(f'[{format_number(last_value[0])} - {format_number(last_value[1])}]')
-#         return labels
-#     else:
-#         return [str(v) for v in values]
 
 
 def segment_performance(dataset: Dataset, model, metric: Union[str, Callable] = None,
@@ -52,8 +32,8 @@ def segment_performance(dataset: Dataset, model, metric: Union[str, Callable] = 
         metric_name = DEFAULT_SINGLE_METRIC[model_type]
         scorer = DEFAULT_METRICS_DICT[model_type][metric_name]
 
-    feature_1_filters = partition_feature_to_bins(dataset, feature_1, max_segments=num_segments)
-    feature_2_filters = partition_feature_to_bins(dataset, feature_2, max_segments=num_segments)
+    feature_1_filters = partition_column(dataset, feature_1, max_segments=num_segments)
+    feature_2_filters = partition_column(dataset, feature_2, max_segments=num_segments)
 
     scores = np.empty((len(feature_1_filters), len(feature_2_filters)), dtype=float)
     for i, feature_1_filter in enumerate(feature_1_filters):
@@ -71,7 +51,7 @@ def segment_performance(dataset: Dataset, model, metric: Union[str, Callable] = 
 
     def display():
         ax: Axes
-        fig, ax = plt.subplots(1, 1, figsize=(7, 4))
+        _, ax = plt.subplots(1, 1, figsize=(7, 4))
         im = ax.imshow(np.array(scores, dtype=float))
 
         # Create colorbar
@@ -100,6 +80,5 @@ def segment_performance(dataset: Dataset, model, metric: Union[str, Callable] = 
                     ax.text(j, i, format_number(scores[i, j]), ha="center", va="center", color="w")
 
         ax.set_title(f'{metric_name} by features {feature_1}/{feature_2}')
-        # fig.tight_layout()
 
     return CheckResult(scores, check=self, display=display)
