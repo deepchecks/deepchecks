@@ -15,7 +15,7 @@ def test_dataset_wrong_input():
                 raises(MLChecksValueError, 'dataset must be of type DataFrame or Dataset. instead got: str'))
 
 
-def test_dataset_info(iris_dataset):
+def test_dataset_info():
     num_fe = np.random.rand(200)
     cat_fe = np.random.randint(10, size=200)
     date = range(1635693229, 1635693429)
@@ -27,9 +27,15 @@ def test_dataset_info(iris_dataset):
     # Arrange
     check = ColumnsInfo()
     # Act
-    result_ds, result_df = check.run(dataset).value, check.run(df).value,
+    result_ds, result_df = check.run(dataset).value, check.run(df).value
     # Assert
-    expected_res = {'index': 'index', 'date': 'date', 'a': 'categorical feature',
+    expected_res_ds = {'index': 'index', 'date': 'date', 'a': 'categorical feature',
                     'b': 'numerical feature', 'c': 'numerical feature', 'label': 'label'}
-    assert_that(result_ds, expected_res)
-    assert_that(result_df, expected_res)
+    assert_that(result_ds, equal_to(expected_res_ds))
+
+    # in df we can't assume index/date/label
+    expected_res_df = expected_res_ds
+    expected_res_df['index'] = 'numerical feature'
+    expected_res_df['date'] = 'numerical feature'
+    expected_res_df['label'] = 'categorical feature'
+    assert_that(result_df, equal_to(expected_res_df))
