@@ -98,7 +98,7 @@ def mixed_nulls(dataset: Union[pd.DataFrame, Dataset], null_string_list: Iterabl
     return CheckResult(result_dict, check=mixed_nulls, display=display)
 
 
-class MixedNulls(SingleDatasetBaseCheck, Validatable):
+class MixedNulls(Validatable, SingleDatasetBaseCheck):
     """Search for various types of null values in a string column(s), including string representations of null."""
 
     def run(self, dataset, model=None) -> CheckResult:

@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 
-from hamcrest import assert_that, has_length
+from hamcrest import assert_that, has_length, has_entry
 
 from mlchecks.checks.integrity.mixed_nulls import mixed_nulls
 
@@ -44,7 +44,7 @@ def test_different_null_types():
     # Act
     result = mixed_nulls(dataframe)
     # Assert
-    assert_that(result.value, has_length(3))
+    assert_that(result.value, has_entry('col1', has_length(3)))
 
 
 def test_null_list_param():
@@ -54,7 +54,7 @@ def test_null_list_param():
     # Act
     result = mixed_nulls(dataframe, null_string_list=['earth', 'cat'])
     # Assert
-    assert_that(result.value, has_length(5))
+    assert_that(result.value, has_entry('col1', has_length(5)))
 
 
 def test_check_nan_false_param():
@@ -64,7 +64,7 @@ def test_check_nan_false_param():
     # Act
     result = mixed_nulls(dataframe, null_string_list=['earth'], check_nan=False)
     # Assert
-    assert_that(result.value, has_length(3))
+    assert_that(result.value, has_entry('col1', has_length(3)))
 
 
 def test_single_column_two_null_types():
@@ -74,7 +74,7 @@ def test_single_column_two_null_types():
     # Act
     result = mixed_nulls(dataframe)
     # Assert
-    assert_that(result.value, has_length(2))
+    assert_that(result.value, has_entry('col1', has_length(2)))
 
 
 def test_single_column_different_case_is_count_separately():
@@ -84,7 +84,7 @@ def test_single_column_different_case_is_count_separately():
     # Act
     result = mixed_nulls(dataframe)
     # Assert
-    assert_that(result.value, has_length(3))
+    assert_that(result.value, has_entry('col1', has_length(3)))
 
 
 def test_single_column_nulls_with_special_characters():
@@ -94,7 +94,7 @@ def test_single_column_nulls_with_special_characters():
     # Act
     result = mixed_nulls(dataframe)
     # Assert
-    assert_that(result.value, has_length(5))
+    assert_that(result.value, has_entry('col1', has_length(5)))
 
 
 def test_ignore_columns_single():
@@ -104,7 +104,7 @@ def test_ignore_columns_single():
     # Act
     result = mixed_nulls(dataframe, ignore_columns='col3')
     # Assert - Only col 2 should have results
-    assert_that(result.value, has_length(3))
+    assert_that(result.value, has_entry('col2', has_length(3)))
 
 
 def test_ignore_columns_multi():
