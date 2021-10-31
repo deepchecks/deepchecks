@@ -47,7 +47,7 @@ def test_dataset_only_label():
     df = Dataset(df, label='label')
     assert_that(
         calling(identifier_leakage).with_args(dataset=df),
-        raises(MLChecksValueError, 'Dataset needs to hae name or index column'))
+        raises(MLChecksValueError, 'Dataset needs to have a date or index column'))
 
 
 def test_assert_identifier_leakage_class():

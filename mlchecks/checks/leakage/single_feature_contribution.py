@@ -2,11 +2,10 @@
 import ppscore as pps
 
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck, TrainValidationBaseCheck
+from mlchecks.plot_utils import create_colorbar_barchart_for_check
 
 __all__ = ['single_feature_contribution', 'single_feature_contribution_train_validation',
            'SingleFeatureContribution', 'SingleFeatureContributionTrainValidation']
-
-from mlchecks.plot_utils import create_colorbar_barchart_for_check
 
 
 def single_feature_contribution(dataset: Dataset, ppscore_params=None):
