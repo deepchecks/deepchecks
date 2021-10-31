@@ -61,7 +61,7 @@ class CheckResult:
         if self.header:
             display_html(f'<h4>{self.header}</h4>', raw=True)
         if self.check:
-            docs = self.check.__doc__
+            docs = self.check.__doc__ or ''
             # Take first non-whitespace line.
             summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
             display_html(f'<p>{summary}</p>', raw=True)
