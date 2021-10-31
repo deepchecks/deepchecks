@@ -143,6 +143,8 @@ class ModelOnlyBaseCheck(BaseCheck):
 
 
 class ValidateResult:
+    """Contain result of a validation function."""
+
     is_pass: bool
     category: str
     expected: str
@@ -156,8 +158,7 @@ class ValidateResult:
 
 
 class Validatable(metaclass=abc.ABCMeta):
-    """
-    Validatable combines a check with validate functions to be used together.
+    """Validatable combines a check with validate functions to be used together.
 
     Example of usage:
     ```
@@ -180,6 +181,7 @@ class Validatable(metaclass=abc.ABCMeta):
     my_check.validate(my_check.run())
     ```
     """
+
     _validators: List[Callable]
 
     def __init__(self, *params, **kwargs):
@@ -193,9 +195,11 @@ class Validatable(metaclass=abc.ABCMeta):
         return results or None
 
     def add_validator(self, validator: Callable[[CheckResult], ValidateResult]):
-        if not not isinstance(validator, Callable):
+        if not isinstance(validator, Callable):
             raise MLChecksValueError(f'Validator must be a function in signature `(CheckResult) -> ValidateResult`,'
                                      f'but got: {type(validator).__name__}')
         new_copy = deepcopy(self)
+        # Disable protected access warning
+        # pylint: disable=protected-access
         new_copy._validators.append(validator)
         return new_copy

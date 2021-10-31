@@ -117,7 +117,13 @@ class MixedNulls(SingleDatasetBaseCheck, Validatable):
                            columns=self.params.get('columns'),
                            check_nan=self.params.get('check_nan'))
 
-    def validate_max_different_nulls(self, max: int, *columns):
+    def validate_max_different_nulls(self, max_nulls: int, *columns):
+        """Add validation that a column have a maximum number of different null values.
+
+        Args:
+            max_nulls (int): Maximum number allowed of different null values.
+            columns (str): Column to limit the validation to. If none, validates all.
+        """
         def validate(result: CheckResult) -> ValidateResult:
             columns_in_result = result.value.keys()
             if columns:
@@ -126,8 +132,8 @@ class MixedNulls(SingleDatasetBaseCheck, Validatable):
             for column in columns_in_result:
                 nulls = result.value[column]
                 num_nulls = len(nulls)
-                if num_nulls > max:
-                    vr = ValidateResult(False, f'Expected maximum {max} types of null in column {column}',
+                if num_nulls > max_nulls:
+                    vr = ValidateResult(False, f'Expected maximum {max_nulls} types of null in column {column}',
                                         f'Found {num_nulls} types of null in column {column}', category='Error')
                     validate_results.append(vr)
             return validate_results
