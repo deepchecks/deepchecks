@@ -216,11 +216,11 @@ class Dataset:
         """
         return self.data[self._features] if self._features else None
 
-    def show_columns_types(self) -> Dict:
-        """Return type of each column.
+    def show_columns_roles(self) -> Dict:
+        """Return roles of each column.
 
         Returns:
-           Diractory of a column and its type
+           Diractory of a column and its role
         """
         columns = {}
         if self._index_name:
