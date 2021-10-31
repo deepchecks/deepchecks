@@ -1,6 +1,7 @@
 """Module containing all the base classes for checks."""
 import abc
 import re
+from copy import deepcopy
 from typing import Dict, Any, Callable, List, Union
 
 __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainValidationBaseCheck',
@@ -92,9 +93,10 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
     params: Dict
 
-    def __init__(self, **params):
+    def __init__(self, *params, **kwargs):
         """Init base check parameters to pass to be used in the implementing check."""
-        self.params = params
+        self.params = kwargs
+        super().__init__(params, kwargs)
 
     def __repr__(self):
         """Representation of check as string."""
@@ -140,54 +142,60 @@ class ModelOnlyBaseCheck(BaseCheck):
         pass
 
 
-# class Validatable(metaclass=abc.ABCMeta):
-#     """
-#     Decidable is a utility class which gives the option to combine a check and a decision function to be used together
-#
-#     Example of usage:
-#     ```
-#     class MyCheck(Decidable, SingleDatasetBaseCheck):
-#         # run function signaute is inherited from the check class
-#         def run(self, dataset, model=None) -> CheckResult:
-#             # Parameters are automaticlly sets on params property
-#             param1 = self.params.get('param1')
-#             # Do stuff...
-#             value, html = x, y
-#             return CheckResult(value, display={'text/html': html})
-#
-#         # Implement default decider
-#         def default_decider(result: CheckResult, param=None, param2=None, param3=None) -> bool
-#             # To stuff...
-#             return True
-#
-#         # Implements "syntactic sugar" for decider function
-#         def decide_on_param_2(param):
-#             return self.decider({param2: param})
-#
-#     my_check = MyCheck(param1='foo').decider(param2=10)
-#     my_check = MyCheck(param1='foo').decider(param='s', param2=10)
-#     my_check = MyCheck(param1='foo').decide_on_param_2(10)
-#     my_check = MyCheck(param1='foo').decider(lambda cr: cr.value > 0)
-#     # Execute the run function and pass result to decide function
-#     my_check.decide(my_check.run())
-#     ```
-#     """
-#     _validators: List[Callable]
-#
-#     def __init__(self, **params):
-#         self._validators = []
-#         super().__init__(**params)
-#
-#     def validate(self, result: CheckResult) -> List[bool]:
-#         decisions = []
-#         for curr_validator in self._validators:
-#             decisions.append(curr_validator(result))
-#         return decisions or None
-#
-#     def add_validator(self, validator: Callable[[CheckResult], bool]):
-#         if not not isinstance(validator, Callable):
-#             raise MLChecksValueError(f'Validator must be a function in signature `(CheckResult) -> bool`,'
-#                                       'but got: {type(decider).__name__}')
-#         new_copy = deepcopy(self)
-#         new_copy._validators.append(validator)
-#         return new_copy
+class ValidateResult:
+    is_pass: bool
+    category: str
+    expected: str
+    actual: str
+
+    def __init__(self, is_pass: bool, expected: str, actual: str, category: str):
+        self.is_pass = is_pass
+        self.expected = expected
+        self.actual = actual
+        self.category = category
+
+
+class Validatable(metaclass=abc.ABCMeta):
+    """
+    Validatable combines a check with validate functions to be used together.
+
+    Example of usage:
+    ```
+    class MyCheck(Validatable, SingleDatasetBaseCheck):
+        # run function signaute is inherited from the check class
+        def run(self, dataset, model=None) -> CheckResult:
+            # Parameters are automaticlly sets on params property
+            param1 = self.params.get('param1')
+            # Do stuff...
+            value, html = x, y
+            return CheckResult(value, display=html)
+
+        def validate_x_larger_than(value: int) -> bool
+            def validate(result: CheckResult):
+                return result.value > value
+            return self.add_validator(validate)
+
+    my_check = MyCheck(param1='foo').validate_x_larger_than(400)
+    # Execute the run function and pass result to decide function
+    my_check.validate(my_check.run())
+    ```
+    """
+    _validators: List[Callable]
+
+    def __init__(self, *params, **kwargs):
+        self._validators = []
+        super().__init__(*params, **kwargs)
+
+    def validate(self, result: CheckResult) -> List[ValidateResult]:
+        results = []
+        for curr_validator in self._validators:
+            results.append(curr_validator(result))
+        return results or None
+
+    def add_validator(self, validator: Callable[[CheckResult], ValidateResult]):
+        if not not isinstance(validator, Callable):
+            raise MLChecksValueError(f'Validator must be a function in signature `(CheckResult) -> ValidateResult`,'
+                                     f'but got: {type(validator).__name__}')
+        new_copy = deepcopy(self)
+        new_copy._validators.append(validator)
+        return new_copy

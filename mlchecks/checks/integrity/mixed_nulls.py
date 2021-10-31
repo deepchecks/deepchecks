@@ -1,11 +1,12 @@
 """Module contains Mixed Nulls check."""
+from collections import defaultdict
 from typing import Iterable, Union
 
 import numpy as np
 import pandas as pd
 
 from mlchecks import Dataset, CheckResult, ensure_dataframe_type
-from mlchecks.base.check import SingleDatasetBaseCheck
+from mlchecks.base.check import SingleDatasetBaseCheck, Validatable, ValidateResult
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 from mlchecks.string_utils import string_baseform, format_percent
 from mlchecks.utils import MLChecksValueError
@@ -66,6 +67,7 @@ def mixed_nulls(dataset: Union[pd.DataFrame, Dataset], null_string_list: Iterabl
 
     # Result value
     display_array = []
+    result_dict = defaultdict(dict)
 
     for column_name in list(dataset.columns):
         column_data = dataset[column_name]
@@ -75,27 +77,28 @@ def mixed_nulls(dataset: Union[pd.DataFrame, Dataset], null_string_list: Iterabl
         # Get counts of all values in series including NaNs, in sorted order of count
         column_counts: pd.Series = column_data.value_counts(dropna=False)
         # Filter out values not in the nulls list
-        keys_to_drop = [key for key in column_counts.keys() if string_baseform(key) not in null_string_list]
-        null_counts = column_counts.drop(labels=keys_to_drop)
-        if null_counts.size < 2:
+        null_counts = {value: count for value, count in column_counts.items()
+                       if string_baseform(value) in null_string_list}
+        if len(null_counts) < 2:
             continue
         # Save the column info
-        for key, count in null_counts.iteritems():
-            display_array.append([column_name, key, count, format_percent(count / dataset.size)])
+        for key, count in null_counts.items():
+            percent = count / dataset.size
+            display_array.append([column_name, key, count, format_percent(percent)])
+        result_dict[column_name] = null_counts
 
-    # Create dataframe to display graph
-    df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percent of data'])
-    df_graph = df_graph.set_index(['Column Name', 'Value'])
-
-    if len(df_graph) > 0:
+    # Create dataframe to display table
+    if display_array:
+        df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percent of data'])
+        df_graph = df_graph.set_index(['Column Name', 'Value'])
         display = df_graph
     else:
         display = None
 
-    return CheckResult(df_graph, check=mixed_nulls, display=display)
+    return CheckResult(result_dict, check=mixed_nulls, display=display)
 
 
-class MixedNulls(SingleDatasetBaseCheck):
+class MixedNulls(SingleDatasetBaseCheck, Validatable):
     """Search for various types of null values in a string column(s), including string representations of null."""
 
     def run(self, dataset, model=None) -> CheckResult:
@@ -113,3 +116,20 @@ class MixedNulls(SingleDatasetBaseCheck):
                            ignore_columns=self.params.get('ignore_columns'),
                            columns=self.params.get('columns'),
                            check_nan=self.params.get('check_nan'))
+
+    def validate_max_different_nulls(self, max: int, *columns):
+        def validate(result: CheckResult) -> ValidateResult:
+            columns_in_result = result.value.keys()
+            if columns:
+                columns_in_result = set(columns_in_result) ^ set(columns)
+            validate_results = []
+            for column in columns_in_result:
+                nulls = result.value[column]
+                num_nulls = len(nulls)
+                if num_nulls > max:
+                    vr = ValidateResult(False, f'Expected maximum {max} types of null in column {column}',
+                                        f'Found {num_nulls} types of null in column {column}', category='Error')
+                    validate_results.append(vr)
+            return validate_results
+
+        self.add_validator(validate)
