@@ -1,4 +1,4 @@
-"""module contains Data Duplicates check."""
+"""module contains Columns Info check."""
 from typing import Iterable, Union
 
 import pandas as pd
