@@ -216,24 +216,27 @@ class Dataset:
         """
         return self.data[self._features] if self._features else None
 
-    def show_columns_roles(self) -> Dict:
-        """Return roles of each column.
+    def show_columns_info(self) -> Dict:
+        """Return the role and logical type of each column.
 
         Returns:
            Diractory of a column and its role
         """
         columns = {}
-        if self._index_name:
-            columns[self._index_name] = 'index'
-        if self._date_name:
-            columns[self._date_name] = 'date'
-        for feature in self._features:
-            if feature in self._cat_features:
-                columns[feature] = 'categorical feature'
+        for column in self.data.columns:
+            if column == self._index_name:
+                columns[self._index_name] = 'index'
+            elif column == self._date_name:
+                columns[self._date_name] = 'date'
+            elif column == self._label_name:
+                columns[self._label_name] = 'label'
+            elif column in self._features:
+                if column in self._cat_features:
+                    columns[column] = 'categorical feature'
+                else:
+                    columns[column] = 'numerical feature'
             else:
-                columns[feature] = 'numerical feature'
-        if self._label_name:
-            columns[self._label_name] = 'label'
+                columns[column] = 'other'
         return columns
 
     # Validations:

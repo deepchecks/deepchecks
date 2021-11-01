@@ -23,19 +23,20 @@ def test_columns_info():
     data = {'index': index, 'date': date, 'a': cat_fe, 'b': num_fe, 'c': num_fe, 'label': cat_fe}
     df = pd.DataFrame.from_dict(data)
 
-    dataset = Dataset(df, label='label', date='date', index='index')
+    dataset = Dataset(df, label='label', date='date', index='index', features=['a', 'b'])
     # Arrange
     check = ColumnsInfo()
     # Act
     result_ds, result_df = check.run(dataset).value, check.run(df).value
     # Assert
     expected_res_ds = {'index': 'index', 'date': 'date', 'a': 'categorical feature',
-                    'b': 'numerical feature', 'c': 'numerical feature', 'label': 'label'}
+                    'b': 'numerical feature', 'c': 'other', 'label': 'label'}
     assert_that(result_ds, equal_to(expected_res_ds))
 
-    # in df we can't assume index/date/label
+    # in df all columns are features
     expected_res_df = expected_res_ds
     expected_res_df['index'] = 'numerical feature'
     expected_res_df['date'] = 'numerical feature'
     expected_res_df['label'] = 'categorical feature'
+    expected_res_df['c'] = 'numerical feature'
     assert_that(result_df, equal_to(expected_res_df))
