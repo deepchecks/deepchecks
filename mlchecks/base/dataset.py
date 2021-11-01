@@ -1,6 +1,7 @@
 """The Dataset module containing the dataset Class and its functions."""
 from typing import Union, List, Any
 import pandas as pd
+from pandas.core.dtypes.common import is_numeric_dtype
 
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 from mlchecks.utils import MLChecksValueError
@@ -37,7 +38,7 @@ class Dataset:
     def __init__(self, df: pd.DataFrame,
                  features: List[str] = None, cat_features: List[str] = None, label: str = None, use_index: bool = False,
                  index: str = None, date: str = None, date_unit_type: str = None, _convert_date: bool = True,
-                 max_categorical_ratio: float = 0.001, max_categories: int = 100):
+                 max_categorical_ratio: float = 0.01, max_categories: int = 30):
         """Initiate the Dataset using a pandas DataFrame and Metadata.
 
         Args:
@@ -133,10 +134,10 @@ class Dataset:
 
         for col in self.data.columns:
             num_unique = self.data[col].nunique(dropna=True)
-            if num_unique / len(self.data[col].dropna()) < self._max_categorical_ratio\
-                    or num_unique <= self._max_categories:
+            unique_ratio = num_unique / len(self.data[col].dropna())
+            if not is_numeric_dtype(self.data[col]) or \
+               (unique_ratio < self._max_categorical_ratio and num_unique <= self._max_categories):
                 cat_columns.append(col)
-
         return cat_columns
 
     def index_name(self) -> Union[str, None]:

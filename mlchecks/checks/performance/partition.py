@@ -96,7 +96,7 @@ def partition_column(dataset: Dataset, column_name: str, max_segments: int, max_
         filters = []
         for i in range(n_large_cats):
             f = lambda df, val = cat_hist_dict.index[i]: df[column_name] == val
-            filters.append(MLChecksFilter(f, cat_hist_dict.index[i]))
+            filters.append(MLChecksFilter(f, str(cat_hist_dict.index[i])))
 
         if len(cat_hist_dict) > n_large_cats:
             f = lambda df, values=cat_hist_dict.index[:n_large_cats]: ~df[column_name].isin(values)
