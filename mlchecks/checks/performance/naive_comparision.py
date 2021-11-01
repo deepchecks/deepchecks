@@ -70,7 +70,8 @@ def find_score(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
             naive_pred = clf.predict(x_val)
 
     else:
-        raise NotImplementedError(f"expected to be one of ['random', 'statistical', 'tree'] but instaed got {naive_model_type}")
+        raise NotImplementedError(f"expected to be one of ['random', 'statistical', 'tree'] \
+                                   but instaed got {naive_model_type}")
 
     y_val = val_ds.label_col()
 
