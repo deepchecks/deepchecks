@@ -110,7 +110,7 @@ def rare_format_detection(dataset: Union[Dataset, pd.DataFrame], column_names: U
             accurate, by trying to find common characters in all samples of the same pattern. In this example,
             the refined format found would be "XXXXXX@deepchecks.com.
     """
-    dataset = Dataset.validate_dataset_or_dataframe(dataset)
+    dataset = Dataset.validate_dataset_or_dataframe(dataset) # TODO: use all columns
     column_names = column_names or dataset.features()
 
     if pattern_match_method not in ['first', 'all']:
