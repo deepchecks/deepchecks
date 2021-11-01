@@ -1,10 +1,9 @@
 # MLChecks - <TODO: oneline explanation>
 
-![pyVersions](https://img.shields.io/pypi/pyversions/mlchecks)  
-![pkgVersion](https://img.shields.io/pypi/v/mlchecks)  
-![build](https://github.com/deepchecks/mlchecks/actions/workflows/test.yml/badge.svg)   
-![tests](https://github.com/deepchecks/mlchecks/actions/workflows/build.yml/badge.svg)  
-![coverage](https://deepchecks-public.s3.eu-west-1.amazonaws.com/mlchecks/coverage.svg) 
+![pyVersions](https://img.shields.io/pypi/pyversions/mlchecks) 
+![pkgVersion](https://img.shields.io/pypi/v/mlchecks) 
+![build](https://github.com/deepchecks/mlchecks/actions/workflows/build.yml/badge.svg) 
+![coverage](https://deepchecks-public.s3.eu-west-1.amazonaws.com/mlchecks/coverage.svg)
 ![pylint](https://deepchecks-public.s3.eu-west-1.amazonaws.com/mlchecks/pylint.svg)
 
 
