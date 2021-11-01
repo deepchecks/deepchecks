@@ -30,7 +30,10 @@ class CheckSuite(BaseCheck):
         for check in checks:
             if not isinstance(check, BaseCheck):
                 raise Exception(f'CheckSuite receives only `BaseCheck` objects but got: {check.__class__.__name__}')
-            self.checks[check.__class__.__name__] = check
+            if isinstance(check, CheckSuite):
+                self.checks[check.name] = check
+            else:
+                self.checks[check.__class__.__name__] = check
 
     def run(self, model=None, train_dataset=None, validation_dataset=None, check_datasets_policy: str = 'validation') \
             -> CheckResult:
@@ -111,6 +114,7 @@ class CheckSuite(BaseCheck):
         return f'{tabs_str}{self.name}: [{checks_str}\n{tabs_str}]'
 
     def __getitem__(self, item):
+        """Access suite in check by name."""
         return self.checks[item]
 
     def _display_in_notebook(self, param):

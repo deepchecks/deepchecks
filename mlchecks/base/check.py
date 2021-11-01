@@ -90,8 +90,10 @@ class CheckResult:
 
 
 class ValidateCategory(enum.Enum):
-    Error = 'Error'
-    Insight = 'Insight'
+    """Validation result category. indicates whether the result should fail the suite."""
+
+    ERROR = 'ERROR'
+    INSIGHT = 'INSIGHT'
 
 
 class ValidateResult:
@@ -103,7 +105,15 @@ class ValidateResult:
     actual: str
 
     def __init__(self, is_pass: bool, expected: str = None, actual: str = None,
-                 category: ValidateCategory = ValidateCategory.Insight):
+                 category: ValidateCategory = ValidateCategory.ERROR):
+        """Initialize validation result.
+
+        Args:
+            is_pass (bool): Whether the validation functions passed the given value or not.
+            expected (str): What condition was expected to be met.
+            actual (str): What actual value was found.
+            category (ValidateCategory): Which category is the validation result.
+        """
         self.is_pass = is_pass
         self.expected = expected
         self.actual = actual
@@ -122,6 +132,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
         self.params = kwargs
 
     def validate(self, result: CheckResult) -> Dict[str, ValidateResult]:
+        """Run validators on given result."""
         results = {}
         for name, validator in self._validators.items():
             output = validator(result.value)
@@ -133,7 +144,14 @@ class BaseCheck(metaclass=abc.ABCMeta):
                 raise MLChecksValueError(f'Invalid return type from validation {name}, got: {type(output)}')
         return results
 
-    def add_validator(self, name: str, validator: Callable[[CheckResult], ValidateResult]):
+    def add_validator(self, name: str, validator: Callable[[Any], Union[ValidateResult, bool]]):
+        """Add new validator function to the check.
+
+        Args:
+            name (str): Name of the validator. should explain the validation action and parameters
+            validator (Callable[[Any], Union[ValidateResult, bool]]): Function which gets the value of the check and
+            returns object of ValidateResult or boolean.
+        """
         if not isinstance(validator, Callable):
             raise MLChecksValueError(f'Validator must be a function in signature `(CheckResult) -> ValidateResult`,'
                                      f'but got: {type(validator).__name__}')
@@ -142,7 +160,11 @@ class BaseCheck(metaclass=abc.ABCMeta):
         self._validators[name] = validator
 
     def __repr__(self, tabs=0):
-        """Representation of check as string."""
+        """Representation of check as string.
+
+        Args:
+            tabs (int): number of tabs to shift by the output
+        """
         tabs_str = '\t' * tabs
         validator_tabs = '\t' * (tabs + 1)
         check_str = f'{tabs_str}{self.__class__.__name__}({self.params})'
@@ -153,15 +175,32 @@ class BaseCheck(metaclass=abc.ABCMeta):
             return check_str
 
     def update_param(self, param: str, value):
+        """Update check parameter.
+
+        Args:
+            param (str): name of parameter to update.
+            value: value of parameter to set.
+        """
         self.params[param] = value
 
     def remove_param(self, param: str):
+        """Remove check parameter. Removing a parameter will revert it to the default value.
+
+        Args:
+            param (str): name of parameter to remove.
+        """
         self.params.pop(param)
 
     def clean_validators(self):
+        """Remove all validators from this check instance."""
         self._validators.clear()
 
     def remove_validator(self, name: str):
+        """Remove given validator by name.
+
+        Args:
+            name (str): name of validator to remove.
+        """
         self._validators.pop(name)
 
 
@@ -202,47 +241,3 @@ class ModelOnlyBaseCheck(BaseCheck):
     def run(self, model) -> CheckResult:
         """Define run signature."""
         pass
-
-
-
-# class Validatable(metaclass=abc.ABCMeta):
-#     """Validatable combines a check with validate functions to be used together.
-#
-#     Example of usage:
-#     ```
-#     class MyCheck(Validatable, SingleDatasetBaseCheck):
-#         # run function signaute is inherited from the check class
-#         def run(self, dataset, model=None) -> CheckResult:
-#             # Parameters are automaticlly sets on params property
-#             param1 = self.params.get('param1')
-#             # Do stuff...
-#             value, html = x, y
-#             return CheckResult(value, display=html)
-#
-#         def validate_x_larger_than(value: int) -> bool
-#             def validate(result: CheckResult):
-#                 return result.value > value
-#             return self.add_validator(validate)
-#
-#     my_check = MyCheck(param1='foo').validate_x_larger_than(400)
-#     # Execute the run function and pass result to decide function
-#     my_check.validate(my_check.run())
-#     ```
-#     """
-#
-#     _validators: OrderedDict[str, Callable]
-#
-#     def __init__(self, *params, **kwargs):
-#         self._validators = OrderedDict()
-#         super().__init__(*params, **kwargs)
-#
-#     def validate(self, result: CheckResult) -> Dict[str, ValidateResult]:
-#         return {name: validator(result.value) for name, validator in self._validators.items()}
-#
-#     def add_validator(self, name: str, validator: Callable[[CheckResult], ValidateResult]):
-#         if not isinstance(validator, Callable):
-#             raise MLChecksValueError(f'Validator must be a function in signature `(CheckResult) -> ValidateResult`,'
-#                                      f'but got: {type(validator).__name__}')
-#         if not isinstance(name, str):
-#             raise MLChecksValueError(f'validator name must be of type str but got: {type(name).__name__}')
-#         self._validators[name] = validator
