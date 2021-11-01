@@ -28,7 +28,7 @@ def find_score(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
         val_ds (Dataset): The validation dataset object. Must contain an index.
         task_type (ModelType): the model type.
         model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
-        naive_model_type (str): Type of the naive model ['random', 'statistical', 'tree'].
+        naive_model_type (str): Type of the naive model ['random', 'statistical'].
         metric: a custom metric given by user.
         metric_name: name of a default metric.
     Returns:
@@ -53,24 +53,8 @@ def find_score(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
             counts = train_ds.label_col().value_counts()
             naive_pred = np.array([counts.index[0]] * len(val_df))
 
-    elif naive_model_type == 'tree':
-        x_train = train_ds.features_columns()
-        y_train = train_ds.label_col()
-        x_val = val_ds.features_columns()
-
-        if task_type == ModelType.REGRESSION:
-            clf = DecisionTreeRegressor()
-            clf = clf.fit(x_train, y_train)
-            naive_pred = clf.predict(x_val)
-
-        elif task_type in (ModelType.BINARY, ModelType.MULTICLASS):
-
-            clf = DecisionTreeClassifier()
-            clf = clf.fit(x_train, y_train)
-            naive_pred = clf.predict(x_val)
-
     else:
-        raise NotImplementedError(f"expected to be one of ['random', 'statistical', 'tree'] \
+        raise NotImplementedError(f"expected to be one of ['random', 'statistical'] \
                                    but instaed got {naive_model_type}")
 
     y_val = val_ds.label_col()
@@ -97,7 +81,7 @@ def naive_comparison(train_dataset: Dataset, validation_dataset: Dataset,
         train_dataset (Dataset): The training dataset object. Must contain a label.
         validation_dataset (Dataset): The validation dataset object. Must contain a label.
         model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
-        naive_model_type (str = 'random'):  Type of the naive model ['random' 'statistical' 'tree'].
+        naive_model_type (str = 'random'):  Type of the naive model ['random', 'statistical'].
         max_ratio (float = 10):  Value to return in case the score of the naive model is very low (or 0)
                                  and the score of the predictions is positive (1 to inf).
         metric: a custume metric given by user.
