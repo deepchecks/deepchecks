@@ -145,8 +145,12 @@ class BaseCheck(metaclass=abc.ABCMeta):
         """Representation of check as string."""
         tabs_str = '\t' * tabs
         validator_tabs = '\t' * (tabs + 1)
-        validator_str = ''.join([f'\n{validator_tabs}{s}' for s in self._validators.keys()])
-        return f'{tabs_str}{self.__class__.__name__}({self.params}) Validators: [{validator_str}]'
+        check_str = f'{tabs_str}{self.__class__.__name__}({self.params})'
+        if self._validators:
+            validator_str = ''.join([f'\n{validator_tabs}{s}' for s in self._validators.keys()])
+            return f'{check_str} Validators: [{validator_str}\n{tabs_str}]'
+        else:
+            return check_str
 
     def update_param(self, param: str, value):
         self.params[param] = value
