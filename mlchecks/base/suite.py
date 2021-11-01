@@ -1,14 +1,15 @@
 """Module containing the Suite object, used for running a set of checks together."""
 from collections import OrderedDict
 
-from IPython.core.display import display_html
+from IPython.core.display import display_html, display
+from ipywidgets import IntProgress, HTML, VBox
 
 from mlchecks.base.check import BaseCheck, CheckResult, TrainValidationBaseCheck, CompareDatasetsBaseCheck, \
     SingleDatasetBaseCheck, ModelOnlyBaseCheck
 
 __all__ = ['CheckSuite']
 
-from mlchecks.utils import MLChecksValueError
+from mlchecks.utils import MLChecksValueError, is_notebook
 
 
 class CheckSuite(BaseCheck):
@@ -52,8 +53,17 @@ class CheckSuite(BaseCheck):
         if check_datasets_policy not in ['both', 'train', 'validation']:
             raise ValueError('check_datasets_policy must be one of ["both", "train", "validation"]')
 
+        # Create progress bar
+        progress_bar = IntProgress(value=0, min=0, max=len(self.checks),
+                                   bar_style='info', style={'bar_color': '#9d60fb'}, orientation='horizontal')
+        label = HTML()
+        box = VBox(children=[label, progress_bar])
+        self._display_in_notebook(box)
+
+        # Run all checks
         results = []
         for check in self.checks.values():
+            label.value = f'Running {str(check)}'
             if isinstance(check, TrainValidationBaseCheck):
                 results.append(check.run(train_dataset=train_dataset, validation_dataset=validation_dataset,
                                          model=model))
@@ -79,6 +89,11 @@ class CheckSuite(BaseCheck):
                 raise TypeError(f'Expected check of type SingleDatasetBaseCheck, CompareDatasetsBaseCheck, '
                                 f'TrainValidationBaseCheck or ModelOnlyBaseCheck. Got  {check.__class__.__name__} '
                                 f'instead')
+            progress_bar.value = progress_bar.value + 1
+
+        progress_bar.close()
+        label.close()
+        box.close()
 
         def display_suite():
             display_html(f'<h3>{self.name}</h3>', raw=True)
@@ -89,10 +104,15 @@ class CheckSuite(BaseCheck):
 
         return CheckResult(results, display=display_suite)
 
-    def __repr__(self):
+    def __repr__(self, tabs=0):
         """Representation of suite as string."""
-        checks_str = ''.join([f'\n\t{c.__repr__()}' for c in self.checks.values()])
-        return f'{self.name}: [{checks_str}\n]'
+        tabs_str = '\t' * tabs
+        checks_str = ''.join([f'\n{c.__repr__(tabs + 1)}' for c in self.checks.values()])
+        return f'{tabs_str}{self.name}: [{checks_str}\n{tabs_str}]'
 
     def __getitem__(self, item):
         return self.checks[item]
+
+    def _display_in_notebook(self, param):
+        if is_notebook():
+            display(param)
