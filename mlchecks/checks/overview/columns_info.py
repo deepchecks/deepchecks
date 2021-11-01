@@ -14,7 +14,8 @@ def columns_info(dataset:  Dataset):
         dataset (Dataset): any dataset.
 
     Returns:
-        CheckResult: value is dictionary of a column and its role and logical type
+        CheckResult: value is dictionary of a column and its role and logical type.
+                     display a table of the dictionary.
     """
     dataset = Dataset.validate_dataset_or_dataframe(dataset)
     value = dataset.show_columns_info()
@@ -33,7 +34,8 @@ class ColumnsInfo(SingleDatasetBaseCheck):
           dataset (Dataset): any dataset.
 
         Returns:
-          (CheckResult): value is dictionary of a column and its role and logical type
+          CheckResult: value is dictionary of a column and its role and logical type.
+                       display a table of the dictionary.
         """
         return columns_info(dataset)
 
