@@ -1,4 +1,4 @@
-"""Contains unit tests for the dataset_info check."""
+"""Contains unit tests for the columns_info check."""
 from mlchecks.base import Dataset
 from mlchecks.checks.overview import ColumnsInfo, columns_info
 from mlchecks.utils import MLChecksValueError
@@ -15,7 +15,7 @@ def test_dataset_wrong_input():
                 raises(MLChecksValueError, 'dataset must be of type DataFrame or Dataset. instead got: str'))
 
 
-def test_dataset_info():
+def test_columns_info():
     num_fe = np.random.rand(200)
     cat_fe = np.random.randint(10, size=200)
     date = range(1635693229, 1635693429)
