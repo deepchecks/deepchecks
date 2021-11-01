@@ -1,5 +1,5 @@
 """Module containing the Suite object, used for running a set of checks together."""
-from typing import List
+from collections import OrderedDict
 
 from IPython.core.display import display_html
 
@@ -18,20 +18,21 @@ class CheckSuite(BaseCheck):
         checks: A list of checks to run.
     """
 
-    checks: List[BaseCheck]
+    checks: OrderedDict
     name: str
 
-    def __init__(self, name, *checks):
+    def __init__(self, name: str, *checks):
         """Get `Check`s and `CheckSuite`s to run in given order."""
         super().__init__()
+        self.name = name
+        self.checks = OrderedDict()
         for check in checks:
             if not isinstance(check, BaseCheck):
                 raise Exception(f'CheckSuite receives only `BaseCheck` objects but got: {check.__class__.__name__}')
-        self.checks = checks
-        self.name = name
+            self.checks[check.__class__.__name__] = check
 
     def run(self, model=None, train_dataset=None, validation_dataset=None, check_datasets_policy: str = 'validation') \
-            -> List[CheckResult]:
+            -> CheckResult:
         """Run all checks.
 
         Args:
@@ -52,7 +53,7 @@ class CheckSuite(BaseCheck):
             raise ValueError('check_datasets_policy must be one of ["both", "train", "validation"]')
 
         results = []
-        for check in self.checks:
+        for check in self.checks.values():
             if isinstance(check, TrainValidationBaseCheck):
                 results.append(check.run(train_dataset=train_dataset, validation_dataset=validation_dataset,
                                          model=model))
@@ -90,5 +91,8 @@ class CheckSuite(BaseCheck):
 
     def __repr__(self):
         """Representation of suite as string."""
-        checks_str = ','.join([str(c) for c in self.checks])
-        return f'{self.name} [{checks_str}]'
+        checks_str = ''.join([f'\n\t{c.__repr__()}' for c in self.checks.values()])
+        return f'{self.name}: [{checks_str}\n]'
+
+    def __getitem__(self, item):
+        return self.checks[item]

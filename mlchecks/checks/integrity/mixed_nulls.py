@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from mlchecks import Dataset, CheckResult, ensure_dataframe_type
-from mlchecks.base.check import SingleDatasetBaseCheck, Validatable, ValidateResult
+from mlchecks.base.check import SingleDatasetBaseCheck, ValidateResult
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 from mlchecks.string_utils import string_baseform, format_percent
 from mlchecks.utils import MLChecksValueError
@@ -98,7 +98,7 @@ def mixed_nulls(dataset: Union[pd.DataFrame, Dataset], null_string_list: Iterabl
     return CheckResult(result_dict, check=mixed_nulls, display=display)
 
 
-class MixedNulls(Validatable, SingleDatasetBaseCheck):
+class MixedNulls(SingleDatasetBaseCheck):
     """Search for various types of null values in a string column(s), including string representations of null."""
 
     def run(self, dataset, model=None) -> CheckResult:
@@ -137,5 +137,9 @@ class MixedNulls(Validatable, SingleDatasetBaseCheck):
                                         f'Found {num_nulls} types of null in column {column}', category='Error')
                     validate_results.append(vr)
             return validate_results
-
-        self.add_validator(validate)
+        if columns:
+            name = f'Validate no more than {max_nulls} null types for columns: [{",".join(columns)}]'
+        else:
+            name = f'Validate no more than {max_nulls} null types for all columns'
+        self.add_validator(name, validate)
+        return self
