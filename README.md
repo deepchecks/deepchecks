@@ -1,4 +1,4 @@
-# MLChecks
+# MLChecks - TODO: Add logo
 
 ![pyVersions](https://img.shields.io/pypi/pyversions/mlchecks) 
 ![pkgVersion](https://img.shields.io/pypi/v/mlchecks) 
@@ -33,7 +33,8 @@ performance metrics, data integrity issues, explainability, and other insights.
 
 MLChecks is a library that contains the following components:
 
-<img src="./Block-Diagram.jpeg" alt="MLChecks - Block diagram"/>
+![MLChecks - Block diagram](https://github.com/deepchecks/MLChecks/tree/master/mlchecks/_static/img/Block-Diagram.jpeg)
+
 
 With MLChecks you can achieve the following type of suites:
 * Performance report
