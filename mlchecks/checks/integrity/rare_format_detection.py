@@ -309,7 +309,18 @@ class RareFormatDetection(SingleDatasetBaseCheck):
 
         Args:
             dataset: Dataset - The dataset object
-            model: any = None - not used in the check
+            columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored ones.
+            ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns variable
+            patterns (List[Pattern]): patterns to look for when comparing common vs. rare formats. Uses DEFAULT_PATTERNS
+                if not specified.
+                Note that if pattern_match_method='first' (which it is by default), then the order of patterns matter.
+                In this case, it is advised to order the patterns from specific to general.
+            rarity_threshold (float): threshold to indicate what is considered a "sharp" drop in commonness of values. This
+                is used by the function get_rare_vs_common_values which divides data into "common" and "rare" values, and
+                is used here to determine which formats are common and which are rare.
+            pattern_match_method (str): 'first' or 'all'. If 'first', returns only the pattern where a "rare format" sample
+                was found for the first time. If 'all', returns all patterns in which anything was found.
+
 
         Returns:
             CheckResult:
