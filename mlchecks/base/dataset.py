@@ -225,18 +225,19 @@ class Dataset:
         columns = {}
         for column in self.data.columns:
             if column == self._index_name:
-                columns[self._index_name] = 'index'
+                value = 'index'
             elif column == self._date_name:
-                columns[self._date_name] = 'date'
+                value = 'date'
             elif column == self._label_name:
-                columns[self._label_name] = 'label'
+                value = 'label'
             elif column in self._features:
                 if column in self._cat_features:
-                    columns[column] = 'categorical feature'
+                    value = 'categorical feature'
                 else:
-                    columns[column] = 'numerical feature'
+                    value = 'numerical feature'
             else:
-                columns[column] = 'other'
+                value = 'other'
+            columns[column] = value
         return columns
 
     # Validations:
