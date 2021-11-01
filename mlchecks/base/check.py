@@ -131,12 +131,12 @@ class BaseCheck(metaclass=abc.ABCMeta):
         self._validators = OrderedDict()
         self.params = kwargs
 
-    def validate(self, result: CheckResult) -> Dict[str, ValidateResult]:
+    def validate(self, result: CheckResult) -> Dict[str, List[ValidateResult]]:
         """Run validators on given result."""
         results = {}
         for name, validator in self._validators.items():
             output = validator(result.value)
-            if isinstance(output, ValidateResult):
+            if isinstance(output, List):
                 results[name] = output
             elif isinstance(output, bool):
                 results[name] = ValidateResult(output)
@@ -144,13 +144,13 @@ class BaseCheck(metaclass=abc.ABCMeta):
                 raise MLChecksValueError(f'Invalid return type from validation {name}, got: {type(output)}')
         return results
 
-    def add_validator(self, name: str, validator: Callable[[Any], Union[ValidateResult, bool]]):
+    def add_validator(self, name: str, validator: Callable[[Any], Union[List[ValidateResult], bool]]):
         """Add new validator function to the check.
 
         Args:
             name (str): Name of the validator. should explain the validation action and parameters
-            validator (Callable[[Any], Union[ValidateResult, bool]]): Function which gets the value of the check and
-            returns object of ValidateResult or boolean.
+            validator (Callable[[Any], Union[List[ValidateResult], bool]]): Function which gets the value of the check
+            and returns object of List[ValidateResult] or boolean.
         """
         if not isinstance(validator, Callable):
             raise MLChecksValueError(f'Validator must be a function in signature `(CheckResult) -> ValidateResult`,'

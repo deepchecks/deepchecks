@@ -1,6 +1,6 @@
 """Module contains Mixed Nulls check."""
 from collections import defaultdict
-from typing import Iterable, Union
+from typing import Iterable, Union, Dict, List
 
 import numpy as np
 import pandas as pd
@@ -124,22 +124,22 @@ class MixedNulls(SingleDatasetBaseCheck):
             max_nulls (int): Maximum number allowed of different null values.
             columns (str): Column to limit the validation to. If none, validates all.
         """
-        def validate(result: CheckResult) -> ValidateResult:
-            columns_in_result = result.value.keys()
+        def validate_func(result: Dict) -> List[ValidateResult]:
+            columns_in_result = result.keys()
             if columns:
                 columns_in_result = set(columns_in_result) ^ set(columns)
             validate_results = []
             for column in columns_in_result:
-                nulls = result.value[column]
+                nulls = result[column]
                 num_nulls = len(nulls)
                 if num_nulls > max_nulls:
                     vr = ValidateResult(False, f'Expected maximum {max_nulls} types of null in column {column}',
-                                        f'Found {num_nulls} types of null in column {column}', category='Error')
+                                        f'Found {num_nulls} types of null in column {column}')
                     validate_results.append(vr)
             return validate_results
         if columns:
             name = f'Validate no more than {max_nulls} null types for columns: [{",".join(columns)}]'
         else:
             name = f'Validate no more than {max_nulls} null types for all columns'
-        self.add_validator(name, validate)
+        self.add_validator(name, validate_func)
         return self
