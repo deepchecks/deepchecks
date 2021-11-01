@@ -32,7 +32,7 @@ class MLChecksFilter:
 def numeric_segmentation_edges(column: pd.Series, max_segments: int) -> List[MLChecksFilter]:
     percentile_values = np.nanpercentile(column.to_numpy(), np.linspace(0, 100, max_segments + 1))
     # If there are a lot of duplicate values, some of the quantiles might be equal,
-    # so filter them (with preserved order)
+    # so filter them leaving only uniques (with preserved order)
     return pd.unique(percentile_values)
 
 
@@ -69,9 +69,15 @@ def partition_column(dataset: Dataset, column_name: str, max_segments: int, max_
     column = dataset.data[column_name]
     if column_name not in dataset.cat_features():
         percentile_values = numeric_segmentation_edges(column, max_segments)
+        # If for some reason only single value in the column (and column not categorical) we will get single item
+        if len(percentile_values) == 1:
+            f = lambda df, val=percentile_values[0]: (df[column_name] == val)
+            label = str(percentile_values[0])
+            return [MLChecksFilter(f, label)]
+
         filters = []
         for start, end in zip(percentile_values[:-1], percentile_values[1:]):
-            # In case of the last edge, the end is closed.
+            # In case of the last range, the end is closed.
             if end == percentile_values[-1]:
                 f = lambda df, a=start, b=end: (df[column_name] >= a) & (df[column_name] <= b)
                 label = f'[{format_number(start)} - {format_number(end)}]'

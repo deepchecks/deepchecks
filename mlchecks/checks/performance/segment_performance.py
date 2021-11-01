@@ -99,6 +99,7 @@ def segment_performance(dataset: Dataset, model, metric: Union[str, Callable] = 
             for j in range(len(x)):
                 score = scores[i, j]
                 if not np.isnan(score):
+                    # The largest and smallest scores have dark background, so give them white text color
                     color = 'black' if q1 < score < q2 else 'white'
                     text = f'{format_number(score)}\n({counts[i, j]})'
                     ax.text(j, i, text, ha='center', va='center', color=color)
