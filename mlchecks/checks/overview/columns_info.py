@@ -1,4 +1,4 @@
-"""Module contains model_info check."""
+"""Module contains columns_info check."""
 import pandas as pd
 from mlchecks import CheckResult
 from mlchecks.base import Dataset
