@@ -62,7 +62,7 @@ def new_category_train_validation(train_dataset: Dataset, validation_dataset: Da
 
             new_categories.append([feature,
                                    n_new_cat / n_validation_samples,
-                                   new_category_values])
+                                   sorted(new_category_values)])
 
     if new_categories:
         dataframe = pd.DataFrame(data=[[new_category[0], format_percent(new_category[1]), new_category[2]]
