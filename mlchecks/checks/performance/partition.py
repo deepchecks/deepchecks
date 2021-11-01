@@ -57,7 +57,8 @@ def partition_column(dataset: Dataset, column_name: str, max_segments: int, max_
     For categorical we'll have a max of max_segments + 1, for the 'Others'. We take the largest categories which
     cumulative percent in data is equal/larger than `max_cat_proportions`. the rest will go to 'Others' even if less
     than max_segments.
-    For numerical we split into `max_segments` number of quantiles.
+    For numerical we split into maximum number of `max_segments` quantiles. if some of the quantiles are duplicates
+    then we merge them into the same segment range (so not all ranges necessarily will have same size).
 
     Args:
         dataset (Dataset):
