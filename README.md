@@ -33,7 +33,7 @@ performance metrics, data integrity issues, explainability, and other insights.
 
 MLChecks is a library that contains the following components:
 
-<img src="/Block-Diagram.jpeg" alt="MLChecks - Block diagram"/>
+<img src="./Block-Diagram.jpeg" alt="MLChecks - Block diagram"/>
 
 With MLChecks you can achieve the following type of suites:
 * Performance report
@@ -46,8 +46,8 @@ Each of these suites allows you to manage a variety of checks with a single line
 * [Confusion Matrix report](./notebooks/confusion_matrix_report_example.ipynb)
 * [Performance report](./notebooks/performance_report_example.ipynb)
 * [ROC report](./notebooks/roc_report_example.ipynb)
-* [Index Leakage report]("./notebooks/Index Leakage.ipynb")
-* [String mismatch report]("./notebooks/String mismatch.ipynb")
+* [Index Leakage report](./notebooks/Index Leakage.ipynb)
+* [String mismatch report](./notebooks/String mismatch.ipynb)
 * [Boosting overfit](./notebooks/boosting_overfit.ipynb)
 * [Data duplicate](./notebooks/data_duplicats.ipynb)
 * [Data Sample leakage](./notebooks/data_sample_leakage.ipynb)
