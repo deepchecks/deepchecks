@@ -141,10 +141,12 @@ class BaseCheck(metaclass=abc.ABCMeta):
             raise MLChecksValueError(f'validator name must be of type str but got: {type(name).__name__}')
         self._validators[name] = validator
 
-    def __repr__(self):
+    def __repr__(self, tabs=0):
         """Representation of check as string."""
-        validator_str = ''.join([f'\n\t\t{s}' for s in self._validators.keys()])
-        return f'{self.__class__.__name__}({self.params}) Validators: [{validator_str}]'
+        tabs_str = '\t' * tabs
+        validator_tabs = '\t' * (tabs + 1)
+        validator_str = ''.join([f'\n{validator_tabs}{s}' for s in self._validators.keys()])
+        return f'{tabs_str}{self.__class__.__name__}({self.params}) Validators: [{validator_str}]'
 
     def update_param(self, param: str, value):
         self.params[param] = value
