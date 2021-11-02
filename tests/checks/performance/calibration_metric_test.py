@@ -1,5 +1,4 @@
 """Contains unit tests for the calibration_metric check."""
-import numpy as np
 from mlchecks.checks.performance import CalibrationMetric, calibration_metric
 from mlchecks.utils import MLChecksValueError
 from hamcrest import assert_that, calling, raises, has_entries, close_to
