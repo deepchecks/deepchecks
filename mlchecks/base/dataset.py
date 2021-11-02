@@ -132,7 +132,7 @@ class Dataset:
         """
         cat_columns = []
 
-        for col in self.data.columns:
+        for col in self._features:
             num_unique = self.data[col].nunique(dropna=True)
             unique_ratio = num_unique / len(self.data[col].dropna())
             if not is_numeric_dtype(self.data[col]) or \
