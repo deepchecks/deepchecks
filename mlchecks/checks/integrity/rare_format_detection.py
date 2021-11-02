@@ -75,7 +75,7 @@ DEFAULT_PATTERNS = [
 ]
 
 
-def rare_format_detection(dataset: Union[Dataset, pd.DataFrame], 
+def rare_format_detection(dataset: Union[Dataset, pd.DataFrame],
                           columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
                           patterns: List[Pattern] = deepcopy(DEFAULT_PATTERNS), rarity_threshold: float = 0.05,
                           pattern_match_method: str = 'first') \
@@ -119,7 +119,7 @@ def rare_format_detection(dataset: Union[Dataset, pd.DataFrame],
 
     if pattern_match_method not in ['first', 'all']:
         raise MLChecksValueError(f'pattern_match_method must be "first" or "all", got {pattern_match_method}')
-    
+
     res = {column_name: _detect_per_column(dataset[column_name], patterns, rarity_threshold, pattern_match_method)
            for column_name in dataset.columns}
 
@@ -309,17 +309,19 @@ class RareFormatDetection(SingleDatasetBaseCheck):
 
         Args:
             dataset: Dataset - The dataset object
-            columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored ones.
-            ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns variable
+            columns (Union[str, Iterable[str]]): Columns to check,
+                                                 if none are given checks all columns except ignored ones.
+            ignore_columns (Union[str, Iterable[str]]): Columns to ignore,
+                                                        if none given checks based on columns variable
             patterns (List[Pattern]): patterns to look for when comparing common vs. rare formats. Uses DEFAULT_PATTERNS
                 if not specified.
                 Note that if pattern_match_method='first' (which it is by default), then the order of patterns matter.
                 In this case, it is advised to order the patterns from specific to general.
-            rarity_threshold (float): threshold to indicate what is considered a "sharp" drop in commonness of values. This
-                is used by the function get_rare_vs_common_values which divides data into "common" and "rare" values, and
-                is used here to determine which formats are common and which are rare.
-            pattern_match_method (str): 'first' or 'all'. If 'first', returns only the pattern where a "rare format" sample
-                was found for the first time. If 'all', returns all patterns in which anything was found.
+            rarity_threshold (float): threshold to indicate what is considered a "sharp" drop in commonness of values.
+                This is used by the function get_rare_vs_common_values which divides data into "common" and "rare" values,
+                and is used here to determine which formats are common and which are rare.
+            pattern_match_method (str): 'first' or 'all'. If 'first', returns only the pattern where a "rare format"
+                sample was found for the first time. If 'all', returns all patterns in which anything was found.
 
 
         Returns:
