@@ -3,7 +3,7 @@ import pandas as pd
 
 from mlchecks import Dataset, ensure_dataframe_type
 from mlchecks.utils import MLChecksValueError
-from hamcrest import assert_that, instance_of, equal_to, is_, calling, raises, not_none
+from hamcrest import assert_that, instance_of, equal_to, is_, calling, raises
 
 
 def assert_dataset(dataset: Dataset, args):
@@ -273,7 +273,7 @@ def test_dataset_date_unit_type():
 
 def test_dataset_date_convert_date():
     df = pd.DataFrame({'date': [1, 2]})
-    args = {'df':df,
+    args = {'df': df,
             'date': 'date',
             '_convert_date': False}
     dataset = Dataset(**args)
@@ -325,7 +325,7 @@ def test_dataset_validate_index(iris):
     dataset.validate_index('test')
 
 
-def test_dataset_validate_no_date(iris):
+def test_dataset_validate_no_index(iris):
     dataset = Dataset(iris)
     assert_that(calling(dataset.validate_index).with_args('test'),
                 raises(MLChecksValueError, 'function test requires dataset to have an index column'))
@@ -355,7 +355,7 @@ def test_dataset_validate_shared_features(diabetes):
 
 
 def test_dataset_validate_shared_features_fail(diabetes, iris_dataset):
-    train, val = diabetes
+    train = diabetes[0]
     assert_that(calling(train.validate_shared_features).with_args(iris_dataset, 'test'),
                 raises(MLChecksValueError, 'function test requires datasets to share the same features'))
 
@@ -366,7 +366,7 @@ def test_dataset_validate_shared_label(diabetes):
 
 
 def test_dataset_validate_shared_labels_fail(diabetes, iris_dataset):
-    train, val = diabetes
+    train = diabetes[0]
     assert_that(calling(train.validate_shared_label).with_args(iris_dataset, 'test'),
                 raises(MLChecksValueError, 'function test requires datasets to share the same label'))
 

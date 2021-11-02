@@ -90,13 +90,13 @@ class Dataset:
         self._max_categorical_ratio = max_categorical_ratio
         self._max_categories = max_categories
 
-        if self._label_name and self.column_in_features(self._label_name):
+        if self._label_name in self.features():
             raise MLChecksValueError(f'label column {self._label_name} can not be a feature column')
 
-        if self._date_name and self.column_in_features(self._date_name):
+        if self._label_name in self.features():
             raise MLChecksValueError(f'date column {self._date_name} can not be a feature column')
 
-        if self._index_name and self.column_in_features(self._index_name):
+        if self._label_name in self.features():
             raise MLChecksValueError(f'index column {self._index_name} can not be a feature column')
 
         if cat_features is not None:
@@ -110,9 +110,6 @@ class Dataset:
 
         if self._date_name and _convert_date:
             self._data[self._date_name] = self._data[self._date_name].apply(pd.Timestamp, unit=date_unit_type)
-
-    def column_in_features(self, column):
-        return column in self.features()
 
     @property
     def data(self) -> pd.DataFrame:
