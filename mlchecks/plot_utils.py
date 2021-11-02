@@ -10,7 +10,7 @@ _all__ = ['create_colorbar_barchart_for_check']
 
 def create_colorbar_barchart_for_check(x: np.array, y: np.array, ylabel: str = 'Result', xlabel: str = 'Features',
                                        color_map: str = 'RdYlGn_r', start: float = 0, stop: float = 1.0,
-                                       tick_steps: float = 0.1,
+                                       tick_steps: float = 0.1, color_label: str = 'Color',
                                        color_shift_midpoint: float = 0.5, check_name: str = ''):
     """Output a colorbar barchart using matplotlib.
 
@@ -44,7 +44,7 @@ def create_colorbar_barchart_for_check(x: np.array, y: np.array, ylabel: str = '
     sm.set_array([])
 
     cbar = plt.colorbar(sm)
-    cbar.set_label('Color', rotation=270, labelpad=25)
+    cbar.set_label(color_label, rotation=270, labelpad=25)
 
     plt.yticks(np.arange(start, stop, tick_steps))
     plt.ylabel(ylabel)
