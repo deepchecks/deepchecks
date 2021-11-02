@@ -26,8 +26,6 @@ def test_model_info_object(iris_labeled_dataset, iris_adaboost):
     result = check.run(iris_labeled_dataset, iris_adaboost).value
     # Assert
     assert len(result) == 3 # iris has 3 targets
-    for value in result.values():
-        assert isinstance(value , np.float64)
 
     assert_that(result, has_entries({
         0: close_to(0.99, 0.05),
