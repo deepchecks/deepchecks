@@ -3,7 +3,7 @@ import pandas as pd
 
 from mlchecks import Dataset, ensure_dataframe_type
 from mlchecks.utils import MLChecksValueError
-from hamcrest import assert_that, instance_of, equal_to, is_, calling, raises
+from hamcrest import assert_that, instance_of, equal_to, is_, calling, raises, not_none
 
 
 def assert_dataset(dataset: Dataset, args):
@@ -267,6 +267,9 @@ def test_dataset_date_unit_type():
     dataset = Dataset(df, **args)
     assert_dataset(dataset, args)
     date_col = dataset.date_col()
+    assert_that(date_col, not_none())
+    # disable false positive
+    # pylint:disable=unsubscriptable-object
     assert_that(date_col[0], is_(pd.Timestamp(1, unit='D')))
     assert_that(date_col[1], is_(pd.Timestamp(2, unit='D')))
 
@@ -279,6 +282,9 @@ def test_dataset_date_convert_date():
     dataset = Dataset(**args)
     assert_dataset(dataset, args)
     date_col = dataset.date_col()
+    assert_that(date_col, not_none())
+    # disable false positive
+    # pylint:disable=unsubscriptable-object
     assert_that(date_col[0], is_(1))
     assert_that(date_col[1], is_(2))
 

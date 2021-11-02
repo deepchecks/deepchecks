@@ -93,10 +93,10 @@ class Dataset:
         if self._label_name in self.features():
             raise MLChecksValueError(f'label column {self._label_name} can not be a feature column')
 
-        if self._label_name in self.features():
+        if self._date_name in self.features():
             raise MLChecksValueError(f'date column {self._date_name} can not be a feature column')
 
-        if self._label_name in self.features():
+        if self._index_name in self.features():
             raise MLChecksValueError(f'index column {self._index_name} can not be a feature column')
 
         if cat_features is not None:
