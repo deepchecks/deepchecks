@@ -62,7 +62,7 @@ def partition_column(dataset: Dataset, column_name: str, max_segments: int, max_
 
     Args:
         dataset (Dataset):
-        column_name (str):
+        column_name (str): column to partition.
         max_segments (int): maximum number of segments to split into.
         max_cat_proportions (float): (for categorical) ratio to aggregate largest values to show.
     """

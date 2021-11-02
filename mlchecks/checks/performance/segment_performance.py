@@ -106,7 +106,8 @@ def segment_performance(dataset: Dataset, model, metric: Union[str, Callable] = 
 
         ax.set_title(f'{metric_name} (count) by features {feature_1}/{feature_2}')
 
-    return CheckResult(scores, check=self, display=display)
+    value = {'scores': scores, 'counts': counts}
+    return CheckResult(value, check=self, display=display)
 
 
 class SegmentPerformance(SingleDatasetBaseCheck):
