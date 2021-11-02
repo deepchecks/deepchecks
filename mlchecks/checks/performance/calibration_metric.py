@@ -1,12 +1,11 @@
 """The calibration_metric check module."""
 from sklearn.base import BaseEstimator
 from sklearn.calibration import calibration_curve
-import matplotlib.pyplot as plt
 from sklearn.metrics import brier_score_loss
-
+import matplotlib.pyplot as plt
 from mlchecks import Dataset, CheckResult, SingleDatasetBaseCheck
 
-__all__ = ['calibration_metric_check', 'CalibrationMetric']
+__all__ = ["calibration_metric_check", "CalibrationMetric"]
 
 
 def calibration_metric_check(dataset: Dataset, model):
@@ -36,7 +35,7 @@ def calibration_metric_check(dataset: Dataset, model):
     def display():
         plt.cla()
         plt.clf()
-        fig = plt.figure(figsize=(6,6))
+        plt.figure(figsize=(6,6))
         ax1 = plt.gca()
 
         ax1.plot([0, 1], [0, 1], "k:", label="Perfectly calibrated")
@@ -51,22 +50,23 @@ def calibration_metric_check(dataset: Dataset, model):
                 calibration_curve(y_test == n_class, prob_pos, n_bins=10)
 
             ax1.plot(mean_predicted_value, fraction_of_positives, "s-",
-                     label="%s (brier=%1.3f)" % (n_class, clf_score))
+                     label=f"{n_class} (brier={clf_score:9.4f})")
 
             ax1.set_ylabel("Fraction of positives")
             ax1.set_ylim([-0.05, 1.05])
-            ax1.set_title('Calibration plots  (reliability curve)')
-            ax1.legend(loc='upper center', bbox_to_anchor=(0.5, -0.2), )
+            ax1.set_title("Calibration plots  (reliability curve)")
+            ax1.legend(loc="upper center", bbox_to_anchor=(0.5, -0.2), )
 
             ax1.set_xlabel("Mean predicted value")
 
         plt.tight_layout()
 
-    return CheckResult(0, header='Calibration Metric', check=self, display=display)
+    return CheckResult(0, header="Calibration Metric", check=self, display=display)
 
 
 class CalibrationMetric(SingleDatasetBaseCheck):
     """Return the calibration curve with brier score for each class."""
+
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run roc_report check.
 
