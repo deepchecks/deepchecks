@@ -32,6 +32,14 @@ def calibration_metric_check(dataset: Dataset, model):
     ds_y = dataset.data[label]
     y_pred = model.predict_proba(ds_x)
 
+    briers_scores = {}
+    unique_labels = dataset.label_col().unique()
+
+    for n_class in unique_labels:
+        prob_pos = y_pred[:, n_class]
+        clf_score = brier_score_loss(ds_y == n_class, prob_pos, pos_label=n_class)
+        briers_scores[n_class] = clf_score
+
     def display():
         plt.cla()
         plt.clf()
@@ -39,18 +47,14 @@ def calibration_metric_check(dataset: Dataset, model):
         ax1 = plt.gca()
 
         ax1.plot([0, 1], [0, 1], "k:", label="Perfectly calibrated")
-        unique_labels = dataset.label_col().unique()
         for n_class in unique_labels:
             prob_pos = y_pred[:, n_class]
-            y_test = ds_y
-
-            clf_score = brier_score_loss(y_test == n_class, prob_pos, pos_label=n_class)
 
             fraction_of_positives, mean_predicted_value = \
-                calibration_curve(y_test == n_class, prob_pos, n_bins=10)
+                calibration_curve(ds_y == n_class, prob_pos, n_bins=10)
 
             ax1.plot(mean_predicted_value, fraction_of_positives, "s-",
-                     label=f"{n_class} (brier={clf_score:9.4f})")
+                     label=f"{n_class} (brier={briers_scores[n_class]:9.4f})")
 
             ax1.set_ylabel("Fraction of positives")
             ax1.set_ylim([-0.05, 1.05])
@@ -61,7 +65,7 @@ def calibration_metric_check(dataset: Dataset, model):
 
         plt.tight_layout()
 
-    return CheckResult(0, header="Calibration Metric", check=self, display=display)
+    return CheckResult(briers_scores, header="Calibration Metric", check=self, display=display)
 
 
 class CalibrationMetric(SingleDatasetBaseCheck):
