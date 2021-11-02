@@ -114,7 +114,8 @@ def naive_comparison(train_dataset: Dataset, validation_dataset: Dataset,
         ax.bar(models,metrics_results)
         ax.set_ylabel(metric_name)
 
-    return CheckResult({'given_model_score': pred_metric, 'naive_model_score': naive_metric}, check=self, display=[text, display_func])
+    return CheckResult({'given_model_score': pred_metric, 'naive_model_score': naive_metric},
+                       check=self, display=[text, display_func])
 
 
 class NaiveComparison(TrainValidationBaseCheck):
