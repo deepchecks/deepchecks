@@ -72,7 +72,7 @@ def find_score(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
 
 
 def naive_comparison(train_dataset: Dataset, validation_dataset: Dataset,
-                      model, naive_model_type: str = 'random', max_ratio: float = 10,
+                      model, naive_model_type: str = 'random',
                       metric = None, metric_name = None):
     """Compare naive model score to given model score.
 
@@ -81,13 +81,12 @@ def naive_comparison(train_dataset: Dataset, validation_dataset: Dataset,
         validation_dataset (Dataset): The validation dataset object. Must contain a label.
         model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
         naive_model_type (str = 'random'):  Type of the naive model ['random', 'statistical'].
-        max_ratio (float = 10):  Value to return in case the score of the naive model is very low (or 0)
-                                 and the score of the predictions is positive (1 to inf).
         metric: a custume metric given by user.
         metric_name: name of a default metric.
 
     Returns:
-        CheckResult: value is ratio between model prediction to naive prediction
+        CheckResult: value is dictionary of shape: {'given_model_score': <score>, 'naive_model_score': <score>}
+                     display is a bar chart of those values.
 
     Raises:
         MLChecksValueError: If the object is not a Dataset instance.
@@ -103,11 +102,9 @@ def naive_comparison(train_dataset: Dataset, validation_dataset: Dataset,
                                                        task_type_check(model, train_dataset), model,
                                                        naive_model_type, metric, metric_name)
 
-    res = min(pred_metric / naive_metric, max_ratio) \
-            if naive_metric != 0 else (1 if pred_metric == 0 else max_ratio)
-
-    text = f'Model prediction has achieved {res:.2f} times ' \
-           f'more {metric_name} compared to Naive {naive_model_type} prediction on tested data.'
+    text = f'{type(model).__name__} Model prediction has achieved {pred_metric} ' \
+           f'in {metric_name} compared to Naive {naive_model_type} prediction ' \
+           f'which achived {naive_metric} on tested data.'
 
     def display_func():
         fig = plt.figure()
@@ -117,7 +114,7 @@ def naive_comparison(train_dataset: Dataset, validation_dataset: Dataset,
         ax.bar(models,metrics_results)
         ax.set_ylabel(metric_name)
 
-    return CheckResult(res, check=self, display=[text, display_func])
+    return CheckResult({'given_model_score': pred_metric, 'naive_model_score': naive_metric}, check=self, display=[text, display_func])
 
 
 class NaiveComparison(TrainValidationBaseCheck):
