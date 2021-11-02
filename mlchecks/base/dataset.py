@@ -1,5 +1,5 @@
 """The Dataset module containing the dataset Class and its functions."""
-from typing import Union, List, Any
+from typing import Dict, Union, List, Any
 import pandas as pd
 from pandas.core.dtypes.common import is_numeric_dtype
 
@@ -216,6 +216,30 @@ class Dataset:
            Features columns
         """
         return self.data[self._features] if self._features else None
+
+    def show_columns_info(self) -> Dict:
+        """Return the role and logical type of each column.
+
+        Returns:
+           Diractory of a column and its role
+        """
+        columns = {}
+        for column in self.data.columns:
+            if column == self._index_name:
+                value = 'index'
+            elif column == self._date_name:
+                value = 'date'
+            elif column == self._label_name:
+                value = 'label'
+            elif column in self._features:
+                if column in self._cat_features:
+                    value = 'categorical feature'
+                else:
+                    value = 'numerical feature'
+            else:
+                value = 'other'
+            columns[column] = value
+        return columns
 
     # Validations:
 
