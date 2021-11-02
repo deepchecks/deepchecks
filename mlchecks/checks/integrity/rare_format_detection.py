@@ -318,8 +318,8 @@ class RareFormatDetection(SingleDatasetBaseCheck):
                 Note that if pattern_match_method='first' (which it is by default), then the order of patterns matter.
                 In this case, it is advised to order the patterns from specific to general.
             rarity_threshold (float): threshold to indicate what is considered a "sharp" drop in commonness of values.
-                This is used by the function get_rare_vs_common_values which divides data into "common" and "rare" values,
-                and is used here to determine which formats are common and which are rare.
+                This is used by the function get_rare_vs_common_values which divides data into "common" and "rare"
+                values, and is used here to determine which formats are common and which are rare.
             pattern_match_method (str): 'first' or 'all'. If 'first', returns only the pattern where a "rare format"
                 sample was found for the first time. If 'all', returns all patterns in which anything was found.
 
