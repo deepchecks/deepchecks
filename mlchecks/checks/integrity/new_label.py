@@ -47,7 +47,8 @@ def new_label_train_validation(train_dataset: Dataset, validation_dataset: Datas
     if new_labels:
         n_new_label = len(validation_label[validation_label.isin(new_labels)])
 
-        dataframe = pd.DataFrame(data=[[label_column, format_percent(n_new_label/n_validation_samples), new_labels]],
+        dataframe = pd.DataFrame(data=[[label_column, format_percent(n_new_label/n_validation_samples), \
+                                        sorted(new_labels)]],
                                  columns=['Label column', 'Percent new labels in sample', 'New labels'])
         dataframe = dataframe.set_index(['Label column'])
 
