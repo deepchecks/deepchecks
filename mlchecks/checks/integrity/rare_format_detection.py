@@ -328,6 +328,4 @@ class RareFormatDetection(SingleDatasetBaseCheck):
                 - display: pandas Dataframe per column, showing the rare-to-common-ratio, common formats, examples for
                            common values and rare values
         """
-        return rare_format_detection(dataset=dataset, patterns=self.params.get('patterns', deepcopy(DEFAULT_PATTERNS)),
-                                     rarity_threshold=self.params.get('rarity_threshold', 0.05),
-                                     pattern_match_method=self.params.get('pattern_match_method', 'first'))
+        return rare_format_detection(dataset=dataset, **self.params)
