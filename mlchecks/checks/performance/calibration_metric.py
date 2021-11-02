@@ -5,10 +5,10 @@ from sklearn.metrics import brier_score_loss
 import matplotlib.pyplot as plt
 from mlchecks import Dataset, CheckResult, SingleDatasetBaseCheck
 
-__all__ = ["calibration_metric_check", "CalibrationMetric"]
+__all__ = ["calibration_metric", "CalibrationMetric"]
 
 
-def calibration_metric_check(dataset: Dataset, model):
+def calibration_metric(dataset: Dataset, model):
     """
     Return the calibration curve with brier score for each class.
 
@@ -23,7 +23,7 @@ def calibration_metric_check(dataset: Dataset, model):
         MLChecksValueError: If the object is not a Dataset instance with a label
 
     """
-    self = calibration_metric_check
+    self = calibration_metric
     Dataset.validate_dataset(dataset, self.__name__)
     dataset.validate_label(self.__name__)
 
@@ -81,4 +81,4 @@ class CalibrationMetric(SingleDatasetBaseCheck):
             CheckResult: value is dictionary of class and it's brier score, displays the calibration curve
              graph with each class
         """
-        return calibration_metric_check(dataset, model)
+        return calibration_metric(dataset, model)
