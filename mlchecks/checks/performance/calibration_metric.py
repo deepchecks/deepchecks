@@ -27,7 +27,6 @@ def calibration_metric(dataset: Dataset, model):
     Dataset.validate_dataset(dataset, self.__name__)
     dataset.validate_label(self.__name__)
 
-    label = dataset.label_name()
     ds_x = dataset.features_columns()
     ds_y = dataset.label_col()
     y_pred = model.predict_proba(ds_x)
