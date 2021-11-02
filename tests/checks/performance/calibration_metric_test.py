@@ -2,7 +2,7 @@
 import numpy as np
 from mlchecks.checks.performance import CalibrationMetric, calibration_metric
 from mlchecks.utils import MLChecksValueError
-from hamcrest import assert_that, calling, raises
+from hamcrest import assert_that, calling, raises, has_entries, close_to
 
 
 def test_dataset_wrong_input():
@@ -28,3 +28,9 @@ def test_model_info_object(iris_labeled_dataset, iris_adaboost):
     assert len(result) == 3 # iris has 3 targets
     for value in result.values():
         assert isinstance(value , np.float64)
+
+    assert_that(result, has_entries({
+        0: close_to(0.99, 0.05),
+        1: close_to(0.002, 0.05),
+        2: close_to(0.28, 0.05)
+    }))
