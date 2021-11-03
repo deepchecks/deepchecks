@@ -72,7 +72,7 @@ def find_score(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
 
 
 def naive_comparison(train_dataset: Dataset, validation_dataset: Dataset,
-                      model, naive_model_type: str = 'random',
+                      model, naive_model_type: str = 'statistical',
                       metric = None, metric_name = None):
     """Compare naive model score to given model score.
 

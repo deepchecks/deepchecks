@@ -15,7 +15,7 @@ def test_dataset_wrong_input():
 def test_classification_random(iris_split_dataset_and_model):
     train_ds, val_ds, clf = iris_split_dataset_and_model
     # Arrange
-    check = NaiveComparison()
+    check = NaiveComparison(naive_model_type='random')
     # Act X
     result = check.run(train_ds, val_ds, clf).value
     # Assert
@@ -37,7 +37,7 @@ def test_classification_statistical(iris_split_dataset_and_model):
 def test_classification_tree_custom_metric(iris_split_dataset_and_model):
     train_ds, val_ds, clf = iris_split_dataset_and_model
     # Arrange
-    check = NaiveComparison(metric='recall_micro')
+    check = NaiveComparison(naive_model_type='random', metric='recall_micro')
     # Act X
     result = check.run(train_ds, val_ds, clf).value
     # Assert
@@ -48,7 +48,7 @@ def test_classification_tree_custom_metric(iris_split_dataset_and_model):
 def test_regression_random(diabetes_split_dataset_and_model):
     train_ds, val_ds, clf = diabetes_split_dataset_and_model
     # Arrange
-    check = NaiveComparison()
+    check = NaiveComparison(naive_model_type='random')
     # Act X
     result = check.run(train_ds, val_ds, clf).value
     # Assert
