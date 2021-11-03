@@ -1,5 +1,5 @@
 """Contains unit tests for the confusion_matrix_report check."""
-from mlchecks.checks.performance import naive_model_comparison, NaiveModelComparision
+from mlchecks.checks.performance import naive_model_comparison, NaiveModelComparison
 from mlchecks.utils import MLChecksValueError
 from hamcrest import assert_that, calling, raises, close_to
 
@@ -15,7 +15,7 @@ def test_dataset_wrong_input():
 def test_classification_random(iris_split_dataset_and_model):
     train_ds, val_ds, clf = iris_split_dataset_and_model
     # Arrange
-    check = NaiveModelComparision(naive_model_type='random')
+    check = NaiveModelComparison(naive_model_type='random')
     # Act X
     result = check.run(train_ds, val_ds, clf).value
     # Assert
@@ -26,7 +26,7 @@ def test_classification_random(iris_split_dataset_and_model):
 def test_classification_statistical(iris_split_dataset_and_model):
     train_ds, val_ds, clf = iris_split_dataset_and_model
     # Arrange
-    check = NaiveModelComparision(naive_model_type='statistical')
+    check = NaiveModelComparison(naive_model_type='statistical')
     # Act X
     result = check.run(train_ds, val_ds, clf).value
     # Assert
@@ -37,7 +37,7 @@ def test_classification_statistical(iris_split_dataset_and_model):
 def test_classification_tree_custom_metric(iris_split_dataset_and_model):
     train_ds, val_ds, clf = iris_split_dataset_and_model
     # Arrange
-    check = NaiveModelComparision(naive_model_type='random', metric='recall_micro')
+    check = NaiveModelComparison(naive_model_type='random', metric='recall_micro')
     # Act X
     result = check.run(train_ds, val_ds, clf).value
     # Assert
@@ -48,7 +48,7 @@ def test_classification_tree_custom_metric(iris_split_dataset_and_model):
 def test_regression_random(diabetes_split_dataset_and_model):
     train_ds, val_ds, clf = diabetes_split_dataset_and_model
     # Arrange
-    check = NaiveModelComparision(naive_model_type='random')
+    check = NaiveModelComparison(naive_model_type='random')
     # Act X
     result = check.run(train_ds, val_ds, clf).value
     # Assert
@@ -59,7 +59,7 @@ def test_regression_random(diabetes_split_dataset_and_model):
 def test_regression_statistical(diabetes_split_dataset_and_model):
     train_ds, val_ds, clf = diabetes_split_dataset_and_model
     # Arrange
-    check = NaiveModelComparision(naive_model_type='statistical')
+    check = NaiveModelComparison(naive_model_type='statistical')
     # Act X
     result = check.run(train_ds, val_ds, clf).value
     # Assert
