@@ -28,6 +28,9 @@ def find_score(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
         task_type (ModelType): the model type.
         model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
         naive_model_type (str): Type of the naive model ['random', 'statistical'].
+                                random is random label from train,
+                                statistical is mean for regression or
+                                the label that appears most often for classification
         metric: a custom metric given by user.
         metric_name: name of a default metric.
     Returns:
@@ -49,7 +52,7 @@ def find_score(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
             naive_pred = np.array([np.mean(train_ds.label_col())] * len(val_df))
 
         elif task_type in (ModelType.BINARY, ModelType.MULTICLASS):
-            counts = train_ds.label_col().value_counts()
+            counts = train_ds.label_col().mode()
             naive_pred = np.array([counts.index[0]] * len(val_df))
 
     else:
