@@ -7,7 +7,7 @@ from mlchecks.base.check import TrainValidationBaseCheck
 from mlchecks.metric_utils import DEFAULT_METRICS_DICT, DEFAULT_SINGLE_METRIC, task_type_check, ModelType, validate_scorer
 from mlchecks.utils import model_type_validation
 
-__all__ = ['naive_comparison', 'NaiveComparison']
+__all__ = ['naive_model_comparison', 'NaiveModelComparision']
 
 
 class DummyModel():
@@ -71,7 +71,7 @@ def find_score(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
     return naive_metric, pred_metric, metric_name
 
 
-def naive_comparison(train_dataset: Dataset, validation_dataset: Dataset,
+def naive_model_comparison(train_dataset: Dataset, validation_dataset: Dataset,
                       model, naive_model_type: str = 'statistical',
                       metric = None, metric_name = None):
     """Compare naive model score to given model score.
@@ -91,7 +91,7 @@ def naive_comparison(train_dataset: Dataset, validation_dataset: Dataset,
     Raises:
         MLChecksValueError: If the object is not a Dataset instance.
     """
-    self = naive_comparison
+    self = naive_model_comparison
     Dataset.validate_dataset(train_dataset, self.__name__)
     Dataset.validate_dataset(validation_dataset, self.__name__)
     train_dataset.validate_label(self.__name__)
@@ -118,7 +118,7 @@ def naive_comparison(train_dataset: Dataset, validation_dataset: Dataset,
                        check=self, display=[text, display_func])
 
 
-class NaiveComparison(TrainValidationBaseCheck):
+class NaiveModelComparision(TrainValidationBaseCheck):
     """Compare naive model score to given model score."""
 
     def run(self, train_dataset, validation_dataset, model) -> CheckResult:
@@ -132,4 +132,4 @@ class NaiveComparison(TrainValidationBaseCheck):
         Returns:
             CheckResult: value is ratio between model prediction to naive prediction
         """
-        return naive_comparison(train_dataset, validation_dataset, model, **self.params)
+        return naive_model_comparison(train_dataset, validation_dataset, model, **self.params)
