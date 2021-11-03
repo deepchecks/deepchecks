@@ -18,7 +18,7 @@ def string_length_outlier(dataset: Union[pd.DataFrame, Dataset], columns: Union[
                           ignore_columns: Union[str, Iterable[str]] = None,
                           num_percentiles: int = 1000, inner_quantile_range: int = 94,
                           outlier_factor: int = 4) -> CheckResult:
-    """Detect outliers in string length.
+    """Detect strings with length that is much longer/shorter than the identified "normal" string lengths.
 
     Args:
         dataset (DataFrame): A dataset or pd.FataFrame object.
