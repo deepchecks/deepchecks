@@ -7,7 +7,7 @@ import pandas as pd
 from mlchecks import Dataset
 from mlchecks.checks import RareFormatDetection
 
-from hamcrest import assert_that, equal_to, empty
+from hamcrest import assert_that, equal_to, empty, not_none, none
 
 
 def util_generate_dataframe():
@@ -49,6 +49,43 @@ def test_assert_change_in_format2():
     assert_that(res.value['date'], empty())
     assert_that(res.value['email'].loc['ratio of rare patterns to common patterns'].values[0], equal_to('1.01%'))
 
+
+def test_assert_param_rarity_threshold():
+    df = util_generate_dataframe()
+    df['email'].loc[[0, 1]] = ['myname@gmail.com1', 'myname@gmail.co']
+    c = RareFormatDetection(rarity_threshold=0.01)
+    res = c.run(dataset=Dataset(df))
+    assert_that(res.value['date'], empty())
+    assert_that(res.value['email'].loc['ratio of rare patterns to common patterns'].values[0], equal_to('0.50%'))
+
+
+def test_assert_param_pattern_match_method():
+    df = util_generate_dataframe()
+    df['email'].loc[[0, 1]] = ['myname@gmail.com1', 'myname@gmail.co']
+    c = RareFormatDetection(pattern_match_method='all')
+    res = c.run(dataset=Dataset(df))
+    assert_that(res.value['date'], empty())
+    assert_that(len(res.value['email'].columns), equal_to(5))
+
+
+def test_assert_param_columns():
+    df = util_generate_dataframe()
+    df['stam'] = 'stam'
+    c = RareFormatDetection(columns=['date', 'email'])
+    res = c.run(dataset=Dataset(df))
+    assert_that(res.value.get('email'), not_none())
+    assert_that(res.value.get('date'), not_none())
+    assert_that(res.value.get('stam'),none())
+
+
+def test_assert_param_ignore_columns():
+    df = util_generate_dataframe()
+    df['stam'] = 'stam'
+    c = RareFormatDetection(ignore_columns=['stam'])
+    res = c.run(dataset=Dataset(df))
+    assert_that(res.value.get('email'), not_none())
+    assert_that(res.value.get('date'), not_none())
+    assert_that(res.value.get('stam'),none())
 
 def test_runs_on_numbers():
     df = pd.DataFrame(np.ones((100, 1)) * 11111, columns=['numbers'])
