@@ -76,7 +76,7 @@ class RareCategoryEncoder:
         return mapper
 
     def _get_unique_other_value(self, series: pd.Series):
-        unique_values = series.unique()
+        unique_values = list(series.unique())
         other = self.DEFAULT_OTHER_VALUE
         i = 0
         while other in unique_values:

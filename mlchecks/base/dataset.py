@@ -115,6 +115,10 @@ class Dataset:
                        index=index, date=date, _convert_date=False, max_categorical_ratio=self._max_categorical_ratio,
                        max_categories=self._max_categories)
 
+    def sample(self, size: int):
+        size = min(size, self.n_samples())
+        return self.copy(self.data.sample(size))
+
     def n_samples(self):
         """Return number of samples in dataframe.
 

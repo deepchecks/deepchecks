@@ -87,19 +87,13 @@ class TrustScore:
         X_keep, Y_keep = X[keep_id, :], Y[keep_id]
         return X_keep, Y_keep
 
-    def fit(self, X: np.ndarray, Y: np.ndarray, classes: int = None) -> None:
+    def fit(self, X: np.ndarray, Y: np.ndarray) -> None:
         """Build KDTrees for each prediction class.
 
         Args:
             X (np.ndarray): Data.
             Y (np.ndarray): Target labels, either one-hot encoded or the actual class label.
-            classes (int): Number of prediction classes, needs to be provided if Y equals the predicted class.
         """
-        self.classes = classes if classes is not None else Y.shape[1]
-        self.kdtrees = [None] * self.classes  # type: Any
-        self.X_kdtree = [None] * self.classes  # type: Any
-
-        # KDTree and kNeighborsClassifier need 2D data
         if len(X.shape) > 2:
             warnings.warn(f'Reshaping data from {X.shape} to {X.reshape(X.shape[0], -1).shape} so k-d trees can '
                           'be built.')
@@ -108,6 +102,12 @@ class TrustScore:
         # make sure Y represents predicted classes, not one-hot encodings
         if len(Y.shape) > 1:
             Y = np.argmax(Y, axis=1)
+            self.classes = Y.shape[1]
+        else:
+            self.classes = len(np.unique(Y))
+        # KDTree and kNeighborsClassifier need 2D data
+        self.kdtrees = [None] * self.classes  # type: Any
+        self.X_kdtree = [None] * self.classes  # type: Any
 
         if self.filter == 'probability_knn':
             X_filter, Y_filter = self.filter_by_probability_knn(X, Y)
