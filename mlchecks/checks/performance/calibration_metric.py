@@ -40,10 +40,8 @@ def calibration_metric(dataset: Dataset, model):
         briers_scores[n_class] = clf_score
 
     def display():
-        plt.cla()
-        plt.clf()
-        plt.figure(figsize=(6,6))
-        ax1 = plt.gca()
+        fig = plt.figure(figsize=(6,6))
+        ax1 = fig.add_subplot(111)
 
         ax1.plot([0, 1], [0, 1], "k:", label="Perfectly calibrated")
         for n_class in unique_labels:
