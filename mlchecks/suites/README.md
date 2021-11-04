@@ -2,7 +2,7 @@
 
 ## Using Existing CheckSuites
 
-### Prebuilt Suites
+### List of Prebuilt Suites
 
 [**Integrity Suites**](./integrity_suite.py)
 
@@ -24,18 +24,18 @@
   - PerformanceCheckSuite
 
 ### Running a Suite
-to run a suite, firs import it:
+to run a suite, first import it
 ```python
 from mlchecks.suites import *
 ```
-And run it with the required datasets:
+Then run it with the required input parameters (datasets and models)
 ```python
 OverfitCheckSuite().run(model=my_classification_model, train_dataset=ds_train, validation_dataset=ds_val)
 ```
 
 ## Creating Your Custom CheckSuite
 
-Import Checksuites and Checks
+Import CheckSuite and Checks from mlchecks
 ```python
 from mlchecks import CheckSuite
 from mlchecks.checks import *
@@ -51,7 +51,7 @@ MyModelSuite = CheckSuite('Simple Suite For Model Performance',
     NaiveComparision(native_model_type='statistical')
 )
 ```
-and run with required parameters (datasets and models)
+Then run with required input parameters (datasets and models)
 ```python
 MyModelSuite.run(model=rf_clf, train_dataset=ds_train, validation_dataset=ds_val, check_datasets_policy='both')
 ```
