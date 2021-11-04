@@ -9,14 +9,30 @@ from mlchecks.checks.leakage import (
 )
 
 
-__all__ = ['LeakageCheckSuite']
+__all__ = ['IndexLeakageCheckSuite', 'DateLeakageCheckSuite', 'DataLeakageCheckSuite', 'LeakageCheckSuite']
 
-
-LeakageCheckSuite = CheckSuite(
-    'Leakage Suite',
-    DataSampleLeakageReport(),
+IndexLeakageCheckSuite = CheckSuite(
+    'Index Leakage Suite',
     DateTrainValidationLeakageDuplicates(),
-    DateTrainValidationLeakageOverlap(),
-    IndexTrainValidationLeakage(),
+    IndexTrainValidationLeakage()
+)
+
+DateLeakageCheckSuite = CheckSuite(
+    'Date Leakage Suite',
+    DateTrainValidationLeakageDuplicates(),
+    DateTrainValidationLeakageOverlap()
+)
+
+DataLeakageCheckSuite = CheckSuite(
+    'Data Leakage Suite',
+    DataSampleLeakageReport(),
     SingleFeatureContributionTrainValidation()
 )
+
+LeakageCheckSuite = CheckSuite(
+    'Leakage Check Suite',
+    IndexLeakageCheckSuite,
+    DateLeakageCheckSuite,
+    DataLeakageCheckSuite
+)
+
