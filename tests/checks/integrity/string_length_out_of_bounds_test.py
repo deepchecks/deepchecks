@@ -29,7 +29,6 @@ def test_single_outlier():
     assert_that(result, has_length(1))
 
 
-
 def test_outlier_multi_column():
     # Arrange
     col_data = ['a', 'b'] * 100

@@ -8,7 +8,7 @@ from sklearn.base import ClassifierMixin, RegressorMixin
 __all__ = ['ModelType', 'task_type_check', 'get_metrics_list', 'validate_scorer', 'DEFAULT_METRICS_DICT',
            'DEFAULT_SINGLE_METRIC']
 
-from mlchecks.utils import model_type_validation
+from mlchecks.utils import model_type_validation, MLChecksValueError
 
 
 class ModelType(enum.Enum):

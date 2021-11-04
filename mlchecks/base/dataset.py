@@ -166,7 +166,7 @@ class Dataset:
         Returns:
             If is categorical according to input numbers
         """
-        return n_unique / n_samples < self._max_categorical_ratio and n_unique <= self._max_categories
+        return n_unique / n_samples < self._max_categorical_ratio or n_unique <= self._max_categories
 
     def index_name(self) -> Union[str, None]:
         """If index column exists, return its name.
@@ -270,6 +270,8 @@ class Dataset:
         return columns
 
     def check_compatible_labels(self):
+        """Check if label column is supported by MLChecks
+        """
         if is_string_column(self.label_col()):
             raise MLChecksValueError('String labels are not supported')
         elif pd.isnull(self.label_col()).any():
