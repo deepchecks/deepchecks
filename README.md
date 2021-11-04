@@ -1,175 +1,147 @@
-# MLChecks - TODO: Add logo
 
-![pyVersions](https://img.shields.io/pypi/pyversions/mlchecks) 
-![pkgVersion](https://img.shields.io/pypi/v/mlchecks) 
-![build](https://github.com/deepchecks/mlchecks/actions/workflows/build.yml/badge.svg) 
+# MLChecks
+
+![pyVersions](https://img.shields.io/pypi/pyversions/mlchecks)
+
+![pkgVersion](https://img.shields.io/pypi/v/mlchecks)
+
+![build](https://github.com/deepchecks/mlchecks/actions/workflows/build.yml/badge.svg)
+
 ![coverage](https://deepchecks-public.s3.eu-west-1.amazonaws.com/mlchecks/coverage.svg)
+
 ![pylint](https://deepchecks-public.s3.eu-west-1.amazonaws.com/mlchecks/pylint.svg)
 
+ MLChecks is a Python package, for quickly and efficiently validating many aspects of your trained machine learning models. These include model performance related issues, machine learning methodology best-practices, model and data integrity.
 
-MLChecks is a python package, which provides an easy-to-use method for validating machine learning models. 
-Using a single library with a few lines of code, you can perform individual checks and receive visualizations and derived data for your 
-performance metrics, data integrity issues, explainability, and other insights.
+## Key Concepts
 
-<!-- toc -->
+#### Check
+Each check enables you to inspect a specific aspect of your data and models. They are the basic building block of the MLChecks package, covering all kinds of common issues, such as:
 
-* [MLChecks](#mlchecks)
-  * [More about MLChecks](#more-about-mlchecks)
-  * [Installation](#installation)
-    + [Dependencies](#dependencies)
-    + [Using pip](#using-pip)
-    + [From source](#from-source)
-  * [Usage](#usage)
-  * [Contributing & Development](#contributing---development)
-      - [for more information regarding Contribution & Development, see [contributing](.CONTRIBUTING.md)](#for-more-information-regarding-contribution---development--see--contributing--contributingmd-)
-  * [Help and Support](#help-and-support)
-    + [Documentation](#documentation)
-    + [Communication](#communication)
-  * [License](#license)
-   
-<!-- tocstop --> 
+-   PerformanceOverfit
+    
+-   DataSampleLeakage
+    
+-   SingleFeatureContribution
+    
+-   DataDuplicates
+    
+-   … and [many more](./notebooks/README.md)
+    
 
-## More about MLChecks
+Each check displays a visual result and returns a dictionary-type result that can be used to validate the expected results by setting conditions upon them.
 
-MLChecks is a library that contains the following components:
+  #### Suite
+ An ordered collection of checks. [Here][Link to the suites readme] you can find existing suites. You can edit the preconfigured suites or build a suite of your own with a collection of checks with result validators.
 
-![MLChecks - Block diagram](https://github.com/deepchecks/MLChecks/tree/master/mlchecks/_static/img/Block-Diagram.jpeg)
-
-
-With MLChecks you can achieve the following type of suites:
-* Performance report
-* Data integrity
-* Explainability
-* Insights such as drift, confidence metrics, and more others.
-
-Each of these suites allows you to manage a variety of checks with a single line of code:
-
-* [Confusion Matrix report](./notebooks/confusion_matrix_report_example.ipynb)
-* [Performance report](./notebooks/performance_report_example.ipynb)
-* [ROC report](./notebooks/roc_report_example.ipynb)
-* [Index Leakage report](./notebooks/Index Leakage.ipynb)
-* [String mismatch report](./notebooks/String mismatch.ipynb)
-* [Boosting overfit](./notebooks/boosting_overfit.ipynb)
-* [Data duplicate](./notebooks/data_duplicats.ipynb)
-* [Data Sample leakage](./notebooks/data_sample_leakage.ipynb)
-* [Dominant frequency](./notebooks/dominant_frequency_change.ipynb)
-* [Mixed Nulls](./notebooks/mixed_nulls.ipynb)
-* [Mixed types](./notebooks/mixed_types.ipynb)
-* [New Category](./notebooks/new_category.ipynb)
-* [Performance overfit](./notebooks/performance_overfit.ipynb)
-* [Rare-format detection](./notebooks/rare_format_detection.ipynb)
-* [Single feature contribution](./notebooks/single_feature_contribution.ipynb)
-* [Special characters](./notebooks/special_characters.ipynb)
-* [String mismatch](./notebooks/string_mismatch_comparison.ipynb)
-
+  
 
 ## Installation
 
-### Dependencies
-
-MLChecks is supported & tested on **Python version 3.6 or higher**
-
-### Using pip
-
-MLChecks is on PyPI, so you can use `pip` to install it:
-
+#### Using pip with package wheel file
+From the directory in which you have the wheel file, run:
 ```bash
-# Install the latest Version
-pip install mlchecks #--user
-# Install a specific version
-pip install mlchecks==0.0.5 #--user
+pip3 install MLChecks-latest.whl #--user
 ```
 
-### From Source
-
-if you want to install from source, first, clone this repository:
+#### From source
+First clone the repository and then install the package from inside the repository's directory:
 ```bash
-git clone git@github.com:deepchecks/MLChecks.git
-```
-cd into the cloned repository using `cd mlchecks`
-then, you can run 
-```
+git clone https://github.com/deepchecks/MLChecks.git
+cd MLChecks
 python setup.py install # --user
 ```
 
 
+## Are You Ready  to Start Checking?
 
-## Getting Started
+To discover the full value from MLChecking your data and model, we recommend having in your jupyter environment:
 
-The following code demonstrates how to use MLChecks to query the model info for the `iris` dataset from `sklearn`.
-Most of the MLChecks functionality  requires adding just one line to your code.
+-   A scikit-learn API supporting model that you wish to validate
+    
+-   The models’ training data with labels
+    
+-   Validation data (on which the model wasn’t trained) with labels  
 
+Additionally, many of the checks and some of the suites need only a subset of the above to run.
+
+## Usage Examples
+
+### Running a Check
+For running a specific check on your dataframe, all you need to do is:
 ```python
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.datasets import load_iris
-from mlchecks.checks.overview import model_info
+from mlchecks.checks import *
+import pandas as pd
 
-clf = AdaBoostClassifier()
-iris = load_iris()
-X = iris.data
-Y = iris.target
-clf.fit(X, Y)
-
-model_info(clf)
+df_to_check = pd.read_csv('data_to_validate.csv')
+# Initialize and run desired check
+RareFormatDetection().run(df_to_check)
 ```
-which will result in the output:
+Which might product output of the type:
+><h4>Rare Format Detection</h4>
+> <p>Check whether columns have common formats (e.g. \"XX-XX-XXXX\" for dates\") and detects values that don't match.</p>
+> <p><b>&#x2713;</b> Nothing found</p>
 
-
-> <table border="1" class="dataframe">   <thead>
->     <tr style="text-align: right;">
->       <th>parameter</th>
->       <th>value</th>
->     </tr>   </thead>   <tbody>
+If all was fine, or alternatively something like:
+><h4>Rare Format Detection</h4>
+><p>Check whether columns have common formats (e.g. \"XX-XX-XXXX\" for dates\") and detects values that don't match.</p>
+>
+>
+> Column date:
+> <table border="1" class="dataframe">
+>   <thead>
 >     <tr>
->       <td>algorithm</td>
->       <td>SAMME.R</td>
+>       <th class="blank level0" >&nbsp;</th>
+>       <th class="col_heading level0 col0" >digits and letters format (case sensitive)</th>
+>     </tr>
+>   </thead>
+>   <tbody>
+>     <tr>
+>       <th id="T_ae5e3_level0_row0" class="row_heading level0 row0" >ratio of rare samples</th>
+>       <td id="T_ae5e3_row0_col0" class="data row0 col0" >1.50% (3)</td>
 >     </tr>
 >     <tr>
->       <td>base_estimator</td>
->       <td>None</td>
+>       <th id="T_ae5e3_level0_row1" class="row_heading level0 row1" >common formats</th>
+>       <td id="T_ae5e3_row1_col0" class="data row1 col0" >['2020-00-00']</td>
 >     </tr>
 >     <tr>
->       <td>learning_rate</td>
->       <td>1.0</td>
+>       <th id="T_ae5e3_level0_row2" class="row_heading level0 row2" >examples for values in common formats</th>
+>       <td id="T_ae5e3_row2_col0" class="data row2 col0" >['2021-11-07']</td>
 >     </tr>
 >     <tr>
->       <td>n_estimators</td>
->       <td>50</td>
+>       <th id="T_ae5e3_level0_row3" class="row_heading level0 row3" >values in rare formats</th>
+>       <td id="T_ae5e3_row3_col0" class="data row3 col0" >['2021-Nov-04', '2021-Nov-05', '2021-Nov-06']</td>
 >     </tr>
->     <tr>
->       <td>random_state</td>
->       <td>None</td>
->     </tr>   </tbody> </table>
+>   </tbody> </table>
 
+If mismatches were detected.
 
-**For more Examples take a look at the [notebooks](./notebooks) folder**
+### Running a Suite
+Let's take for example the iris dataset:
+```python
+import pandas as pd
+from sklearn.datasets import load_iris
+```
+```python
+iris_df = load_iris(return_X_y=False, as_frame=True)['frame']
+train_len = round(0.67*len(iris_df))
+df_train = iris_df[:train_len]
+df_val = iris_df[train_len:]
+```
+To run an existing suite all you need to do is import the suite and run it -
+```python
+from mlchecks.suites import IntegrityCheckSuite
+IntegrityCheckSuite.run(train_dataset=df_train, validation_dataset=df_val, check_datasets_policy='both')
+```
+Which will result in printing the outputs of all of the checks that are in that suite.
 
+### Example Notebooks
+For full usage examples, check out: 
+[MLChecks Quick Start Notebook](./examples/models/Iris%20Dataset%20CheckSuite%20Example.ipynb) for a simple example notebook for working with checks and suites.
+[Check Example Notebooks](./notebooks) to see all of the existing checks and their usage examples.
 
-## Contributing & Development
+## Communication
+-   Join our [Slack Community](https://join.slack.com/t/mlcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg) to connect with the maintainers and follow users and interesting discussions
+- Post a [Github Issue](https://github.com/deepchecks/MLChecks/issues) to suggest improvements, open an issue, or share feedback.
 
-We welcome contributors of all experience level, as part of our goal to become the "go-to" package for pre-emptive model validation and checking
-
-on unix based systems, you can use the `makefile` too ease development cycle:
-after fetching the source code, it is recommended to run `make all` to run tests and validation
-
-
-#### for more information regarding Contribution & Development, see [contributing](.CONTRIBUTING.md)
-
-
-
-## Help and Support
-
-### Documentation
-- [FAQ](FAQ.md) ? Link to the Documentation FAQ page (if we have it)
-- Publications: https://deepchecks.com/blog/
-
-### Communication
-- Slack: https://join.slack.com/t/mlcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg
-- Github Issues: https://github.com/deepchecks/MLChecks/issues
-- Github feature request: TODO
-<!--- - Github Discussions: **TODO: add when OpenSource and is added to the repo** --->
-
-
-## License
-
-[LICENSE_NAME](LICENSE)
+[comment]: <> "- Send us an [email](mailto:info@mlchecks.com) at info@mlchecks.com"
