@@ -1,10 +1,8 @@
 """The single_feature_contribution check module."""
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.cm import ScalarMappable
 import ppscore as pps
 
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck, TrainValidationBaseCheck
+from mlchecks.plot_utils import create_colorbar_barchart_for_check
 
 __all__ = ['single_feature_contribution', 'single_feature_contribution_train_validation',
            'SingleFeatureContribution', 'SingleFeatureContributionTrainValidation']
@@ -44,7 +42,7 @@ def single_feature_contribution(dataset: Dataset, ppscore_params=None):
 
     def plot():
         # Create graph:
-        create_colorbar_barchart_for_check(x=s_ppscore.index, y=s_ppscore.values)
+        create_colorbar_barchart_for_check(x=s_ppscore.index, y=s_ppscore.values, check_name=self.__name__)
 
     text = ['The PPS represents the ability of a feature to single-handedly predict another feature or label.',
             'A high PPS (close to 1) can mean that this feature\'s success in predicting the label is actually due to '
@@ -106,7 +104,8 @@ def single_feature_contribution_train_validation(train_dataset: Dataset, validat
 
     def plot():
         # Create graph:
-        create_colorbar_barchart_for_check(x=s_difference.index, y=s_difference.values, ylabel='PPS Difference')
+        create_colorbar_barchart_for_check(x=s_difference.index, y=s_difference.values,
+                                           ylabel='PPS Difference', check_name=self.__name__)
 
     text = ['The PPS represents the ability of a feature to single-handedly predict another feature or label.',
             'A high PPS (close to 1) can mean that this feature\'s success in predicting the label is actually due to '
@@ -175,24 +174,3 @@ class SingleFeatureContributionTrainValidation(TrainValidationBaseCheck):
         return single_feature_contribution_train_validation(train_dataset=train_dataset,
                                                             validation_dataset=validation_dataset,
                                                             ppscore_params=self.params.get('ppscore_params'))
-
-
-# Utils:
-
-
-def create_colorbar_barchart_for_check(x: np.array, y: np.array, ylabel: str='PPS'):
-    fig, ax = plt.subplots(figsize=(15, 4))  # pylint: disable=unused-variable
-
-    my_cmap = plt.cm.get_cmap('RdYlGn_r')
-    colors = my_cmap(list(y))
-    rects = ax.bar(x, y, color=colors)  # pylint: disable=unused-variable
-
-    sm = ScalarMappable(cmap=my_cmap, norm=plt.Normalize(0, 1))
-    sm.set_array([])
-
-    cbar = plt.colorbar(sm)
-    cbar.set_label('Color', rotation=270, labelpad=25)
-
-    plt.yticks(np.arange(0, 1, 0.1))
-    plt.ylabel(ylabel)
-    plt.xlabel('Features')
