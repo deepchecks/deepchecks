@@ -2,7 +2,7 @@
 import re
 from collections import defaultdict
 from decimal import Decimal
-from typing import Dict, Set, List
+from typing import Dict, Set, List, Union, Tuple
 from copy import copy
 import pandas as pd
 
@@ -61,25 +61,53 @@ def get_base_form_to_variants_dict(uniques):
     return base_form_to_variants
 
 
-def split_and_keep(s: str, separator: str) -> List[str]:
+def str_min_find(s: str, substr_list: List[str]) -> Tuple[int, str]:
+    """
+    Find the minimal first occurence of a substring in a string, and return both the index and substring.
+
+    Args:
+        s (str): The string in which we look for substrings
+        substr_list: list of substrings to find
+
+    Returns:
+
+    """
+    min_find = -1
+    min_substr = ''
+    for substr in substr_list:
+        first_find = s.find(substr)
+        if first_find != -1 and (first_find < min_find or min_find == -1):
+            min_find = first_find
+            min_substr = substr
+    return min_find, min_substr
+
+
+def split_and_keep(s: str, separators: Union[str, List[str]]) -> List[str]:
     """
     Split string by a another substring into a list. Like str.split(), but keeps the separator occurrences in the list.
 
     Args:
         s (str): the string to split
-        separator (str): the substring to split by
+        separators (str): the substring to split by
 
     Returns:
         List[str]: list of substrings, including the separator occurrences in string
 
     """
+    if isinstance(separators, str):
+        separators = [separators]
+
     split_s = []
     while len(s) != 0:
-        if s.find(separator) == 0:
-            split_s.append(separator)
-            s = s[len(separator):]
+        i, substr = str_min_find(s=s, substr_list=separators)
+        if i == 0:
+            split_s.append(substr)
+            s = s[len(substr):]
+        elif i == -1:
+            split_s.append(s)
+            break
         else:
-            pre, _ = s.split(separator, 1)
+            pre, _ = s.split(substr, 1)
             split_s.append(pre)
             s = s[len(pre):]
     return split_s
