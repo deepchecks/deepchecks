@@ -166,11 +166,11 @@ class BaseCheck(metaclass=abc.ABCMeta):
             tabs (int): number of tabs to shift by the output
         """
         tabs_str = '\t' * tabs
-        validator_tabs = '\t' * (tabs + 1)
+        condition_tabs = '\t' * (tabs + 1)
         check_str = f'{tabs_str}{self.__class__.__name__}({self.params})'
         if self._conditions:
-            validator_str = ''.join([f'\n{validator_tabs}{s}' for s in self._conditions.keys()])
-            return f'{check_str} Conditions: [{validator_str}\n{tabs_str}]'
+            conditions_str = ''.join([f'\n{condition_tabs}{i}: {s}' for i, s in enumerate(self._conditions.keys())])
+            return f'{check_str} Conditions: [{conditions_str}\n{tabs_str}]'
         else:
             return check_str
 
@@ -195,13 +195,16 @@ class BaseCheck(metaclass=abc.ABCMeta):
         """Remove all conditions from this check instance."""
         self._conditions.clear()
 
-    def remove_condition(self, name: str):
-        """Remove given condition by name.
+    def remove_condition(self, index: int):
+        """Remove given condition by index.
 
         Args:
-            name (str): name of condition to remove.
+            index (int): index of condtion to remove
         """
-        self._conditions.pop(name)
+        if index >= len(self._conditions):
+            raise MLChecksValueError(f'Index {int} of conditions does not exists')
+        key = list(self._conditions.keys())[index]
+        self._conditions.pop(key)
 
 
 class SingleDatasetBaseCheck(BaseCheck):
