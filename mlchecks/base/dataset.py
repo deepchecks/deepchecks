@@ -1,5 +1,5 @@
 """The Dataset module containing the dataset Class and its functions."""
-from typing import Union, List, Any
+from typing import Dict, Union, List, Any
 import pandas as pd
 
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
@@ -63,6 +63,11 @@ class Dataset:
         # Validations
         if use_index is True and index is not None:
             raise MLChecksValueError('parameter use_index cannot be True if index is given')
+        if index is not None and index not in self._data.columns:
+            error_message = f'index column {index} not found in dataset columns.'
+            if index == 'index':
+                error_message += ' If you attempted to use the dataframe index, set use_index to True instead.'
+            raise MLChecksValueError(error_message)
         if date is not None and date not in self._data.columns:
             raise MLChecksValueError(f'date column {date} not found in dataset columns')
         if label is not None and label not in self._data.columns:
@@ -84,6 +89,15 @@ class Dataset:
         self._date_unit_type = date_unit_type
         self._max_categorical_ratio = max_categorical_ratio
         self._max_categories = max_categories
+
+        if self._label_name in self.features():
+            raise MLChecksValueError(f'label column {self._label_name} can not be a feature column')
+
+        if self._date_name in self.features():
+            raise MLChecksValueError(f'date column {self._date_name} can not be a feature column')
+
+        if self._index_name in self.features():
+            raise MLChecksValueError(f'index column {self._index_name} can not be a feature column')
 
         if cat_features is not None:
             if set(cat_features).intersection(set(self._features)) != set(cat_features):
@@ -215,6 +229,30 @@ class Dataset:
            Features columns
         """
         return self.data[self._features] if self._features else None
+
+    def show_columns_info(self) -> Dict:
+        """Return the role and logical type of each column.
+
+        Returns:
+           Diractory of a column and its role
+        """
+        columns = {}
+        for column in self.data.columns:
+            if column == self._index_name:
+                value = 'index'
+            elif column == self._date_name:
+                value = 'date'
+            elif column == self._label_name:
+                value = 'label'
+            elif column in self._features:
+                if column in self._cat_features:
+                    value = 'categorical feature'
+                else:
+                    value = 'numerical feature'
+            else:
+                value = 'other'
+            columns[column] = value
+        return columns
 
     # Validations:
 
