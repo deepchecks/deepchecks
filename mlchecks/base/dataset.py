@@ -274,7 +274,7 @@ class Dataset:
         if is_string_column(self.label_col()):
             raise MLChecksValueError('String labels are not supported')
         elif pd.isnull(self.label_col()).any():
-            raise MLChecksValueError('Null labels are not supported')
+            raise MLChecksValueError('Can\'t have null values in label column')
 
     # Validations:
 

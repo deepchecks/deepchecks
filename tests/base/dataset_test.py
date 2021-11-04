@@ -438,4 +438,4 @@ def test_invalid_label():
     args = {'df': null_label_df,
             'label': 'label'}
     assert_that(calling(Dataset).with_args(**args),
-                raises(MLChecksValueError, 'Null labels are not supported'))
+                raises(MLChecksValueError, 'Can\'t have null values in label column'))
