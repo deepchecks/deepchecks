@@ -22,13 +22,13 @@ Each check enables you to inspect a specific aspect of your data and models. The
     
 -   DataDuplicates
     
--   … and [many more](./notebooks/README.md)
+-   … and [many more](./notebooks)
     
 
 Each check displays a visual result and returns a custom result value that can be used to validate the expected check results by setting conditions upon them.
 
 #### Suite
-An ordered collection of checks. [Here][./mlchecks/suites/README.md] you can find the existing suites and a code example for how to add your own custom suite. You can edit the preconfigured suites or build a suite of your own with a collection of checks and result conditions.
+An ordered collection of checks. [Here](./mlchecks/suites) you can find the existing suites and a code example for how to add your own custom suite. You can edit the preconfigured suites or build a suite of your own with a collection of checks and result conditions.
   
 
 ## Installation
@@ -83,7 +83,7 @@ If all was fine, or alternatively something like:
 >
 >
 > Column date:
-> <table border="1" class="dataframe">
+> <table border="1" class="dataframe" style="text-align: left;">
 >   <thead>
 >     <tr>
 >       <th class="blank level0" >&nbsp;</th>
