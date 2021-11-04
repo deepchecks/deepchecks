@@ -8,7 +8,7 @@ import pandas as pd
 
 
 __all__ = ['string_baseform', 'get_base_form_to_variants_dict', 'underscore_to_capitalize', 'split_and_keep',
-           'split_and_keep_by_many', 'is_string_column', 'format_percent', 'format_number']
+           'split_by_order', 'is_string_column', 'format_percent', 'format_number']
 
 from pandas.core.dtypes.common import is_numeric_dtype
 
@@ -70,6 +70,8 @@ def str_min_find(s: str, substr_list: List[str]) -> Tuple[int, str]:
         substr_list: list of substrings to find
 
     Returns:
+        min_find (int): index of minimal first occurence of substring
+        min_substr (str): the substring that occures in said index
 
     """
     min_find = -1
@@ -113,7 +115,7 @@ def split_and_keep(s: str, separators: Union[str, List[str]]) -> List[str]:
     return split_s
 
 
-def split_and_keep_by_many(s: str, separators: List[str], keep: bool = True) -> List[str]:
+def split_by_order(s: str, separators: List[str], keep: bool = True) -> List[str]:
     """
     Split string by a a list of substrings, each used once as a separator.
 

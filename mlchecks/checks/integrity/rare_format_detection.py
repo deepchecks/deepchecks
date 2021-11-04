@@ -8,7 +8,7 @@ import pandas as pd
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 from mlchecks.base.dataset import ensure_dataframe_type
-from mlchecks.string_utils import split_and_keep, split_and_keep_by_many, format_percent
+from mlchecks.string_utils import split_and_keep, split_by_order, format_percent
 from mlchecks.utils import MLChecksValueError
 
 __all__ = ['rare_format_detection', 'RareFormatDetection', 'Pattern']
@@ -248,7 +248,7 @@ def _refine_formats(fmt: str, substrs: List[str], samples: List[str], is_substr_
     if is_substr_sequence is True:
         splt_fmt = split_and_keep(s=fmt, separators=substrs)
         splt_fmt_wo_sep = list(filter(lambda x: x not in substrs, splt_fmt))
-        split_examples = [split_and_keep_by_many(s, splt_fmt_wo_sep) for s in samples]
+        split_examples = [split_by_order(s, splt_fmt_wo_sep) for s in samples]
     else:
         splt_fmt = list(fmt)
         split_examples = [list(s) for s in samples]
