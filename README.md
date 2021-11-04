@@ -2,16 +2,12 @@
 # MLChecks
 
 ![pyVersions](https://img.shields.io/pypi/pyversions/mlchecks)
-
 ![pkgVersion](https://img.shields.io/pypi/v/mlchecks)
-
 ![build](https://github.com/deepchecks/mlchecks/actions/workflows/build.yml/badge.svg)
-
 ![coverage](https://deepchecks-public.s3.eu-west-1.amazonaws.com/mlchecks/coverage.svg)
-
 ![pylint](https://deepchecks-public.s3.eu-west-1.amazonaws.com/mlchecks/pylint.svg)
 
- MLChecks is a Python package, for quickly and efficiently validating many aspects of your trained machine learning models. These include model performance related issues, machine learning methodology best-practices, model and data integrity.
+MLChecks is a Python package, for quickly and efficiently validating many aspects of your trained machine learning models. These include model performance related issues, machine learning methodology best-practices, model and data integrity.
 
 ## Key Concepts
 
