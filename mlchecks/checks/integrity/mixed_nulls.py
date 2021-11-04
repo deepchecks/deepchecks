@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from mlchecks import Dataset, CheckResult, ensure_dataframe_type
-from mlchecks.base.check import SingleDatasetBaseCheck, ValidateResult
+from mlchecks.base.check import SingleDatasetBaseCheck, ConditionResult
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 from mlchecks.string_utils import string_baseform, format_percent
 from mlchecks.utils import MLChecksValueError
@@ -117,29 +117,29 @@ class MixedNulls(SingleDatasetBaseCheck):
                            columns=self.params.get('columns'),
                            check_nan=self.params.get('check_nan'))
 
-    def validate_max_different_nulls(self, max_nulls: int, *columns):
-        """Add validation that a column have a maximum number of different null values.
+    def add_condition_max_different_nulls(self, max_nulls: int, *columns):
+        """Add condition that a column have a maximum number of different null values.
 
         Args:
             max_nulls (int): Maximum number allowed of different null values.
-            columns (str): Column to limit the validation to. If none, validates all.
+            columns (str): Column to limit the condition to. If none, runs on all.
         """
-        def validate_func(result: Dict) -> List[ValidateResult]:
+        def condition(result: Dict) -> List[ConditionResult]:
             columns_in_result = result.keys()
             if columns:
                 columns_in_result = set(columns_in_result) ^ set(columns)
-            validate_results = []
+            condition_results = []
             for column in columns_in_result:
                 nulls = result[column]
                 num_nulls = len(nulls)
                 if num_nulls > max_nulls:
-                    vr = ValidateResult(False, f'Expected maximum {max_nulls} types of null in column {column}',
-                                        f'Found {num_nulls} types of null in column {column}')
-                    validate_results.append(vr)
-            return validate_results
+                    vr = ConditionResult(False, f'Expected maximum {max_nulls} types of null in column {column}',
+                                         f'Found {num_nulls} types of null in column {column}')
+                    condition_results.append(vr)
+            return condition_results
         if columns:
-            name = f'Validate no more than {max_nulls} null types for columns: [{",".join(columns)}]'
+            name = f'No more than {max_nulls} null types for columns: [{",".join(columns)}]'
         else:
-            name = f'Validate no more than {max_nulls} null types for all columns'
-        self.add_validator(name, validate_func)
+            name = f'No more than {max_nulls} null types for all columns'
+        self.add_condition(name, condition)
         return self

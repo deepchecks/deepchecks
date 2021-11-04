@@ -6,7 +6,7 @@ from collections import OrderedDict
 from typing import Dict, Any, Callable, List, Union
 
 __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainValidationBaseCheck',
-           'ModelOnlyBaseCheck', 'ValidateResult', 'ValidateCategory']
+           'ModelOnlyBaseCheck', 'ConditionResult', 'ConditionCategory']
 
 import pandas as pd
 from IPython.core.display import display_html
@@ -89,30 +89,30 @@ class CheckResult:
         return self.value.__repr__()
 
 
-class ValidateCategory(enum.Enum):
-    """Validation result category. indicates whether the result should fail the suite."""
+class ConditionCategory(enum.Enum):
+    """Condition result category. indicates whether the result should fail the suite."""
 
-    ERROR = 'ERROR'
+    FAILURE = 'FAILURE'
     INSIGHT = 'INSIGHT'
 
 
-class ValidateResult:
-    """Contain result of a validation function."""
+class ConditionResult:
+    """Contain result of a condition function."""
 
     is_pass: bool
-    category: ValidateCategory
+    category: ConditionCategory
     expected: str
     actual: str
 
     def __init__(self, is_pass: bool, expected: str = None, actual: str = None,
-                 category: ValidateCategory = ValidateCategory.ERROR):
-        """Initialize validation result.
+                 category: ConditionCategory = ConditionCategory.FAILURE):
+        """Initialize condition result.
 
         Args:
-            is_pass (bool): Whether the validation functions passed the given value or not.
+            is_pass (bool): Whether the condition functions passed the given value or not.
             expected (str): What condition was expected to be met.
             actual (str): What actual value was found.
-            category (ValidateCategory): Which category is the validation result.
+            category (ConditionCategory): Which category is the condition result.
         """
         self.is_pass = is_pass
         self.expected = expected
@@ -124,40 +124,40 @@ class BaseCheck(metaclass=abc.ABCMeta):
     """Base class for check."""
 
     params: Dict
-    _validators: OrderedDict
+    _conditions: OrderedDict
 
     def __init__(self, **kwargs):
         """Init base check parameters to pass to be used in the implementing check."""
-        self._validators = OrderedDict()
+        self._conditions = OrderedDict()
         self.params = kwargs
 
-    def validate(self, result: CheckResult) -> Dict[str, List[ValidateResult]]:
-        """Run validators on given result."""
+    def conditions_decision(self, result: CheckResult) -> Dict[str, List[ConditionResult]]:
+        """Run conditions on given result."""
         results = {}
-        for name, validator in self._validators.items():
-            output = validator(result.value)
+        for name, condition in self._conditions.items():
+            output = condition(result.value)
             if isinstance(output, List):
                 results[name] = output
             elif isinstance(output, bool):
-                results[name] = ValidateResult(output)
+                results[name] = ConditionResult(output)
             else:
-                raise MLChecksValueError(f'Invalid return type from validation {name}, got: {type(output)}')
+                raise MLChecksValueError(f'Invalid return type from condition {name}, got: {type(output)}')
         return results
 
-    def add_validator(self, name: str, validator: Callable[[Any], Union[List[ValidateResult], bool]]):
-        """Add new validator function to the check.
+    def add_condition(self, name: str, condition: Callable[[Any], Union[List[ConditionResult], bool]]):
+        """Add new condition function to the check.
 
         Args:
-            name (str): Name of the validator. should explain the validation action and parameters
-            validator (Callable[[Any], Union[List[ValidateResult], bool]]): Function which gets the value of the check
-            and returns object of List[ValidateResult] or boolean.
+            name (str): Name of the condition. should explain the condition action and parameters
+            condition (Callable[[Any], Union[List[ConditionResult], bool]]): Function which gets the value of the check
+            and returns object of List[ConditionResult] or boolean.
         """
-        if not isinstance(validator, Callable):
-            raise MLChecksValueError(f'Validator must be a function in signature `(CheckResult) -> ValidateResult`,'
-                                     f'but got: {type(validator).__name__}')
+        if not isinstance(condition, Callable):
+            raise MLChecksValueError(f'Condition must be a function in signature `(CheckResult) -> ConditionResult`,'
+                                     f'but got: {type(condition).__name__}')
         if not isinstance(name, str):
-            raise MLChecksValueError(f'validator name must be of type str but got: {type(name).__name__}')
-        self._validators[name] = validator
+            raise MLChecksValueError(f'Condition name must be of type str but got: {type(name).__name__}')
+        self._conditions[name] = condition
 
     def __repr__(self, tabs=0):
         """Representation of check as string.
@@ -168,9 +168,9 @@ class BaseCheck(metaclass=abc.ABCMeta):
         tabs_str = '\t' * tabs
         validator_tabs = '\t' * (tabs + 1)
         check_str = f'{tabs_str}{self.__class__.__name__}({self.params})'
-        if self._validators:
-            validator_str = ''.join([f'\n{validator_tabs}{s}' for s in self._validators.keys()])
-            return f'{check_str} Validators: [{validator_str}\n{tabs_str}]'
+        if self._conditions:
+            validator_str = ''.join([f'\n{validator_tabs}{s}' for s in self._conditions.keys()])
+            return f'{check_str} Conditions: [{validator_str}\n{tabs_str}]'
         else:
             return check_str
 
@@ -191,17 +191,17 @@ class BaseCheck(metaclass=abc.ABCMeta):
         """
         self.params.pop(param)
 
-    def clean_validators(self):
-        """Remove all validators from this check instance."""
-        self._validators.clear()
+    def clean_conditions(self):
+        """Remove all conditions from this check instance."""
+        self._conditions.clear()
 
-    def remove_validator(self, name: str):
-        """Remove given validator by name.
+    def remove_condition(self, name: str):
+        """Remove given condition by name.
 
         Args:
-            name (str): name of validator to remove.
+            name (str): name of condition to remove.
         """
-        self._validators.pop(name)
+        self._conditions.pop(name)
 
 
 class SingleDatasetBaseCheck(BaseCheck):
