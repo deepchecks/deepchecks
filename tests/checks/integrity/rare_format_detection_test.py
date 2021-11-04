@@ -37,7 +37,7 @@ def test_assert_change_in_format():
     df['date'].loc[0:2] = [datetime.strptime(d, '%Y-%m-%d').strftime('%Y-%b-%d') for d in df['date'].loc[0:2]]
     c = RareFormatDetection()
     res = c.run(dataset=Dataset(df))
-    assert_that(res.value['date'].loc['ratio of rare patterns to common patterns'].values[0], equal_to('1.52%'))
+    assert_that(res.value['date'].loc['ratio of rare samples'].values[0], equal_to('1.50% (3)'))
     assert_that(res.value['email'], empty())
 
 
@@ -47,7 +47,7 @@ def test_assert_change_in_format2():
     c = RareFormatDetection()
     res = c.run(dataset=Dataset(df))
     assert_that(res.value['date'], empty())
-    assert_that(res.value['email'].loc['ratio of rare patterns to common patterns'].values[0], equal_to('1.01%'))
+    assert_that(res.value['email'].loc['ratio of rare samples'].values[0], equal_to('1.00% (2)'))
 
 
 def test_assert_param_rarity_threshold():
@@ -56,7 +56,7 @@ def test_assert_param_rarity_threshold():
     c = RareFormatDetection(rarity_threshold=0.01)
     res = c.run(dataset=Dataset(df))
     assert_that(res.value['date'], empty())
-    assert_that(res.value['email'].loc['ratio of rare patterns to common patterns'].values[0], equal_to('0.50%'))
+    assert_that(res.value['email'].loc['ratio of rare samples'].values[0], equal_to('0.50% (1)'))
 
 
 def test_assert_param_pattern_match_method():
@@ -92,7 +92,7 @@ def test_runs_on_numbers():
     df.iloc[0, 0] = 1111
     c = RareFormatDetection()
     res = c.run(dataset=Dataset(df))
-    assert_that(res.value['numbers'].loc['ratio of rare patterns to common patterns'].values[0], equal_to('1.01%'))
+    assert_that(res.value['numbers'].loc['ratio of rare samples'].values[0], equal_to('1.00% (1)'))
 
 
 def test_runs_on_mixed():
@@ -100,4 +100,4 @@ def test_runs_on_mixed():
     df.iloc[0, 0] = 'aaaaa'
     c = RareFormatDetection()
     res = c.run(dataset=Dataset(df))
-    assert_that(res.value['mixed'].loc['ratio of rare patterns to common patterns'].values[0], equal_to('1.01%'))
+    assert_that(res.value['mixed'].loc['ratio of rare samples'].values[0], equal_to('1.00% (1)'))
