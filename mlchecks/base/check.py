@@ -112,7 +112,7 @@ class ConditionResult:
             is_pass (bool): Whether the condition functions passed the given value or not.
             expected (str): What condition was expected to be met.
             actual (str): What actual value was found.
-            category (ConditionCategory): Which category is the condition result.
+            category (ConditionCategory): The category to which the condition result belongs.
         """
         self.is_pass = is_pass
         self.expected = expected
