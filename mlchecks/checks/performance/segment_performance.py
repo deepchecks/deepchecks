@@ -12,16 +12,17 @@ import matplotlib.pyplot as plt
 __all__ = ['segment_performance']
 
 
-def segment_performance(dataset: Dataset, model, metric: Union[str, Callable] = None,
-                        feature_1: str = None, feature_2: str = None, max_segments: int = 10):
+def segment_performance(dataset: Dataset, model, feature_1: str, feature_2: str,
+                        metric: Union[str, Callable] = None, max_segments: int = 10):
     """Display performance metric segmented by 2 given features in a heatmap.
 
     Args:
         dataset (Dataset): a Dataset object.
         model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
-        metric (Union[str, Callable]): Metric to show, either function or sklearn scorer name.
         feature_1 (str): feature to segment by on y-axis.
         feature_2 (str): feature to segment by on x-axis.
+        metric (Union[str, Callable]): Metric to show, either function or sklearn scorer name. If no metric is given
+            a default metric (per the model type) will be used.
         max_segments (int): maximal number of segments to split the a values into.
     """
     self = segment_performance
@@ -76,7 +77,7 @@ def segment_performance(dataset: Dataset, model, metric: Union[str, Callable] = 
 
         # Create colorbar
         cbar = ax.figure.colorbar(im, ax=ax)
-        cbar.ax.set_ylabel('Score', rotation=-90, va='bottom')
+        cbar.ax.set_ylabel(f'{metric_name}', rotation=-90, va='bottom')
 
         x = [v.label for v in feature_2_filters]
         y = [v.label for v in feature_1_filters]
@@ -120,11 +121,15 @@ class SegmentPerformance(SingleDatasetBaseCheck):
         max_segments (int): maximal number of segments to split the a values into.
     """
 
-    def run(self, dataset, model=None) -> CheckResult:
+    def run(self, dataset, model) -> CheckResult:
         """Run 'segment_performance' check.
 
         Args:
             dataset (Dataset): a Dataset object.
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
         """
-        return segment_performance(dataset, model, **self.params)
+        params_copy = self.params.copy()
+        params_copy.pop('feature_1')
+        params_copy.pop('feature_2')
+        return segment_performance(dataset, model, self.params.get('feature_1'),
+                                   self.params.get('feature_2'), **params_copy)
