@@ -270,8 +270,7 @@ class Dataset:
         return columns
 
     def check_compatible_labels(self):
-        """Check if label column is supported by MLChecks
-        """
+        """Check if label column is supported by MLChecks."""
         if is_string_column(self.label_col()):
             raise MLChecksValueError('String labels are not supported')
         elif pd.isnull(self.label_col()).any():
