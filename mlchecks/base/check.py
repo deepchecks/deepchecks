@@ -15,6 +15,7 @@ from matplotlib import pyplot as plt
 from mlchecks.string_utils import underscore_to_capitalize
 from mlchecks.utils import MLChecksValueError
 
+
 class ConditionCategory(enum.Enum):
     """Condition result category. indicates whether the result should fail the suite."""
 
@@ -36,7 +37,7 @@ class ConditionResult:
         Args:
             is_pass (bool): Whether the condition functions passed the given value or not.
             actual (str): What actual value was found.
-            category (ConditionCategory): Which category is the condition result.
+            category (ConditionCategory): The category to which the condition result belongs.
         """
         self.is_pass = is_pass
         self.actual = actual
