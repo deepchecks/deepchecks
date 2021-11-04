@@ -1,4 +1,5 @@
 """Contains unit tests for the Dataset class."""
+import numpy as np
 import pandas as pd
 
 from mlchecks import Dataset, ensure_dataframe_type
@@ -421,3 +422,20 @@ def test_ensure_dataframe_type_dataset(iris):
 def test_ensure_dataframe_type_fail():
     assert_that(calling(ensure_dataframe_type).with_args('not dataset'),
                 raises(MLChecksValueError, 'dataset must be of type DataFrame or Dataset, but got: str'))
+
+
+def test_invalid_label():
+    valid_label_df = pd.DataFrame(np.array([1, 1, 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
+    Dataset(valid_label_df, label='label')
+
+    string_label_df = pd.DataFrame(np.array(['a', 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
+    args = {'df': string_label_df,
+            'label': 'label'}
+    assert_that(calling(Dataset).with_args(**args),
+                raises(MLChecksValueError, 'String labels are not supported'))
+
+    null_label_df = pd.DataFrame(np.array([np.nan, 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
+    args = {'df': null_label_df,
+            'label': 'label'}
+    assert_that(calling(Dataset).with_args(**args),
+                raises(MLChecksValueError, 'Null labels are not supported'))
