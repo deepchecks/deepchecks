@@ -15,6 +15,33 @@ from matplotlib import pyplot as plt
 from mlchecks.string_utils import underscore_to_capitalize
 from mlchecks.utils import MLChecksValueError
 
+class ConditionCategory(enum.Enum):
+    """Condition result category. indicates whether the result should fail the suite."""
+
+    FAILURE = 'FAILURE'
+    INSIGHT = 'INSIGHT'
+
+
+class ConditionResult:
+    """Contain result of a condition function."""
+
+    is_pass: bool
+    category: ConditionCategory
+    actual: str
+
+    def __init__(self, is_pass: bool, actual: str = '',
+                 category: ConditionCategory = ConditionCategory.FAILURE):
+        """Initialize condition result.
+
+        Args:
+            is_pass (bool): Whether the condition functions passed the given value or not.
+            actual (str): What actual value was found.
+            category (ConditionCategory): Which category is the condition result.
+        """
+        self.is_pass = is_pass
+        self.actual = actual
+        self.category = category
+
 
 class CheckResult:
     """Class which returns from a check with result that can later be used for automatic pipelines and display value.
@@ -33,6 +60,7 @@ class CheckResult:
     header: str
     check: Callable
     display: List[Union[Callable, str, pd.DataFrame]]
+    conditions_results: Dict[str, ConditionResult]
 
     def __init__(self, value, header: str = None, check: Callable = None, display: Any = None):
         """Init check result.
@@ -88,36 +116,9 @@ class CheckResult:
         """Return default __repr__ function uses value."""
         return self.value.__repr__()
 
-
-class ConditionCategory(enum.Enum):
-    """Condition result category. indicates whether the result should fail the suite."""
-
-    FAILURE = 'FAILURE'
-    INSIGHT = 'INSIGHT'
-
-
-class ConditionResult:
-    """Contain result of a condition function."""
-
-    is_pass: bool
-    category: ConditionCategory
-    expected: str
-    actual: str
-
-    def __init__(self, is_pass: bool, expected: str = None, actual: str = None,
-                 category: ConditionCategory = ConditionCategory.FAILURE):
-        """Initialize condition result.
-
-        Args:
-            is_pass (bool): Whether the condition functions passed the given value or not.
-            expected (str): What condition was expected to be met.
-            actual (str): What actual value was found.
-            category (ConditionCategory): Which category is the condition result.
-        """
-        self.is_pass = is_pass
-        self.expected = expected
-        self.actual = actual
-        self.category = category
+    def set_condition_results(self, results: Dict[str, ConditionResult]):
+        """Set the conditions results for current check result."""
+        self.conditions_results = results
 
 
 class BaseCheck(metaclass=abc.ABCMeta):
@@ -131,12 +132,12 @@ class BaseCheck(metaclass=abc.ABCMeta):
         self._conditions = OrderedDict()
         self.params = kwargs
 
-    def conditions_decision(self, result: CheckResult) -> Dict[str, List[ConditionResult]]:
+    def conditions_decision(self, result: CheckResult) -> Dict[str, ConditionResult]:
         """Run conditions on given result."""
         results = {}
         for name, condition in self._conditions.items():
             output = condition(result.value)
-            if isinstance(output, List):
+            if isinstance(output, ConditionResult):
                 results[name] = output
             elif isinstance(output, bool):
                 results[name] = ConditionResult(output)
@@ -144,7 +145,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
                 raise MLChecksValueError(f'Invalid return type from condition {name}, got: {type(output)}')
         return results
 
-    def add_condition(self, name: str, condition: Callable[[Any], Union[List[ConditionResult], bool]]):
+    def add_condition(self, name: str, condition: Callable[[Any], Union[ConditionResult, bool]]):
         """Add new condition function to the check.
 
         Args:

@@ -1,6 +1,6 @@
 """Module contains Mixed Nulls check."""
 from collections import defaultdict
-from typing import Iterable, Union, Dict, List
+from typing import Iterable, Union, Dict
 
 import numpy as np
 import pandas as pd
@@ -124,19 +124,22 @@ class MixedNulls(SingleDatasetBaseCheck):
             max_nulls (int): Maximum number allowed of different null values.
             columns (str): Column to limit the condition to. If none, runs on all.
         """
-        def condition(result: Dict) -> List[ConditionResult]:
+        def condition(result: Dict) -> ConditionResult:
             columns_in_result = result.keys()
             if columns:
                 columns_in_result = set(columns_in_result) ^ set(columns)
-            condition_results = []
+            not_passing_columns = []
             for column in columns_in_result:
                 nulls = result[column]
                 num_nulls = len(nulls)
                 if num_nulls > max_nulls:
-                    vr = ConditionResult(False, f'Expected maximum {max_nulls} types of null in column {column}',
-                                         f'Found {num_nulls} types of null in column {column}')
-                    condition_results.append(vr)
-            return condition_results
+                    not_passing_columns.append(column)
+            if not_passing_columns:
+                not_passing_columns = ', '.join(not_passing_columns)
+                return ConditionResult(False,
+                                       f'Found columns {not_passing_columns} with more than {max_nulls} null types')
+            else:
+                return ConditionResult(True)
         if columns:
             name = f'No more than {max_nulls} null types for columns: [{",".join(columns)}]'
         else:

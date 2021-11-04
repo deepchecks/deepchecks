@@ -1,15 +1,52 @@
 """Module containing the Suite object, used for running a set of checks together."""
 from collections import OrderedDict
+from typing import Union, List
 
+import pandas as pd
 from IPython.core.display import display_html, display
 from ipywidgets import IntProgress, HTML, VBox
 
 from mlchecks.base.check import BaseCheck, CheckResult, TrainValidationBaseCheck, CompareDatasetsBaseCheck, \
     SingleDatasetBaseCheck, ModelOnlyBaseCheck
 
-__all__ = ['CheckSuite']
+__all__ = ['CheckSuite', 'SuiteResult']
 
-from mlchecks.utils import MLChecksValueError, is_notebook
+from mlchecks.utils import is_notebook
+
+
+class SuiteResult:
+    """Contain the results of a suite run."""
+
+    name: str
+    results: List[Union[CheckResult, 'SuiteResult']]
+
+    def __init__(self, name: str, results):
+        """Initialize suite result."""
+        self.name = name
+        self.results = results
+
+    def _ipython_display_(self, verbose=False):
+        display_html(f'<h3>{self.name}</h3>', raw=True)
+        # First print summary
+        display_table = []
+        for result in self.results:
+            if isinstance(result, CheckResult):
+                for cond_name, cond_result in result.conditions_results.items():
+                    display_table.append([cond_result.is_pass, result.header, cond_name, cond_result.actual,
+                                          cond_result.category])
+        table = pd.DataFrame(data=display_table, columns=['Pass', 'Check', 'Condition', 'Actual', 'Category'])
+        df_styler = table.style
+        df_styler.set_table_styles([dict(selector='th,td', props=[('text-align', 'left')])])
+        display_html(df_styler.render(), raw=True)
+        # If verbose print all displays
+        if verbose:
+            for result in self.results:
+                # pylint: disable=protected-access
+                result._ipython_display_()
+
+    def display_verbose(self):
+        """Display the suite result with verbose output of each check."""
+        self._ipython_display_(verbose=True)
 
 
 class CheckSuite(BaseCheck):
@@ -36,7 +73,7 @@ class CheckSuite(BaseCheck):
                 self.checks[check.__class__.__name__] = check
 
     def run(self, model=None, train_dataset=None, validation_dataset=None, check_datasets_policy: str = 'validation') \
-            -> CheckResult:
+            -> SuiteResult:
         """Run all checks.
 
         Args:
@@ -68,26 +105,32 @@ class CheckSuite(BaseCheck):
         for check in self.checks.values():
             label.value = f'Running {str(check)}'
             if isinstance(check, TrainValidationBaseCheck):
-                results.append(check.run(train_dataset=train_dataset, validation_dataset=validation_dataset,
-                                         model=model))
+                check_result = check.run(train_dataset=train_dataset, validation_dataset=validation_dataset,
+                                         model=model)
+                check_result.set_condition_results(check.conditions_decision(check_result))
+                results.append(check_result)
             elif isinstance(check, CompareDatasetsBaseCheck):
-                results.append(check.run(dataset=validation_dataset, baseline_dataset=train_dataset, model=model))
+                check_result = check.run(dataset=validation_dataset, baseline_dataset=train_dataset, model=model)
+                check_result.set_condition_results(check.conditions_decision(check_result))
+                results.append(check_result)
             elif isinstance(check, SingleDatasetBaseCheck):
                 if check_datasets_policy in ['both', 'train'] and train_dataset is not None:
-                    res = check.run(dataset=train_dataset, model=model)
-                    res.header = f'{res.header} - Train Dataset'
-                    results.append(res)
+                    check_result = check.run(dataset=train_dataset, model=model)
+                    check_result.header = f'{check_result.header} - Train Dataset'
+                    check_result.set_condition_results(check.conditions_decision(check_result))
+                    results.append(check_result)
                 if check_datasets_policy in ['both', 'validation'] and validation_dataset is not None:
-                    res = check.run(dataset=validation_dataset, model=model)
-                    res.header = f'{res.header} - Validation Dataset'
-                    results.append(res)
+                    check_result = check.run(dataset=validation_dataset, model=model)
+                    check_result.header = f'{check_result.header} - Validation Dataset'
+                    check_result.set_condition_results(check.conditions_decision(check_result))
+                    results.append(check_result)
             elif isinstance(check, ModelOnlyBaseCheck):
-                results.append(check.run(model=model))
+                check_result = check.run(model=model)
+                check_result.set_condition_results(check.conditions_decision(check_result))
+                results.append(check_result)
             elif isinstance(check, CheckSuite):
-                suite_res = check.run(model, train_dataset, validation_dataset, check_datasets_policy)
-                if check.name in results:
-                    raise MLChecksValueError('Each suite must have a unique name')
-                results.append(suite_res)
+                suite_result = check.run(model, train_dataset, validation_dataset, check_datasets_policy)
+                results.append(suite_result)
             else:
                 raise TypeError(f'Expected check of type SingleDatasetBaseCheck, CompareDatasetsBaseCheck, '
                                 f'TrainValidationBaseCheck or ModelOnlyBaseCheck. Got  {check.__class__.__name__} '
@@ -98,14 +141,7 @@ class CheckSuite(BaseCheck):
         label.close()
         box.close()
 
-        def display_suite():
-            display_html(f'<h3>{self.name}</h3>', raw=True)
-            for result in results:
-                # Disable protected access warning
-                #pylint: disable=protected-access
-                result._ipython_display_()
-
-        return CheckResult(results, display=display_suite)
+        return SuiteResult(self.name, results)
 
     def __repr__(self, tabs=0):
         """Representation of suite as string."""
