@@ -37,6 +37,7 @@ class SuiteResult:
         table = pd.DataFrame(data=display_table, columns=['Pass', 'Check', 'Condition', 'Actual', 'Category'])
         df_styler = table.style
         df_styler.set_table_styles([dict(selector='th,td', props=[('text-align', 'left')])])
+        df_styler.hide_index()
         display_html(df_styler.render(), raw=True)
         # If verbose print all displays
         if verbose:
