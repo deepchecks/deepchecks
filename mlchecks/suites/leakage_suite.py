@@ -14,13 +14,13 @@ __all__ = ['IndexLeakageCheckSuite', 'DateLeakageCheckSuite', 'DataLeakageCheckS
 IndexLeakageCheckSuite = CheckSuite(
     'Index Leakage Suite',
     DateTrainValidationLeakageDuplicates(),
-    IndexTrainValidationLeakage(),
+    IndexTrainValidationLeakage()
 )
 
 DateLeakageCheckSuite = CheckSuite(
     'Date Leakage Suite',
     DateTrainValidationLeakageDuplicates(),
-    DateTrainValidationLeakageOverlap(),
+    DateTrainValidationLeakageOverlap()
 )
 
 DataLeakageCheckSuite = CheckSuite(
@@ -31,8 +31,8 @@ DataLeakageCheckSuite = CheckSuite(
 
 LeakageCheckSuite = CheckSuite(
     'Leakage Check Suite',
-    IndexLeakageCheckSuite(),
-    DateLeakageCheckSuite(),
-    DataLeakageCheckSuite()
+    IndexLeakageCheckSuite,
+    DateLeakageCheckSuite,
+    DataLeakageCheckSuite
 )
 
