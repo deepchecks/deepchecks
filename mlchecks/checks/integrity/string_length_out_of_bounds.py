@@ -11,13 +11,13 @@ from mlchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_datafr
 from mlchecks.string_utils import is_string_column, format_number
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 
-__all__ = ['string_length_outlier', 'StringLengthOutlier']
+__all__ = ['string_length_out_of_bounds', 'StringLengthOutOfBounds']
 
 
-def string_length_outlier(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, Iterable[str]] = None,
-                          ignore_columns: Union[str, Iterable[str]] = None,
-                          num_percentiles: int = 1000, inner_quantile_range: int = 94,
-                          outlier_factor: int = 4) -> CheckResult:
+def string_length_out_of_bounds(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, Iterable[str]] = None,
+                                ignore_columns: Union[str, Iterable[str]] = None,
+                                num_percentiles: int = 1000, inner_quantile_range: int = 94,
+                                outlier_factor: int = 4) -> CheckResult:
     """Detect strings with length that is much longer/shorter than the identified "normal" string lengths.
 
     Args:
@@ -89,7 +89,7 @@ def string_length_outlier(dataset: Union[pd.DataFrame, Dataset], columns: Union[
 
     display = df_graph if len(df_graph) > 0 else None
 
-    return CheckResult(df_graph, check=string_length_outlier, display=display)
+    return CheckResult(df_graph, check=string_length_out_of_bounds, display=display)
 
 
 def in_range(x, a, b):
@@ -139,8 +139,8 @@ def outlier_on_percentile_histogram(percentile_histogram: Dict[float, float], iq
     return tuple(outlier_section_list)
 
 
-class StringLengthOutlier(SingleDatasetBaseCheck):
-    """Search for string length outliers in categorical column[s]."""
+class StringLengthOutOfBounds(SingleDatasetBaseCheck):
+    """Detect strings with length that is much longer/shorter than the identified "normal" string lengths."""
 
     def run(self, dataset, model=None) -> CheckResult:
         """Detect outliers in string length.
@@ -148,4 +148,4 @@ class StringLengthOutlier(SingleDatasetBaseCheck):
         Args:
             dataset (DataFrame): A dataset or pd.FataFrame object.
         """
-        return string_length_outlier(dataset, **self.params)
+        return string_length_out_of_bounds(dataset, **self.params)
