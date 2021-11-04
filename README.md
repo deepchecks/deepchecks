@@ -29,11 +29,10 @@ Each check enables you to inspect a specific aspect of your data and models. The
 -   … and [many more](./notebooks/README.md)
     
 
-Each check displays a visual result and returns a dictionary-type result that can be used to validate the expected results by setting conditions upon them.
+Each check displays a visual result and returns a custom result value that can be used to validate the expected check results by setting conditions upon them.
 
-  #### Suite
- An ordered collection of checks. [Here][Link to the suites readme] you can find existing suites. You can edit the preconfigured suites or build a suite of your own with a collection of checks with result validators.
-
+#### Suite
+An ordered collection of checks. [Here][./mlchecks/suites/README.md] you can find the existing suites and a code example for how to add your own custom suite. You can edit the preconfigured suites or build a suite of your own with a collection of checks and result conditions.
   
 
 ## Installation
