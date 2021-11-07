@@ -15,7 +15,7 @@ class RocReport(SingleDatasetBaseCheck):
     """Return the AUC for each class."""
 
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
-        """Return the AUC for each class.
+        """Run check.
 
         Args:
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
@@ -29,8 +29,8 @@ class RocReport(SingleDatasetBaseCheck):
         return self._roc_report(dataset, model)
 
     def _roc_report(self, dataset: Dataset, model):
-        Dataset.validate_dataset(dataset, self._roc_report.__name__)
-        dataset.validate_label(self._roc_report.__name__)
+        Dataset.validate_dataset(dataset, self.__class__.__name__)
+        dataset.validate_label(self.__class__.__name__)
 
         label = dataset.label_name()
         ds_x = dataset.data[dataset.features()]
@@ -61,5 +61,4 @@ class RocReport(SingleDatasetBaseCheck):
             plt.title('Receiver operating characteristic for multi-class data')
             plt.legend(loc='lower right')
 
-        return CheckResult(roc_auc, header='ROC Report', check=self.run, display=display)
-
+        return CheckResult(roc_auc, header='ROC Report', check=self.__class__, display=display)

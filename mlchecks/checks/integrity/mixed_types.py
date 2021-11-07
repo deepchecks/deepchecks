@@ -17,8 +17,7 @@ from mlchecks.string_utils import is_string_column, format_percent
 class MixedTypes(SingleDatasetBaseCheck):
     """Search for various types of data in (a) column[s], including hidden mixes in strings."""
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 **params):
+    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None):
         """Initialize the MixedTypes check.
 
         Args:
@@ -27,16 +26,16 @@ class MixedTypes(SingleDatasetBaseCheck):
             ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
             variable.
         """
-        super().__init__(**params)
+        super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
 
     def run(self, dataset, model=None) -> CheckResult:
-        """Run mixed_types.
+        """Run check.
 
         Args:
           dataset(Dataset): Dataset to be tested.
-          model (): Model is ignored for this check.
+          model: Model is ignored for this check.
 
         Returns:
           (CheckResult): DataFrame with rows ('strings', 'numbers') for any column with mixed types.
@@ -45,7 +44,7 @@ class MixedTypes(SingleDatasetBaseCheck):
         return self._mixed_types(dataset)
 
     def _mixed_types(self, dataset: Union[pd.DataFrame, Dataset]) -> CheckResult:
-        """Search for mixed types of Data in a single column[s].
+        """Run check.
 
         Args:
             dataset (Dataset): Dataset to be tested.
@@ -73,7 +72,7 @@ class MixedTypes(SingleDatasetBaseCheck):
         else:
             display = None
 
-        return CheckResult(df_graph, check=self.run, display=display)
+        return CheckResult(df_graph, check=self.__class__, display=display)
 
     def _get_data_mix(self, column_data: pd.Series) -> dict:
         if is_string_column(column_data):

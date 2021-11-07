@@ -1,7 +1,7 @@
 """Module containing all the base classes for checks."""
 import abc
 import re
-from typing import Dict, Any, Callable, List, Union
+from typing import Any, Callable, List, Union
 
 __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainValidationBaseCheck',
            'ModelOnlyBaseCheck']
@@ -10,7 +10,7 @@ import pandas as pd
 from IPython.core.display import display_html
 from matplotlib import pyplot as plt
 
-from mlchecks.string_utils import underscore_to_capitalize
+from mlchecks.string_utils import split_camel_case
 from mlchecks.utils import MLChecksValueError
 
 
@@ -29,10 +29,9 @@ class CheckResult:
 
     value: Any
     header: str
-    check: Callable
     display: List[Union[Callable, str, pd.DataFrame]]
 
-    def __init__(self, value, header: str = None, check: Callable = None, display: Any = None):
+    def __init__(self, value, header: str = None, check=None, display: Any = None):
         """Init check result.
 
         Args:
@@ -42,10 +41,8 @@ class CheckResult:
             displayed in notebook.
             display (Callable): Function which is used for custom display.
         """
-        if check is not None and not isinstance(check, Callable):
-            raise MLChecksValueError('`check` parameter of CheckResult must be callable')
         self.value = value
-        self.header = header or (check and underscore_to_capitalize(check.__name__)) or None
+        self.header = header or (check and split_camel_case(check.__name__)) or None
         self.check = check
 
         if display is not None and not isinstance(display, List):
@@ -60,7 +57,7 @@ class CheckResult:
     def _ipython_display_(self):
         if self.header:
             display_html(f'<h4>{self.header}</h4>', raw=True)
-        if self.check:
+        if self.check and '__doc__' in dir(self.check):
             docs = self.check.__doc__
             # Take first non-whitespace line.
             summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
@@ -90,15 +87,9 @@ class CheckResult:
 class BaseCheck(metaclass=abc.ABCMeta):
     """Base class for check."""
 
-    params: Dict
-
-    def __init__(self, **params):
-        """Init base check parameters to pass to be used in the implementing check."""
-        self.params = params
-
     def __repr__(self):
         """Representation of check as string."""
-        return f'{self.__class__.__name__}({self.params})'
+        return f'{self.__class__.__name__}'
 
 
 class SingleDatasetBaseCheck(BaseCheck):

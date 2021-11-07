@@ -11,8 +11,7 @@ from mlchecks.base.dataframe_utils import filter_columns_with_validation
 class IsSingleValue(SingleDatasetBaseCheck):
     """Check if there are columns which have only a single unique value in all rows."""
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 **params):
+    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None):
         """
         Initialize the IsSingleValue check.
 
@@ -22,13 +21,13 @@ class IsSingleValue(SingleDatasetBaseCheck):
             ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
             variable
         """
-        super().__init__(**params)
+        super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
 
     def run(self, dataset, model=None) -> CheckResult:
         """
-        Run is_single_value check.
+        Run check.
 
         Args:
             dataset (Dataset): A Dataset object or a pd.DataFrame
@@ -58,4 +57,4 @@ class IsSingleValue(SingleDatasetBaseCheck):
             value = False
             display = None
 
-        return CheckResult(value, header='Single Value in Column', check=self.run, display=display)
+        return CheckResult(value, header='Single Value in Column', check=self.__class__, display=display)

@@ -43,7 +43,7 @@ def test_dataset_wrong_input():
     wrong = 'wrong_input'
     assert_that(
         calling(SingleFeatureContribution().run).with_args(wrong),
-        raises(MLChecksValueError, 'function _single_feature_contribution requires dataset to be of type Dataset. '
+        raises(MLChecksValueError, 'Check SingleFeatureContribution requires dataset to be of type Dataset. '
                                    'instead got: str'))
 
 
@@ -52,7 +52,7 @@ def test_dataset_no_label():
     df = Dataset(df)
     assert_that(
         calling(SingleFeatureContribution().run).with_args(dataset=df),
-        raises(MLChecksValueError, 'function _single_feature_contribution requires dataset to have a label column'))
+        raises(MLChecksValueError, 'Check SingleFeatureContribution requires dataset to have a label column'))
 
 
 def test_trainval_assert_single_feature_contribution():
@@ -70,7 +70,7 @@ def test_trainval_dataset_wrong_input():
     assert_that(
         calling(SingleFeatureContributionTrainValidation().run).with_args(wrong, wrong),
         raises(MLChecksValueError,
-               'function _single_feature_contribution_train_validation requires dataset to be of type Dataset. '
+               'Check SingleFeatureContributionTrainValidation requires dataset to be of type Dataset. '
                'instead got: str'))
 
 
@@ -80,7 +80,7 @@ def test_trainval_dataset_no_label():
         calling(SingleFeatureContributionTrainValidation().run).with_args(train_dataset=Dataset(df),
                                                                           validation_dataset=Dataset(df2)),
         raises(MLChecksValueError,
-               'function _single_feature_contribution_train_validation requires dataset to have a label column'))
+               'Check SingleFeatureContributionTrainValidation requires dataset to have a label column'))
 
 
 def test_trainval_dataset_diff_columns():
@@ -91,4 +91,4 @@ def test_trainval_dataset_diff_columns():
             .with_args(train_dataset=Dataset(df, label='label'),
                        validation_dataset=Dataset(df2, label='label')),
         raises(MLChecksValueError,
-               'function _single_feature_contribution_train_validation requires datasets to share the same features'))
+               'Check SingleFeatureContributionTrainValidation requires datasets to share the same features'))

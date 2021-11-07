@@ -16,11 +16,21 @@ def percentage_in_series(series, values):
 
 
 class StringMismatchComparison(CompareDatasetsBaseCheck):
-    """Detect different variants of string categories between the same categorical column in two datasets."""
+    """Detect different variants of string categories between the same categorical column in two datasets.
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 **params):
-        """Initialzie the StringMismatchComparison check.
+    This check compares the same categorical column within a dataset and baseline and checks whether there are
+    variants of similar strings that exists only in dataset and not in baseline.
+    Specifically, we define similarity between strings if they are equal when ignoring case and non-letter
+    characters.
+    Example:
+    We have a baseline dataset with similar strings 'string' and 'St. Ring', which have different meanings.
+    Our tested dataset has the strings 'string', 'St. Ring' and a new phrase, 'st.  ring'.
+    Here, we have a new variant of the above strings, and would like to be acknowledged, as this is obviously a
+    different version of 'St. Ring'.
+    """
+
+    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None):
+        """Initialize the StringMismatchComparison check.
 
         Args:
             columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
@@ -28,22 +38,12 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
             ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
                     variable
         """
-        super().__init__(**params)
+        super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
 
     def run(self, dataset, baseline_dataset, model=None) -> CheckResult:
-        """Detect different variants of string categories between the same categorical column in two datasets.
-
-        This check compares the same categorical column within a dataset and baseline and checks whether there are
-        variants of similar strings that exists only in dataset and not in baseline.
-        Specifically, we define similarity between strings if they are equal when ignoring case and non-letter
-        characters.
-        Example:
-        We have a baseline dataset with similar strings 'string' and 'St. Ring', which have different meanings.
-        Our tested dataset has the strings 'string', 'St. Ring' and a new phrase, 'st.  ring'.
-        Here, we have a new variant of the above strings, and would like to be acknowledged, as this is obviously a
-        different version of 'St. Ring'.
+        """Run check.
 
         Args:
             dataset (Dataset): A dataset object.
@@ -101,4 +101,4 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
         # For display transpose the dataframe
         display = df_graph.T if len(df_graph) > 0 else None
 
-        return CheckResult(df_graph, check=self.run, display=display)
+        return CheckResult(df_graph, check=self.__class__, display=display)

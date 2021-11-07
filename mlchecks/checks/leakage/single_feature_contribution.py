@@ -8,8 +8,7 @@ __all__ = ['SingleFeatureContribution', 'SingleFeatureContributionTrainValidatio
 
 
 class SingleFeatureContribution(SingleDatasetBaseCheck):
-    """
-    Return the PPS (Predictive Power Score) of all features in relation to the label.
+    """Return the PPS (Predictive Power Score) of all features in relation to the label.
 
     The PPS represents the ability of a feature to single-handedly predict another feature or label.
     A high PPS (close to 1) can mean that this feature's success in predicting the label is actually due to data
@@ -19,24 +18,17 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
 
     """
 
-    def __init__(self, ppscore_params=None, **params):
+    def __init__(self, ppscore_params=None):
         """Initialize the SingleFeatureContribution check.
 
         Args:
             ppscore_params (dict): dictionary of addional paramaters for the ppscore.predictors function
         """
-        super().__init__(**params)
+        super().__init__()
         self.ppscore_params = ppscore_params
 
     def run(self, dataset: Dataset, model=None) -> CheckResult:
-        """
-        Return the PPS (Predictive Power Score) of all features in relation to the label.
-
-        The PPS represents the ability of a feature to single-handedly predict another feature or label.
-        A high PPS (close to 1) can mean that this feature's success in predicting the label is actually due to data
-        leakage - meaning that the feature holds information that is based on the label to begin with.
-
-        Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
+        """Run check.
 
         Arguments:
             dataset: Dataset - The dataset object
@@ -53,8 +45,8 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         return self._single_feature_contribution(dataset=dataset)
 
     def _single_feature_contribution(self, dataset: Dataset):
-        Dataset.validate_dataset(dataset, self._single_feature_contribution.__name__)
-        dataset.validate_label(self._single_feature_contribution.__name__)
+        Dataset.validate_dataset(dataset, self.__class__.__name__)
+        dataset.validate_label(self.__class__.__name__)
         ppscore_params = self.ppscore_params or {}
 
         relevant_columns = dataset.features() + [dataset.label_name()]
@@ -73,7 +65,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
                 ' actually due to data',
                 'leakage - meaning that the feature holds information that is based on the label to begin with.']
 
-        return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text], check=self.run,
+        return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text], check=self.__class__,
                            header='Single Feature Contribution')
 
 
@@ -85,39 +77,26 @@ class SingleFeatureContributionTrainValidation(TrainValidationBaseCheck):
     A high PPS (close to 1) can mean that this feature's success in predicting the label is actually due to data
     leakage - meaning that the feature holds information that is based on the label to begin with.
 
-    Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
+    When we compare train PPS to validation PPS, A high difference can strongly indicate leakage,
+    as a feature that was "powerful" in train but not in validation can be explained by leakage in train that does
+     not affect a new dataset.
 
+    Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
     """
 
-    def __init__(self, ppscore_params=None, n_show_top: int = 5, **params):
+    def __init__(self, ppscore_params=None, n_show_top: int = 5):
         """Initialize the SingleFeatureContributionTrainValidation.
 
         Args:
             ppscore_params (dict): dictionary of additional parameters for the ppscore predictor function
             n_show_top (int): Number of features to show, sorted by the magnitude of difference in PPS
         """
-        super().__init__(**params)
+        super().__init__()
         self.ppscore_params = ppscore_params
         self.n_show_top = n_show_top
 
     def run(self, train_dataset: Dataset, validation_dataset: Dataset, model=None) -> CheckResult:
-        """
-        Return the difference in PPS (Predictive Power Score) of all features between train and validation datasets.
-
-        The PPS represents the ability of a feature to single-handedly predict another feature or label.
-        A high PPS (close to 1) can mean that this feature's success in predicting the label is actually due to data
-        leakage - meaning that the feature holds information that is based on the label to begin with.
-
-        When we compare train PPS to validation PPS, A high difference can strongly indicate leakage,
-        as a feature that was "powerful" in train but not in validation can be explained by leakage in train that does
-         not affect a new dataset.
-
-        Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
-
-        Arguments:
-        train_dataset (Dataset): The training dataset object. Must contain a label
-        validation_dataset (Dataset): The validation dataset object. Must contain a label
-        model: any = None - not used in the check
+        """Run check.
 
         Returns:
             CheckResult:
@@ -132,18 +111,12 @@ class SingleFeatureContributionTrainValidation(TrainValidationBaseCheck):
 
     def _single_feature_contribution_train_validation(self, train_dataset: Dataset, validation_dataset: Dataset,
                                                       ):
-        train_dataset = Dataset.validate_dataset(train_dataset,
-                                                 self._single_feature_contribution_train_validation.__name__)
-        train_dataset.validate_label(self._single_feature_contribution_train_validation.__name__)
-        validation_dataset = Dataset.validate_dataset(validation_dataset,
-                                                      self._single_feature_contribution_train_validation.__name__)
-        validation_dataset.validate_label(self._single_feature_contribution_train_validation.__name__)
-        features_names = train_dataset.validate_shared_features(
-            validation_dataset,
-            self._single_feature_contribution_train_validation.__name__
-        )
-        label_name = train_dataset.validate_shared_label(validation_dataset,
-                                                         self._single_feature_contribution_train_validation.__name__)
+        train_dataset = Dataset.validate_dataset(train_dataset, self.__class__.__name__)
+        train_dataset.validate_label(self.__class__.__name__)
+        validation_dataset = Dataset.validate_dataset(validation_dataset, self.__class__.__name__)
+        validation_dataset.validate_label(self.__class__.__name__)
+        features_names = train_dataset.validate_shared_features(validation_dataset, self.__class__.__name__)
+        label_name = train_dataset.validate_shared_label(validation_dataset, self.__class__.__name__)
         ppscore_params = self.ppscore_params or {}
 
         relevant_columns = features_names + [label_name]
@@ -176,5 +149,5 @@ class SingleFeatureContributionTrainValidation(TrainValidationBaseCheck):
                 'that was powerful in train but not in validation can be explained by leakage in train that is not '
                 'relevant to a new dataset.']
 
-        return CheckResult(value=s_difference.to_dict(), display=[plot, *text], check=self.run,
+        return CheckResult(value=s_difference.to_dict(), display=[plot, *text], check=self.__class__,
                            header='Single Feature Contribution Train-Validation')

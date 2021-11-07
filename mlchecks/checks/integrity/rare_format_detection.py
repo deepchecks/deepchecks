@@ -252,18 +252,32 @@ def get_rare_vs_common_values(col: pd.Series, sharp_drop_ratio_threshold: float 
 
 
 class RareFormatDetection(SingleDatasetBaseCheck):
-    """Checks whether columns have common formats (e.g. "XX-XX-XXXX" for dates") and detects values that don't match."""
+    """Checks whether columns have common formats (e.g. "XX-XX-XXXX" for dates") and detects values that don't match.
+
+    Example for a Pattern:
+        Pattern(name='digits or letters format', substituters=(r'[A-Z|a-z|d]', 'X'))
+        This pattern looks for either digits or letters and replaces them with the character 'X'. By replacing
+        these, we can find all strings matching this certain pattern and see how common (or rare) it is.
+
+        In this example, the string "nir123@deepchecks.com" would be changed to "XXXXXX@XXXXXXXXXX.XXX".
+        All other strings matching this format (e.g. "noam12@deepchecks.com") would be identified as having the
+        same pattern.
+
+        If we also mark "refine = True" in the Pattern class, the check will further try and make the pattern
+        more accurate, by trying to find common characters in all samples of the same pattern. In this example,
+        the refined format found would be "XXXXXX@deepchecks.com.
+    """
 
     def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
                  patterns: List[Pattern] = deepcopy(DEFAULT_PATTERNS), rarity_threshold: float = 0.05,
-                 min_unique_common_ratio=0.01, pattern_match_method: str = 'first', **params):
+                 min_unique_common_ratio=0.01, pattern_match_method: str = 'first'):
         """Initialize the RareFormatDetection check.
 
         Args:
             columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-            ones.
+                ones.
             ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-            variable
+                variable
             patterns (List[Pattern]): patterns to look for when comparing common vs. rare formats. Uses DEFAULT_PATTERNS
                 if not specified.
                 Note that if pattern_match_method='first' (which it is by default), then the order of patterns matter.
@@ -280,7 +294,7 @@ class RareFormatDetection(SingleDatasetBaseCheck):
                 sample was found for the first time. If 'all', returns all patterns in which anything was found.
 
         """
-        super().__init__(**params)
+        super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.patterns = patterns
@@ -289,8 +303,7 @@ class RareFormatDetection(SingleDatasetBaseCheck):
         self.pattern_match_method = pattern_match_method
 
     def run(self, dataset: Dataset, model=None) -> CheckResult:
-        """
-        Check whether columns have common formats (e.g. "XX-XX-XXXX" for dates") and detects values that don't match.
+        """Run check.
 
         Args:
             dataset: Dataset - The dataset object
@@ -300,19 +313,6 @@ class RareFormatDetection(SingleDatasetBaseCheck):
                 - value: dictionary of all columns and found patterns
                 - display: pandas Dataframe per column, showing the rare-to-common-ratio, common formats, examples for
                            common values and rare values
-
-        Example for a Pattern:
-                Pattern(name='digits or letters format', substituters=(r'[A-Z|a-z|d]', 'X'))
-                This pattern looks for either digits or letters and replaces them with the character 'X'. By replacing
-                these, we can find all strings matching this certain pattern and see how common (or rare) it is.
-
-                In this example, the string "nir123@deepchecks.com" would be changed to "XXXXXX@XXXXXXXXXX.XXX".
-                All other strings matching this format (e.g. "noam12@deepchecks.com") would be identified as having the
-                same pattern.
-
-                If we also mark "refine = True" in the Pattern class, the check will further try and make the pattern
-                more accurate, by trying to find common characters in all samples of the same pattern. In this example,
-                the refined format found would be "XXXXXX@deepchecks.com.
         """
         return self._rare_format_detection(dataset=dataset)
 
@@ -334,4 +334,4 @@ class RareFormatDetection(SingleDatasetBaseCheck):
                 display.append(f'\n\nColumn {key}:')
                 display.append(value)
 
-        return CheckResult(value=res, header='Rare Format Detection', check=self.run, display=display)
+        return CheckResult(value=res, header='Rare Format Detection', check=self.__class__, display=display)

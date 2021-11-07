@@ -313,7 +313,7 @@ def test_dataset_validate_label(iris):
 def test_dataset_validate_no_label(iris):
     dataset = Dataset(iris)
     assert_that(calling(dataset.validate_label).with_args('test'),
-                raises(MLChecksValueError, 'function test requires dataset to have a label column'))
+                raises(MLChecksValueError, 'Check test requires dataset to have a label column'))
 
 
 def test_dataset_validate_date(iris):
@@ -324,7 +324,7 @@ def test_dataset_validate_date(iris):
 def test_dataset_validate_no_date(iris):
     dataset = Dataset(iris)
     assert_that(calling(dataset.validate_date).with_args('test'),
-                raises(MLChecksValueError, 'function test requires dataset to have a date column'))
+                raises(MLChecksValueError, 'Check test requires dataset to have a date column'))
 
 
 def test_dataset_validate_index(iris):
@@ -335,7 +335,7 @@ def test_dataset_validate_index(iris):
 def test_dataset_validate_no_index(iris):
     dataset = Dataset(iris)
     assert_that(calling(dataset.validate_index).with_args('test'),
-                raises(MLChecksValueError, 'function test requires dataset to have an index column'))
+                raises(MLChecksValueError, 'Check test requires dataset to have an index column'))
 
 
 def test_dataset_filter_columns_with_validation(iris):
@@ -364,7 +364,7 @@ def test_dataset_validate_shared_features(diabetes):
 def test_dataset_validate_shared_features_fail(diabetes, iris_dataset):
     train = diabetes[0]
     assert_that(calling(train.validate_shared_features).with_args(iris_dataset, 'test'),
-                raises(MLChecksValueError, 'function test requires datasets to share the same features'))
+                raises(MLChecksValueError, 'Check test requires datasets to share the same features'))
 
 
 def test_dataset_validate_shared_label(diabetes):
@@ -375,14 +375,14 @@ def test_dataset_validate_shared_label(diabetes):
 def test_dataset_validate_shared_labels_fail(diabetes, iris_dataset):
     train = diabetes[0]
     assert_that(calling(train.validate_shared_label).with_args(iris_dataset, 'test'),
-                raises(MLChecksValueError, 'function test requires datasets to share the same label'))
+                raises(MLChecksValueError, 'Check test requires datasets to share the same label'))
 
 
 def test_dataset_shared_categorical_features(diabetes_df, iris):
     diabetes_dataset = Dataset(diabetes_df)
     iris_dataset = Dataset(iris)
     assert_that(calling(diabetes_dataset.validate_shared_categorical_features).with_args(iris_dataset, 'test'),
-                raises(MLChecksValueError, 'function test requires datasets to share'
+                raises(MLChecksValueError, 'Check test requires datasets to share'
                                            ' the same categorical features'))
 
 
@@ -402,12 +402,12 @@ def test_validate_dataset_or_dataframe(iris):
 
 def test_validate_dataset_empty_df(empty_df):
     assert_that(calling(Dataset.validate_dataset).with_args(Dataset(empty_df), 'test_function'),
-                raises(MLChecksValueError, 'function test_function required a non-empty dataset'))
+                raises(MLChecksValueError, 'Check test_function required a non-empty dataset'))
 
 
 def test_validate_dataset_not_dataset():
     assert_that(calling(Dataset.validate_dataset).with_args('not_dataset', 'test_function'),
-                raises(MLChecksValueError, 'function test_function requires dataset to be of type Dataset. instead got:'
+                raises(MLChecksValueError, 'Check test_function requires dataset to be of type Dataset. instead got:'
                                            ' str'))
 
 

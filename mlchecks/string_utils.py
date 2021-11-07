@@ -7,7 +7,7 @@ from copy import copy
 import pandas as pd
 
 
-__all__ = ['string_baseform', 'get_base_form_to_variants_dict', 'underscore_to_capitalize', 'split_and_keep',
+__all__ = ['string_baseform', 'get_base_form_to_variants_dict', 'split_camel_case', 'split_and_keep',
            'split_by_order', 'is_string_column', 'format_percent', 'format_number']
 
 from pandas.core.dtypes.common import is_numeric_dtype
@@ -38,13 +38,13 @@ def is_string_column(column: pd.Series):
         return True
 
 
-def underscore_to_capitalize(string: str):
-    """Replace underscore with space and capitalize first letters in each word.
+def split_camel_case(string: str):
+    """Split string where there are capital letters and enter space instead.
 
     Args:
         string (str): string to change
     """
-    return ' '.join([s.capitalize() for s in string.split('_')])
+    return ' '.join(re.findall('[A-Z][^A-Z]*', string))
 
 
 def get_base_form_to_variants_dict(uniques):

@@ -65,7 +65,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
     """Detect strings with length that is much longer/shorter than the identified "normal" string lengths."""
 
     def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 num_percentiles: int = 1000, inner_quantile_range: int = 94, outlier_factor: int = 4, **params):
+                 num_percentiles: int = 1000, inner_quantile_range: int = 94, outlier_factor: int = 4):
         """Initialize the StringLengthOutOfBounds check.
 
         Args:
@@ -80,7 +80,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
             outlier_factor (int): Strings would be defined as outliers if their length is outlier_factor times more/less
                                   than the values inside the inner quantile range.
         """
-        super().__init__(**params)
+        super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.num_percentiles = num_percentiles
@@ -88,7 +88,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         self.outlier_factor = outlier_factor
 
     def run(self, dataset, model=None) -> CheckResult:
-        """Detect strings with length that is much longer/shorter than the identified "normal" string lengths.
+        """Run check.
 
         Args:
             dataset (DataFrame): A dataset or pd.FataFrame object.
@@ -155,4 +155,4 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
 
         display = df_graph if len(df_graph) > 0 else None
 
-        return CheckResult(df_graph, check=self.run, display=display)
+        return CheckResult(df_graph, check=self.__class__, display=display)

@@ -9,11 +9,10 @@ __all__ = ['DatasetInfo']
 
 
 class DatasetInfo(SingleDatasetBaseCheck):
-    """Summarize given dataset information based on pandas_profiling package. Can be used inside `Suite`."""
+    """Summarize given dataset information based on pandas_profiling package."""
 
     def run(self, dataset: Dataset, model=None) -> CheckResult:
-        """
-        Run the dataset_info check.
+        """Run check.
 
         Arguments:
             dataset: Dataset - The dataset object
@@ -25,8 +24,7 @@ class DatasetInfo(SingleDatasetBaseCheck):
         return self._dataset_info(dataset)
 
     def _dataset_info(self, dataset: Union[Dataset, pd.DataFrame]):
-        """
-        Summarize given dataset information based on pandas_profiling package.
+        """Run check.
 
         Args:
            dataset (Dataset): A dataset object
@@ -42,4 +40,4 @@ class DatasetInfo(SingleDatasetBaseCheck):
             profile = ProfileReport(dataset, title='Dataset Report', explorative=True, minimal=True)
             profile.to_notebook_iframe()
 
-        return CheckResult(dataset.shape, check=self._dataset_info, display=display)
+        return CheckResult(dataset.shape, check=self.__class__, display=display)

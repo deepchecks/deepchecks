@@ -8,10 +8,10 @@ __all__ = ['ColumnsInfo']
 
 
 class ColumnsInfo(SingleDatasetBaseCheck):
-    """Return role of each column."""
+    """Return the role and logical type of each column."""
 
     def run(self, dataset: Dataset) -> CheckResult:
-        """Return the role and logical type of each column.
+        """Run check.
 
         Args:
           dataset (Dataset): any dataset.
@@ -27,5 +27,5 @@ class ColumnsInfo(SingleDatasetBaseCheck):
         value = dataset.show_columns_info()
         df = pd.DataFrame.from_dict(value, orient='index', columns=['role']).transpose()
 
-        return CheckResult(value, check=self.run, header='Columns Info', display=df)
+        return CheckResult(value, check=self.__class__, header='Columns Info', display=df)
 

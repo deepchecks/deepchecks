@@ -102,14 +102,9 @@ class BoostingOverfit(TrainValidationBaseCheck):
     The check runs a pred-defined number of steps, and in each step it limits the boosting model to use up to X
     estimators (number of estimators is monotonic increasing). It plots the given metric calculated for each step for
     both the train dataset and the validation dataset.
-
-    Constructor Args:
-        metric (Union[Callable, str]): Metric to use verify the model, either function or sklearn scorer name.
-        metric_name (str): Name to be displayed in the plot on y-axis. must be used together with 'metric'
-        num_steps (int): Number of splits of the model iterations to check.
     """
 
-    def __init__(self, metric: Union[Callable, str] = None, metric_name: str = None, num_steps: int = 20, **params):
+    def __init__(self, metric: Union[Callable, str] = None, metric_name: str = None, num_steps: int = 20):
         """Initialize the BoostingOverfit check.
 
         Args:
@@ -117,17 +112,13 @@ class BoostingOverfit(TrainValidationBaseCheck):
             metric_name (str): Name to be displayed in the plot on y-axis. must be used together with 'metric'
             num_steps (int): Number of splits of the model iterations to check.
         """
-        super().__init__(**params)
+        super().__init__()
         self.metric = metric
         self.metric_name = metric_name
         self.num_steps = num_steps
 
     def run(self, train_dataset, validation_dataset, model=None) -> CheckResult:
-        """Check for overfit occurring when increasing the number of iterations in boosting models.
-
-        The check runs a pred-defined number of steps, and in each step it limits the boosting model to use up to X
-        estimators (number of estimators is monotonic increasing). It plots the given metric calculated for each step
-        for both the train dataset and the validation dataset.
+        """Run check.
 
         Args:
             train_dataset (Dataset):
@@ -145,12 +136,12 @@ class BoostingOverfit(TrainValidationBaseCheck):
             raise MLChecksValueError('Can not have metric_name without metric')
         if not isinstance(self.num_steps, int) or self.num_steps < 2:
             raise MLChecksValueError('num_steps must be an integer larger than 1')
-        Dataset.validate_dataset(train_dataset, self._boosting_overfit.__name__)
-        Dataset.validate_dataset(validation_dataset, self._boosting_overfit.__name__)
-        train_dataset.validate_label(self._boosting_overfit.__name__)
-        validation_dataset.validate_label(self._boosting_overfit.__name__)
-        train_dataset.validate_shared_features(validation_dataset, self._boosting_overfit.__name__)
-        train_dataset.validate_shared_label(validation_dataset, self._boosting_overfit.__name__)
+        Dataset.validate_dataset(train_dataset, self.__class__.__name__)
+        Dataset.validate_dataset(validation_dataset, self.__class__.__name__)
+        train_dataset.validate_label(self.__class__.__name__)
+        validation_dataset.validate_label(self.__class__.__name__)
+        train_dataset.validate_shared_features(validation_dataset, self.__class__.__name__)
+        train_dataset.validate_shared_label(validation_dataset, self.__class__.__name__)
         train_dataset.validate_model(model)
 
         # Get default metric
@@ -183,4 +174,4 @@ class BoostingOverfit(TrainValidationBaseCheck):
             # Display x ticks as integers
             axes.xaxis.set_major_locator(MaxNLocator(integer=True))
 
-        return CheckResult(val_scores[-1], check=self.run, display=display_func, header='Boosting Overfit')
+        return CheckResult(val_scores[-1], check=self.__class__, display=display_func, header='Boosting Overfit')
