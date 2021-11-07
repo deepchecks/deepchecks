@@ -5,14 +5,15 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from mlchecks.base import Dataset
 from mlchecks.utils import MLChecksValueError
-from mlchecks.checks.integrity import DominantFrequencyChange, dominant_frequency_change
+from mlchecks.checks.integrity import DominantFrequencyChange
 from hamcrest import assert_that, calling, raises, equal_to
 
 
 def test_dataset_wrong_input():
     x = 'wrong_input'
     # Act & Assert
-    assert_that(calling(dominant_frequency_change).with_args(x, x),
+    cls = DominantFrequencyChange()
+    assert_that(calling(cls.run).with_args(x, x),
                 raises(MLChecksValueError,
                 'dataset must be of type DataFrame or Dataset. instead got: str'))
 
@@ -25,6 +26,7 @@ def test_no_leakage(iris_split_dataset_and_model):
     result = check.run(dataset=val_ds, baseline_dataset=train_ds).value
     # Assert
     assert_that(result, equal_to(None))
+
 
 def test_leakage(iris_clean):
     x = iris_clean.data
@@ -50,6 +52,7 @@ def test_leakage(iris_clean):
                     'Tested data': {'petal length (cm)': '25 (55.56%)'}}
     assert_that(result, equal_to(expected_res))
 
+
 def test_show_any(iris_split_dataset_and_model):
     train_ds, val_ds, _ = iris_split_dataset_and_model
     # those params means any value should be included
@@ -59,6 +62,7 @@ def test_show_any(iris_split_dataset_and_model):
     # Assert
     assert_that(len(result), equal_to(len(train_ds.features())))
 
+
 def test_show_none_p_val(iris_split_dataset_and_model):
     train_ds, val_ds, _ = iris_split_dataset_and_model
     # because of p_val no value should be included
@@ -67,6 +71,7 @@ def test_show_none_p_val(iris_split_dataset_and_model):
     result = check.run(dataset=val_ds, baseline_dataset=train_ds).value
     # Assert
     assert_that(result, equal_to(None))
+
 
 def test_show_none_dominance_ratio(iris_split_dataset_and_model):
     train_ds, val_ds, _ = iris_split_dataset_and_model
@@ -78,6 +83,7 @@ def test_show_none_dominance_ratio(iris_split_dataset_and_model):
     result = check.run(dataset=val_ds, baseline_dataset=train_ds).value
     # Assert
     assert_that(result, equal_to(None))
+
 
 def test_show_none_ratio_change_thres(iris_split_dataset_and_model):
     train_ds, val_ds, _ = iris_split_dataset_and_model

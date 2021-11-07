@@ -1,5 +1,5 @@
 """Contains unit tests for the confusion_matrix_report check."""
-from mlchecks.checks.performance import naive_model_comparison, NaiveModelComparison
+from mlchecks.checks.performance import NaiveModelComparison
 from mlchecks.utils import MLChecksValueError
 from hamcrest import assert_that, calling, raises, close_to
 
@@ -7,9 +7,9 @@ from hamcrest import assert_that, calling, raises, close_to
 def test_dataset_wrong_input():
     bad_dataset = 'wrong_input'
     # Act & Assert
-    assert_that(calling(naive_model_comparison).with_args(bad_dataset, bad_dataset, None),
+    assert_that(calling(NaiveModelComparison().run).with_args(bad_dataset, bad_dataset, None),
                 raises(MLChecksValueError,
-                       'function naive_model_comparison requires dataset to be of type Dataset. instead got: str'))
+                       'function _naive_model_comparison requires dataset to be of type Dataset. instead got: str'))
 
 
 def test_classification_random(iris_split_dataset_and_model):

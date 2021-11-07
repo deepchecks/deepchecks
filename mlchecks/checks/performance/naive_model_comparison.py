@@ -7,7 +7,7 @@ from mlchecks.base.check import TrainValidationBaseCheck
 from mlchecks.metric_utils import DEFAULT_METRICS_DICT, DEFAULT_SINGLE_METRIC, task_type_check, ModelType, validate_scorer
 from mlchecks.utils import model_type_validation
 
-__all__ = ['naive_model_comparison', 'NaiveModelComparison']
+__all__ = ['NaiveModelComparison']
 
 
 class DummyModel():
@@ -74,58 +74,24 @@ def find_score(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
     return naive_metric, pred_metric, metric_name
 
 
-def naive_model_comparison(train_dataset: Dataset, validation_dataset: Dataset,
-                      model, naive_model_type: str = 'statistical',
-                      metric = None, metric_name = None):
-    """Compare naive model score to given model score.
-
-    Args:
-        train_dataset (Dataset): The training dataset object. Must contain a label.
-        validation_dataset (Dataset): The validation dataset object. Must contain a label.
-        model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
-        naive_model_type (str = 'random'):  Type of the naive model ['random', 'statistical'].
-        metric: a custume metric given by user.
-        metric_name: name of a default metric.
-
-    Returns:
-        CheckResult: value is dictionary of shape: {'given_model_score': <score>, 'naive_model_score': <score>}
-                     display is a bar chart of those values.
-
-    Raises:
-        MLChecksValueError: If the object is not a Dataset instance.
-    """
-    self = naive_model_comparison
-    Dataset.validate_dataset(train_dataset, self.__name__)
-    Dataset.validate_dataset(validation_dataset, self.__name__)
-    train_dataset.validate_label(self.__name__)
-    validation_dataset.validate_label(self.__name__)
-    model_type_validation(model)
-
-    naive_metric, pred_metric, metric_name = find_score(train_dataset, validation_dataset,
-                                                       task_type_check(model, train_dataset), model,
-                                                       naive_model_type, metric, metric_name)
-
-    text = f'{type(model).__name__} Model prediction has achieved {pred_metric} ' \
-           f'in {metric_name} compared to Naive {naive_model_type} prediction ' \
-           f'which achived {naive_metric} on tested data.'
-
-    def display_func():
-        fig = plt.figure()
-        ax = fig.add_axes([0,0,1,1])
-        models = [f'Naive model - {naive_model_type}', f'{type(model).__name__} model']
-        metrics_results = [naive_metric, pred_metric]
-        ax.bar(models,metrics_results)
-        ax.set_ylabel(metric_name)
-
-    return CheckResult({'given_model_score': pred_metric, 'naive_model_score': naive_metric},
-                       check=self, display=[text, display_func])
-
-
 class NaiveModelComparison(TrainValidationBaseCheck):
     """Compare naive model score to given model score."""
 
+    def __init__(self, naive_model_type: str = 'statistical', metric=None, metric_name=None, **params):
+        """Initialize the NaiveModelComparison check.
+
+        Args:
+            naive_model_type (str = 'random'):  Type of the naive model ['random', 'statistical'].
+            metric: a custom metric given by user.
+            metric_name: name of a default metric.
+        """
+        super().__init__(**params)
+        self.naive_model_type = naive_model_type
+        self.metric = metric
+        self.metric_name = metric_name
+
     def run(self, train_dataset, validation_dataset, model) -> CheckResult:
-        """Run naive_comparision check.
+        """Compare naive model score to given model score.
 
         Args:
             train_dataset (Dataset): The training dataset object. Must contain a label.
@@ -134,5 +100,36 @@ class NaiveModelComparison(TrainValidationBaseCheck):
 
         Returns:
             CheckResult: value is ratio between model prediction to naive prediction
+
+        Raises:
+            MLChecksValueError: If the object is not a Dataset instance.
         """
-        return naive_model_comparison(train_dataset, validation_dataset, model, **self.params)
+        return self._naive_model_comparison(train_dataset, validation_dataset, model)
+
+    def _naive_model_comparison(self, train_dataset: Dataset, validation_dataset: Dataset, model):
+        func_name = self._naive_model_comparison.__name__
+        Dataset.validate_dataset(train_dataset, func_name)
+        Dataset.validate_dataset(validation_dataset, func_name)
+        train_dataset.validate_label(func_name)
+        validation_dataset.validate_label(func_name)
+        model_type_validation(model)
+
+        naive_metric, pred_metric, metric_name = find_score(train_dataset, validation_dataset,
+                                                            task_type_check(model, train_dataset), model,
+                                                            self.naive_model_type, self.metric,
+                                                            self.metric_name)
+
+        text = f'{type(model).__name__} Model prediction has achieved {pred_metric} ' \
+               f'in {metric_name} compared to Naive {self.naive_model_type} prediction ' \
+               f'which achived {naive_metric} on tested data.'
+
+        def display_func():
+            fig = plt.figure()
+            ax = fig.add_axes([0, 0, 1, 1])
+            models = [f'Naive model - {self.naive_model_type}', f'{type(model).__name__} model']
+            metrics_results = [naive_metric, pred_metric]
+            ax.bar(models, metrics_results)
+            ax.set_ylabel(metric_name)
+
+        return CheckResult({'given_model_score': pred_metric, 'naive_model_score': naive_metric},
+                           check=self.run, display=[text, display_func])
