@@ -7,7 +7,7 @@ from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from mlchecks.plot_utils import create_colorbar_barchart_for_check
 from mlchecks.utils import MLChecksValueError
-import ppscore as pps
+import mlchecks.ppscore as pps
 
 
 __all__ = ['identifier_leakage', 'IdentifierLeakage']
