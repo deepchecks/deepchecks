@@ -1,7 +1,7 @@
 """Module containing all the base classes for checks."""
 import abc
 import re
-from typing import Dict, Any, Callable, List, Union
+from typing import Any, Callable, List, Union
 
 __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainValidationBaseCheck',
            'ModelOnlyBaseCheck']
@@ -10,7 +10,7 @@ import pandas as pd
 from IPython.core.display import display_html
 from matplotlib import pyplot as plt
 
-from mlchecks.string_utils import split_capitalized
+from mlchecks.string_utils import split_camel_case
 from mlchecks.utils import MLChecksValueError
 
 
@@ -42,7 +42,7 @@ class CheckResult:
             display (Callable): Function which is used for custom display.
         """
         self.value = value
-        self.header = header or (check and split_capitalized(check.__name__)) or None
+        self.header = header or (check and split_camel_case(check.__name__)) or None
         self.check = check
 
         if display is not None and not isinstance(display, List):
@@ -87,15 +87,9 @@ class CheckResult:
 class BaseCheck(metaclass=abc.ABCMeta):
     """Base class for check."""
 
-    params: Dict
-
-    def __init__(self, **params):
-        """Init base check parameters to pass to be used in the implementing check."""
-        self.params = params
-
     def __repr__(self):
         """Representation of check as string."""
-        return f'{self.__class__.__name__}({self.params})'
+        return f'{self.__class__.__name__}'
 
 
 class SingleDatasetBaseCheck(BaseCheck):

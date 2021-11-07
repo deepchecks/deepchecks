@@ -11,7 +11,7 @@ class ModelInfo(ModelOnlyBaseCheck):
     """Summarize given model parameters."""
 
     def run(self, model: BaseEstimator) -> CheckResult:
-        """Run model_info check.
+        """Run check.
 
         Args:
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
@@ -31,6 +31,4 @@ class ModelInfo(ModelOnlyBaseCheck):
         value = {'type': model_type, 'params': model.get_params()}
         display = [f'Model Type: {model_type}', model_param_df]
 
-        return CheckResult(value, check=self.run, header='Model Info', display=display)
-
-
+        return CheckResult(value, check=self.__class__, header='Model Info', display=display)

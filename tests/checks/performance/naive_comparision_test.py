@@ -9,7 +9,7 @@ def test_dataset_wrong_input():
     # Act & Assert
     assert_that(calling(NaiveModelComparison().run).with_args(bad_dataset, bad_dataset, None),
                 raises(MLChecksValueError,
-                       'function _naive_model_comparison requires dataset to be of type Dataset. instead got: str'))
+                       'Check NaiveModelComparison requires dataset to be of type Dataset. instead got: str'))
 
 
 def test_classification_random(iris_split_dataset_and_model):

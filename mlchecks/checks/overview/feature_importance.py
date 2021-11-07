@@ -9,20 +9,19 @@ __all__ = ['FeatureImportance']
 
 
 class FeatureImportance(SingleDatasetBaseCheck):
-    """Check class for the check function feature_importance."""
+    """Plot SHAP feature importance for given dataset on model."""
 
-    def __init__(self, plot_type: str = None, **params):
+    def __init__(self, plot_type: str = None):
         """Initialize the FeatureImportance check.
 
         Args:
             plot_type (str): type of plot that is to be displayed ('bar','beeswarm', None) default None
         """
-        super().__init__(**params)
+        super().__init__()
         self.plot_type = plot_type
 
     def run(self, dataset, model=None) -> CheckResult:
-        """
-        Plot SHAP feature importance for given dataset on model.
+        """Run check.
 
         Arguments:
             dataset: Dataset - The dataset object
@@ -34,7 +33,7 @@ class FeatureImportance(SingleDatasetBaseCheck):
         return self._feature_importance(dataset, model)
 
     def _feature_importance(self, dataset: Dataset, model: BaseEstimator):
-        """Plot SHAP feature importance for given dataset on model.
+        """Run check.
 
         Args:
             dataset (Dataset): A dataset object
@@ -42,7 +41,7 @@ class FeatureImportance(SingleDatasetBaseCheck):
         Returns:
             CheckResult: value is the SHAP values
         """
-        func_name = self._feature_importance.__name__
+        func_name = self.__class__.__name__
         Dataset.validate_dataset(dataset, func_name)
         dataset.validate_label(func_name)
         model_type_validation(model)
@@ -79,4 +78,4 @@ class FeatureImportance(SingleDatasetBaseCheck):
                 raise MLChecksValueError(
                     f'plot_type=\'{self.plot_type}\' currently not supported. Use \'beeswarm\' or \'bar\'')
 
-        return CheckResult(shap_values, display=plot, check=self.run)
+        return CheckResult(shap_values, display=plot, check=self.__class__)

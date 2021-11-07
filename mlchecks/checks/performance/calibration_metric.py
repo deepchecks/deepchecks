@@ -12,7 +12,7 @@ class CalibrationMetric(SingleDatasetBaseCheck):
     """Return the calibration curve with brier score for each class."""
 
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
-        """Run roc_report check.
+        """Run check.
 
         Args:
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
@@ -27,7 +27,7 @@ class CalibrationMetric(SingleDatasetBaseCheck):
         return self._calibration_metric(dataset, model)
 
     def _calibration_metric(self, dataset: Dataset, model):
-        func_name = self._calibration_metric.__name__
+        func_name = self.__class__.__name__
         Dataset.validate_dataset(dataset, func_name)
         dataset.validate_label(func_name)
 
@@ -66,5 +66,5 @@ class CalibrationMetric(SingleDatasetBaseCheck):
 
             plt.tight_layout()
 
-        return CheckResult(briers_scores, header="Calibration Metric", check=self.run, display=display)
+        return CheckResult(briers_scores, header="Calibration Metric", check=self.__class__, display=display)
 

@@ -11,7 +11,7 @@ class ConfusionMatrixReport(SingleDatasetBaseCheck):
     """Return the confusion_matrix."""
 
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
-        """Run confusion_matrix_report check.
+        """Run check.
 
         Args:
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
@@ -25,7 +25,7 @@ class ConfusionMatrixReport(SingleDatasetBaseCheck):
         return self._confusion_matrix_report(dataset, model)
 
     def _confusion_matrix_report(self, dataset: Dataset, model):
-        func_name = self._confusion_matrix_report.__name__
+        func_name = self.__class__.__name__
         Dataset.validate_dataset(dataset, func_name)
         dataset.validate_label(func_name)
 
@@ -39,5 +39,5 @@ class ConfusionMatrixReport(SingleDatasetBaseCheck):
         def display():
             sklearn.metrics.ConfusionMatrixDisplay(confusion_matrix).plot()
 
-        return CheckResult(confusion_matrix, check=self.run, display=display)
+        return CheckResult(confusion_matrix, check=self.__class__, display=display)
 

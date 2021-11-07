@@ -40,7 +40,7 @@ def test_dataset_wrong_input():
     x = 'wrong_input'
     assert_that(
         calling(IndexTrainValidationLeakage().run).with_args(x, x),
-        raises(MLChecksValueError, 'function _index_train_validation_leakage requires dataset to be of type Dataset. '
+        raises(MLChecksValueError, 'Check IndexTrainValidationLeakage requires dataset to be of type Dataset. '
                                    'instead got: str'))
 
 
@@ -48,4 +48,4 @@ def test_dataset_no_index():
     ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11]})
     assert_that(
         calling(IndexTrainValidationLeakage().run).with_args(ds, ds),
-        raises(MLChecksValueError, 'function _index_train_validation_leakage requires dataset to have an index column'))
+        raises(MLChecksValueError, 'Check IndexTrainValidationLeakage requires dataset to have an index column'))

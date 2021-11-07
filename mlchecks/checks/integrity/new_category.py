@@ -13,8 +13,7 @@ __all__ = ['CategoryMismatchTrainValidation']
 class CategoryMismatchTrainValidation(TrainValidationBaseCheck):
     """Find new categories in validation."""
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 **params):
+    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None):
         """
         Initialize the CategoryMismatchTrainValidation class.
 
@@ -24,12 +23,12 @@ class CategoryMismatchTrainValidation(TrainValidationBaseCheck):
             ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
             variable.
         """
-        super().__init__(**params)
+        super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
 
     def run(self, train_dataset: Dataset, validation_dataset: Dataset, model=None) -> CheckResult:
-        """Find new categories in validation.
+        """Run check.
 
         Args:
             train_dataset (Dataset): The training dataset object.
@@ -43,7 +42,7 @@ class CategoryMismatchTrainValidation(TrainValidationBaseCheck):
                                                    validation_dataset=validation_dataset)
 
     def _new_category_train_validation(self, train_dataset: Dataset, validation_dataset: Dataset):
-        """Find new categories in validation.
+        """Run check.
 
         Args:
             train_dataset (Dataset): The training dataset object.
@@ -60,11 +59,8 @@ class CategoryMismatchTrainValidation(TrainValidationBaseCheck):
         validation_dataset = Dataset.validate_dataset_or_dataframe(validation_dataset)
         train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
 
-        features = validation_dataset.validate_shared_features(train_dataset,
-                                                               self._new_category_train_validation.__name__)
-
-        cat_features = train_dataset.validate_shared_categorical_features(validation_dataset,
-                                                                          self._new_category_train_validation.__name__)
+        features = validation_dataset.validate_shared_features(train_dataset, self.__class__.__name__)
+        cat_features = train_dataset.validate_shared_categorical_features(validation_dataset, self.__class__.__name__)
 
         validation_dataset = validation_dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
         train_dataset = train_dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
@@ -103,4 +99,4 @@ class CategoryMismatchTrainValidation(TrainValidationBaseCheck):
         else:
             display = None
             new_categories = {}
-        return CheckResult(new_categories, check=self.run, display=display)
+        return CheckResult(new_categories, check=self.__class__, display=display)

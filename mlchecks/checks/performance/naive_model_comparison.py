@@ -77,7 +77,7 @@ def find_score(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
 class NaiveModelComparison(TrainValidationBaseCheck):
     """Compare naive model score to given model score."""
 
-    def __init__(self, naive_model_type: str = 'statistical', metric=None, metric_name=None, **params):
+    def __init__(self, naive_model_type: str = 'statistical', metric=None, metric_name=None):
         """Initialize the NaiveModelComparison check.
 
         Args:
@@ -85,13 +85,13 @@ class NaiveModelComparison(TrainValidationBaseCheck):
             metric: a custom metric given by user.
             metric_name: name of a default metric.
         """
-        super().__init__(**params)
+        super().__init__()
         self.naive_model_type = naive_model_type
         self.metric = metric
         self.metric_name = metric_name
 
     def run(self, train_dataset, validation_dataset, model) -> CheckResult:
-        """Compare naive model score to given model score.
+        """Run check.
 
         Args:
             train_dataset (Dataset): The training dataset object. Must contain a label.
@@ -107,7 +107,7 @@ class NaiveModelComparison(TrainValidationBaseCheck):
         return self._naive_model_comparison(train_dataset, validation_dataset, model)
 
     def _naive_model_comparison(self, train_dataset: Dataset, validation_dataset: Dataset, model):
-        func_name = self._naive_model_comparison.__name__
+        func_name = self.__class__.__name__
         Dataset.validate_dataset(train_dataset, func_name)
         Dataset.validate_dataset(validation_dataset, func_name)
         train_dataset.validate_label(func_name)
@@ -132,4 +132,4 @@ class NaiveModelComparison(TrainValidationBaseCheck):
             ax.set_ylabel(metric_name)
 
         return CheckResult({'given_model_score': pred_metric, 'naive_model_score': naive_metric},
-                           check=self.run, display=[text, display_func])
+                           check=self.__class__, display=[text, display_func])

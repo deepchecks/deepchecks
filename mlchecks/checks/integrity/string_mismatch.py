@@ -13,8 +13,7 @@ __all__ = ['StringMismatch']
 class StringMismatch(SingleDatasetBaseCheck):
     """Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column."""
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 **params):
+    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None):
         """Initialize the StringMismatch check.
 
         Args:
@@ -24,12 +23,12 @@ class StringMismatch(SingleDatasetBaseCheck):
                     variable
 
         """
-        super().__init__(**params)
+        super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
 
     def run(self, dataset, model=None) -> CheckResult:
-        """Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column.
+        """Run check.
 
         Args:
             dataset (DataFrame): A dataset or pd.FataFrame object.
@@ -66,4 +65,4 @@ class StringMismatch(SingleDatasetBaseCheck):
         else:
             display = None
 
-        return CheckResult(df_graph, check=self.run, display=display)
+        return CheckResult(df_graph, check=self.__class__, display=display)

@@ -14,19 +14,19 @@ __all__ = ['IdentifierLeakage']
 
 
 class IdentifierLeakage(SingleDatasetBaseCheck):
-    """Search for leakage in identifiers (Date, Index)."""
+    """Check if identifiers (Index/Date) can be used to predict the label."""
 
-    def __init__(self, ppscore_params=None, **params):
+    def __init__(self, ppscore_params=None):
         """Initialize the IdentifierLeakage check.
 
         Args:
             ppscore_params: dictionary containing params to pass to ppscore predictor
         """
-        super().__init__(**params)
+        super().__init__()
         self.ppscore_params = ppscore_params
 
     def run(self, dataset: Dataset, model=None) -> CheckResult:
-        """Check if identifiers (Index/Date) can be used to predict the label.
+        """Run check.
 
         Args:
           dataset(Dataset): any dataset.
@@ -40,11 +40,11 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
         Raises:
             MLChecksValueError: If the object is not a Dataset instance with a label
         """
-        return self._identifier_leakage(dataset, **self.params)
+        return self._identifier_leakage(dataset)
 
     def _identifier_leakage(self, dataset: Union[pd.DataFrame, Dataset], ppscore_params=None) -> CheckResult:
-        Dataset.validate_dataset(dataset, self._identifier_leakage.__name__)
-        dataset.validate_label(self._identifier_leakage.__name__)
+        Dataset.validate_dataset(dataset, self.__class__.__name__)
+        dataset.validate_label(self.__class__.__name__)
         ppscore_params = ppscore_params or {}
 
         relevant_columns = list(filter(None, [dataset.date_name(), dataset.index_name(), dataset.label_name()]))
@@ -68,4 +68,4 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
                 'For Identifier columns (Index/Date) PPS should be nearly 0, otherwise date and index have some '
                 'predictive effect on the label.']
 
-        return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text], check=self.run)
+        return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text], check=self.__class__)

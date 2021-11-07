@@ -13,25 +13,26 @@ __all__ = ['TrainValidationDifferenceOverfit']
 
 
 class TrainValidationDifferenceOverfit(TrainValidationBaseCheck):
-    """Check if validation dates are present in train data."""
+    """Visualize overfit by displaying the difference between model metrics on train and on validation data.
 
-    def __init__(self, alternative_metrics: Dict[str, Callable] = None, **params):
+    The check would display the selected metrics for the training and validation data, helping the user visualize
+    the difference in performance between the two datasets. If no alternative_metrics are supplied, the check would
+    use a list of default metrics. If they are supplied, alternative_metrics must be a dictionary, with the keys
+    being metric names and the values being either a name of an sklearn scoring function
+    (https://scikit-learn.org/stable/modules/model_evaluation.html#scoring) or an sklearn scoring function.
+    """
+
+    def __init__(self, alternative_metrics: Dict[str, Callable] = None):
         """Initialize the TrainValidationDifferenceOverfit check.
 
         Args:
             alternative_metrics (Dict[str, Callable]): An optional dictionary of metric name to scorer functions
         """
-        super().__init__(**params)
+        super().__init__()
         self.alternative_metrics = alternative_metrics
 
     def run(self, train_dataset: Dataset, validation_dataset: Dataset, model=None) -> CheckResult:
-        """Visualize overfit by displaying the difference between model metrics on train and on validation data.
-
-        The check would display the selected metrics for the training and validation data, helping the user visualize
-        the difference in performance between the two datasets. If no alternative_metrics are supplied, the check would
-        use a list of default metrics. If they are supplied, alternative_metrics must be a dictionary, with the keys
-        being metric names and the values being either a name of an sklearn scoring function
-        (https://scikit-learn.org/stable/modules/model_evaluation.html#scoring) or an sklearn scoring function.
+        """Run check.
 
         Args:
             train_dataset (Dataset): The training dataset object. Must contain a label column.
@@ -51,7 +52,7 @@ class TrainValidationDifferenceOverfit(TrainValidationBaseCheck):
     def _train_validation_difference_overfit(self, train_dataset: Dataset, validation_dataset: Dataset, model,
                                             ) -> CheckResult:
         # Validate parameters
-        func_name = self._train_validation_difference_overfit.__name__
+        func_name = self.__class__.__name__
         Dataset.validate_dataset(train_dataset, func_name)
         Dataset.validate_dataset(validation_dataset, func_name)
         train_dataset.validate_label(func_name)
@@ -88,4 +89,5 @@ class TrainValidationDifferenceOverfit(TrainValidationBaseCheck):
         res = res_df.apply(lambda x: x[1] - x[0], axis=1)
         res.index = res.index.to_series().apply(lambda x: x + ' - Difference between Training data and Validation data')
 
-        return CheckResult(res, check=self.run, header='Train Validation Difference Overfit', display=[plot_overfit])
+        return CheckResult(res, check=self.__class__, header='Train Validation Difference Overfit',
+                           display=[plot_overfit])

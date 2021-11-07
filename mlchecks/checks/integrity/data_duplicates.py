@@ -17,7 +17,7 @@ class DataDuplicates(SingleDatasetBaseCheck):
     """Search for duplicate data in dataset."""
 
     def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 n_to_show: int = 5, **params):
+                 n_to_show: int = 5):
         """Initialize the DataDuplicates class.
 
         Args:
@@ -28,13 +28,13 @@ class DataDuplicates(SingleDatasetBaseCheck):
             n_to_show (int): number of most common duplicated samples to show.
 
         """
-        super().__init__(**params)
+        super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_to_show = n_to_show
 
     def run(self, dataset: Dataset, model=None) -> CheckResult:
-        """Run data_duplicates.
+        """Run check.
 
         Args:
           dataset(Dataset): any dataset.
@@ -69,4 +69,4 @@ class DataDuplicates(SingleDatasetBaseCheck):
         else:
             display = None
 
-        return CheckResult(value=percent_duplicate, check=self.run, display=display)
+        return CheckResult(value=percent_duplicate, check=self.__class__, display=display)
