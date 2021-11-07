@@ -15,6 +15,7 @@ __all__ = ['IdentifierLeakage']
 
 class IdentifierLeakage(SingleDatasetBaseCheck):
     """Search for leakage in identifiers (Date, Index)."""
+
     def __init__(self, ppscore_params=None, **params):
         """Initialize the IdentifierLeakage check.
 
