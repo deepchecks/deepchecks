@@ -39,7 +39,7 @@ class Dataset:
     def __init__(self, df: pd.DataFrame,
                  features: List[str] = None, cat_features: List[str] = None, label: str = None, use_index: bool = False,
                  index: str = None, date: str = None, date_unit_type: str = None, _convert_date: bool = True,
-                 max_categorical_ratio: float = 0.01, max_categories: int = 30):
+                 max_categorical_ratio: float = 0.001, max_categories: int = 100):
         """Initiate the Dataset using a pandas DataFrame and Metadata.
 
         Args:
@@ -151,8 +151,9 @@ class Dataset:
         cat_columns = []
 
         for col in self._features:
-            num_unique = self.data[col].nunique(dropna=True)
-            if not is_numeric_dtype(self.data[col]) and self.is_categorical(num_unique, len(self.data[col].dropna())):
+            col_data = self.data[col]
+            num_unique = col_data.nunique(dropna=True)
+            if not is_numeric_dtype(col_data) or self.is_categorical(num_unique, len(col_data.dropna())):
                 cat_columns.append(col)
         return cat_columns
 
