@@ -61,7 +61,7 @@ class CheckResult:
     header: str
     check: Callable
     display: List[Union[Callable, str, pd.DataFrame]]
-    conditions_results: Dict[str, ConditionResult]
+    condition_results: Dict[str, ConditionResult]
 
     def __init__(self, value, header: str = None, check: Callable = None, display: Any = None):
         """Init check result.
