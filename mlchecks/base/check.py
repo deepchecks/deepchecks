@@ -10,7 +10,7 @@ import pandas as pd
 from IPython.core.display import display_html
 from matplotlib import pyplot as plt
 
-from mlchecks.string_utils import underscore_to_capitalize
+from mlchecks.string_utils import split_capitalized
 from mlchecks.utils import MLChecksValueError
 
 
@@ -42,7 +42,7 @@ class CheckResult:
             display (Callable): Function which is used for custom display.
         """
         self.value = value
-        self.header = header or (check and underscore_to_capitalize(check.__name__)) or None
+        self.header = header or (check and split_capitalized(check.__name__)) or None
         self.check = check
 
         if display is not None and not isinstance(display, List):
