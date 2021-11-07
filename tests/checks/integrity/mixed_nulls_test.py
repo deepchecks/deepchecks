@@ -1,10 +1,15 @@
 """Tests for Mixed Nulls check"""
+from typing import Dict
+
+import hamcrest
 import numpy as np
 import pandas as pd
 
-from hamcrest import assert_that, has_length, has_entry
+from hamcrest import assert_that, has_length, has_entry, has_property, has_entries, equal_to, calling, raises
 
-from mlchecks.checks.integrity.mixed_nulls import mixed_nulls
+from mlchecks import Dataset, ConditionResult, ConditionCategory
+from mlchecks.checks.integrity.mixed_nulls import mixed_nulls, MixedNulls
+from mlchecks.utils import MLChecksValueError
 
 
 def test_single_column_no_nulls():
@@ -145,3 +150,73 @@ def test_dataset_2_columns_single_nulls():
     result = mixed_nulls(dataframe)
     # Assert - Single null is allowed so still empty return
     assert_that(result.value, has_length(0))
+
+
+def test_condition_max_nulls_not_passed():
+    # Arrange
+    data = {'col1': ['', '#@$', 'Nan!', '#nan', '<NaN>']}
+    dataset = Dataset(pd.DataFrame(data=data))
+    check = MixedNulls().add_condition_max_different_nulls(3)
+
+    # Act
+    result = check.conditions_decision(check.run(dataset))
+
+    assert_that(result, has_entries({
+        'No more than 3 null types for all columns': hamcrest.all_of(
+            has_property('is_pass', equal_to(False)),
+            has_property('category', ConditionCategory.FAILURE),
+            has_property('actual', 'Found columns col1 with more than 3 null types')
+        )
+    }))
+
+
+def test_condition_max_nulls_passed():
+    # Arrange
+    data = {'col1': ['', '#@$', 'Nan!', '#nan', '<NaN>']}
+    dataset = Dataset(pd.DataFrame(data=data))
+    check = MixedNulls().add_condition_max_different_nulls(10)
+
+    # Act
+    result = check.conditions_decision(check.run(dataset))
+
+    assert_that(result, has_entries({
+        'No more than 10 null types for all columns': has_property('is_pass', equal_to(True))
+    }))
+
+
+def test_condition_max_nulls_columns_filter():
+    # Arrange
+    data = {'col1': ['', '#@$', 'Nan!', '#nan', '<NaN>'], 'col2': ['a', 'b', 'c', 'd', 'e']}
+    dataset = Dataset(pd.DataFrame(data=data))
+    check = MixedNulls().add_condition_max_different_nulls(1, columns=['col2'])
+
+    # Act
+    result = check.conditions_decision(check.run(dataset))
+
+    assert_that(result, has_entries({
+        'No more than 1 null types for columns: col2': has_property('is_pass', equal_to(True))
+    }))
+
+
+def test_condition_max_nulls_ignore_columns_filter():
+    # Arrange
+    data = {'col1': ['', '#@$', 'Nan!', '#nan', '<NaN>'], 'col2': ['a', 'b', 'c', 'd', 'e']}
+    dataset = Dataset(pd.DataFrame(data=data))
+    check = MixedNulls().add_condition_max_different_nulls(1, ignore_columns=['col1'])
+
+    # Act
+    result = check.conditions_decision(check.run(dataset))
+
+    assert_that(result, has_entries({
+        'No more than 1 null types for all columns ignoring: col1': has_property('is_pass', equal_to(True))
+    }))
+
+
+def test_condition_max_nulls_both_filters_raise_error():
+    # Arrange
+    check = MixedNulls()
+
+    # Act & Assert
+    assert_that(calling(check.add_condition_max_different_nulls).with_args(1, columns=['col1'],
+                                                                           ignore_columns=['col2']),
+                raises(MLChecksValueError, 'Can not define columns and ignore_columns together'))

@@ -1,6 +1,6 @@
 """Module contains Mixed Nulls check."""
 from collections import defaultdict
-from typing import Iterable, Union, Dict
+from typing import Iterable, Union, Dict, List
 
 import numpy as np
 import pandas as pd
@@ -57,8 +57,8 @@ def mixed_nulls(dataset: Union[pd.DataFrame, Dataset], null_string_list: Iterabl
         ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns variable
 
     Returns
-        (CheckResult): DataFrame with columns ('Column Name', 'Value', 'Count', 'Fraction of data') for any column
-         which have more than 1 null values.
+        (CheckResult): Dictionary of columns having more than 1 null type in form:
+        `{ column: { null_value: { count: <x>, percent: <y>} } }`
     """
     # Validate parameters
     dataset: pd.DataFrame = ensure_dataframe_type(dataset)
@@ -82,10 +82,10 @@ def mixed_nulls(dataset: Union[pd.DataFrame, Dataset], null_string_list: Iterabl
         if len(null_counts) < 2:
             continue
         # Save the column info
-        for key, count in null_counts.items():
+        for null_value, count in null_counts.items():
             percent = count / dataset.size
-            display_array.append([column_name, key, count, format_percent(percent)])
-        result_dict[column_name] = null_counts
+            display_array.append([column_name, null_value, count, format_percent(percent)])
+            result_dict[column_name][null_value] = {'count': count, 'percent': percent}
 
     # Create dataframe to display table
     if display_array:
@@ -117,17 +117,30 @@ class MixedNulls(SingleDatasetBaseCheck):
                            columns=self.params.get('columns'),
                            check_nan=self.params.get('check_nan'))
 
-    def add_condition_max_different_nulls(self, max_nulls: int, *columns):
+    def add_condition_max_different_nulls(self, max_nulls: int, columns: List[str] = None,
+                                          ignore_columns: List[str] = None):
         """Add condition that a column have a maximum number of different null values.
 
         Args:
             max_nulls (int): Maximum number allowed of different null values.
-            columns (str): Column to limit the condition to. If none, runs on all.
+            columns (List[str]): Column to limit the condition to. If none, runs on all.
+            ignore_columns (List[str]):
         """
+        if columns and not ignore_columns:
+            column_names = f'columns: {",".join(columns)}'
+        elif ignore_columns and not columns:
+            column_names = f'all columns ignoring: {",".join(ignore_columns)}'
+        elif not columns and not ignore_columns:
+            column_names = 'all columns'
+        else:
+            raise MLChecksValueError('Can not define columns and ignore_columns together')
+
         def condition(result: Dict) -> ConditionResult:
-            columns_in_result = result.keys()
+            columns_in_result = set(result.keys())
             if columns:
-                columns_in_result = set(columns_in_result) ^ set(columns)
+                columns_in_result = columns_in_result & set(columns)
+            if ignore_columns:
+                columns_in_result = columns_in_result - set(ignore_columns)
             not_passing_columns = []
             for column in columns_in_result:
                 nulls = result[column]
@@ -140,9 +153,6 @@ class MixedNulls(SingleDatasetBaseCheck):
                                        f'Found columns {not_passing_columns} with more than {max_nulls} null types')
             else:
                 return ConditionResult(True)
-        if columns:
-            name = f'No more than {max_nulls} null types for columns: [{",".join(columns)}]'
-        else:
-            name = f'No more than {max_nulls} null types for all columns'
-        self.add_condition(name, condition)
+
+        self.add_condition(f'No more than {max_nulls} null types for {column_names}', condition)
         return self
