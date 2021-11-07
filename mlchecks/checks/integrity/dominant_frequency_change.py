@@ -84,13 +84,13 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
         return p_val
 
     def _dominant_frequency_change(self, dataset: Dataset, baseline_dataset: Dataset):
-        """run the check logic.
+        """Run the check logic.
 
         Args:
             dataset (Dataset): The dataset object. Must contain an index.
             baseline_dataset (Dataset): The baseline dataset object. Must contain an index.
         Returns:
-            CheckResult:  result value is dataframe that containes the dominant value change for each column.
+            CheckResult:  result value is dataframe that contains the dominant value change for each column.
         """
         baseline_dataset = Dataset.validate_dataset_or_dataframe(baseline_dataset)
         dataset = Dataset.validate_dataset_or_dataframe(dataset)

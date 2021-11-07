@@ -45,8 +45,8 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         return self._single_feature_contribution(dataset=dataset)
 
     def _single_feature_contribution(self, dataset: Dataset):
-        Dataset.validate_dataset(dataset, self._single_feature_contribution.__name__)
-        dataset.validate_label(self._single_feature_contribution.__name__)
+        Dataset.validate_dataset(dataset, self.__class__.__name__)
+        dataset.validate_label(self.__class__.__name__)
         ppscore_params = self.ppscore_params or {}
 
         relevant_columns = dataset.features() + [dataset.label_name()]

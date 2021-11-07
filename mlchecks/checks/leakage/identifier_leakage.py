@@ -40,7 +40,7 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
         Raises:
             MLChecksValueError: If the object is not a Dataset instance with a label
         """
-        return self._identifier_leakage(dataset, **self.params)
+        return self._identifier_leakage(dataset)
 
     def _identifier_leakage(self, dataset: Union[pd.DataFrame, Dataset], ppscore_params=None) -> CheckResult:
         Dataset.validate_dataset(dataset, self.__class__.__name__)

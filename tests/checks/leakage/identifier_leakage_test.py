@@ -30,7 +30,7 @@ def test_dataset_wrong_input():
     wrong = 'wrong_input'
     assert_that(
         calling(IdentifierLeakage().run).with_args(wrong),
-        raises(MLChecksValueError, 'function _identifier_leakage requires dataset to be of type Dataset. '
+        raises(MLChecksValueError, 'Check IdentifierLeakage requires dataset to be of type Dataset. '
                                    'instead got: str'))
 
 
@@ -39,7 +39,7 @@ def test_dataset_no_label():
     df = Dataset(df)
     assert_that(
         calling(IdentifierLeakage().run).with_args(dataset=df),
-        raises(MLChecksValueError, 'function _identifier_leakage requires dataset to have a label column'))
+        raises(MLChecksValueError, 'Check IdentifierLeakage requires dataset to have a label column'))
 
 
 def test_dataset_only_label():

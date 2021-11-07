@@ -29,11 +29,10 @@ class DateTrainValidationLeakageOverlap(TrainValidationBaseCheck):
         return self._date_train_validation_leakage_overlap(train_dataset, validation_dataset)
 
     def _date_train_validation_leakage_overlap(self, train_dataset: Dataset, validation_dataset: Dataset):
-        train_dataset = Dataset.validate_dataset(train_dataset, self._date_train_validation_leakage_overlap.__name__)
-        validation_dataset = Dataset.validate_dataset(validation_dataset,
-                                                      self._date_train_validation_leakage_overlap.__name__)
-        train_dataset.validate_date(self._date_train_validation_leakage_overlap.__name__)
-        validation_dataset.validate_date(self._date_train_validation_leakage_overlap.__name__)
+        train_dataset = Dataset.validate_dataset(train_dataset, self.__class__.__name__)
+        validation_dataset = Dataset.validate_dataset(validation_dataset, self.__class__.__name__)
+        train_dataset.validate_date(self.__class__.__name__)
+        validation_dataset.validate_date(self.__class__.__name__)
 
         train_date = train_dataset.date_col()
         val_date = validation_dataset.date_col()

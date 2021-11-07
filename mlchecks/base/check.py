@@ -1,7 +1,7 @@
 """Module containing all the base classes for checks."""
 import abc
 import re
-from typing import Dict, Any, Callable, List, Union
+from typing import Any, Callable, List, Union
 
 __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainValidationBaseCheck',
            'ModelOnlyBaseCheck']
