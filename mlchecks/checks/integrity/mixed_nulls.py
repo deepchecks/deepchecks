@@ -154,5 +154,4 @@ class MixedNulls(SingleDatasetBaseCheck):
             else:
                 return ConditionResult(True)
 
-        self.add_condition(f'No more than {max_nulls} null types for {column_names}', condition)
-        return self
+        return self.add_condition(f'No more than {max_nulls} null types for {column_names}', condition)

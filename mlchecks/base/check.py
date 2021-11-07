@@ -155,11 +155,12 @@ class BaseCheck(metaclass=abc.ABCMeta):
             and returns object of List[ConditionResult] or boolean.
         """
         if not isinstance(condition, Callable):
-            raise MLChecksValueError(f'Condition must be a function in signature `(CheckResult) -> ConditionResult`,'
+            raise MLChecksValueError(f'Condition must be a function `(Any) -> Union[ConditionResult, bool]`, '
                                      f'but got: {type(condition).__name__}')
         if not isinstance(name, str):
             raise MLChecksValueError(f'Condition name must be of type str but got: {type(name).__name__}')
         self._conditions[name] = condition
+        return self
 
     def __repr__(self, tabs=0):
         """Representation of check as string.
@@ -204,7 +205,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
             index (int): index of condtion to remove
         """
         if index >= len(self._conditions):
-            raise MLChecksValueError(f'Index {int} of conditions does not exists')
+            raise MLChecksValueError(f'Index {index} of conditions does not exists')
         key = list(self._conditions.keys())[index]
         self._conditions.pop(key)
 
