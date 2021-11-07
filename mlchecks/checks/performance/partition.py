@@ -30,9 +30,12 @@ class MLChecksFilter:
 
 
 def numeric_segmentation_edges(column: pd.Series, max_segments: int) -> List[MLChecksFilter]:
-    """Split given series into values which are used to create quantiles segments. Tries to create max_segments + 1
-    values (since segment is a range, so 2 values needed to create segment) but in case some quantiles have the
-    same value they will be filtered, and the result will have less than max_segments + 1 values."""
+    """Split given series into values which are used to create quantiles segments.
+
+    Tries to create `max_segments + 1` values (since segment is a range, so 2 values needed to create segment) but in
+    case some quantiles have the same value they will be filtered, and the result will have less than max_segments + 1
+    values.
+    """
     percentile_values = np.nanpercentile(column.to_numpy(), np.linspace(0, 100, max_segments + 1))
     # If there are a lot of duplicate values, some of the quantiles might be equal,
     # so filter them leaving only uniques (with preserved order)
@@ -41,6 +44,7 @@ def numeric_segmentation_edges(column: pd.Series, max_segments: int) -> List[MLC
 
 def largest_category_index_up_to_ratio(histogram, max_segments, max_cat_proportions):
     """Decide which categorical values are big enough to display individually.
+
     First check how many of the biggest categories needed in order to occupy `max_cat_proportions`% of the data. If
     the number is less than max_segments than return it, else return max_segments or number of unique values.
     """

@@ -13,8 +13,8 @@ __all__ = ['SegmentPerformance']
 
 
 class SegmentPerformance(SingleDatasetBaseCheck):
-    """Display performance metric segmented by 2 given features in a heatmap.
-    """
+    """Display performance metric segmented by 2 given features in a heatmap."""
+
     feature_1: str
     feature_2: str
     metric: Union[str, Callable]
@@ -44,7 +44,7 @@ class SegmentPerformance(SingleDatasetBaseCheck):
         self.metric = metric
 
     def run(self, dataset, model) -> CheckResult:
-        """Runs check.
+        """Run check.
 
         Args:
             dataset (Dataset): a Dataset object.
