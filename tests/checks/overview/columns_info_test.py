@@ -1,6 +1,6 @@
 """Contains unit tests for the columns_info check."""
 from mlchecks.base import Dataset
-from mlchecks.checks.overview import ColumnsInfo, columns_info
+from mlchecks.checks.overview import ColumnsInfo
 from mlchecks.utils import MLChecksValueError
 
 import numpy as np
@@ -11,7 +11,7 @@ from hamcrest import assert_that, equal_to, calling, raises
 def test_dataset_wrong_input():
     x = 'wrong_input'
     # Act & Assert
-    assert_that(calling(columns_info).with_args(x),
+    assert_that(calling(ColumnsInfo().run).with_args(x),
                 raises(MLChecksValueError, 'dataset must be of type DataFrame or Dataset. instead got: str'))
 
 
