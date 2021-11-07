@@ -1,4 +1,6 @@
 """module contains Data Duplicates check."""
+from typing import Union, Iterable
+
 import pandas as pd
 
 from mlchecks import Dataset, ensure_dataframe_type
@@ -12,13 +14,24 @@ __all__ = ['DataDuplicates']
 
 
 class DataDuplicates(SingleDatasetBaseCheck):
-    """Search for duplicate data in dataset.
+    """Search for duplicate data in dataset."""
 
-    Args:
-        columns (str, Iterable[str]): List of columns to check, if none given checks all columns Except ignored ones.
-        ignore_columns (str, Iterable[str]): List of columns to ignore, if none given checks based on columns variable.
-        n_to_show (int): number of most common duplicated samples to show.
-    """
+    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
+                 n_to_show: int = 5, **params):
+        """Initialize the DataDuplicates class.
+
+        Args:
+            columns (str, Iterable[str]): List of columns to check, if none given checks all columns Except ignored
+            ones.
+            ignore_columns (str, Iterable[str]): List of columns to ignore, if none given checks based on columns
+            variable.
+            n_to_show (int): number of most common duplicated samples to show.
+
+        """
+        super().__init__(**params)
+        self.columns = columns
+        self.ignore_columns = ignore_columns
+        self.n_to_show = n_to_show
 
     def run(self, dataset: Dataset, model=None) -> CheckResult:
         """Run data_duplicates.
@@ -29,10 +42,8 @@ class DataDuplicates(SingleDatasetBaseCheck):
         Returns:
           (CheckResult): percentage of duplicates and display of the top n_to_show most duplicated.
         """
-        n_to_show = self.params.get('n_to_show') if self.params.get('n_to_show') is not None else 5
-
         df: pd.DataFrame = ensure_dataframe_type(dataset)
-        df = filter_columns_with_validation(df, self.params.get('columns'), self.params.get('ignore_columns'))
+        df = filter_columns_with_validation(df, self.columns, self.ignore_columns)
 
         data_columns = list(df.columns)
 
@@ -49,7 +60,7 @@ class DataDuplicates(SingleDatasetBaseCheck):
         if percent_duplicate > 0:
             duplicates_counted = group_unique_data.reset_index().rename(columns={0: 'Number of Duplicates'})
             most_duplicates = duplicates_counted[duplicates_counted['Number of Duplicates'] > 1]. \
-                nlargest(n_to_show, ['Number of Duplicates'])
+                nlargest(self.n_to_show, ['Number of Duplicates'])
 
             most_duplicates = most_duplicates.set_index('Number of Duplicates')
 
