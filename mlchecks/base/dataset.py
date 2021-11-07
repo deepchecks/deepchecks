@@ -1,6 +1,7 @@
 """The Dataset module containing the dataset Class and its functions."""
 from typing import Dict, Union, List, Any
 import pandas as pd
+from pandas.core.dtypes.common import is_numeric_dtype
 
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 from mlchecks.utils import MLChecksValueError
@@ -149,11 +150,11 @@ class Dataset:
         """
         cat_columns = []
 
-        for col in self.data.columns:
-            num_unique = self.data[col].nunique(dropna=True)
-            if self.is_categorical(num_unique, len(self.data[col].dropna())):
+        for col in self._features:
+            col_data = self.data[col]
+            num_unique = col_data.nunique(dropna=True)
+            if not is_numeric_dtype(col_data) or self.is_categorical(num_unique, len(col_data.dropna())):
                 cat_columns.append(col)
-
         return cat_columns
 
     def is_categorical(self, n_unique: int, n_samples: int) -> bool:

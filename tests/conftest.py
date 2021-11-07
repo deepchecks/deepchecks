@@ -27,8 +27,8 @@ def diabetes_df():
 def diabetes(diabetes_df):
     """Return diabetes dataset splited to train and validation as Datasets."""
     train_df, validation_df = train_test_split(diabetes_df, test_size=0.33, random_state=42)
-    train = Dataset(train_df, label='target')
-    validation = Dataset(validation_df, label='target')
+    train = Dataset(train_df, label='target', cat_features=['sex'])
+    validation = Dataset(validation_df, label='target', cat_features=['sex'])
     return train, validation
 
 
