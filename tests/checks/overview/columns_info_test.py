@@ -16,10 +16,10 @@ def test_dataset_wrong_input():
 
 
 def test_columns_info():
-    num_fe = np.random.rand(200)
-    cat_fe = np.random.randint(10, size=200)
-    date = range(1635693229, 1635693429)
-    index = range(200)
+    num_fe = np.random.rand(600)
+    cat_fe = np.random.randint(5, size=600)
+    date = range(1635693229, 1635693829)
+    index = range(600)
     data = {'index': index, 'date': date, 'a': cat_fe, 'b': num_fe, 'c': num_fe, 'label': cat_fe}
     df = pd.DataFrame.from_dict(data)
 
