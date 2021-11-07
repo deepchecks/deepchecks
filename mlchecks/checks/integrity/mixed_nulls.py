@@ -20,7 +20,7 @@ class MixedNulls(SingleDatasetBaseCheck):
 
     def __init__(self, null_string_list: Iterable[str] = None, check_nan: bool = True,
                  columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None, **params):
-        """Initialize the MixedNulls check
+        """Initialize the MixedNulls check.
 
         Args:
             null_string_list (List[str]): List of strings to be considered alternative null representations
