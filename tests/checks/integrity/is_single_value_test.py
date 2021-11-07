@@ -1,14 +1,13 @@
 """Tests for Single Value Check"""
 import pandas as pd
 from mlchecks.utils import MLChecksValueError
-from mlchecks.checks.integrity.is_single_value import is_single_value, IsSingleValue
+from mlchecks.checks.integrity.is_single_value import IsSingleValue
 from hamcrest import assert_that, calling, raises, equal_to
-
 
 
 def helper_test_df_and_result(df, expected_result_value, ignore_columns=None):
     # Act
-    result = is_single_value(df, ignore_columns=ignore_columns)
+    result = IsSingleValue(ignore_columns=ignore_columns).run(df)
 
     # Assert
     assert_that(result.value, equal_to(expected_result_value))
@@ -94,11 +93,14 @@ def test_wrong_ignore_columns_single_value():
     df = pd.DataFrame({'a': ['b', 'b', 'b'], 'bbb':['a', 'a', 'a'], 'f':[1, 2, 3]})
 
     # Act
-    assert_that(calling(is_single_value).with_args(df, ignore_columns=['bbb', 'd']),
+    cls = IsSingleValue(ignore_columns=['bbb', 'd'])
+    assert_that(calling(cls.run).with_args(df),
                 raises(MLChecksValueError, 'Given columns do not exist in dataset: d'))
 
 
 def test_wrong_input_single_value():
     # Act
-    assert_that(calling(is_single_value).with_args('some string'),
+    cls = IsSingleValue(ignore_columns=['bbb', 'd'])
+
+    assert_that(calling(cls.run).with_args('some string'),
                 raises(MLChecksValueError, 'dataset must be of type DataFrame or Dataset, but got: str'))

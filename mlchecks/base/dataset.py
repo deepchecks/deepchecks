@@ -1,6 +1,7 @@
 """The Dataset module containing the dataset Class and its functions."""
 from typing import Dict, Union, List, Any
 import pandas as pd
+from pandas.core.dtypes.common import is_numeric_dtype
 
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 from mlchecks.utils import MLChecksValueError
@@ -149,11 +150,11 @@ class Dataset:
         """
         cat_columns = []
 
-        for col in self.data.columns:
-            num_unique = self.data[col].nunique(dropna=True)
-            if self.is_categorical(num_unique, len(self.data[col].dropna())):
+        for col in self._features:
+            col_data = self.data[col]
+            num_unique = col_data.nunique(dropna=True)
+            if not is_numeric_dtype(col_data) or self.is_categorical(num_unique, len(col_data.dropna())):
                 cat_columns.append(col)
-
         return cat_columns
 
     def is_categorical(self, n_unique: int, n_samples: int) -> bool:
@@ -278,47 +279,47 @@ class Dataset:
 
     # Validations:
 
-    def validate_label(self, function_name: str):
+    def validate_label(self, check_name: str):
         """
         Throws error if dataset does not have a label.
 
         Args:
-            function_name (str): function name to print in error
+            check_name (str): check name to print in error
 
         Raises:
             MLChecksValueError if dataset does not have a label
 
         """
         if self.label_name() is None:
-            raise MLChecksValueError(f'function {function_name} requires dataset to have a label column')
+            raise MLChecksValueError(f'Check {check_name} requires dataset to have a label column')
 
-    def validate_date(self, function_name: str):
+    def validate_date(self, check_name: str):
         """
         Throws error if dataset does not have a date column.
 
         Args:
-            function_name (str): function name to print in error
+            check_name (str): check name to print in error
 
         Raises:
             MLChecksValueError if dataset does not have a date column
 
         """
         if self.date_name() is None:
-            raise MLChecksValueError(f'function {function_name} requires dataset to have a date column')
+            raise MLChecksValueError(f'Check {check_name} requires dataset to have a date column')
 
-    def validate_index(self, function_name: str):
+    def validate_index(self, check_name: str):
         """
         Throws error if dataset does not have an index column / does not use dataframe index as index.
 
         Args:
-            function_name (str): function name to print in error
+            check_name (str): check name to print in error
 
         Raises:
             MLChecksValueError if dataset does not have an index
 
         """
         if self.index_name() is None:
-            raise MLChecksValueError(f'function {function_name} requires dataset to have an index column')
+            raise MLChecksValueError(f'Check {check_name} requires dataset to have an index column')
 
     def filter_columns_with_validation(self, columns: Union[str, List[str], None] = None,
                                        ignore_columns: Union[str, List[str], None] = None) -> 'Dataset':
@@ -336,13 +337,13 @@ class Dataset:
         else:
             return self.copy(new_data)
 
-    def validate_shared_features(self, other, function_name: str) -> List[str]:
+    def validate_shared_features(self, other, check_name: str) -> List[str]:
         """
         Return the list of shared features if both datasets have the same feature column names. Else, raise error.
 
         Args:
             other: Expected to be Dataset type. dataset to compare features list
-            function_name (str): function name to print in error
+            check_name (str): check name to print in error
 
         Returns:
             List[str] - list of shared features names
@@ -351,19 +352,19 @@ class Dataset:
             MLChecksValueError if datasets don't have the same features
 
         """
-        Dataset.validate_dataset(other, function_name)
+        Dataset.validate_dataset(other, check_name)
         if sorted(self.features()) == sorted(other.features()):
             return self.features()
         else:
-            raise MLChecksValueError(f'function {function_name} requires datasets to share the same features')
+            raise MLChecksValueError(f'Check {check_name} requires datasets to share the same features')
 
-    def validate_shared_categorical_features(self, other, function_name: str) -> List[str]:
+    def validate_shared_categorical_features(self, other, check_name: str) -> List[str]:
         """
         Return list of categorical features if both datasets have the same categorical features. Else, raise error.
 
         Args:
             other: Expected to be Dataset type. dataset to compare features list
-            function_name (str): function name to print in error
+            check_name (str): check name to print in error
 
         Returns:
             List[str] - list of shared features names
@@ -372,20 +373,20 @@ class Dataset:
             MLChecksValueError if datasets don't have the same features
 
         """
-        Dataset.validate_dataset(other, function_name)
+        Dataset.validate_dataset(other, check_name)
         if sorted(self.cat_features()) == sorted(other.cat_features()):
             return self.cat_features()
         else:
-            raise MLChecksValueError(f'function {function_name} requires datasets to share'
+            raise MLChecksValueError(f'Check {check_name} requires datasets to share'
                                      f' the same categorical features')
 
-    def validate_shared_label(self, other, function_name: str) -> str:
+    def validate_shared_label(self, other, check_name: str) -> str:
         """
         Return the list of shared features if both datasets have the same feature column names. Else, raise error.
 
         Args:
             other: Expected to be Dataset type. dataset to compare features list
-            function_name (str): function name to print in error
+            check_name (str): check name to print in error
 
         Returns:
             List[str] - list of shared features names
@@ -394,11 +395,11 @@ class Dataset:
             MLChecksValueError if datasets don't have the same features
 
         """
-        Dataset.validate_dataset(other, function_name)
+        Dataset.validate_dataset(other, check_name)
         if self.label_name() == other.label_name():
             return self.label_name()
         else:
-            raise MLChecksValueError(f'function {function_name} requires datasets to share the same label')
+            raise MLChecksValueError(f'Check {check_name} requires datasets to share the same label')
 
     @classmethod
     def validate_dataset_or_dataframe(cls, obj) -> 'Dataset':
@@ -435,21 +436,21 @@ class Dataset:
             raise MLChecksValueError('Got error when trying to predict with model on dataset') from exc
 
     @classmethod
-    def validate_dataset(cls, obj, function_name: str) -> 'Dataset':
+    def validate_dataset(cls, obj, check_name: str) -> 'Dataset':
         """Throws error if object is not MLChecks Dataset and returns the object if MLChecks Dataset.
 
         Args:
             obj: object to validate as dataset
-            function_name (str): function name to print in error
+            check_name (str): check name to print in error
 
         Returns:
             (Dataset): object that is MLChecks dataset
         """
         if not isinstance(obj, Dataset):
-            raise MLChecksValueError(f'function {function_name} requires dataset to be of type Dataset. instead got: '
+            raise MLChecksValueError(f'Check {check_name} requires dataset to be of type Dataset. instead got: '
                                      f'{type(obj).__name__}')
         if len(obj.data) == 0:
-            raise MLChecksValueError(f'function {function_name} required a non-empty dataset')
+            raise MLChecksValueError(f'Check {check_name} required a non-empty dataset')
 
         return obj
 

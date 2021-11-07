@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 from mlchecks import Dataset
-from mlchecks.checks.leakage.identifier_leakage import identifier_leakage, IdentifierLeakage
+from mlchecks.checks.leakage.identifier_leakage import IdentifierLeakage
 from mlchecks.utils import MLChecksValueError
 
 from hamcrest import assert_that, is_in, close_to, calling, raises
@@ -19,7 +19,7 @@ def util_generate_dataframe_and_expected():
 
 def test_assert_identifier_leakage():
     df, expected = util_generate_dataframe_and_expected()
-    result = identifier_leakage(dataset=Dataset(df, label='label', date='x2', index='x3'))
+    result = IdentifierLeakage().run(dataset=Dataset(df, label='label', date='x2', index='x3'))
     print(result.value)
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
@@ -29,8 +29,8 @@ def test_assert_identifier_leakage():
 def test_dataset_wrong_input():
     wrong = 'wrong_input'
     assert_that(
-        calling(identifier_leakage).with_args(wrong),
-        raises(MLChecksValueError, 'function identifier_leakage requires dataset to be of type Dataset. '
+        calling(IdentifierLeakage().run).with_args(wrong),
+        raises(MLChecksValueError, 'Check IdentifierLeakage requires dataset to be of type Dataset. '
                                    'instead got: str'))
 
 
@@ -38,15 +38,15 @@ def test_dataset_no_label():
     df, _ = util_generate_dataframe_and_expected()
     df = Dataset(df)
     assert_that(
-        calling(identifier_leakage).with_args(dataset=df),
-        raises(MLChecksValueError, 'function identifier_leakage requires dataset to have a label column'))
+        calling(IdentifierLeakage().run).with_args(dataset=df),
+        raises(MLChecksValueError, 'Check IdentifierLeakage requires dataset to have a label column'))
 
 
 def test_dataset_only_label():
     df, _ = util_generate_dataframe_and_expected()
     df = Dataset(df, label='label')
     assert_that(
-        calling(identifier_leakage).with_args(dataset=df),
+        calling(IdentifierLeakage().run).with_args(dataset=df),
         raises(MLChecksValueError, 'Dataset needs to have a date or index column'))
 
 

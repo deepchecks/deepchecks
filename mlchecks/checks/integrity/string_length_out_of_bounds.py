@@ -11,85 +11,7 @@ from mlchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_datafr
 from mlchecks.string_utils import is_string_column, format_number
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 
-__all__ = ['string_length_out_of_bounds', 'StringLengthOutOfBounds']
-
-
-def string_length_out_of_bounds(dataset: Union[pd.DataFrame, Dataset], columns: Union[str, Iterable[str]] = None,
-                                ignore_columns: Union[str, Iterable[str]] = None,
-                                num_percentiles: int = 1000, inner_quantile_range: int = 94,
-                                outlier_factor: int = 4) -> CheckResult:
-    """Detect strings with length that is much longer/shorter than the identified "normal" string lengths.
-
-    Args:
-        dataset (DataFrame): A dataset or pd.FataFrame object.
-        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored ones.
-        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns variable
-        num_percentiles (int): Number of percentiles values to retrieve for the length of the samples in the string
-                               column. Affects the resolution of string lengths that is used to detect outliers.
-        inner_quantile_range(int): The int upper percentile [0-100] defining the inner percentile range.
-                                   E.g. for 98 the range would be 2%-98%.
-        outlier_factor (int): Strings would be defined as outliers if their length is outlier_factor times more/less
-                              than the values inside the inner quantile range.
-    """
-    # Validate parameters
-    df: pd.DataFrame = ensure_dataframe_type(dataset)
-    df = filter_columns_with_validation(df, columns, ignore_columns)
-
-    results = []
-
-    for column_name in df.columns:
-        column: Series = df[column_name]
-
-        if not is_string_column(column):
-            continue
-
-        string_length_column = column.map(len)
-
-        # If not a lot of unique values, calculate the percentiles for existing values.
-        if string_length_column.nunique() < num_percentiles:
-            string_length_column = string_length_column.to_numpy()
-            string_length_column.sort()
-            quantile_list = 100 * stats.rankdata(string_length_column, 'ordinal') / len(string_length_column)
-            percentile_histogram = {quantile_list[i]: string_length_column[i] for i in range(len(string_length_column))}
-        else:
-            quantile_list = list(np.linspace(0.0, 100.0, num_percentiles + 1))
-            quantile_values = np.percentile(string_length_column, quantile_list, interpolation='nearest')
-            percentile_histogram = dict(zip(quantile_list, list(quantile_values)))
-
-        outlier_sections = outlier_on_percentile_histogram(percentile_histogram, inner_quantile_range,
-                                                           outlier_factor)
-        if outlier_sections:
-            quantiles_not_in_section = \
-                [x for x in quantile_list if all((not in_range(x, a, b)) for a, b in outlier_sections)]
-            non_outlier_section = (min(quantiles_not_in_section), max(quantiles_not_in_section))
-
-            # add to result
-            for outlier_section in outlier_sections:
-                n_outlier_samples = reduce(lambda value, x, ph=percentile_histogram, os=outlier_section:
-                                                value + in_range(x, ph[os[0]], ph[os[1]]),
-                                           string_length_column, 0)
-                if n_outlier_samples:
-                    results.append([column_name,
-                                    f'{format_number(percentile_histogram[non_outlier_section[0]])} -'
-                                    f' {format_number(percentile_histogram[non_outlier_section[1]])}',
-                                    f'{format_number(percentile_histogram[outlier_section[0]])} -'
-                                    f' {format_number(percentile_histogram[outlier_section[1]])}',
-                                    f'{n_outlier_samples}'
-                                    ])
-
-    # Create dataframe to display graph
-    df_graph = DataFrame(results,
-                         columns=['Column Name',
-                                  'Range of Detected Normal String Lengths',
-                                  'Range of Detected Outlier String Lengths',
-                                  'Number of Outlier Samples'])
-    df_graph = df_graph.set_index(['Column Name',
-                                   'Range of Detected Normal String Lengths',
-                                   'Range of Detected Outlier String Lengths'])
-
-    display = df_graph if len(df_graph) > 0 else None
-
-    return CheckResult(df_graph, check=string_length_out_of_bounds, display=display)
+__all__ = ['StringLengthOutOfBounds']
 
 
 def in_range(x, a, b):
@@ -142,10 +64,95 @@ def outlier_on_percentile_histogram(percentile_histogram: Dict[float, float], iq
 class StringLengthOutOfBounds(SingleDatasetBaseCheck):
     """Detect strings with length that is much longer/shorter than the identified "normal" string lengths."""
 
+    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
+                 num_percentiles: int = 1000, inner_quantile_range: int = 94, outlier_factor: int = 4):
+        """Initialize the StringLengthOutOfBounds check.
+
+        Args:
+            columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
+                        ones.
+            ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
+                            variable
+            num_percentiles (int): Number of percentiles values to retrieve for the length of the samples in the string
+                                   column. Affects the resolution of string lengths that is used to detect outliers.
+            inner_quantile_range(int): The int upper percentile [0-100] defining the inner percentile range.
+                                       E.g. for 98 the range would be 2%-98%.
+            outlier_factor (int): Strings would be defined as outliers if their length is outlier_factor times more/less
+                                  than the values inside the inner quantile range.
+        """
+        super().__init__()
+        self.columns = columns
+        self.ignore_columns = ignore_columns
+        self.num_percentiles = num_percentiles
+        self.inner_quantile_range = inner_quantile_range
+        self.outlier_factor = outlier_factor
+
     def run(self, dataset, model=None) -> CheckResult:
-        """Detect outliers in string length.
+        """Run check.
 
         Args:
             dataset (DataFrame): A dataset or pd.FataFrame object.
         """
-        return string_length_out_of_bounds(dataset, **self.params)
+        return self._string_length_out_of_bounds(dataset)
+
+    def _string_length_out_of_bounds(self, dataset: Union[pd.DataFrame, Dataset]) -> CheckResult:
+        # Validate parameters
+        df: pd.DataFrame = ensure_dataframe_type(dataset)
+        df = filter_columns_with_validation(df, self.columns, self.ignore_columns)
+
+        results = []
+
+        for column_name in df.columns:
+            column: Series = df[column_name]
+
+            if not is_string_column(column):
+                continue
+
+            string_length_column = column.map(len)
+
+            # If not a lot of unique values, calculate the percentiles for existing values.
+            if string_length_column.nunique() < self.num_percentiles:
+                string_length_column = string_length_column.to_numpy()
+                string_length_column.sort()
+                quantile_list = 100 * stats.rankdata(string_length_column, 'ordinal') / len(string_length_column)
+                percentile_histogram = {quantile_list[i]: string_length_column[i] for i in
+                                        range(len(string_length_column))}
+            else:
+                quantile_list = list(np.linspace(0.0, 100.0, self.num_percentiles + 1))
+                quantile_values = np.percentile(string_length_column, quantile_list, interpolation='nearest')
+                percentile_histogram = dict(zip(quantile_list, list(quantile_values)))
+
+            outlier_sections = outlier_on_percentile_histogram(percentile_histogram, self.inner_quantile_range,
+                                                               self.outlier_factor)
+            if outlier_sections:
+                quantiles_not_in_section = \
+                    [x for x in quantile_list if all((not in_range(x, a, b)) for a, b in outlier_sections)]
+                non_outlier_section = (min(quantiles_not_in_section), max(quantiles_not_in_section))
+
+                # add to result
+                for outlier_section in outlier_sections:
+                    n_outlier_samples = reduce(lambda value, x, ph=percentile_histogram, os=outlier_section:
+                                               value + in_range(x, ph[os[0]], ph[os[1]]),
+                                               string_length_column, 0)
+                    if n_outlier_samples:
+                        results.append([column_name,
+                                        f'{format_number(percentile_histogram[non_outlier_section[0]])} -'
+                                        f' {format_number(percentile_histogram[non_outlier_section[1]])}',
+                                        f'{format_number(percentile_histogram[outlier_section[0]])} -'
+                                        f' {format_number(percentile_histogram[outlier_section[1]])}',
+                                        f'{n_outlier_samples}'
+                                        ])
+
+        # Create dataframe to display graph
+        df_graph = DataFrame(results,
+                             columns=['Column Name',
+                                      'Range of Detected Normal String Lengths',
+                                      'Range of Detected Outlier String Lengths',
+                                      'Number of Outlier Samples'])
+        df_graph = df_graph.set_index(['Column Name',
+                                       'Range of Detected Normal String Lengths',
+                                       'Range of Detected Outlier String Lengths'])
+
+        display = df_graph if len(df_graph) > 0 else None
+
+        return CheckResult(df_graph, check=self.__class__, display=display)

@@ -3,7 +3,8 @@ import abc
 import enum
 import re
 from collections import OrderedDict
-from typing import Dict, Any, Callable, List, Union
+from typing import Dict
+from typing import Any, Callable, List, Union
 
 __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainValidationBaseCheck',
            'ModelOnlyBaseCheck', 'ConditionResult', 'ConditionCategory']
@@ -12,14 +13,32 @@ import pandas as pd
 from IPython.core.display import display_html
 from matplotlib import pyplot as plt
 
-from mlchecks.string_utils import underscore_to_capitalize
+from mlchecks.string_utils import split_camel_case
 from mlchecks.utils import MLChecksValueError
+
+
+class Condition:
+    """Contain condition attributes."""
+
+    name: str
+    function: Callable
+    params: Dict
+
+    def __init__(self, name: str, function: Callable, params: Dict):
+        if not isinstance(function, Callable):
+            raise MLChecksValueError(f'Condition must be a function `(Any) -> Union[ConditionResult, bool]`, '
+                                     f'but got: {type(function).__name__}')
+        if not isinstance(name, str):
+            raise MLChecksValueError(f'Condition name must be of type str but got: {type(name).__name__}')
+        self.name = name
+        self.function = function
+        self.params = params
 
 
 class ConditionCategory(enum.Enum):
     """Condition result category. indicates whether the result should fail the suite."""
 
-    FAILURE = 'FAILURE'
+    FAIL = 'FAIL'
     INSIGHT = 'INSIGHT'
 
 
@@ -27,11 +46,12 @@ class ConditionResult:
     """Contain result of a condition function."""
 
     is_pass: bool
+    description: str
     category: ConditionCategory
     actual: str
 
     def __init__(self, is_pass: bool, actual: str = '',
-                 category: ConditionCategory = ConditionCategory.FAILURE):
+                 category: ConditionCategory = ConditionCategory.FAIL):
         """Initialize condition result.
 
         Args:
@@ -42,6 +62,22 @@ class ConditionResult:
         self.is_pass = is_pass
         self.actual = actual
         self.category = category
+
+    def set_description(self, description: str):
+        """Set description to be displayed in table.
+
+        Args:
+            description (str): Description of the condition to be displayed.
+        """
+        self.description = description
+
+    def get_icon(self):
+        if self.is_pass:
+            return '\U0001F389'
+        elif self.category == ConditionCategory.FAIL:
+            return '\U0001F631'
+        else:
+            return '\U0001F937'
 
 
 class CheckResult:
@@ -59,11 +95,10 @@ class CheckResult:
 
     value: Any
     header: str
-    check: Callable
     display: List[Union[Callable, str, pd.DataFrame]]
-    condition_results: Dict[str, ConditionResult]
+    condition_results: List[ConditionResult]
 
-    def __init__(self, value, header: str = None, check: Callable = None, display: Any = None):
+    def __init__(self, value, header: str = None, check=None, display: Any = None):
         """Init check result.
 
         Args:
@@ -73,10 +108,8 @@ class CheckResult:
             displayed in notebook.
             display (Callable): Function which is used for custom display.
         """
-        if check is not None and not isinstance(check, Callable):
-            raise MLChecksValueError('`check` parameter of CheckResult must be callable')
         self.value = value
-        self.header = header or (check and underscore_to_capitalize(check.__name__)) or None
+        self.header = header or (check and split_camel_case(check.__name__)) or None
         self.check = check
 
         if display is not None and not isinstance(display, List):
@@ -91,7 +124,7 @@ class CheckResult:
     def _ipython_display_(self):
         if self.header:
             display_html(f'<h4>{self.header}</h4>', raw=True)
-        if self.check:
+        if self.check and '__doc__' in dir(self.check):
             docs = self.check.__doc__
             # Take first non-whitespace line.
             summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
@@ -117,7 +150,7 @@ class CheckResult:
         """Return default __repr__ function uses value."""
         return self.value.__repr__()
 
-    def set_condition_results(self, results: Dict[str, ConditionResult]):
+    def set_condition_results(self, results: List[ConditionResult]):
         """Set the conditions results for current check result."""
         self.conditions_results = results
 
@@ -125,41 +158,40 @@ class CheckResult:
 class BaseCheck(metaclass=abc.ABCMeta):
     """Base class for check."""
 
-    params: Dict
     _conditions: OrderedDict
+    _conditions_index: int
 
-    def __init__(self, **kwargs):
+    def __init__(self):
         """Init base check parameters to pass to be used in the implementing check."""
         self._conditions = OrderedDict()
-        self.params = kwargs
+        self._conditions_index = 0
 
-    def conditions_decision(self, result: CheckResult) -> Dict[str, ConditionResult]:
+    def conditions_decision(self, result: CheckResult) -> List[ConditionResult]:
         """Run conditions on given result."""
-        results = {}
-        for name, condition in self._conditions.items():
-            output = condition(result.value)
-            if isinstance(output, ConditionResult):
-                results[name] = output
-            elif isinstance(output, bool):
-                results[name] = ConditionResult(output)
-            else:
-                raise MLChecksValueError(f'Invalid return type from condition {name}, got: {type(output)}')
+        results = []
+        condition: Condition
+        for condition in self._conditions.values():
+            output = condition.function(result.value, **condition.params)
+            if isinstance(output, bool):
+                output = ConditionResult(output)
+            elif not isinstance(output, ConditionResult):
+                raise MLChecksValueError(f'Invalid return type from condition {condition.name}, got: {type(output)}')
+            output.set_description(condition.name)
+            results.append(output)
         return results
 
-    def add_condition(self, name: str, condition: Callable[[Any], Union[ConditionResult, bool]]):
+    def add_condition(self, name: str, condition_func: Callable[[Any], Union[ConditionResult, bool]], **params):
         """Add new condition function to the check.
 
         Args:
             name (str): Name of the condition. should explain the condition action and parameters
-            condition (Callable[[Any], Union[List[ConditionResult], bool]]): Function which gets the value of the check
-            and returns object of List[ConditionResult] or boolean.
+            condition_func (Callable[[Any], Union[List[ConditionResult], bool]]): Function which gets the value of the
+                check and returns object of List[ConditionResult] or boolean.
+            params: Additional parameters to pass when calling the condition function.
         """
-        if not isinstance(condition, Callable):
-            raise MLChecksValueError(f'Condition must be a function `(Any) -> Union[ConditionResult, bool]`, '
-                                     f'but got: {type(condition).__name__}')
-        if not isinstance(name, str):
-            raise MLChecksValueError(f'Condition name must be of type str but got: {type(name).__name__}')
-        self._conditions[name] = condition
+        cond = Condition(name, condition_func, params)
+        self._conditions[self._conditions_index] = cond
+        self._conditions_index += 1
         return self
 
     def __repr__(self, tabs=0):
@@ -168,35 +200,23 @@ class BaseCheck(metaclass=abc.ABCMeta):
         Args:
             tabs (int): number of tabs to shift by the output
         """
-        tabs_str = '\t' * tabs
-        condition_tabs = '\t' * (tabs + 1)
-        check_str = f'{tabs_str}{self.__class__.__name__}({self.params})'
+        tab_chr = '\t'
+        params = self.params()
+        params = f'({params})' if params else ''
+        check_str = f'{tab_chr * tabs}{self.__class__.__name__}{params}'
         if self._conditions:
-            conditions_str = ''.join([f'\n{condition_tabs}{i}: {s}' for i, s in enumerate(self._conditions.keys())])
-            return f'{check_str} Conditions: [{conditions_str}\n{tabs_str}]'
+            conditions_str = ''.join([f'\n{tab_chr * (tabs + 2)}{i}: {s.name}' for i, s in self._conditions.items()])
+            return f'{check_str}\n{tab_chr * (tabs + 1)}Conditions: [{conditions_str}\n{tab_chr * (tabs + 1)}]'
         else:
             return check_str
 
-    def update_param(self, param: str, value):
-        """Update check parameter.
-
-        Args:
-            param (str): name of parameter to update.
-            value: value of parameter to set.
-        """
-        self.params[param] = value
-
-    def remove_param(self, param: str):
-        """Remove check parameter. Removing a parameter will revert it to the default value.
-
-        Args:
-            param (str): name of parameter to remove.
-        """
-        self.params.pop(param)
+    def params(self):
+        return ''
 
     def clean_conditions(self):
         """Remove all conditions from this check instance."""
         self._conditions.clear()
+        self._conditions_index = 0
 
     def remove_condition(self, index: int):
         """Remove given condition by index.
@@ -204,10 +224,9 @@ class BaseCheck(metaclass=abc.ABCMeta):
         Args:
             index (int): index of condtion to remove
         """
-        if index >= len(self._conditions):
+        if index not in self._conditions:
             raise MLChecksValueError(f'Index {index} of conditions does not exists')
-        key = list(self._conditions.keys())[index]
-        self._conditions.pop(key)
+        self._conditions.pop(index)
 
 
 class SingleDatasetBaseCheck(BaseCheck):

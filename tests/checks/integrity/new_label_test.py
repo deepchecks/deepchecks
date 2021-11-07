@@ -3,14 +3,14 @@
 import pandas as pd
 from mlchecks.base import Dataset
 from mlchecks.utils import MLChecksValueError
-from mlchecks.checks.integrity import new_label_train_validation, NewLabelTrainValidation
+from mlchecks.checks.integrity import NewLabelTrainValidation
 from hamcrest import assert_that, calling, raises, has_length, close_to, equal_to
 
 
 def test_dataset_wrong_input():
     x = 'wrong_input'
     # Act & Assert
-    assert_that(calling(new_label_train_validation).with_args(x, x),
+    assert_that(calling(NewLabelTrainValidation().run).with_args(x, x),
                 raises(MLChecksValueError,
                 'dataset must be of type DataFrame or Dataset. instead got: str'))
 

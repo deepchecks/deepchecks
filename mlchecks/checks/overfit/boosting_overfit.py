@@ -10,7 +10,7 @@ from mlchecks import Dataset, CheckResult, TrainValidationBaseCheck
 from mlchecks.metric_utils import task_type_check, DEFAULT_METRICS_DICT, validate_scorer, DEFAULT_SINGLE_METRIC
 from mlchecks.utils import MLChecksValueError
 
-__all__ = ['boosting_overfit', 'BoostingOverfit']
+__all__ = ['BoostingOverfit']
 
 
 class PartialBoostingModel:
@@ -96,92 +96,82 @@ def calculate_steps(num_steps, num_estimators):
     return sorted(steps_set)
 
 
-def boosting_overfit(train_dataset: Dataset, validation_dataset: Dataset, model, metric: Union[Callable, str] = None,
-                     metric_name: str = None, num_steps: int = 20) \
-        -> CheckResult:
-    """Check for overfit occurring when increasing the number of iterations in boosting models.
-
-    The check runs a pred-defined number of steps, and in each step it limits the boosting model to use up to X
-    estimators (number of estimators is monotonic increasing). It plots the given metric calculated for each step for
-    both the train dataset and the validation dataset.
-
-    Args:
-        train_dataset (Dataset):
-        validation_dataset (Dataset):
-        model: Boosting model.
-        metric (Union[Callable, str]): Metric to use verify the model, either function or sklearn scorer name.
-        metric_name (str): Name to be displayed in the plot on y-axis. must be used together with 'metric'
-        num_steps (int): Number of splits of the model iterations to check.
-
-    Returns:
-        The metric value on the validation dataset.
-    """
-    # Validate params
-    self = boosting_overfit
-    if metric_name is not None and metric is None:
-        raise MLChecksValueError('Can not have metric_name without metric')
-    if not isinstance(num_steps, int) or num_steps < 2:
-        raise MLChecksValueError('num_steps must be an integer larger than 1')
-    Dataset.validate_dataset(train_dataset, self.__name__)
-    Dataset.validate_dataset(validation_dataset, self.__name__)
-    train_dataset.validate_label(self.__name__)
-    validation_dataset.validate_label(self.__name__)
-    train_dataset.validate_shared_features(validation_dataset, self.__name__)
-    train_dataset.validate_shared_label(validation_dataset, self.__name__)
-    train_dataset.validate_model(model)
-
-    # Get default metric
-    model_type = task_type_check(model, train_dataset)
-    if metric is not None:
-        scorer = validate_scorer(metric, model, train_dataset)
-        metric_name = metric_name or metric if isinstance(metric, str) else 'User metric'
-    else:
-        metric_name = DEFAULT_SINGLE_METRIC[model_type]
-        scorer = DEFAULT_METRICS_DICT[model_type][metric_name]
-
-    # Get number of estimators on model
-    num_estimators = PartialBoostingModel.n_estimators(model)
-    estimator_steps = calculate_steps(num_steps, num_estimators)
-
-    train_scores = []
-    val_scores = []
-    for step in estimator_steps:
-        train_scores.append(partial_score(scorer, train_dataset, model, step))
-        val_scores.append(partial_score(scorer, validation_dataset, model, step))
-
-    def display_func():
-        _, axes = plt.subplots(1, 1, figsize=(7, 4))
-        axes.set_xlabel('Number of boosting iterations')
-        axes.set_ylabel(metric_name)
-        axes.grid()
-        axes.plot(estimator_steps, np.array(train_scores), 'o-', color='r', label='Training score')
-        axes.plot(estimator_steps, np.array(val_scores), 'o-', color='g', label='Validation score')
-        axes.legend(loc='best')
-        # Display x ticks as integers
-        axes.xaxis.set_major_locator(MaxNLocator(integer=True))
-
-    return CheckResult(val_scores[-1], check=boosting_overfit, display=display_func)
-
-
 class BoostingOverfit(TrainValidationBaseCheck):
     """Check for overfit occurring when increasing the number of iterations in boosting models.
 
     The check runs a pred-defined number of steps, and in each step it limits the boosting model to use up to X
     estimators (number of estimators is monotonic increasing). It plots the given metric calculated for each step for
     both the train dataset and the validation dataset.
-
-    Constructor Args:
-        metric (Union[Callable, str]): Metric to use verify the model, either function or sklearn scorer name.
-        metric_name (str): Name to be displayed in the plot on y-axis. must be used together with 'metric'
-        num_steps (int): Number of splits of the model iterations to check.
     """
 
+    def __init__(self, metric: Union[Callable, str] = None, metric_name: str = None, num_steps: int = 20):
+        """Initialize the BoostingOverfit check.
+
+        Args:
+            metric (Union[Callable, str]): Metric to use verify the model, either function or sklearn scorer name.
+            metric_name (str): Name to be displayed in the plot on y-axis. must be used together with 'metric'
+            num_steps (int): Number of splits of the model iterations to check.
+        """
+        super().__init__()
+        self.metric = metric
+        self.metric_name = metric_name
+        self.num_steps = num_steps
+
     def run(self, train_dataset, validation_dataset, model=None) -> CheckResult:
-        """Run boosting_overfit on given parameters.
+        """Run check.
 
         Args:
             train_dataset (Dataset):
             validation_dataset (Dataset):
             model: Boosting model.
+
+        Returns:
+            The metric value on the validation dataset.
         """
-        return boosting_overfit(train_dataset, validation_dataset, model=model, **self.params)
+        return self._boosting_overfit(train_dataset, validation_dataset, model=model)
+
+    def _boosting_overfit(self, train_dataset: Dataset, validation_dataset: Dataset, model) -> CheckResult:
+        # Validate params
+        if self.metric_name is not None and self.metric is None:
+            raise MLChecksValueError('Can not have metric_name without metric')
+        if not isinstance(self.num_steps, int) or self.num_steps < 2:
+            raise MLChecksValueError('num_steps must be an integer larger than 1')
+        Dataset.validate_dataset(train_dataset, self.__class__.__name__)
+        Dataset.validate_dataset(validation_dataset, self.__class__.__name__)
+        train_dataset.validate_label(self.__class__.__name__)
+        validation_dataset.validate_label(self.__class__.__name__)
+        train_dataset.validate_shared_features(validation_dataset, self.__class__.__name__)
+        train_dataset.validate_shared_label(validation_dataset, self.__class__.__name__)
+        train_dataset.validate_model(model)
+
+        # Get default metric
+        model_type = task_type_check(model, train_dataset)
+        if self.metric is not None:
+            scorer = validate_scorer(self.metric, model, train_dataset)
+            metric_name = self.metric_name or self.metric if isinstance(self.metric, str) else 'User metric'
+        else:
+            metric_name = DEFAULT_SINGLE_METRIC[model_type]
+            scorer = DEFAULT_METRICS_DICT[model_type][metric_name]
+
+        # Get number of estimators on model
+        num_estimators = PartialBoostingModel.n_estimators(model)
+        estimator_steps = calculate_steps(self.num_steps, num_estimators)
+
+        train_scores = []
+        val_scores = []
+        for step in estimator_steps:
+            train_scores.append(partial_score(scorer, train_dataset, model, step))
+            val_scores.append(partial_score(scorer, validation_dataset, model, step))
+
+        def display_func():
+            _, axes = plt.subplots(1, 1, figsize=(7, 4))
+            axes.set_xlabel('Number of boosting iterations')
+            axes.set_ylabel(metric_name)
+            axes.grid()
+            axes.plot(estimator_steps, np.array(train_scores), 'o-', color='r', label='Training score')
+            axes.plot(estimator_steps, np.array(val_scores), 'o-', color='g', label='Validation score')
+            axes.legend(loc='best')
+            # Display x ticks as integers
+            axes.xaxis.set_major_locator(MaxNLocator(integer=True))
+
+        return CheckResult(val_scores[-1], check=self.__class__, display=display_func, header='Boosting Overfit')

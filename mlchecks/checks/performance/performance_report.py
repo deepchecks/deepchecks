@@ -5,41 +5,24 @@ from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
 from mlchecks.metric_utils import get_metrics_list
 from mlchecks.utils import model_type_validation
 
-__all__ = ['performance_report', 'PerformanceReport']
-
-
-def performance_report(dataset: Dataset, model, alternative_metrics: Dict[str, Callable] = None):
-    """Summarize given metrics on a dataset and model.
-
-    Args:
-        dataset (Dataset): a Dataset object
-        model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
-        alternative_metrics (Dict[str, Callable]): An optional dictionary of metric name to scorer functions. If none
-        given, using default metrics
-
-    Returns:
-        CheckResult: value is dictionary in format `{metric: score, ...}`
-    """
-    self = performance_report
-    Dataset.validate_dataset(dataset, self.__name__)
-    dataset.validate_label(self.__name__)
-    model_type_validation(model)
-
-    # Get default metrics if no alternative, or validate alternatives
-    metrics = get_metrics_list(model, dataset, alternative_metrics)
-    scores = {key: scorer(model, dataset.features_columns(), dataset.label_col()) for key, scorer in metrics.items()}
-
-    display_df = pd.DataFrame(scores.values(), columns=['Score'], index=scores.keys())
-    display_df.index.name = 'Metric'
-
-    return CheckResult(scores, check=self, display=display_df)
+__all__ = ['PerformanceReport']
 
 
 class PerformanceReport(SingleDatasetBaseCheck):
     """Summarize given metrics on a dataset and model."""
 
+    def __init__(self, alternative_metrics: Dict[str, Callable] = None):
+        """Initialize the PerformanceReport check.
+
+        Args:
+            alternative_metrics (Dict[str, Callable]): An optional dictionary of metric name to scorer functions.
+                If none given, using default metrics
+        """
+        super().__init__()
+        self.alternative_metrics = alternative_metrics
+
     def run(self, dataset, model=None) -> CheckResult:
-        """Run performance_report check.
+        """Run check.
 
         Args:
             dataset (Dataset): a Dataset object
@@ -48,4 +31,19 @@ class PerformanceReport(SingleDatasetBaseCheck):
         Returns:
             CheckResult: value is dictionary in format `{<metric>: score}`
         """
-        return performance_report(dataset, model, **self.params)
+        return self._performance_report(dataset, model)
+
+    def _performance_report(self, dataset: Dataset, model):
+        Dataset.validate_dataset(dataset, self.__class__.__name__)
+        dataset.validate_label(self.__class__.__name__)
+        model_type_validation(model)
+
+        # Get default metrics if no alternative, or validate alternatives
+        metrics = get_metrics_list(model, dataset, self.alternative_metrics)
+        scores = {key: scorer(model, dataset.features_columns(), dataset.label_col()) for key, scorer in
+                  metrics.items()}
+
+        display_df = pd.DataFrame(scores.values(), columns=['Score'], index=scores.keys())
+        display_df.index.name = 'Metric'
+
+        return CheckResult(scores, check=self.__class__, header='Performance Report', display=display_df)

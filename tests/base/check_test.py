@@ -90,12 +90,12 @@ def test_condition_decision():
     assert_that(decisions, has_entries({
         'condition A': all_of(
             has_property('is_pass', equal_to(True)),
-            has_property('category', ConditionCategory.FAILURE),
+            has_property('category', ConditionCategory.FAIL),
             has_property('actual', '')
         ),
         'condition B': all_of(
             has_property('is_pass', equal_to(False)),
-            has_property('category', ConditionCategory.FAILURE),
+            has_property('category', ConditionCategory.FAIL),
             has_property('actual', 'some result')
         ),
         'condition C': all_of(

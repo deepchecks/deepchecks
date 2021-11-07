@@ -7,11 +7,13 @@ from IPython.core.display import display_html, display
 from ipywidgets import IntProgress, HTML, VBox
 
 from mlchecks.base.check import BaseCheck, CheckResult, TrainValidationBaseCheck, CompareDatasetsBaseCheck, \
-    SingleDatasetBaseCheck, ModelOnlyBaseCheck
+    SingleDatasetBaseCheck, ModelOnlyBaseCheck, ConditionCategory
 
 __all__ = ['CheckSuite', 'SuiteResult']
 
 from mlchecks.utils import is_notebook
+
+
 
 
 class SuiteResult:
@@ -31,10 +33,10 @@ class SuiteResult:
         display_table = []
         for result in self.results:
             if isinstance(result, CheckResult):
-                for cond_name, cond_result in result.conditions_results.items():
-                    display_table.append([cond_result.is_pass, result.header, cond_name, cond_result.actual,
-                                          cond_result.category])
-        table = pd.DataFrame(data=display_table, columns=['Pass', 'Check', 'Condition', 'Actual', 'Category'])
+                for cond_result in result.conditions_results:
+                    display_table.append([cond_result.get_icon(), result.header, cond_result.description,
+                                          cond_result.actual])
+        table = pd.DataFrame(data=display_table, columns=['Pass', 'Check', 'Condition', 'Actual'])
         df_styler = table.style
         df_styler.set_table_styles([dict(selector='th,td', props=[('text-align', 'left')])])
         df_styler.hide_index()
