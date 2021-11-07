@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 
 from mlchecks import Dataset
-from mlchecks.checks.leakage.single_feature_contribution import single_feature_contribution, \
-    single_feature_contribution_train_validation
+from mlchecks.checks.leakage.single_feature_contribution import SingleFeatureContribution, \
+    SingleFeatureContributionTrainValidation
 from mlchecks.utils import MLChecksValueError
 
 from hamcrest import assert_that, is_in, close_to, calling, raises
@@ -32,7 +32,7 @@ def util_generate_second_similar_dataframe_and_expected():
 
 def test_assert_single_feature_contribution():
     df, expected = util_generate_dataframe_and_expected()
-    result = single_feature_contribution(dataset=Dataset(df, label='label'))
+    result = SingleFeatureContribution().run(dataset=Dataset(df, label='label'))
     print(result.value)
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
@@ -42,8 +42,8 @@ def test_assert_single_feature_contribution():
 def test_dataset_wrong_input():
     wrong = 'wrong_input'
     assert_that(
-        calling(single_feature_contribution).with_args(wrong),
-        raises(MLChecksValueError, 'function single_feature_contribution requires dataset to be of type Dataset. '
+        calling(SingleFeatureContribution().run).with_args(wrong),
+        raises(MLChecksValueError, 'function _single_feature_contribution requires dataset to be of type Dataset. '
                                    'instead got: str'))
 
 
@@ -51,14 +51,14 @@ def test_dataset_no_label():
     df, _ = util_generate_dataframe_and_expected()
     df = Dataset(df)
     assert_that(
-        calling(single_feature_contribution).with_args(dataset=df),
-        raises(MLChecksValueError, 'function single_feature_contribution requires dataset to have a label column'))
+        calling(SingleFeatureContribution().run).with_args(dataset=df),
+        raises(MLChecksValueError, 'function _single_feature_contribution requires dataset to have a label column'))
 
 
 def test_trainval_assert_single_feature_contribution():
     df, df2, expected = util_generate_second_similar_dataframe_and_expected()
-    result = single_feature_contribution_train_validation(train_dataset=Dataset(df, label='label'),
-                                                          validation_dataset=Dataset(df2, label='label'))
+    result = SingleFeatureContributionTrainValidation().run(train_dataset=Dataset(df, label='label'),
+                                                            validation_dataset=Dataset(df2, label='label'))
     print(result.value)
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
@@ -68,26 +68,27 @@ def test_trainval_assert_single_feature_contribution():
 def test_trainval_dataset_wrong_input():
     wrong = 'wrong_input'
     assert_that(
-        calling(single_feature_contribution_train_validation).with_args(wrong, wrong),
+        calling(SingleFeatureContributionTrainValidation().run).with_args(wrong, wrong),
         raises(MLChecksValueError,
-               'function single_feature_contribution_train_validation requires dataset to be of type Dataset. '
+               'function _single_feature_contribution_train_validation requires dataset to be of type Dataset. '
                'instead got: str'))
 
 
 def test_trainval_dataset_no_label():
     df, df2, _ = util_generate_second_similar_dataframe_and_expected()
     assert_that(
-        calling(single_feature_contribution_train_validation).with_args(train_dataset=Dataset(df),
-                                                                        validation_dataset=Dataset(df2)),
+        calling(SingleFeatureContributionTrainValidation().run).with_args(train_dataset=Dataset(df),
+                                                                          validation_dataset=Dataset(df2)),
         raises(MLChecksValueError,
-               'function single_feature_contribution_train_validation requires dataset to have a label column'))
+               'function _single_feature_contribution_train_validation requires dataset to have a label column'))
 
 
 def test_trainval_dataset_diff_columns():
     df, df2, _ = util_generate_second_similar_dataframe_and_expected()
     df = df.rename({'x2': 'x6'}, axis=1)
     assert_that(
-        calling(single_feature_contribution_train_validation).with_args(train_dataset=Dataset(df, label='label'),
-                                                                        validation_dataset=Dataset(df2, label='label')),
+        calling(SingleFeatureContributionTrainValidation().run)
+            .with_args(train_dataset=Dataset(df, label='label'),
+                       validation_dataset=Dataset(df2, label='label')),
         raises(MLChecksValueError,
-               'function single_feature_contribution_train_validation requires datasets to share the same features'))
+               'function _single_feature_contribution_train_validation requires datasets to share the same features'))

@@ -4,38 +4,7 @@ from sklearn.base import BaseEstimator
 from mlchecks.base.check import SingleDatasetBaseCheck
 from mlchecks import CheckResult, Dataset
 
-__all__ = ['confusion_matrix_report', 'ConfusionMatrixReport']
-
-
-def confusion_matrix_report(dataset: Dataset, model):
-    """
-    Return the confusion_matrix.
-
-    Args:
-        dataset: a Dataset object
-        model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
-    Returns:
-        CheckResult: value is numpy array of the confusion matrix, displays the confusion matrix
-
-    Raises:
-        MLChecksValueError: If the object is not a Dataset instance with a label
-
-    """
-    self = confusion_matrix_report
-    Dataset.validate_dataset(dataset, self.__name__)
-    dataset.validate_label(self.__name__)
-
-    label = dataset.label_name()
-    ds_x = dataset.data[dataset.features()]
-    ds_y = dataset.data[label]
-    y_pred = model.predict(ds_x)
-
-    confusion_matrix = sklearn.metrics.confusion_matrix(ds_y, y_pred)
-
-    def display():
-        sklearn.metrics.ConfusionMatrixDisplay(confusion_matrix).plot()
-
-    return CheckResult(confusion_matrix, check=self, display=display)
+__all__ = ['ConfusionMatrixReport']
 
 
 class ConfusionMatrixReport(SingleDatasetBaseCheck):
@@ -49,5 +18,26 @@ class ConfusionMatrixReport(SingleDatasetBaseCheck):
             dataset: a Dataset object
         Returns:
             CheckResult: value is numpy array of the confusion matrix, displays the confusion matrix
+
+        Raises:
+            MLChecksValueError: If the object is not a Dataset instance with a label
         """
-        return confusion_matrix_report(dataset, model)
+        return self._confusion_matrix_report(dataset, model)
+
+    def _confusion_matrix_report(self, dataset: Dataset, model):
+        func_name = self._confusion_matrix_report.__name__
+        Dataset.validate_dataset(dataset, func_name)
+        dataset.validate_label(func_name)
+
+        label = dataset.label_name()
+        ds_x = dataset.data[dataset.features()]
+        ds_y = dataset.data[label]
+        y_pred = model.predict(ds_x)
+
+        confusion_matrix = sklearn.metrics.confusion_matrix(ds_y, y_pred)
+
+        def display():
+            sklearn.metrics.ConfusionMatrixDisplay(confusion_matrix).plot()
+
+        return CheckResult(confusion_matrix, check=self.run, display=display)
+
