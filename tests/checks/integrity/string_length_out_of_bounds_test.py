@@ -1,7 +1,7 @@
 """Contains unit tests for the string_length_out_of_bounds check."""
 import pandas as pd
 
-from mlchecks.checks import string_length_out_of_bounds
+from mlchecks.checks import StringLengthOutOfBounds
 
 from hamcrest import assert_that, has_length
 
@@ -12,7 +12,7 @@ def test_no_outliers():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    result = string_length_out_of_bounds(df).value
+    result = StringLengthOutOfBounds().run(df).value
     # Assert
     assert_that(result, has_length(0))
 
@@ -24,7 +24,7 @@ def test_single_outlier():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    result = string_length_out_of_bounds(df).value
+    result = StringLengthOutOfBounds().run(df).value
     # Assert
     assert_that(result, has_length(1))
 
@@ -37,7 +37,7 @@ def test_outlier_multi_column():
             'col2': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    result = string_length_out_of_bounds(df).value
+    result = StringLengthOutOfBounds().run(df).value
     # Assert
     assert_that(result, has_length(1))
 
@@ -50,7 +50,7 @@ def test_outlier_mutiple_outliers():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    result = string_length_out_of_bounds(df).value
+    result = StringLengthOutOfBounds().run(df).value
     # Assert
     assert_that(result, has_length(1))
     assert_that(result['Number of Outlier Samples'][0], 2)
@@ -63,6 +63,6 @@ def test_outlier_mutiple_outlier_ranges():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    result = string_length_out_of_bounds(df).value
+    result = StringLengthOutOfBounds().run(df).value
     # Assert
     assert_that(result, has_length(2))
