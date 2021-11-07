@@ -1,13 +1,11 @@
 """Tests for Mixed Nulls check"""
-from typing import Dict
-
 import hamcrest
 import numpy as np
 import pandas as pd
 
 from hamcrest import assert_that, has_length, has_entry, has_property, has_entries, equal_to, calling, raises
 
-from mlchecks import Dataset, ConditionResult, ConditionCategory
+from mlchecks import Dataset, ConditionCategory
 from mlchecks.checks.integrity.mixed_nulls import mixed_nulls, MixedNulls
 from mlchecks.utils import MLChecksValueError
 

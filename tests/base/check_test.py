@@ -1,4 +1,5 @@
-
+"""Tests for BaseCheck class."""
+# pylint: disable=protected-access
 from hamcrest import assert_that, has_property, has_key, contains_exactly, calling, raises, has_length, has_entries, \
     all_of, equal_to
 
