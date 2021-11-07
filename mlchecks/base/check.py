@@ -29,10 +29,9 @@ class CheckResult:
 
     value: Any
     header: str
-    check: Callable
     display: List[Union[Callable, str, pd.DataFrame]]
 
-    def __init__(self, value, header: str = None, check: Callable = None, display: Any = None):
+    def __init__(self, value, header: str = None, check=None, display: Any = None):
         """Init check result.
 
         Args:
@@ -42,8 +41,6 @@ class CheckResult:
             displayed in notebook.
             display (Callable): Function which is used for custom display.
         """
-        if check is not None and not isinstance(check, Callable):
-            raise MLChecksValueError('`check` parameter of CheckResult must be callable')
         self.value = value
         self.header = header or (check and underscore_to_capitalize(check.__name__)) or None
         self.check = check
@@ -60,8 +57,8 @@ class CheckResult:
     def _ipython_display_(self):
         if self.header:
             display_html(f'<h4>{self.header}</h4>', raw=True)
-        if self.check:
-            docs = self.check.__doc__ or ''
+        if self.check and '__doc__' in dir(self.check):
+            docs = self.check.__doc__
             # Take first non-whitespace line.
             summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
             display_html(f'<p>{summary}</p>', raw=True)
