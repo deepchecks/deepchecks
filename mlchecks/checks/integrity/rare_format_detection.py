@@ -306,11 +306,12 @@ class RareFormatDetection(SingleDatasetBaseCheck):
                 This pattern looks for either digits or letters and replaces them with the character 'X'. By replacing
                 these, we can find all strings matching this certain pattern and see how common (or rare) it is.
 
-                In this example, the string "nir123@deepchecks.com" would be changed to "XXXXXX@XXXXXXXXXX.XXX". All other
-                strings matching this format (e.g. "noam12@deepchecks.com") would be identified as having the same pattern.
+                In this example, the string "nir123@deepchecks.com" would be changed to "XXXXXX@XXXXXXXXXX.XXX".
+                All other strings matching this format (e.g. "noam12@deepchecks.com") would be identified as having the
+                same pattern.
 
-                If we also mark "refine = True" in the Pattern class, the check will further try and make the pattern more
-                accurate, by trying to find common characters in all samples of the same pattern. In this example,
+                If we also mark "refine = True" in the Pattern class, the check will further try and make the pattern
+                more accurate, by trying to find common characters in all samples of the same pattern. In this example,
                 the refined format found would be "XXXXXX@deepchecks.com.
         """
         return self._rare_format_detection(dataset=dataset)
