@@ -5,6 +5,8 @@ from mlchecks.utils import model_type_validation, MLChecksValueError
 
 import shap
 
+__all__ = ['FeatureImportance']
+
 
 class FeatureImportance(SingleDatasetBaseCheck):
     """Check class for the check function feature_importance."""
