@@ -11,8 +11,7 @@ class DateTrainValidationLeakageOverlap(TrainValidationBaseCheck):
     """Check validation data that is dated earlier than latest date in train."""
 
     def run(self, train_dataset: Dataset, validation_dataset: Dataset, model=None) -> CheckResult:
-        """
-        Check the percentage of rows in validation that are dated earlier than max date in train.
+        """Run check.
 
         Arguments:
             train_dataset (Dataset): The training dataset object. Must contain an date column.
@@ -52,25 +51,24 @@ class DateTrainValidationLeakageOverlap(TrainValidationBaseCheck):
 
         return CheckResult(value=return_value,
                            header='Date Train-Validation Leakage (overlap)',
-                           check=self.run,
+                           check=self.__class__,
                            display=display)
 
 
 class DateTrainValidationLeakageDuplicates(TrainValidationBaseCheck):
     """Check if validation dates are present in train data."""
 
-    def __init__(self, n_to_show: int = 5, **params):
+    def __init__(self, n_to_show: int = 5):
         """Initialize the DateTrainValidationLeakageDuplicates check.
 
         Args:
             n_to_show (int): Number of common dates to show.
         """
-        super().__init__(**params)
+        super().__init__()
         self.n_to_show = n_to_show
 
     def run(self, train_dataset: Dataset, validation_dataset: Dataset, model=None) -> CheckResult:
-        """
-        Check if validation dates are present in train data.
+        """Run check.
 
         Arguments:
             train_dataset (Dataset): The training dataset object. Must contain an date.
@@ -88,11 +86,10 @@ class DateTrainValidationLeakageDuplicates(TrainValidationBaseCheck):
         return self._date_train_validation_leakage_duplicates(train_dataset, validation_dataset)
 
     def _date_train_validation_leakage_duplicates(self, train_dataset: Dataset, validation_dataset: Dataset):
-        train_dataset = Dataset.validate_dataset(train_dataset, self._date_train_validation_leakage_duplicates.__name__)
-        validation_dataset = Dataset.validate_dataset(validation_dataset,
-                                                      self._date_train_validation_leakage_duplicates.__name__)
-        train_dataset.validate_date(self._date_train_validation_leakage_duplicates.__name__)
-        validation_dataset.validate_date(self._date_train_validation_leakage_duplicates.__name__)
+        train_dataset = Dataset.validate_dataset(train_dataset, self.__class__.__name__)
+        validation_dataset = Dataset.validate_dataset(validation_dataset, self.__class__.__name__)
+        train_dataset.validate_date(self.__class__.__name__)
+        validation_dataset.validate_date(self.__class__.__name__)
 
         train_date = train_dataset.date_col()
         val_date = validation_dataset.date_col()
@@ -109,7 +106,5 @@ class DateTrainValidationLeakageDuplicates(TrainValidationBaseCheck):
             display = None
             return_value = 0
 
-        return CheckResult(value=return_value,
-                           header='Date Train-Validation Leakage (duplicates)',
-                           check=self.run,
-                           display=display)
+        return CheckResult(value=return_value, header='Date Train-Validation Leakage (duplicates)',
+                           check=self.__class__, display=display)

@@ -90,15 +90,9 @@ class CheckResult:
 class BaseCheck(metaclass=abc.ABCMeta):
     """Base class for check."""
 
-    params: Dict
-
-    def __init__(self, **params):
-        """Init base check parameters to pass to be used in the implementing check."""
-        self.params = params
-
     def __repr__(self):
         """Representation of check as string."""
-        return f'{self.__class__.__name__}({self.params})'
+        return f'{self.__class__.__name__}'
 
 
 class SingleDatasetBaseCheck(BaseCheck):

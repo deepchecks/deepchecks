@@ -31,7 +31,7 @@ class SpecialCharacters(SingleDatasetBaseCheck):
     """Search in column[s] for values that contains only special characters."""
 
     def __init__(self, columns: Union[str, Iterable[str]] = None,
-                 ignore_columns: Union[str, Iterable[str]] = None, n_most_common: int = 2, ** params):
+                 ignore_columns: Union[str, Iterable[str]] = None, n_most_common: int = 2):
         """Initialize the SpecialCharacters check.
 
         Args:
@@ -41,13 +41,13 @@ class SpecialCharacters(SingleDatasetBaseCheck):
             variable
             n_most_common (int): Number of most common special-only samples to show in results
         """
-        super().__init__(**params)
+        super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_most_common = n_most_common
 
     def run(self, dataset, model=None) -> CheckResult:
-        """Run special_characters check.
+        """Run check.
 
         Args:
           dataset(Dataset):
@@ -58,7 +58,7 @@ class SpecialCharacters(SingleDatasetBaseCheck):
         return self._special_characters(dataset)
 
     def _special_characters(self, dataset: Union[pd.DataFrame, Dataset]) -> CheckResult:
-        """Search in column[s] for values that contains only special characters.
+        """Run check.
 
         Args:
             dataset (Dataset): a Dataset or DataFrame object.
@@ -89,4 +89,4 @@ class SpecialCharacters(SingleDatasetBaseCheck):
         df_graph = df_graph.set_index(['Column Name'])
         display = df_graph if len(df_graph) > 0 else None
 
-        return CheckResult(df_graph, check=self.run, display=display)
+        return CheckResult(df_graph, check=self.__class__, display=display)

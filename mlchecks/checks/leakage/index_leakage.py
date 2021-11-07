@@ -9,18 +9,17 @@ __all__ = ['IndexTrainValidationLeakage']
 class IndexTrainValidationLeakage(TrainValidationBaseCheck):
     """Check if validation indexes are present in train data."""
 
-    def __init__(self, n_index_to_show: int = 5, **params):
+    def __init__(self, n_index_to_show: int = 5):
         """Initialize the IndexTrainValidationLeakage check.
 
         Args:
             n_index_to_show (int): Number of common indexes to show.
         """
-        super().__init__(**params)
+        super().__init__()
         self.n_index_to_show = n_index_to_show
 
     def run(self, train_dataset: Dataset, validation_dataset: Dataset, model=None) -> CheckResult:
-        """
-        Check if validation indexes are present in train data.
+        """Run check.
 
         Arguments:
             train_dataset (Dataset): The training dataset object. Must contain an index.
@@ -38,10 +37,10 @@ class IndexTrainValidationLeakage(TrainValidationBaseCheck):
         return self._index_train_validation_leakage(train_dataset, validation_dataset)
 
     def _index_train_validation_leakage(self, train_dataset: Dataset, validation_dataset: Dataset):
-        train_dataset = Dataset.validate_dataset(train_dataset, self._index_train_validation_leakage.__name__)
-        validation_dataset = Dataset.validate_dataset(validation_dataset, self._index_train_validation_leakage.__name__)
-        train_dataset.validate_index(self._index_train_validation_leakage.__name__)
-        validation_dataset.validate_index(self._index_train_validation_leakage.__name__)
+        train_dataset = Dataset.validate_dataset(train_dataset, self.__class__.__name__)
+        validation_dataset = Dataset.validate_dataset(validation_dataset, self.__class__.__name__)
+        train_dataset.validate_index(self.__class__.__name__)
+        validation_dataset.validate_index(self.__class__.__name__)
 
         train_index = train_dataset.index_col()
         val_index = validation_dataset.index_col()
@@ -57,4 +56,5 @@ class IndexTrainValidationLeakage(TrainValidationBaseCheck):
             size_in_test = 0
             display = None
 
-        return CheckResult(value=size_in_test, header='Index Train-Validation Leakage', check=self.run, display=display)
+        return CheckResult(value=size_in_test, header='Index Train-Validation Leakage', check=self.__class__,
+                           display=display)

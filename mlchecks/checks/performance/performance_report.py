@@ -11,18 +11,18 @@ __all__ = ['PerformanceReport']
 class PerformanceReport(SingleDatasetBaseCheck):
     """Summarize given metrics on a dataset and model."""
 
-    def __init__(self, alternative_metrics: Dict[str, Callable] = None, **params):
+    def __init__(self, alternative_metrics: Dict[str, Callable] = None):
         """Initialize the PerformanceReport check.
 
         Args:
             alternative_metrics (Dict[str, Callable]): An optional dictionary of metric name to scorer functions.
-            If none given, using default metrics
+                If none given, using default metrics
         """
-        super().__init__(**params)
+        super().__init__()
         self.alternative_metrics = alternative_metrics
 
     def run(self, dataset, model=None) -> CheckResult:
-        """Summarize given metrics on a dataset and model.
+        """Run check.
 
         Args:
             dataset (Dataset): a Dataset object
@@ -34,8 +34,8 @@ class PerformanceReport(SingleDatasetBaseCheck):
         return self._performance_report(dataset, model)
 
     def _performance_report(self, dataset: Dataset, model):
-        Dataset.validate_dataset(dataset, self._performance_report.__name__)
-        dataset.validate_label(self._performance_report.__name__)
+        Dataset.validate_dataset(dataset, self.__class__.__name__)
+        dataset.validate_label(self.__class__.__name__)
         model_type_validation(model)
 
         # Get default metrics if no alternative, or validate alternatives
@@ -46,4 +46,4 @@ class PerformanceReport(SingleDatasetBaseCheck):
         display_df = pd.DataFrame(scores.values(), columns=['Score'], index=scores.keys())
         display_df.index.name = 'Metric'
 
-        return CheckResult(scores, check=self.run, header='Performance Report', display=display_df)
+        return CheckResult(scores, check=self.__class__, header='Performance Report', display=display_df)

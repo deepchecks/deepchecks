@@ -55,10 +55,10 @@ def get_dup_txt(i: int, dup_map: Dict) -> str:
 
 
 class DataSampleLeakageReport(TrainValidationBaseCheck):
-    """Finds data sample leakage."""
+    """Find what percent of the validation data is in the train data"""
 
     def run(self, train_dataset: Dataset, validation_dataset: Dataset,  model=None) -> CheckResult:
-        """Find what percent of the validation data is in the train data.
+        """Run check.
 
         Args:
             train_dataset (Dataset): The training dataset object. Must contain an index.
@@ -76,7 +76,7 @@ class DataSampleLeakageReport(TrainValidationBaseCheck):
     def _data_sample_leakage_report(self, validation_dataset: Dataset, train_dataset: Dataset):
         validation_dataset = Dataset.validate_dataset_or_dataframe(validation_dataset)
         train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
-        validation_dataset.validate_shared_features(train_dataset, self.run.__name__)
+        validation_dataset.validate_shared_features(train_dataset, self.__class__.__name__)
 
         columns = train_dataset.features()
         if train_dataset.label_name():
@@ -110,5 +110,4 @@ class DataSampleLeakageReport(TrainValidationBaseCheck):
                      of validation data samples appear in train data'
         display = [user_msg, duplicate_rows_df.head(10)] if dup_ratio else None
 
-        return CheckResult(dup_ratio, header='Data Sample Leakage Report',
-                           check=self.run, display=display)
+        return CheckResult(dup_ratio, header='Data Sample Leakage Report', check=self.__class__, display=display)

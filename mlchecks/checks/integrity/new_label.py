@@ -15,7 +15,7 @@ class NewLabelTrainValidation(TrainValidationBaseCheck):
     """Find new labels in validation."""
 
     def run(self, train_dataset: Dataset, validation_dataset: Dataset, model=None) -> CheckResult:
-        """Find new labels in validation.
+        """Run check.
 
         Args:
             train_dataset (Dataset): The training dataset object.
@@ -33,12 +33,11 @@ class NewLabelTrainValidation(TrainValidationBaseCheck):
     def _new_label_train_validation(self, train_dataset: Dataset, validation_dataset: Dataset):
         validation_dataset = Dataset.validate_dataset_or_dataframe(validation_dataset)
         train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
-        validation_dataset.validate_label(self._new_label_train_validation.__name__)
-        train_dataset.validate_label(self._new_label_train_validation.__name__)
-        validation_dataset.validate_shared_label(train_dataset, self._new_label_train_validation.__name__)
+        validation_dataset.validate_label(self.__class__.__name__)
+        train_dataset.validate_label(self.__class__.__name__)
+        validation_dataset.validate_shared_label(train_dataset, self.__class__.__name__)
 
-        label_column = train_dataset.validate_shared_label(validation_dataset,
-                                                           self._new_label_train_validation.__name__)
+        label_column = train_dataset.validate_shared_label(validation_dataset, self.__class__.__name__)
 
         n_validation_samples = validation_dataset.n_samples()
 
@@ -53,7 +52,7 @@ class NewLabelTrainValidation(TrainValidationBaseCheck):
         if new_labels:
             n_new_label = len(validation_label[validation_label.isin(new_labels)])
 
-            dataframe = pd.DataFrame(data=[[label_column, format_percent(n_new_label / n_validation_samples), \
+            dataframe = pd.DataFrame(data=[[label_column, format_percent(n_new_label / n_validation_samples),
                                             sorted(new_labels)]],
                                      columns=['Label column', 'Percent new labels in sample', 'New labels'])
             dataframe = dataframe.set_index(['Label column'])

@@ -12,10 +12,9 @@ __all__ = ['DominantFrequencyChange']
 
 
 class DominantFrequencyChange(CompareDatasetsBaseCheck):
-    """Finds dominant frequency change."""
+    """Check if dominant values have increased significantly between test and reference data."""
 
-    def __init__(self, p_value_threshold: float = 0.0001, dominance_ratio: float = 2, ratio_change_thres: float = 1.5,
-                 **params):
+    def __init__(self, p_value_threshold: float = 0.0001, dominance_ratio: float = 2, ratio_change_thres: float = 1.5):
         """Initialize the DominantFrequencyChange class.
 
         Args:
@@ -24,17 +23,17 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
             dominance_ratio (float = 2): Next most abundance value has to be THIS times less than the first (0-inf).
             ratio_change_thres (float = 1.5): The dominant frequency has to change by at least this ratio (0-inf).
         """
-        super().__init__(**params)
+        super().__init__()
         self.p_value_threshold = p_value_threshold
         self.dominance_ratio = dominance_ratio
         self.ratio_change_thres = ratio_change_thres
 
     def run(self, dataset, baseline_dataset, model=None) -> CheckResult:
-        """Run dominant_frequency_change_report check.
+        """Run check.
 
         Args:
-            train_dataset (Dataset): The training dataset object. Must contain an index.
-            validation_dataset (Dataset): The validation dataset object. Must contain an index.
+            dataset (Dataset): The training dataset object. Must contain an index.
+            baseline_dataset (Dataset): The validation dataset object. Must contain an index.
         Returns:
             CheckResult: Detects values highly represented in the tested and reference data and checks if their..
                          relative and absolute percentage have increased significantly and makes a report.
@@ -85,19 +84,17 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
         return p_val
 
     def _dominant_frequency_change(self, dataset: Dataset, baseline_dataset: Dataset):
-        """Check if dominant values have increased significantly between test and reference data.
+        """run the check logic.
 
         Args:
             dataset (Dataset): The dataset object. Must contain an index.
             baseline_dataset (Dataset): The baseline dataset object. Must contain an index.
         Returns:
             CheckResult:  result value is dataframe that containes the dominant value change for each column.
-
-
         """
         baseline_dataset = Dataset.validate_dataset_or_dataframe(baseline_dataset)
         dataset = Dataset.validate_dataset_or_dataframe(dataset)
-        dataset.validate_shared_features(baseline_dataset, self._dominant_frequency_change.__name__)
+        dataset.validate_shared_features(baseline_dataset, self.__class__.__name__)
 
         columns = baseline_dataset.features()
 
@@ -133,4 +130,4 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
 
         p_df = pd.DataFrame.from_dict(p_df, orient='index') if len(p_df) else None
 
-        return CheckResult(p_df, check=self._dominant_frequency_change, display=p_df)
+        return CheckResult(p_df, check=self.__class__, display=p_df)
