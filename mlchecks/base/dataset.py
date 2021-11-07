@@ -4,6 +4,7 @@ import pandas as pd
 
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 from mlchecks.utils import MLChecksValueError
+from mlchecks.string_utils import is_string_column
 
 
 __all__ = ['Dataset', 'ensure_dataframe_type']
@@ -93,6 +94,9 @@ class Dataset:
         if self._label_name in self.features():
             raise MLChecksValueError(f'label column {self._label_name} can not be a feature column')
 
+        if self._label_name:
+            self.check_compatible_labels()
+
         if self._date_name in self.features():
             raise MLChecksValueError(f'date column {self._date_name} can not be a feature column')
 
@@ -147,11 +151,22 @@ class Dataset:
 
         for col in self.data.columns:
             num_unique = self.data[col].nunique(dropna=True)
-            if num_unique / len(self.data[col].dropna()) < self._max_categorical_ratio\
-                    or num_unique <= self._max_categories:
+            if self.is_categorical(num_unique, len(self.data[col].dropna())):
                 cat_columns.append(col)
 
         return cat_columns
+
+    def is_categorical(self, n_unique: int, n_samples: int) -> bool:
+        """Check if uniques are few enough to count as categorical.
+
+        Args:
+            n_unique (int): Number of non-null unique values
+            n_samples (int): Number of non-null samples
+
+        Returns:
+            If is categorical according to input numbers
+        """
+        return n_unique / n_samples < self._max_categorical_ratio or n_unique <= self._max_categories
 
     def index_name(self) -> Union[str, None]:
         """If index column exists, return its name.
@@ -253,6 +268,13 @@ class Dataset:
                 value = 'other'
             columns[column] = value
         return columns
+
+    def check_compatible_labels(self):
+        """Check if label column is supported by MLChecks."""
+        if is_string_column(self.label_col()):
+            raise MLChecksValueError('String labels are not supported')
+        elif pd.isnull(self.label_col()).any():
+            raise MLChecksValueError('Can\'t have null values in label column')
 
     # Validations:
 

@@ -6,6 +6,7 @@ history/
 .idea/
 .DS_Store
 *.pdf
+*.rst
 
 test/AutogluonModels
 test/.agModels
