@@ -5,14 +5,14 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from mlchecks.base import Dataset
 from mlchecks.utils import MLChecksValueError
-from mlchecks.checks.leakage import DataSampleLeakageReport, data_sample_leakage_report
+from mlchecks.checks.leakage import DataSampleLeakageReport
 from hamcrest import assert_that, calling, raises, equal_to
 
 
 def test_dataset_wrong_input():
     x = 'wrong_input'
     # Act & Assert
-    assert_that(calling(data_sample_leakage_report).with_args(x, x),
+    assert_that(calling(DataSampleLeakageReport().run).with_args(x, x),
                 raises(MLChecksValueError,
                 'dataset must be of type DataFrame or Dataset. instead got: str'))
 

@@ -1,7 +1,7 @@
 """Contains unit tests for the string_mismatch check."""
 import pandas as pd
 
-from mlchecks.checks import string_mismatch
+from mlchecks.checks import StringMismatch
 
 from hamcrest import assert_that, has_length
 
@@ -11,7 +11,7 @@ def test_double_col_mismatch():
     data = {'col1': ['Deep', 'deep', 'deep!!!', '$deeP$', 'earth', 'foo', 'bar', 'foo?']}
     df = pd.DataFrame(data=data)
     # Act
-    result = string_mismatch(df).value
+    result = StringMismatch().run(df).value
     # Assert - 6 values are mismatch
     assert_that(result, has_length(6))
 
@@ -21,7 +21,7 @@ def test_single_mismatch():
     data = {'col1': ['Deep', 'deep', 'deep!!!', '$deeP$', 'earth', 'foo', 'bar', 'dog']}
     df = pd.DataFrame(data=data)
     # Act
-    result = string_mismatch(df).value
+    result = StringMismatch().run(df).value
     # Assert - 4 values are mismatch
     assert_that(result, has_length(4))
 
@@ -32,7 +32,7 @@ def test_mismatch_multi_column():
             'col2': ['SPACE', 'SPACE$$', 'is', 'fun', 'go', 'moon']}
     df = pd.DataFrame(data=data)
     # Act
-    result = string_mismatch(df).value
+    result = StringMismatch().run(df).value
     # Assert - 4 values are mismatch
     assert_that(result, has_length(4))
 
@@ -43,6 +43,6 @@ def test_mismatch_multi_column_ignore():
             'col2': ['SPACE', 'SPACE$$', 'is', 'fun', 'go', 'moon']}
     df = pd.DataFrame(data=data)
     # Act
-    result = string_mismatch(df, ignore_columns=['col2']).value
+    result = StringMismatch(ignore_columns=['col2']).run(df).value
     # Assert - 4 values are mismatch
     assert_that(result, has_length(2))

@@ -8,7 +8,7 @@ from sklearn.base import ClassifierMixin, RegressorMixin
 __all__ = ['ModelType', 'task_type_check', 'get_metrics_list', 'validate_scorer', 'DEFAULT_METRICS_DICT',
            'DEFAULT_SINGLE_METRIC']
 
-from mlchecks.utils import model_type_validation
+from mlchecks.utils import model_type_validation, MLChecksValueError
 
 
 class ModelType(enum.Enum):
@@ -63,6 +63,10 @@ def task_type_check(model: Union[ClassifierMixin, RegressorMixin], dataset: 'Dat
     dataset.validate_label(task_type_check.__name__)
 
     if getattr(model, 'predict_proba', None):
+        unique_labels = dataset.label_col().unique()
+        if sorted(unique_labels) != list(range(min(unique_labels), max(unique_labels) + 1)):
+            raise MLChecksValueError(f'Classification labels must be a consecutive set from 0 to MAX_LABEL,'
+                                     f' found {sorted(unique_labels)}.')
         model: ClassifierMixin
         if dataset.label_col().nunique() > 2:
             return ModelType.MULTICLASS
