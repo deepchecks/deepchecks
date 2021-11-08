@@ -1,6 +1,5 @@
 """The single_feature_contribution check module."""
-import ppscore as pps
-
+import mlchecks.ppscore as pps
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck, TrainValidationBaseCheck
 from mlchecks.plot_utils import create_colorbar_barchart_for_check
 
