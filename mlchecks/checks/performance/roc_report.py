@@ -34,7 +34,7 @@ class RocReport(SingleDatasetBaseCheck):
         Dataset.validate_dataset(dataset, check_name)
         dataset.validate_label(check_name)
         task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY], check_name)
-        
+
         label = dataset.label_name()
         ds_x = dataset.data[dataset.features()]
         ds_y = dataset.data[label]
