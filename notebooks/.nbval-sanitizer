@@ -11,8 +11,9 @@ replace: random
 
 
 [date_stamp]
-regex: \d{1,2}(\\|\/|-)\d{1,2}((\\|\/|-)\d{2,4})?
+regex: \d{1,4}(\\|\/|-)(\d{1,2}|\w{3})((\\|\/|-)\d{1,4})?
 replace: DATE-STAMP
+
 
 [time_stamp]
 regex: \d{2}:\d{2}:\d{2}(\.\d+)
