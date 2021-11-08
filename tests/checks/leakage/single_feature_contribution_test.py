@@ -71,7 +71,7 @@ def test_trainval_assert_single_feature_contribution():
         assert_that(value, close_to(expected[key], 0.1))
 
 
-def test_show_top_single_feature_contribution():
+def test_trainval_show_top_single_feature_contribution():
     df, df2, expected = util_generate_second_similar_dataframe_and_expected()
     result = SingleFeatureContributionTrainValidation(n_show_top=3).run(train_dataset=Dataset(df, label='label'),
                                                             validation_dataset=Dataset(df2, label='label'))
