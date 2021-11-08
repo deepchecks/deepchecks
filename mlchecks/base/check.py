@@ -3,8 +3,7 @@ import abc
 import enum
 import re
 from collections import OrderedDict
-from typing import Dict
-from typing import Any, Callable, List, Union
+from typing import Any, Callable, List, Union, Dict
 
 __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainValidationBaseCheck',
            'ModelOnlyBaseCheck', 'ConditionResult', 'ConditionCategory']
@@ -194,7 +193,8 @@ class BaseCheck(metaclass=abc.ABCMeta):
         self._conditions_index += 1
         return self
 
-    def __repr__(self, tabs=0):
+
+    def __repr__(self, tabs=0, replace_name=None):
         """Representation of check as string.
 
         Args:
@@ -203,7 +203,8 @@ class BaseCheck(metaclass=abc.ABCMeta):
         tab_chr = '\t'
         params = self.params()
         params = f'({params})' if params else ''
-        check_str = f'{tab_chr * tabs}{self.__class__.__name__}{params}'
+        name = replace_name or self.__class__.__name__
+        check_str = f'{tab_chr * tabs}{name}{params}'
         if self._conditions:
             conditions_str = ''.join([f'\n{tab_chr * (tabs + 2)}{i}: {s.name}' for i, s in self._conditions.items()])
             return f'{check_str}\n{tab_chr * (tabs + 1)}Conditions: [{conditions_str}\n{tab_chr * (tabs + 1)}]'

@@ -7,13 +7,49 @@ from IPython.core.display import display_html, display
 from ipywidgets import IntProgress, HTML, VBox
 
 from mlchecks.base.check import BaseCheck, CheckResult, TrainValidationBaseCheck, CompareDatasetsBaseCheck, \
-    SingleDatasetBaseCheck, ModelOnlyBaseCheck, ConditionCategory
+    SingleDatasetBaseCheck, ModelOnlyBaseCheck
 
 __all__ = ['CheckSuite', 'SuiteResult']
 
 from mlchecks.utils import is_notebook
 
 
+
+
+class SuiteResult:
+    """Contain the results of a suite run."""
+
+    name: str
+    results: List[Union[CheckResult, 'SuiteResult']]
+
+    def __init__(self, name: str, results):
+        """Initialize suite result."""
+        self.name = name
+        self.results = results
+
+    def _ipython_display_(self, verbose=False):
+        display_html(f'<h3>{self.name}</h3>', raw=True)
+        # First print summary
+        display_table = []
+        for result in self.results:
+            if isinstance(result, CheckResult):
+                for cond_result in result.conditions_results:
+                    display_table.append([cond_result.get_icon(), result.header, cond_result.description,
+                                          cond_result.actual])
+        table = pd.DataFrame(data=display_table, columns=['Pass', 'Check', 'Condition', 'Actual'])
+        df_styler = table.style
+        df_styler.set_table_styles([dict(selector='th,td', props=[('text-align', 'left')])])
+        df_styler.hide_index()
+        display_html(df_styler.render(), raw=True)
+        # If verbose print all displays
+        if verbose:
+            for result in self.results:
+                # pylint: disable=protected-access
+                result._ipython_display_()
+
+    def display_verbose(self):
+        """Display the suite result with verbose output of each check."""
+        self._ipython_display_(verbose=True)
 
 
 class SuiteResult:
@@ -67,13 +103,20 @@ class CheckSuite(BaseCheck):
         super().__init__()
         self.name = name
         self.checks = OrderedDict()
+
         for check in checks:
             if not isinstance(check, BaseCheck):
                 raise Exception(f'CheckSuite receives only `BaseCheck` objects but got: {check.__class__.__name__}')
             if isinstance(check, CheckSuite):
                 self.checks[check.name] = check
             else:
-                self.checks[check.__class__.__name__] = check
+                # Check if there are already checks of the same type
+                check_name = check.__class__.__name__
+                same_checks = len([c for c in self.checks.values() if isinstance(c, check.__class__)])
+                if same_checks:
+                    check_name = f'{check_name}_{same_checks + 1}'
+                self.checks[check_name] = check
+
 
     def run(self, model=None, train_dataset=None, validation_dataset=None, check_datasets_policy: str = 'validation') \
             -> SuiteResult:
@@ -149,7 +192,7 @@ class CheckSuite(BaseCheck):
     def __repr__(self, tabs=0):
         """Representation of suite as string."""
         tabs_str = '\t' * tabs
-        checks_str = ''.join([f'\n{c.__repr__(tabs + 1)}' for c in self.checks.values()])
+        checks_str = ''.join([f'\n{c.__repr__(tabs + 1, n)}' for n, c in self.checks.items()])
         return f'{tabs_str}{self.name}: [{checks_str}\n{tabs_str}]'
 
     def __getitem__(self, item):
