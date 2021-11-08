@@ -1,7 +1,7 @@
 """Utils module containing utilities for checks working with metrics."""
 import enum
 from numbers import Number
-from typing import Union, Dict, Callable
+from typing import List, Union, Dict, Callable
 from sklearn.metrics import get_scorer, make_scorer, accuracy_score, precision_score, recall_score, mean_squared_error
 from sklearn.base import ClassifierMixin, RegressorMixin
 
@@ -74,6 +74,29 @@ def task_type_check(model: Union[ClassifierMixin, RegressorMixin], dataset: 'Dat
             return ModelType.BINARY
     else:
         return ModelType.REGRESSION
+
+
+def task_type_validation(model: Union[ClassifierMixin, RegressorMixin], dataset: 'Dataset',
+                         expected_types: List[ModelType], check_name: str = None):
+    """Validate task type (regression, binary, multiclass) according to model object and label column.
+
+    Args:
+        model (Union[ClassifierMixin, RegressorMixin]): Model object - used to check if has predict_proba()
+        dataset (Dataset): dataset - used to count the number of unique labels
+        expected_types (List[ModelType]): allowed types of model
+        check_name (str): check name to print in error
+
+    Raises:
+            MLChecksValueError if model type doesn't match
+    """
+    task_type = task_type_check(model, dataset)
+    if not task_type in expected_types:
+        if check_name:
+            prefix = f'Check {check_name} '
+        else:
+            prefix = ''
+        raise MLChecksValueError(f"{prefix}Expected model to be a type from {[e.value for e in expected_types]},"
+                                 f" but received model of type '{task_type.value}'")
 
 
 def get_metrics_list(model, dataset: 'Dataset', alternative_metrics: Dict[str, Callable] = None

@@ -18,6 +18,15 @@ def test_dataset_no_label(iris_dataset, iris_adaboost):
                 raises(MLChecksValueError, 'Check CalibrationMetric requires dataset to have a label column'))
 
 
+
+def test_regresion_model(diabetes_split_dataset_and_model):
+    # Assert
+    train, _, clf = diabetes_split_dataset_and_model
+    assert_that(calling(CalibrationMetric().run).with_args(train, clf),
+                raises(MLChecksValueError, "Check CalibrationMetric Expected model to be a type from"
+                                           " ['multiclass', 'binary'], but received model of type 'regression'"))
+
+
 def test_model_info_object(iris_labeled_dataset, iris_adaboost):
     # Arrange
     check = CalibrationMetric()
