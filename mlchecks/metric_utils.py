@@ -87,7 +87,7 @@ def task_type_validation(model: Union[ClassifierMixin, RegressorMixin], dataset:
         check_name (str): check name to print in error
 
     Raises:
-            MLChecksValueError if model type doesn't match
+            MLChecksValueError if model type doesn't match one of the expected_types
     """
     task_type = task_type_check(model, dataset)
     if not task_type in expected_types:
@@ -95,8 +95,8 @@ def task_type_validation(model: Union[ClassifierMixin, RegressorMixin], dataset:
             prefix = f'Check {check_name} '
         else:
             prefix = ''
-        raise MLChecksValueError(f"{prefix}Expected model to be a type from {[e.value for e in expected_types]},"   # pylint: disable=locally-disabled, inconsistent-quotes
-                                 f" but received model of type '{task_type.value}'")
+        raise MLChecksValueError(f'{prefix}Expected model to be a type from {[e.value for e in expected_types]},'
+                                 f' but received model of type: {task_type.value}')
 
 
 def get_metrics_list(model, dataset: 'Dataset', alternative_metrics: Dict[str, Callable] = None
