@@ -1,6 +1,7 @@
 """Module containing naive comparision check."""
 import numpy as np
 import matplotlib.pyplot as plt
+from mlchecks.string_utils import format_number
 
 from mlchecks import CheckResult, Dataset
 from mlchecks.base.check import TrainValidationBaseCheck
@@ -121,7 +122,7 @@ class NaiveModelComparison(TrainValidationBaseCheck):
 
         text = f'{type(model).__name__} Model prediction has achieved {pred_metric} ' \
                f'in {metric_name} compared to Naive {self.naive_model_type} prediction ' \
-               f'which achived {naive_metric} on tested data.'
+               f'which achieved {format_number(naive_metric)} on tested data.'
 
         def display_func():
             fig = plt.figure()
