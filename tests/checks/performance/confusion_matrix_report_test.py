@@ -19,7 +19,6 @@ def test_dataset_no_label(iris_dataset, iris_adaboost):
                 raises(MLChecksValueError, "Check ConfusionMatrixReport requires dataset to have a label column"))
 
 
-
 def test_regresion_model(diabetes_split_dataset_and_model):
     # Assert
     train, _, clf = diabetes_split_dataset_and_model
