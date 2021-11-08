@@ -1,4 +1,6 @@
 """The predefined Integrity suite module."""
+from mlchecks.checks import RareFormatDetection
+
 from mlchecks import CheckSuite
 from mlchecks.checks.integrity import (
     IsSingleValue,
@@ -20,7 +22,7 @@ SingleDatasetIntegrityCheckSuite = CheckSuite(
     MixedTypes(),
     StringMismatch(),
     DataDuplicates(),
-    # RareFormatDetection(),  # Commented out until fixed
+    RareFormatDetection(),
     SpecialCharacters()
 )
 
