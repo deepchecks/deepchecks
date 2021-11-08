@@ -32,8 +32,8 @@ DEFAULT_MULTICLASS_METRICS = {
 }
 
 DEFAULT_REGRESSION_METRICS = {
-    'RMSE': make_scorer(mean_squared_error, squared=False),
-    'MSE': make_scorer(mean_squared_error),
+    'RMSE': make_scorer(mean_squared_error, squared=False, greater_is_better=False),
+    'MSE': make_scorer(mean_squared_error, greater_is_better=False),
 }
 
 DEFAULT_SINGLE_METRIC = {

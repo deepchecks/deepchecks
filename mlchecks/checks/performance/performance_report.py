@@ -1,7 +1,7 @@
 """Module containing performance report check."""
 from typing import Callable, Dict
 import pandas as pd
-from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
+from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
 from mlchecks.metric_utils import get_metrics_list
 from mlchecks.utils import model_type_validation
 
@@ -47,3 +47,15 @@ class PerformanceReport(SingleDatasetBaseCheck):
         display_df.index.name = 'Metric'
 
         return CheckResult(scores, check=self.__class__, header='Performance Report', display=display_df)
+
+    def add_condition_min_score(self, min_score: float):
+        name = f'Metric score is above {min_score}'
+
+        def condition(result, min_score):
+            not_passed = {k: v for k, v in result.items() if v < min_score}
+            if not_passed:
+                details = f'Metric scores that don\'t pass: {not_passed}'
+                return ConditionResult(False, details)
+            return ConditionResult(True)
+
+        return self.add_condition(name, condition, min_score=min_score)
