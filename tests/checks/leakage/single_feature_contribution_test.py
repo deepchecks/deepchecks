@@ -7,7 +7,7 @@ from mlchecks.checks.leakage.single_feature_contribution import SingleFeatureCon
     SingleFeatureContributionTrainValidation
 from mlchecks.utils import MLChecksValueError
 
-from hamcrest import assert_that, is_in, close_to, calling, raises
+from hamcrest import assert_that, is_in, close_to, calling, raises, equal_to
 
 
 def util_generate_dataframe_and_expected():
@@ -33,11 +33,18 @@ def util_generate_second_similar_dataframe_and_expected():
 def test_assert_single_feature_contribution():
     df, expected = util_generate_dataframe_and_expected()
     result = SingleFeatureContribution().run(dataset=Dataset(df, label='label'))
-    print(result.value)
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
         assert_that(value, close_to(expected[key], 0.1))
 
+
+def test_show_top_single_feature_contribution():
+    df, expected = util_generate_dataframe_and_expected()
+    result = SingleFeatureContribution(n_show_top=3).run(dataset=Dataset(df, label='label'))
+    assert_that(len(result.value), equal_to(3))
+    for key, value in result.value.items():
+        assert_that(key, is_in(expected.keys()))
+        assert_that(value, close_to(expected[key], 0.1))
 
 def test_dataset_wrong_input():
     wrong = 'wrong_input'
@@ -59,7 +66,16 @@ def test_trainval_assert_single_feature_contribution():
     df, df2, expected = util_generate_second_similar_dataframe_and_expected()
     result = SingleFeatureContributionTrainValidation().run(train_dataset=Dataset(df, label='label'),
                                                             validation_dataset=Dataset(df2, label='label'))
-    print(result.value)
+    for key, value in result.value.items():
+        assert_that(key, is_in(expected.keys()))
+        assert_that(value, close_to(expected[key], 0.1))
+
+
+def test_show_top_single_feature_contribution():
+    df, df2, expected = util_generate_second_similar_dataframe_and_expected()
+    result = SingleFeatureContributionTrainValidation(n_show_top=3).run(train_dataset=Dataset(df, label='label'),
+                                                            validation_dataset=Dataset(df2, label='label'))
+    assert_that(len(result.value), equal_to(3))
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
         assert_that(value, close_to(expected[key], 0.1))
