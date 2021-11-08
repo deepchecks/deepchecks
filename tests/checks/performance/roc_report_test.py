@@ -25,7 +25,7 @@ def test_regresion_model(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
     assert_that(calling(RocReport().run).with_args(train, clf),
                 raises(MLChecksValueError, "Check RocReport Expected model to be a type from ['multiclass', 'binary'],"
-                                           " but received model of type 'regression'"))
+                                           " but received model of type 'regression'")) # pylint: disable=locally-disabled, inconsistent-quotes
 
 
 def test_model_info_object(iris_labeled_dataset, iris_adaboost):
