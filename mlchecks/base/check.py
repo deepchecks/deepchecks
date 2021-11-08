@@ -45,9 +45,9 @@ class ConditionResult:
     """Contain result of a condition function."""
 
     is_pass: bool
-    name: str
     category: ConditionCategory
     details: str
+    name: str
 
     def __init__(self, is_pass: bool, details: str = '',
                  category: ConditionCategory = ConditionCategory.FAIL):
@@ -83,6 +83,9 @@ class ConditionResult:
         else:
             return 2, '\U0001F937'
 
+    def __repr__(self):
+        return str(vars(self))
+
 
 class CheckResult:
     """Class which returns from a check with result that can later be used for automatic pipelines and display value.
@@ -115,6 +118,7 @@ class CheckResult:
         self.value = value
         self.header = header or (check and split_camel_case(check.__name__)) or None
         self.check = check
+        self.condition_results = []
 
         if display is not None and not isinstance(display, List):
             self.display = [display]
@@ -158,9 +162,17 @@ class CheckResult:
         """Set the conditions results for current check result."""
         self.conditions_results = results
 
-    def empty(self):
-        """Return if this check have no display and no condition results."""
-        return not self.display and not self.conditions_results
+    def have_conditions(self):
+        """Return if this check have condition results."""
+        return bool(self.conditions_results)
+
+    def have_display(self):
+        """Return if this check have dsiplay."""
+        return bool(self.display)
+
+    def passed_conditions(self):
+        """Return if this check have not passing condition results."""
+        return all((r.is_pass for r in self.conditions_results))
 
 
 class BaseCheck(metaclass=abc.ABCMeta):
