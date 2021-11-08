@@ -1,6 +1,7 @@
 """Module containing the Suite object, used for running a set of checks together."""
+# pylint: disable=protected-access,broad-except
 from collections import OrderedDict
-from typing import Union, List
+from typing import Union, List, Tuple
 
 import pandas as pd
 from IPython.core.display import display_html, display
@@ -14,8 +15,6 @@ __all__ = ['CheckSuite', 'SuiteResult']
 from mlchecks.utils import is_notebook
 
 
-
-
 class SuiteResult:
     """Contain the results of a suite run."""
 
@@ -27,65 +26,49 @@ class SuiteResult:
         self.name = name
         self.results = results
 
-    def _ipython_display_(self, verbose=False):
-        display_html(f'<h3>{self.name}</h3>', raw=True)
+    def _ipython_display_(self, only_summary=False):
+        display_html(f'<h2>{self.name}</h2>', raw=True)
         # First print summary
-        display_table = []
+        conditions_table = []
+        errors_table = []
         for result in self.results:
             if isinstance(result, CheckResult):
                 for cond_result in result.conditions_results:
-                    display_table.append([cond_result.get_icon(), result.header, cond_result.description,
-                                          cond_result.actual])
-        table = pd.DataFrame(data=display_table, columns=['Pass', 'Check', 'Condition', 'Actual'])
-        df_styler = table.style
+                    sort_value, icon = cond_result.get_status()
+                    conditions_table.append([icon, result.header, cond_result.description,
+                                             cond_result.details, sort_value])
+            elif isinstance(result, Tuple):
+                errors_table.append(result)
+
+        if conditions_table:
+            display_html('<h3>Conditions Summary</h3>', raw=True)
+            table = pd.DataFrame(data=conditions_table, columns=['Pass?', 'Check', 'Condition', 'More Info', 'sort'])
+            table.sort_values(by=['sort'], inplace=True)
+            table.drop('sort', axis=1, inplace=True)
+            SuiteResult._display_table(table)
+        if errors_table:
+            display_html('<h3>Checks with errors</h3>', raw=True)
+            table = pd.DataFrame(data=errors_table, columns=['Check', 'Error'])
+            SuiteResult._display_table(table)
+        # If verbose print all displays
+        if not only_summary:
+            results_with_display = [r for r in self.results if isinstance(r, CheckResult) and r.display]
+            if results_with_display:
+                display_html('<h3>Checks extended display</h3>', raw=True)
+                for result in results_with_display:
+                    result._ipython_display_()
+            results_without_display = [r.header for r in self.results if isinstance(r, CheckResult) and r.empty()]
+            if results_without_display:
+                display_html('<h3>Checks with nothing found</h3>', raw=True)
+                table = pd.DataFrame(data={'Check': results_without_display})
+                SuiteResult._display_table(table)
+
+    @classmethod
+    def _display_table(cls, df):
+        df_styler = df.style
         df_styler.set_table_styles([dict(selector='th,td', props=[('text-align', 'left')])])
         df_styler.hide_index()
         display_html(df_styler.render(), raw=True)
-        # If verbose print all displays
-        if verbose:
-            for result in self.results:
-                # pylint: disable=protected-access
-                result._ipython_display_()
-
-    def display_verbose(self):
-        """Display the suite result with verbose output of each check."""
-        self._ipython_display_(verbose=True)
-
-
-class SuiteResult:
-    """Contain the results of a suite run."""
-
-    name: str
-    results: List[Union[CheckResult, 'SuiteResult']]
-
-    def __init__(self, name: str, results):
-        """Initialize suite result."""
-        self.name = name
-        self.results = results
-
-    def _ipython_display_(self, verbose=False):
-        display_html(f'<h3>{self.name}</h3>', raw=True)
-        # First print summary
-        display_table = []
-        for result in self.results:
-            if isinstance(result, CheckResult):
-                for cond_result in result.conditions_results:
-                    display_table.append([cond_result.get_icon(), result.header, cond_result.description,
-                                          cond_result.actual])
-        table = pd.DataFrame(data=display_table, columns=['Pass', 'Check', 'Condition', 'Actual'])
-        df_styler = table.style
-        df_styler.set_table_styles([dict(selector='th,td', props=[('text-align', 'left')])])
-        df_styler.hide_index()
-        display_html(df_styler.render(), raw=True)
-        # If verbose print all displays
-        if verbose:
-            for result in self.results:
-                # pylint: disable=protected-access
-                result._ipython_display_()
-
-    def display_verbose(self):
-        """Display the suite result with verbose output of each check."""
-        self._ipython_display_(verbose=True)
 
 
 class CheckSuite(BaseCheck):
@@ -117,7 +100,6 @@ class CheckSuite(BaseCheck):
                     check_name = f'{check_name}_{same_checks + 1}'
                 self.checks[check_name] = check
 
-
     def run(self, model=None, train_dataset=None, validation_dataset=None, check_datasets_policy: str = 'validation') \
             -> SuiteResult:
         """Run all checks.
@@ -148,39 +130,42 @@ class CheckSuite(BaseCheck):
 
         # Run all checks
         results = []
-        for check in self.checks.values():
-            label.value = f'Running {str(check)}'
-            if isinstance(check, TrainValidationBaseCheck):
-                check_result = check.run(train_dataset=train_dataset, validation_dataset=validation_dataset,
-                                         model=model)
-                check_result.set_condition_results(check.conditions_decision(check_result))
-                results.append(check_result)
-            elif isinstance(check, CompareDatasetsBaseCheck):
-                check_result = check.run(dataset=validation_dataset, baseline_dataset=train_dataset, model=model)
-                check_result.set_condition_results(check.conditions_decision(check_result))
-                results.append(check_result)
-            elif isinstance(check, SingleDatasetBaseCheck):
-                if check_datasets_policy in ['both', 'train'] and train_dataset is not None:
-                    check_result = check.run(dataset=train_dataset, model=model)
-                    check_result.header = f'{check_result.header} - Train Dataset'
+        for name, check in self.checks.items():
+            try:
+                label.value = f'Running {str(check)}'
+                if isinstance(check, TrainValidationBaseCheck):
+                    check_result = check.run(train_dataset=train_dataset, validation_dataset=validation_dataset,
+                                             model=model)
                     check_result.set_condition_results(check.conditions_decision(check_result))
                     results.append(check_result)
-                if check_datasets_policy in ['both', 'validation'] and validation_dataset is not None:
-                    check_result = check.run(dataset=validation_dataset, model=model)
-                    check_result.header = f'{check_result.header} - Validation Dataset'
+                elif isinstance(check, CompareDatasetsBaseCheck):
+                    check_result = check.run(dataset=validation_dataset, baseline_dataset=train_dataset, model=model)
                     check_result.set_condition_results(check.conditions_decision(check_result))
                     results.append(check_result)
-            elif isinstance(check, ModelOnlyBaseCheck):
-                check_result = check.run(model=model)
-                check_result.set_condition_results(check.conditions_decision(check_result))
-                results.append(check_result)
-            elif isinstance(check, CheckSuite):
-                suite_result = check.run(model, train_dataset, validation_dataset, check_datasets_policy)
-                results.append(suite_result)
-            else:
-                raise TypeError(f'Expected check of type SingleDatasetBaseCheck, CompareDatasetsBaseCheck, '
-                                f'TrainValidationBaseCheck or ModelOnlyBaseCheck. Got  {check.__class__.__name__} '
-                                f'instead')
+                elif isinstance(check, SingleDatasetBaseCheck):
+                    if check_datasets_policy in ['both', 'train'] and train_dataset is not None:
+                        check_result = check.run(dataset=train_dataset, model=model)
+                        check_result.header = f'{check_result.header} - Train Dataset'
+                        check_result.set_condition_results(check.conditions_decision(check_result))
+                        results.append(check_result)
+                    if check_datasets_policy in ['both', 'validation'] and validation_dataset is not None:
+                        check_result = check.run(dataset=validation_dataset, model=model)
+                        check_result.header = f'{check_result.header} - Validation Dataset'
+                        check_result.set_condition_results(check.conditions_decision(check_result))
+                        results.append(check_result)
+                elif isinstance(check, ModelOnlyBaseCheck):
+                    check_result = check.run(model=model)
+                    check_result.set_condition_results(check.conditions_decision(check_result))
+                    results.append(check_result)
+                elif isinstance(check, CheckSuite):
+                    suite_result = check.run(model, train_dataset, validation_dataset, check_datasets_policy)
+                    results.append(suite_result)
+                else:
+                    raise TypeError(f'Expected check of type SingleDatasetBaseCheck, CompareDatasetsBaseCheck, '
+                                    f'TrainValidationBaseCheck or ModelOnlyBaseCheck. Got  {check.__class__.__name__} '
+                                    f'instead')
+            except Exception as exp:
+                results.append((name, exp))
             progress_bar.value = progress_bar.value + 1
 
         progress_bar.close()

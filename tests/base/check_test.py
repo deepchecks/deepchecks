@@ -1,7 +1,8 @@
 """Tests for BaseCheck class."""
 # pylint: disable=protected-access
+import hamcrest
 from hamcrest import assert_that, has_property, has_key, contains_exactly, calling, raises, has_length, has_entries, \
-    all_of, equal_to
+    all_of, equal_to, has_items
 
 from mlchecks import BaseCheck, ConditionResult, CheckResult, ConditionCategory
 from mlchecks.utils import MLChecksValueError
@@ -16,7 +17,9 @@ def test_add_condition():
     check = DummyCheck().add_condition('condition A', lambda r: True)
 
     # Assert
-    assert_that(check, has_property('_conditions', has_key('condition A')))
+    assert_that(check._conditions.values(), contains_exactly(
+        has_property('name', 'condition A')
+    ))
 
 
 def test_add_multiple_conditions():
@@ -26,7 +29,11 @@ def test_add_multiple_conditions():
              .add_condition('condition C', lambda r: ConditionResult(True)))
 
     # Assert
-    assert_that(check._conditions.keys(), contains_exactly('condition A', 'condition B', 'condition C'))
+    assert_that(check._conditions.values(), contains_exactly(
+        has_property('name', 'condition A'),
+        has_property('name', 'condition B'),
+        has_property('name', 'condition C')
+    ))
 
 
 def test_add_conditions_wrong_name():
@@ -65,9 +72,11 @@ def test_remove_condition():
 
     # Act & Assert
     check.remove_condition(1)
-    assert_that(check._conditions.keys(), contains_exactly('condition A', 'condition C'))
+    assert_that(check._conditions.values(), has_items(
+        has_property('name', 'condition A'), has_property('name', 'condition C')
+    ))
     check.remove_condition(0)
-    assert_that(check._conditions.keys(), contains_exactly('condition C'))
+    assert_that(check._conditions.values(), has_items(has_property('name', 'condition C')))
 
 
 def test_remove_condition_index_error():
@@ -83,24 +92,28 @@ def test_condition_decision():
     # Arrange
     check = (DummyCheck().add_condition('condition A', lambda r: True)
              .add_condition('condition B', lambda r: ConditionResult(False, 'some result'))
-             .add_condition('condition C', lambda r: ConditionResult(False, 'my actual', ConditionCategory.INSIGHT)))
+             .add_condition('condition C', lambda r: ConditionResult(False, 'my actual', ConditionCategory.WARN)))
 
     decisions = check.conditions_decision(CheckResult(1))
 
-    assert_that(decisions, has_entries({
-        'condition A': all_of(
+    # Assert
+    assert_that(decisions, has_items(
+        all_of(
+            has_property('name', 'condition A'),
             has_property('is_pass', equal_to(True)),
             has_property('category', ConditionCategory.FAIL),
-            has_property('actual', '')
+            has_property('details', '')
         ),
-        'condition B': all_of(
+        all_of(
+            has_property('name', 'condition B'),
             has_property('is_pass', equal_to(False)),
             has_property('category', ConditionCategory.FAIL),
-            has_property('actual', 'some result')
+            has_property('details', 'some result')
         ),
-        'condition C': all_of(
+        all_of(
+            has_property('name', 'condition C'),
             has_property('is_pass', equal_to(False)),
-            has_property('category', ConditionCategory.INSIGHT),
-            has_property('actual', 'my actual')
+            has_property('category', ConditionCategory.WARN),
+            has_property('details', 'my actual')
         )
-    }))
+    ))

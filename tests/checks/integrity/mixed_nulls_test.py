@@ -1,9 +1,8 @@
 """Tests for Mixed Nulls check"""
-import hamcrest
 import numpy as np
 import pandas as pd
 
-from hamcrest import assert_that, has_length, has_entry, has_property, has_entries, equal_to
+from hamcrest import assert_that, has_length, has_entry, has_property, equal_to, has_items, all_of
 
 from mlchecks import Dataset, ConditionCategory
 from mlchecks.checks.integrity.mixed_nulls import MixedNulls
@@ -158,13 +157,14 @@ def test_condition_max_nulls_not_passed():
     # Act
     result = check.conditions_decision(check.run(dataset))
 
-    assert_that(result, has_entries({
-        'No more than 3 null types for all columns': hamcrest.all_of(
+    assert_that(result, has_items(
+        all_of(
+            has_property('name', 'No more than 3 null types for all columns'),
             has_property('is_pass', equal_to(False)),
             has_property('category', ConditionCategory.FAIL),
-            has_property('actual', 'Found columns col1 with more than 3 null types')
-        )
-    }))
+            has_property('details', 'Found columns col1 with more than 3 null types')
+       )
+    ))
 
 
 def test_condition_max_nulls_passed():
@@ -176,6 +176,9 @@ def test_condition_max_nulls_passed():
     # Act
     result = check.conditions_decision(check.run(dataset))
 
-    assert_that(result, has_entries({
-        'No more than 10 null types for all columns': has_property('is_pass', equal_to(True))
-    }))
+    assert_that(result, has_items(
+        all_of(
+            has_property('name', 'No more than 10 null types for all columns'),
+            has_property('is_pass', equal_to(True))
+       )
+    ))

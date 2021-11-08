@@ -38,45 +38,50 @@ class ConditionCategory(enum.Enum):
     """Condition result category. indicates whether the result should fail the suite."""
 
     FAIL = 'FAIL'
-    INSIGHT = 'INSIGHT'
+    WARN = 'WARN'
 
 
 class ConditionResult:
     """Contain result of a condition function."""
 
     is_pass: bool
-    description: str
+    name: str
     category: ConditionCategory
-    actual: str
+    details: str
 
-    def __init__(self, is_pass: bool, actual: str = '',
+    def __init__(self, is_pass: bool, details: str = '',
                  category: ConditionCategory = ConditionCategory.FAIL):
         """Initialize condition result.
 
         Args:
             is_pass (bool): Whether the condition functions passed the given value or not.
-            actual (str): What actual value was found.
+            details (str): What actually happened in the condition.
             category (ConditionCategory): The category to which the condition result belongs.
         """
         self.is_pass = is_pass
-        self.actual = actual
+        self.details = details
         self.category = category
 
-    def set_description(self, description: str):
-        """Set description to be displayed in table.
+    def set_name(self, name: str):
+        """Set name to be displayed in table.
 
         Args:
-            description (str): Description of the condition to be displayed.
+            name (str): Description of the condition to be displayed.
         """
-        self.description = description
+        self.name = name
 
-    def get_icon(self):
+    def get_status(self):
+        """Return status of result.
+
+        Returns:
+            (Tuple): First value is sort value, second is icon to display
+        """
         if self.is_pass:
-            return '\U0001F389'
+            return 3, '\U0001F389'
         elif self.category == ConditionCategory.FAIL:
-            return '\U0001F631'
+            return 1, '\U0001F631'
         else:
-            return '\U0001F937'
+            return 2, '\U0001F937'
 
 
 class CheckResult:
@@ -153,6 +158,10 @@ class CheckResult:
         """Set the conditions results for current check result."""
         self.conditions_results = results
 
+    def empty(self):
+        """Return if this check have no display and no condition results."""
+        return not self.display and not self.conditions_results
+
 
 class BaseCheck(metaclass=abc.ABCMeta):
     """Base class for check."""
@@ -175,7 +184,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
                 output = ConditionResult(output)
             elif not isinstance(output, ConditionResult):
                 raise MLChecksValueError(f'Invalid return type from condition {condition.name}, got: {type(output)}')
-            output.set_description(condition.name)
+            output.set_name(condition.name)
             results.append(output)
         return results
 
@@ -193,7 +202,6 @@ class BaseCheck(metaclass=abc.ABCMeta):
         self._conditions_index += 1
         return self
 
-
     def __repr__(self, tabs=0, replace_name=None):
         """Representation of check as string.
 
@@ -202,17 +210,23 @@ class BaseCheck(metaclass=abc.ABCMeta):
         """
         tab_chr = '\t'
         params = self.params()
-        params = f'({params})' if params else ''
+        if params:
+            params_str = ', '.join([f'{k}={v}' for k, v in params.items()])
+            params_str = f'({params_str})'
+        else:
+            params_str = ''
+
         name = replace_name or self.__class__.__name__
-        check_str = f'{tab_chr * tabs}{name}{params}'
+        check_str = f'{tab_chr * tabs}{name}{params_str}'
         if self._conditions:
             conditions_str = ''.join([f'\n{tab_chr * (tabs + 2)}{i}: {s.name}' for i, s in self._conditions.items()])
-            return f'{check_str}\n{tab_chr * (tabs + 1)}Conditions: [{conditions_str}\n{tab_chr * (tabs + 1)}]'
+            return f'{check_str}\n{tab_chr * (tabs + 1)}Conditions:{conditions_str}'
         else:
             return check_str
 
-    def params(self):
-        return ''
+    def params(self) -> Dict:
+        """Return parameters to show when printing the check."""
+        return {k: v for k, v in vars(self).items() if not k.startswith('_') and v is not None}
 
     def clean_conditions(self):
         """Remove all conditions from this check instance."""
