@@ -135,6 +135,7 @@ notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 	$(PIP) install --no-deps -e .
 	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_DIR) --sanitize-with $(NOTEBOOK_SANITIZER_FILE)
 
+
 $(TEST_RUNNER):
 	$(PIP) install $(TEST_RUNNER_PKGS) | tee -a $(REQUIREMENTS_LOG)
 
