@@ -4,6 +4,7 @@ from sklearn.calibration import calibration_curve
 from sklearn.metrics import brier_score_loss
 import matplotlib.pyplot as plt
 from mlchecks import Dataset, CheckResult, SingleDatasetBaseCheck
+from mlchecks.metric_utils import ModelType, task_type_validation
 
 __all__ = ["CalibrationMetric"]
 
@@ -27,9 +28,10 @@ class CalibrationMetric(SingleDatasetBaseCheck):
         return self._calibration_metric(dataset, model)
 
     def _calibration_metric(self, dataset: Dataset, model):
-        func_name = self.__class__.__name__
-        Dataset.validate_dataset(dataset, func_name)
-        dataset.validate_label(func_name)
+        check_name = self.__class__.__name__
+        Dataset.validate_dataset(dataset, check_name)
+        dataset.validate_label(check_name)
+        task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY], check_name)
 
         ds_x = dataset.features_columns()
         ds_y = dataset.label_col()

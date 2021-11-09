@@ -3,6 +3,7 @@ import sklearn
 from sklearn.base import BaseEstimator
 from mlchecks.base.check import SingleDatasetBaseCheck
 from mlchecks import CheckResult, Dataset
+from mlchecks.metric_utils import ModelType, task_type_validation
 
 __all__ = ['ConfusionMatrixReport']
 
@@ -25,9 +26,10 @@ class ConfusionMatrixReport(SingleDatasetBaseCheck):
         return self._confusion_matrix_report(dataset, model)
 
     def _confusion_matrix_report(self, dataset: Dataset, model):
-        func_name = self.__class__.__name__
-        Dataset.validate_dataset(dataset, func_name)
-        dataset.validate_label(func_name)
+        check_name = self.__class__.__name__
+        Dataset.validate_dataset(dataset, check_name)
+        dataset.validate_label(check_name)
+        task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY], check_name)
 
         label = dataset.label_name()
         ds_x = dataset.data[dataset.features()]
