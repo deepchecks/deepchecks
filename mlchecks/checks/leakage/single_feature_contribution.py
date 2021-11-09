@@ -1,6 +1,5 @@
 """The single_feature_contribution check module."""
 import mlchecks.ppscore as pps
-
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck, TrainValidationBaseCheck
 from mlchecks.plot_utils import create_colorbar_barchart_for_check
 
@@ -18,7 +17,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
 
     """
 
-    def __init__(self, ppscore_params=None):
+    def __init__(self, ppscore_params=None, n_show_top: int = 5):
         """Initialize the SingleFeatureContribution check.
 
         Args:
@@ -26,6 +25,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         """
         super().__init__()
         self.ppscore_params = ppscore_params
+        self.n_show_top = n_show_top
 
     def run(self, dataset: Dataset, model=None) -> CheckResult:
         """Run check.
@@ -52,7 +52,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         relevant_columns = dataset.features() + [dataset.label_name()]
         df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name(), random_seed=42,
                                 **ppscore_params)
-        df_pps = df_pps.set_index('x', drop=True)
+        df_pps = df_pps.set_index('x', drop=True).head(self.n_show_top)
         s_ppscore = df_pps['ppscore']
 
         def plot():
