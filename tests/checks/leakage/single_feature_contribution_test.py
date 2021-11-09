@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 
 from mlchecks import Dataset
-from mlchecks.checks.leakage.single_feature_contribution import SingleFeatureContribution, \
-    SingleFeatureContributionTrainValidation
+from mlchecks.checks.leakage import SingleFeatureContribution, \
+                                    SingleFeatureContributionTrainValidation
 from mlchecks.utils import MLChecksValueError
 
 from hamcrest import assert_that, is_in, close_to, calling, raises, equal_to
