@@ -5,7 +5,8 @@ from mlchecks.checks.leakage import (
     DateTrainValidationLeakageDuplicates,
     DateTrainValidationLeakageOverlap,
     IndexTrainValidationLeakage,
-    SingleFeatureContributionTrainValidation
+    SingleFeatureContributionTrainValidation,
+    SingleFeatureContribution
 )
 
 
@@ -13,8 +14,7 @@ __all__ = ['IndexLeakageCheckSuite', 'DateLeakageCheckSuite', 'DataLeakageCheckS
 
 IndexLeakageCheckSuite = CheckSuite(
     'Index Leakage Suite',
-    DateTrainValidationLeakageDuplicates(),
-    IndexTrainValidationLeakage()
+    IndexTrainValidationLeakage(),
 )
 
 DateLeakageCheckSuite = CheckSuite(
@@ -26,6 +26,7 @@ DateLeakageCheckSuite = CheckSuite(
 DataLeakageCheckSuite = CheckSuite(
     'Data Leakage Suite',
     DataSampleLeakageReport(),
+    SingleFeatureContribution(),
     SingleFeatureContributionTrainValidation()
 )
 

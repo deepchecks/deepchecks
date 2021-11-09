@@ -82,8 +82,8 @@ class DataSampleLeakageReport(TrainValidationBaseCheck):
         if train_dataset.label_name():
             columns = columns + [train_dataset.label_name()]
 
-        train_f = train_dataset.data
-        val_f = validation_dataset.data
+        train_f = train_dataset.data.copy()
+        val_f = validation_dataset.data.copy()
 
         train_dups = get_dup_indexes_map(train_f, columns)
         train_f.index = [f'Train indexes: {get_dup_txt(i, train_dups)}' for i in train_f.index]
