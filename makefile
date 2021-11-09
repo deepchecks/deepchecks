@@ -133,7 +133,6 @@ notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 # as the only time you'll need to run make is in dev mode, we're installing
 # mlchecks in development mode
 	$(PIP) install --no-deps -e .
-	$(PIP) install catboost
 	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_DIR) --sanitize-with $(NOTEBOOK_SANITIZER_FILE)
 
 $(TEST_RUNNER):
