@@ -6,6 +6,7 @@ from hamcrest import assert_that, has_length, has_entry, has_property, equal_to,
 
 from mlchecks import Dataset, ConditionCategory
 from mlchecks.checks.integrity.mixed_nulls import MixedNulls
+from tests.checks.utils import equal_condition_result
 
 
 def test_single_column_no_nulls():
@@ -158,12 +159,9 @@ def test_condition_max_nulls_not_passed():
     result = check.conditions_decision(check.run(dataset))
 
     assert_that(result, has_items(
-        all_of(
-            has_property('name', 'No more than 3 null types for all columns'),
-            has_property('is_pass', equal_to(False)),
-            has_property('category', ConditionCategory.FAIL),
-            has_property('details', 'Found columns col1 with more than 3 null types')
-       )
+        equal_condition_result(is_pass=False,
+                               name='No more than 3 null types for all columns',
+                               details='Found columns col1 with more than 3 null types')
     ))
 
 
@@ -177,8 +175,6 @@ def test_condition_max_nulls_passed():
     result = check.conditions_decision(check.run(dataset))
 
     assert_that(result, has_items(
-        all_of(
-            has_property('name', 'No more than 10 null types for all columns'),
-            has_property('is_pass', equal_to(True))
-       )
+        equal_condition_result(is_pass=True,
+                               name='No more than 10 null types for all columns')
     ))

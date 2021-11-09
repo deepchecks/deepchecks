@@ -42,7 +42,7 @@ class SuiteResult:
         # First print summary
         if conditions_table:
             display_html('<h3>Conditions Summary</h3>', raw=True)
-            table = pd.DataFrame(data=conditions_table, columns=['Pass?', 'Check', 'Condition', 'More Info', 'sort'])
+            table = pd.DataFrame(data=conditions_table, columns=['Status', 'Check', 'Condition', 'More Info', 'sort'])
             table.sort_values(by=['sort'], inplace=True)
             table.drop('sort', axis=1, inplace=True)
             SuiteResult._display_table(table)

@@ -8,7 +8,7 @@ import pandas as pd
 
 
 __all__ = ['string_baseform', 'get_base_form_to_variants_dict', 'split_camel_case', 'split_and_keep',
-           'split_by_order', 'is_string_column', 'format_percent', 'format_number']
+           'split_by_order', 'is_string_column', 'format_percent', 'format_number', 'format_columns_for_condition']
 
 from pandas.core.dtypes.common import is_numeric_dtype
 
@@ -203,3 +203,18 @@ def format_number(x, floating_point: int = 2) -> str:
     else:
         ret_x = round(x, floating_point)
         return add_commas(ret_x).rstrip('0')
+
+
+def format_columns_for_condition(columns: List[str], ignore_columns: List[str]):
+    """Format columns properties for display in condition name
+
+    Args:
+        columns (List[str]): columns property
+        ignore_columns (List[str]): ignore_columns property
+    """
+    if columns:
+        return f'columns: {",".join(columns)}'
+    elif ignore_columns:
+        return f'all columns ignoring: {",".join(ignore_columns)}'
+    else:
+        return 'all columns'
