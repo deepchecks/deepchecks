@@ -4,13 +4,12 @@
 from typing import Tuple
 
 import pytest
-from hamcrest import all_of, has_property, matches_regexp
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, GradientBoostingRegressor
 from sklearn.datasets import load_iris, load_diabetes
 from sklearn.model_selection import train_test_split
 import pandas as pd
 
-from mlchecks import Dataset, ConditionCategory
+from mlchecks import Dataset
 
 
 @pytest.fixture(scope='session')

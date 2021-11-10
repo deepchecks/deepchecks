@@ -206,7 +206,7 @@ def format_number(x, floating_point: int = 2) -> str:
 
 
 def format_columns_for_condition(columns: List[str], ignore_columns: List[str]):
-    """Format columns properties for display in condition name
+    """Format columns properties for display in condition name.
 
     Args:
         columns (List[str]): columns property

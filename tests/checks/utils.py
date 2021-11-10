@@ -1,3 +1,4 @@
+"""Utils functions for testing."""
 from re import Pattern
 from typing import Union
 

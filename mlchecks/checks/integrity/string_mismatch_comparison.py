@@ -15,7 +15,7 @@ def _condition_percent_limit(result, percent: float):
     not_passing_columns = []
     for col, baseforms in result.items():
         sum_percent = 0
-        for base_form, info in baseforms.items():
+        for info in baseforms.values():
             sum_percent += info['percent_variants_only_in_tested']
         if sum_percent > percent:
             not_passing_columns.append(col)

@@ -84,6 +84,7 @@ class ConditionResult:
             return 2, '\U0001F937'
 
     def __repr__(self):
+        """Return string representation for printing."""
         return str(vars(self))
 
 
