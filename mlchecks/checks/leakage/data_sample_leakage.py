@@ -55,7 +55,7 @@ def get_dup_txt(i: int, dup_map: Dict) -> str:
 
 
 class DataSampleLeakageReport(TrainValidationBaseCheck):
-    """Find what percent of the validation data is in the train data."""
+    """Detect samples in the validation data that appear also in training data."""
 
     def run(self, train_dataset: Dataset, validation_dataset: Dataset,  model=None) -> CheckResult:
         """Run check.
