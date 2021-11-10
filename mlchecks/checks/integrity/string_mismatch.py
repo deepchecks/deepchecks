@@ -4,7 +4,8 @@ from typing import Union, Iterable
 
 import pandas as pd
 
-from mlchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_dataframe_type, ConditionResult
+from mlchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_dataframe_type, ConditionResult, \
+    ConditionCategory
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 from mlchecks.string_utils import get_base_form_to_variants_dict, is_string_column, format_percent, \
     format_columns_for_condition
@@ -20,7 +21,7 @@ def _condition_variants_number(result, num_max_variants: int):
                 not_passing_variants[col].append(base_form)
     if not_passing_variants:
         details = f'Found columns with variants: {dict(not_passing_variants)}'
-        return ConditionResult(False, details)
+        return ConditionResult(False, details, ConditionCategory.WARN)
     return ConditionResult(True)
 
 
