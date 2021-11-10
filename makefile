@@ -269,4 +269,4 @@ download:
 
 jupyter: 
 	$(PIP) install jupyter
-	jupyter-notebook $(args) --notebook-dir=$(NOTEBOOK_DIR)
+	$(BIN)/jupyter-notebook $(args) --notebook-dir=$(NOTEBOOK_DIR)
