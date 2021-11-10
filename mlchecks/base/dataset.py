@@ -179,7 +179,7 @@ class Dataset:
         if is_float_dtype(col_data):
             return n_unique <= self._max_float_categories
 
-        return n_unique / n_samples < self._max_categorical_ratio or n_unique <= self._max_categories
+        return n_unique / n_samples < self._max_categorical_ratio and n_unique <= self._max_categories
 
     def index_name(self) -> Union[str, None]:
         """If index column exists, return its name.
