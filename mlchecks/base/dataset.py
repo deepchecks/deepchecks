@@ -1,7 +1,7 @@
 """The Dataset module containing the dataset Class and its functions."""
 from typing import Dict, Union, List, Any
 import pandas as pd
-from pandas.core.dtypes.common import is_numeric_dtype
+from pandas.core.dtypes.common import is_float_dtype
 
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 from mlchecks.utils import MLChecksValueError
@@ -23,7 +23,7 @@ class Dataset:
         _use_index: Boolean value controlling whether the DataFrame index will be used by the index_col() method.
         _index_name: Name of the index column in the DataFrame.
         _date_name: Name of the date column in the DataFrame.
-        _cat_features: List of names for the categorical features in the DataFrame.
+        cat_features: List of names for the categorical features in the DataFrame.
     """
 
     _features: List[str]
@@ -31,7 +31,7 @@ class Dataset:
     _use_index: bool
     _index_name: Union[str, None]
     _date_name: Union[str, None]
-    _cat_features: List[str]
+    cat_features: List[str]
     _data: pd.DataFrame
     _max_categorical_ratio: float
     _max_categories: int
@@ -39,7 +39,7 @@ class Dataset:
     def __init__(self, df: pd.DataFrame,
                  features: List[str] = None, cat_features: List[str] = None, label: str = None, use_index: bool = False,
                  index: str = None, date: str = None, date_unit_type: str = None, _convert_date: bool = True,
-                 max_categorical_ratio: float = 0.001, max_categories: int = 100):
+                 max_categorical_ratio: float = 0.001, max_categories: int = 100, max_float_categories: int = 5):
         """Initiate the Dataset using a pandas DataFrame and Metadata.
 
         Args:
@@ -58,6 +58,8 @@ class Dataset:
                                  categorical feature.
           max_categories: The maximum number of categories in a column in order for it to be inferred as a categorical
                           feature.
+          max_float_categories: The maximum number of categories in a float column in order fo it to be inferred as a
+                                categorical feature
 
         """
         self._data = df.copy()
@@ -91,6 +93,7 @@ class Dataset:
         self._date_unit_type = date_unit_type
         self._max_categorical_ratio = max_categorical_ratio
         self._max_categories = max_categories
+        self._max_float_categories = max_float_categories
 
         if self._label_name in self.features():
             raise MLChecksValueError(f'label column {self._label_name} can not be a feature column')
@@ -109,9 +112,9 @@ class Dataset:
                 raise MLChecksValueError(f'Categorical features must be a subset of features. '
                                          f'Categorical features {set(cat_features) - set(self._features)} '
                                          f'have not been found in feature list.')
-            self._cat_features = cat_features
+            self.cat_features = cat_features
         else:
-            self._cat_features = self.infer_categorical_features()
+            self.cat_features = self.infer_categorical_features()
 
         if self._date_name and _convert_date:
             self._data[self._date_name] = self._data[self._date_name].apply(pd.Timestamp, unit=date_unit_type)
@@ -125,7 +128,7 @@ class Dataset:
         """Create a copy of this Dataset with new data."""
         # Filter out if columns were dropped
         features = list(set(self._features).intersection(new_data.columns))
-        cat_features = list(set(self._cat_features).intersection(new_data.columns))
+        cat_features = list(set(self.cat_features).intersection(new_data.columns))
         label = self._label_name if self._label_name in new_data.columns else None
         index = self._index_name if self._index_name in new_data.columns else None
         date = self._date_name if self._date_name in new_data.columns else None
@@ -150,23 +153,32 @@ class Dataset:
         """
         cat_columns = []
 
+        # Checking for categorical dtypes
+        cat_dtypes = self.data.select_dtypes(include='category')
+        if len(cat_dtypes.columns) > 0:
+            return list(cat_dtypes.columns)
+
         for col in self._features:
-            col_data = self.data[col]
-            num_unique = col_data.nunique(dropna=True)
-            if not is_numeric_dtype(col_data) or self.is_categorical(num_unique, len(col_data.dropna())):
+            if self.is_categorical(col):
                 cat_columns.append(col)
         return cat_columns
 
-    def is_categorical(self, n_unique: int, n_samples: int) -> bool:
+    def is_categorical(self, col_name: str) -> bool:
         """Check if uniques are few enough to count as categorical.
 
         Args:
-            n_unique (int): Number of non-null unique values
-            n_samples (int): Number of non-null samples
+            col_name (str): The name of the column in the dataframe
 
         Returns:
             If is categorical according to input numbers
         """
+        col_data = self.data[col_name]
+        n_unique = col_data.nunique(dropna=True)
+        n_samples = len(col_data.dropna())
+
+        if is_float_dtype(col_data):
+            return n_unique <= self._max_float_categories
+
         return n_unique / n_samples < self._max_categorical_ratio or n_unique <= self._max_categories
 
     def index_name(self) -> Union[str, None]:
@@ -222,14 +234,6 @@ class Dataset:
         """
         return self.data[self._label_name] if self._label_name else None
 
-    def cat_features(self) -> List[str]:
-        """Return List of categorical feature names.
-
-        Returns:
-           List of categorical feature names.
-        """
-        return self._cat_features
-
     def features(self) -> List[str]:
         """Return list of feature names.
 
@@ -261,7 +265,7 @@ class Dataset:
             elif column == self._label_name:
                 value = 'label'
             elif column in self._features:
-                if column in self._cat_features:
+                if column in self.cat_features:
                     value = 'categorical feature'
                 else:
                     value = 'numerical feature'
@@ -374,8 +378,8 @@ class Dataset:
 
         """
         Dataset.validate_dataset(other, check_name)
-        if sorted(self.cat_features()) == sorted(other.cat_features()):
-            return self.cat_features()
+        if sorted(self.cat_features) == sorted(other.cat_features):
+            return self.cat_features
         else:
             raise MLChecksValueError(f'Check {check_name} requires datasets to share'
                                      f' the same categorical features')
