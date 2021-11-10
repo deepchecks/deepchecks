@@ -6,6 +6,7 @@ import numpy as np
 
 from mlchecks import Dataset, ensure_dataframe_type
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
+from mlchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_df
 
 
 __all__ = ['MixedTypes']
@@ -17,7 +18,8 @@ from mlchecks.string_utils import is_string_column, format_percent
 class MixedTypes(SingleDatasetBaseCheck):
     """Search for various types of data in (a) column[s], including hidden mixes in strings."""
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None):
+    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
+                 n_top_columns: int = 10):
         """Initialize the MixedTypes check.
 
         Args:
@@ -29,6 +31,7 @@ class MixedTypes(SingleDatasetBaseCheck):
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
+        self.n_top_columns = n_top_columns
 
     def run(self, dataset, model=None) -> CheckResult:
         """Run check.
@@ -41,9 +44,10 @@ class MixedTypes(SingleDatasetBaseCheck):
           (CheckResult): DataFrame with rows ('strings', 'numbers') for any column with mixed types.
           numbers will also include hidden numbers in string representation.
         """
-        return self._mixed_types(dataset)
+        feature_importances = calculate_feature_importance_or_null(dataset, model)
+        return self._mixed_types(dataset, feature_importances)
 
-    def _mixed_types(self, dataset: Union[pd.DataFrame, Dataset]) -> CheckResult:
+    def _mixed_types(self, dataset: Union[pd.DataFrame, Dataset], feature_importances: pd.Series=None) -> CheckResult:
         """Run check.
 
         Args:
@@ -66,7 +70,7 @@ class MixedTypes(SingleDatasetBaseCheck):
                 display_dict[column_name] = mix
 
         df_graph = pd.DataFrame.from_dict(display_dict)
-
+        df_graph = column_importance_sorter_df(df_graph.T, dataset, feature_importances, self.n_top_columns, cols=['Column Name']).T
         if len(df_graph) > 0:
             display = df_graph
         else:

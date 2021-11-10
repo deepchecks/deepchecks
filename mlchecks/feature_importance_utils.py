@@ -6,8 +6,19 @@ from sklearn.inspection import permutation_importance
 from sklearn.utils.validation import check_is_fitted
 
 from mlchecks import Dataset
+from mlchecks.utils import MLChecksValueError
 
-__all__ = ['calculate_feature_importance', 'column_importance_sorter']
+__all__ = ['calculate_feature_importance', 'calculate_feature_importance_or_null', 'column_importance_sorter']
+
+
+def calculate_feature_importance_or_null(dataset: Dataset, model: Any) -> pd.Series:
+    feature_importances = None
+    if model:
+        try:
+            feature_importances = calculate_feature_importance(dataset=dataset, model=model)
+        except MLChecksValueError:
+            pass
+    return feature_importances
 
 
 def calculate_feature_importance(model: Any, dataset: Dataset) -> pd.Series:
