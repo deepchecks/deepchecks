@@ -6,6 +6,7 @@ import numpy as np
 import sklearn
 from sklearn.base import BaseEstimator
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
+from mlchecks.metric_utils import ModelType, task_type_validation
 
 
 __all__ = ['RocReport']
@@ -29,8 +30,10 @@ class RocReport(SingleDatasetBaseCheck):
         return self._roc_report(dataset, model)
 
     def _roc_report(self, dataset: Dataset, model):
-        Dataset.validate_dataset(dataset, self.__class__.__name__)
-        dataset.validate_label(self.__class__.__name__)
+        check_name = self.__class__.__name__
+        Dataset.validate_dataset(dataset, check_name)
+        dataset.validate_label(check_name)
+        task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY], check_name)
 
         label = dataset.label_name()
         ds_x = dataset.data[dataset.features()]

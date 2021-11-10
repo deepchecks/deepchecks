@@ -1,6 +1,7 @@
-"""Module containing naive comparision check."""
+"""Module containing naive comparison check."""
 import numpy as np
 import matplotlib.pyplot as plt
+from mlchecks.string_utils import format_number
 
 from mlchecks import CheckResult, Dataset
 from mlchecks.base.check import TrainValidationBaseCheck
@@ -10,13 +11,15 @@ from mlchecks.utils import model_type_validation
 __all__ = ['NaiveModelComparison']
 
 
-class DummyModel():
+class DummyModel:
     @staticmethod
     def predict(a):
         return a
+
     @staticmethod
     def predict_proba(a):
         return a
+
 
 def find_score(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
               naive_model_type: str, metric = None, metric_name = None):
@@ -57,7 +60,7 @@ def find_score(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
 
     else:
         raise NotImplementedError(f"expected to be one of ['random', 'statistical'] \
-                                   but instaed got {naive_model_type}")
+                                   but instead got {naive_model_type}")
 
     y_val = val_ds.label_col()
 
@@ -119,9 +122,12 @@ class NaiveModelComparison(TrainValidationBaseCheck):
                                                             self.naive_model_type, self.metric,
                                                             self.metric_name)
 
-        text = f'{type(model).__name__} Model prediction has achieved {pred_metric} ' \
+        ratio = naive_metric / pred_metric
+
+        text = f'Naive model has achieved {format_number(ratio)} times Model score.<br>' \
+               f'{type(model).__name__} Model prediction has achieved {format_number(pred_metric)} ' \
                f'in {metric_name} compared to Naive {self.naive_model_type} prediction ' \
-               f'which achived {naive_metric} on tested data.'
+               f'which achieved {format_number(naive_metric)} on tested data.'
 
         def display_func():
             fig = plt.figure()
