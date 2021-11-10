@@ -132,7 +132,7 @@ Which will result in printing the outputs of all of the checks that are in that 
 
 ### Example Notebooks
 For full usage examples, check out: 
-- [**MLChecks Quick Start Notebook**](./examples/models/Iris%20Dataset%20CheckSuite%20Example.ipynb) - for a simple example notebook for working with checks and suites.
+- [**MLChecks Quick Start Notebook**](./notebooks/examples/models/Iris%20Dataset%20CheckSuite%20Example.ipynb) - for a simple example notebook for working with checks and suites.
 - [**Example Checks Output Notebooks**](./notebooks) - to see all of the existing checks and their usage examples.
 
 ## Communication
