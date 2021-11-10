@@ -8,6 +8,7 @@ from pandas import DataFrame, Series
 from scipy import stats
 
 from mlchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_dataframe_type
+from mlchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_df
 from mlchecks.string_utils import is_string_column, format_number
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 
@@ -65,7 +66,8 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
     """Detect strings with length that is much longer/shorter than the identified "normal" string lengths."""
 
     def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 num_percentiles: int = 1000, inner_quantile_range: int = 94, outlier_factor: int = 4):
+                 num_percentiles: int = 1000, inner_quantile_range: int = 94, outlier_factor: int = 4,
+                 n_top_columns: int = 10):
         """Initialize the StringLengthOutOfBounds check.
 
         Args:
@@ -86,6 +88,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         self.num_percentiles = num_percentiles
         self.inner_quantile_range = inner_quantile_range
         self.outlier_factor = outlier_factor
+        self.n_top_columns = n_top_columns
 
     def run(self, dataset, model=None) -> CheckResult:
         """Run check.
@@ -93,9 +96,11 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         Args:
             dataset (DataFrame): A dataset or pd.FataFrame object.
         """
-        return self._string_length_out_of_bounds(dataset)
+        feature_importances = calculate_feature_importance_or_null(dataset, model)
+        return self._string_length_out_of_bounds(dataset, feature_importances)
 
-    def _string_length_out_of_bounds(self, dataset: Union[pd.DataFrame, Dataset]) -> CheckResult:
+    def _string_length_out_of_bounds(self, dataset: Union[pd.DataFrame, Dataset],
+                                     feature_importances: pd.Series=None) -> CheckResult:
         # Validate parameters
         df: pd.DataFrame = ensure_dataframe_type(dataset)
         df = filter_columns_with_validation(df, self.columns, self.ignore_columns)
@@ -153,6 +158,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                                        'Range of Detected Normal String Lengths',
                                        'Range of Detected Outlier String Lengths'])
 
+        df_graph = column_importance_sorter_df(df_graph, dataset, feature_importances, self.n_top_columns, cols=['Column Name'])
         display = df_graph if len(df_graph) > 0 else None
 
         return CheckResult(df_graph, check=self.__class__, display=display)
