@@ -30,10 +30,13 @@ class SuiteResult:
         display_html(f'<h2>{self.name}</h2>', raw=True)
         conditions_table = []
         errors_table = []
+
+        check_results = [r for r in self.results if isinstance(r,CheckResult)]
         for result in self.results:
             if isinstance(result, CheckResult):
                 for cond_result in result.conditions_results:
-                    sort_value, icon = cond_result.get_status()
+                    sort_value = cond_result.get_sort_value()
+                    icon = cond_result.get_icon()
                     conditions_table.append([icon, result.header, cond_result.name,
                                              cond_result.details, sort_value])
             elif isinstance(result, Tuple):
@@ -57,7 +60,7 @@ class SuiteResult:
 
             if checks_not_passed:
                 display_html('<h3>Checks that didn\'t pass condition</h3>', raw=True)
-                for result in checks_not_passed:
+                for result in sorted(checks_not_passed, key=lambda x: x.get_conditions_sort_value()):
                     result._ipython_display_()
             if checks_without_condition:
                 display_html('<h3>Checks without condition</h3>', raw=True)

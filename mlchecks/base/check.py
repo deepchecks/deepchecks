@@ -70,18 +70,23 @@ class ConditionResult:
         """
         self.name = name
 
-    def get_status(self):
-        """Return status of result.
-
-        Returns:
-            (Tuple): First value is sort value, second is icon to display
-        """
+    def get_sort_value(self):
+        """Return sort value of the result."""
         if self.is_pass:
-            return 3, '<p style="color: green">\U00002713</p>'
+            return 3
         elif self.category == ConditionCategory.FAIL:
-            return 1, '<p style="color: red">\U00002716</p>'
+            return 1
         else:
-            return 2, '<p style="color: yellow">\U00000021</p>'
+            return 2
+
+    def get_icon(self):
+        """Return icon of the result to display."""
+        if self.is_pass:
+            return '<p style="color: green">\U00002713</p>'
+        elif self.category == ConditionCategory.FAIL:
+            return '<p style="color: red">\U00002716</p>'
+        else:
+            return '<p style="color: orange">\U00000021</p>'
 
     def __repr__(self):
         """Return string representation for printing."""
@@ -175,6 +180,8 @@ class CheckResult:
         """Return if this check have not passing condition results."""
         return all((r.is_pass for r in self.conditions_results))
 
+    def get_conditions_sort_value(self):
+        return max([r.get_sort_value() for r in self.conditions_results])
 
 class BaseCheck(metaclass=abc.ABCMeta):
     """Base class for check."""
