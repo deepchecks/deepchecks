@@ -75,7 +75,7 @@ def test_assert_param_columns():
     res = c.run(dataset=Dataset(df))
     assert_that(res.value.get('email'), not_none())
     assert_that(res.value.get('date'), not_none())
-    assert_that(res.value.get('stam'),none())
+    assert_that(res.value.get('stam'), none())
 
 
 def test_assert_param_ignore_columns():

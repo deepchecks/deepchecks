@@ -8,6 +8,7 @@ import pandas as pd
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 from mlchecks.base.dataset import ensure_dataframe_type
+from mlchecks.feature_importance_utils import calculate_feature_importance, column_importance_sorter_dict
 from mlchecks.string_utils import split_and_keep, split_by_order, format_percent
 from mlchecks.utils import MLChecksValueError
 
@@ -270,7 +271,7 @@ class RareFormatDetection(SingleDatasetBaseCheck):
 
     def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
                  patterns: List[Pattern] = deepcopy(DEFAULT_PATTERNS), rarity_threshold: float = 0.05,
-                 min_unique_common_ratio=0.01, pattern_match_method: str = 'first'):
+                 min_unique_common_ratio = 0.01, pattern_match_method: str = 'first', n_top: int = 10):
         """Initialize the RareFormatDetection check.
 
         Args:
@@ -301,6 +302,7 @@ class RareFormatDetection(SingleDatasetBaseCheck):
         self.rarity_threshold = rarity_threshold
         self.min_unique_common_ratio = min_unique_common_ratio
         self.pattern_match_method = pattern_match_method
+        self.n_top = n_top
 
     def run(self, dataset: Dataset, model=None) -> CheckResult:
         """Run check.
@@ -314,24 +316,32 @@ class RareFormatDetection(SingleDatasetBaseCheck):
                 - display: pandas Dataframe per column, showing the rare-to-common-ratio, common formats, examples for
                            common values and rare values
         """
-        return self._rare_format_detection(dataset=dataset)
+        feature_importances = None
+        if model:
+          try:
+            feature_importances = calculate_feature_importance(dataset, model)
+          except MLChecksValueError:
+            pass
 
-    def _rare_format_detection(self, dataset: Union[Dataset, pd.DataFrame]) -> CheckResult:
+        return self._rare_format_detection(dataset=dataset, feature_importances=feature_importances)
+
+    def _rare_format_detection(self, dataset: Union[Dataset, pd.DataFrame], feature_importances: pd.Series=None) -> CheckResult:
         dataset: pd.DataFrame = ensure_dataframe_type(dataset)
         dataset = filter_columns_with_validation(dataset, self.columns, self.ignore_columns)
 
         if self.pattern_match_method not in ['first', 'all']:
             raise MLChecksValueError(f'pattern_match_method must be "first" or "all", got {self.pattern_match_method}')
-
+        
+        
         res = {
             column_name: _detect_per_column(dataset[column_name], self.patterns, self.rarity_threshold,
                                             self.min_unique_common_ratio, self.pattern_match_method)
             for column_name in dataset.columns}
-
+        filtered_res = dict(filter(lambda elem: elem[1].shape[0] > 0, res.items()))
+        filtered_res = column_importance_sorter_dict(filtered_res, dataset, feature_importances, self.n_top)
         display = []
-        for key, value in res.items():
-            if value.shape[0] > 0:
-                display.append(f'\n\nColumn {key}:')
-                display.append(value)
+        for key, value in filtered_res.items():
+            display.append(f'\n\nColumn {key}:')
+            display.append(value)
 
         return CheckResult(value=res, header='Rare Format Detection', check=self.__class__, display=display)

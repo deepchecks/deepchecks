@@ -1,16 +1,16 @@
 """Utils module containing feature importance calculations."""
 import numpy as np
 import pandas as pd
-from typing import Any
+from typing import Any, Dict, List
 from sklearn.inspection import permutation_importance
 from sklearn.utils.validation import check_is_fitted
 
 from mlchecks import Dataset
 
-__all__ = ['calculate_feature_importance']
+__all__ = ['calculate_feature_importance', 'column_importance_sorter']
 
 
-def calculate_feature_importance(model: Any, dataset: Dataset) -> [pd.Series]:
+def calculate_feature_importance(model: Any, dataset: Dataset) -> pd.Series:
     """Calculate features effect on the label.
 
     Args:
@@ -52,3 +52,33 @@ def _calc_importance(model: Any, dataset: Dataset, n_repeats=30, random_state=42
         feature_importances = feature_importances / total
 
     return pd.Series(feature_importances, index=dataset.features())
+
+
+def get_importance(name: str, feature_importances: pd.Series, ds: Dataset):
+    if name in feature_importances:
+        return feature_importances[name]
+    if name in [ds.label_name(), ds.date_name(), ds.index_name()]:
+        return 1
+    return 0
+
+
+def column_importance_sorter_dict(cols_dict: Dict, ds: Dataset, feature_importances: pd.Series,
+                             n_top: int=10): 
+    if feature_importances:
+        key = lambda col: get_importance(col, feature_importances, ds)
+        cols_dict = dict(sorted(cols_dict.items(), key=key))
+    if n_top:
+        return dict(list(cols_dict.items())[:n_top])
+    return cols_dict
+
+
+def column_importance_sorter_df(df: pd.DataFrame, ds: Dataset, feature_importances: pd.Series,
+                             n_top: int=10, cols: List[str]=None): 
+    if feature_importances:
+        key = lambda col: get_importance(col, feature_importances, ds)
+        if cols:
+            df = df.sort_values(by=cols, key=key)
+        df = df.sort_index(key=key)
+    if n_top:
+        return df.head(n_top)
+    return df
