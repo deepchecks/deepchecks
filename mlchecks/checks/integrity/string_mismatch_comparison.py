@@ -4,11 +4,26 @@ from typing import Union, Iterable
 
 import pandas as pd
 
-from mlchecks import CheckResult, Dataset, ensure_dataframe_type, CompareDatasetsBaseCheck
+from mlchecks import CheckResult, Dataset, ensure_dataframe_type, CompareDatasetsBaseCheck, ConditionResult
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 from mlchecks.string_utils import get_base_form_to_variants_dict, is_string_column, format_percent
 
 __all__ = ['StringMismatchComparison']
+
+
+def _condition_percent_limit(result, percent: float):
+    not_passing_columns = []
+    for col, baseforms in result.items():
+        sum_percent = 0
+        for base_form, info in baseforms.items():
+            sum_percent += info['percent_variants_only_in_tested']
+        if sum_percent > percent:
+            not_passing_columns.append(col)
+
+    if not_passing_columns:
+        details = f'Found columns with variants: {not_passing_columns}'
+        return ConditionResult(False, details)
+    return ConditionResult(True)
 
 
 def percentage_in_series(series, values):
@@ -111,3 +126,17 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
         display = df_graph.T if len(df_graph) > 0 else None
 
         return CheckResult(result_dict, check=self.__class__, display=display)
+
+    def add_condition_no_new_variants(self):
+        """Add condition - no new variants allowed in validation data."""
+        name = 'No new variants allowed in validation data'
+        return self.add_condition(name, _condition_percent_limit, percent=0)
+
+    def add_condition_percent_new_variants_no_more_than(self, percent: float):
+        """Add condition - no new variants allowed above given percentage in validation data.
+
+        Args:
+            percent (float): Max percentage of new variants in validation data allowed.
+        """
+        name = f'No more than {format_percent(percent)} new variants in validation data'
+        return self.add_condition(name, _condition_percent_limit, percent=percent)
