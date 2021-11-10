@@ -82,11 +82,11 @@ class ConditionResult:
     def get_icon(self):
         """Return icon of the result to display."""
         if self.is_pass:
-            return '<p style="color: green">\U00002713</p>'
+            return '<div style="color: green;text-align: center">\U00002713</div>'
         elif self.category == ConditionCategory.FAIL:
-            return '<p style="color: red">\U00002716</p>'
+            return '<div style="color: red;text-align: center">\U00002716</div>'
         else:
-            return '<p style="color: orange">\U00000021</p>'
+            return '<div style="color: orange;text-align: center;font-weight:bold">\U00000021</div>'
 
     def __repr__(self):
         """Return string representation for printing."""

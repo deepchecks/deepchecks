@@ -1,6 +1,7 @@
 """Contains unit tests for the string_mismatch check."""
 import pandas as pd
 
+from mlchecks import ConditionCategory
 from mlchecks.checks import StringMismatch
 
 from hamcrest import assert_that, has_length, has_entries, has_entry, has_items
@@ -67,7 +68,8 @@ def test_condition_no_more_than_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Not more than 2 string variants for all columns',
-                               details='Found columns with variants: {\'col1\': [\'deep\']}')
+                               details='Found columns with variants: {\'col1\': [\'deep\']}',
+                               category=ConditionCategory.WARN)
     ))
 
 
@@ -96,7 +98,8 @@ def test_condition_no_variants_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='No string variants for all columns',
-                               details='Found columns with variants: {\'col1\': [\'deep\', \'foo\']}')
+                               details='Found columns with variants: {\'col1\': [\'deep\', \'foo\']}',
+                               category=ConditionCategory.WARN)
     ))
 
 
