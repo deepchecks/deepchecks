@@ -118,7 +118,7 @@ def test_condition_percent_variants_no_more_than_fail():
     # Arrange
     data = {'col1': ['Deep', 'deep', 'deep!!!', '$deeP$', 'earth', 'foo', 'bar', 'foo?']}
     df = pd.DataFrame(data=data)
-    check = StringMismatch().add_condition_percent_variants_not_more_than(0.1)
+    check = StringMismatch().add_condition_ratio_variants_not_more_than(0.1)
     # Act
     result = check.conditions_decision(check.run(df))
     # Assert
@@ -133,7 +133,7 @@ def test_condition_percent_variants_no_more_than_pass():
     # Arrange
     data = {'col1': ['Deep', 'shallow', 'high!!!', '$deeP$', 'earth', 'foo', 'bar', 'foo?']}
     df = pd.DataFrame(data=data)
-    check = StringMismatch().add_condition_percent_variants_not_more_than(0.5)
+    check = StringMismatch().add_condition_ratio_variants_not_more_than(0.5)
     # Act
     result = check.conditions_decision(check.run(df))
     # Assert
