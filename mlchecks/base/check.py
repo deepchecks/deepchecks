@@ -77,11 +77,11 @@ class ConditionResult:
             (Tuple): First value is sort value, second is icon to display
         """
         if self.is_pass:
-            return 3, '\U0001F389'
+            return 3, '<p style="color: green">\U00002713</p>'
         elif self.category == ConditionCategory.FAIL:
-            return 1, '\U0001F631'
+            return 1, '<p style="color: red">\U00002716</p>'
         else:
-            return 2, '\U0001F937'
+            return 2, '<p style="color: yellow">\U00000021</p>'
 
     def __repr__(self):
         """Return string representation for printing."""
