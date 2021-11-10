@@ -12,17 +12,17 @@ from mlchecks.string_utils import get_base_form_to_variants_dict, is_string_colu
 __all__ = ['StringMismatchComparison']
 
 
-def _condition_percent_limit(result, percent: float):
+def _condition_percent_limit(result, ratio: float):
     not_passing_columns = {}
     for col, baseforms in result.items():
         sum_percent = 0
         for info in baseforms.values():
             sum_percent += info['percent_variants_only_in_tested']
-        if sum_percent > percent:
+        if sum_percent > ratio:
             not_passing_columns[col] = format_percent(sum_percent)
 
     if not_passing_columns:
-        details = f'Found columns with variants over percentage: {not_passing_columns}'
+        details = f'Found columns with variants over ratio: {not_passing_columns}'
         return ConditionResult(False, details)
     return ConditionResult(True)
 
@@ -132,14 +132,14 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
         """Add condition - no new variants allowed in validation data."""
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
         name = f'No new variants allowed in validation data for {column_names}'
-        return self.add_condition(name, _condition_percent_limit, percent=0)
+        return self.add_condition(name, _condition_percent_limit, ratio=0)
 
-    def add_condition_percent_new_variants_not_more_than(self, percent: float):
+    def add_condition_ratio_new_variants_not_more_than(self, ratio: float):
         """Add condition - no new variants allowed above given percentage in validation data.
 
         Args:
-            percent (float): Max percentage of new variants in validation data allowed.
+            ratio (float): Max percentage of new variants in validation data allowed.
         """
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        name = f'Not more than {format_percent(percent)} new variants in validation data for {column_names}'
-        return self.add_condition(name, _condition_percent_limit, percent=percent)
+        name = f'Not more than {format_percent(ratio)} new variants in validation data for {column_names}'
+        return self.add_condition(name, _condition_percent_limit, ratio=ratio)
