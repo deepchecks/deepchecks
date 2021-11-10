@@ -71,7 +71,7 @@ class StringMismatch(SingleDatasetBaseCheck):
                 result_dict[column_name][base_form] = []
                 for variant in variants:
                     count = sum(column == variant)
-                    percent = count / dataset.size
+                    percent = count / len(column)
                     results.append([column_name, base_form, variant, count, format_percent(percent)])
                     result_dict[column_name][base_form].append({
                         'variant': variant, 'count': count, 'percent': percent

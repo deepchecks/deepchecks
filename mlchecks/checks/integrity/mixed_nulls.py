@@ -109,7 +109,7 @@ class MixedNulls(SingleDatasetBaseCheck):
                 continue
             # Save the column info
             for null_value, count in null_counts.items():
-                percent = count / dataset.size
+                percent = count / len(column_data)
                 display_array.append([column_name, null_value, count, format_percent(percent)])
                 result_dict[column_name][null_value] = {'count': count, 'percent': percent}
 
@@ -139,8 +139,8 @@ class MixedNulls(SingleDatasetBaseCheck):
             if not_passing_columns:
                 not_passing_str = ', '.join(not_passing_columns)
                 return ConditionResult(False,
-                                       f'Found columns {not_passing_str} with more than {max_allowed_null_types} '
-                                       f'null types')
+                                       f'Found columns with more than {max_allowed_null_types} null types: '
+                                       f'{not_passing_str}')
             else:
                 return ConditionResult(True)
 
