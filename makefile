@@ -83,8 +83,8 @@ help:
 	@echo "test -      TEST_RUNNER on '$(TESTDIR)'"
 	@echo "            args=\"<pytest Arguements>\"  optional arguments"
 	@echo "coverage -  Get coverage information, optional 'args' like test\n"
-	@echo "jupyter - Deploy jupyer-notebook using './notebook' directory
-	@echo "					 args=\"<jupyter Arguments\" -passable"\n"
+	@echo "jupyter - Deploy jupyer-notebook using './notebook' directory"
+	@echo "					 args=\"<jupyter Arguments\" -passable\n"
 	@echo "tox      -  Test against multiple versions of python as defined in tox.ini"
 	@echo "clean | clean-all -  Clean up | clean up & removing virtualenv"
 
