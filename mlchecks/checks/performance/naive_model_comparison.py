@@ -124,10 +124,11 @@ class NaiveModelComparison(TrainValidationBaseCheck):
 
         ratio = naive_metric / pred_metric
 
-        text = f'Naive model has achieved {format_number(ratio)} times the User Model score.<br>' \
-               f'{type(model).__name__} Model prediction has achieved {format_number(pred_metric)} ' \
-               f'in {metric_name} compared to Naive {self.naive_model_type} prediction ' \
-               f'which achieved {format_number(naive_metric)} in {metric_name} on tested data.'
+        text = f'The ratio between the naive model\'s {metric_name} and the checked model\'s {metric_name}' \
+               f' is {format_number(ratio)}.<br>' \
+               f'{type(model).__name__} model prediction has achieved {format_number(pred_metric)} ' \
+               f'compared to Naive {self.naive_model_type} prediction ' \
+               f'which achieved {format_number(naive_metric)} on tested data.'
 
         def display_func():
             fig = plt.figure()
