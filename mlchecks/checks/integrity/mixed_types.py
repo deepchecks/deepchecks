@@ -57,17 +57,20 @@ class MixedTypes(SingleDatasetBaseCheck):
 
         # Result value: { Column Name: {string: pct, numbers: pct}}
         display_dict = {}
+        result_dict = {}
 
         for column_name in dataset.columns:
             column_data = dataset[column_name]
             mix = self._get_data_mix(column_data)
             if mix:
-                display_dict[column_name] = mix
+                result_dict[column_name] = mix
+                # Format percents for display
+                display_dict[column_name] = {k: format_percent(v) for k, v in mix.items()}
 
         df_graph = pd.DataFrame.from_dict(display_dict)
         display = df_graph if len(df_graph) > 0 else None
 
-        return CheckResult(display_dict, check=self.__class__, display=display)
+        return CheckResult(result_dict, check=self.__class__, display=display)
 
     def _get_data_mix(self, column_data: pd.Series) -> dict:
         if is_string_column(column_data):
@@ -89,12 +92,12 @@ class MixedTypes(SingleDatasetBaseCheck):
             return {}
 
         # Then we've got a mix
-        nums_pct = format_percent(nums / total_rows)
-        strs_pct = format_percent((np.abs(nums - total_rows)) / total_rows)
+        nums_pct = nums / total_rows
+        strs_pct = (np.abs(nums - total_rows)) / total_rows
 
         return {'strings': strs_pct, 'numbers': nums_pct}
 
-    def add_condition_any_type_ratio_higher_than(self, ratio: float = 0.01):
+    def add_condition_type_ratio_no_less_than(self, ratio: float = 0.01):
         """Add condition - Whether there are strings or numbers in any column with ratio lower than given ratio."""
         def condition(result, ratio):
             failing_columns = []
@@ -102,9 +105,10 @@ class MixedTypes(SingleDatasetBaseCheck):
                 if ratios['strings'] < ratio or ratios['numbers'] < ratio:
                     failing_columns.append(col)
             if failing_columns:
-                details = f'Columns with low type ratio: {", ".join(failing_columns)}'
+                details = f'Found columns with low type ratio: {", ".join(failing_columns)}'
                 return ConditionResult(False, details)
             return ConditionResult(True)
 
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        return self.add_condition(f'Any type ratio is lower than {ratio} for {column_names}', condition, ratio=ratio)
+        return self.add_condition(f'Any type ratio is not lower than {ratio} for {column_names}', condition,
+                                  ratio=ratio)

@@ -1,4 +1,5 @@
 """String mismatch functions."""
+from collections import defaultdict
 from typing import Union, Iterable
 
 import pandas as pd
@@ -12,7 +13,8 @@ __all__ = ['StringMismatchComparison']
 
 def percentage_in_series(series, values):
     count = sum(series.isin(values))
-    return f'{format_percent(count / series.size)} ({count})'
+    percent = count / series.size
+    return percent, f'{format_percent(percent)} ({count})'
 
 
 class StringMismatchComparison(CompareDatasetsBaseCheck):
@@ -59,7 +61,8 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
         df = filter_columns_with_validation(df, self.columns, self.ignore_columns)
         baseline_df: pd.DataFrame = ensure_dataframe_type(baseline_dataset)
 
-        mismatches = []
+        display_mismatches = []
+        result_dict = defaultdict(dict)
 
         # Get shared columns
         columns = set(df.columns).intersection(baseline_df.columns)
@@ -87,12 +90,18 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
                     percent_variants_only_in_dataset = percentage_in_series(tested_column, variants_only_in_dataset)
                     percent_variants_in_baseline = percentage_in_series(baseline_column, variants_only_in_baseline)
 
-                    mismatches.append([column_name, baseform, common_variants,
-                                       variants_only_in_dataset, percent_variants_only_in_dataset,
-                                       variants_only_in_baseline, percent_variants_in_baseline])
+                    display_mismatches.append([column_name, baseform, common_variants,
+                                               variants_only_in_dataset, percent_variants_only_in_dataset[1],
+                                               variants_only_in_baseline, percent_variants_in_baseline[1]])
+                    result_dict[column_name][baseform] = {
+                        'commons': common_variants, 'variants_only_in_tested': variants_only_in_dataset,
+                        'variants_only_in_baseline': variants_only_in_baseline,
+                        'percent_variants_only_in_tested': percent_variants_only_in_dataset[0],
+                        'percent_variants_in_baseline': percent_variants_in_baseline[0]
+                    }
 
         # Create result dataframe
-        df_graph = pd.DataFrame(mismatches,
+        df_graph = pd.DataFrame(display_mismatches,
                                 columns=['Column name', 'Base form', 'Common variants', 'Variants only in dataset',
                                          '% Unique variants out of all dataset samples (count)',
                                          'Variants only in baseline',
@@ -101,4 +110,4 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
         # For display transpose the dataframe
         display = df_graph.T if len(df_graph) > 0 else None
 
-        return CheckResult(df_graph, check=self.__class__, display=display)
+        return CheckResult(result_dict, check=self.__class__, display=display)

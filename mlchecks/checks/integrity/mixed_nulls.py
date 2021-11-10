@@ -49,29 +49,6 @@ class MixedNulls(SingleDatasetBaseCheck):
         """
         return self._mixed_nulls(dataset)
 
-    def add_condition_max_different_nulls(self, max_nulls: int = 1):
-        """Add condition that a column have a maximum number of different null values.
-
-        Args:
-            max_nulls (int): Maximum number allowed of different null values.
-        """
-        def condition(result: Dict) -> ConditionResult:
-            not_passing_columns = []
-            for column in result.keys():
-                nulls = result[column]
-                num_nulls = len(nulls)
-                if num_nulls > max_nulls:
-                    not_passing_columns.append(column)
-            if not_passing_columns:
-                not_passing_columns = ', '.join(not_passing_columns)
-                return ConditionResult(False,
-                                       f'Found columns {not_passing_columns} with more than {max_nulls} null types')
-            else:
-                return ConditionResult(True)
-
-        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        return self.add_condition(f'No more than {max_nulls} null types for {column_names}', condition)
-
     def _validate_null_string_list(self, nsl, check_nan: bool) -> set:
         """Validate the object given is a list of strings. If null is given return default list of null values.
 
@@ -145,3 +122,26 @@ class MixedNulls(SingleDatasetBaseCheck):
             display = None
 
         return CheckResult(result_dict, check=self.__class__, display=display)
+
+    def add_condition_different_nulls_no_higher_than(self, threshold_nulls: int = 1):
+        """Add condition - column have less than given number of different null values.
+
+        Args:
+            threshold_nulls (int): Number of different null values which is the maximum allowed.
+        """
+        def condition(result: Dict) -> ConditionResult:
+            not_passing_columns = []
+            for column in result.keys():
+                nulls = result[column]
+                num_nulls = len(nulls)
+                if num_nulls > threshold_nulls:
+                    not_passing_columns.append(column)
+            if not_passing_columns:
+                not_passing_str = ', '.join(not_passing_columns)
+                return ConditionResult(False,
+                                       f'Found columns {not_passing_str} with more than {threshold_nulls} null types')
+            else:
+                return ConditionResult(True)
+
+        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
+        return self.add_condition(f'No more than {threshold_nulls} different null types for {column_names}', condition)

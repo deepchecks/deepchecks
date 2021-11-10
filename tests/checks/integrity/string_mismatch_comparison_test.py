@@ -3,7 +3,7 @@ import pandas as pd
 
 from mlchecks.checks import StringMismatchComparison
 
-from hamcrest import assert_that, has_length
+from hamcrest import assert_that, has_length, has_entry, has_entries
 
 
 def test_single_col_mismatch():
@@ -15,7 +15,7 @@ def test_single_col_mismatch():
     result = StringMismatchComparison().run(pd.DataFrame(data=data), pd.DataFrame(data=compared_data)).value
 
     # Assert - 1 column, 1 baseform are mismatch
-    assert_that(result, has_length(1))
+    assert_that(result, has_entry('col1', has_length(1)))
 
 
 def test_mismatch_multi_column():
@@ -29,7 +29,9 @@ def test_mismatch_multi_column():
     result = StringMismatchComparison().run(pd.DataFrame(data=data), pd.DataFrame(data=compared_data)).value
 
     # Assert - 2 columns, 4 baseforms are mismatch
-    assert_that(result, has_length(4))
+    assert_that(result, has_entries({
+        'col1': has_length(1), 'col2': has_length(3)
+     }))
 
 
 def test_no_mismatch():

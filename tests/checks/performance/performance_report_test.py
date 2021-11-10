@@ -1,4 +1,5 @@
 """Contains unit tests for the performance report check."""
+import re
 from typing import List
 
 from mlchecks import ConditionResult
@@ -44,8 +45,8 @@ def test_regression(diabetes, diabetes_model):
     result = check.run(validation, diabetes_model).value
     # Assert
     assert_that(result, has_entries({
-        'RMSE': close_to(50, 20),
-        'MSE': close_to(3200, 1000),
+        'RMSE': close_to(-50, 20),
+        'MSE': close_to(-3200, 1000),
     }))
 
 
@@ -58,7 +59,7 @@ def test_condition_min_score_not_passed(diabetes, diabetes_model):
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Metric scores that don\'t pass: {\'MSE\':',
+                               details=re.compile('Metric scores that don\'t pass: {\'MSE\':'),
                                name='Metric score is above -100')
     ))
 

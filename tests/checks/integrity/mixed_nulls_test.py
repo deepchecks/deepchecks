@@ -153,14 +153,14 @@ def test_condition_max_nulls_not_passed():
     # Arrange
     data = {'col1': ['', '#@$', 'Nan!', '#nan', '<NaN>']}
     dataset = Dataset(pd.DataFrame(data=data))
-    check = MixedNulls().add_condition_max_different_nulls(3)
+    check = MixedNulls().add_condition_different_nulls_no_higher_than(3)
 
     # Act
     result = check.conditions_decision(check.run(dataset))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='No more than 3 null types for all columns',
+                               name='No more than 3 different null types for all columns',
                                details='Found columns col1 with more than 3 null types')
     ))
 
@@ -169,12 +169,12 @@ def test_condition_max_nulls_passed():
     # Arrange
     data = {'col1': ['', '#@$', 'Nan!', '#nan', '<NaN>']}
     dataset = Dataset(pd.DataFrame(data=data))
-    check = MixedNulls().add_condition_max_different_nulls(10)
+    check = MixedNulls().add_condition_different_nulls_no_higher_than(10)
 
     # Act
     result = check.conditions_decision(check.run(dataset))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='No more than 10 null types for all columns')
+                               name='No more than 10 different null types for all columns')
     ))
