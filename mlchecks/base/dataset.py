@@ -39,7 +39,7 @@ class Dataset:
     def __init__(self, df: pd.DataFrame,
                  features: List[str] = None, cat_features: List[str] = None, label: str = None, use_index: bool = False,
                  index: str = None, date: str = None, date_unit_type: str = None, _convert_date: bool = True,
-                 max_categorical_ratio: float = 0.001, max_categories: int = 100, max_float_categories: int = 5):
+                 max_categorical_ratio: float = 0.01, max_categories: int = 30, max_float_categories: int = 5):
         """Initiate the Dataset using a pandas DataFrame and Metadata.
 
         Args:
