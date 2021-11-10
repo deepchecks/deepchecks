@@ -84,14 +84,14 @@ class StringMismatch(SingleDatasetBaseCheck):
 
         return CheckResult(result_dict, check=self.__class__, display=display)
 
-    def add_condition_no_more_variants_than(self, num_max_variants: int):
+    def add_condition_not_more_variants_than(self, num_max_variants: int):
         """Add condition - no more than given number of variants are allowed (per string baseform).
 
         Args:
             num_max_variants (int): Maximum number of variants allowed.
         """
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        name = f'No more than {num_max_variants} string variants for {column_names}'
+        name = f'Not more than {num_max_variants} string variants for {column_names}'
         return self.add_condition(name, _condition_variants_number, num_max_variants=num_max_variants)
 
     def add_condition_no_variants(self):
@@ -100,7 +100,7 @@ class StringMismatch(SingleDatasetBaseCheck):
         name = f'No string variants for {column_names}'
         return self.add_condition(name, _condition_variants_number, num_max_variants=0)
 
-    def add_condition_percent_variants_no_more_than(self, max_percent: float = 0.01):
+    def add_condition_percent_variants_not_more_than(self, max_percent: float = 0.01):
         """Add condition - percentage of variants in data is not allowed above given threshold.
 
         Args:
@@ -121,5 +121,5 @@ class StringMismatch(SingleDatasetBaseCheck):
             return ConditionResult(True)
 
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        name = f'No more than {format_percent(max_percent)} variants for {column_names}'
+        name = f'Not more than {format_percent(max_percent)} variants for {column_names}'
         return self.add_condition(name, condition, max_percent=max_percent)

@@ -97,7 +97,7 @@ class MixedTypes(SingleDatasetBaseCheck):
 
         return {'strings': strs_pct, 'numbers': nums_pct}
 
-    def add_condition_rare_data_type_not_rarer_than(self, max_rare_type_ratio: float = 0.01):
+    def add_condition_rare_type_ratio_not_less_than(self, max_rare_type_ratio: float = 0.01):
         """Add condition - Whether the rarer data type (strings or numbers) have ratio higher than given ratio.
 
         Args:
@@ -114,5 +114,5 @@ class MixedTypes(SingleDatasetBaseCheck):
             return ConditionResult(True)
 
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        name = f'Any data type is not rarer than {format_percent(max_rare_type_ratio)} of samples in {column_names}'
+        name = f'Rare type ratio is not less than {format_percent(max_rare_type_ratio)} of samples in {column_names}'
         return self.add_condition(name, condition, max_rare_type_ratio=max_rare_type_ratio)

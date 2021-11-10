@@ -48,18 +48,18 @@ class PerformanceReport(SingleDatasetBaseCheck):
 
         return CheckResult(scores, check=self.__class__, header='Performance Report', display=display_df)
 
-    def add_condition_min_score(self, min_score: float):
+    def add_condition_score_not_less_than(self, min_score: float):
         """Add condition - metric scores are not below given score.
 
         Args:
             min_score (float): Minimal score to pass.
         """
-        name = f'Metric score is above {min_score}'
+        name = f'Metric score is not less than {min_score}'
 
         def condition(result, min_score):
             not_passed = {k: v for k, v in result.items() if v < min_score}
             if not_passed:
-                details = f'Metric scores that don\'t pass: {not_passed}'
+                details = f'Metrics with lower score: {not_passed}'
                 return ConditionResult(False, details)
             return ConditionResult(True)
 

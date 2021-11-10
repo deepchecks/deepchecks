@@ -95,7 +95,7 @@ def test_condition_no_new_variants_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='No new variants allowed in validation data for all columns',
-                               details='Found columns with variants: [\'col1\']')
+                               details='Found columns with variants over percentage: {\'col1\': \'14.29%\'}')
     ))
 
 
@@ -117,14 +117,14 @@ def test_condition_percent_new_variants_fail():
     # Arrange
     base_data = {'col1': ['Deep', 'deep', 'deep!!!', 'earth', 'foo', 'bar', 'foo?']}
     tested_data = {'col1': ['Deep', 'deep', '$deeP$', 'earth', 'foo', 'bar', 'foo?', '?deep']}
-    check = StringMismatchComparison().add_condition_percent_new_variants_no_more_than(0.1)
+    check = StringMismatchComparison().add_condition_percent_new_variants_not_more_than(0.1)
     # Act
     result = check.conditions_decision(check.run(pd.DataFrame(data=tested_data), pd.DataFrame(data=base_data)))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='No more than 10.00% new variants in validation data for all columns',
-                               details='Found columns with variants: [\'col1\']')
+                               name='Not more than 10.00% new variants in validation data for all columns',
+                               details='Found columns with variants over percentage: {\'col1\': \'25.00%\'}')
     ))
 
 
@@ -132,11 +132,11 @@ def test_condition_percent_new_variants_pass():
     # Arrange
     base_data = {'col1': ['Deep', 'deep', 'deep!!!', 'earth', 'foo', 'bar', 'foo?']}
     tested_data = {'col1': ['Deep', 'deep', '$deeP$', 'earth', 'foo', 'bar', 'foo?', '?deep']}
-    check = StringMismatchComparison().add_condition_percent_new_variants_no_more_than(0.5)
+    check = StringMismatchComparison().add_condition_percent_new_variants_not_more_than(0.5)
     # Act
     result = check.conditions_decision(check.run(pd.DataFrame(data=tested_data), pd.DataFrame(data=base_data)))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='No more than 50.00% new variants in validation data for all columns')
+                               name='Not more than 50.00% new variants in validation data for all columns')
     ))

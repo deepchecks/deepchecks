@@ -53,25 +53,25 @@ def test_regression(diabetes, diabetes_model):
 def test_condition_min_score_not_passed(diabetes, diabetes_model):
     # Arrange
     _, validation = diabetes
-    check = PerformanceReport().add_condition_min_score(-100)
+    check = PerformanceReport().add_condition_score_not_less_than(-100)
     # Act X
     result: List[ConditionResult] = check.conditions_decision(check.run(validation, diabetes_model))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details=re.compile('Metric scores that don\'t pass: {\'MSE\':'),
-                               name='Metric score is above -100')
+                               details=re.compile('Metrics with lower score: \\{\'MSE\':'),
+                               name='Metric score is not less than -100')
     ))
 
 
 def test_condition_min_score_passed(diabetes, diabetes_model):
     # Arrange
     _, validation = diabetes
-    check = PerformanceReport().add_condition_min_score(-5_000)
+    check = PerformanceReport().add_condition_score_not_less_than(-5_000)
     # Act X
     result: List[ConditionResult] = check.conditions_decision(check.run(validation, diabetes_model))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Metric score is above -5000')
+                               name='Metric score is not less than -5000')
     ))

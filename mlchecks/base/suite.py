@@ -76,6 +76,9 @@ class SuiteResult:
             table = pd.DataFrame(data=errors_table, columns=['Check', 'Error'])
             SuiteResult._display_table(table)
 
+        # TODO remove after flattening
+        [x._ipython_display_(only_summary) for x in self.results if isinstance(x, SuiteResult)]
+
     @classmethod
     def _display_table(cls, df):
         df_styler = df.style

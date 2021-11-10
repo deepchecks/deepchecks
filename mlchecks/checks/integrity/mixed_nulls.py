@@ -123,7 +123,7 @@ class MixedNulls(SingleDatasetBaseCheck):
 
         return CheckResult(result_dict, check=self.__class__, display=display)
 
-    def add_condition_different_nulls_no_higher_than(self, max_allowed_null_types: int = 1):
+    def add_condition_different_nulls_not_more_than(self, max_allowed_null_types: int = 1):
         """Add condition - column have less than given number of different null values.
 
         Args:
@@ -145,5 +145,5 @@ class MixedNulls(SingleDatasetBaseCheck):
                 return ConditionResult(True)
 
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        return self.add_condition(f'No more than {max_allowed_null_types} different null types for {column_names}',
+        return self.add_condition(f'Not more than {max_allowed_null_types} different null types for {column_names}',
                                   condition)
