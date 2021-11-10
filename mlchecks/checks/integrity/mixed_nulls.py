@@ -123,25 +123,27 @@ class MixedNulls(SingleDatasetBaseCheck):
 
         return CheckResult(result_dict, check=self.__class__, display=display)
 
-    def add_condition_different_nulls_no_higher_than(self, threshold_nulls: int = 1):
+    def add_condition_different_nulls_no_higher_than(self, max_allowed_null_types: int = 1):
         """Add condition - column have less than given number of different null values.
 
         Args:
-            threshold_nulls (int): Number of different null values which is the maximum allowed.
+            max_allowed_null_types (int): Number of different null values which is the maximum allowed.
         """
         def condition(result: Dict) -> ConditionResult:
             not_passing_columns = []
             for column in result.keys():
                 nulls = result[column]
                 num_nulls = len(nulls)
-                if num_nulls > threshold_nulls:
+                if num_nulls > max_allowed_null_types:
                     not_passing_columns.append(column)
             if not_passing_columns:
                 not_passing_str = ', '.join(not_passing_columns)
                 return ConditionResult(False,
-                                       f'Found columns {not_passing_str} with more than {threshold_nulls} null types')
+                                       f'Found columns {not_passing_str} with more than {max_allowed_null_types} '
+                                       f'null types')
             else:
                 return ConditionResult(True)
 
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        return self.add_condition(f'No more than {threshold_nulls} different null types for {column_names}', condition)
+        return self.add_condition(f'No more than {max_allowed_null_types} different null types for {column_names}',
+                                  condition)

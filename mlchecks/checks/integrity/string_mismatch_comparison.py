@@ -6,7 +6,8 @@ import pandas as pd
 
 from mlchecks import CheckResult, Dataset, ensure_dataframe_type, CompareDatasetsBaseCheck, ConditionResult
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
-from mlchecks.string_utils import get_base_form_to_variants_dict, is_string_column, format_percent
+from mlchecks.string_utils import get_base_form_to_variants_dict, is_string_column, format_percent, \
+    format_columns_for_condition
 
 __all__ = ['StringMismatchComparison']
 
@@ -129,7 +130,8 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
 
     def add_condition_no_new_variants(self):
         """Add condition - no new variants allowed in validation data."""
-        name = 'No new variants allowed in validation data'
+        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
+        name = f'No new variants allowed in validation data for {column_names}'
         return self.add_condition(name, _condition_percent_limit, percent=0)
 
     def add_condition_percent_new_variants_no_more_than(self, percent: float):
@@ -138,5 +140,6 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
         Args:
             percent (float): Max percentage of new variants in validation data allowed.
         """
-        name = f'No more than {format_percent(percent)} new variants in validation data'
+        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
+        name = f'No more than {format_percent(percent)} new variants in validation data for {column_names}'
         return self.add_condition(name, _condition_percent_limit, percent=percent)

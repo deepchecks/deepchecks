@@ -60,7 +60,7 @@ def test_condition_no_more_than_fail():
     # Arrange
     data = {'col1': ['Deep', 'deep', 'deep!!!', '$deeP$', 'earth', 'foo', 'bar', 'foo?']}
     df = pd.DataFrame(data=data)
-    check = StringMismatch().add_condition_variants_no_more_than(2)
+    check = StringMismatch().add_condition_no_more_variants_than(2)
     # Act
     result = check.conditions_decision(check.run(df))
     # Assert
@@ -75,7 +75,7 @@ def test_condition_no_more_than_pass():
     # Arrange
     data = {'col1': ['Deep', 'deep', 'deep!!!', '$deeP$', 'earth', 'foo', 'bar', 'foo?']}
     df = pd.DataFrame(data=data)
-    check = StringMismatch().add_condition_variants_no_more_than(4)
+    check = StringMismatch().add_condition_no_more_variants_than(4)
     # Act
     result = check.conditions_decision(check.run(df))
     # Assert
@@ -111,4 +111,33 @@ def test_condition_no_variants_pass():
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                name='No string variants for all columns')
+    ))
+
+
+def test_condition_percent_variants_no_more_than_fail():
+    # Arrange
+    data = {'col1': ['Deep', 'deep', 'deep!!!', '$deeP$', 'earth', 'foo', 'bar', 'foo?']}
+    df = pd.DataFrame(data=data)
+    check = StringMismatch().add_condition_percent_variants_no_more_than(0.1)
+    # Act
+    result = check.conditions_decision(check.run(df))
+    # Assert
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=False,
+                               name='No more than 10.00% variants for all columns',
+                               details='Found columns with variants ratio: {\'col1\': \'75.00%\'}')
+    ))
+
+
+def test_condition_percent_variants_no_more_than_pass():
+    # Arrange
+    data = {'col1': ['Deep', 'shallow', 'high!!!', '$deeP$', 'earth', 'foo', 'bar', 'foo?']}
+    df = pd.DataFrame(data=data)
+    check = StringMismatch().add_condition_percent_variants_no_more_than(0.5)
+    # Act
+    result = check.conditions_decision(check.run(df))
+    # Assert
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=True,
+                               name='No more than 50.00% variants for all columns')
     ))

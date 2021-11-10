@@ -106,12 +106,12 @@ def test_condition_pass_all_columns():
     # Arrange
     data = {'col1': ['1', 'bar', 'cat'], 'col2': [6, 66, 666.66]}
     dataframe = pd.DataFrame(data=data)
-    check = MixedTypes().add_condition_type_ratio_no_less_than(0.1)
+    check = MixedTypes().add_condition_rare_data_type_not_rarer_than(0.1)
     # Act
     result = check.conditions_decision(check.run(dataframe))
     # Assert
     assert_that(result, has_items(
-        equal_condition_result(is_pass=True, name='Any type ratio is not lower than 0.1 for all columns')
+        equal_condition_result(is_pass=True, name='Any data type is not rarer than 10.00% of samples in all columns')
     ))
 
 
@@ -119,13 +119,13 @@ def test_condition_pass_fail_single_column():
     # Arrange
     data = {'col1': ['1', 'bar', 'cat'], 'col2': [6, 66, 666.66]}
     dataframe = pd.DataFrame(data=data)
-    check = MixedTypes(columns=['col1']).add_condition_type_ratio_no_less_than(0.4)
+    check = MixedTypes(columns=['col1']).add_condition_rare_data_type_not_rarer_than(0.4)
     # Act
     result = check.conditions_decision(check.run(dataframe))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Any type ratio is not lower than 0.4 for columns: col1',
+                               name='Any data type is not rarer than 40.00% of samples in columns: col1',
                                details='Found columns with low type ratio: col1')
     ))
 
@@ -134,12 +134,12 @@ def test_condition_pass_fail_ignore_column():
     # Arrange
     data = {'col1': ['1', 'bar', 'cat'], 'col2': [6, 66, 666.66]}
     dataframe = pd.DataFrame(data=data)
-    check = MixedTypes(ignore_columns=['col2']).add_condition_type_ratio_no_less_than(0.4)
+    check = MixedTypes(ignore_columns=['col2']).add_condition_rare_data_type_not_rarer_than(0.4)
     # Act
     result = check.conditions_decision(check.run(dataframe))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Any type ratio is not lower than 0.4 for all columns ignoring: col2',
+                               name='Any data type is not rarer than 40.00% of samples in all columns ignoring: col2',
                                details='Found columns with low type ratio: col1')
     ))

@@ -97,12 +97,16 @@ class MixedTypes(SingleDatasetBaseCheck):
 
         return {'strings': strs_pct, 'numbers': nums_pct}
 
-    def add_condition_type_ratio_no_less_than(self, ratio: float = 0.01):
-        """Add condition - Whether there are strings or numbers in any column with ratio lower than given ratio."""
-        def condition(result, ratio):
+    def add_condition_rare_data_type_not_rarer_than(self, max_rare_type_ratio: float = 0.01):
+        """Add condition - Whether the rarer data type (strings or numbers) have ratio higher than given ratio.
+
+        Args:
+            max_rare_type_ratio (float): Minimal ratio allowed for the rarer type (numbers or strings)
+        """
+        def condition(result, max_rare_type_ratio):
             failing_columns = []
             for col, ratios in result.items():
-                if ratios['strings'] < ratio or ratios['numbers'] < ratio:
+                if ratios['strings'] < max_rare_type_ratio or ratios['numbers'] < max_rare_type_ratio:
                     failing_columns.append(col)
             if failing_columns:
                 details = f'Found columns with low type ratio: {", ".join(failing_columns)}'
@@ -110,5 +114,5 @@ class MixedTypes(SingleDatasetBaseCheck):
             return ConditionResult(True)
 
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        return self.add_condition(f'Any type ratio is not lower than {ratio} for {column_names}', condition,
-                                  ratio=ratio)
+        name = f'Any data type is not rarer than {format_percent(max_rare_type_ratio)} of samples in {column_names}'
+        return self.add_condition(name, condition, max_rare_type_ratio=max_rare_type_ratio)

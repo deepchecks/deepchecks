@@ -12,11 +12,11 @@ from mlchecks.string_utils import get_base_form_to_variants_dict, is_string_colu
 __all__ = ['StringMismatch']
 
 
-def _condition_variants_number(result, variants_limit: int):
+def _condition_variants_number(result, num_max_variants: int):
     not_passing_variants = defaultdict(list)
     for col, baseforms in result.items():
-        for base_form, variants in baseforms.items():
-            if len(variants) > variants_limit:
+        for base_form, variants_list in baseforms.items():
+            if len(variants_list) > num_max_variants:
                 not_passing_variants[col].append(base_form)
     if not_passing_variants:
         details = f'Found columns with variants: {dict(not_passing_variants)}'
@@ -84,18 +84,42 @@ class StringMismatch(SingleDatasetBaseCheck):
 
         return CheckResult(result_dict, check=self.__class__, display=display)
 
-    def add_condition_variants_no_more_than(self, variants_limit: int):
+    def add_condition_no_more_variants_than(self, num_max_variants: int):
         """Add condition - no more than given number of variants are allowed (per string baseform).
 
         Args:
-            variants_limit (int): Maximum number of variants allowed.
+            num_max_variants (int): Maximum number of variants allowed.
         """
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        name = f'No more than {variants_limit} string variants for {column_names}'
-        return self.add_condition(name, _condition_variants_number, variants_limit=variants_limit)
+        name = f'No more than {num_max_variants} string variants for {column_names}'
+        return self.add_condition(name, _condition_variants_number, num_max_variants=num_max_variants)
 
     def add_condition_no_variants(self):
         """Add condition - no variants are allowed."""
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
         name = f'No string variants for {column_names}'
-        return self.add_condition(name, _condition_variants_number, variants_limit=0)
+        return self.add_condition(name, _condition_variants_number, num_max_variants=0)
+
+    def add_condition_percent_variants_no_more_than(self, max_percent: float = 0.01):
+        """Add condition - percentage of variants in data is not allowed above given threshold.
+
+        Args:
+            max_percent (float): Maximum percent of variants allowed in data.
+        """
+        def condition(result, max_percent: float):
+            not_passing_columns = {}
+            for col, baseforms in result.items():
+                variants_percent_sum = 0
+                for variants_list in baseforms.values():
+                    variants_percent_sum += sum([v['percent'] for v in variants_list])
+                if variants_percent_sum > max_percent:
+                    not_passing_columns[col] = format_percent(variants_percent_sum)
+
+            if not_passing_columns:
+                details = f'Found columns with variants ratio: {not_passing_columns}'
+                return ConditionResult(False, details)
+            return ConditionResult(True)
+
+        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
+        name = f'No more than {format_percent(max_percent)} variants for {column_names}'
+        return self.add_condition(name, condition, max_percent=max_percent)
