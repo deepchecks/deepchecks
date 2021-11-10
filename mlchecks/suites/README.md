@@ -4,10 +4,17 @@
 
 ### List of Prebuilt Suites
 
+[**Overall Suites**](./overall_suite.py)
+
+  - OverallCheckSuite - run all mlchecks checks, including checks for index and date
+  - OverallClassificationCheckSuite - run all mlchecks checks for classification tasks with no index or date
+  - OverallRegressionCheckSuite - run all mlchecks checks for regression tasks with no index or date
+  - OverallGenericCheckSuite - run all mlchecks checks that work regardless of task type with no index or date
+
 [**Integrity Suites**](./integrity_suite.py)
 
-  - SingleDatasetIntegrityCheckSuite
-  - ComparativeIntegrityCheckSuite
+  - SingleDatasetIntegrityCheckSuite - for a single dataset / dataframe
+  - ComparativeIntegrityCheckSuite - comparing two datasets / dataframes
   - IntegrityCheckSuite
 
 [**Leakage Suites**](./leakage_suite.py)
@@ -18,10 +25,12 @@
 
 [**Overfit Suite**](./overfit_suite.py)
   - OverfitCheckSuite
-
-
+  
 [**Performance Suite**](./performance_suite.py)
-  - PerformanceCheckSuite
+  - PerformanceCheckSuite - run all performance checks
+  - ClassificationCheckSuite - check performance for classification tasks
+  - RegressionCheckSuite - check performance for regression tasks
+  - GenericPerformanceCheckSuite - check performance for any task type
 
 ### Running a Suite
 to run a suite, first import it
@@ -30,7 +39,7 @@ from mlchecks.suites import *
 ```
 Then run it with the required input parameters (datasets and models)
 ```python
-OverfitCheckSuite().run(model=my_classification_model, train_dataset=ds_train, validation_dataset=ds_val)
+OverfitCheckSuite.run(model=my_classification_model, train_dataset=ds_train, validation_dataset=ds_val)
 ```
 
 ## Creating Your Custom CheckSuite
@@ -47,8 +56,8 @@ MyModelSuite = CheckSuite('Simple Suite For Model Performance',
     PerformanceReport(),
     TrainValidationDifferenceOverfit(),
     ConfusionMatrixReport(),
-    NaiveComparision(),
-    NaiveComparision(native_model_type='statistical')
+    NaiveModelComparision(),
+    NaiveModelComparision(native_model_type='statistical')
 )
 ```
 Then run with required input parameters (datasets and models)
