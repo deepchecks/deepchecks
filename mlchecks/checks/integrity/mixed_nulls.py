@@ -124,10 +124,10 @@ class MixedNulls(SingleDatasetBaseCheck):
         return CheckResult(result_dict, check=self.__class__, display=display)
 
     def add_condition_different_nulls_not_more_than(self, max_allowed_null_types: int = 1):
-        """Add condition - column have less than given number of different null values.
+        """Add condition - require column not to have more than given number of different null values.
 
         Args:
-            max_allowed_null_types (int): Number of different null values which is the maximum allowed.
+            max_allowed_null_types (int): Number of different null value types which is the maximum allowed.
         """
         def condition(result: Dict) -> ConditionResult:
             not_passing_columns = []
