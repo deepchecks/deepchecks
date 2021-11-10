@@ -8,7 +8,7 @@ import pandas as pd
 from hamcrest import assert_that, close_to, calling, raises, equal_to
 
 from mlchecks import Dataset
-from mlchecks.checks.leakage.date_leakage import DateTrainValidationLeakageOverlap, DateTrainValidationLeakageDuplicates
+from mlchecks.checks.leakage import DateTrainValidationLeakageOverlap, DateTrainValidationLeakageDuplicates
 from mlchecks.utils import MLChecksValueError
 
 
