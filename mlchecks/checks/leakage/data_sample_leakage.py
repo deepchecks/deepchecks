@@ -33,13 +33,13 @@ def get_dup_indexes_map(df: pd.DataFrame, columns: List) -> Dict:
 
 
 def get_dup_txt(i: int, dup_map: Dict) -> str:
-    """Return a prettyfied text for a key in the dict.
+    """Return a prettified text for a key in the dict.
 
     Args:
         i: the index key
         dup_map: the dict of the duplicated indexes
     Returns:
-        prettyfied text for a key in the dict
+        prettified text for a key in the dict
 
     """
     val = dup_map.get(i)
@@ -49,9 +49,9 @@ def get_dup_txt(i: int, dup_map: Dict) -> str:
     for j in val:
         txt += f'{j}, '
     txt = txt[:-2]
-    if len(txt) < 30:
+    if len(txt) < 5:
         return txt
-    return f'{txt[:30]}.. Tot. {(1 + len(val))}'
+    return f'{txt[:5]}.. Tot. {(1 + len(val))}'
 
 
 class DataSampleLeakageReport(TrainValidationBaseCheck):
@@ -86,11 +86,11 @@ class DataSampleLeakageReport(TrainValidationBaseCheck):
         val_f = validation_dataset.data.copy()
 
         train_dups = get_dup_indexes_map(train_f, columns)
-        train_f.index = [f'Train indexes: {get_dup_txt(i, train_dups)}' for i in train_f.index]
+        train_f.index = [f'Train indices: {get_dup_txt(i, train_dups)}' for i in train_f.index]
         train_f.drop_duplicates(columns, inplace=True)
 
         val_dups = get_dup_indexes_map(val_f, columns)
-        val_f.index = [f'Validation indexes: {get_dup_txt(i, val_dups)}' for i in val_f.index]
+        val_f.index = [f'Validation indices: {get_dup_txt(i, val_dups)}' for i in val_f.index]
         val_f.drop_duplicates(columns, inplace=True)
 
         appended_df = train_f.append(val_f)
