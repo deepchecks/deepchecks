@@ -1,4 +1,7 @@
 """Contains unit tests for the dataset_info check."""
+import numpy as np
+import pandas as pd
+
 from mlchecks.checks.overview.dataset_info import DatasetInfo
 from mlchecks.utils import MLChecksValueError
 
@@ -33,3 +36,15 @@ def test_dataset_info_dataframe(iris):
     result = DatasetInfo().run(iris)
     # Assert
     assert_that(result.value, equal_to((150, 5)))
+
+
+def test_nan(iris):
+    # Act
+    df = iris.append(pd.DataFrame({'sepal length (cm)': [np.nan],
+                                   'sepal width (cm)':[np.nan],
+                                   'petal length (cm)':[np.nan],
+                                   'petal width (cm)': [np.nan],
+                                   'target':[0]}))
+    result = DatasetInfo().run(df)
+    # Assert
+    assert_that(result.value, equal_to((151, 5)))

@@ -1,4 +1,5 @@
 """Tests for Feature Importance."""
+import numpy as np
 import pandas as pd
 
 from mlchecks.checks.overview.feature_importance import FeatureImportance
@@ -69,3 +70,16 @@ def test_feature_importance_unmatching_dataset(iris_random_forest):
     assert_that(
         calling(FeatureImportance().run).with_args(dataset, iris_random_forest),
         raises(MLChecksValueError))
+
+
+def test_nan(iris_random_forest, iris):
+    df = iris.append(pd.DataFrame({'sepal length (cm)': [np.nan],
+                                   'sepal width (cm)':[np.nan],
+                                   'petal length (cm)':[np.nan],
+                                   'petal width (cm)': [np.nan],
+                                   'target':[0]}))
+    # Act
+    result = FeatureImportance().run(Dataset(df, label='target'), iris_random_forest)
+
+    # Assert
+    assert result.value

@@ -104,3 +104,17 @@ def test_wrong_input_single_value():
 
     assert_that(calling(cls.run).with_args('some string'),
                 raises(MLChecksValueError, 'dataset must be of type DataFrame or Dataset, but got: str'))
+
+
+def test_nans(df_with_fully_nan, df_with_single_nan_in_col):
+    # Arrange
+    sv = IsSingleValue()
+
+    # Act
+    full_result = sv.run(df_with_fully_nan)
+    single_result = sv.run(df_with_single_nan_in_col)
+
+    # Assert
+    assert_that(full_result.value)
+    assert_that(not single_result.value)
+

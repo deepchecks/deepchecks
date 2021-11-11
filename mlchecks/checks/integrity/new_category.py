@@ -1,6 +1,5 @@
 """The data_sample_leakage_report check module."""
 from typing import Union, Iterable
-
 from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, TrainValidationBaseCheck
 from mlchecks.string_utils import format_percent
@@ -75,10 +74,14 @@ class CategoryMismatchTrainValidation(TrainValidationBaseCheck):
             train_column = train_dataset.data[feature]
             validation_column = validation_dataset.data[feature]
 
-            unique_training_values = set(train_column.unique())
-            unique_validation_values = set(validation_column.unique())
+            # np.nan doesn't compare, so we remove these values if they exist in in training
+            if train_column.isna().any():
+                validation_column = validation_column.dropna()
 
-            new_category_values = unique_validation_values.difference(unique_training_values)
+            unique_training_values = train_column.unique()
+            unique_validation_values = validation_column.unique()
+
+            new_category_values = set(unique_validation_values).difference(set(unique_training_values))
 
             if new_category_values:
                 n_new_cat = len(validation_column[validation_column.isin(new_category_values)])

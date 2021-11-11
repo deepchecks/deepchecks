@@ -1,4 +1,5 @@
 """Contains unit tests for the string_mismatch check."""
+import numpy as np
 import pandas as pd
 
 from mlchecks.checks import StringMismatch
@@ -46,3 +47,14 @@ def test_mismatch_multi_column_ignore():
     result = StringMismatch(ignore_columns=['col2']).run(df).value
     # Assert - 4 values are mismatch
     assert_that(result, has_length(2))
+
+
+def test_nan():
+    # Arrange
+    data = {'col1': ['Deep', 'deep', 'earth', 'foo', 'bar', 'dog'],
+            'col2': ['SPACE', 'SPACE$$', 'is', 'fun', None, np.nan]}
+    df = pd.DataFrame(data=data)
+    # Act
+    result = StringMismatch().run(df).value
+    # Assert - 4 values are mismatch
+    assert_that(result, has_length(4))

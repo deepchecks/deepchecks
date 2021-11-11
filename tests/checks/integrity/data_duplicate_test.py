@@ -63,3 +63,13 @@ def test_data_duplicates_ignore_index_column():
     duplicate_data = duplicate_data.set_index('col3')
     check_obj = DataDuplicates()
     assert_that(check_obj.run(duplicate_data).value, close_to(0.80, 0.01))
+
+
+def test_nan(df_with_nan_row, df_with_single_nan_in_col):
+    df = df_with_nan_row.set_index('col2')
+    check_obj = DataDuplicates()
+    assert_that(check_obj.run(df).value, equal_to(0))
+
+    df = df_with_single_nan_in_col
+    check_obj = DataDuplicates()
+    assert_that(check_obj.run(df).value, equal_to(0))

@@ -324,7 +324,7 @@ class RareFormatDetection(SingleDatasetBaseCheck):
             raise MLChecksValueError(f'pattern_match_method must be "first" or "all", got {self.pattern_match_method}')
 
         res = {
-            column_name: _detect_per_column(dataset[column_name], self.patterns, self.rarity_threshold,
+            column_name: _detect_per_column(dataset[column_name].dropna(), self.patterns, self.rarity_threshold,
                                             self.min_unique_common_ratio, self.pattern_match_method)
             for column_name in dataset.columns}
 

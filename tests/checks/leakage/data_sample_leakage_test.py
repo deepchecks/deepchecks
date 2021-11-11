@@ -1,6 +1,7 @@
 """
 Contains unit tests for the data_sample_leakage_report check
 """
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from mlchecks.base import Dataset
@@ -56,4 +57,17 @@ def test_leakage(iris_clean):
     # Act X
     result = check.run(validation_dataset=validation_dataset, train_dataset=train_dataset).value
     # Assert
-    assert_that(result, equal_to(0.12))
+    assert_that(result, equal_to(0.1))
+
+
+def test_nan():
+    train_dataset = Dataset(pd.DataFrame({'col1': [1, 2, 3, np.nan], 'col2': [1, 2, 1, 1]}),
+                            label='col2')
+    validation_dataset = Dataset(pd.DataFrame({'col1': [2, np.nan, np.nan, np.nan], 'col2': [1, 1, 2, 1]}),
+                                 label='col2')
+    # Arrange
+    check = DataSampleLeakageReport()
+    # Act X
+    result = check.run(validation_dataset=validation_dataset, train_dataset=train_dataset).value
+    # Assert
+    assert_that(result, equal_to(0.5))

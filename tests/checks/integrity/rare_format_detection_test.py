@@ -101,3 +101,21 @@ def test_runs_on_mixed():
     c = RareFormatDetection()
     res = c.run(dataset=Dataset(df))
     assert_that(res.value['mixed'].loc['ratio of rare samples'].values[0], equal_to('1.00% (1)'))
+
+
+def test_nan():
+    df = pd.DataFrame(np.ones((101, 1)) * 11111, columns=['mixed'])
+    df.iloc[0, 0] = np.nan
+    df.iloc[1, 0] = 'aaaaaaa'
+    c = RareFormatDetection()
+    res = c.run(dataset=Dataset(df))
+    assert_that(res.value['mixed'].loc['ratio of rare samples'].values[0], equal_to('1.00% (1)'))
+
+
+def test_mostly_nan():
+    df = pd.DataFrame([np.nan] * 100, columns=['mixed'])
+    df.iloc[0, 0] = 'aaaaa'
+    c = RareFormatDetection()
+    res = c.run(dataset=Dataset(df))
+    assert_that(res.value.get('mixed'), not_none())
+    assert_that('ratio of rare samples' not in res.value['mixed'])
