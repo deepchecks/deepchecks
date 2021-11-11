@@ -92,8 +92,10 @@ class CheckSuite(BaseCheck):
                                     f'TrainValidationBaseCheck or ModelOnlyBaseCheck. Got  {check.__class__.__name__} '
                                     f'instead')
             except MLChecksValueError as e:
-                logger.warning('Error when running %s check, with the following error message: \n%s',
+                logger.warning('MLChecks Error: Error when running %s check, with the following error message: \n%s',
                                str(check), str(e))
+            except Exception: # pylint: disable=broad-except
+                logger.error('Error when running the suite', exc_info=True)
             finally:
                 progress_bar.value = progress_bar.value + 1
 
