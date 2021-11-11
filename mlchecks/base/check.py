@@ -1,17 +1,25 @@
 """Module containing all the base classes for checks."""
+
+import typing as t
 import abc
 import re
-from typing import Any, Callable, List, Union
-
-__all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainValidationBaseCheck',
-           'ModelOnlyBaseCheck']
 
 import pandas as pd
 from IPython.core.display import display_html
 from matplotlib import pyplot as plt
 
+from mlchecks import base
 from mlchecks.string_utils import split_camel_case
-from mlchecks.utils import MLChecksValueError
+
+
+__all__ = [
+    "CheckResult",
+    "BaseCheck",
+    "SingleDatasetBaseCheck",
+    "CompareDatasetsBaseCheck",
+    "TrainValidationBaseCheck",
+    "ModelOnlyBaseCheck"
+]
 
 
 class CheckResult:
@@ -27,11 +35,18 @@ class CheckResult:
         display (Dict): Dictionary with formatters for display. possible formatters are: 'text/html', 'image/png'
     """
 
-    value: Any
-    header: str
-    display: List[Union[Callable, str, pd.DataFrame]]
+    value: t.Any
+    header: t.Optional[str]
+    check: t.Optional[t.Callable]
+    display: t.List[t.Union[t.Callable, str, pd.DataFrame]]
 
-    def __init__(self, value, header: str = None, check=None, display: Any = None):
+    def __init__(
+        self, 
+        value: t.Any, 
+        header: t.Optional[str] = None, 
+        check: t.Optional[t.Callable] = None, 
+        display: t.Optional[t.List[t.Union[t.Callable, str, pd.DataFrame]]] = None
+    ):
         """Init check result.
 
         Args:
@@ -42,61 +57,59 @@ class CheckResult:
             display (Callable): Function which is used for custom display.
         """
         self.value = value
-        self.header = header or (check and split_camel_case(check.__name__)) or None
+        self.header = header or (check and split_camel_case(check.__name__))
         self.check = check
 
-        if display is not None and not isinstance(display, List):
+        if display is not None and not isinstance(display, t.List):
             self.display = [display]
         else:
             self.display = display or []
 
         for item in self.display:
-            if not isinstance(item, (str, pd.DataFrame, Callable)):
-                raise MLChecksValueError(f'Can\'t display item of type: {type(item)}')
+            if not isinstance(item, (str, pd.DataFrame, t.Callable)):
+                raise TypeError(f"Can't display item of type: {type(item)}")
 
     def _ipython_display_(self):
         if self.header:
-            display_html(f'<h4>{self.header}</h4>', raw=True)
-        if self.check and '__doc__' in dir(self.check):
-            docs = self.check.__doc__
+            display_html(f"<h4>{self.header}</h4>", raw=True)
+        
+        if self.check is not None and hasattr(self.check, "__doc__"):
+            docs = self.check.__doc__ or ""
             # Take first non-whitespace line.
-            summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
-            display_html(f'<p>{summary}</p>', raw=True)
+            lines = (s for s in docs.split("\n") if not re.match("^\\s*$", s))
+            summary = next(lines, "")
+            display_html(f"<p>{summary}</p>", raw=True)
 
         for item in self.display:
             if isinstance(item, pd.DataFrame):
                 # Align everything to the left
                 df_styler = item.style
-                df_styler.set_table_styles([dict(selector='th,td', props=[('text-align', 'left')])])
+                df_styler.set_table_styles([dict(selector="th,td", props=[("text-align", "left")])])
                 display_html(df_styler.render(), raw=True)
             elif isinstance(item, str):
                 display_html(item, raw=True)
-            elif isinstance(item, Callable):
+            elif isinstance(item, t.Callable):
                 item()
                 plt.show()
             else:
-                raise Exception(f'Unable to display item of type: {type(item)}')
+                raise TypeError(f"Unable to display item of type: {type(item)}")
+        
         if not self.display:
-            display_html('<p><b>&#x2713;</b> Nothing found</p>', raw=True)
+            display_html("<p><b>&#x2713;</b> Nothing found</p>", raw=True)
 
-    def __repr__(self):
-        """Return default __repr__ function uses value."""
-        return self.value.__repr__()
+    def __repr__(self) -> str:
+        return repr(self.value)
 
 
-class BaseCheck(metaclass=abc.ABCMeta):
+class BaseCheck(abc.ABC):
     """Base class for check."""
-
-    def __repr__(self):
-        """Representation of check as string."""
-        return f'{self.__class__.__name__}'
 
 
 class SingleDatasetBaseCheck(BaseCheck):
     """Parent class for checks that only use one dataset."""
 
     @abc.abstractmethod
-    def run(self, dataset, model=None) -> CheckResult:
+    def run(self, dataset: "base.Dataset", model: object = None) -> CheckResult:
         """Define run signature."""
         pass
 
@@ -105,7 +118,7 @@ class CompareDatasetsBaseCheck(BaseCheck):
     """Parent class for checks that compare between two datasets."""
 
     @abc.abstractmethod
-    def run(self, dataset, baseline_dataset, model=None) -> CheckResult:
+    def run(self, dataset: "base.Dataset", baseline_dataset: "base.Dataset", model: object = None) -> CheckResult:
         """Define run signature."""
         pass
 
@@ -117,7 +130,12 @@ class TrainValidationBaseCheck(BaseCheck):
     """
 
     @abc.abstractmethod
-    def run(self, train_dataset, validation_dataset, model=None) -> CheckResult:
+    def run(
+        self, 
+        train_dataset: "base.Dataset", 
+        validation_dataset: "base.Dataset", 
+        model: object = None
+    ) -> CheckResult:
         """Define run signature."""
         pass
 
@@ -126,7 +144,7 @@ class ModelOnlyBaseCheck(BaseCheck):
     """Parent class for checks that only use a model and no datasets."""
 
     @abc.abstractmethod
-    def run(self, model) -> CheckResult:
+    def run(self, model: object) -> CheckResult:
         """Define run signature."""
         pass
 

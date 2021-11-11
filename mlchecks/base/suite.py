@@ -1,93 +1,118 @@
 """Module containing the Suite object, used for running a set of checks together."""
-from typing import List
+import typing as t
 
 from IPython.core.display import display_html, display
 from ipywidgets import IntProgress, HTML, VBox
 
-from mlchecks.base.check import BaseCheck, CheckResult, TrainValidationBaseCheck, CompareDatasetsBaseCheck, \
-    SingleDatasetBaseCheck, ModelOnlyBaseCheck
-
-__all__ = ['CheckSuite']
-
-from mlchecks.utils import MLChecksValueError, is_notebook
+from mlchecks import base
+from mlchecks import utils
 
 
-class CheckSuite(BaseCheck):
+__all__ = ["CheckSuite"]
+
+
+CheckPolicy = t.Union[t.Literal["both"], t.Literal["train"], t.Literal["validation"]]
+
+
+class CheckSuite(base.BaseCheck):
     """Class for running a set of checks together, and returning a unified pass / no-pass.
 
     Attributes:
         checks: A list of checks to run.
     """
 
-    checks: List[BaseCheck]
+    checks: t.List[base.BaseCheck]
     name: str
 
-    def __init__(self, name, *checks):
+    def __init__(self, name: str, *checks: base.BaseCheck):
         """Get `Check`s and `CheckSuite`s to run in given order."""
         super().__init__()
-        for check in checks:
-            if not isinstance(check, BaseCheck):
-                raise Exception(f'CheckSuite receives only `BaseCheck` objects but got: {check.__class__.__name__}')
-        self.checks = checks
+        
         self.name = name
+        self.checks = []
 
-    def run(self, model=None, train_dataset=None, validation_dataset=None, check_datasets_policy: str = 'validation') \
-            -> List[CheckResult]:
+        for c in checks:
+            if not isinstance(c, base.BaseCheck):
+                raise TypeError(f"CheckSuite receives only `BaseCheck` objects but got: {type(c)}")
+            if isinstance(c, CheckSuite):
+                self.checks.extend(c.checks)
+            else:
+                self.checks.append(c)
+
+    def run(
+        self, 
+        train_dataset: t.Optional[base.Dataset] = None, 
+        validation_dataset: t.Optional[base.Dataset] = None, 
+        model: object = None, 
+        check_datasets_policy: CheckPolicy = "validation"
+    ) -> base.CheckResult:
         """Run all checks.
 
         Args:
-          model: A scikit-learn-compatible fitted estimator instance
-          train_dataset: Dataset object, representing data an estimator was fitted on
-          validation_dataset: Dataset object, representing data an estimator predicts on
-          check_datasets_policy: str, one of either ['both', 'train', 'validation'].
-                                 Determines the policy by which single dataset checks are run when two datasets are
-                                 given, one for train and the other for validation.
+            model: A scikit-learn-compatible fitted estimator instance
+            train_dataset: Dataset object, representing data an estimator was fitted on
+            validation_dataset: Dataset object, representing data an estimator predicts on
+            check_datasets_policy: Union[Literal["both"], Literal["train"], Literal["validation"]],
+                                    Determines the policy by which single dataset checks are run when two datasets are
+                                    given, one for train and the other for validation.
 
         Returns:
-          List[CheckResult] - All results by all initialized checks
+            List[CheckResult] - All results by all initialized checks
 
         Raises:
-             ValueError if check_datasets_policy is not of allowed types
+            TypeError if check_datasets_policy is not of allowed types
         """
-        if check_datasets_policy not in ['both', 'train', 'validation']:
-            raise ValueError('check_datasets_policy must be one of ["both", "train", "validation"]')
+        if check_datasets_policy not in ["both", "train", "validation"]:
+            raise TypeError(f"check_datasets_policy must be one of {repr(CheckPolicy)}")
 
         # Create progress bar
         progress_bar = IntProgress(value=0, min=0, max=len(self.checks),
-                                   bar_style='info', style={'bar_color': '#9d60fb'}, orientation='horizontal')
+                                   bar_style="info", style={"bar_color": "#9d60fb"}, orientation="horizontal")
+        
         label = HTML()
         box = VBox(children=[label, progress_bar])
         self._display_in_notebook(box)
 
         # Run all checks
         results = []
+        
         for check in self.checks:
-            label.value = f'Running {str(check)}'
-            if isinstance(check, TrainValidationBaseCheck):
-                results.append(check.run(train_dataset=train_dataset, validation_dataset=validation_dataset,
-                                         model=model))
-            elif isinstance(check, CompareDatasetsBaseCheck):
-                results.append(check.run(dataset=validation_dataset, baseline_dataset=train_dataset, model=model))
-            elif isinstance(check, SingleDatasetBaseCheck):
-                if check_datasets_policy in ['both', 'train'] and train_dataset is not None:
-                    res = check.run(dataset=train_dataset, model=model)
-                    res.header = f'{res.header} - Train Dataset'
-                    results.append(res)
-                if check_datasets_policy in ['both', 'validation'] and validation_dataset is not None:
-                    res = check.run(dataset=validation_dataset, model=model)
-                    res.header = f'{res.header} - Validation Dataset'
-                    results.append(res)
-            elif isinstance(check, ModelOnlyBaseCheck):
+            label.value = f"Running {str(check)}"
+
+            if train_dataset is not None and validation_dataset is not None:
+                if isinstance(check, base.TrainValidationBaseCheck):
+                    results.append(check.run(
+                        train_dataset=train_dataset, 
+                        validation_dataset=validation_dataset, 
+                        model=model
+                    ))
+                elif isinstance(check, base.CompareDatasetsBaseCheck):
+                    results.append(check.run(
+                        dataset=validation_dataset, 
+                        baseline_dataset=train_dataset, 
+                        model=model
+                    ))
+            
+            elif isinstance(check, base.SingleDatasetBaseCheck):
+                if check_datasets_policy in {"both", "train"} and train_dataset is not None:
+                    check_result = check.run(dataset=train_dataset, model=model)
+                    check_result.header = f"{check_result.header} - Train Dataset"
+                    results.append(check_result)
+                if check_datasets_policy in {"both", "validation"} and validation_dataset is not None:
+                    check_result = check.run(dataset=validation_dataset, model=model)
+                    check_result.header = f"{check_result.header} - Validation Dataset"
+                    results.append(check_result)
+            
+            elif isinstance(check, base.ModelOnlyBaseCheck):
                 results.append(check.run(model=model))
-            elif isinstance(check, CheckSuite):
-                suite_res = check.run(model, train_dataset, validation_dataset, check_datasets_policy)
-                if check.name in results:
-                    raise MLChecksValueError('Each suite must have a unique name')
-                results.append(suite_res)
+            
             else:
-                raise TypeError(f'Expected check of type SingleDatasetBaseCheck, CompareDatasetsBaseCheck, '
-                                f'TrainValidationBaseCheck or ModelOnlyBaseCheck. Got  {check.__class__.__name__} '
-                                f'instead')
+                raise TypeError(
+                    "Expected check of type SingleDatasetBaseCheck, CompareDatasetsBaseCheck, "
+                    f"TrainValidationBaseCheck or ModelOnlyBaseCheck. Got {check.__class__.__name__} "
+                    "instead"
+                )
+            
             progress_bar.value = progress_bar.value + 1
 
         progress_bar.close()
@@ -95,19 +120,18 @@ class CheckSuite(BaseCheck):
         box.close()
 
         def display_suite():
-            display_html(f'<h3>{self.name}</h3>', raw=True)
+            display_html(f"<h3>{self.name}</h3>", raw=True)
             for result in results:
                 # Disable protected access warning
                 #pylint: disable=protected-access
                 result._ipython_display_()
 
-        return CheckResult(results, display=display_suite)
+        return base.CheckResult(results, display=display_suite)
 
     def __repr__(self):
-        """Representation of suite as string."""
-        checks_str = ','.join([str(c) for c in self.checks])
-        return f'{self.name} [{checks_str}]'
+        checks_str = ",".join([str(c) for c in self.checks])
+        return f"{self.name} [{checks_str}]"
 
     def _display_in_notebook(self, param):
-        if is_notebook():
+        if utils.is_notebook():
             display(param)
