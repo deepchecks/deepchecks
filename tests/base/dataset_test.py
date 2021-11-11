@@ -1,4 +1,6 @@
 """Contains unit tests for the Dataset class."""
+from unittest import TestCase
+
 import numpy as np
 import pandas as pd
 
@@ -425,18 +427,27 @@ def test_ensure_dataframe_type_fail():
                 raises(MLChecksValueError, 'dataset must be of type DataFrame or Dataset, but got: str'))
 
 
-def test_invalid_label():
-    valid_label_df = pd.DataFrame(np.array([1, 1, 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
-    Dataset(valid_label_df, label='label')
+class TestLabel(TestCase):
+    """Unittest class for invalid labels"""
 
-    string_label_df = pd.DataFrame(np.array(['a', 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
-    args = {'df': string_label_df,
-            'label': 'label'}
-    assert_that(calling(Dataset).with_args(**args),
-                raises(MLChecksValueError, 'String labels are not supported'))
+    def test_invalid_label(self):
+        valid_label_df = pd.DataFrame(np.array([1, 1, 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
+        Dataset(valid_label_df, label='label')
 
-    null_label_df = pd.DataFrame(np.array([np.nan, 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
-    args = {'df': null_label_df,
-            'label': 'label'}
-    assert_that(calling(Dataset).with_args(**args),
-                raises(MLChecksValueError, 'Can\'t have null values in label column'))
+        string_label_df = pd.DataFrame(np.array(['a', 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
+        args = {'df': string_label_df,
+                'label': 'label'}
+        with self.assertLogs() as captured:
+            Dataset(**args)
+        self.assertEqual(len(captured.records), 1)  # check that there is only one log message
+        self.assertEqual(captured.records[0].getMessage(),
+                         'String labels are not supported')  # and it is the proper one
+
+        null_label_df = pd.DataFrame(np.array([np.nan, 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
+        args = {'df': null_label_df,
+                'label': 'label'}
+        with self.assertLogs() as captured:
+            Dataset(**args)
+        self.assertEqual(len(captured.records), 1)  # check that there is only one log message
+        self.assertEqual(captured.records[0].getMessage(),
+                         'Can\'t have null values in label column')  # and it is the proper one
