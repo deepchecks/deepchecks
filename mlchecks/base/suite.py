@@ -12,7 +12,7 @@ __all__ = ['CheckSuite']
 
 from mlchecks.utils import MLChecksValueError, is_notebook
 
-logger = logging.getLogger("mlchecks.suite")
+logger = logging.getLogger('mlchecks.suite')
 
 class CheckSuite(BaseCheck):
     """Class for running a set of checks together, and returning a unified pass / no-pass.
@@ -92,7 +92,8 @@ class CheckSuite(BaseCheck):
                                     f'TrainValidationBaseCheck or ModelOnlyBaseCheck. Got  {check.__class__.__name__} '
                                     f'instead')
             except MLChecksValueError as e:
-                logger.warning(f'Error when running {str(check)} check, with the following error message: \n{str(e)}')
+                logger.warning('Error when running %s check, with the following error message: \n%s',
+                               str(check), str(e))
             finally:
                 progress_bar.value = progress_bar.value + 1
 
