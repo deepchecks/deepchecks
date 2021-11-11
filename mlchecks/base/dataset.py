@@ -12,7 +12,7 @@ from mlchecks.string_utils import is_string_column
 __all__ = ['Dataset', 'ensure_dataframe_type']
 
 
-logger = logging.getLogger('mlchecks.suite')
+logger = logging.getLogger('mlchecks.dataset')
 
 
 class Dataset:
