@@ -1,21 +1,13 @@
 """Contains unit tests for the performance report check."""
+import re
 from typing import List
 
-from mlchecks import ConditionResult, ConditionCategory
+from mlchecks import ConditionResult
 from mlchecks.checks.performance import PerformanceReport
 from mlchecks.utils import MLChecksValueError
-from hamcrest import assert_that, calling, raises, close_to, has_entries, has_items, all_of, has_property, \
-    matches_regexp
+from hamcrest import assert_that, calling, raises, close_to, has_entries, has_items
 
-
-def equal_condition_result(is_pass: bool, details: str, name: str,
-                           category: ConditionCategory = ConditionCategory.FAIL):
-    return all_of(
-        has_property('is_pass', is_pass),
-        has_property('category', category),
-        has_property('details', matches_regexp(details)),
-        has_property('name', name)
-    )
+from tests.checks.utils import equal_condition_result
 
 
 def test_dataset_wrong_input():
@@ -53,34 +45,33 @@ def test_regression(diabetes, diabetes_model):
     result = check.run(validation, diabetes_model).value
     # Assert
     assert_that(result, has_entries({
-        'RMSE': close_to(50, 20),
-        'MSE': close_to(3200, 1000),
+        'RMSE': close_to(-50, 20),
+        'MSE': close_to(-3200, 1000),
     }))
 
 
 def test_condition_min_score_not_passed(diabetes, diabetes_model):
     # Arrange
     _, validation = diabetes
-    check = PerformanceReport().add_condition_min_score(-100)
+    check = PerformanceReport().add_condition_score_not_less_than(-100)
     # Act X
     result: List[ConditionResult] = check.conditions_decision(check.run(validation, diabetes_model))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Metric scores that don\'t pass: {\'MSE\':',
-                               name='Metric score is above -100')
+                               details=re.compile('Metrics with lower score: \\{\'MSE\':'),
+                               name='Metrics score is not less than -100')
     ))
 
 
 def test_condition_min_score_passed(diabetes, diabetes_model):
     # Arrange
     _, validation = diabetes
-    check = PerformanceReport().add_condition_min_score(-5_000)
+    check = PerformanceReport().add_condition_score_not_less_than(-5_000)
     # Act X
     result: List[ConditionResult] = check.conditions_decision(check.run(validation, diabetes_model))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details='',
-                               name='Metric score is above -5000')
+                               name='Metrics score is not less than -5000')
     ))

@@ -1,13 +1,28 @@
 """String mismatch functions."""
+from collections import defaultdict
 from typing import Union, Iterable
 
 import pandas as pd
 
-from mlchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_dataframe_type
+from mlchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_dataframe_type, ConditionResult, \
+    ConditionCategory
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
-from mlchecks.string_utils import get_base_form_to_variants_dict, is_string_column, format_percent
+from mlchecks.string_utils import get_base_form_to_variants_dict, is_string_column, format_percent, \
+    format_columns_for_condition
 
 __all__ = ['StringMismatch']
+
+
+def _condition_variants_number(result, num_max_variants: int):
+    not_passing_variants = defaultdict(list)
+    for col, baseforms in result.items():
+        for base_form, variants_list in baseforms.items():
+            if len(variants_list) > num_max_variants:
+                not_passing_variants[col].append(base_form)
+    if not_passing_variants:
+        details = f'Found columns with variants: {dict(not_passing_variants)}'
+        return ConditionResult(False, details, ConditionCategory.WARN)
+    return ConditionResult(True)
 
 
 class StringMismatch(SingleDatasetBaseCheck):
@@ -41,6 +56,7 @@ class StringMismatch(SingleDatasetBaseCheck):
         dataset = filter_columns_with_validation(dataset, self.columns, self.ignore_columns)
 
         results = []
+        result_dict = defaultdict(dict)
 
         for column_name in dataset.columns:
             column: pd.Series = dataset[column_name]
@@ -52,17 +68,59 @@ class StringMismatch(SingleDatasetBaseCheck):
             for base_form, variants in base_form_to_variants.items():
                 if len(variants) == 1:
                     continue
+                result_dict[column_name][base_form] = []
                 for variant in variants:
                     count = sum(column == variant)
-                    results.append([column_name, base_form, variant, count, format_percent(count / dataset.size)])
+                    percent = count / len(column)
+                    results.append([column_name, base_form, variant, count, format_percent(percent)])
+                    result_dict[column_name][base_form].append({
+                        'variant': variant, 'count': count, 'percent': percent
+                    })
 
         # Create dataframe to display graph
         df_graph = pd.DataFrame(results, columns=['Column Name', 'Base form', 'Value', 'Count', '% In data'])
         df_graph = df_graph.set_index(['Column Name', 'Base form'])
 
-        if len(df_graph) > 0:
-            display = df_graph
-        else:
-            display = None
+        display = df_graph if len(df_graph) > 0 else None
 
-        return CheckResult(df_graph, check=self.__class__, display=display)
+        return CheckResult(result_dict, check=self.__class__, display=display)
+
+    def add_condition_not_more_variants_than(self, num_max_variants: int):
+        """Add condition - no more than given number of variants are allowed (per string baseform).
+
+        Args:
+            num_max_variants (int): Maximum number of variants allowed.
+        """
+        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
+        name = f'Not more than {num_max_variants} string variants for {column_names}'
+        return self.add_condition(name, _condition_variants_number, num_max_variants=num_max_variants)
+
+    def add_condition_no_variants(self):
+        """Add condition - no variants are allowed."""
+        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
+        name = f'No string variants for {column_names}'
+        return self.add_condition(name, _condition_variants_number, num_max_variants=0)
+
+    def add_condition_ratio_variants_not_more_than(self, max_ratio: float = 0.01):
+        """Add condition - percentage of variants in data is not allowed above given threshold.
+
+        Args:
+            max_ratio (float): Maximum percent of variants allowed in data.
+        """
+        def condition(result, max_ratio: float):
+            not_passing_columns = {}
+            for col, baseforms in result.items():
+                variants_percent_sum = 0
+                for variants_list in baseforms.values():
+                    variants_percent_sum += sum([v['percent'] for v in variants_list])
+                if variants_percent_sum > max_ratio:
+                    not_passing_columns[col] = format_percent(variants_percent_sum)
+
+            if not_passing_columns:
+                details = f'Found columns with variants ratio: {not_passing_columns}'
+                return ConditionResult(False, details)
+            return ConditionResult(True)
+
+        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
+        name = f'Not more than {format_percent(max_ratio)} variants for {column_names}'
+        return self.add_condition(name, condition, max_ratio=max_ratio)

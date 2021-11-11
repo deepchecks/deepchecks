@@ -29,22 +29,36 @@ class SuiteResult:
     def _ipython_display_(self, only_summary=False):
         display_html(f'<h2>{self.name}</h2>', raw=True)
         conditions_table = []
+        checks_without_condition_table = []
         errors_table = []
+
         for result in self.results:
             if isinstance(result, CheckResult):
-                for cond_result in result.conditions_results:
-                    sort_value, icon = cond_result.get_status()
-                    conditions_table.append([icon, result.header, cond_result.name,
-                                             cond_result.details, sort_value])
+                if result.have_conditions():
+                    for cond_result in result.conditions_results:
+                        sort_value = cond_result.get_sort_value()
+                        icon = cond_result.get_icon()
+                        conditions_table.append([icon, result.header, cond_result.name,
+                                                 cond_result.details, sort_value])
+                else:
+                    checks_without_condition_table.append([result.header])
             elif isinstance(result, Tuple):
                 errors_table.append(result)
 
         # First print summary
         if conditions_table:
             display_html('<h3>Conditions Summary</h3>', raw=True)
-            table = pd.DataFrame(data=conditions_table, columns=['Pass?', 'Check', 'Condition', 'More Info', 'sort'])
+            table = pd.DataFrame(data=conditions_table, columns=['Status', 'Check', 'Condition', 'More Info', 'sort'])
             table.sort_values(by=['sort'], inplace=True)
             table.drop('sort', axis=1, inplace=True)
+            SuiteResult._display_table(table)
+        if checks_without_condition_table:
+            display_html('<h3>Other Checks Summary (no conditions defined)</h3>', raw=True)
+            table = pd.DataFrame(data=checks_without_condition_table, columns=['Check'])
+            SuiteResult._display_table(table)
+        if errors_table:
+            display_html('<h3>Checks that raised an error during run</h3>', raw=True)
+            table = pd.DataFrame(data=errors_table, columns=['Check', 'Error'])
             SuiteResult._display_table(table)
         # If verbose print all displays
         if not only_summary:
@@ -57,7 +71,7 @@ class SuiteResult:
 
             if checks_not_passed:
                 display_html('<h3>Checks that didn\'t pass condition</h3>', raw=True)
-                for result in checks_not_passed:
+                for result in sorted(checks_not_passed, key=lambda x: x.get_conditions_sort_value()):
                     result._ipython_display_()
             if checks_without_condition:
                 display_html('<h3>Checks without condition</h3>', raw=True)
@@ -71,10 +85,10 @@ class SuiteResult:
                 display_html('<h3>Checks with nothing found</h3>', raw=True)
                 table = pd.DataFrame(data={'Check': checks_empty})
                 SuiteResult._display_table(table)
-        if errors_table:
-            display_html('<h3>Checks that raised an error during run</h3>', raw=True)
-            table = pd.DataFrame(data=errors_table, columns=['Check', 'Error'])
-            SuiteResult._display_table(table)
+
+        # TODO remove after flattening
+        # pylint: disable=expression-not-assigned
+        [x._ipython_display_(only_summary) for x in self.results if isinstance(x, SuiteResult)]
 
     @classmethod
     def _display_table(cls, df):
