@@ -6,7 +6,7 @@ import sys
 import pprint
 
 from mlchecks import CheckSuite
-from mlchecks.suites import OverallGenericCheckSuite
+from mlchecks.suites import OverallCheckSuite
 from mlchecks.base import Dataset
 import pandas as pd
 import json
@@ -56,7 +56,7 @@ if __name__ == "__main__":
             run_time[dataset][model_name] = {}
             error_log[dataset][model_name] = {}
             print(f'Running dataset {dataset} model {model_name}')
-            for check in OverallGenericCheckSuite.checks:
+            for check in OverallCheckSuite.checks:
                 start_t = time.time()
                 # Run check as suite so that MLChecksValueError are not captured as errors
                 suite_of_check_to_run = CheckSuite('Test suite', check)
