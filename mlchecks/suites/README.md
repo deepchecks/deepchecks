@@ -15,7 +15,7 @@
 
   - SingleDatasetIntegrityCheckSuite - for a single dataset / dataframe
   - ComparativeIntegrityCheckSuite - comparing two datasets / dataframes
-  - IntegrityCheckSuite
+  - IntegrityCheckSuite - includes both check types 
 
 [**Leakage Suites**](./leakage_suite.py)
   - IndexLeakageCheckSuite - for datasets with an index column
@@ -57,7 +57,7 @@ MyModelSuite = CheckSuite('Simple Suite For Model Performance',
     TrainValidationDifferenceOverfit(),
     ConfusionMatrixReport(),
     NaiveModelComparision(),
-    NaiveModelComparision(native_model_type='statistical')
+    NaiveModelComparision(naive_model_type='statistical')
 )
 ```
 Then run with required input parameters (datasets and models)

@@ -84,10 +84,6 @@ class SegmentPerformance(SingleDatasetBaseCheck):
 
         def display(feat1=self.feature_1, feat2=self.feature_2):
             ax: Axes
-            plt.rcParams['font.family'] = 'sans-serif'
-            plt.rcParams['font.sans-serif'] = ['Tahoma']
-            plt.rcParams['font.monospace'] = 'Ubuntu Mono'
-
             _, ax = plt.subplots(1, 1, figsize=(10, 7))
             im = ax.imshow(np.array(scores, dtype=float), cmap='RdYlGn')
 

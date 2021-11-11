@@ -16,7 +16,7 @@ def assert_dataset(dataset: Dataset, args):
         if 'df' in args:
             assert_that(dataset.features_columns().equals(args['df'][args['features']]), is_(True))
     if 'cat_features' in args:
-        assert_that(dataset.cat_features(), equal_to(args['cat_features']))
+        assert_that(dataset.cat_features, equal_to(args['cat_features']))
     if 'label' in args:
         assert_that(dataset.label_name(), equal_to(args['label']))
         assert_that(dataset.label_col().equals(pd.Series(args['df'][args['label']])), is_(True))
@@ -122,7 +122,7 @@ def test_dataset_infer_cat_features(diabetes_df):
                          's6']}
 
     dataset = Dataset(**args)
-    args['cat_features'] = ['age', 'sex', 'bp', 's3', 's4', 's6']
+    args['cat_features'] = ['sex']
     assert_dataset(dataset, args)
 
 
@@ -138,10 +138,11 @@ def test_dataset_infer_cat_features_max_categoreis(diabetes_df):
                          's4',
                          's5',
                          's6'],
-            'max_categories': 10}
+            'max_categories': 60,
+            'max_float_categories': 60}
 
     dataset = Dataset(**args)
-    args['cat_features'] = ['sex']
+    args['cat_features'] = ['age', 'sex', 's6']
     assert_dataset(dataset, args)
 
 
@@ -161,7 +162,7 @@ def test_dataset_infer_cat_features_max_categorical_ratio(diabetes_df):
             'max_categorical_ratio': 0.13}
 
     dataset = Dataset(**args)
-    args['cat_features'] = ['sex', 's6']
+    args['cat_features'] = ['sex']
     assert_dataset(dataset, args)
 
 

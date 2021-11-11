@@ -83,8 +83,8 @@ help:
 	@echo "test -      TEST_RUNNER on '$(TESTDIR)'"
 	@echo "            args=\"<pytest Arguements>\"  optional arguments"
 	@echo "coverage -  Get coverage information, optional 'args' like test\n"
-	@echo "jupyter - Deploy jupyer-notebook using './notebook' directory
-	@echo "					 args=\"<jupyter Arguments\" -passable"\n"
+	@echo "jupyter - Deploy jupyer-notebook using './notebook' directory"
+	@echo "					 args=\"<jupyter Arguments\" -passable\n"
 	@echo "tox      -  Test against multiple versions of python as defined in tox.ini"
 	@echo "clean | clean-all -  Clean up | clean up & removing virtualenv"
 
@@ -133,8 +133,7 @@ notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 # as the only time you'll need to run make is in dev mode, we're installing
 # mlchecks in development mode
 	$(PIP) install --no-deps -e .
-	$(PIP) install catboost
-	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_DIR) --sanitize-with $(NOTEBOOK_SANITIZER_FILE)
+	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_DIR) --sanitize-with $(NOTEBOOK_SANITIZER_FILE) -v
 
 $(TEST_RUNNER):
 	$(PIP) install $(TEST_RUNNER_PKGS) | tee -a $(REQUIREMENTS_LOG)
@@ -270,4 +269,4 @@ download:
 
 jupyter: 
 	$(PIP) install jupyter
-	jupyter-notebook $(args) --notebook-dir=$(NOTEBOOK_DIR)
+	$(BIN)/jupyter-notebook $(args) --notebook-dir=$(NOTEBOOK_DIR)
