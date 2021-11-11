@@ -6,7 +6,7 @@ from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, TrainValidationBaseCheck
 from mlchecks.string_utils import format_percent
 
-
+import numpy as np
 import pandas as pd
 
 pd.options.mode.chained_assignment = None
@@ -44,14 +44,14 @@ def get_dup_txt(i: int, dup_map: Dict) -> str:
     """
     val = dup_map.get(i)
     if not val:
-        return i
+        return str(i)
     txt = f'{i}, '
     for j in val:
         txt += f'{j}, '
     txt = txt[:-2]
-    if len(txt) < 5:
+    if len(txt) < 30:
         return txt
-    return f'{txt[:5]}.. Tot. {(1 + len(val))}'
+    return f'{txt[:30]}.. Tot. {(1 + len(val))}'
 
 
 class DataSampleLeakageReport(TrainValidationBaseCheck):
@@ -97,13 +97,20 @@ class DataSampleLeakageReport(TrainValidationBaseCheck):
         duplicate_rows_df = appended_df[appended_df.duplicated(columns, keep=False)]
         duplicate_rows_df.sort_values(columns, inplace=True)
 
-        count_dups = 0
+        count_val_array = np.zeros((duplicate_rows_df.shape[0],))
+        idx_in_array = 0
         for index in duplicate_rows_df.index:
-            if index.startswith('Train'):
+            if index.startswith('Validation'):
                 if not 'Tot.' in index:
-                    count_dups += len(index.split(','))
+                    count_val_array[idx_in_array] = len(index.split(','))
                 else:
-                    count_dups += int(re.findall(r'Tot. (\d+)', index)[0])
+                    count_val_array[idx_in_array] = int(re.findall(r'Tot. (\d+)', index)[0])
+                count_val_array[idx_in_array + 1] = count_val_array[idx_in_array]
+                idx_in_array += 2
+
+        duplicate_rows_df = duplicate_rows_df.iloc[np.flip(count_val_array.argsort()), :]
+
+        count_dups = count_val_array.sum() // 2
 
         dup_ratio = count_dups / len(val_f)
         user_msg = f'{format_percent(dup_ratio)} ({count_dups} / {len(val_f)}) \
