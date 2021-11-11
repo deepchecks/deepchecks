@@ -126,6 +126,5 @@ def column_importance_sorter_df(df: pd.DataFrame, ds: Dataset, feature_importanc
             df = df.sort_values(by=[col], key=key)
         df = df.sort_index(key=key)
     if n_top:
-        print(n_top)
         return df.head(n_top)
     return df

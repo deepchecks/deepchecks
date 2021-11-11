@@ -91,6 +91,7 @@ class MixedNulls(SingleDatasetBaseCheck):
              which have more than 1 null values.
         """
         # Validate parameters
+        original_dataset = dataset
         dataset: pd.DataFrame = ensure_dataframe_type(dataset)
         dataset = filter_columns_with_validation(dataset, self.columns, self.ignore_columns)
         null_string_list: set = self._validate_null_string_list(self.null_string_list, self.check_nan)
@@ -117,7 +118,7 @@ class MixedNulls(SingleDatasetBaseCheck):
         # Create dataframe to display graph
         df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percent of data'])
         df_graph = df_graph.set_index(['Column Name', 'Value'])
-        df_graph = column_importance_sorter_df(df_graph, dataset, feature_importances,
+        df_graph = column_importance_sorter_df(df_graph, original_dataset, feature_importances,
                                                self.n_top_columns, col='Column Name')
 
         if len(df_graph) > 0:

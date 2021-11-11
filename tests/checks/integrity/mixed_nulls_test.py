@@ -2,7 +2,8 @@
 import numpy as np
 import pandas as pd
 
-from hamcrest import assert_that, has_length
+from hamcrest import assert_that, has_length, equal_to
+from mlchecks.base import Dataset
 
 from mlchecks.checks.integrity.mixed_nulls import MixedNulls
 
@@ -145,3 +146,21 @@ def test_dataset_2_columns_single_nulls():
     result = MixedNulls().run(dataframe)
     # Assert - Single null is allowed so still empty return
     assert_that(result.value, has_length(0))
+
+def test_fi_n_top(diabetes_split_dataset_and_model):
+    train, _, clf = diabetes_split_dataset_and_model
+    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
+    train.data.loc[train.data.index % 4 == 0, 'age'] = 'Nan'
+    train.data.loc[train.data.index % 4 == 1, 'age'] = 'null'
+    train.data.loc[train.data.index % 4 == 0, 'bmi'] = 'Nan'
+    train.data.loc[train.data.index % 4 == 1, 'bmi'] = 'null'
+    train.data.loc[train.data.index % 4 == 0, 'bp'] = 'Nan'
+    train.data.loc[train.data.index % 4 == 1, 'bp'] = 'null'
+    train.data.loc[train.data.index % 4 == 0, 's1'] = 'Nan'
+    train.data.loc[train.data.index % 4 == 1, 's1'] = 'null'
+    # Arrange
+    check = MixedNulls(n_top_columns=3)
+    # Act
+    result_ds = check.run(train, clf).value
+    # Assert
+    assert_that(len(result_ds), equal_to(3))
