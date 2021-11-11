@@ -428,6 +428,7 @@ def test_ensure_dataframe_type_fail():
 
 
 class TestLabel(TestCase):
+    """Unittest class for invalid labels"""
 
     def test_invalid_label(self):
         valid_label_df = pd.DataFrame(np.array([1, 1, 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
