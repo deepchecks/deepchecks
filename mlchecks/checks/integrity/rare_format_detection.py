@@ -58,6 +58,9 @@ class Pattern:
         is_format_more_than_just_repeating_substr = fmt.count(fmt[0]) != len(fmt)
         return is_substr_in_format and is_format_more_than_just_repeating_substr
 
+    def __repr__(self):
+        return f'Pattern({self.name})'
+
 
 DEFAULT_PATTERNS = [
     Pattern(name='digits and letters format (case sensitive)',

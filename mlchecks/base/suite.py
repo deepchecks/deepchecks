@@ -12,7 +12,7 @@ from mlchecks.base.check import BaseCheck, CheckResult, TrainValidationBaseCheck
 
 __all__ = ['CheckSuite', 'SuiteResult']
 
-from mlchecks.utils import is_notebook
+from mlchecks.utils import is_notebook, MLChecksValueError
 
 
 class SuiteResult:
@@ -86,10 +86,6 @@ class SuiteResult:
                 table = pd.DataFrame(data={'Check': checks_empty})
                 SuiteResult._display_table(table)
 
-        # TODO remove after flattening
-        # pylint: disable=expression-not-assigned
-        [x._ipython_display_(only_summary) for x in self.results if isinstance(x, SuiteResult)]
-
     @classmethod
     def _display_table(cls, df):
         df_styler = df.style
@@ -107,25 +103,16 @@ class CheckSuite(BaseCheck):
 
     checks: OrderedDict
     name: str
+    _check_index: int
 
     def __init__(self, name: str, *checks):
         """Get `Check`s and `CheckSuite`s to run in given order."""
         super().__init__()
         self.name = name
         self.checks = OrderedDict()
-
+        self._check_index = 0
         for check in checks:
-            if not isinstance(check, BaseCheck):
-                raise Exception(f'CheckSuite receives only `BaseCheck` objects but got: {check.__class__.__name__}')
-            if isinstance(check, CheckSuite):
-                self.checks[check.name] = check
-            else:
-                # Check if there are already checks of the same type
-                check_name = check.__class__.__name__
-                same_checks = len([c for c in self.checks.values() if isinstance(c, check.__class__)])
-                if same_checks:
-                    check_name = f'{check_name}_{same_checks + 1}'
-                self.checks[check_name] = check
+            self.add(check)
 
     def run(self, model=None, train_dataset=None, validation_dataset=None, check_datasets_policy: str = 'validation') \
             -> SuiteResult:
@@ -184,13 +171,8 @@ class CheckSuite(BaseCheck):
                     check_result = check.run(model=model)
                     check_result.set_condition_results(check.conditions_decision(check_result))
                     results.append(check_result)
-                elif isinstance(check, CheckSuite):
-                    suite_result = check.run(model, train_dataset, validation_dataset, check_datasets_policy)
-                    results.append(suite_result)
                 else:
-                    raise TypeError(f'Expected check of type SingleDatasetBaseCheck, CompareDatasetsBaseCheck, '
-                                    f'TrainValidationBaseCheck or ModelOnlyBaseCheck. Got  {check.__class__.__name__} '
-                                    f'instead')
+                    raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
             except Exception as exp:
                 results.append((name, exp))
             progress_bar.value = progress_bar.value + 1
@@ -204,12 +186,31 @@ class CheckSuite(BaseCheck):
     def __repr__(self, tabs=0):
         """Representation of suite as string."""
         tabs_str = '\t' * tabs
-        checks_str = ''.join([f'\n{c.__repr__(tabs + 1, n)}' for n, c in self.checks.items()])
+        checks_str = ''.join([f'\n{c.__repr__(tabs + 1, str(n) + ": ")}' for n, c in self.checks.items()])
         return f'{tabs_str}{self.name}: [{checks_str}\n{tabs_str}]'
 
-    def __getitem__(self, item):
+    def __getitem__(self, index):
         """Access check inside the suite by name."""
-        return self.checks[item]
+        if index not in self.checks:
+            raise MLChecksValueError(f'No index {index} in suite')
+        return self.checks[index]
+
+    def add(self, check):
+        if not isinstance(check, BaseCheck):
+            raise Exception(f'CheckSuite receives only `BaseCheck` objects but got: {check.__class__.__name__}')
+        if isinstance(check, CheckSuite):
+            for c in check.checks.values():
+                self.add(c)
+        else:
+            self.checks[self._check_index] = check
+            self._check_index += 1
+        return self
+
+    def remove(self, index: int):
+        if index not in self.checks:
+            raise MLChecksValueError(f'No index {index} in suite')
+        self.checks.pop(index)
+        return self
 
     def _display_in_notebook(self, param):
         if is_notebook():

@@ -224,7 +224,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
         self._conditions_index += 1
         return self
 
-    def __repr__(self, tabs=0, replace_name=None):
+    def __repr__(self, tabs=0, prefix=''):
         """Representation of check as string.
 
         Args:
@@ -238,7 +238,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
         else:
             params_str = ''
 
-        name = replace_name or self.__class__.__name__
+        name = prefix + self.__class__.__name__
         check_str = f'{tab_chr * tabs}{name}{params_str}'
         if self._conditions:
             conditions_str = ''.join([f'\n{tab_chr * (tabs + 2)}{i}: {s.name}' for i, s in self._conditions.items()])
