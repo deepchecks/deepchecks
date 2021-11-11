@@ -92,7 +92,7 @@ class CheckSuite(BaseCheck):
                                     f'TrainValidationBaseCheck or ModelOnlyBaseCheck. Got  {check.__class__.__name__} '
                                     f'instead')
             except MLChecksValueError as e:
-                logger.warning(f'Error when running {str(check)} check')
+                logger.warning(f'Error when running {str(check)} check, with the following error message: \n{str(e)}')
             finally:
                 progress_bar.value = progress_bar.value + 1
 
