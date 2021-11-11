@@ -1,15 +1,21 @@
 """Module containing the Suite object, used for running a set of checks together."""
+import logging
 from typing import List
 
 from IPython.core.display import display_html, display
 from ipywidgets import IntProgress, HTML, VBox
 
-from mlchecks.base.check import BaseCheck, CheckResult, TrainValidationBaseCheck, CompareDatasetsBaseCheck, \
+from mlchecks.utils import MLChecksValueError, is_notebook
+from mlchecks.base.check import (
+    BaseCheck, CheckResult, TrainValidationBaseCheck, CompareDatasetsBaseCheck,
     SingleDatasetBaseCheck, ModelOnlyBaseCheck
+)
+
 
 __all__ = ['CheckSuite']
 
-from mlchecks.utils import is_notebook
+
+logger = logging.getLogger('mlchecks.suite')
 
 
 class CheckSuite(BaseCheck):
@@ -73,42 +79,60 @@ class CheckSuite(BaseCheck):
         # Run all checks
         results = []
         for check in self.checks:
+            try:
+                label.value = f'Running {str(check)}'
 
-            label.value = f'Running {str(check)}'
+                if train_dataset is not None and validation_dataset is not None:
+                    if isinstance(check, TrainValidationBaseCheck):
+                        results.append(check.run(
+                            train_dataset=train_dataset,
+                            validation_dataset=validation_dataset,
+                            model=model
+                        ))
+                    elif isinstance(check, CompareDatasetsBaseCheck):
+                        results.append(check.run(
+                            dataset=validation_dataset,
+                            baseline_dataset=train_dataset,
+                            model=model
+                        ))
 
-            if train_dataset is not None and validation_dataset is not None:
-                if isinstance(check, TrainValidationBaseCheck):
-                    results.append(check.run(
-                        train_dataset=train_dataset,
-                        validation_dataset=validation_dataset,
-                        model=model
-                    ))
-                elif isinstance(check, CompareDatasetsBaseCheck):
-                    results.append(check.run(
-                        dataset=validation_dataset,
-                        baseline_dataset=train_dataset,
-                        model=model
-                    ))
+                elif isinstance(check, SingleDatasetBaseCheck):
+                    if check_datasets_policy in {'both', 'train'} and train_dataset is not None:
+                        res = check.run(dataset=train_dataset, model=model)
+                        res.header = f'{res.header} - Train Dataset'
+                        results.append(res)
+                    if check_datasets_policy in {'both', 'validation'} and validation_dataset is not None:
+                        res = check.run(dataset=validation_dataset, model=model)
+                        res.header = f'{res.header} - Validation Dataset'
+                        results.append(res)
 
-            elif isinstance(check, SingleDatasetBaseCheck):
-                if check_datasets_policy in ['both', 'train'] and train_dataset is not None:
-                    res = check.run(dataset=train_dataset, model=model)
-                    res.header = f'{res.header} - Train Dataset'
-                    results.append(res)
-                if check_datasets_policy in ['both', 'validation'] and validation_dataset is not None:
-                    res = check.run(dataset=validation_dataset, model=model)
-                    res.header = f'{res.header} - Validation Dataset'
-                    results.append(res)
+                elif isinstance(check, ModelOnlyBaseCheck) and model is not None:
+                    results.append(check.run(model=model))
 
-            elif isinstance(check, ModelOnlyBaseCheck) and model is not None:
-                results.append(check.run(model=model))
+                else:
+                    raise TypeError(
+                        'Expected check of type SingleDatasetBaseCheck, CompareDatasetsBaseCheck, '
+                        f'TrainValidationBaseCheck or ModelOnlyBaseCheck. Got  {type(check)} '
+                        'instead'
+                    )
 
-            else:
-                raise TypeError('Expected check of type SingleDatasetBaseCheck, CompareDatasetsBaseCheck, '
-                                f'TrainValidationBaseCheck or ModelOnlyBaseCheck. Got  {check.__class__.__name__} '
-                                'instead')
+            except MLChecksValueError as e:
+                logger.warning(
+                    'MLChecks Error: Error when running %s check, '
+                    'with the following error message:\n %s',
+                    str(check),
+                    str(e)
+                )
 
-            progress_bar.value = progress_bar.value + 1
+            except Exception as e: # pylint: disable=broad-except
+                logger.error(
+                    'Error when running the suite, with the following error message:\n %s',
+                    str(e),
+                    exc_info=True
+                )
+
+            finally:
+                progress_bar.value = progress_bar.value + 1
 
         progress_bar.close()
         label.close()

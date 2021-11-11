@@ -37,6 +37,7 @@ def test_no_leakage(iris_clean):
     # Assert
     assert_that(result, equal_to(0))
 
+
 def test_leakage(iris_clean):
     x = iris_clean.data
     y = iris_clean.target
@@ -56,4 +57,4 @@ def test_leakage(iris_clean):
     # Act X
     result = check.run(validation_dataset=validation_dataset, train_dataset=train_dataset).value
     # Assert
-    assert_that(result, equal_to(0.12))
+    assert_that(result, equal_to(0.1))
