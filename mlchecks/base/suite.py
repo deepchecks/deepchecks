@@ -87,6 +87,7 @@ class SuiteResult:
                 SuiteResult._display_table(table)
 
         # TODO remove after flattening
+        # pylint: disable=expression-not-assigned
         [x._ipython_display_(only_summary) for x in self.results if isinstance(x, SuiteResult)]
 
     @classmethod

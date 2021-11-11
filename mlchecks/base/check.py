@@ -181,7 +181,9 @@ class CheckResult:
         return all((r.is_pass for r in self.conditions_results))
 
     def get_conditions_sort_value(self):
+        """Get largest sort value of the conditions results."""
         return max([r.get_sort_value() for r in self.conditions_results])
+
 
 class BaseCheck(metaclass=abc.ABCMeta):
     """Base class for check."""
