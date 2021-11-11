@@ -11,7 +11,10 @@ from mlchecks import utils
 __all__ = ["CheckSuite"]
 
 
-CheckPolicy = t.Union[t.Literal["both"], t.Literal["train"], t.Literal["validation"]]
+try:
+    CheckPolicy = t.Union[t.Literal["both"], t.Literal["train"], t.Literal["validation"]]
+except AttributeError:
+    CheckPolicy = str
 
 
 class CheckSuite(base.BaseCheck):
@@ -27,7 +30,7 @@ class CheckSuite(base.BaseCheck):
     def __init__(self, name: str, *checks: base.BaseCheck):
         """Get `Check`s and `CheckSuite`s to run in given order."""
         super().__init__()
-        
+
         self.name = name
         self.checks = []
 
@@ -40,10 +43,10 @@ class CheckSuite(base.BaseCheck):
                 self.checks.append(c)
 
     def run(
-        self, 
-        train_dataset: t.Optional[base.Dataset] = None, 
-        validation_dataset: t.Optional[base.Dataset] = None, 
-        model: object = None, 
+        self,
+        train_dataset: t.Optional[base.Dataset] = None,
+        validation_dataset: t.Optional[base.Dataset] = None,
+        model: object = None,
         check_datasets_policy: CheckPolicy = "validation"
     ) -> base.CheckResult:
         """Run all checks.
@@ -62,37 +65,40 @@ class CheckSuite(base.BaseCheck):
         Raises:
             TypeError if check_datasets_policy is not of allowed types
         """
-        if check_datasets_policy not in ["both", "train", "validation"]:
-            raise TypeError(f"check_datasets_policy must be one of {repr(CheckPolicy)}")
+        allowed_policy_values = {"both", "train", "validation"}
+
+        if check_datasets_policy not in allowed_policy_values:
+            values = ",".join(allowed_policy_values)
+            raise TypeError(f"check_datasets_policy must be one of {values}")
 
         # Create progress bar
         progress_bar = IntProgress(value=0, min=0, max=len(self.checks),
                                    bar_style="info", style={"bar_color": "#9d60fb"}, orientation="horizontal")
-        
+
         label = HTML()
         box = VBox(children=[label, progress_bar])
         self._display_in_notebook(box)
 
         # Run all checks
         results = []
-        
+
         for check in self.checks:
             label.value = f"Running {str(check)}"
 
             if train_dataset is not None and validation_dataset is not None:
                 if isinstance(check, base.TrainValidationBaseCheck):
                     results.append(check.run(
-                        train_dataset=train_dataset, 
-                        validation_dataset=validation_dataset, 
+                        train_dataset=train_dataset,
+                        validation_dataset=validation_dataset,
                         model=model
                     ))
                 elif isinstance(check, base.CompareDatasetsBaseCheck):
                     results.append(check.run(
-                        dataset=validation_dataset, 
-                        baseline_dataset=train_dataset, 
+                        dataset=validation_dataset,
+                        baseline_dataset=train_dataset,
                         model=model
                     ))
-            
+
             elif isinstance(check, base.SingleDatasetBaseCheck):
                 if check_datasets_policy in {"both", "train"} and train_dataset is not None:
                     check_result = check.run(dataset=train_dataset, model=model)
@@ -102,17 +108,17 @@ class CheckSuite(base.BaseCheck):
                     check_result = check.run(dataset=validation_dataset, model=model)
                     check_result.header = f"{check_result.header} - Validation Dataset"
                     results.append(check_result)
-            
+
             elif isinstance(check, base.ModelOnlyBaseCheck):
                 results.append(check.run(model=model))
-            
+
             else:
                 raise TypeError(
                     "Expected check of type SingleDatasetBaseCheck, CompareDatasetsBaseCheck, "
                     f"TrainValidationBaseCheck or ModelOnlyBaseCheck. Got {check.__class__.__name__} "
                     "instead"
                 )
-            
+
             progress_bar.value = progress_bar.value + 1
 
         progress_bar.close()

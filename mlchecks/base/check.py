@@ -8,7 +8,7 @@ import pandas as pd
 from IPython.core.display import display_html
 from matplotlib import pyplot as plt
 
-from mlchecks import base
+from mlchecks import base # pylint: disable=W0611 # it is used for type annotations
 from mlchecks.string_utils import split_camel_case
 
 
@@ -41,10 +41,10 @@ class CheckResult:
     display: t.List[t.Union[t.Callable, str, pd.DataFrame]]
 
     def __init__(
-        self, 
-        value: t.Any, 
-        header: t.Optional[str] = None, 
-        check: t.Optional[t.Callable] = None, 
+        self,
+        value: t.Any,
+        header: t.Optional[str] = None,
+        check: t.Optional[t.Callable] = None,
         display: t.Optional[t.List[t.Union[t.Callable, str, pd.DataFrame]]] = None
     ):
         """Init check result.
@@ -72,7 +72,7 @@ class CheckResult:
     def _ipython_display_(self):
         if self.header:
             display_html(f"<h4>{self.header}</h4>", raw=True)
-        
+
         if self.check is not None and hasattr(self.check, "__doc__"):
             docs = self.check.__doc__ or ""
             # Take first non-whitespace line.
@@ -93,7 +93,7 @@ class CheckResult:
                 plt.show()
             else:
                 raise TypeError(f"Unable to display item of type: {type(item)}")
-        
+
         if not self.display:
             display_html("<p><b>&#x2713;</b> Nothing found</p>", raw=True)
 
@@ -131,9 +131,9 @@ class TrainValidationBaseCheck(BaseCheck):
 
     @abc.abstractmethod
     def run(
-        self, 
-        train_dataset: "base.Dataset", 
-        validation_dataset: "base.Dataset", 
+        self,
+        train_dataset: "base.Dataset",
+        validation_dataset: "base.Dataset",
         model: object = None
     ) -> CheckResult:
         """Define run signature."""
