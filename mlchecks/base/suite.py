@@ -95,7 +95,8 @@ class CheckSuite(BaseCheck):
                 logger.warning('MLChecks Error: Error when running %s check, with the following error message: \n%s',
                                str(check), str(e))
             except Exception as e: # pylint: disable=broad-except
-                logger.error('Error when running the suite, with the following error: \n%s', str(e), exc_info=True)
+                logger.error('Error when running the suite, with the following error message: \n%s',
+                             str(e), exc_info=True)
             finally:
                 progress_bar.value = progress_bar.value + 1
 
