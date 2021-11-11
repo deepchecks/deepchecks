@@ -40,3 +40,12 @@ def test_columns_info():
     expected_res_df['label'] = 'categorical feature'
     expected_res_df['c'] = 'numerical feature'
     assert_that(result_df, equal_to(expected_res_df))
+
+def test_fi_n_top(diabetes_split_dataset_and_model):
+    train, _, clf = diabetes_split_dataset_and_model
+    # Arrange
+    check = ColumnsInfo(n_top_columns=3)
+    # Act
+    result_ds = check.run(train, clf).value
+    # Assert
+    assert_that(len(result_ds), equal_to(3))

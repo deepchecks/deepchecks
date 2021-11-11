@@ -23,6 +23,7 @@ class StringMismatch(SingleDatasetBaseCheck):
                     ones.
             ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
                     variable
+            n_top_columns (int): amount of columns to show ordered by feature importance (date, index, label are first)
 
         """
         super().__init__()
@@ -39,7 +40,8 @@ class StringMismatch(SingleDatasetBaseCheck):
         feature_importances = calculate_feature_importance_or_null(dataset, model)
         return self._string_mismatch(dataset, feature_importances)
 
-    def _string_mismatch(self, dataset: Union[pd.DataFrame, Dataset], feature_importances: pd.Series=None) -> CheckResult:
+    def _string_mismatch(self, dataset: Union[pd.DataFrame, Dataset],
+                         feature_importances: pd.Series=None) -> CheckResult:
         # Validate parameters
         dataset: pd.DataFrame = ensure_dataframe_type(dataset)
         dataset = filter_columns_with_validation(dataset, self.columns, self.ignore_columns)
@@ -63,7 +65,8 @@ class StringMismatch(SingleDatasetBaseCheck):
         # Create dataframe to display graph
         df_graph = pd.DataFrame(results, columns=['Column Name', 'Base form', 'Value', 'Count', '% In data'])
         df_graph = df_graph.set_index(['Column Name', 'Base form'])
-        df_graph = column_importance_sorter_df(df_graph, dataset, feature_importances, self.n_top_columns, cols=['Column Name'])
+        df_graph = column_importance_sorter_df(df_graph, dataset, feature_importances,
+                                               self.n_top_columns, col='Column Name')
 
         if len(df_graph) > 0:
             display = df_graph

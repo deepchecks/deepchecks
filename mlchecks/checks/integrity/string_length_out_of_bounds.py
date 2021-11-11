@@ -81,6 +81,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                                        E.g. for 98 the range would be 2%-98%.
             outlier_factor (int): Strings would be defined as outliers if their length is outlier_factor times more/less
                                   than the values inside the inner quantile range.
+            n_top_columns (int): amount of columns to show ordered by feature importance (date, index, label are first)
         """
         super().__init__()
         self.columns = columns
@@ -158,7 +159,8 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                                        'Range of Detected Normal String Lengths',
                                        'Range of Detected Outlier String Lengths'])
 
-        df_graph = column_importance_sorter_df(df_graph, dataset, feature_importances, self.n_top_columns, cols=['Column Name'])
+        df_graph = column_importance_sorter_df(df_graph, dataset, feature_importances,
+                                               self.n_top_columns, col='Column Name')
         display = df_graph if len(df_graph) > 0 else None
 
         return CheckResult(df_graph, check=self.__class__, display=display)

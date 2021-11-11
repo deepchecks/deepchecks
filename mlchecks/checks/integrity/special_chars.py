@@ -42,6 +42,8 @@ class SpecialCharacters(SingleDatasetBaseCheck):
             ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
             variable
             n_most_common (int): Number of most common special-only samples to show in results
+            n_top_columns (int): amount of columns to show ordered by feature importance (date, index, label are first)
+
         """
         super().__init__()
         self.columns = columns
@@ -61,7 +63,8 @@ class SpecialCharacters(SingleDatasetBaseCheck):
         feature_importances = calculate_feature_importance_or_null(dataset, model)
         return self._special_characters(dataset, feature_importances)
 
-    def _special_characters(self, dataset: Union[pd.DataFrame, Dataset], feature_importances: pd.Series=None) -> CheckResult:
+    def _special_characters(self, dataset: Union[pd.DataFrame, Dataset],
+                            feature_importances: pd.Series=None) -> CheckResult:
         """Run check.
 
         Args:
@@ -91,7 +94,8 @@ class SpecialCharacters(SingleDatasetBaseCheck):
         df_graph = pd.DataFrame(display_array,
                                 columns=['Column Name', '% Special-Only Samples', 'Most Common Special-Only Samples'])
         df_graph = df_graph.set_index(['Column Name'])
-        df_graph = column_importance_sorter_df(df_graph, dataset, feature_importances, self.n_top_columns, cols=['Column Name'])
+        df_graph = column_importance_sorter_df(df_graph, dataset, feature_importances,
+                                               self.n_top_columns, col='Column Name')
         display = df_graph if len(df_graph) > 0 else None
 
         return CheckResult(df_graph, check=self.__class__, display=display)

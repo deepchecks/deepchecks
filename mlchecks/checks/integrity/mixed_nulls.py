@@ -31,6 +31,7 @@ class MixedNulls(SingleDatasetBaseCheck):
                 ones.
             ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
                 variable
+            n_top_columns (int): amount of columns to show ordered by feature importance (date, index, label are first)
         """
         super().__init__()
         self.null_string_list = null_string_list
@@ -116,8 +117,9 @@ class MixedNulls(SingleDatasetBaseCheck):
         # Create dataframe to display graph
         df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percent of data'])
         df_graph = df_graph.set_index(['Column Name', 'Value'])
-        df_graph = column_importance_sorter_df(df_graph, dataset, feature_importances, self.n_top_columns, cols=['Column Name'])
-        
+        df_graph = column_importance_sorter_df(df_graph, dataset, feature_importances,
+                                               self.n_top_columns, col='Column Name')
+
         if len(df_graph) > 0:
             display = df_graph
         else:

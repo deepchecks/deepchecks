@@ -27,6 +27,7 @@ class MixedTypes(SingleDatasetBaseCheck):
             ones.
             ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
             variable.
+            n_top_columns (int): amount of columns to show ordered by feature importance (date, index, label are first)
         """
         super().__init__()
         self.columns = columns
@@ -70,7 +71,8 @@ class MixedTypes(SingleDatasetBaseCheck):
                 display_dict[column_name] = mix
 
         df_graph = pd.DataFrame.from_dict(display_dict)
-        df_graph = column_importance_sorter_df(df_graph.T, dataset, feature_importances, self.n_top_columns, cols=['Column Name']).T
+        df_graph = column_importance_sorter_df(df_graph.T, dataset, feature_importances,
+                                               self.n_top_columns, col='Column Name').T
         if len(df_graph) > 0:
             display = df_graph
         else:
