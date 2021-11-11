@@ -59,6 +59,7 @@ class Pattern:
         return is_substr_in_format and is_format_more_than_just_repeating_substr
 
     def __repr__(self):
+        """Return string representation."""
         return f'Pattern({self.name})'
 
 

@@ -196,6 +196,11 @@ class CheckSuite(BaseCheck):
         return self.checks[index]
 
     def add(self, check):
+        """Add a check or a suite to current suite.
+
+        Args:
+            check (BaseCheck): A check or suite to add.
+        """
         if not isinstance(check, BaseCheck):
             raise Exception(f'CheckSuite receives only `BaseCheck` objects but got: {check.__class__.__name__}')
         if isinstance(check, CheckSuite):
@@ -207,6 +212,11 @@ class CheckSuite(BaseCheck):
         return self
 
     def remove(self, index: int):
+        """Remove a check by given index.
+
+        Args:
+            index (int): Index of check to remove.
+        """
         if index not in self.checks:
             raise MLChecksValueError(f'No index {index} in suite')
         self.checks.pop(index)
