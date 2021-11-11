@@ -21,7 +21,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         """Initialize the SingleFeatureContribution check.
 
         Args:
-            ppscore_params (dict): dictionary of addional paramaters for the ppscore.predictors function
+            ppscore_params (dict): dictionary of additional parameters for the ppscore.predictors function
         """
         super().__init__()
         self.ppscore_params = ppscore_params
