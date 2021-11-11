@@ -25,14 +25,25 @@ class CheckSuite(BaseCheck):
     def __init__(self, name, *checks):
         """Get `Check`s and `CheckSuite`s to run in given order."""
         super().__init__()
-        for check in checks:
-            if not isinstance(check, BaseCheck):
-                raise Exception(f'CheckSuite receives only `BaseCheck` objects but got: {check.__class__.__name__}')
-        self.checks = checks
-        self.name = name
 
-    def run(self, model=None, train_dataset=None, validation_dataset=None, check_datasets_policy: str = 'validation') \
-            -> List[CheckResult]:
+        self.name = name
+        self.checks = []
+
+        for c in checks:
+            if not isinstance(c, BaseCheck):
+                raise TypeError(f'CheckSuite receives only `BaseCheck` objects but got: {type(c)}')
+            if isinstance(c, CheckSuite):
+                self.checks.extend(c.checks)
+            else:
+                self.checks.append(c)
+
+    def run(
+        self,
+        model=None,
+        train_dataset=None,
+        validation_dataset=None,
+        check_datasets_policy: str = 'validation'
+    ) -> CheckResult:
         """Run all checks.
 
         Args:
