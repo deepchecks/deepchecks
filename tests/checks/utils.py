@@ -1,13 +1,13 @@
 """Utils functions for testing."""
 from re import Pattern
-from typing import Union
+from typing import Union, Pattern as PatternType
 
 from hamcrest import all_of, has_property, matches_regexp
 
 from mlchecks import ConditionCategory
 
 
-def equal_condition_result(is_pass: bool, name: str, details: Union[str, Pattern] = '',
+def equal_condition_result(is_pass: bool, name: str, details: Union[str, PatternType] = '',
                            category: ConditionCategory = ConditionCategory.FAIL):
     if isinstance(details, Pattern):
         details_matcher = matches_regexp(details)
