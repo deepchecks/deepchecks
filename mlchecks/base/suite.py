@@ -70,7 +70,8 @@ class SuiteResult:
             SuiteResult._display_table(table)
         # If verbose print all displays
         if not only_summary:
-            only_check_with_display = [r for r in self.results if r.have_display()]
+            only_check_with_display = [r for r in self.results
+                                       if isinstance(r, CheckResult) and r.have_display()]
             # If there are no checks with display doesn't print anything else
             if only_check_with_display:
                 checks_not_passed = [r for r in only_check_with_display
