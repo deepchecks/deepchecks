@@ -3,6 +3,7 @@
 #pylint: disable=redefined-outer-name
 from typing import Tuple
 
+import numpy as np
 import pytest
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, GradientBoostingRegressor
 from sklearn.datasets import load_iris, load_diabetes
@@ -129,3 +130,32 @@ def iris_split_dataset_and_model(iris_clean) -> Tuple[Dataset, Dataset, AdaBoost
     clf = AdaBoostClassifier()
     clf.fit(train_ds.features_columns(), train_ds.label_col())
     return train_ds, val_ds, clf
+
+
+# NaN dataframes:
+@pytest.fixture(scope='session')
+def df_with_nan_row():
+    return pd.DataFrame({
+        'col1': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, np.nan],
+        'col2': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, np.nan]})
+
+
+@pytest.fixture(scope='session')
+def df_with_single_nan_in_col():
+    return pd.DataFrame({
+        'col1': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, np.nan],
+        'col2': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]})
+
+
+@pytest.fixture(scope='session')
+def df_with_single_nans_in_different_rows():
+    return pd.DataFrame({
+        'col1': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, np.nan],
+        'col2': [0, 1, 2, 3, 4, np.nan, 6, 7, 8, 9, 10]})
+
+
+@pytest.fixture(scope='session')
+def df_with_fully_nan():
+    return pd.DataFrame({
+        'col1': [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan],
+        'col2': [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan]})

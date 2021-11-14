@@ -1,4 +1,5 @@
 """Contains unit tests for the string_mismatch check."""
+import numpy as np
 import pandas as pd
 
 from mlchecks import ConditionCategory
@@ -144,3 +145,17 @@ def test_condition_percent_variants_no_more_than_pass():
         equal_condition_result(is_pass=True,
                                name='Not more than 50.00% variants for all columns')
     ))
+
+
+def test_nan():
+    # Arrange
+    data = {'col1': ['Deep', 'deep', 'earth', 'foo', 'bar', 'dog'],
+            'col2': ['SPACE', 'SPACE$$', 'is', 'fun', None, np.nan]}
+    df = pd.DataFrame(data=data)
+    # Act
+    result = StringMismatch().run(df).value
+    # Assert
+    assert_that(result, has_entries({
+        'col1': has_length(1),
+        'col2': has_length(1)
+    }))

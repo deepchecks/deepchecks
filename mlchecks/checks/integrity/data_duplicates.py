@@ -52,7 +52,7 @@ class DataDuplicates(SingleDatasetBaseCheck):
         if n_samples == 0:
             raise MLChecksValueError('Dataset does not contain any data')
 
-        group_unique_data = df[data_columns].groupby(data_columns).size()
+        group_unique_data = df[data_columns].groupby(data_columns, dropna=False).size()
         n_unique = len(group_unique_data)
 
         percent_duplicate = 1 - (1.0 * int(n_unique)) / (1.0 * int(n_samples))

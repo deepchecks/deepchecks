@@ -1,4 +1,5 @@
 """Contains unit tests for the string_mismatch check."""
+import numpy as np
 import pandas as pd
 
 from mlchecks.checks import StringMismatchComparison
@@ -140,3 +141,19 @@ def test_condition_percent_new_variants_pass():
         equal_condition_result(is_pass=True,
                                name='Not more than 50.00% new variants in validation data for all columns')
     ))
+
+
+def test_nan():
+    # Arrange
+    data = {'col1': ['Deep', 'deep', 'deep!!!', 'earth', 'foo', 'bar', 'foo?'],
+            'col2': ['aaa', 'bbb', 'ddd', '><', '123', '111', '444']}
+    compared_data = {'col1': ['Deep', 'deep', '$deeP$', 'earth', 'foo', 'bar', 'foo?', '?deep'],
+                     'col2': ['aaa!', 'bbb!', 'ddd', '><', '123???', '123!', '__123__', np.nan]}
+
+    # Act
+    result = StringMismatchComparison().run(pd.DataFrame(data=data), pd.DataFrame(data=compared_data)).value
+
+    # Assert - 2 columns, 4 baseforms are mismatch
+    assert_that(result, has_entries({
+        'col1': has_length(1), 'col2': has_length(3)
+     }))

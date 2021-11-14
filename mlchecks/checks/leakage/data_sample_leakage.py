@@ -112,8 +112,8 @@ class DataSampleLeakageReport(TrainValidationBaseCheck):
 
         count_dups = count_val_array.sum() // 2
 
-        dup_ratio = count_dups / len(val_f)
-        user_msg = f'{format_percent(dup_ratio)} ({count_dups} / {len(val_f)}) \
+        dup_ratio = count_dups / validation_dataset.n_samples()
+        user_msg = f'{format_percent(dup_ratio)} ({count_dups} / {validation_dataset.n_samples()}) \
                      of validation data samples appear in train data'
         display = [user_msg, duplicate_rows_df.head(10)] if dup_ratio else None
 

@@ -1,4 +1,5 @@
 """Tests for Mixed Types check"""
+import numpy as np
 import pandas as pd
 
 # Disable wildcard import check for hamcrest
@@ -44,6 +45,7 @@ def test_single_column_stringed_mix():
     })))
 
 
+
 def test_double_column_one_mix():
     # Arrange
     data = {'col1': ['1', 'bar', 'cat'], 'col2': [6, 66, 666.66]}
@@ -56,6 +58,7 @@ def test_double_column_one_mix():
     })))
 
 
+
 def test_double_column_ignored_mix():
     # Arrange
     data = {'col1': ['1', 'bar', 'cat'], 'col2': [6, 66, 666.66]}
@@ -64,6 +67,7 @@ def test_double_column_ignored_mix():
     result = MixedTypes(ignore_columns=['col1']).run(dataframe)
     # Assert
     assert_that(result.value, has_length(0))
+
 
 
 def test_double_column_specific_mix():
@@ -77,6 +81,7 @@ def test_double_column_specific_mix():
     assert_that(result.value, has_entry('col1', has_entries({
         'strings': close_to(0.66, 0.01), 'numbers': close_to(0.33, 0.01)
     })))
+
 
 
 def test_double_column_specific_and_ignored_mix():
@@ -143,3 +148,23 @@ def test_condition_pass_fail_ignore_column():
                                name='Rare type ratio is not less than 40.00% of samples in all columns ignoring: col2',
                                details='Found columns with low type ratio: col1')
     ))
+
+
+def test_no_mix_nan():
+    # Arrange
+    data = {'col1': [np.nan, 'bar', 'cat'], 'col2': ['a', np.nan, np.nan]}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = MixedTypes().run(dataframe)
+    # Assert
+    assert_that(result.value, has_length(0))
+
+
+def test_mix_nan():
+    # Arrange
+    data = {'col1': [np.nan, '1', 'cat'], 'col2': ['7', np.nan, np.nan]}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = MixedTypes().run(dataframe)
+    # Assert
+    assert_that(result.value, has_length(1))
