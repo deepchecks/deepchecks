@@ -49,7 +49,7 @@ def test_different_null_types():
 
 def test_null_list_param():
     # Arrange
-    data = {'col1': ['foo', 'bar', 'cat', 'earth', 'earth?', '!E!A!R!T!H', np.NaN, 'null']}
+    data = {'col1': ['foo', 'bar', 'cat', 'earth', 'earth?', '!E!A!R!T!H', np.nan, 'null']}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls(null_string_list=['earth', 'cat']).run(dataframe)
@@ -59,7 +59,7 @@ def test_null_list_param():
 
 def test_check_nan_false_param():
     # Arrange
-    data = {'col1': ['foo', 'bar', 'cat', 'earth', 'earth?', '!E!A!R!T!H', np.NaN, 'null']}
+    data = {'col1': ['foo', 'bar', 'cat', 'earth', 'earth?', '!E!A!R!T!H', np.nan, 'null']}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls(null_string_list=['earth'], check_nan=False).run(dataframe)
@@ -99,7 +99,7 @@ def test_single_column_nulls_with_special_characters():
 
 def test_ignore_columns_single():
     # Arrange
-    data = {'col1': ['foo', 'bar', 'cat'], 'col2': ['nan', 'null', ''], 'col3': [np.NAN, 'none', '3']}
+    data = {'col1': ['foo', 'bar', 'cat'], 'col2': ['nan', 'null', ''], 'col3': [np.nan, 'none', '3']}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls(ignore_columns='col3').run(dataframe)
@@ -109,7 +109,7 @@ def test_ignore_columns_single():
 
 def test_ignore_columns_multi():
     # Arrange
-    data = {'col1': ['foo', 'bar', 'cat'], 'col2': ['nan', 'null', ''], 'col3': [np.NAN, 'none', '3']}
+    data = {'col1': ['foo', 'bar', 'cat'], 'col2': ['nan', 'null', ''], 'col3': [np.nan, 'none', '3']}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls(ignore_columns=['col3', 'col2']).run(dataframe)

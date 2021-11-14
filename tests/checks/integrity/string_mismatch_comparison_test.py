@@ -1,4 +1,5 @@
 """Contains unit tests for the string_mismatch check."""
+import numpy as np
 import pandas as pd
 
 from mlchecks.checks import StringMismatchComparison
@@ -78,3 +79,17 @@ def test_no_mismatch_on_one_column_numeric():
 
     # Assert
     assert_that(result, has_length(0))
+
+
+def test_nan():
+    # Arrange
+    data = {'col1': ['Deep', 'deep', 'deep!!!', 'earth', 'foo', 'bar', 'foo?'],
+            'col2': ['aaa', 'bbb', 'ddd', '><', '123', '111', '444']}
+    compared_data = {'col1': ['Deep', 'deep', '$deeP$', 'earth', 'foo', 'bar', 'foo?', '?deep'],
+                     'col2': ['aaa!', 'bbb!', 'ddd', '><', '123???', '123!', '__123__', np.nan]}
+
+    # Act
+    result = StringMismatchComparison().run(pd.DataFrame(data=data), pd.DataFrame(data=compared_data)).value
+
+    # Assert - 2 columns, 4 baseforms are mismatch
+    assert_that(result, has_length(4))
