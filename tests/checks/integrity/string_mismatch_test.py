@@ -61,7 +61,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     train.data.loc[train.data.index % 3 == 1, 'bp'] = 'aaa!!'
     train.data.loc[train.data.index % 3 == 2, 'sex'] = 'aaa'
     train.data.loc[train.data.index % 3 == 1, 'sex'] = 'aaa!!'
-    
+
     # Arrange
     check = StringMismatch(n_top_columns=3)
     # Act

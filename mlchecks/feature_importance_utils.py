@@ -1,7 +1,7 @@
 """Utils module containing feature importance calculations."""
 import numpy as np
 import pandas as pd
-from typing import Any, Dict, List
+from typing import Any, Dict
 from sklearn.inspection import permutation_importance
 from sklearn.utils.validation import check_is_fitted
 
