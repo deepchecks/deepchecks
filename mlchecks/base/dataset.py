@@ -1,4 +1,5 @@
 """The Dataset module containing the dataset Class and its functions."""
+import logging
 from typing import Dict, Union, List, Any
 import pandas as pd
 from pandas.core.dtypes.common import is_float_dtype
@@ -9,6 +10,9 @@ from mlchecks.string_utils import is_string_column
 
 
 __all__ = ['Dataset', 'ensure_dataframe_type']
+
+
+logger = logging.getLogger('mlchecks.dataset')
 
 
 class Dataset:
@@ -99,7 +103,10 @@ class Dataset:
             raise MLChecksValueError(f'label column {self._label_name} can not be a feature column')
 
         if self._label_name:
-            self.check_compatible_labels()
+            try:
+                self.check_compatible_labels()
+            except MLChecksValueError as e:
+                logger.warning(str(e))
 
         if self._date_name in self.features():
             raise MLChecksValueError(f'date column {self._date_name} can not be a feature column')
@@ -296,6 +303,7 @@ class Dataset:
         """
         if self.label_name() is None:
             raise MLChecksValueError(f'Check {check_name} requires dataset to have a label column')
+        self.check_compatible_labels()
 
     def validate_date(self, check_name: str):
         """

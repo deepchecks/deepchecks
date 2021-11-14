@@ -66,9 +66,14 @@ class CheckResult:
         for item in self.display:
             if isinstance(item, pd.DataFrame):
                 # Align everything to the left
-                df_styler = item.style
-                df_styler.set_table_styles([dict(selector='th,td', props=[('text-align', 'left')])])
-                display_html(df_styler.render(), raw=True)
+                try:
+                    df_styler = item.style
+                    df_styler.set_table_styles([dict(selector='th,td', props=[('text-align', 'left')])])
+                    display_html(df_styler.render(), raw=True)
+                # Because of MLC-154. Dataframe with Multi-index or non unique indices does not have a style
+                # attribute, hence we need to display as a regular pd html format.
+                except ValueError:
+                    display_html(item.to_html())
             elif isinstance(item, str):
                 display_html(item, raw=True)
             elif isinstance(item, Callable):
