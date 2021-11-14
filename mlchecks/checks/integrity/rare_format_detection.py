@@ -331,7 +331,7 @@ class RareFormatDetection(SingleDatasetBaseCheck):
 
 
         res = {
-            column_name: _detect_per_column(dataset[column_name], self.patterns, self.rarity_threshold,
+            column_name: _detect_per_column(dataset[column_name].dropna(), self.patterns, self.rarity_threshold,
                                             self.min_unique_common_ratio, self.pattern_match_method)
             for column_name in dataset.columns}
         filtered_res = dict(filter(lambda elem: elem[1].shape[0] > 0, res.items()))

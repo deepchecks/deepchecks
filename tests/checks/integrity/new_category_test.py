@@ -119,3 +119,20 @@ def test_specific_column():
     # Assert
     assert_that(result, has_length(1))
     assert_that(result['col1'], close_to(0.25, 0.01))
+
+
+def test_nan(df_with_single_nans_in_different_rows, df_with_single_nan_in_col):
+    train_dataset = Dataset(pd.DataFrame(data=df_with_single_nans_in_different_rows,
+                                         columns=['col1', 'col2']),
+                            cat_features=['col1', 'col2'])
+    validation_dataset = Dataset(pd.DataFrame(data=df_with_single_nan_in_col,
+                                              columns=['col1', 'col2']),
+                                 cat_features=['col1', 'col2'])
+
+    # Arrange
+    check = CategoryMismatchTrainValidation()
+    # Act X
+    result = check.run(train_dataset=train_dataset, validation_dataset=validation_dataset).value
+    # Assert
+    assert_that(result, has_length(1))
+    assert_that(result['col2'], close_to(0.09, 0.01))

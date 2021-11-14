@@ -1,4 +1,5 @@
 """Tests for Mixed Types check"""
+import numpy as np
 import pandas as pd
 
 # Disable wildcard import check for hamcrest
@@ -39,6 +40,7 @@ def test_single_column_stringed_mix():
     # Assert
     assert_that(result.value.columns, has_length(1))
 
+
 def test_double_column_one_mix():
     # Arrange
     data = {'col1': ['1', 'bar', 'cat'], 'col2': [6, 66, 666.66]}
@@ -47,6 +49,7 @@ def test_double_column_one_mix():
     result = MixedTypes().run(dataframe)
     # Assert
     assert_that(result.value.columns, has_length(1))
+
 
 def test_double_column_ignored_mix():
     # Arrange
@@ -57,6 +60,7 @@ def test_double_column_ignored_mix():
     # Assert
     assert_that(result.value.columns, has_length(0))
 
+
 def test_double_column_specific_mix():
     # Arrange
     data = {'col1': ['1', 'bar', 'cat'], 'col2': [6, 66, 666.66]}
@@ -65,6 +69,7 @@ def test_double_column_specific_mix():
     result = MixedTypes(columns=['col1']).run(dataframe)
     # Assert
     assert_that(result.value.columns, has_length(1))
+
 
 def test_double_column_specific_and_ignored_mix():
     # Arrange
@@ -85,6 +90,7 @@ def test_double_column_double_mix():
     # Assert
     assert_that(result.value.columns, has_length(2))
 
+
 def test_fi_n_top(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
     train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
@@ -98,3 +104,23 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     result_ds = check.run(train, clf).value
     # Assert
     assert_that(result_ds.columns, has_length(3))
+
+
+def test_no_mix_nan():
+    # Arrange
+    data = {'col1': [np.nan, 'bar', 'cat'], 'col2': ['a', np.nan, np.nan]}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = MixedTypes().run(dataframe)
+    # Assert
+    assert_that(result.value.columns, has_length(0))
+
+
+def test_mix_nan():
+    # Arrange
+    data = {'col1': [np.nan, '1', 'cat'], 'col2': ['7', np.nan, np.nan]}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = MixedTypes().run(dataframe)
+    # Assert
+    assert_that(result.value.columns, has_length(1))

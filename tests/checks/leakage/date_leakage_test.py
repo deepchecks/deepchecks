@@ -3,6 +3,7 @@ Contains unit tests for the single_feature_contribution check
 """
 from datetime import datetime
 
+import numpy as np
 import pandas as pd
 
 from hamcrest import assert_that, close_to, calling, raises, equal_to
@@ -160,6 +161,27 @@ def test_no_dates_from_val_before_train():
         datetime(2021, 10, 6, 0, 0),
         datetime(2021, 10, 6, 0, 0),
         datetime(2021, 10, 6, 0, 0),
+
+    ]}, 'col1')
+    check_obj = DateTrainValidationLeakageOverlap()
+    assert_that(check_obj.run(train_ds, val_ds).value, equal_to(0))
+
+
+def test_nan():
+    train_ds = dataset_from_dict({'col1': [
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 5, 0, 0),
+        np.nan
+    ]}, 'col1')
+    val_ds = dataset_from_dict({'col1': [
+        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 6, 0, 0),
+        np.nan
 
     ]}, 'col1')
     check_obj = DateTrainValidationLeakageOverlap()

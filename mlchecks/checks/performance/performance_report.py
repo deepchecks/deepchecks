@@ -1,6 +1,8 @@
 """Module containing performance report check."""
 from typing import Callable, Dict
 import pandas as pd
+from mlchecks.string_utils import format_number
+
 from mlchecks import CheckResult, Dataset, SingleDatasetBaseCheck
 from mlchecks.metric_utils import get_metrics_list
 from mlchecks.utils import model_type_validation
@@ -43,7 +45,7 @@ class PerformanceReport(SingleDatasetBaseCheck):
         scores = {key: scorer(model, dataset.features_columns(), dataset.label_col()) for key, scorer in
                   metrics.items()}
 
-        display_df = pd.DataFrame(scores.values(), columns=['Score'], index=scores.keys())
+        display_df = pd.DataFrame(map(format_number, scores.values()), columns=['Score'], index=scores.keys())
         display_df.index.name = 'Metric'
 
         return CheckResult(scores, check=self.__class__, header='Performance Report', display=display_df)

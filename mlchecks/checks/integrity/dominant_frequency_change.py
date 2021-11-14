@@ -113,8 +113,8 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
         p_df = {}
 
         for column in columns:
-            top_ref = baseline_df[column].value_counts()
-            top_test = test_df[column].value_counts()
+            top_ref = baseline_df[column].value_counts(dropna=False)
+            top_test = test_df[column].value_counts(dropna=False)
 
             if len(top_ref) == 1 or top_ref.iloc[0] > top_ref.iloc[1] * self.dominance_ratio:
                 value = top_ref.index[0]

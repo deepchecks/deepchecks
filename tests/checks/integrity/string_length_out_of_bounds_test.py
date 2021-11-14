@@ -1,4 +1,5 @@
 """Contains unit tests for the string_length_out_of_bounds check."""
+import numpy as np
 import pandas as pd
 from mlchecks.base import Dataset
 
@@ -43,7 +44,7 @@ def test_outlier_multi_column():
     assert_that(result, has_length(1))
 
 
-def test_outlier_mutiple_outliers():
+def test_outlier_multiple_outliers():
     # Arrange
     col_data = ['a', 'b'] * 100
     col_data.append('abcd')
@@ -56,7 +57,8 @@ def test_outlier_mutiple_outliers():
     assert_that(result, has_length(1))
     assert_that(result['Number of Outlier Samples'][0], 2)
 
-def test_outlier_mutiple_outlier_ranges():
+
+def test_outlier_multiple_outlier_ranges():
     # Arrange
     col_data = ['abcd', 'efgh'] * 100
     col_data.append('a')
@@ -67,6 +69,7 @@ def test_outlier_mutiple_outlier_ranges():
     result = StringLengthOutOfBounds().run(df).value
     # Assert
     assert_that(result, has_length(2))
+
 
 def test_fi_n_top(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
@@ -81,3 +84,22 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     result_ds = check.run(train, clf).value
     # Assert
     assert_that(result_ds, has_length(3))
+
+
+def test_nan():
+    # Arrange
+    col_data = ['a', 'b'] * 100
+    col_data.append('abcd')
+    col_data.append('abcd')
+    col_data.append(np.nan)
+    col_data.append(np.nan)
+    col_data.append(np.nan)
+    col_data.append(np.nan)
+    col_data.append(np.nan)
+    data = {'col1': col_data}
+    df = pd.DataFrame(data=data)
+    # Act
+    result = StringLengthOutOfBounds().run(df).value
+    # Assert
+    assert_that(result, has_length(1))
+    assert_that(result['Number of Outlier Samples'][0], 2)

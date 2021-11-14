@@ -15,6 +15,7 @@ ClassificationCheckSuite = CheckSuite(
 )
 
 
+# This suite is here as a placeholder for future regression-specific checks
 RegressionCheckSuite = CheckSuite(
     'Regression Suite',
 )

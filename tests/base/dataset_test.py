@@ -1,4 +1,6 @@
 """Contains unit tests for the Dataset class."""
+from unittest import TestCase
+
 import numpy as np
 import pandas as pd
 
@@ -16,7 +18,7 @@ def assert_dataset(dataset: Dataset, args):
         if 'df' in args:
             assert_that(dataset.features_columns().equals(args['df'][args['features']]), is_(True))
     if 'cat_features' in args:
-        assert_that(dataset.cat_features(), equal_to(args['cat_features']))
+        assert_that(dataset.cat_features, equal_to(args['cat_features']))
     if 'label' in args:
         assert_that(dataset.label_name(), equal_to(args['label']))
         assert_that(dataset.label_col().equals(pd.Series(args['df'][args['label']])), is_(True))
@@ -122,7 +124,7 @@ def test_dataset_infer_cat_features(diabetes_df):
                          's6']}
 
     dataset = Dataset(**args)
-    args['cat_features'] = ['age', 'sex', 'bp', 's3', 's4', 's6']
+    args['cat_features'] = ['sex']
     assert_dataset(dataset, args)
 
 
@@ -138,10 +140,11 @@ def test_dataset_infer_cat_features_max_categoreis(diabetes_df):
                          's4',
                          's5',
                          's6'],
-            'max_categories': 10}
+            'max_categories': 60,
+            'max_float_categories': 60}
 
     dataset = Dataset(**args)
-    args['cat_features'] = ['sex']
+    args['cat_features'] = ['age', 'sex', 's6']
     assert_dataset(dataset, args)
 
 
@@ -161,7 +164,7 @@ def test_dataset_infer_cat_features_max_categorical_ratio(diabetes_df):
             'max_categorical_ratio': 0.13}
 
     dataset = Dataset(**args)
-    args['cat_features'] = ['sex', 's6']
+    args['cat_features'] = ['sex']
     assert_dataset(dataset, args)
 
 
@@ -424,18 +427,27 @@ def test_ensure_dataframe_type_fail():
                 raises(MLChecksValueError, 'dataset must be of type DataFrame or Dataset, but got: str'))
 
 
-def test_invalid_label():
-    valid_label_df = pd.DataFrame(np.array([1, 1, 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
-    Dataset(valid_label_df, label='label')
+class TestLabel(TestCase):
+    """Unittest class for invalid labels"""
 
-    string_label_df = pd.DataFrame(np.array(['a', 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
-    args = {'df': string_label_df,
-            'label': 'label'}
-    assert_that(calling(Dataset).with_args(**args),
-                raises(MLChecksValueError, 'String labels are not supported'))
+    def test_invalid_label(self):
+        valid_label_df = pd.DataFrame(np.array([1, 1, 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
+        Dataset(valid_label_df, label='label')
 
-    null_label_df = pd.DataFrame(np.array([np.nan, 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
-    args = {'df': null_label_df,
-            'label': 'label'}
-    assert_that(calling(Dataset).with_args(**args),
-                raises(MLChecksValueError, 'Can\'t have null values in label column'))
+        string_label_df = pd.DataFrame(np.array(['a', 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
+        args = {'df': string_label_df,
+                'label': 'label'}
+        with self.assertLogs() as captured:
+            Dataset(**args)
+        self.assertEqual(len(captured.records), 1)  # check that there is only one log message
+        self.assertEqual(captured.records[0].getMessage(),
+                         'String labels are not supported')  # and it is the proper one
+
+        null_label_df = pd.DataFrame(np.array([np.nan, 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
+        args = {'df': null_label_df,
+                'label': 'label'}
+        with self.assertLogs() as captured:
+            Dataset(**args)
+        self.assertEqual(len(captured.records), 1)  # check that there is only one log message
+        self.assertEqual(captured.records[0].getMessage(),
+                         'Can\'t have null values in label column')  # and it is the proper one

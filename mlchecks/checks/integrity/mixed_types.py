@@ -66,7 +66,7 @@ class MixedTypes(SingleDatasetBaseCheck):
         display_dict = {}
 
         for column_name in dataset.columns:
-            column_data = dataset[column_name]
+            column_data = dataset[column_name].dropna()
             mix = self._get_data_mix(column_data)
             if mix:
                 display_dict[column_name] = mix

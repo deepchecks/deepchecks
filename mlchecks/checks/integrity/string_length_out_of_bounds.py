@@ -109,12 +109,12 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         results = []
 
         for column_name in df.columns:
-            column: Series = df[column_name]
+            column: Series = df[column_name].dropna()
 
             if not is_string_column(column):
                 continue
 
-            string_length_column = column.map(lambda x: len(repr(x)))
+            string_length_column = column.map(lambda x: len(repr(x)), na_action='ignore')
 
             # If not a lot of unique values, calculate the percentiles for existing values.
             if string_length_column.nunique() < self.num_percentiles:

@@ -74,7 +74,7 @@ def partition_column(dataset: Dataset, column_name: str, max_segments: int, max_
         max_cat_proportions (float): (for categorical) ratio to aggregate largest values to show.
     """
     column = dataset.data[column_name]
-    if column_name not in dataset.cat_features():
+    if column_name not in dataset.cat_features:
         percentile_values = numeric_segmentation_edges(column, max_segments)
         # If for some reason only single value in the column (and column not categorical) we will get single item
         if len(percentile_values) == 1:

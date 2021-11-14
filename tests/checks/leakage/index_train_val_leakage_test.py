@@ -1,6 +1,7 @@
 """
 Contains unit tests for the single_feature_contribution check
 """
+import numpy as np
 import pandas as pd
 
 from hamcrest import assert_that, close_to, calling, raises
@@ -49,3 +50,10 @@ def test_dataset_no_index():
     assert_that(
         calling(IndexTrainValidationLeakage().run).with_args(ds, ds),
         raises(MLChecksValueError, 'Check IndexTrainValidationLeakage requires dataset to have an index column'))
+
+
+def test_nan():
+    train_ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11, np.nan]}, 'col1')
+    val_ds = dataset_from_dict({'col1': [4, 5, 6, 7, np.nan]}, 'col1')
+    check_obj = IndexTrainValidationLeakage(n_index_to_show=1)
+    assert_that(check_obj.run(train_ds, val_ds).value, close_to(0.2, 0.01))

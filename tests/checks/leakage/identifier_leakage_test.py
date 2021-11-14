@@ -58,3 +58,17 @@ def test_assert_identifier_leakage_class():
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
         assert_that(value, close_to(expected[key], 0.1))
+
+
+def test_nan():
+    df, expected = util_generate_dataframe_and_expected()
+    nan_df = df.append(pd.DataFrame({'x1':[np.nan],
+                                     'x2':[np.nan],
+                                     'x3':[np.nan],
+                                     'label':[0]}))
+
+    result = IdentifierLeakage().run(dataset=Dataset(nan_df, label='label', date='x2', index='x3'))
+    for key, value in result.value.items():
+        assert_that(key, is_in(expected.keys()))
+        assert_that(value, close_to(expected[key], 0.1))
+

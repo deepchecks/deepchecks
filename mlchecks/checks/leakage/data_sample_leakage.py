@@ -6,7 +6,7 @@ from mlchecks import Dataset
 from mlchecks.base.check import CheckResult, TrainValidationBaseCheck
 from mlchecks.string_utils import format_percent
 
-
+import numpy as np
 import pandas as pd
 
 pd.options.mode.chained_assignment = None
@@ -33,18 +33,18 @@ def get_dup_indexes_map(df: pd.DataFrame, columns: List) -> Dict:
 
 
 def get_dup_txt(i: int, dup_map: Dict) -> str:
-    """Return a prettyfied text for a key in the dict.
+    """Return a prettified text for a key in the dict.
 
     Args:
         i: the index key
         dup_map: the dict of the duplicated indexes
     Returns:
-        prettyfied text for a key in the dict
+        prettified text for a key in the dict
 
     """
     val = dup_map.get(i)
     if not val:
-        return i
+        return str(i)
     txt = f'{i}, '
     for j in val:
         txt += f'{j}, '
@@ -55,7 +55,7 @@ def get_dup_txt(i: int, dup_map: Dict) -> str:
 
 
 class DataSampleLeakageReport(TrainValidationBaseCheck):
-    """Find what percent of the validation data is in the train data."""
+    """Detect samples in the validation data that appear also in training data."""
 
     def run(self, train_dataset: Dataset, validation_dataset: Dataset,  model=None) -> CheckResult:
         """Run check.
@@ -86,27 +86,34 @@ class DataSampleLeakageReport(TrainValidationBaseCheck):
         val_f = validation_dataset.data.copy()
 
         train_dups = get_dup_indexes_map(train_f, columns)
-        train_f.index = [f'Train indexes: {get_dup_txt(i, train_dups)}' for i in train_f.index]
+        train_f.index = [f'Train indices: {get_dup_txt(i, train_dups)}' for i in train_f.index]
         train_f.drop_duplicates(columns, inplace=True)
 
         val_dups = get_dup_indexes_map(val_f, columns)
-        val_f.index = [f'Validation indexes: {get_dup_txt(i, val_dups)}' for i in val_f.index]
+        val_f.index = [f'Validation indices: {get_dup_txt(i, val_dups)}' for i in val_f.index]
         val_f.drop_duplicates(columns, inplace=True)
 
         appended_df = train_f.append(val_f)
         duplicate_rows_df = appended_df[appended_df.duplicated(columns, keep=False)]
         duplicate_rows_df.sort_values(columns, inplace=True)
 
-        count_dups = 0
+        count_val_array = np.zeros((duplicate_rows_df.shape[0],))
+        idx_in_array = 0
         for index in duplicate_rows_df.index:
-            if index.startswith('Train'):
+            if index.startswith('Validation'):
                 if not 'Tot.' in index:
-                    count_dups += len(index.split(','))
+                    count_val_array[idx_in_array] = len(index.split(','))
                 else:
-                    count_dups += int(re.findall(r'Tot. (\d+)', index)[0])
+                    count_val_array[idx_in_array] = int(re.findall(r'Tot. (\d+)', index)[0])
+                count_val_array[idx_in_array + 1] = count_val_array[idx_in_array]
+                idx_in_array += 2
 
-        dup_ratio = count_dups / len(val_f)
-        user_msg = f'{format_percent(dup_ratio)} ({count_dups} / {len(val_f)}) \
+        duplicate_rows_df = duplicate_rows_df.iloc[np.flip(count_val_array.argsort()), :]
+
+        count_dups = count_val_array.sum() // 2
+
+        dup_ratio = count_dups / validation_dataset.n_samples()
+        user_msg = f'{format_percent(dup_ratio)} ({count_dups} / {validation_dataset.n_samples()}) \
                      of validation data samples appear in train data'
         display = [user_msg, duplicate_rows_df.head(10)] if dup_ratio else None
 

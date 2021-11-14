@@ -1,4 +1,5 @@
 """Contains unit tests for the string_mismatch check."""
+import numpy as np
 import pandas as pd
 
 from mlchecks.base import Dataset
@@ -80,6 +81,7 @@ def test_no_mismatch_on_one_column_numeric():
     # Assert
     assert_that(result, has_length(0))
 
+
 def test_fi_n_top(diabetes_split_dataset_and_model):
     train, val, clf = diabetes_split_dataset_and_model
     train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
@@ -98,3 +100,17 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     result_ds = check.run(train, val, clf).value
     # Assert
     assert_that(result_ds, has_length(3))
+
+
+def test_nan():
+    # Arrange
+    data = {'col1': ['Deep', 'deep', 'deep!!!', 'earth', 'foo', 'bar', 'foo?'],
+            'col2': ['aaa', 'bbb', 'ddd', '><', '123', '111', '444']}
+    compared_data = {'col1': ['Deep', 'deep', '$deeP$', 'earth', 'foo', 'bar', 'foo?', '?deep'],
+                     'col2': ['aaa!', 'bbb!', 'ddd', '><', '123???', '123!', '__123__', np.nan]}
+
+    # Act
+    result = StringMismatchComparison().run(pd.DataFrame(data=data), pd.DataFrame(data=compared_data)).value
+
+    # Assert - 2 columns, 4 baseforms are mismatch
+    assert_that(result, has_length(4))
