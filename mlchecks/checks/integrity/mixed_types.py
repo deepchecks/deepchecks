@@ -58,6 +58,7 @@ class MixedTypes(SingleDatasetBaseCheck):
             (CheckResult): DataFrame with columns('Column Name', 'Precentage') for any column that is not single typed.
         """
         # Validate parameters
+        original_dataset = dataset
         dataset: pd.DataFrame = ensure_dataframe_type(dataset)
         dataset = filter_columns_with_validation(dataset, self.columns, self.ignore_columns)
 
@@ -71,8 +72,8 @@ class MixedTypes(SingleDatasetBaseCheck):
                 display_dict[column_name] = mix
 
         df_graph = pd.DataFrame.from_dict(display_dict)
-        df_graph = column_importance_sorter_df(df_graph.T, dataset, feature_importances,
-                                               self.n_top_columns, col='Column Name').T
+        df_graph = column_importance_sorter_df(df_graph.T, original_dataset, feature_importances,
+                                               self.n_top_columns).T
         if len(df_graph) > 0:
             display = df_graph
         else:

@@ -322,6 +322,7 @@ class RareFormatDetection(SingleDatasetBaseCheck):
 
     def _rare_format_detection(self, dataset: Union[Dataset, pd.DataFrame],
                                feature_importances: pd.Series=None) -> CheckResult:
+        original_dataset = dataset
         dataset: pd.DataFrame = ensure_dataframe_type(dataset)
         dataset = filter_columns_with_validation(dataset, self.columns, self.ignore_columns)
 
@@ -334,7 +335,8 @@ class RareFormatDetection(SingleDatasetBaseCheck):
                                             self.min_unique_common_ratio, self.pattern_match_method)
             for column_name in dataset.columns}
         filtered_res = dict(filter(lambda elem: elem[1].shape[0] > 0, res.items()))
-        filtered_res = column_importance_sorter_dict(filtered_res, dataset, feature_importances, self.n_top_columns)
+        filtered_res = column_importance_sorter_dict(filtered_res, original_dataset, feature_importances,
+                                                     self.n_top_columns)
         display = []
         for key, value in filtered_res.items():
             display.append(f'\n\nColumn {key}:')

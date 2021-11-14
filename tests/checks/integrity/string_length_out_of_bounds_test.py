@@ -1,5 +1,6 @@
 """Contains unit tests for the string_length_out_of_bounds check."""
 import pandas as pd
+from mlchecks.base import Dataset
 
 from mlchecks.checks import StringLengthOutOfBounds
 
@@ -66,3 +67,17 @@ def test_outlier_mutiple_outlier_ranges():
     result = StringLengthOutOfBounds().run(df).value
     # Assert
     assert_that(result, has_length(2))
+
+def test_fi_n_top(diabetes_split_dataset_and_model):
+    train, _, clf = diabetes_split_dataset_and_model
+    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
+    train.data.loc[0, 'age'] = 'aaa' * 1000
+    train.data.loc[0, 'bmi'] = 'aaa' * 1000
+    train.data.loc[0, 'bp'] = 'aaa' * 1000
+    train.data.loc[0, 'sex'] = 'aaa' * 1000
+    # Arrange
+    check = StringLengthOutOfBounds(n_top_columns=3)
+    # Act
+    result_ds = check.run(train, clf).value
+    # Assert
+    assert_that(result_ds, has_length(3))

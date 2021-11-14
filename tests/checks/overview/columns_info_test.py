@@ -5,7 +5,7 @@ from mlchecks.utils import MLChecksValueError
 
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, equal_to, calling, raises
+from hamcrest import assert_that, equal_to, calling, raises, has_length
 
 
 def test_dataset_wrong_input():
@@ -48,4 +48,4 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     # Act
     result_ds = check.run(train, clf).value
     # Assert
-    assert_that(len(result_ds), equal_to(3))
+    assert_that(result_ds, has_length(3))

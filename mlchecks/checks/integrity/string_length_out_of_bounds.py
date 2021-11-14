@@ -114,7 +114,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
             if not is_string_column(column):
                 continue
 
-            string_length_column = column.map(len)
+            string_length_column = column.map(lambda x: len(repr(x)))
 
             # If not a lot of unique values, calculate the percentiles for existing values.
             if string_length_column.nunique() < self.num_percentiles:

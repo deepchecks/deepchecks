@@ -105,7 +105,7 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
                                          '% Unique variants out of all baseline samples (count)'])
         df_graph = df_graph.set_index(['Column name', 'Base form'])
         df_graph = column_importance_sorter_df(df_graph, dataset, feature_importances,
-                                               self.n_top_columns, col='Column Name')
+                                        self.n_top_columns, col='Column name')
 
         # For display transpose the dataframe
         display = df_graph.T if len(df_graph) > 0 else None

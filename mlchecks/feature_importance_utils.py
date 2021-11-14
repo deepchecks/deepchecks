@@ -99,7 +99,7 @@ def column_importance_sorter_dict(cols_dict: Dict, ds: Dataset, feature_importan
 
     """
     if feature_importances is not None:
-        key = lambda column: [ get_importance(name, feature_importances, ds) for name in column ]
+        key = lambda name: get_importance(name[0], feature_importances, ds)
         cols_dict = dict(sorted(cols_dict.items(), key=key))
     if n_top:
         return dict(list(cols_dict.items())[:n_top])

@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 
-from hamcrest import assert_that, has_length, equal_to
+from hamcrest import assert_that, has_length
 from mlchecks.base import Dataset
 
 from mlchecks.checks.integrity.mixed_nulls import MixedNulls
@@ -163,4 +163,4 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     # Act
     result_ds = check.run(train, clf).value
     # Assert
-    assert_that(len(result_ds), equal_to(3))
+    assert_that(result_ds, has_length(3))

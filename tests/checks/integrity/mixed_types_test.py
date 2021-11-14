@@ -4,6 +4,7 @@ import pandas as pd
 # Disable wildcard import check for hamcrest
 #pylint: disable=unused-wildcard-import,wildcard-import
 from hamcrest import assert_that, has_length, calling, raises
+from mlchecks.base import Dataset
 
 from mlchecks.checks.integrity.mixed_types import MixedTypes
 from mlchecks.utils import MLChecksValueError
@@ -83,3 +84,17 @@ def test_double_column_double_mix():
     result = MixedTypes().run(dataframe)
     # Assert
     assert_that(result.value.columns, has_length(2))
+
+def test_fi_n_top(diabetes_split_dataset_and_model):
+    train, _, clf = diabetes_split_dataset_and_model
+    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
+    train.data.loc[train.data.index % 4 == 1, 'age'] = 'a'
+    train.data.loc[train.data.index % 4 == 1, 'bmi'] = 'a'
+    train.data.loc[train.data.index % 4 == 1, 'bp'] = 'a'
+    train.data.loc[train.data.index % 4 == 1, 'sex'] = 'a'
+    # Arrange
+    check = MixedTypes(n_top_columns=3)
+    # Act
+    result_ds = check.run(train, clf).value
+    # Assert
+    assert_that(result_ds.columns, has_length(3))

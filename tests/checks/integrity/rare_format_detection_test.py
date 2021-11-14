@@ -7,7 +7,7 @@ import pandas as pd
 from mlchecks import Dataset
 from mlchecks.checks import RareFormatDetection
 
-from hamcrest import assert_that, equal_to, empty, not_none, none
+from hamcrest import assert_that, equal_to, empty, not_none, none, has_length
 
 
 def util_generate_dataframe():
@@ -101,3 +101,17 @@ def test_runs_on_mixed():
     c = RareFormatDetection()
     res = c.run(dataset=Dataset(df))
     assert_that(res.value['mixed'].loc['ratio of rare samples'].values[0], equal_to('1.00% (1)'))
+
+def test_fi_n_top(diabetes_split_dataset_and_model):
+    train, _, clf = diabetes_split_dataset_and_model
+    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
+    train.data.loc[train.data.index % 2 == 1, 'age'] = 'a'
+    train.data.loc[train.data.index % 2 == 1, 'bmi'] = 'a'
+    train.data.loc[train.data.index % 2 == 1, 'bp'] = 'a'
+    train.data.loc[train.data.index % 2 == 1, 'sex'] = 'a'
+    # Arrange
+    check = RareFormatDetection(n_top_columns=3)
+    # Act
+    result_ds = check.run(train, clf).value
+    # Assert
+    # assert_that(result_ds, has_length(3))

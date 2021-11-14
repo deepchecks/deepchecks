@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from mlchecks.base import Dataset
 from mlchecks.utils import MLChecksValueError
 from mlchecks.checks.integrity import DominantFrequencyChange
-from hamcrest import assert_that, calling, raises, equal_to
+from hamcrest import assert_that, calling, raises, equal_to, has_length
 
 
 def test_dataset_wrong_input():
@@ -102,4 +102,4 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     # Act
     result_ds = check.run(train, val, clf).value
     # Assert
-    assert_that(len(result_ds), equal_to(3))
+    assert_that(result_ds, has_length(3))

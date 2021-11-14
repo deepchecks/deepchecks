@@ -1,6 +1,7 @@
 """Contains unit tests for the string_mismatch check."""
 import pandas as pd
 
+from mlchecks.base import Dataset
 from mlchecks.checks import StringMismatch
 
 from hamcrest import assert_that, has_length
@@ -46,3 +47,21 @@ def test_mismatch_multi_column_ignore():
     result = StringMismatch(ignore_columns=['col2']).run(df).value
     # Assert - 4 values are mismatch
     assert_that(result, has_length(2))
+
+def test_fi_n_top(diabetes_split_dataset_and_model):
+    train, _, clf = diabetes_split_dataset_and_model
+    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
+    train.data.loc[train.data.index % 2 == 0, 'age'] = 'aaa'
+    train.data.loc[train.data.index % 2 == 1, 'age'] = 'aaa!!'
+    train.data.loc[train.data.index % 2 == 0, 'bmi'] = 'aaa'
+    train.data.loc[train.data.index % 2 == 1, 'bmi'] = 'aaa!!'
+    train.data.loc[train.data.index % 2 == 0, 'bp'] = 'aaa'
+    train.data.loc[train.data.index % 2 == 1, 'bp'] = 'aaa!!'
+    train.data.loc[train.data.index % 2 == 0, 'sex'] = 'aaa'
+    train.data.loc[train.data.index % 2 == 1, 'sex'] = 'aaa!!'
+    # Arrange
+    check = StringMismatch(n_top_columns=3)
+    # Act
+    result_ds = check.run(train, clf).value
+    # Assert
+    assert_that(result_ds, has_length(3))
