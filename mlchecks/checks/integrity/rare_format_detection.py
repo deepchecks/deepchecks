@@ -293,8 +293,8 @@ class RareFormatDetection(SingleDatasetBaseCheck):
                 feature with some values that are very common and some that are rare.
             pattern_match_method (str): 'first' or 'all'. If 'first', returns only the pattern where a "rare format"
                 sample was found for the first time. If 'all', returns all patterns in which anything was found.
-            n_top_columns (int): amount of columns to show ordered by feature importance (date, index, label are first)
-
+            n_top_columns (int): (optinal - used only if model was specified)
+                                amount of columns to show ordered by feature importance (date, index, label are first)
         """
         super().__init__()
         self.columns = columns

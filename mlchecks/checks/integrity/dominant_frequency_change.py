@@ -24,7 +24,8 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
                                           if the value abundance has changed significantly (0-1).
             dominance_ratio (float = 2): Next most abundance value has to be THIS times less than the first (0-inf).
             ratio_change_thres (float = 1.5): The dominant frequency has to change by at least this ratio (0-inf).
-            n_top_columns (int): amount of columns to show ordered by feature importance (date, index, label are first)
+        n_top_columns (int): (optinal - used only if model was specified)
+                             amount of columns to show ordered by feature importance (date, index, label are first)
         """
         super().__init__()
         self.p_value_threshold = p_value_threshold

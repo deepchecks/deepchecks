@@ -39,7 +39,8 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
                     ones.
             ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
                     variable
-            n_top_columns (int): amount of columns to show ordered by feature importance (date, index, label are first)
+        n_top_columns (int): (optinal - used only if model was specified)
+                             amount of columns to show ordered by feature importance (date, index, label are first)
         """
         super().__init__()
         self.columns = columns

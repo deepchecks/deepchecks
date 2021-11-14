@@ -86,14 +86,15 @@ def get_importance(name: str, feature_importances: pd.Series, ds: Dataset):
 
 
 def column_importance_sorter_dict(cols_dict: Dict, ds: Dataset, feature_importances: pd.Series,
-                             n_top: int = 10):
+                                  n_top: int = 10):
     """Return the dict of columns sorted and limited by feature importance.
 
     Args:
         cols_dict (Dict): dict where columns are the keys
         ds (Dataset): dataset used to fit the model
         feature_importances (pd.Series): feature importance normalized to 0-1 indexed by feature names
-        n_top_columns (int): amount of columns to show ordered by feature importance (date, index, label are first)
+        n_top_columns (int): (optinal - used only if model was specified)
+                             amount of columns to show ordered by feature importance (date, index, label are first)
     Returns:
         Dict: the dict of columns sorted and limited by feature importance.
 
@@ -101,20 +102,21 @@ def column_importance_sorter_dict(cols_dict: Dict, ds: Dataset, feature_importan
     if feature_importances is not None:
         key = lambda name: get_importance(name[0], feature_importances, ds)
         cols_dict = dict(sorted(cols_dict.items(), key=key, reverse=True))
-    if n_top:
-        return dict(list(cols_dict.items())[:n_top])
+        if n_top:
+            return dict(list(cols_dict.items())[:n_top])
     return cols_dict
 
 
 def column_importance_sorter_df(df: pd.DataFrame, ds: Dataset, feature_importances: pd.Series,
-                             n_top: int = 10, col: List[str] = None):
+                                n_top: int = 10, col: str = None):
     """Return the dataframe of of columns sorted and limited by feature importance.
 
     Args:
         cols_dict (pd.DataFrame): dataframe where columns are the index or in a column
         ds (Dataset): dataset used to fit the model
         feature_importances (pd.Series): feature importance normalized to 0-1 indexed by feature names
-        n_top_columns (int): amount of columns to show ordered by feature importance (date, index, label are first)
+        n_top_columns (int): (optinal - used only if model was specified)
+                             amount of columns to show ordered by feature importance (date, index, label are first)
         col (str): (optional) name of column to sort the dataframe by
     Returns:
         pd.DataFrame: the dataframe sorted and limited by feature importance.
@@ -125,6 +127,6 @@ def column_importance_sorter_df(df: pd.DataFrame, ds: Dataset, feature_importanc
         if col:
             df = df.sort_values(by=[col], key=key, ascending=False)
         df = df.sort_index(key=key, ascending=False)
-    if n_top:
-        return df.head(n_top)
+        if n_top:
+            return df.head(n_top)
     return df

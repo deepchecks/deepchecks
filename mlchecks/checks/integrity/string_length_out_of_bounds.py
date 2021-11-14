@@ -81,7 +81,8 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                                        E.g. for 98 the range would be 2%-98%.
             outlier_factor (int): Strings would be defined as outliers if their length is outlier_factor times more/less
                                   than the values inside the inner quantile range.
-            n_top_columns (int): amount of columns to show ordered by feature importance (date, index, label are first)
+        n_top_columns (int): (optinal - used only if model was specified)
+                             amount of columns to show ordered by feature importance (date, index, label are first)
         """
         super().__init__()
         self.columns = columns
