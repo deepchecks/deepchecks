@@ -57,16 +57,16 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     feature_importances_sorted.insert(0, 'target')
     feature_importances_sorted = feature_importances_sorted[:num_values]
 
-    sorted = column_importance_sorter_dict(columns_info, train, feature_importances, num_values)
-    assert_that(list(sorted.keys()), equal_to(feature_importances_sorted))
+    sorted_dict = column_importance_sorter_dict(columns_info, train, feature_importances, num_values)
+    assert_that(list(sorted_dict.keys()), equal_to(feature_importances_sorted))
 
     columns_info_df = pd.DataFrame([columns_info.keys(), columns_info.values()]).T
     columns_info_df.columns = ['keys', 'values']
-    sorted = column_importance_sorter_df(columns_info_df, train, feature_importances, num_values, col='keys')
+    sorted_df = column_importance_sorter_df(columns_info_df, train, feature_importances, num_values, col='keys')
 
-    assert_that(list(sorted['keys']), equal_to(feature_importances_sorted))
+    assert_that(list(sorted_df['keys']), equal_to(feature_importances_sorted))
 
     columns_info_df = columns_info_df.set_index('keys')
-    sorted = column_importance_sorter_df(columns_info_df, train, feature_importances, num_values)
+    sorted_df = column_importance_sorter_df(columns_info_df, train, feature_importances, num_values)
 
-    assert_that(list(sorted.index), equal_to(feature_importances_sorted))
+    assert_that(list(sorted_df.index), equal_to(feature_importances_sorted))

@@ -1,14 +1,12 @@
 """Contains unit tests for the rare_format_detection check."""
 from datetime import datetime
-from hamcrest.library.collection.is_empty import empty
-
 import numpy as np
 import pandas as pd
 
 from mlchecks import Dataset
 from mlchecks.checks import RareFormatDetection
 
-from hamcrest import assert_that, equal_to, not_none, none, has_length
+from hamcrest import assert_that, equal_to, not_none, none, has_length, empty
 
 
 def util_generate_dataframe():
