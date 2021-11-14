@@ -82,20 +82,20 @@ class CheckSuite(BaseCheck):
             try:
                 label.value = f'Running {str(check)}'
 
-                if train_dataset is not None and validation_dataset is not None:
-                    if isinstance(check, TrainValidationBaseCheck):
+                if isinstance(check, TrainValidationBaseCheck):
+                    if train_dataset is not None and validation_dataset is not None:
                         results.append(check.run(
                             train_dataset=train_dataset,
                             validation_dataset=validation_dataset,
                             model=model
                         ))
-                    elif isinstance(check, CompareDatasetsBaseCheck):
+                elif isinstance(check, CompareDatasetsBaseCheck):
+                    if train_dataset is not None and validation_dataset is not None:
                         results.append(check.run(
                             dataset=validation_dataset,
                             baseline_dataset=train_dataset,
                             model=model
                         ))
-
                 elif isinstance(check, SingleDatasetBaseCheck):
                     if check_datasets_policy in {'both', 'train'} and train_dataset is not None:
                         res = check.run(dataset=train_dataset, model=model)
