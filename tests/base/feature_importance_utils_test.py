@@ -1,8 +1,6 @@
 """Test feature importance utils"""
 from hamcrest import equal_to, assert_that, calling, raises, close_to
 from hamcrest.core.core.isnone import not_none
-from hamcrest.library.collection.issequence_containing import has_item
-from hamcrest.library.object.haslength import has_length
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression

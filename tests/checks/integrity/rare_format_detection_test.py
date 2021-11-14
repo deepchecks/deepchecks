@@ -1,5 +1,6 @@
 """Contains unit tests for the rare_format_detection check."""
 from datetime import datetime
+from hamcrest.library.collection.is_empty import empty
 
 import numpy as np
 import pandas as pd
@@ -7,7 +8,7 @@ import pandas as pd
 from mlchecks import Dataset
 from mlchecks.checks import RareFormatDetection
 
-from hamcrest import assert_that, equal_to, empty, not_none, none, has_length
+from hamcrest import assert_that, equal_to, not_none, none, has_length
 
 
 def util_generate_dataframe():
@@ -38,7 +39,7 @@ def test_assert_nothing_found():
     df = util_generate_dataframe()
     c = RareFormatDetection()
     res = c.run(dataset=Dataset(df))
-    assert_that(res.value, has_length(0))
+    assert_that(res.value, empty())
 
 
 def test_assert_change_in_format():
@@ -100,6 +101,7 @@ def test_assert_param_ignore_columns():
     assert_that(res.value.get('date'), not_none())
     assert_that(res.value.get('stam'),none())
 
+
 def test_runs_on_numbers():
     df = pd.DataFrame(np.ones((100, 1)) * 11111, columns=['numbers'])
     df.iloc[0, 0] = 1111
@@ -115,6 +117,7 @@ def test_runs_on_mixed():
     res = c.run(dataset=Dataset(df))
     assert_that(res.value['mixed'].loc['ratio of rare samples'].values[0], equal_to('1.00% (1)'))
 
+
 def test_fi_n_top(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
     # Arrange
@@ -123,6 +126,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     result_ds = check.run(train, clf).value
     # Assert
     assert_that(result_ds, has_length(1))
+
 
 def test_nan():
     df = pd.DataFrame(np.ones((101, 1)) * 11111, columns=['mixed'])
@@ -138,5 +142,4 @@ def test_mostly_nan():
     df.iloc[0, 0] = 'aaaaa'
     c = RareFormatDetection()
     res = c.run(dataset=Dataset(df))
-    assert_that(res.value.get('mixed'), not_none())
-    assert_that('ratio of rare samples' not in res.value['mixed'])
+    assert_that(res.value, empty())
