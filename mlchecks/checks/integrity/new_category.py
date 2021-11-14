@@ -74,7 +74,7 @@ class CategoryMismatchTrainValidation(TrainValidationBaseCheck):
             train_column = train_dataset.data[feature]
             validation_column = validation_dataset.data[feature]
 
-            # np.nan doesn't compare, so we remove these values if they exist in in training
+            # np.nan != np.nan, so we remove these values if they exist in training
             if train_column.isna().any():
                 validation_column = validation_column.dropna()
 
