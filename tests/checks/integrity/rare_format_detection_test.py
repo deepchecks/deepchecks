@@ -23,13 +23,22 @@ def util_generate_dataframe():
 
     return df
 
+def fail_email(df: pd.DataFrame) -> pd.DataFrame:
+    df['email'].loc[[0, 1]] = ['myname@gmail.com1', 'myname@gmail.co']
+    return df
+
+
+
+def fail_date(df: pd.DataFrame) -> pd.DataFrame:
+    df['date'].loc[0:2] = [datetime.strptime(d, '%Y-%m-%d').strftime('%Y-%b-%d') for d in df['date'].loc[0:2]]
+    return df
+
 
 def test_assert_nothing_found():
     df = util_generate_dataframe()
     c = RareFormatDetection()
     res = c.run(dataset=Dataset(df))
-    assert_that(res.value['date'], empty())
-    assert_that(res.value['email'], empty())
+    assert_that(res.value, has_length(0))
 
 
 def test_assert_change_in_format():
@@ -38,39 +47,41 @@ def test_assert_change_in_format():
     c = RareFormatDetection()
     res = c.run(dataset=Dataset(df))
     assert_that(res.value['date'].loc['ratio of rare samples'].values[0], equal_to('1.50% (3)'))
-    assert_that(res.value['email'], empty())
+    assert_that(res.value.get('email'), none())
 
 
 def test_assert_change_in_format2():
     df = util_generate_dataframe()
-    df['email'].loc[[0, 1]] = ['myname@gmail.com1', 'myname@gmail.co']
+    fail_email(df)
     c = RareFormatDetection()
     res = c.run(dataset=Dataset(df))
-    assert_that(res.value['date'], empty())
+    assert_that(res.value.get('date'), none())
     assert_that(res.value['email'].loc['ratio of rare samples'].values[0], equal_to('1.00% (2)'))
 
 
 def test_assert_param_rarity_threshold():
     df = util_generate_dataframe()
-    df['email'].loc[[0, 1]] = ['myname@gmail.com1', 'myname@gmail.co']
+    fail_email(df)
     c = RareFormatDetection(rarity_threshold=0.01)
     res = c.run(dataset=Dataset(df))
-    assert_that(res.value['date'], empty())
+    assert_that(res.value.get('date'), none())
     assert_that(res.value['email'].loc['ratio of rare samples'].values[0], equal_to('0.50% (1)'))
 
 
 def test_assert_param_pattern_match_method():
     df = util_generate_dataframe()
-    df['email'].loc[[0, 1]] = ['myname@gmail.com1', 'myname@gmail.co']
+    fail_email(df)
     c = RareFormatDetection(pattern_match_method='all')
     res = c.run(dataset=Dataset(df))
-    assert_that(res.value['date'], empty())
+    assert_that(res.value.get('date'), none())
     assert_that(len(res.value['email'].columns), equal_to(5))
 
 
 def test_assert_param_columns():
     df = util_generate_dataframe()
     df['stam'] = 'stam'
+    fail_email(df)
+    fail_date(df)
     c = RareFormatDetection(columns=['date', 'email'])
     res = c.run(dataset=Dataset(df))
     assert_that(res.value.get('email'), not_none())
@@ -81,6 +92,8 @@ def test_assert_param_columns():
 def test_assert_param_ignore_columns():
     df = util_generate_dataframe()
     df['stam'] = 'stam'
+    fail_email(df)
+    fail_date(df)
     c = RareFormatDetection(ignore_columns=['stam'])
     res = c.run(dataset=Dataset(df))
     assert_that(res.value.get('email'), not_none())
@@ -104,14 +117,9 @@ def test_runs_on_mixed():
 
 def test_fi_n_top(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
-    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
-    train.data.loc[train.data.index % 2 == 1, 'age'] = 'a'
-    train.data.loc[train.data.index % 2 == 1, 'bmi'] = 'a'
-    train.data.loc[train.data.index % 2 == 1, 'bp'] = 'a'
-    train.data.loc[train.data.index % 2 == 1, 'sex'] = 'a'
     # Arrange
-    check = RareFormatDetection(n_top_columns=3)
+    check = RareFormatDetection(n_top_columns=1)
     # Act
     result_ds = check.run(train, clf).value
     # Assert
-    # assert_that(result_ds, has_length(3))
+    # assert_that(result_ds, has_length(1))

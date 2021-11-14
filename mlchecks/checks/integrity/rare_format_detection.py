@@ -342,4 +342,4 @@ class RareFormatDetection(SingleDatasetBaseCheck):
             display.append(f'\n\nColumn {key}:')
             display.append(value)
 
-        return CheckResult(value=res, header='Rare Format Detection', check=self.__class__, display=display)
+        return CheckResult(value=filtered_res, header='Rare Format Detection', check=self.__class__, display=display)
