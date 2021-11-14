@@ -122,7 +122,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     # Act
     result_ds = check.run(train, clf).value
     # Assert
-    # assert_that(result_ds, has_length(1))
+    assert_that(result_ds, has_length(1))
 
 def test_nan():
     df = pd.DataFrame(np.ones((101, 1)) * 11111, columns=['mixed'])
