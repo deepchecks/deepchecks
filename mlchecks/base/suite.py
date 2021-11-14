@@ -164,7 +164,8 @@ class CheckSuite(BaseCheck):
                         results.append(check_result)
                 elif isinstance(check, CompareDatasetsBaseCheck):
                     if train_dataset is not None and validation_dataset is not None:
-                        check_result = check.run(dataset=validation_dataset, baseline_dataset=train_dataset, model=model)
+                        check_result = check.run(dataset=validation_dataset, baseline_dataset=train_dataset,
+                                                 model=model)
                         check_result.set_condition_results(check.conditions_decision(check_result))
                         results.append(check_result)
                 elif isinstance(check, SingleDatasetBaseCheck):
