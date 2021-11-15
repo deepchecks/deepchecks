@@ -1,10 +1,11 @@
 """Module containing naive comparison check."""
+from typing import Dict
 import numpy as np
 import matplotlib.pyplot as plt
-from deepchecks.string_utils import format_number
+from deepchecks.string_utils import format_columns_for_condition, format_number
 
 from deepchecks import CheckResult, Dataset
-from deepchecks.base.check import TrainValidationBaseCheck
+from mlchecks.base.check import ConditionResult, TrainValidationBaseCheck
 from deepchecks.metric_utils import DEFAULT_METRICS_DICT, DEFAULT_SINGLE_METRIC, task_type_check, ModelType, validate_scorer
 from deepchecks.utils import model_type_validation
 
@@ -105,7 +106,7 @@ class NaiveModelComparison(TrainValidationBaseCheck):
             CheckResult: value is ratio between model prediction to naive prediction
 
         Raises:
-            DeepchecksValueError: If the object is not a Dataset instance.
+            MLChecksValueError: If the object is not a Dataset instance.
         """
         return self._naive_model_comparison(train_dataset, validation_dataset, model)
 
@@ -122,10 +123,12 @@ class NaiveModelComparison(TrainValidationBaseCheck):
                                                             self.naive_model_type, self.metric,
                                                             self.metric_name)
 
-        ratio = naive_metric / pred_metric
+        effective_ratio = ratio = naive_metric / pred_metric
+        if naive_metric < 0 and pred_metric < 0:
+            effective_ratio = 1 / ratio
 
-        text = f'The ratio between the naive model\'s {metric_name} and the checked model\'s {metric_name}' \
-               f' is {format_number(ratio)}.<br>' \
+        text = f'The naive model is {format_number(effective_ratio)} times as effective as the ' \
+               f'checked model using the {metric_name} metric.\n' \
                f'{type(model).__name__} model prediction has achieved {format_number(pred_metric)} ' \
                f'compared to Naive {self.naive_model_type} prediction ' \
                f'which achieved {format_number(naive_metric)} on tested data.'
@@ -138,5 +141,28 @@ class NaiveModelComparison(TrainValidationBaseCheck):
             ax.bar(models, metrics_results)
             ax.set_ylabel(metric_name)
 
-        return CheckResult({'given_model_score': pred_metric, 'naive_model_score': naive_metric},
+        return CheckResult({'given_model_score': pred_metric, 'naive_model_score': naive_metric,
+                            'effective_ratio': effective_ratio},
                            check=self.__class__, display=[text, display_func])
+
+
+    def add_condition_max_effective_ratio(self, max_allowed_effective_ratio: float = 0.7):
+        """Add condition - require column not to have more than given number of different null values.
+
+        Args:
+            max_allowed_null_types (int): Number of different null value types which is the maximum allowed.
+        """
+        def condition(result: Dict) -> ConditionResult:
+            effective_ratio = result['effective_ratio']
+            if effective_ratio > max_allowed_effective_ratio:
+                return ConditionResult(False,
+                                        f'The naive model is {format_number(effective_ratio)} times as effective as the ' \
+                                        f'checked model using the given metric, which is more than the allowed ration of: '
+                                        f'{format_number(max_allowed_effective_ratio)}')
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'Not more than {format_number(max_allowed_effective_ratio)} effective ratio '
+                                  f'between the naive model\'s result and the checked model\'s result',
+                                  condition)
+
