@@ -158,7 +158,7 @@ class NaiveModelComparison(TrainValidationBaseCheck):
                 return ConditionResult(False,
                                        f'The naive model is {format_number(effective_ratio)} times as effective as' \
                                        f' the checked model using the given metric, which is more than the'
-                                       f' allowed ration of: {format_number(max_allowed_effective_ratio)}')
+                                       f' allowed ratio of: {format_number(max_allowed_effective_ratio)}')
             else:
                 return ConditionResult(True)
 

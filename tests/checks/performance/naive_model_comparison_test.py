@@ -69,7 +69,7 @@ def test_regression_statistical(diabetes_split_dataset_and_model):
     assert_that(result['naive_model_score'], close_to(-76, 0.5))
 
 
-def test_condition_max_nulls_not_passed(diabetes_split_dataset_and_model):
+def test_condition_max_ratio_not_passed(diabetes_split_dataset_and_model):
     # Arrange
     train_ds, val_ds, clf = diabetes_split_dataset_and_model
     check = NaiveModelComparison().add_condition_max_effective_ratio()
@@ -81,12 +81,13 @@ def test_condition_max_nulls_not_passed(diabetes_split_dataset_and_model):
         equal_condition_result(is_pass=False,
                                name='Not more than 0.7 effective ratio '
                                     'between the naive model\'s result and the checked model\'s result',
-                               details='The naive model is 0.76 times as effective as the checked model'
-                                       ' using the given metric, which is more than the allowed ration of: 0.7')
+                               details='The naive model is 0.76 times as effective as' \
+                                       f' the checked model using the given metric, which is more than the'
+                                       f' allowed ratio of: 0.7')
     ))
 
 
-def test_condition_max_nulls_passed(diabetes_split_dataset_and_model):
+def test_condition_max_ratio_passed(diabetes_split_dataset_and_model):
     # Arrange
     train_ds, val_ds, clf = diabetes_split_dataset_and_model
     check = NaiveModelComparison().add_condition_max_effective_ratio(max_allowed_effective_ratio=0.8)
