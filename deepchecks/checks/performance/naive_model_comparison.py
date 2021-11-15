@@ -147,18 +147,17 @@ class NaiveModelComparison(TrainValidationBaseCheck):
 
 
     def add_condition_max_effective_ratio(self, max_allowed_effective_ratio: float = 0.7):
-        """Add condition - require column not to have more than given number of different null values.
+        """Add condition - require max allowed effective ratio between the naive and the checked model.
 
         Args:
-            max_allowed_null_types (int): Number of different null value types which is the maximum allowed.
+            max_allowed_effective_ratio (float): Max allowed effective ratio between the naive and the checked model.
         """
         def condition(result: Dict) -> ConditionResult:
             effective_ratio = result['effective_ratio']
             if effective_ratio > max_allowed_effective_ratio:
                 return ConditionResult(False,
                                        f'The naive model is {format_number(effective_ratio)} times as effective as' \
-                                       f' the checked model using the given metric, which is more than the'
-                                       f' allowed ratio of: {format_number(max_allowed_effective_ratio)}')
+                                       f' the checked model using the given metric')
             else:
                 return ConditionResult(True)
 

@@ -86,8 +86,7 @@ def test_condition_max_ratio_not_passed(diabetes_split_dataset_and_model):
                                name='Not more than 0.7 effective ratio '
                                     'between the naive model\'s result and the checked model\'s result',
                                details=f'The naive model is {format_number(effective_ratio)} times as effective as' \
-                                       ' the checked model using the given metric, which is more than the'
-                                       ' allowed ratio of: 0.7')
+                                       ' the checked model using the given metric')
     ))
 
 
