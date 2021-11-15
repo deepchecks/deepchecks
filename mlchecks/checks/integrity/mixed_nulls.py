@@ -1,14 +1,16 @@
 """Module contains Mixed Nulls check."""
-from typing import Iterable, Union
+from collections import defaultdict
+from typing import Iterable, Union, Dict
 
 import numpy as np
 import pandas as pd
 
 from mlchecks import Dataset, CheckResult, ensure_dataframe_type
-from mlchecks.base.check import SingleDatasetBaseCheck
+from mlchecks.base.check import SingleDatasetBaseCheck, ConditionResult
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
+
 from mlchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_df
-from mlchecks.string_utils import string_baseform, format_percent
+from mlchecks.string_utils import string_baseform, format_percent, format_columns_for_condition
 from mlchecks.utils import MLChecksValueError
 
 __all__ = ['MixedNulls']
@@ -41,7 +43,7 @@ class MixedNulls(SingleDatasetBaseCheck):
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
 
-    def run(self, dataset, model=None) -> CheckResult:
+    def run(self, dataset, model = None) -> CheckResult:
         """Run check.
 
         Args:
@@ -81,7 +83,7 @@ class MixedNulls(SingleDatasetBaseCheck):
 
         return result
 
-    def _mixed_nulls(self, dataset: Union[pd.DataFrame, Dataset], feature_importances: pd.Series=None) -> CheckResult:
+    def _mixed_nulls(self, dataset: Union[pd.DataFrame, Dataset], feature_importances: pd.Series = None) -> CheckResult:
         """Run check logic.
 
         Args:
@@ -99,6 +101,7 @@ class MixedNulls(SingleDatasetBaseCheck):
 
         # Result value
         display_array = []
+        result_dict = defaultdict(dict)
 
         for column_name in list(dataset.columns):
             column_data = dataset[column_name]
@@ -108,23 +111,49 @@ class MixedNulls(SingleDatasetBaseCheck):
             # Get counts of all values in series including NaNs, in sorted order of count
             column_counts: pd.Series = column_data.value_counts(dropna=False)
             # Filter out values not in the nulls list
-            keys_to_drop = [key for key in column_counts.keys() if string_baseform(key) not in null_string_list]
-            null_counts = column_counts.drop(labels=keys_to_drop)
-            if null_counts.size < 2:
+            null_counts = {value: count for value, count in column_counts.items()
+                           if string_baseform(value) in null_string_list}
+            if len(null_counts) < 2:
                 continue
             # Save the column info
-            for key, count in null_counts.iteritems():
-                display_array.append([column_name, key, count, format_percent(count / dataset.size)])
+            for null_value, count in null_counts.items():
+                percent = count / len(column_data)
+                display_array.append([column_name, null_value, count, format_percent(percent)])
+                result_dict[column_name][null_value] = {'count': count, 'percent': percent}
 
-        # Create dataframe to display graph
-        df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percent of data'])
-        df_graph = df_graph.set_index(['Column Name', 'Value'])
-        df_graph = column_importance_sorter_df(df_graph, original_dataset, feature_importances,
-                                               self.n_top_columns, col='Column Name')
-
-        if len(df_graph) > 0:
+        # Create dataframe to display table
+        if display_array:
+            df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percent of data'])
+            df_graph = df_graph.set_index(['Column Name', 'Value'])
+            df_graph = column_importance_sorter_df(df_graph, original_dataset, feature_importances,
+                                                   self.n_top_columns, col='Column Name')
             display = df_graph
         else:
             display = None
 
-        return CheckResult(df_graph, check=self.__class__, display=display)
+        return CheckResult(result_dict, check=self.__class__, display=display)
+
+    def add_condition_different_nulls_not_more_than(self, max_allowed_null_types: int = 1):
+        """Add condition - require column not to have more than given number of different null values.
+
+        Args:
+            max_allowed_null_types (int): Number of different null value types which is the maximum allowed.
+        """
+        def condition(result: Dict) -> ConditionResult:
+            not_passing_columns = []
+            for column in result.keys():
+                nulls = result[column]
+                num_nulls = len(nulls)
+                if num_nulls > max_allowed_null_types:
+                    not_passing_columns.append(column)
+            if not_passing_columns:
+                not_passing_str = ', '.join(not_passing_columns)
+                return ConditionResult(False,
+                                       f'Found columns with more than {max_allowed_null_types} null types: '
+                                       f'{not_passing_str}')
+            else:
+                return ConditionResult(True)
+
+        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
+        return self.add_condition(f'Not more than {max_allowed_null_types} different null types for {column_names}',
+                                  condition)

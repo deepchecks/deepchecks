@@ -15,5 +15,5 @@ def test_segment_performance_diabetes(diabetes_split_dataset_and_model):
         'scores': has_property('shape', (10, 2)),
         'counts': has_property('shape', (10, 2))
     }))
-    assert_that(result['scores'].mean(), close_to(53, 1))
+    assert_that(result['scores'].mean(), close_to(-53, 1))
     assert_that(result['counts'].sum(), equal_to(146))

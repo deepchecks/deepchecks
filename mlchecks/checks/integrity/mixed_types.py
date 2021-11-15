@@ -5,14 +5,14 @@ import pandas as pd
 import numpy as np
 
 from mlchecks import Dataset, ensure_dataframe_type
-from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck
+from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
 from mlchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_df
 
 
 __all__ = ['MixedTypes']
 
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
-from mlchecks.string_utils import is_string_column, format_percent
+from mlchecks.string_utils import is_string_column, format_percent, format_columns_for_condition
 
 
 class MixedTypes(SingleDatasetBaseCheck):
@@ -56,7 +56,7 @@ class MixedTypes(SingleDatasetBaseCheck):
             dataset (Dataset): Dataset to be tested.
 
         Returns:
-            (CheckResult): DataFrame with columns('Column Name', 'Precentage') for any column that is not single typed.
+            (CheckResult): DataFrame with columns('Column Name', 'Percentage') for any column that is not single typed.
         """
         # Validate parameters
         original_dataset = dataset
@@ -65,22 +65,25 @@ class MixedTypes(SingleDatasetBaseCheck):
 
         # Result value: { Column Name: {string: pct, numbers: pct}}
         display_dict = {}
+        result_dict = {}
 
         for column_name in dataset.columns:
             column_data = dataset[column_name].dropna()
             mix = self._get_data_mix(column_data)
             if mix:
-                display_dict[column_name] = mix
+                result_dict[column_name] = mix
+                # Format percents for display
+                display_dict[column_name] = {k: format_percent(v) for k, v in mix.items()}
 
-        df_graph = pd.DataFrame.from_dict(display_dict)
-        df_graph = column_importance_sorter_df(df_graph.T, original_dataset, feature_importances,
-                                               self.n_top_columns).T
-        if len(df_graph) > 0:
+        if display_dict:
+            df_graph = pd.DataFrame.from_dict(display_dict)
+            df_graph = column_importance_sorter_df(df_graph.T, original_dataset, feature_importances,
+                                                   self.n_top_columns).T
             display = df_graph
         else:
             display = None
 
-        return CheckResult(df_graph, check=self.__class__, display=display)
+        return CheckResult(result_dict, check=self.__class__, display=display)
 
     def _get_data_mix(self, column_data: pd.Series) -> dict:
         if is_string_column(column_data):
@@ -102,7 +105,27 @@ class MixedTypes(SingleDatasetBaseCheck):
             return {}
 
         # Then we've got a mix
-        nums_pct = format_percent(nums / total_rows)
-        strs_pct = format_percent((np.abs(nums - total_rows)) / total_rows)
+        nums_pct = nums / total_rows
+        strs_pct = (np.abs(nums - total_rows)) / total_rows
 
         return {'strings': strs_pct, 'numbers': nums_pct}
+
+    def add_condition_rare_type_ratio_not_less_than(self, max_rare_type_ratio: float = 0.01):
+        """Add condition - Whether the rarer data type (strings or numbers) have ratio higher than given ratio.
+
+        Args:
+            max_rare_type_ratio (float): Minimal ratio allowed for the rarer type (numbers or strings)
+        """
+        def condition(result, max_rare_type_ratio):
+            failing_columns = []
+            for col, ratios in result.items():
+                if ratios['strings'] < max_rare_type_ratio or ratios['numbers'] < max_rare_type_ratio:
+                    failing_columns.append(col)
+            if failing_columns:
+                details = f'Found columns with low type ratio: {", ".join(failing_columns)}'
+                return ConditionResult(False, details)
+            return ConditionResult(True)
+
+        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
+        name = f'Rare type ratio is not less than {format_percent(max_rare_type_ratio)} of samples in {column_names}'
+        return self.add_condition(name, condition, max_rare_type_ratio=max_rare_type_ratio)

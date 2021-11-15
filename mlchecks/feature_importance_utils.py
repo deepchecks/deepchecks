@@ -123,7 +123,7 @@ def column_importance_sorter_df(df: pd.DataFrame, ds: Dataset, feature_importanc
 
     """
     if feature_importances is not None:
-        key = lambda column: [ get_importance(name, feature_importances, ds) for name in column ]
+        key = lambda column: [get_importance(name, feature_importances, ds) for name in column]
         if col:
             df = df.sort_values(by=[col], key=key, ascending=False)
         df = df.sort_index(key=key, ascending=False)
