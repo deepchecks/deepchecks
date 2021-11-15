@@ -1,7 +1,7 @@
 """Contains unit tests for the columns_info check."""
-from mlchecks.base import Dataset
-from mlchecks.checks.overview import ColumnsInfo
-from mlchecks.utils import MLChecksValueError
+from deepchecks.base import Dataset
+from deepchecks.checks.overview import ColumnsInfo
+from deepchecks.utils import DeepchecksValueError
 
 import numpy as np
 import pandas as pd
@@ -12,7 +12,7 @@ def test_dataset_wrong_input():
     x = 'wrong_input'
     # Act & Assert
     assert_that(calling(ColumnsInfo().run).with_args(x),
-                raises(MLChecksValueError, 'dataset must be of type DataFrame or Dataset. instead got: str'))
+                raises(DeepchecksValueError, 'dataset must be of type DataFrame or Dataset. instead got: str'))
 
 
 def test_columns_info():

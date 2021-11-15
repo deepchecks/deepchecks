@@ -4,7 +4,7 @@ import pandas as pd
 
 from hamcrest import assert_that, has_length
 
-from mlchecks.checks.integrity.mixed_nulls import MixedNulls
+from deepchecks.checks.integrity.mixed_nulls import MixedNulls
 
 
 def test_single_column_no_nulls():

@@ -4,9 +4,9 @@ Contains unit tests for the data_sample_leakage_report check
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from mlchecks.base import Dataset
-from mlchecks.utils import MLChecksValueError
-from mlchecks.checks.leakage import DataSampleLeakageReport
+from deepchecks.base import Dataset
+from deepchecks.utils import DeepchecksValueError
+from deepchecks.checks.leakage import DataSampleLeakageReport
 from hamcrest import assert_that, calling, raises, equal_to
 
 
@@ -14,7 +14,7 @@ def test_dataset_wrong_input():
     x = 'wrong_input'
     # Act & Assert
     assert_that(calling(DataSampleLeakageReport().run).with_args(x, x),
-                raises(MLChecksValueError,
+                raises(DeepchecksValueError,
                 'dataset must be of type DataFrame or Dataset. instead got: str'))
 
 

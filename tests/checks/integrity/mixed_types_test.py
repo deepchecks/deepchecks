@@ -6,8 +6,8 @@ import pandas as pd
 #pylint: disable=unused-wildcard-import,wildcard-import
 from hamcrest import assert_that, has_length, calling, raises
 
-from mlchecks.checks.integrity.mixed_types import MixedTypes
-from mlchecks.utils import MLChecksValueError
+from deepchecks.checks.integrity.mixed_types import MixedTypes
+from deepchecks.utils import DeepchecksValueError
 
 
 def test_single_column_no_mix():
@@ -77,7 +77,7 @@ def test_double_column_specific_and_ignored_mix():
     # Act & Assert
     check = MixedTypes(ignore_columns=['col1'], columns=['col1'])
     assert_that(calling(check.run).with_args(dataframe),
-                raises(MLChecksValueError))
+                raises(DeepchecksValueError))
 
 
 def test_double_column_double_mix():

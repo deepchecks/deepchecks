@@ -2,8 +2,8 @@
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
 
-from mlchecks import Dataset
-from mlchecks.checks.overfit.boosting_overfit import BoostingOverfit
+from deepchecks import Dataset
+from deepchecks.checks.overfit.boosting_overfit import BoostingOverfit
 from hamcrest import assert_that, close_to
 
 

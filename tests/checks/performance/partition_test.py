@@ -1,8 +1,8 @@
 """Tests for partition columns function."""
 import pandas as pd
 
-from mlchecks import Dataset
-from mlchecks.checks.performance.partition import partition_column
+from deepchecks import Dataset
+from deepchecks.checks.performance.partition import partition_column
 import hamcrest as h
 
 

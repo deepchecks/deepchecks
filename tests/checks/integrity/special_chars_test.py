@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 
 from hamcrest import assert_that, has_length, calling, raises, has_items
-from mlchecks.checks.integrity.special_chars import SpecialCharacters
-from mlchecks.utils import MLChecksValueError
+from deepchecks.checks.integrity.special_chars import SpecialCharacters
+from deepchecks.utils import DeepchecksValueError
 
 
 def test_single_column_no_invalid():
@@ -77,7 +77,7 @@ def test_double_column_specific_and_ignored_invalid():
     # Act & Assert
     check = SpecialCharacters(ignore_columns=['col1'], columns=['col1'])
     assert_that(calling(check.run).with_args(dataframe),
-                raises(MLChecksValueError))
+                raises(DeepchecksValueError))
 
 
 def test_double_column_double_invalid():

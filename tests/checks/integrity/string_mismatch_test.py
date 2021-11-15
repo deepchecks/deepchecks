@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 
-from mlchecks.checks import StringMismatch
+from deepchecks.checks import StringMismatch
 
 from hamcrest import assert_that, has_length
 

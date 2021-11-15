@@ -1,6 +1,6 @@
 """Tests for segment performance check."""
 from hamcrest import assert_that, has_entries, close_to, has_property, equal_to
-from mlchecks.checks.performance.segment_performance import SegmentPerformance
+from deepchecks.checks.performance.segment_performance import SegmentPerformance
 
 
 def test_segment_performance_diabetes(diabetes_split_dataset_and_model):

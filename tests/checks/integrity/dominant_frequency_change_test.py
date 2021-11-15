@@ -3,9 +3,9 @@ Contains unit tests for the dominant_frequency_change check
 """
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from mlchecks.base import Dataset
-from mlchecks.utils import MLChecksValueError
-from mlchecks.checks.integrity import DominantFrequencyChange
+from deepchecks.base import Dataset
+from deepchecks.utils import DeepchecksValueError
+from deepchecks.checks.integrity import DominantFrequencyChange
 from hamcrest import assert_that, calling, raises, equal_to
 
 
@@ -14,7 +14,7 @@ def test_dataset_wrong_input():
     # Act & Assert
     cls = DominantFrequencyChange()
     assert_that(calling(cls.run).with_args(x, x),
-                raises(MLChecksValueError,
+                raises(DeepchecksValueError,
                 'dataset must be of type DataFrame or Dataset. instead got: str'))
 
 

@@ -1,6 +1,6 @@
 """Contains unit tests for the performance report check."""
-from mlchecks.checks.performance import PerformanceReport
-from mlchecks.utils import MLChecksValueError
+from deepchecks.checks.performance import PerformanceReport
+from deepchecks.utils import DeepchecksValueError
 from hamcrest import assert_that, calling, raises, close_to, has_entries
 
 
@@ -8,14 +8,14 @@ def test_dataset_wrong_input():
     bad_dataset = 'wrong_input'
     # Act & Assert
     assert_that(calling(PerformanceReport().run).with_args(bad_dataset, None),
-                raises(MLChecksValueError,
+                raises(DeepchecksValueError,
                        'Check PerformanceReport requires dataset to be of type Dataset. instead got: str'))
 
 
 def test_dataset_no_label(iris_dataset, iris_adaboost):
     # Assert
     assert_that(calling(PerformanceReport().run).with_args(iris_dataset, iris_adaboost),
-                raises(MLChecksValueError, 'Check PerformanceReport requires dataset to have a label column'))
+                raises(DeepchecksValueError, 'Check PerformanceReport requires dataset to have a label column'))
 
 
 def test_classification(iris_labeled_dataset, iris_adaboost):

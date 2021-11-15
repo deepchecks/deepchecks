@@ -2,8 +2,8 @@
     suites tests
 """
 
-from mlchecks import base
-from mlchecks import checks as builtin_checks
+from deepchecks import base
+from deepchecks import checks as builtin_checks
 
 
 def test_check_suite():
