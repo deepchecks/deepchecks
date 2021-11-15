@@ -106,7 +106,7 @@ class NaiveModelComparison(TrainTestBaseCheck):
             CheckResult: value is ratio between model prediction to naive prediction
 
         Raises:
-            MLChecksValueError: If the object is not a Dataset instance.
+            DeepchecksValueError: If the object is not a Dataset instance.
         """
         return self._naive_model_comparison(train_dataset, test_dataset, model)
 
