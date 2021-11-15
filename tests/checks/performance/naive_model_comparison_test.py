@@ -70,37 +70,36 @@ def test_regression_statistical(diabetes_split_dataset_and_model):
     assert_that(result['naive_model_score'], close_to(-76, 0.5))
 
 
-def test_condition_max_ratio_not_passed(diabetes_split_dataset_and_model):
+def test_condition_ratio_more_than_not_passed(diabetes_split_dataset_and_model):
     # Arrange
     train_ds, val_ds, clf = diabetes_split_dataset_and_model
-    check = NaiveModelComparison().add_condition_max_effective_ratio()
+    check = NaiveModelComparison().add_condition_effective_ratio_more_than(min_allowed_effective_ratio=1.4)
 
     # Act
     check_result = check.run(train_ds, val_ds, clf)
     condition_result = check.conditions_decision(check_result)
     effective_ratio = check_result.value['effective_ratio']
 
-    assert_that(effective_ratio, close_to(0.76, 0.03))
+    assert_that(effective_ratio, close_to(1.32, 0.03))
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Not more than 0.7 effective ratio '
-                                    'between the naive model\'s result and the checked model\'s result',
-                               details=f'The naive model is {format_number(effective_ratio)} times as effective as' \
-                                       ' the checked model using the given metric')
+                               name='More than 1.4 effective ratio '
+                                    'between the checked model\'s result and the naive model\'s result',
+                               details=f'The checked model is {format_number(effective_ratio)} times as effective as' \
+                                       ' the naive model using the given metric')
     ))
 
 
-def test_condition_max_ratio_passed(diabetes_split_dataset_and_model):
+def test_condition_ratio_more_than_passed(diabetes_split_dataset_and_model):
     # Arrange
     train_ds, val_ds, clf = diabetes_split_dataset_and_model
-    check = NaiveModelComparison().add_condition_max_effective_ratio(max_allowed_effective_ratio=0.8)
+    check = NaiveModelComparison().add_condition_effective_ratio_more_than(min_allowed_effective_ratio=1.3)
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds, clf))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Not more than 0.8 effective ratio '
-                                    'between the naive model\'s result and the checked model\'s result')
+                               name='More than 1.3 effective ratio '
+                                    'between the checked model\'s result and the naive model\'s result')
     ))
-

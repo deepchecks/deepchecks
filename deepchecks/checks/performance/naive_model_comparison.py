@@ -123,12 +123,12 @@ class NaiveModelComparison(TrainValidationBaseCheck):
                                                             self.naive_model_type, self.metric,
                                                             self.metric_name)
 
-        effective_ratio = ratio = naive_metric / pred_metric
+        effective_ratio = ratio = pred_metric / naive_metric
         if naive_metric < 0 and pred_metric < 0:
             effective_ratio = 1 / ratio
 
-        text = f'The naive model is {format_number(effective_ratio)} times as effective as the ' \
-               f'checked model using the {metric_name} metric.<br>' \
+        text = f'The checked model is {format_number(effective_ratio)} times as effective as the ' \
+               f'naive model using the {metric_name} metric.<br>' \
                f'{type(model).__name__} model prediction has achieved {format_number(pred_metric)} ' \
                f'compared to Naive {self.naive_model_type} prediction ' \
                f'which achieved {format_number(naive_metric)} on tested data.'
@@ -146,22 +146,21 @@ class NaiveModelComparison(TrainValidationBaseCheck):
                            check=self.__class__, display=[text, display_func])
 
 
-    def add_condition_max_effective_ratio(self, max_allowed_effective_ratio: float = 0.7):
-        """Add condition - require max allowed effective ratio between the naive and the checked model.
+    def add_condition_effective_ratio_more_than(self, min_allowed_effective_ratio: float = 1.1):
+        """Add condition - require min allowed effective ratio between the naive and the checked model.
 
         Args:
-            max_allowed_effective_ratio (float): Max allowed effective ratio between the naive and the checked model.
+            min_allowed_effective_ratio (float): Min allowed effective ratio between the naive and the checked model.
         """
         def condition(result: Dict) -> ConditionResult:
             effective_ratio = result['effective_ratio']
-            if effective_ratio > max_allowed_effective_ratio:
+            if effective_ratio < min_allowed_effective_ratio:
                 return ConditionResult(False,
-                                       f'The naive model is {format_number(effective_ratio)} times as effective as' \
-                                       f' the checked model using the given metric')
+                                       f'The checked model is {format_number(effective_ratio)} times as effective as' \
+                                       f' the naive model using the given metric')
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Not more than {format_number(max_allowed_effective_ratio)} effective ratio '
-                                  f'between the naive model\'s result and the checked model\'s result',
+        return self.add_condition(f'More than {format_number(min_allowed_effective_ratio)} effective ratio '
+                                  f'between the checked model\'s result and the naive model\'s result',
                                   condition)
-
