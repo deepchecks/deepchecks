@@ -1,5 +1,6 @@
 """Contains unit tests for the confusion_matrix_report check."""
 from deepchecks.checks.performance import NaiveModelComparison
+from deepchecks.string_utils import format_number
 from deepchecks.utils import DeepchecksValueError
 from tests.checks.utils import equal_condition_result
 
@@ -75,13 +76,16 @@ def test_condition_max_ratio_not_passed(diabetes_split_dataset_and_model):
     check = NaiveModelComparison().add_condition_max_effective_ratio()
 
     # Act
-    result = check.conditions_decision(check.run(train_ds, val_ds, clf))
+    check_result = check.run(train_ds, val_ds, clf)
+    condition_result = check.conditions_decision(check_result)
+    effective_ratio = check_result.value['effective_ratio']
 
-    assert_that(result, has_items(
+    assert_that(effective_ratio, close_to(0.76, 0.03))
+    assert_that(condition_result, has_items(
         equal_condition_result(is_pass=False,
                                name='Not more than 0.7 effective ratio '
                                     'between the naive model\'s result and the checked model\'s result',
-                               details='The naive model is 0.76 times as effective as' \
+                               details=f'The naive model is {format_number(effective_ratio)} times as effective as' \
                                        ' the checked model using the given metric, which is more than the'
                                        ' allowed ratio of: 0.7')
     ))
