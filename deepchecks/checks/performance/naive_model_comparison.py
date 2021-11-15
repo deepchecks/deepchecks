@@ -128,8 +128,8 @@ class NaiveModelComparison(TrainTestBaseCheck):
         if naive_metric < 0 and pred_metric < 0:
             ratio = 1 / ratio
 
-        text = f'The given model is {format_number(ratio)} times as effective as the ' \
-               f'naive model using the {metric_name} metric.<br>' \
+        text = f'The given model performs {format_number(ratio)} times compared to' \
+               f' the naive model using the {metric_name} metric.<br>' \
                f'{type(model).__name__} model prediction has achieved {format_number(pred_metric)} ' \
                f'compared to Naive {self.naive_model_type} prediction ' \
                f'which achieved {format_number(naive_metric)} on tested data.'
@@ -158,11 +158,11 @@ class NaiveModelComparison(TrainTestBaseCheck):
             ratio = result['ratio']
             if ratio < min_allowed_ratio:
                 return ConditionResult(False,
-                                       f'The given model is {format_number(ratio)} times as effective as' \
-                                       f' the naive model using the given metric')
+                                       f'The given model performs {format_number(ratio)} times compared' \
+                                       f'to the naive model using the given metric')
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'More than {format_number(min_allowed_ratio)} effective ratio '
+        return self.add_condition(f'More than {format_number(min_allowed_ratio)} ratio '
                                   f'between the given model\'s result and the naive model\'s result',
                                   condition)

@@ -83,10 +83,10 @@ def test_condition_ratio_more_than_not_passed(diabetes_split_dataset_and_model):
     assert_that(ratio, close_to(1.32, 0.03))
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=False,
-                               name='More than 1.4 effective ratio '
+                               name='More than 1.4 ratio '
                                     'between the given model\'s result and the naive model\'s result',
-                               details=f'The given model is {format_number(ratio)} times as effective as' \
-                                       ' the naive model using the given metric')
+                               details=f'The given model performs {format_number(ratio)} times compared' \
+                                       'to the naive model using the given metric')
     ))
 
 
@@ -100,6 +100,6 @@ def test_condition_ratio_more_than_passed(diabetes_split_dataset_and_model):
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='More than 1.3 effective ratio '
+                               name='More than 1.3 ratio '
                                     'between the given model\'s result and the naive model\'s result')
     ))
