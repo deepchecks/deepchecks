@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from deepchecks.string_utils import format_columns_for_condition, format_number
 
 from deepchecks import CheckResult, Dataset
-from mlchecks.base.check import ConditionResult, TrainValidationBaseCheck
+from deepchecks.base.check import ConditionResult, TrainValidationBaseCheck
 from deepchecks.metric_utils import DEFAULT_METRICS_DICT, DEFAULT_SINGLE_METRIC, task_type_check, ModelType, validate_scorer
 from deepchecks.utils import model_type_validation
 
@@ -128,7 +128,7 @@ class NaiveModelComparison(TrainValidationBaseCheck):
             effective_ratio = 1 / ratio
 
         text = f'The naive model is {format_number(effective_ratio)} times as effective as the ' \
-               f'checked model using the {metric_name} metric.\n' \
+               f'checked model using the {metric_name} metric.<br>' \
                f'{type(model).__name__} model prediction has achieved {format_number(pred_metric)} ' \
                f'compared to Naive {self.naive_model_type} prediction ' \
                f'which achieved {format_number(naive_metric)} on tested data.'
