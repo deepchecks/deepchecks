@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 
 from hamcrest import assert_that, has_length, has_entry, has_property, equal_to, has_items, all_of
+from mlchecks.base import Dataset
 
 from mlchecks import Dataset, ConditionCategory
 from mlchecks.checks.integrity.mixed_nulls import MixedNulls
@@ -178,3 +179,22 @@ def test_condition_max_nulls_passed():
         equal_condition_result(is_pass=True,
                                name='Not more than 10 different null types for all columns')
     ))
+
+
+def test_fi_n_top(diabetes_split_dataset_and_model):
+    train, _, clf = diabetes_split_dataset_and_model
+    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
+    train.data.loc[train.data.index % 4 == 0, 'age'] = 'Nan'
+    train.data.loc[train.data.index % 4 == 1, 'age'] = 'null'
+    train.data.loc[train.data.index % 4 == 0, 'bmi'] = 'Nan'
+    train.data.loc[train.data.index % 4 == 1, 'bmi'] = 'null'
+    train.data.loc[train.data.index % 4 == 0, 'bp'] = 'Nan'
+    train.data.loc[train.data.index % 4 == 1, 'bp'] = 'null'
+    train.data.loc[train.data.index % 4 == 0, 's1'] = 'Nan'
+    train.data.loc[train.data.index % 4 == 1, 's1'] = 'null'
+    # Arrange
+    check = MixedNulls(n_top_columns=3)
+    # Act
+    result = check.run(train, clf)
+    # Assert
+    assert_that(result.value, has_length(3))

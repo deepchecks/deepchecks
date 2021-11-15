@@ -8,6 +8,8 @@ import pandas as pd
 from mlchecks import Dataset, CheckResult, ensure_dataframe_type
 from mlchecks.base.check import SingleDatasetBaseCheck, ConditionResult
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
+
+from mlchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_df
 from mlchecks.string_utils import string_baseform, format_percent, format_columns_for_condition
 from mlchecks.utils import MLChecksValueError
 
@@ -20,7 +22,8 @@ class MixedNulls(SingleDatasetBaseCheck):
     """Search for various types of null values in a string column(s), including string representations of null."""
 
     def __init__(self, null_string_list: Iterable[str] = None, check_nan: bool = True,
-                 columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None):
+                 columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
+                 n_top_columns: int = 10):
         """Initialize the MixedNulls check.
 
         Args:
@@ -30,14 +33,17 @@ class MixedNulls(SingleDatasetBaseCheck):
                 ones.
             ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
                 variable
+        n_top_columns (int): (optinal - used only if model was specified)
+                             amount of columns to show ordered by feature importance (date, index, label are first)
         """
         super().__init__()
         self.null_string_list = null_string_list
         self.check_nan = check_nan
         self.columns = columns
         self.ignore_columns = ignore_columns
+        self.n_top_columns = n_top_columns
 
-    def run(self, dataset, model=None) -> CheckResult:
+    def run(self, dataset, model = None) -> CheckResult:
         """Run check.
 
         Args:
@@ -47,7 +53,8 @@ class MixedNulls(SingleDatasetBaseCheck):
             (CheckResult): DataFrame with columns ('Column Name', 'Value', 'Count', 'Percentage') for any column which
             have more than 1 null values.
         """
-        return self._mixed_nulls(dataset)
+        feature_importances = calculate_feature_importance_or_null(dataset, model)
+        return self._mixed_nulls(dataset, feature_importances)
 
     def _validate_null_string_list(self, nsl, check_nan: bool) -> set:
         """Validate the object given is a list of strings. If null is given return default list of null values.
@@ -76,7 +83,7 @@ class MixedNulls(SingleDatasetBaseCheck):
 
         return result
 
-    def _mixed_nulls(self, dataset: Union[pd.DataFrame, Dataset]) -> CheckResult:
+    def _mixed_nulls(self, dataset: Union[pd.DataFrame, Dataset], feature_importances: pd.Series = None) -> CheckResult:
         """Run check logic.
 
         Args:
@@ -87,6 +94,7 @@ class MixedNulls(SingleDatasetBaseCheck):
              which have more than 1 null values.
         """
         # Validate parameters
+        original_dataset = dataset
         dataset: pd.DataFrame = ensure_dataframe_type(dataset)
         dataset = filter_columns_with_validation(dataset, self.columns, self.ignore_columns)
         null_string_list: set = self._validate_null_string_list(self.null_string_list, self.check_nan)
@@ -117,6 +125,8 @@ class MixedNulls(SingleDatasetBaseCheck):
         if display_array:
             df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percent of data'])
             df_graph = df_graph.set_index(['Column Name', 'Value'])
+            df_graph = column_importance_sorter_df(df_graph, original_dataset, feature_importances,
+                                                   self.n_top_columns, col='Column Name')
             display = df_graph
         else:
             display = None

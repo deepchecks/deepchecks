@@ -6,6 +6,8 @@ import numpy as np
 
 from mlchecks import Dataset, ensure_dataframe_type
 from mlchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
+from mlchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_df
+
 
 __all__ = ['MixedTypes']
 
@@ -16,7 +18,8 @@ from mlchecks.string_utils import is_string_column, format_percent, format_colum
 class MixedTypes(SingleDatasetBaseCheck):
     """Search for various types of data in (a) column[s], including hidden mixes in strings."""
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None):
+    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
+                 n_top_columns: int = 10):
         """Initialize the MixedTypes check.
 
         Args:
@@ -24,10 +27,13 @@ class MixedTypes(SingleDatasetBaseCheck):
             ones.
             ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
             variable.
+        n_top_columns (int): (optinal - used only if model was specified)
+                             amount of columns to show ordered by feature importance (date, index, label are first)
         """
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
+        self.n_top_columns = n_top_columns
 
     def run(self, dataset, model=None) -> CheckResult:
         """Run check.
@@ -40,9 +46,10 @@ class MixedTypes(SingleDatasetBaseCheck):
           (CheckResult): DataFrame with rows ('strings', 'numbers') for any column with mixed types.
           numbers will also include hidden numbers in string representation.
         """
-        return self._mixed_types(dataset)
+        feature_importances = calculate_feature_importance_or_null(dataset, model)
+        return self._mixed_types(dataset, feature_importances)
 
-    def _mixed_types(self, dataset: Union[pd.DataFrame, Dataset]) -> CheckResult:
+    def _mixed_types(self, dataset: Union[pd.DataFrame, Dataset], feature_importances: pd.Series=None) -> CheckResult:
         """Run check.
 
         Args:
@@ -52,6 +59,7 @@ class MixedTypes(SingleDatasetBaseCheck):
             (CheckResult): DataFrame with columns('Column Name', 'Percentage') for any column that is not single typed.
         """
         # Validate parameters
+        original_dataset = dataset
         dataset: pd.DataFrame = ensure_dataframe_type(dataset)
         dataset = filter_columns_with_validation(dataset, self.columns, self.ignore_columns)
 
@@ -67,8 +75,13 @@ class MixedTypes(SingleDatasetBaseCheck):
                 # Format percents for display
                 display_dict[column_name] = {k: format_percent(v) for k, v in mix.items()}
 
-        df_graph = pd.DataFrame.from_dict(display_dict)
-        display = df_graph if len(df_graph) > 0 else None
+        if display_dict:
+            df_graph = pd.DataFrame.from_dict(display_dict)
+            df_graph = column_importance_sorter_df(df_graph.T, original_dataset, feature_importances,
+                                                   self.n_top_columns).T
+            display = df_graph
+        else:
+            display = None
 
         return CheckResult(result_dict, check=self.__class__, display=display)
 

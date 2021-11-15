@@ -9,6 +9,8 @@ from mlchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_datafr
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
 from mlchecks.string_utils import get_base_form_to_variants_dict, is_string_column, format_percent, \
     format_columns_for_condition
+from mlchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_df
+
 
 __all__ = ['StringMismatch']
 
@@ -28,7 +30,8 @@ def _condition_variants_number(result, num_max_variants: int):
 class StringMismatch(SingleDatasetBaseCheck):
     """Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column."""
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None):
+    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
+                 n_top_columns: int = 10):
         """Initialize the StringMismatch check.
 
         Args:
@@ -36,11 +39,13 @@ class StringMismatch(SingleDatasetBaseCheck):
                     ones.
             ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
                     variable
-
+        n_top_columns (int): (optinal - used only if model was specified)
+                             amount of columns to show ordered by feature importance (date, index, label are first)
         """
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
+        self.n_top_columns = n_top_columns
 
     def run(self, dataset, model=None) -> CheckResult:
         """Run check.
@@ -48,10 +53,13 @@ class StringMismatch(SingleDatasetBaseCheck):
         Args:
             dataset (DataFrame): A dataset or pd.FataFrame object.
         """
-        return self._string_mismatch(dataset)
+        feature_importances = calculate_feature_importance_or_null(dataset, model)
+        return self._string_mismatch(dataset, feature_importances)
 
-    def _string_mismatch(self, dataset: Union[pd.DataFrame, Dataset]) -> CheckResult:
+    def _string_mismatch(self, dataset: Union[pd.DataFrame, Dataset],
+                         feature_importances: pd.Series=None) -> CheckResult:
         # Validate parameters
+        original_dataset = dataset
         dataset: pd.DataFrame = ensure_dataframe_type(dataset)
         dataset = filter_columns_with_validation(dataset, self.columns, self.ignore_columns)
 
@@ -78,10 +86,14 @@ class StringMismatch(SingleDatasetBaseCheck):
                     })
 
         # Create dataframe to display graph
-        df_graph = pd.DataFrame(results, columns=['Column Name', 'Base form', 'Value', 'Count', '% In data'])
-        df_graph = df_graph.set_index(['Column Name', 'Base form'])
-
-        display = df_graph if len(df_graph) > 0 else None
+        if results:
+            df_graph = pd.DataFrame(results, columns=['Column Name', 'Base form', 'Value', 'Count', '% In data'])
+            df_graph = df_graph.set_index(['Column Name', 'Base form'])
+            df_graph = column_importance_sorter_df(df_graph, original_dataset, feature_importances,
+                                                   self.n_top_columns, col='Column Name')
+            display = df_graph
+        else:
+            display = None
 
         return CheckResult(result_dict, check=self.__class__, display=display)
 

@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 
+from mlchecks.base import Dataset
 from mlchecks.checks import StringMismatchComparison
 
 from hamcrest import assert_that, has_length, has_entry, has_entries, has_items
@@ -141,6 +142,26 @@ def test_condition_percent_new_variants_pass():
         equal_condition_result(is_pass=True,
                                name='Not more than 50.00% new variants in validation data for all columns')
     ))
+
+
+def test_fi_n_top(diabetes_split_dataset_and_model):
+    train, val, clf = diabetes_split_dataset_and_model
+    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
+    val = Dataset(val.data.copy(), label='target', cat_features=['sex'])
+    train.data.loc[train.data.index % 2 == 0, 'age'] = 'aaa'
+    val.data.loc[val.data.index % 2 == 1, 'age'] = 'aaa!!'
+    train.data.loc[train.data.index % 2 == 0, 'bmi'] = 'aaa'
+    val.data.loc[val.data.index % 2 == 1, 'bmi'] = 'aaa!!'
+    train.data.loc[train.data.index % 2 == 0, 'bp'] = 'aaa'
+    val.data.loc[val.data.index % 2 == 1, 'bp'] = 'aaa!!'
+    train.data.loc[train.data.index % 2 == 0, 'sex'] = 'aaa'
+    val.data.loc[val.data.index % 2 == 1, 'sex'] = 'aaa!!'
+    # Arrange
+    check = StringMismatchComparison(n_top_columns=3)
+    # Act
+    result_ds = check.run(train, val, clf).value
+    # Assert
+    assert_that(result_ds, has_length(3))
 
 
 def test_nan():
