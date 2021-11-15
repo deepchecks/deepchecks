@@ -3,8 +3,8 @@ import pandas as pd
 
 from hamcrest import assert_that, close_to, equal_to, calling, raises
 
-from mlchecks.checks.integrity.data_duplicates import DataDuplicates
-from mlchecks.utils import MLChecksValueError
+from deepchecks.checks.integrity.data_duplicates import DataDuplicates
+from deepchecks.utils import DeepchecksValueError
 
 
 def test_data_duplicates():
@@ -53,7 +53,7 @@ def test_data_duplicates_empty():
                             'col3': []})
     assert_that(
         calling(DataDuplicates().run).with_args(no_data),
-        raises(MLChecksValueError, 'Dataset does not contain any data'))
+        raises(DeepchecksValueError, 'Dataset does not contain any data'))
 
 
 def test_data_duplicates_ignore_index_column():
@@ -63,3 +63,13 @@ def test_data_duplicates_ignore_index_column():
     duplicate_data = duplicate_data.set_index('col3')
     check_obj = DataDuplicates()
     assert_that(check_obj.run(duplicate_data).value, close_to(0.80, 0.01))
+
+
+def test_nan(df_with_nan_row, df_with_single_nan_in_col):
+    df = df_with_nan_row.set_index('col2')
+    check_obj = DataDuplicates()
+    assert_that(check_obj.run(df).value, equal_to(0))
+
+    df = df_with_single_nan_in_col
+    check_obj = DataDuplicates()
+    assert_that(check_obj.run(df).value, equal_to(0))

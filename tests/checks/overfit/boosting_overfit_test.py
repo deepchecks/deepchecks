@@ -2,8 +2,8 @@
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
 
-from mlchecks import Dataset
-from mlchecks.checks.overfit.boosting_overfit import BoostingOverfit
+from deepchecks import Dataset
+from deepchecks.checks.overfit.boosting_overfit import BoostingOverfit
 from hamcrest import assert_that, close_to
 
 
@@ -31,7 +31,7 @@ def test_boosting_regressor(diabetes, diabetes_model):
     result = BoostingOverfit().run(train, validation, diabetes_model)
 
     # Assert
-    assert_that(result.value, close_to(57, 5))
+    assert_that(result.value, close_to(-57, 5))
 
 
 def test_boosting_classifier_with_metric(iris):

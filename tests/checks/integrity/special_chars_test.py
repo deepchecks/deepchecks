@@ -1,9 +1,11 @@
 """Tests for Invalid Chars check"""
+import numpy as np
 import pandas as pd
 
 from hamcrest import assert_that, has_length, calling, raises, has_items
-from mlchecks.checks.integrity.special_chars import SpecialCharacters
-from mlchecks.utils import MLChecksValueError
+from deepchecks.base import Dataset
+from deepchecks.checks.integrity.special_chars import SpecialCharacters
+from deepchecks.utils import DeepchecksValueError
 
 
 def test_single_column_no_invalid():
@@ -76,12 +78,39 @@ def test_double_column_specific_and_ignored_invalid():
     # Act & Assert
     check = SpecialCharacters(ignore_columns=['col1'], columns=['col1'])
     assert_that(calling(check.run).with_args(dataframe),
-                raises(MLChecksValueError))
+                raises(DeepchecksValueError))
 
 
 def test_double_column_double_invalid():
     # Arrange
     data = {'col1': ['1_', 'bar', 'cat}', '{}'], 'col2': ['&!', 6, '66&.66.6', 666.66]}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    result = SpecialCharacters().run(dataframe)
+    # Assert
+    assert_that(result.value, has_length(2))
+    assert_that(result.value.loc['col1']['Most Common Special-Only Samples'], has_items('{}'))
+    assert_that(result.value.loc['col2']['Most Common Special-Only Samples'], has_items('&!'))
+
+
+def test_fi_n_top(diabetes_split_dataset_and_model):
+    train, _, clf = diabetes_split_dataset_and_model
+    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
+    train.data.loc[train.data.index % 3 == 2, 'age'] = '&!'
+    train.data.loc[train.data.index % 3 == 2, 'bmi'] = '&!'
+    train.data.loc[train.data.index % 3 == 2, 'bp'] = '&!'
+    train.data.loc[train.data.index % 3 == 2, 'sex'] = '&!'
+    # Arrange
+    check = SpecialCharacters(n_top_columns=3)
+    # Act
+    result_ds = check.run(train, clf).value
+    # Assert
+    assert_that(result_ds, has_length(3))
+
+
+def test_nan():
+    # Arrange
+    data = {'col1': ['1_', 'bar', 'cat}', '{}', np.nan], 'col2': ['&!', 6, '66&.66.6', 666.66, np.nan]}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = SpecialCharacters().run(dataframe)
