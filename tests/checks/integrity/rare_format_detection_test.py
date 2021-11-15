@@ -3,8 +3,8 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-from mlchecks import Dataset
-from mlchecks.checks import RareFormatDetection
+from deepchecks import Dataset
+from deepchecks.checks import RareFormatDetection
 
 from hamcrest import assert_that, equal_to, not_none, none, has_length, empty
 
