@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from deepchecks.base import Dataset
 from deepchecks.utils import DeepchecksValueError
 from deepchecks.checks.integrity import DominantFrequencyChange
-from hamcrest import assert_that, calling, raises, equal_to
+from hamcrest import assert_that, calling, raises, equal_to, has_length
 
 
 def test_dataset_wrong_input():
@@ -93,3 +93,13 @@ def test_show_none_ratio_change_thres(iris_split_dataset_and_model):
     result = check.run(dataset=val_ds, baseline_dataset=train_ds).value
     # Assert
     assert_that(result, equal_to(None))
+
+def test_fi_n_top(diabetes_split_dataset_and_model):
+    train, val, clf = diabetes_split_dataset_and_model
+    # Arrange
+    check = DominantFrequencyChange(p_value_threshold=2, dominance_ratio=0,
+                                    ratio_change_thres=-1, n_top_columns=3)
+    # Act
+    result_ds = check.run(train, val, clf).value
+    # Assert
+    assert_that(result_ds, has_length(3))

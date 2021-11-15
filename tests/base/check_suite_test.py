@@ -22,7 +22,7 @@ def test_check_suite():
 
     # assert that order of checks instances are preserved
 
-    checks_types = [type(c) for c in suite.checks]
+    checks_types = [type(c) for c in suite.checks.values()]
 
     assert checks_types == [
         builtin_checks.IsSingleValue,

@@ -31,7 +31,7 @@ def test_boosting_regressor(diabetes, diabetes_model):
     result = BoostingOverfit().run(train, validation, diabetes_model)
 
     # Assert
-    assert_that(result.value, close_to(57, 5))
+    assert_that(result.value, close_to(-57, 5))
 
 
 def test_boosting_classifier_with_metric(iris):

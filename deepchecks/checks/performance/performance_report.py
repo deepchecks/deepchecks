@@ -1,9 +1,7 @@
 """Module containing performance report check."""
 from typing import Callable, Dict
 import pandas as pd
-from deepchecks.string_utils import format_number
-
-from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck
+from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
 from deepchecks.metric_utils import get_metrics_list
 from deepchecks.utils import model_type_validation
 
@@ -45,7 +43,24 @@ class PerformanceReport(SingleDatasetBaseCheck):
         scores = {key: scorer(model, dataset.features_columns(), dataset.label_col()) for key, scorer in
                   metrics.items()}
 
-        display_df = pd.DataFrame(map(format_number, scores.values()), columns=['Score'], index=scores.keys())
+        display_df = pd.DataFrame(scores.values(), columns=['Score'], index=scores.keys())
         display_df.index.name = 'Metric'
 
         return CheckResult(scores, check=self.__class__, header='Performance Report', display=display_df)
+
+    def add_condition_score_not_less_than(self, min_score: float):
+        """Add condition - metric scores are not less than given score.
+
+        Args:
+            min_score (float): Minimal score to pass.
+        """
+        name = f'Metrics score is not less than {min_score}'
+
+        def condition(result, min_score):
+            not_passed = {k: v for k, v in result.items() if v < min_score}
+            if not_passed:
+                details = f'Metrics with lower score: {not_passed}'
+                return ConditionResult(False, details)
+            return ConditionResult(True)
+
+        return self.add_condition(name, condition, min_score=min_score)

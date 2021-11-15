@@ -8,6 +8,7 @@ import pandas as pd
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck
 from deepchecks.base.dataframe_utils import filter_columns_with_validation
 from deepchecks.base.dataset import ensure_dataframe_type
+from deepchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_dict
 from deepchecks.string_utils import split_and_keep, split_by_order, format_percent
 from deepchecks.utils import DeepchecksValueError
 
@@ -57,6 +58,10 @@ class Pattern:
         is_substr_in_format = any(sub[1] in fmt for sub in self.substituters)
         is_format_more_than_just_repeating_substr = fmt.count(fmt[0]) != len(fmt)
         return is_substr_in_format and is_format_more_than_just_repeating_substr
+
+    def __repr__(self):
+        """Return string representation."""
+        return f'Pattern({self.name})'
 
 
 DEFAULT_PATTERNS = [
@@ -270,7 +275,7 @@ class RareFormatDetection(SingleDatasetBaseCheck):
 
     def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
                  patterns: List[Pattern] = deepcopy(DEFAULT_PATTERNS), rarity_threshold: float = 0.05,
-                 min_unique_common_ratio=0.01, pattern_match_method: str = 'first'):
+                 min_unique_common_ratio = 0.01, pattern_match_method: str = 'first', n_top_columns: int = 10):
         """Initialize the RareFormatDetection check.
 
         Args:
@@ -292,7 +297,8 @@ class RareFormatDetection(SingleDatasetBaseCheck):
                 feature with some values that are very common and some that are rare.
             pattern_match_method (str): 'first' or 'all'. If 'first', returns only the pattern where a "rare format"
                 sample was found for the first time. If 'all', returns all patterns in which anything was found.
-
+            n_top_columns (int): (optinal - used only if model was specified)
+                                amount of columns to show ordered by feature importance (date, index, label are first)
         """
         super().__init__()
         self.columns = columns
@@ -301,6 +307,7 @@ class RareFormatDetection(SingleDatasetBaseCheck):
         self.rarity_threshold = rarity_threshold
         self.min_unique_common_ratio = min_unique_common_ratio
         self.pattern_match_method = pattern_match_method
+        self.n_top_columns = n_top_columns
 
     def run(self, dataset: Dataset, model=None) -> CheckResult:
         """Run check.
@@ -314,24 +321,29 @@ class RareFormatDetection(SingleDatasetBaseCheck):
                 - display: pandas Dataframe per column, showing the rare-to-common-ratio, common formats, examples for
                            common values and rare values
         """
-        return self._rare_format_detection(dataset=dataset)
+        feature_importances = calculate_feature_importance_or_null(dataset, model)
+        return self._rare_format_detection(dataset=dataset, feature_importances=feature_importances)
 
-    def _rare_format_detection(self, dataset: Union[Dataset, pd.DataFrame]) -> CheckResult:
+    def _rare_format_detection(self, dataset: Union[Dataset, pd.DataFrame],
+                               feature_importances: pd.Series=None) -> CheckResult:
+        original_dataset = dataset
         dataset: pd.DataFrame = ensure_dataframe_type(dataset)
         dataset = filter_columns_with_validation(dataset, self.columns, self.ignore_columns)
 
         if self.pattern_match_method not in ['first', 'all']:
             raise DeepchecksValueError(f'pattern_match_method must be "first" or "all", got {self.pattern_match_method}')
 
+
         res = {
             column_name: _detect_per_column(dataset[column_name].dropna(), self.patterns, self.rarity_threshold,
                                             self.min_unique_common_ratio, self.pattern_match_method)
             for column_name in dataset.columns}
-
+        filtered_res = dict(filter(lambda elem: elem[1].shape[0] > 0, res.items()))
+        filtered_res = column_importance_sorter_dict(filtered_res, original_dataset, feature_importances,
+                                                     self.n_top_columns)
         display = []
-        for key, value in res.items():
-            if value.shape[0] > 0:
-                display.append(f'\n\nColumn {key}:')
-                display.append(value)
+        for key, value in filtered_res.items():
+            display.append(f'\n\nColumn {key}:')
+            display.append(value)
 
-        return CheckResult(value=res, header='Rare Format Detection', check=self.__class__, display=display)
+        return CheckResult(value=filtered_res, header='Rare Format Detection', check=self.__class__, display=display)

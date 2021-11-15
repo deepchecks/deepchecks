@@ -52,8 +52,8 @@ def test_regression_random(diabetes_split_dataset_and_model):
     # Act X
     result = check.run(train_ds, val_ds, clf).value
     # Assert
-    assert_that(result['given_model_score'], close_to(57, 0.5))
-    assert_that(result['naive_model_score'], close_to(105, 0.5))
+    assert_that(result['given_model_score'], close_to(-57, 0.5))
+    assert_that(result['naive_model_score'], close_to(-105, 0.5))
 
 
 def test_regression_statistical(diabetes_split_dataset_and_model):
@@ -63,5 +63,5 @@ def test_regression_statistical(diabetes_split_dataset_and_model):
     # Act X
     result = check.run(train_ds, val_ds, clf).value
     # Assert
-    assert_that(result['given_model_score'], close_to(57, 0.5))
-    assert_that(result['naive_model_score'], close_to(76, 0.5))
+    assert_that(result['given_model_score'], close_to(-57, 0.5))
+    assert_that(result['naive_model_score'], close_to(-76, 0.5))

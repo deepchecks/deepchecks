@@ -1,10 +1,12 @@
 """Module containing all the base classes for checks."""
 import abc
+import enum
 import re
-from typing import Any, Callable, List, Union
+from collections import OrderedDict
+from typing import Any, Callable, List, Union, Dict
 
 __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainValidationBaseCheck',
-           'ModelOnlyBaseCheck']
+           'ModelOnlyBaseCheck', 'ConditionResult', 'ConditionCategory']
 
 import pandas as pd
 from IPython.core.display import display_html
@@ -12,6 +14,83 @@ from matplotlib import pyplot as plt
 
 from deepchecks.string_utils import split_camel_case
 from deepchecks.utils import DeepchecksValueError
+
+
+class Condition:
+    """Contain condition attributes."""
+
+    name: str
+    function: Callable
+    params: Dict
+
+    def __init__(self, name: str, function: Callable, params: Dict):
+        if not isinstance(function, Callable):
+            raise DeepchecksValueError(f'Condition must be a function `(Any) -> Union[ConditionResult, bool]`, '
+                                     f'but got: {type(function).__name__}')
+        if not isinstance(name, str):
+            raise DeepchecksValueError(f'Condition name must be of type str but got: {type(name).__name__}')
+        self.name = name
+        self.function = function
+        self.params = params
+
+
+class ConditionCategory(enum.Enum):
+    """Condition result category. indicates whether the result should fail the suite."""
+
+    FAIL = 'FAIL'
+    WARN = 'WARN'
+
+
+class ConditionResult:
+    """Contain result of a condition function."""
+
+    is_pass: bool
+    category: ConditionCategory
+    details: str
+    name: str
+
+    def __init__(self, is_pass: bool, details: str = '',
+                 category: ConditionCategory = ConditionCategory.FAIL):
+        """Initialize condition result.
+
+        Args:
+            is_pass (bool): Whether the condition functions passed the given value or not.
+            details (str): What actually happened in the condition.
+            category (ConditionCategory): The category to which the condition result belongs.
+        """
+        self.is_pass = is_pass
+        self.details = details
+        self.category = category
+
+    def set_name(self, name: str):
+        """Set name to be displayed in table.
+
+        Args:
+            name (str): Description of the condition to be displayed.
+        """
+        self.name = name
+
+    def get_sort_value(self):
+        """Return sort value of the result."""
+        if self.is_pass:
+            return 3
+        elif self.category == ConditionCategory.FAIL:
+            return 1
+        else:
+            return 2
+
+    def get_icon(self):
+        """Return icon of the result to display."""
+        if self.is_pass:
+            return '<div style="color: green;text-align: center">\U00002713</div>'
+        elif self.category == ConditionCategory.FAIL:
+            return '<div style="color: red;text-align: center">\U00002716</div>'
+        else:
+            return '<div style="color: orange;text-align: center;font-weight:bold">\U00000021</div>'
+
+    def __repr__(self):
+        """Return string representation for printing."""
+        return str(vars(self))
 
 
 class CheckResult:
@@ -30,6 +109,7 @@ class CheckResult:
     value: Any
     header: str
     display: List[Union[Callable, str, pd.DataFrame]]
+    condition_results: List[ConditionResult]
 
     def __init__(self, value, header: str = None, check=None, display: Any = None):
         """Init check result.
@@ -44,6 +124,7 @@ class CheckResult:
         self.value = value
         self.header = header or (check and split_camel_case(check.__name__)) or None
         self.check = check
+        self.condition_results = []
 
         if display is not None and not isinstance(display, List):
             self.display = [display]
@@ -88,13 +169,106 @@ class CheckResult:
         """Return default __repr__ function uses value."""
         return self.value.__repr__()
 
+    def set_condition_results(self, results: List[ConditionResult]):
+        """Set the conditions results for current check result."""
+        self.conditions_results = results
+
+    def have_conditions(self):
+        """Return if this check have condition results."""
+        return bool(self.conditions_results)
+
+    def have_display(self):
+        """Return if this check have dsiplay."""
+        return bool(self.display)
+
+    def passed_conditions(self):
+        """Return if this check have not passing condition results."""
+        return all((r.is_pass for r in self.conditions_results))
+
+    def get_conditions_sort_value(self):
+        """Get largest sort value of the conditions results."""
+        return max([r.get_sort_value() for r in self.conditions_results])
+
 
 class BaseCheck(metaclass=abc.ABCMeta):
     """Base class for check."""
 
-    def __repr__(self):
-        """Representation of check as string."""
-        return f'{self.__class__.__name__}'
+    _conditions: OrderedDict
+    _conditions_index: int
+
+    def __init__(self):
+        """Init base check parameters to pass to be used in the implementing check."""
+        self._conditions = OrderedDict()
+        self._conditions_index = 0
+
+    def conditions_decision(self, result: CheckResult) -> List[ConditionResult]:
+        """Run conditions on given result."""
+        results = []
+        condition: Condition
+        for condition in self._conditions.values():
+            output = condition.function(result.value, **condition.params)
+            if isinstance(output, bool):
+                output = ConditionResult(output)
+            elif not isinstance(output, ConditionResult):
+                raise DeepchecksValueError(f'Invalid return type from condition {condition.name}, got: {type(output)}')
+            output.set_name(condition.name)
+            results.append(output)
+        return results
+
+    def add_condition(self, name: str, condition_func: Callable[[Any], Union[ConditionResult, bool]], **params):
+        """Add new condition function to the check.
+
+        Args:
+            name (str): Name of the condition. should explain the condition action and parameters
+            condition_func (Callable[[Any], Union[List[ConditionResult], bool]]): Function which gets the value of the
+                check and returns object of List[ConditionResult] or boolean.
+            params: Additional parameters to pass when calling the condition function.
+        """
+        cond = Condition(name, condition_func, params)
+        self._conditions[self._conditions_index] = cond
+        self._conditions_index += 1
+        return self
+
+    def __repr__(self, tabs=0, prefix=''):
+        """Representation of check as string.
+
+        Args:
+            tabs (int): number of tabs to shift by the output
+        """
+        tab_chr = '\t'
+        params = self.params()
+        if params:
+            params_str = ', '.join([f'{k}={v}' for k, v in params.items()])
+            params_str = f'({params_str})'
+        else:
+            params_str = ''
+
+        name = prefix + self.__class__.__name__
+        check_str = f'{tab_chr * tabs}{name}{params_str}'
+        if self._conditions:
+            conditions_str = ''.join([f'\n{tab_chr * (tabs + 2)}{i}: {s.name}' for i, s in self._conditions.items()])
+            return f'{check_str}\n{tab_chr * (tabs + 1)}Conditions:{conditions_str}'
+        else:
+            return check_str
+
+    def params(self) -> Dict:
+        """Return parameters to show when printing the check."""
+        return {k: v for k, v in vars(self).items() if not k.startswith('_') and v is not None}
+
+    def clean_conditions(self):
+        """Remove all conditions from this check instance."""
+        self._conditions.clear()
+        self._conditions_index = 0
+
+    def remove_condition(self, index: int):
+        """Remove given condition by index.
+
+        Args:
+            index (int): index of condtion to remove
+        """
+        if index not in self._conditions:
+            raise DeepchecksValueError(f'Index {index} of conditions does not exists')
+        self._conditions.pop(index)
 
 
 class SingleDatasetBaseCheck(BaseCheck):
@@ -134,56 +308,3 @@ class ModelOnlyBaseCheck(BaseCheck):
     def run(self, model) -> CheckResult:
         """Define run signature."""
         pass
-
-
-# class Validatable(metaclass=abc.ABCMeta):
-#     """
-#     Decidable is a utility class which gives the option to combine a check and a decision function to be used together
-#
-#     Example of usage:
-#     ```
-#     class MyCheck(Decidable, SingleDatasetBaseCheck):
-#         # run function signaute is inherited from the check class
-#         def run(self, dataset, model=None) -> CheckResult:
-#             # Parameters are automaticlly sets on params property
-#             param1 = self.params.get('param1')
-#             # Do stuff...
-#             value, html = x, y
-#             return CheckResult(value, display={'text/html': html})
-#
-#         # Implement default decider
-#         def default_decider(result: CheckResult, param=None, param2=None, param3=None) -> bool
-#             # To stuff...
-#             return True
-#
-#         # Implements "syntactic sugar" for decider function
-#         def decide_on_param_2(param):
-#             return self.decider({param2: param})
-#
-#     my_check = MyCheck(param1='foo').decider(param2=10)
-#     my_check = MyCheck(param1='foo').decider(param='s', param2=10)
-#     my_check = MyCheck(param1='foo').decide_on_param_2(10)
-#     my_check = MyCheck(param1='foo').decider(lambda cr: cr.value > 0)
-#     # Execute the run function and pass result to decide function
-#     my_check.decide(my_check.run())
-#     ```
-#     """
-#     _validators: List[Callable]
-#
-#     def __init__(self, **params):
-#         self._validators = []
-#         super().__init__(**params)
-#
-#     def validate(self, result: CheckResult) -> List[bool]:
-#         decisions = []
-#         for curr_validator in self._validators:
-#             decisions.append(curr_validator(result))
-#         return decisions or None
-#
-#     def add_validator(self, validator: Callable[[CheckResult], bool]):
-#         if not not isinstance(validator, Callable):
-#             raise DeepchecksValueError(f'Validator must be a function in signature `(CheckResult) -> bool`,'
-#                                       'but got: {type(decider).__name__}')
-#         new_copy = deepcopy(self)
-#         new_copy._validators.append(validator)
-#         return new_copy

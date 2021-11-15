@@ -8,6 +8,7 @@ from pandas import DataFrame, Series
 from scipy import stats
 
 from deepchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_dataframe_type
+from deepchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_df
 from deepchecks.string_utils import is_string_column, format_number
 from deepchecks.base.dataframe_utils import filter_columns_with_validation
 
@@ -65,7 +66,8 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
     """Detect strings with length that is much longer/shorter than the identified "normal" string lengths."""
 
     def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 num_percentiles: int = 1000, inner_quantile_range: int = 94, outlier_factor: int = 4):
+                 num_percentiles: int = 1000, inner_quantile_range: int = 94, outlier_factor: int = 4,
+                 n_top_columns: int = 10):
         """Initialize the StringLengthOutOfBounds check.
 
         Args:
@@ -79,6 +81,8 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                                        E.g. for 98 the range would be 2%-98%.
             outlier_factor (int): Strings would be defined as outliers if their length is outlier_factor times more/less
                                   than the values inside the inner quantile range.
+        n_top_columns (int): (optinal - used only if model was specified)
+                             amount of columns to show ordered by feature importance (date, index, label are first)
         """
         super().__init__()
         self.columns = columns
@@ -86,6 +90,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         self.num_percentiles = num_percentiles
         self.inner_quantile_range = inner_quantile_range
         self.outlier_factor = outlier_factor
+        self.n_top_columns = n_top_columns
 
     def run(self, dataset, model=None) -> CheckResult:
         """Run check.
@@ -93,9 +98,11 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         Args:
             dataset (DataFrame): A dataset or pd.FataFrame object.
         """
-        return self._string_length_out_of_bounds(dataset)
+        feature_importances = calculate_feature_importance_or_null(dataset, model)
+        return self._string_length_out_of_bounds(dataset, feature_importances)
 
-    def _string_length_out_of_bounds(self, dataset: Union[pd.DataFrame, Dataset]) -> CheckResult:
+    def _string_length_out_of_bounds(self, dataset: Union[pd.DataFrame, Dataset],
+                                     feature_importances: pd.Series=None) -> CheckResult:
         # Validate parameters
         df: pd.DataFrame = ensure_dataframe_type(dataset)
         df = filter_columns_with_validation(df, self.columns, self.ignore_columns)
@@ -108,7 +115,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
             if not is_string_column(column):
                 continue
 
-            string_length_column = column.map(len, na_action='ignore')
+            string_length_column = column.map(lambda x: len(str(x)), na_action='ignore')
 
             # If not a lot of unique values, calculate the percentiles for existing values.
             if string_length_column.nunique() < self.num_percentiles:
@@ -153,6 +160,8 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                                        'Range of Detected Normal String Lengths',
                                        'Range of Detected Outlier String Lengths'])
 
+        df_graph = column_importance_sorter_df(df_graph, dataset, feature_importances,
+                                               self.n_top_columns, col='Column Name')
         display = df_graph if len(df_graph) > 0 else None
 
         return CheckResult(df_graph, check=self.__class__, display=display)

@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 
 from hamcrest import assert_that, has_length, calling, raises, has_items
+from deepchecks.base import Dataset
 from deepchecks.checks.integrity.special_chars import SpecialCharacters
 from deepchecks.utils import DeepchecksValueError
 
@@ -90,6 +91,21 @@ def test_double_column_double_invalid():
     assert_that(result.value, has_length(2))
     assert_that(result.value.loc['col1']['Most Common Special-Only Samples'], has_items('{}'))
     assert_that(result.value.loc['col2']['Most Common Special-Only Samples'], has_items('&!'))
+
+
+def test_fi_n_top(diabetes_split_dataset_and_model):
+    train, _, clf = diabetes_split_dataset_and_model
+    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
+    train.data.loc[train.data.index % 3 == 2, 'age'] = '&!'
+    train.data.loc[train.data.index % 3 == 2, 'bmi'] = '&!'
+    train.data.loc[train.data.index % 3 == 2, 'bp'] = '&!'
+    train.data.loc[train.data.index % 3 == 2, 'sex'] = '&!'
+    # Arrange
+    check = SpecialCharacters(n_top_columns=3)
+    # Act
+    result_ds = check.run(train, clf).value
+    # Assert
+    assert_that(result_ds, has_length(3))
 
 
 def test_nan():
