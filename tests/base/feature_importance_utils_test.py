@@ -46,7 +46,7 @@ def test_bad_dataset_model(iris_random_forest, diabetes):
                 raises(MLChecksValueError, 'Got error when trying to predict with model on dataset'))
 
 
-def test_calculate_or_nul(diabetes_split_dataset_and_model):
+def test_calculate_or_null(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
     feature_importances = calculate_feature_importance_or_null(train.data, clf)
     assert_that(feature_importances, none())
