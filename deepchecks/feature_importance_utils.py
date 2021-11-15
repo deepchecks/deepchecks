@@ -24,8 +24,9 @@ def calculate_feature_importance_or_null(dataset: Dataset, model: Any) -> pd.Ser
 
     """
     feature_importances = None
-    if model:
+    if model and isinstance(dataset, Dataset):
         try:
+            # calculate feature importance if dataset has label and the model is fitted on it
             feature_importances = calculate_feature_importance(dataset=dataset, model=model)
         except DeepchecksValueError:
             pass
