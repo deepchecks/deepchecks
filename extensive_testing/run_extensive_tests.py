@@ -56,14 +56,14 @@ if __name__ == "__main__":
             run_time[dataset][model_name] = {}
             error_log[dataset][model_name] = {}
             print(f'Running dataset {dataset} model {model_name}')
-            for check in OverallCheckSuite.checks:
+            for name, check in OverallCheckSuite.checks.items():
                 start_t = time.time()
                 # Run check as suite so that MLChecksValueError are not captured as errors
                 suite_of_check_to_run = CheckSuite('Test suite', check)
                 check_name = check.__class__.__name__
                 try:
                     displayed_results[dataset][model_name][check_name] = suite_of_check_to_run.run(model, train_ds,
-                                                                                                   test_ds)
+                                                                                                   test_ds, 'both')
                 except Exception as e:
                     error_log[dataset][model_name][check_name] = str(e)
                 end_t = time.time()
