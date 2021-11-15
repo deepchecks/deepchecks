@@ -1,10 +1,15 @@
 """Utils module containing useful global functions."""
+import re
+import subprocess
 from typing import Any
 import sklearn
 from IPython import get_ipython
 
+__all__ = ['DeepchecksValueError', 'model_type_validation', 'is_notebook', 'is_widgets_enabled']
 
-__all__ = ['DeepchecksValueError', 'model_type_validation', 'is_notebook']
+# Need to test only once if running in notebook so cache result
+_is_notebook: bool = None
+_is_widgets_enabled: bool = None
 
 
 class DeepchecksValueError(ValueError):
@@ -34,13 +39,30 @@ def is_notebook():
     Returns:
         True if we are in a notebook context, False otherwise
     """
-    try:
-        shell = get_ipython().__class__.__name__
-        if shell == 'ZMQInteractiveShell':
-            return True  # Jupyter notebook or qtconsole
-        elif shell == 'TerminalInteractiveShell':
-            return False  # Terminal running IPython
+    global _is_notebook
+    if _is_notebook is None:
+        try:
+            shell = get_ipython().__class__.__name__
+            _is_notebook = shell == 'ZMQInteractiveShell'
+        except NameError:
+            _is_notebook = False      # Probably standard Python interpreter
+    return _is_notebook
+
+
+def is_widgets_enabled():
+    """Check if we're running in jupyter and having jupyter widgets extension enabled."""
+    global _is_widgets_enabled
+    if _is_widgets_enabled is None:
+        if not is_notebook():
+            _is_widgets_enabled = False
         else:
-            return False  # Other type (?)
-    except NameError:
-        return False      # Probably standard Python interpreter
+            # Test if widgets extension are in list
+            try:
+                output = subprocess.getoutput('jupyter nbextension list').split('\n')
+                regex = re.compile(r'\s*(jupyter-js-widgets/extension).*(enabled).*')
+                _is_widgets_enabled = any((regex.match(s) for s in output))
+            # pylint: disable=bare-except
+            except:
+                _is_widgets_enabled = False
+
+    return _is_widgets_enabled
