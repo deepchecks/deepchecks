@@ -46,7 +46,8 @@ def filter_columns_with_validation(df: pd.DataFrame, columns: Union[str, List[st
         DeepchecksValueError: In case one of columns given don't exists raise error
     """
     if columns and ignore_columns:
-        raise DeepchecksValueError('Cannot receive both parameters "columns" and "ignore", only one must be used at most')
+        raise DeepchecksValueError('Cannot receive both parameters "columns" and "ignore", '
+                                   'only one must be used at most')
     elif columns:
         validate_columns_exist(df, columns)
         return df[columns]

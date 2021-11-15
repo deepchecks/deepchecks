@@ -416,7 +416,8 @@ class Dataset:
     @classmethod
     def validate_dataset_or_dataframe(cls, obj) -> 'Dataset':
         """
-        Raise error if object is not pandas DataFrame or deepchecks Dataset and returns the object as deepchecks Dataset.
+        Raise error if object is not pandas DataFrame or deepchecks Dataset and returns the object as
+        deepchecks Dataset.
 
         Args:
             obj: object to validate as dataset

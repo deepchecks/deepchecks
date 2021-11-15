@@ -331,7 +331,8 @@ class RareFormatDetection(SingleDatasetBaseCheck):
         dataset = filter_columns_with_validation(dataset, self.columns, self.ignore_columns)
 
         if self.pattern_match_method not in ['first', 'all']:
-            raise DeepchecksValueError(f'pattern_match_method must be "first" or "all", got {self.pattern_match_method}')
+            raise DeepchecksValueError(f'pattern_match_method must be "first" or "all", '
+                                       f'got {self.pattern_match_method}')
 
 
         res = {
