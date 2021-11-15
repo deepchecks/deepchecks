@@ -78,14 +78,14 @@ def test_condition_ratio_more_than_not_passed(diabetes_split_dataset_and_model):
     # Act
     check_result = check.run(train_ds, val_ds, clf)
     condition_result = check.conditions_decision(check_result)
-    effective_ratio = check_result.value['effective_ratio']
+    ratio = check_result.value['ratio']
 
-    assert_that(effective_ratio, close_to(1.32, 0.03))
+    assert_that(ratio, close_to(1.32, 0.03))
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=False,
                                name='More than 1.4 effective ratio '
                                     'between the given model\'s result and the naive model\'s result',
-                               details=f'The given model is {format_number(effective_ratio)} times as effective as' \
+                               details=f'The given model is {format_number(ratio)} times as effective as' \
                                        ' the naive model using the given metric')
     ))
 
