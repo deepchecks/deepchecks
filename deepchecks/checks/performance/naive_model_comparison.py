@@ -103,7 +103,8 @@ class NaiveModelComparison(TrainTestBaseCheck):
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
 
         Returns:
-            CheckResult: value is ratio between model prediction to naive prediction
+            CheckResult: value is a Dict of: given_model_score, naive_model_score, ratio
+                         ratio is given model / naive model (if the metric returns negative values we devied 1 by it)
 
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance.
@@ -123,11 +124,11 @@ class NaiveModelComparison(TrainTestBaseCheck):
                                                             self.naive_model_type, self.metric,
                                                             self.metric_name)
 
-        effective_ratio = ratio = pred_metric / naive_metric
+        ratio = pred_metric / naive_metric
         if naive_metric < 0 and pred_metric < 0:
-            effective_ratio = 1 / ratio
+            ratio = 1 / ratio
 
-        text = f'The checked model is {format_number(effective_ratio)} times as effective as the ' \
+        text = f'The given model is {format_number(ratio)} times as effective as the ' \
                f'naive model using the {metric_name} metric.<br>' \
                f'{type(model).__name__} model prediction has achieved {format_number(pred_metric)} ' \
                f'compared to Naive {self.naive_model_type} prediction ' \
@@ -142,25 +143,26 @@ class NaiveModelComparison(TrainTestBaseCheck):
             ax.set_ylabel(metric_name)
 
         return CheckResult({'given_model_score': pred_metric, 'naive_model_score': naive_metric,
-                            'effective_ratio': effective_ratio},
+                            'ratio': ratio},
                            check=self.__class__, display=[text, display_func])
 
 
-    def add_condition_effective_ratio_more_than(self, min_allowed_effective_ratio: float = 1.1):
-        """Add condition - require min allowed effective ratio between the naive and the checked model.
+    def add_condition_ratio_more_than(self, min_allowed_ratio: float = 1.1):
+        """Add condition - require min allowed ratio between the naive and the given model.
 
         Args:
-            min_allowed_effective_ratio (float): Min allowed effective ratio between the naive and the checked model.
+            min_allowed_ratio (float): Min allowed ratio between the naive and the given model -
+            ratio is given model / naive model (if the metric returns negative values we devied 1 by it)
         """
         def condition(result: Dict) -> ConditionResult:
-            effective_ratio = result['effective_ratio']
-            if effective_ratio < min_allowed_effective_ratio:
+            ratio = result['ratio']
+            if ratio < min_allowed_ratio:
                 return ConditionResult(False,
-                                       f'The checked model is {format_number(effective_ratio)} times as effective as' \
+                                       f'The checked model is {format_number(ratio)} times as effective as' \
                                        f' the naive model using the given metric')
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'More than {format_number(min_allowed_effective_ratio)} effective ratio '
+        return self.add_condition(f'More than {format_number(min_allowed_ratio)} effective ratio '
                                   f'between the checked model\'s result and the naive model\'s result',
                                   condition)
