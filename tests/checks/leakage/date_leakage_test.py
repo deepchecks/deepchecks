@@ -9,7 +9,7 @@ import pandas as pd
 from hamcrest import assert_that, close_to, calling, raises, equal_to
 
 from deepchecks import Dataset
-from deepchecks.checks.leakage import DateTrainValidationLeakageOverlap, DateTrainValidationLeakageDuplicates
+from deepchecks.checks.leakage import DateTrainTestLeakageOverlap, DateTrainTestLeakageDuplicates
 from deepchecks.utils import DeepchecksValueError
 
 
@@ -48,7 +48,7 @@ def test_dates_from_val_in_train():
         datetime(2021, 10, 9, 0, 0),
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
-    check_obj = DateTrainValidationLeakageDuplicates()
+    check_obj = DateTrainTestLeakageDuplicates()
     assert_that(check_obj.run(train_ds, val_ds).value, close_to(0.182, 0.01))
 
 
@@ -69,7 +69,7 @@ def test_limit_dates_from_val_in_train():
         datetime(2021, 10, 6, 0, 0),
 
     ]}, 'col1')
-    check_obj = DateTrainValidationLeakageDuplicates(n_to_show=1)
+    check_obj = DateTrainTestLeakageDuplicates(n_to_show=1)
     assert_that(check_obj.run(train_ds, val_ds).value, close_to(0.5, 0.01))
 
 
@@ -86,31 +86,31 @@ def test_no_dates_from_val_in_train():
         datetime(2021, 10, 6, 0, 0),
 
     ]}, 'col1')
-    check_obj = DateTrainValidationLeakageDuplicates()
+    check_obj = DateTrainTestLeakageDuplicates()
     assert_that(check_obj.run(train_ds, val_ds).value, equal_to(0))
 
 
 def test_dataset_wrong_input():
     x = 'wrong_input'
     assert_that(
-        calling(DateTrainValidationLeakageDuplicates().run).with_args(x, x),
-        raises(DeepchecksValueError, 'Check DateTrainValidationLeakageDuplicates '
+        calling(DateTrainTestLeakageDuplicates().run).with_args(x, x),
+        raises(DeepchecksValueError, 'Check DateTrainTestLeakageDuplicates '
                                    'requires dataset to be of type Dataset. instead got: str'))
     assert_that(
-        calling(DateTrainValidationLeakageOverlap().run).with_args(x, x),
-        raises(DeepchecksValueError, 'Check DateTrainValidationLeakageOverlap '
+        calling(DateTrainTestLeakageOverlap().run).with_args(x, x),
+        raises(DeepchecksValueError, 'Check DateTrainTestLeakageOverlap '
                                    'requires dataset to be of type Dataset. instead got: str'))
 
 
 def test_dataset_no_index():
     ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11]})
     assert_that(
-        calling(DateTrainValidationLeakageDuplicates().run).with_args(ds, ds),
-        raises(DeepchecksValueError, 'Check DateTrainValidationLeakageDuplicates '
+        calling(DateTrainTestLeakageDuplicates().run).with_args(ds, ds),
+        raises(DeepchecksValueError, 'Check DateTrainTestLeakageDuplicates '
                                    'requires dataset to have a date column'))
     assert_that(
-        calling(DateTrainValidationLeakageOverlap().run).with_args(ds, ds),
-        raises(DeepchecksValueError, 'Check DateTrainValidationLeakageOverlap '
+        calling(DateTrainTestLeakageOverlap().run).with_args(ds, ds),
+        raises(DeepchecksValueError, 'Check DateTrainTestLeakageOverlap '
                                    'requires dataset to have a date column'))
 
 def test_dates_from_val_before_train():
@@ -143,7 +143,7 @@ def test_dates_from_val_before_train():
         datetime(2021, 10, 9, 0, 0),
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
-    check_obj = DateTrainValidationLeakageOverlap()
+    check_obj = DateTrainTestLeakageOverlap()
     assert_that(check_obj.run(train_ds, val_ds).value, close_to(0.27, 0.01))
 
 
@@ -163,7 +163,7 @@ def test_no_dates_from_val_before_train():
         datetime(2021, 10, 6, 0, 0),
 
     ]}, 'col1')
-    check_obj = DateTrainValidationLeakageOverlap()
+    check_obj = DateTrainTestLeakageOverlap()
     assert_that(check_obj.run(train_ds, val_ds).value, equal_to(0))
 
 
@@ -184,5 +184,5 @@ def test_nan():
         np.nan
 
     ]}, 'col1')
-    check_obj = DateTrainValidationLeakageOverlap()
+    check_obj = DateTrainTestLeakageOverlap()
     assert_that(check_obj.run(train_ds, val_ds).value, equal_to(0))

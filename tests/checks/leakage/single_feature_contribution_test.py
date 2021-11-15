@@ -4,7 +4,7 @@ import pandas as pd
 
 from deepchecks import Dataset
 from deepchecks.checks.leakage import SingleFeatureContribution, \
-                                    SingleFeatureContributionTrainValidation
+                                    SingleFeatureContributionTrainTest
 from deepchecks.utils import DeepchecksValueError
 
 from hamcrest import assert_that, is_in, close_to, calling, raises, equal_to
@@ -64,8 +64,8 @@ def test_dataset_no_label():
 
 def test_trainval_assert_single_feature_contribution():
     df, df2, expected = util_generate_second_similar_dataframe_and_expected()
-    result = SingleFeatureContributionTrainValidation().run(train_dataset=Dataset(df, label='label'),
-                                                            validation_dataset=Dataset(df2, label='label'))
+    result = SingleFeatureContributionTrainTest().run(train_dataset=Dataset(df, label='label'),
+                                                      test_dataset=Dataset(df2, label='label'))
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
         assert_that(value, close_to(expected[key], 0.1))
@@ -73,8 +73,8 @@ def test_trainval_assert_single_feature_contribution():
 
 def test_trainval_show_top_single_feature_contribution():
     df, df2, expected = util_generate_second_similar_dataframe_and_expected()
-    result = SingleFeatureContributionTrainValidation(n_show_top=3).run(train_dataset=Dataset(df, label='label'),
-                                                            validation_dataset=Dataset(df2, label='label'))
+    result = SingleFeatureContributionTrainTest(n_show_top=3).run(train_dataset=Dataset(df, label='label'),
+                                                                  test_dataset=Dataset(df2, label='label'))
     assert_that(len(result.value), equal_to(3))
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
@@ -84,27 +84,27 @@ def test_trainval_show_top_single_feature_contribution():
 def test_trainval_dataset_wrong_input():
     wrong = 'wrong_input'
     assert_that(
-        calling(SingleFeatureContributionTrainValidation().run).with_args(wrong, wrong),
+        calling(SingleFeatureContributionTrainTest().run).with_args(wrong, wrong),
         raises(DeepchecksValueError,
-               'Check SingleFeatureContributionTrainValidation requires dataset to be of type Dataset. '
+               'Check SingleFeatureContributionTrainTest requires dataset to be of type Dataset. '
                'instead got: str'))
 
 
 def test_trainval_dataset_no_label():
     df, df2, _ = util_generate_second_similar_dataframe_and_expected()
     assert_that(
-        calling(SingleFeatureContributionTrainValidation().run).with_args(train_dataset=Dataset(df),
-                                                                          validation_dataset=Dataset(df2)),
+        calling(SingleFeatureContributionTrainTest().run).with_args(train_dataset=Dataset(df),
+                                                                    test_dataset=Dataset(df2)),
         raises(DeepchecksValueError,
-               'Check SingleFeatureContributionTrainValidation requires dataset to have a label column'))
+               'Check SingleFeatureContributionTrainTest requires dataset to have a label column'))
 
 
 def test_trainval_dataset_diff_columns():
     df, df2, _ = util_generate_second_similar_dataframe_and_expected()
     df = df.rename({'x2': 'x6'}, axis=1)
     assert_that(
-        calling(SingleFeatureContributionTrainValidation().run)
+        calling(SingleFeatureContributionTrainTest().run)
             .with_args(train_dataset=Dataset(df, label='label'),
-                       validation_dataset=Dataset(df2, label='label')),
+                       test_dataset=Dataset(df2, label='label')),
         raises(DeepchecksValueError,
-               'Check SingleFeatureContributionTrainValidation requires datasets to share the same features'))
+               'Check SingleFeatureContributionTrainTest requires datasets to share the same features'))

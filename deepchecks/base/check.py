@@ -5,7 +5,7 @@ import re
 from collections import OrderedDict
 from typing import Any, Callable, List, Union, Dict
 
-__all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainValidationBaseCheck',
+__all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainTestBaseCheck',
            'ModelOnlyBaseCheck', 'ConditionResult', 'ConditionCategory']
 
 import pandas as pd
@@ -289,14 +289,14 @@ class CompareDatasetsBaseCheck(BaseCheck):
         pass
 
 
-class TrainValidationBaseCheck(BaseCheck):
+class TrainTestBaseCheck(BaseCheck):
     """Parent class for checks that compare two datasets.
 
-    The class checks train dataset and validation dataset for model training and validation.
+    The class checks train dataset and test dataset for model training and test.
     """
 
     @abc.abstractmethod
-    def run(self, train_dataset, validation_dataset, model=None) -> CheckResult:
+    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
         """Define run signature."""
         pass
 
