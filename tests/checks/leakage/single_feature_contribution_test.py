@@ -2,10 +2,10 @@
 import numpy as np
 import pandas as pd
 
-from mlchecks import Dataset
-from mlchecks.checks.leakage import SingleFeatureContribution, \
+from deepchecks import Dataset
+from deepchecks.checks.leakage import SingleFeatureContribution, \
                                     SingleFeatureContributionTrainValidation
-from mlchecks.utils import MLChecksValueError
+from deepchecks.utils import DeepchecksValueError
 
 from hamcrest import assert_that, is_in, close_to, calling, raises, equal_to
 
@@ -50,7 +50,7 @@ def test_dataset_wrong_input():
     wrong = 'wrong_input'
     assert_that(
         calling(SingleFeatureContribution().run).with_args(wrong),
-        raises(MLChecksValueError, 'Check SingleFeatureContribution requires dataset to be of type Dataset. '
+        raises(DeepchecksValueError, 'Check SingleFeatureContribution requires dataset to be of type Dataset. '
                                    'instead got: str'))
 
 
@@ -59,7 +59,7 @@ def test_dataset_no_label():
     df = Dataset(df)
     assert_that(
         calling(SingleFeatureContribution().run).with_args(dataset=df),
-        raises(MLChecksValueError, 'Check SingleFeatureContribution requires dataset to have a label column'))
+        raises(DeepchecksValueError, 'Check SingleFeatureContribution requires dataset to have a label column'))
 
 
 def test_trainval_assert_single_feature_contribution():
@@ -85,7 +85,7 @@ def test_trainval_dataset_wrong_input():
     wrong = 'wrong_input'
     assert_that(
         calling(SingleFeatureContributionTrainValidation().run).with_args(wrong, wrong),
-        raises(MLChecksValueError,
+        raises(DeepchecksValueError,
                'Check SingleFeatureContributionTrainValidation requires dataset to be of type Dataset. '
                'instead got: str'))
 
@@ -95,7 +95,7 @@ def test_trainval_dataset_no_label():
     assert_that(
         calling(SingleFeatureContributionTrainValidation().run).with_args(train_dataset=Dataset(df),
                                                                           validation_dataset=Dataset(df2)),
-        raises(MLChecksValueError,
+        raises(DeepchecksValueError,
                'Check SingleFeatureContributionTrainValidation requires dataset to have a label column'))
 
 
@@ -106,5 +106,5 @@ def test_trainval_dataset_diff_columns():
         calling(SingleFeatureContributionTrainValidation().run)
             .with_args(train_dataset=Dataset(df, label='label'),
                        validation_dataset=Dataset(df2, label='label')),
-        raises(MLChecksValueError,
+        raises(DeepchecksValueError,
                'Check SingleFeatureContributionTrainValidation requires datasets to share the same features'))

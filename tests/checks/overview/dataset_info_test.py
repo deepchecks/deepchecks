@@ -2,8 +2,8 @@
 import numpy as np
 import pandas as pd
 
-from mlchecks.checks.overview.dataset_info import DatasetInfo
-from mlchecks.utils import MLChecksValueError
+from deepchecks.checks.overview.dataset_info import DatasetInfo
+from deepchecks.utils import DeepchecksValueError
 
 from hamcrest import assert_that, equal_to, calling, raises
 
@@ -19,7 +19,7 @@ def test_dataset_wrong_input():
     wrong = 'wrong_input'
     # Act & Assert
     assert_that(calling(DatasetInfo().run).with_args(wrong),
-                raises(MLChecksValueError, 'dataset must be of type DataFrame or Dataset, but got: str'))
+                raises(DeepchecksValueError, 'dataset must be of type DataFrame or Dataset, but got: str'))
 
 
 def test_dataset_info_object(iris_dataset):

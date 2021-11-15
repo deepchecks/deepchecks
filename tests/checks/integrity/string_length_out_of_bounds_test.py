@@ -1,9 +1,9 @@
 """Contains unit tests for the string_length_out_of_bounds check."""
 import numpy as np
 import pandas as pd
-from mlchecks.base import Dataset
+from deepchecks.base import Dataset
 
-from mlchecks.checks import StringLengthOutOfBounds
+from deepchecks.checks import StringLengthOutOfBounds
 
 from hamcrest import assert_that, has_length
 

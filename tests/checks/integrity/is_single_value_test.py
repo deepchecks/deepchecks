@@ -1,7 +1,7 @@
 """Tests for Single Value Check"""
 import pandas as pd
-from mlchecks.utils import MLChecksValueError
-from mlchecks.checks.integrity.is_single_value import IsSingleValue
+from deepchecks.utils import DeepchecksValueError
+from deepchecks.checks.integrity.is_single_value import IsSingleValue
 from hamcrest import assert_that, calling, raises, equal_to
 
 
@@ -95,7 +95,7 @@ def test_wrong_ignore_columns_single_value():
     # Act
     cls = IsSingleValue(ignore_columns=['bbb', 'd'])
     assert_that(calling(cls.run).with_args(df),
-                raises(MLChecksValueError, 'Given columns do not exist in dataset: d'))
+                raises(DeepchecksValueError, 'Given columns do not exist in dataset: d'))
 
 
 def test_wrong_input_single_value():
@@ -103,7 +103,7 @@ def test_wrong_input_single_value():
     cls = IsSingleValue(ignore_columns=['bbb', 'd'])
 
     assert_that(calling(cls.run).with_args('some string'),
-                raises(MLChecksValueError, 'dataset must be of type DataFrame or Dataset, but got: str'))
+                raises(DeepchecksValueError, 'dataset must be of type DataFrame or Dataset, but got: str'))
 
 
 def test_nans(df_with_fully_nan, df_with_single_nan_in_col):

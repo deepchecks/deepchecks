@@ -1,6 +1,6 @@
 """Tests for Model Info."""
-from mlchecks.checks.overview.model_info import ModelInfo
-from mlchecks.utils import MLChecksValueError
+from deepchecks.checks.overview.model_info import ModelInfo
+from deepchecks.utils import DeepchecksValueError
 
 from hamcrest import assert_that, has_entries, calling, raises
 
@@ -32,4 +32,4 @@ def test_model_info_object(iris_adaboost):
 def test_model_info_wrong_input():
     # Act
     assert_that(calling(ModelInfo().run).with_args('some string'),
-                raises(MLChecksValueError, 'Model must inherit from one of supported models:'))
+                raises(DeepchecksValueError, 'Model must inherit from one of supported models:'))

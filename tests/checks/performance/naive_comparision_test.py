@@ -1,6 +1,6 @@
 """Contains unit tests for the confusion_matrix_report check."""
-from mlchecks.checks.performance import NaiveModelComparison
-from mlchecks.utils import MLChecksValueError
+from deepchecks.checks.performance import NaiveModelComparison
+from deepchecks.utils import DeepchecksValueError
 from hamcrest import assert_that, calling, raises, close_to
 
 
@@ -8,7 +8,7 @@ def test_dataset_wrong_input():
     bad_dataset = 'wrong_input'
     # Act & Assert
     assert_that(calling(NaiveModelComparison().run).with_args(bad_dataset, bad_dataset, None),
-                raises(MLChecksValueError,
+                raises(DeepchecksValueError,
                        'Check NaiveModelComparison requires dataset to be of type Dataset. instead got: str'))
 
 

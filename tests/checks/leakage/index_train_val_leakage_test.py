@@ -6,9 +6,9 @@ import pandas as pd
 
 from hamcrest import assert_that, close_to, calling, raises
 
-from mlchecks import Dataset
-from mlchecks.checks.leakage.index_leakage import IndexTrainValidationLeakage
-from mlchecks.utils import MLChecksValueError
+from deepchecks import Dataset
+from deepchecks.checks.leakage.index_leakage import IndexTrainValidationLeakage
+from deepchecks.utils import DeepchecksValueError
 
 
 def dataset_from_dict(d: dict, index_name: str = None) -> Dataset:
@@ -41,7 +41,7 @@ def test_dataset_wrong_input():
     x = 'wrong_input'
     assert_that(
         calling(IndexTrainValidationLeakage().run).with_args(x, x),
-        raises(MLChecksValueError, 'Check IndexTrainValidationLeakage requires dataset to be of type Dataset. '
+        raises(DeepchecksValueError, 'Check IndexTrainValidationLeakage requires dataset to be of type Dataset. '
                                    'instead got: str'))
 
 
@@ -49,7 +49,7 @@ def test_dataset_no_index():
     ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11]})
     assert_that(
         calling(IndexTrainValidationLeakage().run).with_args(ds, ds),
-        raises(MLChecksValueError, 'Check IndexTrainValidationLeakage requires dataset to have an index column'))
+        raises(DeepchecksValueError, 'Check IndexTrainValidationLeakage requires dataset to have an index column'))
 
 
 def test_nan():

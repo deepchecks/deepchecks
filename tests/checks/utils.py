@@ -3,7 +3,7 @@ from typing import Union, Pattern
 
 from hamcrest import all_of, has_property, matches_regexp
 
-from mlchecks import ConditionCategory
+from deepchecks import ConditionCategory
 
 
 def equal_condition_result(is_pass: bool, name: str, details: Union[str, Pattern] = '',

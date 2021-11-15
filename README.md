@@ -1,18 +1,18 @@
 
-# MLChecks
+# Deepchecks
 
-![pyVersions](https://img.shields.io/pypi/pyversions/mlchecks)
-![pkgVersion](https://img.shields.io/pypi/v/mlchecks)
-![build](https://github.com/deepchecks/mlchecks/actions/workflows/build.yml/badge.svg)
-![coverage](https://deepchecks-public.s3.eu-west-1.amazonaws.com/mlchecks/coverage.svg)
-![pylint](https://deepchecks-public.s3.eu-west-1.amazonaws.com/mlchecks/pylint.svg)
+![pyVersions](https://img.shields.io/pypi/pyversions/deepchecks)
+![pkgVersion](https://img.shields.io/pypi/v/deepchecks)
+![build](https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg)
+![coverage](https://deepchecks-public.s3.eu-west-1.amazonaws.com/deepchecks/coverage.svg)
+![pylint](https://deepchecks-public.s3.eu-west-1.amazonaws.com/deepchecks/pylint.svg)
 
-MLChecks is a Python package, for quickly and efficiently validating many aspects of your trained machine learning models. These include model performance related issues, machine learning methodology best-practices, model and data integrity.
+Deepchecks is a Python package, for quickly and efficiently validating many aspects of your trained machine learning models. These include model performance related issues, machine learning methodology best-practices, model and data integrity.
 
 ## Key Concepts
 
 #### Check
-Each check enables you to inspect a specific aspect of your data and models. They are the basic building block of the MLChecks package, covering all kinds of common issues, such as:
+Each check enables you to inspect a specific aspect of your data and models. They are the basic building block of the deepchecks package, covering all kinds of common issues, such as:
 
 -   PerformanceOverfit
     
@@ -28,7 +28,7 @@ Each check enables you to inspect a specific aspect of your data and models. The
 Each check displays a visual result and returns a custom result value that can be used to validate the expected check results by setting conditions upon them.
 
 #### Suite
-An ordered collection of checks. [Here](./mlchecks/suites) you can find the existing suites and a code example for how to add your own custom suite. You can edit the preconfigured suites or build a suite of your own with a collection of checks and result conditions.
+An ordered collection of checks. [Here](deepchecks/suites) you can find the existing suites and a code example for how to add your own custom suite. You can edit the preconfigured suites or build a suite of your own with a collection of checks and result conditions.
   
 
 ## Installation
@@ -36,14 +36,14 @@ An ordered collection of checks. [Here](./mlchecks/suites) you can find the exis
 #### Using pip with package wheel file
 From the directory in which you have the wheel file, run:
 ```bash
-pip3 install MLChecks-latest.whl #--user
+pip3 install deepchecks-latest.whl #--user
 ```
 
 #### From source
 First clone the repository and then install the package from inside the repository's directory:
 ```bash
-git clone https://github.com/deepchecks/MLChecks.git
-cd MLChecks
+git clone https://github.com/deepchecks/deepchecks.git
+cd deepchecks
 python setup.py install # --user
 ```
 
@@ -64,8 +64,9 @@ Additionally, many of the checks and some of the suites need only a subset of th
 
 ### Running a Check
 For running a specific check on your dataframe, all you need to do is:
+
 ```python
-from mlchecks.checks import *
+from deepchecks.checks import *
 import pandas as pd
 
 df_to_check = pd.read_csv('data_to_validate.csv')
@@ -124,19 +125,20 @@ df_train = iris_df[:train_len]
 df_val = iris_df[train_len:]
 ```
 To run an existing suite all you need to do is import the suite and run it -
+
 ```python
-from mlchecks.suites import IntegrityCheckSuite
+from deepchecks.suites import IntegrityCheckSuite
 IntegrityCheckSuite.run(train_dataset=df_train, validation_dataset=df_val, check_datasets_policy='both')
 ```
 Which will result in printing the outputs of all of the checks that are in that suite.
 
 ### Example Notebooks
 For full usage examples, check out: 
-- [**MLChecks Quick Start Notebook**](./notebooks/examples/models/Iris%20Dataset%20CheckSuite%20Example.ipynb) - for a simple example notebook for working with checks and suites.
+- [**deepchecks Quick Start Notebook**](./notebooks/examples/models/Iris%20Dataset%20CheckSuite%20Example.ipynb) - for a simple example notebook for working with checks and suites.
 - [**Example Checks Output Notebooks**](./notebooks) - to see all of the existing checks and their usage examples.
 
 ## Communication
 - Join our [Slack Community](https://join.slack.com/t/mlcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg) to connect with the maintainers and follow users and interesting discussions
-- Post a [Github Issue](https://github.com/deepchecks/MLChecks/issues) to suggest improvements, open an issue, or share feedback.
+- Post a [Github Issue](https://github.com/deepchecks/deepchecks/issues) to suggest improvements, open an issue, or share feedback.
 
-[comment]: <> "- Send us an [email](mailto:info@mlchecks.com) at info@mlchecks.com"
+[comment]: <> "- Send us an [email](mailto:info@deepchecks.com) at info@deepchecks.com"

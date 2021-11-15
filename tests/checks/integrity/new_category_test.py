@@ -1,9 +1,9 @@
 """Contains unit tests for the new_category_train_validation check"""
 
 import pandas as pd
-from mlchecks.base import Dataset
-from mlchecks.utils import MLChecksValueError
-from mlchecks.checks.integrity import CategoryMismatchTrainValidation
+from deepchecks.base import Dataset
+from deepchecks.utils import DeepchecksValueError
+from deepchecks.checks.integrity import CategoryMismatchTrainValidation
 from hamcrest import assert_that, calling, raises, has_length, close_to
 
 
@@ -12,7 +12,7 @@ def test_dataset_wrong_input():
     # Act & Assert
     check = CategoryMismatchTrainValidation()
     assert_that(calling(check.run).with_args(x, x),
-                raises(MLChecksValueError,
+                raises(DeepchecksValueError,
                 'dataset must be of type DataFrame or Dataset. instead got: str'))
 
 

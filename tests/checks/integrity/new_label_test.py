@@ -1,9 +1,9 @@
 """Contains unit tests for the new_label_train_validation check"""
 
 import pandas as pd
-from mlchecks.base import Dataset
-from mlchecks.utils import MLChecksValueError
-from mlchecks.checks.integrity import NewLabelTrainValidation
+from deepchecks.base import Dataset
+from deepchecks.utils import DeepchecksValueError
+from deepchecks.checks.integrity import NewLabelTrainValidation
 from hamcrest import assert_that, calling, raises, has_length, close_to, equal_to
 
 
@@ -11,7 +11,7 @@ def test_dataset_wrong_input():
     x = 'wrong_input'
     # Act & Assert
     assert_that(calling(NewLabelTrainValidation().run).with_args(x, x),
-                raises(MLChecksValueError,
+                raises(DeepchecksValueError,
                 'dataset must be of type DataFrame or Dataset. instead got: str'))
 
 

@@ -8,9 +8,9 @@ import pandas as pd
 
 from hamcrest import assert_that, close_to, calling, raises, equal_to
 
-from mlchecks import Dataset
-from mlchecks.checks.leakage import DateTrainValidationLeakageOverlap, DateTrainValidationLeakageDuplicates
-from mlchecks.utils import MLChecksValueError
+from deepchecks import Dataset
+from deepchecks.checks.leakage import DateTrainValidationLeakageOverlap, DateTrainValidationLeakageDuplicates
+from deepchecks.utils import DeepchecksValueError
 
 
 def dataset_from_dict(d: dict, date_name: str = None) -> Dataset:
@@ -94,11 +94,11 @@ def test_dataset_wrong_input():
     x = 'wrong_input'
     assert_that(
         calling(DateTrainValidationLeakageDuplicates().run).with_args(x, x),
-        raises(MLChecksValueError, 'Check DateTrainValidationLeakageDuplicates '
+        raises(DeepchecksValueError, 'Check DateTrainValidationLeakageDuplicates '
                                    'requires dataset to be of type Dataset. instead got: str'))
     assert_that(
         calling(DateTrainValidationLeakageOverlap().run).with_args(x, x),
-        raises(MLChecksValueError, 'Check DateTrainValidationLeakageOverlap '
+        raises(DeepchecksValueError, 'Check DateTrainValidationLeakageOverlap '
                                    'requires dataset to be of type Dataset. instead got: str'))
 
 
@@ -106,11 +106,11 @@ def test_dataset_no_index():
     ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11]})
     assert_that(
         calling(DateTrainValidationLeakageDuplicates().run).with_args(ds, ds),
-        raises(MLChecksValueError, 'Check DateTrainValidationLeakageDuplicates '
+        raises(DeepchecksValueError, 'Check DateTrainValidationLeakageDuplicates '
                                    'requires dataset to have a date column'))
     assert_that(
         calling(DateTrainValidationLeakageOverlap().run).with_args(ds, ds),
-        raises(MLChecksValueError, 'Check DateTrainValidationLeakageOverlap '
+        raises(DeepchecksValueError, 'Check DateTrainValidationLeakageOverlap '
                                    'requires dataset to have a date column'))
 
 def test_dates_from_val_before_train():

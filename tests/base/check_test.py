@@ -4,8 +4,8 @@ import hamcrest
 from hamcrest import assert_that, has_property, has_key, contains_exactly, calling, raises, has_length, has_entries, \
     all_of, equal_to, has_items
 
-from mlchecks import BaseCheck, ConditionResult, CheckResult, ConditionCategory
-from mlchecks.utils import MLChecksValueError
+from deepchecks import BaseCheck, ConditionResult, CheckResult, ConditionCategory
+from deepchecks.utils import DeepchecksValueError
 
 
 class DummyCheck(BaseCheck):
@@ -42,7 +42,7 @@ def test_add_conditions_wrong_name():
 
     # Act & Assert
     assert_that(calling(check.add_condition).with_args(333, lambda r: True),
-                raises(MLChecksValueError, 'Condition name must be of type str but got: int'))
+                raises(DeepchecksValueError, 'Condition name must be of type str but got: int'))
 
 
 def test_add_conditions_wrong_value():
@@ -51,7 +51,7 @@ def test_add_conditions_wrong_value():
 
     # Act & Assert
     assert_that(calling(check.add_condition).with_args('cond', 'string not function'),
-                raises(MLChecksValueError, 'Condition must be a function'))
+                raises(DeepchecksValueError, 'Condition must be a function'))
 
 
 def test_clean_conditions():
@@ -85,7 +85,7 @@ def test_remove_condition_index_error():
 
     # Act & Assert
     assert_that(calling(check.remove_condition).with_args(7),
-                raises(MLChecksValueError, 'Index 7 of conditions does not exists'))
+                raises(DeepchecksValueError, 'Index 7 of conditions does not exists'))
 
 
 def test_condition_decision():

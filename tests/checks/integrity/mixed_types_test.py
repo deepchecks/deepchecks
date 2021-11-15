@@ -4,10 +4,10 @@ import pandas as pd
 
 # Disable wildcard import check for hamcrest
 from hamcrest import assert_that, has_length, calling, raises, has_items, has_entry, has_entries, close_to
-from mlchecks.base import Dataset
+from deepchecks.base import Dataset
 
-from mlchecks.checks.integrity.mixed_types import MixedTypes
-from mlchecks.utils import MLChecksValueError
+from deepchecks.checks.integrity.mixed_types import MixedTypes
+from deepchecks.utils import DeepchecksValueError
 from tests.checks.utils import equal_condition_result
 
 
@@ -87,7 +87,7 @@ def test_double_column_specific_and_ignored_mix():
     # Act & Assert
     check = MixedTypes(ignore_columns=['col1'], columns=['col1'])
     assert_that(calling(check.run).with_args(dataframe),
-                raises(MLChecksValueError))
+                raises(DeepchecksValueError))
 
 
 def test_double_column_double_mix():

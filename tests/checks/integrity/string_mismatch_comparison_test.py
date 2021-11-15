@@ -2,8 +2,8 @@
 import numpy as np
 import pandas as pd
 
-from mlchecks.base import Dataset
-from mlchecks.checks import StringMismatchComparison
+from deepchecks.base import Dataset
+from deepchecks.checks import StringMismatchComparison
 
 from hamcrest import assert_that, has_length, has_entry, has_entries, has_items
 
