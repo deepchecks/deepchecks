@@ -156,7 +156,7 @@ class NaiveModelComparison(TrainTestBaseCheck):
         """
         def condition(result: Dict) -> ConditionResult:
             ratio = result['ratio']
-            if ratio < min_allowed_ratio:
+            if min_allowed_ratio > ratio:
                 return ConditionResult(False,
                                        f'The given model performs {format_number(ratio)} times compared' \
                                        f'to the naive model using the given metric')
