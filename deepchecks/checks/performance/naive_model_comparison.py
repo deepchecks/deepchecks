@@ -158,11 +158,11 @@ class NaiveModelComparison(TrainTestBaseCheck):
             ratio = result['ratio']
             if ratio < min_allowed_ratio:
                 return ConditionResult(False,
-                                       f'The checked model is {format_number(ratio)} times as effective as' \
+                                       f'The given model is {format_number(ratio)} times as effective as' \
                                        f' the naive model using the given metric')
             else:
                 return ConditionResult(True)
 
         return self.add_condition(f'More than {format_number(min_allowed_ratio)} effective ratio '
-                                  f'between the checked model\'s result and the naive model\'s result',
+                                  f'between the given model\'s result and the naive model\'s result',
                                   condition)
