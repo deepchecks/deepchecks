@@ -5,9 +5,9 @@ from io import BytesIO
 import sys
 import pprint
 
-from mlchecks import CheckSuite
-from mlchecks.suites import OverallCheckSuite
-from mlchecks.base import Dataset
+from deepchecks import CheckSuite
+from deepchecks.suites import OverallCheckSuite
+from deepchecks.base import Dataset
 import pandas as pd
 import json
 import joblib
@@ -41,12 +41,12 @@ if __name__ == "__main__":
         displayed_results[dataset] = {}
         error_log[dataset] = {}
         train_df = pd.read_csv(f's3://{bucket_name}/{dataset}/train.csv')
-        val_df = pd.read_csv(f's3://{bucket_name}/{dataset}/val.csv')
+        test_df = pd.read_csv(f's3://{bucket_name}/{dataset}/val.csv')
         metadata = json.loads(s3.Object(bucket_name, f'{dataset}/metadata.json').get()['Body'].read().decode('utf-8'))
         train_ds = Dataset(train_df, label=metadata['label_name'], features=metadata['features'],
                            cat_features=metadata['cat_features'])
-        val_ds = Dataset(val_df, label=metadata['label_name'], features=metadata['features'],
-                         cat_features=metadata['cat_features'])
+        test_ds = Dataset(test_df, label=metadata['label_name'], features=metadata['features'],
+                          cat_features=metadata['cat_features'])
         models = list(filter(lambda x: x.key.endswith('joblib'), list(S3_BUCKET.objects.filter(Prefix=dataset).all())))
         for model_obj in models:
             model_file = model_obj.get()
@@ -63,7 +63,7 @@ if __name__ == "__main__":
                 check_name = check.__class__.__name__
                 try:
                     displayed_results[dataset][model_name][check_name] = suite_of_check_to_run.run(model, train_ds,
-                                                                                                   val_ds)
+                                                                                                   test_ds)
                 except Exception as e:
                     error_log[dataset][model_name][check_name] = str(e)
                 end_t = time.time()
