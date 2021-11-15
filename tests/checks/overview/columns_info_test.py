@@ -5,7 +5,7 @@ from mlchecks.utils import MLChecksValueError
 
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, equal_to, calling, raises
+from hamcrest import assert_that, equal_to, calling, raises, has_length
 
 
 def test_dataset_wrong_input():
@@ -40,3 +40,12 @@ def test_columns_info():
     expected_res_df['label'] = 'categorical feature'
     expected_res_df['c'] = 'numerical feature'
     assert_that(result_df, equal_to(expected_res_df))
+
+def test_fi_n_top(diabetes_split_dataset_and_model):
+    train, _, clf = diabetes_split_dataset_and_model
+    # Arrange
+    check = ColumnsInfo(n_top_columns=3)
+    # Act
+    result_ds = check.run(train, clf).value
+    # Assert
+    assert_that(result_ds, has_length(3))

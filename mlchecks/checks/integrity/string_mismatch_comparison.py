@@ -5,6 +5,7 @@ import pandas as pd
 
 from mlchecks import CheckResult, Dataset, ensure_dataframe_type, CompareDatasetsBaseCheck
 from mlchecks.base.dataframe_utils import filter_columns_with_validation
+from mlchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_df
 from mlchecks.string_utils import get_base_form_to_variants_dict, is_string_column, format_percent
 
 __all__ = ['StringMismatchComparison']
@@ -29,7 +30,8 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
     different version of 'St. Ring'.
     """
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None):
+    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
+                 n_top_columns: int = 10):
         """Initialize the StringMismatchComparison check.
 
         Args:
@@ -37,10 +39,13 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
                     ones.
             ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
                     variable
+        n_top_columns (int): (optinal - used only if model was specified)
+                             amount of columns to show ordered by feature importance (date, index, label are first)
         """
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
+        self.n_top_columns = n_top_columns
 
     def run(self, dataset, baseline_dataset, model=None) -> CheckResult:
         """Run check.
@@ -50,10 +55,12 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
             baseline_dataset (Dataset): A dataset object.
             model: Not used in this check.
         """
-        return self._string_mismatch_comparison(dataset, baseline_dataset)
+        feature_importances = calculate_feature_importance_or_null(dataset, model)
+        return self._string_mismatch_comparison(dataset, baseline_dataset, feature_importances)
 
     def _string_mismatch_comparison(self, dataset: Union[pd.DataFrame, Dataset],
-                                   baseline_dataset: Union[pd.DataFrame, Dataset]) -> CheckResult:
+                                   baseline_dataset: Union[pd.DataFrame, Dataset],
+                                   feature_importances: pd.Series=None) -> CheckResult:
         # Validate parameters
         df: pd.DataFrame = ensure_dataframe_type(dataset)
         df = filter_columns_with_validation(df, self.columns, self.ignore_columns)
@@ -98,6 +105,9 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
                                          'Variants only in baseline',
                                          '% Unique variants out of all baseline samples (count)'])
         df_graph = df_graph.set_index(['Column name', 'Base form'])
+        df_graph = column_importance_sorter_df(df_graph, dataset, feature_importances,
+                                        self.n_top_columns, col='Column name')
+
         # For display transpose the dataframe
         display = df_graph.T if len(df_graph) > 0 else None
 
