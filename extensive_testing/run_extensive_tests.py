@@ -36,7 +36,7 @@ if __name__ == "__main__":
     displayed_results = {}
     run_time = {}
     error_log = {}
-    for dataset in ['lendingclub']:
+    for dataset in datasets:
         run_time[dataset] = {}
         displayed_results[dataset] = {}
         error_log[dataset] = {}
