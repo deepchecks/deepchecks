@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from deepchecks.string_utils import format_number
 
 from deepchecks import CheckResult, Dataset
-from deepchecks.base.check import TrainValidationBaseCheck
+from deepchecks.base.check import TrainTestBaseCheck
 from deepchecks.metric_utils import DEFAULT_METRICS_DICT, DEFAULT_SINGLE_METRIC, task_type_check, ModelType, validate_scorer
 from deepchecks.utils import model_type_validation
 
@@ -21,13 +21,13 @@ class DummyModel:
         return a
 
 
-def find_score(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
+def find_score(train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model,
               naive_model_type: str, metric = None, metric_name = None):
     """Find the naive model score for given metric.
 
     Args:
         train_ds (Dataset): The training dataset object. Must contain an index.
-        val_ds (Dataset): The validation dataset object. Must contain an index.
+        test_ds (Dataset): The test dataset object. Must contain an index.
         task_type (ModelType): the model type.
         model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
         naive_model_type (str): Type of the naive model ['random', 'statistical'].
@@ -43,26 +43,26 @@ def find_score(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
         NotImplementedError: If the naive_model_type is not supported
 
     """
-    val_df = val_ds.data
+    test_df = test_ds.data
 
     np.random.seed(0)
 
     if naive_model_type == 'random':
-        naive_pred = np.random.choice(train_ds.label_col(), val_df.shape[0])
+        naive_pred = np.random.choice(train_ds.label_col(), test_df.shape[0])
 
     elif naive_model_type == 'statistical':
         if task_type == ModelType.REGRESSION:
-            naive_pred = np.array([np.mean(train_ds.label_col())] * len(val_df))
+            naive_pred = np.array([np.mean(train_ds.label_col())] * len(test_df))
 
         elif task_type in (ModelType.BINARY, ModelType.MULTICLASS):
             counts = train_ds.label_col().mode()
-            naive_pred = np.array([counts.index[0]] * len(val_df))
+            naive_pred = np.array([counts.index[0]] * len(test_df))
 
     else:
         raise NotImplementedError(f"expected to be one of ['random', 'statistical'] \
                                    but instead got {naive_model_type}")
 
-    y_val = val_ds.label_col()
+    y_test = test_ds.label_col()
 
     if metric is not None:
         scorer = validate_scorer(metric, model, train_ds)
@@ -71,13 +71,13 @@ def find_score(train_ds: Dataset, val_ds: Dataset, task_type: ModelType, model,
         metric_name = DEFAULT_SINGLE_METRIC[task_type]
         scorer = DEFAULT_METRICS_DICT[task_type][metric_name]
 
-    naive_metric = scorer(DummyModel, naive_pred, y_val)
-    pred_metric = scorer(model, val_ds.features_columns(), y_val)
+    naive_metric = scorer(DummyModel, naive_pred, y_test)
+    pred_metric = scorer(model, test_ds.features_columns(), y_test)
 
     return naive_metric, pred_metric, metric_name
 
 
-class NaiveModelComparison(TrainValidationBaseCheck):
+class NaiveModelComparison(TrainTestBaseCheck):
     """Compare naive model score to given model score."""
 
     def __init__(self, naive_model_type: str = 'statistical', metric=None, metric_name=None):
@@ -93,12 +93,12 @@ class NaiveModelComparison(TrainValidationBaseCheck):
         self.metric = metric
         self.metric_name = metric_name
 
-    def run(self, train_dataset, validation_dataset, model) -> CheckResult:
+    def run(self, train_dataset, test_dataset, model) -> CheckResult:
         """Run check.
 
         Args:
             train_dataset (Dataset): The training dataset object. Must contain a label.
-            validation_dataset (Dataset): The validation dataset object. Must contain a label.
+            test_dataset (Dataset): The test dataset object. Must contain a label.
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
 
         Returns:
@@ -107,17 +107,17 @@ class NaiveModelComparison(TrainValidationBaseCheck):
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance.
         """
-        return self._naive_model_comparison(train_dataset, validation_dataset, model)
+        return self._naive_model_comparison(train_dataset, test_dataset, model)
 
-    def _naive_model_comparison(self, train_dataset: Dataset, validation_dataset: Dataset, model):
+    def _naive_model_comparison(self, train_dataset: Dataset, test_dataset: Dataset, model):
         func_name = self.__class__.__name__
         Dataset.validate_dataset(train_dataset, func_name)
-        Dataset.validate_dataset(validation_dataset, func_name)
+        Dataset.validate_dataset(test_dataset, func_name)
         train_dataset.validate_label(func_name)
-        validation_dataset.validate_label(func_name)
+        test_dataset.validate_label(func_name)
         model_type_validation(model)
 
-        naive_metric, pred_metric, metric_name = find_score(train_dataset, validation_dataset,
+        naive_metric, pred_metric, metric_name = find_score(train_dataset, test_dataset,
                                                             task_type_check(model, train_dataset), model,
                                                             self.naive_model_type, self.metric,
                                                             self.metric_name)

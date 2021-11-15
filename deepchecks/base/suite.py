@@ -7,7 +7,7 @@ import pandas as pd
 from IPython.core.display import display_html, display
 from ipywidgets import IntProgress, HTML, VBox
 
-from deepchecks.base.check import BaseCheck, CheckResult, TrainValidationBaseCheck, CompareDatasetsBaseCheck, \
+from deepchecks.base.check import BaseCheck, CheckResult, TrainTestBaseCheck, CompareDatasetsBaseCheck, \
     SingleDatasetBaseCheck, ModelOnlyBaseCheck
 
 __all__ = ['CheckSuite', 'SuiteResult']
@@ -123,17 +123,17 @@ class CheckSuite(BaseCheck):
         for check in checks:
             self.add(check)
 
-    def run(self, model=None, train_dataset=None, validation_dataset=None, check_datasets_policy: str = 'validation') \
+    def run(self, model=None, train_dataset=None, test_dataset=None, check_datasets_policy: str = 'test') \
             -> SuiteResult:
         """Run all checks.
 
         Args:
           model: A scikit-learn-compatible fitted estimator instance
           train_dataset: Dataset object, representing data an estimator was fitted on
-          validation_dataset: Dataset object, representing data an estimator predicts on
-          check_datasets_policy: str, one of either ['both', 'train', 'validation'].
+          test_dataset: Dataset object, representing data an estimator predicts on
+          check_datasets_policy: str, one of either ['both', 'train', 'test'].
                                  Determines the policy by which single dataset checks are run when two datasets are
-                                 given, one for train and the other for validation.
+                                 given, one for train and the other for test.
 
         Returns:
           List[CheckResult] - All results by all initialized checks
@@ -141,8 +141,8 @@ class CheckSuite(BaseCheck):
         Raises:
              ValueError if check_datasets_policy is not of allowed types
         """
-        if check_datasets_policy not in ['both', 'train', 'validation']:
-            raise ValueError('check_datasets_policy must be one of ["both", "train", "validation"]')
+        if check_datasets_policy not in ['both', 'train', 'test']:
+            raise ValueError('check_datasets_policy must be one of ["both", "train", "test"]')
 
         # Create progress bar
         progress_bar = IntProgress(value=0, min=0, max=len(self.checks),
@@ -156,15 +156,15 @@ class CheckSuite(BaseCheck):
         for name, check in self.checks.items():
             try:
                 label.value = f'Running {str(check)}'
-                if isinstance(check, TrainValidationBaseCheck):
-                    if train_dataset is not None and validation_dataset is not None:
-                        check_result = check.run(train_dataset=train_dataset, validation_dataset=validation_dataset,
+                if isinstance(check, TrainTestBaseCheck):
+                    if train_dataset is not None and test_dataset is not None:
+                        check_result = check.run(train_dataset=train_dataset, test_dataset=test_dataset,
                                                  model=model)
                         check_result.set_condition_results(check.conditions_decision(check_result))
                         results.append(check_result)
                 elif isinstance(check, CompareDatasetsBaseCheck):
-                    if train_dataset is not None and validation_dataset is not None:
-                        check_result = check.run(dataset=validation_dataset, baseline_dataset=train_dataset,
+                    if train_dataset is not None and test_dataset is not None:
+                        check_result = check.run(dataset=test_dataset, baseline_dataset=train_dataset,
                                                  model=model)
                         check_result.set_condition_results(check.conditions_decision(check_result))
                         results.append(check_result)
@@ -174,9 +174,9 @@ class CheckSuite(BaseCheck):
                         check_result.header = f'{check_result.header} - Train Dataset'
                         check_result.set_condition_results(check.conditions_decision(check_result))
                         results.append(check_result)
-                    if check_datasets_policy in ['both', 'validation'] and validation_dataset is not None:
-                        check_result = check.run(dataset=validation_dataset, model=model)
-                        check_result.header = f'{check_result.header} - Validation Dataset'
+                    if check_datasets_policy in ['both', 'test'] and test_dataset is not None:
+                        check_result = check.run(dataset=test_dataset, model=model)
+                        check_result.header = f'{check_result.header} - Test Dataset'
                         check_result.set_condition_results(check.conditions_decision(check_result))
                         results.append(check_result)
                 elif isinstance(check, ModelOnlyBaseCheck):
