@@ -9,7 +9,7 @@ from deepchecks.checks.integrity import (
     DataDuplicates,
     SpecialCharacters,
     StringMismatchComparison,
-    CategoryMismatchTrainValidation,
+    CategoryMismatchTrainTest,
     RareFormatDetection
 )
 
@@ -30,7 +30,7 @@ SingleDatasetIntegrityCheckSuite = CheckSuite(
 ComparativeIntegrityCheckSuite = CheckSuite(
     'Comparative Integrity Suite',
     StringMismatchComparison().add_condition_no_new_variants(),
-    CategoryMismatchTrainValidation()
+    CategoryMismatchTrainTest()
 )
 
 IntegrityCheckSuite = CheckSuite(

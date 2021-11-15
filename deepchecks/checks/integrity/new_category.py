@@ -1,20 +1,20 @@
 """The data_sample_leakage_report check module."""
 from typing import Union, Iterable
 from deepchecks import Dataset
-from deepchecks.base.check import CheckResult, TrainValidationBaseCheck
+from deepchecks.base.check import CheckResult, TrainTestBaseCheck
 from deepchecks.string_utils import format_percent
 
 import pandas as pd
 
-__all__ = ['CategoryMismatchTrainValidation']
+__all__ = ['CategoryMismatchTrainTest']
 
 
-class CategoryMismatchTrainValidation(TrainValidationBaseCheck):
-    """Find new categories in validation."""
+class CategoryMismatchTrainTest(TrainTestBaseCheck):
+    """Find new categories in test."""
 
     def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None):
         """
-        Initialize the CategoryMismatchTrainValidation class.
+        Initialize the CategoryMismatchTrainTest class.
 
         Args:
             columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
@@ -26,26 +26,26 @@ class CategoryMismatchTrainValidation(TrainValidationBaseCheck):
         self.columns = columns
         self.ignore_columns = ignore_columns
 
-    def run(self, train_dataset: Dataset, validation_dataset: Dataset, model=None) -> CheckResult:
+    def run(self, train_dataset: Dataset, test_dataset: Dataset, model=None) -> CheckResult:
         """Run check.
 
         Args:
             train_dataset (Dataset): The training dataset object.
-            validation_dataset (Dataset): The validation dataset object.
+            test_dataset (Dataset): The test dataset object.
             model: any = None - not used in the check
         Returns:
             CheckResult: value is a dictionary that shows columns with new categories
                          displays a dataframe that shows columns with new categories
         """
-        return self._new_category_train_validation(train_dataset=train_dataset,
-                                                   validation_dataset=validation_dataset)
+        return self._new_category_train_test(train_dataset=train_dataset,
+                                                   test_dataset=test_dataset)
 
-    def _new_category_train_validation(self, train_dataset: Dataset, validation_dataset: Dataset):
+    def _new_category_train_test(self, train_dataset: Dataset, test_dataset: Dataset):
         """Run check.
 
         Args:
             train_dataset (Dataset): The training dataset object.
-            validation_dataset (Dataset): The validation dataset object.
+            test_dataset (Dataset): The test dataset object.
 
         Returns:
             CheckResult: value is a dictionary that shows columns with new categories
@@ -55,39 +55,39 @@ class CategoryMismatchTrainValidation(TrainValidationBaseCheck):
             DeepchecksValueError: If the object is not a Dataset instance
 
         """
-        validation_dataset = Dataset.validate_dataset_or_dataframe(validation_dataset)
+        test_dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
         train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
 
-        features = validation_dataset.validate_shared_features(train_dataset, self.__class__.__name__)
-        cat_features = train_dataset.validate_shared_categorical_features(validation_dataset, self.__class__.__name__)
+        features = test_dataset.validate_shared_features(train_dataset, self.__class__.__name__)
+        cat_features = train_dataset.validate_shared_categorical_features(test_dataset, self.__class__.__name__)
 
-        validation_dataset = validation_dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
+        test_dataset = test_dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
         train_dataset = train_dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
 
-        if set(features).symmetric_difference(set(validation_dataset.features())):
-            cat_features = validation_dataset.features()
+        if set(features).symmetric_difference(set(test_dataset.features())):
+            cat_features = test_dataset.features()
 
         new_categories = []
-        n_validation_samples = validation_dataset.n_samples()
+        n_test_samples = test_dataset.n_samples()
 
         for feature in cat_features:
             train_column = train_dataset.data[feature]
-            validation_column = validation_dataset.data[feature]
+            test_column = test_dataset.data[feature]
 
             # np.nan != np.nan, so we remove these values if they exist in training
             if train_column.isna().any():
-                validation_column = validation_column.dropna()
+                test_column = test_column.dropna()
 
             unique_training_values = train_column.unique()
-            unique_validation_values = validation_column.unique()
+            unique_test_values = test_column.unique()
 
-            new_category_values = set(unique_validation_values).difference(set(unique_training_values))
+            new_category_values = set(unique_test_values).difference(set(unique_training_values))
 
             if new_category_values:
-                n_new_cat = len(validation_column[validation_column.isin(new_category_values)])
+                n_new_cat = len(test_column[test_column.isin(new_category_values)])
 
                 new_categories.append([feature,
-                                       n_new_cat / n_validation_samples,
+                                       n_new_cat / n_test_samples,
                                        sorted(new_category_values)])
 
         if new_categories:

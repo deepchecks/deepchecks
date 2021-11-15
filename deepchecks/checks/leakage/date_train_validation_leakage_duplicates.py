@@ -1,16 +1,16 @@
 """The date_leakage check module."""
 import pandas as pd
 
-from deepchecks import CheckResult, Dataset, TrainValidationBaseCheck
+from deepchecks import CheckResult, Dataset, TrainTestBaseCheck
 
-__all__ = ['DateTrainValidationLeakageDuplicates']
+__all__ = ['DateTrainTestLeakageDuplicates']
 
 
-class DateTrainValidationLeakageDuplicates(TrainValidationBaseCheck):
-    """Check if validation dates are present in train data."""
+class DateTrainTestLeakageDuplicates(TrainTestBaseCheck):
+    """Check if test dates are present in train data."""
 
     def __init__(self, n_to_show: int = 5):
-        """Initialize the DateTrainValidationLeakageDuplicates check.
+        """Initialize the DateTrainTestLeakageDuplicates check.
 
         Args:
             n_to_show (int): Number of common dates to show.
@@ -18,12 +18,12 @@ class DateTrainValidationLeakageDuplicates(TrainValidationBaseCheck):
         super().__init__()
         self.n_to_show = n_to_show
 
-    def run(self, train_dataset: Dataset, validation_dataset: Dataset, model=None) -> CheckResult:
+    def run(self, train_dataset: Dataset, test_dataset: Dataset, model=None) -> CheckResult:
         """Run check.
 
         Arguments:
             train_dataset (Dataset): The training dataset object. Must contain an date.
-            validation_dataset (Dataset): The validation dataset object. Must contain an date.
+            test_dataset (Dataset): The test dataset object. Must contain an date.
             model: any = None - not used in the check
 
         Returns:
@@ -34,28 +34,28 @@ class DateTrainValidationLeakageDuplicates(TrainValidationBaseCheck):
         Raises:
             DeepchecksValueError: If one of the datasets is not a Dataset instance with an date
         """
-        return self._date_train_validation_leakage_duplicates(train_dataset, validation_dataset)
+        return self._date_train_test_leakage_duplicates(train_dataset, test_dataset)
 
-    def _date_train_validation_leakage_duplicates(self, train_dataset: Dataset, validation_dataset: Dataset):
+    def _date_train_test_leakage_duplicates(self, train_dataset: Dataset, test_dataset: Dataset):
         train_dataset = Dataset.validate_dataset(train_dataset, self.__class__.__name__)
-        validation_dataset = Dataset.validate_dataset(validation_dataset, self.__class__.__name__)
+        test_dataset = Dataset.validate_dataset(test_dataset, self.__class__.__name__)
         train_dataset.validate_date(self.__class__.__name__)
-        validation_dataset.validate_date(self.__class__.__name__)
+        test_dataset.validate_date(self.__class__.__name__)
 
         train_date = train_dataset.date_col()
-        val_date = validation_dataset.date_col()
+        val_date = test_dataset.date_col()
 
         date_intersection = set(train_date).intersection(val_date)
         if len(date_intersection) > 0:
-            size_in_test = len(date_intersection) / validation_dataset.n_samples()
-            text = f'{size_in_test:.1%} of validation data dates appear in training data'
+            size_in_test = len(date_intersection) / test_dataset.n_samples()
+            text = f'{size_in_test:.1%} of test data dates appear in training data'
             table = pd.DataFrame([[list(date_intersection)[:self.n_to_show]]],
-                                 index=['Sample of validation dates in train:'])
+                                 index=['Sample of test dates in train:'])
             display = [text, table]
             return_value = size_in_test
         else:
             display = None
             return_value = 0
 
-        return CheckResult(value=return_value, header='Date Train-Validation Leakage (duplicates)',
+        return CheckResult(value=return_value, header='Date Train-Test Leakage (duplicates)',
                            check=self.__class__, display=display)

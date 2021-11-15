@@ -14,7 +14,7 @@ def test_check_suite():
             "inner1",
             builtin_checks.MixedNulls(),
             base.CheckSuite("inner2", builtin_checks.MixedTypes()),
-            builtin_checks.TrainValidationDifferenceOverfit()
+            builtin_checks.TrainTestDifferenceOverfit()
         )
     )
 
@@ -28,5 +28,5 @@ def test_check_suite():
         builtin_checks.IsSingleValue,
         builtin_checks.MixedNulls,
         builtin_checks.MixedTypes,
-        builtin_checks.TrainValidationDifferenceOverfit
+        builtin_checks.TrainTestDifferenceOverfit
     ]
