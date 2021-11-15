@@ -156,9 +156,9 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     # Arrange
     check = MixedTypes(n_top_columns=3)
     # Act
-    result_ds = check.run(train, clf).value
-    # Assert
-    assert_that(result_ds.columns, has_length(3))
+    result = check.run(train, clf)
+    # Assert - Display table is transposed so check columns length
+    assert_that(result.display[0].columns, has_length(3))
 
 
 def test_no_mix_nan():

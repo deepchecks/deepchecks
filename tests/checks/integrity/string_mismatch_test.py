@@ -162,9 +162,9 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     # Arrange
     check = StringMismatch(n_top_columns=3)
     # Act
-    result_ds = check.run(train, clf).value
+    result = check.run(train, clf)
     # Assert
-    assert_that(result_ds, has_length(3))
+    assert_that(result.display[0], has_length(3))
 
 
 def test_nan():
