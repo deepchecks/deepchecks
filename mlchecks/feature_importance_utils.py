@@ -25,10 +25,11 @@ def calculate_feature_importance_or_null(dataset: Dataset, model: Any) -> pd.Ser
     """
     feature_importances = None
     if model:
-        try:
-            feature_importances = calculate_feature_importance(dataset=dataset, model=model)
-        except MLChecksValueError:
-            pass
+        if isinstance(dataset, Dataset):
+            try:
+                feature_importances = calculate_feature_importance(dataset=dataset, model=model)
+            except MLChecksValueError:
+                pass
     return feature_importances
 
 
