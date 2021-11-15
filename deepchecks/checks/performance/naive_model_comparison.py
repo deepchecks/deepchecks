@@ -2,7 +2,7 @@
 from typing import Dict
 import numpy as np
 import matplotlib.pyplot as plt
-from deepchecks.string_utils import format_columns_for_condition, format_number
+from deepchecks.string_utils import format_number
 
 from deepchecks import CheckResult, Dataset
 from deepchecks.base.check import ConditionResult, TrainValidationBaseCheck
@@ -156,9 +156,9 @@ class NaiveModelComparison(TrainValidationBaseCheck):
             effective_ratio = result['effective_ratio']
             if effective_ratio > max_allowed_effective_ratio:
                 return ConditionResult(False,
-                                        f'The naive model is {format_number(effective_ratio)} times as effective as the ' \
-                                        f'checked model using the given metric, which is more than the allowed ration of: '
-                                        f'{format_number(max_allowed_effective_ratio)}')
+                                       f'The naive model is {format_number(effective_ratio)} times as effective as' \
+                                       f' the checked model using the given metric, which is more than the'
+                                       f' allowed ration of: {format_number(max_allowed_effective_ratio)}')
             else:
                 return ConditionResult(True)
 
