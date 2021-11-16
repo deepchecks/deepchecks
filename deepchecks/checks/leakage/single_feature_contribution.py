@@ -10,6 +10,8 @@ from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionCa
 __all__ = ['SingleFeatureContribution']
 
 
+FC = t.TypeVar("FC", bound="SingleFeatureContribution")
+
 class SingleFeatureContribution(SingleDatasetBaseCheck):
     """Return the PPS (Predictive Power Score) of all features in relation to the label.
 
@@ -47,7 +49,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
             DeepchecksValueError: If the object is not a Dataset instance with a label
         """
         return self._single_feature_contribution(dataset=dataset)
-    
+
     def _single_feature_contribution(self, dataset: Dataset):
         Dataset.validate_dataset(dataset, self.__class__.__name__)
         dataset.validate_label(self.__class__.__name__)
@@ -84,10 +86,10 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
 
         if features is not None and len(features) == 0:
             raise DeepchecksValueError("sequence of 'features' cannot be empty!")
-        
+
         def condition(value: t.Dict[str, float]) -> ConditionResult:
             nonlocal features
-            
+
             if features is None:
                 features_to_check = set(value.keys())
             else:
@@ -106,7 +108,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
                 all_features.append(feature_repr)
                 if feature_name in features_to_check and operator(pps, var) is True:
                     failed_features.append(feature_repr)
-            
+
             details_template_vars = {
                 "var": var,
                 "all_features": all_features,
@@ -114,7 +116,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
             }
 
             passed = len(failed_features) == 0
-            
+
             return ConditionResult(
                 is_pass=passed,
                 category=category,
@@ -124,11 +126,11 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
                     else failure_message.format(**details_template_vars)
                 )
             )
-        
+
         return condition
-    
+
     def add_condition_feature_pps_lt_than(
-        self, 
+        self: FC,
         var: float,
         *,
         features: t.Optional[t.Sequence[str]] = None,
@@ -136,7 +138,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         success_message = "Condition passed. All features pps >= {var}.",
         failure_message = "Condition failed. Next features pps < {var}: {failed_features}",
         name = "Features PPS lower bound (operator: lt)"
-    ):
+    ) -> FC:
         """
         Add condition that will check that pps of the specified feature(s) is not < X.
 
@@ -149,27 +151,27 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
             success_message: condition details template in case of success
             failure_message: condition details template in case of failure
             name: condition name
-        
+
         Raises:
             DeepchecksValueError: if empty list of features was passed to the method
-        
+
         Condition Raises:
             DeepchecksValueError: if `features` list contains unknown feature
         """
-        self.add_condition(
-            name=name, 
+        return self.add_condition(
+            name=name,
             condition_func=self._condition_factory(
                 var,
                 features,
-                category, 
-                success_message, 
+                category,
+                success_message,
                 failure_message,
                 operator=lambda pps, var: pps < var
             )
         )
-    
+
     def add_condition_feature_pps_le_than(
-        self, 
+        self: FC,
         var: float,
         *,
         features: t.Optional[t.Sequence[str]] = None,
@@ -177,7 +179,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         success_message = "Condition passed. All features pps > {var}.",
         failure_message = "Condition failed. Next features pps <= {var}: {failed_features}",
         name = "Features PPS lower bound (operator: le)"
-    ):
+    ) -> FC:
         """
         Add condition that will check that pps of the specified feature(s) is not <= X.
 
@@ -190,15 +192,15 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
             success_message: condition details in case of success
             failure_message: condition details in case of failure
             name: condition name
-        
+
         Raises:
             DeepchecksValueError: if empty list of features was passed to the method
-        
+
         Condition Raises:
             DeepchecksValueError: if `features` list contains unknown feature
         """
-        self.add_condition(
-            name=name, 
+        return self.add_condition(
+            name=name,
             condition_func=self._condition_factory(
                 var,
                 features,
@@ -210,7 +212,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         )
 
     def add_condition_feature_pps_gt_than(
-        self, 
+        self: FC,
         var: float,
         *,
         features: t.Optional[t.Sequence[str]] = None,
@@ -218,7 +220,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         success_message = "Condition passed. All features pps <= {var}.",
         failure_message = "Condition failed. Next features pps > {var}: {failed_features}",
         name = "Features PPS upper bound (operator: gt)"
-    ):
+    ) -> FC:
         """
         Add condition that will check that pps of the specified feature(s) is not > X.
 
@@ -231,15 +233,15 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
             success_message: condition details in case of success
             failure_message: condition details in case of failure
             name: condition name
-        
+
         Raises:
             DeepchecksValueError: if empty list of features was passed to the method
-        
+
         Condition Raises:
-            DeepchecksValueError: if `features` list contains unknown feature        
+            DeepchecksValueError: if `features` list contains unknown feature
         """
-        self.add_condition(
-            name=name, 
+        return self.add_condition(
+            name=name,
             condition_func=self._condition_factory(
                 var,
                 features,
@@ -251,7 +253,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         )
 
     def add_condition_feature_pps_ge_than(
-        self, 
+        self: FC,
         var: float,
         *,
         features: t.Optional[t.Sequence[str]] = None,
@@ -259,7 +261,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         success_message = "Condition passed. All features pps < {var}.",
         failure_message = "Condition failed. Next features pps >= {var}: {failed_features}",
         name = "Features PPS upper bound (operator: ge)"
-    ):
+    ) -> FC:
         """
         Add condition that will check that pps of the specified feature(s) is not > X.
 
@@ -272,15 +274,15 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
             success_message: condition details in case of success
             failure_message: condition details in case of failure
             name: condition name
-        
+
         Raises:
             MLChecksValueError: if empty list of features was passed to the method
-        
+
         Condition Raises:
-            MLChecksValueError: if `features` list contains unknown feature        
+            MLChecksValueError: if `features` list contains unknown feature
         """
-        self.add_condition(
-            name=name, 
+        return self.add_condition(
+            name=name,
             condition_func=self._condition_factory(
                 var,
                 features,

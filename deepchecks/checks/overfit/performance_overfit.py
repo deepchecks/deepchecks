@@ -8,15 +8,19 @@ import numpy as np
 from deepchecks.utils import model_type_validation, DeepchecksValueError
 from deepchecks.metric_utils import get_metrics_list
 from deepchecks import (
-    Dataset, 
-    CheckResult, 
-    TrainTestBaseCheck, 
-    ConditionResult, 
+    Dataset,
+    CheckResult,
+    TrainTestBaseCheck,
+    ConditionResult,
     ConditionCategory
 )
 
 
 __all__ = ['TrainTestDifferenceOverfit']
+
+
+
+TD = t.TypeVar("TD", bound="TrainTestDifferenceOverfit")
 
 
 class TrainTestDifferenceOverfit(TrainTestBaseCheck):
@@ -30,7 +34,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
     """
 
     def __init__(
-        self, 
+        self,
         alternative_metrics: t.Dict[str, t.Callable[[object, pd.DataFrame, str], float]] = None
     ):
         """
@@ -102,24 +106,24 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
 
         return CheckResult(res, check=self.__class__, header='Train Test Difference Overfit',
                            display=[plot_overfit])
-    
+
     def add_condition_train_is_lower_by(
-        self, 
+        self: TD,
         var: float,
         *,
         metrics: t.Union[str, t.Sequence[str], None] = None,
         category = ConditionCategory.FAIL,
-        success_message = "Condition passed", #TODO: add meaningful message 
-        failure_message = "Condition failed", #TODO: add meaningful message 
+        success_message = "Condition passed", #TODO: add meaningful message
+        failure_message = "Condition failed", #TODO: add meaningful message
         name = "" #TODO: add meaningful default name
-    ):
+    ) -> TD:
         """
         Add condition that will check that metric value is not lower than x.
-        
+
         If `metrics` variable was not passed then this condition will be applied to
         each calculated metric.
 
-        Next variables are available for use within messages templates: 
+        Next variables are available for use within messages templates:
             - var (float)
             - all_metric_values (str)
             - failed_metric_values (str) - metric values that did not pass condition
@@ -131,10 +135,10 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
             success_message: condition message in case of success
             failure_message: condition message in case of failure
             name: condition name
-        
+
         Raises:
             DeepchecksValueError: if `metrics` is empty list or empty str
-        
+
         Condition Raises:
             DeepchecksValueError: if `metrics` contains unknown metric name
         """
@@ -146,7 +150,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
             metrics = metrics
         else:
             metrics = None
-        
+
         def condition(df: pd.DataFrame) -> ConditionResult:
             calculated_metric_names = t.cast(t.List[str], list(df['Training Metrics'].index))
             provided_metric_names = list(metrics) if metrics is not None else calculated_metric_names
@@ -166,7 +170,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
                 'all_metric_values': ';'.join([f'{k}={v}' for k, v in df.to_dict()]),
                 'failed_metric_values': ';'.join([f'{k}={v}' for k, v in result.to_dict()])
             }
-            
+
             return ConditionResult(
                 is_pass=passed,
                 category=category,
@@ -177,25 +181,25 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
                 )
             )
 
-        self.add_condition(name=name, condition_func=condition)
+        return self.add_condition(name=name, condition_func=condition)
 
     def add_condition_train_is_lower_by_factor_of(
-        self, 
+        self: TD,
         var: float,
         *,
         metrics: t.Union[str, t.Sequence[str], None] = None,
         category = ConditionCategory.FAIL,
-        success_message = "Condition passed", #TODO: add meaningful default message 
-        failure_message = "Condition failed", #TODO: add meaningful default message 
+        success_message = "Condition passed", #TODO: add meaningful default message
+        failure_message = "Condition failed", #TODO: add meaningful default message
         name = "" #TODO: add meaningful default name
-    ):
+    ) -> TD:
         """
         Add condition that will check that metric value is not lower by factor of x.
 
         If `metrics` variable was not passed then this condition will be applied to
         each calculated metric.
 
-        Next variables are available for use within messages templates: 
+        Next variables are available for use within messages templates:
             - var (float)
             - all_metric_values (str)
             - failed_metric_values (str) - metric values that did not pass condition
@@ -210,7 +214,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
 
         Raises:
             DeepchecksValueError: if `metrics` is empty list or empty str
-        
+
         Condition Raises:
             DeepchecksValueError: if `metrics` contains unknown metric name
         """
@@ -222,7 +226,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
             metrics = metrics
         else:
             metrics = None
-        
+
         def condition(df: pd.DataFrame) -> ConditionResult:
             calculated_metric_names = t.cast(t.List[str], list(df['Training Metrics'].index))
             provided_metric_names = list(metrics) if metrics is not None else calculated_metric_names
@@ -242,7 +246,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
                 'all_metric_values': ';'.join([f'{k}={v}' for k, v in df.to_dict()]),
                 'failed_metric_values': ';'.join([f'{k}={v}' for k, v in result.to_dict()])
             }
-            
+
             return ConditionResult(
                 is_pass=passed,
                 category=category,
@@ -253,4 +257,4 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
                 )
             )
 
-        self.add_condition(name=name, condition_func=condition)
+        return self.add_condition(name=name, condition_func=condition)
