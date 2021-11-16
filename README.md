@@ -56,7 +56,7 @@ To discover the full value from MLChecking your data and model, we recommend hav
     
 -   The models’ training data with labels
     
--   Validation data (on which the model wasn’t trained) with labels  
+-   Test data (on which the model wasn’t trained) with labels  
 
 Additionally, many of the checks and some of the suites need only a subset of the above to run.
 
@@ -128,7 +128,7 @@ To run an existing suite all you need to do is import the suite and run it -
 
 ```python
 from deepchecks.suites import IntegrityCheckSuite
-IntegrityCheckSuite.run(train_dataset=df_train, validation_dataset=df_val, check_datasets_policy='both')
+IntegrityCheckSuite.run(train_dataset=df_train, test_dataset=df_val, check_datasets_policy='both')
 ```
 Which will result in printing the outputs of all of the checks that are in that suite.
 
