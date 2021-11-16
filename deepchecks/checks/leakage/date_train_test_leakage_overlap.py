@@ -64,5 +64,5 @@ class DateTrainTestLeakageOverlap(TrainTestBaseCheck):
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Max date leakage ratio: {format_percent(max_ratio)}',
+        return self.add_condition(f'More than date leakage ratio: {format_percent(max_ratio)}',
                                   max_ratio_condition)
