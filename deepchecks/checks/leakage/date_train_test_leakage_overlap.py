@@ -52,7 +52,7 @@ class DateTrainTestLeakageOverlap(TrainTestBaseCheck):
                            check=self.__class__,
                            display=display)
 
-    def add_condition_leakage_ratio_more_than(self, max_ratio=0):
+    def add_condition_leakage_ratio_more_than(self, max_ratio: float = 0):
         """Add condition - require leakage ratio to not surpass max_ratio.
 
         Args:
