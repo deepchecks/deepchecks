@@ -107,13 +107,62 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
         return CheckResult(res, check=self.__class__, header='Train Test Difference Overfit',
                            display=[plot_overfit])
 
+    def _condition_factory(
+        self,
+        var: float,
+        metrics: t.Union[str, t.Sequence[str], None],
+        category: ConditionCategory,
+        failure_message: str,
+        operation_func: t.Callable[[pd.Series, pd.Series], pd.Series],
+        condition_func: t.Callable[[pd.Series, float], pd.Series]
+    ) -> t.Callable[[pd.DataFrame], ConditionResult]:
+        if metrics is not None and len(metrics) == 0:
+            raise DeepchecksValueError("`metrics` names list (name string) cannot be empty!")
+        elif isinstance(metrics, str):
+            metrics = [metrics]
+        elif isinstance(metrics, t.Sequence):
+            metrics = metrics
+        else:
+            metrics = None
+        
+        def condition(df: pd.DataFrame) -> ConditionResult:
+            calculated_metric_names = t.cast(t.List[str], list(df['Training Metrics'].index))
+            provided_metric_names = list(metrics) if metrics is not None else calculated_metric_names
+            metric_names_diff = set(provided_metric_names).difference(set(calculated_metric_names))
+
+            if len(metric_names_diff) != 0:
+                raise DeepchecksValueError(f"Unknown metrics - {metric_names_diff}")
+
+            training_metrics = df['Training Metrics'][provided_metric_names]
+            test_metrics = df['Test Metrics'][provided_metric_names]
+            operation_result = operation_func(training_metrics, test_metrics)
+            condition_result = operation_result[condition_func(operation_result, var)]
+            passed = len(condition_result) == 0
+
+            details_vars = {
+                'var': var,
+                'all_metric_values': ';'.join([f'{k}={v}' for k, v in operation_result.to_dict().items()]),
+                'failed_metric_values': ';'.join([f'{k}={v}' for k, v in condition_result.to_dict().items()])
+            }
+
+            return ConditionResult(
+                is_pass=passed,
+                category=category,
+                details=(
+                    failure_message.format(**details_vars)
+                    if not passed
+                    else ""
+                )
+            )
+        
+        return condition
+
     def add_condition_train_is_lower_by(
         self: TD,
         var: float,
         *,
         metrics: t.Union[str, t.Sequence[str], None] = None,
         category = ConditionCategory.FAIL,
-        success_message = "Condition passed", #TODO: add meaningful message
         failure_message = "Condition failed", #TODO: add meaningful message
         name = "" #TODO: add meaningful default name
     ) -> TD:
@@ -132,7 +181,6 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
             var
             metrics: list of metric names to which condition should be applied
             category: condition category
-            success_message: condition message in case of success
             failure_message: condition message in case of failure
             name: condition name
 
@@ -142,54 +190,24 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
         Condition Raises:
             DeepchecksValueError: if `metrics` contains unknown metric name
         """
-        if metrics is not None and len(metrics) == 0:
-            raise DeepchecksValueError("`metrics` names list (name string) cannot be empty!")
-        elif isinstance(metrics, str):
-            metrics = [metrics]
-        elif isinstance(metrics, t.Sequence):
-            metrics = metrics
-        else:
-            metrics = None
-
-        def condition(df: pd.DataFrame) -> ConditionResult:
-            calculated_metric_names = t.cast(t.List[str], list(df['Training Metrics'].index))
-            provided_metric_names = list(metrics) if metrics is not None else calculated_metric_names
-            metric_names_diff = set(provided_metric_names).difference(set(calculated_metric_names))
-
-            if len(metric_names_diff) != 0:
-                raise DeepchecksValueError(f"Unknown metrics - {metric_names_diff}")
-
-            training_metrics = df['Training Metrics'][provided_metric_names]
-            test_metrics = df['Test Metrics'][provided_metric_names]
-            difference = training_metrics - test_metrics
-            result = t.cast(pd.Series, difference[difference >= var])
-            passed = len(result) == 0
-
-            details_vars = {
-                'var': var,
-                'all_metric_values': ';'.join([f'{k}={v}' for k, v in df.to_dict().items()]),
-                'failed_metric_values': ';'.join([f'{k}={v}' for k, v in result.to_dict().items()])
-            }
-
-            return ConditionResult(
-                is_pass=passed,
-                category=category,
-                details=(
-                    success_message.format(**details_vars)
-                    if passed
-                    else failure_message.format(**details_vars)
-                )
+        return self.add_condition(
+            name=name, 
+            condition_func=self._condition_factory(
+                var,
+                metrics,
+                category,
+                failure_message,
+                operation_func=lambda trainin_metrics, test_metrics: trainin_metrics - test_metrics,
+                condition_func=lambda metrics_difference, var: metrics_difference >= var
             )
-
-        return self.add_condition(name=name, condition_func=condition)
-
+        )
+        
     def add_condition_train_is_lower_by_factor_of(
         self: TD,
         var: float,
         *,
         metrics: t.Union[str, t.Sequence[str], None] = None,
         category = ConditionCategory.FAIL,
-        success_message = "Condition passed", #TODO: add meaningful default message
         failure_message = "Condition failed", #TODO: add meaningful default message
         name = "" #TODO: add meaningful default name
     ) -> TD:
@@ -208,7 +226,6 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
             var
             metrics: list of metric names to which condition should be applied
             category: condition category
-            success_message: condition message in case of success
             failure_message: condition message in case of failure
             name: condition name
 
@@ -218,43 +235,14 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
         Condition Raises:
             DeepchecksValueError: if `metrics` contains unknown metric name
         """
-        if metrics is not None and len(metrics) == 0:
-            raise DeepchecksValueError("`metrics` names list (name string) cannot be empty!")
-        elif isinstance(metrics, str):
-            metrics = [metrics]
-        elif isinstance(metrics, t.Sequence):
-            metrics = metrics
-        else:
-            metrics = None
-
-        def condition(df: pd.DataFrame) -> ConditionResult:
-            calculated_metric_names = t.cast(t.List[str], list(df['Training Metrics'].index))
-            provided_metric_names = list(metrics) if metrics is not None else calculated_metric_names
-            metric_names_diff = set(provided_metric_names).difference(set(calculated_metric_names))
-
-            if len(metric_names_diff) != 0:
-                raise DeepchecksValueError(f"Unknown metrics - {metric_names_diff}")
-
-            training_metrics = df['Training Metrics'][provided_metric_names]
-            test_metrics = df['Test Metrics'][provided_metric_names]
-            ratio = training_metrics / test_metrics
-            result = t.cast(pd.Series, ratio[ratio >= var])
-            passed = len(result) == 0
-
-            details_vars = {
-                'var': var,
-                'all_metric_values': ';'.join([f'{k}={v}' for k, v in df.to_dict()]),
-                'failed_metric_values': ';'.join([f'{k}={v}' for k, v in result.to_dict()])
-            }
-
-            return ConditionResult(
-                is_pass=passed,
-                category=category,
-                details=(
-                    success_message.format(**details_vars)
-                    if passed
-                    else failure_message.format(**details_vars)
-                )
+        return self.add_condition(
+            name=name, 
+            condition_func=self._condition_factory(
+                var,
+                metrics,
+                category,
+                failure_message,
+                operation_func=lambda trainin_metrics, test_metrics: trainin_metrics / test_metrics,
+                condition_func=lambda metrics_ratio, var: metrics_ratio >= var
             )
-
-        return self.add_condition(name=name, condition_func=condition)
+        )

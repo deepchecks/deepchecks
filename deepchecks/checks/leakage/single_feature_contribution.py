@@ -79,7 +79,6 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         var: float,
         features: t.Optional[t.Sequence[str]],
         category: ConditionCategory,
-        success_message: str,
         failure_message: str,
         operator: t.Callable[[float, float], bool]
     ) -> t.Callable[[t.Dict[str, float]], ConditionResult]:
@@ -121,64 +120,22 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
                 is_pass=passed,
                 category=category,
                 details=(
-                    success_message.format(**details_template_vars)
-                    if passed
-                    else failure_message.format(**details_template_vars)
+                    failure_message.format(**details_template_vars)
+                    if not passed
+                    else ""
                 )
             )
 
         return condition
 
-    def add_condition_feature_pps_lt_than(
+    def add_condition_feature_pps_not_less_than(
         self: FC,
         var: float,
         *,
         features: t.Optional[t.Sequence[str]] = None,
         category = ConditionCategory.FAIL,
-        success_message = "Condition passed. All features pps >= {var}.",
-        failure_message = "Condition failed. Next features pps < {var}: {failed_features}",
-        name = "Features PPS lower bound (operator: lt)"
-    ) -> FC:
-        """
-        Add condition that will check that pps of the specified feature(s) is not < X.
-
-        If `features` parameter is `None`, condition will be applied to all features.
-
-        Args:
-            var
-            features: list of features to check
-            category: condition category
-            success_message: condition details template in case of success
-            failure_message: condition details template in case of failure
-            name: condition name
-
-        Raises:
-            DeepchecksValueError: if empty list of features was passed to the method
-
-        Condition Raises:
-            DeepchecksValueError: if `features` list contains unknown feature
-        """
-        return self.add_condition(
-            name=name,
-            condition_func=self._condition_factory(
-                var,
-                features,
-                category,
-                success_message,
-                failure_message,
-                operator=lambda pps, var: pps < var
-            )
-        )
-
-    def add_condition_feature_pps_le_than(
-        self: FC,
-        var: float,
-        *,
-        features: t.Optional[t.Sequence[str]] = None,
-        category = ConditionCategory.FAIL,
-        success_message = "Condition passed. All features pps > {var}.",
-        failure_message = "Condition failed. Next features pps <= {var}: {failed_features}",
-        name = "Features PPS lower bound (operator: le)"
+        failure_message = "Next features pps <= {var}: {failed_features}",
+        name = "Features PPS lower bound"
     ) -> FC:
         """
         Add condition that will check that pps of the specified feature(s) is not <= X.
@@ -189,7 +146,6 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
             var
             features: list of features to check
             category: condition category
-            success_message: condition details in case of success
             failure_message: condition details in case of failure
             name: condition name
 
@@ -205,21 +161,19 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
                 var,
                 features,
                 category,
-                success_message,
                 failure_message,
                 operator=lambda pps, var: pps <= var
             )
         )
 
-    def add_condition_feature_pps_gt_than(
+    def add_condition_feature_pps_not_more_than(
         self: FC,
         var: float,
         *,
         features: t.Optional[t.Sequence[str]] = None,
         category = ConditionCategory.FAIL,
-        success_message = "Condition passed. All features pps <= {var}.",
-        failure_message = "Condition failed. Next features pps > {var}: {failed_features}",
-        name = "Features PPS upper bound (operator: gt)"
+        failure_message = "Next features pps >= {var}: {failed_features}",
+        name = "Features PPS upper bound"
     ) -> FC:
         """
         Add condition that will check that pps of the specified feature(s) is not > X.
@@ -230,48 +184,6 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
             var
             features: list of features to check
             category: condition category
-            success_message: condition details in case of success
-            failure_message: condition details in case of failure
-            name: condition name
-
-        Raises:
-            DeepchecksValueError: if empty list of features was passed to the method
-
-        Condition Raises:
-            DeepchecksValueError: if `features` list contains unknown feature
-        """
-        return self.add_condition(
-            name=name,
-            condition_func=self._condition_factory(
-                var,
-                features,
-                category,
-                success_message,
-                failure_message,
-                operator=lambda pps, var: pps > var
-            )
-        )
-
-    def add_condition_feature_pps_ge_than(
-        self: FC,
-        var: float,
-        *,
-        features: t.Optional[t.Sequence[str]] = None,
-        category = ConditionCategory.FAIL,
-        success_message = "Condition passed. All features pps < {var}.",
-        failure_message = "Condition failed. Next features pps >= {var}: {failed_features}",
-        name = "Features PPS upper bound (operator: ge)"
-    ) -> FC:
-        """
-        Add condition that will check that pps of the specified feature(s) is not > X.
-
-        If `features` parameter is `None`, condition will be applied to all features.
-
-        Args:
-            var
-            features: list of features to check
-            category: condition category
-            success_message: condition details in case of success
             failure_message: condition details in case of failure
             name: condition name
 
@@ -287,7 +199,6 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
                 var,
                 features,
                 category,
-                success_message,
                 failure_message,
                 operator=lambda pps, var: pps >= var
             )
