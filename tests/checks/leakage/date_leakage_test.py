@@ -221,7 +221,7 @@ def test_condition_fail_on_overlap():
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
 
-    check = DateTrainValidationLeakageOverlap().add_condition_max_leakage_ratio(0.2)
+    check = DateTrainTestLeakageOverlap().add_condition_max_leakage_ratio(0.2)
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds))
@@ -262,7 +262,92 @@ def test_condition_on_overlap():
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
 
-    check = DateTrainValidationLeakageOverlap().add_condition_max_leakage_ratio()
+    check = DateTrainTestLeakageOverlap().add_condition_max_leakage_ratio()
+
+    # Act
+    result = check.conditions_decision(check.run(train_ds, val_ds))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=True,
+                               name='Max date leakage ratio: 0%',
+                               details='')
+    ))
+
+
+def test_condition_fail_on_duplicates():
+    # Arrange
+    train_ds = dataset_from_dict({'col1': [
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 5, 0, 0),
+        datetime(2021, 10, 5, 0, 0)
+    ]}, 'col1')
+    val_ds = dataset_from_dict({'col1': [
+        datetime(2021, 9, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 5, 0, 0),
+        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 7, 0, 0),
+        datetime(2021, 10, 7, 0, 0),
+        datetime(2021, 10, 8, 0, 0),
+        datetime(2021, 10, 8, 0, 0),
+        datetime(2021, 10, 9, 0, 0),
+        datetime(2021, 10, 9, 0, 0)
+    ]}, 'col1')
+
+    check = DateTrainTestLeakageDuplicates().add_condition_max_leakage_ratio(0.1)
+
+    # Act
+    result = check.conditions_decision(check.run(train_ds, val_ds))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=False,
+                               name='Max date leakage ratio: 10.00%',
+                               details='percent of leaked dates: 18.18%')
+    ))
+
+
+def test_condition_pass_on_duplicates():
+    # Arrange
+    train_ds = dataset_from_dict({'col1': [
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+
+    ]}, 'col1')
+    val_ds = dataset_from_dict({'col1': [
+        datetime(2021, 10, 5, 0, 0),
+        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 7, 0, 0),
+        datetime(2021, 10, 7, 0, 0),
+        datetime(2021, 10, 8, 0, 0),
+        datetime(2021, 10, 8, 0, 0),
+        datetime(2021, 10, 9, 0, 0),
+        datetime(2021, 10, 9, 0, 0)
+    ]}, 'col1')
+
+    check = DateTrainTestLeakageDuplicates().add_condition_max_leakage_ratio()
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds))
