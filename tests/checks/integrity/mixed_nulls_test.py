@@ -3,10 +3,10 @@ import numpy as np
 import pandas as pd
 
 from hamcrest import assert_that, has_length, has_entry, has_property, equal_to, has_items, all_of
-from mlchecks.base import Dataset
+from deepchecks.base import Dataset
 
-from mlchecks import Dataset, ConditionCategory
-from mlchecks.checks.integrity.mixed_nulls import MixedNulls
+from deepchecks import Dataset, ConditionCategory
+from deepchecks.checks.integrity.mixed_nulls import MixedNulls
 from tests.checks.utils import equal_condition_result
 
 

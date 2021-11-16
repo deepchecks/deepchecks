@@ -1,15 +1,14 @@
 """Test feature importance utils"""
-from hamcrest import equal_to, assert_that, calling, raises, close_to
-from hamcrest.core.core.isnone import not_none
+from hamcrest import equal_to, assert_that, calling, raises, close_to, not_none, none
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression
 from sklearn.neural_network import MLPClassifier
 import pandas as pd
 
-from mlchecks.feature_importance_utils import calculate_feature_importance, calculate_feature_importance_or_null, \
+from deepchecks.feature_importance_utils import calculate_feature_importance, calculate_feature_importance_or_null, \
                                               column_importance_sorter_df, column_importance_sorter_dict
-from mlchecks.utils import MLChecksValueError
+from deepchecks.utils import DeepchecksValueError
 
 
 def test_adaboost(iris_split_dataset_and_model):
@@ -44,7 +43,14 @@ def test_calculate_importance(iris_labeled_dataset):
 def test_bad_dataset_model(iris_random_forest, diabetes):
     ds, _ = diabetes
     assert_that(calling(calculate_feature_importance).with_args(iris_random_forest, ds),
-                raises(MLChecksValueError, 'Got error when trying to predict with model on dataset'))
+                raises(DeepchecksValueError, 'Got error when trying to predict with model on dataset'))
+
+
+def test_calculate_or_null(diabetes_split_dataset_and_model):
+    train, _, clf = diabetes_split_dataset_and_model
+    feature_importances = calculate_feature_importance_or_null(train.data, clf)
+    assert_that(feature_importances, none())
+
 
 def test_fi_n_top(diabetes_split_dataset_and_model):
     num_values = 5

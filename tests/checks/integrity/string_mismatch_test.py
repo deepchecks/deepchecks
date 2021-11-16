@@ -2,8 +2,8 @@
 import numpy as np
 import pandas as pd
 
-from mlchecks import ConditionCategory, Dataset
-from mlchecks.checks import StringMismatch
+from deepchecks import ConditionCategory, Dataset
+from deepchecks.checks import StringMismatch
 
 from hamcrest import assert_that, has_length, has_entries, has_entry, has_items
 
