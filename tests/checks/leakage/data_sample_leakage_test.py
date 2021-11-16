@@ -4,10 +4,12 @@ Contains unit tests for the data_sample_leakage_report check
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from hamcrest import assert_that, calling, raises, equal_to, has_items
+
 from deepchecks.base import Dataset
 from deepchecks.utils import DeepchecksValueError
 from deepchecks.checks.leakage import DataSampleLeakageReport
-from hamcrest import assert_that, calling, raises, equal_to
+from tests.checks.utils import equal_condition_result
 
 
 def test_dataset_wrong_input():
@@ -71,3 +73,48 @@ def test_nan():
     result = check.run(test_dataset=test_dataset, train_dataset=train_dataset).value
     # Assert
     assert_that(result, equal_to(0.5))
+
+
+def test_condition_ratio_more_than_not_passed(iris_clean):
+    # Arrange
+    x = iris_clean.data
+    y = iris_clean.target
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=55)
+    train_dataset = Dataset(pd.concat([x_train, y_train], axis=1),
+                features=iris_clean.feature_names,
+                label='target')
+
+    test_df = pd.concat([x_test, y_test], axis=1)
+    bad_test = test_df.append(train_dataset.data.iloc[[0, 1, 2, 3, 4]], ignore_index=True)
+
+    test_dataset = Dataset(bad_test,
+                features=iris_clean.feature_names,
+                label='target')
+
+    check = DataSampleLeakageReport().add_condition_duplicates_ratio_less_than(max_ratio=0.09)
+
+    # Act
+    result = check.conditions_decision(check.run(train_dataset, test_dataset))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=False,
+                               name='More than 9.00% '
+                                    'of test data samples appear in train data',
+                              details='Percent of test data samples that appear in train data: '
+                                      '10.00%')
+    ))
+
+
+def test_condition_ratio_more_than_passed(diabetes_split_dataset_and_model):
+    # Arrange
+    train_ds, val_ds, clf = diabetes_split_dataset_and_model
+    check = DataSampleLeakageReport().add_condition_duplicates_ratio_less_than()
+
+    # Act
+    result = check.conditions_decision(check.run(train_ds, val_ds, clf))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=True,
+                               name='More than 10.00% '
+                                    'of test data samples appear in train data')
+    ))
