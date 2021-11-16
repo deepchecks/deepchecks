@@ -61,10 +61,10 @@ class DateTrainTestLeakageDuplicates(TrainTestBaseCheck):
         return CheckResult(value=return_value, header='Date Train-Test Leakage (duplicates)',
                            check=self.__class__, display=display)
 
-    def add_condition_max_leakage_ratio(self, max_ratio=0):
+    def add_condition_leakage_ratio_more_than(self, max_ratio=0):
         def max_ratio_condition(result: float) -> ConditionResult:
             if result > max_ratio:
-                return ConditionResult(False, f'percent of leaked dates: {format_percent(result)}')
+                return ConditionResult(False, f'Found {format_percent(result)} leaked dates')
             else:
                 return ConditionResult(True)
 

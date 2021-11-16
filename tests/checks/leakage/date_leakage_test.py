@@ -221,7 +221,7 @@ def test_condition_fail_on_overlap():
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
 
-    check = DateTrainTestLeakageOverlap().add_condition_max_leakage_ratio(0.2)
+    check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_more_than(0.2)
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds))
@@ -229,7 +229,7 @@ def test_condition_fail_on_overlap():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Max date leakage ratio: 20.00%',
-                               details='percent of leaked dates: 27.27%')
+                               details='Found 27.27% leaked dates')
     ))
 
 
@@ -262,7 +262,7 @@ def test_condition_on_overlap():
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
 
-    check = DateTrainTestLeakageOverlap().add_condition_max_leakage_ratio()
+    check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_more_than()
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds))
@@ -306,7 +306,7 @@ def test_condition_fail_on_duplicates():
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
 
-    check = DateTrainTestLeakageDuplicates().add_condition_max_leakage_ratio(0.1)
+    check = DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_more_than(0.1)
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds))
@@ -314,7 +314,7 @@ def test_condition_fail_on_duplicates():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Max date leakage ratio: 10.00%',
-                               details='percent of leaked dates: 18.18%')
+                               details='Found 18.18% leaked dates')
     ))
 
 
@@ -347,7 +347,7 @@ def test_condition_pass_on_duplicates():
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
 
-    check = DateTrainTestLeakageDuplicates().add_condition_max_leakage_ratio()
+    check = DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_more_than()
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds))
