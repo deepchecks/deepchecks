@@ -226,7 +226,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
             params: Additional parameters to pass when calling the condition function.
         """
         cond = Condition(name, condition_func, params)
-        self._conditions[self._conditions_index] = cond
+        self._conditions[self._conditions_index] = cond # TODO: why we use dict instead of list here?
         self._conditions_index += 1
         return self
 

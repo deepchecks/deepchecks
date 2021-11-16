@@ -160,15 +160,15 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
                 raise DeepchecksValueError(f"Unknown metrics - {metric_names_diff}")
 
             training_metrics = df['Training Metrics'][provided_metric_names]
-            validation_metrics = df['Validation Metrics'][provided_metric_names]
-            difference = training_metrics - validation_metrics
-            result = t.cast(pd.Series, difference[difference <= var])
+            test_metrics = df['Test Metrics'][provided_metric_names]
+            difference = training_metrics - test_metrics
+            result = t.cast(pd.Series, difference[difference >= var])
             passed = len(result) == 0
 
             details_vars = {
                 'var': var,
-                'all_metric_values': ';'.join([f'{k}={v}' for k, v in df.to_dict()]),
-                'failed_metric_values': ';'.join([f'{k}={v}' for k, v in result.to_dict()])
+                'all_metric_values': ';'.join([f'{k}={v}' for k, v in df.to_dict().items()]),
+                'failed_metric_values': ';'.join([f'{k}={v}' for k, v in result.to_dict().items()])
             }
 
             return ConditionResult(
@@ -236,8 +236,8 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
                 raise DeepchecksValueError(f"Unknown metrics - {metric_names_diff}")
 
             training_metrics = df['Training Metrics'][provided_metric_names]
-            validation_metrics = df['Validation Metrics'][provided_metric_names]
-            ratio = training_metrics / validation_metrics
+            test_metrics = df['Test Metrics'][provided_metric_names]
+            ratio = training_metrics / test_metrics
             result = t.cast(pd.Series, ratio[ratio >= var])
             passed = len(result) == 0
 
