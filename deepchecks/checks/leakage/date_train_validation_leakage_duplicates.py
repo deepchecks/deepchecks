@@ -49,7 +49,7 @@ class DateTrainTestLeakageDuplicates(TrainTestBaseCheck):
         date_intersection = set(train_date).intersection(val_date)
         if len(date_intersection) > 0:
             leakage_ratio = len(date_intersection) / test_dataset.n_samples()
-            text = f'{format_percent(leakage_ratio)} of validation data dates appear in training data'
+            text = f'{format_percent(leakage_ratio)} of test data dates appear in training data'
             table = pd.DataFrame([[list(date_intersection)[:self.n_to_show]]],
                                  index=['Sample of test dates in train:'])
             display = [text, table]
@@ -62,6 +62,11 @@ class DateTrainTestLeakageDuplicates(TrainTestBaseCheck):
                            check=self.__class__, display=display)
 
     def add_condition_leakage_ratio_more_than(self, max_ratio=0):
+        """add condition - require leakage ratio to not surpass max_ratio.
+
+        Args:
+            max_ratio (int): Maximum ratio of leakage.
+        """
         def max_ratio_condition(result: float) -> ConditionResult:
             if result > max_ratio:
                 return ConditionResult(False, f'Found {format_percent(result)} leaked dates')

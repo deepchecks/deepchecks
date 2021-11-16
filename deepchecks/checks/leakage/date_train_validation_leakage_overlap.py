@@ -40,7 +40,7 @@ class DateTrainTestLeakageOverlap(TrainTestBaseCheck):
 
         if dates_leaked > 0:
             leakage_ratio = dates_leaked / test_dataset.n_samples()
-            display = f'{format_percent(leakage_ratio)} of validation data dates '\
+            display = f'{format_percent(leakage_ratio)} of test data dates '\
                       f'before last training data date ({max_train_date})'
             return_value = leakage_ratio
         else:
@@ -53,6 +53,11 @@ class DateTrainTestLeakageOverlap(TrainTestBaseCheck):
                            display=display)
 
     def add_condition_leakage_ratio_more_than(self, max_ratio=0):
+        """add condition - require leakage ratio to not surpass max_ratio.
+
+        Args:
+            max_ratio (int): Maximum ratio of leakage.
+        """
         def max_ratio_condition(result: float) -> ConditionResult:
             if result > max_ratio:
                 return ConditionResult(False, f'Found {format_percent(result)} leaked dates')
