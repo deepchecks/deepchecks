@@ -62,7 +62,7 @@ class DateTrainTestLeakageDuplicates(TrainTestBaseCheck):
                            check=self.__class__, display=display)
 
     def add_condition_leakage_ratio_more_than(self, max_ratio=0):
-        """add condition - require leakage ratio to not surpass max_ratio.
+        """Add condition - require leakage ratio to not surpass max_ratio.
 
         Args:
             max_ratio (int): Maximum ratio of leakage.
