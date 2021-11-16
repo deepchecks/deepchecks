@@ -4,7 +4,7 @@ from typing import Union, Iterable
 import pandas as pd
 
 from deepchecks import Dataset, ensure_dataframe_type
-from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck
+from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
 from deepchecks.base.dataframe_utils import filter_columns_with_validation
 from deepchecks.utils import DeepchecksValueError
 from deepchecks.string_utils import format_percent
@@ -70,3 +70,18 @@ class DataDuplicates(SingleDatasetBaseCheck):
             display = None
 
         return CheckResult(value=percent_duplicate, check=self.__class__, display=display)
+
+    def add_condition_duplicates_more_than(self, max_ratio: float = 0):
+        """Add condition - require duplicate ratio to not surpass max_ratio.
+
+        Args:
+            max_ratio (float): Maximum ratio of duplicates.
+        """
+        def max_ratio_condition(result: float) -> ConditionResult:
+            if result > max_ratio:
+                return ConditionResult(False, f'Found {format_percent(result)} duplicate data')
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'Max duplicate data ratio: {format_percent(max_ratio)}',
+                                  max_ratio_condition)

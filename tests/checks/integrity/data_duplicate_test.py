@@ -1,10 +1,11 @@
 """Tests for Mixed Nulls check"""
 import pandas as pd
 
-from hamcrest import assert_that, close_to, equal_to, calling, raises
+from hamcrest import assert_that, close_to, equal_to, calling, raises, has_items
 
 from deepchecks.checks.integrity.data_duplicates import DataDuplicates
 from deepchecks.utils import DeepchecksValueError
+from tests.checks.utils import equal_condition_result
 
 
 def test_data_duplicates():
@@ -73,3 +74,34 @@ def test_nan(df_with_nan_row, df_with_single_nan_in_col):
     df = df_with_single_nan_in_col
     check_obj = DataDuplicates()
     assert_that(check_obj.run(df).value, equal_to(0))
+
+
+def test_condition_fail():
+    # Arrange
+    duplicate_data = pd.DataFrame({'col1': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
+                                   'col2': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
+                                   'col3': [2, 3, 4, 4, 4, 3, 4, 5, 6, 4]})
+    check = DataDuplicates().add_condition_duplicates_more_than(0.1)
+
+    # Act
+    result = check.conditions_decision(check.run(duplicate_data))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=False,
+                               details='Found 40.00% duplicate data',
+                               name='Max duplicate data ratio: 10.00%')))
+
+
+def test_condition():
+    # Arrange
+    duplicate_data = pd.DataFrame({'col1': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
+                                   'col2': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                                   'col3': [2, 3, 4, 4, 4, 3, 4, 5, 6, 4]})
+    check = DataDuplicates().add_condition_duplicates_more_than()
+
+    # Act
+    result = check.conditions_decision(check.run(duplicate_data))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=True,
+                               name='Max duplicate data ratio: 0%')))
