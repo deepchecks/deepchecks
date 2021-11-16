@@ -1,19 +1,27 @@
 """The train_validation_difference_overfit check module."""
-from typing import Dict, Callable
+import typing as t
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from mlchecks.utils import model_type_validation
+from mlchecks.utils import model_type_validation, MLChecksValueError
 from mlchecks.metric_utils import get_metrics_list
-from mlchecks import Dataset, CheckResult, TrainValidationBaseCheck
+from mlchecks import (
+    Dataset, 
+    CheckResult, 
+    TrainValidationBaseCheck, 
+    ConditionResult, 
+    ConditionCategory
+)
+
 
 __all__ = ['TrainValidationDifferenceOverfit']
 
 
 class TrainValidationDifferenceOverfit(TrainValidationBaseCheck):
-    """Visualize overfit by displaying the difference between model metrics on train and on validation data.
+    """
+    Visualize overfit by displaying the difference between model metrics on train and on validation data.
 
     The check would display the selected metrics for the training and validation data, helping the user visualize
     the difference in performance between the two datasets. If no alternative_metrics are supplied, the check would
@@ -22,8 +30,12 @@ class TrainValidationDifferenceOverfit(TrainValidationBaseCheck):
     (https://scikit-learn.org/stable/modules/model_evaluation.html#scoring) or an sklearn scoring function.
     """
 
-    def __init__(self, alternative_metrics: Dict[str, Callable] = None):
-        """Initialize the TrainValidationDifferenceOverfit check.
+    def __init__(
+        self, 
+        alternative_metrics: t.Dict[str, t.Callable[[object, pd.DataFrame, str], float]] = None
+    ):
+        """
+        Initialize the TrainValidationDifferenceOverfit check.
 
         Args:
             alternative_metrics (Dict[str, Callable]): An optional dictionary of metric name to scorer functions
@@ -32,7 +44,8 @@ class TrainValidationDifferenceOverfit(TrainValidationBaseCheck):
         self.alternative_metrics = alternative_metrics
 
     def run(self, train_dataset: Dataset, validation_dataset: Dataset, model=None) -> CheckResult:
-        """Run check.
+        """
+        Run check.
 
         Args:
             train_dataset (Dataset): The training dataset object. Must contain a label column.
@@ -91,3 +104,155 @@ class TrainValidationDifferenceOverfit(TrainValidationBaseCheck):
 
         return CheckResult(res, check=self.__class__, header='Train Validation Difference Overfit',
                            display=[plot_overfit])
+    
+    def add_condition_train_is_lower_by(
+        self, 
+        var: float,
+        *,
+        metrics: t.Union[str, t.Sequence[str], None] = None,
+        category = ConditionCategory.FAIL,
+        success_message = "Condition passed", #TODO: add meaningful message 
+        failure_message = "Condition failed", #TODO: add meaningful message 
+        name = "" #TODO: add meaningful default name
+    ):
+        """
+        Add condition that will check that metric value is not lower than x.
+        
+        If `metrics` variable was not passed then this condition will be applied to
+        each calculated metric.
+
+        Next variables are available for use within messages templates: 
+            - var (float)
+            - all_metric_values (str)
+            - failed_metric_values (str) - metric values that did not pass condition
+
+        Args:
+            var
+            metrics: list of metric names to which condition should be applied
+            category: condition category
+            success_message: condition message in case of success
+            failure_message: condition message in case of failure
+            name: condition name
+        
+        Raises:
+            MLChecksValueError: if `metrics` is empty list or empty str
+        
+        Condition Raises:
+            MLChecksValueError: if `metrics` contains unknown metric name
+        """
+        if metrics is not None and len(metrics) == 0:
+            raise MLChecksValueError("`metrics` names list (name string) cannot be empty!")
+        elif isinstance(metrics, str):
+            metrics = [metrics]
+        elif isinstance(metrics, t.Sequence):
+            metrics = metrics
+        else:
+            metrics = None
+        
+        def condition(df: pd.DataFrame) -> ConditionResult:
+            calculated_metric_names = t.cast(t.List[str], list(df['Training Metrics'].index))
+            provided_metric_names = list(metrics) if metrics is not None else calculated_metric_names
+            metric_names_diff = set(provided_metric_names).difference(set(calculated_metric_names))
+
+            if len(metric_names_diff) != 0:
+                raise MLChecksValueError(f"Unknown metrics - {metric_names_diff}")
+
+            training_metrics = df['Training Metrics'][provided_metric_names]
+            validation_metrics = df['Validation Metrics'][provided_metric_names]
+            difference = training_metrics - validation_metrics
+            result = t.cast(pd.Series, difference[difference <= var])
+            passed = len(result) == 0
+
+            details_vars = {
+                'var': var,
+                'all_metric_values': ';'.join([f'{k}={v}' for k, v in df.to_dict()]),
+                'failed_metric_values': ';'.join([f'{k}={v}' for k, v in result.to_dict()])
+            }
+            
+            return ConditionResult(
+                is_pass=passed,
+                category=category,
+                details=(
+                    success_message.format(**details_vars)
+                    if passed
+                    else failure_message.format(**details_vars)
+                )
+            )
+
+        self.add_condition(name=name, condition_func=condition)
+
+    def add_condition_train_is_lower_by_factor_of(
+        self, 
+        var: float,
+        *,
+        metrics: t.Union[str, t.Sequence[str], None] = None,
+        category = ConditionCategory.FAIL,
+        success_message = "Condition passed", #TODO: add meaningful default message 
+        failure_message = "Condition failed", #TODO: add meaningful default message 
+        name = "" #TODO: add meaningful default name
+    ):
+        """
+        Add condition that will check that metric value is not lower by factor of x.
+
+        If `metrics` variable was not passed then this condition will be applied to
+        each calculated metric.
+
+        Next variables are available for use within messages templates: 
+            - var (float)
+            - all_metric_values (str)
+            - failed_metric_values (str) - metric values that did not pass condition
+
+        Args:
+            var
+            metrics: list of metric names to which condition should be applied
+            category: condition category
+            success_message: condition message in case of success
+            failure_message: condition message in case of failure
+            name: condition name
+
+        Raises:
+            MLChecksValueError: if `metrics` is empty list or empty str
+        
+        Condition Raises:
+            MLChecksValueError: if `metrics` contains unknown metric name
+        """
+        if metrics is not None and len(metrics) == 0:
+            raise MLChecksValueError("`metrics` names list (name string) cannot be empty!")
+        elif isinstance(metrics, str):
+            metrics = [metrics]
+        elif isinstance(metrics, t.Sequence):
+            metrics = metrics
+        else:
+            metrics = None
+        
+        def condition(df: pd.DataFrame) -> ConditionResult:
+            calculated_metric_names = t.cast(t.List[str], list(df['Training Metrics'].index))
+            provided_metric_names = list(metrics) if metrics is not None else calculated_metric_names
+            metric_names_diff = set(provided_metric_names).difference(set(calculated_metric_names))
+
+            if len(metric_names_diff) != 0:
+                raise MLChecksValueError(f"Unknown metrics - {metric_names_diff}")
+
+            training_metrics = df['Training Metrics'][provided_metric_names]
+            validation_metrics = df['Validation Metrics'][provided_metric_names]
+            ratio = training_metrics / validation_metrics
+            result = t.cast(pd.Series, ratio[ratio >= var])
+            passed = len(result) == 0
+
+            details_vars = {
+                'var': var,
+                'all_metric_values': ';'.join([f'{k}={v}' for k, v in df.to_dict()]),
+                'failed_metric_values': ';'.join([f'{k}={v}' for k, v in result.to_dict()])
+            }
+            
+            return ConditionResult(
+                is_pass=passed,
+                category=category,
+                details=(
+                    success_message.format(**details_vars)
+                    if passed
+                    else failure_message.format(**details_vars)
+                )
+            )
+
+        self.add_condition(name=name, condition_func=condition)

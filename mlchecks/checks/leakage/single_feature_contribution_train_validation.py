@@ -22,7 +22,8 @@ class SingleFeatureContributionTrainValidation(TrainValidationBaseCheck):
     """
 
     def __init__(self, ppscore_params=None, n_show_top: int = 5):
-        """Initialize the SingleFeatureContributionTrainValidation.
+        """
+        Initialize the SingleFeatureContributionTrainValidation.
 
         Args:
             ppscore_params (dict): dictionary of additional parameters for the ppscore predictor function
@@ -88,3 +89,4 @@ class SingleFeatureContributionTrainValidation(TrainValidationBaseCheck):
 
         return CheckResult(value=s_difference.to_dict(), display=[plot, *text], check=self.__class__,
                            header='Single Feature Contribution Train-Validation')
+    
