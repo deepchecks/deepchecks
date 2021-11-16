@@ -38,7 +38,7 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
 
         Args:
             dataset (Dataset): The training dataset object. Must contain an index.
-            baseline_dataset (Dataset): The validation dataset object. Must contain an index.
+            baseline_dataset (Dataset): The baseline dataset object. Must contain an index.
         Returns:
             CheckResult: Detects values highly represented in the tested and reference data and checks if their..
                          relative and absolute percentage have increased significantly and makes a report.

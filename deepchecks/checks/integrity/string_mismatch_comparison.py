@@ -141,17 +141,17 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
         return CheckResult(result_dict, check=self.__class__, display=display)
 
     def add_condition_no_new_variants(self):
-        """Add condition - no new variants allowed in validation data."""
+        """Add condition - no new variants allowed in test data."""
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        name = f'No new variants allowed in validation data for {column_names}'
+        name = f'No new variants allowed in test data for {column_names}'
         return self.add_condition(name, _condition_percent_limit, ratio=0)
 
     def add_condition_ratio_new_variants_not_more_than(self, ratio: float):
-        """Add condition - no new variants allowed above given percentage in validation data.
+        """Add condition - no new variants allowed above given percentage in test data.
 
         Args:
-            ratio (float): Max percentage of new variants in validation data allowed.
+            ratio (float): Max percentage of new variants in test data allowed.
         """
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        name = f'Not more than {format_percent(ratio)} new variants in validation data for {column_names}'
+        name = f'Not more than {format_percent(ratio)} new variants in test data for {column_names}'
         return self.add_condition(name, _condition_percent_limit, ratio=ratio)
