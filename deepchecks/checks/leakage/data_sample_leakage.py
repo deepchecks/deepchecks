@@ -3,7 +3,7 @@ from typing import Dict, List
 import re
 
 from deepchecks import Dataset
-from deepchecks.base.check import CheckResult, TrainTestBaseCheck
+from deepchecks.base.check import CheckResult, ConditionResult, TrainTestBaseCheck
 from deepchecks.string_utils import format_percent
 
 import numpy as np
@@ -118,3 +118,21 @@ class DataSampleLeakageReport(TrainTestBaseCheck):
         display = [user_msg, duplicate_rows_df.head(10)] if dup_ratio else None
 
         return CheckResult(dup_ratio, header='Data Sample Leakage Report', check=self.__class__, display=display)
+
+    def add_condition_duplicates_ratio_less_than(self, max_ratio: float = 1.1):
+        """Add condition - require min allowed ratio between the naive and the given model.
+        Args:
+            min_allowed_ratio (float): Min allowed ratio between the naive and the given model -
+            ratio is given model / naive model (if the metric returns negative values we devied 1 by it)
+        """
+        def condition(result: Dict) -> ConditionResult:
+            ratio = result['ratio']
+            if max_ratio < ratio:
+                return ConditionResult(False,
+                                       f'percent of leaked dates: {format_percent(result)}')
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'More than {format_number(min_allowed_ratio)} ratio '
+                                  f'between the given model\'s result and the naive model\'s result',
+                                  condition)
