@@ -125,7 +125,7 @@ class DataSampleLeakageReport(TrainTestBaseCheck):
         Args:
             max_ratio (float): Max allowed ratio of test data samples to appear in train data
         """
-        def condition(result: Dict) -> ConditionResult:
+        def condition(result: float) -> ConditionResult:
             if max_ratio < result:
                 return ConditionResult(False,
                                        f'Percent of test data samples that appear in train data: '
