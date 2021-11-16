@@ -119,20 +119,20 @@ class DataSampleLeakageReport(TrainTestBaseCheck):
 
         return CheckResult(dup_ratio, header='Data Sample Leakage Report', check=self.__class__, display=display)
 
-    def add_condition_duplicates_ratio_less_than(self, max_ratio: float = 1.1):
-        """Add condition - require min allowed ratio between the naive and the given model.
+    def add_condition_duplicates_ratio_less_than(self, max_ratio: float = 0.1):
+        """Add condition - require max allowed ratio of test data samples to appear in train data.
         Args:
-            min_allowed_ratio (float): Min allowed ratio between the naive and the given model -
-            ratio is given model / naive model (if the metric returns negative values we devied 1 by it)
+            max_ratio (float): Max allowed ratio of test data samples to appear in train data
         """
         def condition(result: Dict) -> ConditionResult:
             ratio = result['ratio']
             if max_ratio < ratio:
                 return ConditionResult(False,
-                                       f'percent of leaked dates: {format_percent(result)}')
+                                       f'Percent of test data samples that appear in train data: '
+                                       f'{format_percent(result)}')
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'More than {format_number(min_allowed_ratio)} ratio '
-                                  f'between the given model\'s result and the naive model\'s result',
+        return self.add_condition(f'More than {format_percent(max_ratio)} percent '
+                                  f'of test data samples appear in train data',
                                   condition)
