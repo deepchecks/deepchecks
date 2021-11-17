@@ -155,7 +155,7 @@ def test_condition_ratio_fail():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    check = StringLengthOutOfBounds().add_condition_percent_of_outliers_not_greater_than(0.001)
+    check = StringLengthOutOfBounds().add_condition_ratio_of_outliers_not_greater_than(0.001)
 
     # Act
     result = check.conditions_decision(check.run(df))
@@ -163,7 +163,7 @@ def test_condition_ratio_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                details='Found columns with greater than 0.10% outliers: col1',
-                               name='Ratio of outliers Not greater than 0.10% string length outliers for all columns')
+                               name='Ratio of outliers not greater than 0.10% string length outliers for all columns')
     ))
 
 
@@ -175,12 +175,12 @@ def test_condition_ratio_pass():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    check = StringLengthOutOfBounds().add_condition_percent_of_outliers_not_greater_than(0.1)
+    check = StringLengthOutOfBounds().add_condition_ratio_of_outliers_not_greater_than(0.1)
 
     # Act
     result = check.conditions_decision(check.run(df))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Ratio of outliers Not greater than 10.00% string length outliers for all columns')
+                               name='Ratio of outliers not greater than 10.00% string length outliers for all columns')
     ))

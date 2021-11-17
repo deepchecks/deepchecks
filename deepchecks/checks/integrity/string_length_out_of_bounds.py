@@ -1,4 +1,5 @@
 """String length outlier check."""
+from collections import defaultdict
 from functools import reduce
 from typing import Union, Dict, Iterable, Tuple
 
@@ -108,7 +109,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         df = filter_columns_with_validation(df, self.columns, self.ignore_columns)
 
         display_format = []
-        results = {}
+        results = defaultdict(lambda: {'outliers': []})
 
         for column_name in df.columns:
             column: Series = df[column_name].dropna()
@@ -150,15 +151,11 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                                                f' {format_number(percentile_histogram[outlier_section[1]])}',
                                                f'{n_outlier_samples}'
                                                ])
-                        if column_name not in results:
-                            results[column_name] = {
-                                'normal_range': {
-                                    'min': percentile_histogram[non_outlier_section[0]],
-                                    'max': percentile_histogram[non_outlier_section[1]]
-                                },
-                                'n_samples': column.size,
-                                'outliers': []
+                        results[column_name]['normal_range'] = {
+                                'min': percentile_histogram[non_outlier_section[0]],
+                                'max': percentile_histogram[non_outlier_section[1]]
                             }
+                        results[column_name]['n_samples'] = column.size
                         results[column_name]['outliers'].append({
                             'range': {'min': percentile_histogram[outlier_section[0]],
                                       'max': percentile_histogram[outlier_section[1]]
@@ -211,7 +208,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
             f'Number of outliers not greater than {max_outliers} string length outliers for {column_names}',
             compare_outlier_count)
 
-    def add_condition_percent_of_outliers_not_greater_than(self, max_ratio: float = 0):
+    def add_condition_ratio_of_outliers_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require column not to have more than given ratio of string length outliers.
 
         Args:
@@ -237,5 +234,5 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
 
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
         return self.add_condition(
-            f'Ratio of outliers Not greater than {format_percent(max_ratio)} string length outliers for {column_names}',
+            f'Ratio of outliers not greater than {format_percent(max_ratio)} string length outliers for {column_names}',
             compare_outlier_ratio)
