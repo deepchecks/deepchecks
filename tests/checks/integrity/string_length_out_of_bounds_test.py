@@ -116,7 +116,7 @@ def test_condition_count_fail():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    check = StringLengthOutOfBounds().add_condition_number_of_outliers_more_than(1)
+    check = StringLengthOutOfBounds().add_condition_number_of_outliers_not_greater_than(1)
 
     # Act
     result = check.conditions_decision(check.run(df))
@@ -136,7 +136,7 @@ def test_condition_count_pass():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    check = StringLengthOutOfBounds().add_condition_number_of_outliers_more_than(10)
+    check = StringLengthOutOfBounds().add_condition_number_of_outliers_not_greater_than(10)
 
     # Act
     result = check.conditions_decision(check.run(df))
@@ -155,7 +155,7 @@ def test_condition_ratio_fail():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    check = StringLengthOutOfBounds().add_condition_percent_of_outliers_more_than(0.001)
+    check = StringLengthOutOfBounds().add_condition_percent_of_outliers_not_greater_than(0.001)
 
     # Act
     result = check.conditions_decision(check.run(df))
@@ -175,7 +175,7 @@ def test_condition_ratio_pass():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    check = StringLengthOutOfBounds().add_condition_percent_of_outliers_more_than(0.1)
+    check = StringLengthOutOfBounds().add_condition_percent_of_outliers_not_greater_than(0.1)
 
     # Act
     result = check.conditions_decision(check.run(df))

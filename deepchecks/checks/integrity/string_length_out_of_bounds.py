@@ -182,7 +182,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
 
         return CheckResult(results, check=self.__class__, display=display)
 
-    def add_condition_number_of_outliers_more_than(self, max_outliers: int = 0):
+    def add_condition_number_of_outliers_not_greater_than(self, max_outliers: int = 0):
         """Add condition - require column not to have more than given number of string length outliers.
 
         Args:
@@ -210,7 +210,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         return self.add_condition(f'Not more than {max_outliers} different null types for {column_names}',
                                   compare_outlier_count)
 
-    def add_condition_percent_of_outliers_more_than(self, max_ratio: float = 0):
+    def add_condition_percent_of_outliers_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require column not to have more than given ratio of string length outliers.
 
         Args:
