@@ -163,6 +163,6 @@ class NaiveModelComparison(TrainTestBaseCheck):
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'More than {format_number(min_allowed_ratio)} ratio '
+        return self.add_condition(f'Ratio not less than {format_number(min_allowed_ratio)} '
                                   f'between the given model\'s result and the naive model\'s result',
                                   condition)
