@@ -115,7 +115,7 @@ class CheckSuite(BaseCheck):
     _check_index: int
 
     def __init__(self, name: str, *checks):
-        """Get `Check`s and `CheckSuite`s to run in given order."""
+        """Get 'Check's and 'CheckSuite's to run in given order."""
         super().__init__()
         self.name = name
         self.checks = OrderedDict()

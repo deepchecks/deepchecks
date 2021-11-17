@@ -20,7 +20,7 @@ class CalibrationMetric(SingleDatasetBaseCheck):
             dataset: a Dataset object
         Returns:
             CheckResult: value is dictionary of class and it's brier score, displays the calibration curve
-                 graph with each class
+            graph with each class
 
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance with a label
