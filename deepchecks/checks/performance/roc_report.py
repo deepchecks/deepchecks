@@ -76,7 +76,7 @@ class RocReport(SingleDatasetBaseCheck):
 
         return CheckResult(roc_auc, header='ROC Report', check=self.__class__, display=display)
 
-    def add_condition_auc_not_less_than(self, min_auc: float = 0.7, excluded_classes: List = []):
+    def add_condition_auc_not_less_than(self, min_auc: float = 0.7, excluded_classes: List = None):
         """Add condition - require min allowed AUC score per class.
 
         Args:
@@ -88,7 +88,7 @@ class RocReport(SingleDatasetBaseCheck):
             failed_classes = []
             for item in result.items():
                 class_name, score = item
-                if score < min_auc and class_name not in excluded_classes:
+                if score < min_auc and (not excluded_classes or class_name not in excluded_classes):
                     failed_classes.append(f'class {class_name}: {format_number(score)}')
             if failed_classes:
                 return ConditionResult(False,
