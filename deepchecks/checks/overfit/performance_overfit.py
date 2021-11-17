@@ -20,7 +20,7 @@ __all__ = ['TrainTestDifferenceOverfit']
 
 
 
-TD = t.TypeVar("TD", bound="TrainTestDifferenceOverfit")
+TD = t.TypeVar('TD', bound='TrainTestDifferenceOverfit')
 
 
 class TrainTestDifferenceOverfit(TrainTestBaseCheck):
@@ -117,21 +117,22 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
         condition_func: t.Callable[[pd.Series, float], pd.Series]
     ) -> t.Callable[[pd.DataFrame], ConditionResult]:
         if metrics is not None and len(metrics) == 0:
-            raise DeepchecksValueError("`metrics` names list (name string) cannot be empty!")
+            raise DeepchecksValueError("`metrics` names list (name string) cannot be empty!") # pylint: disable=inconsistent-quotes
         elif isinstance(metrics, str):
             metrics = [metrics]
         elif isinstance(metrics, t.Sequence):
-            metrics = metrics
+            metrics = list(metrics)
         else:
             metrics = None
-        
+
         def condition(df: pd.DataFrame) -> ConditionResult:
+            assert isinstance(metrics, (list, type(None)))
             calculated_metric_names = t.cast(t.List[str], list(df['Training Metrics'].index))
-            provided_metric_names = list(metrics) if metrics is not None else calculated_metric_names
+            provided_metric_names = metrics if metrics is not None else calculated_metric_names
             metric_names_diff = set(provided_metric_names).difference(set(calculated_metric_names))
 
             if len(metric_names_diff) != 0:
-                raise DeepchecksValueError(f"Unknown metrics - {metric_names_diff}")
+                raise DeepchecksValueError(f'Unknown metrics - {metric_names_diff}')
 
             training_metrics = df['Training Metrics'][provided_metric_names]
             test_metrics = df['Test Metrics'][provided_metric_names]
@@ -151,10 +152,10 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
                 details=(
                     failure_message.format(**details_vars)
                     if not passed
-                    else ""
+                    else ''
                 )
             )
-        
+
         return condition
 
     def add_condition_train_is_lower_by(
@@ -163,8 +164,8 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
         *,
         metrics: t.Union[str, t.Sequence[str], None] = None,
         category = ConditionCategory.FAIL,
-        failure_message = "Condition failed", #TODO: add meaningful message
-        name = "" #TODO: add meaningful default name
+        failure_message = 'Condition failed', #TODO: add meaningful message
+        name = '' #TODO: add meaningful default name
     ) -> TD:
         """
         Add condition that will check that metric value is not lower than x.
@@ -191,7 +192,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
             DeepchecksValueError: if `metrics` contains unknown metric name
         """
         return self.add_condition(
-            name=name, 
+            name=name,
             condition_func=self._condition_factory(
                 var,
                 metrics,
@@ -201,15 +202,15 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
                 condition_func=lambda metrics_difference, var: metrics_difference >= var
             )
         )
-        
+
     def add_condition_train_is_lower_by_factor_of(
         self: TD,
         var: float,
         *,
         metrics: t.Union[str, t.Sequence[str], None] = None,
         category = ConditionCategory.FAIL,
-        failure_message = "Condition failed", #TODO: add meaningful default message
-        name = "" #TODO: add meaningful default name
+        failure_message = 'Condition failed', #TODO: add meaningful default message
+        name = '' #TODO: add meaningful default name
     ) -> TD:
         """
         Add condition that will check that metric value is not lower by factor of x.
@@ -236,7 +237,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
             DeepchecksValueError: if `metrics` contains unknown metric name
         """
         return self.add_condition(
-            name=name, 
+            name=name,
             condition_func=self._condition_factory(
                 var,
                 metrics,

@@ -10,7 +10,8 @@ from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionCa
 __all__ = ['SingleFeatureContribution']
 
 
-FC = t.TypeVar("FC", bound="SingleFeatureContribution")
+FC = t.TypeVar('FC', bound='SingleFeatureContribution')
+
 
 class SingleFeatureContribution(SingleDatasetBaseCheck):
     """Return the PPS (Predictive Power Score) of all features in relation to the label.
@@ -84,7 +85,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
     ) -> t.Callable[[t.Dict[str, float]], ConditionResult]:
 
         if features is not None and len(features) == 0:
-            raise DeepchecksValueError("sequence of 'features' cannot be empty!")
+            raise DeepchecksValueError("sequence of 'features' cannot be empty!") # pylint: disable=inconsistent-quotes
 
         def condition(value: t.Dict[str, float]) -> ConditionResult:
             nonlocal features
@@ -97,21 +98,21 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
                 features_difference = features_to_check.difference(available_features)
 
                 if len(features_difference) != 0:
-                    raise DeepchecksValueError(f"unknown features - {features_difference}")
+                    raise DeepchecksValueError(f'unknown features - {features_difference}')
 
             all_features = []
             failed_features = []
 
-            for feature_name, pps in value.items():
-                feature_repr = f"{feature_name} (pps: {pps})"
+            for feature_name, pps_value in value.items():
+                feature_repr = f'{feature_name} (pps: {pps_value})'
                 all_features.append(feature_repr)
-                if feature_name in features_to_check and operator(pps, var) is True:
+                if feature_name in features_to_check and operator(pps_value, var) is True:
                     failed_features.append(feature_repr)
 
             details_template_vars = {
-                "var": var,
-                "all_features": ';'.join(all_features),
-                "failed_features": ';'.join(failed_features)
+                'var': var,
+                'all_features': ';'.join(all_features),
+                'failed_features': ';'.join(failed_features)
             }
 
             passed = len(failed_features) == 0
@@ -122,7 +123,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
                 details=(
                     failure_message.format(**details_template_vars)
                     if not passed
-                    else ""
+                    else ''
                 )
             )
 
@@ -134,8 +135,8 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         *,
         features: t.Optional[t.Sequence[str]] = None,
         category = ConditionCategory.FAIL,
-        failure_message = "Next features pps <= {var}: {failed_features}",
-        name = "Features PPS lower bound"
+        failure_message = 'Next features pps <= {var}: {failed_features}',
+        name = 'Features PPS lower bound'
     ) -> FC:
         """
         Add condition that will check that pps of the specified feature(s) is not <= X.
@@ -172,8 +173,8 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         *,
         features: t.Optional[t.Sequence[str]] = None,
         category = ConditionCategory.FAIL,
-        failure_message = "Next features pps >= {var}: {failed_features}",
-        name = "Features PPS upper bound"
+        failure_message = 'Next features pps >= {var}: {failed_features}',
+        name = 'Features PPS upper bound'
     ) -> FC:
         """
         Add condition that will check that pps of the specified feature(s) is not > X.

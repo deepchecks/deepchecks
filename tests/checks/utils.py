@@ -6,15 +6,15 @@ from hamcrest.core.matcher import Matcher
 from deepchecks import ConditionCategory
 
 
-__all__ = ["ANY_FLOAT_REGEXP", "equal_condition_result"]
+__all__ = ['ANY_FLOAT_REGEXP', 'equal_condition_result']
 
 
 ANY_FLOAT_REGEXP = re.compile(r'[+-]?([0-9]*[.])?[0-9]+')
 
 
 def equal_condition_result(
-    is_pass: bool, 
-    name: str, 
+    is_pass: bool,
+    name: str,
     details: Union[str, Pattern] = '',
     category: ConditionCategory = ConditionCategory.FAIL
 ) -> Matcher[Matcher[object]]:
