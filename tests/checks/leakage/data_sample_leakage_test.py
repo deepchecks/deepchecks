@@ -91,7 +91,7 @@ def test_condition_ratio_more_than_not_passed(iris_clean):
                 features=iris_clean.feature_names,
                 label='target')
 
-    check = DataSampleLeakageReport().add_condition_duplicates_ratio_not_more_than(max_ratio=0.09)
+    check = DataSampleLeakageReport().add_condition_duplicates_ratio_not_greater_than(max_ratio=0.09)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
@@ -108,7 +108,7 @@ def test_condition_ratio_more_than_not_passed(iris_clean):
 def test_condition_ratio_more_than_passed(diabetes_split_dataset_and_model):
     # Arrange
     train_ds, val_ds, clf = diabetes_split_dataset_and_model
-    check = DataSampleLeakageReport().add_condition_duplicates_ratio_not_more_than()
+    check = DataSampleLeakageReport().add_condition_duplicates_ratio_not_greater_than()
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds, clf))
