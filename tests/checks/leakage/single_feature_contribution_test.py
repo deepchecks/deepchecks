@@ -114,15 +114,15 @@ def test_trainval_dataset_diff_columns():
                'Check SingleFeatureContributionTrainTest requires datasets to share the same features'))
 
 
-def test_pps_lower_bound_conditions_for_each_feature_that_should_pass():
+def test_pps_upper_bound_conditions_for_each_feature_that_should_pass():
     df, expected = util_generate_dataframe_and_expected()
     dataset = Dataset(df, label="label")
     check = SingleFeatureContribution()
 
     for feature_name, expected_pps in expected.items():
         if expected_pps != 0:
-            check.add_condition_feature_pps_not_less_than(
-                expected_pps / 2,
+            check.add_condition_feature_pps_not_greater_than(
+                expected_pps + (expected_pps * 0.1),
                 features=[feature_name],
                 category=ConditionCategory.WARN,
                 name="Test Condition"
@@ -141,16 +141,16 @@ def test_pps_lower_bound_conditions_for_each_feature_that_should_pass():
     check.clean_conditions()
 
 
-def test_all_features_pps_lower_bound_condition_that_should_not_pass():
+def test_all_features_pps_upper_bound_condition_that_should_not_pass():
     df, expected = util_generate_dataframe_and_expected()
     dataset = Dataset(df, label="label")
     check = SingleFeatureContribution()
 
     condition_value = sum(expected.values()) / len(expected)
-    features_that_will_not_pass = [k for k, v in expected.items() if v <= condition_value]
+    features_that_will_not_pass = [k for k, v in expected.items() if v >= condition_value]
 
-    check.add_condition_feature_pps_not_less_than(
-        var=sum(expected.values()) / len(expected),
+    check.add_condition_feature_pps_not_greater_than(
+        var=condition_value,
         category=ConditionCategory.WARN,
         name="Test Condition",
         failure_message="{failed_features}"
@@ -172,18 +172,15 @@ def test_all_features_pps_lower_bound_condition_that_should_not_pass():
     ))
 
 
-def test_specific_features_pps_lower_bound_condition_that_should_pass():
+def test_all_features_pps_upper_bound_condition_that_should_pass():
     df, expected = util_generate_dataframe_and_expected()
     dataset = Dataset(df, label="label")
     check = SingleFeatureContribution()
 
-    expected_pps = {k: v for k, v in expected.items() if v != 0}
-    features = list(expected_pps.keys())
-    min_value = min(expected_pps.values())
+    max_value = max(expected.values())
 
-    check.add_condition_feature_pps_not_less_than(
-        var=min_value - (min_value * 0.1),
-        features=features,
+    check.add_condition_feature_pps_not_greater_than(
+        var=max_value + (max_value * 0.1),
         category=ConditionCategory.WARN,
         name="Test Condition",
     )

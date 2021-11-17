@@ -75,7 +75,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text], check=self.__class__,
                            header='Single Feature Contribution')
 
-    def add_condition_feature_pps_not_more_than(
+    def add_condition_feature_pps_not_greater_than(
         self: FC,
         var: float,
         *,
