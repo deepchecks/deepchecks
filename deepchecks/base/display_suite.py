@@ -102,10 +102,11 @@ def display_suite_result_2(name: str, results: List[Union[CheckResult, CheckFail
             if result.have_display():
                 display_table.append(result)
             else:
-                others_table.append([result.check.__name__, 'Nothing found', 2])
+                others_table.append([result.header, 'Nothing found', 2])
         elif isinstance(result, CheckFailure):
             msg = result.exception.__class__.__name__ + ': ' + str(result.exception)
-            others_table.append([result.check.__class__.__name__, msg, 1])
+            name = split_camel_case(result.check.__name__)
+            others_table.append([name, msg, 1])
 
     light_hr = '<hr style="background-color: #eee;border: 0 none;color: #eee;height: 1px;">'
     bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'
