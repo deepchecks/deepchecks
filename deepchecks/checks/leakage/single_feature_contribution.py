@@ -75,44 +75,6 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text], check=self.__class__,
                            header='Single Feature Contribution')
 
-    def add_condition_feature_pps_not_less_than(
-        self: FC,
-        var: float,
-        *,
-        features: t.Optional[t.Sequence[str]] = None,
-        category = ConditionCategory.FAIL,
-        failure_message = 'Next features pps <= {var}: {failed_features}',
-        name = 'Features PPS lower bound'
-    ) -> FC:
-        """
-        Add condition that will check that pps of the specified feature(s) is not less than X.
-
-        If `features` parameter is `None`, condition will be applied to all features.
-
-        Args:
-            var
-            features: list of features to check
-            category: condition category
-            failure_message: condition details in case of failure
-            name: condition name
-
-        Raises:
-            DeepchecksValueError: if empty list of features was passed to the method
-
-        Condition Raises:
-            DeepchecksValueError: if `features` list contains unknown feature
-        """
-        return self.add_condition(
-            name=name,
-            condition_func=_condition_factory(
-                var,
-                features,
-                category,
-                failure_message,
-                operator=lambda pps, var: pps <= var
-            )
-        )
-
     def add_condition_feature_pps_not_more_than(
         self: FC,
         var: float,
