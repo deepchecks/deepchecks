@@ -107,10 +107,7 @@ def display_suite_result_2(name: str, results: List[Union[CheckResult, CheckFail
             msg = result.exception.__class__.__name__ + ': ' + str(result.exception)
             others_table.append([result.check.__class__.__name__, msg, 1])
 
-    conditions_table = pd.DataFrame(data=conditions_table,
-                                    columns=['Status', 'Check', 'Condition', 'More Info', 'sort'],)
-    conditions_table.sort_values(by=['sort'], inplace=True)
-    conditions_table.drop('sort', axis=1, inplace=True)
+
 
     icons = """
     <span style="color: green;display:inline-block">\U00002713</span> /
@@ -123,13 +120,24 @@ def display_suite_result_2(name: str, results: List[Union[CheckResult, CheckFail
     Each check may contain conditions (which results in {icons}), as well as other outputs such as plots or tables.<br>
     Suites, checks and conditions can all be modified (see tutorial [link]).</p>
     <h2>Conditions Summary</h2>
-    {dataframe_to_html(conditions_table, hide_index=True)}
-    <h2>Additional Outputs</h2>
     """
     display_html(html, raw=True)
-    for r in display_table:
-        r._ipython_display_()
-        display_html('<hr>', raw=True)
+    if conditions_table:
+        conditions_table = pd.DataFrame(data=conditions_table,
+                                        columns=['Status', 'Check', 'Condition', 'More Info', 'sort'], )
+        conditions_table.sort_values(by=['sort'], inplace=True)
+        conditions_table.drop('sort', axis=1, inplace=True)
+        display_dataframe(conditions_table, hide_index=True)
+    else:
+        display_html('<p>No conditions defined on checks in the suite.</p>', raw=True)
+
+    display_html('<h2>Additional Outputs</h2>', raw=True)
+    if display_table:
+        for r in display_table:
+            r._ipython_display_()
+            display_html('<hr>', raw=True)
+    else:
+        display_html('<p>No outputs to show.</p>', raw=True)
 
     if others_table:
         others_table = pd.DataFrame(data=others_table, columns=['Check', 'Reason', 'sort'])

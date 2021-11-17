@@ -4,13 +4,14 @@ import pandas as pd
 __all__ = ['display_dataframe', 'dataframe_to_html']
 
 
-def display_dataframe(df: pd.DataFrame):
+def display_dataframe(df: pd.DataFrame, hide_index=False):
     """Display in IPython given dataframe.
 
     Args:
         df (pd.DataFrame): Dataframe to display
+        hide_index (bool): Whether to hide or not the dataframe index.
     """
-    display_html(dataframe_to_html(df), raw=True)
+    display_html(dataframe_to_html(df, hide_index), raw=True)
 
 
 def dataframe_to_html(df: pd.DataFrame, hide_index=False):

@@ -13,7 +13,7 @@ def test_boosting_classifier(iris):
     train = Dataset(train_df, label='target')
     validation = Dataset(validation_df, label='target')
 
-    clf = GradientBoostingClassifier()
+    clf = GradientBoostingClassifier(random_state=0)
     clf.fit(train.features_columns(), train.label_col())
 
     # Act
@@ -40,7 +40,7 @@ def test_boosting_classifier_with_metric(iris):
     train = Dataset(train_df, label='target')
     validation = Dataset(validation_df, label='target')
 
-    clf = GradientBoostingClassifier()
+    clf = GradientBoostingClassifier(random_state=0)
     clf.fit(train.features_columns(), train.label_col())
 
     # Act
