@@ -70,10 +70,10 @@ def test_regression_statistical(diabetes_split_dataset_and_model):
     assert_that(result['naive_model_score'], close_to(-76, 0.5))
 
 
-def test_condition_ratio_more_than_not_passed(diabetes_split_dataset_and_model):
+def test_condition_ratio_not_less_than_not_passed(diabetes_split_dataset_and_model):
     # Arrange
     train_ds, val_ds, clf = diabetes_split_dataset_and_model
-    check = NaiveModelComparison().add_condition_ratio_more_than(min_allowed_ratio=1.4)
+    check = NaiveModelComparison().add_condition_ratio_not_less_than(min_allowed_ratio=1.4)
 
     # Act
     check_result = check.run(train_ds, val_ds, clf)
@@ -90,10 +90,10 @@ def test_condition_ratio_more_than_not_passed(diabetes_split_dataset_and_model):
     ))
 
 
-def test_condition_ratio_more_than_passed(diabetes_split_dataset_and_model):
+def test_condition_ratio_not_less_than_passed(diabetes_split_dataset_and_model):
     # Arrange
     train_ds, val_ds, clf = diabetes_split_dataset_and_model
-    check = NaiveModelComparison().add_condition_ratio_more_than(min_allowed_ratio=1.3)
+    check = NaiveModelComparison().add_condition_ratio_not_less_than(min_allowed_ratio=1.3)
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds, clf))

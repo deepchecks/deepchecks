@@ -147,7 +147,7 @@ class NaiveModelComparison(TrainTestBaseCheck):
                            check=self.__class__, display=[text, display_func])
 
 
-    def add_condition_ratio_more_than(self, min_allowed_ratio: float = 1.1):
+    def add_condition_ratio_not_less_than(self, min_allowed_ratio: float = 1.1):
         """Add condition - require min allowed ratio between the naive and the given model.
 
         Args:
@@ -156,7 +156,7 @@ class NaiveModelComparison(TrainTestBaseCheck):
         """
         def condition(result: Dict) -> ConditionResult:
             ratio = result['ratio']
-            if min_allowed_ratio > ratio:
+            if ratio < min_allowed_ratio:
                 return ConditionResult(False,
                                        f'The given model performs {format_number(ratio)} times compared' \
                                        f'to the naive model using the given metric')
