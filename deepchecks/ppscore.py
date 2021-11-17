@@ -594,8 +594,7 @@ def matrix(df, output="df", sorted=False, **kwargs):
     """
     Calculate the Predictive Power Score (PPS) matrix for all columns in the dataframe.
 
-    Parameters
-    ----------
+    Args:
     df : pandas.DataFrame
         The dataframe that contains the data
     output: str - potential values: "df", "list"
@@ -606,8 +605,7 @@ def matrix(df, output="df", sorted=False, **kwargs):
         Other key-word arguments that shall be forwarded to the pps.score method,
         e.g. `sample, `cross_validation, `random_seed, `invalid_score`, `catch_errors`
 
-    Returns
-    -------
+    Returns:
     pandas.DataFrame or list of Dict
         Either returns a tidy dataframe or a list of all the PPS dicts. This can be influenced
         by the output argument
