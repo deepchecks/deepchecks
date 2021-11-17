@@ -10,7 +10,7 @@ __all__ = ['ClassificationCheckSuite', 'PerformanceCheckSuite', 'GenericPerforma
 ClassificationCheckSuite = CheckSuite(
     'Classification Suite',
     ConfusionMatrixReport(),
-    RocReport(),
+    RocReport().add_condition_auc_not_less_than(),
     CalibrationMetric(),
 )
 

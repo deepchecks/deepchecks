@@ -107,8 +107,8 @@ def display_suite_result_2(name: str, results: List[Union[CheckResult, CheckFail
             msg = result.exception.__class__.__name__ + ': ' + str(result.exception)
             others_table.append([result.check.__class__.__name__, msg, 1])
 
-
-
+    light_hr = '<hr style="background-color: #eee;border: 0 none;color: #eee;height: 1px;">'
+    bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'
     icons = """
     <span style="color: green;display:inline-block">\U00002713</span> /
     <span style="color: red;display:inline-block">\U00002716</span> /
@@ -119,7 +119,7 @@ def display_suite_result_2(name: str, results: List[Union[CheckResult, CheckFail
     <p>The suite is composed of various checks such as: {get_first_3(results)}, etc...<br>
     Each check may contain conditions (which results in {icons}), as well as other outputs such as plots or tables.<br>
     Suites, checks and conditions can all be modified (see tutorial [link]).</p>
-    <h2>Conditions Summary</h2>
+    {bold_hr}<h2>Conditions Summary</h2>
     """
     display_html(html, raw=True)
     if conditions_table:
@@ -131,11 +131,12 @@ def display_suite_result_2(name: str, results: List[Union[CheckResult, CheckFail
     else:
         display_html('<p>No conditions defined on checks in the suite.</p>', raw=True)
 
-    display_html('<h2>Additional Outputs</h2>', raw=True)
+    display_html(f'{bold_hr}<h2>Additional Outputs</h2>', raw=True)
     if display_table:
-        for r in display_table:
+        for i, r in enumerate(display_table):
             r._ipython_display_()
-            display_html('<hr>', raw=True)
+            if i < len(display_table) - 1:
+                display_html(light_hr, raw=True)
     else:
         display_html('<p>No outputs to show.</p>', raw=True)
 
@@ -143,7 +144,7 @@ def display_suite_result_2(name: str, results: List[Union[CheckResult, CheckFail
         others_table = pd.DataFrame(data=others_table, columns=['Check', 'Reason', 'sort'])
         others_table.sort_values(by=['sort'], inplace=True)
         others_table.drop('sort', axis=1, inplace=True)
-        html = f"""
+        html = f"""{bold_hr}
         <h2>Other Checks That Weren't Displayed</h2>
         {dataframe_to_html(others_table, hide_index=True)}
         """
