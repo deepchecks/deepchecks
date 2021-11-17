@@ -21,7 +21,7 @@ class DeepchecksValueError(ValueError):
 def model_type_validation(model: Any):
     """Receive any object and check if it's an instance of a model we support.
 
-    Raises
+    Raises:
         DeepchecksValueError: If the object is not of a supported type
     """
     supported_by_class_name = ['CatBoostClassifier', 'CatBoostRegressor']
