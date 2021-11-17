@@ -289,6 +289,24 @@ def validate_train_difference_condition_for_specified_metrics(
 
     in general it was added to reduce boilerplate
 
+    What does it doing:
+        we have 2 dataframes (df1, df2) and 3 conditions (c1, c2, c3)
+
+        c1 - tests that x1 metric is not lower by X (lower by a factor of X)
+        c2 - tests that x2 metric is not lower by X (lower by a factor of X)
+        c3 - tests that all metrics are not lower by X (lower by a factor of X)
+
+        df1 - has x1 metric that should not satisfy c1
+        df2 - has x2 metric that should not satisfy c2
+        df1 and df2 - should not satisfy c3
+
+        and we test that:
+        - applying df1 to c1 returns Not Passed
+        - applying df2 to c2 returns Not Passed
+        - applying df1 to c2 returns Passed
+        - applying df2 to c1 returns Passed
+        - applying df1, df2 to c3 returns Not Passed
+
     Expecting dataframes with next schema:
 
     index | Training metrics | Test Metrics
@@ -302,14 +320,6 @@ def validate_train_difference_condition_for_specified_metrics(
         df_with_unsatisfying_x2_metric_condition: dataframe with x1 values that do not satisfy `condition_for_x2_metric`
         condition_value: ...
         condition_generating_method: one of `train_is_lower_by` or `train_is_lower_by_factor_of`
-
-    It will validate that:
-        - applying `df_with_unsatisfying_x1_metric_condition` to the `condition_for_x1_metric` returns `Not Passed`
-        - applying `df_with_unsatisfying_x1_metric_condition` to the `condition_for_x2_metric` returns `Passed`
-        - applying `df_with_unsatisfying_x2_metric_condition` to the `condition_for_x2_metric` returns `Not Passed`
-        - applying `df_with_unsatisfying_x2_metric_condition` to the `condition_for_x1_metric` returns `Passed`
-        - applying `condition_for_all_metrics` to the `condition_for_x1_metric` returns `Not Passed`
-        - applying `condition_for_all_metrics` to the `condition_for_x2_metric` returns `Not Passed`
 
     """
     check = TrainTestDifferenceOverfit()
