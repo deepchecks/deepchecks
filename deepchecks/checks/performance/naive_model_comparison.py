@@ -126,9 +126,9 @@ class NaiveModelComparison(TrainTestBaseCheck):
 
         text = f'The ratio between the naive model\'s {metric_name} and the checked model\'s {metric_name}' \
                f' is {format_number(ratio)}.<br>' \
-               f'{type(model).__name__} model prediction has achieved {format_number(pred_metric)} ' \
+               f'{type(model).__name__} model prediction has achieved a score of {format_number(pred_metric)} ' \
                f'compared to Naive {self.naive_model_type} prediction ' \
-               f'which achieved {format_number(naive_metric)} on tested data.'
+               f'which achieved a score of {format_number(naive_metric)} on tested data.'
 
         def display_func():
             fig = plt.figure()
