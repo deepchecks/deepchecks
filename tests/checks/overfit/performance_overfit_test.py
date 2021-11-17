@@ -420,69 +420,111 @@ def validate_train_difference_condition_for_specified_metrics(
         ConditionResult,
         condition_for_x1_metric(df_with_unsatisfying_x1_metric_condition)
     )
-    assert_that(result, matcher=equal_condition_result( # type: ignore
-        is_pass=False,
-        name='Condition for x1 metric',
-        details='Condition failed',
-        category=ConditionCategory.FAIL
-    ))
+    assert_that(
+        result, 
+        matcher=equal_condition_result( # type: ignore
+            is_pass=False,
+            name='Condition for x1 metric',
+            details='Condition failed',
+            category=ConditionCategory.FAIL
+        ),
+        reason=(
+            "Applying 'df_with_unsatisfying_x1_metric_condition' to the 'condition_for_x1_metric' "
+            "returned 'Passed' condition result. But it should have returned 'Not Passed'"
+        )
+    )
 
     # assert that x2 df fails with x2 condition
     result = t.cast(
         ConditionResult,
         condition_for_x2_metric(df_with_unsatisfying_x2_metric_condition)
     )
-    assert_that(result, matcher=equal_condition_result( # type: ignore
-        is_pass=False,
-        name='Condition for x2 metric',
-        details='Condition failed',
-        category=ConditionCategory.FAIL
-    ))
+    assert_that(
+        result, 
+        matcher=equal_condition_result( # type: ignore
+            is_pass=False,
+            name='Condition for x2 metric',
+            details='Condition failed',
+            category=ConditionCategory.FAIL
+        ),
+        reason=(
+            "Applying 'df_with_unsatisfying_x2_metric_condition' to the 'condition_for_x2_metric' "
+            "returned 'Passed' condition result. But it should have returned 'Not Passed'"
+        )
+    )
 
     # assert that x2 df do not fail with x1 condition
     result = t.cast(
         ConditionResult,
         condition_for_x1_metric(df_with_unsatisfying_x2_metric_condition)
     )
-    assert_that(result, matcher=equal_condition_result( # type: ignore
-        is_pass=True,
-        name='Condition for x1 metric',
-        details='',
-        category=ConditionCategory.FAIL
-    ))
+    assert_that(
+        result, 
+        matcher=equal_condition_result( # type: ignore
+            is_pass=True,
+            name='Condition for x1 metric',
+            details='',
+            category=ConditionCategory.FAIL
+        ),
+        reason=(
+            "Applying 'df_with_unsatisfying_x2_metric_condition' to the 'condition_for_x1_metric' "
+            "returned 'Not Passed' condition result. But it should have returned 'Passed'"
+        )
+    )
 
     # assert that x1 df do not fail with x2 condition
     result = t.cast(
         ConditionResult,
         condition_for_x2_metric(df_with_unsatisfying_x1_metric_condition)
     )
-    assert_that(result, matcher=equal_condition_result( # type: ignore
-        is_pass=True,
-        name='Condition for x2 metric',
-        details='',
-        category=ConditionCategory.FAIL
-    ))
+    assert_that(
+        result, 
+        matcher=equal_condition_result( # type: ignore
+            is_pass=True,
+            name='Condition for x2 metric',
+            details='',
+            category=ConditionCategory.FAIL
+        ),
+        reason=(
+            "Applying 'df_with_unsatisfying_x1_metric_condition' to the 'condition_for_x2_metric' "
+            "returned 'Not Passed' condition result. But it should have returned 'Passed'"
+        )
+    )
 
     # assert that x1 df fails with general condtion (all features condition)
     result = t.cast(
         ConditionResult,
         condition_for_all_metrics(df_with_unsatisfying_x1_metric_condition)
     )
-    assert_that(result, matcher=equal_condition_result( # type: ignore
-        is_pass=False,
-        name='General Condition',
-        details='Condition failed',
-        category=ConditionCategory.FAIL
-    ))
+    assert_that(
+        result, 
+        matcher=equal_condition_result( # type: ignore
+            is_pass=False,
+            name='General Condition',
+            details='Condition failed',
+            category=ConditionCategory.FAIL
+        ),
+        reason=(
+            "Applying 'df_with_unsatisfying_x1_metric_condition' to the 'condition_for_all_metrics' "
+            "returned 'Passed' condition result. But it should have returned 'Not Passed'"
+        )
+    )
 
     # assert that x2 df fails with general condtion (all features condition)
     result = t.cast(
         ConditionResult,
         condition_for_all_metrics(df_with_unsatisfying_x2_metric_condition)
     )
-    assert_that(result, matcher=equal_condition_result( # type: ignore
-        is_pass=False,
-        name='General Condition',
-        details='Condition failed',
-        category=ConditionCategory.FAIL
-    ))
+    assert_that(
+        result, 
+        matcher=equal_condition_result( # type: ignore
+            is_pass=False,
+            name='General Condition',
+            details='Condition failed',
+            category=ConditionCategory.FAIL
+        ),
+        reason=(
+            "Applying 'df_with_unsatisfying_x2_metric_condition' to the 'condition_for_all_metrics' "
+            "returned 'Passed' condition result. But it should have returned 'Not Passed'"
+        )
+    )
