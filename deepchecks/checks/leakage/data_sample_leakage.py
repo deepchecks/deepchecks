@@ -119,7 +119,7 @@ class DataSampleLeakageReport(TrainTestBaseCheck):
 
         return CheckResult(dup_ratio, header='Data Sample Leakage Report', check=self.__class__, display=display)
 
-    def add_condition_duplicates_ratio_less_than(self, max_ratio: float = 0.1):
+    def add_condition_duplicates_ratio_not_more_than(self, max_ratio: float = 0.1):
         """Add condition - require max allowed ratio of test data samples to appear in train data.
 
         Args:
@@ -133,6 +133,6 @@ class DataSampleLeakageReport(TrainTestBaseCheck):
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'More than {format_percent(max_ratio)} '
+        return self.add_condition(f'Not more than {format_percent(max_ratio)} '
                                   f'of test data samples appear in train data',
                                   condition)

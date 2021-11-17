@@ -91,14 +91,14 @@ def test_condition_ratio_more_than_not_passed(iris_clean):
                 features=iris_clean.feature_names,
                 label='target')
 
-    check = DataSampleLeakageReport().add_condition_duplicates_ratio_less_than(max_ratio=0.09)
+    check = DataSampleLeakageReport().add_condition_duplicates_ratio_not_more_than(max_ratio=0.09)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='More than 9.00% '
+                               name='Not more than 9.00% '
                                     'of test data samples appear in train data',
                               details='Percent of test data samples that appear in train data: '
                                       '10.00%')
@@ -108,13 +108,13 @@ def test_condition_ratio_more_than_not_passed(iris_clean):
 def test_condition_ratio_more_than_passed(diabetes_split_dataset_and_model):
     # Arrange
     train_ds, val_ds, clf = diabetes_split_dataset_and_model
-    check = DataSampleLeakageReport().add_condition_duplicates_ratio_less_than()
+    check = DataSampleLeakageReport().add_condition_duplicates_ratio_not_more_than()
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds, clf))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='More than 10.00% '
+                               name='Not more than 10.00% '
                                     'of test data samples appear in train data')
     ))
