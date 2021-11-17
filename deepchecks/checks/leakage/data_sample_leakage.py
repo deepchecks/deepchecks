@@ -133,6 +133,6 @@ class DataSampleLeakageReport(TrainTestBaseCheck):
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Not more than {format_percent(max_ratio)} '
+        return self.add_condition(f'Percent not greater than {format_percent(max_ratio)} '
                                   f'of test data samples appear in train data',
                                   condition)
