@@ -80,8 +80,8 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
         def compare_pps(result: Dict):
             not_passing_columns = []
             for column_name in result.keys():
-                pps = result[column_name]
-                if pps > max_pps:
+                score = result[column_name]
+                if score > max_pps:
                     not_passing_columns.append(column_name)
             if not_passing_columns:
                 not_passing_str = ', '.join(not_passing_columns)
