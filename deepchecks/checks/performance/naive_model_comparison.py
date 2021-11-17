@@ -105,7 +105,7 @@ class NaiveModelComparison(TrainTestBaseCheck):
         Returns:
             CheckResult: value is a Dict of: given_model_score, naive_model_score, ratio
                          ratio is given model / naive model (if the metric returns negative values we devied 1 by it)
-                         if ration is infinite 99999 is returned
+                         if ratio is infinite 99999 is returned
 
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance.
