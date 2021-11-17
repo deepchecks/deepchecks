@@ -66,7 +66,7 @@ class DataSampleLeakageReport(TrainTestBaseCheck):
             model (): any = None - not used in the check
         Returns:
             CheckResult: value is sample leakage ratio in %,
-                         displays a dataframe that shows the duplicated rows between the datasets
+            displays a dataframe that shows the duplicated rows between the datasets
 
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance

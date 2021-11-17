@@ -23,7 +23,7 @@ class NewLabelTrainTest(TrainTestBaseCheck):
             model: any = None - not used in the check
         Returns:
             CheckResult: value is a dictionary that shows label column with new labels
-                         displays a dataframe that label columns with new labels
+            displays a dataframe that label columns with new labels
         Raises:
             DeepchecksValueError: If the datasets are not a Dataset instance or do not contain label column
         """

@@ -22,11 +22,10 @@ class DataDuplicates(SingleDatasetBaseCheck):
 
         Args:
             columns (str, Iterable[str]): List of columns to check, if none given checks all columns Except ignored
-            ones.
+              ones.
             ignore_columns (str, Iterable[str]): List of columns to ignore, if none given checks based on columns
-            variable.
+              variable.
             n_to_show (int): number of most common duplicated samples to show.
-
         """
         super().__init__()
         self.columns = columns
@@ -37,10 +36,10 @@ class DataDuplicates(SingleDatasetBaseCheck):
         """Run check.
 
         Args:
-          dataset(Dataset): any dataset.
+            dataset(Dataset): any dataset.
 
         Returns:
-          (CheckResult): percentage of duplicates and display of the top n_to_show most duplicated.
+            (CheckResult): percentage of duplicates and display of the top n_to_show most duplicated.
         """
         df: pd.DataFrame = ensure_dataframe_type(dataset)
         df = filter_columns_with_validation(df, self.columns, self.ignore_columns)

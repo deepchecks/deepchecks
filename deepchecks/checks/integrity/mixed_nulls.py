@@ -30,11 +30,11 @@ class MixedNulls(SingleDatasetBaseCheck):
             null_string_list (List[str]): List of strings to be considered alternative null representations
             check_nan(bool): Whether to add to null list to check also NaN values
             columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-                ones.
+              ones.
             ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-                variable
-        n_top_columns (int): (optinal - used only if model was specified)
-                             amount of columns to show ordered by feature importance (date, index, label are first)
+              variable
+            n_top_columns (int): (optinal - used only if model was specified)
+              amount of columns to show ordered by feature importance (date, index, label are first)
         """
         super().__init__()
         self.null_string_list = null_string_list
@@ -91,7 +91,7 @@ class MixedNulls(SingleDatasetBaseCheck):
 
         Returns
             (CheckResult): DataFrame with columns ('Column Name', 'Value', 'Count', 'Fraction of data') for any column
-             which have more than 1 null values.
+            which have more than 1 null values.
         """
         # Validate parameters
         original_dataset = dataset
