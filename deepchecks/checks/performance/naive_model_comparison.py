@@ -105,6 +105,7 @@ class NaiveModelComparison(TrainTestBaseCheck):
         Returns:
             CheckResult: value is a Dict of: given_model_score, naive_model_score, ratio
                          ratio is given model / naive model (if the metric returns negative values we devied 1 by it)
+                         if ration is infinite 99999 is returned
 
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance.
@@ -124,9 +125,12 @@ class NaiveModelComparison(TrainTestBaseCheck):
                                                             self.naive_model_type, self.metric,
                                                             self.metric_name)
 
-        ratio = pred_metric / naive_metric
-        if naive_metric < 0 and pred_metric < 0:
-            ratio = 1 / ratio
+        if naive_metric == 0:
+            ratio = 99999
+        else:
+            ratio = pred_metric / naive_metric
+            if naive_metric < 0 and pred_metric < 0:
+                ratio = 1 / ratio
 
         text = f'The given model performs {format_number(ratio)} times compared to' \
                f' the naive model using the {metric_name} metric.<br>' \
