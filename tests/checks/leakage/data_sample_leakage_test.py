@@ -75,7 +75,7 @@ def test_nan():
     assert_that(result, equal_to(0.5))
 
 
-def test_condition_ratio_more_than_not_passed(iris_clean):
+def test_condition_ratio_not_greater_than_not_passed(iris_clean):
     # Arrange
     x = iris_clean.data
     y = iris_clean.target
@@ -105,7 +105,7 @@ def test_condition_ratio_more_than_not_passed(iris_clean):
     ))
 
 
-def test_condition_ratio_more_than_passed(diabetes_split_dataset_and_model):
+def test_condition_ratio_not_greater_than_passed(diabetes_split_dataset_and_model):
     # Arrange
     train_ds, val_ds, clf = diabetes_split_dataset_and_model
     check = DataSampleLeakageReport().add_condition_duplicates_ratio_not_greater_than()
