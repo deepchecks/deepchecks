@@ -13,7 +13,7 @@ __all__ = ['RocReport']
 
 
 class RocReport(SingleDatasetBaseCheck):
-    """Return the AUC for each class."""
+    """Calculate the AUC (Area Under Curve) for each class."""
 
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run check.
@@ -61,7 +61,7 @@ class RocReport(SingleDatasetBaseCheck):
             plt.ylim([0.0, 1.05])
             plt.xlabel('False Positive Rate')
             plt.ylabel('True Positive Rate')
-            plt.title('Receiver operating characteristic for multi-class data')
+            plt.title('ROC curves')
             plt.legend(loc='lower right')
 
         return CheckResult(roc_auc, header='ROC Report', check=self.__class__, display=display)
