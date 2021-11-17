@@ -9,7 +9,7 @@ __all__ = ['ConfusionMatrixReport']
 
 
 class ConfusionMatrixReport(SingleDatasetBaseCheck):
-    """Calculate the confusion matrix of the model on the given dataset"""
+    """Calculate the confusion matrix of the model on the given dataset."""
 
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run check.
