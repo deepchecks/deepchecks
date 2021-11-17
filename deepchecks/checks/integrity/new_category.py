@@ -35,7 +35,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
             model: any = None - not used in the check
         Returns:
             CheckResult: value is a dictionary that shows columns with new categories
-                         displays a dataframe that shows columns with new categories
+            displays a dataframe that shows columns with new categories
         """
         return self._new_category_train_test(train_dataset=train_dataset,
                                                    test_dataset=test_dataset)

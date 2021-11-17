@@ -35,7 +35,7 @@ def diabetes(diabetes_df):
 
 @pytest.fixture(scope='session')
 def diabetes_model(diabetes):
-    clf = GradientBoostingRegressor()
+    clf = GradientBoostingRegressor(random_state=0)
     train, _ = diabetes
     return clf.fit(train.features_columns(), train.label_col())
 
@@ -69,7 +69,7 @@ def iris_dataset(iris):
 @pytest.fixture(scope='session')
 def iris_adaboost(iris):
     """Return trained AdaBoostClassifier on iris data."""
-    clf = AdaBoostClassifier()
+    clf = AdaBoostClassifier(random_state=0)
     features = iris.drop('target', axis=1)
     target = iris.target
     clf.fit(features, target)
@@ -85,7 +85,7 @@ def iris_labeled_dataset(iris):
 @pytest.fixture(scope='session')
 def iris_random_forest(iris):
     """Return trained RandomForestClassifier on iris data."""
-    clf = RandomForestClassifier()
+    clf = RandomForestClassifier(random_state=0)
     features = iris.drop('target', axis=1)
     target = iris.target
     clf.fit(features, target)
@@ -95,7 +95,7 @@ def iris_random_forest(iris):
 @pytest.fixture(scope='session')
 def iris_random_forest_single_class(iris):
     """Return trained RandomForestClassifier on iris data modified to a binary label."""
-    clf = RandomForestClassifier()
+    clf = RandomForestClassifier(random_state=0)
     idx = iris.target != 2
     features = iris.drop('target', axis=1)[idx]
     target = iris.target[idx]
@@ -127,7 +127,7 @@ def iris_split_dataset_and_model(iris_clean) -> Tuple[Dataset, Dataset, AdaBoost
     train, test = train_test_split(iris_clean.frame, test_size=0.33, random_state=42)
     train_ds = Dataset(train, label='target')
     val_ds = Dataset(test, label='target')
-    clf = AdaBoostClassifier()
+    clf = AdaBoostClassifier(random_state=0)
     clf.fit(train_ds.features_columns(), train_ds.label_col())
     return train_ds, val_ds, clf
 

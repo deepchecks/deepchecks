@@ -12,7 +12,7 @@ from deepchecks.base.check import BaseCheck, CheckResult, TrainTestBaseCheck, Co
 
 __all__ = ['CheckSuite', 'SuiteResult']
 
-from deepchecks.utils import is_notebook, DeepchecksValueError
+from deepchecks.utils import DeepchecksValueError, is_widgets_enabled
 
 
 def get_display_exists_icon(exists: bool):
@@ -115,7 +115,7 @@ class CheckSuite(BaseCheck):
     _check_index: int
 
     def __init__(self, name: str, *checks):
-        """Get `Check`s and `CheckSuite`s to run in given order."""
+        """Get 'Check's and 'CheckSuite's to run in given order."""
         super().__init__()
         self.name = name
         self.checks = OrderedDict()
@@ -149,7 +149,7 @@ class CheckSuite(BaseCheck):
                                    bar_style='info', style={'bar_color': '#9d60fb'}, orientation='horizontal')
         label = HTML()
         box = VBox(children=[label, progress_bar])
-        self._display_in_notebook(box)
+        self._display_widget(box)
 
         # Run all checks
         results = []
@@ -235,6 +235,6 @@ class CheckSuite(BaseCheck):
         self.checks.pop(index)
         return self
 
-    def _display_in_notebook(self, param):
-        if is_notebook():
+    def _display_widget(self, param):
+        if is_widgets_enabled():
             display(param)

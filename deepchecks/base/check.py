@@ -150,6 +150,7 @@ class CheckResult:
                 try:
                     df_styler = item.style
                     df_styler.set_table_styles([dict(selector='th,td', props=[('text-align', 'left')])])
+                    df_styler.format(precision=2)
                     display_html(df_styler.render(), raw=True)
                 # Because of MLC-154. Dataframe with Multi-index or non unique indices does not have a style
                 # attribute, hence we need to display as a regular pd html format.
