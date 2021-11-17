@@ -1,13 +1,17 @@
 """Contains unit tests for the single_feature_contribution check."""
+import re
 import numpy as np
 import pandas as pd
+from hamcrest import assert_that, is_in, close_to, calling, raises, equal_to
 
 from deepchecks import Dataset
-from deepchecks.checks.leakage import SingleFeatureContribution, \
-                                    SingleFeatureContributionTrainTest
+from deepchecks import ConditionCategory
+from deepchecks.checks.leakage import SingleFeatureContribution, SingleFeatureContributionTrainTest
 from deepchecks.utils import DeepchecksValueError
 
-from hamcrest import assert_that, is_in, close_to, calling, raises, equal_to
+from tests.checks.utils import equal_condition_result
+from tests.checks.utils import ANY_FLOAT_REGEXP
+
 
 
 def util_generate_dataframe_and_expected():
@@ -108,3 +112,88 @@ def test_trainval_dataset_diff_columns():
                        test_dataset=Dataset(df2, label='label')),
         raises(DeepchecksValueError,
                'Check SingleFeatureContributionTrainTest requires datasets to share the same features'))
+
+
+def test_pps_lower_bound_conditions_for_each_feature_that_should_pass():
+    df, expected = util_generate_dataframe_and_expected()
+    dataset = Dataset(df, label="label")
+    check = SingleFeatureContribution()
+
+    for feature_name, expected_pps in expected.items():
+        if expected_pps != 0:
+            check.add_condition_feature_pps_not_less_than(
+                expected_pps / 2,
+                features=[feature_name],
+                category=ConditionCategory.WARN,
+                name="Test Condition"
+            )
+
+    check_result = check.run(dataset)
+
+    for condition_result in check.conditions_decision(check_result):
+        assert_that(condition_result, equal_condition_result( # type: ignore
+            is_pass=True,
+            details="",
+            category=ConditionCategory.WARN,
+            name="Test Condition"
+        ))
+
+    check.clean_conditions()
+
+
+def test_all_features_pps_lower_bound_condition_that_should_not_pass():
+    df, expected = util_generate_dataframe_and_expected()
+    dataset = Dataset(df, label="label")
+    check = SingleFeatureContribution()
+
+    condition_value = sum(expected.values()) / len(expected)
+    features_that_will_not_pass = [k for k, v in expected.items() if v <= condition_value]
+
+    check.add_condition_feature_pps_not_less_than(
+        var=sum(expected.values()) / len(expected),
+        category=ConditionCategory.WARN,
+        name="Test Condition",
+        failure_message="{failed_features}"
+    )
+
+    check_result = check.run(dataset)
+    condition_result, *_ = check.conditions_decision(check_result)
+
+    details_pattern = re.compile(';'.join([
+        fr'{name} \(pps: {ANY_FLOAT_REGEXP.pattern}\)'
+        for name in features_that_will_not_pass
+    ]))
+
+    assert_that(condition_result, equal_condition_result( # type: ignore
+        is_pass=False,
+        category=ConditionCategory.WARN,
+        name="Test Condition",
+        details=details_pattern
+    ))
+
+
+def test_specific_features_pps_lower_bound_condition_that_should_pass():
+    df, expected = util_generate_dataframe_and_expected()
+    dataset = Dataset(df, label="label")
+    check = SingleFeatureContribution()
+
+    expected_pps = {k: v for k, v in expected.items() if v != 0}
+    features = list(expected_pps.keys())
+    min_value = min(expected_pps.values())
+
+    check.add_condition_feature_pps_not_less_than(
+        var=min_value - (min_value * 0.1),
+        features=features,
+        category=ConditionCategory.WARN,
+        name="Test Condition",
+    )
+
+    check_result = check.run(dataset)
+    condition_result, *_ = check.conditions_decision(check_result)
+
+    assert_that(condition_result, equal_condition_result( # type: ignore
+        is_pass=True,
+        category=ConditionCategory.WARN,
+        name="Test Condition",
+        details=""
+    ))

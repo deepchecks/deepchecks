@@ -110,8 +110,8 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
 
             details_template_vars = {
                 "var": var,
-                "all_features": all_features,
-                "failed_features": failed_features
+                "all_features": ';'.join(all_features),
+                "failed_features": ';'.join(failed_features)
             }
 
             passed = len(failed_features) == 0
