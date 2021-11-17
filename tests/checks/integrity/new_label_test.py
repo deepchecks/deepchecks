@@ -4,7 +4,9 @@ import pandas as pd
 from deepchecks.base import Dataset
 from deepchecks.utils import DeepchecksValueError
 from deepchecks.checks.integrity import NewLabelTrainTest
-from hamcrest import assert_that, calling, raises, has_length, close_to, equal_to
+from hamcrest import assert_that, calling, raises, has_length, close_to, equal_to, has_items
+
+from tests.checks.utils import equal_condition_result
 
 
 def test_dataset_wrong_input():
@@ -40,8 +42,10 @@ def test_new_label():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, has_length(1))
-    assert_that(result['col1'], close_to(0.25, 0.01))
+    assert_that(result)
+    assert_that(result['n_new_labels_samples'], equal_to(1))
+    assert_that(result['n_samples'], equal_to(4))
+    assert_that(result['new_labels'], equal_to([4]))
 
 
 def test_missing_label():
@@ -69,8 +73,10 @@ def test_missing_new_label():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, has_length(1))
-    assert_that(result['col1'], close_to(0.25, 0.01))
+    assert_that(result)
+    assert_that(result['n_new_labels_samples'], equal_to(1))
+    assert_that(result['n_samples'], equal_to(4))
+    assert_that(result['new_labels'], equal_to([5]))
 
 
 def test_multiple_categories():
@@ -84,5 +90,81 @@ def test_multiple_categories():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, has_length(1))
-    assert_that(result['col1'], close_to(0.25, 0.01))
+    assert_that(result)
+    assert_that(result['n_new_labels_samples'], equal_to(1))
+    assert_that(result['n_samples'], equal_to(4))
+    assert_that(result['new_labels'], equal_to([5]))
+
+
+def test_condition_number_of_new_labels_pass():
+    train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
+    test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), label='col1')
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), label='col1')
+
+    # Arrange
+    check = NewLabelTrainTest().add_condition_new_labels_not_greater_than(3)
+
+    # Act
+    result = check.conditions_decision(check.run(train_dataset, test_dataset))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=True,
+                               name='Not greater than 3 new labels in label column')
+    ))
+
+
+def test_condition_number_of_new_labels_fail():
+    train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
+    test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), label='col1')
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), label='col1')
+
+    # Arrange
+    check = NewLabelTrainTest().add_condition_new_labels_not_greater_than(0)
+
+    # Act
+    result = check.conditions_decision(check.run(train_dataset, test_dataset))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=False,
+                               details='Found more than 0 new labels in label column: col1',
+                               name='Not greater than 0 new labels in label column')
+    ))
+
+
+def test_condition_ratio_of_new_label_samples_pass():
+    train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
+    test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), label='col1')
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), label='col1')
+
+    # Arrange
+    check = NewLabelTrainTest().add_condition_new_label_sample_ratio_not_greater_than(0.3)
+
+    # Act
+    result = check.conditions_decision(check.run(train_dataset, test_dataset))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=True,
+                               name='Not greater than 30.00% new label samples in label column')
+    ))
+
+
+def test_condition_ratio_of_new_label_samples_fail():
+    train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
+    test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), label='col1')
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), label='col1')
+
+    # Arrange
+    check = NewLabelTrainTest().add_condition_new_label_sample_ratio_not_greater_than(0.1)
+
+    # Act
+    result = check.conditions_decision(check.run(train_dataset, test_dataset))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=False,
+                               details='Found more than 10.00% new labeled data in label column: col1',
+                               name='Not greater than 10.00% new label samples in label column')
+    ))
