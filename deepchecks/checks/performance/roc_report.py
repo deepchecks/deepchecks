@@ -105,7 +105,7 @@ class RocReport(SingleDatasetBaseCheck):
                     failed_classes.append(f'class {class_name}: {format_number(score)}')
             if failed_classes:
                 return ConditionResult(False,
-                                       f'The scores bellow the allowed AUC are: {failed_classes}')
+                                       f'The scores that are less than the allowed AUC are: {failed_classes}')
             else:
                 return ConditionResult(True)
 
@@ -113,5 +113,5 @@ class RocReport(SingleDatasetBaseCheck):
             suffix = f' except: {self.excluded_classes}'
         else:
             suffix = ''
-        return self.add_condition(f'Not less than {min_auc} AUC score for the classes{suffix}',
+        return self.add_condition(f'Not less than {min_auc} AUC score for all the classes{suffix}',
                                   condition)
