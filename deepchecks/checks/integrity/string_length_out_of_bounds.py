@@ -201,14 +201,15 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
             if not_passing_columns:
                 not_passing_str = ', '.join(not_passing_columns)
                 return ConditionResult(False,
-                                       f'Found columns with more than {max_outliers} null types: '
+                                       f'Found columns with greater than {max_outliers} outliers: '
                                        f'{not_passing_str}')
             else:
                 return ConditionResult(True)
 
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        return self.add_condition(f'Not more than {max_outliers} different null types for {column_names}',
-                                  compare_outlier_count)
+        return self.add_condition(
+            f'Number of outliers not greater than {max_outliers} string length outliers for {column_names}',
+            compare_outlier_count)
 
     def add_condition_percent_of_outliers_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require column not to have more than given ratio of string length outliers.
@@ -229,12 +230,12 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
             if not_passing_columns:
                 not_passing_str = ', '.join(not_passing_columns)
                 return ConditionResult(False,
-                                       f'Found columns with more than {format_percent(max_ratio)} outliers: '
+                                       f'Found columns with greater than {format_percent(max_ratio)} outliers: '
                                        f'{not_passing_str}')
             else:
                 return ConditionResult(True)
 
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
         return self.add_condition(
-            f'Not more than {format_percent(max_ratio)} different null types for {column_names}',
+            f'Ratio of outliers Not greater than {format_percent(max_ratio)} string length outliers for {column_names}',
             compare_outlier_ratio)

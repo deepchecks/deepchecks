@@ -123,8 +123,8 @@ def test_condition_count_fail():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found columns with more than 1 null types: col1',
-                               name='Not more than 1 different null types for all columns')
+                               details='Found columns with greater than 1 outliers: col1',
+                               name='Number of outliers not greater than 1 string length outliers for all columns')
     ))
 
 
@@ -143,7 +143,7 @@ def test_condition_count_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Not more than 10 different null types for all columns')
+                               name='Number of outliers not greater than 10 string length outliers for all columns')
     ))
 
 
@@ -162,8 +162,8 @@ def test_condition_ratio_fail():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found columns with more than 0.10% outliers: col1',
-                               name='Not more than 0.10% different null types for all columns')
+                               details='Found columns with greater than 0.10% outliers: col1',
+                               name='Ratio of outliers Not greater than 0.10% string length outliers for all columns')
     ))
 
 
@@ -182,5 +182,5 @@ def test_condition_ratio_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Not more than 10.00% different null types for all columns')
+                               name='Ratio of outliers Not greater than 10.00% string length outliers for all columns')
     ))
