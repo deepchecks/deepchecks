@@ -73,17 +73,17 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
 
         Args:
             columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-                        ones.
+              ones.
             ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-                            variable
+              variable
             num_percentiles (int): Number of percentiles values to retrieve for the length of the samples in the string
-                                   column. Affects the resolution of string lengths that is used to detect outliers.
+              column. Affects the resolution of string lengths that is used to detect outliers.
             inner_quantile_range(int): The int upper percentile [0-100] defining the inner percentile range.
-                                       E.g. for 98 the range would be 2%-98%.
+              E.g. for 98 the range would be 2%-98%.
             outlier_factor (int): Strings would be defined as outliers if their length is outlier_factor times more/less
-                                  than the values inside the inner quantile range.
-        n_top_columns (int): (optinal - used only if model was specified)
-                             amount of columns to show ordered by feature importance (date, index, label are first)
+              than the values inside the inner quantile range.
+            n_top_columns (int): (optinal - used only if model was specified)
+              amount of columns to show ordered by feature importance (date, index, label are first)
         """
         super().__init__()
         self.columns = columns

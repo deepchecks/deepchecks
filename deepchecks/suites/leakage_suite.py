@@ -25,7 +25,7 @@ DateLeakageCheckSuite = CheckSuite(
 
 DataLeakageCheckSuite = CheckSuite(
     'Data Leakage Suite',
-    DataSampleLeakageReport(),
+    DataSampleLeakageReport().add_condition_duplicates_ratio_not_greater_than(),
     SingleFeatureContribution(),
     SingleFeatureContributionTrainTest()
 )

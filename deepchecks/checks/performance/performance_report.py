@@ -29,7 +29,7 @@ class PerformanceReport(SingleDatasetBaseCheck):
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
 
         Returns:
-            CheckResult: value is dictionary in format `{<metric>: score}`
+            CheckResult: value is dictionary in format 'metric': score
         """
         return self._performance_report(dataset, model)
 
