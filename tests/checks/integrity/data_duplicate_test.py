@@ -89,7 +89,7 @@ def test_condition_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                details='Found 40.00% duplicate data',
-                               name='Duplicate data is more than 10.00%')))
+                               name='Duplicate data is not greater than 10.00%')))
 
 
 def test_condition():
@@ -104,4 +104,4 @@ def test_condition():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Duplicate data is more than 0%')))
+                               name='Duplicate data is not greater than 0%')))

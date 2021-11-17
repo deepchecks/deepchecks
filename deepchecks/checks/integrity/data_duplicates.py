@@ -83,5 +83,5 @@ class DataDuplicates(SingleDatasetBaseCheck):
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Duplicate data is more than {format_percent(max_ratio)}',
+        return self.add_condition(f'Duplicate data is not greater than {format_percent(max_ratio)}',
                                   max_ratio_condition)
