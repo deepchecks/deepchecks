@@ -21,11 +21,11 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
 
         Args:
             p_value_threshold (float = 0.0001): Maximal p-value to pass the statistical test determining
-                                          if the value abundance has changed significantly (0-1).
+              if the value abundance has changed significantly (0-1).
             dominance_ratio (float = 2): Next most abundance value has to be THIS times less than the first (0-inf).
             ratio_change_thres (float = 1.5): The dominant frequency has to change by at least this ratio (0-inf).
-        n_top_columns (int): (optinal - used only if model was specified)
-                             amount of columns to show ordered by feature importance (date, index, label are first)
+            n_top_columns (int): (optinal - used only if model was specified)
+              amount of columns to show ordered by feature importance (date, index, label are first)
         """
         super().__init__()
         self.p_value_threshold = p_value_threshold
@@ -38,10 +38,10 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
 
         Args:
             dataset (Dataset): The training dataset object. Must contain an index.
-            baseline_dataset (Dataset): The validation dataset object. Must contain an index.
+            baseline_dataset (Dataset): The baseline dataset object. Must contain an index.
         Returns:
             CheckResult: Detects values highly represented in the tested and reference data and checks if their..
-                         relative and absolute percentage have increased significantly and makes a report.
+            relative and absolute percentage have increased significantly and makes a report.
         Raises:
             DeepchecksValueError: If the object is not a Dataset or DataFrame instance
         """
