@@ -16,7 +16,7 @@ __all__ = ['RocReport']
 
 
 class RocReport(SingleDatasetBaseCheck):
-    """Return the AUC for each class."""
+    """Calculate the AUC (Area Under Curve) for each class."""
 
     def __init__(self, excluded_classes: List = None):
         """Initialize the DominantFrequencyChange class.
@@ -85,6 +85,7 @@ class RocReport(SingleDatasetBaseCheck):
                 plt.title('Receiver operating characteristic for binary data')
             else:
                 plt.title('Receiver operating characteristic for multi-class data')
+            plt.title('ROC curves')
             plt.legend(loc='lower right')
 
         return CheckResult(roc_auc, header='ROC Report', check=self.__class__, display=display)
