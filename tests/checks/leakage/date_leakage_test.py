@@ -221,7 +221,7 @@ def test_condition_fail_on_overlap():
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
 
-    check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_more_than(0.2)
+    check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_not_greater_than(0.2)
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds))
@@ -262,7 +262,7 @@ def test_condition_on_overlap():
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
 
-    check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_more_than()
+    check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_not_greater_than()
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds))
@@ -306,7 +306,7 @@ def test_condition_fail_on_duplicates():
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
 
-    check = DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_more_than(0.1)
+    check = DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_not_greater_than(0.1)
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds))
@@ -347,7 +347,7 @@ def test_condition_pass_on_duplicates():
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
 
-    check = DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_more_than()
+    check = DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_not_greater_than()
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds))
