@@ -74,4 +74,4 @@ class CalibrationMetric(SingleDatasetBaseCheck):
         brier_text = "The Brier score metric may be used to assess how well a classifier is calibrated. For more " \
                      "info, please visit https://en.wikipedia.org/wiki/Brier_score"
         return CheckResult(briers_scores, header="Calibration Metric", check=self.__class__,
-                           display=[calibration_text, brier_text, display])
+                           display=[calibration_text, display, brier_text])
