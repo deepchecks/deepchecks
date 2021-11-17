@@ -17,9 +17,10 @@ __all__ = ['UnusedFeatures']
 
 
 def naive_encoder(dataset: Dataset) -> TransformerMixin:
-    """
-    Create a naive encoder for categorical and numerical features. The encoder handles nans for all features and
-    uses label encoder for categorical features. Then, all features are scaled using RobustScaler.
+    """Create a naive encoder for categorical and numerical features.
+
+    The encoder handles nans for all features and uses label encoder for categorical features. Then, all features are
+    scaled using RobustScaler.
 
     Args:
         dataset: The dataset to encode.
@@ -27,17 +28,16 @@ def naive_encoder(dataset: Dataset) -> TransformerMixin:
     Returns:
         A transformer object.
     """
-
     numeric_features = list(set(dataset.features()) - set(dataset.cat_features))
 
     return ColumnTransformer(
         transformers=[
-            ("num", Pipeline([
+            ('num', Pipeline([
                 ('nan_handling', SimpleImputer()),
                 ('norm', RobustScaler())
             ]),
              numeric_features),
-            ("cat",
+            ('num',
              Pipeline([
                  ('nan_handling', SimpleImputer(strategy='most_frequent')),
                  ('encode', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)),
@@ -86,14 +86,13 @@ class UnusedFeatures(TrainTestBaseCheck):
             DeepchecksValueError: If neither train_dataset nor test_dataset exist, or either of the dataset objects are
                                   not a Dataset instance with a label.
         """
-
         func_name = self.__class__.__name__
         if test_dataset:
             dataset = test_dataset
         elif train_dataset:
             dataset = train_dataset
         else:
-            raise DeepchecksValueError(f'Either train_dataset or test_dataset must be supplied')
+            raise DeepchecksValueError('Either train_dataset or test_dataset must be supplied')
         Dataset.validate_dataset(dataset, func_name)
         dataset.validate_label(func_name)
         test_dataset.validate_label(func_name)
@@ -153,12 +152,12 @@ class UnusedFeatures(TrainTestBaseCheck):
             if last_important_feature_index < len(feature_df) - 1:
                 last_important_feature_line_loc = last_important_feature_index + 0.6
                 plt.plot([0., feature_df.max().max()],
-                         [last_important_feature_line_loc, last_important_feature_line_loc], "k--")
+                         [last_important_feature_line_loc, last_important_feature_line_loc], 'k--')
                 legend_labels = ['Last significant feature'] + legend_labels
             if last_variable_feature_index < len(feature_df) - 1:
                 last_variable_feature_line_loc = last_variable_feature_index + 0.6
                 plt.plot([0., feature_df.max().max()],
-                         [last_variable_feature_line_loc, last_variable_feature_line_loc], "r--")
+                         [last_variable_feature_line_loc, last_variable_feature_line_loc], 'r--')
                 legend_labels = ['Last significant feature', 'Last significant variance feature'] +\
                     feature_df.columns.values.tolist()
             plt.gca().invert_yaxis()

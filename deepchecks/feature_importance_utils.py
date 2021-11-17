@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from typing import Any, Dict
 
-from pyparsing import Each
+from sklearn.base import BaseEstimator
 from sklearn.inspection import permutation_importance
 from sklearn.pipeline import Pipeline
 from sklearn.utils.validation import check_is_fitted
@@ -52,15 +52,13 @@ def calculate_feature_importance(model: Any, dataset: Dataset) -> pd.Series:
     dataset.validate_model(model)
 
     feature_importances = _built_in_importance(model, dataset)
-    if (feature_importances is None):
+    if feature_importances is None:
         if isinstance(model, Pipeline):
             # Assume model is last
             final_estimator = model.steps[-1][1]
-            try:
+            if isinstance(final_estimator, BaseEstimator):
                 feature_importances = _built_in_importance(final_estimator, dataset)
-            except Exception:  # final_estimator can actually be all kind of sklearn objects so this is needed
-                feature_importances = None
-            if feature_importances is None:
+            else:
                 feature_importances = _calc_importance(model, dataset)
         else:  # Others
             feature_importances = _calc_importance(model, dataset)
@@ -69,7 +67,7 @@ def calculate_feature_importance(model: Any, dataset: Dataset) -> pd.Series:
 
 
 def _built_in_importance(model: Any, dataset: Dataset):
-    """Get feature importance member if present in model"""
+    """Get feature importance member if present in model."""
     if 'feature_importances_' in dir(model):  # Ensambles
         normalized_feature_importance_values = model.feature_importances_/model.feature_importances_.sum()
         return pd.Series(normalized_feature_importance_values, index=dataset.features())
