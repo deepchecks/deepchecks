@@ -37,7 +37,7 @@ def naive_encoder(dataset: Dataset) -> TransformerMixin:
                 ('norm', RobustScaler())
             ]),
              numeric_features),
-            ('num',
+            ('cat',
              Pipeline([
                  ('nan_handling', SimpleImputer(strategy='most_frequent')),
                  ('encode', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)),
