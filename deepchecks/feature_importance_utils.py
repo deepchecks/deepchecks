@@ -52,17 +52,18 @@ def calculate_feature_importance(model: Any, dataset: Dataset) -> pd.Series:
     dataset.validate_model(model)
 
     feature_importances = _built_in_importance(model, dataset)
-    if not feature_importances and isinstance(model, Pipeline):
-        # Assume model is last
-        final_estimator = model.steps[-1][1]
-        try:
-            feature_importances = _built_in_importance(final_estimator, dataset)
-        except Exception:
-            feature_importances = None
-        if feature_importances is None:
+    if (feature_importances is None):
+        if isinstance(model, Pipeline):
+            # Assume model is last
+            final_estimator = model.steps[-1][1]
+            try:
+                feature_importances = _built_in_importance(final_estimator, dataset)
+            except Exception:  # final_estimator can actually be all kind of sklearn objects so this is needed
+                feature_importances = None
+            if feature_importances is None:
+                feature_importances = _calc_importance(model, dataset)
+        else:  # Others
             feature_importances = _calc_importance(model, dataset)
-    else:  # Others
-        feature_importances = _calc_importance(model, dataset)
 
     return feature_importances.fillna(0)
 
