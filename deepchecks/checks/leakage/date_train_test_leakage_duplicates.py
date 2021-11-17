@@ -1,7 +1,8 @@
 """The date_leakage check module."""
 import pandas as pd
 
-from deepchecks import CheckResult, Dataset, TrainTestBaseCheck
+from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
+from deepchecks.string_utils import format_percent
 
 __all__ = ['DateTrainTestLeakageDuplicates']
 
@@ -47,15 +48,31 @@ class DateTrainTestLeakageDuplicates(TrainTestBaseCheck):
 
         date_intersection = set(train_date).intersection(val_date)
         if len(date_intersection) > 0:
-            size_in_test = len(date_intersection) / test_dataset.n_samples()
-            text = f'{size_in_test:.1%} of test data dates appear in training data'
+            leakage_ratio = len(date_intersection) / test_dataset.n_samples()
+            text = f'{format_percent(leakage_ratio)} of test data dates appear in training data'
             table = pd.DataFrame([[list(date_intersection)[:self.n_to_show]]],
                                  index=['Sample of test dates in train:'])
             display = [text, table]
-            return_value = size_in_test
+            return_value = leakage_ratio
         else:
             display = None
             return_value = 0
 
         return CheckResult(value=return_value, header='Date Train-Test Leakage (duplicates)',
                            check=self.__class__, display=display)
+
+    def add_condition_leakage_ratio_not_greater_than(self, max_ratio: float = 0):
+        """Add condition - require leakage ratio to not surpass max_ratio.
+
+        Args:
+            max_ratio (int): Maximum ratio of leakage.
+        """
+        def max_ratio_condition(result: float) -> ConditionResult:
+            if result > max_ratio:
+                return ConditionResult(False, f'Found {format_percent(result)} leaked dates')
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'Date leakage ratio is not greater than {format_percent(max_ratio)}',
+                                  max_ratio_condition)
+
