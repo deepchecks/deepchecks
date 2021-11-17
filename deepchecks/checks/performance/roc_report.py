@@ -18,6 +18,15 @@ __all__ = ['RocReport']
 class RocReport(SingleDatasetBaseCheck):
     """Return the AUC for each class."""
 
+    def __init__(self, excluded_classes: List = None):
+        """Initialize the DominantFrequencyChange class.
+
+        Args:
+            excluded_classes (List): List of classes to exclude from the condition.
+        """
+        super().__init__()
+        self.excluded_classes = excluded_classes if excluded_classes else []
+
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run check.
 
@@ -49,6 +58,8 @@ class RocReport(SingleDatasetBaseCheck):
         tpr = {}
         roc_auc = {}
         for i in range(n_classes):
+            if i in self.excluded_classes:
+                continue
             fpr[i], tpr[i], _ = sklearn.metrics.roc_curve(multi_y[:, i], y_pred_prob[:, i])
             roc_auc[i] = sklearn.metrics.auc(fpr[i], tpr[i])
 
@@ -57,6 +68,8 @@ class RocReport(SingleDatasetBaseCheck):
             plt.clf()
             colors = cycle(['blue', 'red', 'green', 'orange', 'yellow'])
             for i, color in zip(range(n_classes), colors):
+                if i in self.excluded_classes:
+                    continue
                 if n_classes == 2:
                     plt.plot(fpr[i], tpr[i], color=color, label=f'auc = {roc_auc[i]:0.2f}')
                     break
@@ -76,19 +89,18 @@ class RocReport(SingleDatasetBaseCheck):
 
         return CheckResult(roc_auc, header='ROC Report', check=self.__class__, display=display)
 
-    def add_condition_auc_not_less_than(self, min_auc: float = 0.7, excluded_classes: List = None):
+    def add_condition_auc_not_less_than(self, min_auc: float = 0.7):
         """Add condition - require min allowed AUC score per class.
 
         Args:
             min_auc (float): Max allowed AUC score per class.
-            excluded_classes (List): List of classes to exclude from the condition.
 
         """
         def condition(result: Dict) -> ConditionResult:
             failed_classes = []
             for item in result.items():
                 class_name, score = item
-                if score < min_auc and (not excluded_classes or class_name not in excluded_classes):
+                if score < min_auc:
                     failed_classes.append(f'class {class_name}: {format_number(score)}')
             if failed_classes:
                 return ConditionResult(False,
@@ -96,8 +108,8 @@ class RocReport(SingleDatasetBaseCheck):
             else:
                 return ConditionResult(True)
 
-        if excluded_classes:
-            suffix = f' except: {excluded_classes}'
+        if self.excluded_classes:
+            suffix = f' except: {self.excluded_classes}'
         else:
             suffix = ''
         return self.add_condition(f'Not less than {min_auc} AUC score for the classes{suffix}',

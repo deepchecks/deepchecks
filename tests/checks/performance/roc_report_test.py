@@ -86,7 +86,7 @@ def test_condition_ratio_more_than_passed(iris_clean):
                                name='Not less than 0.7 AUC score for the classes',)
     )) 
 
-    check = RocReport().add_condition_auc_not_less_than(min_auc=0.8, excluded_classes=[1])
+    check = RocReport(excluded_classes=[1]).add_condition_auc_not_less_than(min_auc=0.8)
 
     result = check.conditions_decision(check.run(ds, clf))
 
