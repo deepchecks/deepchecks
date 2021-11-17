@@ -1,6 +1,6 @@
 """The roc_report check module."""
 from itertools import cycle
-from typing import Dict
+from typing import Dict, List
 from matplotlib import pyplot as plt
 
 import numpy as np
@@ -9,6 +9,7 @@ from sklearn.base import BaseEstimator
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck
 from deepchecks.base.check import ConditionResult
 from deepchecks.metric_utils import ModelType, task_type_validation
+from deepchecks.string_utils import format_number
 
 
 __all__ = ['RocReport']
@@ -56,31 +57,48 @@ class RocReport(SingleDatasetBaseCheck):
             plt.clf()
             colors = cycle(['blue', 'red', 'green', 'orange', 'yellow'])
             for i, color in zip(range(n_classes), colors):
-                plt.plot(fpr[i], tpr[i], color=color,
-                         label=f'ROC curve of class {i} (auc = {roc_auc[i]:0.2f})')
+                if n_classes == 2:
+                    plt.plot(fpr[i], tpr[i], color=color, label=f'auc = {roc_auc[i]:0.2f}')
+                    break
+                else:
+                    plt.plot(fpr[i], tpr[i], color=color,
+                            label=f'ROC curve of class {i} (auc = {roc_auc[i]:0.2f})')
             plt.plot([0, 1], [0, 1], 'k--')
             plt.xlim([-0.05, 1.0])
             plt.ylim([0.0, 1.05])
             plt.xlabel('False Positive Rate')
             plt.ylabel('True Positive Rate')
-            plt.title('Receiver operating characteristic for multi-class data')
+            if n_classes == 2:
+                plt.title('Receiver operating characteristic for binary data')
+            else:
+                plt.title('Receiver operating characteristic for multi-class data')
             plt.legend(loc='lower right')
 
         return CheckResult(roc_auc, header='ROC Report', check=self.__class__, display=display)
 
-    def add_condition_duplicates_ratio_less_than(self, max_ratio: float = 0.1):
-        """Add condition - require max allowed ratio of test data samples to appear in train data.
+    def add_condition_auc_not_less_than(self, min_auc: float = 0.7, excluded_classes: List = []):
+        """Add condition - require min allowed AUC score per class.
+
         Args:
-            max_ratio (float): Max allowed ratio of test data samples to appear in train data
+            min_auc (float): Max allowed AUC score per class.
+            excluded_classes (List): List of classes to exclude from the condition.
+
         """
         def condition(result: Dict) -> ConditionResult:
-            if max_ratio < result:
+            failed_classes = []
+            for item in result.items():
+                class_name, score = item
+                if score < min_auc and class_name not in excluded_classes:
+                    failed_classes.append(f'class {class_name}: {format_number(score)}')
+            if failed_classes:
                 return ConditionResult(False,
-                                       f'Percent of test data samples that appear in train data: '
-                                       f'{format_percent(result)}')
+                                       f'The scores bellow the allowed AUC are: {failed_classes}')
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'More than {format_percent(max_ratio)} '
-                                  f'of test data samples appear in train data',
+        if excluded_classes:
+            suffix = f' except: {excluded_classes}'
+        else:
+            suffix = ''
+        return self.add_condition(f'Not less than {min_auc} AUC score for the classes{suffix}',
                                   condition)
