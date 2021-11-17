@@ -333,7 +333,7 @@ def validate_train_difference_condition_for_specified_metrics(
 
     in general it was added to reduce boilerplate
 
-    What does it doing:
+    What does it do:
         we have 2 dataframes (df1, df2) and 3 conditions (c1, c2, c3)
 
         c1 - tests that x1 metric is not lower by X (lower by a factor of X)
