@@ -129,7 +129,7 @@ def display_suite_result_2(name: str, results: List[Union[CheckResult, CheckFail
     display_html(html, raw=True)
     for r in display_table:
         r._ipython_display_()
-        display_html("<hr>", raw=True)
+        display_html('<hr>', raw=True)
 
     if others_table:
         others_table = pd.DataFrame(data=others_table, columns=['Check', 'Reason', 'sort'])
