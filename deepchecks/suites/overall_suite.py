@@ -10,35 +10,35 @@ __all__ = ['OverallCheckSuite', 'OverallClassificationCheckSuite', 'OverallRegre
 
 OverallCheckSuite = CheckSuite(
     'Overall Suite',
-    IntegrityCheckSuite,
     LeakageCheckSuite,
     OverfitCheckSuite,
-    PerformanceCheckSuite
+    PerformanceCheckSuite,
+    IntegrityCheckSuite,
 )
 
 
 OverallClassificationCheckSuite = CheckSuite(
     'Overall Classification Suite',
-    IntegrityCheckSuite,
     DataLeakageCheckSuite,
     OverfitCheckSuite,
-    ClassificationCheckSuite
+    ClassificationCheckSuite,
+    IntegrityCheckSuite,
 )
 
 
 OverallRegressionCheckSuite = CheckSuite(
     'Overall Regression Suite',
-    IntegrityCheckSuite,
     DataLeakageCheckSuite,
     OverfitCheckSuite,
-    RegressionCheckSuite
+    RegressionCheckSuite,
+    IntegrityCheckSuite,
 )
 
 
 OverallGenericCheckSuite = CheckSuite(
     'Overall Generic Suite',
-    IntegrityCheckSuite,
     DataLeakageCheckSuite,
     OverfitCheckSuite,
-    GenericPerformanceCheckSuite
+    GenericPerformanceCheckSuite,
+    IntegrityCheckSuite,
 )
