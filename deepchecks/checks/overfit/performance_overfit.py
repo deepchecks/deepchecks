@@ -5,14 +5,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from deepchecks.utils import model_type_validation, DeepchecksValueError
+from deepchecks.utils import model_type_validation
 from deepchecks.metric_utils import get_metrics_list
 from deepchecks import (
     Dataset,
     CheckResult,
     TrainTestBaseCheck,
-    ConditionResult,
-    ConditionCategory
+    ConditionResult
 )
 
 
@@ -110,38 +109,23 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
     def _condition_factory(
         self,
         var: float,
-        metrics: t.Optional[t.Sequence[str]],
-        category: ConditionCategory,
         failure_message: str,
         operation_func: t.Callable[[pd.Series, pd.Series], pd.Series],
         condition_func: t.Callable[[pd.Series, float], pd.Series]
     ) -> t.Callable[[pd.DataFrame], ConditionResult]:
 
         def condition(df: pd.DataFrame) -> ConditionResult:
-            calculated_metric_names = t.cast(t.List[str], list(df['Training Metrics'].index))
-            provided_metric_names = metrics if metrics is not None else calculated_metric_names
-            metric_names_diff = set(provided_metric_names).difference(set(calculated_metric_names))
-
-            if len(metric_names_diff) != 0:
-                raise DeepchecksValueError(f'Unknown metrics - {metric_names_diff}')
-
-            training_metrics = df['Training Metrics'][list(provided_metric_names)]
-            test_metrics = df['Test Metrics'][list(provided_metric_names)]
+            training_metrics = df['Training Metrics']
+            test_metrics = df['Test Metrics']
             operation_result = operation_func(training_metrics, test_metrics)
             condition_result = operation_result[condition_func(operation_result, var)]
             passed = len(condition_result) == 0
-
-            details_vars = {
-                'var': var,
-                'all_metric_values': ';'.join([f'{k}={v}' for k, v in operation_result.to_dict().items()]),
-                'failed_metric_values': ';'.join([f'{k}={v}' for k, v in condition_result.to_dict().items()])
-            }
+            failed_metrics = ';'.join(condition_result.to_dict().keys())
 
             return ConditionResult(
                 is_pass=passed,
-                category=category,
                 details=(
-                    failure_message.format(**details_vars)
+                    failure_message.format(failed_metrics=failed_metrics)
                     if not passed
                     else ''
                 )
@@ -149,118 +133,45 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
 
         return condition
 
-    def add_condition_train_test_difference_not_greater_than(
-        self: TD,
-        var: float,
-        *,
-        metrics: t.Union[str, t.Sequence[str], None] = None,
-        category: ConditionCategory = ConditionCategory.FAIL,
-        failure_message: str = (
-            'Difference between Train dataset and Test dataset is greater than {var}. '
-            'Failed metrics: {failed_metric_values}'
-        ),
-        name: str = 'Train Test datasets difference upper bound. (for metrics: {metrics})'
-    ) -> TD:
+    def add_condition_train_test_difference_not_greater_than(self: TD, var: float) -> TD:
         """
         Add new condition.
 
         Add condition that will check that difference between train dataset metrics and test
         dataset metrics is not greater than X.
 
-        If `metrics` variable was not passed then this condition will be applied to
-        each calculated metric.
-
-        Next variables are available for use within messages templates:
-            - var (float)
-            - all_metric_values (str)
-            - failed_metric_values (str) - metric values that did not pass condition
-
         Args:
-            var
-            metrics: list of metric names to which condition should be applied
-            category: condition category
-            failure_message: condition message in case of failure
-            name: condition name
-
-        Raises:
-            DeepchecksValueError: if `metrics` is empty list or empty str
-
-        Condition Raises:
-            DeepchecksValueError: if `metrics` contains unknown metric name
+            var: metrics difference upper bound
         """
-        if metrics is not None and len(metrics) == 0:
-            raise DeepchecksValueError("`metrics` names list (name string) cannot be empty!") # pylint: disable=inconsistent-quotes
-        elif isinstance(metrics, str):
-            metrics = [metrics]
-        elif isinstance(metrics, t.Sequence):
-            metrics = list(metrics)
-        else:
-            metrics = None
-
+        failure_message = (
+            f'Difference between Train dataset and Test dataset is greater than {var}. '
+            'Failed metrics: {failed_metrics}'
+        )
         return self.add_condition(
-            name=name.format(metrics='all' if metrics is None else ','.join(metrics)),
+            name=f'Train Test datasets metrics difference is not greater than {var}.',
             condition_func=self._condition_factory(
                 var,
-                metrics,
-                category,
                 failure_message,
                 operation_func=lambda trainin_metrics, test_metrics: trainin_metrics - test_metrics,
                 condition_func=lambda metrics_difference, var: metrics_difference >= var
             )
         )
 
-    def add_condition_train_test_ratio_not_greater_than(
-        self: TD,
-        var: float,
-        *,
-        metrics: t.Union[str, t.Sequence[str], None] = None,
-        category: ConditionCategory = ConditionCategory.FAIL,
-        failure_message: str = 'Train Test ratio is greater than {var}. Failed metrics: {failed_metric_values}',
-        name: str = 'Test Train ratio upper bound. (for metrics: {metrics})'
-    ) -> TD:
+    def add_condition_train_test_ratio_not_greater_than(self: TD, var: float) -> TD:
         """
         Add new condition.
 
         Add condition that will check that ration between train dataset metrics and test
         dataset metrics is not greater than X.
 
-        If `metrics` variable was not passed then this condition will be applied to
-        each calculated metric.
-
-        Next variables are available for use within messages templates:
-            - var (float)
-            - all_metric_values (str)
-            - failed_metric_values (str) - metric values that did not pass condition
-
         Args:
-            var
-            metrics: list of metric names to which condition should be applied
-            category: condition category
-            failure_message: condition message in case of failure
-            name: condition name
-
-        Raises:
-            DeepchecksValueError: if `metrics` is empty list or empty str
-
-        Condition Raises:
-            DeepchecksValueError: if `metrics` contains unknown metric name
+            var: ratio upper bound
         """
-        if metrics is not None and len(metrics) == 0:
-            raise DeepchecksValueError("`metrics` names list (name string) cannot be empty!") # pylint: disable=inconsistent-quotes
-        elif isinstance(metrics, str):
-            metrics = [metrics]
-        elif isinstance(metrics, t.Sequence):
-            metrics = list(metrics)
-        else:
-            metrics = None
-
         return self.add_condition(
-            name=name.format(metrics='all' if metrics is None else ','.join(metrics)),
+            name=f'Test Train ratio is not grater than {var}',
             condition_func=self._condition_factory(
                 var,
-                metrics,
-                category,
-                failure_message,
+                failure_message=f'Train Test ratio is greater than {var}. Failed metrics: {{failed_metrics}}',
                 operation_func=lambda trainin_metrics, test_metrics: trainin_metrics / test_metrics,
                 condition_func=lambda metrics_ratio, var: metrics_ratio >= var
             )
