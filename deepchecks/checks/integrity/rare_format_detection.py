@@ -1,16 +1,17 @@
 """The single_feature_contribution check module."""
+import typing as t
 import re
 from copy import deepcopy
-from typing import Iterable, Union, List, Tuple
 
 import pandas as pd
 
-from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck
+from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
 from deepchecks.base.dataframe_utils import filter_columns_with_validation
 from deepchecks.base.dataset import ensure_dataframe_type
 from deepchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_dict
 from deepchecks.string_utils import split_and_keep, split_by_order, format_percent
 from deepchecks.utils import DeepchecksValueError
+
 
 __all__ = ['RareFormatDetection', 'Pattern']
 
@@ -18,8 +19,15 @@ __all__ = ['RareFormatDetection', 'Pattern']
 class Pattern:
     """Supporting class for creating complicated patterns for rare_format_detection."""
 
-    def __init__(self, name: str, substituters: Union[List[Tuple[str, str]], Tuple[str, str]], ignore: str = None,
-                 refine: bool = False, is_sequence: bool = False):
+    def __init__(
+        self,
+        name: str,
+        substituters: t.Union[t.List[t.Tuple[str, str]],
+        t.Tuple[str, str]],
+        ignore: str = None,
+        refine: bool = False,
+        is_sequence: bool = False
+    ):
         """
         Initiate the Pattern class.
 
@@ -81,7 +89,7 @@ DEFAULT_PATTERNS = [
 ]
 
 
-def _detect_per_column(column: pd.Series, patterns: List[Pattern], rarity_threshold: float,
+def _detect_per_column(column: pd.Series, patterns: t.List[Pattern], rarity_threshold: float,
                        min_unique_common_ratio: float, pattern_match_method: str) -> pd.DataFrame:
     """
     Check whether a column has common formats (e.g. "XX-XX-XXXX" for dates") and detects values that don't match.
@@ -162,13 +170,16 @@ def _detect_per_column_and_pattern(column: pd.Series, pattern: Pattern, rarity_t
                 is_substr_sequence=pattern.is_sequence
             )
 
-    return {'ratio of rare samples': f'{format_percent(rare_format_ratio)} ({num_rare_formats})',
-            'common formats': common_formats,
-            'examples for values in common formats': common_values_examples,
-            'values in rare formats': list(rare_values.unique())}
+    return {
+        'ratio': rare_format_ratio,
+        'ratio of rare samples': f'{format_percent(rare_format_ratio)} ({num_rare_formats})',
+        'common formats': common_formats,
+        'examples for values in common formats': common_values_examples,
+        'values in rare formats': list(rare_values.unique())
+    }
 
 
-def _refine_formats(fmt: str, substrs: List[str], samples: List[str], is_substr_sequence: bool = False) -> str:
+def _refine_formats(fmt: str, substrs: t.List[str], samples: t.List[str], is_substr_sequence: bool = False) -> str:
     """
     Return a refined (degeneralized) pattern, based on known samples.
 
@@ -273,9 +284,16 @@ class RareFormatDetection(SingleDatasetBaseCheck):
         the refined format found would be "XXXXXX@deepchecks.com.
     """
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 patterns: List[Pattern] = deepcopy(DEFAULT_PATTERNS), rarity_threshold: float = 0.05,
-                 min_unique_common_ratio = 0.01, pattern_match_method: str = 'first', n_top_columns: int = 10):
+    def __init__(
+        self,
+        columns: t.Union[str, t.Iterable[str], None] = None,
+        ignore_columns: t.Union[str, t.Iterable[str], None] = None,
+        patterns: t.Optional[t.List[Pattern]] = None,
+        rarity_threshold: float = 0.05,
+        min_unique_common_ratio: float = 0.01,
+        pattern_match_method: str = 'first',
+        n_top_columns: int = 10
+    ):
         """Initialize the RareFormatDetection check.
 
         Args:
@@ -303,7 +321,9 @@ class RareFormatDetection(SingleDatasetBaseCheck):
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
-        self.patterns = patterns
+        # TODO: maybe it would be better to make 'Pattern' type immutable
+        # and also change type of the 'DEFAULT_PATTERNS' var from list to the tuple
+        self.patterns = patterns or deepcopy(DEFAULT_PATTERNS)
         self.rarity_threshold = rarity_threshold
         self.min_unique_common_ratio = min_unique_common_ratio
         self.pattern_match_method = pattern_match_method
@@ -324,7 +344,7 @@ class RareFormatDetection(SingleDatasetBaseCheck):
         feature_importances = calculate_feature_importance_or_null(dataset, model)
         return self._rare_format_detection(dataset=dataset, feature_importances=feature_importances)
 
-    def _rare_format_detection(self, dataset: Union[Dataset, pd.DataFrame],
+    def _rare_format_detection(self, dataset: t.Union[Dataset, pd.DataFrame],
                                feature_importances: pd.Series=None) -> CheckResult:
         original_dataset = dataset
         dataset: pd.DataFrame = ensure_dataframe_type(dataset)
@@ -348,3 +368,48 @@ class RareFormatDetection(SingleDatasetBaseCheck):
             display.append(value)
 
         return CheckResult(value=filtered_res, header='Rare Format Detection', check=self.__class__, display=display)
+
+    def add_condition_ratio_of_rare_formats_not_greater_than(self, var: float = 0):
+        """
+        Add rare formats ratio condition.
+
+        This condition will check that ratio of the specified formats is not grater than X.
+
+        Args:
+            var: format ratio upper bound
+        """
+
+        def condition(check_result: t.Mapping[str, pd.DataFrame]) -> ConditionResult:
+            # transforming result dataframes into dicts of the next format:
+            # {"pattern name": <ration value>}
+            values = {
+                feature: t.cast(
+                    t.Dict[str, float],
+                    dict(results.apply(lambda s: s.get('ratio', 0)))
+                )
+                for feature, results in check_result.items()
+            }
+
+            failed_features = {
+                feature
+                for feature, results in values.items()
+                for pattern, ratio in results.items()
+                if ratio >= var
+            }
+
+            stringified_failed_features = '; '.join(failed_features)
+            passed = len(failed_features) == 0
+
+            return ConditionResult(
+                is_pass=passed,
+                details=(
+                    f'Ratio of the rare formates is greater than {var}: {stringified_failed_features}.'
+                    if not passed
+                    else ''
+                )
+            )
+
+        return self.add_condition(
+            name=f'Rare formats ratio is not greater than {var}',
+            condition_func=condition
+        )
