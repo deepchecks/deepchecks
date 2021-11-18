@@ -86,7 +86,7 @@ def display_suite_result_1(name: str, results: List[Union[CheckResult, CheckFail
                 result._ipython_display_()
 
 
-def display_suite_result_2(name: str, results: List[Union[CheckResult, CheckFailure]]):
+def display_suite_result_2(suite_name: str, results: List[Union[CheckResult, CheckFailure]]):
     """Display results of suite in IPython."""
     conditions_table = []
     display_table = []
@@ -116,7 +116,7 @@ def display_suite_result_2(name: str, results: List[Union[CheckResult, CheckFail
     <span style="color: orange;font-weight:bold;display:inline-block">\U00000021</span>
     """
     html = f"""
-    <h1>{name}</h1>
+    <h1>{suite_name}</h1>
     <p>The suite is composed of various checks such as: {get_first_3(results)}, etc...<br>
     Each check may contain conditions (which results in {icons}), as well as other outputs such as plots or tables.<br>
     Suites, checks and conditions can all be modified (see tutorial [link]).</p>
