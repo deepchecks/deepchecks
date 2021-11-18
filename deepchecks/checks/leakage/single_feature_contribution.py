@@ -82,7 +82,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         features: t.Optional[t.Sequence[str]] = None,
         category = ConditionCategory.FAIL,
         failure_message = 'Next features pps >= {var}: {failed_features}',
-        name = 'Features PPS upper bound'
+        name = 'Features PPS upper bound (for features: {features})'
     ) -> FC:
         """
         Add condition that will check that pps of the specified feature(s) is not greater than X.
@@ -103,7 +103,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
             MLChecksValueError: if `features` list contains unknown feature
         """
         return self.add_condition(
-            name=name,
+            name=name.format(features='all' if features is None else ','.join(features)),
             condition_func=_condition_factory(
                 var,
                 features,

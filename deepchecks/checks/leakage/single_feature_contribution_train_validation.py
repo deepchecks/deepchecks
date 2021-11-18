@@ -97,15 +97,14 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         return CheckResult(value=s_difference.to_dict(), display=[plot, *text], check=self.__class__,
                            header='Single Feature Contribution Train-Test')
 
-
     def add_condition_feature_pps_difference_not_greater_than(
         self: FC,
         var: float,
         *,
         features: t.Optional[t.Sequence[str]] = None,
-        category = ConditionCategory.FAIL,
-        failure_message = 'Next features pps >= {var}: {failed_features}',
-        name = 'Features PPS upper bound'
+        category: ConditionCategory = ConditionCategory.FAIL,
+        failure_message: str = 'Train Test features pps difference is greater than {var}: {failed_features}',
+        name: str = 'Train Test features PPS difference upper bound (for features: {features})'
     ) -> FC:
         """
         Add new condition.
@@ -127,10 +126,9 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
 
         Condition Raises:
             MLChecksValueError: if `features` list contains unknown feature
-
         """
         return self.add_condition(
-            name=name,
+            name=name.format(features='all' if features is None else ','.join(features)),
             condition_func=_condition_factory(
                 var,
                 features,
