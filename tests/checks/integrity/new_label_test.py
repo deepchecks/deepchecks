@@ -110,7 +110,7 @@ def test_condition_number_of_new_labels_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Not greater than 3 new labels in label column')
+                               name='Number of new label values is not greater than 3')
     ))
 
 
@@ -129,7 +129,7 @@ def test_condition_number_of_new_labels_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                details='Found more than 0 new labels in label column: col1',
-                               name='Not greater than 0 new labels in label column')
+                               name='Number of new label values is not greater than 0')
     ))
 
 
@@ -140,14 +140,14 @@ def test_condition_ratio_of_new_label_samples_pass():
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), label='col1')
 
     # Arrange
-    check = NewLabelTrainTest().add_condition_new_label_sample_ratio_not_greater_than(0.3)
+    check = NewLabelTrainTest().add_condition_new_label_ratio_not_greater_than(0.3)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Not greater than 30.00% new label samples in label column')
+                               name='Ratio of samples with new label is not greater than 30.00%')
     ))
 
 
@@ -158,7 +158,7 @@ def test_condition_ratio_of_new_label_samples_fail():
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), label='col1')
 
     # Arrange
-    check = NewLabelTrainTest().add_condition_new_label_sample_ratio_not_greater_than(0.1)
+    check = NewLabelTrainTest().add_condition_new_label_ratio_not_greater_than(0.1)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
@@ -166,5 +166,5 @@ def test_condition_ratio_of_new_label_samples_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                details='Found more than 10.00% new labeled data in label column: col1',
-                               name='Not greater than 10.00% new label samples in label column')
+                               name='Ratio of samples with new label is not greater than 10.00%')
     ))

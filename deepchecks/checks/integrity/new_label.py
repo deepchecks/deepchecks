@@ -88,10 +88,10 @@ class NewLabelTrainTest(TrainTestBaseCheck):
                                            f'{column_name}')
             return ConditionResult(True)
 
-        return self.add_condition(f'Not greater than {max_new} new labels in label column',
+        return self.add_condition(f'Number of new label values is not greater than {max_new}',
                                   condition)
 
-    def add_condition_new_label_sample_ratio_not_greater_than(self, max_ratio: float = 0):
+    def add_condition_new_label_ratio_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require label column not to have greater than given number of ratio new label samples.
 
         Args:
@@ -108,5 +108,5 @@ class NewLabelTrainTest(TrainTestBaseCheck):
             return ConditionResult(True)
 
         return self.add_condition(
-            f'Not greater than {format_percent(max_ratio)} new label samples in label column',
+            f'Ratio of samples with new label is not greater than {format_percent(max_ratio)}',
             new_category_count_condition)
