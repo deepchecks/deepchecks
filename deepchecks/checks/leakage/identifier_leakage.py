@@ -1,11 +1,12 @@
 """module contains Identifier Leakage check."""
-from typing import Union
+from typing import Union, Dict
 
 import pandas as pd
 
 from deepchecks import Dataset
-from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck
+from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
 from deepchecks.plot_utils import create_colorbar_barchart_for_check
+from deepchecks.string_utils import format_percent
 from deepchecks.utils import DeepchecksValueError
 import deepchecks.ppscore as pps
 
@@ -69,3 +70,27 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
                 'predictive effect on the label.']
 
         return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text], check=self.__class__)
+
+    def add_condition_pps_not_greater_than(self, max_pps: float = 0):
+        """Add condition - require columns not to have a greater pps than given max.
+
+        Args:
+            max_pps (int): Maximum allowed string length outliers ratio.
+        """
+        def compare_pps(result: Dict):
+            not_passing_columns = []
+            for column_name in result.keys():
+                score = result[column_name]
+                if score > max_pps:
+                    not_passing_columns.append(column_name)
+            if not_passing_columns:
+                not_passing_str = ', '.join(not_passing_columns)
+                return ConditionResult(False,
+                                       f'Found columns with greater pps than {format_percent(max_pps)}: '
+                                       f'{not_passing_str}')
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(
+            f'Identifier columns do not have a greater pps than {format_percent(max_pps)}',
+            compare_pps)

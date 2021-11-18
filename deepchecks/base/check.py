@@ -312,5 +312,5 @@ class ModelOnlyBaseCheck(BaseCheck):
 class CheckFailure:
     """Class which holds a run exception of a check."""
 
-    check: BaseCheck
+    check: Any  # Check class, not instance
     exception: Exception

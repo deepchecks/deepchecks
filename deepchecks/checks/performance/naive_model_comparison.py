@@ -81,18 +81,20 @@ def find_score(train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model,
 class NaiveModelComparison(TrainTestBaseCheck):
     """Compare naive model score to given model score."""
 
-    def __init__(self, naive_model_type: str = 'statistical', metric=None, metric_name=None):
+    def __init__(self, naive_model_type: str = 'statistical', metric=None, metric_name=None, maximum_ratio: int = 10):
         """Initialize the NaiveModelComparison check.
 
         Args:
             naive_model_type (str = 'random'):  Type of the naive model ['random', 'statistical'].
             metric: a custom metric given by user.
             metric_name: name of a default metric.
+            maximum_ratio: the ratio can be up to infinity so choose maximum value to limit to.
         """
         super().__init__()
         self.naive_model_type = naive_model_type
         self.metric = metric
         self.metric_name = metric_name
+        self.maximum_ratio = maximum_ratio
 
     def run(self, train_dataset, test_dataset, model) -> CheckResult:
         """Run check.
@@ -105,6 +107,7 @@ class NaiveModelComparison(TrainTestBaseCheck):
         Returns:
             CheckResult: value is a Dict of: given_model_score, naive_model_score, ratio
                          ratio is given model / naive model (if the metric returns negative values we devied 1 by it)
+                         if ratio is infinite 99999 is returned
 
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance.
@@ -124,9 +127,14 @@ class NaiveModelComparison(TrainTestBaseCheck):
                                                             self.naive_model_type, self.metric,
                                                             self.metric_name)
 
-        ratio = pred_metric / naive_metric
-        if naive_metric < 0 and pred_metric < 0:
-            ratio = 1 / ratio
+        if naive_metric == 0:
+            ratio = self.maximum_ratio
+        else:
+            ratio = pred_metric / naive_metric
+            if naive_metric < 0 and pred_metric < 0:
+                ratio = 1 / ratio
+            if ratio > self.maximum_ratio:
+                ratio = self.maximum_ratio
 
         text = f'The given model performs {format_number(ratio)} times compared to' \
                f' the naive model using the {metric_name} metric.<br>' \
@@ -146,7 +154,6 @@ class NaiveModelComparison(TrainTestBaseCheck):
                             'ratio': ratio},
                            check=self.__class__, display=[text, display_func])
 
-
     def add_condition_ratio_not_less_than(self, min_allowed_ratio: float = 1.1):
         """Add condition - require min allowed ratio between the naive and the given model.
 
@@ -158,7 +165,7 @@ class NaiveModelComparison(TrainTestBaseCheck):
             ratio = result['ratio']
             if ratio < min_allowed_ratio:
                 return ConditionResult(False,
-                                       f'The given model performs {format_number(ratio)} times compared' \
+                                       f'The given model performs {format_number(ratio)} times compared'
                                        f'to the naive model using the given metric')
             else:
                 return ConditionResult(True)
