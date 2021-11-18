@@ -4,7 +4,7 @@ from typing import Union, Iterable
 import pandas as pd
 
 from deepchecks import Dataset, ensure_dataframe_type
-from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck
+from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
 from deepchecks.base.dataframe_utils import filter_columns_with_validation
 from deepchecks.utils import DeepchecksValueError
 from deepchecks.string_utils import format_percent
@@ -22,11 +22,10 @@ class DataDuplicates(SingleDatasetBaseCheck):
 
         Args:
             columns (str, Iterable[str]): List of columns to check, if none given checks all columns Except ignored
-            ones.
+              ones.
             ignore_columns (str, Iterable[str]): List of columns to ignore, if none given checks based on columns
-            variable.
+              variable.
             n_to_show (int): number of most common duplicated samples to show.
-
         """
         super().__init__()
         self.columns = columns
@@ -37,10 +36,10 @@ class DataDuplicates(SingleDatasetBaseCheck):
         """Run check.
 
         Args:
-          dataset(Dataset): any dataset.
+            dataset(Dataset): any dataset.
 
         Returns:
-          (CheckResult): percentage of duplicates and display of the top n_to_show most duplicated.
+            (CheckResult): percentage of duplicates and display of the top n_to_show most duplicated.
         """
         df: pd.DataFrame = ensure_dataframe_type(dataset)
         df = filter_columns_with_validation(df, self.columns, self.ignore_columns)
@@ -70,3 +69,18 @@ class DataDuplicates(SingleDatasetBaseCheck):
             display = None
 
         return CheckResult(value=percent_duplicate, check=self.__class__, display=display)
+
+    def add_condition_duplicates_not_greater_than(self, max_ratio: float = 0):
+        """Add condition - require duplicate ratio to not surpass max_ratio.
+
+        Args:
+            max_ratio (float): Maximum ratio of duplicates.
+        """
+        def max_ratio_condition(result: float) -> ConditionResult:
+            if result > max_ratio:
+                return ConditionResult(False, f'Found {format_percent(result)} duplicate data')
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'Duplicate data is not greater than {format_percent(max_ratio)}',
+                                  max_ratio_condition)
