@@ -369,7 +369,7 @@ class RareFormatDetection(SingleDatasetBaseCheck):
 
         return CheckResult(value=filtered_res, header='Rare Format Detection', check=self.__class__, display=display)
 
-    def add_condition_ratio_of_rare_formats_greater_than(
+    def add_condition_ratio_of_rare_formats_not_greater_than(
         self,
         var: float,
         *,

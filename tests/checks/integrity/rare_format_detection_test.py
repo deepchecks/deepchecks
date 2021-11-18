@@ -152,7 +152,7 @@ def test_ratio_of_rare_formats_condition_that_should_pass():
     df = pd.DataFrame(np.ones((100, 1)) * 11111, columns=['mixed'])
     df.iloc[0, 0] = 'aaaaa'
     
-    check = RareFormatDetection().add_condition_ratio_of_rare_formats_greater_than(0.02)
+    check = RareFormatDetection().add_condition_ratio_of_rare_formats_not_greater_than(0.02)
     check_result = check.run(dataset=Dataset(df))
     condition_result, *_ = check.conditions_decision(check_result)
 
@@ -171,7 +171,7 @@ def test_ratio_of_rare_formats_condition_that_should_not_pass():
     df = pd.DataFrame(np.ones((100, 1)) * 11111, columns=['mixed'])
     df.iloc[0, 0] = 'aaaaa'
     
-    check = RareFormatDetection().add_condition_ratio_of_rare_formats_greater_than(0.002)
+    check = RareFormatDetection().add_condition_ratio_of_rare_formats_not_greater_than(0.002)
     check_result = check.run(dataset=Dataset(df))
     condition_result, *_ = check.conditions_decision(check_result)
 
