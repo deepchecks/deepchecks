@@ -5,7 +5,7 @@ from copy import deepcopy
 
 import pandas as pd
 
-from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
+from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
 from deepchecks.base.dataframe_utils import filter_columns_with_validation
 from deepchecks.base.dataset import ensure_dataframe_type
 from deepchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_dict
@@ -369,16 +369,7 @@ class RareFormatDetection(SingleDatasetBaseCheck):
 
         return CheckResult(value=filtered_res, header='Rare Format Detection', check=self.__class__, display=display)
 
-    def add_condition_ratio_of_rare_formats_not_greater_than(
-        self,
-        var: float,
-        *,
-        pattern_names: t.Union[str, t.Sequence[str], None] = None,
-        exclude_pattern_names: t.Union[str, t.Sequence[str], None] = None,
-        category: ConditionCategory = ConditionCategory.FAIL,
-        failure_message: str = 'Ration of the rare formates is greater than {var}: {failed_features}.',
-        name: str = 'Rare formats ratio upper bound'
-    ):
+    def add_condition_ratio_of_rare_formats_not_greater_than(self, var: float):
         """
         Add rare formats ratio condition.
 
@@ -386,53 +377,9 @@ class RareFormatDetection(SingleDatasetBaseCheck):
 
         Args:
             var: format ratio upper bound
-            pattern_names: name of patterns to which this condition should be applied
-            exclude_pattern_names: names of patterns which should be excluded from the processing
-            category: condition category
-            failure_message: condotion details template in case of the failure
-            name: condition name
-
-        Next variables are available for use within details template:
-            var (float): specified condition ratio limit
-            failed_features (str): stringified list of failed features
-
-        Raises:
-            DeepchecksValueError:
-                if 'pattern_names' and 'exclude_pattern_names'
-                were passed to the method simultaneously
         """
-        if pattern_names is not None and exclude_pattern_names is not None:
-            raise DeepchecksValueError(
-                "'pattern_names' and 'exclude_pattern_names' cannot be used simultaneously" # pylint: disable=inconsistent-quotes
-            )
-        elif isinstance(pattern_names, str):
-            pattern_names = [pattern_names]
-        elif isinstance(exclude_pattern_names, str):
-            exclude_pattern_names = [exclude_pattern_names]
 
         def condition(check_result: t.Mapping[str, pd.DataFrame]) -> ConditionResult:
-            assert isinstance(pattern_names, (list, type(None)))
-            assert isinstance(exclude_pattern_names, (list, type(None)))
-
-            available_patterns = {
-                pattern_name
-                for df in check_result.values()
-                for pattern_name in list(df.columns)
-            }
-
-            if pattern_names is not None:
-                patterns_to_check = pattern_names
-            elif exclude_pattern_names is not None:
-                patterns_to_check = available_patterns.difference(set(exclude_pattern_names))
-            else:
-                patterns_to_check = available_patterns
-
-            # filtering out unwanted patterns
-            values = {
-                feature: results[results.columns.intersection(patterns_to_check)] # type: ignore
-                for feature, results in check_result.items()
-            }
-
             # transforming result dataframes into dicts of the next format:
             # {"pattern name": <ration value>}
             values = {
@@ -440,7 +387,7 @@ class RareFormatDetection(SingleDatasetBaseCheck):
                     t.Dict[str, float],
                     dict(results.apply(lambda s: s.get('ratio', 0)))
                 )
-                for feature, results in values.items()
+                for feature, results in check_result.items()
             }
 
             failed_features = [
@@ -449,25 +396,23 @@ class RareFormatDetection(SingleDatasetBaseCheck):
                 for pattern, ratio in results.items()
                 if ratio >= var
             ]
-
-            details_template_vars = {
-                'var': var,
-                'failed_features': '; '.join([
-                    f"feature='{feature}', pattern='{pattern}', ratio={ratio}" #pylint: disable=inconsistent-quotes
+            stringified_failed_features = '; '.join([
+                f"feature='{feature}', pattern='{pattern}', ratio={ratio}" #pylint: disable=inconsistent-quotes
                     for (feature, pattern, ratio) in failed_features
-                ])
-            }
+            ])
 
             passed = len(failed_features) == 0
 
             return ConditionResult(
                 is_pass=passed,
-                category=category,
                 details=(
-                    failure_message.format(**details_template_vars)
+                    f'Ration of the rare formates is greater than {var}: {stringified_failed_features}.'
                     if not passed
                     else ''
                 )
             )
 
-        return self.add_condition(name=name, condition_func=condition)
+        return self.add_condition(
+            name='Rare formats ratio upper bound',
+            condition_func=condition
+        )
