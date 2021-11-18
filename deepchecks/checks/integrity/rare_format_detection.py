@@ -19,8 +19,15 @@ __all__ = ['RareFormatDetection', 'Pattern']
 class Pattern:
     """Supporting class for creating complicated patterns for rare_format_detection."""
 
-    def __init__(self, name: str, substituters: t.Union[t.List[t.Tuple[str, str]], t.Tuple[str, str]], ignore: str = None,
-                 refine: bool = False, is_sequence: bool = False):
+    def __init__(
+        self,
+        name: str,
+        substituters: t.Union[t.List[t.Tuple[str, str]],
+        t.Tuple[str, str]],
+        ignore: str = None,
+        refine: bool = False,
+        is_sequence: bool = False
+    ):
         """
         Initiate the Pattern class.
 
@@ -369,8 +376,8 @@ class RareFormatDetection(SingleDatasetBaseCheck):
         pattern_names: t.Union[str, t.Sequence[str], None] = None,
         exclude_pattern_names: t.Union[str, t.Sequence[str], None] = None,
         category: ConditionCategory = ConditionCategory.FAIL,
-        failure_message: str = "Ration of the rare formates is greater than {var}: {failed_features}.",
-        name: str = "Rare formats ratio upper bound"
+        failure_message: str = 'Ration of the rare formates is greater than {var}: {failed_features}.',
+        name: str = 'Rare formats ratio upper bound'
     ):
         """
         Add rare formats ratio condition.
@@ -390,11 +397,14 @@ class RareFormatDetection(SingleDatasetBaseCheck):
             failed_features (str): stringified list of failed features
 
         Raises:
-            DeepchecksValueError: if 'pattern_names' and 'exclude_pattern_names' were passed to the method simultaneously
+            DeepchecksValueError:
+                if 'pattern_names' and 'exclude_pattern_names'
+                were passed to the method simultaneously
         """
-
         if pattern_names is not None and exclude_pattern_names is not None:
-            raise DeepchecksValueError("'pattern_names' and 'exclude_pattern_names' cannot be used simultaneously")
+            raise DeepchecksValueError(
+                "'pattern_names' and 'exclude_pattern_names' cannot be used simultaneously" # pylint: disable=inconsistent-quotes
+            )
         elif isinstance(pattern_names, str):
             pattern_names = [pattern_names]
         elif isinstance(exclude_pattern_names, str):
@@ -428,7 +438,7 @@ class RareFormatDetection(SingleDatasetBaseCheck):
             values = {
                 feature: t.cast(
                     t.Dict[str, float],
-                    dict(results.apply(lambda s: s.get("ratio", 0)))
+                    dict(results.apply(lambda s: s.get('ratio', 0)))
                 )
                 for feature, results in values.items()
             }
@@ -441,9 +451,9 @@ class RareFormatDetection(SingleDatasetBaseCheck):
             ]
 
             details_template_vars = {
-                "var": var,
-                "failed_features": '; '.join([
-                    f"feature='{feature}', pattern='{pattern}', ratio={ratio}"
+                'var': var,
+                'failed_features': '; '.join([
+                    f"feature='{feature}', pattern='{pattern}', ratio={ratio}" #pylint: disable=inconsistent-quotes
                     for (feature, pattern, ratio) in failed_features
                 ])
             }
