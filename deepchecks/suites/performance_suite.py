@@ -24,7 +24,7 @@ RegressionCheckSuite = CheckSuite(
 GenericPerformanceCheckSuite = CheckSuite(
     'Generic Performance Suite',
     PerformanceReport(),
-    NaiveModelComparison()
+    NaiveModelComparison().add_condition_ratio_not_less_than()
 )
 
 
