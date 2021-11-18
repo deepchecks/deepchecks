@@ -49,15 +49,15 @@ def naive_encoder(dataset: Dataset) -> TransformerMixin:
 
 
 class UnusedFeatures(TrainTestBaseCheck):
-    """Detect features that are nearly unused by the model, and among those find high and low variance features.
+    """Detect features that are nearly unused by the model but have high variance.
 
     The check uses feature importance (either internally computed in appropriate models or calculated by permutation
-    feature importance) to detect features that are not used by the model. Unused features are then categorized as
-    either low variance features (that can probably be safely removed) or normal or high variance features
-    that warrant further consideration.
+    feature importance) to detect features that are not used by the model. From this list, the check displays the
+    features that have high variance (as calculated by a PCA transformation). These features may be containing
+    information that is ignored by the model.
     """
 
-    def __init__(self, feature_importance_threshold: float = 0.5, feature_variance_threshold: float = 0.4):
+    def __init__(self, feature_importance_threshold: float = 0.2, feature_variance_threshold: float = 0.4):
         """Initialize the TrainTestDifferenceOverfit check.
 
         Args:
@@ -129,9 +129,10 @@ class UnusedFeatures(TrainTestBaseCheck):
             unviable_feature_ratio_to_avg_df = unviable_feature_df / (1 / len(feature_df))
             last_variable_feature_index = sum(
                 unviable_feature_ratio_to_avg_df['Feature Variance'] > self.feature_variance_threshold
-            ) + last_important_feature_index
+            )
 
-            feature_df = pd.concat([feature_df.iloc[:(last_important_feature_index + 1)], unviable_feature_df],
+            feature_df = pd.concat([feature_df.iloc[:(last_important_feature_index + 1)],
+                                    unviable_feature_df.iloc[:(last_variable_feature_index + 1)]],
                                    axis=0)
 
         def plot_feature_importance():
@@ -151,15 +152,9 @@ class UnusedFeatures(TrainTestBaseCheck):
             legend_labels = feature_df.columns.values.tolist()
             if last_important_feature_index < len(feature_df) - 1:
                 last_important_feature_line_loc = last_important_feature_index + 0.6
-                plt.plot([0., feature_df.max().max()],
+                plt.plot(plt.gca().get_xlim(),
                          [last_important_feature_line_loc, last_important_feature_line_loc], 'k--')
                 legend_labels = ['Last significant feature'] + legend_labels
-            if last_variable_feature_index < len(feature_df) - 1:
-                last_variable_feature_line_loc = last_variable_feature_index + 0.6
-                plt.plot([0., feature_df.max().max()],
-                         [last_variable_feature_line_loc, last_variable_feature_line_loc], 'r--')
-                legend_labels = ['Last significant feature', 'Last significant variance feature'] +\
-                    feature_df.columns.values.tolist()
             plt.gca().invert_yaxis()
             plt.legend(legend_labels, loc='upper right', bbox_to_anchor=(1.55, 1.02))
 
