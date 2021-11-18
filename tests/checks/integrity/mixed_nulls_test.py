@@ -2,9 +2,12 @@
 import numpy as np
 import pandas as pd
 
-from hamcrest import assert_that, has_length
+from hamcrest import assert_that, has_length, has_entry, has_property, equal_to, has_items, all_of
+from deepchecks.base import Dataset
 
-from mlchecks.checks.integrity.mixed_nulls import MixedNulls
+from deepchecks import Dataset, ConditionCategory
+from deepchecks.checks.integrity.mixed_nulls import MixedNulls
+from tests.checks.utils import equal_condition_result
 
 
 def test_single_column_no_nulls():
@@ -44,7 +47,7 @@ def test_different_null_types():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_length(3))
+    assert_that(result.value, has_entry('col1', has_length(3)))
 
 
 def test_null_list_param():
@@ -54,7 +57,7 @@ def test_null_list_param():
     # Act
     result = MixedNulls(null_string_list=['earth', 'cat']).run(dataframe)
     # Assert
-    assert_that(result.value, has_length(5))
+    assert_that(result.value, has_entry('col1', has_length(5)))
 
 
 def test_check_nan_false_param():
@@ -64,7 +67,7 @@ def test_check_nan_false_param():
     # Act
     result = MixedNulls(null_string_list=['earth'], check_nan=False).run(dataframe)
     # Assert
-    assert_that(result.value, has_length(3))
+    assert_that(result.value, has_entry('col1', has_length(3)))
 
 
 def test_single_column_two_null_types():
@@ -74,7 +77,7 @@ def test_single_column_two_null_types():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_length(2))
+    assert_that(result.value, has_entry('col1', has_length(2)))
 
 
 def test_single_column_different_case_is_count_separately():
@@ -84,7 +87,7 @@ def test_single_column_different_case_is_count_separately():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_length(3))
+    assert_that(result.value, has_entry('col1', has_length(3)))
 
 
 def test_single_column_nulls_with_special_characters():
@@ -94,7 +97,7 @@ def test_single_column_nulls_with_special_characters():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_length(5))
+    assert_that(result.value, has_entry('col1', has_length(5)))
 
 
 def test_ignore_columns_single():
@@ -104,7 +107,7 @@ def test_ignore_columns_single():
     # Act
     result = MixedNulls(ignore_columns='col3').run(dataframe)
     # Assert - Only col 2 should have results
-    assert_that(result.value, has_length(3))
+    assert_that(result.value, has_entry('col2', has_length(3)))
 
 
 def test_ignore_columns_multi():
@@ -145,3 +148,53 @@ def test_dataset_2_columns_single_nulls():
     result = MixedNulls().run(dataframe)
     # Assert - Single null is allowed so still empty return
     assert_that(result.value, has_length(0))
+
+
+def test_condition_max_nulls_not_passed():
+    # Arrange
+    data = {'col1': ['', '#@$', 'Nan!', '#nan', '<NaN>']}
+    dataset = Dataset(pd.DataFrame(data=data))
+    check = MixedNulls().add_condition_different_nulls_not_more_than(3)
+
+    # Act
+    result = check.conditions_decision(check.run(dataset))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=False,
+                               name='Not more than 3 different null types for all columns',
+                               details='Found columns with more than 3 null types: col1')
+    ))
+
+
+def test_condition_max_nulls_passed():
+    # Arrange
+    data = {'col1': ['', '#@$', 'Nan!', '#nan', '<NaN>']}
+    dataset = Dataset(pd.DataFrame(data=data))
+    check = MixedNulls().add_condition_different_nulls_not_more_than(10)
+
+    # Act
+    result = check.conditions_decision(check.run(dataset))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=True,
+                               name='Not more than 10 different null types for all columns')
+    ))
+
+
+def test_fi_n_top(diabetes_split_dataset_and_model):
+    train, _, clf = diabetes_split_dataset_and_model
+    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
+    train.data.loc[train.data.index % 4 == 0, 'age'] = 'Nan'
+    train.data.loc[train.data.index % 4 == 1, 'age'] = 'null'
+    train.data.loc[train.data.index % 4 == 0, 'bmi'] = 'Nan'
+    train.data.loc[train.data.index % 4 == 1, 'bmi'] = 'null'
+    train.data.loc[train.data.index % 4 == 0, 'bp'] = 'Nan'
+    train.data.loc[train.data.index % 4 == 1, 'bp'] = 'null'
+    train.data.loc[train.data.index % 4 == 0, 's1'] = 'Nan'
+    train.data.loc[train.data.index % 4 == 1, 's1'] = 'null'
+    # Arrange
+    check = MixedNulls(n_top_columns=3)
+    # Act
+    result = check.run(train, clf)
+    # Assert - Display dataframe have only 3
+    assert_that(result.display[0], has_length(3))

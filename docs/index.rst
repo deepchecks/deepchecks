@@ -14,9 +14,12 @@ Welcome to mlchecks's documentation!
    :maxdepth: 2
    :caption: Docstring
 
+
+
 Indices and tables
 ==================
 
-* :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+:doc:`notebook.rst`

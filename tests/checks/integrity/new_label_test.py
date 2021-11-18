@@ -1,88 +1,170 @@
 """Contains unit tests for the new_label_train_validation check"""
 
 import pandas as pd
-from mlchecks.base import Dataset
-from mlchecks.utils import MLChecksValueError
-from mlchecks.checks.integrity import NewLabelTrainValidation
-from hamcrest import assert_that, calling, raises, has_length, close_to, equal_to
+from deepchecks.base import Dataset
+from deepchecks.utils import DeepchecksValueError
+from deepchecks.checks.integrity import NewLabelTrainTest
+from hamcrest import assert_that, calling, raises, has_length, close_to, equal_to, has_items
+
+from tests.checks.utils import equal_condition_result
 
 
 def test_dataset_wrong_input():
     x = 'wrong_input'
     # Act & Assert
-    assert_that(calling(NewLabelTrainValidation().run).with_args(x, x),
-                raises(MLChecksValueError,
+    assert_that(calling(NewLabelTrainTest().run).with_args(x, x),
+                raises(DeepchecksValueError,
                 'dataset must be of type DataFrame or Dataset. instead got: str'))
 
 
 def test_no_new_label():
     train_data = {'col1': [1, 2, 3]}
-    validation_data = {'col1': [1, 1, 2, 3]}
+    test_data = {'col1': [1, 1, 2, 3]}
     train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']), label='col1')
-    validation_dataset = Dataset(pd.DataFrame(data=validation_data, columns=['col1']), label='col1')
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']), label='col1')
 
     # Arrange
-    check = NewLabelTrainValidation()
+    check = NewLabelTrainTest()
     # Act X
-    result = check.run(train_dataset=train_dataset, validation_dataset=validation_dataset).value
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
     assert_that(result, equal_to({}))
 
 
 def test_new_label():
     train_data = {'col1': [1, 2, 3]}
-    validation_data = {'col1': [1, 2, 3, 4]}
+    test_data = {'col1': [1, 2, 3, 4]}
     train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']), label='col1')
-    validation_dataset = Dataset(pd.DataFrame(data=validation_data, columns=['col1']), label='col1')
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']), label='col1')
 
     # Arrange
-    check = NewLabelTrainValidation()
+    check = NewLabelTrainTest()
     # Act X
-    result = check.run(train_dataset=train_dataset, validation_dataset=validation_dataset).value
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, has_length(1))
-    assert_that(result['col1'], close_to(0.25, 0.01))
+    assert_that(result)
+    assert_that(result['n_new_labels_samples'], equal_to(1))
+    assert_that(result['n_samples'], equal_to(4))
+    assert_that(result['new_labels'], equal_to([4]))
 
 
 def test_missing_label():
     train_data = {'col1': [1, 2, 3, 4]}
-    validation_data = {'col1': [1, 2, 3]}
+    test_data = {'col1': [1, 2, 3]}
     train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']), label='col1')
-    validation_dataset = Dataset(pd.DataFrame(data=validation_data, columns=['col1']), label='col1')
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']), label='col1')
 
     # Arrange
-    check = NewLabelTrainValidation()
+    check = NewLabelTrainTest()
     # Act X
-    result = check.run(train_dataset=train_dataset, validation_dataset=validation_dataset).value
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
     assert_that(result, equal_to({}))
 
 
 def test_missing_new_label():
     train_data = {'col1': [1, 2, 3, 4]}
-    validation_data = {'col1': [1, 2, 3, 5]}
+    test_data = {'col1': [1, 2, 3, 5]}
     train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']), label='col1')
-    validation_dataset = Dataset(pd.DataFrame(data=validation_data, columns=['col1']), label='col1')
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']), label='col1')
 
     # Arrange
-    check = NewLabelTrainValidation()
+    check = NewLabelTrainTest()
     # Act X
-    result = check.run(train_dataset=train_dataset, validation_dataset=validation_dataset).value
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, has_length(1))
-    assert_that(result['col1'], close_to(0.25, 0.01))
+    assert_that(result)
+    assert_that(result['n_new_labels_samples'], equal_to(1))
+    assert_that(result['n_samples'], equal_to(4))
+    assert_that(result['new_labels'], equal_to([5]))
 
 
 def test_multiple_categories():
     train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
-    validation_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
+    test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
     train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), label='col1')
-    validation_dataset = Dataset(pd.DataFrame(data=validation_data, columns=['col1', 'col2']), label='col1')
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), label='col1')
 
     # Arrange
-    check = NewLabelTrainValidation()
+    check = NewLabelTrainTest()
     # Act X
-    result = check.run(train_dataset=train_dataset, validation_dataset=validation_dataset).value
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(result, has_length(1))
-    assert_that(result['col1'], close_to(0.25, 0.01))
+    assert_that(result)
+    assert_that(result['n_new_labels_samples'], equal_to(1))
+    assert_that(result['n_samples'], equal_to(4))
+    assert_that(result['new_labels'], equal_to([5]))
+
+
+def test_condition_number_of_new_labels_pass():
+    train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
+    test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), label='col1')
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), label='col1')
+
+    # Arrange
+    check = NewLabelTrainTest().add_condition_new_labels_not_greater_than(3)
+
+    # Act
+    result = check.conditions_decision(check.run(train_dataset, test_dataset))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=True,
+                               name='Number of new label values is not greater than 3')
+    ))
+
+
+def test_condition_number_of_new_labels_fail():
+    train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
+    test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), label='col1')
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), label='col1')
+
+    # Arrange
+    check = NewLabelTrainTest().add_condition_new_labels_not_greater_than(0)
+
+    # Act
+    result = check.conditions_decision(check.run(train_dataset, test_dataset))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=False,
+                               details='Found more than 0 new labels in label column: col1',
+                               name='Number of new label values is not greater than 0')
+    ))
+
+
+def test_condition_ratio_of_new_label_samples_pass():
+    train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
+    test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), label='col1')
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), label='col1')
+
+    # Arrange
+    check = NewLabelTrainTest().add_condition_new_label_ratio_not_greater_than(0.3)
+
+    # Act
+    result = check.conditions_decision(check.run(train_dataset, test_dataset))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=True,
+                               name='Ratio of samples with new label is not greater than 30.00%')
+    ))
+
+
+def test_condition_ratio_of_new_label_samples_fail():
+    train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
+    test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), label='col1')
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), label='col1')
+
+    # Arrange
+    check = NewLabelTrainTest().add_condition_new_label_ratio_not_greater_than(0.1)
+
+    # Act
+    result = check.conditions_decision(check.run(train_dataset, test_dataset))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=False,
+                               details='Found more than 10.00% new labeled data in label column: col1',
+                               name='Ratio of samples with new label is not greater than 10.00%')
+    ))

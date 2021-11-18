@@ -2,8 +2,8 @@
     suites tests
 """
 
-from mlchecks import base
-from mlchecks import checks as builtin_checks
+from deepchecks import base
+from deepchecks import checks as builtin_checks
 
 
 def test_check_suite():
@@ -14,7 +14,7 @@ def test_check_suite():
             "inner1",
             builtin_checks.MixedNulls(),
             base.CheckSuite("inner2", builtin_checks.MixedTypes()),
-            builtin_checks.TrainValidationDifferenceOverfit()
+            builtin_checks.TrainTestDifferenceOverfit()
         )
     )
 
@@ -22,11 +22,11 @@ def test_check_suite():
 
     # assert that order of checks instances are preserved
 
-    checks_types = [type(c) for c in suite.checks]
+    checks_types = [type(c) for c in suite.checks.values()]
 
     assert checks_types == [
         builtin_checks.IsSingleValue,
         builtin_checks.MixedNulls,
         builtin_checks.MixedTypes,
-        builtin_checks.TrainValidationDifferenceOverfit
+        builtin_checks.TrainTestDifferenceOverfit
     ]

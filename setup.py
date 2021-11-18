@@ -4,7 +4,7 @@ from distutils.util import convert_path
 import os
 
 main_ns = {}
-ver_path = convert_path('mlchecks/version.py')
+ver_path = convert_path('deepchecks/version.py')
 with open(ver_path) as ver_file:
     exec(ver_file.read(), main_ns)
 VER = main_ns['__version__']
@@ -16,7 +16,7 @@ if os.path.isfile(requirementPath):
         install_requires = f.read().splitlines()
 
 setup(
-    name='mlchecks',
+    name='deepchecks',
     version=VER,
     packages=setuptools.find_packages(),
     install_requires=install_requires,
@@ -24,8 +24,8 @@ setup(
     description = 'Package for validating your machine learning model and data',
     author = 'deepchecks',  
     author_email = 'info@deepchecks.com', 
-    url = 'https://github.com/deepchecks/MLChecks',
-    download_url = "https://github.com/deepchecks/MLChecks/releases/download/{0}/mlchecks-{0}.tar.gz".format(VER), 
+    url = 'https://github.com/deepchecks/deepchecks',
+    download_url = "https://github.com/deepchecks/deepchecks/releases/download/{0}/deepchecks-{0}.tar.gz".format(VER),
     keywords = ['Software Development', 'Machine Learning'],   
     classifiers         = [
         'Intended Audience :: Developers',

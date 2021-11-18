@@ -2,11 +2,13 @@
 import numpy as np
 import pandas as pd
 
-from mlchecks import Dataset
-from mlchecks.checks.leakage.identifier_leakage import IdentifierLeakage
-from mlchecks.utils import MLChecksValueError
+from deepchecks import Dataset
+from deepchecks.checks.leakage.identifier_leakage import IdentifierLeakage
+from deepchecks.utils import DeepchecksValueError
 
-from hamcrest import assert_that, is_in, close_to, calling, raises
+from hamcrest import assert_that, is_in, close_to, calling, raises, has_items
+
+from tests.checks.utils import equal_condition_result
 
 
 def util_generate_dataframe_and_expected():
@@ -30,7 +32,7 @@ def test_dataset_wrong_input():
     wrong = 'wrong_input'
     assert_that(
         calling(IdentifierLeakage().run).with_args(wrong),
-        raises(MLChecksValueError, 'Check IdentifierLeakage requires dataset to be of type Dataset. '
+        raises(DeepchecksValueError, 'Check IdentifierLeakage requires dataset to be of type Dataset. '
                                    'instead got: str'))
 
 
@@ -39,7 +41,7 @@ def test_dataset_no_label():
     df = Dataset(df)
     assert_that(
         calling(IdentifierLeakage().run).with_args(dataset=df),
-        raises(MLChecksValueError, 'Check IdentifierLeakage requires dataset to have a label column'))
+        raises(DeepchecksValueError, 'Check IdentifierLeakage requires dataset to have a label column'))
 
 
 def test_dataset_only_label():
@@ -47,7 +49,7 @@ def test_dataset_only_label():
     df = Dataset(df, label='label')
     assert_that(
         calling(IdentifierLeakage().run).with_args(dataset=df),
-        raises(MLChecksValueError, 'Dataset needs to have a date or index column'))
+        raises(DeepchecksValueError, 'Dataset needs to have a date or index column'))
 
 
 def test_assert_identifier_leakage_class():
@@ -72,3 +74,31 @@ def test_nan():
         assert_that(key, is_in(expected.keys()))
         assert_that(value, close_to(expected[key], 0.1))
 
+
+def test_condition_pps_pass():
+    df, expected = util_generate_dataframe_and_expected()
+
+    check = IdentifierLeakage().add_condition_pps_not_greater_than(0.5)
+
+    # Act
+    result = check.conditions_decision(check.run(Dataset(df, label='label', date='x2', index='x3')))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=True,
+                               name='Identifier columns do not have a greater pps than 50.00%')
+    ))
+
+
+def test_condition_pps_fail():
+    df, expected = util_generate_dataframe_and_expected()
+
+    check = IdentifierLeakage().add_condition_pps_not_greater_than(0.2)
+
+    # Act
+    result = check.conditions_decision(check.run(Dataset(df, label='label', date='x2', index='x3')))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=False,
+                               details='Found columns with greater pps than 20.00%: x2',
+                               name='Identifier columns do not have a greater pps than 20.00%')
+    ))

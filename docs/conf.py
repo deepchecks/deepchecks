@@ -29,8 +29,14 @@ author = 'deepchecks'
 # ones.
 extensions = [
   'sphinx.ext.autodoc',
-  'sphinx.ext.napoleon'
+  'sphinx.ext.napoleon',
+  'sphinx_markdown_builder'
 ]
+
+add_module_names = False
+
+# Autodoc settings
+autodoc_class_signature = 'separated'
 
 # Napoleon settings
 napoleon_google_docstring = True
