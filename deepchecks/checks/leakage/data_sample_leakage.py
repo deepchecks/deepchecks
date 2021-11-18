@@ -3,7 +3,7 @@ from typing import Dict, List
 import re
 
 from deepchecks import Dataset
-from deepchecks.base.check import CheckResult, TrainTestBaseCheck
+from deepchecks.base.check import CheckResult, ConditionResult, TrainTestBaseCheck
 from deepchecks.string_utils import format_percent
 
 import numpy as np
@@ -66,7 +66,7 @@ class DataSampleLeakageReport(TrainTestBaseCheck):
             model (): any = None - not used in the check
         Returns:
             CheckResult: value is sample leakage ratio in %,
-                         displays a dataframe that shows the duplicated rows between the datasets
+            displays a dataframe that shows the duplicated rows between the datasets
 
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance
@@ -118,3 +118,21 @@ class DataSampleLeakageReport(TrainTestBaseCheck):
         display = [user_msg, duplicate_rows_df.head(10)] if dup_ratio else None
 
         return CheckResult(dup_ratio, header='Data Sample Leakage Report', check=self.__class__, display=display)
+
+    def add_condition_duplicates_ratio_not_greater_than(self, max_ratio: float = 0.1):
+        """Add condition - require max allowed ratio of test data samples to appear in train data.
+
+        Args:
+            max_ratio (float): Max allowed ratio of test data samples to appear in train data
+        """
+        def condition(result: float) -> ConditionResult:
+            if result > max_ratio:
+                return ConditionResult(False,
+                                       f'Percent of test data samples that appear in train data: '
+                                       f'{format_percent(result)}')
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'Percentage of test data samples that appear in train data '
+                                  f'not greater than {format_percent(max_ratio)}',
+                                  condition)

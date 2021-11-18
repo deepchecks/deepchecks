@@ -3,15 +3,17 @@ import abc
 import enum
 import re
 from collections import OrderedDict
+from dataclasses import dataclass
 from typing import Any, Callable, List, Union, Dict, cast
 
 __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainTestBaseCheck',
-           'ModelOnlyBaseCheck', 'ConditionResult', 'ConditionCategory']
+           'ModelOnlyBaseCheck', 'ConditionResult', 'ConditionCategory', 'CheckFailure']
 
 import pandas as pd
 from IPython.core.display import display_html
 from matplotlib import pyplot as plt
 
+from deepchecks.base.display_pandas import display_dataframe
 from deepchecks.string_utils import split_camel_case
 from deepchecks.utils import DeepchecksValueError
 
@@ -121,9 +123,9 @@ class CheckResult:
         Args:
             value (Any): Value calculated by check. Can be used to decide if decidable check passed.
             header (str): Header to be displayed in python notebook.
-            check (Callable): The check function which created this result. Used to extract the summary to be
+            check (Class): The check class which created this result. Used to extract the summary to be
             displayed in notebook.
-            display (Callable): Function which is used for custom display.
+            display (List): Objects to be displayed (dataframe or function or html)
         """
         self.value = value
         self.header = header or (check and split_camel_case(check.__name__)) or None
@@ -150,16 +152,7 @@ class CheckResult:
 
         for item in self.display:
             if isinstance(item, pd.DataFrame):
-                # Align everything to the left
-                try:
-                    df_styler = item.style
-                    df_styler.set_table_styles([dict(selector='th,td', props=[('text-align', 'left')])])
-                    df_styler.format(precision=2)
-                    display_html(df_styler.render(), raw=True)
-                # Because of MLC-154. Dataframe with Multi-index or non unique indices does not have a style
-                # attribute, hence we need to display as a regular pd html format.
-                except ValueError:
-                    display_html(item.to_html())
+                display_dataframe(item)
             elif isinstance(item, str):
                 display_html(item, raw=True)
             elif isinstance(item, Callable):
@@ -313,3 +306,18 @@ class ModelOnlyBaseCheck(BaseCheck):
     def run(self, model) -> CheckResult:
         """Define run signature."""
         pass
+
+
+@dataclass
+class CheckFailure:
+    """Class which holds a run exception of a check."""
+    # TODO: maybe it would be better to have special type of the exception
+    # that receives as an argument reference to the failed check instance
+    # example:
+    #
+    # >>> class DeepcheckException(Exception):
+    # ...    def __init__(self, msg: str, check_instance: BaseCheck): pass
+    # 
+
+    check: BaseCheck
+    exception: Exception
