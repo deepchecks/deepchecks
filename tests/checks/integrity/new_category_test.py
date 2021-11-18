@@ -161,7 +161,7 @@ def test_condition_categories_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                details='Found columns with more than 0 new categories: col1',
-                               name='Not greater than 0 new categories for all columns')
+                               name='Number of new category values is not greater than 0 for all columns')
     ))
 
 
@@ -180,7 +180,7 @@ def test_condition_categories_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Not greater than 1 new categories for all columns')
+                               name='Number of new category values is not greater than 1 for all columns')
     ))
 
 
@@ -200,7 +200,7 @@ def test_condition_count_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                details='Found columns with more than 10.00% new category samples: col1',
-                               name='Not greater than 10.00% new categories samples for all columns')
+                               name='Ratio of samples with a new category is not greater than 10.00% for all columns')
     ))
 
 
@@ -219,5 +219,5 @@ def test_condition_count_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Not greater than 30.00% new categories samples for all columns')
+                               name='Ratio of samples with a new category is not greater than 30.00% for all columns')
     ))
