@@ -311,13 +311,6 @@ class ModelOnlyBaseCheck(BaseCheck):
 @dataclass
 class CheckFailure:
     """Class which holds a run exception of a check."""
-    # TODO: maybe it would be better to have special type of the exception
-    # that receives as an argument reference to the failed check instance
-    # example:
-    #
-    # >>> class DeepcheckException(Exception):
-    # ...    def __init__(self, msg: str, check_instance: BaseCheck): pass
-    # 
 
     check: BaseCheck
     exception: Exception
