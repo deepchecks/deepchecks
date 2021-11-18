@@ -114,33 +114,6 @@ def test_trainval_dataset_diff_columns():
                'Check SingleFeatureContributionTrainTest requires datasets to share the same features'))
 
 
-def test_pps_upper_bound_conditions_for_each_feature_that_should_pass():
-    df, expected = util_generate_dataframe_and_expected()
-    dataset = Dataset(df, label="label")
-    check = SingleFeatureContribution()
-
-    for feature_name, expected_pps in expected.items():
-        if expected_pps != 0:
-            check.add_condition_feature_pps_not_greater_than(
-                expected_pps + (expected_pps * 0.1),
-                features=[feature_name],
-                category=ConditionCategory.WARN,
-                name="Test Condition"
-            )
-
-    check_result = check.run(dataset)
-
-    for condition_result in check.conditions_decision(check_result):
-        assert_that(condition_result, equal_condition_result( # type: ignore
-            is_pass=True,
-            details="",
-            category=ConditionCategory.WARN,
-            name="Test Condition"
-        ))
-
-    check.clean_conditions()
-
-
 def test_all_features_pps_upper_bound_condition_that_should_not_pass():
     df, expected = util_generate_dataframe_and_expected()
     dataset = Dataset(df, label="label")
@@ -150,25 +123,16 @@ def test_all_features_pps_upper_bound_condition_that_should_not_pass():
     features_that_will_not_pass = [k for k, v in expected.items() if v >= condition_value]
 
     check.add_condition_feature_pps_not_greater_than(
-        var=condition_value,
-        category=ConditionCategory.WARN,
-        name="Test Condition",
-        failure_message="{failed_features}"
+        var=condition_value
     )
 
     check_result = check.run(dataset)
     condition_result, *_ = check.conditions_decision(check_result)
 
-    details_pattern = re.compile(';'.join([
-        fr'{name} \(pps: {ANY_FLOAT_REGEXP.pattern}\)'
-        for name in features_that_will_not_pass
-    ]))
-
     assert_that(condition_result, equal_condition_result( # type: ignore
         is_pass=False,
-        category=ConditionCategory.WARN,
-        name="Test Condition",
-        details=details_pattern
+        name=f'Features PPS is greater than {condition_value}',
+        details=f'Features pps is greater than {condition_value}: {",".join(features_that_will_not_pass)}'
     ))
 
 
@@ -178,11 +142,10 @@ def test_all_features_pps_upper_bound_condition_that_should_pass():
     check = SingleFeatureContribution()
 
     max_value = max(expected.values())
+    condition_value = max_value + (max_value * 0.1)
 
     check.add_condition_feature_pps_not_greater_than(
-        var=max_value + (max_value * 0.1),
-        category=ConditionCategory.WARN,
-        name="Test Condition",
+        var=condition_value,
     )
 
     check_result = check.run(dataset)
@@ -190,7 +153,6 @@ def test_all_features_pps_upper_bound_condition_that_should_pass():
 
     assert_that(condition_result, equal_condition_result( # type: ignore
         is_pass=True,
-        category=ConditionCategory.WARN,
-        name="Test Condition",
+        name=f'Features PPS is greater than {condition_value}',
         details=""
     ))

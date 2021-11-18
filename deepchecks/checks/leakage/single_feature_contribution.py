@@ -3,8 +3,7 @@ import typing as t
 
 import deepchecks.ppscore as pps
 from deepchecks.plot_utils import create_colorbar_barchart_for_check
-from deepchecks.utils import DeepchecksValueError
-from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionCategory, ConditionResult
+from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
 
 
 __all__ = ['SingleFeatureContribution']
@@ -75,91 +74,43 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text], check=self.__class__,
                            header='Single Feature Contribution')
 
-    def add_condition_feature_pps_not_greater_than(
-        self: FC,
-        var: float,
-        *,
-        features: t.Optional[t.Sequence[str]] = None,
-        category = ConditionCategory.FAIL,
-        failure_message = 'Next features pps >= {var}: {failed_features}',
-        name = 'Features PPS upper bound (for features: {features})'
-    ) -> FC:
+    def add_condition_feature_pps_not_greater_than(self: FC, var: float) -> FC:
         """
         Add condition that will check that pps of the specified feature(s) is not greater than X.
 
-        If `features` parameter is `None`, condition will be applied to all features.
-
         Args:
-            var
-            features: list of features to check
-            category: condition category
-            failure_message: condition details in case of failure
-            name: condition name
-
-        Raises:
-            MLChecksValueError: if empty list of features was passed to the method
-
-        Condition Raises:
-            MLChecksValueError: if `features` list contains unknown feature
+            var: pps upper bound
         """
         return self.add_condition(
-            name=name.format(features='all' if features is None else ','.join(features)),
+            name=f'Features PPS is greater than {var}',
             condition_func=_condition_factory(
                 var,
-                features,
-                category,
-                failure_message,
+                failure_message=f'Features pps is greater than {var}: {{failed_features}}',
                 operator=lambda pps, var: pps >= var
             )
         )
 
+
 # TODO: consider creating module with a set of built-in conditions (condition factories)
 def _condition_factory(
     var: float,
-    features: t.Optional[t.Sequence[str]],
-    category: ConditionCategory,
     failure_message: str,
     operator: t.Callable[[float, float], bool]
 ) -> t.Callable[[t.Dict[str, float]], ConditionResult]:
 
-    if features is not None and len(features) == 0:
-        raise DeepchecksValueError("sequence of 'features' cannot be empty!") # pylint: disable=inconsistent-quotes
-
     def condition(value: t.Dict[str, float]) -> ConditionResult:
-        nonlocal features
-
-        if features is None:
-            features_to_check = set(value.keys())
-        else:
-            features_to_check = set(features)
-            available_features = set(value.keys())
-            features_difference = features_to_check.difference(available_features)
-
-            if len(features_difference) != 0:
-                raise DeepchecksValueError(f'unknown features - {features_difference}')
-
-        all_features = []
-        failed_features = []
-
-        for feature_name, pps_value in value.items():
-            feature_repr = f'{feature_name} (pps: {pps_value})'
-            all_features.append(feature_repr)
-            if feature_name in features_to_check and operator(pps_value, var) is True:
-                failed_features.append(feature_repr)
-
-        details_template_vars = {
-            'var': var,
-            'all_features': ';'.join(all_features),
-            'failed_features': ';'.join(failed_features)
-        }
+        failed_features = [
+            feature_name
+            for feature_name, pps_value in value.items()
+            if operator(pps_value, var) is True
+        ]
 
         passed = len(failed_features) == 0
 
         return ConditionResult(
             is_pass=passed,
-            category=category,
             details=(
-                failure_message.format(**details_template_vars)
+                failure_message.format(failed_features=','.join(failed_features))
                 if not passed
                 else ''
             )

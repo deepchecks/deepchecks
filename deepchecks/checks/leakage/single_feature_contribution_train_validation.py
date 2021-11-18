@@ -2,7 +2,7 @@
 import typing as t
 
 import deepchecks.ppscore as pps
-from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionCategory
+from deepchecks import CheckResult, Dataset, TrainTestBaseCheck
 from deepchecks.plot_utils import create_colorbar_barchart_for_check
 
 from .single_feature_contribution import _condition_factory
@@ -97,43 +97,21 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         return CheckResult(value=s_difference.to_dict(), display=[plot, *text], check=self.__class__,
                            header='Single Feature Contribution Train-Test')
 
-    def add_condition_feature_pps_difference_not_greater_than(
-        self: FC,
-        var: float,
-        *,
-        features: t.Optional[t.Sequence[str]] = None,
-        category: ConditionCategory = ConditionCategory.FAIL,
-        failure_message: str = 'Train Test features pps difference is greater than {var}: {failed_features}',
-        name: str = 'Train Test features PPS difference upper bound (for features: {features})'
-    ) -> FC:
+    def add_condition_feature_pps_difference_not_greater_than(self: FC, var: float) -> FC:
         """
         Add new condition.
 
         Add condition that will check that difference between train
         dataset feature pps and test dataset feature pps is not greater than X.
 
-        If `features` parameter is `None`, condition will be applied to all features.
-
         Args:
-            var
-            features: list of features to check
-            category: condition category
-            failure_message: condition details in case of failure
-            name: condition name
-
-        Raises:
-            MLChecksValueError: if empty list of features was passed to the method
-
-        Condition Raises:
-            MLChecksValueError: if `features` list contains unknown feature
+            var: train test ps difference upper bound
         """
         return self.add_condition(
-            name=name.format(features='all' if features is None else ','.join(features)),
+            name=f'Train Test features PPS difference is greater than {var}',
             condition_func=_condition_factory(
                 var,
-                features,
-                category,
-                failure_message,
+                failure_message=f'Train Test features pps difference is greater than {var}: {{failed_features}}',
                 operator=lambda pps, var: pps >= var
             )
         )
