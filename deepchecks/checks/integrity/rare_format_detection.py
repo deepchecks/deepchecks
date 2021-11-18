@@ -369,7 +369,7 @@ class RareFormatDetection(SingleDatasetBaseCheck):
 
         return CheckResult(value=filtered_res, header='Rare Format Detection', check=self.__class__, display=display)
 
-    def add_condition_ratio_of_rare_formats_not_greater_than(self, var: float):
+    def add_condition_ratio_of_rare_formats_not_greater_than(self, var: float = 0):
         """
         Add rare formats ratio condition.
 
@@ -390,29 +390,26 @@ class RareFormatDetection(SingleDatasetBaseCheck):
                 for feature, results in check_result.items()
             }
 
-            failed_features = [
-                (feature, pattern, ratio)
+            failed_features = {
+                feature
                 for feature, results in values.items()
                 for pattern, ratio in results.items()
                 if ratio >= var
-            ]
-            stringified_failed_features = '; '.join([
-                f"feature='{feature}', pattern='{pattern}', ratio={ratio}" #pylint: disable=inconsistent-quotes
-                    for (feature, pattern, ratio) in failed_features
-            ])
+            }
 
+            stringified_failed_features = '; '.join(failed_features)
             passed = len(failed_features) == 0
 
             return ConditionResult(
                 is_pass=passed,
                 details=(
-                    f'Ration of the rare formates is greater than {var}: {stringified_failed_features}.'
+                    f'Ratio of the rare formates is greater than {var}: {stringified_failed_features}.'
                     if not passed
                     else ''
                 )
             )
 
         return self.add_condition(
-            name='Rare formats ratio upper bound',
+            name=f'Rare formats ratio is not greater than {var}',
             condition_func=condition
         )

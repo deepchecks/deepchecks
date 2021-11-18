@@ -151,7 +151,7 @@ def test_mostly_nan():
 def test_ratio_of_rare_formats_condition_that_should_pass():
     df = pd.DataFrame(np.ones((100, 1)) * 11111, columns=['mixed'])
     df.iloc[0, 0] = 'aaaaa'
-    
+
     check = RareFormatDetection().add_condition_ratio_of_rare_formats_not_greater_than(0.02)
     check_result = check.run(dataset=Dataset(df))
     condition_result, *_ = check.conditions_decision(check_result)
@@ -160,7 +160,7 @@ def test_ratio_of_rare_formats_condition_that_should_pass():
         condition_result,
         matcher=equal_condition_result( # type: ignore
             is_pass=True,
-            name="Rare formats ratio upper bound",
+            name="Rare formats ratio is not greater than 0.02",
             details="",
             category=ConditionCategory.FAIL
         )
@@ -170,24 +170,17 @@ def test_ratio_of_rare_formats_condition_that_should_pass():
 def test_ratio_of_rare_formats_condition_that_should_not_pass():
     df = pd.DataFrame(np.ones((100, 1)) * 11111, columns=['mixed'])
     df.iloc[0, 0] = 'aaaaa'
-    
+
     check = RareFormatDetection().add_condition_ratio_of_rare_formats_not_greater_than(0.002)
     check_result = check.run(dataset=Dataset(df))
     condition_result, *_ = check.conditions_decision(check_result)
-
-    details_pattern = re.compile(
-        fr"^Ration of the rare formates is greater than 0\.002: "
-        fr"(feature='(.+)', "
-        fr"pattern='(.+)', "
-        fr"ratio=({ANY_FLOAT_REGEXP.pattern});{{0,1}}\s{{0,1}})+.$"
-    )
 
     assert_that(
         condition_result,
         matcher=equal_condition_result( # type: ignore
             is_pass=False,
-            name="Rare formats ratio upper bound",
-            details=details_pattern,
+            name="Rare formats ratio is not greater than 0.002",
+            details='Ratio of the rare formates is greater than 0.002: mixed.',
             category=ConditionCategory.FAIL
         )
     )
