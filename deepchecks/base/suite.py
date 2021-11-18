@@ -115,7 +115,7 @@ class CheckSuite(BaseCheck):
                 else:
                     raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
             except Exception as exp:
-                results.append(CheckFailure(check, exp))
+                results.append(CheckFailure(check.__class__, exp))
             progress_bar.value = progress_bar.value + 1
 
         progress_bar.close()
