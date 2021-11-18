@@ -192,7 +192,7 @@ def test_condition_count_fail():
                            cat_features=['col1', 'col2'])
 
     # Arrange
-    check = CategoryMismatchTrainTest().add_condition_new_category_sample_ratio_not_greater_than(0.1)
+    check = CategoryMismatchTrainTest().add_condition_new_category_ratio_not_greater_than(0.1)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
@@ -212,7 +212,7 @@ def test_condition_count_pass():
                            cat_features=['col1', 'col2'])
 
     # Arrange
-    check = CategoryMismatchTrainTest().add_condition_new_category_sample_ratio_not_greater_than(0.3)
+    check = CategoryMismatchTrainTest().add_condition_new_category_ratio_not_greater_than(0.3)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))

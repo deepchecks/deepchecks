@@ -136,11 +136,11 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
         return self.add_condition(f'Not greater than {max_new} new categories for {column_names}',
                                   condition)
 
-    def add_condition_new_category_sample_ratio_not_greater_than(self, max_ratio: float = 0):
+    def add_condition_new_category_ratio_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require column not to have greater than given number of different new categories.
 
         Args:
-            max_new (int): Number of different categories value types which is the maximum allowed.
+            max_ratio (int): Number of different categories value types which is the maximum allowed.
         """
         def new_category_count_condition(result: Dict) -> ConditionResult:
             not_passing_columns = []
