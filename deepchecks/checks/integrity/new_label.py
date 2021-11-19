@@ -1,7 +1,8 @@
 """The data_sample_leakage_report check module."""
+from typing import Dict
 
 from deepchecks import Dataset
-from deepchecks.base.check import CheckResult, TrainTestBaseCheck
+from deepchecks.base.check import CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.string_utils import format_percent
 
 import pandas as pd
@@ -23,7 +24,7 @@ class NewLabelTrainTest(TrainTestBaseCheck):
             model: any = None - not used in the check
         Returns:
             CheckResult: value is a dictionary that shows label column with new labels
-                         displays a dataframe that label columns with new labels
+            displays a dataframe that label columns with new labels
         Raises:
             DeepchecksValueError: If the datasets are not a Dataset instance or do not contain label column
         """
@@ -59,9 +60,53 @@ class NewLabelTrainTest(TrainTestBaseCheck):
 
             display = dataframe
 
-            result = {label_column: n_new_label / n_test_samples}
+            result = {
+                'column_name': label_column,
+                'n_samples': n_test_samples,
+                'n_new_labels_samples': n_new_label,
+                'new_labels': sorted(new_labels)
+            }
         else:
             display = None
             result = {}
 
         return CheckResult(result, check=self.run, display=display)
+
+    def add_condition_new_labels_not_greater_than(self, max_new: int = 0):
+        """Add condition - require label column not to have greater than given number of different new labels.
+
+        Args:
+            max_new (int): Number of different new labels value types which is the maximum allowed.
+        """
+        def condition(result: Dict) -> ConditionResult:
+            if result:
+                column_name = result['column_name']
+                num_new_labels = len(result['new_labels'])
+                if num_new_labels > max_new:
+                    return ConditionResult(False,
+                                           f'Found more than {max_new} new labels in label column: '
+                                           f'{column_name}')
+            return ConditionResult(True)
+
+        return self.add_condition(f'Number of new label values is not greater than {max_new}',
+                                  condition)
+
+    def add_condition_new_label_ratio_not_greater_than(self, max_ratio: float = 0):
+        """Add condition - require label column not to have greater than given number of ratio new label samples.
+
+        Args:
+            max_ratio (int): Ratio of new label samples to total samples which is the maximum allowed.
+        """
+        def new_category_count_condition(result: Dict) -> ConditionResult:
+            if result:
+                column_name = result['column_name']
+                new_label_ratio = result['n_new_labels_samples']/result['n_samples']
+                if new_label_ratio > max_ratio:
+                    return ConditionResult(False,
+                                           f'Found more than {format_percent(max_ratio)} new labeled data in'
+                                           f' label column: {column_name}')
+            return ConditionResult(True)
+
+        return self.add_condition(
+            f'Ratio of samples with new label is not greater than {format_percent(max_ratio)}',
+            new_category_count_condition)

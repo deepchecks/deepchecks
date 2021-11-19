@@ -19,13 +19,13 @@ IndexLeakageCheckSuite = CheckSuite(
 
 DateLeakageCheckSuite = CheckSuite(
     'Date Leakage Suite',
-    DateTrainTestLeakageDuplicates(),
-    DateTrainTestLeakageOverlap()
+    DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_not_greater_than(),
+    DateTrainTestLeakageOverlap().add_condition_leakage_ratio_not_greater_than()
 )
 
 DataLeakageCheckSuite = CheckSuite(
     'Data Leakage Suite',
-    DataSampleLeakageReport(),
+    DataSampleLeakageReport().add_condition_duplicates_ratio_not_greater_than(),
     SingleFeatureContribution(),
     SingleFeatureContributionTrainTest()
 )

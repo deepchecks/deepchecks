@@ -6,11 +6,12 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-from hamcrest import assert_that, close_to, calling, raises, equal_to
+from hamcrest import assert_that, close_to, calling, raises, equal_to, has_items
 
 from deepchecks import Dataset
 from deepchecks.checks.leakage import DateTrainTestLeakageOverlap, DateTrainTestLeakageDuplicates
 from deepchecks.utils import DeepchecksValueError
+from tests.checks.utils import equal_condition_result
 
 
 def dataset_from_dict(d: dict, date_name: str = None) -> Dataset:
@@ -186,3 +187,173 @@ def test_nan():
     ]}, 'col1')
     check_obj = DateTrainTestLeakageOverlap()
     assert_that(check_obj.run(train_ds, val_ds).value, equal_to(0))
+
+
+def test_condition_fail_on_overlap():
+    # Arrange
+    train_ds = dataset_from_dict({'col1': [
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 5, 0, 0),
+        datetime(2021, 10, 5, 0, 0)
+    ]}, 'col1')
+    val_ds = dataset_from_dict({'col1': [
+        datetime(2021, 9, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 5, 0, 0),
+        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 7, 0, 0),
+        datetime(2021, 10, 7, 0, 0),
+        datetime(2021, 10, 8, 0, 0),
+        datetime(2021, 10, 8, 0, 0),
+        datetime(2021, 10, 9, 0, 0),
+        datetime(2021, 10, 9, 0, 0)
+    ]}, 'col1')
+
+    check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_not_greater_than(0.2)
+
+    # Act
+    result = check.conditions_decision(check.run(train_ds, val_ds))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=False,
+                               name='Date leakage ratio is not greater than 20.00%',
+                               details='Found 27.27% leaked dates')
+    ))
+
+
+def test_condition_on_overlap():
+    # Arrange
+    train_ds = dataset_from_dict({'col1': [
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+
+    ]}, 'col1')
+    val_ds = dataset_from_dict({'col1': [
+        datetime(2021, 10, 5, 0, 0),
+        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 7, 0, 0),
+        datetime(2021, 10, 7, 0, 0),
+        datetime(2021, 10, 8, 0, 0),
+        datetime(2021, 10, 8, 0, 0),
+        datetime(2021, 10, 9, 0, 0),
+        datetime(2021, 10, 9, 0, 0)
+    ]}, 'col1')
+
+    check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_not_greater_than()
+
+    # Act
+    result = check.conditions_decision(check.run(train_ds, val_ds))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=True,
+                               name='Date leakage ratio is not greater than 0%',
+                               details='')
+    ))
+
+
+def test_condition_fail_on_duplicates():
+    # Arrange
+    train_ds = dataset_from_dict({'col1': [
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 5, 0, 0),
+        datetime(2021, 10, 5, 0, 0)
+    ]}, 'col1')
+    val_ds = dataset_from_dict({'col1': [
+        datetime(2021, 9, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 5, 0, 0),
+        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 7, 0, 0),
+        datetime(2021, 10, 7, 0, 0),
+        datetime(2021, 10, 8, 0, 0),
+        datetime(2021, 10, 8, 0, 0),
+        datetime(2021, 10, 9, 0, 0),
+        datetime(2021, 10, 9, 0, 0)
+    ]}, 'col1')
+
+    check = DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_not_greater_than(0.1)
+
+    # Act
+    result = check.conditions_decision(check.run(train_ds, val_ds))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=False,
+                               name='Date leakage ratio is not greater than 10.00%',
+                               details='Found 18.18% leaked dates')
+    ))
+
+
+def test_condition_pass_on_duplicates():
+    # Arrange
+    train_ds = dataset_from_dict({'col1': [
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+
+    ]}, 'col1')
+    val_ds = dataset_from_dict({'col1': [
+        datetime(2021, 10, 5, 0, 0),
+        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 7, 0, 0),
+        datetime(2021, 10, 7, 0, 0),
+        datetime(2021, 10, 8, 0, 0),
+        datetime(2021, 10, 8, 0, 0),
+        datetime(2021, 10, 9, 0, 0),
+        datetime(2021, 10, 9, 0, 0)
+    ]}, 'col1')
+
+    check = DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_not_greater_than()
+
+    # Act
+    result = check.conditions_decision(check.run(train_ds, val_ds))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=True,
+                               name='Date leakage ratio is not greater than 0%',
+                               details='')
+    ))

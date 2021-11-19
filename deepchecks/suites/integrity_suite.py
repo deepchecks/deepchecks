@@ -21,8 +21,8 @@ SingleDatasetIntegrityCheckSuite = CheckSuite(
     MixedNulls().add_condition_different_nulls_not_more_than(),
     MixedTypes().add_condition_rare_type_ratio_not_less_than(),
     StringMismatch().add_condition_no_variants(),
-    DataDuplicates(),
-    RareFormatDetection(),
+    DataDuplicates().add_condition_duplicates_not_greater_than(),
+    RareFormatDetection().add_condition_ratio_of_rare_formats_not_greater_than(),
     SpecialCharacters()
 )
 
@@ -30,7 +30,7 @@ SingleDatasetIntegrityCheckSuite = CheckSuite(
 ComparativeIntegrityCheckSuite = CheckSuite(
     'Comparative Integrity Suite',
     StringMismatchComparison().add_condition_no_new_variants(),
-    CategoryMismatchTrainTest()
+    CategoryMismatchTrainTest().add_condition_new_categories_not_greater_than()
 )
 
 IntegrityCheckSuite = CheckSuite(

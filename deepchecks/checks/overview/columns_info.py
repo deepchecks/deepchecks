@@ -29,7 +29,7 @@ class ColumnsInfo(SingleDatasetBaseCheck):
 
         Returns:
           CheckResult: value is dictionary of a column and its role and logical type.
-                       display a table of the dictionary.
+          display a table of the dictionary.
         """
         feature_importances = calculate_feature_importance_or_null(dataset, model)
         return self._columns_info(dataset, feature_importances)
