@@ -20,7 +20,7 @@ class SuiteResult:
     """Contain the results of a suite run."""
 
     name: str
-    results: List[Union[CheckResult, CheckFailure]]
+    results: List[Union[CheckResult, CheckFailure, str]]
 
     def __init__(self, name: str, results):
         """Initialize suite result."""
@@ -113,7 +113,7 @@ class CheckSuite(BaseCheck):
                         check_result.set_condition_results(check.conditions_decision(check_result))
                         results.append(check_result)
                 elif isinstance(check, str):
-                    continue
+                    results.append(check)
                 else:
                     raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
             except Exception as exp:

@@ -87,11 +87,15 @@ def display_suite_result_1(name: str, results: List[Union[CheckResult, CheckFail
                 result._ipython_display_()
 
 
-def display_suite_result_2(suite_name: str, results: List[Union[CheckResult, CheckFailure]]):
+def display_suite_result_2(suite_name: str, results: List[Union[CheckResult, CheckFailure, str]]):
     """Display results of suite in IPython."""
+    # TODO: maybe lets use Jinja2 to generate a html representation of the results?
+
     conditions_table = []
     display_table = []
     others_table = []
+    provided_text = []
+
     for result in results:
         if isinstance(result, CheckResult):
             if result.have_conditions():
@@ -108,6 +112,8 @@ def display_suite_result_2(suite_name: str, results: List[Union[CheckResult, Che
             msg = result.exception.__class__.__name__ + ': ' + str(result.exception)
             name = split_camel_case(result.check.__name__)
             others_table.append([name, msg, 1])
+        elif isinstance(result, str):
+            provided_text.append(result) # TODO: how to show provided to the suite text
 
     light_hr = '<hr style="background-color: #eee;border: 0 none;color: #eee;height: 1px;">'
     bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'
@@ -151,13 +157,21 @@ def display_suite_result_2(suite_name: str, results: List[Union[CheckResult, Che
         {dataframe_to_html(others_table, hide_index=True)}
         """
         display_html(html, raw=True)
+    
+    display_html(f'{bold_hr}<h2>Addition Information</h2>', raw=True)
+    
+    if provided_text:
+        text = f'{light_hr}\n'.join(f'<p>{text}</p>' for text in provided_text)
+        display_html(text, raw=True)
 
 
-def get_first_3(results: List[Union[CheckResult, CheckFailure]]):
+def get_first_3(results: List[Union[CheckResult, CheckFailure, str]]):
     first_3 = []
     i = 0
     while len(first_3) < 3 and i < len(results):
         curr = results[i]
+        if isinstance(curr, str):
+            continue # TODO:
         curr_name = split_camel_case(curr.check.__name__)
         if curr_name not in first_3:
             first_3.append(curr_name)
