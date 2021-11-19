@@ -1,7 +1,7 @@
 """The UnusedFeatures check module."""
 import matplotlib.pyplot as plt
-import pandas as pd
 import numpy as np
+import pandas as pd
 from sklearn.base import TransformerMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.decomposition import PCA
@@ -9,9 +9,9 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import RobustScaler, OrdinalEncoder
 
+from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.feature_importance_utils import calculate_feature_importance
 from deepchecks.utils import model_type_validation, DeepchecksValueError
-from deepchecks import Dataset, CheckResult, TrainTestBaseCheck
 
 __all__ = ['UnusedFeatures']
 
@@ -134,6 +134,7 @@ class UnusedFeatures(TrainTestBaseCheck):
         ) - 1
 
         unviable_feature_df = feature_df.iloc[(last_important_feature_index + 1):]
+        # Only display if there are features considered unimportant
         if not unviable_feature_df.empty:
             unviable_feature_df.sort_values(by='Feature Variance', ascending=False, inplace=True)
             unviable_feature_ratio_to_avg_df = unviable_feature_df / (1 / len(feature_df))
@@ -141,7 +142,8 @@ class UnusedFeatures(TrainTestBaseCheck):
                 unviable_feature_ratio_to_avg_df['Feature Variance'] > self.feature_variance_threshold
             )
 
-            feature_df = pd.concat(
+            # limit display to n_top_to_show params
+            display_feature_df = pd.concat(
                 [feature_df.iloc[:(last_important_feature_index + 1)].head(self.n_top_fi_to_show),
                  unviable_feature_df.iloc[:last_variable_feature_index].head(self.n_top_unused_to_show)],
                 axis=0)
@@ -151,18 +153,20 @@ class UnusedFeatures(TrainTestBaseCheck):
                 width = 0.20
                 my_cmap = plt.cm.get_cmap('Set2')
 
-                indices = np.arange(len(feature_df.index))
+                indices = np.arange(len(display_feature_df.index))
 
-                colors = my_cmap(range(len(feature_df)))
-                plt.figure(figsize=[8.0, 6.0 * len(feature_df) / 8.0])
-                plt.barh(indices, feature_df['Feature Importance'].values.flatten(), height=width, color=colors[0])
-                plt.barh(indices + width, feature_df['Feature Variance'].values.flatten(), height=width, color=colors[1])
+                colors = my_cmap(range(len(display_feature_df)))
+                plt.figure(figsize=[8.0, 6.0 * len(display_feature_df) / 8.0])
+                plt.barh(indices, display_feature_df['Feature Importance'].values.flatten(), height=width,
+                         color=colors[0])
+                plt.barh(indices + width, display_feature_df['Feature Variance'].values.flatten(), height=width,
+                         color=colors[1])
                 plt.xlabel('Importance / Variance [%]')
-                plt.yticks(ticks=indices + width / 2., labels=feature_df.index)
+                plt.yticks(ticks=indices + width / 2., labels=display_feature_df.index)
                 plt.yticks(rotation=30)
                 last_important_feature_index_to_plot = min(last_important_feature_index, self.n_top_fi_to_show - 1)
-                legend_labels = feature_df.columns.values.tolist()
-                if last_important_feature_index_to_plot < len(feature_df) - 1:
+                legend_labels = display_feature_df.columns.values.tolist()
+                if last_important_feature_index_to_plot < len(display_feature_df) - 1:
                     last_important_feature_line_loc = last_important_feature_index_to_plot + 0.6
                     plt.plot(plt.gca().get_xlim(),
                              [last_important_feature_line_loc, last_important_feature_line_loc], 'k--')
@@ -171,6 +175,7 @@ class UnusedFeatures(TrainTestBaseCheck):
                 plt.legend(legend_labels, loc='upper right', bbox_to_anchor=(1.55, 1.02))
                 plt.title('Unused features compared to top important features')
 
+            # display only if high variance features exist (as set by self.feature_variance_threshold)
             if not last_variable_feature_index:
                 display_list = []
             else:
@@ -182,5 +187,32 @@ class UnusedFeatures(TrainTestBaseCheck):
         else:
             display_list = []
 
-        return CheckResult({}, check=self.__class__, header='Unused Features',
-                           display=display_list)
+        return_value = {
+            'used features': feature_df.index[:(last_important_feature_index + 1)].values.tolist(),
+            'unused features': {
+                'high variance': [] if unviable_feature_df.empty else unviable_feature_df.index[
+                                                                      :last_variable_feature_index].values.tolist(),
+                'low variance': [] if unviable_feature_df.empty else unviable_feature_df.index[
+                                                                     last_variable_feature_index:].values.tolist()
+            }}
+
+        return CheckResult(return_value, check=self.__class__, header='Unused Features', display=display_list)
+
+    def add_condition_number_of_high_variance_unused_features_not_greater_than(
+            self, max_high_variance_unused_features: int = 5):
+        """Add condition - require number of high variance unused features to be not greater than a given number.
+
+        Args:
+            max_high_variance_unused_features (int): Maximum allowed number of high variance unused features.
+        """
+        def max_high_variance_unused_features_condition(result: dict) -> ConditionResult:
+            if len(result['unused features']['high variance']) > max_high_variance_unused_features:
+                return ConditionResult(
+                    False,
+                    f'Found {result["unused features"]["high variance"]} unused high variance features')
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'Number of high variance unused features is not greater than'
+                                  f' {max_high_variance_unused_features}',
+                                  max_high_variance_unused_features_condition)
