@@ -12,6 +12,7 @@ from deepchecks.checks.leakage import (
 
 __all__ = ['IndexLeakageCheckSuite', 'DateLeakageCheckSuite', 'DataLeakageCheckSuite', 'LeakageCheckSuite']
 
+
 IndexLeakageCheckSuite = CheckSuite(
     'Index Leakage Suite',
     IndexTrainTestLeakage(),
@@ -26,8 +27,10 @@ DateLeakageCheckSuite = CheckSuite(
 DataLeakageCheckSuite = CheckSuite(
     'Data Leakage Suite',
     DataSampleLeakageReport().add_condition_duplicates_ratio_not_greater_than(),
-    SingleFeatureContribution(),
-    SingleFeatureContributionTrainTest()
+    # TODO: what default value to use for the condition
+    SingleFeatureContribution().add_condition_feature_pps_not_greater_than(0.9),
+    # TODO: what default value to use for the condition
+    SingleFeatureContributionTrainTest().add_condition_feature_pps_difference_not_greater_than(0.1)
 )
 
 LeakageCheckSuite = CheckSuite(
@@ -36,4 +39,3 @@ LeakageCheckSuite = CheckSuite(
     DateLeakageCheckSuite,
     DataLeakageCheckSuite
 )
-
