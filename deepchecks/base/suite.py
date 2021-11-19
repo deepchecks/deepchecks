@@ -42,7 +42,7 @@ class CheckSuite(BaseCheck):
     name: str
     _check_index: int
 
-    def __init__(self, name: str, *checks):
+    def __init__(self, name: str, *checks: Union[str, BaseCheck]):
         """Get 'Check's and 'CheckSuite's to run in given order."""
         super().__init__()
         self.name = name
@@ -112,6 +112,8 @@ class CheckSuite(BaseCheck):
                         check_result = check.run(model=model)
                         check_result.set_condition_results(check.conditions_decision(check_result))
                         results.append(check_result)
+                elif isinstance(check, str):
+                    continue
                 else:
                     raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
             except Exception as exp:
@@ -127,23 +129,35 @@ class CheckSuite(BaseCheck):
     def __repr__(self, tabs=0):
         """Representation of suite as string."""
         tabs_str = '\t' * tabs
-        checks_str = ''.join([f'\n{c.__repr__(tabs + 1, str(n) + ": ")}' for n, c in self.checks.items()])
-        return f'{tabs_str}{self.name}: [{checks_str}\n{tabs_str}]'
+        stringified_checks = []
 
-    def __getitem__(self, index):
+        for index, check in self.checks.items():
+            if isinstance(check, str):
+                stringified_checks.append(check)
+            else:
+                check_repr = check.__repr__(tabs + 1, str(index) + ': ')
+                stringified_checks.append(f'\n{check_repr}')
+
+        checks_repr = ''.join(stringified_checks)
+        return f'{tabs_str}{self.name}: [{checks_repr}\n{tabs_str}]'
+
+    def __getitem__(self, index) -> Union[str, BaseCheck]:
         """Access check inside the suite by name."""
         if index not in self.checks:
             raise DeepchecksValueError(f'No index {index} in suite')
         return self.checks[index]
 
-    def add(self, check):
+    def add(self, check: Union[str, BaseCheck]) -> 'CheckSuite':
         """Add a check or a suite to current suite.
 
         Args:
             check (BaseCheck): A check or suite to add.
         """
-        if not isinstance(check, BaseCheck):
-            raise Exception(f'CheckSuite receives only `BaseCheck` objects but got: {check.__class__.__name__}')
+        if not isinstance(check, (BaseCheck, str)):
+            raise Exception(
+                f"'{type(self).__name__}' receives only `{BaseCheck.__name__}` "
+                f"objects but got: '{type(check).__name__}'"
+            )
         if isinstance(check, CheckSuite):
             for c in check.checks.values():
                 self.add(c)
@@ -152,7 +166,7 @@ class CheckSuite(BaseCheck):
             self._check_index += 1
         return self
 
-    def remove(self, index: int):
+    def remove(self, index: int) -> 'CheckSuite':
         """Remove a check by given index.
 
         Args:

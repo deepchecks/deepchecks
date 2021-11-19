@@ -9,6 +9,7 @@ from deepchecks.base.display_pandas import dataframe_to_html, display_dataframe
 from deepchecks.string_utils import split_camel_case
 import pandas as pd
 
+
 __all__ = ['display_suite_result_1', 'display_suite_result_2']
 
 
