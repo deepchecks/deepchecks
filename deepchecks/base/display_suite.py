@@ -157,9 +157,9 @@ def display_suite_result_2(suite_name: str, results: List[Union[CheckResult, Che
         {dataframe_to_html(others_table, hide_index=True)}
         """
         display_html(html, raw=True)
-    
-    display_html(f'{bold_hr}<h2>Addition Information</h2>', raw=True)
-    
+
+    display_html(f'{bold_hr}<h2>Additional Information</h2>', raw=True)
+
     if provided_text:
         text = f'{light_hr}\n'.join(f'<p>{text}</p>' for text in provided_text)
         display_html(text, raw=True)
