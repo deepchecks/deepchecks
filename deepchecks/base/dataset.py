@@ -169,9 +169,9 @@ class Dataset:
 
         if len(cat_columns) > 0:
             if len(cat_columns) < 7:
-                print(f'Automatically inferred these columns as categorical features: {",".join(cat_columns)}. \n')
+                print(f'Automatically inferred these columns as categorical features: {", ".join(cat_columns)}. \n')
             else:
-                print(f'Some columns have been inferred as categorical features: {",".join(cat_columns[:7])}. \n '
+                print(f'Some columns have been inferred as categorical features: {", ".join(cat_columns[:7])}. \n '
                       f'and more... \n'
                       f'For the full list of columns, use dataset.cat_features')
 
