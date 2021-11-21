@@ -75,3 +75,4 @@ ENV/
 
 # Sphinx Docs
 _build/
+api-reference
