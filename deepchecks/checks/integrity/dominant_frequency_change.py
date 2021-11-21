@@ -146,7 +146,7 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
 
         return CheckResult(p_df, check=self.__class__, display=sorted_p_df)
 
-    def add_condition_p_value_not_greater_than(self, p_value_threshold: float = 0.0001):
+    def add_condition_p_value_not_less_than(self, p_value_threshold: float = 0.0001):
         """Add condition - require min p value allowed per column.
 
         Args:
@@ -162,9 +162,9 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
                     failed_columns.append(index)
             if failed_columns:
                 return ConditionResult(False,
-                                       f'The p value that are greater than the max p value are: {failed_columns}')
+                                       f'The p value that are less than the minimal p value are: {failed_columns}')
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'P value not greater than {p_value_threshold}',
+        return self.add_condition(f'P value not less than {p_value_threshold}',
                                   condition)
