@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from deepchecks import Dataset
-from deepchecks.base.check import CheckResult, CompareDatasetsBaseCheck
+from deepchecks.base.check import CheckResult, CompareDatasetsBaseCheck, ConditionResult
 from deepchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_df
 
 __all__ = ['DominantFrequencyChange']
@@ -15,20 +15,17 @@ __all__ = ['DominantFrequencyChange']
 class DominantFrequencyChange(CompareDatasetsBaseCheck):
     """Check if dominant values have increased significantly between test and reference data."""
 
-    def __init__(self, p_value_threshold: float = 0.0001, dominance_ratio: float = 2, ratio_change_thres: float = 1.5,
+    def __init__(self, dominance_ratio: float = 2, ratio_change_thres: float = 1.5,
                  n_top_columns: int = 10):
         """Initialize the DominantFrequencyChange class.
 
-        Args:
-            p_value_threshold (float = 0.0001): Maximal p-value to pass the statistical test determining
-              if the value abundance has changed significantly (0-1).
+        Args:    
             dominance_ratio (float = 2): Next most abundance value has to be THIS times less than the first (0-inf).
             ratio_change_thres (float = 1.5): The dominant frequency has to change by at least this ratio (0-inf).
             n_top_columns (int): (optinal - used only if model was specified)
               amount of columns to show ordered by feature importance (date, index, label are first)
         """
         super().__init__()
-        self.p_value_threshold = p_value_threshold
         self.dominance_ratio = dominance_ratio
         self.ratio_change_thres = ratio_change_thres
         self.n_top_columns = n_top_columns
@@ -120,24 +117,54 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
             if len(top_ref) == 1 or top_ref.iloc[0] > top_ref.iloc[1] * self.dominance_ratio:
                 value = top_ref.index[0]
                 p_val = self._find_p_val(value, top_test, top_ref, test_len, baseline_len, self.ratio_change_thres)
-                if p_val and p_val < self.p_value_threshold:
+                if p_val:
                     count_ref = top_ref[value]
                     count_test = top_test.get(value, 0)
                     p_df[column] = {'Value': value,
-                                    'Reference data': f'{count_ref} ({count_ref / baseline_len * 100:0.2f})',
-                                    'Tested data': f'{count_test} ({count_test / test_len * 100:0.2f})'}
+                                    'Reference data %': count_ref / baseline_len * 100,
+                                    'Tested data %': count_test / test_len * 100,
+                                    'Reference data #': count_ref,
+                                    'Tested data #': count_test,
+                                    'P value': p_val}
             elif len(top_test) == 1 or top_test.iloc[0] > top_test.iloc[1] * self.dominance_ratio:
                 value = top_test.index[0]
                 p_val = self._find_p_val(value, top_test, top_ref, test_len, baseline_len, self.ratio_change_thres)
-                if p_val and p_val < self.p_value_threshold:
+                if p_val:
                     count_test = top_test[value]
                     count_ref = top_ref.get(value, 0)
                     p_df[column] = {'Value': value,
-                                    'Reference data': f'{count_ref} ({count_ref / baseline_len * 100:0.2f}%)',
-                                    'Tested data': f'{count_test} ({count_test / test_len * 100:0.2f}%)'}
+                                    'Reference data %': count_ref / baseline_len * 100,
+                                    'Tested data %': count_test / test_len * 100,
+                                    'Reference data #': count_ref,
+                                    'Tested data #': count_test,
+                                    'P value': p_val}
 
-        p_df = pd.DataFrame.from_dict(p_df, orient='index') if len(p_df) else None
+        sorted_p_df = p_df = pd.DataFrame.from_dict(p_df, orient='index') if len(p_df) else None
         if p_df is not None:
-            p_df = column_importance_sorter_df(p_df, dataset, feature_importances, self.n_top_columns)
+            sorted_p_df = column_importance_sorter_df(p_df, dataset, feature_importances, self.n_top_columns)
+            sorted_p_df = sorted_p_df.drop(columns='P value')
 
-        return CheckResult(p_df, check=self.__class__, display=p_df)
+        return CheckResult(p_df, check=self.__class__, display=sorted_p_df)
+
+    def add_condition_p_value_not_greater_than(self, p_value_threshold: float = 0.0001):
+        """Add condition - require min p value allowed per column.
+
+        Args:
+            p_value_threshold (float = 0.0001): Minimal p-value to pass the statistical test determining
+              if the value abundance has changed significantly (0-1).
+
+        """
+        def condition(result: pd.DataFrame) -> ConditionResult:
+            failed_columns = []
+            for index, row in result.iterrows():
+                p_val = row['P value']
+                if p_val < p_value_threshold:
+                    failed_columns.append(index)
+            if failed_columns:
+                return ConditionResult(False,
+                                       f'The p value that are greater than the max p value are: {failed_columns}')
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'P value not greater than {p_value_threshold}',
+                                  condition)
