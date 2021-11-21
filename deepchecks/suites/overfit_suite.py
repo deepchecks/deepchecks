@@ -9,5 +9,5 @@ __all__ = ['OverfitCheckSuite']
 OverfitCheckSuite = CheckSuite(
     'Overfit Suite',
     TrainTestDifferenceOverfit().add_condition_percentage_degradation_not_greater_than(),
-    BoostingOverfit()
+    BoostingOverfit().add_condition_test_score_decline_not_greater_than()
 )
