@@ -2,10 +2,9 @@
 from typing import Union, Iterable
 import pandas as pd
 from deepchecks import SingleDatasetBaseCheck, CheckResult, ensure_dataframe_type, Dataset, ConditionResult
+from deepchecks.base.dataframe_utils import filter_columns_with_validation
 
 __all__ = ['IsSingleValue']
-
-from deepchecks.base.dataframe_utils import filter_columns_with_validation
 
 
 class IsSingleValue(SingleDatasetBaseCheck):
@@ -61,7 +60,7 @@ class IsSingleValue(SingleDatasetBaseCheck):
 
     def add_condition_not_single_value(self):
         """Add condition - not single value."""
-        name = f"columns do not contain only a single value"
+        name = 'columns do not contain only a single value'
 
         def condition(result):
             if result:
