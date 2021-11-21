@@ -121,7 +121,7 @@ def test_nan():
     assert_that(result.display[0].loc['col2']['Most Common Special-Only Samples'], has_items('&!'))
 
 
-def test_condition(diabetes_split_dataset_and_model):
+def test_condition_fail_all(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
     train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
     train.data.loc[train.data.index % 3 == 2, 'age'] = '&!'
@@ -137,4 +137,38 @@ def test_condition(diabetes_split_dataset_and_model):
         is_pass=False,
         name='Ratio of special only samples does not surpass 0% for all columns',
         details='Columns containing special only samples over max ratio: [\'age\', \'sex\', \'bmi\', \'bp\']'
+    ))
+
+
+def test_condition_fail_some(diabetes_split_dataset_and_model):
+    train, _, clf = diabetes_split_dataset_and_model
+    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
+    train.data.loc[train.data.index % 7 == 2, 'age'] = '&!'
+    train.data.loc[train.data.index % 3 == 2, 'bmi'] = '&!'
+    train.data.loc[train.data.index % 7 == 2, 'bp'] = '&!'
+    train.data.loc[train.data.index % 3 == 2, 'sex'] = '&!'
+    # Arrange
+    check = SpecialCharacters(n_top_columns=3).add_condition_ratio_of_special_only_samples_not_grater_than(0.3)
+    # Act
+    results = check.conditions_decision(check.run(train, clf))
+    # Assert
+    assert_that(results[0], equal_condition_result(
+        is_pass=False,
+        name='Ratio of special only samples does not surpass 30.00% for all columns',
+        details='Columns containing special only samples over max ratio: [\'sex\', \'bmi\']'
+    ))
+
+
+def test_condition_pass(diabetes_split_dataset_and_model):
+    train, _, clf = diabetes_split_dataset_and_model
+    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
+
+    # Arrange
+    check = SpecialCharacters(n_top_columns=3).add_condition_ratio_of_special_only_samples_not_grater_than()
+    # Act
+    results = check.conditions_decision(check.run(train, clf))
+    # Assert
+    assert_that(results[0], equal_condition_result(
+        is_pass=True,
+        name='Ratio of special only samples does not surpass 0% for all columns',
     ))
