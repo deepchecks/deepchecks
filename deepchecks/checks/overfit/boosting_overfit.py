@@ -8,6 +8,7 @@ import numpy as np
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.metric_utils import task_type_check, DEFAULT_METRICS_DICT, validate_scorer, DEFAULT_SINGLE_METRIC
+from deepchecks.string_utils import format_number
 from deepchecks.utils import DeepchecksValueError
 
 __all__ = ['BoostingOverfit']
@@ -192,7 +193,7 @@ class BoostingOverfit(TrainTestBaseCheck):
             diff = max_score - last_score
 
             if diff > threshold:
-                message = f'Found difference {diff}'
+                message = f'Found decline in metric of: -{format_number(diff)}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
