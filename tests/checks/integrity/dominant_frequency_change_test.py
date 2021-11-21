@@ -123,6 +123,7 @@ def test_condition_ratio_not_less_than_not_passed(iris_clean):
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
 
+    # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='P value not less than 0.0001',
@@ -132,12 +133,15 @@ def test_condition_ratio_not_less_than_not_passed(iris_clean):
 
 
 def test_condition_ratio_not_less_than_passed(iris_split_dataset_and_model):
+    # Arrange
     train_ds, val_ds, _ = iris_split_dataset_and_model
 
     check = DominantFrequencyChange().add_condition_p_value_not_less_than()
 
+    # Act
     result = check.conditions_decision(check.run(train_ds, val_ds))
 
+    # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                name='P value not less than 0.0001')
