@@ -21,7 +21,7 @@ def test_single_column_dataset_more_than_single_value():
     df = pd.DataFrame({'a': [3, 4]})
 
     # Act & Assert
-    helper_test_df_and_result(df, False)
+    helper_test_df_and_result(df, None)
 
 
 def test_single_column_dataset_single_value():
@@ -29,7 +29,7 @@ def test_single_column_dataset_single_value():
     df = pd.DataFrame({'a': ['b', 'b']})
 
     # Act & Assert
-    helper_test_df_and_result(df, True)
+    helper_test_df_and_result(df, ['a'])
 
 
 def test_multi_column_dataset_single_value():
@@ -37,7 +37,7 @@ def test_multi_column_dataset_single_value():
     df = pd.DataFrame({'a': ['b', 'b', 'b'], 'b': ['a', 'a', 'a'], 'f': [1, 2, 3]})
 
     # Act & Assert
-    helper_test_df_and_result(df, True)
+    helper_test_df_and_result(df, ['a', 'b'])
 
 
 def test_multi_column_dataset_single_value_with_ignore():
@@ -45,7 +45,7 @@ def test_multi_column_dataset_single_value_with_ignore():
     df = pd.DataFrame({'a': ['b', 'b', 'b'], 'b': ['a', 'a', 'a'], 'f': [1, 2, 3]})
 
     # Act & Assert
-    helper_test_df_and_result(df, False, ignore_columns=['a', 'b'])
+    helper_test_df_and_result(df, None, ignore_columns=['a', 'b'])
 
 
 def test_empty_df_single_value():
@@ -53,7 +53,7 @@ def test_empty_df_single_value():
     df = pd.DataFrame()
 
     # Act & Assert
-    helper_test_df_and_result(df, False)
+    helper_test_df_and_result(df, None)
 
 
 def test_single_value_object(iris_dataset):
@@ -130,7 +130,7 @@ def test_condition_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                details='Columns containing a single value: [\'a\', \'bbb\']',
-                               name='columns do not contain only a single value')))
+                               name='Does not contain only a single value for all columns')))
 
 
 def test_condition_pass():
@@ -140,4 +140,4 @@ def test_condition_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='columns do not contain only a single value')))
+                               name='Does not contain only a single value for all columns')))
