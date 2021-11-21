@@ -5,10 +5,9 @@ from sklearn.metrics import brier_score_loss
 import matplotlib.pyplot as plt
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck, ConditionResult
 from deepchecks.metric_utils import ModelType, task_type_validation
+from deepchecks.string_utils import format_number
 
 __all__ = ["CalibrationMetric"]
-
-from deepchecks.string_utils import format_number
 
 
 class CalibrationMetric(SingleDatasetBaseCheck):
@@ -84,12 +83,12 @@ class CalibrationMetric(SingleDatasetBaseCheck):
         Args:
             threshold (float): Maximum brier score value.
         """
-        name = f'Brier scores are not greater than {threshold}'
+        name = f"Brier scores are not greater than {threshold}"
 
         def condition(result):
             not_passed = {k: f"{format_number(v)}" for k, v in result.items() if v > threshold}
             if not_passed:
-                details = f'Classes with high brier score: {not_passed}'
+                details = f"Classes with high brier score: {not_passed}"
                 return ConditionResult(False, details)
             return ConditionResult(True)
 
