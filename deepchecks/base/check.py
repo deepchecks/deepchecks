@@ -4,7 +4,7 @@ import enum
 import re
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Any, Callable, List, Union, Dict
+from typing import Any, Callable, List, Union, Dict, cast
 
 __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainTestBaseCheck',
            'ModelOnlyBaseCheck', 'ConditionResult', 'ConditionCategory', 'CheckFailure']
@@ -35,6 +35,10 @@ class Condition:
         self.function = function
         self.params = params
 
+    def __call__(self, *args, **kwargs) -> 'ConditionResult':
+        result = cast(ConditionResult, self.function(*args, **kwargs))
+        result.set_name(self.name)
+        return result
 
 class ConditionCategory(enum.Enum):
     """Condition result category. indicates whether the result should fail the suite."""
