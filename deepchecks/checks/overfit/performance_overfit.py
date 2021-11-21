@@ -133,7 +133,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
         Add condition that will check that train performance is not degraded by more than given percentage in test.
 
         Args:
-            threshold: maximum percentage degradation allowed
+            threshold: maximum percentage degradation allowed (value between 0 to 1)
         """
         def condition(res: dict) -> ConditionResult:
             test_metrics = res['test']

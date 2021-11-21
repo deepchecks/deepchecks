@@ -107,8 +107,8 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         def condition(value: t.Dict[str, float]) -> ConditionResult:
             failed_features = [
                 feature_name
-                for feature_name, pps_value in value.items()
-                if pps_value > threshold
+                for feature_name, pps_diff in value.items()
+                if pps_diff > threshold
             ]
 
             if failed_features:
