@@ -10,7 +10,7 @@ __all__ = ["CalibrationMetric"]
 
 
 class CalibrationMetric(SingleDatasetBaseCheck):
-    """Return the calibration curve with brier score for each class."""
+    """Calculate the calibration curve with brier score for each class."""
 
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run check.
@@ -20,7 +20,7 @@ class CalibrationMetric(SingleDatasetBaseCheck):
             dataset: a Dataset object
         Returns:
             CheckResult: value is dictionary of class and it's brier score, displays the calibration curve
-                 graph with each class
+            graph with each class
 
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance with a label
@@ -68,5 +68,10 @@ class CalibrationMetric(SingleDatasetBaseCheck):
 
             plt.tight_layout()
 
-        return CheckResult(briers_scores, header="Calibration Metric", check=self.__class__, display=display)
-
+        calibration_text = "Calibration curves (also known as reliability diagrams) compare how well the " \
+                           "probabilistic predictions of a binary classifier are calibrated. It plots the true " \
+                           "frequency of the positive label against its predicted probability, for binned predictions."
+        brier_text = "The Brier score metric may be used to assess how well a classifier is calibrated. For more " \
+                     "info, please visit https://en.wikipedia.org/wiki/Brier_score"
+        return CheckResult(briers_scores, header="Calibration Metric", check=self.__class__,
+                           display=[calibration_text, display, brier_text])

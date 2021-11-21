@@ -2,10 +2,10 @@
 from deepchecks import CheckSuite
 from deepchecks.checks.leakage import (
     DataSampleLeakageReport,
-    DateTrainValidationLeakageDuplicates,
-    DateTrainValidationLeakageOverlap,
-    IndexTrainValidationLeakage,
-    SingleFeatureContributionTrainValidation,
+    DateTrainTestLeakageDuplicates,
+    DateTrainTestLeakageOverlap,
+    IndexTrainTestLeakage,
+    SingleFeatureContributionTrainTest,
     SingleFeatureContribution
 )
 
@@ -14,20 +14,20 @@ __all__ = ['IndexLeakageCheckSuite', 'DateLeakageCheckSuite', 'DataLeakageCheckS
 
 IndexLeakageCheckSuite = CheckSuite(
     'Index Leakage Suite',
-    IndexTrainValidationLeakage(),
+    IndexTrainTestLeakage(),
 )
 
 DateLeakageCheckSuite = CheckSuite(
     'Date Leakage Suite',
-    DateTrainValidationLeakageDuplicates(),
-    DateTrainValidationLeakageOverlap()
+    DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_not_greater_than(),
+    DateTrainTestLeakageOverlap().add_condition_leakage_ratio_not_greater_than()
 )
 
 DataLeakageCheckSuite = CheckSuite(
     'Data Leakage Suite',
-    DataSampleLeakageReport(),
+    DataSampleLeakageReport().add_condition_duplicates_ratio_not_greater_than(),
     SingleFeatureContribution(),
-    SingleFeatureContributionTrainValidation()
+    SingleFeatureContributionTrainTest()
 )
 
 LeakageCheckSuite = CheckSuite(

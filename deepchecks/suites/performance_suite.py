@@ -10,7 +10,7 @@ __all__ = ['ClassificationCheckSuite', 'PerformanceCheckSuite', 'GenericPerforma
 ClassificationCheckSuite = CheckSuite(
     'Classification Suite',
     ConfusionMatrixReport(),
-    RocReport(),
+    RocReport().add_condition_auc_not_less_than(),
     CalibrationMetric(),
 )
 
@@ -24,7 +24,7 @@ RegressionCheckSuite = CheckSuite(
 GenericPerformanceCheckSuite = CheckSuite(
     'Generic Performance Suite',
     PerformanceReport(),
-    NaiveModelComparison()
+    NaiveModelComparison().add_condition_ratio_not_less_than()
 )
 
 

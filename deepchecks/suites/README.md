@@ -40,7 +40,7 @@ from deepchecks.suites import *
 ```
 Then run it with the required input parameters (datasets and models)
 ```python
-OverfitCheckSuite.run(model=my_classification_model, train_dataset=ds_train, validation_dataset=ds_val)
+OverfitCheckSuite.run(model=my_classification_model, train_dataset=ds_train, test_dataset=ds_test)
 ```
 
 ## Creating Your Custom CheckSuite
@@ -56,7 +56,7 @@ Build the suite with custom checks and desired parameters
 MyModelSuite = CheckSuite('Simple Suite For Model Performance',
     ModelInfo(),
     PerformanceReport(),
-    TrainValidationDifferenceOverfit(),
+    TrainTestDifferenceOverfit(),
     ConfusionMatrixReport(),
     NaiveModelComparision(),
     NaiveModelComparision(naive_model_type='statistical')
@@ -64,5 +64,5 @@ MyModelSuite = CheckSuite('Simple Suite For Model Performance',
 ```
 Then run with required input parameters (datasets and models)
 ```python
-MyModelSuite.run(model=rf_clf, train_dataset=ds_train, validation_dataset=ds_val, check_datasets_policy='both')
+MyModelSuite.run(model=rf_clf, train_dataset=ds_train, test_dataset=ds_test, check_datasets_policy='both')
 ```

@@ -6,7 +6,7 @@ from matplotlib.ticker import MaxNLocator
 
 import numpy as np
 
-from deepchecks import Dataset, CheckResult, TrainValidationBaseCheck
+from deepchecks import Dataset, CheckResult, TrainTestBaseCheck
 from deepchecks.metric_utils import task_type_check, DEFAULT_METRICS_DICT, validate_scorer, DEFAULT_SINGLE_METRIC
 from deepchecks.utils import DeepchecksValueError
 
@@ -96,12 +96,12 @@ def calculate_steps(num_steps, num_estimators):
     return sorted(steps_set)
 
 
-class BoostingOverfit(TrainValidationBaseCheck):
+class BoostingOverfit(TrainTestBaseCheck):
     """Check for overfit occurring when increasing the number of iterations in boosting models.
 
     The check runs a pred-defined number of steps, and in each step it limits the boosting model to use up to X
     estimators (number of estimators is monotonic increasing). It plots the given metric calculated for each step for
-    both the train dataset and the validation dataset.
+    both the train dataset and the test dataset.
     """
 
     def __init__(self, metric: Union[Callable, str] = None, metric_name: str = None, num_steps: int = 20):
@@ -117,31 +117,31 @@ class BoostingOverfit(TrainValidationBaseCheck):
         self.metric_name = metric_name
         self.num_steps = num_steps
 
-    def run(self, train_dataset, validation_dataset, model=None) -> CheckResult:
+    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
         """Run check.
 
         Args:
             train_dataset (Dataset):
-            validation_dataset (Dataset):
+            test_dataset (Dataset):
             model: Boosting model.
 
         Returns:
-            The metric value on the validation dataset.
+            The metric value on the test dataset.
         """
-        return self._boosting_overfit(train_dataset, validation_dataset, model=model)
+        return self._boosting_overfit(train_dataset, test_dataset, model=model)
 
-    def _boosting_overfit(self, train_dataset: Dataset, validation_dataset: Dataset, model) -> CheckResult:
+    def _boosting_overfit(self, train_dataset: Dataset, test_dataset: Dataset, model) -> CheckResult:
         # Validate params
         if self.metric_name is not None and self.metric is None:
             raise DeepchecksValueError('Can not have metric_name without metric')
         if not isinstance(self.num_steps, int) or self.num_steps < 2:
             raise DeepchecksValueError('num_steps must be an integer larger than 1')
         Dataset.validate_dataset(train_dataset, self.__class__.__name__)
-        Dataset.validate_dataset(validation_dataset, self.__class__.__name__)
+        Dataset.validate_dataset(test_dataset, self.__class__.__name__)
         train_dataset.validate_label(self.__class__.__name__)
-        validation_dataset.validate_label(self.__class__.__name__)
-        train_dataset.validate_shared_features(validation_dataset, self.__class__.__name__)
-        train_dataset.validate_shared_label(validation_dataset, self.__class__.__name__)
+        test_dataset.validate_label(self.__class__.__name__)
+        train_dataset.validate_shared_features(test_dataset, self.__class__.__name__)
+        train_dataset.validate_shared_label(test_dataset, self.__class__.__name__)
         train_dataset.validate_model(model)
 
         # Get default metric
@@ -158,10 +158,10 @@ class BoostingOverfit(TrainValidationBaseCheck):
         estimator_steps = calculate_steps(self.num_steps, num_estimators)
 
         train_scores = []
-        val_scores = []
+        test_scores = []
         for step in estimator_steps:
             train_scores.append(partial_score(scorer, train_dataset, model, step))
-            val_scores.append(partial_score(scorer, validation_dataset, model, step))
+            test_scores.append(partial_score(scorer, test_dataset, model, step))
 
         def display_func():
             _, axes = plt.subplots(1, 1, figsize=(7, 4))
@@ -169,9 +169,9 @@ class BoostingOverfit(TrainValidationBaseCheck):
             axes.set_ylabel(metric_name)
             axes.grid()
             axes.plot(estimator_steps, np.array(train_scores), 'o-', color='r', label='Training score')
-            axes.plot(estimator_steps, np.array(val_scores), 'o-', color='g', label='Validation score')
+            axes.plot(estimator_steps, np.array(test_scores), 'o-', color='g', label='Test score')
             axes.legend(loc='best')
             # Display x ticks as integers
             axes.xaxis.set_major_locator(MaxNLocator(integer=True))
 
-        return CheckResult(val_scores[-1], check=self.__class__, display=display_func, header='Boosting Overfit')
+        return CheckResult(test_scores[-1], check=self.__class__, display=display_func, header='Boosting Overfit')
