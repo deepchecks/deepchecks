@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 
-from hamcrest import assert_that, has_length, calling, raises, has_items
+from hamcrest import assert_that, has_length, calling, raises, has_items, close_to
 from deepchecks.base import Dataset
 from deepchecks.checks.integrity.special_chars import SpecialCharacters
 from deepchecks.utils import DeepchecksValueError
@@ -27,6 +27,7 @@ def test_single_column_invalid():
     result = SpecialCharacters().run(dataframe)
     # Assert
     assert_that(result.value, has_length(1))
+    assert_that(result.value['col1'], close_to(0.25, 0.001))
     assert_that(result.display[0].iloc[0]['Most Common Special-Only Samples'], has_items('#@$%'))
 
 
@@ -38,6 +39,7 @@ def test_single_column_multi_invalid():
     result = SpecialCharacters().run(dataframe)
     # Assert
     assert_that(result.value, has_length(1))
+    assert_that(result.value['col1'], close_to(0.25, 0.001))
 
 
 def test_double_column_one_invalid():
@@ -48,6 +50,7 @@ def test_double_column_one_invalid():
     result = SpecialCharacters().run(dataframe)
     # Assert
     assert_that(result.value, has_length(1))
+    assert_that(result.value['col1'], close_to(1, 0.001))
     assert_that(result.display[0].iloc[0]['Most Common Special-Only Samples'], has_items('!!!', '?!'))
 
 
@@ -69,6 +72,7 @@ def test_double_column_specific_invalid():
     result = SpecialCharacters(columns=['col1']).run(dataframe)
     # Assert
     assert_that(result.value, has_length(1))
+    assert_that(result.value['col1'], close_to(0.333, 0.001))
     assert_that(result.display[0].iloc[0]['Most Common Special-Only Samples'], has_items('^?!'))
 
 
@@ -90,6 +94,8 @@ def test_double_column_double_invalid():
     result = SpecialCharacters().run(dataframe)
     # Assert
     assert_that(result.value, has_length(2))
+    assert_that(result.value['col1'], close_to(0.25, 0.001))
+    assert_that(result.value['col2'], close_to(0.25, 0.001))
     assert_that(result.display[0].loc['col1']['Most Common Special-Only Samples'], has_items('{}'))
     assert_that(result.display[0].loc['col2']['Most Common Special-Only Samples'], has_items('&!'))
 
@@ -129,15 +135,16 @@ def test_condition_fail_all(diabetes_split_dataset_and_model):
     train.data.loc[train.data.index % 3 == 2, 'bp'] = '&!'
     train.data.loc[train.data.index % 3 == 2, 'sex'] = '&!'
     # Arrange
-    check = SpecialCharacters(n_top_columns=3).add_condition_ratio_of_special_only_samples_not_grater_than()
+    check = SpecialCharacters(n_top_columns=3).\
+        add_condition_ratio_of_entirely_special_character_samples_not_grater_than()
     # Act
     results = check.conditions_decision(check.run(train, clf))
     # Assert
-    assert_that(results[0], equal_condition_result(
+    assert_that(results, has_items(equal_condition_result(
         is_pass=False,
-        name='Ratio of special only samples does not surpass 0% for all columns',
-        details='Columns containing special only samples over max ratio: [\'age\', \'sex\', \'bmi\', \'bp\']'
-    ))
+        name='Ratio of entirely special character samples not greater than 0% for all columns',
+        details='Found columns over threshold ratio: [\'age\', \'sex\', \'bmi\', \'bp\']'
+    )))
 
 
 def test_condition_fail_some(diabetes_split_dataset_and_model):
@@ -148,15 +155,16 @@ def test_condition_fail_some(diabetes_split_dataset_and_model):
     train.data.loc[train.data.index % 7 == 2, 'bp'] = '&!'
     train.data.loc[train.data.index % 3 == 2, 'sex'] = '&!'
     # Arrange
-    check = SpecialCharacters(n_top_columns=3).add_condition_ratio_of_special_only_samples_not_grater_than(0.3)
+    check = SpecialCharacters(n_top_columns=3).\
+        add_condition_ratio_of_entirely_special_character_samples_not_grater_than(0.3)
     # Act
     results = check.conditions_decision(check.run(train, clf))
     # Assert
-    assert_that(results[0], equal_condition_result(
+    assert_that(results, has_items(equal_condition_result(
         is_pass=False,
-        name='Ratio of special only samples does not surpass 30.00% for all columns',
-        details='Columns containing special only samples over max ratio: [\'sex\', \'bmi\']'
-    ))
+        name='Ratio of entirely special character samples not greater than 30.00% for all columns',
+        details='Found columns over threshold ratio: [\'sex\', \'bmi\']'
+    )))
 
 
 def test_condition_pass(diabetes_split_dataset_and_model):
@@ -164,11 +172,12 @@ def test_condition_pass(diabetes_split_dataset_and_model):
     train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
 
     # Arrange
-    check = SpecialCharacters(n_top_columns=3).add_condition_ratio_of_special_only_samples_not_grater_than()
+    check = SpecialCharacters(n_top_columns=3).\
+        add_condition_ratio_of_entirely_special_character_samples_not_grater_than()
     # Act
     results = check.conditions_decision(check.run(train, clf))
     # Assert
-    assert_that(results[0], equal_condition_result(
+    assert_that(results, has_items(equal_condition_result(
         is_pass=True,
-        name='Ratio of special only samples does not surpass 0% for all columns',
-    ))
+        name='Ratio of entirely special character samples not greater than 0% for all columns',
+    )))

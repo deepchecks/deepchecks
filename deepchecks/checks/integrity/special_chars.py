@@ -102,13 +102,17 @@ class SpecialCharacters(SingleDatasetBaseCheck):
 
         return CheckResult(result, check=self.__class__, display=display)
 
-    def add_condition_ratio_of_special_only_samples_not_grater_than(self, max_ratio: float = 0):
-        """Add condition - max_ratio."""
+    def add_condition_ratio_of_entirely_special_character_samples_not_grater_than(self, max_ratio: float = 0):
+        """Add condition - ratio of entirely special character in column
+
+        Args:
+            max_ratio(float): Maximum ratio allowed.
+        """
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        name = f'Ratio of special only samples does not surpass {format_percent(max_ratio)} for {column_names}'
+        name = f'Ratio of entirely special character samples not greater '\
+               f'than {format_percent(max_ratio)} for {column_names}'
 
         def condition(result):
-            print(result)
             not_passed = []
             if result:
                 for column_name in result.keys():
@@ -116,7 +120,7 @@ class SpecialCharacters(SingleDatasetBaseCheck):
                         not_passed.append(column_name)
 
             if not_passed:
-                return ConditionResult(False, f'Columns containing special only samples over max ratio: {not_passed}')
+                return ConditionResult(False, f'Found columns over threshold ratio: {not_passed}')
             return ConditionResult(True)
 
         return self.add_condition(name, condition)
