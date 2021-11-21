@@ -19,7 +19,7 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
                  n_top_columns: int = 10):
         """Initialize the DominantFrequencyChange class.
 
-        Args:    
+        Args: 
             dominance_ratio (float = 2): Next most abundance value has to be THIS times less than the first (0-inf).
             ratio_change_thres (float = 1.5): The dominant frequency has to change by at least this ratio (0-inf).
             n_top_columns (int): (optinal - used only if model was specified)
