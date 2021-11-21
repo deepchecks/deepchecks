@@ -10,19 +10,23 @@ from deepchecks.checks.integrity import (
     SpecialCharacters,
     StringMismatchComparison,
     CategoryMismatchTrainTest,
-    RareFormatDetection
+    NewLabelTrainTest,
+    RareFormatDetection,
+    DominantFrequencyChange,
+    StringLengthOutOfBounds,
 )
 
 __all__ = ['SingleDatasetIntegrityCheckSuite', 'ComparativeIntegrityCheckSuite', 'IntegrityCheckSuite']
 
 SingleDatasetIntegrityCheckSuite = CheckSuite(
     'Single Dataset Integrity Suite',
-    IsSingleValue(),
+    IsSingleValue().add_condition_not_single_value(),
     MixedNulls().add_condition_different_nulls_not_more_than(),
     MixedTypes().add_condition_rare_type_ratio_not_less_than(),
     StringMismatch().add_condition_no_variants(),
     DataDuplicates().add_condition_duplicates_not_greater_than(),
     RareFormatDetection().add_condition_ratio_of_rare_formats_not_greater_than(),
+    StringLengthOutOfBounds(),
     SpecialCharacters().add_condition_ratio_of_special_only_samples_not_grater_than()
 )
 
@@ -30,7 +34,9 @@ SingleDatasetIntegrityCheckSuite = CheckSuite(
 ComparativeIntegrityCheckSuite = CheckSuite(
     'Comparative Integrity Suite',
     StringMismatchComparison().add_condition_no_new_variants(),
-    CategoryMismatchTrainTest().add_condition_new_categories_not_greater_than()
+    CategoryMismatchTrainTest().add_condition_new_categories_not_greater_than(),
+    DominantFrequencyChange().add_condition_p_value_not_less_than(),
+    NewLabelTrainTest().add_condition_new_labels_not_greater_than()
 )
 
 IntegrityCheckSuite = CheckSuite(
