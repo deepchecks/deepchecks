@@ -1,7 +1,9 @@
 """Contains unit tests for the calibration_metric check."""
 from deepchecks.checks.performance import CalibrationMetric
 from deepchecks.utils import DeepchecksValueError
-from hamcrest import assert_that, calling, raises, has_entries, close_to
+from hamcrest import assert_that, calling, raises, has_entries, close_to, has_items
+
+from tests.checks.utils import equal_condition_result
 
 
 def test_dataset_wrong_input():
@@ -39,3 +41,15 @@ def test_model_info_object(iris_labeled_dataset, iris_adaboost):
         1: close_to(0.002, 0.05),
         2: close_to(0.28, 0.05)
     }))
+
+
+def test_condition(iris_labeled_dataset, iris_adaboost):
+    # Arrange
+    check = CalibrationMetric().add_condition_brier_score_not_greater_than()
+    # Act X
+    result = check.conditions_decision(check.run(iris_labeled_dataset, iris_adaboost))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=False,
+                               details='Classes with high brier score: {0: \'1\', 2: \'0.28\'}',
+                               name='Brier scores are not greater than 0.2')))
