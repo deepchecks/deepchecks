@@ -2,10 +2,9 @@
 import typing as t
 
 import deepchecks.ppscore as pps
-from deepchecks import CheckResult, Dataset, TrainTestBaseCheck
+from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
 from deepchecks.plot_utils import create_colorbar_barchart_for_check
 
-from .single_feature_contribution import _condition_factory
 
 
 __all__ = ['SingleFeatureContributionTrainTest']
@@ -73,16 +72,15 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
                                            random_seed=42, **ppscore_params)
         s_pps_train = df_pps_train.set_index('x', drop=True)['ppscore']
         s_pps_test = df_pps_test.set_index('x', drop=True)['ppscore']
-
         s_difference = s_pps_train - s_pps_test
-        s_difference = s_difference.apply(lambda x: 0 if x < 0 else x)
-        s_difference = s_difference.sort_values(ascending=False).head(self.n_show_top)
 
         def plot():
+            # For display shows only positive differences
+            s_difference_to_display = s_difference.apply(lambda x: 0 if x < 0 else x)
+            s_difference_to_display = s_difference_to_display.sort_values(ascending=False).head(self.n_show_top)
             # Create graph:
-            create_colorbar_barchart_for_check(x=s_difference.index, y=s_difference.values,
-                                               ylabel='PPS Difference',
-                                               check_name=self._single_feature_contribution_train_test.__name__)
+            create_colorbar_barchart_for_check(x=s_difference_to_display.index, y=s_difference_to_display.values,
+                                               ylabel='PPS Difference')
 
         text = ['The PPS represents the ability of a feature to single-handedly predict another feature or label.',
                 'A high PPS (close to 1) can mean that this feature\'s success in predicting the label is actually due '
@@ -97,21 +95,26 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         return CheckResult(value=s_difference.to_dict(), display=[plot, *text], check=self.__class__,
                            header='Single Feature Contribution Train-Test')
 
-    def add_condition_feature_pps_difference_not_greater_than(self: FC, var: float) -> FC:
-        """
-        Add new condition.
+    def add_condition_feature_pps_difference_not_greater_than(self, threshold: float = 0.2) -> FC:
+        """Add new condition.
 
         Add condition that will check that difference between train
         dataset feature pps and test dataset feature pps is not greater than X.
 
         Args:
-            var: train test ps difference upper bound
+            threshold: train test ps difference upper bound
         """
-        return self.add_condition(
-            name=f'Train Test features PPS difference is greater than {var}',
-            condition_func=_condition_factory(
-                var,
-                failure_message=f'Train Test features pps difference is greater than {var}: {{failed_features}}',
-                operator=lambda pps, var: pps >= var
-            )
-        )
+        def condition(value: t.Dict[str, float]) -> ConditionResult:
+            failed_features = [
+                feature_name
+                for feature_name, pps_value in value.items()
+                if pps_value > threshold
+            ]
+
+            if failed_features:
+                message = f'Features with PPS difference above threshold: {", ".join(failed_features)}'
+                return ConditionResult(False, message)
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'Train-Test features PPS difference is not greater than {threshold}', condition)
