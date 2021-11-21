@@ -117,7 +117,16 @@ def earth_movers_distance(dist1: np.array, dist2: np.array):
 
 
 class TrainTestDrift(TrainTestBaseCheck):
-    """Calculate drift between train dataset and test dataset."""
+    """
+    Calculate drift between train dataset and test dataset.
+
+    Check calculates a drift score for each column in test dataset, by comparing its distribution to the train
+    dataset.
+    For numerical columns, we use the Earth Movers Distance.
+    See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf
+    For categorical columns, we use the Population Stability Index (PSI).
+    See https://en.wikipedia.org/wiki/Wasserstein_metric.
+    """
 
     def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
                  max_num_categories: int = 10):
@@ -139,13 +148,6 @@ class TrainTestDrift(TrainTestBaseCheck):
 
     def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
         """Run check.
-
-        Check calculates a drift score for each column in test dataset, by comparing its distribution to the train
-        dataset.
-        For numerical columns, we use the Earth Movers Distance.
-        See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf
-        For categorical columns, we use the Population Stability Index (PSI).
-        See https://en.wikipedia.org/wiki/Wasserstein_metric.
 
         Args:
             train_dataset (Dataset): The training dataset object. Must contain a label column.
