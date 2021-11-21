@@ -103,7 +103,7 @@ class SpecialCharacters(SingleDatasetBaseCheck):
         return CheckResult(result, check=self.__class__, display=display)
 
     def add_condition_ratio_of_entirely_special_character_samples_not_grater_than(self, max_ratio: float = 0):
-        """Add condition - ratio of entirely special character in column
+        """Add condition - ratio of entirely special character in column.
 
         Args:
             max_ratio(float): Maximum ratio allowed.
