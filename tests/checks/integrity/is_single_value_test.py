@@ -123,10 +123,14 @@ def test_nans(df_with_fully_nan, df_with_single_nan_in_col):
 
 
 def test_condition_fail():
+    # Arrange
     df = pd.DataFrame({'a': ['b', 'b', 'b'], 'bbb': ['a', 'a', 'a'], 'f': [1, 2, 3]})
     check = IsSingleValue().add_condition_not_single_value()
+
+    # Act
     result = check.conditions_decision(check.run(df))
 
+    # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                details='Columns containing a single value: [\'a\', \'bbb\']',
@@ -134,10 +138,14 @@ def test_condition_fail():
 
 
 def test_condition_pass():
+    # Arrange
     df = pd.DataFrame({'a': ['b', 'asadf', 'b'], 'bbb': ['a', 'a', np.nan], 'f': [1, 2, 3]})
     check = IsSingleValue().add_condition_not_single_value()
+
+    # Act
     result = check.conditions_decision(check.run(df))
 
+    # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                name='Does not contain only a single value for all columns')))
