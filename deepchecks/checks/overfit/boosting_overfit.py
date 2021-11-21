@@ -8,7 +8,7 @@ import numpy as np
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.metric_utils import task_type_check, DEFAULT_METRICS_DICT, validate_scorer, DEFAULT_SINGLE_METRIC
-from deepchecks.string_utils import format_number
+from deepchecks.string_utils import format_percent
 from deepchecks.utils import DeepchecksValueError
 
 __all__ = ['BoostingOverfit']
@@ -178,24 +178,24 @@ class BoostingOverfit(TrainTestBaseCheck):
         result = {'test': test_scores, 'train': train_scores}
         return CheckResult(result, check=self.__class__, display=display_func, header='Boosting Overfit')
 
-    def add_condition_test_score_decline_not_greater_than(self, threshold: float = 0):
+    def add_condition_test_score_percentage_decline_not_greater_than(self, threshold: float = 0.05):
         """Add condition.
 
-        Difference between the maximal score achieved in any boosting iteration and the score achieved in the last
-        iteration ("regular" model score) is not above given threshold.
+        Percentage of decline between the maximal score achieved in any boosting iteration and the score achieved in the
+        last iteration ("regular" model score) is not above given threshold.
 
         Args:
-            threshold (float): Maximum difference allowed.
+            threshold (float): Maximum percentage decline allowed (value 0 and above)
         """
         def condition(result: dict):
             max_score = max(result['test'])
             last_score = result['test'][-1]
-            diff = max_score - last_score
+            pct_diff = (max_score - last_score) / abs(max_score)
 
-            if diff > threshold:
-                message = f'Found decline in metric of: {format_number(-diff)}'
+            if pct_diff > threshold:
+                message = f'Found metric decline of: -{format_percent(pct_diff)}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Test score decline is not greater than {threshold}', condition)
+        return self.add_condition(f'Test score decline is not greater than {format_percent(threshold)}', condition)

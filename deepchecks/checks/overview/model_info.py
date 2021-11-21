@@ -24,11 +24,26 @@ class ModelInfo(ModelOnlyBaseCheck):
     def _model_info(self, model: BaseEstimator):
         model_type_validation(model)
         model_type = type(model).__name__
-        model_param_df = pd.DataFrame.from_dict(model.get_params(), orient='index', columns=['value'])
-        model_param_df.index.name = 'parameter'
-        model_param_df.reset_index(inplace=True)
+        model_params = model.get_params()
+        default_params = type(model)().get_params()
 
-        value = {'type': model_type, 'params': model.get_params()}
-        display = [f'Model Type: {model_type}', model_param_df]
+        # Create dataframe to show
+        model_param_df = pd.DataFrame(model_params.items(), columns=['Parameter', 'Value'])
+        model_param_df['Default'] = model_param_df['Parameter'].map(lambda x: default_params[x])
+
+        def highlight_not_default(data):
+            n = len(data)
+            param = data[0]
+            value = data[1]
+            if value != default_params[param]:
+                return n * ['background-color: lightblue']
+            else:
+                return n * ['']
+
+        model_param_df = model_param_df.style.apply(highlight_not_default, axis=1).hide_index()
+
+        value = {'type': model_type, 'params': model_params}
+        footnote = '<p style="font-size:0.7em"><i>Colored rows are parameters with non-default values</i></p>'
+        display = [f'Model Type: {model_type}', model_param_df, footnote]
 
         return CheckResult(value, check=self.__class__, header='Model Info', display=display)

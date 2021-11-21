@@ -151,27 +151,36 @@ def format_percent(ratio: float, floating_point: int = 2) -> str:
     """Format percent for elegant display.
 
     Args:
-        ratio (float): Number [0-1] to be displayed as percent
+        ratio (float): Ratio to be displayed as percent
         floating_point (int): Number of floating points to display
 
     Returns:
         String of ratio as percent
     """
-    if (ratio > 1) or (ratio < 0):
-        Exception(ValueError('ratio must be between 0 and 1'))
+    result: str
+    if ratio < 0:
+        ratio = -ratio
+        prefix = '-'
+    else:
+        prefix = ''
+
     if ratio == 0:
-        return '0%'
-    if ratio == 1:
-        return '100%'
-    if ratio < 10**(-(2+floating_point)):
-        return f'{Decimal(ratio * 100):.{floating_point}E}%'
+        result = '0%'
+    elif ratio == 1:
+        result = '100%'
+    elif ratio > 1:
+        result = f'{int(ratio * 100)}%'
+    elif ratio < 10**(-(2+floating_point)):
+        result = f'{Decimal(ratio * 100):.{floating_point}E}%'
     elif ratio > (1-10**(-(2+floating_point))):
         if floating_point > 0:
-            return f'99.{"".join(["9"]*floating_point)}%'
+            result = f'99.{"".join(["9"]*floating_point)}%'
         else:
-            return '99%'
+            result = '99%'
     else:
-        return f'{ratio:.{floating_point}%}'
+        result = f'{ratio:.{floating_point}%}'
+
+    return prefix + result
 
 
 def format_number(x, floating_point: int = 2) -> str:

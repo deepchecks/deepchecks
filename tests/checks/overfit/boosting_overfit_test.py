@@ -72,7 +72,7 @@ def test_boosting_classifier_with_metric(iris):
 def test_condition_score_decline_not_greater_than_pass(diabetes, diabetes_model):
     # Arrange
     train, validation = diabetes
-    check = BoostingOverfit().add_condition_test_score_decline_not_greater_than(43)
+    check = BoostingOverfit().add_condition_test_score_percentage_decline_not_greater_than()
 
     # Act
     condition_result, *_ = check.conditions_decision(check.run(train, validation, diabetes_model))
@@ -80,14 +80,14 @@ def test_condition_score_decline_not_greater_than_pass(diabetes, diabetes_model)
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        name='Test score decline is not greater than 43'
+        name='Test score decline is not greater than 5.00%'
     ))
 
 
-def test_condition_score_decline_not_greater_than_not_pass(diabetes, diabetes_model):
+def test_condition_score_percentage_decline_not_greater_than_not_pass(diabetes, diabetes_model):
     # Arrange
     train, validation = diabetes
-    check = BoostingOverfit().add_condition_test_score_decline_not_greater_than()
+    check = BoostingOverfit().add_condition_test_score_percentage_decline_not_greater_than(0.01)
 
     # Act
     condition_result, *_ = check.conditions_decision(check.run(train, validation, diabetes_model))
@@ -95,6 +95,6 @@ def test_condition_score_decline_not_greater_than_not_pass(diabetes, diabetes_mo
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='Test score decline is not greater than 0',
-        details='Found decline in metric of: -2.02'
+        name='Test score decline is not greater than 1.00%',
+        details='Found metric decline of: -3.64%'
     ))

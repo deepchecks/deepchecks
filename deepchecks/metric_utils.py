@@ -23,14 +23,14 @@ class ModelType(enum.Enum):
 
 DEFAULT_BINARY_METRICS = {
     'Accuracy': make_scorer(accuracy_score),
-    'Precision': make_scorer(precision_score),
-    'Recall': make_scorer(recall_score)
+    'Precision': make_scorer(precision_score, zero_division=0),
+    'Recall': make_scorer(recall_score, zero_division=0)
 }
 
 DEFAULT_MULTICLASS_METRICS = {
     'Accuracy': make_scorer(accuracy_score),
-    'Precision - Macro Average': make_scorer(precision_score, average='macro'),
-    'Recall - Macro Average': make_scorer(recall_score, average='macro')
+    'Precision - Macro Average': make_scorer(precision_score, average='macro', zero_division=0),
+    'Recall - Macro Average': make_scorer(recall_score, average='macro', zero_division=0)
 }
 
 DEFAULT_REGRESSION_METRICS = {
