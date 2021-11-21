@@ -108,7 +108,7 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
 
         baseline_len = len(baseline_df)
         test_len = len(test_df)
-        p_df = {}
+        p_dict = {}
 
         for column in columns:
             top_ref = baseline_df[column].value_counts(dropna=False)
@@ -120,7 +120,7 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
                 if p_val:
                     count_ref = top_ref[value]
                     count_test = top_test.get(value, 0)
-                    p_df[column] = {'Value': value,
+                    p_dict[column] = {'Value': value,
                                     'Reference data %': count_ref / baseline_len * 100,
                                     'Tested data %': count_test / test_len * 100,
                                     'Reference data #': count_ref,
@@ -132,19 +132,20 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
                 if p_val:
                     count_test = top_test[value]
                     count_ref = top_ref.get(value, 0)
-                    p_df[column] = {'Value': value,
+                    p_dict[column] = {'Value': value,
                                     'Reference data %': count_ref / baseline_len * 100,
                                     'Tested data %': count_test / test_len * 100,
                                     'Reference data #': count_ref,
                                     'Tested data #': count_test,
                                     'P value': p_val}
 
-        sorted_p_df = p_df = pd.DataFrame.from_dict(p_df, orient='index') if len(p_df) else None
-        if p_df is not None:
-            sorted_p_df = column_importance_sorter_df(p_df, dataset, feature_importances, self.n_top_columns)
-            sorted_p_df = sorted_p_df.drop(columns='P value')
+        if len(p_dict):
+            sorted_p_df = pd.DataFrame.from_dict(p_dict, orient='index')
+            sorted_p_df = column_importance_sorter_df(sorted_p_df, dataset, feature_importances, self.n_top_columns)
+        else:
+            sorted_p_df = None
 
-        return CheckResult(p_df, check=self.__class__, display=sorted_p_df)
+        return CheckResult(p_dict, check=self.__class__, display=sorted_p_df)
 
     def add_condition_p_value_not_less_than(self, p_value_threshold: float = 0.0001):
         """Add condition - require min p value allowed per column.
@@ -154,12 +155,12 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
               if the value abundance has changed significantly (0-1).
 
         """
-        def condition(result: pd.DataFrame) -> ConditionResult:
+        def condition(result: Dict) -> ConditionResult:
             failed_columns = []
-            for index, row in result.iterrows():
-                p_val = row['P value']
+            for column, values in result.items():
+                p_val = values['P value']
                 if p_val < p_value_threshold:
-                    failed_columns.append(index)
+                    failed_columns.append(column)
             if failed_columns:
                 return ConditionResult(False,
                                        f'Found columns with low p-value: {failed_columns}')

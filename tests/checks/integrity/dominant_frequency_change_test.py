@@ -3,7 +3,8 @@ Contains unit tests for the dominant_frequency_change check
 """
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from hamcrest import assert_that, calling, raises, equal_to, has_length, has_items, close_to
+from hamcrest import assert_that, calling, raises, equal_to, \
+                     has_length, has_items, close_to, empty
 
 from deepchecks.base import Dataset
 from deepchecks.utils import DeepchecksValueError
@@ -27,7 +28,7 @@ def test_no_leakage(iris_split_dataset_and_model):
     # Act X
     result = check.run(dataset=val_ds, baseline_dataset=train_ds).value
     # Assert
-    assert_that(result, equal_to(None))
+    assert_that(result, empty())
 
 
 def test_leakage(iris_clean):
@@ -48,13 +49,14 @@ def test_leakage(iris_clean):
     check = DominantFrequencyChange()
     # Act X
     result = check.run(dataset=validation_dataset, baseline_dataset=train_dataset).value
+    row = result['petal length (cm)']
     # Assert
-    assert_that(result.loc['petal length (cm)', 'Value'], equal_to(5.1))
-    assert_that(result.loc['petal length (cm)', 'Reference data %'], close_to(5.7, 0.05))
-    assert_that(result.loc['petal length (cm)', 'Tested data %'], close_to(55.5, 0.06))
-    assert_that(result.loc['petal length (cm)', 'Reference data #'], equal_to(6))
-    assert_that(result.loc['petal length (cm)', 'Tested data #'], equal_to(25))
-    assert_that(result.loc['petal length (cm)', 'P value'], close_to(0, 0.00001))
+    assert_that(row['Value'], equal_to(5.1))
+    assert_that(row['Reference data %'], close_to(5.7, 0.05))
+    assert_that(row['Tested data %'], close_to(55.5, 0.06))
+    assert_that(row['Reference data #'], equal_to(6))
+    assert_that(row['Tested data #'], equal_to(25))
+    assert_that(row['P value'], close_to(0, 0.00001))
 
 
 def test_show_any(iris_split_dataset_and_model):
@@ -75,7 +77,7 @@ def test_show_none_dominance_ratio(iris_split_dataset_and_model):
     # Act
     result = check.run(dataset=val_ds, baseline_dataset=train_ds).value
     # Assert
-    assert_that(result, equal_to(None))
+    assert_that(result, empty())
 
 
 def test_show_none_ratio_change_thres(iris_split_dataset_and_model):
@@ -85,7 +87,7 @@ def test_show_none_ratio_change_thres(iris_split_dataset_and_model):
     # Act
     result = check.run(dataset=val_ds, baseline_dataset=train_ds).value
     # Assert
-    assert_that(result, equal_to(None))
+    assert_that(result, empty())
 
 def test_fi_n_top(diabetes_split_dataset_and_model):
     train, val, clf = diabetes_split_dataset_and_model
