@@ -124,7 +124,8 @@ def test_condition_ratio_not_less_than_not_passed(iris_clean):
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='P value not less than 0.0001',
-                               details='The p value that are greater than the max p value are: [\'sepal width (cm)\', \'petal length (cm)\']')
+                               details='The p value that are less than the minimal '
+                                        'p value are: [\'sepal width (cm)\', \'petal length (cm)\']')
     ))
 
 
