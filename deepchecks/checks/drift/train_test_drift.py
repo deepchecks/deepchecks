@@ -130,7 +130,7 @@ class TrainTestDrift(TrainTestBaseCheck):
             ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
             variable.
             max_num_categories (int): Only for categorical columns. max number of allowed categories. If there are more,
-             they are binned into an Other" category. If max_num_categories=None, there is no limit.
+             they are binned into an "Other" category. If max_num_categories=None, there is no limit.
         """
         super().__init__()
         self.columns = columns
