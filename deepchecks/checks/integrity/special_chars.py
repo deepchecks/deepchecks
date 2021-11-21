@@ -5,10 +5,10 @@ import pandas as pd
 from pandas.api.types import infer_dtype
 
 from deepchecks import Dataset, ensure_dataframe_type
-from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck
+from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
 from deepchecks.base.dataframe_utils import filter_columns_with_validation
 from deepchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_df
-from deepchecks.string_utils import string_baseform, format_percent
+from deepchecks.string_utils import string_baseform, format_percent, format_columns_for_condition
 
 __all__ = ['SpecialCharacters']
 
@@ -33,7 +33,7 @@ class SpecialCharacters(SingleDatasetBaseCheck):
 
     def __init__(self, columns: Union[str, Iterable[str]] = None,
                  ignore_columns: Union[str, Iterable[str]] = None,
-                n_most_common: int = 2, n_top_columns: int = 10):
+                 n_most_common: int = 2, n_top_columns: int = 10):
         """Initialize the SpecialCharacters check.
 
         Args:
@@ -79,12 +79,14 @@ class SpecialCharacters(SingleDatasetBaseCheck):
 
         # Result value: { Column Name: {invalid: pct}}
         display_array = []
+        result = {}
 
         for column_name in dataset.columns:
             column_data = dataset[column_name]
             # Get dict of samples to count
             special_samples = get_special_samples(column_data)
             if special_samples:
+                result[column_name] = sum(special_samples.values()) / column_data.size
                 percent = format_percent(sum(special_samples.values()) / column_data.size)
                 top_n_samples_items = \
                     sorted(special_samples.items(), key=lambda x: x[1], reverse=True)[:self.n_most_common]
@@ -98,4 +100,23 @@ class SpecialCharacters(SingleDatasetBaseCheck):
                                                self.n_top_columns, col='Column Name')
         display = df_graph if len(df_graph) > 0 else None
 
-        return CheckResult(df_graph, check=self.__class__, display=display)
+        return CheckResult(result, check=self.__class__, display=display)
+
+    def add_condition_ratio_of_special_only_samples_not_grater_than(self, max_ratio: float = 0):
+        """Add condition - max_ratio."""
+        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
+        name = f'Ratio of special only samples does not surpass {format_percent(max_ratio)} for {column_names}'
+
+        def condition(result):
+            print(result)
+            not_passed = []
+            if result:
+                for column_name in result.keys():
+                    if result[column_name] > max_ratio:
+                        not_passed.append(column_name)
+
+            if not_passed:
+                return ConditionResult(False, f'Columns containing special only samples over max ratio: {not_passed}')
+            return ConditionResult(True)
+
+        return self.add_condition(name, condition)

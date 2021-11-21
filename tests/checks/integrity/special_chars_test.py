@@ -6,6 +6,7 @@ from hamcrest import assert_that, has_length, calling, raises, has_items
 from deepchecks.base import Dataset
 from deepchecks.checks.integrity.special_chars import SpecialCharacters
 from deepchecks.utils import DeepchecksValueError
+from tests.checks.utils import equal_condition_result
 
 
 def test_single_column_no_invalid():
@@ -26,7 +27,7 @@ def test_single_column_invalid():
     result = SpecialCharacters().run(dataframe)
     # Assert
     assert_that(result.value, has_length(1))
-    assert_that(result.value.iloc[0]['Most Common Special-Only Samples'], has_items('#@$%'))
+    assert_that(result.display[0].iloc[0]['Most Common Special-Only Samples'], has_items('#@$%'))
 
 
 def test_single_column_multi_invalid():
@@ -47,7 +48,7 @@ def test_double_column_one_invalid():
     result = SpecialCharacters().run(dataframe)
     # Assert
     assert_that(result.value, has_length(1))
-    assert_that(result.value.iloc[0]['Most Common Special-Only Samples'], has_items('!!!', '?!'))
+    assert_that(result.display[0].iloc[0]['Most Common Special-Only Samples'], has_items('!!!', '?!'))
 
 
 def test_double_column_ignored_invalid():
@@ -68,7 +69,7 @@ def test_double_column_specific_invalid():
     result = SpecialCharacters(columns=['col1']).run(dataframe)
     # Assert
     assert_that(result.value, has_length(1))
-    assert_that(result.value.iloc[0]['Most Common Special-Only Samples'], has_items('^?!'))
+    assert_that(result.display[0].iloc[0]['Most Common Special-Only Samples'], has_items('^?!'))
 
 
 def test_double_column_specific_and_ignored_invalid():
@@ -89,8 +90,8 @@ def test_double_column_double_invalid():
     result = SpecialCharacters().run(dataframe)
     # Assert
     assert_that(result.value, has_length(2))
-    assert_that(result.value.loc['col1']['Most Common Special-Only Samples'], has_items('{}'))
-    assert_that(result.value.loc['col2']['Most Common Special-Only Samples'], has_items('&!'))
+    assert_that(result.display[0].loc['col1']['Most Common Special-Only Samples'], has_items('{}'))
+    assert_that(result.display[0].loc['col2']['Most Common Special-Only Samples'], has_items('&!'))
 
 
 def test_fi_n_top(diabetes_split_dataset_and_model):
@@ -103,7 +104,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     # Arrange
     check = SpecialCharacters(n_top_columns=3)
     # Act
-    result_ds = check.run(train, clf).value
+    result_ds = check.run(train, clf).display[0]
     # Assert
     assert_that(result_ds, has_length(3))
 
@@ -116,5 +117,24 @@ def test_nan():
     result = SpecialCharacters().run(dataframe)
     # Assert
     assert_that(result.value, has_length(2))
-    assert_that(result.value.loc['col1']['Most Common Special-Only Samples'], has_items('{}'))
-    assert_that(result.value.loc['col2']['Most Common Special-Only Samples'], has_items('&!'))
+    assert_that(result.display[0].loc['col1']['Most Common Special-Only Samples'], has_items('{}'))
+    assert_that(result.display[0].loc['col2']['Most Common Special-Only Samples'], has_items('&!'))
+
+
+def test_condition(diabetes_split_dataset_and_model):
+    train, _, clf = diabetes_split_dataset_and_model
+    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
+    train.data.loc[train.data.index % 3 == 2, 'age'] = '&!'
+    train.data.loc[train.data.index % 3 == 2, 'bmi'] = '&!'
+    train.data.loc[train.data.index % 3 == 2, 'bp'] = '&!'
+    train.data.loc[train.data.index % 3 == 2, 'sex'] = '&!'
+    # Arrange
+    check = SpecialCharacters(n_top_columns=3).add_condition_ratio_of_special_only_samples_not_grater_than()
+    # Act
+    results = check.conditions_decision(check.run(train, clf))
+    # Assert
+    assert_that(results[0], equal_condition_result(
+        is_pass=False,
+        name='Ratio of special only samples does not surpass 0% for all columns',
+        details='Columns containing special only samples over max ratio: [\'age\', \'sex\', \'bmi\', \'bp\']'
+    ))
