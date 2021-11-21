@@ -6,7 +6,7 @@ from matplotlib.ticker import MaxNLocator
 
 import numpy as np
 
-from deepchecks import Dataset, CheckResult, TrainTestBaseCheck
+from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.metric_utils import task_type_check, DEFAULT_METRICS_DICT, validate_scorer, DEFAULT_SINGLE_METRIC
 from deepchecks.utils import DeepchecksValueError
 
@@ -174,4 +174,28 @@ class BoostingOverfit(TrainTestBaseCheck):
             # Display x ticks as integers
             axes.xaxis.set_major_locator(MaxNLocator(integer=True))
 
-        return CheckResult(test_scores[-1], check=self.__class__, display=display_func, header='Boosting Overfit')
+        result = {'test': test_scores, 'train': train_scores}
+        return CheckResult(result, check=self.__class__, display=display_func, header='Boosting Overfit')
+
+    def add_condition_test_max_score_difference_not_greater_than(self, threshold: float = 0):
+        """Add condition.
+
+        Difference between maximum score in each boosting iteration and score in last iteration is not greater than
+        given threshold.
+
+        Args:
+            threshold (float): Maximum difference allowed.
+        """
+        def condition(result: dict):
+            max_score = max(result['test'])
+            last_score = result['test'][-1]
+            diff = max_score - last_score
+
+            if diff > threshold:
+                message = f'Found difference {diff}'
+                return ConditionResult(False, message)
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition('Difference between test maximum score in boosting iterations and last score is '
+                                  f'not greater than {threshold}', condition)
