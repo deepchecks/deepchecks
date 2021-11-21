@@ -17,7 +17,7 @@ __all__ = ['SingleDatasetIntegrityCheckSuite', 'ComparativeIntegrityCheckSuite',
 
 SingleDatasetIntegrityCheckSuite = CheckSuite(
     'Single Dataset Integrity Suite',
-    IsSingleValue(),
+    IsSingleValue().add_condition_not_single_value(),
     MixedNulls().add_condition_different_nulls_not_more_than(),
     MixedTypes().add_condition_rare_type_ratio_not_less_than(),
     StringMismatch().add_condition_no_variants(),
