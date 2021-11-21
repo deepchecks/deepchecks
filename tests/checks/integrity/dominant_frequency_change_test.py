@@ -97,7 +97,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     # Assert
     assert_that(result_ds, has_length(3))
 
-def test_condition_ratio_more_than_not_passed(iris_clean):
+def test_condition_ratio_not_less_than_not_passed(iris_clean):
     # Arrange
     x = iris_clean.data
     y = iris_clean.target
@@ -128,7 +128,7 @@ def test_condition_ratio_more_than_not_passed(iris_clean):
     ))
 
 
-def test_condition_ratio_more_than_passed(iris_split_dataset_and_model):
+def test_condition_ratio_not_less_than_passed(iris_split_dataset_and_model):
     train_ds, val_ds, _ = iris_split_dataset_and_model
 
     check = DominantFrequencyChange().add_condition_p_value_not_greater_than()
