@@ -116,7 +116,7 @@ def test_condition_ratio_not_less_than_not_passed(iris_clean):
             features=iris_clean.feature_names,
             label='target')
 
-    check = DominantFrequencyChange().add_condition_p_value_not_greater_than(p_value_threshold = 0.0001)
+    check = DominantFrequencyChange().add_condition_p_value_not_less_than(p_value_threshold = 0.0001)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
@@ -131,7 +131,7 @@ def test_condition_ratio_not_less_than_not_passed(iris_clean):
 def test_condition_ratio_not_less_than_passed(iris_split_dataset_and_model):
     train_ds, val_ds, _ = iris_split_dataset_and_model
 
-    check = DominantFrequencyChange().add_condition_p_value_not_greater_than()
+    check = DominantFrequencyChange().add_condition_p_value_not_less_than()
 
     result = check.conditions_decision(check.run(train_ds, val_ds))
 
