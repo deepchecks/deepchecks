@@ -1,13 +1,13 @@
 """Module contains Train Test Drift check."""
 
 from collections import Counter
-from typing import Union, Iterable, Tuple, List
+from typing import Union, Iterable, Tuple, List, Dict
 
 import numpy as np
 import pandas as pd
 from scipy.stats import wasserstein_distance
 
-from deepchecks import Dataset, CheckResult, TrainTestBaseCheck
+from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 import matplotlib.pyplot as plt
 
 __all__ = ['TrainTestDrift']
@@ -194,9 +194,9 @@ class TrainTestDrift(TrainTestBaseCheck):
                    ]
 
         return CheckResult(
-            value={column: result[0] for column, result in zip(features, results)},
+            value={column: {'value': result[0], 'method': result[1]} for column, result in zip(features, results)},
             # display=pd.DataFrame(results, index=['Drift result']).T,
-            display=[result[1] for result in results],
+            display=[result[2] for result in results],
             header='Train Test Drift',
             check=self.__class__
         )
@@ -225,10 +225,10 @@ class TrainTestDrift(TrainTestBaseCheck):
 
             def plot_numerical():
                 plt.title(f'Distribution of {column_name}')
-                train_column.plot(kind='density', label='Train dataset', legend=True, figsize=(8,4))
-                test_column.plot(kind='density', label='Test dataset', legend=True, figsize=(8,4))
+                train_column.plot(kind='density', label='Train dataset', legend=True, figsize=(8, 4))
+                test_column.plot(kind='density', label='Test dataset', legend=True, figsize=(8, 4))
 
-            return score, plot_numerical
+            return score, "Earth Mover's Distance", plot_numerical
 
         elif column_type == 'categorical':
 
@@ -256,6 +256,43 @@ class TrainTestDrift(TrainTestBaseCheck):
                 ax.set_title(f'Distribution of {column_name}')
                 ax.legend()
 
-            return score, plot_categorical
+            return score, 'PSI', plot_categorical
 
+    def add_condition_drift_score_not_greater_than(self, max_allowed_psi_score: float = 0.2,
+                                                   max_allowed_earth_movers_score: float = 0.1):
+        """
+        Add condition - require drift score to not be more than a certain threshold.
 
+        The industry standard for PSI limit is above 0.2.
+        Earth movers does not have a common industry standard.
+
+        Args:
+            max_allowed_psi_score: the max threshold for the PSI score
+            max_allowed_earth_movers_score: the max threshold for the Earth Mover's Distance score
+
+        Returns:
+            ConditionResult: False if any column has passed the max threshold, True otherwise
+        """
+
+        def condition(result: Dict) -> ConditionResult:
+            not_passing_categorical_columns = [column for column, d in result.items() if
+                                               d['value'] > max_allowed_psi_score and d['method'] == 'PSI']
+            not_passing_numeric_columns = [column for column, d in result.items() if
+                                           d['value'] > max_allowed_earth_movers_score
+                                           and d['method'] == "Earth Mover's Distance"]
+            return_str = ''
+            if not_passing_categorical_columns:
+                return_str += f'Found categorical columns with PSI over {max_allowed_psi_score}: ' \
+                              f'{", ".join(not_passing_categorical_columns)}\n'
+            if not_passing_numeric_columns:
+                return_str += f'Found numeric columns with Earth Mover\'s Distance over ' \
+                              f'{max_allowed_earth_movers_score}: {", ".join(not_passing_numeric_columns)}'
+
+            if return_str:
+                return ConditionResult(False, return_str)
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'PSI and Earth Mover\'s Distance cannot be greater than {max_allowed_psi_score} and '
+                                  f'{max_allowed_earth_movers_score} respectively',
+                                  condition)
