@@ -2,11 +2,13 @@
 import enum
 from numbers import Number
 from typing import List, Union, Dict, Callable
+
+import numpy as np
 from sklearn.metrics import get_scorer, make_scorer, accuracy_score, precision_score, recall_score, mean_squared_error
 from sklearn.base import ClassifierMixin, RegressorMixin
 
 __all__ = ['ModelType', 'task_type_check', 'get_metrics_list', 'validate_scorer', 'DEFAULT_METRICS_DICT',
-           'DEFAULT_SINGLE_METRIC']
+           'DEFAULT_SINGLE_METRIC', 'get_metrics_ratio']
 
 from deepchecks.utils import model_type_validation, DeepchecksValueError
 
@@ -137,3 +139,15 @@ def validate_scorer(scorer, model, dataset):
         assert isinstance(scorer(model, dataset.data[dataset.features()].head(2), dataset.label_col().head(2)),
                           Number)
         return scorer
+
+
+def get_metrics_ratio(train_metric: float, test_metric: float, max_ratio=np.Inf):
+    """Return the ratio of test metric compared to train metric."""
+    if train_metric == 0:
+        return max_ratio
+    else:
+        ratio = test_metric / train_metric
+        if train_metric < 0 and test_metric < 0:
+            ratio = 1 / ratio
+        ratio = min(max_ratio, ratio)
+        return ratio
