@@ -2,6 +2,8 @@
 import pandas as pd
 
 from deepchecks import CheckResult, Dataset, TrainTestBaseCheck
+from deepchecks.base.check import ConditionResult
+from deepchecks.string_utils import format_percent
 
 __all__ = ['IndexTrainTestLeakage']
 
@@ -58,3 +60,18 @@ class IndexTrainTestLeakage(TrainTestBaseCheck):
 
         return CheckResult(value=size_in_test, header='Index Train-Test Leakage', check=self.__class__,
                            display=display)
+
+    def add_condition_leakage_not_greater_than(self, max_ratio: float = 0):
+        """Add condition - require index leakage ratio to not surpass max_ratio.
+
+        Args:
+            max_ratio (float): Maximum ratio of index leakage.
+        """
+        def max_ratio_condition(result: float) -> ConditionResult:
+            if result > max_ratio:
+                return ConditionResult(False, f'Found {format_percent(result)} of index leakage')
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'Index leakage is not greater than {format_percent(max_ratio)}',
+                                  max_ratio_condition)
