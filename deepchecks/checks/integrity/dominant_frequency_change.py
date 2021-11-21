@@ -162,7 +162,7 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
                     failed_columns.append(index)
             if failed_columns:
                 return ConditionResult(False,
-                                       f'The p value that are less than the minimal p value are: {failed_columns}')
+                                       f'Found columns with low p-value: {failed_columns}')
             else:
                 return ConditionResult(True)
 
