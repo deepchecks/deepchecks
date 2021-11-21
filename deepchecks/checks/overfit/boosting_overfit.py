@@ -177,11 +177,11 @@ class BoostingOverfit(TrainTestBaseCheck):
         result = {'test': test_scores, 'train': train_scores}
         return CheckResult(result, check=self.__class__, display=display_func, header='Boosting Overfit')
 
-    def add_condition_test_max_score_difference_not_greater_than(self, threshold: float = 0):
+    def add_condition_test_score_decline_not_greater_than(self, threshold: float = 0):
         """Add condition.
 
-        Difference between maximum score in each boosting iteration and score in last iteration is not greater than
-        given threshold.
+        Difference between the maximal score achieved in any boosting iteration and the score achieved in the last
+        iteration ("regular" model score) is not above given threshold.
 
         Args:
             threshold (float): Maximum difference allowed.
@@ -197,5 +197,4 @@ class BoostingOverfit(TrainTestBaseCheck):
             else:
                 return ConditionResult(True)
 
-        return self.add_condition('Difference between test maximum score in boosting iterations and last score is '
-                                  f'not greater than {threshold}', condition)
+        return self.add_condition(f'Test score decline is not greater than {threshold}', condition)
