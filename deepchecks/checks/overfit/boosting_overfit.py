@@ -193,7 +193,7 @@ class BoostingOverfit(TrainTestBaseCheck):
             diff = max_score - last_score
 
             if diff > threshold:
-                message = f'Found decline in metric of: -{format_number(diff)}'
+                message = f'Found decline in metric of: {format_number(-diff)}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
