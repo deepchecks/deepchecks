@@ -58,7 +58,7 @@ class UnusedFeatures(TrainTestBaseCheck):
     """
 
     def __init__(self, feature_importance_threshold: float = 0.2, feature_variance_threshold: float = 0.4,
-                 n_top_fi_to_show: int = 5, n_top_unused_to_show: int = 15):
+                 n_top_fi_to_show: int = 5, n_top_unused_to_show: int = 15, random_state: int = 42):
         """Initialize the UnusedFeatures check.
 
         Args:
@@ -71,12 +71,14 @@ class UnusedFeatures(TrainTestBaseCheck):
             n_top_fi_to_show (int): The max number of important features to show in the check display.
             n_top_unused_to_show (int): The max number of unused features to show in the check display, from among
                 unused features that have higher variance then is defined by feature_variance_threshold.
+            random_state (int): The random state to use for permutation feature importance and PCA.
         """
         super().__init__()
         self.feature_importance_threshold = feature_importance_threshold
         self.feature_variance_threshold = feature_variance_threshold
         self.n_top_fi_to_show = n_top_fi_to_show
         self.n_top_unused_to_show = n_top_unused_to_show
+        self.random_state = random_state
 
     def run(self, train_dataset: Dataset = None, test_dataset: Dataset = None, model=None) -> CheckResult:
         """Run check.
@@ -108,13 +110,15 @@ class UnusedFeatures(TrainTestBaseCheck):
         test_dataset.validate_label(func_name)
         model_type_validation(model)
 
-        feature_importance = calculate_feature_importance(model, dataset)
+        feature_importance = calculate_feature_importance(model, dataset, random_state=self.random_state)
 
         # Calculate normalized variance per feature based on PCA decomposition
         pre_pca_transformer = naive_encoder(dataset)
-        pca_trans = PCA(n_components=len(dataset.features()) // 2)
+        pca_trans = PCA(n_components=len(dataset.features()) // 2, random_state=self.random_state)
         n_samples = min(10000, dataset.n_samples())
-        pca_trans.fit(pre_pca_transformer.fit_transform(dataset.features_columns().sample(n_samples)))
+        pca_trans.fit(pre_pca_transformer.fit_transform(
+            dataset.features_columns().sample(n_samples, random_state=self.random_state)
+        ))
 
         feature_normed_variance = pd.Series(np.abs(pca_trans.components_).sum(axis=0), index=feature_importance.index)
         feature_normed_variance = feature_normed_variance / feature_normed_variance.sum()
