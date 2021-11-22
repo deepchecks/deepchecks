@@ -109,15 +109,14 @@ def column_importance_sorter_dict(cols_dict: Dict, ds: Dataset, feature_importan
 
 
 def column_importance_sorter_df(df: pd.DataFrame, ds: Dataset, feature_importances: pd.Series,
-                                n_top: int = 10, col: str = None):
+                                n_top: int = 10, col: str = None) -> pd.DataFrame:
     """Return the dataframe of of columns sorted and limited by feature importance.
 
     Args:
-        cols_dict (pd.DataFrame): dataframe where columns are the index or in a column
+        df (DataFrame): DataFrame to sort
         ds (Dataset): dataset used to fit the model
         feature_importances (pd.Series): feature importance normalized to 0-1 indexed by feature names
-        n_top_columns (int): (optinal - used only if model was specified)
-                             amount of columns to show ordered by feature importance (date, index, label are first)
+        n_top (int): amount of columns to show ordered by feature importance (date, index, label are first)
         col (str): (optional) name of column to sort the dataframe by
     Returns:
         pd.DataFrame: the dataframe sorted and limited by feature importance.
