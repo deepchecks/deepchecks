@@ -134,4 +134,3 @@ class SegmentPerformance(SingleDatasetBaseCheck):
 
         value = {'scores': scores, 'counts': counts, 'feature_1': self.feature_1,'feature_2': self.feature_2}
         return CheckResult(value, check=self.__class__, display=display)
-
