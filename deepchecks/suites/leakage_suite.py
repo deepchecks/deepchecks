@@ -15,7 +15,7 @@ __all__ = ['IndexLeakageCheckSuite', 'DateLeakageCheckSuite', 'DataLeakageCheckS
 
 IndexLeakageCheckSuite = CheckSuite(
     'Index Leakage Suite',
-    IndexTrainTestLeakage(),
+    IndexTrainTestLeakage().add_condition_ratio_not_greater_than(),
 )
 
 DateLeakageCheckSuite = CheckSuite(
