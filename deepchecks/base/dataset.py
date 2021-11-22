@@ -397,7 +397,9 @@ class Dataset:
             return self.cat_features
         else:
             raise DeepchecksValueError(f'Check {check_name} requires datasets to share'
-                                       f' the same categorical features')
+                                       f' the same categorical features. Possible reason is that some columns were'
+                                       f'inferred incorrectly as categorical features. To fix this, manually edit the '
+                                       f'categorical features using Dataset(cat_features=<list_of_features>')
 
     def validate_shared_label(self, other, check_name: str) -> str:
         """

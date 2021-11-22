@@ -9,7 +9,7 @@ from hamcrest import assert_that, close_to
 
 def test_boosting_classifier(iris):
     # Arrange
-    train_df, validation_df = train_test_split(iris, test_size=0.33)
+    train_df, validation_df = train_test_split(iris, test_size=0.33, random_state=0)
     train = Dataset(train_df, label='target')
     validation = Dataset(validation_df, label='target')
 
@@ -20,7 +20,7 @@ def test_boosting_classifier(iris):
     result = BoostingOverfit().run(train, validation, clf)
 
     # Assert
-    assert_that(result.value, close_to(0.93, 0.05))
+    assert_that(result.value, close_to(0.92, 0.05))
 
 
 def test_boosting_regressor(diabetes, diabetes_model):
@@ -36,7 +36,7 @@ def test_boosting_regressor(diabetes, diabetes_model):
 
 def test_boosting_classifier_with_metric(iris):
     # Arrange
-    train_df, validation_df = train_test_split(iris, test_size=0.33)
+    train_df, validation_df = train_test_split(iris, test_size=0.33, random_state=0)
     train = Dataset(train_df, label='target')
     validation = Dataset(validation_df, label='target')
 

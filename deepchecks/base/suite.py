@@ -128,18 +128,27 @@ class CheckSuite(BaseCheck):
 
     def __repr__(self, tabs=0):
         """Representation of suite as string."""
-        tabs_str = '\t' * tabs
+        additional_info = []
         stringified_checks = []
 
         for index, check in self.checks.items():
             if isinstance(check, str):
-                stringified_checks.append(check)
+                indent = '\t' * (tabs + 2)
+                additional_info.append(f'\n{indent}- {check}')
             else:
                 check_repr = check.__repr__(tabs + 1, str(index) + ': ')
                 stringified_checks.append(f'\n{check_repr}')
+        
+        aditional_info_indent = '\t' * (tabs + 1)
+        info = ''.join(additional_info)
+        aditional_info_section = f'{aditional_info_indent}Additional Info:{info}'
 
-        checks_repr = ''.join(stringified_checks)
-        return f'{tabs_str}{self.name}: [{checks_repr}\n{tabs_str}]'
+        indent = '\t' * tabs
+        checks = ''.join(stringified_checks)
+        
+        return (
+            f'{indent}{self.name}: [{checks}\n\n{aditional_info_section}\n{indent}]'
+        )
 
     def __getitem__(self, index) -> Union[str, BaseCheck]:
         """Access check inside the suite by name."""
@@ -155,7 +164,7 @@ class CheckSuite(BaseCheck):
         """
         if not isinstance(check, (BaseCheck, str)):
             raise Exception(
-                f"'{type(self).__name__}' receives only `{BaseCheck.__name__}` "
+                f"'{type(self).__name__}' receives only `{BaseCheck.__name__}` or string "
                 f"objects but got: '{type(check).__name__}'"
             )
         if isinstance(check, CheckSuite):
