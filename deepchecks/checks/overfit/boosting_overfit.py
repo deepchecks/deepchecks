@@ -178,10 +178,10 @@ class BoostingOverfit(TrainTestBaseCheck):
         result = {'test': test_scores, 'train': train_scores}
         return CheckResult(result, check=self.__class__, display=display_func, header='Boosting Overfit')
 
-    def add_condition_test_score_percentage_decline_not_greater_than(self, threshold: float = 0.05):
+    def add_condition_test_score_percent_decline_not_greater_than(self, threshold: float = 0.05):
         """Add condition.
 
-        Percentage of decline between the maximal score achieved in any boosting iteration and the score achieved in the
+        Percent of decline between the maximal score achieved in any boosting iteration and the score achieved in the
         last iteration ("regular" model score) is not above given threshold.
 
         Args:

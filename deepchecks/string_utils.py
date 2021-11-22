@@ -164,12 +164,10 @@ def format_percent(ratio: float, floating_point: int = 2) -> str:
     else:
         prefix = ''
 
-    if ratio == 0:
-        result = '0%'
-    elif ratio == 1:
-        result = '100%'
+    if int(ratio) == ratio:
+        result = f'{int(ratio) * 100}%'
     elif ratio > 1:
-        result = f'{int(ratio * 100)}%'
+        result = f'{ratio * 100:.{floating_point}f}%'
     elif ratio < 10**(-(2+floating_point)):
         result = f'{Decimal(ratio * 100):.{floating_point}E}%'
     elif ratio > (1-10**(-(2+floating_point))):
