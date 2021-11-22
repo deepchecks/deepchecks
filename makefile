@@ -260,7 +260,7 @@ $(APIDOC): env
 	$(PIP) install $(SPHINX_PKGS)	
 
 gen-static-notebooks: $(JUPYTER)
-	 jupyter nbconvert --to html --output-dir docs/_website/static/notebooks/  notebooks/*/*/*.ipynb 
+	 jupyter nbconvert --to html --output-dir $(WEBSITE_DIR)/static/notebooks/  $(NOTEBOOK_DIR)/*/*/*.ipynb 
 
 docs: $(APIDOC)
 	$(pythonpath) $(BIN)/sphinx-apidoc -t docs/_templates -f ./deepchecks -o docs/$(API_REFERENCE_DIR)
@@ -268,7 +268,7 @@ docs: $(APIDOC)
 	@rm -rf docs/api-reference
 	@find docs/_build/markdown/ -name '*.md' | xargs sed '/^$$/N;/^\n$$/D'  -i
 
-website: docs 
+website: docs gen-static-notebooks
 	@rm -rf $(WEBSITE_DIR)/docs/$(API_REFERENCE_DIR)
 	@cp -rf docs/_build/markdown/$(API_REFERENCE_DIR) $(WEBSITE_DIR)/docs/$(API_REFERENCE_DIR)/
 	@rm -rf docs/_build/markdown
