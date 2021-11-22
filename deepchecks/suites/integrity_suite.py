@@ -44,7 +44,7 @@ def single_dataset_integrity_check_suite() -> CheckSuite:
 
 def comparative_integrity_check_suite() -> CheckSuite:
     """Create 'Comparative Integrity Suite'.
-    
+
     The suite runs set of checks that are meant to detect integrity issues within two datasets.
     """
     return CheckSuite(
@@ -58,7 +58,7 @@ def comparative_integrity_check_suite() -> CheckSuite:
 
 def integrity_check_suite() -> CheckSuite:
     """Create 'Integrity Suite'.
-    
+
     The suite runs set of checks that are meant to detect integrity issues within datasets.
 
     Suite includes 'Comparative Integrity Suite' and 'Single Dataset Integrity Suite'.

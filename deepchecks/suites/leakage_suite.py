@@ -20,7 +20,7 @@ __all__ = [
 
 def index_leakage_check_suite() -> CheckSuite:
     """Create 'Index Leakage Suite'.
-    
+
     The suite runs a set of checks that are meant to detect row-wise data leakage
     from the test dataset to the training dataset. It does it by verifying the availability
     of the test dataset indexes within training dataset.
@@ -33,9 +33,9 @@ def index_leakage_check_suite() -> CheckSuite:
 
 def date_leakage_check_suite() -> CheckSuite:
     """Create 'Date Leakage Suite'.
-    
+
     The suite runs a set of checks that are meant to detect row-wise data leakage
-    from the test dataset to the training dataset. It does it by examining dates columns 
+    from the test dataset to the training dataset. It does it by examining dates columns
     within two datasets, and by verifying the availability of the overlaps or duplicates
     """
     return CheckSuite(
@@ -49,7 +49,7 @@ def data_leakage_check_suite() -> CheckSuite:
     """Create 'Data Leakage Suite'.
 
     The suite runs a set of checks that are meant to detect row-wise data leakage
-    from the test dataset to the training dataset, and features that are 
+    from the test dataset to the training dataset, and features that are
     able to single-handedly predict another feature or label.
     """
     return CheckSuite(
@@ -62,10 +62,10 @@ def data_leakage_check_suite() -> CheckSuite:
 
 def leakage_check_suite() -> CheckSuite:
     """Create 'Leakage Check Suite'.
-    
+
     The suite runs a set of checks that are meant to detect data
-    leakage from test dataset to the train dataset. 
-    
+    leakage from test dataset to the train dataset.
+
     The suite includes 'Data Leakage Suite', 'Date Leakage Suite', 'Index Leakage Suite'
     """
     return CheckSuite(

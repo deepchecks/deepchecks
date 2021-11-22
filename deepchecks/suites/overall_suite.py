@@ -22,8 +22,8 @@ __all__ = [
 
 def overall_check_suite() -> CheckSuite:
     """Create 'Overall Suite'.
-    
-    Composition of different builtin suites that include checks that are meant 
+
+    Composition of different builtin suites that include checks that are meant
     to detect any possible issues within model, like:
     - train/test datasets integrity issues
     - data leakage issues
@@ -41,8 +41,8 @@ def overall_check_suite() -> CheckSuite:
 
 def overall_classification_check_suite() -> CheckSuite:
     """Create 'Overall Classification Suite'.
-    
-    Composition of different builtin suites that include checks that are meant 
+
+    Composition of different builtin suites that include checks that are meant
     to detect any possible issues within classification model, like:
     - train/test datasets integrity issues
     - data leakage issues
@@ -60,8 +60,8 @@ def overall_classification_check_suite() -> CheckSuite:
 
 def overall_regression_check_suite() -> CheckSuite:
     """Create 'Overall Regression Suite'.
-    
-    Composition of different builtin suites that include checks that are meant 
+
+    Composition of different builtin suites that include checks that are meant
     to detect any possible issues within regression model, like:
     - train/test datasets integrity issues
     - data leakage issues
@@ -79,8 +79,8 @@ def overall_regression_check_suite() -> CheckSuite:
 
 def overall_generic_check_suite() -> CheckSuite:
     """Create 'Overall Generic Suite'.
-    
-    Composition of different builtin suites that include checks that are meant 
+
+    Composition of different builtin suites that include checks that are meant
     to detect any possible issues within model, like:
     - train/test datasets integrity issues
     - data leakage issues

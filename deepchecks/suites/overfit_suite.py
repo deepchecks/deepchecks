@@ -8,8 +8,8 @@ __all__ = ['overfit_check_suite']
 
 def overfit_check_suite() -> CheckSuite:
     """Create 'Overfit Suite'.
-    
-    The suite runs a set of checks that are meant to detect whether 
+
+    The suite runs a set of checks that are meant to detect whether
     the model was overfitted or not.
     """
     return CheckSuite(
