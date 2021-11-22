@@ -43,7 +43,7 @@ def overall_classification_check_suite() -> CheckSuite:
     """Create 'Overall Classification Suite'.
 
     Composition of different builtin suites that include checks that are meant
-    to detect any possible issues within classification model, like:
+    to detect any possible issues within a classification model, like:
     - train/test datasets integrity issues
     - data leakage issues
     - model overfit issues
