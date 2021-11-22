@@ -135,14 +135,13 @@ def test_condition_fail_all(diabetes_split_dataset_and_model):
     train.data.loc[train.data.index % 3 == 2, 'bp'] = '&!'
     train.data.loc[train.data.index % 3 == 2, 'sex'] = '&!'
     # Arrange
-    check = SpecialCharacters(n_top_columns=3).\
-        add_condition_ratio_of_entirely_special_character_samples_not_grater_than()
+    check = SpecialCharacters(n_top_columns=3).add_condition_ratio_of_special_characters_not_grater_than()
     # Act
     results = check.conditions_decision(check.run(train, clf))
     # Assert
     assert_that(results, has_items(equal_condition_result(
         is_pass=False,
-        name='Ratio of entirely special character samples not greater than 0% for all columns',
+        name='Ratio of entirely special character samples not greater than 0.10% for all columns',
         details='Found columns over threshold ratio: [\'age\', \'sex\', \'bmi\', \'bp\']'
     )))
 
@@ -155,8 +154,7 @@ def test_condition_fail_some(diabetes_split_dataset_and_model):
     train.data.loc[train.data.index % 7 == 2, 'bp'] = '&!'
     train.data.loc[train.data.index % 3 == 2, 'sex'] = '&!'
     # Arrange
-    check = SpecialCharacters(n_top_columns=3).\
-        add_condition_ratio_of_entirely_special_character_samples_not_grater_than(0.3)
+    check = SpecialCharacters(n_top_columns=3).add_condition_ratio_of_special_characters_not_grater_than(0.3)
     # Act
     results = check.conditions_decision(check.run(train, clf))
     # Assert
@@ -172,12 +170,11 @@ def test_condition_pass(diabetes_split_dataset_and_model):
     train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
 
     # Arrange
-    check = SpecialCharacters(n_top_columns=3).\
-        add_condition_ratio_of_entirely_special_character_samples_not_grater_than()
+    check = SpecialCharacters(n_top_columns=3).add_condition_ratio_of_special_characters_not_grater_than()
     # Act
     results = check.conditions_decision(check.run(train, clf))
     # Assert
     assert_that(results, has_items(equal_condition_result(
         is_pass=True,
-        name='Ratio of entirely special character samples not greater than 0% for all columns',
+        name='Ratio of entirely special character samples not greater than 0.10% for all columns',
     )))
