@@ -36,12 +36,13 @@ def calculate_feature_importance_or_null(dataset: Dataset, model: Any) -> pd.Ser
     return feature_importances
 
 
-def calculate_feature_importance(model: Any, dataset: Dataset) -> pd.Series:
+def calculate_feature_importance(model: Any, dataset: Dataset, random_state: int = 42) -> pd.Series:
     """Calculate features effect on the label.
 
     Args:
         model (Any): A fitted model
         dataset (Dataset): dataset used to fit the model
+        random_state (int): random seed for permutation importance calculation
     Returns:
         pd.Series of feature importance normalized to 0-1 indexed by feature names
 
@@ -59,9 +60,9 @@ def calculate_feature_importance(model: Any, dataset: Dataset) -> pd.Series:
             if isinstance(final_estimator, BaseEstimator):
                 feature_importances = _built_in_importance(final_estimator, dataset)
             else:
-                feature_importances = _calc_importance(model, dataset)
+                feature_importances = _calc_importance(model, dataset, random_state=random_state)
         else:  # Others
-            feature_importances = _calc_importance(model, dataset)
+            feature_importances = _calc_importance(model, dataset, random_state=random_state)
 
     return feature_importances.fillna(0)
 
