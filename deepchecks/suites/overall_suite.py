@@ -62,7 +62,7 @@ def overall_regression_check_suite() -> CheckSuite:
     """Create 'Overall Regression Suite'.
 
     Composition of different builtin suites that include checks that are meant
-    to detect any possible issues within regression model, like:
+    to detect any possible issues within a regression model, like:
     - train/test datasets integrity issues
     - data leakage issues
     - model overfit issues
