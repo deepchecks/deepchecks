@@ -21,7 +21,8 @@ class SegmentPerformance(SingleDatasetBaseCheck):
     metric: Union[str, Callable]
     max_segments: int
 
-    def __init__(self, feature_1: str = None, feature_2: str = None, metric: Union[str, Callable] = None, max_segments: int = 10):
+    def __init__(self, feature_1: str = None, feature_2: str = None, metric: Union[str, Callable] = None,
+                 max_segments: int = 10):
         """Initialize segment performance check.
 
         Args:
