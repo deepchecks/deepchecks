@@ -36,6 +36,7 @@ TOX := $(BIN)/tox
 TWINE := $(BIN)/twine
 APIDOC := $(BIN)/sphinx-apidoc
 SPHINX_BUILD := $(BIN)/sphinx-build
+JUPYTER := $(BIN)/jupyter
 
 # Project Settings
 PKGDIR := $(or $(PACKAGE), ./)
@@ -245,7 +246,7 @@ endif
 
 
 ### Documentation
-.PHONY: docs website dev-docs
+.PHONY: docs website dev-docs gen-static-notebooks
 
 API_REFERENCE_DIR=api-reference
 WEBSITE_DIR=docs/_website
@@ -258,13 +259,16 @@ $(DOCOSAURUS):
 $(APIDOC): env
 	$(PIP) install $(SPHINX_PKGS)	
 
+gen-static-notebooks: $(JUPYTER)
+	 jupyter nbconvert --to html --output-dir docs/_website/static/notebooks/  notebooks/*/*/*.ipynb 
+
 docs: $(APIDOC)
 	$(pythonpath) $(BIN)/sphinx-apidoc -t docs/_templates -f ./deepchecks -o docs/$(API_REFERENCE_DIR)
 	$(pythonpath) $(BIN)/sphinx-build -M markdown docs docs/_build/
 	@rm -rf docs/api-reference
 	@find docs/_build/markdown/ -name '*.md' | xargs sed '/^$$/N;/^\n$$/D'  -i
 
-website: docs
+website: docs 
 	@rm -rf $(WEBSITE_DIR)/docs/$(API_REFERENCE_DIR)
 	@cp -rf docs/_build/markdown/$(API_REFERENCE_DIR) $(WEBSITE_DIR)/docs/$(API_REFERENCE_DIR)/
 	@rm -rf docs/_build/markdown
@@ -291,6 +295,8 @@ install:
 download:
 	$(PIP) install $(PROJECT)
 
-jupyter: 
-	$(PIP) install jupyter
+jupyter: $(JUPYTER)
 	$(BIN)/jupyter-notebook $(args) --notebook-dir=$(NOTEBOOK_DIR)
+
+$(JUPYTER):
+	$(PIP) install jupyter
