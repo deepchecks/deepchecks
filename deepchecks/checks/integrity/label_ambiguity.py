@@ -3,7 +3,7 @@ from typing import Union, Iterable
 
 import pandas as pd
 
-from deepchecks import Dataset, ensure_dataframe_type
+from deepchecks import Dataset, ConditionResult, ensure_dataframe_type
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from deepchecks.base.dataframe_utils import filter_columns_with_validation
 from deepchecks.utils import DeepchecksValueError
@@ -14,7 +14,7 @@ __all__ = ['LabelAmbiguity']
 
 
 class LabelAmbiguity(SingleDatasetBaseCheck):
-    """Search for label ambiguity in dataset."""
+    """Find samples with multiple labels."""
 
     def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
                  n_to_show: int = 5):
@@ -42,16 +42,19 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
         Returns:
           (CheckResult): percentage of ambiguous samples and display of the top n_to_show most ambiguous.
         """
-        dataset: Dataset = Dataset.validate_dataset(dataset)
+        dataset: Dataset = Dataset.validate_dataset(dataset, self.__class__.__name__)
         dataset = dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
+        dataset.validate_label(self.__class__.__name__)
+
+        label_col = dataset.label_name()
 
         if dataset.n_samples() == 0:
             raise DeepchecksValueError('Dataset does not contain any data')
 
         group_unique_data = dataset.data.groupby(dataset.features(), dropna=False)
-        group_unique_labels = group_unique_data.nunique()[dataset.label_name()]
+        group_unique_labels = group_unique_data.nunique()[label_col]
         num_ambiguous = 0
-        display = None
+        display = pd.DataFrame(columns=[dataset.label_name(), *dataset.features()])
 
         for num_labels, group_data in sorted(zip(group_unique_labels, group_unique_data),
                                              key=lambda x: x[0], reverse=True):
@@ -59,21 +62,32 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
                 break
 
             group_df = group_data[1]
-            label_counts = dict(group_df.groupby('c').size())
+            sample_values = dict(group_df[dataset.features()].iloc[0])
+            labels = list(group_df[label_col].unique())
             n_data_sample = group_df.shape[0]
             num_ambiguous += n_data_sample
 
-            #Todo: turn label_counts into display
-            '''
-            should be something like:
-            count, label, data
-            1    , 1    , fasdflasdkjf;asdjf
-            7    , 0    , fasdflasdkjf;asdjf
-            10   , 1    , other_data
-            10   , 0    , other_data
-            '''
+            display = display.append({label_col: labels, **sample_values}, ignore_index=True)
 
+        display.set_index(label_col)
+
+        display = None if display.empty else display.head(self.n_to_show)
 
         percent_ambiguous = num_ambiguous/dataset.n_samples()
 
         return CheckResult(value=percent_ambiguous, check=self.__class__, display=display)
+
+    def add_condition_ambiguous_sample_ratio_not_greater_than(self, max_ratio=0):
+        """Add condition - require samples with multiple labels to not be more than max_ratio.
+
+        Args:
+            max_ratio (float): Maximum ratio of samples with multiple labels.
+        """
+        def max_ratio_condition(result: float) -> ConditionResult:
+            if result > max_ratio:
+                return ConditionResult(False, f'Found {format_percent(result)} samples with multiple labels')
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'Ambiguous sample ratio is not greater than {format_percent(max_ratio)}',
+                                  max_ratio_condition)
