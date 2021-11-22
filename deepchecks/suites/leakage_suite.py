@@ -22,7 +22,7 @@ def index_leakage_check_suite() -> CheckSuite:
     """Create 'Index Leakage Suite'."""
     return CheckSuite(
         'Index Leakage Suite',
-        IndexTrainTestLeakage(),
+        IndexTrainTestLeakage().add_condition_ratio_not_greater_than(),
     )
 
 
