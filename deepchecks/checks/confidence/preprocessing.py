@@ -6,7 +6,7 @@ from typing import List, Tuple
 from category_encoders import OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler
-from mlchecks.checks.confidence.rare_category_encoder import RareCategoryEncoder
+from deepchecks.checks.confidence.rare_category_encoder import RareCategoryEncoder
 
 __all__ = ['preprocess_dataset_to_scaled_numerics']
 
