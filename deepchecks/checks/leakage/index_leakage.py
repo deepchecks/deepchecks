@@ -61,7 +61,7 @@ class IndexTrainTestLeakage(TrainTestBaseCheck):
         return CheckResult(value=size_in_test, header='Index Train-Test Leakage', check=self.__class__,
                            display=display)
 
-    def add_condition_leakage_not_greater_than(self, max_ratio: float = 0):
+    def add_condition_ratio_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require index leakage ratio to not surpass max_ratio.
 
         Args:
