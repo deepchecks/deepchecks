@@ -23,7 +23,6 @@ __all__ = [
 ]
 
 
-
 def single_dataset_integrity_check_suite() -> CheckSuite:
     """Create 'Single Dataset Integrity Suite'.
 
@@ -37,7 +36,7 @@ def single_dataset_integrity_check_suite() -> CheckSuite:
         StringMismatch().add_condition_no_variants(),
         DataDuplicates().add_condition_duplicates_not_greater_than(),
         RareFormatDetection().add_condition_ratio_of_rare_formats_not_greater_than(),
-        StringLengthOutOfBounds(),
+        StringLengthOutOfBounds().add_condition_ratio_of_outliers_not_greater_than(),
         SpecialCharacters().add_condition_ratio_of_special_characters_not_grater_than()
     )
 
