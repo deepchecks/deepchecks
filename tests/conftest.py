@@ -3,13 +3,14 @@
 #pylint: disable=redefined-outer-name
 from typing import Tuple
 
+import numpy as np
 import pytest
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, GradientBoostingRegressor
 from sklearn.datasets import load_iris, load_diabetes
 from sklearn.model_selection import train_test_split
 import pandas as pd
 
-from mlchecks import Dataset
+from deepchecks import Dataset
 
 
 @pytest.fixture(scope='session')
@@ -27,14 +28,14 @@ def diabetes_df():
 def diabetes(diabetes_df):
     """Return diabetes dataset splited to train and validation as Datasets."""
     train_df, validation_df = train_test_split(diabetes_df, test_size=0.33, random_state=42)
-    train = Dataset(train_df, label='target')
-    validation = Dataset(validation_df, label='target')
+    train = Dataset(train_df, label='target', cat_features=['sex'])
+    validation = Dataset(validation_df, label='target', cat_features=['sex'])
     return train, validation
 
 
 @pytest.fixture(scope='session')
 def diabetes_model(diabetes):
-    clf = GradientBoostingRegressor()
+    clf = GradientBoostingRegressor(random_state=0)
     train, _ = diabetes
     return clf.fit(train.features_columns(), train.label_col())
 
@@ -68,7 +69,7 @@ def iris_dataset(iris):
 @pytest.fixture(scope='session')
 def iris_adaboost(iris):
     """Return trained AdaBoostClassifier on iris data."""
-    clf = AdaBoostClassifier()
+    clf = AdaBoostClassifier(random_state=0)
     features = iris.drop('target', axis=1)
     target = iris.target
     clf.fit(features, target)
@@ -84,7 +85,7 @@ def iris_labeled_dataset(iris):
 @pytest.fixture(scope='session')
 def iris_random_forest(iris):
     """Return trained RandomForestClassifier on iris data."""
-    clf = RandomForestClassifier()
+    clf = RandomForestClassifier(random_state=0)
     features = iris.drop('target', axis=1)
     target = iris.target
     clf.fit(features, target)
@@ -94,7 +95,7 @@ def iris_random_forest(iris):
 @pytest.fixture(scope='session')
 def iris_random_forest_single_class(iris):
     """Return trained RandomForestClassifier on iris data modified to a binary label."""
-    clf = RandomForestClassifier()
+    clf = RandomForestClassifier(random_state=0)
     idx = iris.target != 2
     features = iris.drop('target', axis=1)[idx]
     target = iris.target[idx]
@@ -122,10 +123,50 @@ def iris_dataset_single_class_labeled(iris):
 
 @pytest.fixture(scope='session')
 def iris_split_dataset_and_model(iris_clean) -> Tuple[Dataset, Dataset, AdaBoostClassifier]:
-    """Return Iris train and val datasets and trained RF model."""
+    """Return Iris train and val datasets and trained AdaBoostClassifier model."""
     train, test = train_test_split(iris_clean.frame, test_size=0.33, random_state=42)
     train_ds = Dataset(train, label='target')
     val_ds = Dataset(test, label='target')
-    clf = AdaBoostClassifier()
+    clf = AdaBoostClassifier(random_state=0)
     clf.fit(train_ds.features_columns(), train_ds.label_col())
     return train_ds, val_ds, clf
+
+
+@pytest.fixture(scope='session')
+def iris_split_dataset_and_model_rf(iris) -> Tuple[Dataset, Dataset, RandomForestClassifier]:
+    """Return Iris train and val datasets and trained RF model."""
+    train, test = train_test_split(iris, test_size=0.33, random_state=0)
+    train_ds = Dataset(train, label='target')
+    val_ds = Dataset(test, label='target')
+    clf = RandomForestClassifier(random_state=0, n_estimators=10, max_depth=2)
+    clf.fit(train_ds.features_columns(), train_ds.label_col())
+    return train_ds, val_ds, clf
+
+
+# NaN dataframes:
+@pytest.fixture(scope='session')
+def df_with_nan_row():
+    return pd.DataFrame({
+        'col1': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, np.nan],
+        'col2': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, np.nan]})
+
+
+@pytest.fixture(scope='session')
+def df_with_single_nan_in_col():
+    return pd.DataFrame({
+        'col1': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, np.nan],
+        'col2': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]})
+
+
+@pytest.fixture(scope='session')
+def df_with_single_nans_in_different_rows():
+    return pd.DataFrame({
+        'col1': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, np.nan],
+        'col2': [0, 1, 2, 3, 4, np.nan, 6, 7, 8, 9, 10]})
+
+
+@pytest.fixture(scope='session')
+def df_with_fully_nan():
+    return pd.DataFrame({
+        'col1': [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan],
+        'col2': [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan]})

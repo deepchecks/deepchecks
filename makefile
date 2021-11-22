@@ -1,10 +1,10 @@
-# This makefile helps with mlchecks Development environment
+# This makefile helps with deepchecks Development environment
 # including syntax checking, virtual environments creation, 
 # test running and coverage
 # This Makefile is based on Makefile by jidn: https://github.com/jidn/python-Makefile/blob/master/Makefile
 
 # Package = Source code Directory
-PACKAGE = mlchecks
+PACKAGE = deepchecks
 
 # Requirements file
 REQUIRE = requirements.txt
@@ -68,7 +68,7 @@ SPHINX_PKGS = sphinx sphinx_rtd_theme
 
 
 EGG_INFO := $(subst -,_,$(PROJECT)).egg-info
-EGG_LINK = venv/lib/python3.7/site-packages/mlchecks.egg-link
+EGG_LINK = venv/lib/python3.7/site-packages/deepchecks.egg-link
 
 ### Main Targets ######################################################
 
@@ -83,8 +83,8 @@ help:
 	@echo "test -      TEST_RUNNER on '$(TESTDIR)'"
 	@echo "            args=\"<pytest Arguements>\"  optional arguments"
 	@echo "coverage -  Get coverage information, optional 'args' like test\n"
-	@echo "jupyter - Deploy jupyer-notebook using './notebook' directory
-	@echo "					 args=\"<jupyter Arguments\" -passable"\n"
+	@echo "jupyter - Deploy jupyer-notebook using './notebook' directory"
+	@echo "					 args=\"<jupyter Arguments\" -passable\n"
 	@echo "tox      -  Test against multiple versions of python as defined in tox.ini"
 	@echo "clean | clean-all -  Clean up | clean up & removing virtualenv"
 
@@ -129,9 +129,9 @@ test: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 
 
 notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
-# if mlchecks is not installed, we need to install it for testing porpuses,
+# if deepchecks is not installed, we need to install it for testing porpuses,
 # as the only time you'll need to run make is in dev mode, we're installing
-# mlchecks in development mode
+# deepchecks in development mode
 	$(PIP) install --no-deps -e .
 	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_DIR) --sanitize-with $(NOTEBOOK_SANITIZER_FILE)
 
@@ -197,7 +197,7 @@ clean-dist:
 
 clean-docs:
 	-@rm -rf docs/_build
-	-@rm -rf docs/mlchecks
+	-@rm -rf docs/deepcheckss
 
 ### Release ######################################################
 .PHONY: authors register dist upload .git-no-changes ammend release
@@ -216,7 +216,7 @@ upload: $(TWINE)
 	$(TWINE) upload dist/*
 
 ammend:
-	git add mlchecks/version.py
+	git add deepchecks/version.py
 	git commit --amend --no-edit
 
 
@@ -240,7 +240,7 @@ $(TWINE): $(PIP)
 version: 
 ifeq ($(version),)
 else
-	@sed -i -E "s/__version__\ +=\ +'.*+'/__version__ = '${version}'/g" mlchecks/version.py
+	@sed -i -E "s/__version__\ +=\ +'.*+'/__version__ = '${version}'/g" deepchecks/version.py
 endif
 
 
@@ -248,7 +248,7 @@ endif
 .PHONY: docs
 
 docs: $(APIDOC)
-	$(pythonpath) $(APIDOC) -f ../mlchecks -o docs/mlchecks
+	$(pythonpath) $(APIDOC) -f ../deepchecks -o docs/deepcheckss
 	$(pythonpath) $(SPHINX_BUILD) -M html docs docs/_build 
 
 $(APIDOC): env
@@ -269,4 +269,4 @@ download:
 
 jupyter: 
 	$(PIP) install jupyter
-	jupyter-notebook $(args) --notebook-dir=$(NOTEBOOK_DIR)
+	$(BIN)/jupyter-notebook $(args) --notebook-dir=$(NOTEBOOK_DIR)

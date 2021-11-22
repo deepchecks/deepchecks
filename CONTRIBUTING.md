@@ -1,10 +1,10 @@
 # Contributing Guidelines
 
 ## Pull Request Checklist
-- Read the [contributing guidelines](https://github.com/deepchecks/MLChecks/blob/master/CONTRIBUTING.md).
-- Check if your changes are consistent with the [guidelines](https://github.com/deepchecks/MLChecks/blob/master/CONTRIBUTING.md#general-guidelines-and-philosophy-for-contribution).
-- Changes are consistent with the [coding style](https://github.com/deepchecks/MLChecks/blob/master/CONTRIBUTING.md#coding-style)
-- Run the [unit tests](https://github.com/deepchecks/MLChecks/blob/master/CONTRIBUTING.md#running-unit-tests).
+- Read the [contributing guidelines](https://github.com/deepchecks/deepchecks/blob/master/CONTRIBUTING.md).
+- Check if your changes are consistent with the [guidelines](https://github.com/deepchecks/deepchecks/blob/master/CONTRIBUTING.md#general-guidelines-and-philosophy-for-contribution).
+- Changes are consistent with the [coding style](https://github.com/deepchecks/deepchecks/blob/master/CONTRIBUTING.md#coding-style)
+- Run the [unit tests](https://github.com/deepchecks/deepchecks/blob/master/CONTRIBUTING.md#running-unit-tests).
 
 
 

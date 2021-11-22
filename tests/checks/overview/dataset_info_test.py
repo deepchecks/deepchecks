@@ -1,13 +1,16 @@
 """Contains unit tests for the dataset_info check."""
-from mlchecks.checks.overview.dataset_info import dataset_info, DatasetInfo
-from mlchecks.utils import MLChecksValueError
+import numpy as np
+import pandas as pd
+
+from deepchecks.checks.overview.dataset_info import DatasetInfo
+from deepchecks.utils import DeepchecksValueError
 
 from hamcrest import assert_that, equal_to, calling, raises
 
 
 def test_assert_dataset_info(iris_dataset):
     # Act
-    result = dataset_info(iris_dataset)
+    result = DatasetInfo().run(iris_dataset)
     # Assert
     assert_that(result.value, equal_to((150, 5)))
 
@@ -15,8 +18,8 @@ def test_assert_dataset_info(iris_dataset):
 def test_dataset_wrong_input():
     wrong = 'wrong_input'
     # Act & Assert
-    assert_that(calling(dataset_info).with_args(wrong),
-                raises(MLChecksValueError, 'dataset must be of type DataFrame or Dataset, but got: str'))
+    assert_that(calling(DatasetInfo().run).with_args(wrong),
+                raises(DeepchecksValueError, 'dataset must be of type DataFrame or Dataset, but got: str'))
 
 
 def test_dataset_info_object(iris_dataset):
@@ -30,6 +33,18 @@ def test_dataset_info_object(iris_dataset):
 
 def test_dataset_info_dataframe(iris):
     # Act
-    result = dataset_info(iris)
+    result = DatasetInfo().run(iris)
     # Assert
     assert_that(result.value, equal_to((150, 5)))
+
+
+def test_nan(iris):
+    # Act
+    df = iris.append(pd.DataFrame({'sepal length (cm)': [np.nan],
+                                   'sepal width (cm)':[np.nan],
+                                   'petal length (cm)':[np.nan],
+                                   'petal width (cm)': [np.nan],
+                                   'target':[0]}))
+    result = DatasetInfo().run(df)
+    # Assert
+    assert_that(result.value, equal_to((151, 5)))
