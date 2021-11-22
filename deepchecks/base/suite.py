@@ -138,14 +138,14 @@ class CheckSuite(BaseCheck):
             else:
                 check_repr = check.__repr__(tabs + 1, str(index) + ': ')
                 stringified_checks.append(f'\n{check_repr}')
-        
+
         aditional_info_indent = '\t' * (tabs + 1)
         info = ''.join(additional_info)
         aditional_info_section = f'{aditional_info_indent}Additional Info:{info}'
 
         indent = '\t' * tabs
         checks = ''.join(stringified_checks)
-        
+
         return (
             f'{indent}{self.name}: [{checks}\n\n{aditional_info_section}\n{indent}]'
         )
