@@ -27,7 +27,7 @@ SingleDatasetIntegrityCheckSuite = CheckSuite(
     DataDuplicates().add_condition_duplicates_not_greater_than(),
     RareFormatDetection().add_condition_ratio_of_rare_formats_not_greater_than(),
     StringLengthOutOfBounds(),
-    SpecialCharacters().add_condition_ratio_of_entirely_special_character_samples_not_grater_than()
+    SpecialCharacters().add_condition_ratio_of_special_characters_not_grater_than()
 )
 
 
