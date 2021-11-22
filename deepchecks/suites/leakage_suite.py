@@ -19,7 +19,12 @@ __all__ = [
 
 
 def index_leakage_check_suite() -> CheckSuite:
-    """Create 'Index Leakage Suite'."""
+    """Create 'Index Leakage Suite'.
+    
+    The suite runs a set of checks that are meant to detect row-wise data leakage
+    from the test dataset to the training dataset. It does it by verifying the availability
+    of the test dataset indexes within training dataset.
+    """
     return CheckSuite(
         'Index Leakage Suite',
         IndexTrainTestLeakage().add_condition_ratio_not_greater_than(),
@@ -27,7 +32,12 @@ def index_leakage_check_suite() -> CheckSuite:
 
 
 def date_leakage_check_suite() -> CheckSuite:
-    """Create 'Date Leakage Suite'."""
+    """Create 'Date Leakage Suite'.
+    
+    The suite runs a set of checks that are meant to detect row-wise data leakage
+    from the test dataset to the training dataset. It does it by examining dates columns 
+    within two datasets, and by verifying the availability of the overlaps or duplicates
+    """
     return CheckSuite(
         'Date Leakage Suite',
         DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_not_greater_than(),
@@ -36,7 +46,12 @@ def date_leakage_check_suite() -> CheckSuite:
 
 
 def data_leakage_check_suite() -> CheckSuite:
-    """Create 'Data Leakage Suite'."""
+    """Create 'Data Leakage Suite'.
+
+    The suite runs a set of checks that are meant to detect row-wise data leakage
+    from the test dataset to the training dataset, and features that are 
+    able to single-handedly predict another feature or label.
+    """
     return CheckSuite(
         'Data Leakage Suite',
         DataSampleLeakageReport().add_condition_duplicates_ratio_not_greater_than(),
@@ -46,10 +61,16 @@ def data_leakage_check_suite() -> CheckSuite:
 
 
 def leakage_check_suite() -> CheckSuite:
-    """Create 'Leakage Check Suite'."""
+    """Create 'Leakage Check Suite'.
+    
+    The suite runs a set of checks that are meant to detect data
+    leakage from test dataset to the train dataset. 
+    
+    The suite includes 'Data Leakage Suite', 'Date Leakage Suite', 'Index Leakage Suite'
+    """
     return CheckSuite(
         'Leakage Check Suite',
         index_leakage_check_suite(),
-        date_leakage_check_suite,
-        data_leakage_check_suite
+        date_leakage_check_suite(),
+        data_leakage_check_suite()
     )

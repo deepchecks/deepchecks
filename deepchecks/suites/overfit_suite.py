@@ -7,7 +7,11 @@ __all__ = ['overfit_check_suite']
 
 
 def overfit_check_suite() -> CheckSuite:
-    """Create 'Overfit Suite'."""
+    """Create 'Overfit Suite'.
+    
+    The suite runs a set of checks that are meant to detect whether 
+    the model was overfitted or not.
+    """
     return CheckSuite(
         'Overfit Suite',
         TrainTestDifferenceOverfit().add_condition_percentage_degradation_not_greater_than(),

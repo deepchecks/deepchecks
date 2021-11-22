@@ -19,7 +19,11 @@ __all__ = [
 
 
 def classification_check_suite() -> CheckSuite:
-    """Create 'Classification Suite'."""
+    """Create 'Classification Suite'.
+    
+    The suite runs a set of checks that are meant to measure and detect performance 
+    abnormality of the classification model.
+    """
     return CheckSuite(
         'Classification Suite',
         ConfusionMatrixReport(),
@@ -29,13 +33,20 @@ def classification_check_suite() -> CheckSuite:
 
 
 def regression_check_suite() -> CheckSuite:
-    """Create 'Regression Suite'."""
+    """Create 'Regression Suite'.
+    
+    The suite runs a set of checks that are meant to measure and detect performance 
+    abnormality of the regression model.
+    """
     # TODO: This suite is here as a placeholder for future regression-specific checks
     return CheckSuite('Regression Suite',)
 
 
 def generic_performance_check_suite() -> CheckSuite:
-    """Create 'Generic Performance Suite'."""
+    """Create 'Generic Performance Suite'.
+    
+    The suite runs a set of checks that are meant to measure and detect performance abnormality of any model type.
+    """
     return CheckSuite(
         'Generic Performance Suite',
         PerformanceReport(),
@@ -44,7 +55,13 @@ def generic_performance_check_suite() -> CheckSuite:
 
 
 def performance_check_suite() -> CheckSuite:
-    """Create 'Performance Suite'."""
+    """Create 'Performance Suite'.
+    
+    The suite runs a set of checks that are meant to measure and detect performance abnormality of the model.
+
+    The suite includes checks from 'Generic Performance Suite', 'Classification Suite' 
+    and 'Regression Suite'.
+    """
     return CheckSuite(
         'Performance Suite',
         generic_performance_check_suite(),

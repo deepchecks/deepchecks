@@ -25,7 +25,10 @@ __all__ = [
 
 
 def single_dataset_integrity_check_suite() -> CheckSuite:
-    """Create 'Single Dataset Integrity Suite'."""
+    """Create 'Single Dataset Integrity Suite'.
+
+    The suite runs set of checks that are meant to detect integrity issues within a single dataset.
+    """
     return CheckSuite(
         'Single Dataset Integrity Suite',
         IsSingleValue().add_condition_not_single_value(),
@@ -40,7 +43,10 @@ def single_dataset_integrity_check_suite() -> CheckSuite:
 
 
 def comparative_integrity_check_suite() -> CheckSuite:
-    """Create 'Comparative Integrity Suite'."""
+    """Create 'Comparative Integrity Suite'.
+    
+    The suite runs set of checks that are meant to detect integrity issues within two datasets.
+    """
     return CheckSuite(
         'Comparative Integrity Suite',
         StringMismatchComparison().add_condition_no_new_variants(),
@@ -51,7 +57,12 @@ def comparative_integrity_check_suite() -> CheckSuite:
 
 
 def integrity_check_suite() -> CheckSuite:
-    """Create 'Integrity Suite'."""
+    """Create 'Integrity Suite'.
+    
+    The suite runs set of checks that are meant to detect integrity issues within datasets.
+
+    Suite includes 'Comparative Integrity Suite' and 'Single Dataset Integrity Suite'.
+    """
     return CheckSuite(
         'Integrity Suite',
         single_dataset_integrity_check_suite(),
