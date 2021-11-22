@@ -6,8 +6,9 @@ from matplotlib.ticker import MaxNLocator
 
 import numpy as np
 
-from deepchecks import Dataset, CheckResult, TrainTestBaseCheck
+from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.metric_utils import task_type_check, DEFAULT_METRICS_DICT, validate_scorer, DEFAULT_SINGLE_METRIC
+from deepchecks.string_utils import format_percent
 from deepchecks.utils import DeepchecksValueError
 
 __all__ = ['BoostingOverfit']
@@ -174,4 +175,27 @@ class BoostingOverfit(TrainTestBaseCheck):
             # Display x ticks as integers
             axes.xaxis.set_major_locator(MaxNLocator(integer=True))
 
-        return CheckResult(test_scores[-1], check=self.__class__, display=display_func, header='Boosting Overfit')
+        result = {'test': test_scores, 'train': train_scores}
+        return CheckResult(result, check=self.__class__, display=display_func, header='Boosting Overfit')
+
+    def add_condition_test_score_percent_decline_not_greater_than(self, threshold: float = 0.05):
+        """Add condition.
+
+        Percent of decline between the maximal score achieved in any boosting iteration and the score achieved in the
+        last iteration ("regular" model score) is not above given threshold.
+
+        Args:
+            threshold (float): Maximum percentage decline allowed (value 0 and above)
+        """
+        def condition(result: dict):
+            max_score = max(result['test'])
+            last_score = result['test'][-1]
+            pct_diff = (max_score - last_score) / abs(max_score)
+
+            if pct_diff > threshold:
+                message = f'Found metric decline of: -{format_percent(pct_diff)}'
+                return ConditionResult(False, message)
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'Test score decline is not greater than {format_percent(threshold)}', condition)
