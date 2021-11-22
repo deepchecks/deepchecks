@@ -24,7 +24,7 @@ def overall_check_suite() -> CheckSuite:
     """Create 'Overall Suite'.
 
     Composition of different builtin suites that include checks that are meant
-    to detect any possible issues within model, like:
+    to detect any possible issues within a model, like:
     - train/test datasets integrity issues
     - data leakage issues
     - model overfit issues
