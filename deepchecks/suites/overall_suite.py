@@ -1,44 +1,64 @@
 """The predefined overfit suite module."""
-from deepchecks.suites import IntegrityCheckSuite, DataLeakageCheckSuite, OverfitCheckSuite, PerformanceCheckSuite, \
-    ClassificationCheckSuite, RegressionCheckSuite, GenericPerformanceCheckSuite, LeakageCheckSuite
 from deepchecks import CheckSuite
-
-
-__all__ = ['OverallCheckSuite', 'OverallClassificationCheckSuite', 'OverallRegressionCheckSuite',
-           'OverallGenericCheckSuite']
-
-
-OverallCheckSuite = CheckSuite(
-    'Overall Suite',
-    LeakageCheckSuite,
-    OverfitCheckSuite,
-    PerformanceCheckSuite,
-    IntegrityCheckSuite,
+from deepchecks.suites import (
+    integrity_check_suite,
+    data_leakage_check_suite,
+    overfit_check_suite,
+    performance_check_suite,
+    classification_check_suite,
+    regression_check_suite,
+    generic_performance_check_suite,
+    leakage_check_suite
 )
 
 
-OverallClassificationCheckSuite = CheckSuite(
-    'Overall Classification Suite',
-    DataLeakageCheckSuite,
-    OverfitCheckSuite,
-    ClassificationCheckSuite,
-    IntegrityCheckSuite,
-)
+__all__ = [
+    'overall_check_suite',
+    'overall_classification_check_suite',
+    'overall_regression_check_suite',
+    'overall_generic_check_suite'
+]
 
 
-OverallRegressionCheckSuite = CheckSuite(
-    'Overall Regression Suite',
-    DataLeakageCheckSuite,
-    OverfitCheckSuite,
-    RegressionCheckSuite,
-    IntegrityCheckSuite,
-)
+def overall_check_suite() -> CheckSuite:
+    """Create 'Overall Suite'."""
+    return CheckSuite(
+        'Overall Suite',
+        leakage_check_suite(),
+        overall_check_suite(),
+        performance_check_suite(),
+        integrity_check_suite(),
+    )
 
 
-OverallGenericCheckSuite = CheckSuite(
-    'Overall Generic Suite',
-    DataLeakageCheckSuite,
-    OverfitCheckSuite,
-    GenericPerformanceCheckSuite,
-    IntegrityCheckSuite,
-)
+def overall_classification_check_suite() -> CheckSuite:
+    """Create 'Overall Classification Suite'."""
+    return CheckSuite(
+        'Overall Classification Suite',
+        data_leakage_check_suite(),
+        overall_check_suite(),
+        classification_check_suite(),
+        integrity_check_suite(),
+    )
+
+
+def overall_regression_check_suite() -> CheckSuite:
+    """Create 'Overall Regression Suite'."""
+    return CheckSuite(
+        'Overall Regression Suite',
+        data_leakage_check_suite(),
+        overfit_check_suite(),
+        regression_check_suite(),
+        integrity_check_suite(),
+    )
+
+
+def overall_generic_check_suite() -> CheckSuite:
+    """Create 'Overall Generic Suite'."""
+    return CheckSuite(
+        'Overall Generic Suite',
+        data_leakage_check_suite(),
+        overfit_check_suite(),
+        generic_performance_check_suite(),
+        integrity_check_suite(),
+    )
