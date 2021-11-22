@@ -45,7 +45,7 @@ def regression_check_suite() -> CheckSuite:
 def generic_performance_check_suite() -> CheckSuite:
     """Create 'Generic Performance Suite'.
 
-    The suite runs a set of checks that are meant to measure and detect performance abnormality of any model type.
+    The suite runs a set of checks that are meant to measure and detect performance abnormality in any model type.
     """
     return CheckSuite(
         'Generic Performance Suite',
