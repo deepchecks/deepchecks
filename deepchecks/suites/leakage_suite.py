@@ -21,9 +21,8 @@ __all__ = [
 def index_leakage_check_suite() -> CheckSuite:
     """Create 'Index Leakage Suite'.
 
-    The suite runs a set of checks that are meant to detect row-wise data leakage
-    from the test dataset to the training dataset. It does it by verifying the availability
-    of the test dataset indexes within training dataset.
+    The suite runs a set of checks that are meant to detect problematic 
+    splitting of the data between train and test, as reflected by the index column.
     """
     return CheckSuite(
         'Index Leakage Suite',
@@ -34,9 +33,10 @@ def index_leakage_check_suite() -> CheckSuite:
 def date_leakage_check_suite() -> CheckSuite:
     """Create 'Date Leakage Suite'.
 
-    The suite runs a set of checks that are meant to detect row-wise data leakage
-    from the test dataset to the training dataset. It does it by examining dates columns
-    within two datasets, and by verifying the availability of the overlaps or duplicates
+    The suite runs a set of checks that tries to detect cases of problematic 
+    splitting, when problematic splitting is a state in which the performance 
+    on test won't represent real world performance due to it's relation in time 
+    to the training data.
     """
     return CheckSuite(
         'Date Leakage Suite',
@@ -49,8 +49,8 @@ def data_leakage_check_suite() -> CheckSuite:
     """Create 'Data Leakage Suite'.
 
     The suite runs a set of checks that are meant to detect row-wise data leakage
-    from the training dataset to the test dataset, and find indications of leakage by analyzing the predictive power of single features.
-    able to single-handedly predict another feature or label.
+    from the training dataset to the test dataset, and find indications of leakage 
+    by analyzing the predictive power of each feature.
     """
     return CheckSuite(
         'Data Leakage Suite',
@@ -64,7 +64,7 @@ def leakage_check_suite() -> CheckSuite:
     """Create 'Leakage Check Suite'.
 
     The suite runs a set of checks that are meant to detect data
-    leakage from test dataset to the train dataset.
+    leakage from the training dataset to the test dataset.
 
     The suite includes 'Data Leakage Suite', 'Date Leakage Suite', 'Index Leakage Suite'
     """

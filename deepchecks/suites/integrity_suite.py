@@ -26,7 +26,7 @@ __all__ = [
 def single_dataset_integrity_check_suite() -> CheckSuite:
     """Create 'Single Dataset Integrity Suite'.
 
-    The suite runs set of checks that are meant to detect integrity issues within a single dataset.
+    The suite runs a set of checks that are meant to detect integrity issues within a single dataset.
     """
     return CheckSuite(
         'Single Dataset Integrity Suite',
@@ -44,7 +44,7 @@ def single_dataset_integrity_check_suite() -> CheckSuite:
 def comparative_integrity_check_suite() -> CheckSuite:
     """Create 'Comparative Integrity Suite'.
 
-    The suite runs set of checks that compare between two datasets to detect integrity issues .
+    The suite runs a set of checks that compare between two datasets to detect integrity issues.
     """
     return CheckSuite(
         'Comparative Integrity Suite',
