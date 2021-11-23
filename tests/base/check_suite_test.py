@@ -1,7 +1,4 @@
 """suites tests"""
-import re
-import pandas as pd
-import numpy as np
 from hamcrest import assert_that, calling, raises, equal_to, is_
 
 from deepchecks import base
@@ -31,8 +28,8 @@ def test_run_check_suite_with_incorrect_args(diabetes):
     train_dataset, test_dataset = diabetes
     suite = base.CheckSuite("test suite", SimpleDatasetCheck(), SimpleTwoDatasetsCheck())
     
-    # incorrect at least one dataset (or model) must be provided
-    args = {"train_dataset": None, "test_dataset": None,} 
+    # incorrect, at least one dataset (or model) must be provided
+    args = {"train_dataset": None, "test_dataset": None,}
     assert_that(
         calling(suite.run).with_args(**args), 
         raises(ValueError, r'At least one dataset \(or model\) must be passed to the method!')

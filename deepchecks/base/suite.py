@@ -54,10 +54,10 @@ class CheckSuite(BaseCheck):
             self.add(check)
 
     def run(
-        self, 
-        train_dataset: Optional[Dataset] = None, 
-        test_dataset: Optional[Dataset] = None, 
-        model: object = None, 
+        self,
+        train_dataset: Optional[Dataset] = None,
+        test_dataset: Optional[Dataset] = None,
+        model: object = None,
         check_datasets_policy: str = 'test'
     ) -> SuiteResult:
         """Run all checks.
@@ -78,7 +78,7 @@ class CheckSuite(BaseCheck):
         """
         if check_datasets_policy not in ['both', 'train', 'test']:
             raise ValueError('check_datasets_policy must be one of ["both", "train", "test"]')
-        
+
         if all(it is None for it in (train_dataset, test_dataset, model)):
             raise ValueError('At least one dataset (or model) must be passed to the method!')
 
@@ -153,7 +153,9 @@ class CheckSuite(BaseCheck):
             check (BaseCheck): A check or suite to add.
         """
         if not isinstance(check, BaseCheck):
-            raise DeepchecksValueError(f'CheckSuite receives only `BaseCheck` objects but got: {check.__class__.__name__}')
+            raise DeepchecksValueError(
+                f'CheckSuite receives only `BaseCheck` objects but got: {check.__class__.__name__}'
+            )
         if isinstance(check, CheckSuite):
             if check is self:
                 return self
