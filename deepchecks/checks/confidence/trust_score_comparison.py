@@ -158,13 +158,13 @@ class TrustScoreComparison(TrainTestBaseCheck):
 
             test_trust_scores_cut = filter_quantile(test_trust_scores)
             train_trust_scores_cut = filter_quantile(train_trust_scores)
-            range = [min(*test_trust_scores_cut, *train_trust_scores_cut),
+            x_range = [min(*test_trust_scores_cut, *train_trust_scores_cut),
                      max(*test_trust_scores_cut, *train_trust_scores_cut)]
-            xs = np.linspace(range[0], range[1], 40)
+            xs = np.linspace(x_range[0], x_range[1], 40)
             plot_density(test_trust_scores_cut, xs, 'darkblue')
             plot_density(train_trust_scores_cut, xs, '#69b3a2')
             # Set x axis
-            axes.set_xlim(range)
+            axes.set_xlim(x_range)
             plt.xlabel('Trust score')
             # Set y axis
             axes.set_ylim(bottom=0)
