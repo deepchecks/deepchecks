@@ -1,0 +1,78 @@
+history/
+
+*catboost_info*
+
+.vscode/
+.idea/
+.DS_Store
+*.pdf
+*.rst
+
+test/AutogluonModels
+test/.agModels
+datasets/
+
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Requirements Logs
+.*.log
+
+# Unit test / coverage reports
+default.coveragerc
+.tox/
+
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Environments
+venv/
+.venv
+venv.bak/
+.env
+env/
+env.bak/
+ENV/
+.win_venv
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Sphinx Docs
+_build/
+
