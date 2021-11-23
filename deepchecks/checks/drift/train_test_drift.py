@@ -220,7 +220,7 @@ class TrainTestDrift(TrainTestBaseCheck):
         display_df = pd.DataFrame.from_dict(ordered_values, orient='index')
         # display_df = column_importance_sorter_df(display_df, train_dataset, feature_importances, self.n_top_columns)
 
-        displays = [display_df] + [displays_dict[col] for col in columns_order]
+        displays = [displays_dict[col] for col in columns_order]
 
         return CheckResult(
             value=values_dict,
@@ -254,13 +254,14 @@ class TrainTestDrift(TrainTestBaseCheck):
             color_shift_midpoint = 0.15 / stop
             color_map = 'RdYlGn_r'
             check_name = 'Train Test Drift'
+            cmap_name = color_map + check_name + str(score_value)
 
             try:
-                my_cmap = plt.cm.get_cmap(color_map + check_name)
+                my_cmap = plt.cm.get_cmap(cmap_name)
             except ValueError:
                 my_cmap = plt.cm.get_cmap(color_map)
                 my_cmap = shifted_color_map(my_cmap, start=start, midpoint=color_shift_midpoint, stop=1,
-                                            name=color_map + check_name)
+                                            name=cmap_name, white_from=score_value)
 
             sm = ScalarMappable(cmap=my_cmap, norm=plt.Normalize(start, stop))
             sm.set_array([])
@@ -270,7 +271,7 @@ class TrainTestDrift(TrainTestBaseCheck):
             cbar.ax.text(-1, score, f'{score_value:.2f}', fontsize=10, fontweight=700, backgroundcolor='black',
                          color='white', ma='left')
 
-            cbar.set_label(colorbar_name, rotation=270, labelpad=25)
+            cbar.set_label('Drift - ' + colorbar_name, rotation=270, labelpad=25)
 
         if column_type == 'numerical':
             score = earth_movers_distance(dist1=train_column.astype('float'), dist2=test_column.astype('float'))
@@ -292,21 +293,14 @@ class TrainTestDrift(TrainTestBaseCheck):
 
             def plot_categorical():
 
-                labels = ['Train dataset', 'Test dataset']
-                width = 0.35
+                cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
+                                      index=categories_list)
 
-                fig, ax = plt.subplots()
-                fig.set_size_inches(8, 4)
-
-                expected_bar_height = 0
-                actual_bar_height = 0
-                for expected, actual, category in zip(expected_percents, actual_percents, categories_list):
-                    ax.bar(labels, [expected, actual], width, label=category,
-                           bottom=[expected_bar_height, actual_bar_height])
-                    expected_bar_height += expected
-                    actual_bar_height += actual
+                cat_df.plot.bar(figsize=(8, 4))
 
                 plot_colorbar(score, 'PSI')
+
+                ax = plt.gca()
 
                 ax.set_ylabel('Percentage')
                 ax.set_title(f'Distribution of {column_name}')
