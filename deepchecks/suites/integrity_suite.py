@@ -13,6 +13,7 @@ from deepchecks.checks.integrity import (
     RareFormatDetection,
     DominantFrequencyChange,
     StringLengthOutOfBounds,
+    LabelAmbiguity
 )
 
 
@@ -37,7 +38,8 @@ def single_dataset_integrity_check_suite() -> CheckSuite:
         DataDuplicates().add_condition_duplicates_not_greater_than(),
         RareFormatDetection().add_condition_ratio_of_rare_formats_not_greater_than(),
         StringLengthOutOfBounds().add_condition_ratio_of_outliers_not_greater_than(),
-        SpecialCharacters().add_condition_ratio_of_special_characters_not_grater_than()
+        SpecialCharacters().add_condition_ratio_of_special_characters_not_grater_than(),
+        LabelAmbiguity().add_condition_ambiguous_sample_ratio_not_greater_than()
     )
 
 
