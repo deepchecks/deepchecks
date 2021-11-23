@@ -196,6 +196,6 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Change in ratio of dominant value in data no more'
+        return self.add_condition(f'Change in ratio of dominant value in data not more'
                                   f' than {format_percent(percent_change_threshold)}',
                                   condition)
