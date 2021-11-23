@@ -149,25 +149,26 @@ class TrustScoreComparison(TrainTestBaseCheck):
             def filter_quantile(data):
                 return data[data < np.quantile(data, 1 - percent_to_cut)]
 
-            def plot_density(data, color):
+            def plot_density(data, xs, color):
                 density = gaussian_kde(data)
                 density.covariance_factor = lambda: .25
                 # pylint: disable=protected-access
                 density._compute_covariance()
-                xs = np.linspace(min(data), max(data), 40)
                 plt.fill_between(xs, density(xs), color=color, alpha=0.7)
 
             test_trust_scores_cut = filter_quantile(test_trust_scores)
             train_trust_scores_cut = filter_quantile(train_trust_scores)
-            plot_density(test_trust_scores_cut, 'darkblue')
-            plot_density(train_trust_scores_cut, '#69b3a2')
+            range = [min(*test_trust_scores_cut, *train_trust_scores_cut),
+                     max(*test_trust_scores_cut, *train_trust_scores_cut)]
+            xs = np.linspace(range[0], range[1], 40)
+            plot_density(test_trust_scores_cut, xs, 'darkblue')
+            plot_density(train_trust_scores_cut, xs, '#69b3a2')
             # Set x axis
-            axes.set_xlim([min(*test_trust_scores_cut, *train_trust_scores_cut),
-                           max(*test_trust_scores_cut, *train_trust_scores_cut)])
+            axes.set_xlim(range)
             plt.xlabel('Trust score')
             # Set y axis
-            axes.set_ylim([0, 1])
-            plt.ylabel('Samples distribution')
+            axes.set_ylim(bottom=0)
+            plt.ylabel('Probability Density')
             # Set labels
             colors = {'Test': 'darkblue',
                       'Train': '#69b3a2'}
