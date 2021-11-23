@@ -30,7 +30,7 @@ A condition is a validation logic that can be added upon the Check,
 to ensure that the Check's return value is good. An example for adding a condition would be:
 ```python
 from deepchecks.checks import DataDuplicates
-DataDuplicates.add_condition_duplicates_not_greater_than(max_ratio=0.01)
+DataDuplicates().add_condition_duplicates_not_greater_than(max_ratio=0.01)
 ```
 which will result in failure if more than 1% of the samples in the dataset are not-unique samples.
 A Check can run with conditions upon it as part of a Suite.
@@ -151,8 +151,9 @@ df_val = iris_df[train_len:]
 To run an existing suite all you need to do is import the suite and run it -
 
 ```python
-from deepchecks.suites import IntegrityCheckSuite
-IntegrityCheckSuite.run(train_dataset=df_train, test_dataset=df_val, check_datasets_policy='both')
+from deepchecks.suites import integrity_check_suite
+integrity_suite = integrity_check_suite()
+integrity_suite.run(train_dataset=df_train, test_dataset=df_val, check_datasets_policy='both')
 ```
 Which will result in printing the summary of the check conditions and then the visual outputs of all of the checks that
 are in that suite.
