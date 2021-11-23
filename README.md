@@ -12,7 +12,7 @@ models and data with minimal effort.
 This includes checks related to various types of issues, such as model performance,
 data integrity, distribution mismatches, and more.
 
-![Deepchecks Diagram](./docs/static_readme/deepchecks_diagram.png)
+![Deepchecks Diagram](./docs/images/check_suite_diagram.png =x250)
 
 ## Key Concepts
 
