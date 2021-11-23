@@ -12,7 +12,9 @@ models and data with minimal effort.
 This includes checks related to various types of issues, such as model performance,
 data integrity, distribution mismatches, and more.
 
-<img src="docs/images/check_suite_diagram.png" height="250">
+<p align="center">
+   <img src="docs/images/check_suite_diagram.png" height="300">
+</p>
 
 ## Key Concepts
 
