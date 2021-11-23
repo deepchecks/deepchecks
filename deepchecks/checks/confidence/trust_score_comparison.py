@@ -131,17 +131,17 @@ class TrustScoreComparison(TrainTestBaseCheck):
         test_trust_scores = trust_score_model.score(x_test.to_numpy(), y_test_pred)[0].astype('float64')
 
         # Add score and prediction and sort by score
-        if test_dataset.label_name():
-            x_test.insert(0, test_dataset.label_name(), test_data_sample[test_dataset.label_name()])
-        if test_dataset.index_name():
-            x_test.insert(0, test_dataset.index_name(), test_data_sample[test_dataset.index_name()])
-        x_test.insert(0, 'Model Prediction', y_test_pred)
-        x_test.insert(0, 'Trust Score', test_trust_scores)
-        x_test = x_test.sort_values(by=['Trust Score'], ascending=False)
+        # if test_dataset.label_name():
+        #     x_test.insert(0, test_dataset.label_name(), test_data_sample[test_dataset.label_name()])
+        # if test_dataset.index_name():
+        #     x_test.insert(0, test_dataset.index_name(), test_data_sample[test_dataset.index_name()])
+        test_data_sample.insert(0, 'Model Prediction', y_test_pred)
+        test_data_sample.insert(0, 'Trust Score', test_trust_scores)
+        test_data_sample = test_data_sample.sort_values(by=['Trust Score'], ascending=False)
 
         # Display top and bottom
-        top_k = x_test.head(self.n_to_show)
-        bottom_k = x_test.tail(self.n_to_show)
+        top_k = test_data_sample.head(self.n_to_show)
+        bottom_k = test_data_sample.tail(self.n_to_show)
 
         def display_plot(percent_to_cut=self.percent_top_scores_to_hide):
             _, axes = plt.subplots(1, 1, figsize=(7, 4))

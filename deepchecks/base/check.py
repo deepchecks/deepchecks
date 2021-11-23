@@ -41,6 +41,7 @@ class Condition:
         result.set_name(self.name)
         return result
 
+
 class ConditionCategory(enum.Enum):
     """Condition result category. indicates whether the result should fail the suite."""
 
