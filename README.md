@@ -21,7 +21,7 @@ They are the basic building block of the deepchecks package, covering all kinds 
 such as: PerformanceOverfit, DataSampleLeakage, SingleFeatureContribution,
 DataDuplicates, and [many more checks](./notebooks/checks).
 Each check can have two types of results:
-1. A visual result meant for display.
+1. A visual result meant for display (e.g. a figure or a table).
 2. A return value that can be used for validating the expected check results
    (typically done by adding a "condition" to the check).
 
