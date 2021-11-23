@@ -1,2 +1,2 @@
 """Module of confidence checks."""
-from .confidence_change import *
+from .trust_score_comparison import *

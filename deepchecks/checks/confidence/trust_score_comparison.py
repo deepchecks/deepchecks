@@ -1,16 +1,19 @@
-"""Module of confidence change check."""
+"""Module of trust score comparison check."""
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
+from scipy.stats import gaussian_kde
 from sklearn.preprocessing import LabelEncoder
 
-from deepchecks import Dataset, CheckResult, TrainTestBaseCheck
+from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.checks.confidence.trust_score import TrustScore
 from deepchecks.checks.confidence.preprocessing import preprocess_dataset_to_scaled_numerics
 from deepchecks.metric_utils import task_type_check, ModelType
+from deepchecks.string_utils import format_percent
 from deepchecks.utils import DeepchecksValueError, model_type_validation
 
-__all__ = ['ConfidenceChange']
+__all__ = ['TrustScoreComparison']
 
 
 def is_positive_int(x):
@@ -21,13 +24,12 @@ def is_float_0_to_1(x):
     return x is not None and isinstance(x, float) and 0 <= x <= 1
 
 
-def validate_parameters(k_filter, alpha, bin_size, max_number_categories, min_test_samples, sample_size, n_to_show):
+def validate_parameters(k_filter, alpha, max_number_categories, min_test_samples, sample_size, n_to_show,
+                        percent_top_scores_to_hide):
     if not is_positive_int(k_filter):
         raise DeepchecksValueError(f'k_filter must be positive integer but got: {k_filter}')
     if not is_float_0_to_1(alpha):
         raise DeepchecksValueError(f'alpha must be float between 0 to 1 but got: {alpha}')
-    if not is_float_0_to_1(bin_size):
-        raise DeepchecksValueError(f'bin_size must be float between 0 to 1 but got: {bin_size}')
     if not is_positive_int(max_number_categories):
         raise DeepchecksValueError(f'max_number_categories must be positive integer but got: {max_number_categories}')
     if not is_positive_int(min_test_samples):
@@ -38,59 +40,55 @@ def validate_parameters(k_filter, alpha, bin_size, max_number_categories, min_te
         raise DeepchecksValueError(f'sample_size can\'t be smaller than min_test_samples')
     if not is_positive_int(n_to_show):
         raise DeepchecksValueError(f'n_to_show must be positive integer but got: {min_test_samples}')
+    if not is_float_0_to_1(percent_top_scores_to_hide):
+        raise DeepchecksValueError(f'percent_top_scores_to_hide must be float between 0 to 1 but got: '
+                                   f'{percent_top_scores_to_hide}')
 
 
-class ConfidenceChange(TrainTestBaseCheck):
-    """Checks whether the confidence of the model changed, in order to understand if important features drifted.
+class TrustScoreComparison(TrainTestBaseCheck):
+    """Compares the model's trust scores of the train dataset with scores of the test dataset.
 
     The process is as follows:
-    * Pre-process the train and validation data into scaled numerics
+    * Pre-process the train and test data into scaled numerics.
     * Train a TrustScore (https://arxiv.org/abs/1805.11783) regressor based on train data + label.
-    * Project the TrustScore scores on train data + label to uniform distribution (binning into percentiles)
-    * Use TrustScore to score the prediction of the model, and project to the same uniform distribution.
-    * The mean of the above distribution should be 0.5 if data is identical to train data. In practice, even data that
-    belongs to the train data but wasn't trained on, is a bit skewed, so preferably we would use a validation dataset
-    which we know isn't skewed (NOT IMPLEMENTED NOW).
-    * The check measures the distance between the baseline mean of the distribution (0.5) to the observed, and projects
-    it to [-1, 1]. A score around 0 means no drift in confidence, a score around 1 means drift to the worse, and a score
-    around -1 means a drift that improves results (usually will not happen).
-    * Currently, as we don't compare to the validation data, the result will rarely be around 0. Therefore, it is
-    advised to measure the CHANGE in this metric, and not the absolute score.
+    * Predict on test data using the model.
+    * Use TrustScore to score the prediction of the model.
     """
 
-    def __init__(self, k_filter: int = 10, alpha: float = 0.001, bin_size: float = 0.02,
+    def __init__(self, k_filter: int = 10, alpha: float = 0.001,
                  max_number_categories: int = 10, min_test_samples: int = 300, sample_size: int = 10_000,
-                 random_state: int = 42, n_to_show: int = 5):
+                 random_state: int = 42, n_to_show: int = 5, percent_top_scores_to_hide: float = 0.01):
         """
         Args:
             k_filter (int): used in TrustScore (Number of neighbors used during either kNN distance or probability
                             filtering)
             alpha (float): used in TrustScore (Fraction of instances to filter out to reduce impact of outliers)
-            bin_size (float): Number of percentiles of the confidence train to fit on
             max_number_categories (int): Indicates the maximum number of unique categories in a single categorical
                                          column (rare categories will be changed to a form of "other")
             min_test_samples (int): Minimal number of samples in train data to be able to run this check
             sample_size (int): Number of samples to use for the check for train and test. if dataset contains less than
                                sample_size than all the dataset will be used.
             random_state (int): The random state to use for sampling.
-            n_to_show (int): Number of samples to show of worst and best confidence.
+            n_to_show (int): Number of samples to show of worst and best trust score.
         """
-        validate_parameters(k_filter, alpha, bin_size, max_number_categories, min_test_samples, sample_size, n_to_show)
+        super().__init__()
+        validate_parameters(k_filter, alpha, max_number_categories, min_test_samples, sample_size, n_to_show,
+                            percent_top_scores_to_hide)
         self.k_filter = k_filter
         self.alpha = alpha
-        self.bin_size = bin_size
         self.max_number_categories = max_number_categories
         self.min_test_samples = min_test_samples
         self.sample_size = sample_size
         self.random_state = random_state
         self.n_to_show = n_to_show
+        self.percent_top_scores_to_hide = percent_top_scores_to_hide
 
     def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
-        """Check whether the confidence of the model changed, in order to understand if important features drifted.
+        """Run check.
 
         Args:
             train_dataset (Dataset): Dataset to use for TrustScore regressor
-            test_dataset (Dataset): Dataset to check for confidence
+            test_dataset (Dataset): Dataset to check for trust score
             model: Model used to predict on the validation dataset
         """
         # tested dataset can be also dataframe
@@ -107,8 +105,8 @@ class ConfidenceChange(TrainTestBaseCheck):
             msg = ('Number of samples in test dataset have not passed the minimum. you can change '
                    'minimum samples needed to run with parameter "min_test_samples"')
             raise DeepchecksValueError(msg)
-        if model_type != ModelType.BINARY:
-            raise DeepchecksValueError(f'Check supports only binary classification')
+        if model_type not in [ModelType.BINARY, ModelType.MULTICLASS]:
+            raise DeepchecksValueError(f'Check supports only classification')
 
         train_data_sample = train_dataset.data.sample(min(self.sample_size, train_dataset.n_samples()),
                                                       random_state=self.random_state)
@@ -127,60 +125,90 @@ class ConfidenceChange(TrainTestBaseCheck):
         y_train = train_data_sample[label_name]
         trust_score_model = TrustScore(k_filter=self.k_filter, alpha=self.alpha)
         trust_score_model.fit(X=x_train.to_numpy(), Y=y_train)
-        train_confidences = trust_score_model.score(x_train.to_numpy(), y_train)[0].astype('float64')
-        bin_range = np.arange(0, 1, self.bin_size)
-        fitted_bins = np.quantile(a=train_confidences, q=bin_range)
-        # Calculate y on tested dataset using the model
-        y_test = model.predict(test_data_sample[features_list])
-        tested_confidences = trust_score_model.score(x_test.to_numpy(), y_test)[0].astype('float64')
-        transposed_tested_confidences = np.digitize(tested_confidences, fitted_bins) * self.bin_size
+        # Calculate y on train and get scores
+        y_train_pred = model.predict(train_data_sample[features_list])
+        train_trust_scores = trust_score_model.score(x_train.to_numpy(), y_train_pred)[0].astype('float64')
+        # Calculate y on test dataset using the model
+        y_test_pred = model.predict(test_data_sample[features_list])
+        test_trust_scores = trust_score_model.score(x_test.to_numpy(), y_test_pred)[0].astype('float64')
 
-        # Add confidence and prediction and sort by confidence
-        x_test.insert(0, 'Model Prediction', y_test)
+        # Add score and prediction and sort by score
         if test_dataset.label_name():
             x_test.insert(0, test_dataset.label_name(), test_data_sample[test_dataset.label_name()])
         if test_dataset.index_name():
             x_test.insert(0, test_dataset.index_name(), test_data_sample[test_dataset.index_name()])
-        x_test.insert(0, 'Confidence Quantile', transposed_tested_confidences)
-        x_test = x_test.sort_values(by=['Confidence Quantile'], ascending=False)
+        x_test.insert(0, 'Model Prediction', y_test_pred)
+        x_test.insert(0, 'Trust Score', test_trust_scores)
+        x_test = x_test.sort_values(by=['Trust Score'], ascending=False)
 
         # Display top and bottom
         top_k = x_test.head(self.n_to_show)
         bottom_k = x_test.tail(self.n_to_show)
-        tested_confidence_mean = np.mean(transposed_tested_confidences)
 
-        print(tested_confidences)
-
-        def display_plot(bin_size=self.bin_size):
-            # The fitted bins are allocated to the right side of the range so the first bin is `bin_size` and not 0,
-            # and the last bin is 1.
-            display_bins = np.arange(bin_size, 1 + bin_size, bin_size)
-            s_bins = pd.Series(display_bins, name='bins', index=display_bins)
-            # Tested dataset
-            tested_confidences_value_counts = (pd.Series(transposed_tested_confidences).value_counts().rename('values')
-                                               / transposed_tested_confidences.sum())
-            dataset_distribution = pd.DataFrame(s_bins, index=display_bins).join(
-                tested_confidences_value_counts).fillna(0)
-
-            # Plotting the quantile at the middle of the bin
-            dataset_distribution['bins'] = dataset_distribution['bins'] - bin_size / 2
+        def display_plot(percent_to_cut=self.percent_top_scores_to_hide):
             _, axes = plt.subplots(1, 1, figsize=(7, 4))
-            axes.set_xlim([0, 1])
-            axes.set_ylim([0, max(dataset_distribution['values']) + 0.01])
-            plt.bar(dataset_distribution['bins'], dataset_distribution['values'], color='darkblue', width=bin_size)
-            plt.plot([0, 1], [bin_size, bin_size], color='purple', lw=3)
-            colors = {'Test confidence quantiles': 'darkblue',
-                      'Uniform train confidence quantiles distribution': 'purple'}
+
+            def filter_quantile(data):
+                return data[data < np.quantile(data, 1 - percent_to_cut)]
+
+            def plot_density(data, color):
+                density = gaussian_kde(data)
+                density.covariance_factor = lambda: .25
+                density._compute_covariance()
+                xs = np.linspace(min(data), max(data), 40)
+                plt.fill_between(xs, density(xs), color=color, alpha=0.7)
+
+            test_trust_scores_cut = filter_quantile(test_trust_scores)
+            train_trust_scores_cut = filter_quantile(train_trust_scores)
+            plot_density(test_trust_scores_cut, 'darkblue')
+            plot_density(train_trust_scores_cut, '#69b3a2')
+            # Set x axis
+            axes.set_xlim([min(*test_trust_scores_cut, *train_trust_scores_cut),
+                           max(*test_trust_scores_cut, *train_trust_scores_cut)])
+            plt.xlabel('Trust score')
+            # Set y axis
+            axes.set_ylim([0, 1])
+            plt.ylabel('Samples distribution')
+            # Set labels
+            colors = {'Test': 'darkblue',
+                      'Train': '#69b3a2'}
             labels = list(colors.keys())
             handles = [plt.Rectangle((0, 0), 1, 1, color=colors[label]) for label in labels]
             plt.legend(handles, labels)
-            plt.ylabel('Density')
-            plt.xlabel('Confidence Quantile')
-            plt.title('Distribution of samples confidence per confidence quantile')
-            plt.show()
+            plt.title('Trust Score Distribution')
 
-        footnote = '<p style="font-size:0.9em"><i>Explain here</i></p>'
-        display = [display_plot, footnote, '<h5>Top Confidence Samples Indexes</h5>', top_k,
-                   '<h5>Worst Confidence Samples Indexes</h5>', bottom_k]
-        return CheckResult(tested_confidence_mean, check=self.__class__, display=display)
+        footnote = """<span style="font-size:0.8em"><i>
+            The test trust score distribution should be quite similar to the train's. If it is skewed to the left, the 
+            confidence of the model in the test data is lower than the train, indicating a difference that may affect
+            model performance on similar data. If it is skewed to the right, it indicates an underlying problem 
+            (test confidence isn't expected to be higher than train's).
+            </i></span>"""
+        display = [display_plot, footnote, '<h5>Worst Trust Score Samples</h5>', bottom_k,
+                   '<h5>Top Trust Score Samples</h5>', top_k]
 
+        result = {'test': np.mean(test_trust_scores), 'train': np.mean(train_trust_scores)}
+        return CheckResult(result, check=self.__class__, display=display,
+                           header='Trust Score Comparison: Train vs. Test')
+
+    def add_condition_mean_score_percent_decline_not_greater_than(self, threshold: float = 0.1):
+        """Add condition.
+
+        Percent of decline between the mean trust score of train and the mean trust score of test is not above
+        given threshold.
+
+        Args:
+            threshold (float): Maximum percentage decline allowed (value 0 and above)
+        """
+        def condition(result: dict):
+            train_score = result['train']
+            test_score = result['test']
+            pct_diff = (train_score - test_score) / train_score
+
+            if pct_diff > threshold:
+                message = f'Found decline of: {format_percent(-pct_diff)}'
+                return ConditionResult(False, message)
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'Mean trust score decline is not greater than {format_percent(threshold)}',
+                                  condition)
