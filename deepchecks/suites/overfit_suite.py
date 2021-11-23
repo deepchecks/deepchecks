@@ -3,12 +3,18 @@ from deepchecks import CheckSuite
 from deepchecks.checks.overfit import TrainTestDifferenceOverfit, BoostingOverfit, UnusedFeatures
 
 
-__all__ = ['OverfitCheckSuite']
+__all__ = ['overfit_check_suite']
 
 
-OverfitCheckSuite = CheckSuite(
-    'Overfit Suite',
-    TrainTestDifferenceOverfit().add_condition_percentage_degradation_not_greater_than(),
-    BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(),
-    UnusedFeatures().add_condition_number_of_high_variance_unused_features_not_greater_than()
-)
+def overfit_check_suite() -> CheckSuite:
+    """Create 'Overfit Suite'.
+
+    The suite runs a set of checks that are meant to detect whether
+    the model was overfitted or not.
+    """
+    return CheckSuite(
+        'Overfit Suite',
+        TrainTestDifferenceOverfit().add_condition_percentage_degradation_not_greater_than(),
+        BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(),
+        UnusedFeatures().add_condition_number_of_high_variance_unused_features_not_greater_than()
+    )
