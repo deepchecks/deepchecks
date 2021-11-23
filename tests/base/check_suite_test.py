@@ -2,7 +2,7 @@
 import random
 from deepchecks import base
 from deepchecks import checks as builtin_checks
-from deepchecks.utils import DeepchecksValueError ,
+from deepchecks.utils import DeepchecksValueError
 from hamcrest import assert_that, calling, raises, equal_to, is_
 
 
