@@ -26,7 +26,7 @@ Each check can have two types of results:
    (typically done by adding a "condition" to the check).
 
 #### Condition
-A condition is a validation logic that can be added upon the Check,
+A condition is a function that can be added to a Check, which typically has a pass (&#2713), fail (&#2716) or warning (&#0021) output.
 to ensure that the Check's return value is good. An example for adding a condition would be:
 ```python
 from deepchecks.checks import DataDuplicates
