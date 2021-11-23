@@ -21,7 +21,7 @@ __all__ = [
 def index_leakage_check_suite() -> CheckSuite:
     """Create 'Index Leakage Suite'.
 
-    The suite runs a set of checks that are meant to detect problematic 
+    The suite runs a set of checks that are meant to detect problematic
     splitting of the data between train and test, as reflected by the index column.
     """
     return CheckSuite(
@@ -33,9 +33,9 @@ def index_leakage_check_suite() -> CheckSuite:
 def date_leakage_check_suite() -> CheckSuite:
     """Create 'Date Leakage Suite'.
 
-    The suite runs a set of checks that tries to detect cases of problematic 
-    splitting, when problematic splitting is a state in which the performance 
-    on test won't represent real world performance due to it's relation in time 
+    The suite runs a set of checks that tries to detect cases of problematic
+    splitting, when problematic splitting is a state in which the performance
+    on test won't represent real world performance due to it's relation in time
     to the training data.
     """
     return CheckSuite(
@@ -49,7 +49,7 @@ def data_leakage_check_suite() -> CheckSuite:
     """Create 'Data Leakage Suite'.
 
     The suite runs a set of checks that are meant to detect row-wise data leakage
-    from the training dataset to the test dataset, and find indications of leakage 
+    from the training dataset to the test dataset, and find indications of leakage
     by analyzing the predictive power of each feature.
     """
     return CheckSuite(
