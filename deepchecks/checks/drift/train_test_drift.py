@@ -13,9 +13,8 @@ import matplotlib.pyplot as plt
 
 __all__ = ['TrainTestDrift']
 
-from deepchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_df
+from deepchecks.feature_importance_utils import calculate_feature_importance_or_null
 from deepchecks.plot_utils import shifted_color_map
-from deepchecks.string_utils import format_number
 
 PSI_MIN_PERCENTAGE = 0.01
 
@@ -134,7 +133,7 @@ class TrainTestDrift(TrainTestBaseCheck):
     """
 
     def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 n_top_columns: int=10, max_num_categories: int = 10):
+                 n_top_columns: int = 5, max_num_categories: int = 10):
         """
         Initialize the TrainTestDrift class.
 
@@ -198,7 +197,6 @@ class TrainTestDrift(TrainTestBaseCheck):
 
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
-        # columns_to_run = feature_importances.head(self.n_top_columns).index if feature_importances else features
         for column in features:
             value, method, display = self._calc_drift_per_column(train_column=train_dataset.data[column],
                                                                  test_column=test_dataset.data[column],
@@ -206,19 +204,16 @@ class TrainTestDrift(TrainTestBaseCheck):
                                                                  column_type='categorical' if column in cat_features else 'numerical')
             values_dict[column] = {
                 'Drift score': value,
-                'Method': method
+                'Method': method,
+                'Importance': feature_importances[column] if feature_importances else None
             }
             displays_dict[column] = display
 
         if feature_importances is not None:
             columns_order = feature_importances.head(self.n_top_columns).index
         else:
-            columns_order = sorted(features, key=lambda col: values_dict[col]['Drift score'], reverse=True)[:self.n_top_columns]
-
-        ordered_values = OrderedDict((k, values_dict[k]) for k in columns_order)
-
-        display_df = pd.DataFrame.from_dict(ordered_values, orient='index')
-        # display_df = column_importance_sorter_df(display_df, train_dataset, feature_importances, self.n_top_columns)
+            columns_order = sorted(features, key=lambda col: values_dict[col]['Drift score'], reverse=True
+                                   )[:self.n_top_columns]
 
         displays = [displays_dict[col] for col in columns_order]
 
@@ -261,7 +256,7 @@ class TrainTestDrift(TrainTestBaseCheck):
             except ValueError:
                 my_cmap = plt.cm.get_cmap(color_map)
                 my_cmap = shifted_color_map(my_cmap, start=start, midpoint=color_shift_midpoint, stop=1,
-                                            name=cmap_name, white_from=score_value)
+                                            name=cmap_name, transparent_from=score_value)
 
             sm = ScalarMappable(cmap=my_cmap, norm=plt.Normalize(start, stop))
             sm.set_array([])
@@ -278,8 +273,8 @@ class TrainTestDrift(TrainTestBaseCheck):
 
             def plot_numerical():
                 plt.title(f'Distribution of {column_name}')
-                train_column.plot(kind='density', label='Train dataset', legend=True, figsize=(8, 4))
-                test_column.plot(kind='density', label='Test dataset', legend=True, figsize=(8, 4))
+                train_column.plot(kind='density', label='Train dataset', legend=True, figsize=(8, 2))
+                test_column.plot(kind='density', label='Test dataset', legend=True, figsize=(8, 2))
 
                 plot_colorbar(score, "Earth Mover's Distance")
 
@@ -296,12 +291,13 @@ class TrainTestDrift(TrainTestBaseCheck):
                 cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
                                       index=categories_list)
 
-                cat_df.plot.bar(figsize=(8, 4))
+                cat_df.plot.bar(figsize=(8, 2))
 
                 plot_colorbar(score, 'PSI')
 
                 ax = plt.gca()
 
+                plt.xticks(rotation=30)
                 ax.set_ylabel('Percentage')
                 ax.set_title(f'Distribution of {column_name}')
                 ax.legend()
@@ -309,7 +305,8 @@ class TrainTestDrift(TrainTestBaseCheck):
             return score, 'PSI', plot_categorical
 
     def add_condition_drift_score_not_greater_than(self, max_allowed_psi_score: float = 0.2,
-                                                   max_allowed_earth_movers_score: float = 0.1):
+                                                   max_allowed_earth_movers_score: float = 0.1,
+                                                   number_of_top_features_to_consider: int = 5):
         """
         Add condition - require drift score to not be more than a certain threshold.
 
@@ -319,17 +316,30 @@ class TrainTestDrift(TrainTestBaseCheck):
         Args:
             max_allowed_psi_score: the max threshold for the PSI score
             max_allowed_earth_movers_score: the max threshold for the Earth Mover's Distance score
+            number_of_top_features_to_consider: the number of top features for which exceed the threshold will fail the
+                condition.
 
         Returns:
             ConditionResult: False if any column has passed the max threshold, True otherwise
         """
 
         def condition(result: Dict) -> ConditionResult:
+            if all([x['Importance'] is not None for x in result.values()]):
+                columns_to_consider = \
+                    [col_name for col_name, fi in sorted(result.items(), key=lambda item: item[1]['Importance'],
+                                                         reverse=True)]
+            else:
+                columns_to_consider = \
+                    [col_name for col_name, fi in sorted(result.items(), key=lambda item: item[1]['Drift score'],
+                                                         reverse=True)]
+            columns_to_consider = columns_to_consider[:number_of_top_features_to_consider]
             not_passing_categorical_columns = [column for column, d in result.items() if
-                                               d['Drift score'] > max_allowed_psi_score and d['Method'] == 'PSI']
+                                               d['Drift score'] > max_allowed_psi_score and d['Method'] == 'PSI'
+                                               and column in columns_to_consider]
             not_passing_numeric_columns = [column for column, d in result.items() if
                                            d['Drift score'] > max_allowed_earth_movers_score
-                                           and d['Method'] == "Earth Mover's Distance"]
+                                           and d['Method'] == "Earth Mover's Distance"
+                                           and column in columns_to_consider]
             return_str = ''
             if not_passing_categorical_columns:
                 return_str += f'Found categorical columns with PSI over {max_allowed_psi_score}: ' \

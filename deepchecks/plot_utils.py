@@ -51,7 +51,7 @@ def create_colorbar_barchart_for_check(x: np.array, y: np.array, ylabel: str = '
     plt.xlabel(xlabel)
 
 
-def shifted_color_map(cmap, start=0, midpoint=0.5, stop=1.0, name: str = 'shiftedcmap', white_from: float = 1.0):
+def shifted_color_map(cmap, start=0, midpoint=0.5, stop=1.0, name: str = 'shiftedcmap', transparent_from: float = None):
     """Offset the "center" of a colormap.
 
     Input
@@ -69,7 +69,12 @@ def shifted_color_map(cmap, start=0, midpoint=0.5, stop=1.0, name: str = 'shifte
       stop : Offset from highest point in the colormap's range.
           Defaults to 1.0 (no upper offset). Should be between
           0.0 and 1.0.
+      transparent_from: The point between start and stop where the colors will start being transparent.
     """
+
+    if transparent_from is None:
+        transparent_from = stop
+
     cdict = {
         'red': [],
         'green': [],
@@ -92,7 +97,7 @@ def shifted_color_map(cmap, start=0, midpoint=0.5, stop=1.0, name: str = 'shifte
         cdict['red'].append((si, r, r))
         cdict['green'].append((si, g, g))
         cdict['blue'].append((si, b, b))
-        if white_from / midpoint < si:
+        if transparent_from / midpoint < si:
             cdict['alpha'].append((si, 0.3, 0.3))
         else:
             cdict['alpha'].append((si, a, a))
