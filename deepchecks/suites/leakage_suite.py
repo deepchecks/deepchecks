@@ -34,7 +34,7 @@ def date_leakage_check_suite() -> CheckSuite:
     """Create 'Date Leakage Suite'.
 
     The suite runs a set of checks that tries to detect cases of problematic
-    splitting, when problematic splitting is a state in which the performance
+    splitting - a state in which the performance
     on test won't represent real world performance due to it's relation in time
     to the training data.
     """
