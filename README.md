@@ -157,11 +157,11 @@ Which will result in printing the outputs of all of the checks that are in that 
 
 ### Example Notebooks
 For full usage examples, check out: 
-- [**deepchecks Quick Start Notebook**](./notebooks/examples/models/Iris%20Dataset%20CheckSuite%20Example.ipynb) - for a simple example notebook for working with checks and suites.
-- [**Example Checks Output Notebooks**](./notebooks) - to see all of the existing checks and their usage examples.
+- [**deepchecks Quick Start Notebook**](./notebooks/examples/CheckSuite_Iris_Dataset.ipynb) - for a simple example notebook for working with checks and suites.
+- [**Example Checks Output Notebooks**](./notebooks/checks) - to see all of the existing checks and their usage examples.
 
 ## Communication
-- Join our [Slack Community](https://join.slack.com/t/mlcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg) to connect with the maintainers and follow users and interesting discussions
+- Join our [Slack Community](https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg) to connect with the maintainers and follow users and interesting discussions
 - Post a [Github Issue](https://github.com/deepchecks/deepchecks/issues) to suggest improvements, open an issue, or share feedback.
 
 [comment]: <> "- Send us an [email](mailto:info@deepchecks.com) at info@deepchecks.com"
