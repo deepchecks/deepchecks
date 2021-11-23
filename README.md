@@ -1,5 +1,6 @@
 
 # Deepchecks
+### Comprehensive testing suite for ML models and data
 
 ![pyVersions](https://img.shields.io/pypi/pyversions/deepchecks)
 ![pkgVersion](https://img.shields.io/pypi/v/deepchecks)
@@ -7,10 +8,9 @@
 ![coverage](https://deepchecks-public.s3.eu-west-1.amazonaws.com/deepchecks/coverage.svg)
 ![pylint](https://deepchecks-public.s3.eu-west-1.amazonaws.com/deepchecks/pylint.svg)
 
-Deepchecks is a Python package, for quickly and efficiently validating many aspects of your
-trained machine learning models. These include model performance related issues,
-machine learning methodology best-practices, model and data integrity.
-
+Deepchecks is a Python package for quickly and efficiently validating your machine learning models and data.
+This includes checks related to various types of issues, such as model performance,
+data integrity, distribution mismatches, and more.
 ## Key Concepts
 
 #### Check
@@ -73,20 +73,20 @@ python setup.py install
 
 ## Are You Ready  to Start Checking?
 
-To discover the full value from Deepchecking your data and model, we recommend having in your jupyter environment:
+For the full value from Deepchecks' checking suites, we recommend working with:
 
--   A scikit-learn API supporting model that you wish to validate
+-   A scikit-learn API supporting model that you wish to validate (e.g. RandomForest, XGBoost)
     
--   The models’ training data with labels
+-   The model's training data with labels
     
 -   Test data (on which the model wasn’t trained) with labels  
 
-Additionally, many of the checks and some of the suites need only a subset of the above to run.
+However, many of the checks and some of the suites need only a subset of the above to run.
 
 ## Usage Examples
 
 ### Running a Check
-For running a specific check on your dataframe, all you need to do is:
+For running a specific check on your pandas DataFrame, all you need to do is:
 
 ```python
 from deepchecks.checks import RareFormatDetection
@@ -98,12 +98,12 @@ RareFormatDetection().run(df_to_check)
 ```
 Which might product output of the type:
 ><h4>Rare Format Detection</h4>
-> <p>Check whether columns have common formats (e.g. \"XX-XX-XXXX\" for dates\") and detects values that don't match.</p>
+> <p>Check whether columns have common formats (e.g. 'XX-XX-XXXX' for dates) and detects values that don't match.</p>
 > <p><b>&#x2713;</b> Nothing found</p>
 
 If all was fine, or alternatively something like:
 ><h4>Rare Format Detection</h4>
-><p>Check whether columns have common formats (e.g. \"XX-XX-XXXX\" for dates\") and detects values that don't match.</p>
+><p>Check whether columns have common formats (e.g. 'XX-XX-XXXX' for dates) and detects values that don't match.</p>
 >
 >
 > Column date:
@@ -136,7 +136,7 @@ If all was fine, or alternatively something like:
 If mismatches were detected.
 
 ### Running a Suite
-Let's take for example the iris dataset:
+Let's take the "iris" dataset as an example:
 ```python
 import pandas as pd
 from sklearn.datasets import load_iris
