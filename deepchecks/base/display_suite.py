@@ -128,7 +128,7 @@ def display_suite_result_2(suite_name: str, results: List[Union[CheckResult, Che
                                         columns=['Status', 'Check', 'Condition', 'More Info', 'sort'], )
         conditions_table.sort_values(by=['sort'], inplace=True)
         conditions_table.drop('sort', axis=1, inplace=True)
-        display_dataframe(conditions_table, hide_index=True)
+        display_dataframe(conditions_table.style.hide_index())
     else:
         display_html('<p>No conditions defined on checks in the suite.</p>', raw=True)
 
@@ -147,7 +147,7 @@ def display_suite_result_2(suite_name: str, results: List[Union[CheckResult, Che
         others_table.drop('sort', axis=1, inplace=True)
         html = f"""{bold_hr}
         <h2>Other Checks That Weren't Displayed</h2>
-        {dataframe_to_html(others_table, hide_index=True)}
+        {dataframe_to_html(others_table.style.hide_index())}
         """
         display_html(html, raw=True)
 

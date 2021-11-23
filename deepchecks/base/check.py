@@ -12,6 +12,7 @@ __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDataset
 import pandas as pd
 from IPython.core.display import display_html
 from matplotlib import pyplot as plt
+from pandas.io.formats.style import Styler
 
 from deepchecks.base.display_pandas import display_dataframe
 from deepchecks.string_utils import split_camel_case
@@ -114,7 +115,7 @@ class CheckResult:
 
     value: Any
     header: str
-    display: List[Union[Callable, str, pd.DataFrame]]
+    display: List[Union[Callable, str, pd.DataFrame, Styler]]
     condition_results: List[ConditionResult]
 
     def __init__(self, value, header: str = None, check=None, display: Any = None):
@@ -138,7 +139,7 @@ class CheckResult:
             self.display = display or []
 
         for item in self.display:
-            if not isinstance(item, (str, pd.DataFrame, Callable)):
+            if not isinstance(item, (str, pd.DataFrame, Callable, Styler)):
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
     def _ipython_display_(self):
@@ -151,7 +152,7 @@ class CheckResult:
             display_html(f'<p>{summary}</p>', raw=True)
 
         for item in self.display:
-            if isinstance(item, pd.DataFrame):
+            if isinstance(item, (pd.DataFrame, Styler)):
                 display_dataframe(item)
             elif isinstance(item, str):
                 display_html(item, raw=True)

@@ -20,14 +20,14 @@ __all__ = ['SingleDatasetIntegrityCheckSuite', 'ComparativeIntegrityCheckSuite',
 
 SingleDatasetIntegrityCheckSuite = CheckSuite(
     'Single Dataset Integrity Suite',
-    IsSingleValue(),
+    IsSingleValue().add_condition_not_single_value(),
     MixedNulls().add_condition_different_nulls_not_more_than(),
     MixedTypes().add_condition_rare_type_ratio_not_less_than(),
     StringMismatch().add_condition_no_variants(),
     DataDuplicates().add_condition_duplicates_not_greater_than(),
     RareFormatDetection().add_condition_ratio_of_rare_formats_not_greater_than(),
-    StringLengthOutOfBounds(),
-    SpecialCharacters()
+    StringLengthOutOfBounds().add_condition_ratio_of_outliers_not_greater_than(),
+    SpecialCharacters().add_condition_ratio_of_special_characters_not_grater_than()
 )
 
 

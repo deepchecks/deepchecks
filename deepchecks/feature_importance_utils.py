@@ -2,7 +2,10 @@
 import numpy as np
 import pandas as pd
 from typing import Any, Dict
+
+from sklearn.base import BaseEstimator
 from sklearn.inspection import permutation_importance
+from sklearn.pipeline import Pipeline
 from sklearn.utils.validation import check_is_fitted
 
 from deepchecks import Dataset
@@ -33,12 +36,13 @@ def calculate_feature_importance_or_null(dataset: Dataset, model: Any) -> pd.Ser
     return feature_importances
 
 
-def calculate_feature_importance(model: Any, dataset: Dataset) -> pd.Series:
+def calculate_feature_importance(model: Any, dataset: Dataset, random_state: int = 42) -> pd.Series:
     """Calculate features effect on the label.
 
     Args:
         model (Any): A fitted model
         dataset (Dataset): dataset used to fit the model
+        random_state (int): random seed for permutation importance calculation
     Returns:
         pd.Series of feature importance normalized to 0-1 indexed by feature names
 
@@ -48,24 +52,41 @@ def calculate_feature_importance(model: Any, dataset: Dataset) -> pd.Series:
     check_is_fitted(model)
     dataset.validate_model(model)
 
-    if 'feature_importances_' in dir(model):  # Ensambles
-        normalized_feature_importance_values = model.feature_importances_/model.feature_importances_.sum()
-        feature_importances = pd.Series(normalized_feature_importance_values, index=dataset.features())
-    elif 'coef_' in dir(model):  # Linear models
-        coef = np.abs(model.coef_)
-        coef = coef / coef.sum()
-        feature_importances = pd.Series(coef, index=dataset.features())
-    else:  # Others
-        feature_importances = _calc_importance(model, dataset)
+    feature_importances = _built_in_importance(model, dataset)
+    if feature_importances is None:
+        if isinstance(model, Pipeline):
+            # Assume model is last
+            final_estimator = model.steps[-1][1]
+            if isinstance(final_estimator, BaseEstimator):
+                feature_importances = _built_in_importance(final_estimator, dataset)
+            else:
+                feature_importances = _calc_importance(model, dataset, random_state=random_state)
+        else:  # Others
+            feature_importances = _calc_importance(model, dataset, random_state=random_state)
 
     return feature_importances.fillna(0)
 
 
-def _calc_importance(model: Any, dataset: Dataset, n_repeats = 30, random_state = 42):
+def _built_in_importance(model: Any, dataset: Dataset):
+    """Get feature importance member if present in model."""
+    if 'feature_importances_' in dir(model):  # Ensambles
+        normalized_feature_importance_values = model.feature_importances_/model.feature_importances_.sum()
+        return pd.Series(normalized_feature_importance_values, index=dataset.features())
+    elif 'coef_' in dir(model):  # Linear models
+        coef = np.abs(model.coef_)
+        coef = coef / coef.sum()
+        return pd.Series(coef, index=dataset.features())
+    else:
+        return None
+
+
+def _calc_importance(model: Any, dataset: Dataset, n_repeats: int = 30, random_state: int = 42, n_samples: int = 10000):
     """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal."""
     dataset.validate_label('_calc_importance')
-    r = permutation_importance(model, dataset.features_columns(),
-                               dataset.label_col(),
+    n_samples = min(n_samples, dataset.n_samples())
+    dataset_sample_idx = dataset.label_col().sample(n_samples).index
+    r = permutation_importance(model, dataset.features_columns().loc[dataset_sample_idx, :],
+                               dataset.label_col().loc[dataset_sample_idx],
                                n_repeats=n_repeats,
                                random_state=random_state)
     significance_mask = r.importances_mean - r.importances_std > 0
