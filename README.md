@@ -26,22 +26,22 @@ Each check can have two types of results:
    (validations are typically done by adding a "condition" to the check, as explained below).
 
 #### Condition
-A condition is a function that can be added to a Check, which typically has a pass (&#2713), fail (&#2716) or warning (&#0021) output.
-to ensure that the Check's return value is good. An example for adding a condition would be:
+A condition is a function that can be added to a Check, which returns a pass &#x2713;, fail &#x2716;
+or warning &#x0021; result, intended for validation the Check's return value. An example for adding a condition would be:
 ```python
 from deepchecks.checks import DataDuplicates
 DataDuplicates().add_condition_duplicates_not_greater_than(max_ratio=0.01)
 ```
-which will result in failure if more than 1% of the samples in the dataset are not-unique samples.
-A Check can run with conditions upon it as part of a Suite.
+which will fail if more than 1% of the samples in the dataset are not-unique samples.
+
 #### Suite
-An ordered collection of checks. You can find here the
-[predefined existing suites](deepchecks/suites) and a code example demonstrating how to build
-your own custom suite. The existing suites have default predefined conditions for most of the checks.
+An ordered collection of checks, that can have conditions added to them.
+The Suite enables displaying a concluding report for all of the Checks that ran.
+[Here](deepchecks/suites) you can find the [predefined existing suites](deepchecks/suites) and a code example demonstrating how to build
+your own custom suite. The existing suites include default conditions added for most of the checks.
 You can edit the preconfigured suites or build a suite of your own with a collection of checks and optional conditions.
 
 ## Installation
-
 
 #### Using pip directly from the github tag
 ```bash
