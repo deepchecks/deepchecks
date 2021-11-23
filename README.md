@@ -23,7 +23,7 @@ DataDuplicates, and [many more checks](./notebooks/checks).
 Each check can have two types of results:
 1. A visual result meant for display (e.g. a figure or a table).
 2. A return value that can be used for validating the expected check results
-   (typically done by adding a "condition" to the check).
+   (validations are typically done by adding a "condition" to the check, as explained below).
 
 #### Condition
 A condition is a function that can be added to a Check, which typically has a pass (&#2713), fail (&#2716) or warning (&#0021) output.
