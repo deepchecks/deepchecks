@@ -7,20 +7,22 @@ from deepchecks.checks.performance.partition import partition_column
 from deepchecks.metric_utils import validate_scorer, task_type_check, DEFAULT_SINGLE_METRIC, DEFAULT_METRICS_DICT
 from deepchecks.string_utils import format_number
 from deepchecks.utils import DeepchecksValueError
+from deepchecks.feature_importance_utils import calculate_feature_importance
 import matplotlib.pyplot as plt
 
 __all__ = ['SegmentPerformance']
 
 
 class SegmentPerformance(SingleDatasetBaseCheck):
-    """Display performance metric segmented by 2 given features in a heatmap."""
+    """Display performance metric segmented by 2 top (or given) features in a heatmap."""
 
     feature_1: str
     feature_2: str
     metric: Union[str, Callable]
     max_segments: int
 
-    def __init__(self, feature_1: str, feature_2: str, metric: Union[str, Callable] = None, max_segments: int = 10):
+    def __init__(self, feature_1: str = None, feature_2: str = None, metric: Union[str, Callable] = None,
+                 max_segments: int = 10):
         """Initialize segment performance check.
 
         Args:
@@ -31,9 +33,9 @@ class SegmentPerformance(SingleDatasetBaseCheck):
             max_segments (int): maximal number of segments to split the a values into.
         """
         super().__init__()
-        if feature_1 is None or feature_2 is None:
-            raise DeepchecksValueError('Must define both "feature_1" and "feature_2"')
-        if feature_1 == feature_2:
+
+        # if they're both none it's ok
+        if feature_1 and feature_1 == feature_2:
             raise DeepchecksValueError('"feature_1" must be different than "feature_2"')
         self.feature_1 = feature_1
         self.feature_2 = feature_2
@@ -54,6 +56,18 @@ class SegmentPerformance(SingleDatasetBaseCheck):
         Dataset.validate_dataset(dataset, self.__class__.__name__)
         dataset.validate_label(self.__class__.__name__)
         dataset.validate_model(model)
+
+        if self.feature_1 is None or self.feature_2 is None:
+            # only one none is not ok
+            if self.feature_1 is None and self.feature_2 is None:
+                feature_importance = calculate_feature_importance(dataset=dataset, model=model)
+                if len(feature_importance) < 2:
+                    raise DeepchecksValueError('Must have atleast 2 features')
+                feature_importance.sort_values(ascending=False, inplace=True)
+                self.feature_1, self.feature_2 = feature_importance.keys()[0], feature_importance.keys()[1]
+            else:
+                raise DeepchecksValueError('Must define both "feature_1" and "feature_2" or none of them')
+
         if self.metric is not None:
             scorer = validate_scorer(self.metric, model, dataset)
             metric_name = self.metric if isinstance(self.metric, str) else 'User metric'
@@ -119,6 +133,5 @@ class SegmentPerformance(SingleDatasetBaseCheck):
 
             ax.set_title(f'{metric_name} (count) by features {feat1}/{feat2}')
 
-        value = {'scores': scores, 'counts': counts}
+        value = {'scores': scores, 'counts': counts, 'feature_1': self.feature_1,'feature_2': self.feature_2}
         return CheckResult(value, check=self.__class__, display=display)
-
