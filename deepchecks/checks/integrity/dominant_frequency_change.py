@@ -23,9 +23,9 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
         """Initialize the DominantFrequencyChange class.
 
         Args:
-            dominance_ratio (float = 2): Next most abundance value has to be THIS times less than the first (0-inf).
+            dominance_ratio (float = 2): Next most abundant value has to be THIS times less than the first (0-inf).
             ratio_change_thres (float = 1.5): The dominant frequency has to change by at least this ratio (0-inf).
-            n_top_columns (int): (optinal - used only if model was specified)
+            n_top_columns (int): (optional - used only if model was specified)
               amount of columns to show ordered by feature importance (date, index, label are first)
         """
         super().__init__()
@@ -173,13 +173,12 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
         return self.add_condition(f'P value not less than {p_value_threshold}',
                                   condition)
 
-    def add_condition_percent_change_not_more_than(self, percent_change_threshold: float = 0.1):
-        """Add condition - require dominant values ratio out of the data to not change from train to test data
-         by more then a threshold
+    def add_condition_percent_change_not_more_than(self, percent_change_threshold: float = 0.25):
+        """Add condition - require change in the ratio of the dominant value to be below the threshold.
 
         Args:
-            percent_change_threshold (float): The maximal change in the ratio out of data that the dominant value is
-             allowed to change
+            percent_change_threshold (float): The maximal change in the ratio out of data between training data and
+             test data that the dominant value is allowed to change
         """
         if percent_change_threshold < 0 or percent_change_threshold > 1:
             raise DeepchecksValueError(f'percent_change_threshold be between 0 and 1, found {percent_change_threshold}')
