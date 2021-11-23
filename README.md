@@ -7,7 +7,8 @@
 ![coverage](https://deepchecks-public.s3.eu-west-1.amazonaws.com/deepchecks/coverage.svg)
 ![pylint](https://deepchecks-public.s3.eu-west-1.amazonaws.com/deepchecks/pylint.svg)
 
-Deepchecks is a Python package for quickly and efficiently validating your machine learning models and data.
+Deepchecks is a Python package for comprehensively validating your machine learning
+models and data with minimal effort.
 This includes checks related to various types of issues, such as model performance,
 data integrity, distribution mismatches, and more.
 
@@ -29,10 +30,11 @@ Each check can have two types of results:
 A condition is a function that can be added to a Check, which returns a pass &#x2713;, fail &#x2716;
 or warning &#x0021; result, intended for validation the Check's return value. An example for adding a condition would be:
 ```python
-from deepchecks.checks import DataDuplicates
-DataDuplicates().add_condition_duplicates_not_greater_than(max_ratio=0.01)
+from deepchecks.checks import BoostingOverfit
+BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(threshold=0.05)
 ```
-which will fail if more than 1% of the samples in the dataset are not-unique samples.
+which will fail if there is a difference of more than 5% between the best score achieved on the test set during
+the boosting iterations and the score achieved in the last iteration (the model's "original" score on the test set).
 
 #### Suite
 An ordered collection of checks, that can have conditions added to them.
@@ -76,7 +78,7 @@ python setup.py install
 
 For the full value from Deepchecks' checking suites, we recommend working with:
 
--   A scikit-learn API supporting model that you wish to validate (e.g. RandomForest, XGBoost)
+-   A model compatible with scikit-learn API that you wish to validate (e.g. RandomForest, XGBoost)
     
 -   The model's training data with labels
     
