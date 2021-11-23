@@ -49,7 +49,7 @@ def data_leakage_check_suite() -> CheckSuite:
     """Create 'Data Leakage Suite'.
 
     The suite runs a set of checks that are meant to detect row-wise data leakage
-    from the test dataset to the training dataset, and features that are
+    from the training dataset to the test dataset, and find indications of leakage by analyzing the predictive power of single features.
     able to single-handedly predict another feature or label.
     """
     return CheckSuite(

@@ -24,7 +24,7 @@ def overall_check_suite() -> CheckSuite:
     """Create 'Overall Suite'.
 
     Composition of different builtin suites that include checks that are meant
-    to detect any possible issues within model, like:
+    to detect any possible issues within a model, like:
     - train/test datasets integrity issues
     - data leakage issues
     - model overfit issues
@@ -43,7 +43,7 @@ def overall_classification_check_suite() -> CheckSuite:
     """Create 'Overall Classification Suite'.
 
     Composition of different builtin suites that include checks that are meant
-    to detect any possible issues within classification model, like:
+    to detect any possible issues within a classification model, like:
     - train/test datasets integrity issues
     - data leakage issues
     - model overfit issues
@@ -62,7 +62,7 @@ def overall_regression_check_suite() -> CheckSuite:
     """Create 'Overall Regression Suite'.
 
     Composition of different builtin suites that include checks that are meant
-    to detect any possible issues within regression model, like:
+    to detect any possible issues within a regression model, like:
     - train/test datasets integrity issues
     - data leakage issues
     - model overfit issues
