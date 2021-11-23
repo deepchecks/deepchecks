@@ -1,5 +1,5 @@
 
-# Deepchecks - Testing Suites for ML Models and Data
+# Deepchecks - Test Suites for ML Models and Data
 
 ![pyVersions](https://img.shields.io/pypi/pyversions/deepchecks)
 ![pkgVersion](https://img.shields.io/pypi/v/deepchecks)
