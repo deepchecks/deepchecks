@@ -28,4 +28,4 @@ Category | Check | Description |
 | Integrity| [SpecialCharacters](./integrity/special_characters.ipynb) | Search in column[s] for values that contains only special characters |
 | Integrity| [StringMismatch](./integrity/string_mismatch.ipynb)| Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column |
 | Integrity|[StringMismatchComparison](./integrity/string_mismatch_comparison.ipynb) | Detect different variants of string categories between the same categorical column in two datasets|
-| Integrity|[DataDuplicates](./integrity/data_duplicats.ipynb) |Search for Data duplicates in dataset |
+| Integrity|[DataDuplicates](./integrity/data_duplicates.ipynb) |Search for Data duplicates in dataset |
