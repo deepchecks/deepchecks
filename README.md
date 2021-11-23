@@ -7,12 +7,16 @@
 ![coverage](https://deepchecks-public.s3.eu-west-1.amazonaws.com/deepchecks/coverage.svg)
 ![pylint](https://deepchecks-public.s3.eu-west-1.amazonaws.com/deepchecks/pylint.svg)
 
-Deepchecks is a Python package, for quickly and efficiently validating many aspects of your trained machine learning models. These include model performance related issues, machine learning methodology best-practices, model and data integrity.
+Deepchecks is a Python package, for quickly and efficiently validating many aspects of your
+trained machine learning models. These include model performance related issues,
+machine learning methodology best-practices, model and data integrity.
 
 ## Key Concepts
 
 #### Check
-Each check enables you to inspect a specific aspect of your data and models. They are the basic building block of the deepchecks package, covering all kinds of common issues, such as:
+Each check enables you to inspect a specific aspect of your data and models.
+They are the basic building block of the deepchecks package, covering all kinds of common issues,
+such as:
 
 -   PerformanceOverfit
     
@@ -25,18 +29,29 @@ Each check enables you to inspect a specific aspect of your data and models. The
 -   … and [many more](./notebooks)
     
 
-Each check displays a visual result and returns a custom result value that can be used to validate the expected check results by setting conditions upon them.
+Each check displays a visual result and returns a custom result value that can be used to
+validate the expected check results by setting conditions upon them.
 
 #### Suite
-An ordered collection of checks. [Here](deepchecks/suites) you can find the existing suites and a code example for how to add your own custom suite. You can edit the preconfigured suites or build a suite of your own with a collection of checks and result conditions.
+An ordered collection of checks. You can find here the
+[predefined existing suites](deepchecks/suites) and a code example demonstrating how to build
+your own custom suite. You can edit the preconfigured suites or build a
+suite of your own with a collection of checks and optional conditions.
   
 
 ## Installation
 
-#### Using pip with package wheel file
-From the directory in which you have the wheel file, run:
+
+#### Using pip directly from the github tag
 ```bash
-pip3 install deepchecks-latest.whl #--user
+pip install git+https://github.com/deepchecks/deepchecks@0.0.8 #--user
+```
+Replacing "0.0.8" with the name of the latest tag.
+
+#### Using pip with package wheel file
+From the directory to which you have downloaded the wheel file, run:
+```bash
+pip install deepchecks-latest-tag-wheel.whl #--user
 ```
 
 #### From source
@@ -44,13 +59,21 @@ First clone the repository and then install the package from inside the reposito
 ```bash
 git clone https://github.com/deepchecks/deepchecks.git
 cd deepchecks
-python setup.py install # --user
+# for installing stable tag version and not the latest commit to main
+git checkout tags/<name_of_latest_tag>
 ```
-
+and then either:
+```bash
+pip install .
+```
+or
+```bash
+python setup.py install
+```
 
 ## Are You Ready  to Start Checking?
 
-To discover the full value from MLChecking your data and model, we recommend having in your jupyter environment:
+To discover the full value from Deepchecking your data and model, we recommend having in your jupyter environment:
 
 -   A scikit-learn API supporting model that you wish to validate
     
@@ -66,7 +89,7 @@ Additionally, many of the checks and some of the suites need only a subset of th
 For running a specific check on your dataframe, all you need to do is:
 
 ```python
-from deepchecks.checks import *
+from deepchecks.checks import RareFormatDetection
 import pandas as pd
 
 df_to_check = pd.read_csv('data_to_validate.csv')
