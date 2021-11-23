@@ -173,7 +173,7 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
         return self.add_condition(f'P value not less than {p_value_threshold}',
                                   condition)
 
-    def add_condition_percent_change_not_more_than(self, percent_change_threshold: float = 0.25):
+    def add_condition_ratio_of_change_not_more_than(self, percent_change_threshold: float = 0.25):
         """Add condition - require change in the ratio of the dominant value to be below the threshold.
 
         Args:
@@ -181,7 +181,8 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
              test data that the dominant value is allowed to change
         """
         if percent_change_threshold < 0 or percent_change_threshold > 1:
-            raise DeepchecksValueError(f'percent_change_threshold should be between 0 and 1, found {percent_change_threshold}')
+            raise DeepchecksValueError(f'percent_change_threshold should be between 0 and 1,'
+                                       f' found {percent_change_threshold}')
 
         def condition(result: Dict) -> ConditionResult:
             failed_columns = []
