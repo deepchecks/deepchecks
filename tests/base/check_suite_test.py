@@ -1,7 +1,6 @@
 """
     suites tests
 """
-
 from deepchecks import base
 from deepchecks import checks as builtin_checks
 
