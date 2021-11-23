@@ -181,7 +181,7 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
              test data that the dominant value is allowed to change
         """
         if percent_change_threshold < 0 or percent_change_threshold > 1:
-            raise DeepchecksValueError(f'percent_change_threshold be between 0 and 1, found {percent_change_threshold}')
+            raise DeepchecksValueError(f'percent_change_threshold should be between 0 and 1, found {percent_change_threshold}')
 
         def condition(result: Dict) -> ConditionResult:
             failed_columns = []
