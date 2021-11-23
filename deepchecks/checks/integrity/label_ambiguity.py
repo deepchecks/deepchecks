@@ -3,10 +3,8 @@ from typing import Union, Iterable
 
 import pandas as pd
 
-from deepchecks import Dataset, ConditionResult, ensure_dataframe_type
+from deepchecks import Dataset, ConditionResult
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck
-from deepchecks.base.dataframe_utils import filter_columns_with_validation
-from deepchecks.utils import DeepchecksValueError
 from deepchecks.string_utils import format_percent
 
 
@@ -48,11 +46,9 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
 
         label_col = dataset.label_name()
 
-        if dataset.n_samples() == 0:
-            raise DeepchecksValueError('Dataset does not contain any data')
-
         group_unique_data = dataset.data.groupby(dataset.features(), dropna=False)
         group_unique_labels = group_unique_data.nunique()[label_col]
+
         num_ambiguous = 0
         display = pd.DataFrame(columns=[dataset.label_name(), *dataset.features()])
 

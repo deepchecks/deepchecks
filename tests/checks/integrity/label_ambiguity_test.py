@@ -82,7 +82,7 @@ def test_label_ambiguity_condition():
     ))
 
 
-def test_label_ambiguity_condition():
+def test_label_ambiguity_condition_pass():
     # Arrange
     data = {
         'col1': [1, 1, 1, 2, 2, 2],
@@ -100,5 +100,5 @@ def test_label_ambiguity_condition():
     # Assert
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=True,
-                               name='AmbiAmbiguous sample ratio is not greater than 70.00%')
+                               name='Ambiguous sample ratio is not greater than 70.00%')
     ))
