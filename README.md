@@ -1,6 +1,5 @@
 
-# Deepchecks
-### Comprehensive testing suite for ML models and data
+# Deepchecks - Testing Suites for ML Models and Data
 
 ![pyVersions](https://img.shields.io/pypi/pyversions/deepchecks)
 ![pkgVersion](https://img.shields.io/pypi/v/deepchecks)
@@ -11,33 +10,35 @@
 Deepchecks is a Python package for quickly and efficiently validating your machine learning models and data.
 This includes checks related to various types of issues, such as model performance,
 data integrity, distribution mismatches, and more.
+
+![Deepchecks Diagram](./docs/static_readme/deepchecks_diagram.png)
+
 ## Key Concepts
 
 #### Check
 Each check enables you to inspect a specific aspect of your data and models.
 They are the basic building block of the deepchecks package, covering all kinds of common issues,
-such as:
+such as: PerformanceOverfit, DataSampleLeakage, SingleFeatureContribution,
+DataDuplicates, and [many more checks](./notebooks/checks).
+Each check can have two types of results:
+1. A visual result meant for display.
+2. A return value that can be used for validating the expected check results
+   (typically done by adding a "condition" to the check).
 
--   PerformanceOverfit
-    
--   DataSampleLeakage
-    
--   SingleFeatureContribution
-    
--   DataDuplicates
-    
--   … and [many more](./notebooks)
-    
-
-Each check displays a visual result and returns a custom result value that can be used to
-validate the expected check results by setting conditions upon them.
-
+#### Condition
+A condition is a validation logic that can be added upon the Check,
+to ensure that the Check's return value is good. An example for adding a condition would be:
+```python
+from deepchecks.checks import DataDuplicates
+DataDuplicates.add_condition_duplicates_not_greater_than(max_ratio=0.01)
+```
+which will result in failure if more than 1% of the samples in the dataset are not-unique samples.
+A Check can run with conditions upon it as part of a Suite.
 #### Suite
 An ordered collection of checks. You can find here the
 [predefined existing suites](deepchecks/suites) and a code example demonstrating how to build
-your own custom suite. You can edit the preconfigured suites or build a
-suite of your own with a collection of checks and optional conditions.
-  
+your own custom suite. The existing suites have default predefined conditions for most of the checks.
+You can edit the preconfigured suites or build a suite of your own with a collection of checks and optional conditions.
 
 ## Installation
 
@@ -153,10 +154,11 @@ To run an existing suite all you need to do is import the suite and run it -
 from deepchecks.suites import IntegrityCheckSuite
 IntegrityCheckSuite.run(train_dataset=df_train, test_dataset=df_val, check_datasets_policy='both')
 ```
-Which will result in printing the outputs of all of the checks that are in that suite.
+Which will result in printing the summary of the check conditions and then the visual outputs of all of the checks that
+are in that suite.
 
 ### Example Notebooks
-For full usage examples, check out: 
+For usage examples, check out: 
 - [**deepchecks Quick Start Notebook**](./notebooks/examples/CheckSuite_Iris_Dataset.ipynb) - for a simple example notebook for working with checks and suites.
 - [**Example Checks Output Notebooks**](./notebooks/checks) - to see all of the existing checks and their usage examples.
 
