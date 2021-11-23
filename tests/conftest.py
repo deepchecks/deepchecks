@@ -1,7 +1,8 @@
 """Represents fixtures for unit testing using pytest."""
 # Disable this pylint check since we use this convention in pytest fixtures
 #pylint: disable=redefined-outer-name
-from typing import Tuple
+from typing import Tuple, cast
+from datetime import datetime
 
 import numpy as np
 import pytest
@@ -124,9 +125,12 @@ def iris_dataset_single_class_labeled(iris):
 @pytest.fixture(scope='session')
 def iris_split_dataset_and_model(iris_clean) -> Tuple[Dataset, Dataset, AdaBoostClassifier]:
     """Return Iris train and val datasets and trained AdaBoostClassifier model."""
-    train, test = train_test_split(iris_clean.frame, test_size=0.33, random_state=42)
-    train_ds = Dataset(train, label='target')
-    val_ds = Dataset(test, label='target')
+    df = cast(pd.DataFrame, iris_clean.frame)
+    df['date'] = datetime.now()
+    df['index'] = range(len(df))
+    train, test = cast(Tuple[pd.DataFrame, pd.DataFrame], train_test_split(df, test_size=0.33, random_state=42))
+    train_ds = Dataset(train, label='target', date='date', index='index')
+    val_ds = Dataset(test, label='target', date='date', index='index')
     clf = AdaBoostClassifier(random_state=0)
     clf.fit(train_ds.features_columns(), train_ds.label_col())
     return train_ds, val_ds, clf

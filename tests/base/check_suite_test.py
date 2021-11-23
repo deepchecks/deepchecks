@@ -1,9 +1,9 @@
 """suites tests"""
-from hamcrest import assert_that, calling, raises, equal_to, is_
-
+import random
 from deepchecks import base
 from deepchecks import checks as builtin_checks
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.utils import DeepchecksValueError ,
+from hamcrest import assert_that, calling, raises, equal_to, is_
 
 
 class SimpleDatasetCheck(base.SingleDatasetBaseCheck):
@@ -47,27 +47,39 @@ def test_run_check_suite_with_incorrect_args(diabetes):
     )
 
 
-def test_try_add_not_a_check_to_the_suite():
-    first_suite = base.CheckSuite("first suite", SimpleDatasetCheck())
-    second_suite = base.CheckSuite("second suite")
+def test_add_check_to_the_suite():
+    number_of_checks = random.randint(0, 50)
+    produce_checks = lambda count: [SimpleDatasetCheck() for _ in range(count)]
 
-    # should not raise an error
-    second_suite.add(first_suite)
-    second_suite.add(SimpleTwoDatasetsCheck())
+    first_suite = base.CheckSuite("first suite", )
+    second_suite = base.CheckSuite("second suite", )
     
+    assert_that(len(first_suite.checks), equal_to(0))
+    assert_that(len(second_suite.checks), equal_to(0))
+    
+    for check in produce_checks(number_of_checks):
+        first_suite.add(check)
+    
+    assert_that(len(first_suite.checks), equal_to(number_of_checks))
+
+    second_suite.add(first_suite)
+    assert_that(len(second_suite.checks), equal_to(number_of_checks))
+    
+
+
+def test_try_add_not_a_check_to_the_suite():
+    suite = base.CheckSuite("second suite")
     assert_that(
-        calling(second_suite.add).with_args(object()),
+        calling(suite.add).with_args(object()),
         raises(DeepchecksValueError, 'CheckSuite receives only `BaseCheck` objects but got: object')
     )
 
 
 def test_try_add_check_suite_to_itself():
-    first_suite = base.CheckSuite("first suite", SimpleDatasetCheck())
-    second_suite = base.CheckSuite("second suite", first_suite, SimpleTwoDatasetsCheck())
-
-    assert_that(len(second_suite.checks), equal_to(2))
-    second_suite.add(second_suite)
-    assert_that(len(second_suite.checks), equal_to(2))
+    suite = base.CheckSuite("second suite", SimpleDatasetCheck(), SimpleTwoDatasetsCheck())
+    assert_that(len(suite.checks), equal_to(2))
+    suite.add(suite)
+    assert_that(len(suite.checks), equal_to(2))
 
 
 def test_suite_static_indexes():
@@ -102,14 +114,8 @@ def test_access_removed_check_by_index():
 
 
 def test_try_remove_unexisting_check_from_the_suite():
-    first_check = SimpleDatasetCheck()
-    second_check = SimpleTwoDatasetsCheck()
-    suite = base.CheckSuite("first suite", first_check, second_check)
-    
+    suite = base.CheckSuite("first suite", SimpleDatasetCheck(), SimpleTwoDatasetsCheck())
     assert_that(len(suite.checks), equal_to(2))
-    assert_that(suite[1], is_(second_check))
-    assert_that(suite[0], is_(first_check))
-
     assert_that(
         calling(suite.remove).with_args(3),
         raises(DeepchecksValueError, 'No index 3 in suite')
