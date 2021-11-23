@@ -1,3 +1,4 @@
+"""Test functions of trust score comparison."""
 from hamcrest import assert_that, has_entries, close_to, calling, raises
 
 from deepchecks import CheckResult
