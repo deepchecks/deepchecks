@@ -1,5 +1,4 @@
 """The predefined Integrity suite module."""
-
 from deepchecks import CheckSuite
 from deepchecks.checks.integrity import (
     IsSingleValue,
@@ -16,7 +15,9 @@ from deepchecks.checks.integrity import (
     StringLengthOutOfBounds,
 )
 
+
 __all__ = ['SingleDatasetIntegrityCheckSuite', 'ComparativeIntegrityCheckSuite', 'IntegrityCheckSuite']
+
 
 SingleDatasetIntegrityCheckSuite = CheckSuite(
     'Single Dataset Integrity Suite',

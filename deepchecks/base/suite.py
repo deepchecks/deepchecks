@@ -20,7 +20,6 @@ __all__ = ['CheckSuite', 'SuiteResult']
 
 class SuiteResult:
     """Contain the results of a suite run."""
-
     name: str
     results: List[Union[CheckResult, CheckFailure]]
 
