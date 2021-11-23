@@ -1,10 +1,7 @@
 """Module of trust score comparison check."""
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
 from scipy.stats import gaussian_kde
-from sklearn.preprocessing import LabelEncoder
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.checks.confidence.trust_score import TrustScore
@@ -37,7 +34,7 @@ def validate_parameters(k_filter, alpha, max_number_categories, min_test_samples
     if not is_positive_int(sample_size):
         raise DeepchecksValueError(f'sample_size must be positive integer but got: {min_test_samples}')
     if sample_size < min_test_samples:
-        raise DeepchecksValueError(f'sample_size can\'t be smaller than min_test_samples')
+        raise DeepchecksValueError('sample_size can\'t be smaller than min_test_samples')
     if not is_positive_int(n_to_show):
         raise DeepchecksValueError(f'n_to_show must be positive integer but got: {min_test_samples}')
     if not is_float_0_to_1(percent_top_scores_to_hide):
@@ -58,7 +55,8 @@ class TrustScoreComparison(TrainTestBaseCheck):
     def __init__(self, k_filter: int = 10, alpha: float = 0.001,
                  max_number_categories: int = 10, min_test_samples: int = 300, sample_size: int = 10_000,
                  random_state: int = 42, n_to_show: int = 5, percent_top_scores_to_hide: float = 0.01):
-        """
+        """Initialize check.
+
         Args:
             k_filter (int): used in TrustScore (Number of neighbors used during either kNN distance or probability
                             filtering)
@@ -106,7 +104,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
                    'minimum samples needed to run with parameter "min_test_samples"')
             raise DeepchecksValueError(msg)
         if model_type not in [ModelType.BINARY, ModelType.MULTICLASS]:
-            raise DeepchecksValueError(f'Check supports only classification')
+            raise DeepchecksValueError('Check supports only classification')
 
         train_data_sample = train_dataset.data.sample(min(self.sample_size, train_dataset.n_samples()),
                                                       random_state=self.random_state)
@@ -154,6 +152,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
             def plot_density(data, color):
                 density = gaussian_kde(data)
                 density.covariance_factor = lambda: .25
+                # pylint: disable=protected-access
                 density._compute_covariance()
                 xs = np.linspace(min(data), max(data), 40)
                 plt.fill_between(xs, density(xs), color=color, alpha=0.7)
@@ -190,7 +189,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
         return CheckResult(result, check=self.__class__, display=display,
                            header='Trust Score Comparison: Train vs. Test')
 
-    def add_condition_mean_score_percent_decline_not_greater_than(self, threshold: float = 0.1):
+    def add_condition_mean_score_percent_decline_not_greater_than(self, threshold: float = 0.2):
         """Add condition.
 
         Percent of decline between the mean trust score of train and the mean trust score of test is not above

@@ -1,5 +1,6 @@
 """The predefined performance suite module."""
 from deepchecks import CheckSuite
+from deepchecks.checks import TrustScoreComparison
 from deepchecks.checks.performance import PerformanceReport, ConfusionMatrixReport, RocReport, NaiveModelComparison, \
     CalibrationMetric
 
@@ -12,6 +13,7 @@ ClassificationCheckSuite = CheckSuite(
     ConfusionMatrixReport(),
     RocReport().add_condition_auc_not_less_than(),
     CalibrationMetric(),
+    TrustScoreComparison().add_condition_mean_score_percent_decline_not_greater_than()
 )
 
 
