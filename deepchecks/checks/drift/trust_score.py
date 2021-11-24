@@ -1,4 +1,4 @@
-"""Module of trust score.
+"""Module of trust score confidence method.
 
 Code is taken from https://github.com/google/TrustScore
 Based on: arXiv:1805.11783 [stat.ML]
