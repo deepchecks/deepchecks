@@ -181,10 +181,10 @@ class TrustScoreComparison(TrainTestBaseCheck):
             plt.title('Trust Score Distribution')
 
         headnote = """<span>
-        The trust score (arxiv 1805.11783) measures the agreement between the classifier and a modified nearest-neighbor
-        classifier on the testing example. High values represent samples that are "close" to training examples with the 
-        same label as sample prediction, and low values represent samples that are "far" from training samples with 
-        labels matching their prediction.
+        Trust score measures the agreement between the classifier and a modified nearest-neighbor
+        classifier on the testing example. Higher values represent samples that are "close" to training examples with 
+        the same label as sample prediction, and lower values represent samples that are "far" from training samples 
+        with labels matching their prediction. (arxiv 1805.11783)
         </span>"""
         footnote = """<span style="font-size:0.8em"><i>
             The test trust score distribution should be quite similar to the train's. If it is skewed to the left, the 
