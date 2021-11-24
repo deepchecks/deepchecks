@@ -130,11 +130,14 @@ class TrustScoreComparison(TrainTestBaseCheck):
         y_test_pred = model.predict(test_data_sample[features_list])
         test_trust_scores = trust_score_model.score(x_test.to_numpy(), y_test_pred)[0].astype('float64')
 
+        # Move label and index to the beginning if exists
+        if test_dataset.label_name():
+            label = test_dataset.label_name()
+            test_data_sample.insert(0, label, test_data_sample.pop(label))
+        if test_dataset.index_name():
+            index = test_dataset.index_name()
+            test_data_sample.insert(0, index, test_data_sample.pop(index))
         # Add score and prediction and sort by score
-        # if test_dataset.label_name():
-        #     x_test.insert(0, test_dataset.label_name(), test_data_sample[test_dataset.label_name()])
-        # if test_dataset.index_name():
-        #     x_test.insert(0, test_dataset.index_name(), test_data_sample[test_dataset.index_name()])
         test_data_sample.insert(0, 'Model Prediction', y_test_pred)
         test_data_sample.insert(0, 'Trust Score', test_trust_scores)
         test_data_sample = test_data_sample.sort_values(by=['Trust Score'], ascending=False)
@@ -177,13 +180,19 @@ class TrustScoreComparison(TrainTestBaseCheck):
             plt.legend(handles, labels)
             plt.title('Trust Score Distribution')
 
+        headnote = """<span>
+        The trust score (arxiv 1805.11783) measures the agreement between the classifier and a modified nearest-neighbor
+        classifier on the testing example. High values represent samples that are "close" to training examples with the 
+        same label as sample prediction, and low values represent samples that are "far" from training samples with 
+        labels matching their prediction.
+        </span>"""
         footnote = """<span style="font-size:0.8em"><i>
             The test trust score distribution should be quite similar to the train's. If it is skewed to the left, the 
             confidence of the model in the test data is lower than the train, indicating a difference that may affect
             model performance on similar data. If it is skewed to the right, it indicates an underlying problem with the creation of the test dataset
             (test confidence isn't expected to be higher than train's).
             </i></span>"""
-        display = [display_plot, footnote, '<h5>Worst Trust Score Samples</h5>', bottom_k,
+        display = [headnote, display_plot, footnote, '<h5>Worst Trust Score Samples</h5>', bottom_k,
                    '<h5>Top Trust Score Samples</h5>', top_k]
 
         result = {'test': np.mean(test_trust_scores), 'train': np.mean(train_trust_scores)}
