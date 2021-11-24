@@ -1,5 +1,5 @@
 """Handle display of suite result."""
-# pylint: disable=protected-access
+# pylint: disable=protected-access,import-outside-toplevel
 import sys
 from typing import List, Union
 
@@ -8,16 +8,17 @@ from ipywidgets import HBox
 
 from deepchecks.base.check import CheckResult, CheckFailure
 from deepchecks.base.display_pandas import dataframe_to_html, display_dataframe
+from deepchecks.utils import is_widgets_enabled
 import pandas as pd
 
 __all__ = ['display_suite_result', 'ProgressBar']
 
-from deepchecks.utils import is_widgets_enabled
-
 
 class ProgressBar:
+    """Progress bar for display while running suite."""
 
     def __init__(self, name, length):
+        """Initialize progress bar."""
         if is_widgets_enabled():
             from ipywidgets import IntProgress, HTML, VBox
             progress_bar = IntProgress(value=0, min=0, max=length, bar_style='info', style={'bar_color': '#9d60fb'},

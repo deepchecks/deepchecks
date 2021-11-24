@@ -5,14 +5,13 @@ from collections import OrderedDict
 from typing import Union, List
 
 from IPython.core.display import display
-from ipywidgets import IntProgress, HTML, VBox
 
 from deepchecks.base.check import BaseCheck, CheckResult, TrainTestBaseCheck, CompareDatasetsBaseCheck, \
     SingleDatasetBaseCheck, ModelOnlyBaseCheck, CheckFailure
 
 __all__ = ['CheckSuite', 'SuiteResult']
 
-from deepchecks.base.display_suite import display_suite_result_2, ProgressBar
+from deepchecks.base.display_suite import display_suite_result, ProgressBar
 
 from deepchecks.utils import DeepchecksValueError, is_widgets_enabled
 
@@ -29,7 +28,7 @@ class SuiteResult:
         self.results = results
 
     def _ipython_display_(self):
-        display_suite_result_2(self.name, self.results)
+        display_suite_result(self.name, self.results)
 
 
 class CheckSuite(BaseCheck):
@@ -113,7 +112,6 @@ class CheckSuite(BaseCheck):
                     raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
             except Exception as exp:
                 results.append(CheckFailure(check.__class__, exp))
-            time.sleep(1)
             progress_bar.inc_progress()
 
         progress_bar.close()

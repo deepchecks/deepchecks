@@ -271,6 +271,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
     @classmethod
     def name(cls):
+        """Name of class in split camel case."""
         return split_camel_case(cls.__name__)
 
 
