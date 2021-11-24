@@ -74,7 +74,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text], check=self.__class__,
                            header='Single Feature Contribution')
 
-    def add_condition_feature_pps_not_greater_than(self, threshold: float = 0.8) -> FC:
+    def add_condition_feature_pps_not_greater_than(self: FC, threshold: float = 0.8) -> FC:
         """
         Add condition that will check that pps of the specified feature(s) is not greater than X.
 

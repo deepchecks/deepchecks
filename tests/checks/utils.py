@@ -10,6 +10,7 @@ __all__ = ['ANY_FLOAT_REGEXP', 'equal_condition_result']
 
 
 ANY_FLOAT_REGEXP = re.compile(r'[+-]?([0-9]*[.])?[0-9]+')
+SCIENTIFIC_NOTATION_REGEXP = re.compile(r'-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?')
 
 
 def equal_condition_result(
@@ -19,7 +20,7 @@ def equal_condition_result(
     category: ConditionCategory = ConditionCategory.FAIL
 ) -> Matcher[Matcher[object]]:
     # Check if details is a regex class
-    if 'match' in dir(details):
+    if hasattr(details, 'match'):
         details_matcher = matches_regexp(details)
     else:
         details_matcher = details
