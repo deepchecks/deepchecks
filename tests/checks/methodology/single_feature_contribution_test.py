@@ -6,7 +6,7 @@ from hamcrest import assert_that, is_in, close_to, calling, raises, equal_to, ha
 
 from deepchecks import Dataset
 from deepchecks import ConditionCategory
-from deepchecks.checks.leakage import SingleFeatureContribution, SingleFeatureContributionTrainTest
+from deepchecks.checks.methodology import SingleFeatureContribution, SingleFeatureContributionTrainTest
 from deepchecks.utils import DeepchecksValueError
 
 from tests.checks.utils import equal_condition_result
