@@ -3,11 +3,8 @@
 from collections import OrderedDict
 from typing import Union, List, Optional
 
-from IPython.core.display import display
-from ipywidgets import IntProgress, HTML, VBox
-
 from deepchecks.base.display_suite import display_suite_result, ProgressBar
-from deepchecks.utils import DeepchecksValueError, is_widgets_enabled
+from deepchecks.utils import DeepchecksValueError
 from deepchecks.base import Dataset
 from deepchecks.base.check import (
     BaseCheck, CheckResult, TrainTestBaseCheck, CompareDatasetsBaseCheck,

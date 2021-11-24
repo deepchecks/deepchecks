@@ -29,12 +29,15 @@ class ProgressBar:
             self.pbar = tqdm(**shared_args, bar_format=f'{{l_bar}}{{bar:{length}}}{{r_bar}}')
 
     def set_text(self, text):
+        """Set current running check."""
         self.pbar.set_postfix(Check=text)
 
     def close(self):
+        """Close the progress bar."""
         self.pbar.close()
 
     def inc_progress(self):
+        """Increase progress bar value by 1."""
         self.pbar.update(1)
 
 
