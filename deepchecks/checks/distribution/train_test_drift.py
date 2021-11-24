@@ -9,12 +9,13 @@ from matplotlib.cm import ScalarMappable
 from scipy.stats import wasserstein_distance
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
+from deepchecks.checks.distribution.plot import plot_density
+from deepchecks.feature_importance_utils import calculate_feature_importance_or_null
+from deepchecks.plot_utils import shifted_color_map
 import matplotlib.pyplot as plt
 
 __all__ = ['TrainTestDrift']
 
-from deepchecks.feature_importance_utils import calculate_feature_importance_or_null
-from deepchecks.plot_utils import shifted_color_map
 
 PSI_MIN_PERCENTAGE = 0.01
 
@@ -268,13 +269,22 @@ class TrainTestDrift(TrainTestBaseCheck):
 
             cbar.set_label('Drift - ' + colorbar_name, rotation=270, labelpad=25)
 
+        colors = ['darkblue', '#69b3a2']
+
         if column_type == 'numerical':
             score = earth_movers_distance(dist1=train_column.astype('float'), dist2=test_column.astype('float'))
 
             def plot_numerical():
+
+                x_range = (min(train_column.min(), test_column.min()), max(train_column.max(), test_column.max()))
+                xs = np.linspace(x_range[0], x_range[1], 40)
+                plt.figure(figsize=(8, 2))
+                plot_density(train_column, xs, colors[0])
+                plot_density(test_column, xs, colors[1])
                 plt.title(f'Distribution of {column_name}')
-                train_column.plot(kind='density', label='Train dataset', legend=True, figsize=(8, 2))
-                test_column.plot(kind='density', label='Test dataset', legend=True, figsize=(8, 2))
+                plt.xlabel(column_name)
+                plt.ylabel('Probability Density')
+                plt.legend(['Train dataset', 'Test Dataset'])
 
                 plot_colorbar(score, "Earth Mover's Distance")
 
@@ -291,7 +301,7 @@ class TrainTestDrift(TrainTestBaseCheck):
                 cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
                                       index=categories_list)
 
-                cat_df.plot.bar(figsize=(8, 2))
+                cat_df.plot.bar(figsize=(8, 2), color=colors)
 
                 plot_colorbar(score, 'PSI')
 

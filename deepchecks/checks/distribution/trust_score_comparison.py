@@ -1,11 +1,11 @@
 """Module of trust score comparison check."""
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import gaussian_kde
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.checks.distribution.trust_score import TrustScore
 from deepchecks.checks.distribution.preprocessing import preprocess_dataset_to_scaled_numerics
+from deepchecks.checks.distribution.plot import plot_density
 from deepchecks.metric_utils import task_type_check, ModelType
 from deepchecks.string_utils import format_percent
 from deepchecks.utils import DeepchecksValueError, model_type_validation
@@ -152,19 +152,12 @@ class TrustScoreComparison(TrainTestBaseCheck):
             def filter_quantile(data):
                 return data[data < np.quantile(data, 1 - percent_to_cut)]
 
-            def plot_density(data, xs, color):
-                density = gaussian_kde(data)
-                density.covariance_factor = lambda: .25
-                # pylint: disable=protected-access
-                density._compute_covariance()
-                plt.fill_between(xs, density(xs), color=color, alpha=0.7)
-
             test_trust_scores_cut = filter_quantile(test_trust_scores)
             train_trust_scores_cut = filter_quantile(train_trust_scores)
             x_range = [min(*test_trust_scores_cut, *train_trust_scores_cut),
                      max(*test_trust_scores_cut, *train_trust_scores_cut)]
             xs = np.linspace(x_range[0], x_range[1], 40)
-            plot_density(test_trust_scores_cut, xs, 'darkblue')
+            plot_density(test_trust_scores_cut, xs, 'darkblue', )
             plot_density(train_trust_scores_cut, xs, '#69b3a2')
             # Set x axis
             axes.set_xlim(x_range)
