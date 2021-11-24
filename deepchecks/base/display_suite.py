@@ -3,8 +3,7 @@
 import sys
 from typing import List, Union
 
-from IPython.core.display import display_html, display
-from ipywidgets import HBox
+from IPython.core.display import display_html
 
 from deepchecks.base.check import CheckResult, CheckFailure
 from deepchecks.base.display_pandas import dataframe_to_html, display_dataframe
@@ -19,42 +18,24 @@ class ProgressBar:
 
     def __init__(self, name, length):
         """Initialize progress bar."""
+        shared_args = {'total': length, 'desc': name, 'unit': ' Check', 'leave': False, 'file': sys.stdout}
         if is_widgets_enabled():
-            from ipywidgets import IntProgress, HTML, VBox
-            progress_bar = IntProgress(value=0, min=0, max=length, bar_style='info', style={'bar_color': '#9d60fb'},
-                                       orientation='horizontal')
-            label = HTML(name)
-            counter = HTML(f'0 / {length}')
-            box = VBox(children=[label, HBox(children=[progress_bar, counter])])
-            display(box)
-
-            def set_text(text):
-                label.value = text
-
-            def close():
-                progress_bar.close()
-                label.close()
-                box.close()
-
-            def inc_progress():
-                progress_bar.value += 1
-                counter.value = f'{progress_bar.value} / {length}'
+            from tqdm.notebook import tqdm
+            self.pbar = tqdm(**shared_args, colour='#9d60fb')
         else:
             from tqdm import tqdm
-            pbar = tqdm(total=length, desc=name, unit='Check', leave=False, file=sys.stdout)
+            # Normal tqdm with colour in notebooks produce bug that the cleanup doesn't remove all characters. so
+            # until bug fixed, doesn't add the colour to regular tqdm
+            self.pbar = tqdm(**shared_args, bar_format=f'{{l_bar}}{{bar:{length}}}{{r_bar}}')
 
-            def set_text(text):
-                pbar.desc = text
+    def set_text(self, text):
+        self.pbar.set_postfix(Check=text)
 
-            def close():
-                pbar.close()
+    def close(self):
+        self.pbar.close()
 
-            def inc_progress():
-                pbar.update(1)
-
-        self.set_text = set_text
-        self.close = close
-        self.inc_progress = inc_progress
+    def inc_progress(self):
+        self.pbar.update(1)
 
 
 def get_display_exists_icon(exists: bool):

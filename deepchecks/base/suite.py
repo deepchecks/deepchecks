@@ -76,7 +76,7 @@ class CheckSuite(BaseCheck):
         results = []
         for check in self.checks.values():
             try:
-                progress_bar.set_text(f'Running {check.name()}')
+                progress_bar.set_text(check.name())
                 if isinstance(check, TrainTestBaseCheck):
                     if train_dataset is not None and test_dataset is not None:
                         check_result = check.run(train_dataset=train_dataset, test_dataset=test_dataset,
