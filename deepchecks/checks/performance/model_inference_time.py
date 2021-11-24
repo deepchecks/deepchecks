@@ -50,11 +50,10 @@ class ModelInferenceTimeCheck(TrainTestBaseCheck):
 
         assert df is not None, "Internal Error! 'dataset._features' var was not initialized!"  # pylint: disable=inconsistent-quotes
 
-        for _, series in df.iterrows():
-            features = series.array.reshape(1, -1) # type: ignore
+        for data in df.to_numpy(): # type: ignore
             timeing.append(timeit.timeit(
                 'predict(*args)',
-                globals={'predict': prediction_method, 'args': (features,)},
+                globals={'predict': prediction_method, 'args': (data.reshape(1, -1),)},
                 number=1
             ))
 
@@ -65,7 +64,7 @@ class ModelInferenceTimeCheck(TrainTestBaseCheck):
             f'equal to {format_number(result, floating_point=8)}'
         ))
 
-    def add_condition_inference_time_is_not_greater_than(self: MI, value: float) -> MI:
+    def add_condition_inference_time_is_not_greater_than(self: MI, value: float = 0.001) -> MI:
         """Add Condition.
 
         Add condition that will check average model inference time (in seconds)
