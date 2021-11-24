@@ -8,14 +8,14 @@ from hamcrest import assert_that, calling, raises, equal_to, has_items
 
 from deepchecks.base import Dataset
 from deepchecks.utils import DeepchecksValueError
-from deepchecks.checks.leakage import DataSampleLeakageReport
+from deepchecks.checks.methodology import TrainTestSamplesMix
 from tests.checks.utils import equal_condition_result
 
 
 def test_dataset_wrong_input():
     x = 'wrong_input'
     # Act & Assert
-    assert_that(calling(DataSampleLeakageReport().run).with_args(x, x),
+    assert_that(calling(TrainTestSamplesMix().run).with_args(x, x),
                 raises(DeepchecksValueError,
                 'dataset must be of type DataFrame or Dataset. instead got: str'))
 
@@ -34,7 +34,7 @@ def test_no_leakage(iris_clean):
                 features=iris_clean.feature_names,
                 label='target')
     # Arrange
-    check = DataSampleLeakageReport()
+    check = TrainTestSamplesMix()
     # Act X
     result = check.run(test_dataset=test_dataset, train_dataset=train_dataset).value
     # Assert
@@ -55,7 +55,7 @@ def test_leakage(iris_clean):
                 features=iris_clean.feature_names,
                 label='target')
     # Arrange
-    check = DataSampleLeakageReport()
+    check = TrainTestSamplesMix()
     # Act X
     result = check.run(test_dataset=test_dataset, train_dataset=train_dataset).value
     # Assert
@@ -68,7 +68,7 @@ def test_nan():
     test_dataset = Dataset(pd.DataFrame({'col1': [2, np.nan, np.nan, np.nan], 'col2': [1, 1, 2, 1]}),
                                  label='col2')
     # Arrange
-    check = DataSampleLeakageReport()
+    check = TrainTestSamplesMix()
     # Act X
     result = check.run(test_dataset=test_dataset, train_dataset=train_dataset).value
     # Assert
@@ -91,7 +91,7 @@ def test_condition_ratio_not_greater_than_not_passed(iris_clean):
                 features=iris_clean.feature_names,
                 label='target')
 
-    check = DataSampleLeakageReport().add_condition_duplicates_ratio_not_greater_than(max_ratio=0.09)
+    check = TrainTestSamplesMix().add_condition_duplicates_ratio_not_greater_than(max_ratio=0.09)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
@@ -108,7 +108,7 @@ def test_condition_ratio_not_greater_than_not_passed(iris_clean):
 def test_condition_ratio_not_greater_than_passed(diabetes_split_dataset_and_model):
     # Arrange
     train_ds, val_ds, clf = diabetes_split_dataset_and_model
-    check = DataSampleLeakageReport().add_condition_duplicates_ratio_not_greater_than()
+    check = TrainTestSamplesMix().add_condition_duplicates_ratio_not_greater_than()
 
     # Act
     result = check.conditions_decision(check.run(train_ds, val_ds, clf))
