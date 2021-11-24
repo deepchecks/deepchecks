@@ -1,4 +1,4 @@
-"""Module contains all integrity checks."""
+"""Module contains all data integrity checks."""
 from .mixed_nulls import *
 from .string_mismatch import *
 from .mixed_types import *

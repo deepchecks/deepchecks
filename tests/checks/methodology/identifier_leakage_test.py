@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 from deepchecks import Dataset
-from deepchecks.checks.leakage.identifier_leakage import IdentifierLeakage
+from deepchecks.checks.methodology.identifier_leakage import IdentifierLeakage
 from deepchecks.utils import DeepchecksValueError
 
 from hamcrest import assert_that, is_in, close_to, calling, raises, has_items

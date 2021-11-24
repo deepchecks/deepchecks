@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.checks.drift.trust_score import TrustScore
-from deepchecks.checks.drift.preprocessing import preprocess_dataset_to_scaled_numerics
+from deepchecks.checks.distribution.trust_score import TrustScore
+from deepchecks.checks.distribution.preprocessing import preprocess_dataset_to_scaled_numerics
 from deepchecks.metric_utils import task_type_check, ModelType
 from deepchecks.string_utils import format_percent
 from deepchecks.utils import DeepchecksValueError, model_type_validation

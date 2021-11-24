@@ -11,7 +11,7 @@ import pandas as pd
 
 pd.options.mode.chained_assignment = None
 
-__all__ = ['DataSampleLeakageReport']
+__all__ = ['TrainTestSamplesMix']
 
 
 def get_dup_indexes_map(df: pd.DataFrame, columns: List) -> Dict:
@@ -54,7 +54,7 @@ def get_dup_txt(i: int, dup_map: Dict) -> str:
     return f'{txt[:30]}.. Tot. {(1 + len(val))}'
 
 
-class DataSampleLeakageReport(TrainTestBaseCheck):
+class TrainTestSamplesMix(TrainTestBaseCheck):
     """Detect samples in the test data that appear also in training data."""
 
     def run(self, train_dataset: Dataset, test_dataset: Dataset,  model=None) -> CheckResult:
@@ -117,7 +117,7 @@ class DataSampleLeakageReport(TrainTestBaseCheck):
                      of test data samples appear in train data'
         display = [user_msg, duplicate_rows_df.head(10)] if dup_ratio else None
 
-        return CheckResult(dup_ratio, header='Data Sample Leakage Report', check=self.__class__, display=display)
+        return CheckResult(dup_ratio, header='Train Test Samples Mix', check=self.__class__, display=display)
 
     def add_condition_duplicates_ratio_not_greater_than(self, max_ratio: float = 0.1):
         """Add condition - require max allowed ratio of test data samples to appear in train data.
