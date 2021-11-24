@@ -33,7 +33,7 @@ def test_model_inference_time_check_with_condition_that_should_pass(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, object]
 ):
     train, test, model = iris_split_dataset_and_model
-    check = ModelInferenceTimeCheck().add_condition_inference_time_is_greater_than(0.1)
+    check = ModelInferenceTimeCheck().add_condition_inference_time_is_not_greater_than(0.1)
 
     result = check.run(train, test, model)
     condition_result, *_ = check.conditions_decision(result)
@@ -55,7 +55,7 @@ def test_model_inference_time_check_with_condition_that_should_not_pass(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, object]
 ):
     train, test, model = iris_split_dataset_and_model
-    check = ModelInferenceTimeCheck().add_condition_inference_time_is_greater_than(0.0001)
+    check = ModelInferenceTimeCheck().add_condition_inference_time_is_not_greater_than(0.0001)
 
     result = check.run(train, test, model)
     condition_result, *_ = check.conditions_decision(result)
