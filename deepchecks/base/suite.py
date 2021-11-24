@@ -1,10 +1,7 @@
 """Module containing the Suite object, used for running a set of checks together."""
 # pylint: disable=broad-except
-import time
 from collections import OrderedDict
 from typing import Union, List
-
-from IPython.core.display import display
 
 from deepchecks.base.check import BaseCheck, CheckResult, TrainTestBaseCheck, CompareDatasetsBaseCheck, \
     SingleDatasetBaseCheck, ModelOnlyBaseCheck, CheckFailure
@@ -13,7 +10,7 @@ __all__ = ['CheckSuite', 'SuiteResult']
 
 from deepchecks.base.display_suite import display_suite_result, ProgressBar
 
-from deepchecks.utils import DeepchecksValueError, is_widgets_enabled
+from deepchecks.utils import DeepchecksValueError
 
 
 class SuiteResult:
@@ -155,7 +152,3 @@ class CheckSuite(BaseCheck):
             raise DeepchecksValueError(f'No index {index} in suite')
         self.checks.pop(index)
         return self
-
-    def _display_widget(self, param):
-        if is_widgets_enabled():
-            display(param)
