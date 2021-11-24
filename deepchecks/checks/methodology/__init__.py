@@ -1,4 +1,4 @@
-"""Module contains check of overall overview of datasets and model."""
+"""Module contains checks of methodological flaws in the model building process"""
 from .performance_overfit import *
 from .boosting_overfit import *
 from .unused_features import *

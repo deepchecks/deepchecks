@@ -1,1 +1,1 @@
-"""Module containing all distribution checks."""
+"""Module containing all data distribution checks."""
