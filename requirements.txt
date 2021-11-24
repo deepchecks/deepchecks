@@ -10,3 +10,4 @@ matplotlib>=3.3.3
 shap>=0.39.0
 ipywidgets>=7.6.5
 scipy>=1.5.0
+tqdm>=4.62.3

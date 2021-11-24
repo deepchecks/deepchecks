@@ -1,5 +1,6 @@
 """Module containing the Suite object, used for running a set of checks together."""
 # pylint: disable=broad-except
+import time
 from collections import OrderedDict
 from typing import Union, List
 
@@ -11,7 +12,7 @@ from deepchecks.base.check import BaseCheck, CheckResult, TrainTestBaseCheck, Co
 
 __all__ = ['CheckSuite', 'SuiteResult']
 
-from deepchecks.base.display_suite import display_suite_result_2
+from deepchecks.base.display_suite import display_suite_result_2, ProgressBar
 
 from deepchecks.utils import DeepchecksValueError, is_widgets_enabled
 
@@ -73,17 +74,13 @@ class CheckSuite(BaseCheck):
             raise ValueError('check_datasets_policy must be one of ["both", "train", "test"]')
 
         # Create progress bar
-        progress_bar = IntProgress(value=0, min=0, max=len(self.checks),
-                                   bar_style='info', style={'bar_color': '#9d60fb'}, orientation='horizontal')
-        label = HTML()
-        box = VBox(children=[label, progress_bar])
-        self._display_widget(box)
+        progress_bar = ProgressBar(self.name, len(self.checks))
 
         # Run all checks
         results = []
         for check in self.checks.values():
             try:
-                label.value = f'Running {str(check)}'
+                progress_bar.set_text(f'Running {check.name()}')
                 if isinstance(check, TrainTestBaseCheck):
                     if train_dataset is not None and test_dataset is not None:
                         check_result = check.run(train_dataset=train_dataset, test_dataset=test_dataset,
@@ -116,12 +113,10 @@ class CheckSuite(BaseCheck):
                     raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
             except Exception as exp:
                 results.append(CheckFailure(check.__class__, exp))
-            progress_bar.value = progress_bar.value + 1
+            time.sleep(1)
+            progress_bar.inc_progress()
 
         progress_bar.close()
-        label.close()
-        box.close()
-
         return SuiteResult(self.name, results)
 
     def __repr__(self, tabs=0):
