@@ -1,16 +1,21 @@
 """Module containing the Suite object, used for running a set of checks together."""
 # pylint: disable=broad-except
 from collections import OrderedDict
-from typing import Union, List
+from typing import Union, List, Optional
 
-from deepchecks.base.check import BaseCheck, CheckResult, TrainTestBaseCheck, CompareDatasetsBaseCheck, \
-    SingleDatasetBaseCheck, ModelOnlyBaseCheck, CheckFailure
-
-__all__ = ['CheckSuite', 'SuiteResult']
+from IPython.core.display import display
+from ipywidgets import IntProgress, HTML, VBox
 
 from deepchecks.base.display_suite import display_suite_result, ProgressBar
+from deepchecks.utils import DeepchecksValueError, is_widgets_enabled
+from deepchecks.base import Dataset
+from deepchecks.base.check import (
+    BaseCheck, CheckResult, TrainTestBaseCheck, CompareDatasetsBaseCheck,
+    SingleDatasetBaseCheck, ModelOnlyBaseCheck, CheckFailure
+)
 
-from deepchecks.utils import DeepchecksValueError
+
+__all__ = ['CheckSuite', 'SuiteResult']
 
 
 class SuiteResult:
@@ -48,8 +53,13 @@ class CheckSuite(BaseCheck):
         for check in checks:
             self.add(check)
 
-    def run(self, model=None, train_dataset=None, test_dataset=None, check_datasets_policy: str = 'test') \
-            -> SuiteResult:
+    def run(
+        self,
+        train_dataset: Optional[Dataset] = None,
+        test_dataset: Optional[Dataset] = None,
+        model: object = None,
+        check_datasets_policy: str = 'test'
+    ) -> SuiteResult:
         """Run all checks.
 
         Args:
@@ -68,6 +78,9 @@ class CheckSuite(BaseCheck):
         """
         if check_datasets_policy not in ['both', 'train', 'test']:
             raise ValueError('check_datasets_policy must be one of ["both", "train", "test"]')
+
+        if all(it is None for it in (train_dataset, test_dataset, model)):
+            raise ValueError('At least one dataset (or model) must be passed to the method!')
 
         # Create progress bar
         progress_bar = ProgressBar(self.name, len(self.checks))
@@ -133,8 +146,12 @@ class CheckSuite(BaseCheck):
             check (BaseCheck): A check or suite to add.
         """
         if not isinstance(check, BaseCheck):
-            raise Exception(f'CheckSuite receives only `BaseCheck` objects but got: {check.__class__.__name__}')
+            raise DeepchecksValueError(
+                f'CheckSuite receives only `BaseCheck` objects but got: {check.__class__.__name__}'
+            )
         if isinstance(check, CheckSuite):
+            if check is self:
+                return self
             for c in check.checks.values():
                 self.add(c)
         else:
