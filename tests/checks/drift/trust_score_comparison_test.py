@@ -53,7 +53,7 @@ def test_condition_mean_score_percent_decline_pass():
     ))
 
 
-def test_sample_size_to_small(iris_split_dataset_and_model):
+def test_sample_size_too_small(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
     check = TrustScoreComparison(min_test_samples=500)
