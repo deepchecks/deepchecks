@@ -11,6 +11,9 @@ from deepchecks.feature_importance_utils import calculate_feature_importance_or_
 
 __all__ = ['DominantFrequencyChange']
 
+from deepchecks.string_utils import format_percent
+from deepchecks.utils import DeepchecksValueError
+
 
 class DominantFrequencyChange(CompareDatasetsBaseCheck):
     """Check if dominant values have increased significantly between test and reference data."""
@@ -20,9 +23,9 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
         """Initialize the DominantFrequencyChange class.
 
         Args:
-            dominance_ratio (float = 2): Next most abundance value has to be THIS times less than the first (0-inf).
+            dominance_ratio (float = 2): Next most abundant value has to be THIS times less than the first (0-inf).
             ratio_change_thres (float = 1.5): The dominant frequency has to change by at least this ratio (0-inf).
-            n_top_columns (int): (optinal - used only if model was specified)
+            n_top_columns (int): (optional - used only if model was specified)
               amount of columns to show ordered by feature importance (date, index, label are first)
         """
         super().__init__()
@@ -133,11 +136,11 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
                     count_test = top_test[value]
                     count_ref = top_ref.get(value, 0)
                     p_dict[column] = {'Value': value,
-                                    'Reference data %': count_ref / baseline_len * 100,
-                                    'Tested data %': count_test / test_len * 100,
-                                    'Reference data #': count_ref,
-                                    'Tested data #': count_test,
-                                    'P value': p_val}
+                                      'Reference data %': count_ref / baseline_len * 100,
+                                      'Tested data %': count_test / test_len * 100,
+                                      'Reference data #': count_ref,
+                                      'Tested data #': count_test,
+                                      'P value': p_val}
 
         if len(p_dict):
             sorted_p_df = pd.DataFrame.from_dict(p_dict, orient='index')
@@ -168,4 +171,31 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
                 return ConditionResult(True)
 
         return self.add_condition(f'P value not less than {p_value_threshold}',
+                                  condition)
+
+    def add_condition_ratio_of_change_not_more_than(self, percent_change_threshold: float = 0.25):
+        """Add condition - require change in the ratio of the dominant value to be below the threshold.
+
+        Args:
+            percent_change_threshold (float): The maximal change in the ratio out of data between training data and
+             test data that the dominant value is allowed to change
+        """
+        if percent_change_threshold < 0 or percent_change_threshold > 1:
+            raise DeepchecksValueError(f'percent_change_threshold should be between 0 and 1,'
+                                       f' found {percent_change_threshold}')
+
+        def condition(result: Dict) -> ConditionResult:
+            failed_columns = []
+            for column, values in result.items():
+                diff = values['Tested data %'] - values['Reference data %']
+                if diff > percent_change_threshold:
+                    failed_columns.append(column)
+            if failed_columns:
+                return ConditionResult(False,
+                                       f'Found columns with high change in dominant value: {failed_columns}')
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'Change in ratio of dominant value in data not more'
+                                  f' than {format_percent(percent_change_threshold)}',
                                   condition)
