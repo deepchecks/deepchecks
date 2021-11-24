@@ -1,4 +1,4 @@
-"""The predefined Leakage suite module."""
+"""The predefined methodological flaws suite module."""
 from deepchecks import CheckSuite
 from deepchecks.checks.methodology import (
     TrainTestSamplesMix,
