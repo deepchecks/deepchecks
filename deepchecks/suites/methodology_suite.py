@@ -90,18 +90,19 @@ def overfit_check_suite() -> CheckSuite:
         'Overfit Check Suite',
         TrainTestDifferenceOverfit().add_condition_percentage_degradation_not_greater_than(),
         BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(),
-        UnusedFeatures().add_condition_number_of_high_variance_unused_features_not_greater_than()
     )
+
 
 def methodological_flaws_check_suite() -> CheckSuite:
     """Create 'Methodology Flaws Check Suite'.
 
     The suite runs a set of checks that are meant to detect methodological flaws in the model building process.
 
-    The suite includes 'Leakage Check Suite', 'Overfit Check Suite'
+    The suite includes 'Leakage Check Suite', 'Overfit Check Suite', 'UnusedFeatures check'
     """
     return CheckSuite(
         'Methodological Flaws Check Suite',
         leakage_check_suite(),
         overfit_check_suite(),
+        UnusedFeatures().add_condition_number_of_high_variance_unused_features_not_greater_than()
     )
