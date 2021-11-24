@@ -180,7 +180,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
         footnote = """<span style="font-size:0.8em"><i>
             The test trust score distribution should be quite similar to the train's. If it is skewed to the left, the 
             confidence of the model in the test data is lower than the train, indicating a difference that may affect
-            model performance on similar data. If it is skewed to the right, it indicates an underlying problem 
+            model performance on similar data. If it is skewed to the right, it indicates an underlying problem with the creation of the test dataset
             (test confidence isn't expected to be higher than train's).
             </i></span>"""
         display = [display_plot, footnote, '<h5>Worst Trust Score Samples</h5>', bottom_k,
