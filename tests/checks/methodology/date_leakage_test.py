@@ -9,7 +9,7 @@ import pandas as pd
 from hamcrest import assert_that, close_to, calling, raises, equal_to, has_items
 
 from deepchecks import Dataset
-from deepchecks.checks.leakage import DateTrainTestLeakageOverlap, DateTrainTestLeakageDuplicates
+from deepchecks.checks.methodology import DateTrainTestLeakageOverlap, DateTrainTestLeakageDuplicates
 from deepchecks.utils import DeepchecksValueError
 from tests.checks.utils import equal_condition_result
 

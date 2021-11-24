@@ -5,7 +5,7 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
 
 from deepchecks import Dataset
-from deepchecks.checks.overfit.boosting_overfit import BoostingOverfit
+from deepchecks.checks.methodology.boosting_overfit import BoostingOverfit
 from hamcrest import assert_that, close_to, has_length
 
 from tests.checks.utils import equal_condition_result
