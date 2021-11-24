@@ -1,4 +1,4 @@
-"""Module contains checks for methodological flaws in the model building process"""
+"""Module contains checks for methodological flaws in the model building process."""
 from .performance_overfit import *
 from .boosting_overfit import *
 from .unused_features import *
