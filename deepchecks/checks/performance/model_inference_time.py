@@ -31,7 +31,7 @@ class ModelInferenceTimeCheck(TrainTestBaseCheck):
 
         Raises:
             DeepchecksValueError: If the 'test_dataset' is not a 'Dataset' instance with a label or
-                if 'model' is not an instance of the 'BaseEstimator' or 'CatBoost'
+                if 'model' is not a scikit-learn-compatible fitted estimator instance
 
         """
         return self._model_inference_time_check(test_dataset, model)
