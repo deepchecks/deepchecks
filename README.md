@@ -31,7 +31,7 @@ Each check can have two types of results:
 
 ### Condition
 A condition is a function that can be added to a Check, which returns a pass &#x2713;, fail &#x2716;
-or warning &#x0021; result, intended for validation the Check's return value. An example for adding a condition would be:
+or warning &#x0021; result, intended for validating the Check's return value. An example for adding a condition would be:
 ```python
 from deepchecks.checks import BoostingOverfit
 BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(threshold=0.05)
