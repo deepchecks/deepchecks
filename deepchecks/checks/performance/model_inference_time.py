@@ -83,6 +83,6 @@ class ModelInferenceTimeCheck(TrainTestBaseCheck):
                 return ConditionResult(True)
 
         return self.add_condition(condition_func=condition, name=(
-            'Average model inference time of one sample is not '
+            'Average model inference time for one sample is not '
             f'greater than {format_number(value, floating_point=8)}'
         ))
