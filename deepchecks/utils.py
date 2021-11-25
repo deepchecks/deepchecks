@@ -62,7 +62,7 @@ def is_widgets_enabled():
                 # disabled and enabled, regard it as disabled
                 output = subprocess.getoutput('jupyter nbextension list').split('\n')
                 disabled_regex = re.compile(r'\s*(jupyter-js-widgets/extension).*(disabled).*')
-                enabled_regex = re.compile(r'\s*(jupyter-js-widgets/extension).*(disabled).*')
+                enabled_regex = re.compile(r'\s*(jupyter-js-widgets/extension).*(enabled).*')
                 found_disabled = any((disabled_regex.match(s) for s in output))
                 found_enabled = any((enabled_regex.match(s) for s in output))
                 return not found_disabled and found_enabled
