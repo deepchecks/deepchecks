@@ -1,6 +1,7 @@
 """Handle display of suite result."""
-# pylint: disable=protected-access,import-outside-toplevel
+# pylint: disable=protected-access
 import sys
+import tqdm
 from typing import List, Union
 
 from IPython.core.display import display_html
@@ -20,13 +21,11 @@ class ProgressBar:
         """Initialize progress bar."""
         shared_args = {'total': length, 'desc': name, 'unit': ' Check', 'leave': False, 'file': sys.stdout}
         if is_widgets_enabled():
-            from tqdm.notebook import tqdm
-            self.pbar = tqdm(**shared_args, colour='#9d60fb')
+            self.pbar = tqdm.tqdm_notebook(**shared_args, colour='#9d60fb')
         else:
-            from tqdm import tqdm
             # Normal tqdm with colour in notebooks produce bug that the cleanup doesn't remove all characters. so
             # until bug fixed, doesn't add the colour to regular tqdm
-            self.pbar = tqdm(**shared_args, bar_format=f'{{l_bar}}{{bar:{length}}}{{r_bar}}')
+            self.pbar = tqdm.tqdm(**shared_args, bar_format=f'{{l_bar}}{{bar:{length}}}{{r_bar}}')
 
     def set_text(self, text):
         """Set current running check."""
