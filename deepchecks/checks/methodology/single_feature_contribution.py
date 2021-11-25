@@ -21,14 +21,11 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
 
     Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
 
+    Args:
+        ppscore_params (dict): dictionary of additional parameters for the ppscore.predictors function
     """
 
     def __init__(self, ppscore_params=None, n_show_top: int = 5):
-        """Initialize the SingleFeatureContribution check.
-
-        Args:
-            ppscore_params (dict): dictionary of additional parameters for the ppscore.predictors function
-        """
         super().__init__()
         self.ppscore_params = ppscore_params
         self.n_show_top = n_show_top

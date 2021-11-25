@@ -9,14 +9,13 @@ __all__ = ['IndexTrainTestLeakage']
 
 
 class IndexTrainTestLeakage(TrainTestBaseCheck):
-    """Check if test indexes are present in train data."""
+    """Check if test indexes are present in train data.
+
+    Args:
+        n_index_to_show (int): Number of common indexes to show.
+    """
 
     def __init__(self, n_index_to_show: int = 5):
-        """Initialize the IndexTrainTestLeakage check.
-
-        Args:
-            n_index_to_show (int): Number of common indexes to show.
-        """
         super().__init__()
         self.n_index_to_show = n_index_to_show
 

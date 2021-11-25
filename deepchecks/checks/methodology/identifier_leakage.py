@@ -15,14 +15,13 @@ __all__ = ['IdentifierLeakage']
 
 
 class IdentifierLeakage(SingleDatasetBaseCheck):
-    """Check if identifiers (Index/Date) can be used to predict the label."""
+    """Check if identifiers (Index/Date) can be used to predict the label.
+
+    Args:
+        ppscore_params: dictionary containing params to pass to ppscore predictor
+    """
 
     def __init__(self, ppscore_params=None):
-        """Initialize the IdentifierLeakage check.
-
-        Args:
-            ppscore_params: dictionary containing params to pass to ppscore predictor
-        """
         super().__init__()
         self.ppscore_params = ppscore_params
 
