@@ -67,7 +67,7 @@ class ModelInferenceTimeCheck(TrainTestBaseCheck):
     def add_condition_inference_time_is_not_greater_than(self: MI, value: float = 0.001) -> MI:
         """Add Condition.
 
-        Add condition that will check average model inference time (in seconds)
+        Add condition checking that the average model inference time (in seconds)
         per sample is not greater than X
 
         Args:
