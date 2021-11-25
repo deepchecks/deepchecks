@@ -3,6 +3,7 @@ from typing import Dict
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from deepchecks.checks.distribution.preprocessing import preprocess_dataset_to_scaled_numerics
 from deepchecks.string_utils import format_number
 
 from deepchecks import CheckResult, Dataset
@@ -23,6 +24,11 @@ class DummyModel:
     def predict_proba(a):
         return a
 
+def more_than_prefix_adder(number, max_number):
+        if number < max_number:
+            return format_number(number)
+        else:
+            return  'more than ' + format_number(number)
 
 def find_score(train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model,
               simple_model_type: str, metric = None, metric_name = None):
@@ -62,18 +68,19 @@ def find_score(train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model,
             simple_pred = np.array([counts.index[0]] * len(test_df))
 
     elif simple_model_type == 'tree':
-        x_train = train_ds.features_columns()
         y_train = train_ds.label_col()
-        x_test = test_ds.features_columns()
+        x_train, x_test = preprocess_dataset_to_scaled_numerics(
+            baseline_features= train_ds.features_columns(),
+            test_features=test_ds.features_columns(),
+            categorical_columns=test_ds.cat_features,
+            max_num_categories=10
+        )
 
         if task_type == ModelType.REGRESSION:
-            clf = DecisionTreeRegressor()
-            clf = clf.fit(x_train, y_train)
-            simple_pred = clf.predict(x_test)
-
+            clf = DecisionTreeRegressor(max_depth=3, random_state=42)
         elif task_type in (ModelType.BINARY, ModelType.MULTICLASS):
-
-            clf = DecisionTreeClassifier()
+            clf = DecisionTreeClassifier(max_depth=3, random_state=42, class_weight="balanced")
+        if clf:
             clf = clf.fit(x_train, y_train)
             simple_pred = clf.predict(x_test)
 
@@ -99,7 +106,7 @@ def find_score(train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model,
 class SimpleModelComparison(TrainTestBaseCheck):
     """Compare given model score to simple model score."""
 
-    def __init__(self, simple_model_type: str = 'constant', metric=None, metric_name=None, maximum_ratio: int = 10):
+    def __init__(self, simple_model_type: str = 'constant', metric=None, metric_name=None, maximum_ratio: int = 50):
         """Initialize the SimpleModelComparison check.
 
         Args:
@@ -147,7 +154,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
 
         ratio = get_metrics_ratio(simple_metric, pred_metric, self.maximum_ratio)
 
-        text = f'The given model performs {format_number(ratio)} times compared to' \
+        text = f'The given model performs {more_than_prefix_adder(ratio, self.maximum_ratio)} times compared to' \
                f' the simple model using the {metric_name} metric.<br>' \
                f'{type(model).__name__} model prediction has achieved a score of {format_number(pred_metric)} ' \
                f'compared to Simple {self.simple_model_type} prediction ' \
@@ -176,7 +183,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
             ratio = result['ratio']
             if ratio < min_allowed_ratio:
                 return ConditionResult(False,
-                                       f'The given model performs {format_number(ratio)} times compared'
+                                       f'The given model performs {more_than_prefix_adder(ratio, self.maximum_ratio)} times compared'
                                        f'to the simple model using the given metric')
             else:
                 return ConditionResult(True)

@@ -5,7 +5,7 @@ from deepchecks.checks.performance import (
     PerformanceReport,
     ConfusionMatrixReport,
     RocReport,
-    NaiveModelComparison,
+    SimpleModelComparison,
     CalibrationMetric
 
 )
@@ -52,7 +52,7 @@ def generic_performance_check_suite() -> CheckSuite:
     return CheckSuite(
         'Generic Performance Suite',
         PerformanceReport(),
-        NaiveModelComparison().add_condition_ratio_not_less_than()
+        SimpleModelComparison().add_condition_ratio_not_less_than()
     )
 
 
