@@ -29,22 +29,21 @@ def is_stringed_type(col):
 
 
 class SpecialCharacters(SingleDatasetBaseCheck):
-    """Search in column[s] for values that contains only special characters."""
+    """Search in column[s] for values that contains only special characters.
+
+    Args:
+        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
+        ones.
+        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
+        variable.
+        n_most_common (int): Number of most common special-only samples to show in results
+        n_top_columns (int): (optinal - used only if model was specified)
+          amount of columns to show ordered by feature importance (date, index, label are first)
+    """
 
     def __init__(self, columns: Union[str, Iterable[str]] = None,
                  ignore_columns: Union[str, Iterable[str]] = None,
                  n_most_common: int = 2, n_top_columns: int = 10):
-        """Initialize the SpecialCharacters check.
-
-        Args:
-            columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-            ones.
-            ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-            variable
-            n_most_common (int): Number of most common special-only samples to show in results
-            n_top_columns (int): (optinal - used only if model was specified)
-              amount of columns to show ordered by feature importance (date, index, label are first)
-        """
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns

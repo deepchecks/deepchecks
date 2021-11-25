@@ -16,20 +16,19 @@ from deepchecks.string_utils import is_string_column, format_percent, format_col
 
 
 class MixedTypes(SingleDatasetBaseCheck):
-    """Search for various types of data in (a) column[s], including hidden mixes in strings."""
+    """Search for various types of data in (a) column[s], including hidden mixes in strings.
+
+    Args:
+        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
+          ones.
+        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
+          variable.
+        n_top_columns (int): (optinal - used only if model was specified)
+          amount of columns to show ordered by feature importance (date, index, label are first)
+    """
 
     def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
                  n_top_columns: int = 10):
-        """Initialize the MixedTypes check.
-
-        Args:
-            columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-              ones.
-            ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-              variable.
-            n_top_columns (int): (optinal - used only if model was specified)
-              amount of columns to show ordered by feature importance (date, index, label are first)
-        """
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns

@@ -22,14 +22,16 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
         """Run check.
 
         Args:
-            train_dataset: a dataset that was used to train the model
-            test_dataset: a dataset to validate the model correctness
-            model: a model to measure inference time
+            dataset (Dataset): samples that will be used to measure inference time
+            model (BaseEstimator): a model to measure inference time
+
+        Returns:
+            CheckResult:
+                value is of the type 'float'
 
         Raises:
             DeepchecksValueError: If the 'test_dataset' is not a 'Dataset' instance with a label or
                 if 'model' is not a scikit-learn-compatible fitted estimator instance
-
         """
         return self._model_inference_time_check(dataset, model)
 

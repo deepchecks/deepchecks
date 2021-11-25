@@ -8,14 +8,13 @@ __all__ = ['DateTrainTestLeakageDuplicates']
 
 
 class DateTrainTestLeakageDuplicates(TrainTestBaseCheck):
-    """Check if test dates are present in train data."""
+    """Check if test dates are present in train data.
+
+    Args:
+        n_to_show (int): Number of common dates to show.
+    """
 
     def __init__(self, n_to_show: int = 5):
-        """Initialize the DateTrainTestLeakageDuplicates check.
-
-        Args:
-            n_to_show (int): Number of common dates to show.
-        """
         super().__init__()
         self.n_to_show = n_to_show
 

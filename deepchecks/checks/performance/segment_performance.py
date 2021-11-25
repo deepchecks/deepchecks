@@ -14,7 +14,15 @@ __all__ = ['SegmentPerformance']
 
 
 class SegmentPerformance(SingleDatasetBaseCheck):
-    """Display performance metric segmented by 2 top (or given) features in a heatmap."""
+    """Display performance metric segmented by 2 top (or given) features in a heatmap.
+
+    Args:
+        feature_1 (str): feature to segment by on y-axis.
+        feature_2 (str): feature to segment by on x-axis.
+        metric (Union[str, Callable]): Metric to show, either function or sklearn scorer name. If no metric is given
+            a default metric (per the model type) will be used.
+        max_segments (int): maximal number of segments to split the a values into.
+    """
 
     feature_1: str
     feature_2: str
@@ -23,15 +31,6 @@ class SegmentPerformance(SingleDatasetBaseCheck):
 
     def __init__(self, feature_1: str = None, feature_2: str = None, metric: Union[str, Callable] = None,
                  max_segments: int = 10):
-        """Initialize segment performance check.
-
-        Args:
-            feature_1 (str): feature to segment by on y-axis.
-            feature_2 (str): feature to segment by on x-axis.
-            metric (Union[str, Callable]): Metric to show, either function or sklearn scorer name. If no metric is given
-                a default metric (per the model type) will be used.
-            max_segments (int): maximal number of segments to split the a values into.
-        """
         super().__init__()
 
         # if they're both none it's ok
