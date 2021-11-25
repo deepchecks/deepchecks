@@ -22,7 +22,7 @@ def test_model_inference_time_check(
     assert_that(result.display, only_contains(instance_of(str))) # type: ignore
 
     details_pattern = (
-        r'Average model inference time of one sample \(in seconds\) '
+        r'Average model inference time for one sample \(in seconds\) '
         fr'equal to {SCIENTIFIC_NOTATION_REGEXP.pattern}'
     )
 
@@ -39,7 +39,7 @@ def test_model_inference_time_check_with_condition_that_should_pass(
     condition_result, *_ = check.conditions_decision(result)
 
     name = (
-        'Average model inference time of one sample is not '
+        'Average model inference time for one sample is not '
         'greater than 0.1'
     )
 
@@ -61,11 +61,11 @@ def test_model_inference_time_check_with_condition_that_should_not_pass(
     condition_result, *_ = check.conditions_decision(result)
 
     name = (
-        'Average model inference time of one sample is not '
+        'Average model inference time for one sample is not '
         'greater than 1e-08'
     )
     details_pattern = re.compile(
-        r'Average model inference time of one sample \(in seconds\) '
+        r'Average model inference time for one sample \(in seconds\) '
         fr'is greater than {SCIENTIFIC_NOTATION_REGEXP.pattern}'
     )
 

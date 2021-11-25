@@ -57,15 +57,12 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
         result = result / self.NUMBER_OF_SAMPLES
 
         return CheckResult(value=result, check=type(self), display=(
-            'Average model inference time of one sample (in seconds) '
+            'Average model inference time for one sample (in seconds) '
             f'equal to {format_number(result, floating_point=8)}'
         ))
 
     def add_condition_inference_time_is_not_greater_than(self: MI, value: float = 0.001) -> MI:
-        """Add condition.
-
-        Checking that the average model inference time (in seconds)
-        per sample is not greater than X
+        """Add condition - checking that the average model inference time (in seconds) per sample is not greater than X.
 
         Args:
             value: condition threshold
@@ -73,7 +70,7 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
         def condition(avarage_time: float) -> ConditionResult:
             if avarage_time >= value:
                 return ConditionResult(False, details=(
-                    'Average model inference time of one sample (in seconds) '
+                    'Average model inference time for one sample (in seconds) '
                     f'is greater than {format_number(value, floating_point=8)}'
                 ))
             else:
