@@ -472,7 +472,7 @@ class Dataset:
                                        f'{type(obj).__name__}')
         if len(obj.data) == 0:
             raise DeepchecksValueError(f'Check {check_name} required a non-empty dataset')
-
+        
         return obj
 
 

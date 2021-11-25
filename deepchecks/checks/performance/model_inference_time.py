@@ -2,8 +2,8 @@
 import typing as t
 import timeit
 
-from deepchecks import TrainTestBaseCheck, CheckResult, Dataset, ConditionResult
-from deepchecks.utils import model_type_validation
+from deepchecks import SingleDatasetBaseCheck, CheckResult, Dataset, ConditionResult
+from deepchecks.utils import model_type_validation, DeepchecksValueError
 from deepchecks.string_utils import format_number
 
 
@@ -13,15 +13,12 @@ __all__ = ['ModelInferenceTimeCheck']
 MI = t.TypeVar('MI', bound='ModelInferenceTimeCheck')
 
 
-class ModelInferenceTimeCheck(TrainTestBaseCheck):
+class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
     """Measure model average inference time (in seconds) per sample."""
 
-    def run(
-        self,
-        train_dataset: t.Optional[Dataset],
-        test_dataset: Dataset,
-        model: object
-    ) -> CheckResult:
+    NUMBER_OF_SAMPLES: t.ClassVar[int] = 1000
+
+    def run(self, dataset: Dataset, model: object) -> CheckResult:
         """Run check.
 
         Args:
@@ -34,30 +31,30 @@ class ModelInferenceTimeCheck(TrainTestBaseCheck):
                 if 'model' is not an instance of the 'BaseEstimator' or 'CatBoost'
 
         """
-        return self._model_inference_time_check(test_dataset, model)
+        return self._model_inference_time_check(dataset, model)
 
     def _model_inference_time_check(
         self,
-        test_dataset: Dataset,
+        dataset: Dataset,
         model: object # TODO: find more precise type for model
     ) -> CheckResult:
-        Dataset.validate_dataset(test_dataset, type(self).__name__)
+        check_name = type(self).__name__
+        Dataset.validate_dataset(dataset, check_name)
         model_type_validation(model)
 
-        timeing = []
+        if dataset.features_columns() is None:
+            raise DeepchecksValueError(f'Check {check_name} requires dataset with the features!')
+
         prediction_method = model.predict # type: ignore
-        df = test_dataset.features_columns()
+        df = dataset.features_columns()[:self.NUMBER_OF_SAMPLES] # type: ignore
 
-        assert df is not None, "Internal Error! 'dataset._features' var was not initialized!"  # pylint: disable=inconsistent-quotes
+        result = timeit.timeit(
+            'predict(*args)',
+            globals={'predict': prediction_method, 'args': (df.to_numpy(),)},
+            number=1
+        )
 
-        for data in df.to_numpy(): # type: ignore
-            timeing.append(timeit.timeit(
-                'predict(*args)',
-                globals={'predict': prediction_method, 'args': (data.reshape(1, -1),)},
-                number=1
-            ))
-
-        result = sum(timeing) / len(timeing)
+        result = result / self.NUMBER_OF_SAMPLES
 
         return CheckResult(value=result, check=type(self), display=(
             'Average model inference time of one sample (in seconds) '
@@ -65,9 +62,7 @@ class ModelInferenceTimeCheck(TrainTestBaseCheck):
         ))
 
     def add_condition_inference_time_is_not_greater_than(self: MI, value: float = 0.001) -> MI:
-        """Add Condition.
-
-        Add condition that will check average model inference time (in seconds)
+        """Add Condition - add condition that will check average model inference time (in seconds)
         per sample is not greater than X
 
         Args:

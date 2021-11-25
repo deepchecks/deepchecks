@@ -11,10 +11,10 @@ from tests.checks.utils import equal_condition_result, SCIENTIFIC_NOTATION_REGEX
 def test_model_inference_time_check(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, object]
 ):
-    train, test, model = iris_split_dataset_and_model
+    _, test, model = iris_split_dataset_and_model
     check = ModelInferenceTimeCheck()
 
-    result = check.run(train, test, model)
+    result = check.run(test, model)
 
     assert_that(result, instance_of(CheckResult))
     assert_that(result.value, instance_of(float))
@@ -32,10 +32,10 @@ def test_model_inference_time_check(
 def test_model_inference_time_check_with_condition_that_should_pass(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, object]
 ):
-    train, test, model = iris_split_dataset_and_model
+    _, test, model = iris_split_dataset_and_model
     check = ModelInferenceTimeCheck().add_condition_inference_time_is_not_greater_than(0.1)
 
-    result = check.run(train, test, model)
+    result = check.run(test, model)
     condition_result, *_ = check.conditions_decision(result)
 
     name = (
@@ -54,15 +54,15 @@ def test_model_inference_time_check_with_condition_that_should_pass(
 def test_model_inference_time_check_with_condition_that_should_not_pass(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, object]
 ):
-    train, test, model = iris_split_dataset_and_model
-    check = ModelInferenceTimeCheck().add_condition_inference_time_is_not_greater_than(0.0001)
+    _, test, model = iris_split_dataset_and_model
+    check = ModelInferenceTimeCheck().add_condition_inference_time_is_not_greater_than(0.00000001)
 
-    result = check.run(train, test, model)
+    result = check.run(test, model)
     condition_result, *_ = check.conditions_decision(result)
 
     name = (
         'Average model inference time of one sample is not '
-        'greater than 0.0001'
+        'greater than 1e-08'
     )
     details_pattern = re.compile(
         r'Average model inference time of one sample \(in seconds\) '
