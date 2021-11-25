@@ -1,16 +1,17 @@
-"""Module containing naive comparison check."""
+"""Module containing simple comparison check."""
 from typing import Dict
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from deepchecks.string_utils import format_number
 
 from deepchecks import CheckResult, Dataset
 from deepchecks.base.check import ConditionResult, TrainTestBaseCheck
 from deepchecks.metric_utils import DEFAULT_METRICS_DICT, DEFAULT_SINGLE_METRIC, task_type_check, ModelType, \
-    validate_scorer, get_metrics_ratio
+                                    validate_scorer, get_metrics_ratio
 from deepchecks.utils import model_type_validation
 
-__all__ = ['NaiveModelComparison']
+__all__ = ['SimpleModelComparison']
 
 
 class DummyModel:
@@ -24,17 +25,17 @@ class DummyModel:
 
 
 def find_score(train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model,
-              naive_model_type: str, metric = None, metric_name = None):
-    """Find the naive model score for given metric.
+              simple_model_type: str, metric = None, metric_name = None):
+    """Find the simple model score for given metric.
 
     Args:
         train_ds (Dataset): The training dataset object. Must contain an index.
         test_ds (Dataset): The test dataset object. Must contain an index.
         task_type (ModelType): the model type.
         model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
-        naive_model_type (str): Type of the naive model ['random', 'statistical'].
+        simple_model_type (str): Type of the simple model ['random', 'constant', 'tree'].
                                 random is random label from train,
-                                statistical is mean for regression or
+                                constant is mean for regression or
                                 the label that appears most often for classification
         metric: a custom metric given by user.
         metric_name: name of a default metric.
@@ -42,27 +43,43 @@ def find_score(train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model,
         float: p value for the key.
 
     Raises:
-        NotImplementedError: If the naive_model_type is not supported
+        NotImplementedError: If the simple_model_type is not supported
 
     """
     test_df = test_ds.data
 
     np.random.seed(0)
 
-    if naive_model_type == 'random':
-        naive_pred = np.random.choice(train_ds.label_col(), test_df.shape[0])
+    if simple_model_type == 'random':
+        simple_pred = np.random.choice(train_ds.label_col(), test_df.shape[0])
 
-    elif naive_model_type == 'statistical':
+    elif simple_model_type == 'constant':
         if task_type == ModelType.REGRESSION:
-            naive_pred = np.array([np.mean(train_ds.label_col())] * len(test_df))
+            simple_pred = np.array([np.mean(train_ds.label_col())] * len(test_df))
 
         elif task_type in (ModelType.BINARY, ModelType.MULTICLASS):
             counts = train_ds.label_col().mode()
-            naive_pred = np.array([counts.index[0]] * len(test_df))
+            simple_pred = np.array([counts.index[0]] * len(test_df))
+
+    elif simple_model_type == 'tree':
+        x_train = train_ds.features_columns()
+        y_train = train_ds.label_col()
+        x_test = test_ds.features_columns()
+
+        if task_type == ModelType.REGRESSION:
+            clf = DecisionTreeRegressor()
+            clf = clf.fit(x_train, y_train)
+            simple_pred = clf.predict(x_test)
+
+        elif task_type in (ModelType.BINARY, ModelType.MULTICLASS):
+
+            clf = DecisionTreeClassifier()
+            clf = clf.fit(x_train, y_train)
+            simple_pred = clf.predict(x_test)
 
     else:
-        raise NotImplementedError(f"expected to be one of ['random', 'statistical'] \
-                                   but instead got {naive_model_type}")
+        raise NotImplementedError(f"expected to be one of ['random', 'constant', 'tree'] \
+                                   but instead got {simple_model_type}")
 
     y_test = test_ds.label_col()
 
@@ -73,26 +90,26 @@ def find_score(train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model,
         metric_name = DEFAULT_SINGLE_METRIC[task_type]
         scorer = DEFAULT_METRICS_DICT[task_type][metric_name]
 
-    naive_metric = scorer(DummyModel, naive_pred, y_test)
+    simple_metric = scorer(DummyModel, simple_pred, y_test)
     pred_metric = scorer(model, test_ds.features_columns(), y_test)
 
-    return naive_metric, pred_metric, metric_name
+    return simple_metric, pred_metric, metric_name
 
 
-class NaiveModelComparison(TrainTestBaseCheck):
-    """Compare naive model score to given model score."""
+class SimpleModelComparison(TrainTestBaseCheck):
+    """Compare given model score to simple model score."""
 
-    def __init__(self, naive_model_type: str = 'statistical', metric=None, metric_name=None, maximum_ratio: int = 10):
-        """Initialize the NaiveModelComparison check.
+    def __init__(self, simple_model_type: str = 'constant', metric=None, metric_name=None, maximum_ratio: int = 10):
+        """Initialize the SimpleModelComparison check.
 
         Args:
-            naive_model_type (str = 'random'):  Type of the naive model ['random', 'statistical'].
+            simple_model_type (str = 'random'):  Type of the simple model ['random', 'constant', 'tree'].
             metric: a custom metric given by user.
             metric_name: name of a default metric.
             maximum_ratio: the ratio can be up to infinity so choose maximum value to limit to.
         """
         super().__init__()
-        self.naive_model_type = naive_model_type
+        self.simple_model_type = simple_model_type
         self.metric = metric
         self.metric_name = metric_name
         self.maximum_ratio = maximum_ratio
@@ -106,16 +123,16 @@ class NaiveModelComparison(TrainTestBaseCheck):
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
 
         Returns:
-            CheckResult: value is a Dict of: given_model_score, naive_model_score, ratio
-                         ratio is given model / naive model (if the metric returns negative values we devied 1 by it)
-                         if ratio is infinite 99999 is returned
+            CheckResult: value is a Dict of: given_model_score, simple_model_score, ratio
+                         ratio is given model / simple model (if the metric returns negative values we divide 1 by it)
+                         if ratio is infinite max_ratio is returned
 
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance.
         """
-        return self._naive_model_comparison(train_dataset, test_dataset, model)
+        return self._simple_model_comparison(train_dataset, test_dataset, model)
 
-    def _naive_model_comparison(self, train_dataset: Dataset, test_dataset: Dataset, model):
+    def _simple_model_comparison(self, train_dataset: Dataset, test_dataset: Dataset, model):
         func_name = self.__class__.__name__
         Dataset.validate_dataset(train_dataset, func_name)
         Dataset.validate_dataset(test_dataset, func_name)
@@ -123,47 +140,47 @@ class NaiveModelComparison(TrainTestBaseCheck):
         test_dataset.validate_label(func_name)
         model_type_validation(model)
 
-        naive_metric, pred_metric, metric_name = find_score(train_dataset, test_dataset,
+        simple_metric, pred_metric, metric_name = find_score(train_dataset, test_dataset,
                                                             task_type_check(model, train_dataset), model,
-                                                            self.naive_model_type, self.metric,
+                                                            self.simple_model_type, self.metric,
                                                             self.metric_name)
 
-        ratio = get_metrics_ratio(naive_metric, pred_metric, self.maximum_ratio)
+        ratio = get_metrics_ratio(simple_metric, pred_metric, self.maximum_ratio)
 
         text = f'The given model performs {format_number(ratio)} times compared to' \
-               f' the naive model using the {metric_name} metric.<br>' \
+               f' the simple model using the {metric_name} metric.<br>' \
                f'{type(model).__name__} model prediction has achieved a score of {format_number(pred_metric)} ' \
-               f'compared to Naive {self.naive_model_type} prediction ' \
-               f'which achieved a score of {format_number(naive_metric)} on tested data.'
+               f'compared to Simple {self.simple_model_type} prediction ' \
+               f'which achieved a score of {format_number(simple_metric)} on tested data.'
 
         def display_func():
             fig = plt.figure()
             ax = fig.add_axes([0, 0, 1, 1])
-            models = [f'Naive model - {self.naive_model_type}', f'{type(model).__name__} model']
-            metrics_results = [naive_metric, pred_metric]
+            models = [f'Simple model - {self.simple_model_type}', f'{type(model).__name__} model']
+            metrics_results = [simple_metric, pred_metric]
             ax.bar(models, metrics_results)
             ax.set_ylabel(metric_name)
 
-        return CheckResult({'given_model_score': pred_metric, 'naive_model_score': naive_metric,
+        return CheckResult({'given_model_score': pred_metric, 'simple_model_score': simple_metric,
                             'ratio': ratio},
                            check=self.__class__, display=[text, display_func])
 
     def add_condition_ratio_not_less_than(self, min_allowed_ratio: float = 1.1):
-        """Add condition - require min allowed ratio between the naive and the given model.
+        """Add condition - require min allowed ratio between the given and the simple model.
 
         Args:
-            min_allowed_ratio (float): Min allowed ratio between the naive and the given model -
-            ratio is given model / naive model (if the metric returns negative values we devied 1 by it)
+            min_allowed_ratio (float): Min allowed ratio between the given and the simple model -
+            ratio is given model / simple model (if the metric returns negative values we divide 1 by it)
         """
         def condition(result: Dict) -> ConditionResult:
             ratio = result['ratio']
             if ratio < min_allowed_ratio:
                 return ConditionResult(False,
                                        f'The given model performs {format_number(ratio)} times compared'
-                                       f'to the naive model using the given metric')
+                                       f'to the simple model using the given metric')
             else:
                 return ConditionResult(True)
 
         return self.add_condition(f'Ratio not less than {format_number(min_allowed_ratio)} '
-                                  f'between the given model\'s result and the naive model\'s result',
+                                  f'between the given model\'s result and the simple model\'s result',
                                   condition)
