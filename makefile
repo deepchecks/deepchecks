@@ -113,8 +113,8 @@ validate: $(REQUIREMENTS_LOG) pylint docstring
 
 pylint: $(ANALIZE)
 	$(ANALIZE) $(SOURCES) $(TEST_CODE)
-docstring: $(ANALIZE) # We Use Google Style Python Docstring
-	$(PYTHON) -m pydocstyle $(SOURCES)
+docstring: $(ANALIZE) # We Use PEP257 Style Python Docstring
+	$(PYTHON) -m pydocstyle --convention=pep257 --add-ignore=D107 $(SOURCES)
 
 $(ANALIZE): $(PIP)
 	$(PIP) install --upgrade $(ANALIZE_PKGS) | tee -a $(REQUIREMENTS_LOG)

@@ -80,17 +80,16 @@ def find_score(train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model,
 
 
 class NaiveModelComparison(TrainTestBaseCheck):
-    """Compare naive model score to given model score."""
+    """Compare naive model score to given model score.
+
+    Args:
+        naive_model_type (str = 'random'):  Type of the naive model ['random', 'statistical'].
+        metric: a custom metric given by user.
+        metric_name: name of a default metric.
+        maximum_ratio: the ratio can be up to infinity so choose maximum value to limit to.
+    """
 
     def __init__(self, naive_model_type: str = 'statistical', metric=None, metric_name=None, maximum_ratio: int = 10):
-        """Initialize the NaiveModelComparison check.
-
-        Args:
-            naive_model_type (str = 'random'):  Type of the naive model ['random', 'statistical'].
-            metric: a custom metric given by user.
-            metric_name: name of a default metric.
-            maximum_ratio: the ratio can be up to infinity so choose maximum value to limit to.
-        """
         super().__init__()
         self.naive_model_type = naive_model_type
         self.metric = metric

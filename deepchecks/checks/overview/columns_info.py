@@ -9,15 +9,13 @@ __all__ = ['ColumnsInfo']
 
 
 class ColumnsInfo(SingleDatasetBaseCheck):
-    """Return the role and logical type of each column."""
+    """Return the role and logical type of each column.
+
+    Args:
+        n_top_columns (int): (optinal - used only if model was specified)
+                             amount of columns to show ordered by feature importance (date, index, label are first)"""
 
     def __init__(self, n_top_columns: int = 10):
-        """Initialize the ColumnsInfo check.
-
-        Args:
-        n_top_columns (int): (optinal - used only if model was specified)
-                             amount of columns to show ordered by feature importance (date, index, label are first)
-        """
         super().__init__()
         self.n_top_columns = n_top_columns
 

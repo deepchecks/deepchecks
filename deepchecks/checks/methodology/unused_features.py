@@ -55,24 +55,22 @@ class UnusedFeatures(TrainTestBaseCheck):
     feature importance) to detect features that are not used by the model. From this list, the check sorts the features
     by their variance (as calculated by a PCA transformation). High variance unused features may be containing
      information that is ignored by the model.
+
+    Args:
+        feature_importance_threshold (float): A cutoff value for the feature importance, measured by the ratio of
+            each features' feature importance to the mean feature importance. Features with lower importance
+            are not shown in the check display.
+        feature_variance_threshold (float): A cutoff value for the feature variance, measured by the ratio of
+            each features' feature importance to the mean feature importance. Unused features with lower variance
+            are not shown in the check display.
+        n_top_fi_to_show (int): The max number of important features to show in the check display.
+        n_top_unused_to_show (int): The max number of unused features to show in the check display, from among
+            unused features that have higher variance then is defined by feature_variance_threshold.
+        random_state (int): The random state to use for permutation feature importance and PCA.
     """
 
     def __init__(self, feature_importance_threshold: float = 0.2, feature_variance_threshold: float = 0.4,
                  n_top_fi_to_show: int = 5, n_top_unused_to_show: int = 15, random_state: int = 42):
-        """Initialize the UnusedFeatures check.
-
-        Args:
-            feature_importance_threshold (float): A cutoff value for the feature importance, measured by the ratio of
-                each features' feature importance to the mean feature importance. Features with lower importance
-                are not shown in the check display.
-            feature_variance_threshold (float): A cutoff value for the feature variance, measured by the ratio of
-                each features' feature importance to the mean feature importance. Unused features with lower variance
-                are not shown in the check display.
-            n_top_fi_to_show (int): The max number of important features to show in the check display.
-            n_top_unused_to_show (int): The max number of unused features to show in the check display, from among
-                unused features that have higher variance then is defined by feature_variance_threshold.
-            random_state (int): The random state to use for permutation feature importance and PCA.
-        """
         super().__init__()
         self.feature_importance_threshold = feature_importance_threshold
         self.feature_variance_threshold = feature_variance_threshold

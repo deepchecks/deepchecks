@@ -26,15 +26,13 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
      not affect a new dataset.
 
     Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
+
+    Args:
+        ppscore_params (dict): dictionary of additional parameters for the ppscore predictor function
+        n_show_top (int): Number of features to show, sorted by the magnitude of difference in PPS
     """
 
     def __init__(self, ppscore_params=None, n_show_top: int = 5):
-        """Initialize the SingleFeatureContributionTrainTest.
-
-        Args:
-            ppscore_params (dict): dictionary of additional parameters for the ppscore predictor function
-            n_show_top (int): Number of features to show, sorted by the magnitude of difference in PPS
-        """
         super().__init__()
         self.ppscore_params = ppscore_params
         self.n_show_top = n_show_top

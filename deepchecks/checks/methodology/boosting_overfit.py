@@ -103,16 +103,14 @@ class BoostingOverfit(TrainTestBaseCheck):
     The check runs a pred-defined number of steps, and in each step it limits the boosting model to use up to X
     estimators (number of estimators is monotonic increasing). It plots the given metric calculated for each step for
     both the train dataset and the test dataset.
+
+    Args:
+        metric (Union[Callable, str]): Metric to use verify the model, either function or sklearn scorer name.
+        metric_name (str): Name to be displayed in the plot on y-axis. must be used together with 'metric'
+        num_steps (int): Number of splits of the model iterations to check.
     """
 
     def __init__(self, metric: Union[Callable, str] = None, metric_name: str = None, num_steps: int = 20):
-        """Initialize the BoostingOverfit check.
-
-        Args:
-            metric (Union[Callable, str]): Metric to use verify the model, either function or sklearn scorer name.
-            metric_name (str): Name to be displayed in the plot on y-axis. must be used together with 'metric'
-            num_steps (int): Number of splits of the model iterations to check.
-        """
         super().__init__()
         self.metric = metric
         self.metric_name = metric_name
