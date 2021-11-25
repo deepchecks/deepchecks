@@ -28,7 +28,7 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
 
         Raises:
             DeepchecksValueError: If the 'test_dataset' is not a 'Dataset' instance with a label or
-                if 'model' is not an instance of the 'BaseEstimator' or 'CatBoost'
+                if 'model' is not a scikit-learn-compatible fitted estimator instance
 
         """
         return self._model_inference_time_check(dataset, model)
@@ -62,7 +62,7 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
         ))
 
     def add_condition_inference_time_is_not_greater_than(self: MI, value: float = 0.001) -> MI:
-        """Add Condition - add condition that will check average model inference time (in seconds)
+        """Add condition checking that the average model inference time (in seconds)
         per sample is not greater than X
 
         Args:
@@ -78,6 +78,6 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
                 return ConditionResult(True)
 
         return self.add_condition(condition_func=condition, name=(
-            'Average model inference time of one sample is not '
+            'Average model inference time for one sample is not '
             f'greater than {format_number(value, floating_point=8)}'
         ))
