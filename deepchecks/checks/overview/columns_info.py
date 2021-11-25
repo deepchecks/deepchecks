@@ -13,7 +13,8 @@ class ColumnsInfo(SingleDatasetBaseCheck):
 
     Args:
         n_top_columns (int): (optinal - used only if model was specified)
-                             amount of columns to show ordered by feature importance (date, index, label are first)"""
+                             amount of columns to show ordered by feature importance (date, index, label are first)
+    """
 
     def __init__(self, n_top_columns: int = 10):
         super().__init__()
