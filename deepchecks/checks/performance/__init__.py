@@ -1,4 +1,4 @@
-"""Module contains check of overall classification metrics."""
+"""Module contains checks of model performance metrics."""
 from .performance_report import *
 from .confusion_matrix_report import *
 from .roc_report import *

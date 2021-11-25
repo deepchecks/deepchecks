@@ -41,6 +41,7 @@ class Condition:
         result.set_name(self.name)
         return result
 
+
 class ConditionCategory(enum.Enum):
     """Condition result category. indicates whether the result should fail the suite."""
 
@@ -129,7 +130,7 @@ class CheckResult:
             display (List): Objects to be displayed (dataframe or function or html)
         """
         self.value = value
-        self.header = header or (check and split_camel_case(check.__name__)) or None
+        self.header = header or (check and check.name()) or None
         self.check = check
         self.condition_results = []
 
@@ -268,6 +269,11 @@ class BaseCheck(metaclass=abc.ABCMeta):
         if index not in self._conditions:
             raise DeepchecksValueError(f'Index {index} of conditions does not exists')
         self._conditions.pop(index)
+
+    @classmethod
+    def name(cls):
+        """Name of class in split camel case."""
+        return split_camel_case(cls.__name__)
 
 
 class SingleDatasetBaseCheck(BaseCheck):
