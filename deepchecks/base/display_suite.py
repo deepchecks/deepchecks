@@ -2,6 +2,7 @@
 # pylint: disable=protected-access
 import sys
 import tqdm
+import tqdm.notebook
 from typing import List, Union
 
 from IPython.core.display import display_html
@@ -21,7 +22,7 @@ class ProgressBar:
         """Initialize progress bar."""
         shared_args = {'total': length, 'desc': name, 'unit': ' Check', 'leave': False, 'file': sys.stdout}
         if is_widgets_enabled():
-            self.pbar = tqdm.tqdm_notebook(**shared_args, colour='#9d60fb')
+            self.pbar = tqdm.notebook.tqdm(**shared_args, colour='#9d60fb')
         else:
             # Normal tqdm with colour in notebooks produce bug that the cleanup doesn't remove all characters. so
             # until bug fixed, doesn't add the colour to regular tqdm
