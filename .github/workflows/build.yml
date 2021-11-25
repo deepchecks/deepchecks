@@ -8,10 +8,9 @@ on:
 
 jobs:
   tests:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [self-hosted]
         python-version: ["3.6", "3.7", "3.8", "3.9"] #TODO: add 3.10 when scikit-learn have a wheel https://github.com/scikit-learn/scikit-learn/pull/21232
 
     steps:
@@ -26,7 +25,7 @@ jobs:
       run: make test
 
   chores:
-    runs-on: [self-hosted]
+    runs-on: ubuntu-latest
 
     needs: tests
     if: ${{ github.ref == 'refs/heads/main' }}
