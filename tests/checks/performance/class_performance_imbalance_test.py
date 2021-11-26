@@ -7,7 +7,7 @@ from hamcrest import (
     equal_to, has_entries, only_contains, calling, raises
 )
 
-from deepchecks import Dataset, CheckResult, ConditionResult, ConditionCategory
+from deepchecks import Dataset, CheckResult, ConditionCategory
 from deepchecks.checks import ClassPerformanceImbalanceCheck
 from deepchecks.utils import DeepchecksValueError
 
@@ -21,6 +21,23 @@ def test_class_performance_imbalance(
     check = ClassPerformanceImbalanceCheck()
     check_result = check.run(dataset=test, model=model)
     validate_class_performance_imbalance_check_result(check_result)
+
+
+def test_init_class_performance_imbalance_with_empty_dict_of_metrics():
+    assert_that(
+        calling(ClassPerformanceImbalanceCheck).with_args(metrics=dict()),
+        raises(ValueError, 'Expected to receive not empty dict of callables!')
+    )
+
+
+def test_init_class_performance_imbalance_with_metrics_dict_that_contains_not_callable():
+    assert_that(
+        calling(ClassPerformanceImbalanceCheck).with_args(metrics=dict(Metric=1)),
+        raises(
+            ValueError, 
+            r"metrics - expected to receive 'Dict\[str, MetricFunc\]' but got 'Dict\[str, int\]'!"
+        )
+    )
 
 
 def test_class_performance_imbalance_with_custom_metrics(

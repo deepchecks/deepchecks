@@ -37,19 +37,30 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
 
         Args:
             metrics: alternative metrics to execute
+
+        Raises:
+            ValueError:
+                if provided dict of metrics is emtpy;
+                if one of the entries of hte provided metrics dict contains not callable value;
         """
         super().__init__()
         self.alternative_metrics = metrics
 
-        not_callables = (
-            it for it in (self.alternative_metrics or {}).values()
-            if not callable(it)
-        )
+        if self.alternative_metrics is not None:
 
-        if (incorrect_argument := next(not_callables, None)):
-            raise ValueError(
-                f'Expected to receive dict of callables but got {type(incorrect_argument)}!'
+            if len(self.alternative_metrics) == 0:
+                raise ValueError('Expected to receive not empty dict of callables!')
+
+            incorrect_argument = next(
+                (it for it in self.alternative_metrics.values() if not callable(it)),
+                None
             )
+
+            if incorrect_argument is not None:
+                raise ValueError(
+                    "metrics - expected to receive 'Dict[str, MetricFunc]' but got " #pylint: disable=inconsistent-quotes
+                    f"'Dict[str, {type(incorrect_argument).__name__}]'!" #pylint: disable=inconsistent-quotes
+                )
 
     def run(
         self,
