@@ -41,7 +41,7 @@ def regression_check_suite() -> CheckSuite:
     abnormality of the regression model.
     """
     # TODO: This suite is here as a placeholder for future regression-specific checks
-    return CheckSuite('Regression Suite',)
+    return CheckSuite('Regression Suite')
 
 
 def generic_performance_check_suite() -> CheckSuite:

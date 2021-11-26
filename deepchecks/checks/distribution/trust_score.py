@@ -28,24 +28,23 @@ __all__ = ['TrustScore']
 
 
 class TrustScore:
-    """Calculate trust score."""
+    """Calculate trust score.
+
+    Args:
+        k_filter (int): Number of neighbors used during either kNN distance or probability filtering.
+        alpha (float): Fraction of instances to filter out to reduce impact of outliers.
+        filter_type (str): Filter method; either 'distance_knn' or 'probability_knn'
+        leaf_size (int): Number of points at which to switch to brute-force. Affects speed and memory required to
+                         build trees. Memory to store the tree scales with n_samples / leaf_size.
+        metric (str): Distance metric used for the tree. See sklearn's DistanceMetric class for a list of available
+                      metrics.
+        dist_filter_type (str): Use either the distance to the k-nearest point (dist_filter_type = 'point') or
+                                the average distance from the first to the k-nearest point in the data
+                                (dist_filter_type = 'mean').
+    """
 
     def __init__(self, k_filter: int = 10, alpha: float = 0., filter_type: str = 'distance_knn',
                  leaf_size: int = 40, metric: str = 'euclidean', dist_filter_type: str = 'point') -> None:
-        """Initialize trust scores.
-
-        Args:
-            k_filter (int): Number of neighbors used during either kNN distance or probability filtering.
-            alpha (float): Fraction of instances to filter out to reduce impact of outliers.
-            filter_type (str): Filter method; either 'distance_knn' or 'probability_knn'
-            leaf_size (int): Number of points at which to switch to brute-force. Affects speed and memory required to
-                             build trees. Memory to store the tree scales with n_samples / leaf_size.
-            metric (str): Distance metric used for the tree. See sklearn's DistanceMetric class for a list of available
-                          metrics.
-            dist_filter_type (str): Use either the distance to the k-nearest point (dist_filter_type = 'point') or
-                                    the average distance from the first to the k-nearest point in the data
-                                    (dist_filter_type = 'mean').
-        """
         super().__init__()
         self.k_filter = k_filter
         self.alpha = alpha

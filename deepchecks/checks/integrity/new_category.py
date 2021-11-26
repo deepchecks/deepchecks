@@ -10,18 +10,16 @@ __all__ = ['CategoryMismatchTrainTest']
 
 
 class CategoryMismatchTrainTest(TrainTestBaseCheck):
-    """Find new categories in test."""
+    """Find new categories in the test set.
+
+    Args:
+        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
+        ones.
+        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
+        variable.
+    """
 
     def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None):
-        """
-        Initialize the CategoryMismatchTrainTest class.
-
-        Args:
-            columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-            ones.
-            ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-            variable.
-        """
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
