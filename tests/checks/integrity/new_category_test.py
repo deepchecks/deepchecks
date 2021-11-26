@@ -1,10 +1,11 @@
 """Contains unit tests for the new_category_train_validation check"""
 
 import pandas as pd
-from deepchecks.base import Dataset
-from deepchecks.utils import DeepchecksValueError
-from deepchecks.checks.integrity import CategoryMismatchTrainTest
 from hamcrest import assert_that, calling, raises, has_length, close_to, equal_to, has_items
+
+from deepchecks.base import Dataset
+from deepchecks.errors import DeepchecksValueError
+from deepchecks.checks.integrity import CategoryMismatchTrainTest
 
 from tests.checks.utils import equal_condition_result
 

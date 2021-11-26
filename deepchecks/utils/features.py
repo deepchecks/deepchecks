@@ -1,21 +1,26 @@
 """Utils module containing feature importance calculations."""
+import typing as t
 import numpy as np
 import pandas as pd
-from typing import Any, Dict
 
 from sklearn.base import BaseEstimator
 from sklearn.inspection import permutation_importance
 from sklearn.pipeline import Pipeline
 from sklearn.utils.validation import check_is_fitted
 
-from deepchecks import Dataset
-from deepchecks.utils import DeepchecksValueError
-
-__all__ = ['calculate_feature_importance', 'calculate_feature_importance_or_null',
-           'column_importance_sorter_dict', 'column_importance_sorter_df']
+from deepchecks import base
+from deepchecks import errors
 
 
-def calculate_feature_importance_or_null(dataset: Dataset, model: Any) -> pd.Series:
+__all__ = [
+    'calculate_feature_importance',
+    'calculate_feature_importance_or_null',
+    'column_importance_sorter_dict',
+    'column_importance_sorter_df'
+]
+
+
+def calculate_feature_importance_or_null(dataset: 'base.Dataset', model: t.Any) -> t.Optional[pd.Series]:
     """Calculate features effect on the label or None if the input is incorrect.
 
     Args:
@@ -27,16 +32,16 @@ def calculate_feature_importance_or_null(dataset: Dataset, model: Any) -> pd.Ser
 
     """
     feature_importances = None
-    if model and isinstance(dataset, Dataset):
+    if model and isinstance(dataset, base.Dataset):
         try:
             # calculate feature importance if dataset has label and the model is fitted on it
             feature_importances = calculate_feature_importance(dataset=dataset, model=model)
-        except DeepchecksValueError:
+        except errors.DeepchecksValueError:
             pass
     return feature_importances
 
 
-def calculate_feature_importance(model: Any, dataset: Dataset, random_state: int = 42) -> pd.Series:
+def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_state: int = 42) -> pd.Series:
     """Calculate features effect on the label.
 
     Args:
@@ -67,7 +72,7 @@ def calculate_feature_importance(model: Any, dataset: Dataset, random_state: int
     return feature_importances.fillna(0)
 
 
-def _built_in_importance(model: Any, dataset: Dataset):
+def _built_in_importance(model: t.Any, dataset: 'base.Dataset') -> t.Optional[pd.Series]:
     """Get feature importance member if present in model."""
     if 'feature_importances_' in dir(model):  # Ensambles
         normalized_feature_importance_values = model.feature_importances_/model.feature_importances_.sum()
@@ -77,10 +82,16 @@ def _built_in_importance(model: Any, dataset: Dataset):
         coef = coef / coef.sum()
         return pd.Series(coef, index=dataset.features())
     else:
-        return None
+        return
 
 
-def _calc_importance(model: Any, dataset: Dataset, n_repeats: int = 30, random_state: int = 42, n_samples: int = 10000):
+def _calc_importance(
+    model: t.Any,
+    dataset: 'base.Dataset',
+    n_repeats: int = 30,
+    random_state: int = 42,
+    n_samples: int = 10000
+) -> pd.Series:
     """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal."""
     dataset.validate_label('_calc_importance')
     n_samples = min(n_samples, dataset.n_samples())
@@ -98,7 +109,7 @@ def _calc_importance(model: Any, dataset: Dataset, n_repeats: int = 30, random_s
     return pd.Series(feature_importances, index=dataset.features())
 
 
-def get_importance(name: str, feature_importances: pd.Series, ds: Dataset):
+def get_importance(name: str, feature_importances: pd.Series, ds: 'base.Dataset') -> int:
     """Return importance based on feature importance or label/date/index first."""
     if name in feature_importances.keys():
         return feature_importances[name]
@@ -107,8 +118,8 @@ def get_importance(name: str, feature_importances: pd.Series, ds: Dataset):
     return 0
 
 
-def column_importance_sorter_dict(cols_dict: Dict, ds: Dataset, feature_importances: pd.Series,
-                                  n_top: int = 10):
+def column_importance_sorter_dict(cols_dict: t.Dict, ds: 'base.Dataset', feature_importances: pd.Series,
+                                  n_top: int = 10) -> t.Dict:
     """Return the dict of columns sorted and limited by feature importance.
 
     Args:
@@ -129,8 +140,13 @@ def column_importance_sorter_dict(cols_dict: Dict, ds: Dataset, feature_importan
     return cols_dict
 
 
-def column_importance_sorter_df(df: pd.DataFrame, ds: Dataset, feature_importances: pd.Series,
-                                n_top: int = 10, col: str = None):
+def column_importance_sorter_df(
+    df: pd.DataFrame,
+    ds: 'base.Dataset',
+    feature_importances: pd.Series,
+    n_top: int = 10,
+    col: str = None
+) -> pd.DataFrame:
     """Return the dataframe of of columns sorted and limited by feature importance.
 
     Args:

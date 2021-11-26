@@ -8,7 +8,7 @@ from IPython.core.display import display_html
 
 from deepchecks.base.check import CheckResult, CheckFailure
 from deepchecks.base.display_pandas import dataframe_to_html, display_dataframe
-from deepchecks.utils import is_widgets_enabled
+from deepchecks.utils.ipython import is_widgets_enabled
 import pandas as pd
 
 __all__ = ['display_suite_result', 'ProgressBar']

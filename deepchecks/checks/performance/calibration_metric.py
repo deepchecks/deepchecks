@@ -4,7 +4,7 @@ from sklearn.calibration import calibration_curve
 from sklearn.metrics import brier_score_loss
 import matplotlib.pyplot as plt
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
-from deepchecks.metric_utils import ModelType, task_type_validation
+from deepchecks.utils.metrics import ModelType, task_type_validation
 
 __all__ = ["CalibrationMetric"]
 

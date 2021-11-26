@@ -1,19 +1,28 @@
 """String functions."""
+import typing as t
 import re
 from collections import defaultdict
 from decimal import Decimal
-from typing import Dict, Set, List, Union, Tuple
 from copy import copy
+
 import pandas as pd
-
-
-__all__ = ['string_baseform', 'get_base_form_to_variants_dict', 'split_camel_case', 'split_and_keep',
-           'split_by_order', 'is_string_column', 'format_percent', 'format_number', 'format_columns_for_condition']
-
 from pandas.core.dtypes.common import is_numeric_dtype
 
 
-def string_baseform(string: str):
+__all__ = [
+    'string_baseform',
+    'get_base_form_to_variants_dict',
+    'split_camel_case',
+    'split_and_keep',
+    'split_by_order',
+    'is_string_column',
+    'format_percent',
+    'format_number',
+    'format_columns_for_condition'
+]
+
+
+def string_baseform(string: str) -> str:
     """Remove special characters from given string, leaving only a-z, A-Z, 0-9 characters.
 
     Args:
@@ -27,7 +36,7 @@ def string_baseform(string: str):
     return re.sub('[^A-Za-z0-9]+', '', string).lower()
 
 
-def is_string_column(column: pd.Series):
+def is_string_column(column: pd.Series) -> bool:
     """Determine whether a pandas series is string type."""
     if is_numeric_dtype(column):
         return False
@@ -38,7 +47,7 @@ def is_string_column(column: pd.Series):
         return True
 
 
-def split_camel_case(string: str):
+def split_camel_case(string: str) -> str:
     """Split string where there are capital letters and enter space instead.
 
     Args:
@@ -47,21 +56,21 @@ def split_camel_case(string: str):
     return ' '.join(re.findall('[A-Z][^A-Z]*', string))
 
 
-def get_base_form_to_variants_dict(uniques):
+def get_base_form_to_variants_dict(uniques: t.Iterable[str]) -> t.Dict[str, t.Set[str]]:
     """Create dict of base-form of the uniques to their values.
 
-    function gets a set of strings, and returns a dictionary of shape Dict[str]=Set,
+    function gets a set of strings, and returns a dictionary of shape Dict[str, Set]
     the key being the "base_form" (a clean version of the string),
     and the value being a set of all existing original values.
     This is done using the StringCategory class.
     """
-    base_form_to_variants: Dict[str, Set] = defaultdict(set)
-    for item in uniques:
+    base_form_to_variants = defaultdict(set)
+    for item in set(uniques):
         base_form_to_variants[string_baseform(item)].add(item)
     return base_form_to_variants
 
 
-def str_min_find(s: str, substr_list: List[str]) -> Tuple[int, str]:
+def str_min_find(s: str, substr_list: t.Iterable[str]) -> t.Tuple[int, str]:
     """
     Find the minimal first occurence of a substring in a string, and return both the index and substring.
 
@@ -84,7 +93,7 @@ def str_min_find(s: str, substr_list: List[str]) -> Tuple[int, str]:
     return min_find, min_substr
 
 
-def split_and_keep(s: str, separators: Union[str, List[str]]) -> List[str]:
+def split_and_keep(s: str, separators: t.Union[str, t.Iterable[str]]) -> t.List[str]:
     """
     Split string by a another substring into a list. Like str.split(), but keeps the separator occurrences in the list.
 
@@ -115,7 +124,7 @@ def split_and_keep(s: str, separators: Union[str, List[str]]) -> List[str]:
     return split_s
 
 
-def split_by_order(s: str, separators: List[str], keep: bool = True) -> List[str]:
+def split_by_order(s: str, separators: t.Iterable[str], keep: bool = True) -> t.List[str]:
     """
     Split string by a a list of substrings, each used once as a separator.
 
@@ -128,7 +137,7 @@ def split_by_order(s: str, separators: List[str], keep: bool = True) -> List[str
         List[str]: list of substrings
     """
     split_s = []
-    separators = copy(separators)
+    separators = list(copy(separators))
     while len(s) != 0:
         if len(separators) > 0:
             sep = separators[0]
@@ -212,7 +221,10 @@ def format_number(x, floating_point: int = 2) -> str:
         return add_commas(ret_x).rstrip('0')
 
 
-def format_columns_for_condition(columns: List[str], ignore_columns: List[str]):
+def format_columns_for_condition(
+    columns: t.Sequence[str] = None,
+    ignore_columns: t.Sequence[str] = None
+) -> str:
     """Format columns properties for display in condition name.
 
     Args:

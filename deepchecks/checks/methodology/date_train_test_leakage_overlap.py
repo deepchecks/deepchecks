@@ -1,6 +1,7 @@
 """The date_leakage check module."""
 from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
-from deepchecks.string_utils import format_percent
+from deepchecks.utils.strings import format_percent
+
 
 __all__ = ['DateTrainTestLeakageOverlap']
 

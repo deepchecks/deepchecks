@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from deepchecks.string_utils import format_percent
-from deepchecks.utils import model_type_validation
-from deepchecks.metric_utils import get_metrics_list
+from deepchecks.utils.strings import format_percent
+from deepchecks.utils.validation import model_type_validation
+from deepchecks.utils.metrics import get_metrics_list
 from deepchecks import (
     Dataset,
     CheckResult,

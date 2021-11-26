@@ -7,12 +7,12 @@ import pandas as pd
 
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, CompareDatasetsBaseCheck, ConditionResult
-from deepchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_df
+from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
+from deepchecks.utils.strings import format_percent
+from deepchecks.errors import DeepchecksValueError
+
 
 __all__ = ['DominantFrequencyChange']
-
-from deepchecks.string_utils import format_percent
-from deepchecks.utils import DeepchecksValueError
 
 
 class DominantFrequencyChange(CompareDatasetsBaseCheck):

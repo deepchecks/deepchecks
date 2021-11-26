@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from hamcrest import assert_that, calling, raises, equal_to, has_items
 
 from deepchecks.base import Dataset
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError
 from deepchecks.checks.methodology import TrainTestSamplesMix
 from tests.checks.utils import equal_condition_result
 

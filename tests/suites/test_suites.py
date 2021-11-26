@@ -11,7 +11,7 @@ from hamcrest.core.matcher import Matcher
 from hamcrest import assert_that, instance_of, only_contains, any_of
 
 from deepchecks import suites, Dataset, SuiteResult, CheckResult, CheckFailure
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError
 
 
 @pytest.fixture()

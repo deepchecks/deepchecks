@@ -1,11 +1,10 @@
 """Contains unit tests for the dataset_info check."""
 import numpy as np
 import pandas as pd
+from hamcrest import assert_that, equal_to, calling, raises
 
 from deepchecks.checks.overview.dataset_info import DatasetInfo
-from deepchecks.utils import DeepchecksValueError
-
-from hamcrest import assert_that, equal_to, calling, raises
+from deepchecks.errors import DeepchecksValueError
 
 
 def test_assert_dataset_info(iris_dataset):
