@@ -1,8 +1,7 @@
 """Test functions of the train test drift."""
-from hamcrest import assert_that, has_entries, close_to, calling, raises, equal_to
+from hamcrest import assert_that, has_entries, close_to, equal_to
 
 from deepchecks.checks import TrainTestDrift
-from deepchecks.utils import DeepchecksValueError
 from tests.checks.utils import equal_condition_result
 
 
@@ -18,22 +17,22 @@ def test_drift_with_model(drifted_data_and_model):
     assert_that(result.value, has_entries({
         'numeric_without_drift': has_entries(
             {'Drift score': close_to(0.01, 0.01),
-             'Method': equal_to("Earth Mover's Distance"),
+             'Method': equal_to('Earth Mover\'s Distance'),
              'Importance': close_to(0.31, 0.01)}
         ),
         'numeric_with_drift': has_entries(
             {'Drift score': close_to(0.25, 0.01),
-             'Method': equal_to("Earth Mover's Distance"),
+             'Method': equal_to('Earth Mover\'s Distance'),
              'Importance': close_to(0.69, 0.01)}
         ),
         'categorical_without_drift': has_entries(
             {'Drift score': close_to(0, 0.01),
-             'Method': equal_to("PSI"),
+             'Method': equal_to('PSI'),
              'Importance': close_to(0, 0.01)}
         ),
         'categorical_with_drift': has_entries(
             {'Drift score': close_to(0.22, 0.01),
-             'Method': equal_to("PSI"),
+             'Method': equal_to('PSI'),
              'Importance': close_to(0, 0.01)}
         ),
     }))
@@ -51,22 +50,22 @@ def test_drift_no_model(drifted_data_and_model):
     assert_that(result.value, has_entries({
         'numeric_without_drift': has_entries(
             {'Drift score': close_to(0.01, 0.01),
-             'Method': equal_to("Earth Mover's Distance"),
+             'Method': equal_to('Earth Mover\'s Distance'),
              'Importance': equal_to(None)}
         ),
         'numeric_with_drift': has_entries(
             {'Drift score': close_to(0.25, 0.01),
-             'Method': equal_to("Earth Mover's Distance"),
+             'Method': equal_to('Earth Mover\'s Distance'),
              'Importance': equal_to(None)}
         ),
         'categorical_without_drift': has_entries(
             {'Drift score': close_to(0, 0.01),
-             'Method': equal_to("PSI"),
+             'Method': equal_to('PSI'),
              'Importance': equal_to(None)}
         ),
         'categorical_with_drift': has_entries(
             {'Drift score': close_to(0.22, 0.01),
-             'Method': equal_to("PSI"),
+             'Method': equal_to('PSI'),
              'Importance': equal_to(None)}
         ),
     }))
@@ -84,7 +83,7 @@ def test_drift_max_drift_score_condition_fail(drifted_data_and_model):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name=f'PSI and Earth Mover\'s Distance cannot be greater than 0.2 and 0.1 respectively',
+        name='PSI and Earth Mover\'s Distance cannot be greater than 0.2 and 0.1 respectively',
         details='Found categorical columns with PSI over 0.2: categorical_with_drift\n'
                 'Found numeric columns with Earth Mover\'s Distance over 0.1: numeric_with_drift'
     ))
@@ -103,5 +102,5 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        name=f'PSI and Earth Mover\'s Distance cannot be greater than 1 and 1 respectively'
+        name='PSI and Earth Mover\'s Distance cannot be greater than 1 and 1 respectively'
     ))

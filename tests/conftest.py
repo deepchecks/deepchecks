@@ -5,11 +5,11 @@ from typing import Tuple
 
 import numpy as np
 import pytest
+import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, GradientBoostingRegressor
 from sklearn.datasets import load_iris, load_diabetes
 from sklearn.model_selection import train_test_split
-import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.tree import DecisionTreeClassifier

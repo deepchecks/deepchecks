@@ -71,7 +71,6 @@ def shifted_color_map(cmap, start=0, midpoint=0.5, stop=1.0, name: str = 'shifte
           0.0 and 1.0.
       transparent_from: The point between start and stop where the colors will start being transparent.
     """
-
     if transparent_from is None:
         transparent_from = stop
 

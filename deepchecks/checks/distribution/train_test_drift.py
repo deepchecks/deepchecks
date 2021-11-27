@@ -5,18 +5,16 @@ from typing import Union, Iterable, Tuple, List, Dict, Callable
 
 import numpy as np
 import pandas as pd
-from matplotlib.cm import ScalarMappable
 from scipy.stats import wasserstein_distance
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.checks.distribution.plot import plot_density
 from deepchecks.feature_importance_utils import calculate_feature_importance_or_null
-from deepchecks.plot_utils import shifted_color_map
+from deepchecks.utils import DeepchecksValueError
 import matplotlib.pyplot as plt
 
 __all__ = ['TrainTestDrift']
 
-from deepchecks.utils import DeepchecksValueError
 
 PSI_MIN_PERCENTAGE = 0.01
 
@@ -206,11 +204,13 @@ class TrainTestDrift(TrainTestBaseCheck):
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
         for column in features:
-            value, method, display = self._calc_drift_per_column(train_column=train_dataset.data[column],
-                                                                 test_column=test_dataset.data[column],
-                                                                 column_name=column,
-                                                                 column_type='categorical' if column in cat_features else 'numerical',
-                                                                 feature_importances=feature_importances)
+            value, method, display = self._calc_drift_per_column(
+                train_column=train_dataset.data[column],
+                test_column=test_dataset.data[column],
+                column_name=column,
+                column_type='categorical' if column in cat_features else 'numerical',
+                feature_importances=feature_importances
+            )
             values_dict[column] = {
                 'Drift score': value,
                 'Method': method,
@@ -271,7 +271,6 @@ class TrainTestDrift(TrainTestBaseCheck):
                 drift_score (float): Drift score
                 drift_type (str): The name of the drift metric used
             """
-
             stop = max(0.4, drift_score + 0.1)
             traffic_light_colors = [((0, 0.1), '#01B8AA'),
                                     ((0.1, 0.2), '#F2C80F'),
@@ -366,7 +365,7 @@ class TrainTestDrift(TrainTestBaseCheck):
         """
 
         def condition(result: Dict) -> ConditionResult:
-            if all([x['Importance'] is not None for x in result.values()]):
+            if all(x['Importance'] is not None for x in result.values()):
                 columns_to_consider = \
                     [col_name for col_name, fi in sorted(result.items(), key=lambda item: item[1]['Importance'],
                                                          reverse=True)]
