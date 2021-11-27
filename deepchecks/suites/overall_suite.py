@@ -1,4 +1,5 @@
 """The predefined overfit suite module."""
+from deepchecks.suites.distribution_suite import data_distribution_suite
 from deepchecks import CheckSuite
 from deepchecks.suites import (
     integrity_check_suite,
@@ -32,6 +33,7 @@ def overall_check_suite() -> CheckSuite:
     """
     return CheckSuite(
         'Overall Suite',
+        data_distribution_suite(),
         leakage_check_suite(),
         overfit_check_suite(),
         performance_check_suite(),
@@ -51,6 +53,7 @@ def overall_classification_check_suite() -> CheckSuite:
     """
     return CheckSuite(
         'Overall Classification Suite',
+        data_distribution_suite(),
         data_leakage_check_suite(),
         overall_check_suite(),
         classification_check_suite(),
@@ -70,6 +73,7 @@ def overall_regression_check_suite() -> CheckSuite:
     """
     return CheckSuite(
         'Overall Regression Suite',
+        data_distribution_suite(),
         data_leakage_check_suite(),
         overfit_check_suite(),
         regression_check_suite(),
@@ -89,6 +93,7 @@ def overall_generic_check_suite() -> CheckSuite:
     """
     return CheckSuite(
         'Overall Generic Suite',
+        data_distribution_suite(),
         data_leakage_check_suite(),
         overfit_check_suite(),
         generic_performance_check_suite(),
