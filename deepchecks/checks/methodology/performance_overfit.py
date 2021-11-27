@@ -30,18 +30,15 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
     use a list of default metrics. If they are supplied, alternative_metrics must be a dictionary, with the keys
     being metric names and the values being either a name of an sklearn scoring function
     (https://scikit-learn.org/stable/modules/model_evaluation.html#scoring) or an sklearn scoring function.
+
+    Args:
+        alternative_metrics (Dict[str, Callable]): An optional dictionary of metric name to scorer functions
     """
 
     def __init__(
         self,
         alternative_metrics: t.Dict[str, t.Callable[[object, pd.DataFrame, str], float]] = None
     ):
-        """
-        Initialize the TrainTestDifferenceOverfit check.
-
-        Args:
-            alternative_metrics (Dict[str, Callable]): An optional dictionary of metric name to scorer functions
-        """
         super().__init__()
         self.alternative_metrics = alternative_metrics
 

@@ -10,19 +10,17 @@ class RareCategoryEncoder:
     """Encodes rare categories into an "other" parameter.
 
     Note that this encoder assumes data is received as a DataFrame.
+
+    Args:
+        max_num_categories (int): Indicates the maximum number of unique categories in a single categorical column
+                                  (rare categories will be changed to a form of "other")
+        cols (List[str]): Columns to limit the encoder to work on. If non are given will work on all columns given
+                          in `fit`
     """
 
     DEFAULT_OTHER_VALUE = 'OTHER_RARE_CATEGORY'
 
     def __init__(self, max_num_categories: int = 10, cols: List[str] = None):
-        """Initialize RareCategoryEncoder.
-
-        Args:
-            max_num_categories (int): Indicates the maximum number of unique categories in a single categorical column
-                                      (rare categories will be changed to a form of "other")
-            cols (List[str]): Columns to limit the encoder to work on. If non are given will work on all columns given
-                              in `fit`
-        """
         self.max_num_categories = max_num_categories
         self.cols = cols
         self._col_mapping = None

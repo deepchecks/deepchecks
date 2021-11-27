@@ -2,7 +2,6 @@
 # Disable this pylint check since we use this convention in pytest fixtures
 #pylint: disable=redefined-outer-name
 from typing import Tuple
-
 import numpy as np
 import pytest
 import pandas as pd

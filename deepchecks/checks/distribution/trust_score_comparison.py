@@ -50,25 +50,23 @@ class TrustScoreComparison(TrainTestBaseCheck):
     * Train a TrustScore (https://arxiv.org/abs/1805.11783) regressor based on train data + label.
     * Predict on test data using the model.
     * Use TrustScore to score the prediction of the model.
+
+    Args:
+        k_filter (int): used in TrustScore (Number of neighbors used during either kNN distance or probability
+                        filtering)
+        alpha (float): used in TrustScore (Fraction of instances to filter out to reduce impact of outliers)
+        max_number_categories (int): Indicates the maximum number of unique categories in a single categorical
+                                     column (rare categories will be changed to a form of "other")
+        min_test_samples (int): Minimal number of samples in train data to be able to run this check
+        sample_size (int): Number of samples to use for the check for train and test. if dataset contains less than
+                           sample_size than all the dataset will be used.
+        random_state (int): The random state to use for sampling.
+        n_to_show (int): Number of samples to show of worst and best trust score.
     """
 
     def __init__(self, k_filter: int = 10, alpha: float = 0.001,
                  max_number_categories: int = 10, min_test_samples: int = 300, sample_size: int = 10_000,
                  random_state: int = 42, n_to_show: int = 5, percent_top_scores_to_hide: float = 0.01):
-        """Initialize check.
-
-        Args:
-            k_filter (int): used in TrustScore (Number of neighbors used during either kNN distance or probability
-                            filtering)
-            alpha (float): used in TrustScore (Fraction of instances to filter out to reduce impact of outliers)
-            max_number_categories (int): Indicates the maximum number of unique categories in a single categorical
-                                         column (rare categories will be changed to a form of "other")
-            min_test_samples (int): Minimal number of samples in train data to be able to run this check
-            sample_size (int): Number of samples to use for the check for train and test. if dataset contains less than
-                               sample_size than all the dataset will be used.
-            random_state (int): The random state to use for sampling.
-            n_to_show (int): Number of samples to show of worst and best trust score.
-        """
         super().__init__()
         validate_parameters(k_filter, alpha, max_number_categories, min_test_samples, sample_size, n_to_show,
                             percent_top_scores_to_hide)
