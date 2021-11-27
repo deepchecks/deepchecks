@@ -5,10 +5,14 @@ from typing import Tuple
 
 import numpy as np
 import pytest
+from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, GradientBoostingRegressor
 from sklearn.datasets import load_iris, load_diabetes
 from sklearn.model_selection import train_test_split
 import pandas as pd
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OrdinalEncoder
+from sklearn.tree import DecisionTreeClassifier
 
 from deepchecks import Dataset
 
@@ -170,3 +174,55 @@ def df_with_fully_nan():
     return pd.DataFrame({
         'col1': [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan],
         'col2': [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan]})
+
+
+@pytest.fixture(scope='session')
+def drifted_data_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
+    np.random.seed(42)
+
+    train_data = np.concatenate([np.random.randn(1000, 2),
+                                 np.random.choice(a=['apple', 'orange', 'banana'], p=[0.5, 0.3, 0.2], size=(1000, 2))],
+                                axis=1)
+    test_data = np.concatenate([np.random.randn(1000, 2),
+                                np.random.choice(a=['apple', 'orange', 'banana'], p=[0.5, 0.3, 0.2], size=(1000, 2))],
+                               axis=1)
+
+    df_train = pd.DataFrame(train_data,
+                            columns=['numeric_without_drift', 'numeric_with_drift', 'categorical_without_drift',
+                                     'categorical_with_drift'])
+    df_test = pd.DataFrame(test_data, columns=df_train.columns)
+
+    df_train = df_train.astype({'numeric_without_drift': 'float', 'numeric_with_drift': 'float'})
+    df_test = df_test.astype({'numeric_without_drift': 'float', 'numeric_with_drift': 'float'})
+
+    df_test['numeric_with_drift'] = df_test['numeric_with_drift'].astype('float') + abs(
+        np.random.randn(1000)) + np.arange(0, 1, 0.001) * 4
+    df_test['categorical_with_drift'] = np.random.choice(a=['apple', 'orange', 'banana', 'lemon'],
+                                                         p=[0.5, 0.25, 0.15, 0.1], size=(1000, 1))
+
+    model = Pipeline([
+        ('handle_cat', ColumnTransformer(
+            transformers=[
+                ('num', 'passthrough',
+                 ['numeric_with_drift', 'numeric_without_drift']),
+                ('cat',
+                 Pipeline([
+                     ('encode', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)),
+                 ]),
+                 ['categorical_with_drift', 'categorical_without_drift'])
+            ]
+        )),
+        ('model', DecisionTreeClassifier(random_state=0, max_depth=2))]
+    )
+
+    label = np.random.randint(0, 2, size=(df_train.shape[0],))
+    df_train['target'] = label
+    train_ds = Dataset(df_train, label='target')
+
+    model.fit(train_ds.features_columns(), label)
+
+    label = np.random.randint(0, 2, size=(df_test.shape[0],))
+    df_test['target'] = label
+    test_ds = Dataset(df_test, label='target')
+
+    return train_ds, test_ds, model

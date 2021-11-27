@@ -20,3 +20,4 @@ def plot_density(data, xs, color='b', alpha: float = 0.7, **kwargs):
     # pylint: disable=protected-access
     density._compute_covariance()
     plt.fill_between(xs, density(xs), color=color, alpha=alpha, **kwargs)
+    plt.gca().set_ylim(bottom=0)
