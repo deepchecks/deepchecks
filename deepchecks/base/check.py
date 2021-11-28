@@ -147,9 +147,10 @@ class CheckResult:
             display_html(f'<h4>{self.header}</h4>', raw=True)
         if self.check and '__doc__' in dir(self.check):
             docs = self.check.__doc__
-            # Take first non-whitespace line.
-            summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
-            display_html(f'<p>{summary}</p>', raw=True)
+            if docs:
+                # Take first non-whitespace line.
+                summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
+                display_html(f'<p>{summary}</p>', raw=True)
 
         for item in self.display:
             if isinstance(item, (pd.DataFrame, Styler)):
