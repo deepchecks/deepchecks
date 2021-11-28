@@ -61,7 +61,6 @@ class NewLabelTrainTest(TrainTestBaseCheck):
             display = dataframe
 
             result = {
-                'column_name': label_column,
                 'n_samples': n_test_samples,
                 'n_new_labels_samples': n_new_label,
                 'new_labels': sorted(new_labels)
@@ -80,13 +79,11 @@ class NewLabelTrainTest(TrainTestBaseCheck):
         """
         def condition(result: Dict) -> ConditionResult:
             if result:
-                column_name = result['column_name']
                 new_labels = result['new_labels']
                 num_new_labels = len(new_labels)
                 if num_new_labels > max_new:
                     return ConditionResult(False,
-                                           f'Found {num_new_labels} new labels in {column_name} column: '
-                                           f'{new_labels}')
+                                           f'Found {num_new_labels} new labels: {new_labels}')
             return ConditionResult(True)
 
         return self.add_condition(f'Number of new label values is not greater than {max_new}',
@@ -100,14 +97,13 @@ class NewLabelTrainTest(TrainTestBaseCheck):
         """
         def new_category_count_condition(result: Dict) -> ConditionResult:
             if result:
-                column_name = result['column_name']
                 new_labels = result['new_labels']
                 new_label_ratio = result['n_new_labels_samples']/result['n_samples']
                 if new_label_ratio > max_ratio:
 
                     return ConditionResult(False,
-                                           f'Found {format_percent(new_label_ratio)} new labeled data in'
-                                           f' {column_name} column: {new_labels}')
+                                           f'Found new labels {new_labels} in test data, '
+                                           f'making {format_percent(new_label_ratio)} of test data.')
             return ConditionResult(True)
 
         return self.add_condition(
