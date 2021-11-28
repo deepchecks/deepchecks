@@ -87,9 +87,9 @@ class SimpleModelComparison(TrainTestBaseCheck):
 
         """
         test_df = test_ds.data
+        np.random.seed(self.random_state)
 
         if self.simple_model_type == 'random':
-            np.random.seed(self.random_state)
             simple_pred = np.random.choice(train_ds.label_col(), test_df.shape[0])
 
         elif self.simple_model_type == 'constant':
