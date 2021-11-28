@@ -9,6 +9,9 @@ replace: _ELE_
 regex: (\u0023|\=)[a-zA-Z0-9\-\_]+
 replace: random
 
+[inconsistent-whitespace-tqdm]
+regex: ^\s+\r$
+replace: \r
 
 [date_stamp]
 regex: \d{1,4}(\\|\/|-)(\d{1,2}|\w{3})((\\|\/|-)\d{1,4})?

@@ -16,7 +16,7 @@ data integrity, distribution mismatches, and more.
 
 ## Key Concepts
 
-#### Check
+### Check
 Each check enables you to inspect a specific aspect of your data and models.
 They are the basic building block of the deepchecks package, covering all kinds of common issues,
 such as: PerformanceOverfit, DataSampleLeakage, SingleFeatureContribution,
@@ -26,9 +26,9 @@ Each check can have two types of results:
 2. A return value that can be used for validating the expected check results
    (validations are typically done by adding a "condition" to the check, as explained below).
 
-#### Condition
+### Condition
 A condition is a function that can be added to a Check, which returns a pass &#x2713;, fail &#x2716;
-or warning &#x0021; result, intended for validation the Check's return value. An example for adding a condition would be:
+or warning &#x0021; result, intended for validating the Check's return value. An example for adding a condition would be:
 ```python
 from deepchecks.checks import BoostingOverfit
 BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(threshold=0.05)
@@ -36,7 +36,7 @@ BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(thre
 which will fail if there is a difference of more than 5% between the best score achieved on the test set during
 the boosting iterations and the score achieved in the last iteration (the model's "original" score on the test set).
 
-#### Suite
+### Suite
 An ordered collection of checks, that can have conditions added to them.
 The Suite enables displaying a concluding report for all of the Checks that ran.
 [Here](deepchecks/suites) you can find the [predefined existing suites](deepchecks/suites) and a code example demonstrating how to build
@@ -45,19 +45,12 @@ You can edit the preconfigured suites or build a suite of your own with a collec
 
 ## Installation
 
-#### Using pip directly from the github tag
+### Using pip
 ```bash
-pip install git+https://github.com/deepchecks/deepchecks@0.0.8 #--user
-```
-Replacing "0.0.8" with the name of the latest tag.
-
-#### Using pip with package wheel file
-From the directory to which you have downloaded the wheel file, run:
-```bash
-pip install deepchecks-latest-tag-wheel.whl #--user
+pip install deepchecks #--user
 ```
 
-#### From source
+### From source
 First clone the repository and then install the package from inside the repository's directory:
 ```bash
 git clone https://github.com/deepchecks/deepchecks.git
