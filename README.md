@@ -141,14 +141,14 @@ from sklearn.datasets import load_iris
 iris_df = load_iris(return_X_y=False, as_frame=True)['frame']
 train_len = round(0.67*len(iris_df))
 df_train = iris_df[:train_len]
-df_val = iris_df[train_len:]
+df_test = iris_df[train_len:]
 ```
 To run an existing suite all you need to do is import the suite and run it -
 
 ```python
 from deepchecks.suites import integrity_check_suite
 integrity_suite = integrity_check_suite()
-integrity_suite.run(train_dataset=df_train, test_dataset=df_val, check_datasets_policy='both')
+integrity_suite.run(train_dataset=df_train, test_dataset=df_test, check_datasets_policy='both')
 ```
 Which will result in printing the summary of the check conditions and then the visual outputs of all of the checks that
 are in that suite.
