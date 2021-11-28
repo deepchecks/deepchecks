@@ -1,5 +1,5 @@
 """Module containing simple comparison check."""
-from typing import Dict
+from typing import Callable, Dict, Union
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
@@ -25,101 +25,33 @@ class DummyModel:
         return a
 
 def more_than_prefix_adder(number, max_number):
-        if number < max_number:
-            return format_number(number)
-        else:
-            return  'more than ' + format_number(number)
-
-def find_score(train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model,
-              simple_model_type: str, metric = None, metric_name = None):
-    """Find the simple model score for given metric.
-
-    Args:
-        train_ds (Dataset): The training dataset object. Must contain an index.
-        test_ds (Dataset): The test dataset object. Must contain an index.
-        task_type (ModelType): the model type.
-        model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
-        simple_model_type (str): Type of the simple model ['random', 'constant', 'tree'].
-                                random is random label from train,
-                                constant is mean for regression or
-                                the label that appears most often for classification
-        metric: a custom metric given by user.
-        metric_name: name of a default metric.
-    Returns:
-        float: p value for the key.
-
-    Raises:
-        NotImplementedError: If the simple_model_type is not supported
-
-    """
-    test_df = test_ds.data
-
-    np.random.seed(0)
-
-    if simple_model_type == 'random':
-        simple_pred = np.random.choice(train_ds.label_col(), test_df.shape[0])
-
-    elif simple_model_type == 'constant':
-        if task_type == ModelType.REGRESSION:
-            simple_pred = np.array([np.mean(train_ds.label_col())] * len(test_df))
-
-        elif task_type in (ModelType.BINARY, ModelType.MULTICLASS):
-            counts = train_ds.label_col().mode()
-            simple_pred = np.array([counts.index[0]] * len(test_df))
-
-    elif simple_model_type == 'tree':
-        y_train = train_ds.label_col()
-        x_train, x_test = preprocess_dataset_to_scaled_numerics(
-            baseline_features= train_ds.features_columns(),
-            test_features=test_ds.features_columns(),
-            categorical_columns=test_ds.cat_features,
-            max_num_categories=10
-        )
-
-        if task_type == ModelType.REGRESSION:
-            clf = DecisionTreeRegressor(max_depth=3, random_state=42)
-        elif task_type in (ModelType.BINARY, ModelType.MULTICLASS):
-            clf = DecisionTreeClassifier(max_depth=3, random_state=42, class_weight="balanced")
-        if clf:
-            clf = clf.fit(x_train, y_train)
-            simple_pred = clf.predict(x_test)
-
+    if number < max_number:
+        return format_number(number)
     else:
-        raise NotImplementedError(f"expected to be one of ['random', 'constant', 'tree'] \
-                                   but instead got {simple_model_type}")
-
-    y_test = test_ds.label_col()
-
-    if metric is not None:
-        scorer = validate_scorer(metric, model, train_ds)
-        metric_name = metric_name or metric if isinstance(metric, str) else 'User metric'
-    else:
-        metric_name = DEFAULT_SINGLE_METRIC[task_type]
-        scorer = DEFAULT_METRICS_DICT[task_type][metric_name]
-
-    simple_metric = scorer(DummyModel, simple_pred, y_test)
-    pred_metric = scorer(model, test_ds.features_columns(), y_test)
-
-    return simple_metric, pred_metric, metric_name
-
+        return  'more than ' + format_number(number)
 
 class SimpleModelComparison(TrainTestBaseCheck):
     """Compare given model score to simple model score."""
 
-    def __init__(self, simple_model_type: str = 'constant', metric=None, metric_name=None, maximum_ratio: int = 50):
+    def __init__(self, simple_model_type: str = 'constant', metric: Union[str, Callable] = None,
+                 metric_name: str =None, maximum_ratio: int = 50, max_depth: int = 3, random_state: int = 42):
         """Initialize the SimpleModelComparison check.
 
         Args:
-            simple_model_type (str = 'random'):  Type of the simple model ['random', 'constant', 'tree'].
-            metric: a custom metric given by user.
-            metric_name: name of a default metric.
-            maximum_ratio: the ratio can be up to infinity so choose maximum value to limit to.
+            simple_model_type (st):  Type of the simple model ['random', 'constant', 'tree'].
+            metric (Union[str, Callable]): a custom metric given by user.
+            metric_name (str): name of a default metric.
+            maximum_ratio (int): the ratio can be up to infinity so choose maximum value to limit to.
+            max_depth (int): the max depth of the tree (used only if simple model type is tree).
+            random_state (int): the random state (used only if simple model type is tree or random).
         """
         super().__init__()
         self.simple_model_type = simple_model_type
         self.metric = metric
         self.metric_name = metric_name
         self.maximum_ratio = maximum_ratio
+        self.max_depth = max_depth
+        self.random_state = random_state
 
     def run(self, train_dataset, test_dataset, model) -> CheckResult:
         """Run check.
@@ -139,6 +71,71 @@ class SimpleModelComparison(TrainTestBaseCheck):
         """
         return self._simple_model_comparison(train_dataset, test_dataset, model)
 
+    def _find_score(self, train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model):
+        """Find the simple model score for given metric.
+
+        Args:
+            train_ds (Dataset): The training dataset object. Must contain an index.
+            test_ds (Dataset): The test dataset object. Must contain an index.
+            task_type (ModelType): the model type.
+            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
+        Returns:
+            float: p value for the key.
+
+        Raises:
+            NotImplementedError: If the simple_model_type is not supported
+
+        """
+        test_df = test_ds.data
+
+        if self.simple_model_type == 'random':
+            np.random.seed(self.random_state)
+            simple_pred = np.random.choice(train_ds.label_col(), test_df.shape[0])
+
+        elif self.simple_model_type == 'constant':
+            if task_type == ModelType.REGRESSION:
+                simple_pred = np.array([np.mean(train_ds.label_col())] * len(test_df))
+
+            elif task_type in (ModelType.BINARY, ModelType.MULTICLASS):
+                counts = train_ds.label_col().mode()
+                simple_pred = np.array([counts.index[0]] * len(test_df))
+
+        elif self.simple_model_type == 'tree':
+            y_train = train_ds.label_col()
+            x_train, x_test = preprocess_dataset_to_scaled_numerics(
+                baseline_features= train_ds.features_columns(),
+                test_features=test_ds.features_columns(),
+                categorical_columns=test_ds.cat_features,
+                max_num_categories=10
+            )
+
+            if task_type == ModelType.REGRESSION:
+                clf = DecisionTreeRegressor(max_depth=self.max_depth, random_state=self.random_state)
+            elif task_type in (ModelType.BINARY, ModelType.MULTICLASS):
+                clf = DecisionTreeClassifier(max_depth=self.max_depth,
+                                             random_state=self.random_state, class_weight='balanced')
+            if clf:
+                clf = clf.fit(x_train, y_train)
+                simple_pred = clf.predict(x_test)
+
+        else:
+            raise NotImplementedError(f"expected to be one of ['random', 'constant', 'tree'] \
+                                    but instead got {self.simple_model_type}")
+
+        y_test = test_ds.label_col()
+
+        if self.metric is not None:
+            scorer = validate_scorer(self.metric, model, train_ds)
+            metric_name = self.metric_name or self.metric if isinstance(self.metric, str) else 'User metric'
+        else:
+            metric_name = DEFAULT_SINGLE_METRIC[task_type]
+            scorer = DEFAULT_METRICS_DICT[task_type][metric_name]
+
+        simple_metric = scorer(DummyModel, simple_pred, y_test)
+        pred_metric = scorer(model, test_ds.features_columns(), y_test)
+
+        return simple_metric, pred_metric, metric_name
+
     def _simple_model_comparison(self, train_dataset: Dataset, test_dataset: Dataset, model):
         func_name = self.__class__.__name__
         Dataset.validate_dataset(train_dataset, func_name)
@@ -147,10 +144,8 @@ class SimpleModelComparison(TrainTestBaseCheck):
         test_dataset.validate_label(func_name)
         model_type_validation(model)
 
-        simple_metric, pred_metric, metric_name = find_score(train_dataset, test_dataset,
-                                                            task_type_check(model, train_dataset), model,
-                                                            self.simple_model_type, self.metric,
-                                                            self.metric_name)
+        simple_metric, pred_metric, metric_name = self._find_score(train_dataset, test_dataset,
+                                                            task_type_check(model, train_dataset), model)
 
         ratio = get_metrics_ratio(simple_metric, pred_metric, self.maximum_ratio)
 
@@ -183,8 +178,8 @@ class SimpleModelComparison(TrainTestBaseCheck):
             ratio = result['ratio']
             if ratio < min_allowed_ratio:
                 return ConditionResult(False,
-                                       f'The given model performs {more_than_prefix_adder(ratio, self.maximum_ratio)} times compared'
-                                       f'to the simple model using the given metric')
+                                       f'The given model performs {more_than_prefix_adder(ratio, self.maximum_ratio)}'
+                                       f' times comparedto the simple model using the given metric')
             else:
                 return ConditionResult(True)
 

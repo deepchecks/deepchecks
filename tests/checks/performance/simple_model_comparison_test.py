@@ -56,6 +56,16 @@ def test_regression_random(diabetes_split_dataset_and_model):
     result = check.run(train_ds, test_ds, clf).value
     # Assert
     assert_that(result['given_model_score'], close_to(-57, 0.5))
+    assert_that(result['simple_model_score'], close_to(-114, 0.5))
+
+def test_regression_random_state(diabetes_split_dataset_and_model):
+    train_ds, test_ds, clf = diabetes_split_dataset_and_model
+    # Arrange
+    check = SimpleModelComparison(simple_model_type='random', random_state=0)
+    # Act X
+    result = check.run(train_ds, test_ds, clf).value
+    # Assert
+    assert_that(result['given_model_score'], close_to(-57, 0.5))
     assert_that(result['simple_model_score'], close_to(-105, 0.5))
 
 
@@ -138,4 +148,23 @@ def test_regression_tree(diabetes_split_dataset_and_model):
     # Act X
     ratio = check.run(train_ds, test_ds, clf).value['ratio']
     # Assert
-    assert_that(ratio, close_to(1, 0.1))
+    assert_that(ratio, close_to(1, 0.09))
+
+def test_regression_tree_random_state(diabetes_split_dataset_and_model):
+    train_ds, test_ds, clf = diabetes_split_dataset_and_model
+    # Arrange
+    check = SimpleModelComparison(simple_model_type='tree', random_state=55)
+    # Act X
+    ratio = check.run(train_ds, test_ds, clf).value['ratio']
+    # Assert
+    assert_that(ratio, close_to(1, 0.09))
+
+def test_regression_tree_max_depth(diabetes_split_dataset_and_model):
+    train_ds, test_ds, clf = diabetes_split_dataset_and_model
+    # Arrange
+    check = SimpleModelComparison(simple_model_type='tree', max_depth=5)
+    # Act X
+    ratio = check.run(train_ds, test_ds, clf).value['ratio']
+    # Assert
+    assert_that(ratio, close_to(1.1, 0.1))
+
