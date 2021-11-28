@@ -5,9 +5,6 @@
 ![pkgVersion](https://img.shields.io/pypi/v/deepchecks)
 ![build](https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg)
 
-[comment]: <> "![coverage](https://deepchecks-public.s3.eu-west-1.amazonaws.com/deepchecks/coverage.svg)"
-[comment]: <> "![pylint](https://deepchecks-public.s3.eu-west-1.amazonaws.com/deepchecks/pylint.svg)"
-
 Deepchecks is a Python package for comprehensively validating your machine learning
 models and data with minimal effort.
 This includes checks related to various types of issues, such as model performance,
@@ -31,7 +28,7 @@ Each check can have two types of results:
 
 ### Condition
 A condition is a function that can be added to a Check, which returns a pass &#x2713;, fail &#x2716;
-or warning &#x0021; result, intended for validation the Check's return value. An example for adding a condition would be:
+or warning &#x0021; result, intended for validating the Check's return value. An example for adding a condition would be:
 ```python
 from deepchecks.checks import BoostingOverfit
 BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(threshold=0.05)
