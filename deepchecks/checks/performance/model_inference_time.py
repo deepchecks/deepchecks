@@ -16,7 +16,14 @@ MI = t.TypeVar('MI', bound='ModelInferenceTimeCheck')
 class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
     """Measure model average inference time (in seconds) per sample."""
 
-    NUMBER_OF_SAMPLES: t.ClassVar[int] = 1000
+    def __init__(self, number_of_samples: int = 1000):
+        """Initialize 'ModelInferenceTimeCheck' instance.
+
+        Args:
+            number_of_samples (int): number of samples to use for inference
+        """
+        self.number_of_samples = number_of_samples
+        super().__init__()
 
     def run(self, dataset: Dataset, model: object) -> CheckResult:
         """Run check.
@@ -46,7 +53,10 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
         model_type_validation(model)
 
         prediction_method = model.predict # type: ignore
-        df = dataset.features_columns()[:self.NUMBER_OF_SAMPLES] # type: ignore
+        df = dataset.features_columns()
+
+        number_of_samples = len(df) if len(df) < self.number_of_samples else self.number_of_samples # type: ignore
+        df = df[:number_of_samples] # type: ignore
 
         result = timeit.timeit(
             'predict(*args)',
@@ -54,7 +64,7 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
             number=1
         )
 
-        result = result / self.NUMBER_OF_SAMPLES
+        result = result / number_of_samples
 
         return CheckResult(value=result, check=type(self), display=(
             'Average model inference time for one sample (in seconds): '
