@@ -81,11 +81,12 @@ class NewLabelTrainTest(TrainTestBaseCheck):
         def condition(result: Dict) -> ConditionResult:
             if result:
                 column_name = result['column_name']
-                num_new_labels = len(result['new_labels'])
+                new_labels = result['new_labels']
+                num_new_labels = len(new_labels)
                 if num_new_labels > max_new:
                     return ConditionResult(False,
-                                           f'Found more than {max_new} new labels in label column: '
-                                           f'{column_name}')
+                                           f'Found {num_new_labels} new labels in {column_name} column: '
+                                           f'{new_labels}')
             return ConditionResult(True)
 
         return self.add_condition(f'Number of new label values is not greater than {max_new}',
