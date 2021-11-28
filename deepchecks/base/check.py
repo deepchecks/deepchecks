@@ -197,7 +197,6 @@ class BaseCheck(metaclass=abc.ABCMeta):
     _conditions_index: int
 
     def __init__(self):
-        """Init base check parameters to pass to be used in the implementing check."""
         self._conditions = OrderedDict()
         self._conditions_index = 0
 

@@ -16,14 +16,13 @@ __all__ = ['RocReport']
 
 
 class RocReport(SingleDatasetBaseCheck):
-    """Calculate the AUC (Area Under Curve) for each class."""
+    """Calculate the AUC (Area Under Curve) for each class.
+
+    Args:
+        excluded_classes (List): List of classes to exclude from the condition.
+    """
 
     def __init__(self, excluded_classes: List = None):
-        """Initialize the DominantFrequencyChange class.
-
-        Args:
-            excluded_classes (List): List of classes to exclude from the condition.
-        """
         super().__init__()
         self.excluded_classes = excluded_classes if excluded_classes else []
 

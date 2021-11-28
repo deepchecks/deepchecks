@@ -28,20 +28,19 @@ def _condition_variants_number(result, num_max_variants: int):
 
 
 class StringMismatch(SingleDatasetBaseCheck):
-    """Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column."""
+    """Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column.
+
+    Args:
+        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
+          ones.
+        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
+          variable
+        n_top_columns (int): (optinal - used only if model was specified)
+          amount of columns to show ordered by feature importance (date, index, label are first)
+    """
 
     def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
                  n_top_columns: int = 10):
-        """Initialize the StringMismatch check.
-
-        Args:
-            columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-              ones.
-            ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-              variable
-            n_top_columns (int): (optinal - used only if model was specified)
-              amount of columns to show ordered by feature importance (date, index, label are first)
-        """
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
