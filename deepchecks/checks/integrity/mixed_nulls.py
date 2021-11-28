@@ -19,23 +19,22 @@ DEFAULT_NULL_VALUES = {'none', 'null', 'nan', 'na', '', '\x00', '\x00\x00'}
 
 
 class MixedNulls(SingleDatasetBaseCheck):
-    """Search for various types of null values in a string column(s), including string representations of null."""
+    """Search for various types of null values in a string column(s), including string representations of null.
+
+    Args:
+        null_string_list (List[str]): List of strings to be considered alternative null representations
+        check_nan(bool): Whether to add to null list to check also NaN values
+        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
+          ones.
+        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
+          variable
+        n_top_columns (int): (optinal - used only if model was specified)
+          amount of columns to show ordered by feature importance (date, index, label are first)
+    """
 
     def __init__(self, null_string_list: Iterable[str] = None, check_nan: bool = True,
                  columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
                  n_top_columns: int = 10):
-        """Initialize the MixedNulls check.
-
-        Args:
-            null_string_list (List[str]): List of strings to be considered alternative null representations
-            check_nan(bool): Whether to add to null list to check also NaN values
-            columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-              ones.
-            ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-              variable
-            n_top_columns (int): (optinal - used only if model was specified)
-              amount of columns to show ordered by feature importance (date, index, label are first)
-        """
         super().__init__()
         self.null_string_list = null_string_list
         self.check_nan = check_nan

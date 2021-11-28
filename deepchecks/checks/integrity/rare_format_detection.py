@@ -17,7 +17,17 @@ __all__ = ['RareFormatDetection', 'Pattern']
 
 
 class Pattern:
-    """Supporting class for creating complicated patterns for rare_format_detection."""
+    """Supporting class for creating complicated patterns for rare_format_detection.
+
+    Args:
+        name: name of pattern, will be shown in the results.
+        substituters: list of tuples or just a tuple. first argument in the tuple is the regex string, to find
+            relevant patterns. second argument in the tuple is a substring to replace all relevant substrings.
+        ignore: regex string indicating which substrings should be ignored (replaced with '')
+        refine: boolean. Indicates whether this pattern should be refined later (see _refine_formats)
+        is_sequence: boolean. Indicates whether the substituters are for one characters or for a sequence. Relevant
+            only when refine is True.
+    """
 
     def __init__(
         self,
@@ -28,18 +38,6 @@ class Pattern:
         refine: bool = False,
         is_sequence: bool = False
     ):
-        """
-        Initiate the Pattern class.
-
-        Args:
-            name: name of pattern, will be shown in the results.
-            substituters: list of tuples or just a tuple. first argument in the tuple is the regex string, to find
-                relevant patterns. second argument in the tuple is a substring to replace all relevant substrings.
-            ignore: regex string indicating which substrings should be ignored (replaced with '')
-            refine: boolean. Indicates whether this pattern should be refined later (see _refine_formats)
-            is_sequence: boolean. Indicates whether the substituters are for one characters or for a sequence. Relevant
-                only when refine is True.
-        """
         self.name = name
         if isinstance(substituters, tuple):
             substituters = [substituters]
@@ -282,6 +280,28 @@ class RareFormatDetection(SingleDatasetBaseCheck):
         If we also mark "refine = True" in the Pattern class, the check will further try and make the pattern
         more accurate, by trying to find common characters in all samples of the same pattern. In this example,
         the refined format found would be "XXXXXX@deepchecks.com.
+
+    Args:
+        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
+            ones.
+        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
+            variable
+        patterns (List[Pattern]): patterns to look for when comparing common vs. rare formats. Uses DEFAULT_PATTERNS
+            if not specified.
+            Note that if pattern_match_method='first' (which it is by default), then the order of patterns matter.
+            In this case, it is advised to order the patterns from specific to general.
+        rarity_threshold (float): threshold to indicate what is considered a "sharp" drop in commonness of values.
+            This is used by the function get_rare_vs_common_values which divides data into "common" and "rare"
+            values, and is used here to determine which formats are common and which are rare.
+        min_unique_common_ratio (float): minimum ratio for unique common samples to all common samples.
+            This parameter is used in order to filter unwanted results in the case where the common format is
+            actually a common value.
+            This is because if a common format has too few unique values, it's probably actually just a categorical
+            feature with some values that are very common and some that are rare.
+        pattern_match_method (str): 'first' or 'all'. If 'first', returns only the pattern where a "rare format"
+            sample was found for the first time. If 'all', returns all patterns in which anything was found.
+        n_top_columns (int): (optional - used only if model was specified)
+            amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
     def __init__(
@@ -294,30 +314,6 @@ class RareFormatDetection(SingleDatasetBaseCheck):
         pattern_match_method: str = 'first',
         n_top_columns: int = 10
     ):
-        """Initialize the RareFormatDetection check.
-
-        Args:
-            columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-                ones.
-            ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-                variable
-            patterns (List[Pattern]): patterns to look for when comparing common vs. rare formats. Uses DEFAULT_PATTERNS
-                if not specified.
-                Note that if pattern_match_method='first' (which it is by default), then the order of patterns matter.
-                In this case, it is advised to order the patterns from specific to general.
-            rarity_threshold (float): threshold to indicate what is considered a "sharp" drop in commonness of values.
-                This is used by the function get_rare_vs_common_values which divides data into "common" and "rare"
-                values, and is used here to determine which formats are common and which are rare.
-            min_unique_common_ratio (float): minimum ratio for unique common samples to all common samples.
-                This parameter is used in order to filter unwanted results in the case where the common format is
-                actually a common value.
-                This is because if a common format has too few unique values, it's probably actually just a categorical
-                feature with some values that are very common and some that are rare.
-            pattern_match_method (str): 'first' or 'all'. If 'first', returns only the pattern where a "rare format"
-                sample was found for the first time. If 'all', returns all patterns in which anything was found.
-            n_top_columns (int): (optional - used only if model was specified)
-                amount of columns to show ordered by feature importance (date, index, label are first)
-        """
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns

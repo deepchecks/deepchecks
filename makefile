@@ -51,8 +51,8 @@ REQUIREMENTS_LOG := .requirements.log
 ANALIZE_PKGS = pylint pydocstyle 
 TEST_CODE := tests/
 TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval
-NOTEBOOK_DIR = ./notebooks
-NOTEBOOK_SANITIZER_FILE=$(NOTEBOOK_DIR)/.nbval-sanitizer 
+NOTEBOOK_DIR = ./notebooks/examples ./notebooks/checks
+NOTEBOOK_SANITIZER_FILE= ./notebooks/.nbval-sanitizer
 
 PYLINT_LOG = .pylint.log
 
@@ -113,8 +113,8 @@ validate: $(REQUIREMENTS_LOG) pylint docstring
 
 pylint: $(ANALIZE)
 	$(ANALIZE) $(SOURCES) $(TEST_CODE)
-docstring: $(ANALIZE) # We Use Google Style Python Docstring
-	$(PYTHON) -m pydocstyle $(SOURCES)
+docstring: $(ANALIZE) # We Use PEP257 Style Python Docstring
+	$(PYTHON) -m pydocstyle --convention=pep257 --add-ignore=D107 $(SOURCES)
 
 $(ANALIZE): $(PIP)
 	$(PIP) install --upgrade $(ANALIZE_PKGS) | tee -a $(REQUIREMENTS_LOG)

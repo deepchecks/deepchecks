@@ -1,13 +1,14 @@
 """The predefined performance suite module."""
 from deepchecks import CheckSuite
+from deepchecks.checks import TrustScoreComparison
 from deepchecks.checks.performance import (
     PerformanceReport,
     ConfusionMatrixReport,
     RocReport,
     NaiveModelComparison,
     CalibrationMetric
-)
 
+)
 
 __all__ = [
     'classification_check_suite',
@@ -29,6 +30,7 @@ def classification_check_suite() -> CheckSuite:
         ConfusionMatrixReport(),
         RocReport().add_condition_auc_not_less_than(),
         CalibrationMetric(),
+        TrustScoreComparison().add_condition_mean_score_percent_decline_not_greater_than()
     )
 
 
@@ -39,7 +41,7 @@ def regression_check_suite() -> CheckSuite:
     abnormality of the regression model.
     """
     # TODO: This suite is here as a placeholder for future regression-specific checks
-    return CheckSuite('Regression Suite',)
+    return CheckSuite('Regression Suite')
 
 
 def generic_performance_check_suite() -> CheckSuite:
