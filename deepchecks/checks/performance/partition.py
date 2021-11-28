@@ -12,15 +12,14 @@ from deepchecks.string_utils import format_number
 
 
 class DeepchecksFilter:
-    """Contains a filter function which works on a dataframe and a label describing the filter."""
+    """Contains a filter function which works on a dataframe and a label describing the filter.
+
+    Args:
+        filter_func (Callable): function which receive dataframe and return a filter on it
+        label (str): name of the filter
+    """
 
     def __init__(self, filter_func: Callable, label: str):
-        """Init DeepchecksFilter.
-
-        Args:
-            filter_func (Callable): function which receive dataframe and return a filter on it
-            label (str): name of the filter
-        """
         self.filter_func = filter_func
         self.label = label
 

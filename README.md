@@ -1,72 +1,91 @@
 
-# Deepchecks
+# Deepchecks - Test Suites for ML Models and Data
 
 ![pyVersions](https://img.shields.io/pypi/pyversions/deepchecks)
 ![pkgVersion](https://img.shields.io/pypi/v/deepchecks)
 ![build](https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg)
-![coverage](https://deepchecks-public.s3.eu-west-1.amazonaws.com/deepchecks/coverage.svg)
-![pylint](https://deepchecks-public.s3.eu-west-1.amazonaws.com/deepchecks/pylint.svg)
 
-Deepchecks is a Python package, for quickly and efficiently validating many aspects of your trained machine learning models. These include model performance related issues, machine learning methodology best-practices, model and data integrity.
+Deepchecks is a Python package for comprehensively validating your machine learning
+models and data with minimal effort.
+This includes checks related to various types of issues, such as model performance,
+data integrity, distribution mismatches, and more.
+
+<p align="center">
+   <img src="docs/images/check_suite_diagram.png" height="300">
+</p>
 
 ## Key Concepts
 
-#### Check
-Each check enables you to inspect a specific aspect of your data and models. They are the basic building block of the deepchecks package, covering all kinds of common issues, such as:
+### Check
+Each check enables you to inspect a specific aspect of your data and models.
+They are the basic building block of the deepchecks package, covering all kinds of common issues,
+such as: PerformanceOverfit, DataSampleLeakage, SingleFeatureContribution,
+DataDuplicates, and [many more checks](./notebooks/checks).
+Each check can have two types of results:
+1. A visual result meant for display (e.g. a figure or a table).
+2. A return value that can be used for validating the expected check results
+   (validations are typically done by adding a "condition" to the check, as explained below).
 
--   PerformanceOverfit
-    
--   DataSampleLeakage
-    
--   SingleFeatureContribution
-    
--   DataDuplicates
-    
--   … and [many more](./notebooks)
-    
+### Condition
+A condition is a function that can be added to a Check, which returns a pass &#x2713;, fail &#x2716;
+or warning &#x0021; result, intended for validating the Check's return value. An example for adding a condition would be:
+```python
+from deepchecks.checks import BoostingOverfit
+BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(threshold=0.05)
+```
+which will fail if there is a difference of more than 5% between the best score achieved on the test set during
+the boosting iterations and the score achieved in the last iteration (the model's "original" score on the test set).
 
-Each check displays a visual result and returns a custom result value that can be used to validate the expected check results by setting conditions upon them.
-
-#### Suite
-An ordered collection of checks. [Here](deepchecks/suites) you can find the existing suites and a code example for how to add your own custom suite. You can edit the preconfigured suites or build a suite of your own with a collection of checks and result conditions.
-  
+### Suite
+An ordered collection of checks, that can have conditions added to them.
+The Suite enables displaying a concluding report for all of the Checks that ran.
+[Here](deepchecks/suites) you can find the [predefined existing suites](deepchecks/suites) and a code example demonstrating how to build
+your own custom suite. The existing suites include default conditions added for most of the checks.
+You can edit the preconfigured suites or build a suite of your own with a collection of checks and optional conditions.
 
 ## Installation
 
-#### Using pip with package wheel file
-From the directory in which you have the wheel file, run:
+### Using pip
 ```bash
-pip3 install deepchecks-latest.whl #--user
+pip install deepchecks #--user
 ```
 
-#### From source
+### From source
 First clone the repository and then install the package from inside the repository's directory:
 ```bash
 git clone https://github.com/deepchecks/deepchecks.git
 cd deepchecks
-python setup.py install # --user
+# for installing stable tag version and not the latest commit to main
+git checkout tags/<name_of_latest_tag>
 ```
-
+and then either:
+```bash
+pip install .
+```
+or
+```bash
+python setup.py install
+```
 
 ## Are You Ready  to Start Checking?
 
-To discover the full value from MLChecking your data and model, we recommend having in your jupyter environment:
+For the full value from Deepchecks' checking suites, we recommend working with:
 
--   A scikit-learn API supporting model that you wish to validate
+-   A model compatible with scikit-learn API that you wish to validate (e.g. RandomForest, XGBoost)
     
--   The models’ training data with labels
+-   The model's training data with labels
     
 -   Test data (on which the model wasn’t trained) with labels  
 
-Additionally, many of the checks and some of the suites need only a subset of the above to run.
+However, many of the checks and some of the suites need only a subset of the above to run.
 
 ## Usage Examples
 
 ### Running a Check
-For running a specific check on your dataframe, all you need to do is:
+For running a specific check on your pandas DataFrame, all you need to do is:
 
 ```python
-from deepchecks.checks import *
+from deepchecks.checks import RareFormatDetection
 import pandas as pd
 
 df_to_check = pd.read_csv('data_to_validate.csv')
@@ -75,12 +94,12 @@ RareFormatDetection().run(df_to_check)
 ```
 Which might product output of the type:
 ><h4>Rare Format Detection</h4>
-> <p>Check whether columns have common formats (e.g. \"XX-XX-XXXX\" for dates\") and detects values that don't match.</p>
+> <p>Check whether columns have common formats (e.g. 'XX-XX-XXXX' for dates) and detects values that don't match.</p>
 > <p><b>&#x2713;</b> Nothing found</p>
 
 If all was fine, or alternatively something like:
 ><h4>Rare Format Detection</h4>
-><p>Check whether columns have common formats (e.g. \"XX-XX-XXXX\" for dates\") and detects values that don't match.</p>
+><p>Check whether columns have common formats (e.g. 'XX-XX-XXXX' for dates) and detects values that don't match.</p>
 >
 >
 > Column date:
@@ -113,7 +132,7 @@ If all was fine, or alternatively something like:
 If mismatches were detected.
 
 ### Running a Suite
-Let's take for example the iris dataset:
+Let's take the "iris" dataset as an example:
 ```python
 import pandas as pd
 from sklearn.datasets import load_iris
@@ -127,18 +146,20 @@ df_val = iris_df[train_len:]
 To run an existing suite all you need to do is import the suite and run it -
 
 ```python
-from deepchecks.suites import IntegrityCheckSuite
-IntegrityCheckSuite.run(train_dataset=df_train, test_dataset=df_val, check_datasets_policy='both')
+from deepchecks.suites import integrity_check_suite
+integrity_suite = integrity_check_suite()
+integrity_suite.run(train_dataset=df_train, test_dataset=df_val, check_datasets_policy='both')
 ```
-Which will result in printing the outputs of all of the checks that are in that suite.
+Which will result in printing the summary of the check conditions and then the visual outputs of all of the checks that
+are in that suite.
 
 ### Example Notebooks
-For full usage examples, check out: 
-- [**deepchecks Quick Start Notebook**](./notebooks/examples/models/Iris%20Dataset%20CheckSuite%20Example.ipynb) - for a simple example notebook for working with checks and suites.
-- [**Example Checks Output Notebooks**](./notebooks) - to see all of the existing checks and their usage examples.
+For usage examples, check out: 
+- [**deepchecks Quick Start Notebook**](./notebooks/examples/CheckSuite_Iris_Dataset.ipynb) - for a simple example notebook for working with checks and suites.
+- [**Example Checks Output Notebooks**](./notebooks/checks) - to see all of the existing checks and their usage examples.
 
 ## Communication
-- Join our [Slack Community](https://join.slack.com/t/mlcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg) to connect with the maintainers and follow users and interesting discussions
+- Join our [Slack Community](https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg) to connect with the maintainers and follow users and interesting discussions
 - Post a [Github Issue](https://github.com/deepchecks/deepchecks/issues) to suggest improvements, open an issue, or share feedback.
 
 [comment]: <> "- Send us an [email](mailto:info@deepchecks.com) at info@deepchecks.com"

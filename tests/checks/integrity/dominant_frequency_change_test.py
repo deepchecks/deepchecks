@@ -145,4 +145,37 @@ def test_condition_ratio_not_less_than_passed(iris_split_dataset_and_model):
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                name='P value not less than 0.0001')
-    )) 
+    ))
+
+
+def test_condition_ratio_of_change_not_more_than_not_passed(iris_split_dataset_and_model):
+    # Arrange
+    train_ds, val_ds, _ = iris_split_dataset_and_model
+
+    check = DominantFrequencyChange().add_condition_ratio_of_change_not_more_than()
+
+    # Act
+    result = check.conditions_decision(check.run(train_ds, val_ds))
+
+    # Assert
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=False,
+                               name='Change in ratio of dominant value in data not more than 25.00%',
+                               details='Found columns with high change in dominant value: [\'sepal width (cm)\']')
+    ))
+
+
+def test_condition_ratio_of_change_not_more_than_passed(iris_split_dataset_and_model):
+    # Arrange
+    train_ds, _, _ = iris_split_dataset_and_model
+
+    check = DominantFrequencyChange().add_condition_ratio_of_change_not_more_than()
+
+    # Act
+    result = check.conditions_decision(check.run(train_ds, train_ds))
+
+    # Assert
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=True,
+                               name='Change in ratio of dominant value in data not more than 25.00%')
+    ))

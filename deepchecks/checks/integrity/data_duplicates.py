@@ -14,19 +14,18 @@ __all__ = ['DataDuplicates']
 
 
 class DataDuplicates(SingleDatasetBaseCheck):
-    """Search for duplicate data in dataset."""
+    """Search for duplicate data in dataset.
+
+    Args:
+        columns (str, Iterable[str]): List of columns to check, if none given checks all columns Except ignored
+          ones.
+        ignore_columns (str, Iterable[str]): List of columns to ignore, if none given checks based on columns
+          variable.
+        n_to_show (int): number of most common duplicated samples to show.
+    """
 
     def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
                  n_to_show: int = 5):
-        """Initialize the DataDuplicates class.
-
-        Args:
-            columns (str, Iterable[str]): List of columns to check, if none given checks all columns Except ignored
-              ones.
-            ignore_columns (str, Iterable[str]): List of columns to ignore, if none given checks based on columns
-              variable.
-            n_to_show (int): number of most common duplicated samples to show.
-        """
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
