@@ -130,26 +130,24 @@ class TrainTestDrift(TrainTestBaseCheck):
     See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf
     For categorical columns, we use the Population Stability Index (PSI).
     See https://en.wikipedia.org/wiki/Wasserstein_metric.
+
+
+    Args:
+        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
+        ones.
+        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
+        variable.
+        n_top_columns (int): (optional - used only if model was specified)
+          amount of columns to show ordered by feature importance (date, index, label are first)
+        sort_feature_by (str): Indicates how features will be sorted. Can be either "feature importance"
+          or "drift score"
+        max_num_categories (int): Only for categorical columns. Max number of allowed categories. If there are more,
+         they are binned into an "Other" category. If max_num_categories=None, there is no limit.
     """
 
     def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
                  n_top_columns: int = 5, sort_feature_by: str = 'feature importance', max_num_categories: int = 10):
-        """
-        Initialize the TrainTestDrift class.
 
-        Args:
-            columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-            ones.
-            ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-            variable.
-            n_top_columns (int): (optional - used only if model was specified)
-              amount of columns to show ordered by feature importance (date, index, label are first)
-            sort_feature_by (str): Indicates how features will be sorted. Can be either "feature importance"
-              or "drift score"
-            max_num_categories (int): Only for categorical columns. Max number of allowed categories. If there are more,
-             they are binned into an "Other" category. If max_num_categories=None, there is no limit.
-
-        """
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
