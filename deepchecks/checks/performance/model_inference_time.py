@@ -3,7 +3,7 @@ import typing as t
 import timeit
 
 from deepchecks import SingleDatasetBaseCheck, CheckResult, Dataset, ConditionResult
-from deepchecks.utils import model_type_validation, DeepchecksValueError
+from deepchecks.utils import model_type_validation
 from deepchecks.string_utils import format_number
 
 
@@ -42,10 +42,8 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
     ) -> CheckResult:
         check_name = type(self).__name__
         Dataset.validate_dataset(dataset, check_name)
+        Dataset.validate_model(dataset, model)
         model_type_validation(model)
-
-        if dataset.features_columns() is None:
-            raise DeepchecksValueError(f'Check {check_name} requires dataset with the features!')
 
         prediction_method = model.predict # type: ignore
         df = dataset.features_columns()[:self.NUMBER_OF_SAMPLES] # type: ignore
@@ -59,8 +57,8 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
         result = result / self.NUMBER_OF_SAMPLES
 
         return CheckResult(value=result, check=type(self), display=(
-            'Average model inference time for one sample (in seconds) '
-            f'equal to {format_number(result, floating_point=8)}'
+            'Average model inference time for one sample (in seconds): '
+            f'{format_number(result, floating_point=8)}'
         ))
 
     def add_condition_inference_time_is_not_greater_than(self: MI, value: float = 0.001) -> MI:

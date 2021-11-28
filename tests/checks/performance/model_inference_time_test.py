@@ -22,8 +22,8 @@ def test_model_inference_time_check(
     assert_that(result.display, only_contains(instance_of(str))) # type: ignore
 
     details_pattern = (
-        r'Average model inference time for one sample \(in seconds\) '
-        fr'equal to {SCIENTIFIC_NOTATION_REGEXP.pattern}'
+        r'Average model inference time for one sample \(in seconds\): '
+        fr'{SCIENTIFIC_NOTATION_REGEXP.pattern}'
     )
 
     assert_that(result.display[0], matches_regexp(details_pattern)) # type: ignore
