@@ -43,7 +43,7 @@ def test_classification_suite(iris: t.Tuple[Dataset, Dataset, AdaBoostClassifier
     suite = suites.overall_classification_check_suite()
     # Have to change min test samples of TrustScoreComparison
     suite[1].min_test_samples = 50
-    suite[20].min_test_samples = 50
+    suite[21].min_test_samples = 50
 
     arguments = (
         dict(train_dataset=train, test_dataset=test, model=model, check_datasets_policy='both'),
