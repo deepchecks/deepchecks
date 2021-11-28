@@ -55,9 +55,9 @@ def calculate_feature_importance(model: Any, dataset: Dataset, random_state: int
         internal_estimator_list = [x[1] for x in model.steps if isinstance(x[1], BaseEstimator)]
         if internal_estimator_list:
             internal_estimator = internal_estimator_list[-1]
+            check_is_fitted(internal_estimator)
         else:
             internal_estimator = None
-        check_is_fitted(internal_estimator)
     else:
         check_is_fitted(model)
 
