@@ -42,7 +42,7 @@ class Dataset:
 
     def __init__(self, df: pd.DataFrame,
                  features: List[str] = None, cat_features: List[str] = None, label: str = None, use_index: bool = False,
-                 index: str = None, date: str = None, date_unit_type: str = None, _convert_date: bool = True,
+                 index: str = None, date: str = None, date_unit_type: str = None, convert_date_: bool = True,
                  max_categorical_ratio: float = 0.01, max_categories: int = 30, max_float_categories: int = 5):
         """Initiate the Dataset using a pandas DataFrame and Metadata.
 
@@ -52,7 +52,7 @@ class Dataset:
           cat_features: List of names for the categorical features in the DataFrame. In order to disable categorical
                         features inference, pass cat_features=[]
           label: Name of the label column in the DataFrame.
-          use_index: Name of the index column in the DataFrame.
+          use_index: Whether to use the dataframe index as the index column, for index related checks.
           index: Name of the index column in the DataFrame.
           date: Name of the date column in the DataFrame.
           date_unit_type: Unit used for conversion if date column is of type int or float.
@@ -123,7 +123,7 @@ class Dataset:
         else:
             self.cat_features = self.infer_categorical_features()
 
-        if self._date_name and _convert_date:
+        if self._date_name and convert_date_:
             self._data[self._date_name] = self._data[self._date_name].apply(pd.Timestamp, unit=date_unit_type)
 
     @property
@@ -141,7 +141,7 @@ class Dataset:
         date = self._date_name if self._date_name in new_data.columns else None
 
         return Dataset(new_data, features=features, cat_features=cat_features, label=label, use_index=self._use_index,
-                       index=index, date=date, _convert_date=False, max_categorical_ratio=self._max_categorical_ratio,
+                       index=index, date=date, convert_date_=False, max_categorical_ratio=self._max_categorical_ratio,
                        max_categories=self._max_categories)
 
     def n_samples(self):
@@ -171,9 +171,9 @@ class Dataset:
 
         if len(cat_columns) > 0:
             if len(cat_columns) < 7:
-                print(f'Automatically inferred these columns as categorical features: {",".join(cat_columns)}. \n')
+                print(f'Automatically inferred these columns as categorical features: {", ".join(cat_columns)}. \n')
             else:
-                print(f'Some columns have been inferred as categorical features: {",".join(cat_columns[:7])}. \n '
+                print(f'Some columns have been inferred as categorical features: {", ".join(cat_columns[:7])}. \n '
                       f'and more... \n'
                       f'For the full list of columns, use dataset.cat_features')
 

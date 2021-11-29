@@ -28,7 +28,7 @@ def assert_dataset(dataset: Dataset, args):
         assert_that(dataset.index_col().equals(pd.Series(args['df'][args['index']])), is_(True))
     if 'date' in args:
         assert_that(dataset.date_name(), equal_to(args['date']))
-        if ('_convert_date' in args) and (args['_convert_date'] is False):
+        if ('convert_date_' in args) and (args['convert_date_'] is False):
             assert_that(dataset.date_col().equals(pd.Series(args['df'][args['date']])), is_(True))
         else:
             for date in dataset.date_col():
@@ -281,7 +281,7 @@ def test_dataset_date_convert_date():
     df = pd.DataFrame({'date': [1, 2]})
     args = {'df': df,
             'date': 'date',
-            '_convert_date': False}
+            'convert_date_': False}
     dataset = Dataset(**args)
     assert_dataset(dataset, args)
     date_col = dataset.date_col()

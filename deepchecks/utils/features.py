@@ -54,16 +54,25 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_s
     Raise:
         NotFittedError: Call 'fit' with appropriate arguments before using this estimator.
     """
-    check_is_fitted(model)
+    # special condition - check_is_fitted doesn't work for Pipeline
+    if isinstance(model, Pipeline):
+        # get feature importance from last model in pipeline
+        internal_estimator_list = [x[1] for x in model.steps if isinstance(x[1], BaseEstimator)]
+        if internal_estimator_list:
+            internal_estimator = internal_estimator_list[-1]
+            check_is_fitted(internal_estimator)
+        else:
+            internal_estimator = None
+    else:
+        check_is_fitted(model)
+
     dataset.validate_model(model)
 
     feature_importances = _built_in_importance(model, dataset)
     if feature_importances is None:
         if isinstance(model, Pipeline):
-            # Assume model is last
-            final_estimator = model.steps[-1][1]
-            if isinstance(final_estimator, BaseEstimator):
-                feature_importances = _built_in_importance(final_estimator, dataset)
+            if internal_estimator is not None:
+                feature_importances = _built_in_importance(internal_estimator, dataset)
             else:
                 feature_importances = _calc_importance(model, dataset, random_state=random_state)
         else:  # Others
@@ -150,11 +159,10 @@ def column_importance_sorter_df(
     """Return the dataframe of of columns sorted and limited by feature importance.
 
     Args:
-        cols_dict (pd.DataFrame): dataframe where columns are the index or in a column
+        df (DataFrame): DataFrame to sort
         ds (Dataset): dataset used to fit the model
         feature_importances (pd.Series): feature importance normalized to 0-1 indexed by feature names
-        n_top_columns (int): (optinal - used only if model was specified)
-                             amount of columns to show ordered by feature importance (date, index, label are first)
+        n_top (int): amount of columns to show ordered by feature importance (date, index, label are first)
         col (str): (optional) name of column to sort the dataframe by
     Returns:
         pd.DataFrame: the dataframe sorted and limited by feature importance.

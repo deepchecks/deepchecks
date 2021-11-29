@@ -5,9 +5,6 @@
 ![pkgVersion](https://img.shields.io/pypi/v/deepchecks)
 ![build](https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg)
 
-[comment]: <> "![coverage](https://deepchecks-public.s3.eu-west-1.amazonaws.com/deepchecks/coverage.svg)"
-[comment]: <> "![pylint](https://deepchecks-public.s3.eu-west-1.amazonaws.com/deepchecks/pylint.svg)"
-
 Deepchecks is a Python package for comprehensively validating your machine learning
 models and data with minimal effort.
 This includes checks related to various types of issues, such as model performance,
@@ -144,14 +141,14 @@ from sklearn.datasets import load_iris
 iris_df = load_iris(return_X_y=False, as_frame=True)['frame']
 train_len = round(0.67*len(iris_df))
 df_train = iris_df[:train_len]
-df_val = iris_df[train_len:]
+df_test = iris_df[train_len:]
 ```
 To run an existing suite all you need to do is import the suite and run it -
 
 ```python
 from deepchecks.suites import integrity_check_suite
 integrity_suite = integrity_check_suite()
-integrity_suite.run(train_dataset=df_train, test_dataset=df_val, check_datasets_policy='both')
+integrity_suite.run(train_dataset=df_train, test_dataset=df_test, check_datasets_policy='both')
 ```
 Which will result in printing the summary of the check conditions and then the visual outputs of all of the checks that
 are in that suite.
