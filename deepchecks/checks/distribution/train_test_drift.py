@@ -217,7 +217,7 @@ class TrainTestDrift(TrainTestBaseCheck):
             displays_dict[column] = display
 
         if self.sort_feature_by == 'feature importance' and feature_importances is not None:
-            columns_order = feature_importances.head(self.n_top_columns).index
+            columns_order = feature_importances.sort_values(ascending=False).head(self.n_top_columns).index
         else:
             columns_order = sorted(features, key=lambda col: values_dict[col]['Drift score'], reverse=True
                                    )[:self.n_top_columns]
@@ -313,7 +313,7 @@ class TrainTestDrift(TrainTestBaseCheck):
                 axs[1].legend(['Train dataset', 'Test Dataset'])
                 axs[1].set_title('Distribution')
                 fig.tight_layout(pad=1.0)
-                axs[2].axhline(y=0.5, color='k', linestyle='-')
+                axs[2].axhline(y=0.5, color='k', linestyle='-', linewidth=0.5)
                 axs[2].axis('off')
 
             return score, "Earth Mover's Distance", plot_numerical
@@ -339,7 +339,7 @@ class TrainTestDrift(TrainTestBaseCheck):
                 plt.sca(axs[1])
                 plt.xticks(rotation=30)
                 fig.tight_layout(pad=1.0)
-                axs[2].axhline(y=0.5, color='k', linestyle='-')
+                axs[2].axhline(y=0.5, color='k', linestyle='-', linewidth=0.5)
                 axs[2].axis('off')
 
             return score, 'PSI', plot_categorical
