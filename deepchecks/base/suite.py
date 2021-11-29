@@ -1,106 +1,33 @@
 """Module containing the Suite object, used for running a set of checks together."""
-# pylint: disable=protected-access,broad-except
+# pylint: disable=broad-except
 from collections import OrderedDict
-from typing import Union, List, Tuple
+from typing import Union, List, Optional
 
-import pandas as pd
-from IPython.core.display import display_html, display
-from ipywidgets import IntProgress, HTML, VBox
+from deepchecks.base.display_suite import display_suite_result, ProgressBar
+from deepchecks.utils import DeepchecksValueError
+from deepchecks.base import Dataset
+from deepchecks.base.check import (
+    BaseCheck, CheckResult, TrainTestBaseCheck, CompareDatasetsBaseCheck,
+    SingleDatasetBaseCheck, ModelOnlyBaseCheck, CheckFailure
+)
 
-from deepchecks.base.check import BaseCheck, CheckResult, TrainTestBaseCheck, CompareDatasetsBaseCheck, \
-    SingleDatasetBaseCheck, ModelOnlyBaseCheck
 
 __all__ = ['CheckSuite', 'SuiteResult']
-
-from deepchecks.utils import DeepchecksValueError, is_widgets_enabled
-
-
-def get_display_exists_icon(exists: bool):
-    if exists:
-        return '<div style="text-align: center">Yes</div>'
-    return '<div style="text-align: center">No</div>'
 
 
 class SuiteResult:
     """Contain the results of a suite run."""
 
     name: str
-    results: List[Union[CheckResult, Tuple]]
+    results: List[Union[CheckResult, CheckFailure]]
 
     def __init__(self, name: str, results):
         """Initialize suite result."""
         self.name = name
         self.results = results
 
-    def _ipython_display_(self, only_summary=False):
-        display_html(f'<h1>{self.name}</h1>', raw=True)
-        conditions_table = []
-        checks_without_condition_table = []
-        errors_table = []
-
-        for result in self.results:
-            if isinstance(result, CheckResult):
-                if result.have_conditions():
-                    for cond_result in result.conditions_results:
-                        sort_value = cond_result.get_sort_value()
-                        icon = cond_result.get_icon()
-                        conditions_table.append([icon, result.header, cond_result.name,
-                                                 cond_result.details, sort_value])
-                else:
-                    checks_without_condition_table.append([result.header,
-                                                           get_display_exists_icon(result.have_display())])
-            elif isinstance(result, Tuple):
-                errors_table.append(result)
-
-        # First print summary
-        display_html('<h2>Checks Summary</h2>', raw=True)
-        if conditions_table:
-            display_html('<h3>With Conditions</h3>', raw=True)
-            table = pd.DataFrame(data=conditions_table, columns=['Status', 'Check', 'Condition', 'More Info', 'sort'])
-            table.sort_values(by=['sort'], inplace=True)
-            table.drop('sort', axis=1, inplace=True)
-            SuiteResult._display_table(table)
-        if checks_without_condition_table:
-            display_html('<h3>Without Conditions</h3>', raw=True)
-            table = pd.DataFrame(data=checks_without_condition_table, columns=['Check', 'Has Display?'])
-            SuiteResult._display_table(table)
-        if errors_table:
-            display_html('<h3>With Error</h3>', raw=True)
-            table = pd.DataFrame(data=errors_table, columns=['Check', 'Error'])
-            SuiteResult._display_table(table)
-        # If verbose print all displays
-        if not only_summary:
-            only_check_with_display = [r for r in self.results
-                                       if isinstance(r, CheckResult) and r.have_display()]
-            # If there are no checks with display doesn't print anything else
-            if only_check_with_display:
-                checks_not_passed = [r for r in only_check_with_display
-                                     if r.have_conditions() and not r.passed_conditions()]
-                checks_without_condition = [r for r in only_check_with_display
-                                            if not r.have_conditions() and r.have_display()]
-                checks_passed = [r for r in only_check_with_display
-                                 if r.have_conditions() and r.passed_conditions() and r.have_display()]
-
-                display_html('<hr><h2>Results Display</h2>', raw=True)
-                if checks_not_passed:
-                    display_html('<h3>Checks with Failed Condition</h3>', raw=True)
-                    for result in sorted(checks_not_passed, key=lambda x: x.get_conditions_sort_value()):
-                        result._ipython_display_()
-                if checks_without_condition:
-                    display_html('<h3>Checks without Condition</h3>', raw=True)
-                    for result in checks_without_condition:
-                        result._ipython_display_()
-                if checks_passed:
-                    display_html('<h3>Checks with Passed Condition</h3>', raw=True)
-                    for result in checks_passed:
-                        result._ipython_display_()
-
-    @classmethod
-    def _display_table(cls, df):
-        df_styler = df.style
-        df_styler.set_table_styles([dict(selector='th,td', props=[('text-align', 'left')])])
-        df_styler.hide_index()
-        display_html(df_styler.render(), raw=True)
+    def _ipython_display_(self):
+        display_suite_result(self.name, self.results)
 
 
 class CheckSuite(BaseCheck):
@@ -123,8 +50,13 @@ class CheckSuite(BaseCheck):
         for check in checks:
             self.add(check)
 
-    def run(self, model=None, train_dataset=None, test_dataset=None, check_datasets_policy: str = 'test') \
-            -> SuiteResult:
+    def run(
+        self,
+        train_dataset: Optional[Dataset] = None,
+        test_dataset: Optional[Dataset] = None,
+        model: object = None,
+        check_datasets_policy: str = 'test'
+    ) -> SuiteResult:
         """Run all checks.
 
         Args:
@@ -144,18 +76,17 @@ class CheckSuite(BaseCheck):
         if check_datasets_policy not in ['both', 'train', 'test']:
             raise ValueError('check_datasets_policy must be one of ["both", "train", "test"]')
 
+        if all(it is None for it in (train_dataset, test_dataset, model)):
+            raise ValueError('At least one dataset (or model) must be passed to the method!')
+
         # Create progress bar
-        progress_bar = IntProgress(value=0, min=0, max=len(self.checks),
-                                   bar_style='info', style={'bar_color': '#9d60fb'}, orientation='horizontal')
-        label = HTML()
-        box = VBox(children=[label, progress_bar])
-        self._display_widget(box)
+        progress_bar = ProgressBar(self.name, len(self.checks))
 
         # Run all checks
         results = []
-        for name, check in self.checks.items():
+        for check in self.checks.values():
             try:
-                label.value = f'Running {str(check)}'
+                progress_bar.set_text(check.name())
                 if isinstance(check, TrainTestBaseCheck):
                     if train_dataset is not None and test_dataset is not None:
                         check_result = check.run(train_dataset=train_dataset, test_dataset=test_dataset,
@@ -187,13 +118,10 @@ class CheckSuite(BaseCheck):
                 else:
                     raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
             except Exception as exp:
-                results.append((name, exp))
-            progress_bar.value = progress_bar.value + 1
+                results.append(CheckFailure(check.__class__, exp))
+            progress_bar.inc_progress()
 
         progress_bar.close()
-        label.close()
-        box.close()
-
         return SuiteResult(self.name, results)
 
     def __repr__(self, tabs=0):
@@ -215,8 +143,12 @@ class CheckSuite(BaseCheck):
             check (BaseCheck): A check or suite to add.
         """
         if not isinstance(check, BaseCheck):
-            raise Exception(f'CheckSuite receives only `BaseCheck` objects but got: {check.__class__.__name__}')
+            raise DeepchecksValueError(
+                f'CheckSuite receives only `BaseCheck` objects but got: {check.__class__.__name__}'
+            )
         if isinstance(check, CheckSuite):
+            if check is self:
+                return self
             for c in check.checks.values():
                 self.add(c)
         else:
@@ -234,7 +166,3 @@ class CheckSuite(BaseCheck):
             raise DeepchecksValueError(f'No index {index} in suite')
         self.checks.pop(index)
         return self
-
-    def _display_widget(self, param):
-        if is_widgets_enabled():
-            display(param)

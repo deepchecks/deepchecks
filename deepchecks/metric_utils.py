@@ -2,11 +2,13 @@
 import enum
 from numbers import Number
 from typing import List, Union, Dict, Callable
+
+import numpy as np
 from sklearn.metrics import get_scorer, make_scorer, accuracy_score, precision_score, recall_score, mean_squared_error
 from sklearn.base import ClassifierMixin, RegressorMixin
 
 __all__ = ['ModelType', 'task_type_check', 'get_metrics_list', 'validate_scorer', 'DEFAULT_METRICS_DICT',
-           'DEFAULT_SINGLE_METRIC']
+           'DEFAULT_SINGLE_METRIC', 'get_metrics_ratio']
 
 from deepchecks.utils import model_type_validation, DeepchecksValueError
 
@@ -21,14 +23,14 @@ class ModelType(enum.Enum):
 
 DEFAULT_BINARY_METRICS = {
     'Accuracy': make_scorer(accuracy_score),
-    'Precision': make_scorer(precision_score),
-    'Recall': make_scorer(recall_score)
+    'Precision': make_scorer(precision_score, zero_division=0),
+    'Recall': make_scorer(recall_score, zero_division=0)
 }
 
 DEFAULT_MULTICLASS_METRICS = {
     'Accuracy': make_scorer(accuracy_score),
-    'Precision - Macro Average': make_scorer(precision_score, average='macro'),
-    'Recall - Macro Average': make_scorer(recall_score, average='macro')
+    'Precision - Macro Average': make_scorer(precision_score, average='macro', zero_division=0),
+    'Recall - Macro Average': make_scorer(recall_score, average='macro', zero_division=0)
 }
 
 DEFAULT_REGRESSION_METRICS = {
@@ -64,9 +66,9 @@ def task_type_check(model: Union[ClassifierMixin, RegressorMixin], dataset: 'Dat
 
     if getattr(model, 'predict_proba', None):
         unique_labels = dataset.label_col().unique()
-        if sorted(unique_labels) != list(range(min(unique_labels), max(unique_labels) + 1)):
+        if sorted(unique_labels) != list(range(len(unique_labels))):
             raise DeepchecksValueError(f'Classification labels must be a consecutive set from 0 to MAX_LABEL,'
-                                     f' found {sorted(unique_labels)}.')
+                                       f' found {sorted(unique_labels)}.')
         model: ClassifierMixin
         if dataset.label_col().nunique() > 2:
             return ModelType.MULTICLASS
@@ -137,3 +139,15 @@ def validate_scorer(scorer, model, dataset):
         assert isinstance(scorer(model, dataset.data[dataset.features()].head(2), dataset.label_col().head(2)),
                           Number)
         return scorer
+
+
+def get_metrics_ratio(train_metric: float, test_metric: float, max_ratio=np.Inf):
+    """Return the ratio of test metric compared to train metric."""
+    if train_metric == 0:
+        return max_ratio
+    else:
+        ratio = test_metric / train_metric
+        if train_metric < 0 and test_metric < 0:
+            ratio = 1 / ratio
+        ratio = min(max_ratio, ratio)
+        return ratio

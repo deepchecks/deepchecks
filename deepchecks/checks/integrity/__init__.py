@@ -1,4 +1,4 @@
-"""Module contains all integrity checks."""
+"""Module contains all data integrity checks."""
 from .mixed_nulls import *
 from .string_mismatch import *
 from .mixed_types import *
@@ -11,3 +11,4 @@ from .dominant_frequency_change import *
 from .data_duplicates import *
 from .new_category import *
 from .new_label import *
+from .label_ambiguity import *
