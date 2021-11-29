@@ -312,6 +312,19 @@ class Dataset:
             raise DeepchecksValueError(f'Check {check_name} requires dataset to have a label column')
         self.check_compatible_labels()
 
+    def validate_features(self, check_name: str):
+        """
+        Throws error if dataset does not have a features columns.
+
+        Args:
+            check_name (str): check name to print in error
+        
+        Raises:
+            DeepchecksValueError: if dataset does not have features columns.
+        """
+        if not self._features:
+            raise DeepchecksValueError(f'Check {check_name} requires dataset to have features columns!')
+
     def validate_date(self, check_name: str):
         """
         Throws error if dataset does not have a date column.

@@ -26,16 +26,16 @@ def test_class_performance_imbalance(
 def test_init_class_performance_imbalance_with_empty_dict_of_metrics():
     assert_that(
         calling(ClassPerformanceImbalanceCheck).with_args(metrics=dict()),
-        raises(ValueError, 'Expected to receive not empty dict of callables!')
+        raises(ValueError, 'metrics - expected to receive not empty dict of scorers!')
     )
 
 
-def test_init_class_performance_imbalance_with_metrics_dict_that_contains_not_callable():
+def test_init_class_performance_imbalance_with_metrics_dict_that_contains_not_callable_and_not_name_of_sklearn_scorer():
     assert_that(
         calling(ClassPerformanceImbalanceCheck).with_args(metrics=dict(Metric=1)),
         raises(
-            ValueError, 
-            r"metrics - expected to receive 'Dict\[str, MetricFunc\]' but got 'Dict\[str, int\]'!"
+            ValueError,
+            r"metrics - expected to receive 'Mapping\[str, Callable\]' but got 'Mapping\[str, int\]'!"
         )
     )
 
@@ -46,9 +46,9 @@ def test_class_performance_imbalance_with_custom_metrics(
     _, test, model = iris_split_dataset_and_model
 
     alternative_metrics = {
-        'Test1': lambda y_true, y_pred: {0: 1., 1: 0.9, 2: 0.89},
-        'Test2': lambda y_true, y_pred: {0: 0.9, 1: 0.87, 2: 1.},
-        'Test3': lambda y_true, y_pred: {0: 0.97, 1: 1., 2: 0.79}
+        'Test1': lambda model, features, labels: {0: 1., 1: 0.9, 2: 0.89},
+        'Test2': lambda model, features, labels: {0: 0.9, 1: 0.87, 2: 1.},
+        'Test3': lambda model, features, labels: {0: 0.97, 1: 1., 2: 0.79}
     }
 
     check = ClassPerformanceImbalanceCheck(metrics=alternative_metrics)
@@ -80,15 +80,15 @@ def test_class_performance_imbalance_with_custom_metrics_that_return_values_with
     _, test, model = iris_split_dataset_and_model
 
     alternative_metrics_1 = {
-        'Test1': lambda y_true, y_pred: 1,
+        'Test1': lambda model, features, labels: 1,
     }
 
     alternative_metrics_2 = {
-        'Test3': lambda y_true, y_pred: dict() # dict dtype is allowed but it cannot be empty
+        'Test3': lambda model, features, labels: dict() # dict dtype is allowed but it cannot be empty
     }
 
     alternative_metrics_3 = {
-        'Test3': lambda y_true, y_pred: dict(a="Hello!")  # dict dtype is allowed but values dtype must be int|float
+        'Test3': lambda model, features, labels: dict(a="Hello!")  # dict dtype is allowed but values dtype must be int|float
     }
 
     check1 = ClassPerformanceImbalanceCheck(metrics=alternative_metrics_1) # type: ignore
@@ -98,7 +98,7 @@ def test_class_performance_imbalance_with_custom_metrics_that_return_values_with
         raises(
             DeepchecksValueError,
             r'Check ClassPerformanceImbalanceCheck expecting that alternative metrics will return '
-            r"not empty instance of 'Dict\[Hasable, float|int\]', but got tuple"
+            r"not empty instance of 'Mapping\[Hashable, float|int\]', but got tuple"
         )
     )
 
@@ -109,7 +109,7 @@ def test_class_performance_imbalance_with_custom_metrics_that_return_values_with
         raises(
             DeepchecksValueError,
             r'Check ClassPerformanceImbalanceCheck expecting that alternative metrics will return '
-            r"not empty instance of 'Dict\[Hasable, float\|int\]'"
+            r"not empty instance of 'Mapping\[Hashable, float\|int\]'"
         )
     )
 
@@ -120,7 +120,7 @@ def test_class_performance_imbalance_with_custom_metrics_that_return_values_with
         raises(
             DeepchecksValueError,
             r'Check ClassPerformanceImbalanceCheck expecting that alternative metrics will return '
-            r"not empty instance of 'Dict\[Hasable, float\|int\]', but got Dict\[Hashable, str]"
+            r"not empty instance of 'Mapping\[Hashable, float\|int\]', but got 'Mapping\[Hashable, str]'"
         )
     )
 
@@ -129,7 +129,7 @@ def test_condition_percentage_difference_not_greater_than_threshold_that_should_
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, AdaBoostClassifier]
 ):
     _, test, model = iris_split_dataset_and_model
-    check = ClassPerformanceImbalanceCheck().add_condition_percentage_difference_not_greater_than(0.5)
+    check = ClassPerformanceImbalanceCheck().add_condition_ratio_difference_not_greater_than(0.5)
     check_result = check.run(dataset=test, model=model)
     validate_class_performance_imbalance_check_result(check_result)
 
@@ -137,7 +137,7 @@ def test_condition_percentage_difference_not_greater_than_threshold_that_should_
 
     assert_that(condition_result, equal_condition_result( # type: ignore
         is_pass=True,
-        name=f'Relative percentage difference is not greater than 50.00%',
+        name=f'Relative ratio difference is not greater than 50.00%',
         details='',
         category=ConditionCategory.FAIL,
     ))
@@ -147,20 +147,20 @@ def test_condition_percentage_difference_not_greater_than_threshold_that_should_
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, AdaBoostClassifier]
 ):
     _, test, model = iris_split_dataset_and_model
-    check = ClassPerformanceImbalanceCheck().add_condition_percentage_difference_not_greater_than(0.2)
+    check = ClassPerformanceImbalanceCheck().add_condition_ratio_difference_not_greater_than(0.2)
     check_result = check.run(dataset=test, model=model)
     validate_class_performance_imbalance_check_result(check_result)
 
     condition_result, *_ = check.conditions_decision(check_result)
 
     detail_pattern = re.compile(
-        r'Relative percentage difference between highest and lowest classes is greater than 20\.00%:'
+        r'Relative ratio difference between highest and lowest classes is greater than 20\.00%:'
         r'(\nMetric: .+, lowest class: \d+, highest class: \d+;)+'
     )
 
     assert_that(condition_result, equal_condition_result( # type: ignore
         is_pass=False,
-        name=f'Relative percentage difference is not greater than 20.00%',
+        name=f'Relative ratio difference is not greater than 20.00%',
         details=detail_pattern,
         category=ConditionCategory.FAIL,
     ))

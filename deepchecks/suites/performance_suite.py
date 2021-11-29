@@ -6,7 +6,8 @@ from deepchecks.checks.performance import (
     ConfusionMatrixReport,
     RocReport,
     NaiveModelComparison,
-    CalibrationMetric
+    CalibrationMetric,
+    ClassPerformanceImbalanceCheck
 
 )
 
@@ -30,7 +31,8 @@ def classification_check_suite() -> CheckSuite:
         ConfusionMatrixReport(),
         RocReport().add_condition_auc_not_less_than(),
         CalibrationMetric(),
-        TrustScoreComparison().add_condition_mean_score_percent_decline_not_greater_than()
+        TrustScoreComparison().add_condition_mean_score_percent_decline_not_greater_than(),
+        ClassPerformanceImbalanceCheck().add_condition_ratio_difference_not_greater_than()
     )
 
 

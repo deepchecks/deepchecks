@@ -5,8 +5,8 @@ from collections import defaultdict
 
 import pandas as pd
 import numpy as np
-from sklearn.metrics import precision_score, recall_score
-from sklearn.utils.multiclass import unique_labels
+from sklearn.metrics import precision_score, recall_score, get_scorer
+from sklearn.utils.multiclass import unique_labels as get_unique_labels
 
 from deepchecks import SingleDatasetBaseCheck, Dataset, CheckResult, ConditionResult
 from deepchecks.metric_utils import task_type_validation, ModelType
@@ -18,49 +18,53 @@ __all__ = ['ClassPerformanceImbalanceCheck']
 
 
 MetricFunc = t.Callable[
-    [pd.Series, pd.Series], # y_true, y_pred
+    [object, pd.DataFrame, pd.Series], # model, features, labels
     t.Dict[t.Hashable, t.Union[float, int]] # score for each label
 ]
+
+AlternativeMetric = t.Union[str, MetricFunc]
 
 
 CP = t.TypeVar('CP', bound='ClassPerformanceImbalanceCheck')
 
 
 class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
-    """Visualize class imbalance by displaying the difference between class metrics."""
+    """Visualize class imbalance by displaying the difference between class metrics.
+
+    Args:
+        alternative_metrics (Mapping[str, Union[str, Callable]]):
+            An optional dictionary of metric name or scorer functions
+
+    Raises:
+        ValueError:
+            if provided dict of metrics is emtpy;
+            if one of the entries of the provided metrics dict contains name of unknown scorer;
+            if one of the entries of the provided metrics dict contains not callable value;
+    """
 
     def __init__(
         self,
-        metrics: t.Optional[t.Mapping[str, MetricFunc]] = None
+        metrics: t.Optional[t.Mapping[str, AlternativeMetric]] = None
     ):
-        """Initialize ClassPerformanceImbalanceCheck check.
-
-        Args:
-            alternative_metrics (Dict[str, Callable]): An optional dictionary of metric name or scorer functions
-
-        Raises:
-            ValueError:
-                if provided dict of metrics is emtpy;
-                if one of the entries of hte provided metrics dict contains not callable value;
-        """
         super().__init__()
-        self.alternative_metrics = metrics
+        self.alternative_metrics: t.Optional[t.Mapping[str, MetricFunc]] = None
 
-        if self.alternative_metrics is not None:
+        if metrics is not None and len(metrics) == 0:
+            raise ValueError('metrics - expected to receive not empty dict of scorers!')
 
-            if len(self.alternative_metrics) == 0:
-                raise ValueError('Expected to receive not empty dict of callables!')
+        elif metrics is not None:
+            self.alternative_metrics = {}
 
-            incorrect_argument = next(
-                (it for it in self.alternative_metrics.values() if not callable(it)),
-                None
-            )
-
-            if incorrect_argument is not None:
-                raise ValueError(
-                    "metrics - expected to receive 'Dict[str, MetricFunc]' but got " #pylint: disable=inconsistent-quotes
-                    f"'Dict[str, {type(incorrect_argument).__name__}]'!" #pylint: disable=inconsistent-quotes
-                )
+            for name, metric in metrics.items():
+                if isinstance(metric, t.Callable):
+                    self.alternative_metrics[name] = metric
+                elif isinstance(metric, str):
+                    self.alternative_metrics[name] = get_scorer(metric)
+                else:
+                    raise ValueError(
+                        f"metrics - expected to receive 'Mapping[str, Callable]' but got " #pylint: disable=inconsistent-quotes
+                        f"'Mapping[str, {type(metric).__name__}]'!" #pylint: disable=inconsistent-quotes
+                    )
 
     def run(
         self,
@@ -93,27 +97,23 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
         expected_model_types = [ModelType.BINARY, ModelType.MULTICLASS]
 
         dataset.validate_label(check_name)
+        dataset.validate_features(check_name)
         Dataset.validate_dataset(dataset, check_name)
         task_type_validation(model, dataset, expected_model_types, check_name)
 
-        features = dataset.features_columns()
-
-        if features is None:
-            raise DeepchecksValueError(f'Check {check_name} requires dataset with features!')
-
-        y_true = t.cast(pd.Series, dataset.label_col())
-        y_pred = model.predict(features)
+        labels = t.cast(pd.Series, dataset.label_col())
+        features = t.cast(pd.DataFrame, dataset.features_columns())
 
         if self.alternative_metrics is not None:
-            df = pd.DataFrame.from_dict(self._execute_alternative_metrics(y_true, y_pred))
-
+            df = pd.DataFrame.from_dict(self._execute_alternative_metrics(
+                model, features, labels
+            ))
         else:
-            labels = unique_labels(y_true, y_pred)
+            y_true = labels
+            y_pred = model.predict(features)
+            unique_labels = get_unique_labels(labels, y_pred)
             df = pd.DataFrame.from_dict({
-                name: dict(zip(
-                    labels,
-                    t.cast(t.Iterable, metric_func(y_true, y_pred, labels=labels))
-                ))
+                name: dict(zip(unique_labels, metric_func(y_true, y_pred, labels=unique_labels))) # type: ignore
                 for name, metric_func in self._get_default_metrics().items()
             })
 
@@ -147,26 +147,27 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
 
     def _execute_alternative_metrics(
         self,
-        y_true: pd.Series,
-        y_pred: pd.Series,
+        model: t.Any,
+        features: pd.DataFrame,
+        labels: pd.Series,
     ) -> t.Dict[str, t.Dict[t.Hashable, t.Union[int, float]]]:
         check_name = type(self).__name__
         metrics = t.cast(t.Mapping[str, MetricFunc], self.alternative_metrics)
         result: t.Dict[str, t.Dict[t.Hashable, t.Union[int, float]]] = {}
 
         for metric_name, metric_func in metrics.items():
-            metric_result = metric_func(y_true, y_pred)
+            metric_result = metric_func(model, features, labels)
 
             if not isinstance(metric_result, dict):
                 raise DeepchecksValueError(
                     f'Check {check_name} expecting that alternative metrics will return '
-                    f"not empty instance of 'Dict[Hasable, float|int]', but got {type(metric_result).__name__}" #pylint: disable=inconsistent-quotes
+                    f"not empty instance of 'Mapping[Hashable, float|int]', but got {type(metric_result).__name__}" #pylint: disable=inconsistent-quotes
                 )
 
             if len(metric_result) == 0:
                 raise DeepchecksValueError(
                     f'Check {check_name} expecting that alternative metrics will return '
-                    "not empty instance of 'Dict[Hasable, float|int]'" #pylint: disable=inconsistent-quotes
+                    "not empty instance of 'Mapping[Hashable, float|int]'" #pylint: disable=inconsistent-quotes
                 )
 
             incorrect_values = [v for v in metric_result.values() if not isinstance(v, (int, float))]
@@ -175,21 +176,22 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
                 value_type = type(incorrect_values[0]).__name__
                 raise DeepchecksValueError(
                     f'Check {check_name} expecting that alternative metrics will return '
-                    f"not empty instance of 'Dict[Hasable, float|int]', but got Dict[Hashable, {value_type}]" #pylint: disable=inconsistent-quotes
+                    "not empty instance of 'Mapping[Hashable, float|int]', "
+                    f"but got 'Mapping[Hashable, {value_type}]'" #pylint: disable=inconsistent-quotes
                 )
 
             result[metric_name] = metric_result
 
         return result
 
-    def add_condition_percentage_difference_not_greater_than(self: CP, threshold: float = 0.3) -> CP:
+    def add_condition_ratio_difference_not_greater_than(self: CP, threshold: float = 0.3) -> CP:
         """Add condition.
 
-        Verifying that relative percentage difference
+        Verifying that relative ratio difference
         between highest-class and lowest-class is not greater than 'threshold'.
 
         Args:
-            threshold: percentage difference threshold
+            threshold: ratio difference threshold
 
         Returns:
             Self: instance of 'ClassPerformanceImbalanceCheck' or it subtype
@@ -209,7 +211,7 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
                 lowest_class_name, min_value = min(classes_values.items(), key=getval)
                 highest_class_name, max_value = max(classes_values.items(), key=getval)
 
-                relative_difference = (max_value - min_value) / max_value
+                relative_difference = abs((min_value - max_value) / max_value)
 
                 if relative_difference >= threshold:
                     result[metric_name][(lowest_class_name, highest_class_name)] = relative_difference
@@ -224,13 +226,13 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
             ])
 
             details = (
-                'Relative percentage difference between highest and lowest classes is greater '
+                'Relative ratio difference between highest and lowest classes is greater '
                 f'than {format_percent(threshold)}:\n{details}'
             )
 
             return ConditionResult(False, details=details)
 
         return self.add_condition(
-            name=f'Relative percentage difference is not greater than {format_percent(threshold)}',
+            name=f'Relative ratio difference is not greater than {format_percent(threshold)}',
             condition_func=condition
         )
