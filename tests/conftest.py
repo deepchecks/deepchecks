@@ -27,8 +27,8 @@ def diabetes_df():
 def diabetes(diabetes_df):
     """Return diabetes dataset splited to train and test as Datasets."""
     train_df, test_df = train_test_split(diabetes_df, test_size=0.33, random_state=42)
-    train = Dataset(train_df, label='target', cat_features=['sex'])
-    test = Dataset(test_df, label='target', cat_features=['sex'])
+    train = Dataset(train_df, label='target')
+    test = Dataset(test_df, label='target')
     return train, test
 
 
