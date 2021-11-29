@@ -318,7 +318,7 @@ class Dataset:
 
         Args:
             check_name (str): check name to print in error
-        
+
         Raises:
             DeepchecksValueError: if dataset does not have features columns.
         """
