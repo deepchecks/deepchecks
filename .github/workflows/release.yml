@@ -34,3 +34,31 @@ jobs:
           dist/*.whl
           dist/*.tar.gz
           LICENSE
+
+  Update-Docs:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '14.x'
+    - uses: webfactory/ssh-agent@v0.5.0
+      with:
+        ssh-private-key: ${{ secrets.GIT_SSH_KEY }}
+    - name: Release to GitHub Pages
+      env:
+        USE_SSH: true
+        GIT_USER: git
+      run: |
+        git config --global user.email "app@deepchecks.com"
+        git config --global user.name "deepchecks-ci-bot"
+        cd docs/_website/
+        if [ -e yarn.lock ]; then
+          yarn install --frozen-lockfile
+        elif [ -e package-lock.json ]; then
+          npm ci
+        else
+          npm i
+        fi
+        npm run deploy
