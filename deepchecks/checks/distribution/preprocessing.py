@@ -59,6 +59,7 @@ def preprocess_dataset_to_scaled_numerics(baseline_features: pd.DataFrame, test_
 
     # Replace non-common categories with special value:
     rare_category_encoder = RareCategoryEncoder(max_num_categories=max_num_categories, cols=categorical_columns)
+    print(x_baseline)
     x_baseline = rare_category_encoder.fit_transform(x_baseline)
     x_test = rare_category_encoder.transform(x_test)
 

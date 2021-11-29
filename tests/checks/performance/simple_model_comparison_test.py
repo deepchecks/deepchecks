@@ -166,4 +166,4 @@ def test_regression_tree_max_depth(diabetes_split_dataset_and_model):
     # Act X
     ratio = check.run(train_ds, test_ds, clf).value['ratio']
     # Assert
-    assert_that(ratio, close_to(1.1, 0.1))
+    assert_that(ratio, close_to(1.1, 0.08))
