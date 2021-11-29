@@ -34,8 +34,9 @@ COVERAGE := $(BIN)/coverage
 TEST_RUNNER := $(BIN)/pytest
 TOX := $(BIN)/tox
 TWINE := $(BIN)/twine
-APIDOC = $(BIN)/sphinx-apidoc
-SPHINX_BUILD = $(BIN)/sphinx-build
+APIDOC := $(BIN)/sphinx-apidoc
+SPHINX_BUILD := $(BIN)/sphinx-build
+JUPYTER := $(BIN)/jupyter
 
 # Project Settings
 PKGDIR := $(or $(PACKAGE), ./)
@@ -64,7 +65,7 @@ COVER_ARG := --cov-report term-missing --cov=$(PKGDIR) \
 	$(if $(COVERAGE_RC), --cov-config $(COVERAGE_RC))
 
 # Sphinx
-SPHINX_PKGS = sphinx sphinx_rtd_theme
+SPHINX_PKGS = sphinx sphinx_rtd_theme sphinx-markdown-builder
 
 
 EGG_INFO := $(subst -,_,$(PROJECT)).egg-info
@@ -245,14 +246,41 @@ endif
 
 
 ### Documentation
-.PHONY: docs
+.PHONY: docs website dev-docs gen-static-notebooks
 
-docs: $(APIDOC)
-	$(pythonpath) $(APIDOC) -f ../deepchecks -o docs/deepcheckss
-	$(pythonpath) $(SPHINX_BUILD) -M html docs docs/_build 
+API_REFERENCE_DIR=api-reference
+WEBSITE_DIR=docs/_website
+DOCOSAURUS := docs/_website/node_modules/.bin/docusaurus-start
+
+$(DOCOSAURUS):
+	@cd $(WEBSITE_DIR) ; \
+	npm install
 
 $(APIDOC): env
-	$(PIP) install $(SPHINX_PKGS)
+	$(PIP) install $(SPHINX_PKGS)	
+
+gen-static-notebooks: $(JUPYTER)
+	 $(BIN)/jupyter nbconvert --to html --output-dir $(WEBSITE_DIR)/static/notebooks/  ./notebooks/*/*/*.ipynb 
+
+docs: $(APIDOC)
+	$(pythonpath) $(BIN)/sphinx-apidoc -t docs/_templates -f ./deepchecks -o docs/$(API_REFERENCE_DIR)
+	$(pythonpath) $(BIN)/sphinx-build -M markdown docs docs/_build/
+	@rm -rf docs/api-reference
+	@find docs/_build/markdown/ -name '*.md' | xargs sed '/^$$/N;/^\n$$/D'  -i
+
+website: docs gen-static-notebooks
+	@rm -rf $(WEBSITE_DIR)/docs/$(API_REFERENCE_DIR)
+	@cp -rf docs/_build/markdown/$(API_REFERENCE_DIR) $(WEBSITE_DIR)/docs/$(API_REFERENCE_DIR)/
+	@rm -rf docs/_build/markdown
+
+
+
+dev-docs: $(DOCOSAURUS) website
+	@cd $(WEBSITE_DIR) &&  \
+	npm start
+
+
+
 
 
 ### System Installation ######################################################
@@ -267,6 +295,8 @@ install:
 download:
 	$(PIP) install $(PROJECT)
 
-jupyter: 
-	$(PIP) install jupyter
+jupyter: $(JUPYTER)
 	$(BIN)/jupyter-notebook $(args) --notebook-dir=$(NOTEBOOK_DIR)
+
+$(JUPYTER):
+	$(PIP) install jupyter
