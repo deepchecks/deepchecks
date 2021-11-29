@@ -275,6 +275,9 @@ class BaseCheck(metaclass=abc.ABCMeta):
         return split_camel_case(cls.__name__)
 
 
+CheckFunc = Callable[..., CheckResult] # TODO: add more precise signature
+
+
 class SingleDatasetBaseCheck(BaseCheck):
     """Parent class for checks that only use one dataset."""
 
@@ -282,6 +285,18 @@ class SingleDatasetBaseCheck(BaseCheck):
     def run(self, dataset, model=None) -> CheckResult:
         """Define run signature."""
         pass
+
+    def __call__(self, dataset, model=None) -> CheckResult:
+        return self.run(dataset, model)
+
+
+def single_dataset_check(func: CheckFunc) -> SingleDatasetBaseCheck:
+    class Check(SingleDatasetBaseCheck):
+        __original_func__ = func
+        def run(self, dataset, model=None) -> CheckResult:
+            return func(dataset, model)
+
+    return Check()
 
 
 class CompareDatasetsBaseCheck(BaseCheck):
@@ -291,6 +306,18 @@ class CompareDatasetsBaseCheck(BaseCheck):
     def run(self, dataset, baseline_dataset, model=None) -> CheckResult:
         """Define run signature."""
         pass
+
+    def __call__(self, dataset, baseline_dataset, model=None) -> CheckResult:
+        return self.run(dataset, baseline_dataset, model)
+
+
+def two_datasets_check(func: CheckFunc) -> CompareDatasetsBaseCheck:
+    class Check(CompareDatasetsBaseCheck):
+        __original_func__ = func
+        def run(self, dataset, baseline_dataset, model=None) -> CheckResult:
+            return func(dataset, baseline_dataset, model)
+
+    return Check()
 
 
 class TrainTestBaseCheck(BaseCheck):
@@ -304,6 +331,18 @@ class TrainTestBaseCheck(BaseCheck):
         """Define run signature."""
         pass
 
+    def __call__(self, train_dataset, test_dataset, model=None) -> CheckResult:
+        return self.run(train_dataset, test_dataset, model)
+
+
+def train_test_datasets_check(func: CheckFunc) -> TrainTestBaseCheck:
+    class Check(TrainTestBaseCheck):
+        __original_func__ = func
+        def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
+            return func(train_dataset, test_dataset, model)
+
+    return Check()
+
 
 class ModelOnlyBaseCheck(BaseCheck):
     """Parent class for checks that only use a model and no datasets."""
@@ -313,6 +352,17 @@ class ModelOnlyBaseCheck(BaseCheck):
         """Define run signature."""
         pass
 
+    def __call__(self, model) -> CheckResult:
+        return self.run(model)
+
+
+def model_check(func: CheckFunc) -> ModelOnlyBaseCheck:
+    class Check(ModelOnlyBaseCheck):
+        __original_func__ = func
+        def run(self, model) -> CheckResult:
+            return func(model)
+
+    return Check()
 
 @dataclass
 class CheckFailure:
