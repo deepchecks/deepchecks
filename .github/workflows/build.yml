@@ -34,6 +34,7 @@ jobs:
           node-version: '14.x'
       - name: Test Build
         run: |
+          make website
           cd docs/_website
           if [ -e package-lock.json ]; then
             npm ci
