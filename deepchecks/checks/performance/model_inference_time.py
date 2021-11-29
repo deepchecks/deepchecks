@@ -57,8 +57,8 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
             message=f'Check {check_name} is expecting that dataset will have features columns!'
         )
 
-        number_of_samples = len(df) if len(df) < self.number_of_samples else self.number_of_samples # type: ignore
-        df = df[:number_of_samples] # type: ignore
+        number_of_samples = len(df) if len(df) < self.number_of_samples else self.number_of_samples
+        df = df[:number_of_samples]
 
         result = timeit.timeit(
             'predict(*args)',
