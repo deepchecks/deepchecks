@@ -50,7 +50,7 @@ class Dataset:
           cat_features: List of names for the categorical features in the DataFrame. In order to disable categorical
                         features inference, pass cat_features=[]
           label: Name of the label column in the DataFrame.
-          use_index: Name of the index column in the DataFrame.
+          use_index: Whether to use the dataframe index as the index column, for index related checks.
           index: Name of the index column in the DataFrame.
           date: Name of the date column in the DataFrame.
           date_unit_type: Unit used for conversion if date column is of type int or float.
