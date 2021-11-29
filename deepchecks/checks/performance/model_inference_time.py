@@ -2,6 +2,8 @@
 import typing as t
 import timeit
 
+import pandas as pd
+
 from deepchecks import SingleDatasetBaseCheck, CheckResult, Dataset, ConditionResult
 from deepchecks.utils import model_type_validation
 from deepchecks.string_utils import format_number
@@ -50,12 +52,11 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
         check_name = type(self).__name__
         Dataset.validate_dataset(dataset, check_name)
         Dataset.validate_model(dataset, model)
+        Dataset.validate_features(dataset, check_name)
         model_type_validation(model)
 
         prediction_method = model.predict # type: ignore
-        df = dataset.ensure_features_columns(
-            message=f'Check {check_name} is expecting that dataset will have features columns!'
-        )
+        df = t.cast(pd.DataFrame, dataset.features_columns())
 
         number_of_samples = len(df) if len(df) < self.number_of_samples else self.number_of_samples
         df = df[:number_of_samples]
