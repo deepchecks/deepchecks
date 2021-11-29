@@ -36,7 +36,7 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
         """Initialize ClassPerformanceImbalanceCheck check.
 
         Args:
-            metrics: alternative metrics to execute
+            alternative_metrics (Dict[str, Callable]): An optional dictionary of metric name or scorer functions
 
         Raises:
             ValueError:
