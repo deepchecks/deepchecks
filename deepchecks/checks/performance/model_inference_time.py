@@ -16,14 +16,13 @@ MI = t.TypeVar('MI', bound='ModelInferenceTimeCheck')
 
 
 class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
-    """Measure model average inference time (in seconds) per sample."""
+    """Measure model average inference time (in seconds) per sample.
+
+    Args:
+        number_of_samples (int): number of samples to use for inference
+    """
 
     def __init__(self, number_of_samples: int = 1000):
-        """Initialize 'ModelInferenceTimeCheck' instance.
-
-        Args:
-            number_of_samples (int): number of samples to use for inference
-        """
         self.number_of_samples = number_of_samples
         super().__init__()
 
