@@ -32,7 +32,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
     (https://scikit-learn.org/stable/modules/model_evaluation.html#scoring) or an sklearn scoring function.
 
     Args:
-        alternative_metrics (Dict[str, Callable]): An optional dictionary of metric name to scorer functions
+        alternative_metrics (Dict[str, Callable]): An optional dictionary of metric name or scorer functions
     """
 
     def __init__(

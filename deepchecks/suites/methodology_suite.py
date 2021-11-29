@@ -19,7 +19,8 @@ __all__ = [
     'date_leakage_check_suite',
     'data_leakage_check_suite',
     'leakage_check_suite',
-    'overfit_check_suite'
+    'overfit_check_suite',
+    'methodological_flaws_check_suite'
 ]
 
 
