@@ -264,6 +264,23 @@ class Dataset:
         """
         return self.data[self._features] if self._features else None
 
+    def ensure_features_columns(self, message: str = 'Dataset does not have features!') -> pd.DataFrame:
+        """Return features columns if exists.
+
+        Counterpart of the 'features_columns' method that will raise an error
+        if dataset does not have features columns.
+
+        Returns:
+           Features columns
+
+        Raises:
+            DeepchecksValueError: if dataset does not have features columns.
+        """
+        if not self._features:
+            raise DeepchecksValueError(message)
+
+        return self.data[self._features]
+
     def show_columns_info(self) -> Dict:
         """Return the role and logical type of each column.
 
