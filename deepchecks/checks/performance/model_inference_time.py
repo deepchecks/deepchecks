@@ -54,7 +54,7 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
 
         prediction_method = model.predict # type: ignore
         df = dataset.ensure_features_columns(
-            message=f'Check {check_name} expecting that dataset will have features columns!'
+            message=f'Check {check_name} is expecting that dataset will have features columns!'
         )
 
         number_of_samples = len(df) if len(df) < self.number_of_samples else self.number_of_samples # type: ignore
