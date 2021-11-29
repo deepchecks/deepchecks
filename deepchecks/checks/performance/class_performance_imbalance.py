@@ -78,7 +78,8 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
 
         Returns:
-            CheckResult: value is a dictionary in format {'label': {'metric name': <value>, ...}, ...}
+            CheckResult: value is a dictionary of labels, value of each key is another dictionary
+                with calculated metrics
 
         Raises:
             DeepchecksValueError:
