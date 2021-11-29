@@ -297,9 +297,6 @@ class Dataset:
 
     # Validations:
 
-    # TODO: error messages is totally unrelated to the Dataclass itself
-    # I think we need to refactor this methods
-
     def validate_label(self, check_name: str):
         """
         Throws error if dataset does not have a label.
