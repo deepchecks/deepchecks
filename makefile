@@ -260,7 +260,7 @@ $(APIDOC): env
 	$(PIP) install $(SPHINX_PKGS)	
 
 gen-static-notebooks: $(JUPYTER)
-	 jupyter nbconvert --to html --output-dir $(WEBSITE_DIR)/static/notebooks/  $(NOTEBOOK_DIR)/*/*/*.ipynb 
+	 $(BIN)/jupyter nbconvert --to html --output-dir $(WEBSITE_DIR)/static/notebooks/  $(NOTEBOOK_DIR)/*/*/*.ipynb 
 
 docs: $(APIDOC)
 	$(pythonpath) $(BIN)/sphinx-apidoc -t docs/_templates -f ./deepchecks -o docs/$(API_REFERENCE_DIR)
