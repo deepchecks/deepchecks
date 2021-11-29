@@ -50,6 +50,7 @@ class RareCategoryEncoder:
 
         if self.cols is not None:
             data = data.copy()
+            print(data)
             data[self.cols] = data[self.cols].apply(lambda s: s.map(self._col_mapping[s.name]))
         else:
             data = data.apply(lambda s: s.map(self._col_mapping[s.name]))
