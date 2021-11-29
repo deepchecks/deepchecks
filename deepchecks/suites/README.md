@@ -11,20 +11,23 @@
   - overall_regression_check_suite - run all deepchecks checks for regression tasks with no index or date
   - overall_generic_check_suite - run all deepchecks checks that work regardless of task type with no index or date
 
+[**Distribution Suites**](./distribution_suite.py)
+
+  - data_distribution_suite - run all data distribution checks
+
 [**Integrity Suites**](./integrity_suite.py)
 
   - single_dataset_integrity_check_suite - for a single dataset / dataframe
   - comparative_integrity_check_suite - comparing two datasets / dataframes
   - integrity_check_suite - includes both check types 
 
-[**Leakage Suites**](./leakage_suite.py)
+[**Methodology Suites**](./methodology_suite.py)
   - index_leakage_check_suite - for datasets with an index column
   - date_leakage_check_suite - for datasets with a date column
   - data_leakage_check_suite  - for all datasets
   - leakage_check_suite - containing all three suites above
-
-[**Overfit Suite**](./overfit_suite.py)
-  - overfit_check_suite
+  - overfit_check_suite - run all overfit checks
+  - methodological_flaws_check_suite - checks for all methodological flaws, including unused features
   
 [**Performance Suite**](./performance_suite.py)
   - performance_check_suite - run all performance checks
