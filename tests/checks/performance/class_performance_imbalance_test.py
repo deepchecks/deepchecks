@@ -25,17 +25,17 @@ def test_class_performance_imbalance(
 
 def test_init_class_performance_imbalance_with_empty_dict_of_metrics():
     assert_that(
-        calling(ClassPerformanceImbalanceCheck).with_args(metrics=dict()),
-        raises(ValueError, 'metrics - expected to receive not empty dict of scorers!')
+        calling(ClassPerformanceImbalanceCheck).with_args(alternative_metrics=dict()),
+        raises(ValueError, 'alternative_metrics - expected to receive not empty dict of scorers!')
     )
 
 
 def test_init_class_performance_imbalance_with_metrics_dict_that_contains_not_callable_and_not_name_of_sklearn_scorer():
     assert_that(
-        calling(ClassPerformanceImbalanceCheck).with_args(metrics=dict(Metric=1)),
+        calling(ClassPerformanceImbalanceCheck).with_args(alternative_metrics=dict(Metric=1)),
         raises(
             ValueError,
-            r"metrics - expected to receive 'Mapping\[str, Callable\]' but got 'Mapping\[str, int\]'!"
+            r"alternative_metrics - expected to receive 'Mapping\[str, Callable\]' but got 'Mapping\[str, int\]'!"
         )
     )
 
@@ -51,7 +51,7 @@ def test_class_performance_imbalance_with_custom_metrics(
         'Test3': lambda model, features, labels: {0: 0.97, 1: 1., 2: 0.79}
     }
 
-    check = ClassPerformanceImbalanceCheck(metrics=alternative_metrics)
+    check = ClassPerformanceImbalanceCheck(alternative_metrics=alternative_metrics)
     check_result = check.run(dataset=test, model=model)
 
     class_metrics_matcher = has_entries({
@@ -91,7 +91,7 @@ def test_class_performance_imbalance_with_custom_metrics_that_return_values_with
         'Test3': lambda model, features, labels: dict(a="Hello!")  # dict dtype is allowed but values dtype must be int|float
     }
 
-    check1 = ClassPerformanceImbalanceCheck(metrics=alternative_metrics_1) # type: ignore
+    check1 = ClassPerformanceImbalanceCheck(alternative_metrics=alternative_metrics_1) # type: ignore
 
     assert_that(
         calling(check1.run).with_args(dataset=test, model=model),
@@ -102,7 +102,7 @@ def test_class_performance_imbalance_with_custom_metrics_that_return_values_with
         )
     )
 
-    check2 = ClassPerformanceImbalanceCheck(metrics=alternative_metrics_2)
+    check2 = ClassPerformanceImbalanceCheck(alternative_metrics=alternative_metrics_2)
 
     assert_that(
         calling(check2.run).with_args(dataset=test, model=model),
@@ -113,7 +113,7 @@ def test_class_performance_imbalance_with_custom_metrics_that_return_values_with
         )
     )
 
-    check3 = ClassPerformanceImbalanceCheck(metrics=alternative_metrics_3) # type: ignore
+    check3 = ClassPerformanceImbalanceCheck(alternative_metrics=alternative_metrics_3) # type: ignore
 
     assert_that(
         calling(check3.run).with_args(dataset=test, model=model),

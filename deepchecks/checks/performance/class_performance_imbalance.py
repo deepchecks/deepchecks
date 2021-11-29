@@ -44,25 +44,25 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
 
     def __init__(
         self,
-        metrics: t.Optional[t.Mapping[str, AlternativeMetric]] = None
+        alternative_metrics: t.Optional[t.Mapping[str, AlternativeMetric]] = None
     ):
         super().__init__()
         self.alternative_metrics: t.Optional[t.Mapping[str, MetricFunc]] = None
 
-        if metrics is not None and len(metrics) == 0:
-            raise ValueError('metrics - expected to receive not empty dict of scorers!')
+        if alternative_metrics is not None and len(alternative_metrics) == 0:
+            raise ValueError('alternative_metrics - expected to receive not empty dict of scorers!')
 
-        elif metrics is not None:
+        elif alternative_metrics is not None:
             self.alternative_metrics = {}
 
-            for name, metric in metrics.items():
+            for name, metric in alternative_metrics.items():
                 if isinstance(metric, t.Callable):
                     self.alternative_metrics[name] = metric
                 elif isinstance(metric, str):
                     self.alternative_metrics[name] = get_scorer(metric)
                 else:
                     raise ValueError(
-                        f"metrics - expected to receive 'Mapping[str, Callable]' but got " #pylint: disable=inconsistent-quotes
+                        f"alternative_metrics - expected to receive 'Mapping[str, Callable]' but got " #pylint: disable=inconsistent-quotes
                         f"'Mapping[str, {type(metric).__name__}]'!" #pylint: disable=inconsistent-quotes
                     )
 
