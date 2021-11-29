@@ -54,9 +54,7 @@ jobs:
         git config --global user.email "app@deepchecks.com"
         git config --global user.name "deepchecks-ci-bot"
         cd docs/_website/
-        if [ -e yarn.lock ]; then
-          yarn install --frozen-lockfile
-        elif [ -e package-lock.json ]; then
+        if [ -e package-lock.json ]; then
           npm ci
         else
           npm i

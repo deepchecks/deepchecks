@@ -78,9 +78,7 @@ jobs:
       - name: Test Build
         run: |
           cd docs/_website
-          if [ -e yarn.lock ]; then
-            yarn install --frozen-lockfile
-          elif [ -e package-lock.json ]; then
+          if [ -e package-lock.json ]; then
             npm ci
           else
             npm i
