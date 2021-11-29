@@ -65,7 +65,7 @@ def get_base_form_to_variants_dict(uniques: t.Iterable[str]) -> t.Dict[str, t.Se
     This is done using the StringCategory class.
     """
     base_form_to_variants = defaultdict(set)
-    for item in set(uniques):
+    for item in uniques:
         base_form_to_variants[string_baseform(item)].add(item)
     return base_form_to_variants
 
