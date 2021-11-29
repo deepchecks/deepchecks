@@ -3,15 +3,18 @@ import abc
 import enum
 import re
 from collections import OrderedDict
-from typing import Any, Callable, List, Union, Dict
+from dataclasses import dataclass
+from typing import Any, Callable, List, Union, Dict, cast
 
 __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainTestBaseCheck',
-           'ModelOnlyBaseCheck', 'ConditionResult', 'ConditionCategory']
+           'ModelOnlyBaseCheck', 'ConditionResult', 'ConditionCategory', 'CheckFailure']
 
 import pandas as pd
 from IPython.core.display import display_html
 from matplotlib import pyplot as plt
+from pandas.io.formats.style import Styler
 
+from deepchecks.base.display_pandas import display_dataframe
 from deepchecks.string_utils import split_camel_case
 from deepchecks.utils import DeepchecksValueError
 
@@ -32,6 +35,11 @@ class Condition:
         self.name = name
         self.function = function
         self.params = params
+
+    def __call__(self, *args, **kwargs) -> 'ConditionResult':
+        result = cast(ConditionResult, self.function(*args, **kwargs))
+        result.set_name(self.name)
+        return result
 
 
 class ConditionCategory(enum.Enum):
@@ -108,7 +116,7 @@ class CheckResult:
 
     value: Any
     header: str
-    display: List[Union[Callable, str, pd.DataFrame]]
+    display: List[Union[Callable, str, pd.DataFrame, Styler]]
     condition_results: List[ConditionResult]
 
     def __init__(self, value, header: str = None, check=None, display: Any = None):
@@ -117,12 +125,12 @@ class CheckResult:
         Args:
             value (Any): Value calculated by check. Can be used to decide if decidable check passed.
             header (str): Header to be displayed in python notebook.
-            check (Callable): The check function which created this result. Used to extract the summary to be
+            check (Class): The check class which created this result. Used to extract the summary to be
             displayed in notebook.
-            display (Callable): Function which is used for custom display.
+            display (List): Objects to be displayed (dataframe or function or html)
         """
         self.value = value
-        self.header = header or (check and split_camel_case(check.__name__)) or None
+        self.header = header or (check and check.name()) or None
         self.check = check
         self.condition_results = []
 
@@ -132,7 +140,7 @@ class CheckResult:
             self.display = display or []
 
         for item in self.display:
-            if not isinstance(item, (str, pd.DataFrame, Callable)):
+            if not isinstance(item, (str, pd.DataFrame, Callable, Styler)):
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
     def _ipython_display_(self):
@@ -145,17 +153,8 @@ class CheckResult:
             display_html(f'<p>{summary}</p>', raw=True)
 
         for item in self.display:
-            if isinstance(item, pd.DataFrame):
-                # Align everything to the left
-                try:
-                    df_styler = item.style
-                    df_styler.set_table_styles([dict(selector='th,td', props=[('text-align', 'left')])])
-                    df_styler.format(precision=2)
-                    display_html(df_styler.render(), raw=True)
-                # Because of MLC-154. Dataframe with Multi-index or non unique indices does not have a style
-                # attribute, hence we need to display as a regular pd html format.
-                except ValueError:
-                    display_html(item.to_html())
+            if isinstance(item, (pd.DataFrame, Styler)):
+                display_dataframe(item)
             elif isinstance(item, str):
                 display_html(item, raw=True)
             elif isinstance(item, Callable):
@@ -198,7 +197,6 @@ class BaseCheck(metaclass=abc.ABCMeta):
     _conditions_index: int
 
     def __init__(self):
-        """Init base check parameters to pass to be used in the implementing check."""
         self._conditions = OrderedDict()
         self._conditions_index = 0
 
@@ -271,6 +269,11 @@ class BaseCheck(metaclass=abc.ABCMeta):
             raise DeepchecksValueError(f'Index {index} of conditions does not exists')
         self._conditions.pop(index)
 
+    @classmethod
+    def name(cls):
+        """Name of class in split camel case."""
+        return split_camel_case(cls.__name__)
+
 
 class SingleDatasetBaseCheck(BaseCheck):
     """Parent class for checks that only use one dataset."""
@@ -309,3 +312,11 @@ class ModelOnlyBaseCheck(BaseCheck):
     def run(self, model) -> CheckResult:
         """Define run signature."""
         pass
+
+
+@dataclass
+class CheckFailure:
+    """Class which holds a run exception of a check."""
+
+    check: Any  # Check class, not instance
+    exception: Exception

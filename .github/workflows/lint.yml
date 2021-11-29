@@ -2,13 +2,13 @@ name: Code Style
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request: 
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   pylint:
-    runs-on: [self-hosted]
+    runs-on: ubuntu-latest
 
 
     steps:
@@ -34,7 +34,7 @@ jobs:
       run: make docstring
 
   notebook:
-    runs-on: [self-hosted]
+    runs-on: ubuntu-latest
 
     needs: pylint #rather consuming task, run only after linting succeed
 

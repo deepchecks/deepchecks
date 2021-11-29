@@ -8,9 +8,7 @@ from deepchecks.base.dataframe_utils import filter_columns_with_validation
 from deepchecks.utils import DeepchecksValueError
 from deepchecks.string_utils import is_string_column
 
-
 __all__ = ['Dataset', 'ensure_dataframe_type']
-
 
 logger = logging.getLogger('deepchecks.dataset')
 
@@ -42,7 +40,7 @@ class Dataset:
 
     def __init__(self, df: pd.DataFrame,
                  features: List[str] = None, cat_features: List[str] = None, label: str = None, use_index: bool = False,
-                 index: str = None, date: str = None, date_unit_type: str = None, _convert_date: bool = True,
+                 index: str = None, date: str = None, date_unit_type: str = None, convert_date_: bool = True,
                  max_categorical_ratio: float = 0.01, max_categories: int = 30, max_float_categories: int = 5):
         """Initiate the Dataset using a pandas DataFrame and Metadata.
 
@@ -84,8 +82,8 @@ class Dataset:
         if features:
             if any(x not in self._data.columns for x in features):
                 raise DeepchecksValueError(f'Features must be names of columns in dataframe.'
-                                         f' Features {set(features) - set(self._data.columns)} have not been '
-                                         f'found in input dataframe.')
+                                           f' Features {set(features) - set(self._data.columns)} have not been '
+                                           f'found in input dataframe.')
             self._features = features
         else:
             self._features = [x for x in self._data.columns if x not in {label, index, date}]
@@ -117,13 +115,13 @@ class Dataset:
         if cat_features is not None:
             if set(cat_features).intersection(set(self._features)) != set(cat_features):
                 raise DeepchecksValueError(f'Categorical features must be a subset of features. '
-                                         f'Categorical features {set(cat_features) - set(self._features)} '
-                                         f'have not been found in feature list.')
+                                           f'Categorical features {set(cat_features) - set(self._features)} '
+                                           f'have not been found in feature list.')
             self.cat_features = cat_features
         else:
             self.cat_features = self.infer_categorical_features()
 
-        if self._date_name and _convert_date:
+        if self._date_name and convert_date_:
             self._data[self._date_name] = self._data[self._date_name].apply(pd.Timestamp, unit=date_unit_type)
 
     @property
@@ -141,7 +139,7 @@ class Dataset:
         date = self._date_name if self._date_name in new_data.columns else None
 
         return Dataset(new_data, features=features, cat_features=cat_features, label=label, use_index=self._use_index,
-                       index=index, date=date, _convert_date=False, max_categorical_ratio=self._max_categorical_ratio,
+                       index=index, date=date, convert_date_=False, max_categorical_ratio=self._max_categorical_ratio,
                        max_categories=self._max_categories)
 
     def n_samples(self):
@@ -168,6 +166,15 @@ class Dataset:
         for col in self._features:
             if self.is_categorical(col):
                 cat_columns.append(col)
+
+        if len(cat_columns) > 0:
+            if len(cat_columns) < 7:
+                print(f'Automatically inferred these columns as categorical features: {",".join(cat_columns)}. \n')
+            else:
+                print(f'Some columns have been inferred as categorical features: {",".join(cat_columns[:7])}. \n '
+                      f'and more... \n'
+                      f'For the full list of columns, use dataset.cat_features')
+
         return cat_columns
 
     def is_categorical(self, col_name: str) -> bool:
@@ -390,7 +397,9 @@ class Dataset:
             return self.cat_features
         else:
             raise DeepchecksValueError(f'Check {check_name} requires datasets to share'
-                                     f' the same categorical features')
+                                       f' the same categorical features. Possible reason is that some columns were'
+                                       f'inferred incorrectly as categorical features. To fix this, manually edit the '
+                                       f'categorical features using Dataset(cat_features=<list_of_features>')
 
     def validate_shared_label(self, other, check_name: str) -> str:
         """
@@ -434,7 +443,7 @@ class Dataset:
             return Dataset(obj)
         else:
             raise DeepchecksValueError(f'dataset must be of type DataFrame or Dataset. instead got: '
-                                     f'{type(obj).__name__}')
+                                       f'{type(obj).__name__}')
 
     def validate_model(self, model):
         """Check model is able to predict on the dataset.
@@ -460,7 +469,7 @@ class Dataset:
         """
         if not isinstance(obj, Dataset):
             raise DeepchecksValueError(f'Check {check_name} requires dataset to be of type Dataset. instead got: '
-                                     f'{type(obj).__name__}')
+                                       f'{type(obj).__name__}')
         if len(obj.data) == 0:
             raise DeepchecksValueError(f'Check {check_name} required a non-empty dataset')
 

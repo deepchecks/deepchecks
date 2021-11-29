@@ -1,37 +1,43 @@
 """The single_feature_contribution check module."""
+import typing as t
 import re
 from copy import deepcopy
-from typing import Iterable, Union, List, Tuple
 
 import pandas as pd
 
-from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck
+from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
 from deepchecks.base.dataframe_utils import filter_columns_with_validation
 from deepchecks.base.dataset import ensure_dataframe_type
 from deepchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_dict
 from deepchecks.string_utils import split_and_keep, split_by_order, format_percent
 from deepchecks.utils import DeepchecksValueError
 
+
 __all__ = ['RareFormatDetection', 'Pattern']
 
 
 class Pattern:
-    """Supporting class for creating complicated patterns for rare_format_detection."""
+    """Supporting class for creating complicated patterns for rare_format_detection.
 
-    def __init__(self, name: str, substituters: Union[List[Tuple[str, str]], Tuple[str, str]], ignore: str = None,
-                 refine: bool = False, is_sequence: bool = False):
-        """
-        Initiate the Pattern class.
+    Args:
+        name: name of pattern, will be shown in the results.
+        substituters: list of tuples or just a tuple. first argument in the tuple is the regex string, to find
+            relevant patterns. second argument in the tuple is a substring to replace all relevant substrings.
+        ignore: regex string indicating which substrings should be ignored (replaced with '')
+        refine: boolean. Indicates whether this pattern should be refined later (see _refine_formats)
+        is_sequence: boolean. Indicates whether the substituters are for one characters or for a sequence. Relevant
+            only when refine is True.
+    """
 
-        Args:
-            name: name of pattern, will be shown in the results.
-            substituters: list of tuples or just a tuple. first argument in the tuple is the regex string, to find
-                relevant patterns. second argument in the tuple is a substring to replace all relevant substrings.
-            ignore: regex string indicating which substrings should be ignored (replaced with '')
-            refine: boolean. Indicates whether this pattern should be refined later (see _refine_formats)
-            is_sequence: boolean. Indicates whether the substituters are for one characters or for a sequence. Relevant
-                only when refine is True.
-        """
+    def __init__(
+        self,
+        name: str,
+        substituters: t.Union[t.List[t.Tuple[str, str]],
+        t.Tuple[str, str]],
+        ignore: str = None,
+        refine: bool = False,
+        is_sequence: bool = False
+    ):
         self.name = name
         if isinstance(substituters, tuple):
             substituters = [substituters]
@@ -81,7 +87,7 @@ DEFAULT_PATTERNS = [
 ]
 
 
-def _detect_per_column(column: pd.Series, patterns: List[Pattern], rarity_threshold: float,
+def _detect_per_column(column: pd.Series, patterns: t.List[Pattern], rarity_threshold: float,
                        min_unique_common_ratio: float, pattern_match_method: str) -> pd.DataFrame:
     """
     Check whether a column has common formats (e.g. "XX-XX-XXXX" for dates") and detects values that don't match.
@@ -162,13 +168,16 @@ def _detect_per_column_and_pattern(column: pd.Series, pattern: Pattern, rarity_t
                 is_substr_sequence=pattern.is_sequence
             )
 
-    return {'ratio of rare samples': f'{format_percent(rare_format_ratio)} ({num_rare_formats})',
-            'common formats': common_formats,
-            'examples for values in common formats': common_values_examples,
-            'values in rare formats': list(rare_values.unique())}
+    return {
+        'ratio': rare_format_ratio,
+        'ratio of rare samples': f'{format_percent(rare_format_ratio)} ({num_rare_formats})',
+        'common formats': common_formats,
+        'examples for values in common formats': common_values_examples,
+        'values in rare formats': list(rare_values.unique())
+    }
 
 
-def _refine_formats(fmt: str, substrs: List[str], samples: List[str], is_substr_sequence: bool = False) -> str:
+def _refine_formats(fmt: str, substrs: t.List[str], samples: t.List[str], is_substr_sequence: bool = False) -> str:
     """
     Return a refined (degeneralized) pattern, based on known samples.
 
@@ -271,39 +280,46 @@ class RareFormatDetection(SingleDatasetBaseCheck):
         If we also mark "refine = True" in the Pattern class, the check will further try and make the pattern
         more accurate, by trying to find common characters in all samples of the same pattern. In this example,
         the refined format found would be "XXXXXX@deepchecks.com.
+
+    Args:
+        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
+            ones.
+        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
+            variable
+        patterns (List[Pattern]): patterns to look for when comparing common vs. rare formats. Uses DEFAULT_PATTERNS
+            if not specified.
+            Note that if pattern_match_method='first' (which it is by default), then the order of patterns matter.
+            In this case, it is advised to order the patterns from specific to general.
+        rarity_threshold (float): threshold to indicate what is considered a "sharp" drop in commonness of values.
+            This is used by the function get_rare_vs_common_values which divides data into "common" and "rare"
+            values, and is used here to determine which formats are common and which are rare.
+        min_unique_common_ratio (float): minimum ratio for unique common samples to all common samples.
+            This parameter is used in order to filter unwanted results in the case where the common format is
+            actually a common value.
+            This is because if a common format has too few unique values, it's probably actually just a categorical
+            feature with some values that are very common and some that are rare.
+        pattern_match_method (str): 'first' or 'all'. If 'first', returns only the pattern where a "rare format"
+            sample was found for the first time. If 'all', returns all patterns in which anything was found.
+        n_top_columns (int): (optional - used only if model was specified)
+            amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 patterns: List[Pattern] = deepcopy(DEFAULT_PATTERNS), rarity_threshold: float = 0.05,
-                 min_unique_common_ratio = 0.01, pattern_match_method: str = 'first', n_top_columns: int = 10):
-        """Initialize the RareFormatDetection check.
-
-        Args:
-            columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-                ones.
-            ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-                variable
-            patterns (List[Pattern]): patterns to look for when comparing common vs. rare formats. Uses DEFAULT_PATTERNS
-                if not specified.
-                Note that if pattern_match_method='first' (which it is by default), then the order of patterns matter.
-                In this case, it is advised to order the patterns from specific to general.
-            rarity_threshold (float): threshold to indicate what is considered a "sharp" drop in commonness of values.
-                This is used by the function get_rare_vs_common_values which divides data into "common" and "rare"
-                values, and is used here to determine which formats are common and which are rare.
-            min_unique_common_ratio (float): minimum ratio for unique common samples to all common samples.
-                This parameter is used in order to filter unwanted results in the case where the common format is
-                actually a common value.
-                This is because if a common format has too few unique values, it's probably actually just a categorical
-                feature with some values that are very common and some that are rare.
-            pattern_match_method (str): 'first' or 'all'. If 'first', returns only the pattern where a "rare format"
-                sample was found for the first time. If 'all', returns all patterns in which anything was found.
-            n_top_columns (int): (optional - used only if model was specified)
-                amount of columns to show ordered by feature importance (date, index, label are first)
-        """
+    def __init__(
+        self,
+        columns: t.Union[str, t.Iterable[str], None] = None,
+        ignore_columns: t.Union[str, t.Iterable[str], None] = None,
+        patterns: t.Optional[t.List[Pattern]] = None,
+        rarity_threshold: float = 0.05,
+        min_unique_common_ratio: float = 0.01,
+        pattern_match_method: str = 'first',
+        n_top_columns: int = 10
+    ):
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
-        self.patterns = patterns
+        # TODO: maybe it would be better to make 'Pattern' type immutable
+        # and also change type of the 'DEFAULT_PATTERNS' var from list to the tuple
+        self.patterns = patterns or deepcopy(DEFAULT_PATTERNS)
         self.rarity_threshold = rarity_threshold
         self.min_unique_common_ratio = min_unique_common_ratio
         self.pattern_match_method = pattern_match_method
@@ -324,7 +340,7 @@ class RareFormatDetection(SingleDatasetBaseCheck):
         feature_importances = calculate_feature_importance_or_null(dataset, model)
         return self._rare_format_detection(dataset=dataset, feature_importances=feature_importances)
 
-    def _rare_format_detection(self, dataset: Union[Dataset, pd.DataFrame],
+    def _rare_format_detection(self, dataset: t.Union[Dataset, pd.DataFrame],
                                feature_importances: pd.Series=None) -> CheckResult:
         original_dataset = dataset
         dataset: pd.DataFrame = ensure_dataframe_type(dataset)
@@ -348,3 +364,48 @@ class RareFormatDetection(SingleDatasetBaseCheck):
             display.append(value)
 
         return CheckResult(value=filtered_res, header='Rare Format Detection', check=self.__class__, display=display)
+
+    def add_condition_ratio_of_rare_formats_not_greater_than(self, var: float = 0):
+        """
+        Add rare formats ratio condition.
+
+        This condition will check that ratio of the specified formats is not grater than X.
+
+        Args:
+            var: format ratio upper bound
+        """
+
+        def condition(check_result: t.Mapping[str, pd.DataFrame]) -> ConditionResult:
+            # transforming result dataframes into dicts of the next format:
+            # {"pattern name": <ration value>}
+            values = {
+                feature: t.cast(
+                    t.Dict[str, float],
+                    dict(results.apply(lambda s: s.get('ratio', 0)))
+                )
+                for feature, results in check_result.items()
+            }
+
+            failed_features = {
+                feature
+                for feature, results in values.items()
+                for pattern, ratio in results.items()
+                if ratio >= var
+            }
+
+            stringified_failed_features = '; '.join(failed_features)
+            passed = len(failed_features) == 0
+
+            return ConditionResult(
+                is_pass=passed,
+                details=(
+                    f'Ratio of the rare formates is greater than {var}: {stringified_failed_features}.'
+                    if not passed
+                    else ''
+                )
+            )
+
+        return self.add_condition(
+            name=f'Rare formats ratio is not greater than {var}',
+            condition_func=condition
+        )

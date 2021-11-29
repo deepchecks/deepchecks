@@ -9,15 +9,14 @@ __all__ = ['PerformanceReport']
 
 
 class PerformanceReport(SingleDatasetBaseCheck):
-    """Summarize given metrics on a dataset and model."""
+    """Summarize given metrics on a dataset and model.
+
+    Args:
+        alternative_metrics (Dict[str, Callable]): An optional dictionary of metric name to scorer functions.
+        If none given, using default metrics
+    """
 
     def __init__(self, alternative_metrics: Dict[str, Callable] = None):
-        """Initialize the PerformanceReport check.
-
-        Args:
-            alternative_metrics (Dict[str, Callable]): An optional dictionary of metric name to scorer functions.
-                If none given, using default metrics
-        """
         super().__init__()
         self.alternative_metrics = alternative_metrics
 
