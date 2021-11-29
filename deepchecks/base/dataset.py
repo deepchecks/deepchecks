@@ -1,6 +1,8 @@
 """The Dataset module containing the dataset Class and its functions."""
+import typing as t
 import logging
-from typing import Dict, Union, List, Any
+
+import numpy as np
 import pandas as pd
 from pandas.core.dtypes.common import is_float_dtype
 
@@ -8,9 +10,14 @@ from deepchecks.base.dataframe_utils import filter_columns_with_validation
 from deepchecks.utils import DeepchecksValueError
 from deepchecks.string_utils import is_string_column
 
+
 __all__ = ['Dataset', 'ensure_dataframe_type']
 
+
 logger = logging.getLogger('deepchecks.dataset')
+
+
+TDataset = t.TypeVar('TDataset', bound='Dataset')
 
 
 class Dataset:
@@ -28,20 +35,30 @@ class Dataset:
         cat_features: List of names for the categorical features in the DataFrame.
     """
 
-    _features: List[str]
-    _label: Union[str, None]
+    _features: t.List[str]
+    _label: t.Optional[str]
     _use_index: bool
-    _index_name: Union[str, None]
-    _date_name: Union[str, None]
-    cat_features: List[str]
+    _index_name: t.Optional[str]
+    _date_name: t.Optional[str]
+    cat_features: t.List[str]
     _data: pd.DataFrame
     _max_categorical_ratio: float
     _max_categories: int
 
-    def __init__(self, df: pd.DataFrame,
-                 features: List[str] = None, cat_features: List[str] = None, label: str = None, use_index: bool = False,
-                 index: str = None, date: str = None, date_unit_type: str = None, convert_date_: bool = True,
-                 max_categorical_ratio: float = 0.01, max_categories: int = 30, max_float_categories: int = 5):
+    def __init__(self,
+        df: pd.DataFrame,
+        features: t.Sequence[str] = None,
+        cat_features: t.Sequence[str] = None,
+        label: str = None,
+        use_index: bool = False,
+        index: str = None,
+        date: str = None,
+        date_unit_type: str = None,
+        convert_date_: bool = True,
+        max_categorical_ratio: float = 0.01,
+        max_categories: int = 30,
+        max_float_categories: int = 5
+    ):
         """Initiate the Dataset using a pandas DataFrame and Metadata.
 
         Args:
@@ -81,9 +98,9 @@ class Dataset:
 
         if features:
             if any(x not in self._data.columns for x in features):
-                raise DeepchecksValueError(f'Features must be names of columns in dataframe.'
-                                           f' Features {set(features) - set(self._data.columns)} have not been '
-                                           f'found in input dataframe.')
+                raise DeepchecksValueError('Features must be names of columns in dataframe. '
+                                           f'Features {set(features) - set(self._data.columns)} have not been '
+                                           'found in input dataframe.')
             self._features = features
         else:
             self._features = [x for x in self._data.columns if x not in {label, index, date}]
@@ -124,6 +141,176 @@ class Dataset:
         if self._date_name and convert_date_:
             self._data[self._date_name] = self._data[self._date_name].apply(pd.Timestamp, unit=date_unit_type)
 
+    @classmethod
+    def from_numpy(
+        cls: t.Type[TDataset],
+        *args: np.ndarray,
+        features: t.Sequence[str] = None,
+        label: str = None,
+        **kwargs
+    ) -> TDataset:
+        """Create Dataset instance from numpy arrays.
+
+        Args:
+            *args: (np.ndarray):
+                expecting it to contain two numpy arrays (or at least one),
+                first with features, second with labels.
+            features (Sequence[str], default None):
+                names for the feature columns. If not provided next names will
+                be assigned to the feature columns: X1-Xn (where n - number of features)
+            label (str, default None):
+                labels column name. If not provided next name will be used - 'target'
+            **kwargs:
+                additional arguments that will be passed to the main Dataset constructor.
+
+        Returns:
+            Dataset: instance of the 'Dataset'
+
+        Raises:
+            ValueError:
+                if receives zero or more than two numpy arrays;
+                if features (args[0]) is not two dimensional numpy array;
+                if labels (args[1]) is not one dimensional numpy array;
+                if features array or labels array is empty;
+                if features and labels arrays are not of the same size;
+
+        Examples
+        --------
+
+        >>> features = np.array([[0.25, 0.3, 0.3], [0.14, 0.75, 0.3], [0.23, 0.39, 0.1]])
+        >>> labels = np.array([0.1, 0.1, 0.7])
+        >>> dataset = Dataset.from_numpy(features, labels)
+
+        Creating dataset only from features array.
+
+        >>> dataset = Dataset.from_numpy(features)
+
+        Passing additional arguments to the main Dataset constructor
+
+        >>> dataset = Dataset.from_numpy(
+        ...    features, labels,
+        ...    max_categorical_ratio=0.5
+        ... )
+
+        Specifying features and label columns names.
+
+        >>> dataset = Dataset.from_numpy(
+        ...    features, labels,
+        ...    features=['sensor-1', 'sensor-2', 'sensor-3',],
+        ...    label='labels'
+        ... )
+
+        """
+        if len(args) == 0 or len(args) > 2:
+            raise ValueError(
+                "'from_numpy' constructor expecting to receive two numpy arrays (or at least one)."
+                "First array must contains the features and second the labels."
+            )
+
+        def validate_features_array(
+            features_array: np.ndarray,
+            feature_names: t.Optional[t.Sequence[str]] = None
+        ) -> t.Tuple[np.ndarray, t.List[str]]:
+            message = (
+                "'from_numpy' constructor expecting features (args[0]) "
+                "to be not empty two dimensional array."
+            )
+            if len(features_array.shape) != 2:
+                raise ValueError(message)
+            if features_array.shape[0] == 0 or features_array.shape[1] == 0:
+                raise ValueError(message)
+
+            if feature_names is not None and len(feature_names) != features_array.shape[1]:
+                raise ValueError(
+                    f'{features_array.shape[1]} features were provided '
+                    f'but only {len(feature_names)} names for them`s.'
+                )
+            elif feature_names is None:
+                feature_names = [f'X{index}'for index in range(1, features_array.shape[1] + 1)]
+
+            return features_array, t.cast(t.List[str], feature_names)
+
+        if len(args) == 1:
+            features_array, features_names = validate_features_array(args[0], features)
+
+            if label is not None:
+                raise ValueError(
+                    "'label' parameter cannot be passed to the "
+                    "constructor whereas labels array was not provided."
+                )
+
+            return cls(
+                df=pd.DataFrame(data=features, columns=features_names),
+                features=features_names,
+                **kwargs
+            )
+
+        else:
+            features_array, features_names  = validate_features_array(args[0], features)
+            labels_array = args[1]
+            columns = features_names + [label or 'target']
+
+            if len(labels_array) != 1 or labels_array.shape[0] == 0:
+                raise ValueError(
+                    "'from_numpy' constructor expecting labels (args[1]) "
+                    "to be not empty one dimensional array."
+                )
+
+            if labels_array[0] != features_array.shape[0]:
+                raise ValueError(
+                    "'from_numpy' constructor expecting that features and "
+                    "labels arrays will be of the same size"
+                )
+
+            labels_array = labels_array.reshape(len(labels_array), 1)
+            data = np.hstack((features, labels_array))
+
+            return cls(
+                df=pd.DataFrame(data=data, columns=columns),
+                features=features_names,
+                label=label,
+                **kwargs
+            )
+
+    @classmethod
+    def from_dict(
+        cls: t.Type[TDataset],
+        data: t.Mapping[t.Hashable, t.Any],
+        orient: str = 'columns',
+        dtype: np.dtype = None,
+        columns: t.Optional[t.Sequence[t.Hashable]] = None,
+        **kwargs
+    ) -> TDataset:
+        """Create instance of the Dataset from the dict object.
+
+        Args:
+            data (t.Mapping[t.Hashable, t.Any]):
+                dict from which to create a dataset
+            orient (Literal['columns'] | Literal['index'], default 'columns'):
+                The “orientation” of the data. Will be passed to the dataframe constructor.
+            dtype (Optional[numpy.dtype], default None): 
+                Data type to force, otherwise infer. Will be passed to the dataframe constructor.
+            columns (t.Optional[t.Sequence[t.Hashable]]):
+                Column labels. Will be passed to the dataframe constructor.
+            **kwargs:
+                additional arguments that will be passed to the main Dataset constructor.
+        
+        Returns:
+            Dataset: instance of the Dataset.
+        """
+        return cls(
+            df=pd.DataFrame.from_dict(data=data, orient=orient, dtype=dtype, columns=columns),
+            **kwargs
+        )
+
+    @classmethod
+    def read_csv(cls: t.Type[TDataset]) -> TDataset:
+        raise NotADirectoryError()
+
+    @classmethod
+    def read_json(cls: t.Type[TDataset]) -> TDataset:
+        raise NotADirectoryError()
+
     @property
     def data(self) -> pd.DataFrame:
         """Return the data of dataset."""
@@ -150,7 +337,7 @@ class Dataset:
         """
         return self.data.shape[0]
 
-    def infer_categorical_features(self) -> List[str]:
+    def infer_categorical_features(self) -> t.List[str]:
         """Infers which features are categorical by checking types and number of unique values.
 
         Returns:
@@ -195,7 +382,7 @@ class Dataset:
 
         return n_unique / n_samples < self._max_categorical_ratio and n_unique <= self._max_categories
 
-    def index_name(self) -> Union[str, None]:
+    def index_name(self) -> t.Optional[str]:
         """If index column exists, return its name.
 
         Returns:
@@ -203,7 +390,7 @@ class Dataset:
         """
         return self._index_name
 
-    def index_col(self) -> Union[pd.Series, None]:
+    def index_col(self) -> t.Optional[pd.Series]:
         """Return index column. Index can be a named column or DataFrame index.
 
         Returns:
@@ -216,7 +403,7 @@ class Dataset:
         else:  # No meaningful index to use: Index column not configured, and use_column is False
             return None
 
-    def date_name(self) -> Union[str, None]:
+    def date_name(self) -> t.Optional[str]:
         """If date column exists, return its name.
 
         Returns:
@@ -224,7 +411,7 @@ class Dataset:
         """
         return self._date_name
 
-    def date_col(self) -> Union[pd.Series, None]:
+    def date_col(self) -> t.Optional[pd.Series]:
         """Return date column if exists.
 
         Returns:
@@ -232,7 +419,7 @@ class Dataset:
         """
         return self.data[self._date_name] if self._date_name else None
 
-    def label_name(self) -> Union[str, None]:
+    def label_name(self) -> t.Optional[str]:
         """If label column exists, return its name.
 
         Returns:
@@ -240,7 +427,7 @@ class Dataset:
         """
         return self._label_name
 
-    def label_col(self) -> Union[pd.Series, None]:
+    def label_col(self) -> t.Optional[pd.Series]:
         """Return label column if exists.
 
         Returns:
@@ -248,7 +435,7 @@ class Dataset:
         """
         return self.data[self._label_name] if self._label_name else None
 
-    def features(self) -> List[str]:
+    def features(self) -> t.List[str]:
         """Return list of feature names.
 
         Returns:
@@ -256,7 +443,7 @@ class Dataset:
         """
         return self._features
 
-    def features_columns(self) -> Union[pd.DataFrame, None]:
+    def features_columns(self) -> t.Optional[pd.DataFrame]:
         """Return features columns if exists.
 
         Returns:
@@ -264,7 +451,7 @@ class Dataset:
         """
         return self.data[self._features] if self._features else None
 
-    def show_columns_info(self) -> Dict:
+    def show_columns_info(self) -> t.Dict[str, str]:
         """Return the role and logical type of each column.
 
         Returns:
@@ -377,7 +564,7 @@ class Dataset:
         else:
             raise DeepchecksValueError(f'Check {check_name} requires datasets to share the same features')
 
-    def validate_shared_categorical_features(self, other, check_name: str) -> List[str]:
+    def validate_shared_categorical_features(self, other, check_name: str) -> t.List[str]:
         """
         Return list of categorical features if both datasets have the same categorical features. Else, raise error.
 
@@ -476,7 +663,7 @@ class Dataset:
         return obj
 
 
-def ensure_dataframe_type(obj: Any) -> pd.DataFrame:
+def ensure_dataframe_type(obj: t.Any) -> pd.DataFrame:
     """Ensure that given object is of type DataFrame or Dataset and return it as DataFrame. else raise error.
 
     Args:
