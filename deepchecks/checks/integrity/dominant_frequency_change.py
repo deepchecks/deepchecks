@@ -1,5 +1,5 @@
 """module contains Dominant Frequency Change check."""
-from typing import  Dict
+from typing import Dict
 
 from scipy.stats import chi2_contingency, fisher_exact
 import numpy as np
@@ -49,7 +49,7 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
                                                feature_importances=feature_importances)
 
     def _find_p_val(self, key: str, baseline_hist: Dict, test_hist: Dict, baseline_count: int,
-                   test_count: int, ratio_change_thres: float) -> float:
+                    test_count: int, ratio_change_thres: float) -> float:
         """Find p value for column frequency change between the reference dataset to the test dataset.
 
         Args:
@@ -90,7 +90,7 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
         return p_val
 
     def _dominant_frequency_change(self, dataset: Dataset, baseline_dataset: Dataset,
-                                   feature_importances: pd.Series=None):
+                                   feature_importances: pd.Series = None):
         """Run the check logic.
 
         Args:
@@ -123,11 +123,11 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
                     count_ref = top_ref[value]
                     count_test = top_test.get(value, 0)
                     p_dict[column] = {'Value': value,
-                                    'Reference data %': count_ref / baseline_len * 100,
-                                    'Tested data %': count_test / test_len * 100,
-                                    'Reference data #': count_ref,
-                                    'Tested data #': count_test,
-                                    'P value': p_val}
+                                      'Reference data %': count_ref / baseline_len * 100,
+                                      'Tested data %': count_test / test_len * 100,
+                                      'Reference data #': count_ref,
+                                      'Tested data #': count_test,
+                                      'P value': p_val}
             elif len(top_test) == 1 or top_test.iloc[0] > top_test.iloc[1] * self.dominance_ratio:
                 value = top_test.index[0]
                 p_val = self._find_p_val(value, top_test, top_ref, test_len, baseline_len, self.ratio_change_thres)
@@ -157,6 +157,7 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
               if the value abundance has changed significantly (0-1).
 
         """
+
         def condition(result: Dict) -> ConditionResult:
             failed_columns = []
             for column, values in result.items():

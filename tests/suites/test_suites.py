@@ -42,8 +42,8 @@ def test_classification_suite(iris: t.Tuple[Dataset, Dataset, AdaBoostClassifier
     train, test, model = iris
     suite = suites.overall_classification_check_suite()
     # Have to change min test samples of TrustScoreComparison
-    suite[16].min_test_samples = 50
-    suite[32].min_test_samples = 50
+    suite[1].min_test_samples = 50
+    suite[21].min_test_samples = 50
 
     arguments = (
         dict(train_dataset=train, test_dataset=test, model=model, check_datasets_policy='both'),
@@ -53,7 +53,7 @@ def test_classification_suite(iris: t.Tuple[Dataset, Dataset, AdaBoostClassifier
 
     for args in arguments:
         result = suite.run(**args)
-        validate_suite_result(result, expected_results='only successful')
+        validate_suite_result(result, expected_results='mixed')
 
 
 def test_regression_suite(
@@ -71,7 +71,7 @@ def test_regression_suite(
 
     for args in arguments:
         result = suite.run(**args)
-        validate_suite_result(result, expected_results='only successful')
+        validate_suite_result(result, expected_results='mixed')
 
 
 def test_generic_suite(
@@ -98,7 +98,7 @@ def test_generic_suite(
 
     for args in arguments:
         result = suite.run(**args)
-        validate_suite_result(result, expected_results='only successful')
+        validate_suite_result(result, expected_results='mixed')
 
 
 def validate_suite_result(
