@@ -97,7 +97,7 @@ def test_condition():
     duplicate_data = pd.DataFrame({'col1': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
                                    'col2': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                                    'col3': [2, 3, 4, 4, 4, 3, 4, 5, 6, 4]})
-    check = DataDuplicates().add_condition_duplicates_not_greater_than()
+    check = DataDuplicates().add_condition_ratio_not_greater_than()
 
     # Act
     result = check.conditions_decision(check.run(duplicate_data))
