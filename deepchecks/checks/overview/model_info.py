@@ -1,8 +1,10 @@
 """Module contains model_info check."""
-from deepchecks import ModelOnlyBaseCheck, CheckResult
-from deepchecks.utils import model_type_validation
 import pandas as pd
 from sklearn.base import BaseEstimator
+
+from deepchecks import ModelOnlyBaseCheck, CheckResult
+from deepchecks.utils.validation import model_type_validation
+
 
 __all__ = ['ModelInfo']
 

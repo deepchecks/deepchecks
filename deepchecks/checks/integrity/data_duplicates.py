@@ -5,9 +5,9 @@ import pandas as pd
 
 from deepchecks import Dataset, ensure_dataframe_type
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
-from deepchecks.base.dataframe_utils import filter_columns_with_validation
-from deepchecks.utils import DeepchecksValueError
-from deepchecks.string_utils import format_percent
+from deepchecks.utils.dataframes import filter_columns_with_validation
+from deepchecks.utils.strings import format_percent
+from deepchecks.errors import DeepchecksValueError
 
 
 __all__ = ['DataDuplicates']

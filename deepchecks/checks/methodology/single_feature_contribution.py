@@ -2,7 +2,7 @@
 import typing as t
 
 import deepchecks.ppscore as pps
-from deepchecks.plot_utils import create_colorbar_barchart_for_check
+from deepchecks.utils.plot import create_colorbar_barchart_for_check
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
 
 

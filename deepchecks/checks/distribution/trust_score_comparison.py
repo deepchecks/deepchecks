@@ -6,9 +6,11 @@ from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.checks.distribution.trust_score import TrustScore
 from deepchecks.checks.distribution.preprocessing import preprocess_dataset_to_scaled_numerics
 from deepchecks.checks.distribution.plot import plot_density
-from deepchecks.metric_utils import task_type_check, ModelType
-from deepchecks.string_utils import format_percent
-from deepchecks.utils import DeepchecksValueError, model_type_validation
+from deepchecks.utils.metrics import task_type_check, ModelType
+from deepchecks.utils.strings import format_percent
+from deepchecks.utils.validation import model_type_validation
+from deepchecks.errors import DeepchecksValueError
+
 
 __all__ = ['TrustScoreComparison']
 

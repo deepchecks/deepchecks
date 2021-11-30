@@ -1,11 +1,12 @@
 """Tests for Invalid Chars check"""
 import numpy as np
 import pandas as pd
-
 from hamcrest import assert_that, has_length, calling, raises, has_items, close_to
+
 from deepchecks.base import Dataset
 from deepchecks.checks.integrity.special_chars import SpecialCharacters
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError
+
 from tests.checks.utils import equal_condition_result
 
 
