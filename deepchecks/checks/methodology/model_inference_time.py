@@ -2,11 +2,13 @@
 import typing as t
 import timeit
 
+import numpy as np
 import pandas as pd
 
 from deepchecks import SingleDatasetBaseCheck, CheckResult, Dataset, ConditionResult
 from deepchecks.utils import model_type_validation
 from deepchecks.string_utils import format_number
+from deepchecks.utils import DeepchecksValueError
 
 
 __all__ = ['ModelInferenceTimeCheck']
@@ -19,11 +21,15 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
     """Measure model average inference time (in seconds) per sample.
 
     Args:
-        number_of_samples (int): number of samples to use for inference
+        number_of_samples (int):
+            number of samples to use for inference, but if actual 
+            dataset is smaller then all samples will be used
     """
 
     def __init__(self, number_of_samples: int = 1000):
         self.number_of_samples = number_of_samples
+        if number_of_samples == 0 or number_of_samples < 0:
+            raise DeepchecksValueError('number_of_samples cannot be le than 0!')
         super().__init__()
 
     def run(self, dataset: Dataset, model: object) -> CheckResult:
@@ -58,7 +64,7 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
         df = t.cast(pd.DataFrame, dataset.features_columns())
 
         number_of_samples = len(df) if len(df) < self.number_of_samples else self.number_of_samples
-        df = df[:number_of_samples]
+        df = df.sample(n=number_of_samples, random_state=np.random.randint(number_of_samples))
 
         result = timeit.timeit(
             'predict(*args)',

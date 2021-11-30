@@ -11,11 +11,14 @@ from tests.checks.utils import equal_condition_result, SCIENTIFIC_NOTATION_REGEX
 def test_model_inference_time_check(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, object]
 ):
+    # Arrange
     _, test, model = iris_split_dataset_and_model
     check = ModelInferenceTimeCheck()
 
+    # Act
     result = check.run(test, model)
 
+    # Assert
     assert_that(result, instance_of(CheckResult))
     assert_that(result.value, instance_of(float))
     assert_that(result.display, instance_of(list))
@@ -32,17 +35,19 @@ def test_model_inference_time_check(
 def test_model_inference_time_check_with_condition_that_should_pass(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, object]
 ):
+    # Arrange
     _, test, model = iris_split_dataset_and_model
     check = ModelInferenceTimeCheck().add_condition_inference_time_is_not_greater_than(0.1)
 
+    # Act
     result = check.run(test, model)
     condition_result, *_ = check.conditions_decision(result)
 
+    # Assert
     name = (
         'Average model inference time for one sample is not '
         'greater than 0.1'
     )
-
     assert_that(condition_result, equal_condition_result( # type: ignore
         is_pass=True,
         category=ConditionCategory.FAIL,
@@ -54,12 +59,15 @@ def test_model_inference_time_check_with_condition_that_should_pass(
 def test_model_inference_time_check_with_condition_that_should_not_pass(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, object]
 ):
+    # Arrange
     _, test, model = iris_split_dataset_and_model
     check = ModelInferenceTimeCheck().add_condition_inference_time_is_not_greater_than(0.00000001)
 
+    # Act
     result = check.run(test, model)
     condition_result, *_ = check.conditions_decision(result)
 
+    # Assert
     name = (
         'Average model inference time for one sample is not '
         'greater than 1e-08'
@@ -68,7 +76,6 @@ def test_model_inference_time_check_with_condition_that_should_not_pass(
         r'Average model inference time for one sample \(in seconds\) '
         fr'is greater than {SCIENTIFIC_NOTATION_REGEXP.pattern}'
     )
-
     assert_that(condition_result, equal_condition_result( # type: ignore
         is_pass=False,
         category=ConditionCategory.FAIL,
