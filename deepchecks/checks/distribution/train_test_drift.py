@@ -9,8 +9,8 @@ from scipy.stats import wasserstein_distance
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.checks.distribution.plot import plot_density
-from deepchecks.feature_importance_utils import calculate_feature_importance_or_null
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.utils.features import calculate_feature_importance_or_null
+from deepchecks.errors import DeepchecksValueError
 import matplotlib.pyplot as plt
 
 __all__ = ['TrainTestDrift']

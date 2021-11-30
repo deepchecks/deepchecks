@@ -4,7 +4,7 @@ import pandas as pd
 from hamcrest import assert_that, close_to, equal_to, calling, raises, has_items
 
 from deepchecks.checks.integrity.data_duplicates import DataDuplicates
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError
 from tests.checks.utils import equal_condition_result
 
 

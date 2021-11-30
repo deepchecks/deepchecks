@@ -3,7 +3,8 @@ import pandas as pd
 from deepchecks import CheckResult
 from deepchecks.base import Dataset
 from deepchecks.base.check import SingleDatasetBaseCheck
-from deepchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_dict
+from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_dict
+
 
 __all__ = ['ColumnsInfo']
 

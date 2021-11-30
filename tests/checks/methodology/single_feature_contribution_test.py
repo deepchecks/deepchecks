@@ -1,16 +1,13 @@
 """Contains unit tests for the single_feature_contribution check."""
-import re
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, is_in, close_to, calling, raises, equal_to, has_items, has_entries, has_length
+from hamcrest import assert_that, close_to, calling, raises, has_entries, has_length
 
 from deepchecks import Dataset
-from deepchecks import ConditionCategory
 from deepchecks.checks.methodology import SingleFeatureContribution, SingleFeatureContributionTrainTest
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError
 
 from tests.checks.utils import equal_condition_result
-from tests.checks.utils import ANY_FLOAT_REGEXP
 
 
 def util_generate_dataframe_and_expected():

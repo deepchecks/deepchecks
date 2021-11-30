@@ -1,8 +1,7 @@
 """Tests for Model Info."""
-from deepchecks.checks.overview.model_info import ModelInfo
-from deepchecks.utils import DeepchecksValueError
-
 from hamcrest import assert_that, has_entries, calling, raises
+from deepchecks.checks.overview.model_info import ModelInfo
+from deepchecks.errors import DeepchecksValueError
 
 
 def assert_model_result(result):

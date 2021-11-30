@@ -7,7 +7,7 @@ from hamcrest import assert_that, has_length, calling, raises, has_items, has_en
 from deepchecks.base import Dataset
 
 from deepchecks.checks.integrity.mixed_types import MixedTypes
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError
 from tests.checks.utils import equal_condition_result
 
 

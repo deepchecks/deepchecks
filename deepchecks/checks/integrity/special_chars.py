@@ -6,9 +6,10 @@ from pandas.api.types import infer_dtype
 
 from deepchecks import Dataset, ensure_dataframe_type
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
-from deepchecks.base.dataframe_utils import filter_columns_with_validation
-from deepchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_df
-from deepchecks.string_utils import string_baseform, format_percent, format_columns_for_condition
+from deepchecks.utils.dataframes import filter_columns_with_validation
+from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
+from deepchecks.utils.strings import string_baseform, format_percent, format_columns_for_condition
+
 
 __all__ = ['SpecialCharacters']
 

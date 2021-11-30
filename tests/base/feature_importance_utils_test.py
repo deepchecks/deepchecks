@@ -1,14 +1,14 @@
 """Test feature importance utils"""
+import pandas as pd
 from hamcrest import equal_to, assert_that, calling, raises, close_to, not_none, none
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression
 from sklearn.neural_network import MLPClassifier
-import pandas as pd
 
-from deepchecks.feature_importance_utils import calculate_feature_importance, calculate_feature_importance_or_null, \
+from deepchecks.utils.features import calculate_feature_importance, calculate_feature_importance_or_null, \
                                               column_importance_sorter_df, column_importance_sorter_dict
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError
 
 
 def test_adaboost(iris_split_dataset_and_model):

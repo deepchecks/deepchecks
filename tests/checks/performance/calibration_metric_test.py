@@ -1,7 +1,7 @@
 """Contains unit tests for the calibration_metric check."""
-from deepchecks.checks.performance import CalibrationMetric
-from deepchecks.utils import DeepchecksValueError
 from hamcrest import assert_that, calling, raises, has_entries, close_to
+from deepchecks.checks.performance import CalibrationMetric
+from deepchecks.errors import DeepchecksValueError
 
 
 def test_dataset_wrong_input():
