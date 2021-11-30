@@ -15,8 +15,8 @@ from matplotlib import pyplot as plt
 from pandas.io.formats.style import Styler
 
 from deepchecks.base.display_pandas import display_dataframe
-from deepchecks.string_utils import split_camel_case
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.utils.strings import split_camel_case
+from deepchecks.errors import DeepchecksValueError
 
 
 class Condition:

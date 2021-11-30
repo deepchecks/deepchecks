@@ -1,17 +1,26 @@
 """Utils module containing utilities for plotting."""
-
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LinearSegmentedColormap
 
-_all__ = ['create_colorbar_barchart_for_check']
+
+__all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map']
 
 
-def create_colorbar_barchart_for_check(x: np.array, y: np.array, ylabel: str = 'Result', xlabel: str = 'Features',
-                                       color_map: str = 'RdYlGn_r', start: float = 0, stop: float = 1.0,
-                                       tick_steps: float = 0.1, color_label: str = 'Color',
-                                       color_shift_midpoint: float = 0.5, check_name: str = ''):
+def create_colorbar_barchart_for_check(
+    x: np.ndarray,
+    y: np.ndarray,
+    ylabel: str = 'Result',
+    xlabel: str = 'Features',
+    color_map: str = 'RdYlGn_r',
+    start: float = 0,
+    stop: float = 1.0,
+    tick_steps: float = 0.1,
+    color_label: str = 'Color',
+    color_shift_midpoint: float = 0.5,
+    check_name: str = ''
+):
     """Output a colorbar barchart using matplotlib.
 
     Args:

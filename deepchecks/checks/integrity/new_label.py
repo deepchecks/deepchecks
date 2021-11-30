@@ -3,11 +3,12 @@ from typing import Dict
 
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.string_utils import format_percent
+from deepchecks.utils.strings import format_percent
 
 import pandas as pd
 
 pd.options.mode.chained_assignment = None
+
 
 __all__ = ['NewLabelTrainTest']
 

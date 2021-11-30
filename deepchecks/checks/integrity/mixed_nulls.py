@@ -7,13 +7,14 @@ import pandas as pd
 
 from deepchecks import Dataset, CheckResult, ensure_dataframe_type
 from deepchecks.base.check import SingleDatasetBaseCheck, ConditionResult
-from deepchecks.base.dataframe_utils import filter_columns_with_validation
+from deepchecks.utils.dataframes import filter_columns_with_validation
+from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
+from deepchecks.utils.strings import string_baseform, format_percent, format_columns_for_condition
+from deepchecks.errors import DeepchecksValueError
 
-from deepchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_df
-from deepchecks.string_utils import string_baseform, format_percent, format_columns_for_condition
-from deepchecks.utils import DeepchecksValueError
 
 __all__ = ['MixedNulls']
+
 
 DEFAULT_NULL_VALUES = {'none', 'null', 'nan', 'na', '', '\x00', '\x00\x00'}
 

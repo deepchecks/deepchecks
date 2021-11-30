@@ -6,9 +6,9 @@ import numpy as np
 import pandas as pd
 
 from deepchecks import SingleDatasetBaseCheck, CheckResult, Dataset, ConditionResult
-from deepchecks.utils import model_type_validation
-from deepchecks.string_utils import format_number
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.utils.validation import model_type_validation
+from deepchecks.utils.strings import format_number
+from deepchecks.errors import DeepchecksValueError
 
 
 __all__ = ['ModelInferenceTimeCheck']

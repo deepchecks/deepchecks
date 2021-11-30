@@ -1,9 +1,10 @@
 """Tests for Single Value Check"""
 import numpy as np
 import pandas as pd
-from deepchecks.utils import DeepchecksValueError
-from deepchecks.checks.integrity.is_single_value import IsSingleValue
 from hamcrest import assert_that, calling, raises, equal_to, has_items
+
+from deepchecks.errors import DeepchecksValueError
+from deepchecks.checks.integrity.is_single_value import IsSingleValue
 
 from tests.checks.utils import equal_condition_result
 

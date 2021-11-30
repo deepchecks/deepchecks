@@ -5,10 +5,11 @@ from typing import Union, Iterable
 import pandas as pd
 
 from deepchecks import CheckResult, Dataset, ensure_dataframe_type, CompareDatasetsBaseCheck, ConditionResult
-from deepchecks.base.dataframe_utils import filter_columns_with_validation
-from deepchecks.string_utils import get_base_form_to_variants_dict, is_string_column, format_percent, \
+from deepchecks.utils.dataframes import filter_columns_with_validation
+from deepchecks.utils.strings import get_base_form_to_variants_dict, is_string_column, format_percent, \
     format_columns_for_condition
-from deepchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_df
+from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
+
 
 __all__ = ['StringMismatchComparison']
 

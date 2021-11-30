@@ -9,9 +9,10 @@ from pandas import DataFrame, Series
 from scipy import stats
 
 from deepchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_dataframe_type, ConditionResult
-from deepchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_df
-from deepchecks.string_utils import is_string_column, format_number, format_columns_for_condition, format_percent
-from deepchecks.base.dataframe_utils import filter_columns_with_validation
+from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
+from deepchecks.utils.strings import is_string_column, format_number, format_columns_for_condition, format_percent
+from deepchecks.utils.dataframes import filter_columns_with_validation
+
 
 __all__ = ['StringLengthOutOfBounds']
 

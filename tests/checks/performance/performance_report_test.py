@@ -1,11 +1,11 @@
 """Contains unit tests for the performance report check."""
 import re
 from typing import List
+from hamcrest import assert_that, calling, raises, close_to, has_entries, has_items
 
 from deepchecks import ConditionResult
 from deepchecks.checks.performance import PerformanceReport
-from deepchecks.utils import DeepchecksValueError
-from hamcrest import assert_that, calling, raises, close_to, has_entries, has_items
+from deepchecks.errors import DeepchecksValueError
 
 from tests.checks.utils import equal_condition_result
 

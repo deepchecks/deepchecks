@@ -5,8 +5,8 @@ from io import BytesIO
 import sys
 import pprint
 
-from deepchecks import CheckSuite
-from deepchecks.suites import OverallCheckSuite
+from deepchecks import Suite
+from deepchecks.suites import OverallSuite
 from deepchecks.base import Dataset
 import pandas as pd
 import json
@@ -59,7 +59,7 @@ if __name__ == "__main__":
             for name, check in OverallCheckSuite.checks.items():
                 start_t = time.time()
                 # Run check as suite so that MLChecksValueError are not captured as errors
-                suite_of_check_to_run = CheckSuite('Test suite', check)
+                suite_of_check_to_run = Suite('Test suite', check)
                 check_name = check.__class__.__name__
                 try:
                     displayed_results[dataset][model_name][check_name] = suite_of_check_to_run.run(model, train_ds,

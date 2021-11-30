@@ -5,7 +5,7 @@ import pandas as pd
 
 from deepchecks import Dataset, ConditionResult
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck
-from deepchecks.string_utils import format_percent
+from deepchecks.utils.strings import format_percent
 
 
 __all__ = ['LabelAmbiguity']

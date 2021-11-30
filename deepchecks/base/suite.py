@@ -4,7 +4,7 @@ from collections import OrderedDict
 from typing import Union, List, Optional
 
 from deepchecks.base.display_suite import display_suite_result, ProgressBar
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError
 from deepchecks.base import Dataset
 from deepchecks.base.check import (
     BaseCheck, CheckResult, TrainTestBaseCheck, CompareDatasetsBaseCheck,
@@ -12,7 +12,7 @@ from deepchecks.base.check import (
 )
 
 
-__all__ = ['CheckSuite', 'SuiteResult']
+__all__ = ['Suite', 'SuiteResult']
 
 
 class SuiteResult:
@@ -30,7 +30,7 @@ class SuiteResult:
         display_suite_result(self.name, self.results)
 
 
-class CheckSuite(BaseCheck):
+class Suite(BaseCheck):
     """Class for running a set of checks together, and returning a unified pass / no-pass.
 
     Attributes:
@@ -42,7 +42,7 @@ class CheckSuite(BaseCheck):
     _check_index: int
 
     def __init__(self, name: str, *checks):
-        """Get 'Check's and 'CheckSuite's to run in given order."""
+        """Get 'Check's and 'Suite's to run in given order."""
         super().__init__()
         self.name = name
         self.checks = OrderedDict()
@@ -144,9 +144,9 @@ class CheckSuite(BaseCheck):
         """
         if not isinstance(check, BaseCheck):
             raise DeepchecksValueError(
-                f'CheckSuite receives only `BaseCheck` objects but got: {check.__class__.__name__}'
+                f'Suite receives only `BaseCheck` objects but got: {check.__class__.__name__}'
             )
-        if isinstance(check, CheckSuite):
+        if isinstance(check, Suite):
             if check is self:
                 return self
             for c in check.checks.values():

@@ -2,14 +2,16 @@
 from typing import Dict, List
 import re
 
-from deepchecks import Dataset
-from deepchecks.base.check import CheckResult, ConditionResult, TrainTestBaseCheck
-from deepchecks.string_utils import format_percent
-
 import numpy as np
 import pandas as pd
 
+from deepchecks import Dataset
+from deepchecks.base.check import CheckResult, ConditionResult, TrainTestBaseCheck
+from deepchecks.utils.strings import format_percent
+
+
 pd.options.mode.chained_assignment = None
+
 
 __all__ = ['TrainTestSamplesMix']
 
