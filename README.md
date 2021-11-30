@@ -51,7 +51,7 @@ pip install deepchecks #--user
 ```
 
 ### From source
-For latest stable version:
+For stable version:
 ```bash
 pip install git+https://github.com/deepchecks/deepchecks.git@<version>
 ```
