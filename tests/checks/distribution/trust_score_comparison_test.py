@@ -3,7 +3,7 @@ from hamcrest import assert_that, has_entries, close_to, calling, raises
 
 from deepchecks import CheckResult
 from deepchecks.checks import TrustScoreComparison
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError
 from tests.checks.utils import equal_condition_result
 
 

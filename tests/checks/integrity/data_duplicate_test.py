@@ -4,7 +4,7 @@ import pandas as pd
 from hamcrest import assert_that, close_to, equal_to, calling, raises, has_items
 
 from deepchecks.checks.integrity.data_duplicates import DataDuplicates
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError
 from tests.checks.utils import equal_condition_result
 
 
@@ -81,7 +81,7 @@ def test_condition_fail():
     duplicate_data = pd.DataFrame({'col1': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
                                    'col2': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
                                    'col3': [2, 3, 4, 4, 4, 3, 4, 5, 6, 4]})
-    check = DataDuplicates().add_condition_duplicates_not_greater_than(0.1)
+    check = DataDuplicates().add_condition_ratio_not_greater_than(0.1)
 
     # Act
     result = check.conditions_decision(check.run(duplicate_data))
@@ -97,7 +97,7 @@ def test_condition():
     duplicate_data = pd.DataFrame({'col1': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
                                    'col2': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                                    'col3': [2, 3, 4, 4, 4, 3, 4, 5, 6, 4]})
-    check = DataDuplicates().add_condition_duplicates_not_greater_than()
+    check = DataDuplicates().add_condition_ratio_not_greater_than()
 
     # Act
     result = check.conditions_decision(check.run(duplicate_data))

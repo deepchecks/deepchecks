@@ -1,14 +1,17 @@
 """Module of segment performance check."""
 from typing import Callable, Union
+
 import numpy as np
+import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
+
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
 from deepchecks.checks.performance.partition import partition_column
-from deepchecks.metric_utils import validate_scorer, task_type_check, DEFAULT_SINGLE_METRIC, DEFAULT_METRICS_DICT
-from deepchecks.string_utils import format_number
-from deepchecks.utils import DeepchecksValueError
-from deepchecks.feature_importance_utils import calculate_feature_importance
-import matplotlib.pyplot as plt
+from deepchecks.utils.metrics import validate_scorer, task_type_check, DEFAULT_SINGLE_METRIC, DEFAULT_METRICS_DICT
+from deepchecks.utils.strings import format_number
+from deepchecks.utils.features import calculate_feature_importance
+from deepchecks.errors import DeepchecksValueError
+
 
 __all__ = ['SegmentPerformance']
 

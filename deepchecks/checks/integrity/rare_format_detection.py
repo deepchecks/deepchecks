@@ -6,11 +6,11 @@ from copy import deepcopy
 import pandas as pd
 
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
-from deepchecks.base.dataframe_utils import filter_columns_with_validation
 from deepchecks.base.dataset import ensure_dataframe_type
-from deepchecks.feature_importance_utils import calculate_feature_importance_or_null, column_importance_sorter_dict
-from deepchecks.string_utils import split_and_keep, split_by_order, format_percent
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.utils.dataframes import filter_columns_with_validation
+from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_dict
+from deepchecks.utils.strings import split_and_keep, split_by_order, format_percent
+from deepchecks.errors import DeepchecksValueError
 
 
 __all__ = ['RareFormatDetection', 'Pattern']

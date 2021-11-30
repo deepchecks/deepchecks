@@ -4,11 +4,10 @@ from typing import List, Callable
 import numpy as np
 import pandas as pd
 from deepchecks import Dataset
+from deepchecks.utils.strings import format_number
 
 
 __all__ = ['partition_column', 'DeepchecksFilter']
-
-from deepchecks.string_utils import format_number
 
 
 class DeepchecksFilter:

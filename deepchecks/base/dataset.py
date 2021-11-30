@@ -4,11 +4,13 @@ from typing import Dict, Union, List, Any
 import pandas as pd
 from pandas.core.dtypes.common import is_float_dtype
 
-from deepchecks.base.dataframe_utils import filter_columns_with_validation
-from deepchecks.utils import DeepchecksValueError
-from deepchecks.string_utils import is_string_column
+from deepchecks.utils.dataframes import filter_columns_with_validation
+from deepchecks.errors import DeepchecksValueError
+from deepchecks.utils.strings import is_string_column
+
 
 __all__ = ['Dataset', 'ensure_dataframe_type']
+
 
 logger = logging.getLogger('deepchecks.dataset')
 
@@ -50,7 +52,7 @@ class Dataset:
           cat_features: List of names for the categorical features in the DataFrame. In order to disable categorical
                         features inference, pass cat_features=[]
           label: Name of the label column in the DataFrame.
-          use_index: Name of the index column in the DataFrame.
+          use_index: Whether to use the dataframe index as the index column, for index related checks.
           index: Name of the index column in the DataFrame.
           date: Name of the date column in the DataFrame.
           date_unit_type: Unit used for conversion if date column is of type int or float.
@@ -169,9 +171,9 @@ class Dataset:
 
         if len(cat_columns) > 0:
             if len(cat_columns) < 7:
-                print(f'Automatically inferred these columns as categorical features: {",".join(cat_columns)}. \n')
+                print(f'Automatically inferred these columns as categorical features: {", ".join(cat_columns)}. \n')
             else:
-                print(f'Some columns have been inferred as categorical features: {",".join(cat_columns[:7])}. \n '
+                print(f'Some columns have been inferred as categorical features: {", ".join(cat_columns[:7])}. \n '
                       f'and more... \n'
                       f'For the full list of columns, use dataset.cat_features')
 

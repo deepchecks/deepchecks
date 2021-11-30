@@ -1,5 +1,5 @@
 """The predefined Integrity suite module."""
-from deepchecks import CheckSuite
+from deepchecks import Suite
 from deepchecks.checks.integrity import (
     IsSingleValue,
     MixedNulls,
@@ -18,24 +18,24 @@ from deepchecks.checks.integrity import (
 
 
 __all__ = [
-    'single_dataset_integrity_check_suite',
-    'comparative_integrity_check_suite',
-    'integrity_check_suite'
+    'single_dataset_integrity_suite',
+    'comparative_integrity_suite',
+    'integrity_suite'
 ]
 
 
-def single_dataset_integrity_check_suite() -> CheckSuite:
+def single_dataset_integrity_suite() -> Suite:
     """Create 'Single Dataset Integrity Suite'.
 
     The suite runs a set of checks that are meant to detect integrity issues within a single dataset.
     """
-    return CheckSuite(
+    return Suite(
         'Single Dataset Integrity Suite',
         IsSingleValue().add_condition_not_single_value(),
         MixedNulls().add_condition_different_nulls_not_more_than(),
         MixedTypes().add_condition_rare_type_ratio_not_less_than(),
         StringMismatch().add_condition_no_variants(),
-        DataDuplicates().add_condition_duplicates_not_greater_than(),
+        DataDuplicates().add_condition_ratio_not_greater_than(),
         RareFormatDetection().add_condition_ratio_of_rare_formats_not_greater_than(),
         StringLengthOutOfBounds().add_condition_ratio_of_outliers_not_greater_than(),
         SpecialCharacters().add_condition_ratio_of_special_characters_not_grater_than(),
@@ -43,12 +43,12 @@ def single_dataset_integrity_check_suite() -> CheckSuite:
     )
 
 
-def comparative_integrity_check_suite() -> CheckSuite:
+def comparative_integrity_suite() -> Suite:
     """Create 'Comparative Integrity Suite'.
 
     The suite runs a set of checks that compare between two datasets to detect integrity issues.
     """
-    return CheckSuite(
+    return Suite(
         'Comparative Integrity Suite',
         StringMismatchComparison().add_condition_no_new_variants(),
         CategoryMismatchTrainTest().add_condition_new_categories_not_greater_than(),
@@ -57,15 +57,15 @@ def comparative_integrity_check_suite() -> CheckSuite:
     )
 
 
-def integrity_check_suite() -> CheckSuite:
+def integrity_suite() -> Suite:
     """Create 'Integrity Suite'.
 
     The suite runs all checks intended to detect integrity issues within datasets and comparing between datasets.
 
     Suite includes 'Comparative Integrity Suite' and 'Single Dataset Integrity Suite'.
     """
-    return CheckSuite(
+    return Suite(
         'Integrity Suite',
-        single_dataset_integrity_check_suite(),
-        comparative_integrity_check_suite()
+        single_dataset_integrity_suite(),
+        comparative_integrity_suite()
     )
