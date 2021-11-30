@@ -53,7 +53,7 @@ pip install deepchecks #--user
 ### From source
 For latest stable version:
 ```bash
-pip install git+https://github.com/deepchecks/deepchecks.git@0.0.10
+pip install git+https://github.com/deepchecks/deepchecks.git@<version>
 ```
 For latest commit:
 ```bash
