@@ -10,7 +10,7 @@ from deepchecks import CheckResult, Dataset
 from deepchecks.base.check import ConditionResult, TrainTestBaseCheck
 from deepchecks.utils.metrics import DEFAULT_METRICS_DICT, DEFAULT_SINGLE_METRIC, task_type_check, \
                                      ModelType, validate_scorer, get_metrics_ratio
-from deepchecks.utils import model_type_validation
+from deepchecks.utils.validation import model_type_validation
 
 __all__ = ['SimpleModelComparison']
 
