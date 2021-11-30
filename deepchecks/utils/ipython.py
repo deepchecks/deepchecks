@@ -17,8 +17,8 @@ def is_notebook() -> bool:
         True if we are in a notebook context, False otherwise
     """
     try:
-        shell = get_ipython().__class__.__name__
-        return shell == 'ZMQInteractiveShell'
+        shell = get_ipython()
+        return hasattr(shell, 'config')
     except NameError:
         return False  # Probably standard Python interpreter
 
