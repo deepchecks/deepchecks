@@ -31,12 +31,8 @@ def more_than_prefix_adder(number, max_number):
         return  'more than ' + format_number(number)
 
 class SimpleModelComparison(TrainTestBaseCheck):
-    """Compare given model score to simple model score."""
-
-    def __init__(self, simple_model_type: str = 'constant', metric: Union[str, Callable] = None,
-                 metric_name: str =None, maximum_ratio: int = 50, max_depth: int = 3, random_state: int = 42):
-        """Initialize the SimpleModelComparison check.
-
+    """Compare given model score to simple model score (according to given type).
+    
         Args:
             simple_model_type (st):  Type of the simple model ['random', 'constant', 'tree'].
             metric (Union[str, Callable]): a custom metric given by user.
@@ -44,7 +40,10 @@ class SimpleModelComparison(TrainTestBaseCheck):
             maximum_ratio (int): the ratio can be up to infinity so choose maximum value to limit to.
             max_depth (int): the max depth of the tree (used only if simple model type is tree).
             random_state (int): the random state (used only if simple model type is tree or random).
-        """
+    """
+
+    def __init__(self, simple_model_type: str = 'constant', metric: Union[str, Callable] = None,
+                 metric_name: str =None, maximum_ratio: int = 50, max_depth: int = 3, random_state: int = 42):
         super().__init__()
         self.simple_model_type = simple_model_type
         self.metric = metric
@@ -80,7 +79,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
             task_type (ModelType): the model type.
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
         Returns:
-            float: p value for the key.
+            score for simple and given model respectively and the metric type in a tuple
 
         Raises:
             NotImplementedError: If the simple_model_type is not supported

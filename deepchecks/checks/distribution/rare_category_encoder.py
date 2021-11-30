@@ -50,9 +50,6 @@ class RareCategoryEncoder:
 
         if self.cols is not None:
             data = data.copy()
-            print(data)
-            print(self._col_mapping)
-            print(self.cols)
             data[self.cols] = data[self.cols].apply(lambda s: s.map(self._col_mapping[s.name]))
         else:
             data = data.apply(lambda s: s.map(self._col_mapping[s.name]))
@@ -71,7 +68,6 @@ class RareCategoryEncoder:
         return self.transform(data)
 
     def _fit_for_series(self, series: pd.Series):
-        print(series)
         top_values = list(series.value_counts().head(self.max_num_categories).index)
         other_value = self._get_unique_other_value(series)
         mapper = pd.Series(defaultdict(lambda: other_value, {k: k for k in top_values}), name=series.name)
