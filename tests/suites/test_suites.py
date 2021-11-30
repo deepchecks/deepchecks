@@ -40,7 +40,7 @@ def iris(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBoostClassifier]:
 
 def test_classification_suite(iris: t.Tuple[Dataset, Dataset, AdaBoostClassifier]):
     train, test, model = iris
-    suite = suites.overall_classification_check_suite()
+    suite = suites.overall_classification_suite()
     # Have to change min test samples of TrustScoreComparison
     suite[1].min_test_samples = 50
     suite[21].min_test_samples = 50
@@ -61,7 +61,7 @@ def test_regression_suite(
     diabetes_model: object
 ):
     train, test = diabetes
-    suite = suites.overall_regression_check_suite()
+    suite = suites.overall_regression_suite()
 
     arguments = (
         dict(train_dataset=train, test_dataset=test, model=diabetes_model, check_datasets_policy='both'),
@@ -80,7 +80,7 @@ def test_generic_suite(
 ):
     iris_train, iris_test, iris_model = iris
     diabetes_train, diabetes_test, diabetes_model = diabetes_split_dataset_and_model
-    suite = suites.overall_generic_check_suite()
+    suite = suites.overall_generic_suite()
 
     arguments = (
         dict(train_dataset=iris_train, test_dataset=iris_test, model=iris_model, check_datasets_policy='both'),
