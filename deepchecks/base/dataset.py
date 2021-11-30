@@ -4,11 +4,13 @@ from typing import Dict, Union, List, Any
 import pandas as pd
 from pandas.core.dtypes.common import is_float_dtype
 
-from deepchecks.base.dataframe_utils import filter_columns_with_validation
-from deepchecks.utils import DeepchecksValueError
-from deepchecks.string_utils import is_string_column
+from deepchecks.utils.dataframes import filter_columns_with_validation
+from deepchecks.errors import DeepchecksValueError
+from deepchecks.utils.strings import is_string_column
+
 
 __all__ = ['Dataset', 'ensure_dataframe_type']
+
 
 logger = logging.getLogger('deepchecks.dataset')
 

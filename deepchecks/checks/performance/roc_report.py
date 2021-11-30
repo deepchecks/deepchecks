@@ -8,8 +8,8 @@ import sklearn
 from sklearn.base import BaseEstimator
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck
 from deepchecks.base.check import ConditionResult
-from deepchecks.metric_utils import ModelType, task_type_validation
-from deepchecks.string_utils import format_number
+from deepchecks.utils.metrics import ModelType, task_type_validation
+from deepchecks.utils.strings import format_number
 
 
 __all__ = ['RocReport']
