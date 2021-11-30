@@ -33,13 +33,13 @@ def more_than_prefix_adder(number, max_number):
 class SimpleModelComparison(TrainTestBaseCheck):
     """Compare given model score to simple model score (according to given type).
 
-        Args:
-            simple_model_type (st):  Type of the simple model ['random', 'constant', 'tree'].
-            metric (Union[str, Callable]): a custom metric given by user.
-            metric_name (str): name of a default metric.
-            maximum_ratio (int): the ratio can be up to infinity so choose maximum value to limit to.
-            max_depth (int): the max depth of the tree (used only if simple model type is tree).
-            random_state (int): the random state (used only if simple model type is tree or random).
+    Args:
+        simple_model_type (st):  Type of the simple model ['random', 'constant', 'tree'].
+        metric (Union[str, Callable]): a custom metric given by user.
+        metric_name (str): name of a default metric.
+        maximum_ratio (int): the ratio can be up to infinity so choose maximum value to limit to.
+        max_depth (int): the max depth of the tree (used only if simple model type is tree).
+        random_state (int): the random state (used only if simple model type is tree or random).
     """
 
     def __init__(self, simple_model_type: str = 'constant', metric: Union[str, Callable] = None,
