@@ -61,8 +61,8 @@ MyModelSuite = CheckSuite('Simple Suite For Model Performance',
     PerformanceReport(),
     TrainTestDifferenceOverfit(),
     ConfusionMatrixReport(),
-    NaiveModelComparision(),
-    NaiveModelComparision(naive_model_type='statistical')
+    SimpleModelComparision(),
+    SimpleModelComparision(simple_model_type='statistical')
 )
 ```
 Then run with required input parameters (datasets and models)
