@@ -89,7 +89,7 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
             if avarage_time >= value:
                 return ConditionResult(False, details=(
                     'Average model inference time for one sample (in seconds) '
-                    f'is greater than {format_number(value, floating_point=8)}'
+                    f'is {format_number(avarage_time, floating_point=8)}'
                 ))
             else:
                 return ConditionResult(True)
