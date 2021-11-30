@@ -56,7 +56,7 @@ First clone the repository and then install the package from inside the reposito
 git clone https://github.com/deepchecks/deepchecks.git
 cd deepchecks
 # for installing stable tag version and not the latest commit to main
-git checkout tags/<name_of_latest_tag>
+git checkout tags/<version>
 ```
 and then either:
 ```bash
