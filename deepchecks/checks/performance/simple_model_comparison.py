@@ -31,7 +31,7 @@ def more_than_prefix_adder(number, max_number):
         return 'more than ' + format_number(number)
 
 class SimpleModelComparison(TrainTestBaseCheck):
-    """Compare given model score to simple model score (according to given type).
+    """Compare given model score to simple model score (according to given model type).
 
     Args:
         simple_model_type (st):  Type of the simple model ['random', 'constant', 'tree'].
