@@ -3,12 +3,12 @@ from typing import Union, Dict
 
 import pandas as pd
 
+import deepchecks.ppscore as pps
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
-from deepchecks.plot_utils import create_colorbar_barchart_for_check
-from deepchecks.string_utils import format_percent
-from deepchecks.utils import DeepchecksValueError
-import deepchecks.ppscore as pps
+from deepchecks.utils.plot import create_colorbar_barchart_for_check
+from deepchecks.utils.strings import format_percent
+from deepchecks.errors import DeepchecksValueError
 
 
 __all__ = ['IdentifierLeakage']

@@ -10,8 +10,10 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import RobustScaler, OrdinalEncoder
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.feature_importance_utils import calculate_feature_importance
-from deepchecks.utils import model_type_validation, DeepchecksValueError
+from deepchecks.utils.features import calculate_feature_importance
+from deepchecks.utils.validation import model_type_validation
+from deepchecks.errors import DeepchecksValueError
+
 
 __all__ = ['UnusedFeatures']
 

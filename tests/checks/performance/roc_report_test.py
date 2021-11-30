@@ -7,7 +7,7 @@ from hamcrest import assert_that, calling, raises, has_items
 
 from deepchecks.base import Dataset
 from deepchecks.checks.performance import RocReport
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError
 from tests.checks.utils import equal_condition_result
 
 

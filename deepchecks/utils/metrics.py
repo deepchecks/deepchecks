@@ -1,24 +1,35 @@
 """Utils module containing utilities for checks working with metrics."""
+import typing as t
 import enum
 from numbers import Number
-from typing import List, Union, Dict, Callable
 
 import numpy as np
+import pandas as pd
 from sklearn.metrics import get_scorer, make_scorer, accuracy_score, precision_score, recall_score, mean_squared_error
 from sklearn.base import ClassifierMixin, RegressorMixin
 
-__all__ = ['ModelType', 'task_type_check', 'get_metrics_list', 'validate_scorer', 'DEFAULT_METRICS_DICT',
-           'DEFAULT_SINGLE_METRIC', 'get_metrics_ratio']
+from deepchecks import base #pylint: disable=unused-import; it is used for type annotations
+from deepchecks import errors
+from deepchecks.utils import validation
 
-from deepchecks.utils import model_type_validation, DeepchecksValueError
+
+__all__ = [
+    'ModelType',
+    'task_type_check',
+    'get_metrics_list',
+    'validate_scorer',
+    'DEFAULT_METRICS_DICT',
+    'DEFAULT_SINGLE_METRIC',
+    'get_metrics_ratio'
+]
 
 
 class ModelType(enum.Enum):
     """Enum containing suppoerted task types."""
 
-    REGRESSION = 'regression'  # regression
-    BINARY = 'binary'  # binary classification
-    MULTICLASS = 'multiclass'  # multiclass classification
+    REGRESSION = 'regression'
+    BINARY = 'binary'
+    MULTICLASS = 'multiclass'
 
 
 DEFAULT_BINARY_METRICS = {
@@ -51,7 +62,10 @@ DEFAULT_METRICS_DICT = {
 }
 
 
-def task_type_check(model: Union[ClassifierMixin, RegressorMixin], dataset: 'Dataset') -> ModelType:
+def task_type_check(
+    model: t.Union[ClassifierMixin, RegressorMixin],
+    dataset: 'base.Dataset'
+) -> ModelType:
     """Check task type (regression, binary, multiclass) according to model object and label column.
 
     Args:
@@ -61,25 +75,35 @@ def task_type_check(model: Union[ClassifierMixin, RegressorMixin], dataset: 'Dat
     Returns:
         TaskType enum corresponding to the model and dataset
     """
-    model_type_validation(model)
+    validation.model_type_validation(model)
     dataset.validate_label(task_type_check.__name__)
 
-    if getattr(model, 'predict_proba', None):
-        unique_labels = dataset.label_col().unique()
-        if sorted(unique_labels) != list(range(len(unique_labels))):
-            raise DeepchecksValueError(f'Classification labels must be a consecutive set from 0 to MAX_LABEL,'
-                                       f' found {sorted(unique_labels)}.')
-        model: ClassifierMixin
-        if dataset.label_col().nunique() > 2:
-            return ModelType.MULTICLASS
-        else:
-            return ModelType.BINARY
-    else:
+
+    if not hasattr(model, 'predict_proba'):
         return ModelType.REGRESSION
+    else:
+        labels = t.cast(pd.Series, dataset.label_col())
+        unique_labels = labels.unique()
+
+        if sorted(unique_labels) != list(range(len(unique_labels))):
+            raise errors.DeepchecksValueError(
+                'Classification labels must be a consecutive set from 0 to MAX_LABEL,'
+                f' found {sorted(unique_labels)}.'
+            )
+
+        return (
+            ModelType.MULTICLASS
+            if labels.nunique() > 2
+            else ModelType.BINARY
+        )
 
 
-def task_type_validation(model: Union[ClassifierMixin, RegressorMixin], dataset: 'Dataset',
-                         expected_types: List[ModelType], check_name: str = None):
+def task_type_validation(
+    model: t.Union[ClassifierMixin, RegressorMixin],
+    dataset: 'base.Dataset',
+    expected_types: t.Sequence[ModelType],
+    check_name: str = None
+):
     """Validate task type (regression, binary, multiclass) according to model object and label column.
 
     Args:
@@ -93,16 +117,18 @@ def task_type_validation(model: Union[ClassifierMixin, RegressorMixin], dataset:
     """
     task_type = task_type_check(model, dataset)
     if not task_type in expected_types:
-        if check_name:
-            prefix = f'Check {check_name} '
-        else:
-            prefix = ''
-        raise DeepchecksValueError(f'{prefix}Expected model to be a type from {[e.value for e in expected_types]},'
-                                 f' but received model of type: {task_type.value}')
+        prefix = f'Check {check_name} ' if check_name else ''
+        raise errors.DeepchecksValueError(
+            f'{prefix}Expected model to be a type from {[e.value for e in expected_types]}, '
+            f'but received model of type: {task_type.value}'
+        )
 
 
-def get_metrics_list(model, dataset: 'Dataset', alternative_metrics: Dict[str, Callable] = None
-                     ) -> Dict[str, Callable]:
+def get_metrics_list(
+    model,
+    dataset: 'base.Dataset',
+    alternative_metrics: t.Dict[str, t.Callable] = None
+) -> t.Dict[str, t.Callable]:
     """Return list of scorer objects to use in a metrics-dependant check.
 
     If no alternative_metrics is supplied, then a default list of metrics is used per task type, as it is inferred
@@ -141,7 +167,7 @@ def validate_scorer(scorer, model, dataset):
         return scorer
 
 
-def get_metrics_ratio(train_metric: float, test_metric: float, max_ratio=np.Inf):
+def get_metrics_ratio(train_metric: float, test_metric: float, max_ratio=np.Inf) -> float:
     """Return the ratio of test metric compared to train metric."""
     if train_metric == 0:
         return max_ratio

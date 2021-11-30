@@ -4,7 +4,7 @@ from collections import OrderedDict
 from typing import Union, List, Optional
 
 from deepchecks.base.display_suite import display_suite_result, ProgressBar
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError
 from deepchecks.base import Dataset
 from deepchecks.base.check import (
     BaseCheck, CheckResult, TrainTestBaseCheck, CompareDatasetsBaseCheck,

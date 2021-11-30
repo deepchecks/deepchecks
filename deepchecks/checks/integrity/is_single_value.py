@@ -2,8 +2,9 @@
 from typing import Union, Iterable
 import pandas as pd
 from deepchecks import SingleDatasetBaseCheck, CheckResult, ensure_dataframe_type, Dataset, ConditionResult
-from deepchecks.base.dataframe_utils import filter_columns_with_validation
-from deepchecks.string_utils import format_columns_for_condition
+from deepchecks.utils.dataframes import filter_columns_with_validation
+from deepchecks.utils.strings import format_columns_for_condition
+
 
 __all__ = ['IsSingleValue']
 

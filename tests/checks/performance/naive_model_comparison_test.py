@@ -1,10 +1,11 @@
 """Contains unit tests for the confusion_matrix_report check."""
-from deepchecks.checks.performance import NaiveModelComparison
-from deepchecks.string_utils import format_number
-from deepchecks.utils import DeepchecksValueError
-from tests.checks.utils import equal_condition_result
-
 from hamcrest import assert_that, calling, raises, close_to, has_items
+
+from deepchecks.checks.performance import NaiveModelComparison
+from deepchecks.utils.strings import format_number
+from deepchecks.errors import DeepchecksValueError
+
+from tests.checks.utils import equal_condition_result
 
 
 def test_dataset_wrong_input():

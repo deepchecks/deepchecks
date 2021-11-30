@@ -2,8 +2,9 @@
 from typing import Callable, Dict
 import pandas as pd
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
-from deepchecks.metric_utils import get_metrics_list
-from deepchecks.utils import model_type_validation
+from deepchecks.utils.metrics import get_metrics_list
+from deepchecks.utils.validation import model_type_validation
+
 
 __all__ = ['PerformanceReport']
 
