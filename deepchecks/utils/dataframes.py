@@ -1,15 +1,13 @@
 """Contain functions for handling dataframes in checks."""
-from typing import List, Union
-
+from typing import Sequence, Union, List, cast
 import pandas as pd
-
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError
 
 
 __all__ = ['validate_columns_exist', 'filter_columns_with_validation']
 
 
-def validate_columns_exist(df: pd.DataFrame, columns: Union[None, str, List[str]]):
+def validate_columns_exist(df: pd.DataFrame, columns: Union[None, str, Sequence[str]]):
     """Validate given columns exist in dataframe.
 
     Args:
@@ -23,7 +21,7 @@ def validate_columns_exist(df: pd.DataFrame, columns: Union[None, str, List[str]
         raise DeepchecksValueError('Got empty columns')
     if isinstance(columns, str):
         columns = [columns]
-    elif isinstance(columns, List):
+    elif isinstance(columns, Sequence):
         if any((not isinstance(s, str) for s in columns)):
             raise DeepchecksValueError(f'Columns must be of type str: {", ".join(columns)}')
     else:
@@ -45,13 +43,13 @@ def filter_columns_with_validation(df: pd.DataFrame, columns: Union[str, List[st
     Raise:
         DeepchecksValueError: In case one of columns given don't exists raise error
     """
-    if columns and ignore_columns:
+    if columns is not None and ignore_columns is not None:
         raise DeepchecksValueError('Cannot receive both parameters "columns" and "ignore", '
                                    'only one must be used at most')
-    elif columns:
+    elif columns is not None:
         validate_columns_exist(df, columns)
-        return df[columns]
-    elif ignore_columns:
+        return cast(pd.DataFrame, df[columns])
+    elif ignore_columns is not None:
         validate_columns_exist(df, ignore_columns)
         return df.drop(labels=ignore_columns, axis='columns')
     else:

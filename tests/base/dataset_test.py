@@ -7,7 +7,7 @@ import pandas as pd
 from sklearn.datasets import load_iris
 
 from deepchecks import Dataset, ensure_dataframe_type
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError
 from hamcrest import (
     assert_that, instance_of, equal_to, is_, 
     calling, raises, not_none, has_property, all_of, contains_exactly

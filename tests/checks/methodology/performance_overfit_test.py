@@ -1,21 +1,13 @@
 """Contains unit tests for the performance overfit check."""
-import typing as t
-import re
-from numbers import Number
-
 import pandas as pd
 
 from deepchecks import Dataset
-from deepchecks.base.check import Condition, CheckResult
-from deepchecks.base.check import ConditionResult
-from deepchecks.base.check import ConditionCategory
+from deepchecks.base.check import CheckResult
 from deepchecks.checks import TrainTestDifferenceOverfit
-from deepchecks.utils import DeepchecksValueError
-from deepchecks.metric_utils import DEFAULT_MULTICLASS_METRICS
-from hamcrest import assert_that, calling, raises, close_to, starts_with, has_items, has_entries
+from deepchecks.errors import DeepchecksValueError
+from hamcrest import assert_that, calling, raises, close_to, has_entries
 
 from tests.checks.utils import equal_condition_result
-from tests.checks.utils import ANY_FLOAT_REGEXP
 
 
 def test_dataset_wrong_input():

@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to mlchecks's documentation!
+Welcome to Deepchecks' documentation!
 ====================================
 
 .. toctree::
@@ -14,7 +14,13 @@ Welcome to mlchecks's documentation!
    :maxdepth: 2
    :caption: Docstring
 
+Reference Guides
+================
 
+.. toctree::
+   :maxdepth: 1
+
+   deepcheckss/deepchecks.rst
 
 Indices and tables
 ==================
