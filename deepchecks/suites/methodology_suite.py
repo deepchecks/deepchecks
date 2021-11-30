@@ -89,7 +89,7 @@ def overfit_suite() -> Suite:
     """
     return Suite(
         'Overfit Suite',
-        TrainTestDifferenceOverfit().add_condition_percentage_degradation_not_greater_than(),
+        TrainTestDifferenceOverfit().add_condition_degradation_ratio_not_greater_than(),
         BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(),
     )
 
