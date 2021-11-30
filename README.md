@@ -51,13 +51,20 @@ pip install deepchecks #--user
 ```
 
 ### From source
-For stable version:
+First clone the repository and then install the package from inside the repository's directory:
 ```bash
-pip install git+https://github.com/deepchecks/deepchecks.git@<version>
+git clone https://github.com/deepchecks/deepchecks.git
+cd deepchecks
+# for installing stable tag version and not the latest commit to main
+git checkout tags/<name_of_latest_tag>
 ```
-For latest commit:
+and then either:
 ```bash
-pip install git+https://github.com/deepchecks/deepchecks.git
+pip install .
+```
+or
+```bash
+python setup.py install
 ```
 
 ## Are You Ready  to Start Checking?
