@@ -136,6 +136,7 @@ Let's take the "iris" dataset as an example:
 ```python
 import pandas as pd
 from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
 ```
 ```python
 iris_df = load_iris(return_X_y=False, as_frame=True)['frame']
