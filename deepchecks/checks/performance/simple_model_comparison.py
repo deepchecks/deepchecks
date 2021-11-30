@@ -28,7 +28,7 @@ def more_than_prefix_adder(number, max_number):
     if number < max_number:
         return format_number(number)
     else:
-        return  'more than ' + format_number(number)
+        return 'more than ' + format_number(number)
 
 class SimpleModelComparison(TrainTestBaseCheck):
     """Compare given model score to simple model score (according to given type).
