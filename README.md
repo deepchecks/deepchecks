@@ -51,20 +51,13 @@ pip install deepchecks #--user
 ```
 
 ### From source
-First clone the repository and then install the package from inside the repository's directory:
+For latest commit:
 ```bash
-git clone https://github.com/deepchecks/deepchecks.git
-cd deepchecks
-# for installing stable tag version and not the latest commit to main
-git checkout tags/<name_of_latest_tag>
+pip install git+https://github.com/deepchecks/deepchecks.git
 ```
-and then either:
+For stable tag:
 ```bash
-pip install .
-```
-or
-```bash
-python setup.py install
+pip install git+https://github.com/deepchecks/deepchecks.git@<tag_name>
 ```
 
 ## Are You Ready  to Start Checking?
@@ -139,9 +132,8 @@ from sklearn.datasets import load_iris
 ```
 ```python
 iris_df = load_iris(return_X_y=False, as_frame=True)['frame']
-train_len = round(0.67*len(iris_df))
-df_train = iris_df[:train_len]
-df_test = iris_df[train_len:]
+label_col = 'target'
+df_train, df_test = train_test_split(iris_df, stratify=iris_df[label_col], random_state=0)
 ```
 To run an existing suite all you need to do is import the suite and run it -
 
