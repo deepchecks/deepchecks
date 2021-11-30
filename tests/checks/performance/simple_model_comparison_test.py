@@ -1,6 +1,6 @@
 """Contains unit tests for the confusion_matrix_report check."""
 from deepchecks.checks.performance import SimpleModelComparison
-from deepchecks.string_utils import format_number
+from deepchecks.utils.strings import format_number
 from deepchecks.utils import DeepchecksValueError
 from tests.checks.utils import equal_condition_result
 
