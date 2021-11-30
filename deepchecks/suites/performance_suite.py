@@ -8,7 +8,6 @@ from deepchecks.checks.performance import (
     CalibrationMetric,
     ClassPerformanceImbalanceCheck,
     SimpleModelComparison,
-    CalibrationMetric
 )
 
 __all__ = [

@@ -9,9 +9,9 @@ from sklearn.metrics import precision_score, recall_score, get_scorer
 from sklearn.utils.multiclass import unique_labels as get_unique_labels
 
 from deepchecks import SingleDatasetBaseCheck, Dataset, CheckResult, ConditionResult
-from deepchecks.metric_utils import task_type_validation, ModelType
-from deepchecks.string_utils import format_percent
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.utils.metrics import task_type_validation, ModelType
+from deepchecks.utils.strings import format_percent
+from deepchecks.errors import DeepchecksValueError
 
 
 __all__ = ['ClassPerformanceImbalanceCheck']
@@ -36,7 +36,7 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
             An optional dictionary of metric name or scorer functions
 
     Raises:
-        ValueError:
+        DeepchecksValueError:
             if provided dict of metrics is emtpy;
             if one of the entries of the provided metrics dict contains name of unknown scorer;
             if one of the entries of the provided metrics dict contains not callable value;
@@ -50,7 +50,7 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
         self.alternative_metrics: t.Optional[t.Mapping[str, MetricFunc]] = None
 
         if alternative_metrics is not None and len(alternative_metrics) == 0:
-            raise ValueError('alternative_metrics - expected to receive not empty dict of scorers!')
+            raise DeepchecksValueError('alternative_metrics - expected to receive not empty dict of scorers!')
 
         elif alternative_metrics is not None:
             self.alternative_metrics = {}
@@ -61,7 +61,7 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
                 elif isinstance(metric, str):
                     self.alternative_metrics[name] = get_scorer(metric)
                 else:
-                    raise ValueError(
+                    raise DeepchecksValueError(
                         f"alternative_metrics - expected to receive 'Mapping[str, Callable]' but got " #pylint: disable=inconsistent-quotes
                         f"'Mapping[str, {type(metric).__name__}]'!" #pylint: disable=inconsistent-quotes
                     )
@@ -97,9 +97,9 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
         check_name = type(self).__name__
         expected_model_types = [ModelType.BINARY, ModelType.MULTICLASS]
 
+        Dataset.validate_dataset(dataset, check_name)
         dataset.validate_label(check_name)
         dataset.validate_features(check_name)
-        Dataset.validate_dataset(dataset, check_name)
         task_type_validation(model, dataset, expected_model_types, check_name)
 
         labels = t.cast(pd.Series, dataset.label_col())
