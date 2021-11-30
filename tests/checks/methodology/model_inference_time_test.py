@@ -74,7 +74,7 @@ def test_model_inference_time_check_with_condition_that_should_not_pass(
     )
     details_pattern = re.compile(
         r'Average model inference time for one sample \(in seconds\) '
-        fr'is greater than {SCIENTIFIC_NOTATION_REGEXP.pattern}'
+        fr'is {SCIENTIFIC_NOTATION_REGEXP.pattern}'
     )
     assert_that(condition_result, equal_condition_result( # type: ignore
         is_pass=False,

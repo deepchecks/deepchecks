@@ -22,7 +22,7 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
 
     Args:
         number_of_samples (int):
-            number of samples to use for inference, but if actual 
+            number of samples to use for inference, but if actual
             dataset is smaller then all samples will be used
     """
 
