@@ -170,7 +170,7 @@ class Dataset:
             Dataset: instance of the Dataset
 
         Raises:
-            ValueError:
+            DeepchecksValueError:
                 if receives zero or more than two numpy arrays;
                 if features (args[0]) is not two dimensional numpy array;
                 if labels (args[1]) is not one dimensional numpy array;
@@ -204,57 +204,52 @@ class Dataset:
 
         """
         if len(args) == 0 or len(args) > 2:
-            raise ValueError(
+            raise DeepchecksValueError(
                 "'from_numpy' constructor expecting to receive two numpy arrays (or at least one)."
                 "First array must contains the features and second the labels."
             )
 
-        def validate_features_array(
-            features_array: np.ndarray,
-            feature_names: t.Optional[t.Sequence[t.Hashable]] = None
-        ) -> t.Tuple[np.ndarray, t.List[t.Hashable]]:
-            message = (
-                "'from_numpy' constructor expecting features (args[0]) "
-                "to be not empty two dimensional array."
+        features_array = args[0]
+        features_error_message = (
+            "'from_numpy' constructor expecting features (args[0]) "
+            "to be not empty two dimensional array."
+        )
+
+        if len(features_array.shape) != 2:
+            raise DeepchecksValueError(features_error_message)
+
+        if features_array.shape[0] == 0 or features_array.shape[1] == 0:
+            raise DeepchecksValueError(features_error_message)
+
+        if feature_names is not None and len(feature_names) != features_array.shape[1]:
+            raise DeepchecksValueError(
+                f'{features_array.shape[1]} features were provided '
+                f'but only {len(feature_names)} name(s) for them`s.'
             )
-            if len(features_array.shape) != 2:
-                raise ValueError(message)
-            if features_array.shape[0] == 0 or features_array.shape[1] == 0:
-                raise ValueError(message)
 
-            if feature_names is not None and len(feature_names) != features_array.shape[1]:
-                raise ValueError(
-                    f'{features_array.shape[1]} features were provided '
-                    f'but only {len(feature_names)} name(s) for them`s.'
-                )
-            elif feature_names is None:
-                feature_names = [f'X{index}'for index in range(1, features_array.shape[1] + 1)]
-
-            return features_array, t.cast(t.List[str], feature_names)
+        elif feature_names is None:
+            feature_names = [f'X{index}'for index in range(1, features_array.shape[1] + 1)]
 
         if len(args) == 1:
-            features_array, features_names = validate_features_array(args[0], feature_names)
-
             return cls(
-                df=pd.DataFrame(data=features_array, columns=features_names),
-                features=features_names, # type: ignore TODO
+                df=pd.DataFrame(data=features_array, columns=feature_names),
+                features=feature_names, # type: ignore TODO
                 **kwargs
             )
 
         else:
-            features_array, features_names  = validate_features_array(args[0], feature_names)
             labels_array = args[1]
             label_name = label_name or 'target'
-            columns = features_names + [label_name]
+            columns = list(feature_names) + [label_name]
 
             if len(labels_array.shape) != 1 or labels_array.shape[0] == 0:
-                raise ValueError(
+                raise DeepchecksValueError(
                     "'from_numpy' constructor expecting labels (args[1]) "
                     "to be not empty one dimensional array."
                 )
 
             if labels_array.shape[0] != features_array.shape[0]:
-                raise ValueError(
+                raise DeepchecksValueError(
                     "'from_numpy' constructor expecting that features and "
                     "labels arrays will be of the same size"
                 )
@@ -264,7 +259,7 @@ class Dataset:
 
             return cls(
                 df=pd.DataFrame(data=data, columns=columns),
-                features=features_names, # type: ignore TODO
+                features=feature_names, # type: ignore TODO
                 label=label_name, # type: ignore TODO
                 **kwargs
             )

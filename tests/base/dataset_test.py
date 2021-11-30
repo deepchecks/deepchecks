@@ -9,7 +9,7 @@ from sklearn.datasets import load_iris
 from deepchecks import Dataset, ensure_dataframe_type
 from deepchecks.errors import DeepchecksValueError
 from hamcrest import (
-    assert_that, instance_of, equal_to, is_, 
+    assert_that, instance_of, equal_to, is_,
     calling, raises, not_none, has_property, all_of, contains_exactly
 )
 
@@ -445,7 +445,7 @@ def test_dataset_initialization_from_numpy_arrays_with_specified_features_names(
     iris = load_iris()
     label_column_name = 'label-col'
     feature_columns_names = ['feature-1', 'feature-2', 'feature-3', 'feature-4']
-    
+
     ds = Dataset.from_numpy(
         iris.data, iris.target,
         label_name=label_column_name,
@@ -473,7 +473,7 @@ def test_dataset_initialization_from_numpy_arrays_of_different_length():
     assert_that(
         calling(Dataset.from_numpy).with_args(iris.data, iris.target[:10]),
         raises(
-            ValueError, 
+            DeepchecksValueError,
             "'from_numpy' constructor expecting that features and "
             "labels arrays will be of the same size"
         )
@@ -485,7 +485,7 @@ def test_dataset_of_features_initialization_from_not_2d_numpy_arrays():
     assert_that(
         calling(Dataset.from_numpy).with_args(iris.target),
         raises(
-            ValueError, 
+            DeepchecksValueError,
             r"'from_numpy' constructor expecting features \(args\[0\]\) "
             r"to be not empty two dimensional array\."
         )
@@ -496,7 +496,7 @@ def test_dataset_initialization_from_numpy_arrays_without_providing_args():
     assert_that(
         calling(Dataset.from_numpy).with_args(),
         raises(
-            ValueError,
+            DeepchecksValueError,
             r"'from_numpy' constructor expecting to receive two numpy arrays \(or at least one\)\."
             r"First array must contains the features and second the labels\."
         )
@@ -508,7 +508,7 @@ def test_dataset_initialization_from_numpy_arrays_with_wrong_number_of_feature_c
     assert_that(
         calling(Dataset.from_numpy).with_args(iris.data, iris.target, feature_names=['X1',]),
         raises(
-            ValueError, 
+            DeepchecksValueError,
             '4 features were provided '
             r'but only 1 name\(s\) for them`s.'
         )
@@ -519,7 +519,7 @@ def test_dataset_initialization_from_numpy_empty_arrays():
     assert_that(
         calling(Dataset.from_numpy).with_args(iris.data[:0], iris.target),
         raises(
-            ValueError, 
+            DeepchecksValueError,
             r"'from_numpy' constructor expecting features \(args\[0\]\) "
             r"to be not empty two dimensional array\."
         )
@@ -535,7 +535,7 @@ def validate_dataset_created_from_numpy_arrays(
 ):
     if featue_columns_names is None:
         featue_columns_names = [f'X{index}'for index in range(1, features_array.shape[1] + 1)]
-    
+
     features = dataset.features_columns()
     feature_names = dataset.features()
 
