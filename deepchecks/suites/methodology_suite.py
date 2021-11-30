@@ -10,7 +10,7 @@ from deepchecks.checks.methodology import (
     TrainTestDifferenceOverfit,
     BoostingOverfit,
     UnusedFeatures,
-    ModelInferenceTimeCheck
+    # ModelInferenceTimeCheck
 )
 
 
