@@ -42,8 +42,8 @@ def is_notebook():
     global _is_notebook
     if _is_notebook is None:
         try:
-            shell = get_ipython().__class__.__name__
-            _is_notebook = shell == 'ZMQInteractiveShell'
+            shell = get_ipython()
+            _is_notebook = hasattr(shell, 'config')
         except NameError:
             _is_notebook = False      # Probably standard Python interpreter
     return _is_notebook
