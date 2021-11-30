@@ -32,7 +32,7 @@ def more_than_prefix_adder(number, max_number):
 
 class SimpleModelComparison(TrainTestBaseCheck):
     """Compare given model score to simple model score (according to given type).
-    
+
         Args:
             simple_model_type (st):  Type of the simple model ['random', 'constant', 'tree'].
             metric (Union[str, Callable]): a custom metric given by user.
