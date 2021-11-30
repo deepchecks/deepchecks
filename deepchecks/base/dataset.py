@@ -148,8 +148,8 @@ class Dataset:
     def from_numpy(
         cls: t.Type[TDataset],
         *args: np.ndarray,
-        features: t.Sequence[t.Hashable] = None,
-        label: t.Hashable = None,
+        feature_names: t.Sequence[t.Hashable] = None,
+        label_name: t.Hashable = None,
         **kwargs
     ) -> TDataset:
         """Create Dataset instance from numpy arrays.
@@ -158,10 +158,10 @@ class Dataset:
             *args: (np.ndarray):
                 expecting it to contain two numpy arrays (or at least one),
                 first with features, second with labels.
-            features (Sequence[Hashable], default None):
+            feature_names (Sequence[Hashable], default None):
                 names for the feature columns. If not provided next names will
                 be assigned to the feature columns: X1-Xn (where n - number of features)
-            label (Hashable, default None):
+            label_name (Hashable, default None):
                 labels column name. If not provided next name will be used - 'target'
             **kwargs:
                 additional arguments that will be passed to the main Dataset constructor.
@@ -198,8 +198,8 @@ class Dataset:
 
         >>> dataset = Dataset.from_numpy(
         ...    features, labels,
-        ...    features=['sensor-1', 'sensor-2', 'sensor-3',],
-        ...    label='labels'
+        ...    feature_names=['sensor-1', 'sensor-2', 'sensor-3',],
+        ...    label_name='labels'
         ... )
 
         """
@@ -233,13 +233,7 @@ class Dataset:
             return features_array, t.cast(t.List[str], feature_names)
 
         if len(args) == 1:
-            features_array, features_names = validate_features_array(args[0], features)
-
-            if label is not None:
-                raise ValueError(
-                    "'label' parameter cannot be passed to the "
-                    "constructor whereas labels array was not provided."
-                )
+            features_array, features_names = validate_features_array(args[0], feature_names)
 
             return cls(
                 df=pd.DataFrame(data=features_array, columns=features_names),
@@ -248,10 +242,10 @@ class Dataset:
             )
 
         else:
-            features_array, features_names  = validate_features_array(args[0], features)
+            features_array, features_names  = validate_features_array(args[0], feature_names)
             labels_array = args[1]
-            label = label or 'target'
-            columns = features_names + [label]
+            label_name = label_name or 'target'
+            columns = features_names + [label_name]
 
             if len(labels_array.shape) != 1 or labels_array.shape[0] == 0:
                 raise ValueError(
@@ -271,7 +265,7 @@ class Dataset:
             return cls(
                 df=pd.DataFrame(data=data, columns=columns),
                 features=features_names, # type: ignore TODO
-                label=label, # type: ignore TODO
+                label=label_name, # type: ignore TODO
                 **kwargs
             )
 

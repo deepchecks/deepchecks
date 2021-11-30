@@ -448,8 +448,8 @@ def test_dataset_initialization_from_numpy_arrays_with_specified_features_names(
     
     ds = Dataset.from_numpy(
         iris.data, iris.target,
-        label=label_column_name,
-        features=feature_columns_names
+        label_name=label_column_name,
+        feature_names=feature_columns_names
     )
     validate_dataset_created_from_numpy_arrays(
         dataset=ds,
@@ -506,7 +506,7 @@ def test_dataset_initialization_from_numpy_arrays_without_providing_args():
 def test_dataset_initialization_from_numpy_arrays_with_wrong_number_of_feature_columns_names():
     iris = load_iris()
     assert_that(
-        calling(Dataset.from_numpy).with_args(iris.data, iris.target, features=['X1',]),
+        calling(Dataset.from_numpy).with_args(iris.data, iris.target, feature_names=['X1',]),
         raises(
             ValueError, 
             '4 features were provided '
