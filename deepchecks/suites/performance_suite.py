@@ -1,31 +1,31 @@
 """The predefined performance suite module."""
-from deepchecks import CheckSuite
+from deepchecks import Suite
 from deepchecks.checks import TrustScoreComparison
 from deepchecks.checks.performance import (
     PerformanceReport,
     ConfusionMatrixReport,
     RocReport,
-    NaiveModelComparison,
+    SimpleModelComparison,
     CalibrationMetric
 
 )
 
 __all__ = [
-    'classification_check_suite',
-    'regression_check_suite',
-    'generic_performance_check_suite',
-    'regression_check_suite',
-    'performance_check_suite'
+    'classification_suite',
+    'regression_suite',
+    'generic_performance_suite',
+    'regression_suite',
+    'performance_suite'
 ]
 
 
-def classification_check_suite() -> CheckSuite:
+def classification_suite() -> Suite:
     """Create 'Classification Suite'.
 
     The suite runs a set of checks that are meant to measure and detect performance
     abnormality of the classification model.
     """
-    return CheckSuite(
+    return Suite(
         'Classification Suite',
         ConfusionMatrixReport(),
         RocReport().add_condition_auc_not_less_than(),
@@ -34,29 +34,29 @@ def classification_check_suite() -> CheckSuite:
     )
 
 
-def regression_check_suite() -> CheckSuite:
+def regression_suite() -> Suite:
     """Create 'Regression Suite'.
 
     The suite runs a set of checks that are meant to measure and detect performance
     abnormality of the regression model.
     """
     # TODO: This suite is here as a placeholder for future regression-specific checks
-    return CheckSuite('Regression Suite')
+    return Suite('Regression Suite')
 
 
-def generic_performance_check_suite() -> CheckSuite:
+def generic_performance_suite() -> Suite:
     """Create 'Generic Performance Suite'.
 
     The suite runs a set of checks that are meant to measure and detect performance abnormality in any model type.
     """
-    return CheckSuite(
+    return Suite(
         'Generic Performance Suite',
         PerformanceReport(),
-        NaiveModelComparison().add_condition_ratio_not_less_than()
+        SimpleModelComparison().add_condition_ratio_not_less_than()
     )
 
 
-def performance_check_suite() -> CheckSuite:
+def performance_suite() -> Suite:
     """Create 'Performance Suite'.
 
     The suite runs all checks that are meant to measure and detect performance abnormality in a model.
@@ -64,8 +64,8 @@ def performance_check_suite() -> CheckSuite:
     The suite includes checks from 'Generic Performance Suite', 'Classification Suite'
     and 'Regression Suite'.
     """
-    return CheckSuite(
+    return Suite(
         'Performance Suite',
-        generic_performance_check_suite(),
-        classification_check_suite()
+        generic_performance_suite(),
+        classification_suite()
     )

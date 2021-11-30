@@ -9,7 +9,7 @@ Using the checks, you can examine different aspects of your data and models. Her
 
 Category | Check | Description |
 |---------|---------|----------------|
-| Performance | [NaiveModelComparison](./performance/naive_model_comparison.ipynb)|Compare naive model score to given model score |
+| Performance | [SimpleModelComparison](./performance/simple_model_comparison.ipynb)|Compare simple model score to given model score |
 | Performance | [CalibrationMetric](./performance/calibration_metric.ipynb)|Summarize given metrics on a dataset and model |
 | Performance | [Performance Report](./performance/performance_report.ipynb)|Summarize given metrics on a dataset and model |
 | Performance | [ROC Report](./performance/roc_report.ipynb)|Return the AUC for each class |

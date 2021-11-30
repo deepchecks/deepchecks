@@ -70,7 +70,7 @@ class RareCategoryEncoder:
     def _fit_for_series(self, series: pd.Series):
         top_values = list(series.value_counts().head(self.max_num_categories).index)
         other_value = self._get_unique_other_value(series)
-        mapper = defaultdict(lambda: other_value, {k: k for k in top_values})
+        mapper = pd.Series(defaultdict(lambda: other_value, {k: k for k in top_values}), name=series.name)
         return mapper
 
     def _get_unique_other_value(self, series: pd.Series):

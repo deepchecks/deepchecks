@@ -29,11 +29,11 @@ def diabetes_df():
 
 @pytest.fixture(scope='session')
 def diabetes(diabetes_df):
-    """Return diabetes dataset splited to train and validation as Datasets."""
-    train_df, validation_df = train_test_split(diabetes_df, test_size=0.33, random_state=42)
+    """Return diabetes dataset splited to train and test as Datasets."""
+    train_df, test_df = train_test_split(diabetes_df, test_size=0.33, random_state=42)
     train = Dataset(train_df, label='target', cat_features=['sex'])
-    validation = Dataset(validation_df, label='target', cat_features=['sex'])
-    return train, validation
+    test = Dataset(test_df, label='target', cat_features=['sex'])
+    return train, test
 
 
 @pytest.fixture(scope='session')
@@ -45,9 +45,9 @@ def diabetes_model(diabetes):
 
 @pytest.fixture(scope='session')
 def diabetes_split_dataset_and_model(diabetes, diabetes_model):
-    train, validation = diabetes
+    train, test = diabetes
     clf = diabetes_model
-    return train, validation, clf
+    return train, test, clf
 
 
 @pytest.fixture(scope='session')

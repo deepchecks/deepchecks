@@ -20,14 +20,14 @@ class SimpleTwoDatasetsCheck(base.CompareDatasetsBaseCheck):
 def test_check_suite_instantiation_with_incorrect_args():
     incorrect_check_suite_args = ("test suite", SimpleDatasetCheck(), object())
     assert_that(
-        calling(base.CheckSuite).with_args(*incorrect_check_suite_args),
+        calling(base.Suite).with_args(*incorrect_check_suite_args),
         raises(DeepchecksValueError)
     )
 
 
 def test_run_check_suite_with_incorrect_args(diabetes):
     train_dataset, test_dataset = diabetes
-    suite = base.CheckSuite("test suite", SimpleDatasetCheck(), SimpleTwoDatasetsCheck())
+    suite = base.Suite("test suite", SimpleDatasetCheck(), SimpleTwoDatasetsCheck())
     
     # incorrect, at least one dataset (or model) must be provided
     args = {"train_dataset": None, "test_dataset": None,}
@@ -52,8 +52,8 @@ def test_add_check_to_the_suite():
     number_of_checks = random.randint(0, 50)
     produce_checks = lambda count: [SimpleDatasetCheck() for _ in range(count)]
 
-    first_suite = base.CheckSuite("first suite", )
-    second_suite = base.CheckSuite("second suite", )
+    first_suite = base.Suite("first suite", )
+    second_suite = base.Suite("second suite", )
     
     assert_that(len(first_suite.checks), equal_to(0))
     assert_that(len(second_suite.checks), equal_to(0))
@@ -69,15 +69,15 @@ def test_add_check_to_the_suite():
 
 
 def test_try_add_not_a_check_to_the_suite():
-    suite = base.CheckSuite("second suite")
+    suite = base.Suite("second suite")
     assert_that(
         calling(suite.add).with_args(object()),
-        raises(DeepchecksValueError, 'CheckSuite receives only `BaseCheck` objects but got: object')
+        raises(DeepchecksValueError, 'Suite receives only `BaseCheck` objects but got: object')
     )
 
 
 def test_try_add_check_suite_to_itself():
-    suite = base.CheckSuite("second suite", SimpleDatasetCheck(), SimpleTwoDatasetsCheck())
+    suite = base.Suite("second suite", SimpleDatasetCheck(), SimpleTwoDatasetsCheck())
     assert_that(len(suite.checks), equal_to(2))
     suite.add(suite)
     assert_that(len(suite.checks), equal_to(2))
@@ -86,7 +86,7 @@ def test_try_add_check_suite_to_itself():
 def test_suite_static_indexes():
     first_check = SimpleDatasetCheck()
     second_check = SimpleTwoDatasetsCheck()
-    suite = base.CheckSuite("first suite", first_check, second_check)
+    suite = base.Suite("first suite", first_check, second_check)
 
     assert_that(len(suite.checks), equal_to(2))
     assert_that(suite[1], is_(second_check))
@@ -100,7 +100,7 @@ def test_suite_static_indexes():
 def test_access_removed_check_by_index():
     first_check = SimpleDatasetCheck()
     second_check = SimpleTwoDatasetsCheck()
-    suite = base.CheckSuite("first suite", first_check, second_check)
+    suite = base.Suite("first suite", first_check, second_check)
 
     assert_that(len(suite.checks), equal_to(2))
     assert_that(suite[1], is_(second_check))
@@ -115,7 +115,7 @@ def test_access_removed_check_by_index():
 
 
 def test_try_remove_unexisting_check_from_the_suite():
-    suite = base.CheckSuite("first suite", SimpleDatasetCheck(), SimpleTwoDatasetsCheck())
+    suite = base.Suite("first suite", SimpleDatasetCheck(), SimpleTwoDatasetsCheck())
     assert_that(len(suite.checks), equal_to(2))
     assert_that(
         calling(suite.remove).with_args(3),
@@ -124,18 +124,18 @@ def test_try_remove_unexisting_check_from_the_suite():
 
 
 def test_check_suite_instantiation_by_extending_another_check_suite():
-    suite = base.CheckSuite(
+    suite = base.Suite(
         "outer",
         builtin_checks.IsSingleValue(),
-        base.CheckSuite(
+        base.Suite(
             "inner1",
             builtin_checks.MixedNulls(),
-            base.CheckSuite("inner2", builtin_checks.MixedTypes()),
+            base.Suite("inner2", builtin_checks.MixedTypes()),
             builtin_checks.TrainTestDifferenceOverfit()
         )
     )
 
-    assert all(not isinstance(c, base.CheckSuite) for c in suite.checks)
+    assert all(not isinstance(c, base.Suite) for c in suite.checks)
 
     # assert that order of checks instances are preserved
 
