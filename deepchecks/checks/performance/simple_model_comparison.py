@@ -4,12 +4,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from deepchecks.checks.distribution.preprocessing import preprocess_dataset_to_scaled_numerics
-from deepchecks.string_utils import format_number
+from deepchecks.utils.strings import format_number
 
 from deepchecks import CheckResult, Dataset
 from deepchecks.base.check import ConditionResult, TrainTestBaseCheck
-from deepchecks.metric_utils import DEFAULT_METRICS_DICT, DEFAULT_SINGLE_METRIC, task_type_check, ModelType, \
-                                    validate_scorer, get_metrics_ratio
+from deepchecks.utils.metrics import DEFAULT_METRICS_DICT, DEFAULT_SINGLE_METRIC, task_type_check, \
+                                     ModelType, validate_scorer, get_metrics_ratio
 from deepchecks.utils import model_type_validation
 
 __all__ = ['SimpleModelComparison']

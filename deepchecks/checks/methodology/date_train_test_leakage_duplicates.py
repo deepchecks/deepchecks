@@ -2,7 +2,8 @@
 import pandas as pd
 
 from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
-from deepchecks.string_utils import format_percent
+from deepchecks.utils.strings import format_percent
+
 
 __all__ = ['DateTrainTestLeakageDuplicates']
 

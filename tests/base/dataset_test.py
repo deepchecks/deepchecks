@@ -1,12 +1,11 @@
 """Contains unit tests for the Dataset class."""
-from unittest import TestCase
-
 import numpy as np
 import pandas as pd
+from unittest import TestCase
+from hamcrest import assert_that, instance_of, equal_to, is_, calling, raises, not_none
 
 from deepchecks import Dataset, ensure_dataframe_type
-from deepchecks.utils import DeepchecksValueError
-from hamcrest import assert_that, instance_of, equal_to, is_, calling, raises, not_none
+from deepchecks.errors import DeepchecksValueError
 
 
 def assert_dataset(dataset: Dataset, args):

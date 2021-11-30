@@ -7,7 +7,7 @@ from hamcrest import assert_that, close_to, calling, raises, has_items
 
 from deepchecks import Dataset
 from deepchecks.checks.methodology.index_leakage import IndexTrainTestLeakage
-from deepchecks.utils import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError
 from tests.checks.utils import equal_condition_result
 
 

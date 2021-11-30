@@ -1,9 +1,11 @@
 """The confusion_matrix_report check module."""
 import sklearn
 from sklearn.base import BaseEstimator
-from deepchecks.base.check import SingleDatasetBaseCheck
+
 from deepchecks import CheckResult, Dataset
-from deepchecks.metric_utils import ModelType, task_type_validation
+from deepchecks.base.check import SingleDatasetBaseCheck
+from deepchecks.utils.metrics import ModelType, task_type_validation
+
 
 __all__ = ['ConfusionMatrixReport']
 
