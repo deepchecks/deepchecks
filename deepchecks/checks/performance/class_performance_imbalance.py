@@ -1,4 +1,6 @@
 """The class performance imbalance check."""
+#pylint: disable=inconsistent-quotes
+
 import typing as t
 from functools import partial
 from collections import defaultdict
@@ -38,7 +40,6 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
     Raises:
         DeepchecksValueError:
             if provided dict of metrics is emtpy;
-            if one of the entries of the provided metrics dict contains name of unknown scorer;
             if one of the entries of the provided metrics dict contains not callable value;
     """
 
@@ -62,8 +63,8 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
                     self.alternative_metrics[name] = get_scorer(metric)
                 else:
                     raise DeepchecksValueError(
-                        f"alternative_metrics - expected to receive 'Mapping[str, Callable]' but got " #pylint: disable=inconsistent-quotes
-                        f"'Mapping[str, {type(metric).__name__}]'!" #pylint: disable=inconsistent-quotes
+                        f"alternative_metrics - expected to receive 'Mapping[str, Callable]' but got "
+                        f"'Mapping[str, {type(metric).__name__}]'!"
                     )
 
     def run(
@@ -86,6 +87,7 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
                 if task type is not binary or multi-class;
                 if dataset does not have a label column or the label dtype is unsupported;
                 if provided dataset is empty;
+                if provided dataset does not have features columns;
         """
         return self._class_performance_imbalance(dataset, model)
 
