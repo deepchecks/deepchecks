@@ -35,6 +35,9 @@ class SimpleModelComparison(TrainTestBaseCheck):
 
     Args:
         simple_model_type (st):  Type of the simple model ['random', 'constant', 'tree'].
+                    random - select one of the labels by random.
+                    constant - in regression is mean value, in classification the most common value.
+                    tree - runs a simple desion tree.
         metric (Union[str, Callable]): a custom metric given by user.
         metric_name (str): name of a default metric.
         maximum_ratio (int): the ratio can be up to infinity so choose maximum value to limit to.
