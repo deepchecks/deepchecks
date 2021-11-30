@@ -1,12 +1,17 @@
 """Contains unit tests for the Dataset class."""
+import typing as t
 from unittest import TestCase
 
 import numpy as np
 import pandas as pd
+from sklearn.datasets import load_iris
 
 from deepchecks import Dataset, ensure_dataframe_type
 from deepchecks.utils import DeepchecksValueError
-from hamcrest import assert_that, instance_of, equal_to, is_, calling, raises, not_none
+from hamcrest import (
+    assert_that, instance_of, equal_to, is_, 
+    calling, raises, not_none, has_property, all_of, contains_exactly
+)
 
 
 def assert_dataset(dataset: Dataset, args):
@@ -425,6 +430,135 @@ def test_ensure_dataframe_type_dataset(iris):
 def test_ensure_dataframe_type_fail():
     assert_that(calling(ensure_dataframe_type).with_args('not dataset'),
                 raises(DeepchecksValueError, 'dataset must be of type DataFrame or Dataset, but got: str'))
+
+
+def test_dataset_initialization_from_numpy_arrays():
+    iris = load_iris()
+    validate_dataset_created_from_numpy_arrays(
+        dataset=Dataset.from_numpy(iris.data, iris.target),
+        features_array=iris.data,
+        labels_array=iris.target,
+    )
+
+
+def test_dataset_initialization_from_numpy_arrays_with_specified_features_names():
+    iris = load_iris()
+    label_column_name = 'label-col'
+    feature_columns_names = ['feature-1', 'feature-2', 'feature-3', 'feature-4']
+    
+    ds = Dataset.from_numpy(
+        iris.data, iris.target,
+        label=label_column_name,
+        features=feature_columns_names
+    )
+    validate_dataset_created_from_numpy_arrays(
+        dataset=ds,
+        features_array=iris.data,
+        labels_array=iris.target,
+        featue_columns_names=feature_columns_names,
+        label_column_name=label_column_name
+    )
+
+
+def test_dataset_of_features_initialization_from_numpy_array():
+    iris = load_iris()
+    validate_dataset_created_from_numpy_arrays(
+        dataset=Dataset.from_numpy(iris.data),
+        features_array=iris.data
+    )
+
+
+def test_dataset_initialization_from_numpy_arrays_of_different_length():
+    iris = load_iris()
+    assert_that(
+        calling(Dataset.from_numpy).with_args(iris.data, iris.target[:10]),
+        raises(
+            ValueError, 
+            "'from_numpy' constructor expecting that features and "
+            "labels arrays will be of the same size"
+        )
+    )
+
+
+def test_dataset_of_features_initialization_from_not_2d_numpy_arrays():
+    iris = load_iris()
+    assert_that(
+        calling(Dataset.from_numpy).with_args(iris.target),
+        raises(
+            ValueError, 
+            r"'from_numpy' constructor expecting features \(args\[0\]\) "
+            r"to be not empty two dimensional array\."
+        )
+    )
+
+
+def test_dataset_initialization_from_numpy_arrays_without_providing_args():
+    assert_that(
+        calling(Dataset.from_numpy).with_args(),
+        raises(
+            ValueError,
+            r"'from_numpy' constructor expecting to receive two numpy arrays \(or at least one\)\."
+            r"First array must contains the features and second the labels\."
+        )
+    )
+
+
+def test_dataset_initialization_from_numpy_arrays_with_wrong_number_of_feature_columns_names():
+    iris = load_iris()
+    assert_that(
+        calling(Dataset.from_numpy).with_args(iris.data, iris.target, features=['X1',]),
+        raises(
+            ValueError, 
+            '4 features were provided '
+            r'but only 1 name\(s\) for them`s.'
+        )
+    )
+
+def test_dataset_initialization_from_numpy_empty_arrays():
+    iris = load_iris()
+    assert_that(
+        calling(Dataset.from_numpy).with_args(iris.data[:0], iris.target),
+        raises(
+            ValueError, 
+            r"'from_numpy' constructor expecting features \(args\[0\]\) "
+            r"to be not empty two dimensional array\."
+        )
+    )
+
+
+def validate_dataset_created_from_numpy_arrays(
+    dataset: Dataset,
+    features_array: np.ndarray,
+    labels_array: np.ndarray = None,
+    featue_columns_names: t.Sequence[str] = None,
+    label_column_name: str = 'target'
+):
+    if featue_columns_names is None:
+        featue_columns_names = [f'X{index}'for index in range(1, features_array.shape[1] + 1)]
+    
+    features = dataset.features_columns()
+    feature_names = dataset.features()
+
+    assert_that(features, all_of(
+        instance_of(pd.DataFrame),
+        has_property('shape', equal_to(features_array.shape)),
+    ))
+    assert_that(all(features == features_array))
+    assert_that(feature_names, all_of(
+        instance_of(list),
+        contains_exactly(*featue_columns_names)
+    ))
+
+    if labels_array is not None:
+        labels = dataset.label_col()
+        label_name = dataset.label_name()
+
+        assert_that(labels, all_of(
+            instance_of(pd.Series),
+            has_property('shape', equal_to(labels_array.shape))
+        ))
+        assert_that(all(labels == labels_array))
+        assert_that(label_name, equal_to(label_column_name))
 
 
 class TestLabel(TestCase):

@@ -1,4 +1,6 @@
 """The Dataset module containing the dataset Class and its functions."""
+# pylint: disable=inconsistent-quotes
+
 import typing as t
 import logging
 
@@ -145,8 +147,8 @@ class Dataset:
     def from_numpy(
         cls: t.Type[TDataset],
         *args: np.ndarray,
-        features: t.Sequence[str] = None,
-        label: str = None,
+        features: t.Sequence[t.Hashable] = None,
+        label: t.Hashable = None,
         **kwargs
     ) -> TDataset:
         """Create Dataset instance from numpy arrays.
@@ -155,16 +157,16 @@ class Dataset:
             *args: (np.ndarray):
                 expecting it to contain two numpy arrays (or at least one),
                 first with features, second with labels.
-            features (Sequence[str], default None):
+            features (Sequence[Hashable], default None):
                 names for the feature columns. If not provided next names will
                 be assigned to the feature columns: X1-Xn (where n - number of features)
-            label (str, default None):
+            label (Hashable, default None):
                 labels column name. If not provided next name will be used - 'target'
             **kwargs:
                 additional arguments that will be passed to the main Dataset constructor.
 
         Returns:
-            Dataset: instance of the 'Dataset'
+            Dataset: instance of the Dataset
 
         Raises:
             ValueError:
@@ -176,7 +178,6 @@ class Dataset:
 
         Examples
         --------
-
         >>> features = np.array([[0.25, 0.3, 0.3], [0.14, 0.75, 0.3], [0.23, 0.39, 0.1]])
         >>> labels = np.array([0.1, 0.1, 0.7])
         >>> dataset = Dataset.from_numpy(features, labels)
@@ -209,8 +210,8 @@ class Dataset:
 
         def validate_features_array(
             features_array: np.ndarray,
-            feature_names: t.Optional[t.Sequence[str]] = None
-        ) -> t.Tuple[np.ndarray, t.List[str]]:
+            feature_names: t.Optional[t.Sequence[t.Hashable]] = None
+        ) -> t.Tuple[np.ndarray, t.List[t.Hashable]]:
             message = (
                 "'from_numpy' constructor expecting features (args[0]) "
                 "to be not empty two dimensional array."
@@ -223,7 +224,7 @@ class Dataset:
             if feature_names is not None and len(feature_names) != features_array.shape[1]:
                 raise ValueError(
                     f'{features_array.shape[1]} features were provided '
-                    f'but only {len(feature_names)} names for them`s.'
+                    f'but only {len(feature_names)} name(s) for them`s.'
                 )
             elif feature_names is None:
                 feature_names = [f'X{index}'for index in range(1, features_array.shape[1] + 1)]
@@ -240,35 +241,36 @@ class Dataset:
                 )
 
             return cls(
-                df=pd.DataFrame(data=features, columns=features_names),
-                features=features_names,
+                df=pd.DataFrame(data=features_array, columns=features_names),
+                features=features_names, # type: ignore TODO
                 **kwargs
             )
 
         else:
             features_array, features_names  = validate_features_array(args[0], features)
             labels_array = args[1]
-            columns = features_names + [label or 'target']
+            label = label or 'target'
+            columns = features_names + [label]
 
-            if len(labels_array) != 1 or labels_array.shape[0] == 0:
+            if len(labels_array.shape) != 1 or labels_array.shape[0] == 0:
                 raise ValueError(
                     "'from_numpy' constructor expecting labels (args[1]) "
                     "to be not empty one dimensional array."
                 )
 
-            if labels_array[0] != features_array.shape[0]:
+            if labels_array.shape[0] != features_array.shape[0]:
                 raise ValueError(
                     "'from_numpy' constructor expecting that features and "
                     "labels arrays will be of the same size"
                 )
 
             labels_array = labels_array.reshape(len(labels_array), 1)
-            data = np.hstack((features, labels_array))
+            data = np.hstack((features_array, labels_array))
 
             return cls(
                 df=pd.DataFrame(data=data, columns=columns),
-                features=features_names,
-                label=label,
+                features=features_names, # type: ignore TODO
+                label=label, # type: ignore TODO
                 **kwargs
             )
 
@@ -288,13 +290,13 @@ class Dataset:
                 dict from which to create a dataset
             orient (Literal['columns'] | Literal['index'], default 'columns'):
                 The “orientation” of the data. Will be passed to the dataframe constructor.
-            dtype (Optional[numpy.dtype], default None): 
+            dtype (Optional[numpy.dtype], default None):
                 Data type to force, otherwise infer. Will be passed to the dataframe constructor.
             columns (t.Optional[t.Sequence[t.Hashable]]):
                 Column labels. Will be passed to the dataframe constructor.
             **kwargs:
                 additional arguments that will be passed to the main Dataset constructor.
-        
+
         Returns:
             Dataset: instance of the Dataset.
         """
@@ -302,14 +304,6 @@ class Dataset:
             df=pd.DataFrame.from_dict(data=data, orient=orient, dtype=dtype, columns=columns),
             **kwargs
         )
-
-    @classmethod
-    def read_csv(cls: t.Type[TDataset]) -> TDataset:
-        raise NotADirectoryError()
-
-    @classmethod
-    def read_json(cls: t.Type[TDataset]) -> TDataset:
-        raise NotADirectoryError()
 
     @property
     def data(self) -> pd.DataFrame:
@@ -527,8 +521,8 @@ class Dataset:
         if self.index_name() is None:
             raise DeepchecksValueError(f'Check {check_name} requires dataset to have an index column')
 
-    def filter_columns_with_validation(self, columns: Union[str, List[str], None] = None,
-                                       ignore_columns: Union[str, List[str], None] = None) -> 'Dataset':
+    def filter_columns_with_validation(self, columns: t.Union[str, t.List[str], None] = None,
+                                       ignore_columns: t.Union[str, t.List[str], None] = None) -> 'Dataset':
         """Filter dataset columns by given params.
 
         Args:
@@ -543,7 +537,7 @@ class Dataset:
         else:
             return self.copy(new_data)
 
-    def validate_shared_features(self, other, check_name: str) -> List[str]:
+    def validate_shared_features(self, other, check_name: str) -> t.List[str]:
         """
         Return the list of shared features if both datasets have the same feature column names. Else, raise error.
 
