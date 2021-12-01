@@ -1,9 +1,9 @@
-
 # Deepchecks - Test Suites for ML Models and Data
 
 ![pyVersions](https://img.shields.io/pypi/pyversions/deepchecks)
 ![pkgVersion](https://img.shields.io/pypi/v/deepchecks)
 ![build](https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdeepchecks%2Fdeepchecks.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdeepchecks%2Fdeepchecks?ref=badge_shield)
 
 Deepchecks is a Python package for comprehensively validating your machine learning
 models and data with minimal effort.
@@ -163,3 +163,7 @@ For usage examples, check out:
 - Post a [Github Issue](https://github.com/deepchecks/deepchecks/issues) to suggest improvements, open an issue, or share feedback.
 
 [comment]: <> "- Send us an [email](mailto:info@deepchecks.com) at info@deepchecks.com"
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdeepchecks%2Fdeepchecks.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdeepchecks%2Fdeepchecks?ref=badge_large)
