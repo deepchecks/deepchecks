@@ -16,6 +16,8 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.9
+    - name: rerun examples
+      run: make recreate-example-notebooks
 
     - name: "Upload Package"
       run: |

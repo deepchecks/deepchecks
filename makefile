@@ -52,7 +52,7 @@ REQUIREMENTS_LOG := .requirements.log
 ANALIZE_PKGS = pylint pydocstyle 
 TEST_CODE := tests/
 TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval
-NOTEBOOK_DIR = ./notebooks/examples ./notebooks/checks
+NOTEBOOK_DIR = ./notebooks/checks
 NOTEBOOK_SANITIZER_FILE= ./notebooks/.nbval-sanitizer
 
 PYLINT_LOG = .pylint.log
@@ -123,18 +123,21 @@ $(ANALIZE): $(PIP)
 
 ### Testing ######################################################
 
-.PHONY: test coverage notebook
+.PHONY: test coverage notebook recreate-example-notebooks
 
 test: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 	$(pythonpath) $(TEST_RUNNER) $(args) $(TESTDIR)
 
 
-notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
+notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER) develop
 # if deepchecks is not installed, we need to install it for testing porpuses,
 # as the only time you'll need to run make is in dev mode, we're installing
 # deepchecks in development mode
-	$(PIP) install --no-deps -e .
 	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_DIR) --sanitize-with $(NOTEBOOK_SANITIZER_FILE)
+
+#recreate-example-notebooks only works in gnu-xargs
+recreate-example-notebooks: $(REQUIREMENTS_LOG) $(TEST_RUNNER) $(JUPYTER) develop
+	find notebooks/examples -name "*.ipynb" | xargs -d '\n' $(JUPYTER) nbconvert --to notebook --execute --inplace 
 
 $(TEST_RUNNER):
 	$(PIP) install $(TEST_RUNNER_PKGS) | tee -a $(REQUIREMENTS_LOG)
