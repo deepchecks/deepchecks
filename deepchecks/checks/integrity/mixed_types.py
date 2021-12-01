@@ -1,5 +1,5 @@
 """module contains Mixed Types check."""
-from typing import Iterable, Union
+from typing import List, Union
 import pandas as pd
 
 import numpy as np
@@ -19,10 +19,10 @@ class MixedTypes(SingleDatasetBaseCheck):
     """Search for various types of data in (a) column[s], including hidden mixes in strings.
 
     Args:
-        columns (Union[Hashable, Iterable[Hashable]]):
+        columns (Union[Hashable, List[Hashable]]):
             Columns to check, if none are given checks all columns
             except ignored ones.
-        ignore_columns (Union[Hashable, Iterable[Hashable]]):
+        ignore_columns (Union[Hashable, List[Hashable]]):
             Columns to ignore, if none given checks based on columns
             variable.
         n_top_columns (int): (optinal - used only if model was specified)
@@ -31,8 +31,8 @@ class MixedTypes(SingleDatasetBaseCheck):
 
     def __init__(
         self,
-        columns: Union[Hashable, Iterable[Hashable]] = None,
-        ignore_columns: Union[Hashable, Iterable[Hashable]] = None,
+        columns: Union[Hashable, List[Hashable], None] = None,
+        ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_top_columns: int = 10
     ):
         super().__init__()
@@ -127,10 +127,10 @@ class MixedTypes(SingleDatasetBaseCheck):
                 if ratios['strings'] < max_rare_type_ratio or ratios['numbers'] < max_rare_type_ratio:
                     failing_columns.append(col)
             if failing_columns:
-                details = f'Found columns with low type ratio: {", ".join(failing_columns)}'
+                details = f'Found columns with low type ratio: {", ".join(map(str, failing_columns))}'
                 return ConditionResult(False, details)
             return ConditionResult(True)
 
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
         name = f'Rare type ratio is not less than {format_percent(max_rare_type_ratio)} of samples in {column_names}'
-        return self.add_condition(name, condition, max_rare_type_ratio=max_rare_type_ratio)
+        return self.add_condition(name, condition_func=condition, max_rare_type_ratio=max_rare_type_ratio)

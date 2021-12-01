@@ -1,5 +1,5 @@
 """module contains Data Duplicates check."""
-from typing import Union, Iterable
+from typing import Union, List
 
 import pandas as pd
 
@@ -30,8 +30,8 @@ class DataDuplicates(SingleDatasetBaseCheck):
 
     def __init__(
         self,
-        columns: Union[Hashable, Iterable[Hashable]] = None,
-        ignore_columns: Union[Hashable, Iterable[Hashable]] = None,
+        columns: Union[Hashable, List[Hashable], None] = None,
+        ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_to_show: int = 5
     ):
         super().__init__()

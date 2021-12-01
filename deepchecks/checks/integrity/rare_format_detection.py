@@ -283,9 +283,9 @@ class RareFormatDetection(SingleDatasetBaseCheck):
         the refined format found would be "XXXXXX@deepchecks.com.
 
     Args:
-        columns (Union[Hashable, Iterable[Hashable]]):
+        columns (Union[Hashable, List[Hashable]]):
             Columns to check, if none are given checks all columns except ignored ones.
-        ignore_columns (Union[Hashable, Iterable[Hashable]]):
+        ignore_columns (Union[Hashable, List[Hashable]]):
             Columns to ignore, if none given checks based on columns variable
         patterns (List[Pattern]):
             patterns to look for when comparing common vs. rare formats. Uses DEFAULT_PATTERNS if not specified.
@@ -310,8 +310,8 @@ class RareFormatDetection(SingleDatasetBaseCheck):
 
     def __init__(
         self,
-        columns: t.Union[Hashable, t.Iterable[Hashable], None] = None,
-        ignore_columns: t.Union[Hashable, t.Iterable[Hashable], None] = None,
+        columns: t.Union[Hashable, t.List[Hashable], None] = None,
+        ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None,
         patterns: t.Optional[t.List[Pattern]] = None,
         rarity_threshold: float = 0.05,
         min_unique_common_ratio: float = 0.01,

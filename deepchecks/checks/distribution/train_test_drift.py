@@ -389,10 +389,10 @@ class TrainTestDrift(TrainTestBaseCheck):
             return_str = ''
             if not_passing_categorical_columns:
                 return_str += f'Found categorical columns with PSI over {max_allowed_psi_score}: ' \
-                              f'{", ".join(not_passing_categorical_columns)}\n'
+                              f'{", ".join(map(str, not_passing_categorical_columns))}\n'
             if not_passing_numeric_columns:
                 return_str += f'Found numeric columns with Earth Mover\'s Distance over ' \
-                              f'{max_allowed_earth_movers_score}: {", ".join(not_passing_numeric_columns)}'
+                              f'{max_allowed_earth_movers_score}: {", ".join(map(str, not_passing_numeric_columns))}'
 
             if return_str:
                 return ConditionResult(False, return_str)

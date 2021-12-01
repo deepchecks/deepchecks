@@ -8,6 +8,8 @@ from copy import copy
 import pandas as pd
 from pandas.core.dtypes.common import is_numeric_dtype
 
+from deepchecks.utils.typing import Hashable
+
 
 __all__ = [
     'string_baseform',
@@ -222,8 +224,8 @@ def format_number(x, floating_point: int = 2) -> str:
 
 
 def format_columns_for_condition(
-    columns: t.Sequence[str] = None,
-    ignore_columns: t.Sequence[str] = None
+    columns: t.Union[Hashable, t.List[Hashable], None] = None,
+    ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None
 ) -> str:
     """Format columns properties for display in condition name.
 
@@ -231,9 +233,11 @@ def format_columns_for_condition(
         columns (List[str]): columns property
         ignore_columns (List[str]): ignore_columns property
     """
-    if columns:
-        return f'columns: {",".join(columns)}'
-    elif ignore_columns:
-        return f'all columns ignoring: {",".join(ignore_columns)}'
+    if columns is not None:
+        columns = columns if isinstance(columns, list) else [columns]
+        return f'columns: {",".join(map(str, columns))}'
+    elif ignore_columns is not None:
+        ignore_columns = ignore_columns if isinstance(ignore_columns, list) else [ignore_columns]
+        return f'all columns ignoring: {",".join(map(str, ignore_columns))}'
     else:
         return 'all columns'

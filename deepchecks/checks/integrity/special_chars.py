@@ -1,6 +1,6 @@
 """module contains Invalid Chars check."""
 from collections import defaultdict
-from typing import Iterable, Union
+from typing import Union, List
 import pandas as pd
 from pandas.api.types import infer_dtype
 
@@ -34,9 +34,9 @@ class SpecialCharacters(SingleDatasetBaseCheck):
     """Search in column[s] for values that contains only special characters.
 
     Args:
-        columns (Union[Hashable, Iterable[Hashable]]):
-        Columns to check, if none are given checks all columns except ignored ones.
-        ignore_columns (Union[Hashable, Iterable[Hashable]]):
+        columns (Union[Hashable, List[Hashable]]):
+            Columns to check, if none are given checks all columns except ignored ones.
+        ignore_columns (Union[Hashable, List[Hashable]]):
             Columns to ignore, if none given checks based on columns variable.
         n_most_common (int):
             Number of most common special-only samples to show in results
@@ -46,8 +46,8 @@ class SpecialCharacters(SingleDatasetBaseCheck):
 
     def __init__(
         self,
-        columns: Union[Hashable, Iterable[Hashable]] = None,
-        ignore_columns: Union[Hashable, Iterable[Hashable]] = None,
+        columns: Union[Hashable, List[Hashable], None] = None,
+        ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_most_common: int = 2,
         n_top_columns: int = 10
     ):

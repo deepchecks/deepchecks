@@ -1,5 +1,5 @@
 """The data_sample_leakage_report check module."""
-from typing import Union, Iterable, Dict
+from typing import Union, List, Dict
 import pandas as pd
 
 from deepchecks import Dataset
@@ -15,17 +15,17 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
     """Find new categories in the test set.
 
     Args:
-        columns (Union[Hashable, Iterable[Hashable]]):
+        columns (Union[Hashable, List[Hashable]]):
             Columns to check, if none are given checks all columns except ignored ones.
-        ignore_columns (Union[Hashable, Iterable[Hashable]]):
+        ignore_columns (Union[Hashable, List[Hashable]]):
             Columns to ignore, if none given checks based on columns
             variable.
     """
 
     def __init__(
         self,
-        columns: Union[Hashable, Iterable[Hashable]] = None,
-        ignore_columns: Union[Hashable, Iterable[Hashable]] = None
+        columns: Union[Hashable, List[Hashable], None] = None,
+        ignore_columns: Union[Hashable, List[Hashable], None] = None
     ):
         super().__init__()
         self.columns = columns
@@ -130,7 +130,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
                 if num_categories > max_new:
                     not_passing_columns.append(column_name)
             if not_passing_columns:
-                not_passing_str = ', '.join(not_passing_columns)
+                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
                                        f'Found columns with more than {max_new} new categories: '
                                        f'{not_passing_str}')
@@ -155,7 +155,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
                 if n_new_samples > max_ratio:
                     not_passing_columns.append(column_name)
             if not_passing_columns:
-                not_passing_str = ', '.join(not_passing_columns)
+                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
                                        f'Found columns with more than {format_percent(max_ratio)} new category samples:'
                                        f' {not_passing_str}')

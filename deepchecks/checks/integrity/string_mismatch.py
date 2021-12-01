@@ -1,6 +1,6 @@
 """String mismatch functions."""
 from collections import defaultdict
-from typing import Union, Iterable
+from typing import Union, List
 
 import pandas as pd
 
@@ -42,18 +42,18 @@ class StringMismatch(SingleDatasetBaseCheck):
     """Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column.
 
     Args:
-        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-          ones.
-        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-          variable
+        columns (Union[str, List[str]]):
+            Columns to check, if none are given checks all columns except ignored ones.
+        ignore_columns (Union[str, List[str]]):
+            Columns to ignore, if none given checks based on columns variable
         n_top_columns (int): (optinal - used only if model was specified)
           amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
     def __init__(
         self,
-        columns: Union[Hashable, Iterable[Hashable]] = None,
-        ignore_columns: Union[Hashable, Iterable[Hashable]] = None,
+        columns: Union[Hashable, List[Hashable], None] = None,
+        ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_top_columns: int = 10
     ):
         super().__init__()

@@ -1,5 +1,5 @@
 """module contains Data Duplicates check."""
-from typing import Union, Iterable
+from typing import Union, List
 
 import pandas as pd
 
@@ -16,10 +16,10 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
     """Find samples with multiple labels.
 
     Args:
-        columns (Hashable, Iterable[Hashable]):
+        columns (Hashable, List[Hashable]):
             List of columns to check, if none given checks
             all columns Except ignored ones.
-        ignore_columns (Hashable, Iterable[Hashable]):
+        ignore_columns (Hashable, List[Hashable]):
             List of columns to ignore, if none given checks
             based on columns variable.
         n_to_show (int):
@@ -28,8 +28,8 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
 
     def __init__(
         self,
-        columns: Union[Hashable, Iterable[Hashable]] = None,
-        ignore_columns: Union[Hashable, Iterable[Hashable]] = None,
+        columns: Union[Hashable, List[Hashable], None] = None,
+        ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_to_show: int = 5
     ):
         super().__init__()
@@ -46,9 +46,10 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
         Returns:
           (CheckResult): percentage of ambiguous samples and display of the top n_to_show most ambiguous.
         """
-        dataset: Dataset = Dataset.validate_dataset(dataset, self.__class__.__name__)
+        check_name = type(self).__name__
+        dataset: Dataset = Dataset.validate_dataset(dataset, check_name)
         dataset = dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
-        dataset.validate_label(self.__class__.__name__)
+        dataset.validate_label(check_name)
 
         label_col = dataset.label_name()
 

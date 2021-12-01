@@ -206,7 +206,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                 if total_outliers > max_outliers:
                     not_passing_columns.append(column_name)
             if not_passing_columns:
-                not_passing_str = ', '.join(not_passing_columns)
+                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
                                        f'Found columns with greater than {max_outliers} outliers: '
                                        f'{not_passing_str}')
@@ -235,7 +235,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                 if total_outliers/column['n_samples'] > max_ratio:
                     not_passing_columns.append(column_name)
             if not_passing_columns:
-                not_passing_str = ', '.join(not_passing_columns)
+                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
                                        f'Found columns with greater than {format_percent(max_ratio)} outliers: '
                                        f'{not_passing_str}')

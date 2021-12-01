@@ -1,5 +1,5 @@
 """Module contains is_single_value check."""
-from typing import Union, Iterable
+from typing import Union, List
 import pandas as pd
 from deepchecks import SingleDatasetBaseCheck, CheckResult, ensure_dataframe_type, Dataset, ConditionResult
 from deepchecks.utils.dataframes import filter_columns_with_validation
@@ -14,18 +14,18 @@ class IsSingleValue(SingleDatasetBaseCheck):
     """Check if there are columns which have only a single unique value in all rows.
 
     Args:
-        columns (Union[Hashable, Iterable[Hashable]]):
+        columns (Union[Hashable, List[Hashable]]):
             Columns to check, if none are given checks all
             columns except ignored ones.
-        ignore_columns (Union[Hashable, Iterable[Hashable]]):
+        ignore_columns (Union[Hashable, List[Hashable]]):
             Columns to ignore, if none given checks based
             on columns variable.
     """
 
     def __init__(
         self,
-        columns: Union[Hashable, Iterable[Hashable]] = None,
-        ignore_columns: Union[Hashable, Iterable[Hashable]] = None
+        columns: Union[Hashable, List[Hashable], None] = None,
+        ignore_columns: Union[Hashable, List[Hashable], None] = None
     ):
         super().__init__()
         self.columns = columns
@@ -46,7 +46,7 @@ class IsSingleValue(SingleDatasetBaseCheck):
 
     def _is_single_value(self, dataset: Union[pd.DataFrame, Dataset]) -> CheckResult:
         # Validate parameters
-        dataset: pd.DataFrame = ensure_dataframe_type(dataset)
+        dataset = ensure_dataframe_type(dataset)
         dataset = filter_columns_with_validation(dataset, self.columns, self.ignore_columns)
 
         is_single_unique_value = (dataset.nunique(dropna=False) == 1)

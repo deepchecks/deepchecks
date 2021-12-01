@@ -67,6 +67,7 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
             train_dataset (Dataset): The training dataset object. Must contain an index.
             test_dataset (Dataset): The test dataset object. Must contain an index.
             model (): any = None - not used in the check
+
         Returns:
             CheckResult: value is sample leakage ratio in %,
             displays a dataframe that shows the duplicated rows between the datasets

@@ -101,20 +101,24 @@ class Dataset:
         # Validations
         if use_index is True and index is not None:
             raise DeepchecksValueError('parameter use_index cannot be True if index is given')
+
         if index is not None and index not in self._data.columns:
             error_message = f'index column {index} not found in dataset columns.'
             if index == 'index':
                 error_message += ' If you attempted to use the dataframe index, set use_index to True instead.'
             raise DeepchecksValueError(error_message)
+
         if date is not None and date not in self._data.columns:
             raise DeepchecksValueError(f'date column {date} not found in dataset columns')
+
         if label is not None and label not in self._data.columns:
             raise DeepchecksValueError(f'label column {label} not found in dataset columns')
 
         if features:
-            if any(x not in self._data.columns for x in features):
+            difference = set(features) - set(self._data.columns)
+            if len(difference) > 0:
                 raise DeepchecksValueError('Features must be names of columns in dataframe. '
-                                           f'Features {set(features) - set(self._data.columns)} have not been '
+                                           f'Features {difference} have not been '
                                            'found in input dataframe.')
             self._features = list(features)
         else:
@@ -160,8 +164,8 @@ class Dataset:
     def from_numpy(
         cls: t.Type[TDataset],
         *args: np.ndarray,
-        feature_names: t.Sequence[t.Hashable] = None,
-        label_name: t.Hashable = None,
+        feature_names: t.Sequence[Hashable] = None,
+        label_name: Hashable = None,
         **kwargs
     ) -> TDataset:
         """Create Dataset instance from numpy arrays.
@@ -271,18 +275,18 @@ class Dataset:
 
             return cls(
                 df=pd.DataFrame(data=data, columns=columns),
-                features=feature_names, # type: ignore TODO
-                label=label_name, # type: ignore TODO
+                features=feature_names,
+                label=label_name,
                 **kwargs
             )
 
     @classmethod
     def from_dict(
         cls: t.Type[TDataset],
-        data: t.Mapping[t.Hashable, t.Any],
+        data: t.Mapping[Hashable, t.Any],
         orient: str = 'columns',
-        dtype: np.dtype = None,
-        columns: t.Optional[t.Sequence[t.Hashable]] = None,
+        dtype: t.Optional[np.dtype] = None,
+        columns: t.Optional[t.Sequence[Hashable]] = None,
         **kwargs
     ) -> TDataset:
         """Create instance of the Dataset from the dict object.
@@ -354,11 +358,18 @@ class Dataset:
 
         if len(cat_columns) > 0:
             if len(cat_columns) < 7:
-                print(f'Automatically inferred these columns as categorical features: {", ".join(cat_columns)}. \n')
+                stringified_columns = ", ".join(map(str, cat_columns))
+                print(
+                    'Automatically inferred these columns as categorical features: '
+                    f'{stringified_columns}. \n'
+                )
             else:
-                print(f'Some columns have been inferred as categorical features: {", ".join(cat_columns[:7])}. \n '
-                      f'and more... \n'
-                      f'For the full list of columns, use dataset.cat_features')
+                stringified_columns = ", ".join(list(map(str, cat_columns))[:7])
+                print(
+                    'Some columns have been inferred as categorical features: '
+                    f'{stringified_columns}. \n and more... \n For the full list '
+                    'of columns, use dataset.cat_features'
+                )
 
         return cat_columns
 
@@ -399,7 +410,7 @@ class Dataset:
         elif self._index_name is not None:
             return self.data[self._index_name]
         else:  # No meaningful index to use: Index column not configured, and use_column is False
-            return None
+            return
 
     def date_name(self) -> t.Optional[Hashable]:
         """If date column exists, return its name.

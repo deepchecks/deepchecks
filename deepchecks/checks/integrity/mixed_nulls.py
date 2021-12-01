@@ -1,6 +1,6 @@
 """Module contains Mixed Nulls check."""
 from collections import defaultdict
-from typing import Iterable, Union, Dict
+from typing import Union, Dict, List, Iterable
 
 import numpy as np
 import pandas as pd
@@ -28,9 +28,9 @@ class MixedNulls(SingleDatasetBaseCheck):
             List of strings to be considered alternative null representations
         check_nan(bool):
             Whether to add to null list to check also NaN values
-        columns (Union[Hashable, Iterable[Hashable]]):
+        columns (Union[Hashable, List[Hashable]]):
             Columns to check, if none are given checks all columns except ignored ones.
-        ignore_columns (Union[Hashable, Iterable[Hashable]]):
+        ignore_columns (Union[Hashable, List[Hashable]]):
             Columns to ignore, if none given checks based on columns variable
         n_top_columns (int): (optinal - used only if model was specified)
           amount of columns to show ordered by feature importance (date, index, label are first)
@@ -40,8 +40,8 @@ class MixedNulls(SingleDatasetBaseCheck):
         self,
         null_string_list: Iterable[str] = None,
         check_nan: bool = True,
-        columns: Union[Hashable, Iterable[Hashable]] = None,
-        ignore_columns: Union[Hashable, Iterable[Hashable]] = None,
+        columns: Union[Hashable, List[Hashable], None] = None,
+        ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_top_columns: int = 10
     ):
         super().__init__()
@@ -155,7 +155,7 @@ class MixedNulls(SingleDatasetBaseCheck):
                 if num_nulls > max_allowed_null_types:
                     not_passing_columns.append(column)
             if not_passing_columns:
-                not_passing_str = ', '.join(not_passing_columns)
+                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
                                        f'Found columns with more than {max_allowed_null_types} null types: '
                                        f'{not_passing_str}')

@@ -1,12 +1,12 @@
 """Type definitions."""
-import typing as t
+from typing_extensions import Protocol, runtime_checkable
 
 
 __all__ = ['Hashable']
 
 
-@t.runtime_checkable
-class Hashable(t.Protocol):
+@runtime_checkable
+class Hashable(Protocol):
     """Trait for any hashable type that also defines comparison operators."""
 
     def __hash__(self) -> int: # pylint: disable=invalid-hash-returned, noqa: D105

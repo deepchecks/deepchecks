@@ -24,7 +24,11 @@ class RareCategoryEncoder:
 
     DEFAULT_OTHER_VALUE = 'OTHER_RARE_CATEGORY'
 
-    def __init__(self, max_num_categories: int = 10, cols: Optional[List[Hashable]] = None):
+    def __init__(
+        self,
+        max_num_categories: int = 10,
+        cols: Optional[List[Hashable]] = None
+    ):
         self.max_num_categories = max_num_categories
         self.cols = cols
         self._col_mapping = None
