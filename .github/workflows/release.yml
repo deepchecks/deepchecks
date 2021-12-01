@@ -6,6 +6,28 @@ on:
       - "[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
+
+  Update-Docs:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '14.x'
+    - uses: webfactory/ssh-agent@v0.5.0
+      with:
+        ssh-private-key: ${{ secrets.GIT_SSH_KEY }}
+    - name: Release to Documentation website
+        USE_SSH: true
+        GIT_USER: git
+      run: |
+        git config --global user.email "app@deepchecks.com"
+        git config --global user.name "deepchecks-ci-bot"
+        make website # generate the files
+        ##TODO: add command to publish the documentation site
+
+
   Create-Release:
     runs-on: ubuntu-latest
 
@@ -18,7 +40,6 @@ jobs:
         python-version: 3.9
     - name: rerun examples
       run: make recreate-example-notebooks
-
     - name: "Upload Package"
       run: |
         TAG=$(echo -n "${{ github.event.ref }}" | cut -d '/' -f3)
@@ -37,29 +58,3 @@ jobs:
           dist/*.tar.gz
           LICENSE
 
-  Update-Docs:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v1
-      with:
-        node-version: '14.x'
-    - uses: webfactory/ssh-agent@v0.5.0
-      with:
-        ssh-private-key: ${{ secrets.GIT_SSH_KEY }}
-    - name: Release to GitHub Pages
-      env:
-        USE_SSH: true
-        GIT_USER: git
-      run: |
-        git config --global user.email "app@deepchecks.com"
-        git config --global user.name "deepchecks-ci-bot"
-        make website
-        cd docs/_website/
-        if [ -e package-lock.json ]; then
-          npm ci
-        else
-          npm i
-        fi
-        npm run deploy
