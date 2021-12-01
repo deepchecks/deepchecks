@@ -5,6 +5,7 @@ import pandas as pd
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.strings import format_percent, format_columns_for_condition
+from deepchecks.utils.typing import Hashable
 
 
 __all__ = ['CategoryMismatchTrainTest']
@@ -14,13 +15,18 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
     """Find new categories in the test set.
 
     Args:
-        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-        ones.
-        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-        variable.
+        columns (Union[Hashable, Iterable[Hashable]]):
+            Columns to check, if none are given checks all columns except ignored ones.
+        ignore_columns (Union[Hashable, Iterable[Hashable]]):
+            Columns to ignore, if none given checks based on columns
+            variable.
     """
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None):
+    def __init__(
+        self,
+        columns: Union[Hashable, Iterable[Hashable]] = None,
+        ignore_columns: Union[Hashable, Iterable[Hashable]] = None
+    ):
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns

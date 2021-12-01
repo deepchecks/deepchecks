@@ -449,4 +449,4 @@ class TestLabel(TestCase):
             Dataset(**args)
         self.assertEqual(len(captured.records), 1)  # check that there is only one log message
         self.assertEqual(captured.records[0].getMessage(),
-                         'Can\'t have null values in label column')  # and it is the proper one
+                         'Can not have null values in label column')  # and it is the proper one

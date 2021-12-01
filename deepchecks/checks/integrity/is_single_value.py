@@ -4,6 +4,7 @@ import pandas as pd
 from deepchecks import SingleDatasetBaseCheck, CheckResult, ensure_dataframe_type, Dataset, ConditionResult
 from deepchecks.utils.dataframes import filter_columns_with_validation
 from deepchecks.utils.strings import format_columns_for_condition
+from deepchecks.utils.typing import Hashable
 
 
 __all__ = ['IsSingleValue']
@@ -13,13 +14,19 @@ class IsSingleValue(SingleDatasetBaseCheck):
     """Check if there are columns which have only a single unique value in all rows.
 
     Args:
-        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-        ones.
-        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-        variable.
+        columns (Union[Hashable, Iterable[Hashable]]):
+            Columns to check, if none are given checks all
+            columns except ignored ones.
+        ignore_columns (Union[Hashable, Iterable[Hashable]]):
+            Columns to ignore, if none given checks based
+            on columns variable.
     """
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None):
+    def __init__(
+        self,
+        columns: Union[Hashable, Iterable[Hashable]] = None,
+        ignore_columns: Union[Hashable, Iterable[Hashable]] = None
+    ):
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns

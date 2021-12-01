@@ -10,6 +10,7 @@ from scipy.stats import wasserstein_distance
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.checks.distribution.plot import plot_density
 from deepchecks.utils.features import calculate_feature_importance_or_null
+from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 import matplotlib.pyplot as plt
 
@@ -145,9 +146,14 @@ class TrainTestDrift(TrainTestBaseCheck):
          they are binned into an "Other" category. If max_num_categories=None, there is no limit.
     """
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 n_top_columns: int = 5, sort_feature_by: str = 'feature importance', max_num_categories: int = 10):
-
+    def __init__(
+        self,
+        columns: Union[Hashable, Iterable[Hashable]] = None,
+        ignore_columns: Union[Hashable, Iterable[Hashable]] = None,
+        n_top_columns: int = 5,
+        sort_feature_by: str = 'feature importance',
+        max_num_categories: int = 10
+    ):
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
@@ -227,7 +233,7 @@ class TrainTestDrift(TrainTestBaseCheck):
         headnote = f"""<span>
             The Drift score is a measure for the difference between two distributions, in this check - the test
             and train distributions.<br> The check shows the drift score and distributions for the features, sorted by
-            {sorted_by} and showing only the top {self.n_top_columns} features, according to {sorted_by}. 
+            {sorted_by} and showing only the top {self.n_top_columns} features, according to {sorted_by}.
             <br>If available, the plot titles also show the feature importance (FI) rank.
         </span>"""
 
@@ -240,7 +246,7 @@ class TrainTestDrift(TrainTestBaseCheck):
             check=self.__class__
         )
 
-    def _calc_drift_per_column(self, train_column: pd.Series, test_column: pd.Series, column_name: str,
+    def _calc_drift_per_column(self, train_column: pd.Series, test_column: pd.Series, column_name: Hashable,
                                column_type: str, feature_importances: pd.Series = None
                                ) -> Tuple[float, str, Callable]:
         """

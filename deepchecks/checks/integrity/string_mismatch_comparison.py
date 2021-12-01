@@ -6,9 +6,14 @@ import pandas as pd
 
 from deepchecks import CheckResult, Dataset, ensure_dataframe_type, CompareDatasetsBaseCheck, ConditionResult
 from deepchecks.utils.dataframes import filter_columns_with_validation
-from deepchecks.utils.strings import get_base_form_to_variants_dict, is_string_column, format_percent, \
-    format_columns_for_condition
 from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
+from deepchecks.utils.typing import Hashable
+from deepchecks.utils.strings import (
+    get_base_form_to_variants_dict,
+    format_columns_for_condition,
+    is_string_column,
+    format_percent,
+)
 
 
 __all__ = ['StringMismatchComparison']
@@ -57,8 +62,11 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
           amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 n_top_columns: int = 10):
+    def __init__(
+        self, columns: Union[Hashable, Iterable[Hashable]] = None,
+        ignore_columns: Union[Hashable, Iterable[Hashable]] = None,
+        n_top_columns: int = 10
+    ):
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns

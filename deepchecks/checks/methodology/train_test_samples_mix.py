@@ -8,6 +8,7 @@ import pandas as pd
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, ConditionResult, TrainTestBaseCheck
 from deepchecks.utils.strings import format_percent
+from deepchecks.utils.typing import Hashable
 
 
 pd.options.mode.chained_assignment = None
@@ -16,7 +17,7 @@ pd.options.mode.chained_assignment = None
 __all__ = ['TrainTestSamplesMix']
 
 
-def get_dup_indexes_map(df: pd.DataFrame, columns: List) -> Dict:
+def get_dup_indexes_map(df: pd.DataFrame, columns: List[Hashable]) -> Dict:
     """Find duplicated indexes in the dataframe.
 
     Args:

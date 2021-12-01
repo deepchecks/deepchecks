@@ -6,6 +6,7 @@ import pandas as pd
 from deepchecks import Dataset, ConditionResult
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from deepchecks.utils.strings import format_percent
+from deepchecks.utils.typing import Hashable
 
 
 __all__ = ['LabelAmbiguity']
@@ -15,15 +16,22 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
     """Find samples with multiple labels.
 
     Args:
-        columns (str, Iterable[str]): List of columns to check, if none given checks all columns Except ignored
-        ones.
-        ignore_columns (str, Iterable[str]): List of columns to ignore, if none given checks based on columns
-        variable.
-        n_to_show (int): number of most common ambiguous samples to show.
+        columns (Hashable, Iterable[Hashable]):
+            List of columns to check, if none given checks
+            all columns Except ignored ones.
+        ignore_columns (Hashable, Iterable[Hashable]):
+            List of columns to ignore, if none given checks
+            based on columns variable.
+        n_to_show (int):
+            number of most common ambiguous samples to show.
     """
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 n_to_show: int = 5):
+    def __init__(
+        self,
+        columns: Union[Hashable, Iterable[Hashable]] = None,
+        ignore_columns: Union[Hashable, Iterable[Hashable]] = None,
+        n_to_show: int = 5
+    ):
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns

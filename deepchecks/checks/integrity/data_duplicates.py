@@ -7,6 +7,7 @@ from deepchecks import Dataset, ensure_dataframe_type
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
 from deepchecks.utils.dataframes import filter_columns_with_validation
 from deepchecks.utils.strings import format_percent
+from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 
 
@@ -17,15 +18,22 @@ class DataDuplicates(SingleDatasetBaseCheck):
     """Search for duplicate data in dataset.
 
     Args:
-        columns (str, Iterable[str]): List of columns to check, if none given checks all columns Except ignored
-          ones.
-        ignore_columns (str, Iterable[str]): List of columns to ignore, if none given checks based on columns
-          variable.
-        n_to_show (int): number of most common duplicated samples to show.
+        columns (Hashable, Iterable[Hashable]):
+            List of columns to check, if none given checks
+            all columns Except ignored ones.
+        ignore_columns (Hashable, Iterable[Hashable]):
+            List of columns to ignore, if none given checks
+            based on columns variable.
+        n_to_show (int):
+            number of most common duplicated samples to show.
     """
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 n_to_show: int = 5):
+    def __init__(
+        self,
+        columns: Union[Hashable, Iterable[Hashable]] = None,
+        ignore_columns: Union[Hashable, Iterable[Hashable]] = None,
+        n_to_show: int = 5
+    ):
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
