@@ -56,7 +56,7 @@ First clone the repository and then install the package from inside the reposito
 git clone https://github.com/deepchecks/deepchecks.git
 cd deepchecks
 # for installing stable tag version and not the latest commit to main
-git checkout tags/<name_of_latest_tag>
+git checkout tags/<version>
 ```
 and then either:
 ```bash
@@ -136,12 +136,12 @@ Let's take the "iris" dataset as an example:
 ```python
 import pandas as pd
 from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
 ```
 ```python
 iris_df = load_iris(return_X_y=False, as_frame=True)['frame']
-train_len = round(0.67*len(iris_df))
-df_train = iris_df[:train_len]
-df_test = iris_df[train_len:]
+label_col = 'target'
+df_train, df_test = train_test_split(iris_df, stratify=iris_df[label_col], random_state=0)
 ```
 To run an existing suite all you need to do is import the suite and run it -
 
