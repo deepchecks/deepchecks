@@ -146,12 +146,11 @@ class CheckResult:
     def _ipython_display_(self):
         if self.header:
             display_html(f'<h4>{self.header}</h4>', raw=True)
-        if self.check and '__doc__' in dir(self.check):
+        if self.check and '__doc__' in dir(self.check) and self.check.__doc__:
             docs = self.check.__doc__
-            if docs:
-                # Take first non-whitespace line.
-                summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
-                display_html(f'<p>{summary}</p>', raw=True)
+            # Take first non-whitespace line.
+            summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
+            display_html(f'<p>{summary}</p>', raw=True)
 
         for item in self.display:
             if isinstance(item, (pd.DataFrame, Styler)):
