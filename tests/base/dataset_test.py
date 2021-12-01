@@ -561,6 +561,34 @@ def validate_dataset_created_from_numpy_arrays(
         assert_that(label_name, equal_to(label_column_name))
 
 
+def test_dataset_initialization_with_integer_columns():
+    df = pd.DataFrame.from_records([
+        {0: 'a', 1: 0.6, 2: 0.7, 3: 1},
+        {0: 'b', 1: 0.33, 2: 0.14, 3: 0},
+        {0: 'c', 1: 0.24, 2: 0.07, 3: 0},
+        {0: 'c', 1: 0.89, 2: 0.56, 3: 1}
+    ])
+
+    dataset = Dataset(
+        df=df,
+        features=[0,1,2],
+        label=3,
+        cat_features=[0],
+    )
+
+    assert_that(actual=dataset.features(), matcher=contains_exactly(0,1,2))
+    assert_that(actual=dataset.label_name(), matcher=equal_to(3))
+    assert_that(actual=dataset.cat_features, matcher=contains_exactly(0))
+
+    assert_that(
+        (dataset.features_columns() == df.drop(3, axis=1))
+        .all().all()
+    )
+    assert_that(
+        (dataset.label_col() == df[3]).all()
+    )
+
+
 class TestLabel(TestCase):
     """Unittest class for invalid labels"""
 
