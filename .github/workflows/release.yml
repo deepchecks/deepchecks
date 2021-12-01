@@ -25,6 +25,7 @@ jobs:
         git config --global user.email "app@deepchecks.com"
         git config --global user.name "deepchecks-ci-bot"
         make website # generate the files
+        make recreate-example-notebooks
         ##TODO: add command to publish the documentation site
 
 
