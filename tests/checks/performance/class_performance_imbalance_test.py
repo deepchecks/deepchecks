@@ -26,49 +26,49 @@ def test_class_performance_imbalance(
     validate_class_performance_imbalance_check_result(check_result)
 
 
-def test_init_class_performance_imbalance_with_empty_dict_of_metrics():
+def test_init_class_performance_imbalance_with_empty_dict_of_scorers():
     assert_that(
-        calling(ClassPerformanceImbalanceCheck).with_args(alternative_metrics=dict()),
-        raises(DeepchecksValueError, 'alternative_metrics - expected to receive not empty dict of scorers!')
+        calling(ClassPerformanceImbalanceCheck).with_args(alternative_scorers=dict()),
+        raises(DeepchecksValueError, 'alternative_scorers - expected to receive not empty dict of scorers!')
     )
 
 
-def test_init_class_performance_imbalance_with_metrics_dict_that_contains_not_callable_and_not_name_of_sklearn_scorer():
+def test_init_class_performance_imbalance_with_scorers_dict_that_contains_not_callable_and_not_name_of_sklearn_scorer():
     assert_that(
-        calling(ClassPerformanceImbalanceCheck).with_args(alternative_metrics=dict(Metric=1)),
+        calling(ClassPerformanceImbalanceCheck).with_args(alternative_scorers=dict(Metric=1)),
         raises(
             DeepchecksValueError,
-            r"alternative_metrics - expected to receive 'Mapping\[str, Callable\]' but got 'Mapping\[str, int\]'!"
+            r"alternative_scorers - expected to receive 'Mapping\[str, Callable\]' but got 'Mapping\[str, int\]'!"
         )
     )
 
 
-def test_class_performance_imbalance_with_custom_metrics(
+def test_class_performance_imbalance_with_custom_scorers(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, AdaBoostClassifier]
 ):
     # Arrange
     _, test, model = iris_split_dataset_and_model
-    alternative_metrics = {
+    alternative_scorers = {
         'Test1': lambda model, features, labels: {0: 1., 1: 0.9, 2: 0.89},
         'Test2': lambda model, features, labels: {0: 0.9, 1: 0.87, 2: 1.},
         'Test3': lambda model, features, labels: {0: 0.97, 1: 1., 2: 0.79}
     }
-    check = ClassPerformanceImbalanceCheck(alternative_metrics=alternative_metrics)
+    check = ClassPerformanceImbalanceCheck(alternative_scorers=alternative_scorers)
 
     # Act
     check_result = check.run(dataset=test, model=model)
-    
+
     # Assert
-    class_metrics_matcher = has_entries({
+    class_scores_matcher = has_entries({
         k: instance_of(float)
-        for k in alternative_metrics.keys()
+        for k in alternative_scorers.keys()
     })
     value_matcher = all_of(
         instance_of(dict),
         has_entries({
-            0: all_of(instance_of(dict), class_metrics_matcher),
-            1: all_of(instance_of(dict), class_metrics_matcher),
-            2: all_of(instance_of(dict), class_metrics_matcher),
+            0: all_of(instance_of(dict), class_scores_matcher),
+            1: all_of(instance_of(dict), class_scores_matcher),
+            2: all_of(instance_of(dict), class_scores_matcher),
         })
     )
 
@@ -78,63 +78,63 @@ def test_class_performance_imbalance_with_custom_metrics(
     )
 
 
-def test_class_performance_imbalance_with_custom_metrics_that_return_not_dict_value(
+def test_class_performance_imbalance_with_custom_scorers_that_return_not_dict_value(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, AdaBoostClassifier]
 ):
     # Arrange
     _, test, model = iris_split_dataset_and_model
 
-    alternative_metrics = {'Test1': lambda model, features, labels: 1,}
-    check = ClassPerformanceImbalanceCheck(alternative_metrics=alternative_metrics) # type: ignore
+    alternative_scorers = {'Test1': lambda model, features, labels: 1,}
+    check = ClassPerformanceImbalanceCheck(alternative_scorers=alternative_scorers)
 
     # Assert
     assert_that(
         calling(check.run).with_args(dataset=test, model=model),
         raises(
             DeepchecksValueError,
-            r'Check ClassPerformanceImbalanceCheck expecting that alternative metrics will return '
+            r"Check ClassPerformanceImbalanceCheck expecting that alternative scorer 'Test1' will return "
             r"not empty instance of 'Mapping\[Hashable, float|int\]', but got tuple"
         )
     )
 
 
-def test_class_performance_imbalance_with_custom_metrics_that_return_empty_dict(
+def test_class_performance_imbalance_with_custom_scorers_that_return_empty_dict(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, AdaBoostClassifier]
 ):
     # Arrage
     _, test, model = iris_split_dataset_and_model
 
     # dict dtype is allowed but it cannot be empty
-    alternative_metrics = {'Test3': lambda model, features, labels: dict()}
-    check = ClassPerformanceImbalanceCheck(alternative_metrics=alternative_metrics)
+    alternative_scorers = {'Test3': lambda model, features, labels: dict()}
+    check = ClassPerformanceImbalanceCheck(alternative_scorers=alternative_scorers)
 
     # Assert
     assert_that(
         calling(check.run).with_args(dataset=test, model=model),
         raises(
             DeepchecksValueError,
-            r'Check ClassPerformanceImbalanceCheck expecting that alternative metrics will return '
+            r"Check ClassPerformanceImbalanceCheck expecting that alternative scorer 'Test3' will return "
             r"not empty instance of 'Mapping\[Hashable, float\|int\]'"
         )
     )
 
 
-def test_class_performance_imbalance_with_custom_metrics_that_return_values_with_incorrect_dtype(
+def test_class_performance_imbalance_with_custom_scorers_that_return_values_with_incorrect_dtype(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, AdaBoostClassifier]
 ):
     # Arrange
     _, test, model = iris_split_dataset_and_model
 
     # dict dtype is allowed but values dtype must be int|float
-    alternative_metrics = {'Test3': lambda model, features, labels: dict(a="Hello!")}
-    check = ClassPerformanceImbalanceCheck(alternative_metrics=alternative_metrics)
+    alternative_scorers = {'Test3': lambda model, features, labels: dict(a="Hello!")}
+    check = ClassPerformanceImbalanceCheck(alternative_scorers=alternative_scorers)
 
     # Assert
     assert_that(
         calling(check.run).with_args(dataset=test, model=model),
         raises(
             DeepchecksValueError,
-            r'Check ClassPerformanceImbalanceCheck expecting that alternative metrics will return '
+            r"Check ClassPerformanceImbalanceCheck expecting that alternative scorer 'Test3' will return "
             r"not empty instance of 'Mapping\[Hashable, float\|int\]', but got 'Mapping\[Hashable, str]'"
         )
     )
@@ -177,7 +177,7 @@ def test_condition_percentage_difference_not_greater_than_threshold_that_should_
     # Assert
     detail_pattern = re.compile(
         r'Relative ratio difference between highest and lowest classes is greater than 20\.00%:'
-        r'(\nMetric: .+, lowest class: \d+, highest class: \d+;)+'
+        r'(\nScore: .+, lowest class: \d+, highest class: \d+;)+'
     )
     assert_that(condition_result, equal_condition_result( # type: ignore
         is_pass=False,
@@ -192,7 +192,7 @@ def validate_class_performance_imbalance_check_result(
     value: t.Optional[Matcher] = None
 ):
     if value is None:
-        default_metrics_matcher = has_entries({
+        default_scores_matcher = has_entries({
             'Accuracy': instance_of(float),
             'Precision': instance_of(float),
             'Recall': instance_of(float),
@@ -201,9 +201,9 @@ def validate_class_performance_imbalance_check_result(
         value_matcher = all_of(
             instance_of(dict),
             has_entries({
-                0: all_of(instance_of(dict), default_metrics_matcher),
-                1: all_of(instance_of(dict), default_metrics_matcher),
-                2: all_of(instance_of(dict), default_metrics_matcher),
+                0: all_of(instance_of(dict), default_scores_matcher),
+                1: all_of(instance_of(dict), default_scores_matcher),
+                2: all_of(instance_of(dict), default_scores_matcher),
             })
         )
     else:
