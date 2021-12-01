@@ -596,7 +596,8 @@ class Dataset:
                                        'categorical features using Dataset(cat_features=<list_of_features>')
 
     def validate_shared_label(self, other, check_name: str) -> Hashable:
-        """
+        """Verify presence of shared labels.
+
         Return the list of shared features if both datasets have the same
         feature column names, else, raise error.
 
