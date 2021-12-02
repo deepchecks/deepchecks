@@ -116,11 +116,11 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
             diff = {metric: score - test_metrics[metric] for metric, score in train_metrics.items()}
             failed_metrics = [k for k, v in diff.items() if v > threshold]
             if failed_metrics:
-                explained_failures = ''
+                explained_failures = []
                 for metric in failed_metrics:
-                    explained_failures += f'{metric} (train={format_percent(train_metrics[metric])} '\
-                                          f'test={format_percent(test_metrics[metric])}), '
-                    message = f'Found performance degradation in: {explained_failures[:-2]}'
+                    explained_failures.append(f'{metric} (train={format_percent(train_metrics[metric])} '
+                                              f'test={format_percent(test_metrics[metric])})')
+                message = f'Found performance degradation in: {", ".join(explained_failures)}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
@@ -144,11 +144,11 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
                     for metric, score in train_metrics.items()}
             failed_metrics = [k for k, v in diff.items() if v > threshold]
             if failed_metrics:
-                explained_failures = ''
+                explained_failures = []
                 for metric in failed_metrics:
-                    explained_failures += f'{metric} (train={format_percent(train_metrics[metric])} '\
-                                          f'test={format_percent(test_metrics[metric])}), '
-                message = f'Found performance degradation in: {explained_failures[:-2]}'
+                    explained_failures.append(f'{metric} (train={format_percent(train_metrics[metric])} '
+                                              f'test={format_percent(test_metrics[metric])})')
+                message = f'Found performance degradation in: {", ".join(explained_failures)}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
