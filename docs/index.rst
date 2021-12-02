@@ -18,7 +18,7 @@ Reference Guides
 ================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 3
 
    deepcheckss/deepchecks.rst
 
