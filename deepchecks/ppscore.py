@@ -1,5 +1,4 @@
-"""PPS (Predictive Power Score) module."""
-
+"""PPS (Predictive Power Score) module this is just a test."""
 # Copied from https://github.com/8080labs/ppscore, version 1.2.0
 #
 # Used according to the following License:
