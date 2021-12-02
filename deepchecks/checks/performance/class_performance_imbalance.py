@@ -7,7 +7,7 @@ from collections import defaultdict
 
 import pandas as pd
 import numpy as np
-from sklearn.metrics import precision_score, recall_score, get_scorer
+from sklearn.metrics import precision_score, recall_score, get_scorer, make_scorer
 from sklearn.utils.multiclass import unique_labels as get_unique_labels
 
 from deepchecks import SingleDatasetBaseCheck, Dataset, CheckResult, ConditionResult
@@ -21,7 +21,7 @@ __all__ = ['ClassPerformanceImbalanceCheck']
 
 ScorerFunc = t.Callable[
     [object, pd.DataFrame, pd.Series], # model, features, labels
-    t.Dict[t.Hashable, t.Union[float, int]] # score for each label
+    np.ndarray # scores
 ]
 
 AlternativeScorer = t.Union[str, ScorerFunc]
@@ -35,7 +35,9 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
 
     Args:
         alternative_scorers (Mapping[str, Union[str, Callable]]):
-            An optional dictionary of scorer name or scorer functions
+            An optional dictionary of scorer name or scorer functions.
+            Important, user-defined scorer alternative functions must return
+            array in sorted order, to match `sorted(unique_labels)`.
 
     Raises:
         DeepchecksValueError:
@@ -107,21 +109,16 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
         labels = t.cast(pd.Series, dataset.label_col())
         features = t.cast(pd.DataFrame, dataset.features_columns())
 
-        if self.alternative_scorers is not None:
-            df = pd.DataFrame.from_dict(self._execute_alternative_scorers(
-                model, features, labels
+        unique_labels = get_unique_labels()
+        scorers = self.alternative_scorers or self._get_default_scorers()
+
+        df = pd.DataFrame.from_dict({
+            scorer_name: dict(zip(
+                unique_labels,
+                t.cast(t.Iterable, scorer_func(model, features, labels))
             ))
-        else:
-            y_true = labels
-            y_pred = model.predict(features)
-            unique_labels = get_unique_labels(labels, y_pred)
-            df = pd.DataFrame.from_dict({
-                name: dict(zip(
-                    unique_labels,
-                    t.cast(t.Iterable, scorer_func(y_true, y_pred, labels=unique_labels))
-                ))
-                for name, scorer_func in self._get_default_scorers().items()
-            })
+            for scorer_name, scorer_func in scorers.items()
+        })
 
         def display():
             title = (
@@ -145,51 +142,13 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
         )
 
     def _get_default_scorers(self) -> t.Dict[str, t.Callable[..., np.ndarray]]:
+        # TODO: use `get_metrics_list` from utils package
+        # but first we need to refactor it to accept 'average' argument
         return {
-            'Accuracy': partial(recall_score, zero_division=0, average=None),
-            'Precision': partial(precision_score, zero_division=0, average=None),
-            'Recall': partial(recall_score, zero_division=0, average=None)
+            'Accuracy': make_scorer(recall_score, zero_division=0, average=None),
+            'Precision': make_scorer(precision_score, zero_division=0, average=None),
+            'Recall': make_scorer(recall_score, zero_division=0, average=None)
         }
-
-    def _execute_alternative_scorers(
-        self,
-        model: t.Any,
-        features: pd.DataFrame,
-        labels: pd.Series,
-    ) -> t.Dict[str, t.Dict[t.Hashable, t.Union[int, float]]]:
-        check_name = type(self).__name__
-        scorers = t.cast(t.Mapping[str, ScorerFunc], self.alternative_scorers)
-        result: t.Dict[str, t.Dict[t.Hashable, t.Union[int, float]]] = {}
-
-        for scorer_name, scorer_func in scorers.items():
-            scorer_result = scorer_func(model, features, labels)
-
-            if not isinstance(scorer_result, dict):
-                result_type = type(scorer_result).__name__
-                raise DeepchecksValueError(
-                    f"Check {check_name} expecting that alternative scorer '{scorer_name}' will return "
-                    f"not empty instance of 'Mapping[Hashable, float|int]', but got {result_type}"
-                )
-
-            if len(scorer_result) == 0:
-                raise DeepchecksValueError(
-                    f"Check {check_name} expecting that alternative scorer '{scorer_name}' will return "
-                    "not empty instance of 'Mapping[Hashable, float|int]'"
-                )
-
-            incorrect_values = [v for v in scorer_result.values() if not isinstance(v, (int, float))]
-
-            if len(incorrect_values) != 0:
-                value_type = type(incorrect_values[0]).__name__
-                raise DeepchecksValueError(
-                    f"Check {check_name} expecting that alternative scorer '{scorer_name}' will return "
-                    "not empty instance of 'Mapping[Hashable, float|int]', "
-                    f"but got 'Mapping[Hashable, {value_type}]'"
-                )
-
-            result[scorer_name] = scorer_result
-
-        return result
 
     def add_condition_ratio_difference_not_greater_than(self: CP, threshold: float = 0.3) -> CP:
         """Add condition.
