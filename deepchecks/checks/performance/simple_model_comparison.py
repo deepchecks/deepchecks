@@ -10,7 +10,7 @@ from deepchecks import CheckResult, Dataset
 from deepchecks.base.check import ConditionResult, TrainTestBaseCheck
 from deepchecks.utils.metrics import DEFAULT_METRICS_DICT, DEFAULT_SINGLE_METRIC, task_type_check, \
                                      ModelType, validate_scorer, get_metrics_ratio
-from deepchecks.utils.validation import model_type_validation
+from deepchecks.utils.validation import validate_model
 
 __all__ = ['SimpleModelComparison']
 
@@ -144,7 +144,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
         Dataset.validate_dataset(test_dataset, func_name)
         train_dataset.validate_label(func_name)
         test_dataset.validate_label(func_name)
-        model_type_validation(model)
+        validate_model(test_dataset, model)
 
         simple_metric, pred_metric, metric_name = self._find_score(train_dataset, test_dataset,
                                                             task_type_check(model, train_dataset), model)

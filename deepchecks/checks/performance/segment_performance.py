@@ -10,6 +10,7 @@ from deepchecks.checks.performance.partition import partition_column
 from deepchecks.utils.metrics import validate_scorer, task_type_check, DEFAULT_SINGLE_METRIC, DEFAULT_METRICS_DICT
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.features import calculate_feature_importance
+from deepchecks.utils.validation import validate_model
 from deepchecks.errors import DeepchecksValueError
 
 
@@ -57,7 +58,7 @@ class SegmentPerformance(SingleDatasetBaseCheck):
         # Validations
         Dataset.validate_dataset(dataset, self.__class__.__name__)
         dataset.validate_label(self.__class__.__name__)
-        dataset.validate_model(model)
+        validate_model(dataset, model)
 
         if self.feature_1 is None or self.feature_2 is None:
             # only one none is not ok

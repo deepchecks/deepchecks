@@ -483,6 +483,19 @@ class Dataset:
             raise DeepchecksValueError(f'Check {check_name} requires dataset to have a label column')
         self.check_compatible_labels()
 
+    def validate_features(self, check_name: str):
+        """
+        Throws error if dataset does not have a features columns.
+
+        Args:
+            check_name (str): check name to print in error
+
+        Raises:
+            DeepchecksValueError: if dataset does not have features columns.
+        """
+        if not self._features:
+            raise DeepchecksValueError(f'Check {check_name} requires dataset to have features columns!')
+
     def validate_date(self, check_name: str):
         """
         Throws error if dataset does not have a date column.
@@ -615,17 +628,6 @@ class Dataset:
         else:
             raise DeepchecksValueError(f'dataset must be of type DataFrame or Dataset. instead got: '
                                        f'{type(obj).__name__}')
-
-    def validate_model(self, model):
-        """Check model is able to predict on the dataset.
-
-        Raise:
-            DeepchecksValueError: if dataset does not match model
-        """
-        try:
-            model.predict(self.features_columns().head(1))
-        except Exception as exc:
-            raise DeepchecksValueError('Got error when trying to predict with model on dataset') from exc
 
     @classmethod
     def validate_dataset(cls, obj, check_name: str) -> 'Dataset':
