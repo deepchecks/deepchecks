@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from deepchecks import SingleDatasetBaseCheck, CheckResult, Dataset, ConditionResult
-from deepchecks.utils.validation import model_type_validation
+from deepchecks.utils.validation import validate_model
 from deepchecks.utils.strings import format_number
 from deepchecks.errors import DeepchecksValueError
 
@@ -56,9 +56,8 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
     ) -> CheckResult:
         check_name = type(self).__name__
         Dataset.validate_dataset(dataset, check_name)
-        Dataset.validate_model(dataset, model)
         Dataset.validate_features(dataset, check_name)
-        model_type_validation(model)
+        validate_model(dataset, model)
 
         prediction_method = model.predict # type: ignore
         df = t.cast(pd.DataFrame, dataset.features_columns())
