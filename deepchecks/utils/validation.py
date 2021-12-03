@@ -53,14 +53,19 @@ def validate_model(dataset: 'base.Dataset', model: t.Any):
             'But function received empty dataset!'
         ))
 
+    # == TODO: TMP, DEBUGING
+    # Do not know wht but when I run this test in my local env
+    # this attributes are present and are correct
+    # but this is not true in CI/CD
+    import warnings
+    warnings.warn(str(model_features))
+    warnings.warn(str(getattr(model, 'feature_names_', None)))
+    #
+    warnings.warn(str(features_names))
+    # ==
+
     try:
         model_features = set(model_features) # type: ignore
-        # == TMP, DEBUGING ==
-        import warnings
-        warnings.warn(str(model_features))
-        warnings.warn(str(features_names))
-        warnings.warn(str(model_features != features_names))
-        # ==
         if model_features != features_names:
             raise errors.DeepchecksValueError(error_message.format(
                 'But function received dataset with a different set of features!'
@@ -73,5 +78,5 @@ def validate_model(dataset: 'base.Dataset', model: t.Any):
         model.predict(features.head(1))
     except Exception as exc:
         raise errors.DeepchecksValueError(
-            f'Got error when trying to predict wth model on dataset: {str(exc)}'
+            f'Got error when trying to predict with model on dataset: {str(exc)}'
         )
