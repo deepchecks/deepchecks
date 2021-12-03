@@ -1,7 +1,7 @@
 """Module contains Train Test Drift check."""
 
 from collections import Counter, OrderedDict
-from typing import Union, Iterable, Tuple, List, Dict, Callable
+from typing import Union, Tuple, List, Dict, Callable
 
 import numpy as np
 import pandas as pd
@@ -20,7 +20,7 @@ __all__ = ['TrainTestDrift']
 PSI_MIN_PERCENTAGE = 0.01
 
 
-def preprocess_for_psi(dist1: np.array, dist2: np.array, max_num_categories) -> Tuple[np.array, np.array, List]:
+def preprocess_for_psi(dist1: np.ndarray, dist2: np.ndarray, max_num_categories) -> Tuple[np.ndarray, np.ndarray, List]:
     """
     Preprocess distributions in order to be able to be calculated by PSI.
 
@@ -63,7 +63,7 @@ def preprocess_for_psi(dist1: np.array, dist2: np.array, max_num_categories) -> 
     return expected_percents, actual_percents, categories_list
 
 
-def psi(expected_percents: np.array, actual_percents: np.array):
+def psi(expected_percents: np.ndarray, actual_percents: np.ndarray):
     """
     Calculate the PSI (Population Stability Index).
 
@@ -88,7 +88,7 @@ def psi(expected_percents: np.array, actual_percents: np.array):
     return psi_value
 
 
-def earth_movers_distance(dist1: np.array, dist2: np.array):
+def earth_movers_distance(dist1: np.ndarray, dist2: np.ndarray):
     """
     Calculate the Earth Movers Distance (Wasserstein distance).
 
@@ -134,22 +134,26 @@ class TrainTestDrift(TrainTestBaseCheck):
 
 
     Args:
-        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-        ones.
-        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-        variable.
+        columns (Union[Hashable, List[Hashable]]):
+            Columns to check, if none are given checks all
+            columns except ignored ones.
+        ignore_columns (Union[Hashable, List[Hashable]]):
+            Columns to ignore, if none given checks based on
+            columns variable.
         n_top_columns (int): (optional - used only if model was specified)
-          amount of columns to show ordered by feature importance (date, index, label are first)
-        sort_feature_by (str): Indicates how features will be sorted. Can be either "feature importance"
-          or "drift score"
-        max_num_categories (int): Only for categorical columns. Max number of allowed categories. If there are more,
-         they are binned into an "Other" category. If max_num_categories=None, there is no limit.
+            amount of columns to show ordered by feature importance (date, index, label are first)
+        sort_feature_by (str):
+            Indicates how features will be sorted. Can be either "feature importance"
+            or "drift score"
+        max_num_categories (int):
+            Only for categorical columns. Max number of allowed categories. If there are more,
+            they are binned into an "Other" category. If max_num_categories=None, there is no limit.
     """
 
     def __init__(
         self,
-        columns: Union[Hashable, Iterable[Hashable]] = None,
-        ignore_columns: Union[Hashable, Iterable[Hashable]] = None,
+        columns: Union[Hashable, List[Hashable], None] = None,
+        ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_top_columns: int = 5,
         sort_feature_by: str = 'feature importance',
         max_num_categories: int = 10

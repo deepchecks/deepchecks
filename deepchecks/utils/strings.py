@@ -9,6 +9,7 @@ import pandas as pd
 from pandas.core.dtypes.common import is_numeric_dtype
 
 from deepchecks.utils.typing import Hashable
+from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 
 
 __all__ = [
@@ -230,14 +231,18 @@ def format_columns_for_condition(
     """Format columns properties for display in condition name.
 
     Args:
-        columns (List[str]): columns property
-        ignore_columns (List[str]): ignore_columns property
+        columns (Union[Hashable, List[Hashable], None]):
+            columns to include into resulting string
+        ignore_columns (Union[Hashable, List[Hashable], None]):
+            columns to not include into resulting string
+
+    Returns: formatted string of columns
     """
     if columns is not None:
-        columns = columns if isinstance(columns, list) else [columns]
+        columns = ensure_hashable_or_mutable_sequence(columns)
         return f'columns: {",".join(map(str, columns))}'
     elif ignore_columns is not None:
-        ignore_columns = ignore_columns if isinstance(ignore_columns, list) else [ignore_columns]
+        ignore_columns = ensure_hashable_or_mutable_sequence(ignore_columns)
         return f'all columns ignoring: {",".join(map(str, ignore_columns))}'
     else:
         return 'all columns'

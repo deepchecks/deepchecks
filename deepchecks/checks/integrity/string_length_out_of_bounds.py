@@ -1,7 +1,7 @@
 """String length outlier check."""
 from collections import defaultdict
 from functools import reduce
-from typing import Union, Dict, Iterable, Tuple
+from typing import Union, Dict, Tuple, List
 
 import numpy as np
 import pandas as pd
@@ -69,9 +69,9 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
     """Detect strings with length that is much longer/shorter than the identified "normal" string lengths.
 
     Args:
-        columns (Union[Hashable, Iterable[Hashable]]):
+        columns (Union[Hashable, List[Hashable]]):
             Columns to check, if none are given checks all columns except ignored ones.
-        ignore_columns (Union[Hashable, Iterable[Hashable]]):
+        ignore_columns (Union[Hashable, List[Hashable]]):
             Columns to ignore, if none given checks based on columns variable
         num_percentiles (int):
             Number of percentiles values to retrieve for the length of the samples in the string
@@ -88,8 +88,8 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
 
     def __init__(
         self,
-        columns: Union[Hashable, Iterable[Hashable]] = None,
-        ignore_columns: Union[Hashable, Iterable[Hashable]] = None,
+        columns: Union[Hashable, List[Hashable]] = None,
+        ignore_columns: Union[Hashable, List[Hashable]] = None,
         num_percentiles: int = 1000,
         inner_quantile_range: int = 94,
         outlier_factor: int = 4,

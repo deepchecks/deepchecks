@@ -42,9 +42,9 @@ class StringMismatch(SingleDatasetBaseCheck):
     """Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column.
 
     Args:
-        columns (Union[str, List[str]]):
+        columns (Union[Hashable, List[Hashable]]):
             Columns to check, if none are given checks all columns except ignored ones.
-        ignore_columns (Union[str, List[str]]):
+        ignore_columns (Union[Hashable, List[Hashable]]):
             Columns to ignore, if none given checks based on columns variable
         n_top_columns (int): (optinal - used only if model was specified)
           amount of columns to show ordered by feature importance (date, index, label are first)

@@ -2,6 +2,7 @@
 import typing as t
 import pandas as pd
 from deepchecks.utils.typing import Hashable
+from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 from deepchecks.errors import DeepchecksValueError
 
 
@@ -29,14 +30,14 @@ def validate_columns_exist(
             If receives empty list of 'columns';
             If not all elements within 'columns' list are hashable;
     """
-    columns = columns if isinstance(columns, list) else [columns]
+    error_message = 'columns - expected to receive not empty list of hashable values!'
+    columns = ensure_hashable_or_mutable_sequence(columns, message=error_message)
 
     is_empty = len(columns) == 0
-    all_elememnts_hashable = all(isinstance(s, Hashable) for s in columns)
 
-    if raise_error and (is_empty or not all_elememnts_hashable):
-        raise DeepchecksValueError('columns - expected to receive not empty list of hashable values!')
-    elif not raise_error and (is_empty or not all_elememnts_hashable):
+    if raise_error and is_empty:
+        raise DeepchecksValueError(error_message)
+    elif not raise_error and is_empty:
         return False
 
     difference = set(columns) - set(df.columns)
@@ -58,8 +59,8 @@ def filter_columns_with_validation(
 
     Args:
         df (pd.DataFrame)
-        columns (Union[str, List[str], None]): Column names to keep.
-        ignore_columns (Union[str, List[str], None]): Column names to drop.
+        columns (Union[Hashable, List[Hashable], None]): Column names to keep.
+        ignore_columns (Union[Hashable, List[Hashable], None]): Column names to drop.
 
     Returns:
         pandas.DataFrame: returns horizontally filtered dataframe
@@ -75,9 +76,11 @@ def filter_columns_with_validation(
             'only one must be used at most'
         )
     elif columns is not None:
+        columns = ensure_hashable_or_mutable_sequence(columns)
         validate_columns_exist(df, columns)
         return t.cast(pd.DataFrame, df[columns])
     elif ignore_columns is not None:
+        ignore_columns = ensure_hashable_or_mutable_sequence(ignore_columns)
         validate_columns_exist(df, ignore_columns)
         return df.drop(labels=ignore_columns, axis='columns')
     else:
