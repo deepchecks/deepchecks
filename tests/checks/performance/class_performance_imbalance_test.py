@@ -1,5 +1,6 @@
 import typing as t
 import re
+import numpy as np
 from sklearn.ensemble import AdaBoostClassifier
 from hamcrest.core.matcher import Matcher
 from hamcrest import (
@@ -49,9 +50,9 @@ def test_class_performance_imbalance_with_custom_scorers(
     # Arrange
     _, test, model = iris_split_dataset_and_model
     alternative_scorers = {
-        'Test1': lambda model, features, labels: {0: 1., 1: 0.9, 2: 0.89},
-        'Test2': lambda model, features, labels: {0: 0.9, 1: 0.87, 2: 1.},
-        'Test3': lambda model, features, labels: {0: 0.97, 1: 1., 2: 0.79}
+        'Test1': lambda model, features, labels: np.array([1,2,3]),
+        'Test2': lambda model, features, labels: np.array([1,2,3]),
+        'Test3': lambda model, features, labels: np.array([1,2,3])
     }
     check = ClassPerformanceImbalanceCheck(alternative_scorers=alternative_scorers)
 
@@ -60,7 +61,7 @@ def test_class_performance_imbalance_with_custom_scorers(
 
     # Assert
     class_scores_matcher = has_entries({
-        k: instance_of(float)
+        k: instance_of(int)
         for k in alternative_scorers.keys()
     })
     value_matcher = all_of(
@@ -78,7 +79,7 @@ def test_class_performance_imbalance_with_custom_scorers(
     )
 
 
-def test_class_performance_imbalance_with_custom_scorers_that_return_not_dict_value(
+def test_class_performance_imbalance_with_custom_scorers_that_return_not_array(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, AdaBoostClassifier]
 ):
     # Arrange
@@ -92,20 +93,21 @@ def test_class_performance_imbalance_with_custom_scorers_that_return_not_dict_va
         calling(check.run).with_args(dataset=test, model=model),
         raises(
             DeepchecksValueError,
-            r"Check ClassPerformanceImbalanceCheck expecting that alternative scorer 'Test1' will return "
-            r"not empty instance of 'Mapping\[Hashable, float|int\]', but got tuple"
+            r"Check 'ClassPerformanceImbalanceCheck' expecting that scorer 'Test1' "
+            r"will return an instance of numpy array with items of type int\|float and with shape \(3,\)! "
+            r"But got instance of 'int'."
         )
     )
 
 
-def test_class_performance_imbalance_with_custom_scorers_that_return_empty_dict(
+def test_class_performance_imbalance_with_custom_scorers_that_return_empty_array(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, AdaBoostClassifier]
 ):
     # Arrage
     _, test, model = iris_split_dataset_and_model
 
     # dict dtype is allowed but it cannot be empty
-    alternative_scorers = {'Test3': lambda model, features, labels: dict()}
+    alternative_scorers = {'Test3': lambda model, features, labels: np.array([])}
     check = ClassPerformanceImbalanceCheck(alternative_scorers=alternative_scorers)
 
     # Assert
@@ -113,20 +115,21 @@ def test_class_performance_imbalance_with_custom_scorers_that_return_empty_dict(
         calling(check.run).with_args(dataset=test, model=model),
         raises(
             DeepchecksValueError,
-            r"Check ClassPerformanceImbalanceCheck expecting that alternative scorer 'Test3' will return "
-            r"not empty instance of 'Mapping\[Hashable, float\|int\]'"
+            r"Check 'ClassPerformanceImbalanceCheck' expecting that scorer 'Test3' will "
+            r"return an instance of numpy array with items of type int\|float and with shape \(3,\)! "
+            r"But got array with shape \(0,\)."
         )
     )
 
 
-def test_class_performance_imbalance_with_custom_scorers_that_return_values_with_incorrect_dtype(
+def test_class_performance_imbalance_with_custom_scorers_that_return_array_with_incorrect_dtype(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, AdaBoostClassifier]
 ):
     # Arrange
     _, test, model = iris_split_dataset_and_model
 
     # dict dtype is allowed but values dtype must be int|float
-    alternative_scorers = {'Test3': lambda model, features, labels: dict(a="Hello!")}
+    alternative_scorers = {'Test3': lambda model, features, labels: np.array(["a", "b", "c"])}
     check = ClassPerformanceImbalanceCheck(alternative_scorers=alternative_scorers)
 
     # Assert
@@ -134,8 +137,9 @@ def test_class_performance_imbalance_with_custom_scorers_that_return_values_with
         calling(check.run).with_args(dataset=test, model=model),
         raises(
             DeepchecksValueError,
-            r"Check ClassPerformanceImbalanceCheck expecting that alternative scorer 'Test3' will return "
-            r"not empty instance of 'Mapping\[Hashable, float\|int\]', but got 'Mapping\[Hashable, str]'"
+            r"Check 'ClassPerformanceImbalanceCheck' expecting that scorer 'Test3' "
+            r"will return an instance of numpy array with items of type int\|float and "
+            r"with shape \(3,\)! But got array of '<U1'."
         )
     )
 

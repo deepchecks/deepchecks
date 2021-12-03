@@ -2,7 +2,6 @@
 #pylint: disable=inconsistent-quotes
 
 import typing as t
-from functools import partial
 from collections import defaultdict
 
 import pandas as pd
@@ -109,15 +108,17 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
         labels = t.cast(pd.Series, dataset.label_col())
         features = t.cast(pd.DataFrame, dataset.features_columns())
 
-        unique_labels = get_unique_labels()
+        unique_labels = get_unique_labels(labels)
         scorers = self.alternative_scorers or self._get_default_scorers()
 
-        df = pd.DataFrame.from_dict({
-            scorer_name: dict(zip(
-                unique_labels,
-                t.cast(t.Iterable, scorer_func(model, features, labels))
-            ))
+        scorer_results = (
+            (scorer_name, scorer_func(model, features, labels))
             for scorer_name, scorer_func in scorers.items()
+        )
+
+        df = pd.DataFrame.from_dict({
+            scorer_name: dict(zip(unique_labels, score))
+            for scorer_name, score in self._validate_results(scorer_results, len(unique_labels))
         })
 
         def display():
@@ -149,6 +150,41 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
             'Precision': make_scorer(precision_score, zero_division=0, average=None),
             'Recall': make_scorer(recall_score, zero_division=0, average=None)
         }
+
+    def _validate_results(
+        self,
+        results: t.Iterable[t.Tuple[str, object]],
+        number_of_classes: int
+    ) -> t.Iterator[t.Tuple[str, np.ndarray]]:
+        # We need to be sure that user-provided scorers returned value with correct
+        # datatype, otherwise we need to raise an exception with an informative message
+        expected_types = t.cast(
+            str,
+            np.typecodes['AllInteger'] + np.typecodes['AllFloat'] # type: ignore
+        )
+        message = (
+            f"Check '{type(self).__name__}' expecting that scorer "
+            "'{scorer_name}' will return an instance of numpy array with "
+            f"items of type int|float and with shape ({number_of_classes},)! {{additional}}."
+        )
+
+        for scorer_name, score in results:
+            if not isinstance(score, np.ndarray):
+                raise DeepchecksValueError(message.format(
+                    scorer_name=scorer_name,
+                    additional=f"But got instance of '{type(score).__name__}'"
+                ))
+            if score.dtype.kind not in expected_types:
+                raise DeepchecksValueError(message.format(
+                    scorer_name=scorer_name,
+                    additional=f"But got array of '{str(score.dtype)}'"
+                ))
+            if len(score) != number_of_classes:
+                raise DeepchecksValueError(message.format(
+                    scorer_name=scorer_name,
+                    additional=f"But got array with shape ({len(score)},)"
+                ))
+            yield scorer_name, score
 
     def add_condition_ratio_difference_not_greater_than(self: CP, threshold: float = 0.3) -> CP:
         """Add condition.
