@@ -100,7 +100,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
         return CheckResult(result, check=self.__class__, header='Train-Test Difference Overfit',
                            display=[plot_overfit])
 
-    def add_condition_difference_not_greater_than(self, threshold: float) -> TD:
+    def add_condition_difference_not_greater_than(self: TD, threshold: float) -> TD:
         """
         Add new condition.
 
@@ -123,7 +123,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
 
         return self.add_condition(f'Train-Test metrics difference is not greater than {threshold}', condition)
 
-    def add_condition_percentage_degradation_not_greater_than(self, threshold: float = 0.2) -> TD:
+    def add_condition_percentage_degradation_not_greater_than(self: TD, threshold: float = 0.2) -> TD:
         """
         Add new condition.
 
