@@ -55,6 +55,12 @@ def validate_model(dataset: 'base.Dataset', model: t.Any):
 
     try:
         model_features = set(model_features) # type: ignore
+        # == TMP, DEBUGING ==
+        import warnings
+        warnings.warn(str(model_features))
+        warnings.warn(str(features_names))
+        warnings.warn(str(model_features != features_names))
+        # ==
         if model_features != features_names:
             raise errors.DeepchecksValueError(error_message.format(
                 'But function received dataset with a different set of features!'
