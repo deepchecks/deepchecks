@@ -82,7 +82,7 @@ def task_type_check(
     if not hasattr(model, 'predict_proba'):
         return ModelType.REGRESSION
     else:
-        labels = t.cast(pd.Series, dataset.label_col())
+        labels = t.cast(pd.Series, dataset.label_col)
         unique_labels = labels.unique()
 
         if sorted(unique_labels) != list(range(len(unique_labels))):
@@ -162,7 +162,7 @@ def validate_scorer(scorer, model, dataset):
         return get_scorer(scorer)
     elif callable(scorer):
         # Check that scorer runs for given model and data
-        assert isinstance(scorer(model, dataset.data[dataset.features()].head(2), dataset.label_col().head(2)),
+        assert isinstance(scorer(model, dataset.data[dataset.features].head(2), dataset.label_col.head(2)),
                           Number)
         return scorer
 

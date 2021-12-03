@@ -80,9 +80,9 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
         train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
         test_dataset.validate_shared_features(train_dataset, self.__class__.__name__)
 
-        columns = train_dataset.features()
-        if train_dataset.label_name():
-            columns = columns + [train_dataset.label_name()]
+        columns = train_dataset.features
+        if train_dataset.label_name:
+            columns = columns + [train_dataset.label_name]
 
         train_f = train_dataset.data.copy()
         test_f = test_dataset.data.copy()
@@ -114,8 +114,8 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
 
         count_dups = count_val_array.sum() // 2
 
-        dup_ratio = count_dups / test_dataset.n_samples()
-        user_msg = f'{format_percent(dup_ratio)} ({count_dups} / {test_dataset.n_samples()}) \
+        dup_ratio = count_dups / test_dataset.n_samples
+        user_msg = f'{format_percent(dup_ratio)} ({count_dups} / {test_dataset.n_samples}) \
                      of test data samples appear in train data'
         display = [user_msg, duplicate_rows_df.head(10)] if dup_ratio else None
 

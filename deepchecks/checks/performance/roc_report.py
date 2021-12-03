@@ -46,8 +46,8 @@ class RocReport(SingleDatasetBaseCheck):
         dataset.validate_label(check_name)
         task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY], check_name)
 
-        label = dataset.label_name()
-        ds_x = dataset.data[dataset.features()]
+        label = dataset.label_name
+        ds_x = dataset.data[dataset.features]
         ds_y = dataset.data[label]
         multi_y = (np.array(ds_y)[:, None] == np.unique(ds_y)).astype(int)
         n_classes = ds_y.nunique()

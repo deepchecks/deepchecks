@@ -62,11 +62,11 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         ppscore_params = self.ppscore_params or {}
 
         relevant_columns = features_names + [label_name]
-        df_pps_train = pps.predictors(df=train_dataset.data[relevant_columns], y=train_dataset.label_name(),
+        df_pps_train = pps.predictors(df=train_dataset.data[relevant_columns], y=train_dataset.label_name,
                                       random_seed=42,
                                       **ppscore_params)
         df_pps_test = pps.predictors(df=test_dataset.data[relevant_columns],
-                                           y=test_dataset.label_name(),
+                                           y=test_dataset.label_name,
                                            random_seed=42, **ppscore_params)
         s_pps_train = df_pps_train.set_index('x', drop=True)['ppscore']
         s_pps_test = df_pps_test.set_index('x', drop=True)['ppscore']

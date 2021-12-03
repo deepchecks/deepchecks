@@ -33,14 +33,14 @@ class DateTrainTestLeakageOverlap(TrainTestBaseCheck):
         train_dataset.validate_date(self.__class__.__name__)
         test_dataset.validate_date(self.__class__.__name__)
 
-        train_date = train_dataset.date_col()
-        val_date = test_dataset.date_col()
+        train_date = train_dataset.date_col
+        val_date = test_dataset.date_col
 
         max_train_date = max(train_date)
         dates_leaked = sum(date <= max_train_date for date in val_date)
 
         if dates_leaked > 0:
-            leakage_ratio = dates_leaked / test_dataset.n_samples()
+            leakage_ratio = dates_leaked / test_dataset.n_samples
             display = f'{format_percent(leakage_ratio)} of test data dates '\
                       f'before last training data date ({max_train_date})'
             return_value = leakage_ratio

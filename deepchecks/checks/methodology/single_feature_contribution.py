@@ -52,8 +52,8 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         dataset.validate_label(self.__class__.__name__)
         ppscore_params = self.ppscore_params or {}
 
-        relevant_columns = dataset.features() + [dataset.label_name()]
-        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name(), random_seed=42,
+        relevant_columns = dataset.features + [dataset.label_name]
+        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name, random_seed=42,
                                 **ppscore_params)
         df_pps = df_pps.set_index('x', drop=True)
         s_ppscore = df_pps['ppscore']
