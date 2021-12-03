@@ -53,17 +53,6 @@ def validate_model(dataset: 'base.Dataset', model: t.Any):
             'But function received empty dataset!'
         ))
 
-    # == TODO: TMP, DEBUGING
-    # Do not know wht but when I run this test in my local env
-    # this attributes are present and are correct
-    # but this is not true in CI/CD
-    import warnings
-    warnings.warn(str(model_features))
-    warnings.warn(str(getattr(model, 'feature_names_', None)))
-    #
-    warnings.warn(str(features_names))
-    # ==
-
     try:
         model_features = set(model_features) # type: ignore
         if model_features != features_names:
