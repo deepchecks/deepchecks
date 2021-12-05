@@ -54,11 +54,11 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         kurtosis_value = kurtosis(diff)
 
         n_largest_diff = diff.nlargest(self.n_extreme)
-        n_largest_diff.name= n_largest_diff.name + '_pred'
+        n_largest_diff.name= n_largest_diff.name + '_pred_diff'
         n_largest = pd.concat([dataset.data.loc[n_largest_diff.index], n_largest_diff], axis=1)
 
         n_smallest_diff = diff.nsmallest(self.n_extreme)
-        n_smallest_diff.name= n_smallest_diff.name + '_pred'
+        n_smallest_diff.name= n_smallest_diff.name + '_pred_diff'
         n_smallest = pd.concat([dataset.data.loc[n_smallest_diff.index], n_smallest_diff], axis=1)
 
         def display_hist():
