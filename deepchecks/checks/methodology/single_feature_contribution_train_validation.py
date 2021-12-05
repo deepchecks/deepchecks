@@ -5,10 +5,7 @@ import deepchecks.ppscore as pps
 from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.plot import create_colorbar_barchart_for_check
 
-
-
 __all__ = ['SingleFeatureContributionTrainTest']
-
 
 FC = t.TypeVar('FC', bound='SingleFeatureContributionTrainTest')
 
@@ -49,10 +46,9 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
             DeepchecksValueError: If the object is not a Dataset instance with a label
         """
         return self._single_feature_contribution_train_test(train_dataset=train_dataset,
-                                                                  test_dataset=test_dataset)
+                                                            test_dataset=test_dataset)
 
-    def _single_feature_contribution_train_test(self, train_dataset: Dataset, test_dataset: Dataset,
-                                                      ):
+    def _single_feature_contribution_train_test(self, train_dataset: Dataset, test_dataset: Dataset):
         train_dataset = Dataset.validate_dataset(train_dataset, self.__class__.__name__)
         train_dataset.validate_label(self.__class__.__name__)
         test_dataset = Dataset.validate_dataset(test_dataset, self.__class__.__name__)
@@ -66,8 +62,8 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
                                       random_seed=42,
                                       **ppscore_params)
         df_pps_test = pps.predictors(df=test_dataset.data[relevant_columns],
-                                           y=test_dataset.label_name(),
-                                           random_seed=42, **ppscore_params)
+                                     y=test_dataset.label_name(),
+                                     random_seed=42, **ppscore_params)
         s_pps_train = df_pps_train.set_index('x', drop=True)['ppscore']
         s_pps_test = df_pps_test.set_index('x', drop=True)['ppscore']
         s_difference = s_pps_train - s_pps_test
@@ -102,6 +98,7 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         Args:
             threshold: train test ps difference upper bound
         """
+
         def condition(value: t.Dict[str, float]) -> ConditionResult:
             failed_features = [
                 feature_name
@@ -115,4 +112,9 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Train-Test features PPS difference is not greater than {threshold}', condition)
+        pps_url = 'https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598'
+        pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
+
+        return \
+            self.add_condition(f'Train-Test features\' {pps_html_url} (PPS) difference is not greater than {threshold}',
+                               condition)
