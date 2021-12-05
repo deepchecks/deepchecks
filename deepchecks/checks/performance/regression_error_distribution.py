@@ -1,5 +1,6 @@
 """The date_leakage check module."""
 import matplotlib.pyplot as plt
+import pandas as pd
 from scipy.stats import kurtosis
 from sklearn.base import BaseEstimator
 
@@ -12,7 +13,15 @@ __all__ = ['RegressionErrorDistribution']
 
 
 class RegressionErrorDistribution(SingleDatasetBaseCheck):
-    """Calculate MSE and kurtosis, display an error histogram."""
+    """Calculate MSE and kurtosis, display an error histogram.
+    
+    Args:
+        n_extreme (int): amount of samples to show which are of Largest negetive and positive errors.
+    """
+
+    def __init__(self, n_extreme: int = 3):
+        super().__init__()
+        self.n_extreme = n_extreme
 
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run check.
@@ -23,8 +32,8 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
 
         Returns:
            CheckResult:
-                - value is the ratio of date leakage.
-                - data is html display of the checks' textual result.
+                - value is a dict with mse and kurtosis values.
+                - display is histogram of error distirbution and the extreme values.
 
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance with a label
@@ -44,13 +53,22 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         diff = y_test - y_pred
         kurtosis_value = kurtosis(diff)
 
-        def display():
+        n_largest_diff = diff.nlargest(self.n_extreme)
+        n_largest_diff.name= n_largest_diff.name + '_pred'
+        n_largest = pd.concat([dataset.data.loc[n_largest_diff.index], n_largest_diff], axis=1)
+
+        n_smallest_diff = diff.nsmallest(self.n_extreme)
+        n_smallest_diff.name= n_smallest_diff.name + '_pred'
+        n_smallest = pd.concat([dataset.data.loc[n_smallest_diff.index], n_smallest_diff], axis=1)
+
+        def display_hist():
             diff = y_test - y_pred
             diff.hist(bins = 40)
             plt.title('Histogram of prediction errors')
             plt.xlabel(f'{dataset.label_name()} prediction error')
             plt.ylabel('Frequency')
 
+        display = [display_hist, 'Largest positive errors:', n_largest, 'Largest negetive errors:', n_smallest,]
         return CheckResult(value={'mse': mse, 'kurtosis': kurtosis_value}, check=self.__class__, display=display)
 
     def add_condition_absolute_kurtosis_not_greater_than(self, max_kurtosis: float = 0.1):
