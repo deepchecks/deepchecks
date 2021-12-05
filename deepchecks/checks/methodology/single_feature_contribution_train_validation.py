@@ -4,7 +4,7 @@ import typing as t
 import deepchecks.ppscore as pps
 from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.plot import create_colorbar_barchart_for_check
-
+from deepchecks.utils.typing import Hashable
 
 
 __all__ = ['SingleFeatureContributionTrainTest']
@@ -93,7 +93,7 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         return CheckResult(value=s_difference.to_dict(), display=[plot, *text], check=self.__class__,
                            header='Single Feature Contribution Train-Test')
 
-    def add_condition_feature_pps_difference_not_greater_than(self, threshold: float = 0.2) -> FC:
+    def add_condition_feature_pps_difference_not_greater_than(self: FC, threshold: float = 0.2) -> FC:
         """Add new condition.
 
         Add condition that will check that difference between train
@@ -102,7 +102,7 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         Args:
             threshold: train test ps difference upper bound
         """
-        def condition(value: t.Dict[str, float]) -> ConditionResult:
+        def condition(value: t.Dict[Hashable, float]) -> ConditionResult:
             failed_features = [
                 feature_name
                 for feature_name, pps_diff in value.items()
@@ -110,7 +110,7 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
             ]
 
             if failed_features:
-                message = f'Features with PPS difference above threshold: {", ".join(failed_features)}'
+                message = f'Features with PPS difference above threshold: {", ".join(map(str, failed_features))}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)

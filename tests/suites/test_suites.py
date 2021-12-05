@@ -18,7 +18,7 @@ from deepchecks.errors import DeepchecksValueError
 def iris(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBoostClassifier]:
     # note: to run classification suite succesfully we need to modify iris dataframe
     # according to suite needs
-    df = t.cast(pd.DataFrame, iris_clean.frame)
+    df = t.cast(pd.DataFrame, iris_clean.frame.copy())
     df['index'] = range(len(df))
     df['date'] = datetime.now()
 
@@ -38,12 +38,88 @@ def iris(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBoostClassifier]:
     return train, test, model
 
 
+@pytest.fixture()
+def iris_with_non_textual_columns(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBoostClassifier]:
+    df = t.cast(pd.DataFrame, iris_clean.frame.copy())
+
+    # TODO: generate non textual columns automaticly, use not only integer
+    df[5] = range(len(df))
+    df[6] = datetime.now()
+
+    # NOTE:
+    # if you try to use some random integers as column names
+    # then with big probability test will fall
+    #
+    # it looks like sklearn requires column names with dtype int to be in range [0, n_columns]
+    #
+    # in my case UnusedFeatures check was the reason why test failed
+    # more precisly it failed at the next line in unused_features.py module:
+
+    # >>> ... pre_pca_transformer.fit_transform(
+    # ...        dataset.features_columns().sample(n_samples, random_state=self.random_state)
+    # ...    ) ...
+    #
+    # with next exception: ValueError('all features must be in [0, 3] or [-4, 0]')
+
+    renamer = {
+        'sepal length (cm)': 0,
+        'sepal width (cm)': 1,
+        'petal length (cm)': 2,
+        'petal width (cm)': 3,
+        'target': 4
+    }
+
+    train, test = t.cast(
+        t.Tuple[pd.DataFrame, pd.DataFrame],
+        train_test_split(df, test_size=0.33, random_state=42)
+    )
+
+    train, test = (
+        Dataset(
+            train.rename(columns=renamer),
+            features=list(renamer.values())[:-1],
+            label=4, date=6, index=5
+        ),
+        Dataset(
+            test.rename(columns=renamer),
+            features=list(renamer.values())[:-1],
+            label=4, date=6, index=5
+        )
+    )
+
+    model = AdaBoostClassifier(random_state=0)
+    model.fit(train.features_columns(), train.label_col())
+
+    return train, test, model
+
+
 def test_classification_suite(iris: t.Tuple[Dataset, Dataset, AdaBoostClassifier]):
     train, test, model = iris
     suite = suites.overall_classification_suite()
-    # Have to change min test samples of TrustScoreComparison
-    suite[1].min_test_samples = 50
-    suite[21].min_test_samples = 50
+
+    # TODO: Have to change min test samples of TrustScoreComparison
+    # suite[1].min_test_samples = 50
+    # suite[21].min_test_samples = 50
+
+    arguments = (
+        dict(train_dataset=train, test_dataset=test, model=model, check_datasets_policy='both'),
+        dict(train_dataset=train, model=model, check_datasets_policy='both'),
+        dict(test_dataset=test, model=model, check_datasets_policy='both'),
+    )
+
+    for args in arguments:
+        result = suite.run(**args)
+        validate_suite_result(result, expected_results='mixed')
+
+
+def test_overall_suite_with_datasets_that_have_non_textual_columns(
+    iris_with_non_textual_columns: t.Tuple[Dataset, Dataset, AdaBoostClassifier]
+):
+    train, test, model = iris_with_non_textual_columns
+    suite = suites.overall_suite()
+
+    # # TODO: Have to change min test samples of TrustScoreComparison
+    # suite[1].min_test_samples = 50
 
     arguments = (
         dict(train_dataset=train, test_dataset=test, model=model, check_datasets_policy='both'),

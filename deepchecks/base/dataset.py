@@ -9,8 +9,9 @@ import pandas as pd
 from pandas.core.dtypes.common import is_float_dtype
 
 from deepchecks.utils.dataframes import filter_columns_with_validation
-from deepchecks.errors import DeepchecksValueError
 from deepchecks.utils.strings import is_string_column
+from deepchecks.utils.typing import Hashable
+from deepchecks.errors import DeepchecksValueError
 
 
 
@@ -38,25 +39,26 @@ class Dataset:
         cat_features: List of names for the categorical features in the DataFrame.
     """
 
-    _features: t.List[str]
-    _label: t.Optional[str]
+    _features: t.List[Hashable]
+    _label: t.Optional[Hashable]
     _use_index: bool
-    _index_name: t.Optional[str]
-    _date_name: t.Optional[str]
-    cat_features: t.List[str]
+    _index_name: t.Optional[Hashable]
+    _date_name: t.Optional[Hashable]
+    cat_features: t.List[Hashable]
     _data: pd.DataFrame
     _max_categorical_ratio: float
     _max_categories: int
 
-    def __init__(self,
+    def __init__(
+        self,
         df: pd.DataFrame,
-        features: t.Sequence[str] = None,
-        cat_features: t.Sequence[str] = None,
-        label: str = None,
+        features: t.Optional[t.Sequence[Hashable]] = None,
+        cat_features: t.Optional[t.Sequence[Hashable]] = None,
+        label: t.Optional[Hashable] = None,
         use_index: bool = False,
-        index: str = None,
-        date: str = None,
-        date_unit_type: str = None,
+        index: t.Optional[Hashable] = None,
+        date: t.Optional[Hashable] = None,
+        date_unit_type: t.Optional[Hashable] = None,
         convert_date_: bool = True,
         max_categorical_ratio: float = 0.01,
         max_categories: int = 30,
@@ -65,46 +67,60 @@ class Dataset:
         """Initiate the Dataset using a pandas DataFrame and Metadata.
 
         Args:
-          df: A pandas DataFrame containing data relevant for the training or validating of a ML models
-          features: List of names for the feature columns in the DataFrame.
-          cat_features: List of names for the categorical features in the DataFrame. In order to disable categorical
-                        features inference, pass cat_features=[]
-          label: Name of the label column in the DataFrame.
-          use_index: Whether to use the dataframe index as the index column, for index related checks.
-          index: Name of the index column in the DataFrame.
-          date: Name of the date column in the DataFrame.
-          date_unit_type: Unit used for conversion if date column is of type int or float.
-                          The valid values are 'D', 'h', 'm', 's', 'ms', 'us', and 'ns'.
-                          e.g. 's' for seconds, 'ns' for nanoseconds. See pandas.Timestamp unit arg for more detail.
-          max_categorical_ratio: The max ratio of unique values in a column in order for it to be inferred as a
-                                 categorical feature.
-          max_categories: The maximum number of categories in a column in order for it to be inferred as a categorical
-                          feature.
-          max_float_categories: The maximum number of categories in a float column in order fo it to be inferred as a
-                                categorical feature
-
+            df (pandas.DataFrame):
+                A pandas DataFrame containing data relevant for the training or validating of a ML models
+            features (Optional[Sequence[Hashable]]):
+                List of names for the feature columns in the DataFrame.
+            cat_features (Optional[Sequence[Hashable]]):
+                List of names for the categorical features in the DataFrame. In order to disable categorical
+                features inference, pass cat_features=[]
+            label (Optional[Hashable]):
+                Name of the label column in the DataFrame.
+            use_index (bool, default False):
+                Whether to use the dataframe index as the index column, for index related checks.
+            index (Optional[Hashable]):
+                Name of the index column in the DataFrame.
+            date (Optional[Hashable]):
+                Name of the date column in the DataFrame.
+            date_unit_type (Optional[str]):
+                Unit used for conversion if date column is of type int or float.
+                The valid values are 'D', 'h', 'm', 's', 'ms', 'us', and 'ns'.
+                e.g. 's' for seconds, 'ns' for nanoseconds. See pandas.Timestamp unit arg for more detail.
+            max_categorical_ratio (float, default 0.01):
+                The max ratio of unique values in a column in order for it to be inferred as a
+                categorical feature.
+            max_categories (int, default 30):
+                The maximum number of categories in a column in order for it to be inferred as a categorical
+                feature.
+            max_float_categories (int, default 5):
+                The maximum number of categories in a float column in order fo it to be inferred as a
+                categorical feature
         """
         self._data = df.copy()
 
         # Validations
         if use_index is True and index is not None:
             raise DeepchecksValueError('parameter use_index cannot be True if index is given')
+
         if index is not None and index not in self._data.columns:
             error_message = f'index column {index} not found in dataset columns.'
             if index == 'index':
                 error_message += ' If you attempted to use the dataframe index, set use_index to True instead.'
             raise DeepchecksValueError(error_message)
+
         if date is not None and date not in self._data.columns:
             raise DeepchecksValueError(f'date column {date} not found in dataset columns')
+
         if label is not None and label not in self._data.columns:
             raise DeepchecksValueError(f'label column {label} not found in dataset columns')
 
         if features:
-            if any(x not in self._data.columns for x in features):
+            difference = set(features) - set(self._data.columns)
+            if len(difference) > 0:
                 raise DeepchecksValueError('Features must be names of columns in dataframe. '
-                                           f'Features {set(features) - set(self._data.columns)} have not been '
+                                           f'Features {difference} have not been '
                                            'found in input dataframe.')
-            self._features = features
+            self._features = list(features)
         else:
             self._features = [x for x in self._data.columns if x not in {label, index, date}]
 
@@ -137,7 +153,7 @@ class Dataset:
                 raise DeepchecksValueError(f'Categorical features must be a subset of features. '
                                            f'Categorical features {set(cat_features) - set(self._features)} '
                                            f'have not been found in feature list.')
-            self.cat_features = cat_features
+            self.cat_features = list(cat_features)
         else:
             self.cat_features = self.infer_categorical_features()
 
@@ -148,8 +164,8 @@ class Dataset:
     def from_numpy(
         cls: t.Type[TDataset],
         *args: np.ndarray,
-        feature_names: t.Sequence[t.Hashable] = None,
-        label_name: t.Hashable = None,
+        feature_names: t.Sequence[Hashable] = None,
+        label_name: Hashable = None,
         **kwargs
     ) -> TDataset:
         """Create Dataset instance from numpy arrays.
@@ -259,18 +275,18 @@ class Dataset:
 
             return cls(
                 df=pd.DataFrame(data=data, columns=columns),
-                features=feature_names, # type: ignore TODO
-                label=label_name, # type: ignore TODO
+                features=feature_names,
+                label=label_name,
                 **kwargs
             )
 
     @classmethod
     def from_dict(
         cls: t.Type[TDataset],
-        data: t.Mapping[t.Hashable, t.Any],
+        data: t.Mapping[Hashable, t.Any],
         orient: str = 'columns',
-        dtype: np.dtype = None,
-        columns: t.Optional[t.Sequence[t.Hashable]] = None,
+        dtype: t.Optional[np.dtype] = None,
+        columns: t.Optional[t.Sequence[Hashable]] = None,
         **kwargs
     ) -> TDataset:
         """Create instance of the Dataset from the dict object.
@@ -300,7 +316,7 @@ class Dataset:
         """Return the data of dataset."""
         return self._data
 
-    def copy(self, new_data):
+    def copy(self: TDataset, new_data) -> TDataset:
         """Create a copy of this Dataset with new data."""
         # Filter out if columns were dropped
         features = list(set(self._features).intersection(new_data.columns))
@@ -309,11 +325,13 @@ class Dataset:
         index = self._index_name if self._index_name in new_data.columns else None
         date = self._date_name if self._date_name in new_data.columns else None
 
-        return Dataset(new_data, features=features, cat_features=cat_features, label=label, use_index=self._use_index,
-                       index=index, date=date, convert_date_=False, max_categorical_ratio=self._max_categorical_ratio,
-                       max_categories=self._max_categories)
+        cls = type(self)
 
-    def n_samples(self):
+        return cls(new_data, features=features, cat_features=cat_features, label=label, use_index=self._use_index,
+                   index=index, date=date, convert_date_=False, max_categorical_ratio=self._max_categorical_ratio,
+                   max_categories=self._max_categories)
+
+    def n_samples(self) -> int:
         """Return number of samples in dataframe.
 
         Returns:
@@ -321,7 +339,7 @@ class Dataset:
         """
         return self.data.shape[0]
 
-    def infer_categorical_features(self) -> t.List[str]:
+    def infer_categorical_features(self) -> t.List[Hashable]:
         """Infers which features are categorical by checking types and number of unique values.
 
         Returns:
@@ -340,15 +358,22 @@ class Dataset:
 
         if len(cat_columns) > 0:
             if len(cat_columns) < 7:
-                print(f'Automatically inferred these columns as categorical features: {", ".join(cat_columns)}. \n')
+                stringified_columns = ", ".join(map(str, cat_columns))
+                print(
+                    'Automatically inferred these columns as categorical features: '
+                    f'{stringified_columns}. \n'
+                )
             else:
-                print(f'Some columns have been inferred as categorical features: {", ".join(cat_columns[:7])}. \n '
-                      f'and more... \n'
-                      f'For the full list of columns, use dataset.cat_features')
+                stringified_columns = ", ".join(list(map(str, cat_columns))[:7])
+                print(
+                    'Some columns have been inferred as categorical features: '
+                    f'{stringified_columns}. \n and more... \n For the full list '
+                    'of columns, use dataset.cat_features'
+                )
 
         return cat_columns
 
-    def is_categorical(self, col_name: str) -> bool:
+    def is_categorical(self, col_name: Hashable) -> bool:
         """Check if uniques are few enough to count as categorical.
 
         Args:
@@ -366,7 +391,7 @@ class Dataset:
 
         return n_unique / n_samples < self._max_categorical_ratio and n_unique <= self._max_categories
 
-    def index_name(self) -> t.Optional[str]:
+    def index_name(self) -> t.Optional[Hashable]:
         """If index column exists, return its name.
 
         Returns:
@@ -385,9 +410,9 @@ class Dataset:
         elif self._index_name is not None:
             return self.data[self._index_name]
         else:  # No meaningful index to use: Index column not configured, and use_column is False
-            return None
+            return
 
-    def date_name(self) -> t.Optional[str]:
+    def date_name(self) -> t.Optional[Hashable]:
         """If date column exists, return its name.
 
         Returns:
@@ -403,7 +428,7 @@ class Dataset:
         """
         return self.data[self._date_name] if self._date_name else None
 
-    def label_name(self) -> t.Optional[str]:
+    def label_name(self) -> t.Optional[Hashable]:
         """If label column exists, return its name.
 
         Returns:
@@ -419,7 +444,7 @@ class Dataset:
         """
         return self.data[self._label_name] if self._label_name else None
 
-    def features(self) -> t.List[str]:
+    def features(self) -> t.List[Hashable]:
         """Return list of feature names.
 
         Returns:
@@ -435,7 +460,7 @@ class Dataset:
         """
         return self.data[self._features] if self._features else None
 
-    def show_columns_info(self) -> t.Dict[str, str]:
+    def show_columns_info(self) -> t.Dict[Hashable, str]:
         """Return the role and logical type of each column.
 
         Returns:
@@ -461,10 +486,13 @@ class Dataset:
 
     def check_compatible_labels(self):
         """Check if label column is supported by deepchecks."""
-        if is_string_column(self.label_col()):
+        labels = self.label_col()
+        if labels is None:
+            return
+        if is_string_column(labels):
             raise DeepchecksValueError('String labels are not supported')
-        elif pd.isnull(self.label_col()).any():
-            raise DeepchecksValueError('Can\'t have null values in label column')
+        elif pd.isnull(labels).any():
+            raise DeepchecksValueError('Can not have null values in label column')
 
     # Validations:
 
@@ -482,6 +510,19 @@ class Dataset:
         if self.label_name() is None:
             raise DeepchecksValueError(f'Check {check_name} requires dataset to have a label column')
         self.check_compatible_labels()
+
+    def validate_features(self, check_name: str):
+        """
+        Throws error if dataset does not have a features columns.
+
+        Args:
+            check_name (str): check name to print in error
+
+        Raises:
+            DeepchecksValueError: if dataset does not have features columns.
+        """
+        if not self._features:
+            raise DeepchecksValueError(f'Check {check_name} requires dataset to have a features columns!')
 
     def validate_date(self, check_name: str):
         """
@@ -511,13 +552,20 @@ class Dataset:
         if self.index_name() is None:
             raise DeepchecksValueError(f'Check {check_name} requires dataset to have an index column')
 
-    def filter_columns_with_validation(self, columns: t.Union[str, t.List[str], None] = None,
-                                       ignore_columns: t.Union[str, t.List[str], None] = None) -> 'Dataset':
+    def filter_columns_with_validation(
+        self: TDataset,
+        columns: t.Union[Hashable, t.List[Hashable], None] = None,
+        ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None
+    ) -> TDataset:
         """Filter dataset columns by given params.
 
         Args:
-            columns (Union[str, List[str], None]): Column names to keep.
-            ignore_columns (Union[str, List[str], None]): Column names to drop.
+            columns (Union[Hashable, List[Hashable], None]): Column names to keep.
+            ignore_columns (Union[Hashable, List[Hashable], None]): Column names to drop.
+
+        Returns:
+            TDataset: horizontally filtered dataset
+
         Raise:
             DeepchecksValueError: In case one of columns given don't exists raise error
         """
@@ -527,7 +575,7 @@ class Dataset:
         else:
             return self.copy(new_data)
 
-    def validate_shared_features(self, other, check_name: str) -> t.List[str]:
+    def validate_shared_features(self, other, check_name: str) -> t.List[Hashable]:
         """
         Return the list of shared features if both datasets have the same feature column names. Else, raise error.
 
@@ -536,7 +584,7 @@ class Dataset:
             check_name (str): check name to print in error
 
         Returns:
-            List[str] - list of shared features names
+            List[Hashable] - list of shared features names
 
         Raises:
             DeepchecksValueError if datasets don't have the same features
@@ -548,7 +596,7 @@ class Dataset:
         else:
             raise DeepchecksValueError(f'Check {check_name} requires datasets to share the same features')
 
-    def validate_shared_categorical_features(self, other, check_name: str) -> t.List[str]:
+    def validate_shared_categorical_features(self, other, check_name: str) -> t.List[Hashable]:
         """
         Return list of categorical features if both datasets have the same categorical features. Else, raise error.
 
@@ -557,39 +605,42 @@ class Dataset:
             check_name (str): check name to print in error
 
         Returns:
-            List[str] - list of shared features names
+            List[Hashable] - list of shared features names
 
         Raises:
             DeepchecksValueError if datasets don't have the same features
-
         """
         Dataset.validate_dataset(other, check_name)
         if sorted(self.cat_features) == sorted(other.cat_features):
             return self.cat_features
         else:
-            raise DeepchecksValueError(f'Check {check_name} requires datasets to share'
-                                       f' the same categorical features. Possible reason is that some columns were'
-                                       f'inferred incorrectly as categorical features. To fix this, manually edit the '
-                                       f'categorical features using Dataset(cat_features=<list_of_features>')
+            raise DeepchecksValueError(f'Check {check_name} requires datasets to share '
+                                       'the same categorical features. Possible reason is that some columns were'
+                                       'inferred incorrectly as categorical features. To fix this, manually edit the '
+                                       'categorical features using Dataset(cat_features=<list_of_features>')
 
-    def validate_shared_label(self, other, check_name: str) -> str:
-        """
-        Return the list of shared features if both datasets have the same feature column names. Else, raise error.
+    def validate_shared_label(self, other, check_name: str) -> Hashable:
+        """Verify presence of shared labels.
+
+        Return the list of shared features if both datasets have the same
+        feature column names, else, raise error.
 
         Args:
-            other: Expected to be Dataset type. dataset to compare features list
+            other (Dataset): Expected to be Dataset type. dataset to compare
             check_name (str): check name to print in error
 
         Returns:
-            List[str] - list of shared features names
+            Hashable: name of the label column
 
         Raises:
-            DeepchecksValueError if datasets don't have the same features
-
+            DeepchecksValueError if datasets don't have the same label
         """
         Dataset.validate_dataset(other, check_name)
-        if self.label_name() == other.label_name():
-            return self.label_name()
+        if (
+            self.label_name() is not None and other.label_name() is not None
+            and self.label_name() == other.label_name()
+        ):
+            return t.cast(Hashable, self.label_name())
         else:
             raise DeepchecksValueError(f'Check {check_name} requires datasets to share the same label')
 

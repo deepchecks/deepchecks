@@ -1,7 +1,7 @@
 """Module contains Train Test Drift check."""
 
 from collections import Counter, OrderedDict
-from typing import Union, Iterable, Tuple, List, Dict, Callable
+from typing import Union, Tuple, List, Dict, Callable
 
 import numpy as np
 import pandas as pd
@@ -10,6 +10,7 @@ from scipy.stats import wasserstein_distance
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.checks.distribution.plot import plot_density
 from deepchecks.utils.features import calculate_feature_importance_or_null
+from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 import matplotlib.pyplot as plt
 
@@ -19,7 +20,7 @@ __all__ = ['TrainTestDrift']
 PSI_MIN_PERCENTAGE = 0.01
 
 
-def preprocess_for_psi(dist1: np.array, dist2: np.array, max_num_categories) -> Tuple[np.array, np.array, List]:
+def preprocess_for_psi(dist1: np.ndarray, dist2: np.ndarray, max_num_categories) -> Tuple[np.ndarray, np.ndarray, List]:
     """
     Preprocess distributions in order to be able to be calculated by PSI.
 
@@ -62,7 +63,7 @@ def preprocess_for_psi(dist1: np.array, dist2: np.array, max_num_categories) -> 
     return expected_percents, actual_percents, categories_list
 
 
-def psi(expected_percents: np.array, actual_percents: np.array):
+def psi(expected_percents: np.ndarray, actual_percents: np.ndarray):
     """
     Calculate the PSI (Population Stability Index).
 
@@ -87,7 +88,7 @@ def psi(expected_percents: np.array, actual_percents: np.array):
     return psi_value
 
 
-def earth_movers_distance(dist1: np.array, dist2: np.array):
+def earth_movers_distance(dist1: np.ndarray, dist2: np.ndarray):
     """
     Calculate the Earth Movers Distance (Wasserstein distance).
 
@@ -133,21 +134,30 @@ class TrainTestDrift(TrainTestBaseCheck):
 
 
     Args:
-        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-        ones.
-        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-        variable.
+        columns (Union[Hashable, List[Hashable]]):
+            Columns to check, if none are given checks all
+            columns except ignored ones.
+        ignore_columns (Union[Hashable, List[Hashable]]):
+            Columns to ignore, if none given checks based on
+            columns variable.
         n_top_columns (int): (optional - used only if model was specified)
-          amount of columns to show ordered by feature importance (date, index, label are first)
-        sort_feature_by (str): Indicates how features will be sorted. Can be either "feature importance"
-          or "drift score"
-        max_num_categories (int): Only for categorical columns. Max number of allowed categories. If there are more,
-         they are binned into an "Other" category. If max_num_categories=None, there is no limit.
+            amount of columns to show ordered by feature importance (date, index, label are first)
+        sort_feature_by (str):
+            Indicates how features will be sorted. Can be either "feature importance"
+            or "drift score"
+        max_num_categories (int):
+            Only for categorical columns. Max number of allowed categories. If there are more,
+            they are binned into an "Other" category. If max_num_categories=None, there is no limit.
     """
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 n_top_columns: int = 5, sort_feature_by: str = 'feature importance', max_num_categories: int = 10):
-
+    def __init__(
+        self,
+        columns: Union[Hashable, List[Hashable], None] = None,
+        ignore_columns: Union[Hashable, List[Hashable], None] = None,
+        n_top_columns: int = 5,
+        sort_feature_by: str = 'feature importance',
+        max_num_categories: int = 10
+    ):
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
@@ -227,7 +237,7 @@ class TrainTestDrift(TrainTestBaseCheck):
         headnote = f"""<span>
             The Drift score is a measure for the difference between two distributions, in this check - the test
             and train distributions.<br> The check shows the drift score and distributions for the features, sorted by
-            {sorted_by} and showing only the top {self.n_top_columns} features, according to {sorted_by}. 
+            {sorted_by} and showing only the top {self.n_top_columns} features, according to {sorted_by}.
             <br>If available, the plot titles also show the feature importance (FI) rank.
         </span>"""
 
@@ -240,7 +250,7 @@ class TrainTestDrift(TrainTestBaseCheck):
             check=self.__class__
         )
 
-    def _calc_drift_per_column(self, train_column: pd.Series, test_column: pd.Series, column_name: str,
+    def _calc_drift_per_column(self, train_column: pd.Series, test_column: pd.Series, column_name: Hashable,
                                column_type: str, feature_importances: pd.Series = None
                                ) -> Tuple[float, str, Callable]:
         """
@@ -383,10 +393,10 @@ class TrainTestDrift(TrainTestBaseCheck):
             return_str = ''
             if not_passing_categorical_columns:
                 return_str += f'Found categorical columns with PSI over {max_allowed_psi_score}: ' \
-                              f'{", ".join(not_passing_categorical_columns)}\n'
+                              f'{", ".join(map(str, not_passing_categorical_columns))}\n'
             if not_passing_numeric_columns:
                 return_str += f'Found numeric columns with Earth Mover\'s Distance over ' \
-                              f'{max_allowed_earth_movers_score}: {", ".join(not_passing_numeric_columns)}'
+                              f'{max_allowed_earth_movers_score}: {", ".join(map(str, not_passing_numeric_columns))}'
 
             if return_str:
                 return ConditionResult(False, return_str)
