@@ -62,9 +62,9 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         def max_kurtosis_condition(result: float) -> ConditionResult:
             kurtosis_value = result['kurtosis']
             if abs(kurtosis_value) > max_kurtosis:
-                return ConditionResult(False, f'kurtosis: {format_number(kurtosis_value)}')
+                return ConditionResult(False, f'kurtosis: {format_number(kurtosis_value, 5)}')
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Absolute kurtosis value is not greater than {format_number(max_kurtosis)}',
+        return self.add_condition(f'Absolute kurtosis value is not greater than {format_number(max_kurtosis, 5)}',
                                   max_kurtosis_condition)
