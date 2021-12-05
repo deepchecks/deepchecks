@@ -15,7 +15,7 @@ from deepchecks.utils.strings import format_percent
 from deepchecks.errors import DeepchecksValueError
 
 
-__all__ = ['ClassPerformanceImbalanceCheck']
+__all__ = ['ClassPerformanceImbalance']
 
 
 ScorerFunc = t.Callable[
@@ -26,10 +26,10 @@ ScorerFunc = t.Callable[
 AlternativeScorer = t.Union[str, ScorerFunc]
 
 
-CP = t.TypeVar('CP', bound='ClassPerformanceImbalanceCheck')
+CP = t.TypeVar('CP', bound='ClassPerformanceImbalance')
 
 
-class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
+class ClassPerformanceImbalance(SingleDatasetBaseCheck):
     """Visualize class imbalance by displaying the difference between class score values.
 
     Args:
@@ -196,7 +196,7 @@ class ClassPerformanceImbalanceCheck(SingleDatasetBaseCheck):
             threshold: ratio difference threshold
 
         Returns:
-            Self: instance of 'ClassPerformanceImbalanceCheck' or it subtype
+            Self: instance of 'ClassPerformanceImbalance' or it subtype
         """
 
         def condition(check_result: t.Dict[str, t.Dict[t.Hashable, float]]) -> ConditionResult:

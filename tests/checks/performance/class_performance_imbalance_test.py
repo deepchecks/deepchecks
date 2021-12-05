@@ -9,7 +9,7 @@ from hamcrest import (
 )
 
 from deepchecks import Dataset, CheckResult, ConditionCategory
-from deepchecks.checks import ClassPerformanceImbalanceCheck
+from deepchecks.checks import ClassPerformanceImbalance
 from deepchecks.errors import DeepchecksValueError
 
 from tests.checks.utils import equal_condition_result
@@ -20,7 +20,7 @@ def test_class_performance_imbalance(
 ):
     # Arrange
     _, test, model = iris_split_dataset_and_model
-    check = ClassPerformanceImbalanceCheck()
+    check = ClassPerformanceImbalance()
     # Act
     check_result = check.run(dataset=test, model=model)
     # Assert
@@ -29,14 +29,14 @@ def test_class_performance_imbalance(
 
 def test_init_class_performance_imbalance_with_empty_dict_of_scorers():
     assert_that(
-        calling(ClassPerformanceImbalanceCheck).with_args(alternative_scorers=dict()),
+        calling(ClassPerformanceImbalance).with_args(alternative_scorers=dict()),
         raises(DeepchecksValueError, 'alternative_scorers - expected to receive not empty dict of scorers!')
     )
 
 
 def test_init_class_performance_imbalance_with_scorers_dict_that_contains_not_callable_and_not_name_of_sklearn_scorer():
     assert_that(
-        calling(ClassPerformanceImbalanceCheck).with_args(alternative_scorers=dict(Metric=1)),
+        calling(ClassPerformanceImbalance).with_args(alternative_scorers=dict(Metric=1)),
         raises(
             DeepchecksValueError,
             r"alternative_scorers - expected to receive 'Mapping\[str, Callable\]' but got 'Mapping\[str, int\]'!"
@@ -54,7 +54,7 @@ def test_class_performance_imbalance_with_custom_scorers(
         'Test2': lambda model, features, labels: np.array([1,2,3]),
         'Test3': lambda model, features, labels: np.array([1,2,3])
     }
-    check = ClassPerformanceImbalanceCheck(alternative_scorers=alternative_scorers)
+    check = ClassPerformanceImbalance(alternative_scorers=alternative_scorers)
 
     # Act
     check_result = check.run(dataset=test, model=model)
@@ -86,14 +86,14 @@ def test_class_performance_imbalance_with_custom_scorers_that_return_not_array(
     _, test, model = iris_split_dataset_and_model
 
     alternative_scorers = {'Test1': lambda model, features, labels: 1,}
-    check = ClassPerformanceImbalanceCheck(alternative_scorers=alternative_scorers)
+    check = ClassPerformanceImbalance(alternative_scorers=alternative_scorers)
 
     # Assert
     assert_that(
         calling(check.run).with_args(dataset=test, model=model),
         raises(
             DeepchecksValueError,
-            r"Check 'ClassPerformanceImbalanceCheck' expecting that scorer 'Test1' "
+            r"Check 'ClassPerformanceImbalance' expecting that scorer 'Test1' "
             r"will return an instance of numpy array with items of type int\|float and with shape \(3,\)! "
             r"But got instance of 'int'."
         )
@@ -108,14 +108,14 @@ def test_class_performance_imbalance_with_custom_scorers_that_return_empty_array
 
     # dict dtype is allowed but it cannot be empty
     alternative_scorers = {'Test3': lambda model, features, labels: np.array([])}
-    check = ClassPerformanceImbalanceCheck(alternative_scorers=alternative_scorers)
+    check = ClassPerformanceImbalance(alternative_scorers=alternative_scorers)
 
     # Assert
     assert_that(
         calling(check.run).with_args(dataset=test, model=model),
         raises(
             DeepchecksValueError,
-            r"Check 'ClassPerformanceImbalanceCheck' expecting that scorer 'Test3' will "
+            r"Check 'ClassPerformanceImbalance' expecting that scorer 'Test3' will "
             r"return an instance of numpy array with items of type int\|float and with shape \(3,\)! "
             r"But got array with shape \(0,\)."
         )
@@ -130,14 +130,14 @@ def test_class_performance_imbalance_with_custom_scorers_that_return_array_with_
 
     # dict dtype is allowed but values dtype must be int|float
     alternative_scorers = {'Test3': lambda model, features, labels: np.array(["a", "b", "c"])}
-    check = ClassPerformanceImbalanceCheck(alternative_scorers=alternative_scorers)
+    check = ClassPerformanceImbalance(alternative_scorers=alternative_scorers)
 
     # Assert
     assert_that(
         calling(check.run).with_args(dataset=test, model=model),
         raises(
             DeepchecksValueError,
-            r"Check 'ClassPerformanceImbalanceCheck' expecting that scorer 'Test3' "
+            r"Check 'ClassPerformanceImbalance' expecting that scorer 'Test3' "
             r"will return an instance of numpy array with items of type int\|float and "
             r"with shape \(3,\)! But got array of '<U1'."
         )
@@ -149,7 +149,7 @@ def test_condition_percentage_difference_not_greater_than_threshold_that_should_
 ):
     # Arrange
     _, test, model = iris_split_dataset_and_model
-    check = ClassPerformanceImbalanceCheck().add_condition_ratio_difference_not_greater_than(0.5)
+    check = ClassPerformanceImbalance().add_condition_ratio_difference_not_greater_than(0.5)
 
     # Act
     check_result = check.run(dataset=test, model=model)
@@ -171,7 +171,7 @@ def test_condition_percentage_difference_not_greater_than_threshold_that_should_
 ):
     # Arrange
     _, test, model = iris_split_dataset_and_model
-    check = ClassPerformanceImbalanceCheck().add_condition_ratio_difference_not_greater_than(0.2)
+    check = ClassPerformanceImbalance().add_condition_ratio_difference_not_greater_than(0.2)
 
     # Act
     check_result = check.run(dataset=test, model=model)
