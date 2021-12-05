@@ -13,7 +13,7 @@ __all__ = ['RegressionErrorDistribution']
 
 
 class RegressionBias(SingleDatasetBaseCheck):
-    """Calculate MSE and the avarage prediction error"""
+    """Check the regression bias"""
 
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run check.
@@ -22,8 +22,8 @@ class RegressionBias(SingleDatasetBaseCheck):
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
         Returns:
            CheckResult:
-                - value is a dict with mse and kurtosis values.
-                - display is histogram of error distirbution and the extreme prediction errors.
+                - value is a dict with mse and mean prediction error.
+                - display is box plot of the prediction error.
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance with a label
         """
@@ -42,14 +42,12 @@ class RegressionBias(SingleDatasetBaseCheck):
         diff = y_test - y_pred
         diff_mean = diff.mean()
 
-        def display_hist():
+        def display():
             red_square = dict(markerfacecolor='r', marker='s')
             _, ax = plt.subplots()
             ax.set_title('Horizontal Boxes')
             ax.boxplot(diff, vert=False, flierprops=red_square)
 
-        display = [display_hist, 'Largest over estimation errors:', n_largest,
-                   'Largest under estimation errors:', n_smallest,]
         return CheckResult(value={'mse': mse, 'mean_error': diff_mean}, check=self.__class__, display=display)
 
     def add_condition_absolute_kurtosis_not_greater_than(self, max_kurtosis: float = 0.1):
