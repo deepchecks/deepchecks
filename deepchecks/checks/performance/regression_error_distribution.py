@@ -3,18 +3,18 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.stats import kurtosis
 from sklearn.base import BaseEstimator
+from sklearn.metrics import mean_squared_error
 
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
 from deepchecks.utils.metrics import ModelType, task_type_validation
 from deepchecks.utils.strings import format_number
-from sklearn.metrics import mean_squared_error
 
 __all__ = ['RegressionErrorDistribution']
 
 
 class RegressionErrorDistribution(SingleDatasetBaseCheck):
-    """Calculate MSE and kurtosis, display an error histogram.
-    
+    """Calculate MSE and kurtosis, display an error histogram and most extreme prediction errors.
+
     Args:
         n_extreme (int): amount of samples to show which are of Largest negetive and positive errors.
     """
@@ -33,7 +33,7 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         Returns:
            CheckResult:
                 - value is a dict with mse and kurtosis values.
-                - display is histogram of error distirbution and the extreme values.
+                - display is histogram of error distirbution and the extreme prediction errors.
 
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance with a label
