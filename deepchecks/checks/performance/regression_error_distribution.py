@@ -68,7 +68,8 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
             plt.xlabel(f'{dataset.label_name()} prediction error')
             plt.ylabel('Frequency')
 
-        display = [display_hist, 'Largest over estimation errors:', n_largest, 'Largest under estimation errors:', n_smallest,]
+        display = [display_hist, 'Largest over estimation errors:', n_largest,
+                   'Largest under estimation errors:', n_smallest,]
         return CheckResult(value={'mse': mse, 'kurtosis': kurtosis_value}, check=self.__class__, display=display)
 
     def add_condition_absolute_kurtosis_not_greater_than(self, max_kurtosis: float = 0.1):
