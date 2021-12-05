@@ -16,7 +16,7 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
     """Calculate MSE and kurtosis, display an error histogram and most extreme prediction errors.
 
     Args:
-        n_extreme (int): amount of samples to show which are of Largest negetive and positive errors.
+        n_extreme (int): amount of samples to show which are of Largest under / over estimation errors.
     """
 
     def __init__(self, n_extreme: int = 3):
@@ -68,7 +68,7 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
             plt.xlabel(f'{dataset.label_name()} prediction error')
             plt.ylabel('Frequency')
 
-        display = [display_hist, 'Largest positive errors:', n_largest, 'Largest negetive errors:', n_smallest,]
+        display = [display_hist, 'Largest over estimation errors:', n_largest, 'Largest under estimation errors:', n_smallest,]
         return CheckResult(value={'mse': mse, 'kurtosis': kurtosis_value}, check=self.__class__, display=display)
 
     def add_condition_absolute_kurtosis_not_greater_than(self, max_kurtosis: float = 0.1):
