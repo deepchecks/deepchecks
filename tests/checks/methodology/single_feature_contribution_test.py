@@ -124,10 +124,13 @@ def test_all_features_pps_upper_bound_condition_that_should_not_pass():
     condition_result, *_ = check.conditions_decision(check.run(dataset))
 
     # Assert
+    pps_url = 'https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598'
+    pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
+
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name=f'Features PPS is not greater than {condition_value}',
-        details='Features with greater PPS: x2, x4, x5'
+        name=f'Features\' {pps_html_url} (PPS) is not greater than {condition_value}',
+        details='Features with PPS above threshold: x2, x4, x5'
     ))
 
 
@@ -142,9 +145,12 @@ def test_all_features_pps_upper_bound_condition_that_should_pass():
     condition_result, *_ = check.conditions_decision(check.run(dataset))
 
     # Assert
+    pps_url = 'https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598'
+    pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
+
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        name=f'Features PPS is not greater than {condition_value}'
+        name=f'Features\' {pps_html_url} (PPS) is not greater than {condition_value}',
     ))
 
 
@@ -161,9 +167,12 @@ def test_train_test_condition_pps_difference_pass():
     print(result)
 
     # Assert
+    pps_url = 'https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598'
+    pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
+
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        name=f'Train-Test features PPS difference is not greater than {condition_value}'
+        name=f'Train-Test features\' {pps_html_url} (PPS) difference is not greater than {condition_value}'
     ))
 
 
@@ -179,9 +188,12 @@ def test_train_test_condition_pps_difference_fail():
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
+    pps_url = 'https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598'
+    pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
+
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name=f'Train-Test features PPS difference is not greater than {condition_value}',
+        name=f'Train-Test features\' {pps_html_url} (PPS) difference is not greater than {condition_value}',
         details='Features with PPS difference above threshold: x2'
     ))
 
