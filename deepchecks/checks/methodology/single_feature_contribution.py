@@ -3,6 +3,7 @@ import typing as t
 
 import deepchecks.ppscore as pps
 from deepchecks.utils.plot import create_colorbar_barchart_for_check
+from deepchecks.utils.typing import Hashable
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
 
 
@@ -48,8 +49,9 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         return self._single_feature_contribution(dataset=dataset)
 
     def _single_feature_contribution(self, dataset: Dataset):
-        Dataset.validate_dataset(dataset, self.__class__.__name__)
-        dataset.validate_label(self.__class__.__name__)
+        check_name = self.__class__.__name__
+        Dataset.validate_dataset(dataset, check_name)
+        dataset.validate_label(check_name)
         ppscore_params = self.ppscore_params or {}
 
         relevant_columns = dataset.features() + [dataset.label_name()]
@@ -78,7 +80,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         Args:
             threshold: pps upper bound
         """
-        def condition(value: t.Dict[str, float]) -> ConditionResult:
+        def condition(value: t.Dict[Hashable, float]) -> ConditionResult:
             failed_features = [
                 feature_name
                 for feature_name, pps_value in value.items()
@@ -86,7 +88,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
             ]
 
             if failed_features:
-                message = f'Features with PPS above threshold: {", ".join(failed_features)}'
+                message = f'Features with PPS above threshold: {", ".join(map(str, failed_features))}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
