@@ -1,6 +1,6 @@
 """module contains Invalid Chars check."""
 from collections import defaultdict
-from typing import Iterable, Union
+from typing import Union, List
 import pandas as pd
 from pandas.api.types import infer_dtype
 
@@ -9,6 +9,7 @@ from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, Condition
 from deepchecks.utils.dataframes import filter_columns_with_validation
 from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
 from deepchecks.utils.strings import string_baseform, format_percent, format_columns_for_condition
+from deepchecks.utils.typing import Hashable
 
 
 __all__ = ['SpecialCharacters']
@@ -33,18 +34,23 @@ class SpecialCharacters(SingleDatasetBaseCheck):
     """Search in column[s] for values that contains only special characters.
 
     Args:
-        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-        ones.
-        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-        variable.
-        n_most_common (int): Number of most common special-only samples to show in results
+        columns (Union[Hashable, List[Hashable]]):
+            Columns to check, if none are given checks all columns except ignored ones.
+        ignore_columns (Union[Hashable, List[Hashable]]):
+            Columns to ignore, if none given checks based on columns variable.
+        n_most_common (int):
+            Number of most common special-only samples to show in results
         n_top_columns (int): (optinal - used only if model was specified)
           amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None,
-                 ignore_columns: Union[str, Iterable[str]] = None,
-                 n_most_common: int = 2, n_top_columns: int = 10):
+    def __init__(
+        self,
+        columns: Union[Hashable, List[Hashable], None] = None,
+        ignore_columns: Union[Hashable, List[Hashable], None] = None,
+        n_most_common: int = 2,
+        n_top_columns: int = 10
+    ):
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
