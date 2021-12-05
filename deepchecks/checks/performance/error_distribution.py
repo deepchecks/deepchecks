@@ -12,7 +12,7 @@ __all__ = ['DateTrainTestLeakageDuplicates']
 
 
 class RegressionErrorDistribution(SingleDatasetBaseCheck):
-    """Check if test dates are present in train data."""
+    """Calculate MSE and kurtosis, display an error histogram."""
 
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run check.
