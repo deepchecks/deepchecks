@@ -1,4 +1,4 @@
-"""The date_leakage check module."""
+"""The regression_error_distribution check module."""
 import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.stats import kurtosis
