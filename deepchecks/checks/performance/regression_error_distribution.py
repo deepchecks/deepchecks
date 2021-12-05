@@ -8,7 +8,7 @@ from deepchecks.utils.metrics import ModelType, task_type_validation
 from deepchecks.utils.strings import format_number
 from sklearn.metrics import mean_squared_error
 
-__all__ = ['DateTrainTestLeakageDuplicates']
+__all__ = ['RegressionErrorDistribution']
 
 
 class RegressionErrorDistribution(SingleDatasetBaseCheck):
@@ -53,18 +53,18 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
 
         return CheckResult(value={'mse': mse, 'kurtosis': kurtosis_value}, check=self.__class__, display=display)
 
-    def add_condition_absalute_kurtosis_not_greater_than(self, max_kurtosis: float = 0.1):
-        """Add condition - require the absalute kurtosis value to not surpass max_kurtosis.
+    def add_condition_absolute_kurtosis_not_greater_than(self, max_kurtosis: float = 0.1):
+        """Add condition - require the absolute kurtosis value to not surpass max_kurtosis.
 
         Args:
-            max_ratio (int): Maximum ratio of leakage.
+            max_kurtosis (float): Maximum absolute kurtosis value
         """
-        def max_ratio_condition(result: float) -> ConditionResult:
+        def max_kurtosis_condition(result: float) -> ConditionResult:
             kurtosis_value = result['kurtosis']
             if abs(kurtosis_value) > max_kurtosis:
                 return ConditionResult(False, f'kurtosis: {format_number(kurtosis_value)}')
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Absalute kurtosis value is not greater than {format_number(max_kurtosis)}',
-                                  max_ratio_condition)
+        return self.add_condition(f'Absolute kurtosis value is not greater than {format_number(max_kurtosis)}',
+                                  max_kurtosis_condition)
