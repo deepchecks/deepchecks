@@ -45,7 +45,7 @@ def test_bad_dataset_model(iris_random_forest, diabetes):
     error_message = (
         r'In order to evaluate model correctness we need not empty dataset with the '
         r'same set of features that was used to fit the model. But function received '
-        r'dataset with a different set of features'
+        r'dataset with a different set of features.'
         # FIXME:
         # There is a problem, when I run this test locally, the 'validate_model'
         # function from the utils package as predicted raises DeepchecksValueError
