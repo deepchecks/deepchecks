@@ -1,8 +1,4 @@
 """Unused features tests."""
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
-
-from deepchecks import Dataset
 from deepchecks.checks.methodology import UnusedFeatures
 from hamcrest import assert_that, equal_to
 

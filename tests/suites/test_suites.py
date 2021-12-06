@@ -33,7 +33,7 @@ def iris(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBoostClassifier]:
     )
 
     model = AdaBoostClassifier(random_state=0)
-    model.fit(train.features_columns(), train.label_col())
+    model.fit(train.features_columns, train.label_col)
 
     return train, test, model
 
@@ -88,7 +88,7 @@ def iris_with_non_textual_columns(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBo
     )
 
     model = AdaBoostClassifier(random_state=0)
-    model.fit(train.features_columns(), train.label_col())
+    model.fit(train.features_columns, train.label_col)
 
     return train, test, model
 

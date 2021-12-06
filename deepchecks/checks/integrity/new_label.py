@@ -43,7 +43,7 @@ class NewLabelTrainTest(TrainTestBaseCheck):
 
         label_column = train_dataset.validate_shared_label(test_dataset, self.__class__.__name__)
 
-        n_test_samples = test_dataset.n_samples()
+        n_test_samples = test_dataset.n_samples
 
         train_label = train_dataset.data[label_column]
         test_label = test_dataset.data[label_column]

@@ -74,11 +74,11 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
 
         metrics = get_metrics_list(model, train_dataset, self.alternative_metrics)
 
-        train_metrics = {key: scorer(model, train_dataset.data[train_dataset.features()], train_dataset.label_col())
+        train_metrics = {key: scorer(model, train_dataset.data[train_dataset.features], train_dataset.label_col)
                          for key, scorer in metrics.items()}
 
-        test_metrics = {key: scorer(model, test_dataset.data[test_dataset.features()],
-                                    test_dataset.label_col())
+        test_metrics = {key: scorer(model, test_dataset.data[test_dataset.features],
+                                    test_dataset.label_col)
                         for key, scorer in metrics.items()}
 
         result = {'test': test_metrics, 'train': train_metrics}
