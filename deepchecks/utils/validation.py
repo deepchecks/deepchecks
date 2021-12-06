@@ -40,8 +40,8 @@ def validate_model(dataset: 'base.Dataset', model: t.Any):
         'with the same set of features that was used to fit the model. {0}'
     )
 
-    features = dataset.features_columns()
-    features_names = set(dataset.features())
+    features = dataset.features_columns
+    features_names = set(dataset.features)
     model_features = getattr(model, 'feature_names_in_', None)
 
     if features is None:
