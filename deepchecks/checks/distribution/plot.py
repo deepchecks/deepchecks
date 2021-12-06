@@ -4,7 +4,7 @@ from scipy.stats import gaussian_kde
 import matplotlib.pyplot as plt
 
 
-def plot_density(data, xs, color='b', alpha: float = 0.7, **kwargs) -> np.array:
+def plot_density(data, xs, color='b', alpha: float = 0.7, **kwargs) -> np.ndarray:
     """Plot a KDE density plot of the data. Adding labels and other plotting attributes is left to ths user.
 
     Args:

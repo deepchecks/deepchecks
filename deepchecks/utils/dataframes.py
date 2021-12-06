@@ -1,55 +1,86 @@
 """Contain functions for handling dataframes in checks."""
-from typing import Sequence, Union, List, cast
+import typing as t
 import pandas as pd
+from deepchecks.utils.typing import Hashable
+from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 from deepchecks.errors import DeepchecksValueError
 
 
 __all__ = ['validate_columns_exist', 'filter_columns_with_validation']
 
 
-def validate_columns_exist(df: pd.DataFrame, columns: Union[None, str, Sequence[str]]):
+def validate_columns_exist(
+    df: pd.DataFrame,
+    columns: t.Union[Hashable, t.List[Hashable]],
+    raise_error: bool = True
+) -> bool:
     """Validate given columns exist in dataframe.
 
     Args:
-        df (pd.DataFrame)
-        columns (Union[None, str, List[str]]): Column names to check
+        df (pd.DataFrame):
+            dataframe to inspect
+        columns (Union[Hashable, List[Hashable]]):
+            Column names to check
+        raise_error (bool, default True):
+            whether to raise an error if some column is not present in the dataframe or not
 
     Raise:
-        DeepchecksValueError: In case one of columns given don't exists raise error
+        DeepchecksValueError:
+            If some of the columns do not exist within provided dataframe;
+            If receives empty list of 'columns';
+            If not all elements within 'columns' list are hashable;
     """
-    if columns is None:
-        raise DeepchecksValueError('Got empty columns')
-    if isinstance(columns, str):
-        columns = [columns]
-    elif isinstance(columns, Sequence):
-        if any((not isinstance(s, str) for s in columns)):
-            raise DeepchecksValueError(f'Columns must be of type str: {", ".join(columns)}')
-    else:
-        raise DeepchecksValueError(f'Columns must be of types `str` or `List[str]`, but got {type(columns).__name__}')
-    # Check columns exists
-    non_exists = set(columns) - set(df.columns)
-    if non_exists:
-        raise DeepchecksValueError(f'Given columns do not exist in dataset: {", ".join(non_exists)}')
+    error_message = 'columns - expected to receive not empty list of hashable values!'
+    columns = ensure_hashable_or_mutable_sequence(columns, message=error_message)
+
+    is_empty = len(columns) == 0
+
+    if raise_error and is_empty:
+        raise DeepchecksValueError(error_message)
+    elif not raise_error and is_empty:
+        return False
+
+    difference = set(columns) - set(df.columns)
+    all_columns_present = len(difference) == 0
+
+    if raise_error and not all_columns_present:
+        stringified_columns = ','.join(map(str, difference))
+        raise DeepchecksValueError(f'Given columns do not exist in dataset: {stringified_columns}')
+
+    return all_columns_present
 
 
-def filter_columns_with_validation(df: pd.DataFrame, columns: Union[str, List[str], None] = None,
-                                   ignore_columns: Union[str, List[str], None] = None) -> pd.DataFrame:
+def filter_columns_with_validation(
+    df: pd.DataFrame,
+    columns: t.Union[Hashable, t.List[Hashable], None] = None,
+    ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None
+) -> pd.DataFrame:
     """Filter DataFrame columns by given params.
 
     Args:
         df (pd.DataFrame)
-        columns (Union[str, List[str], None]): Column names to keep.
-        ignore_columns (Union[str, List[str], None]): Column names to drop.
+        columns (Union[Hashable, List[Hashable], None]): Column names to keep.
+        ignore_columns (Union[Hashable, List[Hashable], None]): Column names to drop.
+
+    Returns:
+        pandas.DataFrame: returns horizontally filtered dataframe
+
     Raise:
-        DeepchecksValueError: In case one of columns given don't exists raise error
+        DeepchecksValueError:
+            If some of the columns do not exist within provided dataframe;
+            If 'columns' and 'ignore_columns' arguments is 'None';
     """
     if columns is not None and ignore_columns is not None:
-        raise DeepchecksValueError('Cannot receive both parameters "columns" and "ignore", '
-                                   'only one must be used at most')
+        raise DeepchecksValueError(
+            'Cannot receive both parameters "columns" and "ignore", '
+            'only one must be used at most'
+        )
     elif columns is not None:
+        columns = ensure_hashable_or_mutable_sequence(columns)
         validate_columns_exist(df, columns)
-        return cast(pd.DataFrame, df[columns])
+        return t.cast(pd.DataFrame, df[columns])
     elif ignore_columns is not None:
+        ignore_columns = ensure_hashable_or_mutable_sequence(ignore_columns)
         validate_columns_exist(df, ignore_columns)
         return df.drop(labels=ignore_columns, axis='columns')
     else:

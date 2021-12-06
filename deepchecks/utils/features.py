@@ -11,6 +11,7 @@ from sklearn.utils.validation import check_is_fitted
 from deepchecks import base
 from deepchecks import errors
 from deepchecks.utils import validation
+from deepchecks.utils.typing import Hashable
 
 
 __all__ = [
@@ -155,7 +156,7 @@ def column_importance_sorter_df(
     ds: 'base.Dataset',
     feature_importances: pd.Series,
     n_top: int = 10,
-    col: str = None
+    col: t.Optional[Hashable] = None
 ) -> pd.DataFrame:
     """Return the dataframe of of columns sorted and limited by feature importance.
 
@@ -164,7 +165,7 @@ def column_importance_sorter_df(
         ds (Dataset): dataset used to fit the model
         feature_importances (pd.Series): feature importance normalized to 0-1 indexed by feature names
         n_top (int): amount of columns to show ordered by feature importance (date, index, label are first)
-        col (str): (optional) name of column to sort the dataframe by
+        col (Optional[Hashable]): name of column to sort the dataframe by
     Returns:
         pd.DataFrame: the dataframe sorted and limited by feature importance.
 
