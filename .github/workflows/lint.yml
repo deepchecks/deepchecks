@@ -42,6 +42,7 @@ jobs:
       uses: apache/skywalking-eyes@v0.2.0
       with:
         mode: fix
+        config: .licenserc_fix.yaml
 
     
   notebook:
