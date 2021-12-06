@@ -88,9 +88,12 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
             ]
 
             if failed_features:
-                message = f'Features with greater PPS: {", ".join(map(str, failed_features))}'
+                message = f'Features with PPS above threshold: {", ".join(map(str, failed_features))}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Features PPS is not greater than {threshold}', condition)
+        pps_url = 'https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598'
+        pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
+
+        return self.add_condition(f'Features\' {pps_html_url} (PPS) is not greater than {threshold}', condition)
