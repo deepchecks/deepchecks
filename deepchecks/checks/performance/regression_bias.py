@@ -1,7 +1,5 @@
 """The regression_error_distribution check module."""
 import matplotlib.pyplot as plt
-import pandas as pd
-from scipy.stats import kurtosis
 from sklearn.base import BaseEstimator
 from sklearn.metrics import mean_squared_error
 
@@ -59,7 +57,8 @@ class RegressionBias(SingleDatasetBaseCheck):
             rmse = result['rmse']
             mean_error = result['mean_error']
             if abs(mean_error) > max_ratio * rmse:
-                return ConditionResult(False, f'mean error: {format_number(mean_error, 5)}, RMSE: {format_number(rmse)}')
+                return ConditionResult(False,
+                                      f'mean error: {format_number(mean_error, 5)}, RMSE: {format_number(rmse)}')
             else:
                 return ConditionResult(True)
 
