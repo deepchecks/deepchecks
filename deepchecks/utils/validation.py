@@ -37,7 +37,7 @@ def validate_model(dataset: 'base.Dataset', model: t.Any):
 
     error_message = (
         'In order to evaluate model correctness we need not empty dataset '
-        'with the same set of features that was used to fit the model! {0}'
+        'with the same set of features that was used to fit the model. {0}'
     )
 
     features = dataset.features_columns()
@@ -46,19 +46,19 @@ def validate_model(dataset: 'base.Dataset', model: t.Any):
 
     if features is None:
         raise errors.DeepchecksValueError(error_message.format(
-            'But function received dataset without feature columns!'
+            'But function received dataset without feature columns.'
         ))
 
     if len(features) == 0:
         raise errors.DeepchecksValueError(error_message.format(
-            'But function received empty dataset!'
+            'But function received empty dataset.'
         ))
 
     try:
         model_features = set(model_features) # type: ignore
         if model_features != features_names:
             raise errors.DeepchecksValueError(error_message.format(
-                'But function received dataset with a different set of features!'
+                'But function received dataset with a different set of features.'
             ))
     except (TypeError, ValueError):
         # in case if 'model.feature_names_in_' was None or not iterable
