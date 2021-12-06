@@ -9,7 +9,7 @@ from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionRe
 from deepchecks.utils.metrics import ModelType, task_type_validation
 from deepchecks.utils.strings import format_number
 
-__all__ = ['RegressionErrorDistribution']
+__all__ = ['RegressionBias']
 
 
 class RegressionBias(SingleDatasetBaseCheck):
@@ -22,8 +22,8 @@ class RegressionBias(SingleDatasetBaseCheck):
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
         Returns:
            CheckResult:
-                - value is a dict with mse and mean prediction error.
-                - display is box plot of the prediction error.
+                - value is a dict with rmse and mean prediction error.
+                - display is box plot of the prediction errorד.
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance with a label
         """
@@ -35,32 +35,33 @@ class RegressionBias(SingleDatasetBaseCheck):
         dataset.validate_label(check_name)
         task_type_validation(model, dataset, [ModelType.REGRESSION], check_name)
 
-        y_test = dataset.label_col()
-        y_pred = model.predict(dataset.features_columns())
+        y_test = dataset.label_col
+        y_pred = model.predict(dataset.features_columns)
 
-        mse = mean_squared_error(dataset.label_col(), y_pred, squared=False)
+        rmse = mean_squared_error(dataset.label_col, y_pred, squared=False)
         diff = y_test - y_pred
         diff_mean = diff.mean()
 
         def display():
             red_square = dict(markerfacecolor='r', marker='s')
             _, ax = plt.subplots()
-            ax.set_title('Horizontal Boxes')
+            ax.set_title('Prediction Errors')
             ax.boxplot(diff, vert=False, flierprops=red_square)
 
-        return CheckResult(value={'mse': mse, 'mean_error': diff_mean}, check=self.__class__, display=display)
+        return CheckResult(value={'rmse': rmse, 'mean_error': diff_mean}, check=self.__class__, display=display)
 
-    def add_condition_absolute_kurtosis_not_greater_than(self, max_kurtosis: float = 0.1):
-        """Add condition - require the absolute kurtosis value to not surpass max_kurtosis.
+    def add_condition_bias_ratio_not_greater_than(self, max_ratio: float = 0.01):
+        """Add condition - require the absolute mean error to be not greater than (max_ratio * RMSE).
         Args:
             max_kurtosis (float): Maximum absolute kurtosis value
         """
-        def max_kurtosis_condition(result: float) -> ConditionResult:
-            kurtosis_value = result['kurtosis']
-            if abs(kurtosis_value) > max_kurtosis:
-                return ConditionResult(False, f'kurtosis: {format_number(kurtosis_value, 5)}')
+        def max_bias_condition(result: float) -> ConditionResult:
+            rmse = result['rmse']
+            mean_error = result['mean_error']
+            if abs(mean_error) > max_ratio * rmse:
+                return ConditionResult(False, f'mean error: {format_number(mean_error, 5)}, RMSE: {format_number(rmse)}')
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Absolute kurtosis value is not greater than {format_number(max_kurtosis, 5)}',
-                                  max_kurtosis_condition)
+        return self.add_condition(f'Bias ratio is not greater than {format_number(max_ratio)}',
+                                  max_bias_condition)

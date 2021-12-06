@@ -6,8 +6,8 @@ from deepchecks.checks.performance import (
     ConfusionMatrixReport,
     RocReport,
     SimpleModelComparison,
-    CalibrationMetric
-
+    CalibrationMetric,
+    RegressionBias,
 )
 
 __all__ = [
@@ -40,8 +40,10 @@ def regression_suite() -> Suite:
     The suite runs a set of checks that are meant to measure and detect performance
     abnormality of the regression model.
     """
-    # TODO: This suite is here as a placeholder for future regression-specific checks
-    return Suite('Regression Suite')
+    return Suite(
+        'Regression Suite',
+        RegressionBias().add_condition_bias_ratio_not_greater_than()
+    )
 
 
 def generic_performance_suite() -> Suite:
@@ -67,5 +69,6 @@ def performance_suite() -> Suite:
     return Suite(
         'Performance Suite',
         generic_performance_suite(),
-        classification_suite()
+        classification_suite(),
+        regression_suite()
     )

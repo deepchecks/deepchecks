@@ -5,4 +5,4 @@ from .roc_report import *
 from .simple_model_comparison import *
 from .calibration_metric import *
 from .segment_performance import *
-
+from .regression_bias import *
