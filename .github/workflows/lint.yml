@@ -39,20 +39,20 @@ jobs:
     
     steps:
     - name: License Eye
-      uses: apache/skywalking-eyes@v0.2.0
-      with:
-        config: .licenserc_fix.yaml
-        mode: "fix"
-        log: debug
-        token: ${{ secrets.CI_GH_TOKEN }}
+      uses: apache/skywalking-eyes@main
+        with:
+          config: .licenserc_fix.yaml
+          mode: "fix"
+          log: debug
+          token: ${{ secrets.CI_GH_TOKEN }}
     - name: Apply Changes
       uses: EndBug/add-and-commit@v4
-      with:
-        author_name: Deepchecks Bot
-        author_email: app@deepchecks.com
-        message: 'Automatic application of license header'
-      env:
-        GITHUB_TOKEN: ${{ secrets.CI_GH_TOKEN }}
+        with:
+          author_name: Deepchecks Bot
+          author_email: app@deepchecks.com
+          message: 'Automatic application of license header'
+          env:
+            GITHUB_TOKEN: ${{ secrets.CI_GH_TOKEN }}  
  
     
   notebook:
