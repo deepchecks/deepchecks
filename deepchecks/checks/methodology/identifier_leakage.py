@@ -47,12 +47,12 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
         dataset.validate_label(self.__class__.__name__)
         ppscore_params = ppscore_params or {}
 
-        relevant_columns = list(filter(None, [dataset.date_name(), dataset.index_name(), dataset.label_name()]))
+        relevant_columns = list(filter(None, [dataset.date_name, dataset.index_name, dataset.label_name]))
 
         if len(relevant_columns) == 1:
             raise DeepchecksValueError('Dataset needs to have a date or index column.')
 
-        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name(), random_seed=42,
+        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name, random_seed=42,
                                 **ppscore_params)
         df_pps = df_pps.set_index('x', drop=True)
         s_ppscore = df_pps['ppscore']

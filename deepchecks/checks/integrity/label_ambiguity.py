@@ -51,13 +51,13 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
         dataset = dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
         dataset.validate_label(check_name)
 
-        label_col = dataset.label_name()
+        label_col = dataset.label_name
 
-        group_unique_data = dataset.data.groupby(dataset.features(), dropna=False)
+        group_unique_data = dataset.data.groupby(dataset.features, dropna=False)
         group_unique_labels = group_unique_data.nunique()[label_col]
 
         num_ambiguous = 0
-        display = pd.DataFrame(columns=[dataset.label_name(), *dataset.features()])
+        display = pd.DataFrame(columns=[dataset.label_name, *dataset.features])
 
         for num_labels, group_data in sorted(zip(group_unique_labels, group_unique_data),
                                              key=lambda x: x[0], reverse=True):
@@ -65,7 +65,7 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
                 break
 
             group_df = group_data[1]
-            sample_values = dict(group_df[dataset.features()].iloc[0])
+            sample_values = dict(group_df[dataset.features].iloc[0])
             labels = list(group_df[label_col].unique())
             n_data_sample = group_df.shape[0]
             num_ambiguous += n_data_sample
@@ -76,7 +76,7 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
 
         display = None if display.empty else display.head(self.n_to_show)
 
-        percent_ambiguous = num_ambiguous/dataset.n_samples()
+        percent_ambiguous = num_ambiguous/dataset.n_samples
 
         return CheckResult(value=percent_ambiguous, check=self.__class__, display=display)
 

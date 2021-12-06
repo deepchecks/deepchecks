@@ -69,11 +69,11 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
         test_dataset = test_dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
         train_dataset = train_dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
 
-        if set(features).symmetric_difference(set(test_dataset.features())):
-            cat_features = test_dataset.features()
+        if set(features).symmetric_difference(set(test_dataset.features)):
+            cat_features = test_dataset.features
 
         new_categories = []
-        n_test_samples = test_dataset.n_samples()
+        n_test_samples = test_dataset.n_samples
 
         for feature in cat_features:
             train_column = train_dataset.data[feature]

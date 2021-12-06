@@ -61,7 +61,7 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
         model_type_validation(model)
 
         prediction_method = model.predict # type: ignore
-        df = t.cast(pd.DataFrame, dataset.features_columns())
+        df = t.cast(pd.DataFrame, dataset.features_columns)
 
         number_of_samples = len(df) if len(df) < self.number_of_samples else self.number_of_samples
         df = df.sample(n=number_of_samples, random_state=np.random.randint(number_of_samples))
