@@ -5,3 +5,7 @@ header:
   paths:
     - '**'
   comment: on-failure
+
+dependency:
+  files:
+    - requirements.txt
