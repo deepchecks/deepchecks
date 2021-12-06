@@ -1,4 +1,4 @@
-"""The regression_error_distribution check module."""
+"""The regression_error_bias check module."""
 import matplotlib.pyplot as plt
 from sklearn.base import BaseEstimator
 from sklearn.metrics import mean_squared_error
