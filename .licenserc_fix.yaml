@@ -1,0 +1,7 @@
+header:
+  license:
+    spdx-id: AGPL-3.0-only
+    copyright-owner: Deepchecks
+  paths:
+    - '**'
+  comment: on-failure
