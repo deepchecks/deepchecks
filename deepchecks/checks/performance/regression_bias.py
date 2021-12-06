@@ -11,10 +11,11 @@ __all__ = ['RegressionBias']
 
 
 class RegressionBias(SingleDatasetBaseCheck):
-    """Check the regression bias"""
+    """Check the regression bias."""
 
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run check.
+
         Arguments:
             dataset (Dataset): A dataset object.
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
@@ -50,6 +51,7 @@ class RegressionBias(SingleDatasetBaseCheck):
 
     def add_condition_bias_ratio_not_greater_than(self, max_ratio: float = 0.01):
         """Add condition - require the absolute mean error to be not greater than (max_ratio * RMSE).
+
         Args:
             max_kurtosis (float): Maximum absolute kurtosis value
         """
