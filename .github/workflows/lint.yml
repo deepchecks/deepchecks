@@ -32,7 +32,16 @@ jobs:
         python-version: 3.9
     - name: Run Pydocstyle
       run: make docstring
+  license-check:
+    runs-on: ubuntu-latest
+    
+    needs: docstring
+    
+    steps:
+    - name: License Eye
+      uses: apache/skywalking-eyes@v0.2.0
 
+    
   notebook:
     runs-on: ubuntu-latest
 
