@@ -1,15 +1,17 @@
 """Handle display of suite result."""
 # pylint: disable=protected-access
 import sys
-import tqdm
-from typing import List, Union
+from typing import List, Union, Optional
 
+import pandas as pd
+import tqdm
 from IPython.core.display import display_html
 
+from deepchecks.base import suite
 from deepchecks.base.check import CheckResult, CheckFailure
 from deepchecks.base.display_pandas import dataframe_to_html, display_dataframe
 from deepchecks.utils.ipython import is_widgets_enabled
-import pandas as pd
+
 
 __all__ = ['display_suite_result', 'ProgressBar']
 
@@ -46,11 +48,18 @@ def get_display_exists_icon(exists: bool):
     return '<div style="text-align: center">No</div>'
 
 
-def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]]):
+def display_suite_result(
+    suite_name: str,
+    results: List[Union[CheckResult, CheckFailure]],
+    output_order: Optional['suite.SuiteOutputOrder'] = None
+):
     """Display results of suite in IPython."""
+    output_order = output_order or suite.SuiteOutputOrder.CREATION_ORDER
+
     conditions_table = []
     display_table = []
     others_table = []
+
     for result in results:
         if isinstance(result, CheckResult):
             if result.have_conditions():
@@ -67,6 +76,22 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
             msg = result.exception.__class__.__name__ + ': ' + str(result.exception)
             name = result.check.name()
             others_table.append([name, msg, 1])
+
+    if output_order == suite.SuiteOutputOrder.FAILED_FIRST:
+
+        def key(item: CheckResult) -> int:
+            have_conditions = item.have_conditions()
+            all_conditions_passed = item.passed_conditions()
+
+            if have_conditions and not all_conditions_passed:
+                return 0
+            elif have_conditions and all_conditions_passed:
+                return 3
+            else:
+                # checks that do not have conditions
+                return 2
+
+        display_table = sorted(display_table, key=key)
 
     light_hr = '<hr style="background-color: #eee;border: 0 none;color: #eee;height: 1px;">'
     bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'
@@ -93,6 +118,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         display_html('<p>No conditions defined on checks in the suite.</p>', raw=True)
 
     display_html(f'{bold_hr}<h2>Additional Outputs</h2>', raw=True)
+
     if display_table:
         for i, r in enumerate(display_table):
             r._ipython_display_()

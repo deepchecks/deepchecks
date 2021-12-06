@@ -1,5 +1,6 @@
 """Module containing the Suite object, used for running a set of checks together."""
 # pylint: disable=broad-except
+import enum
 from collections import OrderedDict
 from typing import Union, List, Optional
 
@@ -15,19 +16,31 @@ from deepchecks.base.check import (
 __all__ = ['Suite', 'SuiteResult']
 
 
+class SuiteOutputOrder(enum.Enum):
+    CREATION_ORDER = 'CREATION_ORDER'
+    FAILED_FIRST = 'FAILED_FIRST'
+
+
 class SuiteResult:
     """Contain the results of a suite run."""
 
     name: str
     results: List[Union[CheckResult, CheckFailure]]
+    output_order: SuiteOutputOrder
 
-    def __init__(self, name: str, results):
+    def __init__(
+        self,
+        name: str,
+        results: List[Union[CheckResult, CheckFailure]],
+        output_order: SuiteOutputOrder = SuiteOutputOrder.CREATION_ORDER
+    ):
         """Initialize suite result."""
         self.name = name
         self.results = results
+        self.output_order = output_order
 
     def _ipython_display_(self):
-        display_suite_result(self.name, self.results)
+        display_suite_result(self.name, self.results, self.output_order)
 
 
 class Suite(BaseCheck):
