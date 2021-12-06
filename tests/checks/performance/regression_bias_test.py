@@ -87,4 +87,4 @@ def test_condition_bias_ratio_not_greater_than_not_passed_0_max(diabetes_split_d
         equal_condition_result(is_pass=False,
                                name='Bias ratio is not greater than 0',
                                details='mean error: -0.00802, RMSE: 57.41')
-    )) 
+    ))
