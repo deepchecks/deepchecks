@@ -40,7 +40,7 @@ def diabetes(diabetes_df):
 def diabetes_model(diabetes):
     clf = GradientBoostingRegressor(random_state=0)
     train, _ = diabetes
-    return clf.fit(train.features_columns(), train.label_col())
+    return clf.fit(train.features_columns, train.label_col)
 
 
 @pytest.fixture(scope='session')
@@ -131,7 +131,7 @@ def iris_split_dataset_and_model(iris_clean) -> Tuple[Dataset, Dataset, AdaBoost
     train_ds = Dataset(train, label='target')
     val_ds = Dataset(test, label='target')
     clf = AdaBoostClassifier(random_state=0)
-    clf.fit(train_ds.features_columns(), train_ds.label_col())
+    clf.fit(train_ds.features_columns, train_ds.label_col)
     return train_ds, val_ds, clf
 
 
@@ -142,7 +142,7 @@ def iris_split_dataset_and_model_rf(iris) -> Tuple[Dataset, Dataset, RandomFores
     train_ds = Dataset(train, label='target')
     val_ds = Dataset(test, label='target')
     clf = RandomForestClassifier(random_state=0, n_estimators=10, max_depth=2)
-    clf.fit(train_ds.features_columns(), train_ds.label_col())
+    clf.fit(train_ds.features_columns, train_ds.label_col)
     return train_ds, val_ds, clf
 
 
@@ -218,7 +218,7 @@ def drifted_data_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
     df_train['target'] = label
     train_ds = Dataset(df_train, label='target')
 
-    model.fit(train_ds.features_columns(), label)
+    model.fit(train_ds.features_columns, label)
 
     label = np.random.randint(0, 2, size=(df_test.shape[0],))
     df_test['target'] = label

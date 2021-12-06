@@ -18,7 +18,7 @@ def test_boosting_classifier(iris):
     test = Dataset(test, label='target')
 
     clf = GradientBoostingClassifier(random_state=0)
-    clf.fit(train.features_columns(), train.label_col())
+    clf.fit(train.features_columns, train.label_col)
 
     # Act
     result = BoostingOverfit().run(train, test, clf)
@@ -55,7 +55,7 @@ def test_boosting_classifier_with_metric(iris):
     validation = Dataset(validation_df, label='target')
 
     clf = GradientBoostingClassifier(random_state=0)
-    clf.fit(train.features_columns(), train.label_col())
+    clf.fit(train.features_columns, train.label_col)
 
     # Act
     result = BoostingOverfit(metric='recall_micro').run(train, validation, clf)

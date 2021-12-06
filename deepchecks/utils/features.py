@@ -86,11 +86,11 @@ def _built_in_importance(model: t.Any, dataset: 'base.Dataset') -> t.Optional[pd
     """Get feature importance member if present in model."""
     if 'feature_importances_' in dir(model):  # Ensambles
         normalized_feature_importance_values = model.feature_importances_/model.feature_importances_.sum()
-        return pd.Series(normalized_feature_importance_values, index=dataset.features())
+        return pd.Series(normalized_feature_importance_values, index=dataset.features)
     elif 'coef_' in dir(model):  # Linear models
         coef = np.abs(model.coef_)
         coef = coef / coef.sum()
-        return pd.Series(coef, index=dataset.features())
+        return pd.Series(coef, index=dataset.features)
     else:
         return
 
@@ -104,10 +104,10 @@ def _calc_importance(
 ) -> pd.Series:
     """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal."""
     dataset.validate_label('_calc_importance')
-    n_samples = min(n_samples, dataset.n_samples())
-    dataset_sample_idx = dataset.label_col().sample(n_samples).index
-    r = permutation_importance(model, dataset.features_columns().loc[dataset_sample_idx, :],
-                               dataset.label_col().loc[dataset_sample_idx],
+    n_samples = min(n_samples, dataset.n_samples)
+    dataset_sample_idx = dataset.label_col.sample(n_samples).index
+    r = permutation_importance(model, dataset.features_columns.loc[dataset_sample_idx, :],
+                               dataset.label_col.loc[dataset_sample_idx],
                                n_repeats=n_repeats,
                                random_state=random_state)
     significance_mask = r.importances_mean - r.importances_std > 0
@@ -116,14 +116,14 @@ def _calc_importance(
     if total != 0:
         feature_importances = feature_importances / total
 
-    return pd.Series(feature_importances, index=dataset.features())
+    return pd.Series(feature_importances, index=dataset.features)
 
 
 def get_importance(name: str, feature_importances: pd.Series, ds: 'base.Dataset') -> int:
     """Return importance based on feature importance or label/date/index first."""
     if name in feature_importances.keys():
         return feature_importances[name]
-    if name in [ds.label_name(), ds.date_name(), ds.index_name()]:
+    if name in [ds.label_name, ds.date_name, ds.index_name]:
         return 1
     return 0
 

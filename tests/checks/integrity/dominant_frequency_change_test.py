@@ -66,13 +66,13 @@ def test_show_any(iris_split_dataset_and_model):
     # Act
     result = check.run(dataset=val_ds, baseline_dataset=train_ds).value
     # Assert
-    assert_that(len(result), equal_to(len(train_ds.features())))
+    assert_that(len(result), equal_to(len(train_ds.features)))
 
 
 def test_show_none_dominance_ratio(iris_split_dataset_and_model):
     train_ds, val_ds, _ = iris_split_dataset_and_model
     # because of dominance_ratio no value should be included
-    check = DominantFrequencyChange(dominance_ratio=len(train_ds.features()) + 1,
+    check = DominantFrequencyChange(dominance_ratio=len(train_ds.features) + 1,
                                     ratio_change_thres=-1)
     # Act
     result = check.run(dataset=val_ds, baseline_dataset=train_ds).value

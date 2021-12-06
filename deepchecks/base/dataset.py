@@ -33,7 +33,7 @@ class Dataset:
     Attributes:
         _features: List of names for the feature columns in the DataFrame.
         _label: Name of the label column in the DataFrame.
-        _use_index: Boolean value controlling whether the DataFrame index will be used by the index_col() method.
+        _use_index: Boolean value controlling whether the DataFrame index will be used by the index_col property.
         _index_name: Name of the index column in the DataFrame.
         _date_name: Name of the date column in the DataFrame.
         cat_features: List of names for the categorical features in the DataFrame.
@@ -133,7 +133,7 @@ class Dataset:
         self._max_categories = max_categories
         self._max_float_categories = max_float_categories
 
-        if self._label_name in self.features():
+        if self._label_name in self.features:
             raise DeepchecksValueError(f'label column {self._label_name} can not be a feature column')
 
         if self._label_name:
@@ -142,10 +142,10 @@ class Dataset:
             except DeepchecksValueError as e:
                 logger.warning(str(e))
 
-        if self._date_name in self.features():
+        if self._date_name in self.features:
             raise DeepchecksValueError(f'date column {self._date_name} can not be a feature column')
 
-        if self._index_name in self.features():
+        if self._index_name in self.features:
             raise DeepchecksValueError(f'index column {self._index_name} can not be a feature column')
 
         if cat_features is not None:
@@ -331,6 +331,7 @@ class Dataset:
                    index=index, date=date, convert_date_=False, max_categorical_ratio=self._max_categorical_ratio,
                    max_categories=self._max_categories)
 
+    @property
     def n_samples(self) -> int:
         """Return number of samples in dataframe.
 
@@ -391,6 +392,7 @@ class Dataset:
 
         return n_unique / n_samples < self._max_categorical_ratio and n_unique <= self._max_categories
 
+    @property
     def index_name(self) -> t.Optional[Hashable]:
         """If index column exists, return its name.
 
@@ -399,6 +401,7 @@ class Dataset:
         """
         return self._index_name
 
+    @property
     def index_col(self) -> t.Optional[pd.Series]:
         """Return index column. Index can be a named column or DataFrame index.
 
@@ -412,6 +415,7 @@ class Dataset:
         else:  # No meaningful index to use: Index column not configured, and use_column is False
             return
 
+    @property
     def date_name(self) -> t.Optional[Hashable]:
         """If date column exists, return its name.
 
@@ -420,6 +424,7 @@ class Dataset:
         """
         return self._date_name
 
+    @property
     def date_col(self) -> t.Optional[pd.Series]:
         """Return date column if exists.
 
@@ -428,6 +433,7 @@ class Dataset:
         """
         return self.data[self._date_name] if self._date_name else None
 
+    @property
     def label_name(self) -> t.Optional[Hashable]:
         """If label column exists, return its name.
 
@@ -436,6 +442,7 @@ class Dataset:
         """
         return self._label_name
 
+    @property
     def label_col(self) -> t.Optional[pd.Series]:
         """Return label column if exists.
 
@@ -444,6 +451,7 @@ class Dataset:
         """
         return self.data[self._label_name] if self._label_name else None
 
+    @property
     def features(self) -> t.List[Hashable]:
         """Return list of feature names.
 
@@ -452,6 +460,7 @@ class Dataset:
         """
         return self._features
 
+    @property
     def features_columns(self) -> t.Optional[pd.DataFrame]:
         """Return features columns if exists.
 
@@ -460,7 +469,8 @@ class Dataset:
         """
         return self.data[self._features] if self._features else None
 
-    def show_columns_info(self) -> t.Dict[Hashable, str]:
+    @property
+    def columns_info(self) -> t.Dict[Hashable, str]:
         """Return the role and logical type of each column.
 
         Returns:
@@ -486,7 +496,7 @@ class Dataset:
 
     def check_compatible_labels(self):
         """Check if label column is supported by deepchecks."""
-        labels = self.label_col()
+        labels = self.label_col
         if labels is None:
             return
         if is_string_column(labels):
@@ -507,7 +517,7 @@ class Dataset:
             DeepchecksValueError if dataset does not have a label
 
         """
-        if self.label_name() is None:
+        if self.label_name is None:
             raise DeepchecksValueError(f'Check {check_name} requires dataset to have a label column')
         self.check_compatible_labels()
 
@@ -535,7 +545,7 @@ class Dataset:
             DeepchecksValueError if dataset does not have a date column
 
         """
-        if self.date_name() is None:
+        if self.date_name is None:
             raise DeepchecksValueError(f'Check {check_name} requires dataset to have a date column')
 
     def validate_index(self, check_name: str):
@@ -549,7 +559,7 @@ class Dataset:
             DeepchecksValueError if dataset does not have an index
 
         """
-        if self.index_name() is None:
+        if self.index_name is None:
             raise DeepchecksValueError(f'Check {check_name} requires dataset to have an index column')
 
     def filter_columns_with_validation(
@@ -591,8 +601,8 @@ class Dataset:
 
         """
         Dataset.validate_dataset(other, check_name)
-        if sorted(self.features()) == sorted(other.features()):
-            return self.features()
+        if sorted(self.features) == sorted(other.features):
+            return self.features
         else:
             raise DeepchecksValueError(f'Check {check_name} requires datasets to share the same features')
 
@@ -637,10 +647,10 @@ class Dataset:
         """
         Dataset.validate_dataset(other, check_name)
         if (
-            self.label_name() is not None and other.label_name() is not None
-            and self.label_name() == other.label_name()
+            self.label_name is not None and other.label_name is not None
+            and self.label_name == other.label_name
         ):
-            return t.cast(Hashable, self.label_name())
+            return t.cast(Hashable, self.label_name)
         else:
             raise DeepchecksValueError(f'Check {check_name} requires datasets to share the same label')
 
@@ -674,7 +684,7 @@ class Dataset:
             DeepchecksValueError: if dataset does not match model
         """
         try:
-            model.predict(self.features_columns().head(1))
+            model.predict(self.features_columns.head(1))
         except Exception as exc:
             raise DeepchecksValueError('Got error when trying to predict with model on dataset') from exc
 
