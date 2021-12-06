@@ -576,16 +576,16 @@ def test_dataset_initialization_with_integer_columns():
         cat_features=[0],
     )
 
-    assert_that(actual=dataset.features(), matcher=contains_exactly(0,1,2))
-    assert_that(actual=dataset.label_name(), matcher=equal_to(3))
+    assert_that(actual=dataset.features, matcher=contains_exactly(0,1,2))
+    assert_that(actual=dataset.label_name, matcher=equal_to(3))
     assert_that(actual=dataset.cat_features, matcher=contains_exactly(0))
 
     assert_that(
-        (dataset.features_columns() == df.drop(3, axis=1))
+        (dataset.features_columns == df.drop(3, axis=1))
         .all().all()
     )
     assert_that(
-        (dataset.label_col() == df[3]).all()
+        (dataset.label_col == df[3]).all()
     )
 
 
