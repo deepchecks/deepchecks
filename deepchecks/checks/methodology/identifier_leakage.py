@@ -83,7 +83,7 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
                 if score > max_pps:
                     not_passing_columns.append(column_name)
             if not_passing_columns:
-                not_passing_str = ', '.join(not_passing_columns)
+                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
                                        f'Found columns with greater pps than {format_percent(max_pps)}: '
                                        f'{not_passing_str}')

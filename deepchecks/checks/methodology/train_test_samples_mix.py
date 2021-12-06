@@ -8,6 +8,7 @@ import pandas as pd
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, ConditionResult, TrainTestBaseCheck
 from deepchecks.utils.strings import format_percent
+from deepchecks.utils.typing import Hashable
 
 
 pd.options.mode.chained_assignment = None
@@ -16,7 +17,7 @@ pd.options.mode.chained_assignment = None
 __all__ = ['TrainTestSamplesMix']
 
 
-def get_dup_indexes_map(df: pd.DataFrame, columns: List) -> Dict:
+def get_dup_indexes_map(df: pd.DataFrame, columns: List[Hashable]) -> Dict:
     """Find duplicated indexes in the dataframe.
 
     Args:
@@ -66,6 +67,7 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
             train_dataset (Dataset): The training dataset object. Must contain an index.
             test_dataset (Dataset): The test dataset object. Must contain an index.
             model (): any = None - not used in the check
+
         Returns:
             CheckResult: value is sample leakage ratio in %,
             displays a dataframe that shows the duplicated rows between the datasets

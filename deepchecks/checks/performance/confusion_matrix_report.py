@@ -19,6 +19,7 @@ class ConfusionMatrixReport(SingleDatasetBaseCheck):
         Args:
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
             dataset: a Dataset object
+
         Returns:
             CheckResult: value is numpy array of the confusion matrix, displays the confusion matrix
 
