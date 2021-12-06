@@ -23,9 +23,11 @@ class NewLabelTrainTest(TrainTestBaseCheck):
             train_dataset (Dataset): The training dataset object.
             test_dataset (Dataset): The test dataset object.
             model: any = None - not used in the check
+
         Returns:
             CheckResult: value is a dictionary that shows label column with new labels
             displays a dataframe that label columns with new labels
+
         Raises:
             DeepchecksValueError: If the datasets are not a Dataset instance or do not contain label column
         """
@@ -41,7 +43,7 @@ class NewLabelTrainTest(TrainTestBaseCheck):
 
         label_column = train_dataset.validate_shared_label(test_dataset, self.__class__.__name__)
 
-        n_test_samples = test_dataset.n_samples()
+        n_test_samples = test_dataset.n_samples
 
         train_label = train_dataset.data[label_column]
         test_label = test_dataset.data[label_column]

@@ -1,7 +1,7 @@
 """String length outlier check."""
 from collections import defaultdict
 from functools import reduce
-from typing import Union, Dict, Iterable, Tuple
+from typing import Union, Dict, Tuple, List
 
 import numpy as np
 import pandas as pd
@@ -12,6 +12,7 @@ from deepchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_data
 from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
 from deepchecks.utils.strings import is_string_column, format_number, format_columns_for_condition, format_percent
 from deepchecks.utils.dataframes import filter_columns_with_validation
+from deepchecks.utils.typing import Hashable
 
 
 __all__ = ['StringLengthOutOfBounds']
@@ -68,23 +69,32 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
     """Detect strings with length that is much longer/shorter than the identified "normal" string lengths.
 
     Args:
-        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-          ones.
-        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-          variable
-        num_percentiles (int): Number of percentiles values to retrieve for the length of the samples in the string
-          column. Affects the resolution of string lengths that is used to detect outliers.
-        inner_quantile_range(int): The int upper percentile [0-100] defining the inner percentile range.
-          E.g. for 98 the range would be 2%-98%.
-        outlier_factor (int): Strings would be defined as outliers if their length is outlier_factor times more/less
-          than the values inside the inner quantile range.
+        columns (Union[Hashable, List[Hashable]]):
+            Columns to check, if none are given checks all columns except ignored ones.
+        ignore_columns (Union[Hashable, List[Hashable]]):
+            Columns to ignore, if none given checks based on columns variable
+        num_percentiles (int):
+            Number of percentiles values to retrieve for the length of the samples in the string
+            column. Affects the resolution of string lengths that is used to detect outliers.
+        inner_quantile_range(int):
+            The int upper percentile [0-100] defining the inner percentile range.
+            E.g. for 98 the range would be 2%-98%.
+        outlier_factor (int):
+            Strings would be defined as outliers if their length is outlier_factor times more/less
+            than the values inside the inner quantile range.
         n_top_columns (int): (optinal - used only if model was specified)
           amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 num_percentiles: int = 1000, inner_quantile_range: int = 94, outlier_factor: int = 4,
-                 n_top_columns: int = 10):
+    def __init__(
+        self,
+        columns: Union[Hashable, List[Hashable]] = None,
+        ignore_columns: Union[Hashable, List[Hashable]] = None,
+        num_percentiles: int = 1000,
+        inner_quantile_range: int = 94,
+        outlier_factor: int = 4,
+        n_top_columns: int = 10
+    ):
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
@@ -196,7 +206,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                 if total_outliers > max_outliers:
                     not_passing_columns.append(column_name)
             if not_passing_columns:
-                not_passing_str = ', '.join(not_passing_columns)
+                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
                                        f'Found columns with greater than {max_outliers} outliers: '
                                        f'{not_passing_str}')
@@ -225,7 +235,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                 if total_outliers/column['n_samples'] > max_ratio:
                     not_passing_columns.append(column_name)
             if not_passing_columns:
-                not_passing_str = ', '.join(not_passing_columns)
+                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
                                        f'Found columns with greater than {format_percent(max_ratio)} outliers: '
                                        f'{not_passing_str}')

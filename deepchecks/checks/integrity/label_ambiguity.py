@@ -1,11 +1,12 @@
 """module contains Data Duplicates check."""
-from typing import Union, Iterable
+from typing import Union, List
 
 import pandas as pd
 
 from deepchecks import Dataset, ConditionResult
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from deepchecks.utils.strings import format_percent
+from deepchecks.utils.typing import Hashable
 
 
 __all__ = ['LabelAmbiguity']
@@ -15,15 +16,22 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
     """Find samples with multiple labels.
 
     Args:
-        columns (str, Iterable[str]): List of columns to check, if none given checks all columns Except ignored
-        ones.
-        ignore_columns (str, Iterable[str]): List of columns to ignore, if none given checks based on columns
-        variable.
-        n_to_show (int): number of most common ambiguous samples to show.
+        columns (Hashable, List[Hashable]):
+            List of columns to check, if none given checks
+            all columns Except ignored ones.
+        ignore_columns (Hashable, List[Hashable]):
+            List of columns to ignore, if none given checks
+            based on columns variable.
+        n_to_show (int):
+            number of most common ambiguous samples to show.
     """
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 n_to_show: int = 5):
+    def __init__(
+        self,
+        columns: Union[Hashable, List[Hashable], None] = None,
+        ignore_columns: Union[Hashable, List[Hashable], None] = None,
+        n_to_show: int = 5
+    ):
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
@@ -38,17 +46,18 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
         Returns:
           (CheckResult): percentage of ambiguous samples and display of the top n_to_show most ambiguous.
         """
-        dataset: Dataset = Dataset.validate_dataset(dataset, self.__class__.__name__)
+        check_name = type(self).__name__
+        dataset: Dataset = Dataset.validate_dataset(dataset, check_name)
         dataset = dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
-        dataset.validate_label(self.__class__.__name__)
+        dataset.validate_label(check_name)
 
-        label_col = dataset.label_name()
+        label_col = dataset.label_name
 
-        group_unique_data = dataset.data.groupby(dataset.features(), dropna=False)
+        group_unique_data = dataset.data.groupby(dataset.features, dropna=False)
         group_unique_labels = group_unique_data.nunique()[label_col]
 
         num_ambiguous = 0
-        display = pd.DataFrame(columns=[dataset.label_name(), *dataset.features()])
+        display = pd.DataFrame(columns=[dataset.label_name, *dataset.features])
 
         for num_labels, group_data in sorted(zip(group_unique_labels, group_unique_data),
                                              key=lambda x: x[0], reverse=True):
@@ -56,7 +65,7 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
                 break
 
             group_df = group_data[1]
-            sample_values = dict(group_df[dataset.features()].iloc[0])
+            sample_values = dict(group_df[dataset.features].iloc[0])
             labels = list(group_df[label_col].unique())
             n_data_sample = group_df.shape[0]
             num_ambiguous += n_data_sample
@@ -67,7 +76,7 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
 
         display = None if display.empty else display.head(self.n_to_show)
 
-        percent_ambiguous = num_ambiguous/dataset.n_samples()
+        percent_ambiguous = num_ambiguous/dataset.n_samples
 
         return CheckResult(value=percent_ambiguous, check=self.__class__, display=display)
 

@@ -77,7 +77,7 @@ class PartialBoostingModel:
 
 def partial_score(scorer, dataset, model, step):
     partial_model = PartialBoostingModel(model, step)
-    return scorer(partial_model, dataset.features_columns(), dataset.label_col())
+    return scorer(partial_model, dataset.features_columns, dataset.label_col)
 
 
 def calculate_steps(num_steps, num_estimators):

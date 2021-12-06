@@ -74,11 +74,11 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
 
         metrics = get_metrics_list(model, train_dataset, self.alternative_metrics)
 
-        train_metrics = {key: scorer(model, train_dataset.data[train_dataset.features()], train_dataset.label_col())
+        train_metrics = {key: scorer(model, train_dataset.data[train_dataset.features], train_dataset.label_col)
                          for key, scorer in metrics.items()}
 
-        test_metrics = {key: scorer(model, test_dataset.data[test_dataset.features()],
-                                    test_dataset.label_col())
+        test_metrics = {key: scorer(model, test_dataset.data[test_dataset.features],
+                                    test_dataset.label_col)
                         for key, scorer in metrics.items()}
 
         result = {'test': test_metrics, 'train': train_metrics}
@@ -100,7 +100,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
         return CheckResult(result, check=self.__class__, header='Train-Test Difference Overfit',
                            display=[plot_overfit])
 
-    def add_condition_difference_not_greater_than(self, threshold: float) -> TD:
+    def add_condition_difference_not_greater_than(self: TD, threshold: float) -> TD:
         """
         Add new condition.
 
@@ -127,7 +127,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
 
         return self.add_condition(f'Train-Test metrics difference is not greater than {threshold}', condition)
 
-    def add_condition_degradation_ratio_not_greater_than(self, threshold: float = 0.1) -> TD:
+    def add_condition_degradation_ratio_not_greater_than(self: TD, threshold: float = 0.1) -> TD:
         """
         Add new condition.
 

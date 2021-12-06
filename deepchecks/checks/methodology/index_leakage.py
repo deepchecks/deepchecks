@@ -44,12 +44,12 @@ class IndexTrainTestLeakage(TrainTestBaseCheck):
         train_dataset.validate_index(self.__class__.__name__)
         test_dataset.validate_index(self.__class__.__name__)
 
-        train_index = train_dataset.index_col()
-        val_index = test_dataset.index_col()
+        train_index = train_dataset.index_col
+        val_index = test_dataset.index_col
 
         index_intersection = list(set(train_index).intersection(val_index))
         if len(index_intersection) > 0:
-            size_in_test = len(index_intersection) / test_dataset.n_samples()
+            size_in_test = len(index_intersection) / test_dataset.n_samples
             text = f'{size_in_test:.1%} of test data indexes appear in training data'
             table = pd.DataFrame([[list(index_intersection)[:self.n_index_to_show]]],
                                  index=['Sample of test indexes in train:'])

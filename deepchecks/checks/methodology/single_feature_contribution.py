@@ -3,6 +3,7 @@ import typing as t
 
 import deepchecks.ppscore as pps
 from deepchecks.utils.plot import create_colorbar_barchart_for_check
+from deepchecks.utils.typing import Hashable
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
 
 
@@ -48,12 +49,13 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         return self._single_feature_contribution(dataset=dataset)
 
     def _single_feature_contribution(self, dataset: Dataset):
-        Dataset.validate_dataset(dataset, self.__class__.__name__)
-        dataset.validate_label(self.__class__.__name__)
+        check_name = self.__class__.__name__
+        Dataset.validate_dataset(dataset, check_name)
+        dataset.validate_label(check_name)
         ppscore_params = self.ppscore_params or {}
 
-        relevant_columns = dataset.features() + [dataset.label_name()]
-        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name(), random_seed=42,
+        relevant_columns = dataset.features + [dataset.label_name]
+        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name, random_seed=42,
                                 **ppscore_params)
         df_pps = df_pps.set_index('x', drop=True)
         s_ppscore = df_pps['ppscore']
@@ -71,14 +73,14 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text], check=self.__class__,
                            header='Single Feature Contribution')
 
-    def add_condition_feature_pps_not_greater_than(self, threshold: float = 0.8) -> FC:
+    def add_condition_feature_pps_not_greater_than(self: FC, threshold: float = 0.8) -> FC:
         """
         Add condition that will check that pps of the specified feature(s) is not greater than X.
 
         Args:
             threshold: pps upper bound
         """
-        def condition(value: t.Dict[str, float]) -> ConditionResult:
+        def condition(value: t.Dict[Hashable, float]) -> ConditionResult:
             failed_features = [
                 feature_name
                 for feature_name, pps_value in value.items()
@@ -86,9 +88,12 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
             ]
 
             if failed_features:
-                message = f'Features with greater PPS: {", ".join(failed_features)}'
+                message = f'Features with PPS above threshold: {", ".join(map(str, failed_features))}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Features PPS is not greater than {threshold}', condition)
+        pps_url = 'https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598'
+        pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
+
+        return self.add_condition(f'Features\' {pps_html_url} (PPS) is not greater than {threshold}', condition)

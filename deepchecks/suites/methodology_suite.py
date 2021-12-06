@@ -9,7 +9,8 @@ from deepchecks.checks.methodology import (
     SingleFeatureContribution,
     TrainTestDifferenceOverfit,
     BoostingOverfit,
-    UnusedFeatures
+    UnusedFeatures,
+    ModelInferenceTimeCheck
 )
 
 
@@ -105,5 +106,6 @@ def methodological_flaws_suite() -> Suite:
         'Methodological Flaws Suite',
         leakage_suite(),
         overfit_suite(),
-        UnusedFeatures().add_condition_number_of_high_variance_unused_features_not_greater_than()
+        UnusedFeatures().add_condition_number_of_high_variance_unused_features_not_greater_than(),
+        ModelInferenceTimeCheck().add_condition_inference_time_is_not_greater_than()
     )

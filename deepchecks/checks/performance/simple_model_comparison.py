@@ -92,21 +92,21 @@ class SimpleModelComparison(TrainTestBaseCheck):
         np.random.seed(self.random_state)
 
         if self.simple_model_type == 'random':
-            simple_pred = np.random.choice(train_ds.label_col(), test_df.shape[0])
+            simple_pred = np.random.choice(train_ds.label_col, test_df.shape[0])
 
         elif self.simple_model_type == 'constant':
             if task_type == ModelType.REGRESSION:
-                simple_pred = np.array([np.mean(train_ds.label_col())] * len(test_df))
+                simple_pred = np.array([np.mean(train_ds.label_col)] * len(test_df))
 
             elif task_type in (ModelType.BINARY, ModelType.MULTICLASS):
-                counts = train_ds.label_col().mode()
+                counts = train_ds.label_col.mode()
                 simple_pred = np.array([counts.index[0]] * len(test_df))
 
         elif self.simple_model_type == 'tree':
-            y_train = train_ds.label_col()
+            y_train = train_ds.label_col
             x_train, x_test = preprocess_dataset_to_scaled_numerics(
-                baseline_features= train_ds.features_columns(),
-                test_features=test_ds.features_columns(),
+                baseline_features= train_ds.features_columns,
+                test_features=test_ds.features_columns,
                 categorical_columns=test_ds.cat_features,
                 max_num_categories=10
             )
@@ -124,7 +124,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
             raise NotImplementedError(f"expected to be one of ['random', 'constant', 'tree'] \
                                     but instead got {self.simple_model_type}")
 
-        y_test = test_ds.label_col()
+        y_test = test_ds.label_col
 
         if self.metric is not None:
             scorer = validate_scorer(self.metric, model, train_ds)
@@ -134,7 +134,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
             scorer = DEFAULT_METRICS_DICT[task_type][metric_name]
 
         simple_metric = scorer(DummyModel, simple_pred, y_test)
-        pred_metric = scorer(model, test_ds.features_columns(), y_test)
+        pred_metric = scorer(model, test_ds.features_columns, y_test)
 
         return simple_metric, pred_metric, metric_name
 

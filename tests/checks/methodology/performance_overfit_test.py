@@ -49,7 +49,7 @@ def test_dataset_no_shared_features(iris_labeled_dataset):
         [iris_labeled_dataset.data,
          iris_labeled_dataset.data[['sepal length (cm)']].rename(columns={'sepal length (cm)': '1'})],
         axis=1),
-        label=iris_labeled_dataset.label_name())
+        label=iris_labeled_dataset.label_name)
     # Assert
     assert_that(calling(TrainTestDifferenceOverfit().run).with_args(iris_labeled_dataset, iris_dataset_2, None),
                 raises(DeepchecksValueError,

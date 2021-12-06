@@ -1,10 +1,11 @@
 """The data_sample_leakage_report check module."""
-from typing import Union, Iterable, Dict
+from typing import Union, List, Dict
 import pandas as pd
 
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.strings import format_percent, format_columns_for_condition
+from deepchecks.utils.typing import Hashable
 
 
 __all__ = ['CategoryMismatchTrainTest']
@@ -14,13 +15,18 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
     """Find new categories in the test set.
 
     Args:
-        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-        ones.
-        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-        variable.
+        columns (Union[Hashable, List[Hashable]]):
+            Columns to check, if none are given checks all columns except ignored ones.
+        ignore_columns (Union[Hashable, List[Hashable]]):
+            Columns to ignore, if none given checks based on columns
+            variable.
     """
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None):
+    def __init__(
+        self,
+        columns: Union[Hashable, List[Hashable], None] = None,
+        ignore_columns: Union[Hashable, List[Hashable], None] = None
+    ):
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
@@ -63,11 +69,11 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
         test_dataset = test_dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
         train_dataset = train_dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
 
-        if set(features).symmetric_difference(set(test_dataset.features())):
-            cat_features = test_dataset.features()
+        if set(features).symmetric_difference(set(test_dataset.features)):
+            cat_features = test_dataset.features
 
         new_categories = []
-        n_test_samples = test_dataset.n_samples()
+        n_test_samples = test_dataset.n_samples
 
         for feature in cat_features:
             train_column = train_dataset.data[feature]
@@ -124,7 +130,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
                 if num_categories > max_new:
                     not_passing_columns.append(column_name)
             if not_passing_columns:
-                not_passing_str = ', '.join(not_passing_columns)
+                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
                                        f'Found columns with more than {max_new} new categories: '
                                        f'{not_passing_str}')
@@ -149,7 +155,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
                 if n_new_samples > max_ratio:
                     not_passing_columns.append(column_name)
             if not_passing_columns:
-                not_passing_str = ', '.join(not_passing_columns)
+                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
                                        f'Found columns with more than {format_percent(max_ratio)} new category samples:'
                                        f' {not_passing_str}')

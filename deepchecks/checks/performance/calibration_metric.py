@@ -33,12 +33,12 @@ class CalibrationMetric(SingleDatasetBaseCheck):
         dataset.validate_label(check_name)
         task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY], check_name)
 
-        ds_x = dataset.features_columns()
-        ds_y = dataset.label_col()
+        ds_x = dataset.features_columns
+        ds_y = dataset.label_col
         y_pred = model.predict_proba(ds_x)
 
         briers_scores = {}
-        unique_labels = dataset.label_col().unique()
+        unique_labels = dataset.label_col.unique()
 
         for n_class in unique_labels:
             prob_pos = y_pred[:, n_class]
