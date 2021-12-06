@@ -66,7 +66,7 @@ COVER_ARG := --cov-report term-missing --cov=$(PKGDIR) \
 	$(if $(COVERAGE_RC), --cov-config $(COVERAGE_RC))
 
 # Sphinx
-SPHINX_PKGS = sphinx sphinx_rtd_theme sphinx-markdown-builder
+SPHINX_PKGS = sphinx sphinx_book_theme sphinx-markdown-builder sphinx-autoapi sphinx-copybutton nbsphinx
 
 
 EGG_INFO := $(subst -,_,$(PROJECT)).egg-info
@@ -252,34 +252,26 @@ endif
 
 API_REFERENCE_DIR=api-reference
 WEBSITE_DIR=docs/_website
-DOCOSAURUS := docs/_website/node_modules/.bin/docusaurus-start
-
-$(DOCOSAURUS):
-	@cd $(WEBSITE_DIR) ; \
-	npm install
 
 $(APIDOC): env
 	$(PIP) install $(SPHINX_PKGS)	
 
 gen-static-notebooks: $(JUPYTER)
-	 $(BIN)/jupyter nbconvert --to html --output-dir $(WEBSITE_DIR)/static/notebooks/  ./notebooks/*/*/*.ipynb 
+	 $(BIN)/jupyter nbconvert --to rst --output-dir $(WEBSITE_DIR)/static/notebooks/  ./notebooks/*/*/*.ipynb
 
 docs: $(APIDOC)
-	$(pythonpath) $(BIN)/sphinx-apidoc -t docs/_templates -f ./deepchecks -o docs/$(API_REFERENCE_DIR)
-	$(pythonpath) $(BIN)/sphinx-build -M markdown docs docs/_build/
-	@rm -rf docs/api-reference
-	@find docs/_build/markdown/ -name '*.md' | xargs sed '/^$$/N;/^\n$$/D'  -i
+	#$(pythonpath) $(BIN)/sphinx-apidoc -e -M --implicit-namespaces -t docs/_templates -f ./deepchecks -o docs/$(API_REFERENCE_DIR)
+	$(pythonpath) $(BIN)/sphinx-build docs docs/_build/
+	#@rm -rf docs/api-reference
+	#@find docs/_build/markdown/ -name '*.md' | xargs sed '/^$$/N;/^\n$$/D'  -i
 
 website: docs gen-static-notebooks
 	@rm -rf $(WEBSITE_DIR)/docs/$(API_REFERENCE_DIR)
 	@cp -rf docs/_build/markdown/$(API_REFERENCE_DIR) $(WEBSITE_DIR)/docs/$(API_REFERENCE_DIR)/
 	@rm -rf docs/_build/markdown
 
-
-
-dev-docs: $(DOCOSAURUS) website
-	@cd $(WEBSITE_DIR) &&  \
-	npm start
+doc-show:
+	@python -c "import webbrowser; webbrowser.open_new_tab('file://$(PWD)/docs/_build/index.html')"
 
 license-check:
 	@wget https://dlcdn.apache.org/skywalking/eyes/0.2.0/skywalking-license-eye-0.2.0-bin.tgz && tar -xzvf skywalking-license-eye-0.2.0-bin.tgz

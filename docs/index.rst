@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to Deepchecks' documentation!
-====================================
+=====================================
 
 .. toctree::
    :maxdepth: 2
@@ -14,13 +14,21 @@ Welcome to Deepchecks' documentation!
    :maxdepth: 2
    :caption: Docstring
 
+Examples
+========
+
+.. toctree::
+   :maxdepth: 2
+
+   examples
+
 Reference Guides
 ================
 
 .. toctree::
    :maxdepth: 3
 
-   deepcheckss/deepchecks.rst
+   autoapi/deepchecks/index
 
 Indices and tables
 ==================

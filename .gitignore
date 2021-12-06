@@ -86,3 +86,4 @@ ENV/
 # Sphinx Docs
 _build/
 api-reference
+docs/autoapi
