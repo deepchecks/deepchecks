@@ -79,7 +79,7 @@ def ensure_hashable_or_mutable_sequence(
     value: t.Union[T, t.MutableSequence[T]],
     message: str = (
         'Provided value is neither hashable nor mutable '
-        'sequence of hashable items!. Got {type}')
+        'sequence of hashable items. Got {type}')
 ) -> t.List[T]:
     """Validate that provided value is either hashable or mutable sequence of hashable values."""
     if isinstance(value, Hashable):

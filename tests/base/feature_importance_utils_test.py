@@ -43,23 +43,13 @@ def test_calculate_importance(iris_labeled_dataset):
 def test_bad_dataset_model(iris_random_forest, diabetes):
     ds, _ = diabetes
     error_message = (
-        r'In order to evaluate model correctness we need not empty dataset with the '
+        r'(In order to evaluate model correctness we need not empty dataset with the '
         r'same set of features that was used to fit the model. But function received '
-        r'dataset with a different set of features.'
-        # FIXME:
-        # There is a problem, when I run this test locally, the 'validate_model'
-        # function from the utils package as predicted raises DeepchecksValueError
-        # with the message displayed above, but when it is run in the cloud (CI/CD)
-        # the same function fails with different exception message (message below).
-        # The reason for this is that when it is run on the cloud somewhy model instance
-        # passed to the `calculate_feature_importance` does not have 'feature_names_in_' attribute
-        #
-        # note: I tried this with all supported python versions, and still it works localy, at least for me.
-        #
-        # To understand more please take a look at the 'validate_model'
-        # function from the utils package.
-        #
-        # r'|(Got error when trying to predict with model on dataset:(.*))'
+        r'dataset with a different set of features.)'
+        # NOTE:
+        # depending on the installed version of the scikit-learn
+        # will be raised DeepchecksValueError with different messages
+        r'|(Got error when trying to predict with model on dataset:(.*))'
     )
     assert_that(calling(calculate_feature_importance).with_args(iris_random_forest, ds),
                 raises(DeepchecksValueError, error_message))
