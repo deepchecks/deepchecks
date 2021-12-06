@@ -2,11 +2,11 @@
 #pylint: disable=inconsistent-quotes
 
 import typing as t
-from collections import defaultdict
+from functools import cached_property
 
 import pandas as pd
 import numpy as np
-from sklearn.metrics import precision_score, recall_score, get_scorer, make_scorer
+from sklearn.metrics import precision_score, recall_score, get_scorer, make_scorer, f1_score
 from sklearn.utils.multiclass import unique_labels as get_unique_labels
 
 from deepchecks import SingleDatasetBaseCheck, Dataset, CheckResult, ConditionResult
@@ -109,7 +109,7 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
         features = t.cast(pd.DataFrame, dataset.features_columns())
 
         unique_labels = get_unique_labels(labels)
-        scorers = self.alternative_scorers or self._get_default_scorers()
+        scorers = self.alternative_scorers or self._default_scorers
 
         scorer_results = (
             (scorer_name, scorer_func(model, features, labels))
@@ -142,13 +142,15 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
             display=display
         )
 
-    def _get_default_scorers(self) -> t.Dict[str, t.Callable[..., np.ndarray]]:
+    @cached_property
+    def _default_scorers(self) -> t.Dict[str, t.Callable[..., np.ndarray]]:
         # TODO: use `get_metrics_list` from utils package
         # but first we need to refactor it to accept 'average' argument
         return {
             'Accuracy': make_scorer(recall_score, zero_division=0, average=None),
             'Precision': make_scorer(precision_score, zero_division=0, average=None),
-            'Recall': make_scorer(recall_score, zero_division=0, average=None)
+            'Recall': make_scorer(recall_score, zero_division=0, average=None),
+            'F1': make_scorer(f1_score, zero_division=0, average=None)
         }
 
     def _validate_results(
@@ -186,7 +188,11 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
                 ))
             yield scorer_name, score
 
-    def add_condition_ratio_difference_not_greater_than(self: CP, threshold: float = 0.3) -> CP:
+    def add_condition_ratio_difference_not_greater_than(
+        self: CP,
+        threshold: float = 0.3,
+        score: str = 'F1'
+    ) -> CP:
         """Add condition.
 
         Verifying that relative ratio difference
@@ -197,44 +203,51 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
 
         Returns:
             Self: instance of 'ClassPerformanceImbalance' or it subtype
+
+        Raises:
+            DeepchecksValueError:
+                if unknown score function name were passed;
         """
+        scorers = self.alternative_scorers or self._default_scorers
+        scorers = set(scorers.keys())
+
+        if score not in scorers:
+            raise DeepchecksValueError(f'Unknown score function  - {score}')
 
         def condition(check_result: t.Dict[str, t.Dict[t.Hashable, float]]) -> ConditionResult:
             data = t.cast(
                 t.Dict[str, t.Dict[t.Hashable, float]],
                 pd.DataFrame.from_dict(check_result).transpose().to_dict()
             )
+            data = [
+                classes_values
+                for score_name, classes_values in data.items()
+                if score_name == score
+            ]
 
-            result = defaultdict(dict)
+            if len(data) == 0:
+                raise DeepchecksValueError(f'Expected that check result will contain next score - {score}')
 
-            # For each score calculate: (highest-class - lowest-class)/highest-class
-            for score_name, classes_values in data.items():
-                getval = lambda it: it[1]
-                lowest_class_name, min_value = min(classes_values.items(), key=getval)
-                highest_class_name, max_value = max(classes_values.items(), key=getval)
+            classes_values = next(iter(data))
+            getval = lambda it: it[1]
+            lowest_class_name, min_value = min(classes_values.items(), key=getval)
+            highest_class_name, max_value = max(classes_values.items(), key=getval)
+            relative_difference = abs((min_value - max_value) / max_value)
 
-                relative_difference = abs((min_value - max_value) / max_value)
-
-                if relative_difference >= threshold:
-                    result[score_name][(lowest_class_name, highest_class_name)] = relative_difference
-
-            if len(result) == 0:
+            if relative_difference >= threshold:
+                details = (
+                    'Relative ratio difference between highest and lowest '
+                    f'classes is greater than {format_percent(threshold)}. '
+                    f'Score: {score}, lowest class: {lowest_class_name}, highest class: {highest_class_name};'
+                )
+                return ConditionResult(False, details=details)
+            else:
                 return ConditionResult(True)
 
-            details = '\n'.join([
-                f'Score: {score_name}, lowest class: {lowest_class_name}, highest class: {highest_class_name};'
-                for score_name, difference in result.items()
-                for ((lowest_class_name, highest_class_name), _) in difference.items()
-            ])
-
-            details = (
-                'Relative ratio difference between highest and lowest classes is greater '
-                f'than {format_percent(threshold)}:\n{details}'
-            )
-
-            return ConditionResult(False, details=details)
-
         return self.add_condition(
-            name=f'Relative ratio difference is not greater than {format_percent(threshold)}',
+            name=(
+                f"Relative ratio difference between labels '{score}' score "
+                f"is not greater than {format_percent(threshold)}"
+            ),
             condition_func=condition
         )

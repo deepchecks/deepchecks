@@ -144,7 +144,7 @@ def test_class_performance_imbalance_with_custom_scorers_that_return_array_with_
     )
 
 
-def test_condition_percentage_difference_not_greater_than_threshold_that_should_pass(
+def test_condition_ratio_difference_not_greater_than_threshold_that_should_pass(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, AdaBoostClassifier]
 ):
     # Arrange
@@ -160,18 +160,21 @@ def test_condition_percentage_difference_not_greater_than_threshold_that_should_
     # Assert
     assert_that(condition_result, equal_condition_result( # type: ignore
         is_pass=True,
-        name=f'Relative ratio difference is not greater than 50.00%',
+        name=(
+            "Relative ratio difference between labels 'F1' score "
+            "is not greater than 50.00%"
+        ),
         details='',
         category=ConditionCategory.FAIL,
     ))
 
 
-def test_condition_percentage_difference_not_greater_than_threshold_that_should_not_pass(
+def test_condition_ratio_difference_not_greater_than_threshold_that_should_not_pass(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, AdaBoostClassifier]
 ):
     # Arrange
     _, test, model = iris_split_dataset_and_model
-    check = ClassPerformanceImbalance().add_condition_ratio_difference_not_greater_than(0.2)
+    check = ClassPerformanceImbalance().add_condition_ratio_difference_not_greater_than(0.12)
 
     # Act
     check_result = check.run(dataset=test, model=model)
@@ -180,15 +183,25 @@ def test_condition_percentage_difference_not_greater_than_threshold_that_should_
 
     # Assert
     detail_pattern = re.compile(
-        r'Relative ratio difference between highest and lowest classes is greater than 20\.00%:'
-        r'(\nScore: .+, lowest class: \d+, highest class: \d+;)+'
+        r'Relative ratio difference between highest and lowest classes is greater than 12\.00%\. '
+        r'Score: F1, lowest class: \d+, highest class: \d+;'
     )
     assert_that(condition_result, equal_condition_result( # type: ignore
         is_pass=False,
-        name=f'Relative ratio difference is not greater than 20.00%',
+        name=(
+            "Relative ratio difference between labels 'F1' score "
+            "is not greater than 12.00%"
+        ),
         details=detail_pattern,
         category=ConditionCategory.FAIL,
     ))
+
+
+def test_add_condition_for_unknown_score_function():
+    assert_that(
+        calling(ClassPerformanceImbalance().add_condition_ratio_difference_not_greater_than).with_args(0.12, 'acuracy'),
+        raises(DeepchecksValueError, 'Unknown score function  - acuracy')
+    )
 
 
 def validate_class_performance_imbalance_check_result(
