@@ -135,9 +135,9 @@ notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 # as the only time you'll need to run make is in dev mode, we're installing
 # deepchecks in development mode
 	$(PIP) install --no-deps -e .
+# Making sure the examples are running, without validating their outputs.
 	$(JUPYTER) nbconvert --execute $(NB_EXAMPLES) --to notebook --stdout > /dev/null
 	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_DIR) --sanitize-with $(NOTEBOOK_SANITIZER_FILE)
-# Making sure the examples are running, without validating their outputs.
 $(TEST_RUNNER):
 	$(PIP) install $(TEST_RUNNER_PKGS) | tee -a $(REQUIREMENTS_LOG)
 
