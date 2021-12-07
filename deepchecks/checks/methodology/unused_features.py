@@ -21,7 +21,7 @@ from sklearn.preprocessing import RobustScaler, OrdinalEncoder
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.features import calculate_feature_importance
-from deepchecks.utils.validation import model_type_validation
+from deepchecks.utils.validation import validate_model
 from deepchecks.errors import DeepchecksValueError
 
 
@@ -117,8 +117,8 @@ class UnusedFeatures(TrainTestBaseCheck):
             raise DeepchecksValueError('Either train_dataset or test_dataset must be supplied')
         Dataset.validate_dataset(dataset, func_name)
         dataset.validate_label(func_name)
-        test_dataset.validate_label(func_name)
-        model_type_validation(model)
+        dataset.validate_label(func_name)
+        validate_model(dataset, model)
 
         feature_importance = calculate_feature_importance(model, dataset, random_state=self.random_state)
 

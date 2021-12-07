@@ -16,7 +16,7 @@ import pandas as pd
 import numpy as np
 
 from deepchecks.utils.strings import format_percent
-from deepchecks.utils.validation import model_type_validation
+from deepchecks.utils.validation import validate_model
 from deepchecks.utils.metrics import get_metrics_list
 from deepchecks import (
     Dataset,
@@ -80,7 +80,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
         test_dataset.validate_label(func_name)
         train_dataset.validate_shared_label(test_dataset, func_name)
         train_dataset.validate_shared_features(test_dataset, func_name)
-        model_type_validation(model)
+        validate_model(test_dataset, model)
 
         metrics = get_metrics_list(model, train_dataset, self.alternative_metrics)
 

@@ -52,8 +52,17 @@ def test_calculate_importance(iris_labeled_dataset):
 
 def test_bad_dataset_model(iris_random_forest, diabetes):
     ds, _ = diabetes
+    error_message = (
+        r'(In order to evaluate model correctness we need not empty dataset with the '
+        r'same set of features that was used to fit the model. But function received '
+        r'dataset with a different set of features.)'
+        # NOTE:
+        # depending on the installed version of the scikit-learn
+        # will be raised DeepchecksValueError with different messages
+        r'|(Got error when trying to predict with model on dataset:(.*))'
+    )
     assert_that(calling(calculate_feature_importance).with_args(iris_random_forest, ds),
-                raises(DeepchecksValueError, 'Got error when trying to predict with model on dataset'))
+                raises(DeepchecksValueError, error_message))
 
 
 def test_calculate_or_null(diabetes_split_dataset_and_model):
