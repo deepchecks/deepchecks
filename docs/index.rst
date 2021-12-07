@@ -28,7 +28,7 @@ Reference Guides
 .. toctree::
    :maxdepth: 3
 
-   autoapi/deepchecks/index
+   api/index
 
 Indices and tables
 ==================
