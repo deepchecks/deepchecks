@@ -146,7 +146,6 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
         return CheckResult(
             value=df.transpose().to_dict(),
             header='Class Performance Imbalance',
-            check=type(self),
             display=display
         )
 

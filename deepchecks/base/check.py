@@ -156,8 +156,7 @@ class CheckResult:
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
     def _ipython_display_(self):
-        header = self.header or self.check.name()
-        display_html(f'<h4>{header}</h4>', raw=True)
+        display_html(f'<h4>{self.get_header()}</h4>', raw=True)
         if hasattr(self.check, '__doc__'):
             docs = self.check.__doc__ or ''
             # Take first non-whitespace line.
@@ -180,6 +179,12 @@ class CheckResult:
     def __repr__(self):
         """Return default __repr__ function uses value."""
         return self.value.__repr__()
+
+    def get_header(self):
+        if self.header is not None:
+            return self.header
+        else:
+            return self.check.name()
 
     def set_condition_results(self, results: List[ConditionResult]):
         """Set the conditions results for current check result."""
