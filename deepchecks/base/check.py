@@ -182,10 +182,7 @@ class CheckResult:
 
     def get_header(self):
         """Return header for display. if header was defined return it, else extract name of check class."""
-        if self.header is not None:
-            return self.header
-        else:
-            return self.check.name()
+        return self.header or self.check.name()
 
     def set_condition_results(self, results: List[ConditionResult]):
         """Set the conditions results for current check result."""
