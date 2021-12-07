@@ -34,6 +34,22 @@ jobs:
     - name: Run Tests
       run: make test
 
+  tests-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: ["3.8"] #TODO: add 3.10 when scikit-learn have a wheel https://github.com/scikit-learn/scikit-learn/pull/21232
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Set Up Env
+      run: make env
+    - name: Run Tests
+      run: make test
 
   documentation-check:
     runs-on: ubuntu-latest
