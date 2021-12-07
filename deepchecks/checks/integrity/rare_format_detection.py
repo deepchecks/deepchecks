@@ -363,7 +363,7 @@ class RareFormatDetection(SingleDatasetBaseCheck):
             display.append(f'\n\nColumn {key}:')
             display.append(value)
 
-        return CheckResult(value=filtered_res, header='Rare Format Detection', check=self.__class__, display=display)
+        return CheckResult(value=filtered_res, header='Rare Format Detection', display=display)
 
     def add_condition_ratio_of_rare_formats_not_greater_than(self, var: float = 0):
         """

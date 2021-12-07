@@ -108,7 +108,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
         else:
             display = None
             new_categories = {}
-        return CheckResult(new_categories, check=self.__class__, display=display)
+        return CheckResult(new_categories, display=display)
 
     def add_condition_new_categories_not_greater_than(self, max_new: int = 0):
         """Add condition - require column not to have greater than given number of different new categories.

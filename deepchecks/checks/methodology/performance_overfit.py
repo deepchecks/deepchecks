@@ -97,8 +97,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
             plt.xticks(rotation=30)
             plt.legend(res_df.columns, loc='upper right', bbox_to_anchor=(1.45, 1.02))
 
-        return CheckResult(result, check=self.__class__, header='Train-Test Difference Overfit',
-                           display=[plot_overfit])
+        return CheckResult(result, header='Train-Test Difference Overfit', display=[plot_overfit])
 
     def add_condition_difference_not_greater_than(self: TD, threshold: float) -> TD:
         """

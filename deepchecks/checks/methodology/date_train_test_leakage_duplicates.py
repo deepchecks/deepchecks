@@ -58,8 +58,7 @@ class DateTrainTestLeakageDuplicates(TrainTestBaseCheck):
             display = None
             return_value = 0
 
-        return CheckResult(value=return_value, header='Date Train-Test Leakage (duplicates)',
-                           check=self.__class__, display=display)
+        return CheckResult(value=return_value, header='Date Train-Test Leakage (duplicates)', display=display)
 
     def add_condition_leakage_ratio_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require leakage ratio to not surpass max_ratio.

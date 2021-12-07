@@ -136,4 +136,4 @@ class SegmentPerformance(SingleDatasetBaseCheck):
             ax.set_title(f'{metric_name} (count) by features {feat1}/{feat2}')
 
         value = {'scores': scores, 'counts': counts, 'feature_1': self.feature_1,'feature_2': self.feature_2}
-        return CheckResult(value, check=self.__class__, display=display)
+        return CheckResult(value, display=display)

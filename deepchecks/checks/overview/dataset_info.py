@@ -40,4 +40,4 @@ class DatasetInfo(SingleDatasetBaseCheck):
             profile = ProfileReport(dataset, title='Dataset Report', explorative=True, minimal=True)
             profile.to_notebook_iframe()
 
-        return CheckResult(dataset.shape, check=self.__class__, display=display)
+        return CheckResult(dataset.shape, display=display)

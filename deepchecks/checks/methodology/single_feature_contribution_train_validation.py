@@ -90,7 +90,7 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
                 'that was powerful in train but not in test can be explained by leakage in train that is not '
                 'relevant to a new dataset.']
 
-        return CheckResult(value=s_difference.to_dict(), display=[plot, *text], check=self.__class__,
+        return CheckResult(value=s_difference.to_dict(), display=[plot, *text],
                            header='Single Feature Contribution Train-Test')
 
     def add_condition_feature_pps_difference_not_greater_than(self: FC, threshold: float = 0.2) -> FC:

@@ -70,7 +70,7 @@ class NewLabelTrainTest(TrainTestBaseCheck):
             display = None
             result = {}
 
-        return CheckResult(result, check=self.__class__, display=display)
+        return CheckResult(result, display=display)
 
     def add_condition_new_labels_not_greater_than(self, max_new: int = 0):
         """Add condition - require label column not to have greater than given number of different new labels.

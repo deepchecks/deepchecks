@@ -104,7 +104,7 @@ class StringMismatch(SingleDatasetBaseCheck):
         else:
             display = None
 
-        return CheckResult(result_dict, check=self.__class__, display=display)
+        return CheckResult(result_dict, display=display)
 
     def add_condition_not_more_variants_than(self, num_max_variants: int):
         """Add condition - no more than given number of variants are allowed (per string baseform).

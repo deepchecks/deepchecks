@@ -68,7 +68,7 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
                 'For Identifier columns (Index/Date) PPS should be nearly 0, otherwise date and index have some '
                 'predictive effect on the label.']
 
-        return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text], check=self.__class__)
+        return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text])
 
     def add_condition_pps_not_greater_than(self, max_pps: float = 0):
         """Add condition - require columns not to have a greater pps than given max.

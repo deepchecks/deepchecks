@@ -233,12 +233,7 @@ class TrainTestDrift(TrainTestBaseCheck):
 
         displays = [headnote] + [displays_dict[col] for col in columns_order]
 
-        return CheckResult(
-            value=values_dict,
-            display=displays,
-            header='Train Test Drift',
-            check=self.__class__
-        )
+        return CheckResult(value=values_dict, display=displays, header='Train Test Drift')
 
     def _calc_drift_per_column(self, train_column: pd.Series, test_column: pd.Series, column_name: str,
                                column_type: str, feature_importances: pd.Series = None

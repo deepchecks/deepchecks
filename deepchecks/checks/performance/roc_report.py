@@ -87,7 +87,7 @@ class RocReport(SingleDatasetBaseCheck):
             plt.title('ROC curves')
             plt.legend(loc='lower right')
 
-        return CheckResult(roc_auc, header='ROC Report', check=self.__class__, display=display)
+        return CheckResult(roc_auc, header='ROC Report', display=display)
 
     def add_condition_auc_not_less_than(self, min_auc: float = 0.7):
         """Add condition - require min allowed AUC score per class.

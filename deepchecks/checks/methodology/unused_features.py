@@ -200,7 +200,7 @@ class UnusedFeatures(TrainTestBaseCheck):
                                                                      last_variable_feature_index:].values.tolist()
             }}
 
-        return CheckResult(return_value, check=self.__class__, header='Unused Features', display=display_list)
+        return CheckResult(return_value, header='Unused Features', display=display_list)
 
     def add_condition_number_of_high_variance_unused_features_not_greater_than(
             self, max_high_variance_unused_features: int = 5):

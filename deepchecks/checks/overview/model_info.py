@@ -48,4 +48,4 @@ class ModelInfo(ModelOnlyBaseCheck):
         footnote = '<p style="font-size:0.7em"><i>Colored rows are parameters with non-default values</i></p>'
         display = [f'Model Type: {model_type}', model_param_df, footnote]
 
-        return CheckResult(value, check=self.__class__, header='Model Info', display=display)
+        return CheckResult(value, header='Model Info', display=display)

@@ -74,7 +74,7 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
 
         result = result / number_of_samples
 
-        return CheckResult(value=result, check=type(self), display=(
+        return CheckResult(value=result, display=(
             'Average model inference time for one sample (in seconds): '
             f'{format_number(result, floating_point=8)}'
         ))
