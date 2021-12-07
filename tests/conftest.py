@@ -134,7 +134,7 @@ def iris_dataset_single_class_labeled(iris):
     return dataset
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture
 def iris_split_dataset_and_model(iris_clean) -> Tuple[Dataset, Dataset, AdaBoostClassifier]:
     """Return Iris train and val datasets and trained AdaBoostClassifier model."""
     train, test = train_test_split(iris_clean.frame, test_size=0.33, random_state=42)
