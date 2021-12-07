@@ -205,12 +205,12 @@ class CheckResult:
         return max([r.get_sort_value() for r in self.conditions_results])
 
 
-def wrap_run(func, clazz_instance):
+def wrap_run(func, class_instance):
     """Wrap the run function of checks, and sets the `check` property on the check result."""
     @wraps(func)
     def wrapped(*args, **kwargs):
         result = func(*args, **kwargs)
-        result.check = clazz_instance.__class__
+        result.check = class_instance.__class__
         return result
     return wrapped
 
@@ -224,6 +224,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
     def __init__(self):
         self._conditions = OrderedDict()
         self._conditions_index = 0
+        # Replace the run function with wrapped run function
         setattr(self, 'run', wrap_run(getattr(self, 'run'), self))
 
     def conditions_decision(self, result: CheckResult) -> List[ConditionResult]:
