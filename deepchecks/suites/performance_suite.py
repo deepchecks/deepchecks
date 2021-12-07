@@ -15,9 +15,9 @@ from deepchecks.checks.performance import (
     PerformanceReport,
     ConfusionMatrixReport,
     RocReport,
+    CalibrationMetric,
+    ClassPerformanceImbalance,
     SimpleModelComparison,
-    CalibrationMetric
-
 )
 
 __all__ = [
@@ -40,7 +40,8 @@ def classification_suite() -> Suite:
         ConfusionMatrixReport(),
         RocReport().add_condition_auc_not_less_than(),
         CalibrationMetric(),
-        TrustScoreComparison().add_condition_mean_score_percent_decline_not_greater_than()
+        TrustScoreComparison().add_condition_mean_score_percent_decline_not_greater_than(),
+        ClassPerformanceImbalance().add_condition_ratio_difference_not_greater_than()
     )
 
 
