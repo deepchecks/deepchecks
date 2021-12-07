@@ -19,6 +19,7 @@ class ConfusionMatrixReport(SingleDatasetBaseCheck):
         Args:
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
             dataset: a Dataset object
+
         Returns:
             CheckResult: value is numpy array of the confusion matrix, displays the confusion matrix
 
@@ -33,8 +34,8 @@ class ConfusionMatrixReport(SingleDatasetBaseCheck):
         dataset.validate_label(check_name)
         task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY], check_name)
 
-        label = dataset.label_name()
-        ds_x = dataset.data[dataset.features()]
+        label = dataset.label_name
+        ds_x = dataset.data[dataset.features]
         ds_y = dataset.data[label]
         y_pred = model.predict(ds_x)
 

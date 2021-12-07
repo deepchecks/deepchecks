@@ -52,7 +52,8 @@ REQUIREMENTS_LOG := .requirements.log
 ANALIZE_PKGS = pylint pydocstyle 
 TEST_CODE := tests/
 TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval
-NOTEBOOK_DIR = ./notebooks/examples ./notebooks/checks
+NOTEBOOK_CHECKS = ./notebooks/checks
+NOTEBOOK_EXAMPLES = ./notebooks/examples/**/*.ipynb
 NOTEBOOK_SANITIZER_FILE= ./notebooks/.nbval-sanitizer
 
 PYLINT_LOG = .pylint.log
@@ -134,8 +135,9 @@ notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 # as the only time you'll need to run make is in dev mode, we're installing
 # deepchecks in development mode
 	$(PIP) install --no-deps -e .
-	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_DIR) --sanitize-with $(NOTEBOOK_SANITIZER_FILE)
-
+# Making sure the examples are running, without validating their outputs.
+	$(JUPYTER) nbconvert --execute $(NOTEBOOK_EXAMPLES) --to notebook --stdout > /dev/null
+	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_CHECKS) --sanitize-with $(NOTEBOOK_SANITIZER_FILE)
 $(TEST_RUNNER):
 	$(PIP) install $(TEST_RUNNER_PKGS) | tee -a $(REQUIREMENTS_LOG)
 
@@ -296,7 +298,7 @@ download:
 	$(PIP) install $(PROJECT)
 
 jupyter: $(JUPYTER)
-	$(BIN)/jupyter-notebook $(args) --notebook-dir=$(NOTEBOOK_DIR)
+	$(BIN)/jupyter-notebook $(args) --notebook-dir=$(NOTEBOOK_CHECKS)
 
 $(JUPYTER):
 	$(PIP) install jupyter

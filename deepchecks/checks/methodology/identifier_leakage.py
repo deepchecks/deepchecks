@@ -47,12 +47,12 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
         dataset.validate_label(self.__class__.__name__)
         ppscore_params = ppscore_params or {}
 
-        relevant_columns = list(filter(None, [dataset.date_name(), dataset.index_name(), dataset.label_name()]))
+        relevant_columns = list(filter(None, [dataset.date_name, dataset.index_name, dataset.label_name]))
 
         if len(relevant_columns) == 1:
             raise DeepchecksValueError('Dataset needs to have a date or index column.')
 
-        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name(), random_seed=42,
+        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name, random_seed=42,
                                 **ppscore_params)
         df_pps = df_pps.set_index('x', drop=True)
         s_ppscore = df_pps['ppscore']
@@ -83,7 +83,7 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
                 if score > max_pps:
                     not_passing_columns.append(column_name)
             if not_passing_columns:
-                not_passing_str = ', '.join(not_passing_columns)
+                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
                                        f'Found columns with greater pps than {format_percent(max_pps)}: '
                                        f'{not_passing_str}')

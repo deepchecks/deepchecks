@@ -36,7 +36,7 @@ class ColumnsInfo(SingleDatasetBaseCheck):
 
     def _columns_info(self, dataset: Dataset, feature_importances: pd.Series=None):
         dataset = Dataset.validate_dataset_or_dataframe(dataset)
-        value = dataset.show_columns_info()
+        value = dataset.columns_info
         value = column_importance_sorter_dict(value, dataset, feature_importances, self.n_top_columns)
         df = pd.DataFrame.from_dict(value, orient='index', columns=['role'])
         df = df.transpose()
