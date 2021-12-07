@@ -1,8 +1,6 @@
 """The class performance imbalance check."""
 #pylint: disable=inconsistent-quotes
-
 import typing as t
-from functools import cached_property
 
 import pandas as pd
 import numpy as np
@@ -142,15 +140,20 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
             display=display
         )
 
-    @cached_property
+    @property
     def _default_scorers(self) -> t.Dict[str, t.Callable[..., np.ndarray]]:
         # TODO: use `get_metrics_list` from utils package
         # but first we need to refactor it to accept 'average' argument
-        return {
+        if hasattr(self, '_chached_default_scorers'):
+            return getattr(self, '_chached_default_scorers')
+
+        scorers = {
             'Precision': make_scorer(precision_score, zero_division=0, average=None),
             'Recall': make_scorer(recall_score, zero_division=0, average=None),
             'F1': make_scorer(f1_score, zero_division=0, average=None)
         }
+        setattr(self, '_chached_default_scorers', scorers)
+        return scorers
 
     def _validate_results(
         self,
