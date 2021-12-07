@@ -88,7 +88,6 @@ def task_type_check(
     validation.model_type_validation(model)
     dataset.validate_label(task_type_check.__name__)
 
-
     if not hasattr(model, 'predict_proba'):
         return ModelType.REGRESSION
     else:
