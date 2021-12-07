@@ -22,6 +22,7 @@ header:
     - 'makefile'
     - 'notebooks/'
     - 'docs/'
+    - 'deepchecks/ppscore.py'
   comment: on-failure
 
 dependency:
