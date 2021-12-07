@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Module of trust score comparison check."""
 import numpy as np
 import matplotlib.pyplot as plt
@@ -99,19 +109,19 @@ class TrustScoreComparison(TrainTestBaseCheck):
         train_dataset.validate_label(self.__class__.__name__)
         train_dataset.validate_shared_features(test_dataset, self.__class__.__name__)
 
-        if test_dataset.n_samples() < self.min_test_samples:
+        if test_dataset.n_samples < self.min_test_samples:
             msg = ('Number of samples in test dataset have not passed the minimum. you can change '
                    'minimum samples needed to run with parameter "min_test_samples"')
             raise DeepchecksValueError(msg)
         if model_type not in [ModelType.BINARY, ModelType.MULTICLASS]:
             raise DeepchecksValueError('Check supports only classification')
 
-        train_data_sample = train_dataset.data.sample(min(self.sample_size, train_dataset.n_samples()),
+        train_data_sample = train_dataset.data.sample(min(self.sample_size, train_dataset.n_samples),
                                                       random_state=self.random_state)
-        test_data_sample = test_dataset.data.sample(min(self.sample_size, test_dataset.n_samples()),
+        test_data_sample = test_dataset.data.sample(min(self.sample_size, test_dataset.n_samples),
                                                     random_state=self.random_state)
-        features_list = train_dataset.features()
-        label_name = train_dataset.label_name()
+        features_list = train_dataset.features
+        label_name = train_dataset.label_name
 
         x_train, x_test = preprocess_dataset_to_scaled_numerics(
             baseline_features=train_data_sample[features_list],
@@ -131,11 +141,11 @@ class TrustScoreComparison(TrainTestBaseCheck):
         test_trust_scores = trust_score_model.score(x_test.to_numpy(), y_test_pred)[0].astype('float64')
 
         # Move label and index to the beginning if exists
-        if test_dataset.label_name():
-            label = test_dataset.label_name()
+        if test_dataset.label_name:
+            label = test_dataset.label_name
             test_data_sample.insert(0, label, test_data_sample.pop(label))
-        if test_dataset.index_name():
-            index = test_dataset.index_name()
+        if test_dataset.index_name:
+            index = test_dataset.index_name
             test_data_sample.insert(0, index, test_data_sample.pop(index))
         # Add score and prediction and sort by score
         test_data_sample.insert(0, 'Model Prediction', y_test_pred)

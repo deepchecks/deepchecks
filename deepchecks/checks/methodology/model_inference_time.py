@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The model inference time check module."""
 import typing as t
 import timeit
@@ -61,7 +71,7 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
         model_type_validation(model)
 
         prediction_method = model.predict # type: ignore
-        df = t.cast(pd.DataFrame, dataset.features_columns())
+        df = t.cast(pd.DataFrame, dataset.features_columns)
 
         number_of_samples = len(df) if len(df) < self.number_of_samples else self.number_of_samples
         df = df.sample(n=number_of_samples, random_state=np.random.randint(number_of_samples))

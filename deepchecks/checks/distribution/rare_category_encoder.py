@@ -1,7 +1,21 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Module of RareCategoryEncoder."""
+from typing import List, Optional
 from collections import defaultdict
+
 import pandas as pd
-from typing import List
+
+from deepchecks.utils.typing import Hashable
+
 
 __all__ = ['RareCategoryEncoder']
 
@@ -20,7 +34,11 @@ class RareCategoryEncoder:
 
     DEFAULT_OTHER_VALUE = 'OTHER_RARE_CATEGORY'
 
-    def __init__(self, max_num_categories: int = 10, cols: List[str] = None):
+    def __init__(
+        self,
+        max_num_categories: int = 10,
+        cols: Optional[List[Hashable]] = None
+    ):
         self.max_num_categories = max_num_categories
         self.cols = cols
         self._col_mapping = None

@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Utils module containing utilities for checks working with metrics."""
 import typing as t
 import enum
@@ -78,11 +88,10 @@ def task_type_check(
     validation.model_type_validation(model)
     dataset.validate_label(task_type_check.__name__)
 
-
     if not hasattr(model, 'predict_proba'):
         return ModelType.REGRESSION
     else:
-        labels = t.cast(pd.Series, dataset.label_col())
+        labels = t.cast(pd.Series, dataset.label_col)
         unique_labels = labels.unique()
 
         if sorted(unique_labels) != list(range(len(unique_labels))):
@@ -162,7 +171,7 @@ def validate_scorer(scorer, model, dataset):
         return get_scorer(scorer)
     elif callable(scorer):
         # Check that scorer runs for given model and data
-        assert isinstance(scorer(model, dataset.data[dataset.features()].head(2), dataset.label_col().head(2)),
+        assert isinstance(scorer(model, dataset.data[dataset.features].head(2), dataset.label_col.head(2)),
                           Number)
         return scorer
 

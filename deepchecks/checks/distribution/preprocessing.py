@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Module of preprocessing functions."""
 import numpy as np
 import pandas as pd
@@ -6,22 +16,31 @@ from typing import List, Tuple
 from category_encoders import OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler
+from deepchecks.utils.typing import Hashable
 from deepchecks.checks.distribution.rare_category_encoder import RareCategoryEncoder
+
 
 __all__ = ['preprocess_dataset_to_scaled_numerics']
 
 
-def preprocess_dataset_to_scaled_numerics(baseline_features: pd.DataFrame, test_features: pd.DataFrame,
-                                          categorical_columns: List[str], max_num_categories) \
-        -> Tuple[pd.DataFrame, pd.DataFrame]:
+def preprocess_dataset_to_scaled_numerics(
+    baseline_features: pd.DataFrame,
+    test_features: pd.DataFrame,
+    categorical_columns: List[Hashable],
+    max_num_categories: int
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """Preprocess given features to scaled numerics.
 
     Args:
-        baseline_features (DataFrame): Will be used for fit and also transformed. Expect to get only features
-        test_features (DataFrame): Will be transformed according to baseline_data. Expect to get only features
-        categorical_columns (List[str]): Indicates names of categorical columns in both DataFrames.
-        max_num_categories (int): Indicates the maximum number of unique categories in a single categorical column
-                                  (rare categories will be changed to a form of "other")
+        baseline_features (DataFrame):
+            Will be used for fit and also transformed. Expect to get only features
+        test_features (DataFrame):
+            Will be transformed according to baseline_data. Expect to get only features
+        categorical_columns (List[Hashable]):
+            Indicates names of categorical columns in both DataFrames.
+        max_num_categories (int):
+            Indicates the maximum number of unique categories in a single categorical column
+            (rare categories will be changed to a form of "other")
 
     Returns:
         (DataFrame, DataFrame): returns both datasets transformed.

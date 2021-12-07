@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The data_sample_leakage_report check module."""
 from typing import Dict
 
@@ -23,9 +33,11 @@ class NewLabelTrainTest(TrainTestBaseCheck):
             train_dataset (Dataset): The training dataset object.
             test_dataset (Dataset): The test dataset object.
             model: any = None - not used in the check
+
         Returns:
             CheckResult: value is a dictionary that shows label column with new labels
             displays a dataframe that label columns with new labels
+
         Raises:
             DeepchecksValueError: If the datasets are not a Dataset instance or do not contain label column
         """
@@ -41,7 +53,7 @@ class NewLabelTrainTest(TrainTestBaseCheck):
 
         label_column = train_dataset.validate_shared_label(test_dataset, self.__class__.__name__)
 
-        n_test_samples = test_dataset.n_samples()
+        n_test_samples = test_dataset.n_samples
 
         train_label = train_dataset.data[label_column]
         test_label = test_dataset.data[label_column]

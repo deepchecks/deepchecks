@@ -1,5 +1,15 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Module of segment performance check."""
-from typing import Callable, Union
+from typing import Callable, Union, Optional
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,6 +20,7 @@ from deepchecks.checks.performance.partition import partition_column
 from deepchecks.utils.metrics import validate_scorer, task_type_check, DEFAULT_SINGLE_METRIC, DEFAULT_METRICS_DICT
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.features import calculate_feature_importance
+from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 
 
@@ -20,20 +31,25 @@ class SegmentPerformance(SingleDatasetBaseCheck):
     """Display performance metric segmented by 2 top (or given) features in a heatmap.
 
     Args:
-        feature_1 (str): feature to segment by on y-axis.
-        feature_2 (str): feature to segment by on x-axis.
+        feature_1 (Hashable): feature to segment by on y-axis.
+        feature_2 (Hashable): feature to segment by on x-axis.
         metric (Union[str, Callable]): Metric to show, either function or sklearn scorer name. If no metric is given
             a default metric (per the model type) will be used.
         max_segments (int): maximal number of segments to split the a values into.
     """
 
-    feature_1: str
-    feature_2: str
-    metric: Union[str, Callable]
+    feature_1: Optional[Hashable]
+    feature_2: Optional[Hashable]
+    metric: Union[str, Callable, None]
     max_segments: int
 
-    def __init__(self, feature_1: str = None, feature_2: str = None, metric: Union[str, Callable] = None,
-                 max_segments: int = 10):
+    def __init__(
+        self,
+        feature_1: Optional[Hashable] = None,
+        feature_2: Optional[Hashable] = None,
+        metric: Union[str, Callable] = None,
+        max_segments: int = 10
+    ):
         super().__init__()
 
         # if they're both none it's ok
@@ -94,7 +110,7 @@ class SegmentPerformance(SingleDatasetBaseCheck):
                 if feature_2_df.empty:
                     score = np.NaN
                 else:
-                    score = scorer(model, feature_2_df[dataset.features()], feature_2_df[dataset.label_name()])
+                    score = scorer(model, feature_2_df[dataset.features], feature_2_df[dataset.label_name])
                 scores[i, j] = score
                 counts[i, j] = len(feature_2_df)
 

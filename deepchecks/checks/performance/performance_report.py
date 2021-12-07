@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Module containing performance report check."""
 from typing import Callable, Dict
 import pandas as pd
@@ -40,7 +50,7 @@ class PerformanceReport(SingleDatasetBaseCheck):
 
         # Get default metrics if no alternative, or validate alternatives
         metrics = get_metrics_list(model, dataset, self.alternative_metrics)
-        scores = {key: scorer(model, dataset.features_columns(), dataset.label_col()) for key, scorer in
+        scores = {key: scorer(model, dataset.features_columns, dataset.label_col) for key, scorer in
                   metrics.items()}
 
         display_df = pd.DataFrame(scores.values(), columns=['Score'], index=scores.keys())

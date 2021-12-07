@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Boosting overfit check module."""
 from copy import deepcopy
 from typing import Callable, Union
@@ -77,7 +87,7 @@ class PartialBoostingModel:
 
 def partial_score(scorer, dataset, model, step):
     partial_model = PartialBoostingModel(model, step)
-    return scorer(partial_model, dataset.features_columns(), dataset.label_col())
+    return scorer(partial_model, dataset.features_columns, dataset.label_col)
 
 
 def calculate_steps(num_steps, num_estimators):

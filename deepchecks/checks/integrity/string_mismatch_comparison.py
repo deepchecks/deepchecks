@@ -1,14 +1,29 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """String mismatch functions."""
 from collections import defaultdict
-from typing import Union, Iterable
+from typing import Union, List
 
 import pandas as pd
 
 from deepchecks import CheckResult, Dataset, ensure_dataframe_type, CompareDatasetsBaseCheck, ConditionResult
 from deepchecks.utils.dataframes import filter_columns_with_validation
-from deepchecks.utils.strings import get_base_form_to_variants_dict, is_string_column, format_percent, \
-    format_columns_for_condition
 from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
+from deepchecks.utils.typing import Hashable
+from deepchecks.utils.strings import (
+    get_base_form_to_variants_dict,
+    format_columns_for_condition,
+    is_string_column,
+    format_percent,
+)
 
 
 __all__ = ['StringMismatchComparison']
@@ -48,17 +63,20 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
     Here, we have a new variant of the above strings, and would like to be acknowledged, as this is obviously a
     different version of 'St. Ring'.
 
-     Args:
-        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-          ones.
-        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-          variable
+    Args:
+        columns (Union[Hashable, List[Hashable]]):
+            Columns to check, if none are given checks all columns except ignored ones.
+        ignore_columns (Union[Hashable, List[Hashable]]):
+            Columns to ignore, if none given checks based on columns variable
         n_top_columns (int): (optional - used only if model was specified)
-          amount of columns to show ordered by feature importance (date, index, label are first)
+            amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 n_top_columns: int = 10):
+    def __init__(
+        self, columns: Union[Hashable, List[Hashable], None] = None,
+        ignore_columns: Union[Hashable, List[Hashable], None] = None,
+        n_top_columns: int = 10
+    ):
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns

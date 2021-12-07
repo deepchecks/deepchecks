@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The data_sample_leakage_report check module."""
 from typing import Dict, List
 import re
@@ -8,6 +18,7 @@ import pandas as pd
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, ConditionResult, TrainTestBaseCheck
 from deepchecks.utils.strings import format_percent
+from deepchecks.utils.typing import Hashable
 
 
 pd.options.mode.chained_assignment = None
@@ -16,7 +27,7 @@ pd.options.mode.chained_assignment = None
 __all__ = ['TrainTestSamplesMix']
 
 
-def get_dup_indexes_map(df: pd.DataFrame, columns: List) -> Dict:
+def get_dup_indexes_map(df: pd.DataFrame, columns: List[Hashable]) -> Dict:
     """Find duplicated indexes in the dataframe.
 
     Args:
@@ -66,6 +77,7 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
             train_dataset (Dataset): The training dataset object. Must contain an index.
             test_dataset (Dataset): The test dataset object. Must contain an index.
             model (): any = None - not used in the check
+
         Returns:
             CheckResult: value is sample leakage ratio in %,
             displays a dataframe that shows the duplicated rows between the datasets
@@ -80,9 +92,9 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
         train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
         test_dataset.validate_shared_features(train_dataset, self.__class__.__name__)
 
-        columns = train_dataset.features()
-        if train_dataset.label_name():
-            columns = columns + [train_dataset.label_name()]
+        columns = train_dataset.features
+        if train_dataset.label_name:
+            columns = columns + [train_dataset.label_name]
 
         train_f = train_dataset.data.copy()
         test_f = test_dataset.data.copy()
@@ -114,8 +126,8 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
 
         count_dups = count_val_array.sum() // 2
 
-        dup_ratio = count_dups / test_dataset.n_samples()
-        user_msg = f'{format_percent(dup_ratio)} ({count_dups} / {test_dataset.n_samples()}) \
+        dup_ratio = count_dups / test_dataset.n_samples
+        user_msg = f'{format_percent(dup_ratio)} ({count_dups} / {test_dataset.n_samples}) \
                      of test data samples appear in train data'
         display = [user_msg, duplicate_rows_df.head(10)] if dup_ratio else None
 

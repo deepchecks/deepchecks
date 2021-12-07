@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Test feature importance utils"""
 import pandas as pd
 from hamcrest import equal_to, assert_that, calling, raises, close_to, not_none, none
@@ -27,7 +37,7 @@ def test_unfitted(iris_dataset):
 def test_linear_regression(diabetes):
     ds, _ = diabetes
     clf = LinearRegression()
-    clf.fit(ds.features_columns(), ds.label_col())
+    clf.fit(ds.features_columns, ds.label_col)
     feature_importances = calculate_feature_importance(clf, ds)
     assert_that(feature_importances.max(), close_to(0.225374532399, 0.0000000001))
     assert_that(feature_importances.sum(), close_to(1, 0.000001))
@@ -35,7 +45,7 @@ def test_linear_regression(diabetes):
 
 def test_calculate_importance(iris_labeled_dataset):
     clf = MLPClassifier(hidden_layer_sizes=(10,), random_state=42)
-    clf.fit(iris_labeled_dataset.features_columns(), iris_labeled_dataset.label_col())
+    clf.fit(iris_labeled_dataset.features_columns, iris_labeled_dataset.label_col)
     feature_importances = calculate_feature_importance(clf, iris_labeled_dataset)
     assert_that(feature_importances.sum(), close_to(1, 0.000001))
 
@@ -55,7 +65,7 @@ def test_calculate_or_null(diabetes_split_dataset_and_model):
 def test_fi_n_top(diabetes_split_dataset_and_model):
     num_values = 5
     train, _, clf = diabetes_split_dataset_and_model
-    columns_info = train.show_columns_info()
+    columns_info = train.columns_info
     feature_importances = calculate_feature_importance_or_null(train, clf)
     assert_that(feature_importances, not_none())
 

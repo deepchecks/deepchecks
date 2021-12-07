@@ -1,10 +1,21 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """objects validation utilities."""
 import typing as t
 import sklearn
 from deepchecks import errors
+from deepchecks.utils.typing import Hashable
 
 
-__all__ = ['model_type_validation']
+__all__ = ['model_type_validation', 'ensure_hashable_or_mutable_sequence']
 
 
 def model_type_validation(model: t.Any):
@@ -23,3 +34,28 @@ def model_type_validation(model: t.Any):
             'Model must inherit from one of supported '
             'models: sklearn.base.BaseEstimator or CatBoost'
         )
+
+
+T = t.TypeVar('T', bound=Hashable)
+
+
+def ensure_hashable_or_mutable_sequence(
+    value: t.Union[T, t.MutableSequence[T]],
+    message: str = (
+        'Provided value is neither hashable nor mutable '
+        'sequence of hashable items!. Got {type}')
+) -> t.List[T]:
+    """Validate that provided value is either hashable or mutable sequence of hashable values."""
+    if isinstance(value, Hashable):
+        return [value]
+
+    if isinstance(value, t.MutableSequence):
+        if len(value) > 0 and not isinstance(value[0], Hashable):
+            raise errors.DeepchecksValueError(message.format(
+                type=f'MutableSequence[{type(value).__name__}]'
+            ))
+        return list(value)
+
+    raise errors.DeepchecksValueError(message.format(
+        type=type(value).__name__
+    ))

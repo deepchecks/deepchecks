@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The single_feature_contribution check module."""
 import typing as t
 import re
@@ -10,6 +20,7 @@ from deepchecks.base.dataset import ensure_dataframe_type
 from deepchecks.utils.dataframes import filter_columns_with_validation
 from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_dict
 from deepchecks.utils.strings import split_and_keep, split_by_order, format_percent
+from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 
 
@@ -282,23 +293,26 @@ class RareFormatDetection(SingleDatasetBaseCheck):
         the refined format found would be "XXXXXX@deepchecks.com.
 
     Args:
-        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-            ones.
-        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-            variable
-        patterns (List[Pattern]): patterns to look for when comparing common vs. rare formats. Uses DEFAULT_PATTERNS
-            if not specified.
+        columns (Union[Hashable, List[Hashable]]):
+            Columns to check, if none are given checks all columns except ignored ones.
+        ignore_columns (Union[Hashable, List[Hashable]]):
+            Columns to ignore, if none given checks based on columns variable
+        patterns (List[Pattern]):
+            patterns to look for when comparing common vs. rare formats. Uses DEFAULT_PATTERNS if not specified.
             Note that if pattern_match_method='first' (which it is by default), then the order of patterns matter.
             In this case, it is advised to order the patterns from specific to general.
-        rarity_threshold (float): threshold to indicate what is considered a "sharp" drop in commonness of values.
+        rarity_threshold (float):
+            threshold to indicate what is considered a "sharp" drop in commonness of values.
             This is used by the function get_rare_vs_common_values which divides data into "common" and "rare"
             values, and is used here to determine which formats are common and which are rare.
-        min_unique_common_ratio (float): minimum ratio for unique common samples to all common samples.
+        min_unique_common_ratio (float):
+            minimum ratio for unique common samples to all common samples.
             This parameter is used in order to filter unwanted results in the case where the common format is
             actually a common value.
             This is because if a common format has too few unique values, it's probably actually just a categorical
             feature with some values that are very common and some that are rare.
-        pattern_match_method (str): 'first' or 'all'. If 'first', returns only the pattern where a "rare format"
+        pattern_match_method (str):
+            'first' or 'all'. If 'first', returns only the pattern where a "rare format"
             sample was found for the first time. If 'all', returns all patterns in which anything was found.
         n_top_columns (int): (optional - used only if model was specified)
             amount of columns to show ordered by feature importance (date, index, label are first)
@@ -306,8 +320,8 @@ class RareFormatDetection(SingleDatasetBaseCheck):
 
     def __init__(
         self,
-        columns: t.Union[str, t.Iterable[str], None] = None,
-        ignore_columns: t.Union[str, t.Iterable[str], None] = None,
+        columns: t.Union[Hashable, t.List[Hashable], None] = None,
+        ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None,
         patterns: t.Optional[t.List[Pattern]] = None,
         rarity_threshold: float = 0.05,
         min_unique_common_ratio: float = 0.01,
@@ -375,7 +389,7 @@ class RareFormatDetection(SingleDatasetBaseCheck):
             var: format ratio upper bound
         """
 
-        def condition(check_result: t.Mapping[str, pd.DataFrame]) -> ConditionResult:
+        def condition(check_result: t.Mapping[Hashable, pd.DataFrame]) -> ConditionResult:
             # transforming result dataframes into dicts of the next format:
             # {"pattern name": <ration value>}
             values = {
@@ -393,7 +407,7 @@ class RareFormatDetection(SingleDatasetBaseCheck):
                 if ratio >= var
             }
 
-            stringified_failed_features = '; '.join(failed_features)
+            stringified_failed_features = '; '.join(map(str, failed_features))
             passed = len(failed_features) == 0
 
             return ConditionResult(

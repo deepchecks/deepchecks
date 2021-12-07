@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Contains unit tests for the Dataset class."""
 import typing as t
 from unittest import TestCase
@@ -19,25 +29,25 @@ def assert_dataset(dataset: Dataset, args):
     if 'df' in args:
         assert_that(dataset.data.equals(args['df']), is_(True))
     if 'features' in args:
-        assert_that(dataset.features(), equal_to(args['features']))
+        assert_that(dataset.features, equal_to(args['features']))
         if 'df' in args:
-            assert_that(dataset.features_columns().equals(args['df'][args['features']]), is_(True))
+            assert_that(dataset.features_columns.equals(args['df'][args['features']]), is_(True))
     if 'cat_features' in args:
         assert_that(dataset.cat_features, equal_to(args['cat_features']))
     if 'label' in args:
-        assert_that(dataset.label_name(), equal_to(args['label']))
-        assert_that(dataset.label_col().equals(pd.Series(args['df'][args['label']])), is_(True))
+        assert_that(dataset.label_name, equal_to(args['label']))
+        assert_that(dataset.label_col.equals(pd.Series(args['df'][args['label']])), is_(True))
     if 'use_index' in args and args['use_index']:
-        assert_that(dataset.index_col().equals(pd.Series(args['df'].index)), is_(True))
+        assert_that(dataset.index_col.equals(pd.Series(args['df'].index)), is_(True))
     if 'index' in args:
-        assert_that(dataset.index_name(), equal_to(args['index']))
-        assert_that(dataset.index_col().equals(pd.Series(args['df'][args['index']])), is_(True))
+        assert_that(dataset.index_name, equal_to(args['index']))
+        assert_that(dataset.index_col.equals(pd.Series(args['df'][args['index']])), is_(True))
     if 'date' in args:
-        assert_that(dataset.date_name(), equal_to(args['date']))
+        assert_that(dataset.date_name, equal_to(args['date']))
         if ('convert_date_' in args) and (args['convert_date_'] is False):
-            assert_that(dataset.date_col().equals(pd.Series(args['df'][args['date']])), is_(True))
+            assert_that(dataset.date_col.equals(pd.Series(args['df'][args['date']])), is_(True))
         else:
-            for date in dataset.date_col():
+            for date in dataset.date_col:
                 assert_that(date, instance_of(pd.Timestamp))
 
 
@@ -78,7 +88,7 @@ def test_dataset_empty_features(iris):
     args = {'df': iris,
             'features': []}
     dataset = Dataset(**args)
-    assert_that(dataset.features(), equal_to(list(iris.columns)))
+    assert_that(dataset.features, equal_to(list(iris.columns)))
 
 
 def test_dataset_cat_features(diabetes_df):
@@ -275,7 +285,7 @@ def test_dataset_date_unit_type():
             'date_unit_type': 'D'}
     dataset = Dataset(df, **args)
     assert_dataset(dataset, args)
-    date_col = dataset.date_col()
+    date_col = dataset.date_col
     assert_that(date_col, not_none())
     # disable false positive
     # pylint:disable=unsubscriptable-object
@@ -290,7 +300,7 @@ def test_dataset_date_convert_date():
             'convert_date_': False}
     dataset = Dataset(**args)
     assert_dataset(dataset, args)
-    date_col = dataset.date_col()
+    date_col = dataset.date_col
     assert_that(date_col, not_none())
     # disable false positive
     # pylint:disable=unsubscriptable-object
@@ -305,12 +315,12 @@ def test_dataset_data(iris):
 
 def test_dataset_n_samples(iris):
     dataset = Dataset(iris)
-    assert_that(dataset.n_samples(), is_(iris.shape[0]))
+    assert_that(dataset.n_samples, is_(iris.shape[0]))
 
 
 def test_dataset_no_index_col(iris):
     dataset = Dataset(iris)
-    assert_that(dataset.index_col(), is_(None))
+    assert_that(dataset.index_col, is_(None))
 
 
 def test_dataset_validate_label(iris):
@@ -366,7 +376,7 @@ def test_dataset_filter_columns_with_validation_same_table(iris):
 
 def test_dataset_validate_shared_features(diabetes):
     train, val = diabetes
-    assert_that(train.validate_shared_features(val, 'test'), is_(val.features()))
+    assert_that(train.validate_shared_features(val, 'test'), is_(val.features))
 
 
 def test_dataset_validate_shared_features_fail(diabetes, iris_dataset):
@@ -377,7 +387,7 @@ def test_dataset_validate_shared_features_fail(diabetes, iris_dataset):
 
 def test_dataset_validate_shared_label(diabetes):
     train, val = diabetes
-    assert_that(train.validate_shared_label(val, 'test'), is_(val.label_name()))
+    assert_that(train.validate_shared_label(val, 'test'), is_(val.label_name))
 
 
 def test_dataset_validate_shared_labels_fail(diabetes, iris_dataset):
@@ -536,8 +546,8 @@ def validate_dataset_created_from_numpy_arrays(
     if featue_columns_names is None:
         featue_columns_names = [f'X{index}'for index in range(1, features_array.shape[1] + 1)]
 
-    features = dataset.features_columns()
-    feature_names = dataset.features()
+    features = dataset.features_columns
+    feature_names = dataset.features
 
     assert_that(features, all_of(
         instance_of(pd.DataFrame),
@@ -550,8 +560,8 @@ def validate_dataset_created_from_numpy_arrays(
     ))
 
     if labels_array is not None:
-        labels = dataset.label_col()
-        label_name = dataset.label_name()
+        labels = dataset.label_col
+        label_name = dataset.label_name
 
         assert_that(labels, all_of(
             instance_of(pd.Series),
@@ -559,6 +569,34 @@ def validate_dataset_created_from_numpy_arrays(
         ))
         assert_that(all(labels == labels_array))
         assert_that(label_name, equal_to(label_column_name))
+
+
+def test_dataset_initialization_with_integer_columns():
+    df = pd.DataFrame.from_records([
+        {0: 'a', 1: 0.6, 2: 0.7, 3: 1},
+        {0: 'b', 1: 0.33, 2: 0.14, 3: 0},
+        {0: 'c', 1: 0.24, 2: 0.07, 3: 0},
+        {0: 'c', 1: 0.89, 2: 0.56, 3: 1}
+    ])
+
+    dataset = Dataset(
+        df=df,
+        features=[0,1,2],
+        label=3,
+        cat_features=[0],
+    )
+
+    assert_that(actual=dataset.features, matcher=contains_exactly(0,1,2))
+    assert_that(actual=dataset.label_name, matcher=equal_to(3))
+    assert_that(actual=dataset.cat_features, matcher=contains_exactly(0))
+
+    assert_that(
+        (dataset.features_columns == df.drop(3, axis=1))
+        .all().all()
+    )
+    assert_that(
+        (dataset.label_col == df[3]).all()
+    )
 
 
 class TestLabel(TestCase):
@@ -584,4 +622,4 @@ class TestLabel(TestCase):
             Dataset(**args)
         self.assertEqual(len(captured.records), 1)  # check that there is only one log message
         self.assertEqual(captured.records[0].getMessage(),
-                         'Can\'t have null values in label column')  # and it is the proper one
+                         'Can not have null values in label column')  # and it is the proper one

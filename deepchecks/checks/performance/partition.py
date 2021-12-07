@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Module of functions to partition columns into segments."""
 from typing import List, Callable
 
@@ -5,6 +15,7 @@ import numpy as np
 import pandas as pd
 from deepchecks import Dataset
 from deepchecks.utils.strings import format_number
+from deepchecks.utils.typing import Hashable
 
 
 __all__ = ['partition_column', 'DeepchecksFilter']
@@ -55,8 +66,12 @@ def largest_category_index_up_to_ratio(histogram, max_segments, max_cat_proporti
     return min(max_segments, histogram.size, first_less_then_max_cat_proportions_idx + 1)
 
 
-def partition_column(dataset: Dataset, column_name: str, max_segments: int, max_cat_proportions: float = 0.9)\
-        -> List[DeepchecksFilter]:
+def partition_column(
+    dataset: Dataset,
+    column_name: Hashable,
+    max_segments: int,
+    max_cat_proportions: float = 0.9
+) -> List[DeepchecksFilter]:
     """Split column into segments.
 
     For categorical we'll have a max of max_segments + 1, for the 'Others'. We take the largest categories which
@@ -67,7 +82,7 @@ def partition_column(dataset: Dataset, column_name: str, max_segments: int, max_
 
     Args:
         dataset (Dataset):
-        column_name (str): column to partition.
+        column_name (Hashable): column to partition.
         max_segments (int): maximum number of segments to split into.
         max_cat_proportions (float): (for categorical) ratio to aggregate largest values to show.
     """

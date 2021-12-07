@@ -1,5 +1,15 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """module contains Mixed Types check."""
-from typing import Iterable, Union
+from typing import List, Union
 import pandas as pd
 
 import numpy as np
@@ -9,6 +19,7 @@ from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, Condition
 from deepchecks.utils.dataframes import filter_columns_with_validation
 from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
 from deepchecks.utils.strings import is_string_column, format_percent, format_columns_for_condition
+from deepchecks.utils.typing import Hashable
 
 
 __all__ = ['MixedTypes']
@@ -18,16 +29,22 @@ class MixedTypes(SingleDatasetBaseCheck):
     """Search for various types of data in (a) column[s], including hidden mixes in strings.
 
     Args:
-        columns (Union[str, Iterable[str]]): Columns to check, if none are given checks all columns except ignored
-          ones.
-        ignore_columns (Union[str, Iterable[str]]): Columns to ignore, if none given checks based on columns
-          variable.
+        columns (Union[Hashable, List[Hashable]]):
+            Columns to check, if none are given checks all columns
+            except ignored ones.
+        ignore_columns (Union[Hashable, List[Hashable]]):
+            Columns to ignore, if none given checks based on columns
+            variable.
         n_top_columns (int): (optinal - used only if model was specified)
           amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
-    def __init__(self, columns: Union[str, Iterable[str]] = None, ignore_columns: Union[str, Iterable[str]] = None,
-                 n_top_columns: int = 10):
+    def __init__(
+        self,
+        columns: Union[Hashable, List[Hashable], None] = None,
+        ignore_columns: Union[Hashable, List[Hashable], None] = None,
+        n_top_columns: int = 10
+    ):
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
@@ -120,10 +137,10 @@ class MixedTypes(SingleDatasetBaseCheck):
                 if ratios['strings'] < max_rare_type_ratio or ratios['numbers'] < max_rare_type_ratio:
                     failing_columns.append(col)
             if failing_columns:
-                details = f'Found columns with low type ratio: {", ".join(failing_columns)}'
+                details = f'Found columns with low type ratio: {", ".join(map(str, failing_columns))}'
                 return ConditionResult(False, details)
             return ConditionResult(True)
 
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
         name = f'Rare type ratio is not less than {format_percent(max_rare_type_ratio)} of samples in {column_names}'
-        return self.add_condition(name, condition, max_rare_type_ratio=max_rare_type_ratio)
+        return self.add_condition(name, condition_func=condition, max_rare_type_ratio=max_rare_type_ratio)

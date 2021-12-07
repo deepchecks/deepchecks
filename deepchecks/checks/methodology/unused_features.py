@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The UnusedFeatures check module."""
 import matplotlib.pyplot as plt
 import numpy as np
@@ -30,7 +40,7 @@ def naive_encoder(dataset: Dataset) -> TransformerMixin:
     Returns:
         A transformer object.
     """
-    numeric_features = list(set(dataset.features()) - set(dataset.cat_features))
+    numeric_features = list(set(dataset.features) - set(dataset.cat_features))
 
     return ColumnTransformer(
         transformers=[
@@ -114,10 +124,10 @@ class UnusedFeatures(TrainTestBaseCheck):
 
         # Calculate normalized variance per feature based on PCA decomposition
         pre_pca_transformer = naive_encoder(dataset)
-        pca_trans = PCA(n_components=len(dataset.features()) // 2, random_state=self.random_state)
-        n_samples = min(10000, dataset.n_samples())
+        pca_trans = PCA(n_components=len(dataset.features) // 2, random_state=self.random_state)
+        n_samples = min(10000, dataset.n_samples)
         pca_trans.fit(pre_pca_transformer.fit_transform(
-            dataset.features_columns().sample(n_samples, random_state=self.random_state)
+            dataset.features_columns.sample(n_samples, random_state=self.random_state)
         ))
 
         feature_normed_variance = pd.Series(np.abs(pca_trans.components_).sum(axis=0), index=feature_importance.index)
