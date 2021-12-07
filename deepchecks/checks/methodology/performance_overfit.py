@@ -124,23 +124,27 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
             test_metrics = res['test']
             train_metrics = res['train']
             diff = {metric: score - test_metrics[metric] for metric, score in train_metrics.items()}
-            diff_fails = [k for k, v in diff.items() if v > threshold]
-            if diff_fails:
-                message = f'Found failed metrics: {diff_fails}'
+            failed_metrics = [k for k, v in diff.items() if v > threshold]
+            if failed_metrics:
+                explained_failures = []
+                for metric in failed_metrics:
+                    explained_failures.append(f'{metric} (train={format_percent(train_metrics[metric])} '
+                                              f'test={format_percent(test_metrics[metric])})')
+                message = f'Found performance degradation in: {", ".join(explained_failures)}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
 
         return self.add_condition(f'Train-Test metrics difference is not greater than {threshold}', condition)
 
-    def add_condition_percentage_degradation_not_greater_than(self: TD, threshold: float = 0.2) -> TD:
+    def add_condition_degradation_ratio_not_greater_than(self: TD, threshold: float = 0.1) -> TD:
         """
         Add new condition.
 
         Add condition that will check that train performance is not degraded by more than given percentage in test.
 
         Args:
-            threshold: maximum percentage degradation allowed (value between 0 to 1)
+            threshold: maximum degradation ratio allowed (value between 0 to 1)
         """
         def condition(res: dict) -> ConditionResult:
             test_metrics = res['test']
@@ -148,12 +152,16 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
             # Calculate percentage of change from train to test
             diff = {metric: ((score - test_metrics[metric]) / score)
                     for metric, score in train_metrics.items()}
-            diff_fails = {k: format_percent(v) for k, v in diff.items() if v > threshold}
-            if diff_fails:
-                message = f'Found degraded metrics: {diff_fails}'
+            failed_metrics = [k for k, v in diff.items() if v > threshold]
+            if failed_metrics:
+                explained_failures = []
+                for metric in failed_metrics:
+                    explained_failures.append(f'{metric} (train={format_percent(train_metrics[metric])} '
+                                              f'test={format_percent(test_metrics[metric])})')
+                message = f'Found performance degradation in: {", ".join(explained_failures)}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Train-Test metrics degradation percentage is not greater than {threshold}',
+        return self.add_condition(f'Train-Test metrics degradation ratio is not greater than {threshold}',
                                   condition)

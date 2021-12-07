@@ -542,7 +542,7 @@ class Dataset:
             DeepchecksValueError: if dataset does not have features columns.
         """
         if not self._features:
-            raise DeepchecksValueError(f'Check {check_name} requires dataset to have a features columns!')
+            raise DeepchecksValueError(f'Check {check_name} requires dataset to have features columns!')
 
     def validate_date(self, check_name: str):
         """
