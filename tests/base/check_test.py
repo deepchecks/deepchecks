@@ -8,7 +8,9 @@ from deepchecks.errors import DeepchecksValueError
 
 
 class DummyCheck(BaseCheck):
-    pass
+
+    def run(self):
+        pass
 
 
 def test_add_condition():

@@ -189,8 +189,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
                    '<h5>Top Trust Score Samples</h5>', top_k]
 
         result = {'test': np.mean(test_trust_scores), 'train': np.mean(train_trust_scores)}
-        return CheckResult(result, check=self.__class__, display=display,
-                           header='Trust Score Comparison: Train vs. Test')
+        return CheckResult(result, display=display, header='Trust Score Comparison: Train vs. Test')
 
     def add_condition_mean_score_percent_decline_not_greater_than(self, threshold: float = 0.2):
         """Add condition.
