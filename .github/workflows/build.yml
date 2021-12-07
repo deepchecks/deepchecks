@@ -74,6 +74,12 @@ jobs:
       with:
         requirements: 'requirements-all.txt'
         fail: 'Copyleft,Other,Error'
+        exclude: '(visions.*|pyzmq.*|debugpy.*|certifi.*|tqdm.*)'
+        # visions is BSD-4
+        # pyzmq is Revised BSD
+        # debugpy is EPL-2.0
+        # certifi is MPL-2.0
+        # tqdm is MPL-2.0
     - name: Print report
       if: ${{ always() }}
       run: echo "${{ steps.license_check_report.outputs.report }}"
