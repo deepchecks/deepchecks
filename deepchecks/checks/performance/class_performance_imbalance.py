@@ -105,8 +105,8 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
         dataset.validate_features(check_name)
         task_type_validation(model, dataset, expected_model_types, check_name)
 
-        labels = t.cast(pd.Series, dataset.label_col())
-        features = t.cast(pd.DataFrame, dataset.features_columns())
+        labels = t.cast(pd.Series, dataset.label_col)
+        features = t.cast(pd.DataFrame, dataset.features_columns)
 
         unique_labels = get_unique_labels(labels)
         scorers = self.alternative_scorers or self._default_scorers
@@ -147,7 +147,6 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
         # TODO: use `get_metrics_list` from utils package
         # but first we need to refactor it to accept 'average' argument
         return {
-            'Accuracy': make_scorer(recall_score, zero_division=0, average=None),
             'Precision': make_scorer(precision_score, zero_division=0, average=None),
             'Recall': make_scorer(recall_score, zero_division=0, average=None),
             'F1': make_scorer(f1_score, zero_division=0, average=None)

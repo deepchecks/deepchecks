@@ -210,7 +210,7 @@ def validate_class_performance_imbalance_check_result(
 ):
     if value is None:
         default_scores_matcher = has_entries({
-            'Accuracy': instance_of(float),
+            'F1': instance_of(float),
             'Precision': instance_of(float),
             'Recall': instance_of(float),
         })
