@@ -181,7 +181,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
             if ratio < min_allowed_ratio:
                 return ConditionResult(False,
                                        f'The given model performs {more_than_prefix_adder(ratio, self.maximum_ratio)}'
-                                       f' times comparedto the simple model using the given metric')
+                                       f' times compared to the simple model using the given metric')
             else:
                 return ConditionResult(True)
 

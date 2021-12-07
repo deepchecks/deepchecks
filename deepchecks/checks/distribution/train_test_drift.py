@@ -30,8 +30,8 @@ def preprocess_for_psi(dist1: np.ndarray, dist2: np.ndarray, max_num_categories)
 
     Function is for categorical data only.
     Args:
-        dist1: first distribution, treated as the expected distribution
-        dist2: second distribution, treated as the actual distribution
+        dist1: list of values from the first distribution, treated as the expected distribution
+        dist2: list of values from the second distribution, treated as the actual distribution
         max_num_categories: max number of allowed categories. If there are more, they are binned into an "Other"
         category. If max_num_categories=None, there is no limit.
 
@@ -41,7 +41,7 @@ def preprocess_for_psi(dist1: np.ndarray, dist2: np.ndarray, max_num_categories)
         categories_list: list of all categories that the percentages represent.
 
     """
-    all_categories = list(set(np.unique(dist1)).union(set(dist2)))
+    all_categories = list(set(dist1).union(set(dist2)))
 
     if max_num_categories is not None and len(all_categories) > max_num_categories:
         dist1_counter = dict(Counter(dist1).most_common(max_num_categories))

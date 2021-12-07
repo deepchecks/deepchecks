@@ -74,7 +74,8 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_s
         if isinstance(model, Pipeline):
             if internal_estimator is not None:
                 feature_importances = _built_in_importance(internal_estimator, dataset)
-            else:
+
+            if feature_importances is None:
                 feature_importances = _calc_importance(model, dataset, random_state=random_state)
         else:  # Others
             feature_importances = _calc_importance(model, dataset, random_state=random_state)
