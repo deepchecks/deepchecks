@@ -283,7 +283,7 @@ dev-docs: $(DOCOSAURUS) website
 
 license-check:
 	@wget https://dlcdn.apache.org/skywalking/eyes/0.2.0/skywalking-license-eye-0.2.0-bin.tgz && tar -xzvf skywalking-license-eye-0.2.0-bin.tgz
-	@mv skywalking-license-eye-0.2.0-bin/bin/darwin/license-eye ./
+	@mv skywalking-license-eye-0.2.0-bin/bin/linux/license-eye ./
 	@rm -rf skywalking-license-eye-0.2.0-bin && rm -f skywalking-license-eye-0.2.0-bin.tgz
 	./license-eye -c .licenserc_fix.yaml header check
 	@rm license-eye
