@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The predefined methodological flaws suite module."""
 from deepchecks import Suite
 from deepchecks.checks.methodology import (
@@ -91,7 +101,7 @@ def overfit_suite() -> Suite:
     """
     return Suite(
         'Overfit Suite',
-        TrainTestDifferenceOverfit().add_condition_percentage_degradation_not_greater_than(),
+        TrainTestDifferenceOverfit().add_condition_degradation_ratio_not_greater_than(),
         BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(),
     )
 
