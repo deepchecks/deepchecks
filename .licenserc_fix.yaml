@@ -4,6 +4,14 @@ header:
     copyright-owner: Deepchecks
   paths:
     - '**'
+  paths-ignore:
+    - '**/*.ipynb'
+    - '.pylintrc'
+    - 'LICENSE'
+    - 'deepchecks.egg-info/PKG-INFO'
+    - 'makefile'
+    - 'notebooks/'
+    - 'docs/'
   comment: on-failure
 
 dependency:
