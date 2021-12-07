@@ -20,6 +20,7 @@ from sklearn.utils.validation import check_is_fitted
 
 from deepchecks import base
 from deepchecks import errors
+from deepchecks.utils import validation
 from deepchecks.utils.typing import Hashable
 
 
@@ -77,7 +78,7 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_s
     else:
         check_is_fitted(model)
 
-    dataset.validate_model(model)
+    validation.validate_model(dataset, model)
 
     feature_importances = _built_in_importance(model, dataset)
     if feature_importances is None:

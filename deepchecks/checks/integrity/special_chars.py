@@ -116,7 +116,7 @@ class SpecialCharacters(SingleDatasetBaseCheck):
                                                self.n_top_columns, col='Column Name')
         display = df_graph if len(df_graph) > 0 else None
 
-        return CheckResult(result, check=self.__class__, display=display)
+        return CheckResult(result, display=display)
 
     def add_condition_ratio_of_special_characters_not_grater_than(self, max_ratio: float = 0.001):
         """Add condition - ratio of entirely special character in column.

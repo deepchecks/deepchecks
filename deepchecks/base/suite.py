@@ -112,12 +112,12 @@ class Suite(BaseCheck):
                 elif isinstance(check, SingleDatasetBaseCheck):
                     if check_datasets_policy in ['both', 'train'] and train_dataset is not None:
                         check_result = check.run(dataset=train_dataset, model=model)
-                        check_result.header = f'{check_result.header} - Train Dataset'
+                        check_result.header = f'{check_result.get_header()} - Train Dataset'
                         check_result.set_condition_results(check.conditions_decision(check_result))
                         results.append(check_result)
                     if check_datasets_policy in ['both', 'test'] and test_dataset is not None:
                         check_result = check.run(dataset=test_dataset, model=model)
-                        check_result.header = f'{check_result.header} - Test Dataset'
+                        check_result.header = f'{check_result.get_header()} - Test Dataset'
                         check_result.set_condition_results(check.conditions_decision(check_result))
                         results.append(check_result)
                 elif isinstance(check, ModelOnlyBaseCheck):

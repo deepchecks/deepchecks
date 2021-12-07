@@ -155,7 +155,7 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
         else:
             display = None
 
-        return CheckResult(result_dict, check=self.__class__, display=display)
+        return CheckResult(result_dict, display=display)
 
     def add_condition_no_new_variants(self):
         """Add condition - no new variants allowed in test data."""

@@ -19,6 +19,7 @@ import numpy as np
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.metrics import task_type_check, DEFAULT_METRICS_DICT, validate_scorer, DEFAULT_SINGLE_METRIC
 from deepchecks.utils.strings import format_percent
+from deepchecks.utils.validation import validate_model
 from deepchecks.errors import DeepchecksValueError
 
 
@@ -152,7 +153,7 @@ class BoostingOverfit(TrainTestBaseCheck):
         test_dataset.validate_label(self.__class__.__name__)
         train_dataset.validate_shared_features(test_dataset, self.__class__.__name__)
         train_dataset.validate_shared_label(test_dataset, self.__class__.__name__)
-        train_dataset.validate_model(model)
+        validate_model(train_dataset, model)
 
         # Get default metric
         model_type = task_type_check(model, train_dataset)
@@ -185,7 +186,7 @@ class BoostingOverfit(TrainTestBaseCheck):
             axes.xaxis.set_major_locator(MaxNLocator(integer=True))
 
         result = {'test': test_scores, 'train': train_scores}
-        return CheckResult(result, check=self.__class__, display=display_func, header='Boosting Overfit')
+        return CheckResult(result, display=display_func, header='Boosting Overfit')
 
     def add_condition_test_score_percent_decline_not_greater_than(self, threshold: float = 0.05):
         """Add condition.

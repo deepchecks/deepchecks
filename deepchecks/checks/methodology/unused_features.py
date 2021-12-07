@@ -21,7 +21,7 @@ from sklearn.preprocessing import RobustScaler, OrdinalEncoder
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.features import calculate_feature_importance
-from deepchecks.utils.validation import model_type_validation
+from deepchecks.utils.validation import validate_model
 from deepchecks.errors import DeepchecksValueError
 
 
@@ -117,8 +117,8 @@ class UnusedFeatures(TrainTestBaseCheck):
             raise DeepchecksValueError('Either train_dataset or test_dataset must be supplied')
         Dataset.validate_dataset(dataset, func_name)
         dataset.validate_label(func_name)
-        test_dataset.validate_label(func_name)
-        model_type_validation(model)
+        dataset.validate_label(func_name)
+        validate_model(dataset, model)
 
         feature_importance = calculate_feature_importance(model, dataset, random_state=self.random_state)
 
@@ -210,7 +210,7 @@ class UnusedFeatures(TrainTestBaseCheck):
                                                                      last_variable_feature_index:].values.tolist()
             }}
 
-        return CheckResult(return_value, check=self.__class__, header='Unused Features', display=display_list)
+        return CheckResult(return_value, header='Unused Features', display=display_list)
 
     def add_condition_number_of_high_variance_unused_features_not_greater_than(
             self, max_high_variance_unused_features: int = 5):

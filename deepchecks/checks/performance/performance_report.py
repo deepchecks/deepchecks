@@ -13,7 +13,7 @@ from typing import Callable, Dict
 import pandas as pd
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
 from deepchecks.utils.metrics import get_metrics_list
-from deepchecks.utils.validation import model_type_validation
+from deepchecks.utils.validation import validate_model
 
 
 __all__ = ['PerformanceReport']
@@ -46,7 +46,7 @@ class PerformanceReport(SingleDatasetBaseCheck):
     def _performance_report(self, dataset: Dataset, model):
         Dataset.validate_dataset(dataset, self.__class__.__name__)
         dataset.validate_label(self.__class__.__name__)
-        model_type_validation(model)
+        validate_model(dataset, model)
 
         # Get default metrics if no alternative, or validate alternatives
         metrics = get_metrics_list(model, dataset, self.alternative_metrics)
@@ -56,7 +56,7 @@ class PerformanceReport(SingleDatasetBaseCheck):
         display_df = pd.DataFrame(scores.values(), columns=['Score'], index=scores.keys())
         display_df.index.name = 'Metric'
 
-        return CheckResult(scores, check=self.__class__, header='Performance Report', display=display_df)
+        return CheckResult(scores, header='Performance Report', display=display_df)
 
     def add_condition_score_not_less_than(self, min_score: float):
         """Add condition - metric scores are not less than given score.

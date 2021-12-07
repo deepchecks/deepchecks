@@ -16,7 +16,7 @@ import pandas as pd
 import numpy as np
 
 from deepchecks.utils.strings import format_percent
-from deepchecks.utils.validation import model_type_validation
+from deepchecks.utils.validation import validate_model
 from deepchecks.utils.metrics import get_metrics_list
 from deepchecks import (
     Dataset,
@@ -80,7 +80,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
         test_dataset.validate_label(func_name)
         train_dataset.validate_shared_label(test_dataset, func_name)
         train_dataset.validate_shared_features(test_dataset, func_name)
-        model_type_validation(model)
+        validate_model(test_dataset, model)
 
         metrics = get_metrics_list(model, train_dataset, self.alternative_metrics)
 
@@ -107,8 +107,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
             plt.xticks(rotation=30)
             plt.legend(res_df.columns, loc='upper right', bbox_to_anchor=(1.45, 1.02))
 
-        return CheckResult(result, check=self.__class__, header='Train-Test Difference Overfit',
-                           display=[plot_overfit])
+        return CheckResult(result, header='Train-Test Difference Overfit', display=[plot_overfit])
 
     def add_condition_difference_not_greater_than(self: TD, threshold: float) -> TD:
         """

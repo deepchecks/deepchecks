@@ -12,8 +12,10 @@
 import abc
 import enum
 import re
+import typing
 from collections import OrderedDict
 from dataclasses import dataclass
+from functools import wraps
 from typing import Any, Callable, List, Union, Dict, cast
 
 __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainTestBaseCheck',
@@ -128,8 +130,9 @@ class CheckResult:
     header: str
     display: List[Union[Callable, str, pd.DataFrame, Styler]]
     condition_results: List[ConditionResult]
+    check: typing.ClassVar
 
-    def __init__(self, value, header: str = None, check=None, display: Any = None):
+    def __init__(self, value, header: str = None, display: Any = None):
         """Init check result.
 
         Args:
@@ -140,8 +143,7 @@ class CheckResult:
             display (List): Objects to be displayed (dataframe or function or html)
         """
         self.value = value
-        self.header = header or (check and check.name()) or None
-        self.check = check
+        self.header = header
         self.condition_results = []
 
         if display is not None and not isinstance(display, List):
@@ -154,10 +156,9 @@ class CheckResult:
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
     def _ipython_display_(self):
-        if self.header:
-            display_html(f'<h4>{self.header}</h4>', raw=True)
-        if self.check and '__doc__' in dir(self.check):
-            docs = self.check.__doc__
+        display_html(f'<h4>{self.get_header()}</h4>', raw=True)
+        if hasattr(self.check, '__doc__'):
+            docs = self.check.__doc__ or ''
             # Take first non-whitespace line.
             summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
             display_html(f'<p>{summary}</p>', raw=True)
@@ -178,6 +179,10 @@ class CheckResult:
     def __repr__(self):
         """Return default __repr__ function uses value."""
         return self.value.__repr__()
+
+    def get_header(self):
+        """Return header for display. if header was defined return it, else extract name of check class."""
+        return self.header or self.check.name()
 
     def set_condition_results(self, results: List[ConditionResult]):
         """Set the conditions results for current check result."""
@@ -200,6 +205,16 @@ class CheckResult:
         return max([r.get_sort_value() for r in self.conditions_results])
 
 
+def wrap_run(func, class_instance):
+    """Wrap the run function of checks, and sets the `check` property on the check result."""
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        result = func(*args, **kwargs)
+        result.check = class_instance.__class__
+        return result
+    return wrapped
+
+
 class BaseCheck(metaclass=abc.ABCMeta):
     """Base class for check."""
 
@@ -209,6 +224,8 @@ class BaseCheck(metaclass=abc.ABCMeta):
     def __init__(self):
         self._conditions = OrderedDict()
         self._conditions_index = 0
+        # Replace the run function with wrapped run function
+        setattr(self, 'run', wrap_run(getattr(self, 'run'), self))
 
     def conditions_decision(self, result: CheckResult) -> List[ConditionResult]:
         """Run conditions on given result."""
