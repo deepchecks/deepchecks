@@ -98,7 +98,7 @@ class MixedTypes(SingleDatasetBaseCheck):
         else:
             display = None
 
-        return CheckResult(result_dict, check=self.__class__, display=display)
+        return CheckResult(result_dict, display=display)
 
     def _get_data_mix(self, column_data: pd.Series) -> dict:
         if is_string_column(column_data):

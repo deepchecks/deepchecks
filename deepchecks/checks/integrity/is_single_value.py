@@ -73,7 +73,7 @@ class IsSingleValue(SingleDatasetBaseCheck):
             value = None
             display = None
 
-        return CheckResult(value, header='Single Value in Column', check=self.__class__, display=display)
+        return CheckResult(value, header='Single Value in Column', display=display)
 
     def add_condition_not_single_value(self):
         """Add condition - not single value."""

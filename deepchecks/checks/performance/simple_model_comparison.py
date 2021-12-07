@@ -175,9 +175,10 @@ class SimpleModelComparison(TrainTestBaseCheck):
             ax.bar(models, metrics_results)
             ax.set_ylabel(metric_name)
 
-        return CheckResult({'given_model_score': pred_metric, 'simple_model_score': simple_metric,
+        return CheckResult({'given_model_score': pred_metric,
+                            'simple_model_score': simple_metric,
                             'ratio': ratio},
-                           check=self.__class__, display=[text, display_func])
+                           display=[text, display_func])
 
     def add_condition_ratio_not_less_than(self, min_allowed_ratio: float = 1.1):
         """Add condition - require min allowed ratio between the given and the simple model.

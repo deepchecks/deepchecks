@@ -197,7 +197,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                                                self.n_top_columns, col='Column Name')
         display = df_graph if len(df_graph) > 0 else None
 
-        return CheckResult(results, check=self.__class__, display=display)
+        return CheckResult(results, display=display)
 
     def add_condition_number_of_outliers_not_greater_than(self, max_outliers: int = 0):
         """Add condition - require column not to have more than given number of string length outliers.

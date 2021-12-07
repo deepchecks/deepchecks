@@ -83,5 +83,5 @@ class CalibrationMetric(SingleDatasetBaseCheck):
                            "frequency of the positive label against its predicted probability, for binned predictions."
         brier_text = "The Brier score metric may be used to assess how well a classifier is calibrated. For more " \
                      "info, please visit https://en.wikipedia.org/wiki/Brier_score"
-        return CheckResult(briers_scores, header="Calibration Metric", check=self.__class__,
+        return CheckResult(briers_scores, header="Calibration Metric",
                            display=[calibration_text, display, brier_text])

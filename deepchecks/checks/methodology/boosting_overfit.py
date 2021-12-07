@@ -185,7 +185,7 @@ class BoostingOverfit(TrainTestBaseCheck):
             axes.xaxis.set_major_locator(MaxNLocator(integer=True))
 
         result = {'test': test_scores, 'train': train_scores}
-        return CheckResult(result, check=self.__class__, display=display_func, header='Boosting Overfit')
+        return CheckResult(result, display=display_func, header='Boosting Overfit')
 
     def add_condition_test_score_percent_decline_not_greater_than(self, threshold: float = 0.05):
         """Add condition.

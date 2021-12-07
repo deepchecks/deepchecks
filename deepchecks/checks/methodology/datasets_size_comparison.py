@@ -50,7 +50,6 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
         })
         return CheckResult(
             value=result,
-            header='Datasets size.',
             display=result
         )
 

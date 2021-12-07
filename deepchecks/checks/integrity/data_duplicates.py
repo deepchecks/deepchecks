@@ -85,7 +85,7 @@ class DataDuplicates(SingleDatasetBaseCheck):
         else:
             display = None
 
-        return CheckResult(value=percent_duplicate, check=self.__class__, display=display)
+        return CheckResult(value=percent_duplicate, display=display)
 
     def add_condition_ratio_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require duplicate ratio to not surpass max_ratio.

@@ -51,5 +51,5 @@ class ColumnsInfo(SingleDatasetBaseCheck):
         df = pd.DataFrame.from_dict(value, orient='index', columns=['role'])
         df = df.transpose()
 
-        return CheckResult(value, check=self.__class__, header='Columns Info', display=df)
+        return CheckResult(value, header='Columns Info', display=df)
 
