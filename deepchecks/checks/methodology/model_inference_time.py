@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The model inference time check module."""
 import typing as t
 import timeit
@@ -73,7 +83,7 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
 
         result = result / number_of_samples
 
-        return CheckResult(value=result, check=type(self), display=(
+        return CheckResult(value=result, display=(
             'Average model inference time for one sample (in seconds): '
             f'{format_number(result, floating_point=8)}'
         ))

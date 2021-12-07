@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Module of segment performance check."""
 from typing import Callable, Union, Optional
 
@@ -143,4 +153,4 @@ class SegmentPerformance(SingleDatasetBaseCheck):
             ax.set_title(f'{metric_name} (count) by features {feat1}/{feat2}')
 
         value = {'scores': scores, 'counts': counts, 'feature_1': self.feature_1,'feature_2': self.feature_2}
-        return CheckResult(value, check=self.__class__, display=display)
+        return CheckResult(value, display=display)

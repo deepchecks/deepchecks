@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Module of trust score comparison check."""
 import numpy as np
 import matplotlib.pyplot as plt
@@ -189,8 +199,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
                    '<h5>Top Trust Score Samples</h5>', top_k]
 
         result = {'test': np.mean(test_trust_scores), 'train': np.mean(train_trust_scores)}
-        return CheckResult(result, check=self.__class__, display=display,
-                           header='Trust Score Comparison: Train vs. Test')
+        return CheckResult(result, display=display, header='Trust Score Comparison: Train vs. Test')
 
     def add_condition_mean_score_percent_decline_not_greater_than(self, threshold: float = 0.2):
         """Add condition.

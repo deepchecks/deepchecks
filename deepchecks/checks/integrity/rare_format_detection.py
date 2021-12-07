@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The single_feature_contribution check module."""
 import typing as t
 import re
@@ -367,7 +377,7 @@ class RareFormatDetection(SingleDatasetBaseCheck):
             display.append(f'\n\nColumn {key}:')
             display.append(value)
 
-        return CheckResult(value=filtered_res, header='Rare Format Detection', check=self.__class__, display=display)
+        return CheckResult(value=filtered_res, header='Rare Format Detection', display=display)
 
     def add_condition_ratio_of_rare_formats_not_greater_than(self, var: float = 0):
         """

@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Module containing simple comparison check."""
 from typing import Callable, Dict, Union
 import numpy as np
@@ -165,9 +175,10 @@ class SimpleModelComparison(TrainTestBaseCheck):
             ax.bar(models, metrics_results)
             ax.set_ylabel(metric_name)
 
-        return CheckResult({'given_model_score': pred_metric, 'simple_model_score': simple_metric,
+        return CheckResult({'given_model_score': pred_metric,
+                            'simple_model_score': simple_metric,
                             'ratio': ratio},
-                           check=self.__class__, display=[text, display_func])
+                           display=[text, display_func])
 
     def add_condition_ratio_not_less_than(self, min_allowed_ratio: float = 1.1):
         """Add condition - require min allowed ratio between the given and the simple model.

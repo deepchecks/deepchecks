@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The single_feature_contribution check module."""
 import typing as t
 
@@ -88,7 +98,7 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
                 'that was powerful in train but not in test can be explained by leakage in train that is not '
                 'relevant to a new dataset.']
 
-        return CheckResult(value=s_difference.to_dict(), display=[plot, *text], check=self.__class__,
+        return CheckResult(value=s_difference.to_dict(), display=[plot, *text],
                            header='Single Feature Contribution Train-Test')
 
     def add_condition_feature_pps_difference_not_greater_than(self: FC, threshold: float = 0.2) -> FC:

@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Module containing performance report check."""
 from typing import Callable, Dict
 import pandas as pd
@@ -46,7 +56,7 @@ class PerformanceReport(SingleDatasetBaseCheck):
         display_df = pd.DataFrame(scores.values(), columns=['Score'], index=scores.keys())
         display_df.index.name = 'Metric'
 
-        return CheckResult(scores, check=self.__class__, header='Performance Report', display=display_df)
+        return CheckResult(scores, header='Performance Report', display=display_df)
 
     def add_condition_score_not_less_than(self, min_score: float):
         """Add condition - metric scores are not less than given score.

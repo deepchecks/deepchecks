@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The UnusedFeatures check module."""
 import matplotlib.pyplot as plt
 import numpy as np
@@ -200,7 +210,7 @@ class UnusedFeatures(TrainTestBaseCheck):
                                                                      last_variable_feature_index:].values.tolist()
             }}
 
-        return CheckResult(return_value, check=self.__class__, header='Unused Features', display=display_list)
+        return CheckResult(return_value, header='Unused Features', display=display_list)
 
     def add_condition_number_of_high_variance_unused_features_not_greater_than(
             self, max_high_variance_unused_features: int = 5):
