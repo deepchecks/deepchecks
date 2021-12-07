@@ -30,7 +30,7 @@ author = 'deepchecks'
 tag = 'main'
 
 # -- General configuration ---------------------------------------------------
-
+html_logo = "./_static/deepchecks_logo.svg"
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.

@@ -12,23 +12,36 @@ Welcome to Deepchecks' documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Docstring
+   :caption: User Guide
+   :hidden:
+
+   user-guide/index
 
 Examples
 ========
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   :caption: Examples
 
-   examples
+   examples/index
 
 Reference Guides
 ================
 
 .. toctree::
    :maxdepth: 3
+   :caption: API Reference
 
    api/index
+
+Contributing
+===========
+
+.. toctree::
+   :maxdepth: 2
+
+   contributing
 
 Indices and tables
 ==================
