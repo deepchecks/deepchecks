@@ -181,6 +181,7 @@ class CheckResult:
         return self.value.__repr__()
 
     def get_header(self):
+        """Return header for display. if header was defined return it, else extract name of check class."""
         if self.header is not None:
             return self.header
         else:
