@@ -52,3 +52,28 @@ jobs:
             npm i
           fi
           npm run build
+
+  dependencies-license-check:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout the code
+      uses: actions/checkout@v2.3.4
+      with:
+        fetch-depth: 0
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.7'
+    - name: Get explicit and transitive dependencies
+      run: |
+        pip install -r requirements.txt
+        pip freeze > requirements-all.txt
+    - name: Check python
+      id: license_check_report
+      uses: pilosus/action-pip-license-checker@v0.6.1
+      with:
+        requirements: 'requirements-all.txt'
+        fail: 'Copyleft,Other,Error'
+    - name: Print report
+      if: ${{ always() }}
+      run: echo "${{ steps.license_check_report.outputs.report }}"
