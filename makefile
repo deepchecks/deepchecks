@@ -66,7 +66,7 @@ COVER_ARG := --cov-report term-missing --cov=$(PKGDIR) \
 	$(if $(COVERAGE_RC), --cov-config $(COVERAGE_RC))
 
 # Sphinx
-SPHINX_PKGS = sphinx sphinx_book_theme sphinx-markdown-builder sphinx-autoapi sphinx-copybutton nbsphinx
+SPHINX_PKGS = sphinx pydata-sphinx-theme sphinx-markdown-builder sphinx-autoapi sphinx-copybutton nbsphinx
 
 
 EGG_INFO := $(subst -,_,$(PROJECT)).egg-info
@@ -251,13 +251,9 @@ endif
 .PHONY: docs website dev-docs gen-static-notebooks license-check
 
 API_REFERENCE_DIR=api-reference
-WEBSITE_DIR=docs/_website
 
 $(APIDOC): env
 	$(PIP) install $(SPHINX_PKGS)	
-
-gen-static-notebooks: $(JUPYTER)
-	 $(BIN)/jupyter nbconvert --to rst --output-dir $(WEBSITE_DIR)/static/notebooks/  ./notebooks/*/*/*.ipynb
 
 docs: $(APIDOC)
 	@cd docs && make html
