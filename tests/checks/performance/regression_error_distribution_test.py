@@ -40,51 +40,51 @@ def test_model_info_object(diabetes_split_dataset_and_model):
     # Act X
     result = check.run(test, clf).value
     # Assert
-    assert_that(result['mse'], close_to(57.5, 0.1))
     assert_that(result['kurtosis'], close_to(0.028, 0.001))
+    assert_that(result['pvalue'], close_to(0.72, 0.01))
 
 
 def test_condition_absolute_kurtosis_not_greater_than_not_passed(diabetes_split_dataset_and_model):
     # Arrange
     _, test, clf = diabetes_split_dataset_and_model
     test = Dataset(test.data.copy(), label='target')
-    test._data[test.label_name()] =300
+    test._data[test.label_name] =300
 
-    check = RegressionErrorDistribution().add_condition_absolute_kurtosis_not_greater_than()
+    check = RegressionErrorDistribution().add_condition_p_value_not_less_than()
 
     # Act
     result = check.conditions_decision(check.run(test, clf))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Absolute kurtosis value is not greater than 0.1',
-                               details='kurtosis: -0.92572')
+                               name='P value not less than 0.0001',
+                               details='p value: 5e-05')
     ))
 
 
 def test_condition_absolute_kurtosis_not_greater_than_passed(diabetes_split_dataset_and_model):
     _, test, clf = diabetes_split_dataset_and_model
 
-    check = RegressionErrorDistribution().add_condition_absolute_kurtosis_not_greater_than()
+    check = RegressionErrorDistribution().add_condition_p_value_not_less_than()
 
     # Act
     result = check.conditions_decision(check.run(test, clf))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Absolute kurtosis value is not greater than 0.1')
+                               name='P value not less than 0.0001')
     )) 
 
 def test_condition_absolute_kurtosis_not_greater_than_not_passed_0_max(diabetes_split_dataset_and_model):
     _, test, clf = diabetes_split_dataset_and_model
 
-    check = RegressionErrorDistribution().add_condition_absolute_kurtosis_not_greater_than(max_kurtosis=0)
+    check = RegressionErrorDistribution().add_condition_p_value_not_less_than(p_value_threshold=1)
 
     # Act
     result = check.conditions_decision(check.run(test, clf))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Absolute kurtosis value is not greater than 0',
-                               details='kurtosis: 0.02867')
+                               name='P value not less than 1',
+                               details='p value: 0.72725')
     )) 
