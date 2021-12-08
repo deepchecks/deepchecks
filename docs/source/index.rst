@@ -12,14 +12,23 @@ Welcome to Deepchecks' documentation!
 
    getting-started/index
 
-Examples
-========
+How To Guides
+=============
 
 .. toctree::
    :maxdepth: 1
-   :caption: Examples
+   :caption: How To Guides
 
-   examples/index
+   guides/index
+
+Checks Demonstration
+====================
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Checks Demonstration
+
+   checks/index
 
 .. toctree::
    :maxdepth: 2
