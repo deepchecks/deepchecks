@@ -15,5 +15,4 @@ Classes Summary
     :toctree: _autosummary
 
     columns_info.ColumnsInfo
-    dataset_info.DatasetInfo
     model_info.ModelInfo
