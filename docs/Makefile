@@ -1,47 +1,20 @@
-# Makefile for Sphinx documentation
+# Minimal makefile for Sphinx documentation
 #
 
-ENV = ../venv
-# System Envs
-BIN := $(ENV)/bin
-pythonpath= PYTHONPATH=..
-
-SPHINXBUILDCMD=$(BIN)/sphinx-build
-
-# You can set these variables from the command line.
-SPHINXOPTS    =
-SPHINXBUILD   = $(pythonpath) $(SPHINXBUILDCMD)
-PAPER         =
+# You can set these variables from the command line, and also
+# from the environment for the first two.
+SPHINXOPTS    ?=
+SPHINXBUILD   ?= sphinx-build
+SOURCEDIR     = source
 BUILDDIR      = build
-SOURCEDIR     = ./source
 
-# Do not use local Django settings during the docs build
-export DJANGO_SETTINGS_SKIP_LOCAL = True
-
-# User-friendly check for sphinx-build
-ifeq ($(shell which $(SPHINXBUILDCMD) >/dev/null 2>&1; echo $$?), 1)
-$(error The '$(SPHINXBUILD)' command was not found. Make sure you have Sphinx installed, then set the SPHINXBUILD environment variable to point to the full path of the '$(SPHINXBUILD)' executable. Alternatively you can add the directory with the executable to your PATH. If you don't have Sphinx installed, grab it from http://sphinx-doc.org/)
-endif
-
-# Internal variables.
-ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) $(SOURCEDIR)
-
-.PHONY: help clean html show
-
+# Put it first so that "make" without argument is like "make help".
 help:
-	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  html       to make standalone HTML files"
-	@echo "  show       to open the static html files in local web browser"
-	@echo "  clean      clean build directory"
+	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-clean:
-	rm -rf $(BUILDDIR)/*
+.PHONY: help Makefile
 
-html:
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)
-	@echo
-	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
-
-
-show:
-	@python -c "import webbrowser; webbrowser.open_new_tab('file://$(PWD)/$(BUILDDIR)/index.html')"
+# Catch-all target: route all unknown targets to Sphinx using the new
+# "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
+%: Makefile
+	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
