@@ -17,7 +17,7 @@ REQUIRE = requirements.txt
 ext_py := $(shell which python3 || which python)
 
 # Override by putting in commandline python=XXX when needed.
-python = $(shell basename ${echo ${ext_py}})
+python = $(shell basename `echo ${ext_py}`)
 TESTDIR = tests
 ENV = venv
 repo = pypi
@@ -97,7 +97,7 @@ env: $(REQUIREMENTS_LOG)
 $(PIP):
 	$(info #### Remember to source new environment  [ $(ENV) ] ####)
 	@echo "external python_exe is $(ext_py)"
-	@echo "ls -la /c/hostedtoolcache/windows/Python/3.8.10/x64"
+	@ls -la /c/hostedtoolcache/windows/Python/3.8.10/x64
 	$(ext_py) -m venv $(ENV)
 $(REQUIREMENTS_LOG): $(PIP) $(REQUIREMENTS)
 	$(PIP) install --upgrade pip
