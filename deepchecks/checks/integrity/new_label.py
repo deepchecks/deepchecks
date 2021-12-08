@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The data_sample_leakage_report check module."""
 from typing import Dict
 
@@ -72,7 +82,7 @@ class NewLabelTrainTest(TrainTestBaseCheck):
             display = None
             result = {}
 
-        return CheckResult(result, check=self.__class__, display=display)
+        return CheckResult(result, display=display)
 
     def add_condition_new_labels_not_greater_than(self, max_new: int = 0):
         """Add condition - require label column not to have greater than given number of different new labels.

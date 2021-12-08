@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Tests for BaseCheck class."""
 # pylint: disable=protected-access
 from hamcrest import assert_that, has_property, contains_exactly, calling, raises, has_length, \
@@ -8,7 +18,9 @@ from deepchecks.errors import DeepchecksValueError
 
 
 class DummyCheck(BaseCheck):
-    pass
+
+    def run(self):
+        pass
 
 
 def test_add_condition():

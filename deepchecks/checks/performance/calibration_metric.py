@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The calibration_metric check module."""
 from sklearn.base import BaseEstimator
 from sklearn.calibration import calibration_curve
@@ -73,5 +83,5 @@ class CalibrationMetric(SingleDatasetBaseCheck):
                            "frequency of the positive label against its predicted probability, for binned predictions."
         brier_text = "The Brier score metric may be used to assess how well a classifier is calibrated. For more " \
                      "info, please visit https://en.wikipedia.org/wiki/Brier_score"
-        return CheckResult(briers_scores, header="Calibration Metric", check=self.__class__,
+        return CheckResult(briers_scores, header="Calibration Metric",
                            display=[calibration_text, display, brier_text])

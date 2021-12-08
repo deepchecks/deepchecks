@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The model inference time check module."""
 import typing as t
 import timeit
@@ -6,7 +16,7 @@ import numpy as np
 import pandas as pd
 
 from deepchecks import SingleDatasetBaseCheck, CheckResult, Dataset, ConditionResult
-from deepchecks.utils.validation import model_type_validation
+from deepchecks.utils.validation import validate_model
 from deepchecks.utils.strings import format_number
 from deepchecks.errors import DeepchecksValueError
 
@@ -56,9 +66,8 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
     ) -> CheckResult:
         check_name = type(self).__name__
         Dataset.validate_dataset(dataset, check_name)
-        Dataset.validate_model(dataset, model)
         Dataset.validate_features(dataset, check_name)
-        model_type_validation(model)
+        validate_model(dataset, model)
 
         prediction_method = model.predict # type: ignore
         df = t.cast(pd.DataFrame, dataset.features_columns)
@@ -74,7 +83,7 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
 
         result = result / number_of_samples
 
-        return CheckResult(value=result, check=type(self), display=(
+        return CheckResult(value=result, display=(
             'Average model inference time for one sample (in seconds): '
             f'{format_number(result, floating_point=8)}'
         ))

@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Module of trust score comparison check."""
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,7 +18,7 @@ from deepchecks.checks.distribution.preprocessing import preprocess_dataset_to_s
 from deepchecks.checks.distribution.plot import plot_density
 from deepchecks.utils.metrics import task_type_check, ModelType
 from deepchecks.utils.strings import format_percent
-from deepchecks.utils.validation import model_type_validation
+from deepchecks.utils.validation import validate_model
 from deepchecks.errors import DeepchecksValueError
 
 
@@ -91,9 +101,9 @@ class TrustScoreComparison(TrainTestBaseCheck):
         """
         # tested dataset can be also dataframe
         test_dataset: Dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
-        model_type_validation(model)
+        validate_model(test_dataset, model)
         model_type = task_type_check(model, test_dataset)
-        test_dataset.validate_model(model)
+
         # Baseline must have label so we must get it as Dataset.
         Dataset.validate_dataset(train_dataset, self.__class__.__name__)
         train_dataset.validate_label(self.__class__.__name__)
@@ -175,12 +185,12 @@ class TrustScoreComparison(TrainTestBaseCheck):
 
         headnote = """<span>
         Trust score measures the agreement between the classifier and a modified nearest-neighbor
-        classifier on the testing example. Higher values represent samples that are "close" to training examples with 
-        the same label as sample prediction, and lower values represent samples that are "far" from training samples 
+        classifier on the testing example. Higher values represent samples that are "close" to training examples with
+        the same label as sample prediction, and lower values represent samples that are "far" from training samples
         with labels matching their prediction. (arxiv 1805.11783)
         </span>"""
         footnote = """<span style="font-size:0.8em"><i>
-            The test trust score distribution should be quite similar to the train's. If it is skewed to the left, the 
+            The test trust score distribution should be quite similar to the train's. If it is skewed to the left, the
             confidence of the model in the test data is lower than the train, indicating a difference that may affect
             model performance on similar data. If it is skewed to the right, it indicates an underlying problem with the creation of the test dataset
             (test confidence isn't expected to be higher than train's).
@@ -189,8 +199,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
                    '<h5>Top Trust Score Samples</h5>', top_k]
 
         result = {'test': np.mean(test_trust_scores), 'train': np.mean(train_trust_scores)}
-        return CheckResult(result, check=self.__class__, display=display,
-                           header='Trust Score Comparison: Train vs. Test')
+        return CheckResult(result, display=display, header='Trust Score Comparison: Train vs. Test')
 
     def add_condition_mean_score_percent_decline_not_greater_than(self, threshold: float = 0.2):
         """Add condition.

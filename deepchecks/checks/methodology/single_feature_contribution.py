@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The single_feature_contribution check module."""
 import typing as t
 
@@ -70,8 +80,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
                 ' actually due to data',
                 'leakage - meaning that the feature holds information that is based on the label to begin with.']
 
-        return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text], check=self.__class__,
-                           header='Single Feature Contribution')
+        return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text], header='Single Feature Contribution')
 
     def add_condition_feature_pps_not_greater_than(self: FC, threshold: float = 0.8) -> FC:
         """
