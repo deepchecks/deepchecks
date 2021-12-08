@@ -279,7 +279,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
     def params(self) -> Dict:
         """Return parameters to show when printing the check."""
-        return {k: v for k, v in vars(self).items() if not k.startswith('_') and v is not None}
+        return {k: v for k, v in vars(self).items() if not k.startswith('_') and v is not None and k != 'run'}
 
     def clean_conditions(self):
         """Remove all conditions from this check instance."""
