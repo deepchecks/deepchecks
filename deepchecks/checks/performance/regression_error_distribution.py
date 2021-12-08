@@ -1,5 +1,4 @@
 """The regression_error_distribution check module."""
-from re import A
 import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.stats import kurtosis, kurtosistest
@@ -20,7 +19,7 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         alternative (str): Defines the alternative hypothesis to calculate the p value
             ‘two-sided’: the kurtosis of the distribution underlying the sample is different from that of
                          the normal distribution
-            ‘less’: the kurtosis of the distribution underlying the sample is less than that of 
+            ‘less’: the kurtosis of the distribution underlying the sample is less than that of
                     the normal distribution
             ‘greater’: the kurtosis of the distribution underlying the sample is greater than that of
                         the normal distribution
@@ -82,7 +81,7 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         return CheckResult(value={'kurtosis': kurtosis_value, 'pvalue': kurtosis_pvalue}, display=display)
 
     def add_condition_p_value_not_less_than(self, p_value_threshold: float = 0.0001):
-        """"Add condition - require min p value allowed to be not less than p_value_threshold
+        """Add condition - require min p value allowed to be not less than p_value_threshold.
 
         Args:
             p_value_threshold (float): Minimal p-value to pass the statistical test determining

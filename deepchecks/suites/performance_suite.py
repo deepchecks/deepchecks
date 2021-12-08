@@ -18,7 +18,6 @@ from deepchecks.checks.performance import (
     CalibrationMetric,
     ClassPerformanceImbalance,
     SimpleModelComparison,
-    CalibrationMetric,
     RegressionErrorDistribution
 )
 
