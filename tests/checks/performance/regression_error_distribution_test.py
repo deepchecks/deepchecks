@@ -1,8 +1,4 @@
-"""Contains unit tests for the roc_report check."""
-import numpy as np
-import pandas as pd
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
+"""Contains unit tests for the RegressionErrorDistribution check."""
 from hamcrest import assert_that, calling, raises, has_items, close_to
 
 from deepchecks.base import Dataset
@@ -33,10 +29,32 @@ def test_multiclass_model(iris_split_dataset_and_model):
                                            r' \[\'regression\'\], but received model of type: multiclass'))
 
 
-def test_model_info_object(diabetes_split_dataset_and_model):
+def test_regression_error_distribution(diabetes_split_dataset_and_model):
     # Arrange
     _, test, clf = diabetes_split_dataset_and_model
     check = RegressionErrorDistribution()
+    # Act X
+    result = check.run(test, clf).value
+    # Assert
+    assert_that(result['kurtosis'], close_to(0.028, 0.001))
+    assert_that(result['pvalue'], close_to(0.72, 0.01))
+
+
+def test_regression_error_distribution_less(diabetes_split_dataset_and_model):
+    # Arrange
+    _, test, clf = diabetes_split_dataset_and_model
+    check = RegressionErrorDistribution(alternative='less')
+    # Act X
+    result = check.run(test, clf).value
+    # Assert
+    assert_that(result['kurtosis'], close_to(0.028, 0.001))
+    assert_that(result['pvalue'], close_to(0.72, 0.01))
+
+
+def test_regression_error_distribution_greater(diabetes_split_dataset_and_model):
+    # Arrange
+    _, test, clf = diabetes_split_dataset_and_model
+    check = RegressionErrorDistribution(alternative='greater')
     # Act X
     result = check.run(test, clf).value
     # Assert
