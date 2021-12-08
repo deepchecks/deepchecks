@@ -166,7 +166,7 @@ are in that suite.
 
 ### Example Notebooks
 For usage examples, check out: 
-- [**deepchecks Quick Start Notebook**](./notebooks/examples/quickstart_in_5_minutes.ipynb) - for a simple example notebook for working with checks and suites.
+- [**Quickstart Notebook**](./notebooks/examples/quickstart_in_5_minutes.ipynb) - for running your first suite with a few lines of code.
 - [**Example Checks Output Notebooks**](./notebooks/checks) - to see all of the existing checks and their usage examples.
 
 ## Communication
