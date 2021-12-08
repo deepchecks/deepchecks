@@ -7,9 +7,6 @@ Suites
 :mod:`deepchecks.suites`
 
 
-Prebuilt Suites
-~~~~~~~~~~~~~~~
-
 Data Integrity
 ~~~~~~~~~~~~~~~~~
 
