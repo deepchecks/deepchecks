@@ -98,7 +98,7 @@ $(PIP):
 	$(info #### Remember to source new environment  [ $(ENV) ] ####)
 	@echo "external python_exe is $(ext_py)"
 	@ls -la /c/hostedtoolcache/windows/Python/3.8.10/x64
-	$(ext_py) -m venv $(ENV)
+	python -m venv $(ENV)
 $(REQUIREMENTS_LOG): $(PIP) $(REQUIREMENTS)
 	$(PIP) install --upgrade pip
 	$(PIP) install $(INSTALLATION_PKGS)
