@@ -2,7 +2,7 @@ Examples
 ========
 
 
-Basic
+How To Guides
 ~~~~~~~~~~~~~~~~
 
 .. toctree::
@@ -14,9 +14,8 @@ Basic
     notebooks/examples/basic/simple_integrity_demo
 
 
-Built-in Checks
+Check Demonstrations
 ~~~~~~~~~~~~~~~~
-
 
 
 .. rubric:: Data Distribution Checks
