@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Contains unit tests for the RegressionBias check."""
 import numpy as np
 import pandas as pd
@@ -33,7 +43,7 @@ def test_multiclass_model(iris_split_dataset_and_model):
                                            r' \[\'regression\'\], but received model of type: multiclass'))
 
 
-def test_model_info_object(diabetes_split_dataset_and_model):
+def test_regression_bias(diabetes_split_dataset_and_model):
     # Arrange
     _, test, clf = diabetes_split_dataset_and_model
     check = RegressionBias()
