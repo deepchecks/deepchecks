@@ -260,18 +260,10 @@ gen-static-notebooks: $(JUPYTER)
 	 $(BIN)/jupyter nbconvert --to rst --output-dir $(WEBSITE_DIR)/static/notebooks/  ./notebooks/*/*/*.ipynb
 
 docs: $(APIDOC)
-	#$(pythonpath) $(BIN)/sphinx-apidoc -e -M --implicit-namespaces -t docs/_templates -f ./deepchecks -o docs/$(API_REFERENCE_DIR)
-	$(pythonpath) $(BIN)/sphinx-build docs docs/_build/
-	#@rm -rf docs/api-reference
-	#@find docs/_build/markdown/ -name '*.md' | xargs sed '/^$$/N;/^\n$$/D'  -i
+	@cd docs && make html
 
-website: docs gen-static-notebooks
-	@rm -rf $(WEBSITE_DIR)/docs/$(API_REFERENCE_DIR)
-	@cp -rf docs/_build/markdown/$(API_REFERENCE_DIR) $(WEBSITE_DIR)/docs/$(API_REFERENCE_DIR)/
-	@rm -rf docs/_build/markdown
-
-doc-show:
-	@python -c "import webbrowser; webbrowser.open_new_tab('file://$(PWD)/docs/_build/index.html')"
+show-docs:
+	@cd docs && make show
 
 license-check:
 	@wget https://dlcdn.apache.org/skywalking/eyes/0.2.0/skywalking-license-eye-0.2.0-bin.tgz && tar -xzvf skywalking-license-eye-0.2.0-bin.tgz

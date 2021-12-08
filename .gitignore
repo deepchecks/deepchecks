@@ -83,5 +83,4 @@ ENV/
 .ipynb_checkpoints
 
 # Sphinx Docs
-_build/
-_autosummary
+_autosummary/
