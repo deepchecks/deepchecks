@@ -17,11 +17,11 @@ from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionRe
 from deepchecks.utils.metrics import ModelType, task_type_validation
 from deepchecks.utils.strings import format_number
 
-__all__ = ['RegressionBias']
+__all__ = ['RegressionSystematicError']
 
 
-class RegressionBias(SingleDatasetBaseCheck):
-    """Check the regression bias."""
+class RegressionSystematicError(SingleDatasetBaseCheck):
+    """Check the regression systematic error."""
 
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run check.
@@ -59,11 +59,11 @@ class RegressionBias(SingleDatasetBaseCheck):
 
         return CheckResult(value={'rmse': rmse, 'mean_error': diff_mean}, check=self.__class__, display=display)
 
-    def add_condition_bias_ratio_not_greater_than(self, max_ratio: float = 0.01):
-        """Add condition - require the absolute mean error to be not greater than (max_ratio * RMSE).
+    def add_condition_systematic_error_ratio_to_rmse_not_greater_than(self, max_ratio: float = 0.01):
+        """Add condition - require the absolute mean systematic error to be not greater than (max_ratio * RMSE).
 
         Args:
-            max_kurtosis (float): Maximum absolute kurtosis value
+            max_ratio (float): Maximum ratio
         """
         def max_bias_condition(result: float) -> ConditionResult:
             rmse = result['rmse']

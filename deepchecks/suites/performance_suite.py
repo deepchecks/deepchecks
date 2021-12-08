@@ -18,7 +18,7 @@ from deepchecks.checks.performance import (
     CalibrationMetric,
     ClassPerformanceImbalance,
     SimpleModelComparison,
-    RegressionBias,
+    RegressionSystematicError,
 )
 
 __all__ = [
@@ -54,7 +54,7 @@ def regression_suite() -> Suite:
     """
     return Suite(
         'Regression Suite',
-        RegressionBias().add_condition_bias_ratio_not_greater_than()
+        RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_not_greater_than()
     )
 
 
