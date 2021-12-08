@@ -12,14 +12,6 @@ Welcome to Deepchecks' documentation!
 
    getting-started/index
 
-
-.. toctree::
-   :maxdepth: 2
-   :caption: User Guide
-   :hidden:
-
-   user-guide/index
-
 Examples
 ========
 
@@ -28,6 +20,14 @@ Examples
    :caption: Examples
 
    examples/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: User Guide
+   :hidden:
+
+   user-guide/index
+
 
 Reference Guides
 ================
@@ -38,13 +38,6 @@ Reference Guides
 
    api/index
 
-Contributing
-===========
-
-.. toctree::
-   :maxdepth: 2
-
-   contributing
 
 Indices and tables
 ==================
