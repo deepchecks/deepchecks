@@ -55,7 +55,7 @@ def regression_suite() -> Suite:
     """
     return Suite(
         'Regression Suite',
-         RegressionErrorDistribution().add_condition_absolute_kurtosis_not_greater_than()
+         RegressionErrorDistribution().add_condition_p_value_not_less_than()
     )
 
 
