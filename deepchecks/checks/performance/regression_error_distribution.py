@@ -24,6 +24,7 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
             ‘greater’: the kurtosis of the distribution underlying the sample is greater than that of
                         the normal distribution
             (taken from: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kurtosistest.html)
+            (Only in python 3.7>=)
     """
 
     def __init__(self, n_top_samples: int = 3, alternative: str = 'two-sided'):
@@ -59,7 +60,11 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
 
         diff = y_test - y_pred
         kurtosis_value = kurtosis(diff)
-        kurtosis_pvalue = kurtosistest(diff, alternative=self.alternative).pvalue
+        # alternative doesn't work on pytho3.6
+        try:
+            kurtosis_pvalue = kurtosistest(diff, alternative = self.alternative).pvalue
+        except TypeError:
+            kurtosis_pvalue = kurtosistest(diff).pvalue
 
         n_largest_diff = diff.nlargest(self.n_top_samples)
         n_largest_diff.name= n_largest_diff.name + '_pred_diff'
