@@ -74,8 +74,7 @@ jobs:
       with:
         requirements: 'requirements-all.txt'
         fail: 'Copyleft,Other,Error'
-        exclude: '(visions.*0\.7\.1|pyzmq.*22\.3\.0|debugpy.*1\.5\.1|certifi.*2021\.10\.8|tqdm.*4\.62\.3)'
-        # visions is BSD-4 https://github.com/dylan-profiler/visions/blob/develop/LICENSE
+        exclude: '(pyzmq.*22\.3\.0|debugpy.*1\.5\.1|certifi.*2021\.10\.8|tqdm.*4\.62\.3)'
         # pyzmq is Revised BSD https://github.com/zeromq/pyzmq/blob/main/examples/LICENSE
         # debugpy is MIT https://github.com/microsoft/debugpy/blob/main/LICENSE
         # certifi is MPL-2.0 https://github.com/certifi/python-certifi/blob/master/LICENSE
