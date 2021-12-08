@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The data_sample_leakage_report check module."""
 from typing import Union, List, Dict
 import pandas as pd
@@ -69,11 +79,11 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
         test_dataset = test_dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
         train_dataset = train_dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
 
-        if set(features).symmetric_difference(set(test_dataset.features())):
-            cat_features = test_dataset.features()
+        if set(features).symmetric_difference(set(test_dataset.features)):
+            cat_features = test_dataset.features
 
         new_categories = []
-        n_test_samples = test_dataset.n_samples()
+        n_test_samples = test_dataset.n_samples
 
         for feature in cat_features:
             train_column = train_dataset.data[feature]
@@ -114,7 +124,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
         else:
             display = None
             new_categories = {}
-        return CheckResult(new_categories, check=self.__class__, display=display)
+        return CheckResult(new_categories, display=display)
 
     def add_condition_new_categories_not_greater_than(self, max_new: int = 0):
         """Add condition - require column not to have greater than given number of different new categories.

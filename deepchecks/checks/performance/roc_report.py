@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The roc_report check module."""
 from itertools import cycle
 from typing import Dict, List
@@ -46,8 +56,8 @@ class RocReport(SingleDatasetBaseCheck):
         dataset.validate_label(check_name)
         task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY], check_name)
 
-        label = dataset.label_name()
-        ds_x = dataset.data[dataset.features()]
+        label = dataset.label_name
+        ds_x = dataset.data[dataset.features]
         ds_y = dataset.data[label]
         multi_y = (np.array(ds_y)[:, None] == np.unique(ds_y)).astype(int)
         n_classes = ds_y.nunique()
@@ -87,7 +97,7 @@ class RocReport(SingleDatasetBaseCheck):
             plt.title('ROC curves')
             plt.legend(loc='lower right')
 
-        return CheckResult(roc_auc, header='ROC Report', check=self.__class__, display=display)
+        return CheckResult(roc_auc, header='ROC Report', display=display)
 
     def add_condition_auc_not_less_than(self, min_auc: float = 0.7):
         """Add condition - require min allowed AUC score per class.

@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Boosting overfit tests."""
 from statistics import mean
 
@@ -18,7 +28,7 @@ def test_boosting_classifier(iris):
     test = Dataset(test, label='target')
 
     clf = GradientBoostingClassifier(random_state=0)
-    clf.fit(train.features_columns(), train.label_col())
+    clf.fit(train.features_columns, train.label_col)
 
     # Act
     result = BoostingOverfit().run(train, test, clf)
@@ -55,7 +65,7 @@ def test_boosting_classifier_with_metric(iris):
     validation = Dataset(validation_df, label='target')
 
     clf = GradientBoostingClassifier(random_state=0)
-    clf.fit(train.features_columns(), train.label_col())
+    clf.fit(train.features_columns, train.label_col)
 
     # Act
     result = BoostingOverfit(metric='recall_micro').run(train, validation, clf)

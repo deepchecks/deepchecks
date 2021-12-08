@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """builtin suites tests"""
 #pylint: disable=redefined-outer-name
 import typing as t
@@ -33,7 +43,7 @@ def iris(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBoostClassifier]:
     )
 
     model = AdaBoostClassifier(random_state=0)
-    model.fit(train.features_columns(), train.label_col())
+    model.fit(train.features_columns, train.label_col)
 
     return train, test, model
 
@@ -88,7 +98,7 @@ def iris_with_non_textual_columns(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBo
     )
 
     model = AdaBoostClassifier(random_state=0)
-    model.fit(train.features_columns(), train.label_col())
+    model.fit(train.features_columns, train.label_col)
 
     return train, test, model
 

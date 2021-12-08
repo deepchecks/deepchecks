@@ -1,9 +1,19 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Module containing performance report check."""
 from typing import Callable, Dict
 import pandas as pd
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
 from deepchecks.utils.metrics import get_metrics_list
-from deepchecks.utils.validation import model_type_validation
+from deepchecks.utils.validation import validate_model
 
 
 __all__ = ['PerformanceReport']
@@ -36,17 +46,17 @@ class PerformanceReport(SingleDatasetBaseCheck):
     def _performance_report(self, dataset: Dataset, model):
         Dataset.validate_dataset(dataset, self.__class__.__name__)
         dataset.validate_label(self.__class__.__name__)
-        model_type_validation(model)
+        validate_model(dataset, model)
 
         # Get default metrics if no alternative, or validate alternatives
         metrics = get_metrics_list(model, dataset, self.alternative_metrics)
-        scores = {key: scorer(model, dataset.features_columns(), dataset.label_col()) for key, scorer in
+        scores = {key: scorer(model, dataset.features_columns, dataset.label_col) for key, scorer in
                   metrics.items()}
 
         display_df = pd.DataFrame(scores.values(), columns=['Score'], index=scores.keys())
         display_df.index.name = 'Metric'
 
-        return CheckResult(scores, check=self.__class__, header='Performance Report', display=display_df)
+        return CheckResult(scores, header='Performance Report', display=display_df)
 
     def add_condition_score_not_less_than(self, min_score: float):
         """Add condition - metric scores are not less than given score.

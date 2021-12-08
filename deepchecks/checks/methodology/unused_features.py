@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The UnusedFeatures check module."""
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,7 +21,7 @@ from sklearn.preprocessing import RobustScaler, OrdinalEncoder
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.features import calculate_feature_importance
-from deepchecks.utils.validation import model_type_validation
+from deepchecks.utils.validation import validate_model
 from deepchecks.errors import DeepchecksValueError
 
 
@@ -30,7 +40,7 @@ def naive_encoder(dataset: Dataset) -> TransformerMixin:
     Returns:
         A transformer object.
     """
-    numeric_features = list(set(dataset.features()) - set(dataset.cat_features))
+    numeric_features = list(set(dataset.features) - set(dataset.cat_features))
 
     return ColumnTransformer(
         transformers=[
@@ -107,17 +117,17 @@ class UnusedFeatures(TrainTestBaseCheck):
             raise DeepchecksValueError('Either train_dataset or test_dataset must be supplied')
         Dataset.validate_dataset(dataset, func_name)
         dataset.validate_label(func_name)
-        test_dataset.validate_label(func_name)
-        model_type_validation(model)
+        dataset.validate_label(func_name)
+        validate_model(dataset, model)
 
         feature_importance = calculate_feature_importance(model, dataset, random_state=self.random_state)
 
         # Calculate normalized variance per feature based on PCA decomposition
         pre_pca_transformer = naive_encoder(dataset)
-        pca_trans = PCA(n_components=len(dataset.features()) // 2, random_state=self.random_state)
-        n_samples = min(10000, dataset.n_samples())
+        pca_trans = PCA(n_components=len(dataset.features) // 2, random_state=self.random_state)
+        n_samples = min(10000, dataset.n_samples)
         pca_trans.fit(pre_pca_transformer.fit_transform(
-            dataset.features_columns().sample(n_samples, random_state=self.random_state)
+            dataset.features_columns.sample(n_samples, random_state=self.random_state)
         ))
 
         feature_normed_variance = pd.Series(np.abs(pca_trans.components_).sum(axis=0), index=feature_importance.index)
@@ -200,7 +210,7 @@ class UnusedFeatures(TrainTestBaseCheck):
                                                                      last_variable_feature_index:].values.tolist()
             }}
 
-        return CheckResult(return_value, check=self.__class__, header='Unused Features', display=display_list)
+        return CheckResult(return_value, header='Unused Features', display=display_list)
 
     def add_condition_number_of_high_variance_unused_features_not_greater_than(
             self, max_high_variance_unused_features: int = 5):

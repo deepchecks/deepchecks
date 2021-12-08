@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The date_leakage check module."""
 from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.strings import format_percent
@@ -33,14 +43,14 @@ class DateTrainTestLeakageOverlap(TrainTestBaseCheck):
         train_dataset.validate_date(self.__class__.__name__)
         test_dataset.validate_date(self.__class__.__name__)
 
-        train_date = train_dataset.date_col()
-        val_date = test_dataset.date_col()
+        train_date = train_dataset.date_col
+        val_date = test_dataset.date_col
 
         max_train_date = max(train_date)
         dates_leaked = sum(date <= max_train_date for date in val_date)
 
         if dates_leaked > 0:
-            leakage_ratio = dates_leaked / test_dataset.n_samples()
+            leakage_ratio = dates_leaked / test_dataset.n_samples
             display = f'{format_percent(leakage_ratio)} of test data dates '\
                       f'before last training data date ({max_train_date})'
             return_value = leakage_ratio
@@ -48,10 +58,7 @@ class DateTrainTestLeakageOverlap(TrainTestBaseCheck):
             display = None
             return_value = 0
 
-        return CheckResult(value=return_value,
-                           header='Date Train-Test Leakage (overlap)',
-                           check=self.__class__,
-                           display=display)
+        return CheckResult(value=return_value, header='Date Train-Test Leakage (overlap)', display=display)
 
     def add_condition_leakage_ratio_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require leakage ratio to not surpass max_ratio.

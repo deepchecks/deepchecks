@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """module contains Dominant Frequency Change check."""
 from typing import Dict
 
@@ -103,7 +113,7 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
         dataset = Dataset.validate_dataset_or_dataframe(dataset)
         dataset.validate_shared_features(baseline_dataset, self.__class__.__name__)
 
-        columns = baseline_dataset.features()
+        columns = baseline_dataset.features
 
         test_df = dataset.data
         baseline_df = baseline_dataset.data
@@ -147,7 +157,7 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
         else:
             sorted_p_df = None
 
-        return CheckResult(p_dict, check=self.__class__, display=sorted_p_df)
+        return CheckResult(p_dict, display=sorted_p_df)
 
     def add_condition_p_value_not_less_than(self, p_value_threshold: float = 0.0001):
         """Add condition - require min p value allowed per column.

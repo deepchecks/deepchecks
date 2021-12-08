@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """module contains Identifier Leakage check."""
 from typing import Union, Dict
 
@@ -47,12 +57,12 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
         dataset.validate_label(self.__class__.__name__)
         ppscore_params = ppscore_params or {}
 
-        relevant_columns = list(filter(None, [dataset.date_name(), dataset.index_name(), dataset.label_name()]))
+        relevant_columns = list(filter(None, [dataset.date_name, dataset.index_name, dataset.label_name]))
 
         if len(relevant_columns) == 1:
             raise DeepchecksValueError('Dataset needs to have a date or index column.')
 
-        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name(), random_seed=42,
+        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name, random_seed=42,
                                 **ppscore_params)
         df_pps = df_pps.set_index('x', drop=True)
         s_ppscore = df_pps['ppscore']
@@ -68,7 +78,7 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
                 'For Identifier columns (Index/Date) PPS should be nearly 0, otherwise date and index have some '
                 'predictive effect on the label.']
 
-        return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text], check=self.__class__)
+        return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text])
 
     def add_condition_pps_not_greater_than(self, max_pps: float = 0):
         """Add condition - require columns not to have a greater pps than given max.

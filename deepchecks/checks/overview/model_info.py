@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Module contains model_info check."""
 import pandas as pd
 from sklearn.base import BaseEstimator
@@ -48,4 +58,4 @@ class ModelInfo(ModelOnlyBaseCheck):
         footnote = '<p style="font-size:0.7em"><i>Colored rows are parameters with non-default values</i></p>'
         display = [f'Model Type: {model_type}', model_param_df, footnote]
 
-        return CheckResult(value, check=self.__class__, header='Model Info', display=display)
+        return CheckResult(value, header='Model Info', display=display)

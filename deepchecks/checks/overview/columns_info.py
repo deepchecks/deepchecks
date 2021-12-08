@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Module contains columns_info check."""
 import pandas as pd
 from deepchecks import CheckResult
@@ -36,10 +46,10 @@ class ColumnsInfo(SingleDatasetBaseCheck):
 
     def _columns_info(self, dataset: Dataset, feature_importances: pd.Series=None):
         dataset = Dataset.validate_dataset_or_dataframe(dataset)
-        value = dataset.show_columns_info()
+        value = dataset.columns_info
         value = column_importance_sorter_dict(value, dataset, feature_importances, self.n_top_columns)
         df = pd.DataFrame.from_dict(value, orient='index', columns=['role'])
         df = df.transpose()
 
-        return CheckResult(value, check=self.__class__, header='Columns Info', display=df)
+        return CheckResult(value, header='Columns Info', display=df)
 

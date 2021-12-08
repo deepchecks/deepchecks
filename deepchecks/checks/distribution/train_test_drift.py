@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Module contains Train Test Drift check."""
 
 from collections import Counter, OrderedDict
@@ -243,12 +253,7 @@ class TrainTestDrift(TrainTestBaseCheck):
 
         displays = [headnote] + [displays_dict[col] for col in columns_order]
 
-        return CheckResult(
-            value=values_dict,
-            display=displays,
-            header='Train Test Drift',
-            check=self.__class__
-        )
+        return CheckResult(value=values_dict, display=displays, header='Train Test Drift')
 
     def _calc_drift_per_column(self, train_column: pd.Series, test_column: pd.Series, column_name: Hashable,
                                column_type: str, feature_importances: pd.Series = None

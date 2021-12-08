@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The train_validation_difference_overfit check module."""
 import typing as t
 
@@ -6,7 +16,7 @@ import pandas as pd
 import numpy as np
 
 from deepchecks.utils.strings import format_percent
-from deepchecks.utils.validation import model_type_validation
+from deepchecks.utils.validation import validate_model
 from deepchecks.utils.metrics import get_metrics_list
 from deepchecks import (
     Dataset,
@@ -70,15 +80,15 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
         test_dataset.validate_label(func_name)
         train_dataset.validate_shared_label(test_dataset, func_name)
         train_dataset.validate_shared_features(test_dataset, func_name)
-        model_type_validation(model)
+        validate_model(test_dataset, model)
 
         metrics = get_metrics_list(model, train_dataset, self.alternative_metrics)
 
-        train_metrics = {key: scorer(model, train_dataset.data[train_dataset.features()], train_dataset.label_col())
+        train_metrics = {key: scorer(model, train_dataset.data[train_dataset.features], train_dataset.label_col)
                          for key, scorer in metrics.items()}
 
-        test_metrics = {key: scorer(model, test_dataset.data[test_dataset.features()],
-                                    test_dataset.label_col())
+        test_metrics = {key: scorer(model, test_dataset.data[test_dataset.features],
+                                    test_dataset.label_col)
                         for key, scorer in metrics.items()}
 
         result = {'test': test_metrics, 'train': train_metrics}
@@ -97,8 +107,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
             plt.xticks(rotation=30)
             plt.legend(res_df.columns, loc='upper right', bbox_to_anchor=(1.45, 1.02))
 
-        return CheckResult(result, check=self.__class__, header='Train-Test Difference Overfit',
-                           display=[plot_overfit])
+        return CheckResult(result, header='Train-Test Difference Overfit', display=[plot_overfit])
 
     def add_condition_difference_not_greater_than(self: TD, threshold: float) -> TD:
         """
@@ -114,23 +123,27 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
             test_metrics = res['test']
             train_metrics = res['train']
             diff = {metric: score - test_metrics[metric] for metric, score in train_metrics.items()}
-            diff_fails = [k for k, v in diff.items() if v > threshold]
-            if diff_fails:
-                message = f'Found failed metrics: {diff_fails}'
+            failed_metrics = [k for k, v in diff.items() if v > threshold]
+            if failed_metrics:
+                explained_failures = []
+                for metric in failed_metrics:
+                    explained_failures.append(f'{metric} (train={format_percent(train_metrics[metric])} '
+                                              f'test={format_percent(test_metrics[metric])})')
+                message = f'Found performance degradation in: {", ".join(explained_failures)}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
 
         return self.add_condition(f'Train-Test metrics difference is not greater than {threshold}', condition)
 
-    def add_condition_percentage_degradation_not_greater_than(self: TD, threshold: float = 0.2) -> TD:
+    def add_condition_degradation_ratio_not_greater_than(self: TD, threshold: float = 0.1) -> TD:
         """
         Add new condition.
 
         Add condition that will check that train performance is not degraded by more than given percentage in test.
 
         Args:
-            threshold: maximum percentage degradation allowed (value between 0 to 1)
+            threshold: maximum degradation ratio allowed (value between 0 to 1)
         """
         def condition(res: dict) -> ConditionResult:
             test_metrics = res['test']
@@ -138,12 +151,16 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
             # Calculate percentage of change from train to test
             diff = {metric: ((score - test_metrics[metric]) / score)
                     for metric, score in train_metrics.items()}
-            diff_fails = {k: format_percent(v) for k, v in diff.items() if v > threshold}
-            if diff_fails:
-                message = f'Found degraded metrics: {diff_fails}'
+            failed_metrics = [k for k, v in diff.items() if v > threshold]
+            if failed_metrics:
+                explained_failures = []
+                for metric in failed_metrics:
+                    explained_failures.append(f'{metric} (train={format_percent(train_metrics[metric])} '
+                                              f'test={format_percent(test_metrics[metric])})')
+                message = f'Found performance degradation in: {", ".join(explained_failures)}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Train-Test metrics degradation percentage is not greater than {threshold}',
+        return self.add_condition(f'Train-Test metrics degradation ratio is not greater than {threshold}',
                                   condition)

@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The date_leakage check module."""
 import pandas as pd
 
@@ -43,12 +53,12 @@ class DateTrainTestLeakageDuplicates(TrainTestBaseCheck):
         train_dataset.validate_date(self.__class__.__name__)
         test_dataset.validate_date(self.__class__.__name__)
 
-        train_date = train_dataset.date_col()
-        val_date = test_dataset.date_col()
+        train_date = train_dataset.date_col
+        val_date = test_dataset.date_col
 
         date_intersection = set(train_date).intersection(val_date)
         if len(date_intersection) > 0:
-            leakage_ratio = len(date_intersection) / test_dataset.n_samples()
+            leakage_ratio = len(date_intersection) / test_dataset.n_samples
             text = f'{format_percent(leakage_ratio)} of test data dates appear in training data'
             table = pd.DataFrame([[list(date_intersection)[:self.n_to_show]]],
                                  index=['Sample of test dates in train:'])
@@ -58,8 +68,7 @@ class DateTrainTestLeakageDuplicates(TrainTestBaseCheck):
             display = None
             return_value = 0
 
-        return CheckResult(value=return_value, header='Date Train-Test Leakage (duplicates)',
-                           check=self.__class__, display=display)
+        return CheckResult(value=return_value, header='Date Train-Test Leakage (duplicates)', display=display)
 
     def add_condition_leakage_ratio_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require leakage ratio to not surpass max_ratio.

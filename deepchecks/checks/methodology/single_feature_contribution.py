@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The single_feature_contribution check module."""
 import typing as t
 
@@ -54,8 +64,8 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         dataset.validate_label(check_name)
         ppscore_params = self.ppscore_params or {}
 
-        relevant_columns = dataset.features() + [dataset.label_name()]
-        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name(), random_seed=42,
+        relevant_columns = dataset.features + [dataset.label_name]
+        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name, random_seed=42,
                                 **ppscore_params)
         df_pps = df_pps.set_index('x', drop=True)
         s_ppscore = df_pps['ppscore']
@@ -70,8 +80,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
                 ' actually due to data',
                 'leakage - meaning that the feature holds information that is based on the label to begin with.']
 
-        return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text], check=self.__class__,
-                           header='Single Feature Contribution')
+        return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text], header='Single Feature Contribution')
 
     def add_condition_feature_pps_not_greater_than(self: FC, threshold: float = 0.8) -> FC:
         """
@@ -88,9 +97,12 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
             ]
 
             if failed_features:
-                message = f'Features with greater PPS: {", ".join(map(str, failed_features))}'
+                message = f'Features with PPS above threshold: {", ".join(map(str, failed_features))}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Features PPS is not greater than {threshold}', condition)
+        pps_url = 'https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598'
+        pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
+
+        return self.add_condition(f'Features\' {pps_html_url} (PPS) is not greater than {threshold}', condition)

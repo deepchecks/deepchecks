@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Module containing the Suite object, used for running a set of checks together."""
 # pylint: disable=broad-except
 from collections import OrderedDict
@@ -102,12 +112,12 @@ class Suite(BaseCheck):
                 elif isinstance(check, SingleDatasetBaseCheck):
                     if check_datasets_policy in ['both', 'train'] and train_dataset is not None:
                         check_result = check.run(dataset=train_dataset, model=model)
-                        check_result.header = f'{check_result.header} - Train Dataset'
+                        check_result.header = f'{check_result.get_header()} - Train Dataset'
                         check_result.set_condition_results(check.conditions_decision(check_result))
                         results.append(check_result)
                     if check_datasets_policy in ['both', 'test'] and test_dataset is not None:
                         check_result = check.run(dataset=test_dataset, model=model)
-                        check_result.header = f'{check_result.header} - Test Dataset'
+                        check_result.header = f'{check_result.get_header()} - Test Dataset'
                         check_result.set_condition_results(check.conditions_decision(check_result))
                         results.append(check_result)
                 elif isinstance(check, ModelOnlyBaseCheck):

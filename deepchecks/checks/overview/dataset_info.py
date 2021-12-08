@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The dataset_info check module."""
 from typing import Union
 import pandas as pd
@@ -40,4 +50,4 @@ class DatasetInfo(SingleDatasetBaseCheck):
             profile = ProfileReport(dataset, title='Dataset Report', explorative=True, minimal=True)
             profile.to_notebook_iframe()
 
-        return CheckResult(dataset.shape, check=self.__class__, display=display)
+        return CheckResult(dataset.shape, display=display)

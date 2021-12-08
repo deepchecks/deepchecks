@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """
 Contains unit tests for the dominant_frequency_change check
 """
@@ -66,13 +76,13 @@ def test_show_any(iris_split_dataset_and_model):
     # Act
     result = check.run(dataset=val_ds, baseline_dataset=train_ds).value
     # Assert
-    assert_that(len(result), equal_to(len(train_ds.features())))
+    assert_that(len(result), equal_to(len(train_ds.features)))
 
 
 def test_show_none_dominance_ratio(iris_split_dataset_and_model):
     train_ds, val_ds, _ = iris_split_dataset_and_model
     # because of dominance_ratio no value should be included
-    check = DominantFrequencyChange(dominance_ratio=len(train_ds.features()) + 1,
+    check = DominantFrequencyChange(dominance_ratio=len(train_ds.features) + 1,
                                     ratio_change_thres=-1)
     # Act
     result = check.run(dataset=val_ds, baseline_dataset=train_ds).value
