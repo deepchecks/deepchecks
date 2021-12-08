@@ -17,7 +17,7 @@ REQUIRE = requirements.txt
 ext_py := $(shell which python3 || which python)
 
 # Override by putting in commandline python=XXX when needed.
-python = $(shell basename `${ext_py}`)
+python = $(shell basename `echo ${ext_py}`)
 TESTDIR = tests
 ENV = venv
 repo = pypi
