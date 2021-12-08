@@ -16,6 +16,20 @@ on:
       - "[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
+  Security-Check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.3.4
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/python@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --sarif-file-output=snyk.sarif --severity-threshold=high
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: snyk.sarif
   Create-Release:
     runs-on: ubuntu-latest
 
@@ -63,11 +77,5 @@ jobs:
       run: |
         git config --global user.email "app@deepchecks.com"
         git config --global user.name "deepchecks-ci-bot"
-        make website
-        cd docs/_website/
-        if [ -e package-lock.json ]; then
-          npm ci
-        else
-          npm i
-        fi
-        npm run deploy
+        make docs
+        # Need to push to gh-pages branch here
