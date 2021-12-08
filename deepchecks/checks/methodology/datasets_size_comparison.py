@@ -44,13 +44,14 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
         check_name = type(self).__name__
         Dataset.validate_dataset(train_dataset, check_name)
         Dataset.validate_dataset(test_dataset, check_name)
-        result = pd.DataFrame.from_dict({
-            'train': {'size': train_dataset.n_samples},
-            'test': {'size': test_dataset.n_samples},
-        })
+        value = {
+            'Train': {'Size': train_dataset.n_samples},
+            'Test': {'Size': test_dataset.n_samples},
+        }
+        display = pd.DataFrame.from_dict(value)
         return CheckResult(
-            value=result,
-            display=result
+            value=value,
+            display=display
         )
 
     def add_condition_test_size_not_smaller_than(self: T, value: int = 100) -> T:
