@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The index_leakage check module."""
 import pandas as pd
 
@@ -58,8 +68,7 @@ class IndexTrainTestLeakage(TrainTestBaseCheck):
             size_in_test = 0
             display = None
 
-        return CheckResult(value=size_in_test, header='Index Train-Test Leakage', check=self.__class__,
-                           display=display)
+        return CheckResult(value=size_in_test, header='Index Train-Test Leakage', display=display)
 
     def add_condition_ratio_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require index leakage ratio to not surpass max_ratio.

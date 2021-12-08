@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The Dataset module containing the dataset Class and its functions."""
 # pylint: disable=inconsistent-quotes
 
@@ -532,7 +542,7 @@ class Dataset:
             DeepchecksValueError: if dataset does not have features columns.
         """
         if not self._features:
-            raise DeepchecksValueError(f'Check {check_name} requires dataset to have a features columns!')
+            raise DeepchecksValueError(f'Check {check_name} requires dataset to have features columns!')
 
     def validate_date(self, check_name: str):
         """
@@ -676,17 +686,6 @@ class Dataset:
         else:
             raise DeepchecksValueError(f'dataset must be of type DataFrame or Dataset. instead got: '
                                        f'{type(obj).__name__}')
-
-    def validate_model(self, model):
-        """Check model is able to predict on the dataset.
-
-        Raise:
-            DeepchecksValueError: if dataset does not match model
-        """
-        try:
-            model.predict(self.features_columns.head(1))
-        except Exception as exc:
-            raise DeepchecksValueError('Got error when trying to predict with model on dataset') from exc
 
     @classmethod
     def validate_dataset(cls, obj, check_name: str) -> 'Dataset':

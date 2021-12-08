@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Module contains columns_info check."""
 import pandas as pd
 from deepchecks import CheckResult
@@ -41,5 +51,5 @@ class ColumnsInfo(SingleDatasetBaseCheck):
         df = pd.DataFrame.from_dict(value, orient='index', columns=['role'])
         df = df.transpose()
 
-        return CheckResult(value, check=self.__class__, header='Columns Info', display=df)
+        return CheckResult(value, header='Columns Info', display=df)
 

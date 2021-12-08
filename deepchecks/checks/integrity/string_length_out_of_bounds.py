@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """String length outlier check."""
 from collections import defaultdict
 from functools import reduce
@@ -187,7 +197,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                                                self.n_top_columns, col='Column Name')
         display = df_graph if len(df_graph) > 0 else None
 
-        return CheckResult(results, check=self.__class__, display=display)
+        return CheckResult(results, display=display)
 
     def add_condition_number_of_outliers_not_greater_than(self, max_outliers: int = 0):
         """Add condition - require column not to have more than given number of string length outliers.

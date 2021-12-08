@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Utils module containing feature importance calculations."""
 import typing as t
 import numpy as np
@@ -10,6 +20,7 @@ from sklearn.utils.validation import check_is_fitted
 
 from deepchecks import base
 from deepchecks import errors
+from deepchecks.utils import validation
 from deepchecks.utils.typing import Hashable
 
 
@@ -67,7 +78,7 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_s
     else:
         check_is_fitted(model)
 
-    dataset.validate_model(model)
+    validation.validate_model(dataset, model)
 
     feature_importances = _built_in_importance(model, dataset)
     if feature_importances is None:

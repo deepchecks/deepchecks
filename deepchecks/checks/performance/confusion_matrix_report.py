@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The confusion_matrix_report check module."""
 import sklearn
 from sklearn.base import BaseEstimator
@@ -44,5 +54,5 @@ class ConfusionMatrixReport(SingleDatasetBaseCheck):
         def display():
             sklearn.metrics.ConfusionMatrixDisplay(confusion_matrix).plot()
 
-        return CheckResult(confusion_matrix, check=self.__class__, display=display)
+        return CheckResult(confusion_matrix, display=display)
 

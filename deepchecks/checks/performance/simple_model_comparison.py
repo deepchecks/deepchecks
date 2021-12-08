@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Module containing simple comparison check."""
 from typing import Callable, Dict, Union
 import numpy as np
@@ -10,7 +20,7 @@ from deepchecks import CheckResult, Dataset
 from deepchecks.base.check import ConditionResult, TrainTestBaseCheck
 from deepchecks.utils.metrics import DEFAULT_METRICS_DICT, DEFAULT_SINGLE_METRIC, task_type_check, \
                                      ModelType, validate_scorer, get_metrics_ratio
-from deepchecks.utils.validation import model_type_validation
+from deepchecks.utils.validation import validate_model
 
 __all__ = ['SimpleModelComparison']
 
@@ -144,7 +154,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
         Dataset.validate_dataset(test_dataset, func_name)
         train_dataset.validate_label(func_name)
         test_dataset.validate_label(func_name)
-        model_type_validation(model)
+        validate_model(test_dataset, model)
 
         simple_metric, pred_metric, metric_name = self._find_score(train_dataset, test_dataset,
                                                             task_type_check(model, train_dataset), model)
@@ -165,9 +175,10 @@ class SimpleModelComparison(TrainTestBaseCheck):
             ax.bar(models, metrics_results)
             ax.set_ylabel(metric_name)
 
-        return CheckResult({'given_model_score': pred_metric, 'simple_model_score': simple_metric,
+        return CheckResult({'given_model_score': pred_metric,
+                            'simple_model_score': simple_metric,
                             'ratio': ratio},
-                           check=self.__class__, display=[text, display_func])
+                           display=[text, display_func])
 
     def add_condition_ratio_not_less_than(self, min_allowed_ratio: float = 1.1):
         """Add condition - require min allowed ratio between the given and the simple model.

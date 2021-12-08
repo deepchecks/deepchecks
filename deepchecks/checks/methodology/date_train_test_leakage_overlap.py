@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The date_leakage check module."""
 from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.strings import format_percent
@@ -48,10 +58,7 @@ class DateTrainTestLeakageOverlap(TrainTestBaseCheck):
             display = None
             return_value = 0
 
-        return CheckResult(value=return_value,
-                           header='Date Train-Test Leakage (overlap)',
-                           check=self.__class__,
-                           display=display)
+        return CheckResult(value=return_value, header='Date Train-Test Leakage (overlap)', display=display)
 
     def add_condition_leakage_ratio_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require leakage ratio to not surpass max_ratio.

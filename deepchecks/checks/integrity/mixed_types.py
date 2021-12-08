@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """module contains Mixed Types check."""
 from typing import List, Union
 import pandas as pd
@@ -88,7 +98,7 @@ class MixedTypes(SingleDatasetBaseCheck):
         else:
             display = None
 
-        return CheckResult(result_dict, check=self.__class__, display=display)
+        return CheckResult(result_dict, display=display)
 
     def _get_data_mix(self, column_data: pd.Series) -> dict:
         if is_string_column(column_data):

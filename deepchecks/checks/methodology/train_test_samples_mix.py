@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The data_sample_leakage_report check module."""
 from typing import Dict, List
 import re
@@ -121,7 +131,7 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
                      of test data samples appear in train data'
         display = [user_msg, duplicate_rows_df.head(10)] if dup_ratio else None
 
-        return CheckResult(dup_ratio, header='Train Test Samples Mix', check=self.__class__, display=display)
+        return CheckResult(dup_ratio, header='Train Test Samples Mix', display=display)
 
     def add_condition_duplicates_ratio_not_greater_than(self, max_ratio: float = 0.1):
         """Add condition - require max allowed ratio of test data samples to appear in train data.
