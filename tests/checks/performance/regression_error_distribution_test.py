@@ -48,7 +48,7 @@ def test_regression_error_distribution_less(diabetes_split_dataset_and_model):
     result = check.run(test, clf).value
     # Assert
     assert_that(result['kurtosis'], close_to(0.028, 0.001))
-    assert_that(result['pvalue'], close_to(0.72, 0.01))
+    assert_that(result['pvalue'], close_to(0.63, 0.01))
 
 
 def test_regression_error_distribution_greater(diabetes_split_dataset_and_model):
@@ -59,7 +59,7 @@ def test_regression_error_distribution_greater(diabetes_split_dataset_and_model)
     result = check.run(test, clf).value
     # Assert
     assert_that(result['kurtosis'], close_to(0.028, 0.001))
-    assert_that(result['pvalue'], close_to(0.72, 0.01))
+    assert_that(result['pvalue'], close_to(0.36, 0.01))
 
 
 def test_condition_absolute_kurtosis_not_greater_than_not_passed(diabetes_split_dataset_and_model):
