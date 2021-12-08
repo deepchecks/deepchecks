@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The regression_error_bias check module."""
+"""The RegressionSystematicError check module."""
 import matplotlib.pyplot as plt
 from sklearn.base import BaseEstimator
 from sklearn.metrics import mean_squared_error
