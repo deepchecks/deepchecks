@@ -34,24 +34,24 @@ jobs:
     - name: Run Tests
       run: make test
 
-
-  documentation-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: '14.x'
-      - name: Test Build
-        run: |
-          make website
-          cd docs/_website
-          if [ -e package-lock.json ]; then
-            npm ci
-          else
-            npm i
-          fi
-          npm run build
+#
+#  documentation-check:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v2
+#      - uses: actions/setup-node@v1
+#        with:
+#          node-version: '14.x'
+#      - name: Test Build
+#        run: |
+#          make website
+#          cd docs/_website
+#          if [ -e package-lock.json ]; then
+#            npm ci
+#          else
+#            npm i
+#          fi
+#          npm run build
 
   dependencies-license-check:
     runs-on: ubuntu-latest
