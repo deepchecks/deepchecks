@@ -56,8 +56,10 @@ class RegressionSystematicError(SingleDatasetBaseCheck):
             _, ax = plt.subplots()
             ax.set_title('Prediction Errors')
             ax.boxplot(diff, vert=False, flierprops=red_square)
+            ax.axvline(x=diff_mean, linestyle='--')
+            ax.annotate(xy=(diff_mean + 0.01, 1.2), text='mean error')
 
-        return CheckResult(value={'rmse': rmse, 'mean_error': diff_mean}, check=self.__class__, display=display)
+        return CheckResult(value={'rmse': rmse, 'mean_error': diff_mean}, display=display)
 
     def add_condition_systematic_error_ratio_to_rmse_not_greater_than(self, max_ratio: float = 0.01):
         """Add condition - require the absolute mean systematic error to be not greater than (max_ratio * RMSE).
