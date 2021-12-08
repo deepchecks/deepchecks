@@ -50,21 +50,51 @@ jobs:
       run: make env
     - name: Run Tests
       run: make test
+#
+#  documentation-check:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v2
+#      - uses: actions/setup-node@v1
+#        with:
+#          node-version: '14.x'
+#      - name: Test Build
+#        run: |
+#          make website
+#          cd docs/_website
+#          if [ -e package-lock.json ]; then
+#            npm ci
+#          else
+#            npm i
+#          fi
+#          npm run build
 
-  documentation-check:
+  dependencies-license-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: '14.x'
-      - name: Test Build
-        run: |
-          make website
-          cd docs/_website
-          if [ -e package-lock.json ]; then
-            npm ci
-          else
-            npm i
-          fi
-          npm run build
+    - name: Checkout the code
+      uses: actions/checkout@v2.3.4
+      with:
+        fetch-depth: 0
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.7'
+    - name: Get explicit and transitive dependencies
+      run: |
+        pip install -r requirements.txt
+        pip freeze > requirements-all.txt
+    - name: Check python
+      id: license_check_report
+      uses: pilosus/action-pip-license-checker@v0.6.1
+      with:
+        requirements: 'requirements-all.txt'
+        fail: 'Copyleft,Other,Error'
+        exclude: '(pyzmq.*22\.3\.0|debugpy.*1\.5\.1|certifi.*2021\.10\.8|tqdm.*4\.62\.3)'
+        # pyzmq is Revised BSD https://github.com/zeromq/pyzmq/blob/main/examples/LICENSE
+        # debugpy is MIT https://github.com/microsoft/debugpy/blob/main/LICENSE
+        # certifi is MPL-2.0 https://github.com/certifi/python-certifi/blob/master/LICENSE
+        # tqdm is MPL-2.0 https://github.com/tqdm/tqdm/blob/master/LICENCE
+    - name: Print report
+      if: ${{ always() }}
+      run: echo "${{ steps.license_check_report.outputs.report }}"
