@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Contains unit tests for the RegressionErrorDistribution check."""
 import sys
 
@@ -52,7 +62,7 @@ def test_regression_error_distribution_less(diabetes_split_dataset_and_model):
     assert_that(result['kurtosis'], close_to(0.028, 0.001))
     # alternative doesn't work on pytho3.6
     if sys.version_info[1] > 6:
-         assert_that(result['pvalue'], close_to(0.36, 0.01))
+         assert_that(result['pvalue'], close_to(0.63, 0.01))
     else:
         assert_that(result['pvalue'], close_to(0.72, 0.01))
 
