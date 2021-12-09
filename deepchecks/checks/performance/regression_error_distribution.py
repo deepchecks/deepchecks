@@ -11,7 +11,7 @@
 """The regression_error_distribution check module."""
 import matplotlib.pyplot as plt
 import pandas as pd
-from scipy.stats import kurtosis, kurtosistest
+from scipy.stats import kurtosis
 from sklearn.base import BaseEstimator
 
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
@@ -28,7 +28,7 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         n_top_samples (int): amount of samples to show which are of Largest under / over estimation errors.
     """
 
-    def __init__(self, n_top_samples: int = 3, alternative: str = 'two-sided'):
+    def __init__(self, n_top_samples: int = 3):
         super().__init__()
         self.n_top_samples = n_top_samples
 
