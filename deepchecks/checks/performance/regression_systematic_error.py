@@ -54,12 +54,13 @@ class RegressionSystematicError(SingleDatasetBaseCheck):
         def display_box_plot():
             red_square = dict(markerfacecolor='r', marker='s')
             _, ax = plt.subplots()
-            ax.set_title('Prediction Errors')
+            ax.set_title('Box plot of the model prediction erron')
             ax.boxplot(diff, vert=False, flierprops=red_square)
             ax.axvline(x=diff_mean, linestyle='--')
             ax.annotate(xy=(diff_mean + 0.01, 1.2), text='mean error')
 
-        display = ['Box plot of the model prediction error', display_box_plot]
+        display = ['non-zero mean of the error distribution indicated the pretense of \
+            systematic error in model predictionsr', display_box_plot]
 
         return CheckResult(value={'rmse': rmse, 'mean_error': diff_mean}, display=display)
 
