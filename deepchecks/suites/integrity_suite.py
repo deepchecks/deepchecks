@@ -19,7 +19,6 @@ from deepchecks.checks.integrity import (
     SpecialCharacters,
     StringMismatchComparison,
     CategoryMismatchTrainTest,
-    NewLabelTrainTest,
     RareFormatDetection,
     DominantFrequencyChange,
     StringLengthOutOfBounds,
