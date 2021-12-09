@@ -63,7 +63,6 @@ def comparative_integrity_suite() -> Suite:
         StringMismatchComparison().add_condition_no_new_variants(),
         CategoryMismatchTrainTest().add_condition_new_categories_not_greater_than(),
         DominantFrequencyChange().add_condition_ratio_of_change_not_more_than(),
-        NewLabelTrainTest().add_condition_new_labels_not_greater_than()
     )
 
 
