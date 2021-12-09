@@ -22,5 +22,4 @@ def data_distribution_suite() -> Suite:
     return Suite(
         'Data Distribution',
         TrainTestDrift().add_condition_drift_score_not_greater_than(),
-        TrustScoreComparison().add_condition_mean_score_percent_decline_not_greater_than()
     )
