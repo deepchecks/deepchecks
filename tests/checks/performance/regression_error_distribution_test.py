@@ -9,8 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the RegressionErrorDistribution check."""
-import sys
-
 from hamcrest import assert_that, calling, raises, has_items, close_to
 
 from deepchecks.base import Dataset
@@ -48,38 +46,7 @@ def test_regression_error_distribution(diabetes_split_dataset_and_model):
     # Act X
     result = check.run(test, clf).value
     # Assert
-    assert_that(result['kurtosis'], close_to(0.028, 0.001))
-    assert_that(result['pvalue'], close_to(0.72, 0.01))
-
-
-def test_regression_error_distribution_less(diabetes_split_dataset_and_model):
-    # Arrange
-    _, test, clf = diabetes_split_dataset_and_model
-    check = RegressionErrorDistribution(alternative='less')
-    # Act X
-    result = check.run(test, clf).value
-    # Assert
-    assert_that(result['kurtosis'], close_to(0.028, 0.001))
-    # alternative doesn't work on pytho3.6
-    if sys.version_info[1] > 6:
-         assert_that(result['pvalue'], close_to(0.63, 0.01))
-    else:
-        assert_that(result['pvalue'], close_to(0.72, 0.01))
-
-
-def test_regression_error_distribution_greater(diabetes_split_dataset_and_model):
-    # Arrange
-    _, test, clf = diabetes_split_dataset_and_model
-    check = RegressionErrorDistribution(alternative='greater')
-    # Act X
-    result = check.run(test, clf).value
-    # Assert
-    assert_that(result['kurtosis'], close_to(0.028, 0.001))
-    # alternative doesn't work on pytho3.6
-    if sys.version_info[1] > 6:
-         assert_that(result['pvalue'], close_to(0.36, 0.01))
-    else:
-        assert_that(result['pvalue'], close_to(0.72, 0.01))
+    assert_that(result, close_to(0.028, 0.001))
 
 
 def test_condition_absolute_kurtosis_not_greater_than_not_passed(diabetes_split_dataset_and_model):
@@ -88,41 +55,41 @@ def test_condition_absolute_kurtosis_not_greater_than_not_passed(diabetes_split_
     test = Dataset(test.data.copy(), label='target')
     test._data[test.label_name] =300
 
-    check = RegressionErrorDistribution().add_condition_p_value_not_less_than()
+    check = RegressionErrorDistribution().add_condition_kurtosis_not_less_than()
 
     # Act
     result = check.conditions_decision(check.run(test, clf))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='P value not less than 0.0001',
-                               details='p value: 5e-05')
+                               name='Kurtosis value not less than -0.1',
+                               details='kurtosis: -0.92572')
     ))
 
 
 def test_condition_absolute_kurtosis_not_greater_than_passed(diabetes_split_dataset_and_model):
     _, test, clf = diabetes_split_dataset_and_model
 
-    check = RegressionErrorDistribution().add_condition_p_value_not_less_than()
+    check = RegressionErrorDistribution().add_condition_kurtosis_not_less_than()
 
     # Act
     result = check.conditions_decision(check.run(test, clf))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='P value not less than 0.0001')
+                               name='Kurtosis value not less than -0.1')
     )) 
 
 def test_condition_absolute_kurtosis_not_greater_than_not_passed_0_max(diabetes_split_dataset_and_model):
     _, test, clf = diabetes_split_dataset_and_model
 
-    check = RegressionErrorDistribution().add_condition_p_value_not_less_than(p_value_threshold=1)
+    check = RegressionErrorDistribution().add_condition_kurtosis_not_less_than(min_kurtosis=1)
 
     # Act
     result = check.conditions_decision(check.run(test, clf))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='P value not less than 1',
-                               details='p value: 0.72725')
+                               name='Kurtosis value not less than 1',
+                               details='kurtosis: 0.02867')
     )) 
