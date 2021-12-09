@@ -39,7 +39,7 @@ def test_multiclass_model(iris_split_dataset_and_model):
     # Assert
     _, test, clf = iris_split_dataset_and_model
     assert_that(calling(RegressionSystematicError().run).with_args(test, clf),
-                raises(DeepchecksValueError, r'Check Expected model to be a type from'
+                raises(DeepchecksValueError, r'Expected model to be a type from'
                                            r' \[\'regression\'\], but received model of type: multiclass'))
 
 
