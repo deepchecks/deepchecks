@@ -13,6 +13,7 @@ Classes Summary
 .. autosummary::
     :recursive:
     :toctree: _autosummary
+    :template: check.rst
 
     columns_info.ColumnsInfo
     model_info.ModelInfo

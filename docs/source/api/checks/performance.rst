@@ -1,3 +1,4 @@
+    :template: check.rst
 Performance
 ===========
 
@@ -13,6 +14,7 @@ Classes Summary
 .. autosummary::
     :recursive:
     :toctree: _autosummary
+    :template: check.rst
 
     calibration_metric.CalibrationMetric
     class_performance_imbalance.ClassPerformanceImbalance

@@ -13,6 +13,7 @@ Classes Summary
 .. autosummary::
     :recursive:
     :toctree: _autosummary
+    :template: check.rst
 
     boosting_overfit.BoostingOverfit
     datasets_size_comparison.DatasetsSizeComparison
