@@ -59,7 +59,7 @@ class RegressionSystematicError(SingleDatasetBaseCheck):
             ax.axvline(x=diff_mean, linestyle='--')
             ax.annotate(xy=(diff_mean + 0.01, 1.2), text='mean error')
 
-        display = ['box plot of the model prediction error', display_box_plot]
+        display = ['Box plot of the model prediction error', display_box_plot]
     
         return CheckResult(value={'rmse': rmse, 'mean_error': diff_mean}, display=display)
 
