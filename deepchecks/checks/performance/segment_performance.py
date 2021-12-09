@@ -81,7 +81,7 @@ class SegmentPerformance(SingleDatasetBaseCheck):
             if self.feature_1 is None and self.feature_2 is None:
                 feature_importance = calculate_feature_importance(dataset=dataset, model=model)
                 if len(feature_importance) < 2:
-                    raise DeepchecksValueError('Must have atleast 2 features')
+                    raise DeepchecksValueError('Must have at least 2 features')
                 feature_importance.sort_values(ascending=False, inplace=True)
                 self.feature_1, self.feature_2 = feature_importance.keys()[0], feature_importance.keys()[1]
             else:
