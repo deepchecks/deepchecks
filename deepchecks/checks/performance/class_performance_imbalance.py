@@ -105,13 +105,12 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
         dataset: Dataset,
         model: t.Any # TODO: find more precise type for model
     ) -> CheckResult:
-        check_name = type(self).__name__
         expected_model_types = [ModelType.BINARY, ModelType.MULTICLASS]
 
-        Dataset.validate_dataset(dataset, check_name)
-        dataset.validate_label(check_name)
-        dataset.validate_features(check_name)
-        task_type_validation(model, dataset, expected_model_types, check_name)
+        Dataset.validate_dataset(dataset)
+        dataset.validate_label()
+        dataset.validate_features()
+        task_type_validation(model, dataset, expected_model_types)
 
         labels = t.cast(pd.Series, dataset.label_col)
         features = t.cast(pd.DataFrame, dataset.features_columns)

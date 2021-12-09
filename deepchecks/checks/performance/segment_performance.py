@@ -72,8 +72,8 @@ class SegmentPerformance(SingleDatasetBaseCheck):
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
         """
         # Validations
-        Dataset.validate_dataset(dataset, self.__class__.__name__)
-        dataset.validate_label(self.__class__.__name__)
+        Dataset.validate_dataset(dataset)
+        dataset.validate_label()
         validate_model(dataset, model)
 
         if self.feature_1 is None or self.feature_2 is None:

@@ -51,10 +51,9 @@ class RocReport(SingleDatasetBaseCheck):
         return self._roc_report(dataset, model)
 
     def _roc_report(self, dataset: Dataset, model):
-        check_name = self.__class__.__name__
-        Dataset.validate_dataset(dataset, check_name)
-        dataset.validate_label(check_name)
-        task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY], check_name)
+        Dataset.validate_dataset(dataset)
+        dataset.validate_label()
+        task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
 
         label = dataset.label_name
         ds_x = dataset.data[dataset.features]

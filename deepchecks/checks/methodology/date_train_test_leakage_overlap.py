@@ -38,10 +38,10 @@ class DateTrainTestLeakageOverlap(TrainTestBaseCheck):
         return self._date_train_test_leakage_overlap(train_dataset, test_dataset)
 
     def _date_train_test_leakage_overlap(self, train_dataset: Dataset, test_dataset: Dataset):
-        train_dataset = Dataset.validate_dataset(train_dataset, self.__class__.__name__)
-        test_dataset = Dataset.validate_dataset(test_dataset, self.__class__.__name__)
-        train_dataset.validate_date(self.__class__.__name__)
-        test_dataset.validate_date(self.__class__.__name__)
+        train_dataset = Dataset.validate_dataset(train_dataset)
+        test_dataset = Dataset.validate_dataset(test_dataset)
+        train_dataset.validate_date()
+        test_dataset.validate_date()
 
         train_date = train_dataset.date_col
         val_date = test_dataset.date_col

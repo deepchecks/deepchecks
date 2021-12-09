@@ -73,13 +73,12 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
     def _train_test_difference_overfit(self, train_dataset: Dataset, test_dataset: Dataset, model,
                                        ) -> CheckResult:
         # Validate parameters
-        func_name = self.__class__.__name__
-        Dataset.validate_dataset(train_dataset, func_name)
-        Dataset.validate_dataset(test_dataset, func_name)
-        train_dataset.validate_label(func_name)
-        test_dataset.validate_label(func_name)
-        train_dataset.validate_shared_label(test_dataset, func_name)
-        train_dataset.validate_shared_features(test_dataset, func_name)
+        Dataset.validate_dataset(train_dataset)
+        Dataset.validate_dataset(test_dataset)
+        train_dataset.validate_label()
+        test_dataset.validate_label()
+        train_dataset.validate_shared_label(test_dataset)
+        train_dataset.validate_shared_features(test_dataset)
         validate_model(test_dataset, model)
 
         metrics = get_metrics_list(model, train_dataset, self.alternative_metrics)

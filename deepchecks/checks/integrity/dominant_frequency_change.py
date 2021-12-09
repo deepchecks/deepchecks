@@ -111,7 +111,7 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
         """
         baseline_dataset = Dataset.validate_dataset_or_dataframe(baseline_dataset)
         dataset = Dataset.validate_dataset_or_dataframe(dataset)
-        dataset.validate_shared_features(baseline_dataset, self.__class__.__name__)
+        dataset.validate_shared_features(baseline_dataset)
 
         columns = baseline_dataset.features
 
