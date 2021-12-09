@@ -47,11 +47,11 @@ class NewLabelTrainTest(TrainTestBaseCheck):
     def _new_label_train_test(self, train_dataset: Dataset, test_dataset: Dataset):
         test_dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
         train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
-        test_dataset.validate_label(self.__class__.__name__)
-        train_dataset.validate_label(self.__class__.__name__)
-        test_dataset.validate_shared_label(train_dataset, self.__class__.__name__)
+        test_dataset.validate_label()
+        train_dataset.validate_label()
+        test_dataset.validate_shared_label(train_dataset)
 
-        label_column = train_dataset.validate_shared_label(test_dataset, self.__class__.__name__)
+        label_column = train_dataset.validate_shared_label(test_dataset)
 
         n_test_samples = test_dataset.n_samples
 
