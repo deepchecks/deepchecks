@@ -88,20 +88,7 @@ def display_suite_result(
             others_table.append([name, msg, 1])
 
     if output_order == suite.SuiteOutputOrder.FAILED_FIRST:
-
-        def key(item: CheckResult) -> int:
-            have_conditions = item.have_conditions()
-            all_conditions_passed = item.passed_conditions()
-
-            if have_conditions and not all_conditions_passed:
-                return 0
-            elif have_conditions and all_conditions_passed:
-                return 3
-            else:
-                # checks that do not have conditions
-                return 2
-
-        display_table = sorted(display_table, key=key)
+        display_table = sorted(display_table, key=lambda it: it.get_conditions_sort_value())
 
     light_hr = '<hr style="background-color: #eee;border: 0 none;color: #eee;height: 1px;">'
     bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'

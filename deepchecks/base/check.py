@@ -14,7 +14,6 @@ import enum
 import re
 import typing
 from collections import OrderedDict
-from dataclasses import dataclass
 from functools import wraps
 from typing import Any, Callable, List, Union, Dict, cast
 
