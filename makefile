@@ -97,7 +97,7 @@ env: $(REQUIREMENTS_LOG)
 $(PIP):
 	$(info #### Remember to source new environment  [ $(ENV) ] ####)
 	@echo "external python_exe is $(ext_py)"
-	test -d $(ENV) || $(ext_py) -m venv $(ENV)
+	test -d $(ENV) || python -m venv $(ENV)
 $(REQUIREMENTS_LOG): $(PIP) $(REQUIREMENTS)
 	$(ext_py) -m pip install --upgrade pip
 	$(ext_py) -m pip install $(INSTALLATION_PKGS)
