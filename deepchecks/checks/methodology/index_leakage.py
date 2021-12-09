@@ -49,10 +49,10 @@ class IndexTrainTestLeakage(TrainTestBaseCheck):
         return self._index_train_test_leakage(train_dataset, test_dataset)
 
     def _index_train_test_leakage(self, train_dataset: Dataset, test_dataset: Dataset):
-        train_dataset = Dataset.validate_dataset(train_dataset, self.__class__.__name__)
-        test_dataset = Dataset.validate_dataset(test_dataset, self.__class__.__name__)
-        train_dataset.validate_index(self.__class__.__name__)
-        test_dataset.validate_index(self.__class__.__name__)
+        train_dataset = Dataset.validate_dataset(train_dataset)
+        test_dataset = Dataset.validate_dataset(test_dataset)
+        train_dataset.validate_index()
+        test_dataset.validate_index()
 
         train_index = train_dataset.index_col
         val_index = test_dataset.index_col

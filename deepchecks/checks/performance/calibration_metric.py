@@ -38,10 +38,9 @@ class CalibrationMetric(SingleDatasetBaseCheck):
         return self._calibration_metric(dataset, model)
 
     def _calibration_metric(self, dataset: Dataset, model):
-        check_name = self.__class__.__name__
-        Dataset.validate_dataset(dataset, check_name)
-        dataset.validate_label(check_name)
-        task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY], check_name)
+        Dataset.validate_dataset(dataset)
+        dataset.validate_label()
+        task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
 
         ds_x = dataset.features_columns
         ds_y = dataset.label_col

@@ -114,7 +114,7 @@ def _calc_importance(
     n_samples: int = 10000
 ) -> pd.Series:
     """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal."""
-    dataset.validate_label('_calc_importance')
+    dataset.validate_label()
     n_samples = min(n_samples, dataset.n_samples)
     dataset_sample_idx = dataset.label_col.sample(n_samples).index
     r = permutation_importance(model, dataset.features_columns.loc[dataset_sample_idx, :],
