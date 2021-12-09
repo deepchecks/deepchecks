@@ -97,13 +97,12 @@ env: $(REQUIREMENTS_LOG)
 $(PIP):
 	$(info #### Remember to source new environment  [ $(ENV) ] ####)
 	@echo "external python_exe is $(ext_py)"
-	@ls -la /c/hostedtoolcache/windows/Python/3.8.10/x64
-	python -m venv $(ENV)
+	test -d $(ENV) || $(ext_py) -m venv $(ENV)
 $(REQUIREMENTS_LOG): $(PIP) $(REQUIREMENTS)
-	$(PIP) install --upgrade pip
-	$(PIP) install $(INSTALLATION_PKGS)
+	$(ext_py) -m $(PIP) install --upgrade pip
+	$(ext_py) -m $(PIP) install $(INSTALLATION_PKGS)
 	for f in $(REQUIREMENTS); do \
-	  $(PIP) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
+	  $(ext_py) -m $(PIP) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
 	done
 
 
