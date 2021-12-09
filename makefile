@@ -99,10 +99,10 @@ $(PIP):
 	@echo "external python_exe is $(ext_py)"
 	test -d $(ENV) || $(ext_py) -m venv $(ENV)
 $(REQUIREMENTS_LOG): $(PIP) $(REQUIREMENTS)
-	$(ext_py) -m $(PIP) install --upgrade pip
-	$(ext_py) -m $(PIP) install $(INSTALLATION_PKGS)
+	$(ext_py) -m pip install --upgrade pip
+	$(ext_py) -m pip install $(INSTALLATION_PKGS)
 	for f in $(REQUIREMENTS); do \
-	  $(ext_py) -m $(PIP) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
+	  $(ext_py) -m pip install -r $$f | tee -a $(REQUIREMENTS_LOG); \
 	done
 
 
