@@ -14,7 +14,7 @@ import pandas as pd
 from deepchecks import Dataset, CheckResult, ConditionResult, TrainTestBaseCheck
 
 
-__all__ = ['DatasetsSizeComparison',]
+__all__ = ['DatasetsSizeComparison']
 
 
 T = t.TypeVar('T', bound='DatasetsSizeComparison')
@@ -63,7 +63,7 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
         def condition(check_result: dict) -> ConditionResult:
             return (
                 ConditionResult(False, f'Test dataset is {check_result["Test"]}')
-                if check_result['Test'] <= value # type: ignore
+                if check_result['Test'] <= value
                 else ConditionResult(True)
             )
 
@@ -84,7 +84,7 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
 
         def condition(check_result: dict) -> ConditionResult:
             test_train_ratio = check_result['Test'] / check_result['Train']
-            if test_train_ratio <= ratio: # type: ignore
+            if test_train_ratio <= ratio:
                 return ConditionResult(False, f'Test-Train size ratio is {test_train_ratio}')
             else:
                 return ConditionResult(True)
@@ -102,7 +102,7 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
         """
 
         def condition(check_result: dict) -> ConditionResult:
-            if check_result['Train'] < check_result['Test']: # type: ignore
+            if check_result['Train'] < check_result['Test']:
                 return ConditionResult(False, 'Train dataset is smaller than test dataset')
             else:
                 return ConditionResult(True)
