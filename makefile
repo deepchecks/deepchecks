@@ -97,12 +97,12 @@ env: $(REQUIREMENTS_LOG)
 $(PIP):
 	$(info #### Remember to source new environment  [ $(ENV) ] ####)
 	@echo "external python_exe is $(ext_py)"
-	test -d $(ENV) || python -m venv $(ENV)
+	test -d $(ENV) || $(ext_py) -m venv $(ENV)
 $(REQUIREMENTS_LOG): $(PIP) $(REQUIREMENTS)
 	$(ext_py) -m pip install --upgrade pip
-	$(ext_py) -m pip install $(INSTALLATION_PKGS)
+	$(PIP) install $(INSTALLATION_PKGS)
 	for f in $(REQUIREMENTS); do \
-	  $(ext_py) -m pip install -r $$f | tee -a $(REQUIREMENTS_LOG); \
+	  $(PIP) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
 	done
 
 
