@@ -39,10 +39,9 @@ class RegressionSystematicError(SingleDatasetBaseCheck):
         return self._regression_error_distribution(dataset, model)
 
     def _regression_error_distribution(self, dataset: Dataset, model: BaseEstimator):
-        check_name = self.__class__.__name__
-        Dataset.validate_dataset(dataset, check_name)
-        dataset.validate_label(check_name)
-        task_type_validation(model, dataset, [ModelType.REGRESSION], check_name)
+        Dataset.validate_dataset(dataset)
+        dataset.validate_label()
+        task_type_validation(model, dataset, [ModelType.REGRESSION])
 
         y_test = dataset.label_col
         y_pred = model.predict(dataset.features_columns)
@@ -59,7 +58,7 @@ class RegressionSystematicError(SingleDatasetBaseCheck):
             ax.axvline(x=diff_mean, linestyle='--')
             ax.annotate(xy=(diff_mean + 0.01, 1.2), text='mean error')
 
-        display = ['non-zero mean of the error distribution indicated the pretense of \
+        display = ['Non-zero mean of the error distribution indicated the presents of \
             systematic error in model predictions', display_box_plot]
 
         return CheckResult(value={'rmse': rmse, 'mean_error': diff_mean}, display=display)
