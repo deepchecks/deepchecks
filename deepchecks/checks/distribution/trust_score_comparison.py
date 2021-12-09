@@ -105,9 +105,9 @@ class TrustScoreComparison(TrainTestBaseCheck):
         model_type = task_type_check(model, test_dataset)
 
         # Baseline must have label so we must get it as Dataset.
-        Dataset.validate_dataset(train_dataset, self.__class__.__name__)
-        train_dataset.validate_label(self.__class__.__name__)
-        train_dataset.validate_shared_features(test_dataset, self.__class__.__name__)
+        Dataset.validate_dataset(train_dataset)
+        train_dataset.validate_label()
+        train_dataset.validate_shared_features(test_dataset)
 
         if test_dataset.n_samples < self.min_test_samples:
             msg = ('Number of samples in test dataset have not passed the minimum. you can change '

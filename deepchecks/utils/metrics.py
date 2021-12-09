@@ -86,7 +86,7 @@ def task_type_check(
         TaskType enum corresponding to the model and dataset
     """
     validation.model_type_validation(model)
-    dataset.validate_label(task_type_check.__name__)
+    dataset.validate_label()
 
     if not hasattr(model, 'predict_proba'):
         return ModelType.REGRESSION
@@ -110,8 +110,7 @@ def task_type_check(
 def task_type_validation(
     model: t.Union[ClassifierMixin, RegressorMixin],
     dataset: 'base.Dataset',
-    expected_types: t.Sequence[ModelType],
-    check_name: str = None
+    expected_types: t.Sequence[ModelType]
 ):
     """Validate task type (regression, binary, multiclass) according to model object and label column.
 
@@ -126,9 +125,8 @@ def task_type_validation(
     """
     task_type = task_type_check(model, dataset)
     if not task_type in expected_types:
-        prefix = f'Check {check_name} ' if check_name else ''
         raise errors.DeepchecksValueError(
-            f'{prefix}Expected model to be a type from {[e.value for e in expected_types]}, '
+            f'Expected model to be a type from {[e.value for e in expected_types]}, '
             f'but received model of type: {task_type.value}'
         )
 

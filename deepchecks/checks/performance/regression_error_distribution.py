@@ -50,10 +50,9 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         return self._regression_error_distribution(dataset, model)
 
     def _regression_error_distribution(self, dataset: Dataset, model: BaseEstimator):
-        check_name = self.__class__.__name__
-        Dataset.validate_dataset(dataset, check_name)
-        dataset.validate_label(check_name)
-        task_type_validation(model, dataset, [ModelType.REGRESSION], check_name)
+        Dataset.validate_dataset(dataset)
+        dataset.validate_label()
+        task_type_validation(model, dataset, [ModelType.REGRESSION])
 
         y_test = dataset.label_col
         y_pred = model.predict(dataset.features_columns)

@@ -216,8 +216,8 @@ class TrainTestDrift(TrainTestBaseCheck):
         train_dataset = train_dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
         test_dataset = test_dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
 
-        features = train_dataset.validate_shared_features(test_dataset, self.__class__.__name__)
-        cat_features = train_dataset.validate_shared_categorical_features(test_dataset, self.__class__.__name__)
+        features = train_dataset.validate_shared_features(test_dataset)
+        cat_features = train_dataset.validate_shared_categorical_features(test_dataset)
 
         values_dict = OrderedDict()
         displays_dict = OrderedDict()

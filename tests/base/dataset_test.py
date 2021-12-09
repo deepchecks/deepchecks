@@ -325,35 +325,35 @@ def test_dataset_no_index_col(iris):
 
 def test_dataset_validate_label(iris):
     dataset = Dataset(iris, label='target')
-    dataset.validate_label('test')
+    dataset.validate_label()
 
 
 def test_dataset_validate_no_label(iris):
     dataset = Dataset(iris)
-    assert_that(calling(dataset.validate_label).with_args('test'),
-                raises(DeepchecksValueError, 'Check test requires dataset to have a label column'))
+    assert_that(calling(dataset.validate_label),
+                raises(DeepchecksValueError, 'Check requires dataset to have a label column'))
 
 
 def test_dataset_validate_date(iris):
     dataset = Dataset(iris, date='target')
-    dataset.validate_date('test')
+    dataset.validate_date()
 
 
 def test_dataset_validate_no_date(iris):
     dataset = Dataset(iris)
-    assert_that(calling(dataset.validate_date).with_args('test'),
-                raises(DeepchecksValueError, 'Check test requires dataset to have a date column'))
+    assert_that(calling(dataset.validate_date),
+                raises(DeepchecksValueError, 'Check requires dataset to have a date column'))
 
 
 def test_dataset_validate_index(iris):
     dataset = Dataset(iris, index='target')
-    dataset.validate_index('test')
+    dataset.validate_index()
 
 
 def test_dataset_validate_no_index(iris):
     dataset = Dataset(iris)
-    assert_that(calling(dataset.validate_index).with_args('test'),
-                raises(DeepchecksValueError, 'Check test requires dataset to have an index column'))
+    assert_that(calling(dataset.validate_index),
+                raises(DeepchecksValueError, 'Check requires dataset to have an index column'))
 
 
 def test_dataset_filter_columns_with_validation(iris):
@@ -376,31 +376,31 @@ def test_dataset_filter_columns_with_validation_same_table(iris):
 
 def test_dataset_validate_shared_features(diabetes):
     train, val = diabetes
-    assert_that(train.validate_shared_features(val, 'test'), is_(val.features))
+    assert_that(train.validate_shared_features(val), is_(val.features))
 
 
 def test_dataset_validate_shared_features_fail(diabetes, iris_dataset):
     train = diabetes[0]
-    assert_that(calling(train.validate_shared_features).with_args(iris_dataset, 'test'),
-                raises(DeepchecksValueError, 'Check test requires datasets to share the same features'))
+    assert_that(calling(train.validate_shared_features).with_args(iris_dataset),
+                raises(DeepchecksValueError, 'Check requires datasets to share the same features'))
 
 
 def test_dataset_validate_shared_label(diabetes):
     train, val = diabetes
-    assert_that(train.validate_shared_label(val, 'test'), is_(val.label_name))
+    assert_that(train.validate_shared_label(val), is_(val.label_name))
 
 
 def test_dataset_validate_shared_labels_fail(diabetes, iris_dataset):
     train = diabetes[0]
-    assert_that(calling(train.validate_shared_label).with_args(iris_dataset, 'test'),
-                raises(DeepchecksValueError, 'Check test requires datasets to share the same label'))
+    assert_that(calling(train.validate_shared_label).with_args(iris_dataset),
+                raises(DeepchecksValueError, 'Check requires datasets to share the same label'))
 
 
 def test_dataset_shared_categorical_features(diabetes_df, iris):
     diabetes_dataset = Dataset(diabetes_df)
     iris_dataset = Dataset(iris)
-    assert_that(calling(diabetes_dataset.validate_shared_categorical_features).with_args(iris_dataset, 'test'),
-                raises(DeepchecksValueError, 'Check test requires datasets to share'
+    assert_that(calling(diabetes_dataset.validate_shared_categorical_features).with_args(iris_dataset),
+                raises(DeepchecksValueError, 'Check requires datasets to share'
                                            ' the same categorical features'))
 
 
@@ -419,13 +419,13 @@ def test_validate_dataset_or_dataframe(iris):
 
 
 def test_validate_dataset_empty_df(empty_df):
-    assert_that(calling(Dataset.validate_dataset).with_args(Dataset(empty_df), 'test_function'),
-                raises(DeepchecksValueError, 'Check test_function required a non-empty dataset'))
+    assert_that(calling(Dataset.validate_dataset).with_args(Dataset(empty_df)),
+                raises(DeepchecksValueError, 'Check requires a non-empty dataset'))
 
 
 def test_validate_dataset_not_dataset():
-    assert_that(calling(Dataset.validate_dataset).with_args('not_dataset', 'test_function'),
-                raises(DeepchecksValueError, 'Check test_function requires dataset to be of type Dataset. instead got:'
+    assert_that(calling(Dataset.validate_dataset).with_args('not_dataset'),
+                raises(DeepchecksValueError, 'Check requires dataset to be of type Dataset. instead got:'
                                            ' str'))
 
 
