@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """module contains Data Duplicates check."""
 from typing import Union, List
 
@@ -78,7 +88,7 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
 
         percent_ambiguous = num_ambiguous/dataset.n_samples
 
-        return CheckResult(value=percent_ambiguous, check=self.__class__, display=display)
+        return CheckResult(value=percent_ambiguous, display=display)
 
     def add_condition_ambiguous_sample_ratio_not_greater_than(self, max_ratio=0):
         """Add condition - require samples with multiple labels to not be more than max_ratio.

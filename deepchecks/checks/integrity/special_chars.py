@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """module contains Invalid Chars check."""
 from collections import defaultdict
 from typing import Union, List
@@ -106,7 +116,7 @@ class SpecialCharacters(SingleDatasetBaseCheck):
                                                self.n_top_columns, col='Column Name')
         display = df_graph if len(df_graph) > 0 else None
 
-        return CheckResult(result, check=self.__class__, display=display)
+        return CheckResult(result, display=display)
 
     def add_condition_ratio_of_special_characters_not_grater_than(self, max_ratio: float = 0.001):
         """Add condition - ratio of entirely special character in column.

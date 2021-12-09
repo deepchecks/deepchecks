@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Handle display of suite result."""
 # pylint: disable=protected-access
 import sys
@@ -66,12 +76,12 @@ def display_suite_result(
                 for cond_result in result.conditions_results:
                     sort_value = cond_result.get_sort_value()
                     icon = cond_result.get_icon()
-                    conditions_table.append([icon, result.header, cond_result.name,
+                    conditions_table.append([icon, result.get_header(), cond_result.name,
                                              cond_result.details, sort_value])
             if result.have_display():
                 display_table.append(result)
             else:
-                others_table.append([result.header, 'Nothing found', 2])
+                others_table.append([result.get_header(), 'Nothing found', 2])
         elif isinstance(result, CheckFailure):
             msg = result.exception.__class__.__name__ + ': ' + str(result.exception)
             name = result.check.name()

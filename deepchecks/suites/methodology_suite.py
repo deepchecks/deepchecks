@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The predefined methodological flaws suite module."""
 from deepchecks import Suite
 from deepchecks.checks.methodology import (
@@ -10,7 +20,8 @@ from deepchecks.checks.methodology import (
     TrainTestDifferenceOverfit,
     BoostingOverfit,
     UnusedFeatures,
-    ModelInferenceTimeCheck
+    ModelInferenceTimeCheck,
+    DatasetsSizeComparison
 )
 
 
@@ -90,7 +101,7 @@ def overfit_suite() -> Suite:
     """
     return Suite(
         'Overfit Suite',
-        TrainTestDifferenceOverfit().add_condition_percentage_degradation_not_greater_than(),
+        TrainTestDifferenceOverfit().add_condition_degradation_ratio_not_greater_than(),
         BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(),
     )
 
@@ -107,5 +118,8 @@ def methodological_flaws_suite() -> Suite:
         leakage_suite(),
         overfit_suite(),
         UnusedFeatures().add_condition_number_of_high_variance_unused_features_not_greater_than(),
-        ModelInferenceTimeCheck().add_condition_inference_time_is_not_greater_than()
+        ModelInferenceTimeCheck().add_condition_inference_time_is_not_greater_than(),
+        DatasetsSizeComparison()
+            .add_condition_train_dataset_not_smaller_than_test()
+            .add_condition_test_train_size_ratio_not_smaller_than(),
     )

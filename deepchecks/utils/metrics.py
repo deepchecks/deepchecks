@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Utils module containing utilities for checks working with metrics."""
 import typing as t
 import enum
@@ -77,7 +87,6 @@ def task_type_check(
     """
     validation.model_type_validation(model)
     dataset.validate_label(task_type_check.__name__)
-
 
     if not hasattr(model, 'predict_proba'):
         return ModelType.REGRESSION

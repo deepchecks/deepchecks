@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """The predefined performance suite module."""
 from deepchecks import Suite
 from deepchecks.checks import TrustScoreComparison
@@ -5,9 +15,10 @@ from deepchecks.checks.performance import (
     PerformanceReport,
     ConfusionMatrixReport,
     RocReport,
+    CalibrationMetric,
+    ClassPerformanceImbalance,
     SimpleModelComparison,
-    CalibrationMetric
-
+    RegressionErrorDistribution
 )
 
 __all__ = [
@@ -30,7 +41,8 @@ def classification_suite() -> Suite:
         ConfusionMatrixReport(),
         RocReport().add_condition_auc_not_less_than(),
         CalibrationMetric(),
-        TrustScoreComparison().add_condition_mean_score_percent_decline_not_greater_than()
+        TrustScoreComparison().add_condition_mean_score_percent_decline_not_greater_than(),
+        ClassPerformanceImbalance().add_condition_ratio_difference_not_greater_than()
     )
 
 
@@ -40,8 +52,10 @@ def regression_suite() -> Suite:
     The suite runs a set of checks that are meant to measure and detect performance
     abnormality of the regression model.
     """
-    # TODO: This suite is here as a placeholder for future regression-specific checks
-    return Suite('Regression Suite')
+    return Suite(
+        'Regression Suite',
+         RegressionErrorDistribution().add_condition_kurtosis_not_less_than()
+    )
 
 
 def generic_performance_suite() -> Suite:
@@ -67,5 +81,6 @@ def performance_suite() -> Suite:
     return Suite(
         'Performance Suite',
         generic_performance_suite(),
-        classification_suite()
+        classification_suite(),
+        regression_suite()
     )
