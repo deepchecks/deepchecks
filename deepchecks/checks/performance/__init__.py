@@ -15,5 +15,6 @@ from .roc_report import *
 from .simple_model_comparison import *
 from .calibration_metric import *
 from .segment_performance import *
+from .regression_systematic_error import *
 from .regression_error_distribution import *
 from .class_performance_imbalance import *

@@ -18,6 +18,7 @@ from deepchecks.checks.performance import (
     CalibrationMetric,
     ClassPerformanceImbalance,
     SimpleModelComparison,
+    RegressionSystematicError,
     RegressionErrorDistribution
 )
 
@@ -54,7 +55,8 @@ def regression_suite() -> Suite:
     """
     return Suite(
         'Regression Suite',
-         RegressionErrorDistribution().add_condition_kurtosis_not_less_than()
+        RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_not_greater_than(),
+        RegressionErrorDistribution().add_condition_kurtosis_not_less_than()
     )
 
 
