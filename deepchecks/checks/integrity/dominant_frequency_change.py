@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 
 from deepchecks import Dataset
-from deepchecks.base.check import CheckResult, CompareDatasetsBaseCheck, ConditionResult
+from deepchecks.base.check import CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
 from deepchecks.utils.strings import format_percent
 from deepchecks.errors import DeepchecksValueError
@@ -25,7 +25,7 @@ from deepchecks.errors import DeepchecksValueError
 __all__ = ['DominantFrequencyChange']
 
 
-class DominantFrequencyChange(CompareDatasetsBaseCheck):
+class DominantFrequencyChange(TrainTestBaseCheck):
     """Check if dominant values have increased significantly between test and reference data.
 
     Args:
@@ -42,20 +42,20 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
         self.ratio_change_thres = ratio_change_thres
         self.n_top_columns = n_top_columns
 
-    def run(self, dataset, baseline_dataset, model=None) -> CheckResult:
+    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
         """Run check.
 
         Args:
-            dataset (Dataset): The training dataset object. Must contain an index.
-            baseline_dataset (Dataset): The baseline dataset object. Must contain an index.
+            train_dataset (Dataset): The training dataset object. Must contain an index.
+            test_dataset (Dataset): The baseline dataset object. Must contain an index.
         Returns:
             CheckResult: Detects values highly represented in the tested and reference data and checks if their..
             relative and absolute percentage have increased significantly and makes a report.
         Raises:
             DeepchecksValueError: If the object is not a Dataset or DataFrame instance
         """
-        feature_importances = calculate_feature_importance_or_null(dataset, model)
-        return self._dominant_frequency_change(dataset=dataset, baseline_dataset=baseline_dataset,
+        feature_importances = calculate_feature_importance_or_null(train_dataset, model)
+        return self._dominant_frequency_change(train_dataset=train_dataset, test_dataset=test_dataset,
                                                feature_importances=feature_importances)
 
     def _find_p_val(self, key: str, baseline_hist: Dict, test_hist: Dict, baseline_count: int,
@@ -99,24 +99,24 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
 
         return p_val
 
-    def _dominant_frequency_change(self, dataset: Dataset, baseline_dataset: Dataset,
+    def _dominant_frequency_change(self, train_dataset: Dataset, test_dataset: Dataset,
                                    feature_importances: pd.Series = None):
         """Run the check logic.
 
         Args:
-            dataset (Dataset): The dataset object. Must contain an index.
-            baseline_dataset (Dataset): The baseline dataset object. Must contain an index.
+            train_dataset (Dataset): The dataset object. Must contain an index.
+            test_dataset (Dataset): The baseline dataset object. Must contain an index.
         Returns:
             CheckResult: result value is dict that contains the dominant value change for each column.
         """
-        baseline_dataset = Dataset.validate_dataset_or_dataframe(baseline_dataset)
-        dataset = Dataset.validate_dataset_or_dataframe(dataset)
-        dataset.validate_shared_features(baseline_dataset)
+        test_dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
+        train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
+        train_dataset.validate_shared_features(test_dataset)
 
-        columns = baseline_dataset.features
+        columns = test_dataset.features
 
-        test_df = dataset.data
-        baseline_df = baseline_dataset.data
+        test_df = train_dataset.data
+        baseline_df = test_dataset.data
 
         baseline_len = len(baseline_df)
         test_len = len(test_df)
@@ -153,7 +153,12 @@ class DominantFrequencyChange(CompareDatasetsBaseCheck):
 
         if len(p_dict):
             sorted_p_df = pd.DataFrame.from_dict(p_dict, orient='index')
-            sorted_p_df = column_importance_sorter_df(sorted_p_df, dataset, feature_importances, self.n_top_columns)
+            sorted_p_df = column_importance_sorter_df(
+                sorted_p_df,
+                train_dataset,
+                feature_importances,
+                self.n_top_columns
+            )
         else:
             sorted_p_df = None
 

@@ -58,7 +58,7 @@ def iris_with_non_textual_columns(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBo
 
     # NOTE:
     # if you try to use some random integers as column names
-    # then with big probability test will fall
+    # then with big probility test will fall
     #
     # it looks like sklearn requires column names with dtype int to be in range [0, n_columns]
     #

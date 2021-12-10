@@ -14,7 +14,7 @@ from typing import Union, List
 
 import pandas as pd
 
-from deepchecks import CheckResult, Dataset, ensure_dataframe_type, CompareDatasetsBaseCheck, ConditionResult
+from deepchecks import CheckResult, Dataset, ensure_dataframe_type, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.dataframes import filter_columns_with_validation
 from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
 from deepchecks.utils.typing import Hashable
@@ -50,7 +50,7 @@ def percentage_in_series(series, values):
     return percent, f'{format_percent(percent)} ({count})'
 
 
-class StringMismatchComparison(CompareDatasetsBaseCheck):
+class StringMismatchComparison(TrainTestBaseCheck):
     """Detect different variants of string categories between the same categorical column in two datasets.
 
     This check compares the same categorical column within a dataset and baseline and checks whether there are
@@ -82,24 +82,24 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
 
-    def run(self, dataset, baseline_dataset, model=None) -> CheckResult:
+    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
         """Run check.
 
         Args:
-            dataset (Dataset): A dataset object.
-            baseline_dataset (Dataset): A dataset object.
+            train_dataset (Dataset): A dataset object.
+            test_dataset (Dataset): A dataset object.
             model: Not used in this check.
         """
-        feature_importances = calculate_feature_importance_or_null(dataset, model)
-        return self._string_mismatch_comparison(dataset, baseline_dataset, feature_importances)
+        feature_importances = calculate_feature_importance_or_null(train_dataset, model)
+        return self._string_mismatch_comparison(train_dataset, test_dataset, feature_importances)
 
-    def _string_mismatch_comparison(self, dataset: Union[pd.DataFrame, Dataset],
-                                   baseline_dataset: Union[pd.DataFrame, Dataset],
+    def _string_mismatch_comparison(self, train_dataset: Union[pd.DataFrame, Dataset],
+                                   test_dataset: Union[pd.DataFrame, Dataset],
                                    feature_importances: pd.Series=None) -> CheckResult:
         # Validate parameters
-        df: pd.DataFrame = ensure_dataframe_type(dataset)
+        df: pd.DataFrame = ensure_dataframe_type(train_dataset)
         df = filter_columns_with_validation(df, self.columns, self.ignore_columns)
-        baseline_df: pd.DataFrame = ensure_dataframe_type(baseline_dataset)
+        baseline_df: pd.DataFrame = ensure_dataframe_type(test_dataset)
 
         display_mismatches = []
         result_dict = defaultdict(dict)
@@ -148,7 +148,7 @@ class StringMismatchComparison(CompareDatasetsBaseCheck):
                                              'Variants only in baseline',
                                              '% Unique variants out of all baseline samples (count)'])
             df_graph = df_graph.set_index(['Column name', 'Base form'])
-            df_graph = column_importance_sorter_df(df_graph, dataset, feature_importances,
+            df_graph = column_importance_sorter_df(df_graph, train_dataset, feature_importances,
                                                    self.n_top_columns, col='Column name')
             # For display transpose the dataframe
             display = df_graph.T

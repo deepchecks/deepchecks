@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from functools import wraps
 from typing import Any, Callable, List, Union, Dict, cast
 
-__all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainTestBaseCheck',
+__all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'TrainTestBaseCheck',
            'ModelOnlyBaseCheck', 'ConditionResult', 'ConditionCategory', 'CheckFailure']
 
 import pandas as pd
@@ -308,15 +308,6 @@ class SingleDatasetBaseCheck(BaseCheck):
 
     @abc.abstractmethod
     def run(self, dataset, model=None) -> CheckResult:
-        """Define run signature."""
-        pass
-
-
-class CompareDatasetsBaseCheck(BaseCheck):
-    """Parent class for checks that compare between two datasets."""
-
-    @abc.abstractmethod
-    def run(self, dataset, baseline_dataset, model=None) -> CheckResult:
         """Define run signature."""
         pass
 
