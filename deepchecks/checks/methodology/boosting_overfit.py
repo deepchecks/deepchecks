@@ -140,19 +140,20 @@ class BoostingOverfit(TrainTestBaseCheck):
             The metric value on the test dataset.
         """
         return self._boosting_overfit(train_dataset, test_dataset, model=model)
-
+    
     def _boosting_overfit(self, train_dataset: Dataset, test_dataset: Dataset, model) -> CheckResult:
         # Validate params
         if self.metric_name is not None and self.metric is None:
             raise DeepchecksValueError('Can not have metric_name without metric')
         if not isinstance(self.num_steps, int) or self.num_steps < 2:
             raise DeepchecksValueError('num_steps must be an integer larger than 1')
-        Dataset.validate_dataset(train_dataset)
-        Dataset.validate_dataset(test_dataset)
-        train_dataset.validate_label()
-        test_dataset.validate_label()
-        train_dataset.validate_shared_features(test_dataset)
-        train_dataset.validate_shared_label(test_dataset)
+        
+        train_dataset, test_dataset = self.are_not_empty_datasets(train_dataset, test_dataset)
+        
+        self.do_datasets_have_label(train_dataset, test_dataset)
+        self.do_datasets_have_features(train_dataset, test_dataset)
+        self.do_datasets_share_same_label(train_dataset, test_dataset)
+        self.do_datasets_share_same_features(train_dataset, test_dataset)
         validate_model(train_dataset, model)
 
         # Get default metric

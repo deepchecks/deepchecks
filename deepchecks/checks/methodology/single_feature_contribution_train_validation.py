@@ -61,14 +61,17 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
                                                             test_dataset=test_dataset)
 
     def _single_feature_contribution_train_test(self, train_dataset: Dataset, test_dataset: Dataset):
-        train_dataset = Dataset.validate_dataset(train_dataset)
-        train_dataset.validate_label()
-        test_dataset = Dataset.validate_dataset(test_dataset)
-        test_dataset.validate_label()
-        features_names = train_dataset.validate_shared_features(test_dataset)
-        label_name = train_dataset.validate_shared_label(test_dataset)
+        train_dataset, test_dataset = self.are_not_empty_datasets(train_dataset, test_dataset)
+        
+        self.do_datasets_have_label(train_dataset, test_dataset)
+        self.do_datasets_have_features(train_dataset, test_dataset)
+        self.do_datasets_share_same_label(train_dataset, test_dataset)
+        self.do_datasets_share_same_features(train_dataset, test_dataset)
+        
         ppscore_params = self.ppscore_params or {}
-
+        label_name = t.cast(Hashable, train_dataset.label_name)
+        features_names = train_dataset.features
+        
         relevant_columns = features_names + [label_name]
         df_pps_train = pps.predictors(df=train_dataset.data[relevant_columns], y=train_dataset.label_name,
                                       random_seed=42,

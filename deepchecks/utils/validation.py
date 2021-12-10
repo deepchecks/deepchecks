@@ -10,13 +10,23 @@
 #
 """objects validation utilities."""
 import typing as t
+import numpy as np
+import pandas as pd
 import sklearn
 from deepchecks import base # pylint: disable=unused-import, is used in type annotations
 from deepchecks import errors
 from deepchecks.utils.typing import Hashable
 
 
-__all__ = ['model_type_validation', 'ensure_hashable_or_mutable_sequence', 'validate_model']
+__all__ = [
+    'model_type_validation', 
+    'ensure_hashable_or_mutable_sequence',
+    'validate_model',
+    'ensure_dataframe',
+    'ensure_dataset',
+    'ensure_not_empty_dataframe',
+    'ensure_not_empty_dataset',
+]
 
 
 def model_type_validation(model: t.Any):
@@ -105,3 +115,64 @@ def ensure_hashable_or_mutable_sequence(
     raise errors.DeepchecksValueError(message.format(
         type=type(value).__name__
     ))
+
+
+def ensure_dataframe(
+    obj: object,
+    error_message: t.Optional[str] = None,
+) -> pd.DataFrame:
+    """TODO: add comment"""
+    error_message = error_message or 'Provided value of type {value_type} cannot be transformed into dataframe.'
+    if isinstance(obj, pd.DataFrame):
+        return obj
+    elif isinstance(obj, base.Dataset):
+        return obj.data
+    else:
+        raise errors.DeepchecksValueError(
+            error_message.format(value_type=type(obj).__name__)
+        )
+
+
+def ensure_not_empty_dataframe(
+    obj: object,
+    error_messages: t.Optional[t.Dict[str, str]] = None
+) -> pd.DataFrame:
+    """TODO: add comment"""
+    error_messages = error_messages or {}
+    error_message = error_messages.get('empty') or 'Provided dataframe is empty!'
+    obj = ensure_dataframe(obj, error_messages.get('incorrect_value'))
+    if len(obj):
+        raise errors.DeepchecksValueError(error_message)
+    return obj
+
+
+def ensure_dataset(
+    obj: object,
+    error_message: t.Optional[str] = None,
+) -> 'base.Dataset':
+    """TODO: add comment"""
+    error_message = error_message or 'Provided value of type {value_type} cannot be transformed into dataset.'
+    
+    if isinstance(obj, pd.DataFrame):
+        return base.Dataset(obj)
+    elif isinstance(obj, np.ndarray) and obj.ndim == 2:
+        return base.Dataset(pd.DataFrame(obj))
+    elif isinstance(obj, base.Dataset):
+        return obj
+    
+    raise errors.DeepchecksValueError(
+        error_message.format(value_type=type(obj).__name__)
+    )
+
+
+def ensure_not_empty_dataset(
+    obj: object,
+    error_messages: t.Optional[t.Dict[str, str]] = None
+) -> 'base.Dataset':
+    """TODO: add comment"""
+    error_messages = error_messages or {}
+    error_message = error_messages.get('empty') or 'Provided dataframe is empty!'
+    obj = ensure_dataset(obj, error_messages.get('incorrect_value'))
+    if len(obj.data) == 0:
+        raise errors.DeepchecksValueError(error_message)
+    return obj

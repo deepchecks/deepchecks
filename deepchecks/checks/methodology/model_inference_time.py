@@ -64,12 +64,11 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
         dataset: Dataset,
         model: object # TODO: find more precise type for model
     ) -> CheckResult:
-        Dataset.validate_dataset(dataset)
-        Dataset.validate_features(dataset)
+        dataset, *_ = self.are_not_empty_datasets(dataset)
+        df, *_ = self.do_datasets_have_features(dataset)
         validate_model(dataset, model)
 
         prediction_method = model.predict # type: ignore
-        df = t.cast(pd.DataFrame, dataset.features_columns)
 
         number_of_samples = len(df) if len(df) < self.number_of_samples else self.number_of_samples
         df = df.sample(n=number_of_samples, random_state=np.random.randint(number_of_samples))

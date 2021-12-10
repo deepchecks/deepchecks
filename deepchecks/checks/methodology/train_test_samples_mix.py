@@ -88,12 +88,13 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
         return self._data_sample_leakage_report(test_dataset=test_dataset, train_dataset=train_dataset)
 
     def _data_sample_leakage_report(self, test_dataset: Dataset, train_dataset: Dataset):
-        test_dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
-        train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
-        test_dataset.validate_shared_features(train_dataset)
+        train_dataset, test_dataset = self.are_not_empty_datasets(train_dataset, test_dataset)
+        
+        self.do_datasets_have_features(train_dataset, test_dataset)
+        self.do_datasets_share_same_features(train_dataset, test_dataset)
 
         columns = train_dataset.features
-        if train_dataset.label_name:
+        if train_dataset.label_name is not None:
             columns = columns + [train_dataset.label_name]
 
         train_f = train_dataset.data.copy()

@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing all the base classes for checks."""
+import typing as t
 import abc
 import enum
 import re
@@ -16,30 +17,43 @@ import typing
 from collections import OrderedDict
 from dataclasses import dataclass
 from functools import wraps
-from typing import Any, Callable, List, Union, Dict, cast
-
-__all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'CompareDatasetsBaseCheck', 'TrainTestBaseCheck',
-           'ModelOnlyBaseCheck', 'ConditionResult', 'ConditionCategory', 'CheckFailure']
 
 import pandas as pd
 from IPython.core.display import display_html
 from matplotlib import pyplot as plt
 from pandas.io.formats.style import Styler
 
+from deepchecks.base import dataset
 from deepchecks.base.display_pandas import display_dataframe
 from deepchecks.utils.strings import split_camel_case
+from deepchecks.utils.metrics import ModelType, infer_task_type
+from deepchecks.utils.validation import ensure_not_empty_dataset
+from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
+
+
+__all__ = [
+    'CheckResult',
+    'BaseCheck',
+    'SingleDatasetBaseCheck',
+    'CompareDatasetsBaseCheck',
+    'TrainTestBaseCheck',
+    'ModelOnlyBaseCheck',
+    'ConditionResult',
+    'ConditionCategory',
+    'CheckFailure'
+]
 
 
 class Condition:
     """Contain condition attributes."""
 
     name: str
-    function: Callable
-    params: Dict
+    function: t.Callable
+    params: t.Dict
 
-    def __init__(self, name: str, function: Callable, params: Dict):
-        if not isinstance(function, Callable):
+    def __init__(self, name: str, function: t.Callable, params: t.Dict):
+        if not isinstance(function, t.Callable):
             raise DeepchecksValueError(f'Condition must be a function `(Any) -> Union[ConditionResult, bool]`, '
                                        f'but got: {type(function).__name__}')
         if not isinstance(name, str):
@@ -49,7 +63,7 @@ class Condition:
         self.params = params
 
     def __call__(self, *args, **kwargs) -> 'ConditionResult':
-        result = cast(ConditionResult, self.function(*args, **kwargs))
+        result = t.cast(ConditionResult, self.function(*args, **kwargs))
         result.set_name(self.name)
         return result
 
@@ -126,13 +140,13 @@ class CheckResult:
         display (Dict): Dictionary with formatters for display. possible formatters are: 'text/html', 'image/png'
     """
 
-    value: Any
+    value: t.Any
     header: str
-    display: List[Union[Callable, str, pd.DataFrame, Styler]]
-    condition_results: List[ConditionResult]
+    display: t.List[t.Union[t.Callable, str, pd.DataFrame, Styler]]
+    condition_results: t.List[ConditionResult]
     check: typing.ClassVar
 
-    def __init__(self, value, header: str = None, display: Any = None):
+    def __init__(self, value, header: str = None, display: t.Any = None):
         """Init check result.
 
         Args:
@@ -146,13 +160,13 @@ class CheckResult:
         self.header = header
         self.condition_results = []
 
-        if display is not None and not isinstance(display, List):
+        if display is not None and not isinstance(display, t.List):
             self.display = [display]
         else:
             self.display = display or []
 
         for item in self.display:
-            if not isinstance(item, (str, pd.DataFrame, Callable, Styler)):
+            if not isinstance(item, (str, pd.DataFrame, t.Callable, Styler)):
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
     def _ipython_display_(self):
@@ -168,7 +182,7 @@ class CheckResult:
                 display_dataframe(item)
             elif isinstance(item, str):
                 display_html(item, raw=True)
-            elif isinstance(item, Callable):
+            elif isinstance(item, t.Callable):
                 item()
                 plt.show()
             else:
@@ -184,7 +198,7 @@ class CheckResult:
         """Return header for display. if header was defined return it, else extract name of check class."""
         return self.header or self.check.name()
 
-    def set_condition_results(self, results: List[ConditionResult]):
+    def set_condition_results(self, results: t.List[ConditionResult]):
         """Set the conditions results for current check result."""
         self.conditions_results = results
 
@@ -227,7 +241,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
         # Replace the run function with wrapped run function
         setattr(self, 'run', wrap_run(getattr(self, 'run'), self))
 
-    def conditions_decision(self, result: CheckResult) -> List[ConditionResult]:
+    def conditions_decision(self, result: CheckResult) -> t.List[ConditionResult]:
         """Run conditions on given result."""
         results = []
         condition: Condition
@@ -241,7 +255,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
             results.append(output)
         return results
 
-    def add_condition(self, name: str, condition_func: Callable[[Any], Union[ConditionResult, bool]], **params):
+    def add_condition(self, name: str, condition_func: t.Callable[..., t.Union[ConditionResult, bool]], **params):
         """Add new condition function to the check.
 
         Args:
@@ -277,7 +291,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
         else:
             return check_str
 
-    def params(self) -> Dict:
+    def params(self) -> t.Dict:
         """Return parameters to show when printing the check."""
         return {k: v for k, v in vars(self).items()
                 if not k.startswith('_') and v is not None and not callable(v)}
@@ -301,6 +315,148 @@ class BaseCheck(metaclass=abc.ABCMeta):
     def name(cls):
         """Name of class in split camel case."""
         return split_camel_case(cls.__name__)
+
+    # == Checks validation utilities ==
+
+    @classmethod
+    def do_datasets_have_label(cls, *datasets: 'dataset.Dataset') -> t.Tuple[pd.Series, ...]:
+        """TODO: add comments"""
+        check_name = cls.__name__
+
+        if any(d.label_name is None for d in datasets):
+            raise DeepchecksValueError(f'Check {check_name} requires dataset to have a label column')
+
+        return tuple(
+            t.cast(pd.Series, d.label_col)
+            for d in datasets
+        )
+
+    @classmethod
+    def do_datasets_have_features(cls, *datasets: 'dataset.Dataset') -> t.Tuple[pd.DataFrame, ...]:
+        """TODO: add comments"""
+        check_name = cls.__name__
+
+        if any(d.features_columns is None for d in datasets):
+            raise DeepchecksValueError(f'Check {check_name} requires dataset to have features columns!')
+
+        return tuple(
+            t.cast(pd.DataFrame, d.features_columns)
+            for d in datasets
+        )
+
+    @classmethod
+    def do_datasets_have_date(cls, *datasets: 'dataset.Dataset') -> t.Tuple[pd.Series, ...]:
+        """TODO: add comments"""
+        check_name = cls.__name__
+
+        if any(d.date_name is None for d in datasets):
+            raise DeepchecksValueError(f'Check {check_name} requires dataset to have a date column')
+
+        return tuple(
+            t.cast(pd.Series, d.date_col)
+            for d in datasets
+        )
+
+    @classmethod
+    def do_datasets_have_index(cls, *datasets: 'dataset.Dataset') -> t.Tuple[pd.Series, ...]:
+        """TODO: add comments"""
+        check_name = cls.__name__
+        
+        if any(d.index_name is None for d in datasets):
+            raise DeepchecksValueError(f'Check {check_name} requires dataset to have an index column')
+        
+        return tuple(
+            t.cast(pd.Series, d.index_col)
+            for d in datasets
+        )
+
+    @classmethod
+    def do_datasets_share_same_features(cls, *datasets: 'dataset.Dataset') -> t.List[Hashable]:
+        """TODO: add comments"""
+        check_name = cls.__name__
+        if not dataset.Dataset.share_same_features(*datasets):
+            raise DeepchecksValueError(f'Check {check_name} requires datasets to share the same features')
+        return datasets[0].features
+
+    @classmethod
+    def do_datasets_share_same_categorical_features(cls, *datasets: 'dataset.Dataset') -> t.List[Hashable]:
+        """TODO: add comments"""
+        check_name = cls.__name__
+        if not dataset.Dataset.share_same_categorical_features(*datasets):
+            raise DeepchecksValueError(
+                f'Check {check_name} requires datasets to share '
+                'the same categorical features. Possible reason is that some columns were'
+                'inferred incorrectly as categorical features. To fix this, manually edit the '
+                'categorical features using Dataset(cat_features=<list_of_features>'
+            )
+        return datasets[0].cat_features
+
+    @classmethod
+    def do_datasets_share_same_label(cls, *datasets: 'dataset.Dataset') -> Hashable:
+        """TODO: add comments"""
+        check_name = cls.__name__
+        if not dataset.Dataset.share_same_label(*datasets):
+            raise DeepchecksValueError(f'Check {check_name} requires datasets to share the same label')
+        return t.cast(Hashable, datasets[0].label_name)
+
+    @classmethod
+    def are_not_empty_datasets(cls, *values: object) -> t.Tuple['dataset.Dataset', ...]:
+        """TODO:"""
+        if len(values) == 0:
+            return tuple()
+        
+        invalid_value = next(
+            (it for it in values if not isinstance(it, dataset.Dataset)),
+            None
+        )
+
+        if invalid_value is not None:
+            raise DeepchecksValueError(
+                'Check requires input value(s) to be of type Dataset. '
+                f'Instead got: {type(invalid_value).__name__}'
+            )
+
+        empty_dataset = next(
+            (it for it in values if len(t.cast(dataset.Dataset, it).data) == 0),
+            None
+        )
+        
+        if empty_dataset is not None:
+            raise DeepchecksValueError('Check requires non-empty datasets!')
+
+        return t.cast(t.Tuple[dataset.Dataset, ...], values)
+
+    @classmethod
+    def ensure_not_empty_dataset(cls, value: object) -> 'dataset.Dataset':
+        """TODO: add comments"""
+        check_name = cls.__name__
+        return ensure_not_empty_dataset(value, error_messages={
+            'empty': f'Check {check_name} required a non-empty dataset',
+            'incorrect_value': (
+                f'Check {check_name} requires dataset to be of type Dataset or Dataframe.'
+                f'Instead got: {type(value).__name__}'
+            )
+        })
+
+    @classmethod
+    def infer_task_type(
+        cls,
+        model: t.Any,
+        dataset: 'dataset.Dataset',
+        expected_types: t.Sequence[ModelType],
+    ) -> ModelType:
+        """TODO: add coments"""
+        check_name = cls.__name__
+        task_type = infer_task_type(model, dataset)
+
+        if task_type not in expected_types:
+            stringified_types = ','.join(e.value for e in expected_types)
+            raise DeepchecksValueError(
+                f'Check {check_name} expected model to be a type from {stringified_types}, '
+                f'but received model of type: {task_type.value}'
+            )
+
+        return task_type
 
 
 class SingleDatasetBaseCheck(BaseCheck):
@@ -346,5 +502,5 @@ class ModelOnlyBaseCheck(BaseCheck):
 class CheckFailure:
     """Class which holds a run exception of a check."""
 
-    check: Any  # Check class, not instance
+    check: t.Any  # Check class, not instance
     exception: Exception

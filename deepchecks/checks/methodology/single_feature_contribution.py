@@ -59,11 +59,15 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         return self._single_feature_contribution(dataset=dataset)
 
     def _single_feature_contribution(self, dataset: Dataset):
-        Dataset.validate_dataset(dataset)
-        dataset.validate_label()
+        dataset, *_ = self.are_not_empty_datasets(dataset)
+        
+        self.do_datasets_have_label(dataset)
         ppscore_params = self.ppscore_params or {}
-
-        relevant_columns = dataset.features + [dataset.label_name]
+        
+        label_name = t.cast(Hashable, dataset.label_name)
+        features_names = dataset.features
+        relevant_columns = features_names + [label_name]
+        
         df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name, random_seed=42,
                                 **ppscore_params)
         df_pps = df_pps.set_index('x', drop=True)

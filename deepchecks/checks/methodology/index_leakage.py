@@ -49,15 +49,10 @@ class IndexTrainTestLeakage(TrainTestBaseCheck):
         return self._index_train_test_leakage(train_dataset, test_dataset)
 
     def _index_train_test_leakage(self, train_dataset: Dataset, test_dataset: Dataset):
-        train_dataset = Dataset.validate_dataset(train_dataset)
-        test_dataset = Dataset.validate_dataset(test_dataset)
-        train_dataset.validate_index()
-        test_dataset.validate_index()
-
-        train_index = train_dataset.index_col
-        val_index = test_dataset.index_col
-
+        train_dataset, test_dataset = self.are_not_empty_datasets(train_dataset, test_dataset)
+        train_index, val_index = self.do_datasets_have_index(train_dataset, test_dataset)
         index_intersection = list(set(train_index).intersection(val_index))
+        
         if len(index_intersection) > 0:
             size_in_test = len(index_intersection) / test_dataset.n_samples
             text = f'{size_in_test:.1%} of test data indexes appear in training data'

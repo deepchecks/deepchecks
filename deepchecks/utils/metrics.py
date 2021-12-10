@@ -16,7 +16,7 @@ from numbers import Number
 import numpy as np
 import pandas as pd
 from sklearn.metrics import get_scorer, make_scorer, accuracy_score, precision_score, recall_score, mean_squared_error
-from sklearn.base import ClassifierMixin, RegressorMixin
+from sklearn.base import BaseEstimator
 
 from deepchecks import base #pylint: disable=unused-import; it is used for type annotations
 from deepchecks import errors
@@ -25,7 +25,7 @@ from deepchecks.utils import validation
 
 __all__ = [
     'ModelType',
-    'task_type_check',
+    'infer_task_type',
     'get_metrics_list',
     'validate_scorer',
     'DEFAULT_METRICS_DICT',
@@ -72,26 +72,25 @@ DEFAULT_METRICS_DICT = {
 }
 
 
-def task_type_check(
-    model: t.Union[ClassifierMixin, RegressorMixin],
-    dataset: 'base.Dataset'
-) -> ModelType:
+def infer_task_type(model: BaseEstimator, dataset: 'base.Dataset') -> ModelType:
     """Check task type (regression, binary, multiclass) according to model object and label column.
 
     Args:
-        model (Union[ClassifierMixin, RegressorMixin]): Model object - used to check if has predict_proba()
+        model (BaseEstimator): Model object - used to check if has predict_proba()
         dataset (Dataset): dataset - used to count the number of unique labels
 
     Returns:
         TaskType enum corresponding to the model and dataset
     """
     validation.model_type_validation(model)
-    dataset.validate_label()
 
     if not hasattr(model, 'predict_proba'):
         return ModelType.REGRESSION
     else:
-        labels = t.cast(pd.Series, dataset.label_col)
+        if dataset.label_col is None:
+            raise errors.DeepchecksValueError('Provided dataset do not have label column')
+
+        labels = dataset.label_col
         unique_labels = labels.unique()
 
         if sorted(unique_labels) != list(range(len(unique_labels))):
@@ -107,28 +106,28 @@ def task_type_check(
         )
 
 
-def task_type_validation(
-    model: t.Union[ClassifierMixin, RegressorMixin],
-    dataset: 'base.Dataset',
-    expected_types: t.Sequence[ModelType]
-):
-    """Validate task type (regression, binary, multiclass) according to model object and label column.
+# def task_type_validation(
+#     model: BaseEstimator,
+#     dataset: 'base.Dataset',
+#     expected_types: t.Sequence[ModelType]
+# ):
+#     """Validate task type (regression, binary, multiclass) according to model object and label column.
 
-    Args:
-        model (Union[ClassifierMixin, RegressorMixin]): Model object - used to check if has predict_proba()
-        dataset (Dataset): dataset - used to count the number of unique labels
-        expected_types (List[ModelType]): allowed types of model
-        check_name (str): check name to print in error
+#     Args:
+#         model (Union[ClassifierMixin, RegressorMixin]): Model object - used to check if has predict_proba()
+#         dataset (Dataset): dataset - used to count the number of unique labels
+#         expected_types (List[ModelType]): allowed types of model
+#         check_name (str): check name to print in error
 
-    Raises:
-            DeepchecksValueError if model type doesn't match one of the expected_types
-    """
-    task_type = task_type_check(model, dataset)
-    if not task_type in expected_types:
-        raise errors.DeepchecksValueError(
-            f'Expected model to be a type from {[e.value for e in expected_types]}, '
-            f'but received model of type: {task_type.value}'
-        )
+#     Raises:
+#             DeepchecksValueError if model type doesn't match one of the expected_types
+#     """
+#     task_type = task_type_check(model, dataset)
+#     if not task_type in expected_types:
+#         raise errors.DeepchecksValueError(
+#             f'Expected model to be a type from {[e.value for e in expected_types]}, '
+#             f'but received model of type: {task_type.value}'
+#         )
 
 
 def get_metrics_list(
@@ -155,7 +154,7 @@ def get_metrics_list(
             metrics[name] = validate_scorer(scorer, model, dataset)
     else:
         # Check for model type
-        model_type = task_type_check(model, dataset)
+        model_type = infer_task_type(model, dataset)
         metrics = DEFAULT_METRICS_DICT[model_type]
 
     return metrics

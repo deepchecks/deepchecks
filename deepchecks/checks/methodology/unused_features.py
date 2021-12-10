@@ -114,11 +114,11 @@ class UnusedFeatures(TrainTestBaseCheck):
             dataset = train_dataset
         else:
             raise DeepchecksValueError('Either train_dataset or test_dataset must be supplied')
-        Dataset.validate_dataset(dataset)
-        dataset.validate_label()
-        dataset.validate_label()
+        
+        dataset, *_ = self.are_not_empty_datasets(dataset)
+        
+        self.do_datasets_have_label(dataset)
         validate_model(dataset, model)
-
         feature_importance = calculate_feature_importance(model, dataset, random_state=self.random_state)
 
         # Calculate normalized variance per feature based on PCA decomposition

@@ -53,8 +53,9 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
         return self._identifier_leakage(dataset)
 
     def _identifier_leakage(self, dataset: Union[pd.DataFrame, Dataset], ppscore_params=None) -> CheckResult:
-        Dataset.validate_dataset(dataset)
-        dataset.validate_label()
+        dataset, *_ = self.are_not_empty_datasets(dataset)
+        self.do_datasets_have_label(dataset)
+        
         ppscore_params = ppscore_params or {}
 
         relevant_columns = list(filter(None, [dataset.date_name, dataset.index_name, dataset.label_name]))
