@@ -172,6 +172,11 @@ def validate_scorer(scorer, model, dataset):
         assert isinstance(scorer(model, dataset.data[dataset.features].head(2), dataset.label_col.head(2)),
                           Number)
         return scorer
+    else:
+        raise errors.DeepchecksValueError(
+            f'scorer value should either be a callable or string. '
+            f'But {type(scorer).__name__} was passed'
+        )
 
 
 def get_metrics_ratio(train_metric: float, test_metric: float, max_ratio=np.Inf) -> float:

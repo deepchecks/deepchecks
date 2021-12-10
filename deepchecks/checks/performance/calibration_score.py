@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The calibration_metric check module."""
+"""The calibration score check module."""
 from sklearn.base import BaseEstimator
 from sklearn.calibration import calibration_curve
 from sklearn.metrics import brier_score_loss
@@ -16,10 +16,11 @@ import matplotlib.pyplot as plt
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
 from deepchecks.utils.metrics import ModelType, task_type_validation
 
-__all__ = ["CalibrationMetric"]
+
+__all__ = ["CalibrationScore"]
 
 
-class CalibrationMetric(SingleDatasetBaseCheck):
+class CalibrationScore(SingleDatasetBaseCheck):
     """Calculate the calibration curve with brier score for each class."""
 
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
@@ -35,9 +36,9 @@ class CalibrationMetric(SingleDatasetBaseCheck):
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance with a label
         """
-        return self._calibration_metric(dataset, model)
+        return self._calibration_score(dataset, model)
 
-    def _calibration_metric(self, dataset: Dataset, model):
+    def _calibration_score(self, dataset: Dataset, model):
         Dataset.validate_dataset(dataset)
         dataset.validate_label()
         task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
