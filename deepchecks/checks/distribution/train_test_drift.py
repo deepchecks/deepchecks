@@ -29,7 +29,7 @@ __all__ = ['TrainTestDrift']
 
 class TrainTestDrift(TrainTestBaseCheck):
     """
-    Calculate drift between train dataset and test dataset.
+    Calculate drift between train dataset and test dataset per feature, using statistical measures.
 
     Check calculates a drift score for each column in test dataset, by comparing its distribution to the train
     dataset.
