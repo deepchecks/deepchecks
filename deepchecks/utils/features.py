@@ -53,19 +53,29 @@ def calculate_feature_importance_or_null(dataset: 'base.Dataset', model: t.Any) 
     return feature_importances
 
 
-def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_state: int = 42) -> pd.Series:
+def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_state: int = 42,
+                                 force_permutation: bool = False, permutation_wkargs: dict = None) -> pd.Series:
     """Calculate features effect on the label.
 
     Args:
         model (Any): A fitted model
         dataset (Dataset): dataset used to fit the model
         random_state (int): random seed for permutation importance calculation
+        force_permutation (bool): force permutation importance calculation
+        permutation_wkargs (dict): kwargs for permutation importance calculation
     Returns:
         pd.Series of feature importance normalized to 0-1 indexed by feature names
 
     Raise:
         NotFittedError: Call 'fit' with appropriate arguments before using this estimator.
     """
+
+    if permutation_wkargs is None:
+        permutation_wkargs = {}
+    elif not force_permutation:
+        raise errors.DeepchecksValueError(
+            'permutation_wkargs should be None if force_permutation is False')
+
     # special condition - check_is_fitted doesn't work for Pipeline
     if isinstance(model, Pipeline):
         # get feature importance from last model in pipeline
@@ -80,16 +90,23 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_s
 
     validation.validate_model(dataset, model)
 
-    feature_importances = _built_in_importance(model, dataset)
+    if force_permutation:
+        # force permutation importance calculation
+        feature_importances = _calc_importance(model, dataset, random_state=random_state, **permutation_wkargs)
+    else:
+        feature_importances = _built_in_importance(model, dataset)
+
+    # if _built_in_importance was calculated and returned None, check if pipeline and / or attempt
+    # permutation importance
     if feature_importances is None:
         if isinstance(model, Pipeline):
             if internal_estimator is not None:
                 feature_importances = _built_in_importance(internal_estimator, dataset)
 
             if feature_importances is None:
-                feature_importances = _calc_importance(model, dataset, random_state=random_state)
+                feature_importances = _calc_importance(model, dataset, random_state=random_state, **permutation_wkargs)
         else:  # Others
-            feature_importances = _calc_importance(model, dataset, random_state=random_state)
+            feature_importances = _calc_importance(model, dataset, random_state=random_state, **permutation_wkargs)
 
     return feature_importances.fillna(0)
 
@@ -121,7 +138,8 @@ def _calc_importance(
     r = permutation_importance(model, dataset.features_columns.loc[dataset_sample_idx, :],
                                dataset.label_col.loc[dataset_sample_idx],
                                n_repeats=n_repeats,
-                               random_state=random_state)
+                               random_state=random_state,
+                               n_jobs=-1)
     significance_mask = r.importances_mean - r.importances_std > 0
     feature_importances = r.importances_mean * significance_mask
     total = feature_importances.sum()
