@@ -23,7 +23,7 @@ class PerformanceReport(SingleDatasetBaseCheck):
     """Summarize given metrics on a dataset and model.
 
     Args:
-        alternative_metrics (Dict[str, Callable]): An optional dictionary of metric name to scorer functions.
+        alternative_metrics (Dict[str, Callable]): An optional dictionary of metric name or scorer functions.
         If none given, using default metrics
     """
 
