@@ -350,6 +350,9 @@ class Dataset:
         """
         return self.data.shape[0]
 
+    def __len__(self):
+        return self.n_samples
+
     def infer_categorical_features(self) -> t.List[Hashable]:
         """Infers which features are categorical by checking types and number of unique values.
 
