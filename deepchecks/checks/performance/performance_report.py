@@ -12,7 +12,7 @@
 from typing import Callable, Dict
 import pandas as pd
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
-from deepchecks.utils.metrics import get_metrics_list
+from deepchecks.utils.metrics import get_scorers_list
 from deepchecks.utils.validation import validate_model
 
 
@@ -50,7 +50,7 @@ class PerformanceReport(SingleDatasetBaseCheck):
         validate_model(dataset, model)
 
         # Get default scorers if no alternative, or validate alternatives
-        scorers = get_metrics_list(model, dataset, self.alternative_scorers)
+        scorers = get_scorers_list(model, dataset, self.alternative_scorers)
         scores = {
             key: scorer(model, dataset.features_columns, dataset.label_col)
             for key, scorer in scorers.items()
@@ -72,7 +72,7 @@ class PerformanceReport(SingleDatasetBaseCheck):
         def condition(result, min_score):
             not_passed = {k: v for k, v in result.items() if v < min_score}
             if not_passed:
-                details = f'Scores that are less than {min_score}: {not_passed}'
+                details = f'Scores that did not pass threshold: {not_passed}'
                 return ConditionResult(False, details)
             return ConditionResult(True)
 

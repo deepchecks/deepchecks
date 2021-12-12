@@ -26,11 +26,11 @@ from deepchecks.utils import validation
 __all__ = [
     'ModelType',
     'task_type_check',
-    'get_metrics_list',
+    'get_scorers_list',
     'validate_scorer',
-    'DEFAULT_METRICS_DICT',
-    'DEFAULT_SINGLE_METRIC',
-    'get_metrics_ratio'
+    'DEFAULT_SCORERS_DICT',
+    'DEFAULT_SINGLE_SCORER',
+    'get_scores_ratio'
 ]
 
 
@@ -42,33 +42,37 @@ class ModelType(enum.Enum):
     MULTICLASS = 'multiclass'
 
 
-DEFAULT_BINARY_METRICS = {
+DEFAULT_BINARY_SCORERS = {
     'Accuracy': make_scorer(accuracy_score),
     'Precision': make_scorer(precision_score, zero_division=0),
     'Recall': make_scorer(recall_score, zero_division=0)
 }
 
-DEFAULT_MULTICLASS_METRICS = {
+
+DEFAULT_MULTICLASS_SCORERS = {
     'Accuracy': make_scorer(accuracy_score),
     'Precision - Macro Average': make_scorer(precision_score, average='macro', zero_division=0),
     'Recall - Macro Average': make_scorer(recall_score, average='macro', zero_division=0)
 }
 
-DEFAULT_REGRESSION_METRICS = {
+
+DEFAULT_REGRESSION_SCORERS = {
     'RMSE': make_scorer(mean_squared_error, squared=False, greater_is_better=False),
     'MSE': make_scorer(mean_squared_error, greater_is_better=False),
 }
 
-DEFAULT_SINGLE_METRIC = {
+
+DEFAULT_SINGLE_SCORER = {
     ModelType.BINARY: 'Accuracy',
     ModelType.MULTICLASS: 'Accuracy',
     ModelType.REGRESSION: 'RMSE'
 }
 
-DEFAULT_METRICS_DICT = {
-    ModelType.BINARY: DEFAULT_BINARY_METRICS,
-    ModelType.MULTICLASS: DEFAULT_MULTICLASS_METRICS,
-    ModelType.REGRESSION: DEFAULT_REGRESSION_METRICS
+
+DEFAULT_SCORERS_DICT = {
+    ModelType.BINARY: DEFAULT_BINARY_SCORERS,
+    ModelType.MULTICLASS: DEFAULT_MULTICLASS_SCORERS,
+    ModelType.REGRESSION: DEFAULT_REGRESSION_SCORERS
 }
 
 
@@ -131,34 +135,34 @@ def task_type_validation(
         )
 
 
-def get_metrics_list(
+def get_scorers_list(
     model,
     dataset: 'base.Dataset',
-    alternative_metrics: t.Dict[str, t.Callable] = None
+    alternative_scorers: t.Dict[str, t.Callable] = None
 ) -> t.Dict[str, t.Callable]:
-    """Return list of scorer objects to use in a metrics-dependant check.
+    """Return list of scorer objects to use in a score-dependant check.
 
-    If no alternative_metrics is supplied, then a default list of metrics is used per task type, as it is inferred
+    If no alternative_scorers is supplied, then a default list of scorers is used per task type, as it is inferred
     from the dataset and model. If a list is supplied, then the scorer functions are checked and used instead.
 
     Args:
-        model (BaseEstimator): Model object for which the metrics would be calculated
-        dataset (Dataset): Dataset object on which the metrics would be calculated
-        alternative_metrics (Dict[str, Callable]): Optional dictionary of sklearn scorers to use instead of default list
+        model (BaseEstimator): Model object for which the scores would be calculated
+        dataset (Dataset): Dataset object on which the scores would be calculated
+        alternative_scorers (Dict[str, Callable]): Optional dictionary of sklearn scorers to use instead of default list
 
     Returns:
-        Dictionary containing names of metrics and scorer functions for the metrics.
+        Dictionary containing names of scorer functions.
     """
-    if alternative_metrics:
-        metrics = {}
-        for name, scorer in alternative_metrics.items():
-            metrics[name] = validate_scorer(scorer, model, dataset)
+    if alternative_scorers:
+        scorers = {}
+        for name, scorer in alternative_scorers.items():
+            scorers[name] = validate_scorer(scorer, model, dataset)
     else:
         # Check for model type
         model_type = task_type_check(model, dataset)
-        metrics = DEFAULT_METRICS_DICT[model_type]
+        scorers = DEFAULT_SCORERS_DICT[model_type]
 
-    return metrics
+    return scorers
 
 
 def validate_scorer(scorer, model, dataset):
@@ -179,13 +183,13 @@ def validate_scorer(scorer, model, dataset):
         )
 
 
-def get_metrics_ratio(train_metric: float, test_metric: float, max_ratio=np.Inf) -> float:
+def get_scores_ratio(train_score: float, test_score: float, max_ratio=np.Inf) -> float:
     """Return the ratio of test metric compared to train metric."""
-    if train_metric == 0:
+    if train_score == 0:
         return max_ratio
     else:
-        ratio = test_metric / train_metric
-        if train_metric < 0 and test_metric < 0:
+        ratio = test_score / train_score
+        if train_score < 0 and test_score < 0:
             ratio = 1 / ratio
         ratio = min(max_ratio, ratio)
         return ratio

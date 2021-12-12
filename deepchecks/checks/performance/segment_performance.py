@@ -17,7 +17,7 @@ from matplotlib.axes import Axes
 
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
 from deepchecks.checks.performance.partition import partition_column
-from deepchecks.utils.metrics import validate_scorer, task_type_check, DEFAULT_SINGLE_METRIC, DEFAULT_METRICS_DICT
+from deepchecks.utils.metrics import validate_scorer, task_type_check, DEFAULT_SINGLE_SCORER, DEFAULT_SCORERS_DICT
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.validation import validate_model
@@ -98,8 +98,8 @@ class SegmentPerformance(SingleDatasetBaseCheck):
             scorer_name = self.scorer if isinstance(self.scorer, str) else 'User Scorer'
         else:
             model_type = task_type_check(model, dataset)
-            scorer_name = DEFAULT_SINGLE_METRIC[model_type]
-            scorer = DEFAULT_METRICS_DICT[model_type][scorer_name]
+            scorer_name = DEFAULT_SINGLE_SCORER[model_type]
+            scorer = DEFAULT_SCORERS_DICT[model_type][scorer_name]
 
         feature_1_filters = partition_column(dataset, self.feature_1, max_segments=self.max_segments)
         feature_2_filters = partition_column(dataset, self.feature_2, max_segments=self.max_segments)

@@ -18,8 +18,8 @@ from deepchecks.utils.strings import format_number
 
 from deepchecks import CheckResult, Dataset
 from deepchecks.base.check import ConditionResult, TrainTestBaseCheck
-from deepchecks.utils.metrics import DEFAULT_METRICS_DICT, DEFAULT_SINGLE_METRIC, task_type_check, \
-                                     ModelType, validate_scorer, get_metrics_ratio
+from deepchecks.utils.metrics import DEFAULT_SCORERS_DICT, DEFAULT_SINGLE_SCORER, task_type_check, \
+                                     ModelType, validate_scorer, get_scores_ratio
 from deepchecks.utils.validation import validate_model
 from deepchecks.errors import DeepchecksValueError
 
@@ -112,10 +112,11 @@ class SimpleModelComparison(TrainTestBaseCheck):
         elif self.simple_model_type == 'constant':
             if task_type == ModelType.REGRESSION:
                 simple_pred = np.array([np.mean(train_ds.label_col)] * len(test_df))
-
-            elif task_type in (ModelType.BINARY, ModelType.MULTICLASS):
+            elif task_type in {ModelType.BINARY, ModelType.MULTICLASS}:
                 counts = train_ds.label_col.mode()
                 simple_pred = np.array([counts.index[0]] * len(test_df))
+            else:
+                raise DeepchecksValueError(f'Unknown task type - {task_type}')
 
         elif self.simple_model_type == 'tree':
             y_train = train_ds.label_col
@@ -127,14 +128,21 @@ class SimpleModelComparison(TrainTestBaseCheck):
             )
 
             if task_type == ModelType.REGRESSION:
-                clf = DecisionTreeRegressor(max_depth=self.max_depth, random_state=self.random_state)
-            elif task_type in (ModelType.BINARY, ModelType.MULTICLASS):
-                clf = DecisionTreeClassifier(max_depth=self.max_depth,
-                                             random_state=self.random_state, class_weight='balanced')
+                clf = DecisionTreeRegressor(
+                    max_depth=self.max_depth, 
+                    random_state=self.random_state
+                )
+            elif task_type in {ModelType.BINARY, ModelType.MULTICLASS}:
+                clf = DecisionTreeClassifier(
+                    max_depth=self.max_depth,
+                    random_state=self.random_state, 
+                    class_weight='balanced'
+                )
+            else:
+                raise DeepchecksValueError(f'Unknown task type - {task_type}')
 
-            if clf: # FIXME: is 'clf' possibly unbound?
-                clf = clf.fit(x_train, y_train)
-                simple_pred = clf.predict(x_test)
+            clf = clf.fit(x_train, y_train)
+            simple_pred = clf.predict(x_test)
 
         else:
             raise DeepchecksValueError(
@@ -148,10 +156,10 @@ class SimpleModelComparison(TrainTestBaseCheck):
             scorer = validate_scorer(self.scorer, model, train_ds)
             scorer_name = self.scorer if isinstance(self.scorer, str) else 'User Scorer'
         else:
-            scorer_name = DEFAULT_SINGLE_METRIC[task_type]
-            scorer = DEFAULT_METRICS_DICT[task_type][scorer_name]
+            scorer_name = DEFAULT_SINGLE_SCORER[task_type]
+            scorer = DEFAULT_SCORERS_DICT[task_type][scorer_name]
 
-        simple_score = scorer(DummyModel, simple_pred, y_test) # FIXME: is 'simple_pred' possibly unbound?
+        simple_score = scorer(DummyModel, simple_pred, y_test)
         pred_score = scorer(model, test_ds.features_columns, y_test)
 
         return simple_score, pred_score, scorer_name
@@ -166,7 +174,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
         simple_score, pred_score, score_name = self._find_score(train_dataset, test_dataset,
                                                             task_type_check(model, train_dataset), model)
 
-        ratio = get_metrics_ratio(simple_score, pred_score, self.maximum_ratio)
+        ratio = get_scores_ratio(simple_score, pred_score, self.maximum_ratio)
 
         text = f'The given model performs {more_than_prefix_adder(ratio, self.maximum_ratio)} times compared to' \
                f' the simple model using the {score_name} score.<br>' \
