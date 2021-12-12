@@ -1,19 +1,29 @@
 from sklearn.base import BaseEstimator
 
 from deepchecks import Dataset
+from deepchecks.utils.features import calculate_feature_importance
+
+__all__ = ['ModelWrapper']
+
 
 class ModelWrapper:
-    def __init__(self, model: BaseEstimator):
+    def __init__(self, model: BaseEstimator, dataset = None):
         self._model = model
         self._predicted_datasets = {}
         self._predicted_proba_datasets = {}
-        self.feature_importance = None
+        self.model_class_name = model.__class__.__name__
 
-    def predict(self, data):
-        return self._model.predict(data)
+        if dataset:
+            self.feature_importance = \
+                calculate_feature_importance(model=model, dataset=dataset)
+        else:
+            self.feature_importance = None
 
-    def predict_proba(self, data):
-        return self._model.predict_proba(data)
+    def predict(self, data, *args, **kwargs):
+        return self._model.predict(data, *args, **kwargs)
+
+    def predict_proba(self, data, *args, **kwargs):
+        return self._model.predict_proba(data, *args, **kwargs)
 
     def predict_dataset(self, dataset: Dataset):
         prediction = self._predicted_datasets.get(dataset)
