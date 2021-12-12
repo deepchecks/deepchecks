@@ -9,31 +9,25 @@
 # ----------------------------------------------------------------------------
 #
 """Module of segment performance check."""
+from functools import partial
 from typing import Callable, Union, Optional
 
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from matplotlib.axes import Axes
-import seaborn as sns
 from sklearn.base import is_classifier
 
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OrdinalEncoder
 from sklearn.ensemble import RandomForestRegressor
 from category_encoders import TargetEncoder
 from sklearn.metrics import log_loss, mean_squared_error
 
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
-from deepchecks.checks.performance.partition import partition_column
-from deepchecks.utils.metrics import validate_scorer, task_type_check, DEFAULT_SINGLE_METRIC, DEFAULT_METRICS_DICT
-from deepchecks.utils.strings import format_number
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.validation import validate_model
 from deepchecks.utils.typing import Hashable
-from deepchecks.errors import DeepchecksValueError
 
 
 __all__ = ['ModelErrorAnalysis']
@@ -68,8 +62,8 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
         """
         # Validations
-        Dataset.validate_dataset(dataset, self.__class__.__name__)
-        dataset.validate_label(self.__class__.__name__)
+        Dataset.validate_dataset(dataset)
+        dataset.validate_label()
         validate_model(dataset, model)
 
         cat_features = dataset.cat_features
@@ -107,7 +101,30 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
         error_fi = calculate_feature_importance(error_model, dataset)
         error_fi.sort_values(ascending=False, inplace=True)
 
-        display_params = {'data': dataset.data.assign(score=score), 'features': []}
+        display_data = dataset.data.assign(score=score)
+
+        def display_categorical(data, feature, groupby):
+            fig = plt.figure(figsize=(10, 7))
+            ax = plt.gca()
+            categories = []
+            all_values = []
+            for category, rows in groupby.groups.items():
+                cat_data = data.iloc[rows]
+                all_values.append(cat_data['score'])
+                categories.append(category)
+
+            bp = ax.violinplot(all_values, showmedians=True)
+
+            ax.set_xticklabels([0]+ categories)
+            plt.xticks(rotation=30)
+            plt.title(feature)
+
+        def display_numeric(data, feature):
+            fig = plt.figure(figsize=(10, 7))
+            plt.scatter(x=feature, y='score', data=data)
+            plt.title(feature)
+
+        display = []
 
         for feature in error_fi.keys()[:self.max_features]:
             if error_fi[feature] < self.min_error:
@@ -117,40 +134,14 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
                 feat = dataset.data[feature]
                 scored_feature = pd.DataFrame(feat).assign(score=score)
                 grouped_category = scored_feature.groupby(feat)
-                params = {
-                    'feature': feature,
-                    'groupby': grouped_category,
-                    'type': 'category'
-                }
-                display_params['features'].append(params)
+                display.append(partial(display_categorical, display_data, feature, grouped_category))
             else:
-                params = {
-                    'feature': feature,
-                    'type': 'numeric'
-                }
-                display_params['features'].append(params)
-
-        def display():
-            data = display_params['data']
-
-            for display_feature in display_params['features']:
-                if display_feature['type'] == 'category':
-                    groupby = display_feature['groupby']
-                    fig, axs = plt.subplots(nrows=1, ncols=groupby.ngroups)
-                    for category, ax in zip(groupby.groups.items(), axs):
-                        cat_data = data.iloc[category[1]]
-                        ax.violinplot(cat_data['score'], showmedians=True)
-                        ax.set_title(category[0])
-                    plt.title(display_feature['feature'])
-                    plt.show()
-                elif display_feature['type'] == 'numeric':
-                    plt.scatter(x=display_feature['feature'], y='score', data=data)
-                    plt.title(display_feature['feature'])
-                    plt.show()
+                display.append(partial(display_numeric, display_data, feature))
 
         value = None
+        headnote = """<span>
+            The following graphs show the top features that contribute to error and their values compared to the error
+        </span>"""
+        display = [headnote] + display if display else None
 
-        if not display_params['features']:
-            display = None
-
-        return CheckResult(value, display=['explination of why...', display])
+        return CheckResult(value, display=display)

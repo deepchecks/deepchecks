@@ -176,6 +176,8 @@ class CheckResult:
                 else:
                     raise Exception(f'Unable to display item of type: {type(item)}')
             except Exception as e:
+                # DBI: to remove
+                raise e
                 display_html(f'Error while trying to display check result:\n{str(e)}', raw=True)
         if not self.display:
             display_html('<p><b>&#x2713;</b> Nothing found</p>', raw=True)
