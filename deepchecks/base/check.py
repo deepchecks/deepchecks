@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing all the base classes for checks."""
+# pylint: disable=broad-except
 import abc
 import enum
 import re
