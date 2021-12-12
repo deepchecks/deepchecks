@@ -58,7 +58,7 @@ class StringMismatchComparison(TrainTestBaseCheck):
     Specifically, we define similarity between strings if they are equal when ignoring case and non-letter
     characters.
     Example:
-    We have a baseline dataset with similar strings 'string' and 'St. Ring', which have different meanings.
+    We have a test dataset with similar strings 'string' and 'St. Ring', which have different meanings.
     Our tested dataset has the strings 'string', 'St. Ring' and a new phrase, 'st.  ring'.
     Here, we have a new variant of the above strings, and would like to be acknowledged, as this is obviously a
     different version of 'St. Ring'.

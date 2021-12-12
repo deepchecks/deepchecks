@@ -47,7 +47,7 @@ class DominantFrequencyChange(TrainTestBaseCheck):
 
         Args:
             train_dataset (Dataset): The training dataset object. Must contain an index.
-            test_dataset (Dataset): The baseline dataset object. Must contain an index.
+            test_dataset (Dataset): The test dataset object. Must contain an index.
         Returns:
             CheckResult: Detects values highly represented in the tested and reference data and checks if their..
             relative and absolute percentage have increased significantly and makes a report.
@@ -105,7 +105,7 @@ class DominantFrequencyChange(TrainTestBaseCheck):
 
         Args:
             train_dataset (Dataset): The dataset object. Must contain an index.
-            test_dataset (Dataset): The baseline dataset object. Must contain an index.
+            test_dataset (Dataset): The test dataset object. Must contain an index.
         Returns:
             CheckResult: result value is dict that contains the dominant value change for each column.
         """
@@ -115,8 +115,8 @@ class DominantFrequencyChange(TrainTestBaseCheck):
 
         columns = test_dataset.features
 
-        test_df = train_dataset.data
-        baseline_df = test_dataset.data
+        test_df = test_dataset.data
+        baseline_df = train_dataset.data
 
         baseline_len = len(baseline_df)
         test_len = len(test_df)
