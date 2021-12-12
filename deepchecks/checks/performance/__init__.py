@@ -18,3 +18,4 @@ from .segment_performance import *
 from .regression_systematic_error import *
 from .regression_error_distribution import *
 from .class_performance_imbalance import *
+from .model_error_analysis import *
