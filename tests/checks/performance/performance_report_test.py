@@ -69,7 +69,7 @@ def test_condition_min_score_not_passed(diabetes, diabetes_model):
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details=re.compile('Scores that are less than -100: \\{\'MSE\':'),
+                               details=re.compile('Scores that did not pass threshold: \\{\'MSE\':'),
                                name='Score is not less than -100')
     ))
 

@@ -129,13 +129,13 @@ class SimpleModelComparison(TrainTestBaseCheck):
 
             if task_type == ModelType.REGRESSION:
                 clf = DecisionTreeRegressor(
-                    max_depth=self.max_depth, 
+                    max_depth=self.max_depth,
                     random_state=self.random_state
                 )
             elif task_type in {ModelType.BINARY, ModelType.MULTICLASS}:
                 clf = DecisionTreeClassifier(
                     max_depth=self.max_depth,
-                    random_state=self.random_state, 
+                    random_state=self.random_state,
                     class_weight='balanced'
                 )
             else:
