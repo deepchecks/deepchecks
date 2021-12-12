@@ -15,6 +15,7 @@ from sklearn.base import BaseEstimator
 from deepchecks import CheckResult, Dataset
 from deepchecks.base.check import SingleDatasetBaseCheck
 from deepchecks.utils.metrics import ModelType, task_type_validation
+from deepchecks.utils.model import predict_dataset
 
 
 __all__ = ['ConfusionMatrixReport']
@@ -45,9 +46,8 @@ class ConfusionMatrixReport(SingleDatasetBaseCheck):
         task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY], check_name)
 
         label = dataset.label_name
-        ds_x = dataset.data[dataset.features]
         ds_y = dataset.data[label]
-        y_pred = model.predict(ds_x)
+        y_pred = predict_dataset(dataset, model)
 
         confusion_matrix = sklearn.metrics.confusion_matrix(ds_y, y_pred)
 

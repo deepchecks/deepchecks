@@ -15,6 +15,7 @@ from sklearn.metrics import brier_score_loss
 import matplotlib.pyplot as plt
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
 from deepchecks.utils.metrics import ModelType, task_type_validation
+from deepchecks.utils.model import predict_proba_dataset
 
 __all__ = ["CalibrationMetric"]
 
@@ -43,9 +44,8 @@ class CalibrationMetric(SingleDatasetBaseCheck):
         dataset.validate_label(check_name)
         task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY], check_name)
 
-        ds_x = dataset.features_columns
         ds_y = dataset.label_col
-        y_pred = model.predict_proba(ds_x)
+        y_pred = predict_proba_dataset(dataset, model)
 
         briers_scores = {}
         unique_labels = dataset.label_col.unique()

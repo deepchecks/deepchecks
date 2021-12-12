@@ -19,6 +19,7 @@ from sklearn.base import BaseEstimator
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck
 from deepchecks.base.check import ConditionResult
 from deepchecks.utils.metrics import ModelType, task_type_validation
+from deepchecks.utils.model import predict_proba_dataset
 from deepchecks.utils.strings import format_number
 
 
@@ -57,11 +58,10 @@ class RocReport(SingleDatasetBaseCheck):
         task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY], check_name)
 
         label = dataset.label_name
-        ds_x = dataset.data[dataset.features]
         ds_y = dataset.data[label]
         multi_y = (np.array(ds_y)[:, None] == np.unique(ds_y)).astype(int)
         n_classes = ds_y.nunique()
-        y_pred_prob = model.predict_proba(ds_x)
+        y_pred_prob = predict_proba_dataset(dataset, model)
 
         fpr = {}
         tpr = {}

@@ -26,7 +26,7 @@ def model_type_validation(model: t.Any):
         DeepchecksValueError: If the object is not of a supported type
     """
     supported_by_class_name = ('CatBoostClassifier', 'CatBoostRegressor')
-    supported_by_class_instance = (sklearn.base.BaseEstimator,)
+    supported_by_class_instance = (sklearn.base.BaseEstimator, base.ModelWrapper)
     if (
         not isinstance(model, supported_by_class_instance)
         and model.__class__.__name__ not in supported_by_class_name
@@ -37,7 +37,7 @@ def model_type_validation(model: t.Any):
         )
 
 
-def validate_model(dataset: 'base.Dataset', model: t.Any):
+def  validate_model(dataset: 'base.Dataset', model: t.Any):
     """Check model is able to predict on the dataset.
 
     Raise:
