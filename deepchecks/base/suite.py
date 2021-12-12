@@ -14,6 +14,7 @@ from collections import OrderedDict
 from typing import Union, List, Optional
 
 from deepchecks.base.display_suite import display_suite_result, ProgressBar
+from deepchecks.base.model_wrapper import ModelWrapper
 from deepchecks.errors import DeepchecksValueError
 from deepchecks.base import Dataset
 from deepchecks.base.check import (
@@ -88,6 +89,9 @@ class Suite(BaseCheck):
 
         if all(it is None for it in (train_dataset, test_dataset, model)):
             raise ValueError('At least one dataset (or model) must be passed to the method!')
+
+        if model:
+            model = ModelWrapper(model)
 
         # Create progress bar
         progress_bar = ProgressBar(self.name, len(self.checks))

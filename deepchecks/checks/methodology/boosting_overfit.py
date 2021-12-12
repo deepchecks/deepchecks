@@ -17,6 +17,7 @@ from matplotlib.ticker import MaxNLocator
 import numpy as np
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
+from deepchecks.base.model_wrapper import ModelWrapper
 from deepchecks.utils.metrics import task_type_check, DEFAULT_METRICS_DICT, validate_scorer, DEFAULT_SINGLE_METRIC
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
@@ -36,6 +37,8 @@ class PartialBoostingModel:
             model: boosting model to wrap.
             step: Number of iterations/estimators to limit the model on predictions.
         """
+        if isinstance(model, ModelWrapper):
+            model = model.original_model
         self.model_class = model.__class__.__name__
         self.step = step
         if self.model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
@@ -72,6 +75,8 @@ class PartialBoostingModel:
 
     @classmethod
     def n_estimators(cls, model):
+        if isinstance(model, ModelWrapper):
+            model = model.original_model
         model_class = model.__class__.__name__
         if model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
                            'GradientBoostingRegressor']:
