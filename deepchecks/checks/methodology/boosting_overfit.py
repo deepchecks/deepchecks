@@ -152,12 +152,12 @@ class BoostingOverfit(TrainTestBaseCheck):
             raise DeepchecksValueError('Can not have metric_name without metric')
         if not isinstance(self.num_steps, int) or self.num_steps < 2:
             raise DeepchecksValueError('num_steps must be an integer larger than 1')
-        Dataset.validate_dataset(train_dataset, self.__class__.__name__)
-        Dataset.validate_dataset(test_dataset, self.__class__.__name__)
-        train_dataset.validate_label(self.__class__.__name__)
-        test_dataset.validate_label(self.__class__.__name__)
-        train_dataset.validate_shared_features(test_dataset, self.__class__.__name__)
-        train_dataset.validate_shared_label(test_dataset, self.__class__.__name__)
+        Dataset.validate_dataset(train_dataset)
+        Dataset.validate_dataset(test_dataset)
+        train_dataset.validate_label()
+        test_dataset.validate_label()
+        train_dataset.validate_shared_features(test_dataset)
+        train_dataset.validate_shared_label(test_dataset)
         validate_model(train_dataset, model)
 
         # Get default metric
