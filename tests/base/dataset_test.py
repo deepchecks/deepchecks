@@ -183,14 +183,14 @@ def test_dataset_infer_cat_features_max_categorical_ratio(diabetes_df):
     assert_dataset(dataset, args)
 
 
-def test_dataset_label(iris):
+def test_dataset_label_name(iris):
     args = {'df': iris,
             'label_name': 'target'}
     dataset = Dataset(**args)
     assert_dataset(dataset, args)
 
 
-def test_dataset_label_in_features(iris):
+def test_dataset_label_name_in_features(iris):
     args = {'df': iris,
             'features': ['sepal length (cm)',
                          'sepal width (cm)',
@@ -202,7 +202,7 @@ def test_dataset_label_in_features(iris):
                 raises(DeepchecksValueError, 'label column target can not be a feature column'))
 
 
-def test_dataset_bad_label(iris):
+def test_dataset_bad_label_name(iris):
     args = {'df': iris,
             'label_name': 'shmabel'}
     assert_that(calling(Dataset).with_args(**args),
@@ -621,3 +621,25 @@ class TestLabel(TestCase):
         self.assertEqual(len(captured.records), 1)  # check that there is only one log message
         self.assertEqual(captured.records[0].getMessage(),
                          'Can not have null values in label column')  # and it is the proper one
+
+
+def test_dataset_label_without_name(iris):
+    # Arrange
+    label = iris['target']
+    data = iris.drop('target', axis=1)
+    # Act
+    dataset = Dataset(data, label)
+    # Assert
+    assert_that(dataset.features, equal_to(list(data.columns)))
+    assert_that(dataset.data.columns, contains_exactly(*data.columns, 'target'))
+
+
+def test_dataset_label_with_name(iris):
+    # Arrange
+    label = iris['target']
+    data = iris.drop('target', axis=1)
+    # Act
+    dataset = Dataset(data, label, label_name='actual')
+    # Assert
+    assert_that(dataset.features, equal_to(list(data.columns)))
+    assert_that(dataset.data.columns, contains_exactly(*data.columns, 'actual'))
