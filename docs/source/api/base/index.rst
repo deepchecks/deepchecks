@@ -14,7 +14,7 @@ Classes Summary
 
 .. autosummary::
     :recursive:
-    :toctree: _autosummary
+    :toctree: generated
 
     check
     dataset

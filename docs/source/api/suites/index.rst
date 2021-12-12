@@ -13,7 +13,7 @@ Prebuilt Suites
 
 .. autosummary::
     :recursive:
-    :toctree: _autosummary
+    :toctree: generated
 
     distribution_suite
     integrity_suite

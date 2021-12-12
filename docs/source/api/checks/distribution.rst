@@ -12,7 +12,7 @@ Classes Summary
 
 .. autosummary::
     :recursive:
-    :toctree: _autosummary
+    :toctree: generated
     :template: check.rst
 
     train_test_drift.TrainTestDrift

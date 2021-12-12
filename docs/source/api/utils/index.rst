@@ -13,7 +13,7 @@ Utils
 
 .. autosummary::
     :recursive:
-    :toctree: _autosummary
+    :toctree: generated
 
     dataframes
     features
