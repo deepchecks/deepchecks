@@ -24,8 +24,8 @@ from tests.checks.utils import equal_condition_result
 def test_boosting_classifier(iris):
     # Arrange
     train_df, test = train_test_split(iris, test_size=0.33, random_state=0)
-    train = Dataset(train_df, label='target')
-    test = Dataset(test, label='target')
+    train = Dataset(train_df, label_name='target')
+    test = Dataset(test, label_name='target')
 
     clf = GradientBoostingClassifier(random_state=0)
     clf.fit(train.features_columns, train.label_col)
@@ -61,8 +61,8 @@ def test_boosting_regressor(diabetes, diabetes_model):
 def test_boosting_classifier_with_metric(iris):
     # Arrange
     train_df, validation_df = train_test_split(iris, test_size=0.33, random_state=0)
-    train = Dataset(train_df, label='target')
-    validation = Dataset(validation_df, label='target')
+    train = Dataset(train_df, label_name='target')
+    validation = Dataset(validation_df, label_name='target')
 
     clf = GradientBoostingClassifier(random_state=0)
     clf.fit(train.features_columns, train.label_col)

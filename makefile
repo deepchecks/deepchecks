@@ -303,7 +303,7 @@ download:
 	$(PIP) install $(PROJECT)
 
 jupyter: $(JUPYTER)
-	$(BIN)/jupyter-notebook $(args) --notebook-dir=$(NOTEBOOK_CHECKS)
+	$(BIN)/jupyter-notebook $(args) --notebook-dir=./notebooks
 
 $(JUPYTER):
 	$(PIP) install jupyter
