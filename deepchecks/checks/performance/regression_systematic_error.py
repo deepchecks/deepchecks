@@ -16,6 +16,7 @@ from sklearn.metrics import mean_squared_error
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
 from deepchecks.utils.metrics import ModelType, task_type_validation
 from deepchecks.utils.strings import format_number
+from deepchecks.utils.model import predict_dataset
 
 __all__ = ['RegressionSystematicError']
 
@@ -44,7 +45,7 @@ class RegressionSystematicError(SingleDatasetBaseCheck):
         task_type_validation(model, dataset, [ModelType.REGRESSION])
 
         y_test = dataset.label_col
-        y_pred = model.predict(dataset.features_columns)
+        y_pred = predict_dataset(dataset, model)
 
         rmse = mean_squared_error(dataset.label_col, y_pred, squared=False)
         diff = y_test - y_pred
