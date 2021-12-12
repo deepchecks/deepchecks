@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing all the base classes for checks."""
+# pylint: disable=broad-except
 import abc
 import enum
 import re
@@ -164,15 +165,18 @@ class CheckResult:
             display_html(f'<p>{summary}</p>', raw=True)
 
         for item in self.display:
-            if isinstance(item, (pd.DataFrame, Styler)):
-                display_dataframe(item)
-            elif isinstance(item, str):
-                display_html(item, raw=True)
-            elif isinstance(item, Callable):
-                item()
-                plt.show()
-            else:
-                raise Exception(f'Unable to display item of type: {type(item)}')
+            try:
+                if isinstance(item, (pd.DataFrame, Styler)):
+                    display_dataframe(item)
+                elif isinstance(item, str):
+                    display_html(item, raw=True)
+                elif isinstance(item, Callable):
+                    item()
+                    plt.show()
+                else:
+                    raise Exception(f'Unable to display item of type: {type(item)}')
+            except Exception as e:
+                display_html(f'Error while trying to display check result:\n{str(e)}', raw=True)
         if not self.display:
             display_html('<p><b>&#x2713;</b> Nothing found</p>', raw=True)
 
