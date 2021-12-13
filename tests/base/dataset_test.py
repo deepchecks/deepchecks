@@ -279,10 +279,10 @@ def test_dataset_date_in_features(iris):
                 raises(DeepchecksValueError, 'date column target can not be a feature column'))
 
 
-def test_dataset_date_unit_type():
+def test_dataset_date_args():
     df = pd.DataFrame({'date': [1, 2]})
     args = {'date': 'date',
-            'date_unit_type': 'D'}
+            'date_args': {'unit': 'D'}}
     dataset = Dataset(df, **args)
     assert_dataset(dataset, args)
     date_col = dataset.date_col
