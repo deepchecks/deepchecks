@@ -111,7 +111,7 @@ class DominantFrequencyChange(TrainTestBaseCheck):
         """Run the check logic.
 
         Args:
-            train_dataset (Dataset): The dataset object. Must contain an index.
+            train_dataset (Dataset): The training dataset object. Must contain an index.
             test_dataset (Dataset): The test dataset object. Must contain an index.
         Returns:
             CheckResult: result value is dict that contains the dominant value change for each column.
