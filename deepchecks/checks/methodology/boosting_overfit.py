@@ -75,7 +75,6 @@ class PartialBoostingModel:
         model_class = model.__class__.__name__
         if model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
                            'GradientBoostingRegressor']:
-            print(model.estimators_)
             return len(model.estimators_)
         elif model_class in ['LGBMClassifier', 'LGBMRegressor']:
             return model.n_estimators
