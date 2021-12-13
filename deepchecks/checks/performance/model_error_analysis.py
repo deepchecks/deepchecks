@@ -13,16 +13,16 @@ from functools import partial
 from typing import Callable, Union, Optional
 
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 from sklearn.base import is_classifier
-
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestRegressor
-from category_encoders import TargetEncoder
 from sklearn.metrics import log_loss, mean_squared_error
+from category_encoders import TargetEncoder
 
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
 from deepchecks.utils.features import calculate_feature_importance
@@ -38,6 +38,7 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
 
     Args:
         max_segments (int): maximal number of segments to split the a values into.
+        min_error (float): mimun
     """
 
     feature_1: Optional[Hashable]
@@ -48,11 +49,13 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
     def __init__(
         self,
         max_features: int = 3,
-        min_error: float = 0.15
+        min_error: float = 0.15,
+        random_seed: int = 42,
     ):
         super().__init__()
         self.max_features = max_features
         self.min_error = min_error
+        self.random_seed = random_seed
 
     def run(self, dataset: Dataset, model) -> CheckResult:
         """Run check.
@@ -74,26 +77,25 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
             score = list(map(lambda x, y: log_loss([x], [y], labels=labels), dataset.label_col, y_pred))
         else:
             y_pred = model.predict(dataset.features_columns)
-            score = pd.DataFrame({'label': dataset.label_col, 'pred': y_pred}).apply(
-                lambda x: mean_squared_error(x['label'], y['pred']))
+            score = list(map(lambda x, y: mean_squared_error([x], [y]), dataset.label_col, y_pred))
 
         numeric_transformer = SimpleImputer()
         categorical_transformer = Pipeline(
-            steps=[("imputer", SimpleImputer(strategy="most_frequent")), ("encoder", TargetEncoder(cat_features))]
+            steps=[('imputer', SimpleImputer(strategy='most_frequent')), ('encoder', TargetEncoder(cat_features))]
         )
 
         numeric_features = [num_feature for num_feature in dataset.features if num_feature not in dataset.cat_features]
 
         preprocessor = ColumnTransformer(
             transformers=[
-                ("num", numeric_transformer, numeric_features),
-                ("cat", categorical_transformer, cat_features),
+                ('num', numeric_transformer, numeric_features),
+                ('cat', categorical_transformer, cat_features),
             ]
         )
 
         error_model = Pipeline(steps=[
-            ("preprocessing", preprocessor),
-            ("model", RandomForestRegressor(max_depth=4, n_jobs=-1))
+            ('preprocessing', preprocessor),
+            ('model', RandomForestRegressor(max_depth=4, n_jobs=-1, random_state=self.random_seed))
         ])
 
         error_model.fit(dataset.features_columns, y=score)
@@ -103,8 +105,11 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
 
         display_data = dataset.data.assign(score=score)
 
-        def display_categorical(data, feature, groupby):
-            fig = plt.figure(figsize=(10, 7))
+        min_score = min(score)
+        max_score = max(score)
+
+        def display_categorical(data, feature_name, groupby):
+            plt.figure(figsize=(10, 7))
             ax = plt.gca()
             categories = []
             all_values = []
@@ -113,16 +118,21 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
                 all_values.append(cat_data['score'])
                 categories.append(category)
 
-            bp = ax.violinplot(all_values, showmedians=True)
+            ax.violinplot(all_values, showextrema=False,showmedians=True)
+            ax.xaxis.set_major_locator(mticker.FixedLocator(range(0, len(categories) + 1)))
+            ax.set_xticklabels([''] + categories)
 
-            ax.set_xticklabels([0]+ categories)
             plt.xticks(rotation=30)
-            plt.title(feature)
+            plt.title(feature_name)
 
-        def display_numeric(data, feature):
-            fig = plt.figure(figsize=(10, 7))
-            plt.scatter(x=feature, y='score', data=data)
-            plt.title(feature)
+        def display_numeric(data, feature_name):
+            plt.figure(figsize=(10, 7))
+            cm = plt.cm.get_cmap('RdYlBu_r')
+
+            sc = plt.scatter(x=feature_name, y='score', data=data, alpha=0.1, edgecolors='none',
+                             c=data['score'], vmin=min_score, vmax=max_score, cmap=cm)
+            plt.colorbar(sc)
+            plt.title(feature_name)
 
         display = []
 
@@ -140,7 +150,11 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
 
         value = None
         headnote = """<span>
-            The following graphs show the top features that contribute to error and their values compared to the error
+            The following graphs show the top features that contribute to error and their values compared to the error.
+            </br>
+            Categorical features are represented as a violin graph. (x axis: category, y axis: error)
+            </br>
+            Numerical features are represented as a scatter plot. (x axis: value, y axis: error)
         </span>"""
         display = [headnote] + display if display else None
 
