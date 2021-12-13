@@ -66,6 +66,8 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_s
     Raise:
         NotFittedError: Call 'fit' with appropriate arguments before using this estimator.
     """
+    validation.validate_model(dataset, model)
+
     # special condition - check_is_fitted doesn't work for Pipeline
     if isinstance(model, Pipeline):
         # get feature importance from last model in pipeline
@@ -75,20 +77,13 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_s
             check_is_fitted(internal_estimator)
         else:
             internal_estimator = None
+        feature_importances = None
     else:
         check_is_fitted(model)
+        feature_importances = _built_in_importance(model, dataset)
 
-    validation.validate_model(dataset, model)
-
-    feature_importances = _built_in_importance(model, dataset)
     if feature_importances is None:
-        if isinstance(model, Pipeline):
-            if internal_estimator is not None:
-                feature_importances = _built_in_importance(internal_estimator, dataset)
-            else:
-                feature_importances = _calc_importance(model, dataset, random_state=random_state)
-        else:  # Others
-            feature_importances = _calc_importance(model, dataset, random_state=random_state)
+        feature_importances = _calc_importance(model, dataset, random_state=random_state)
 
     return feature_importances.fillna(0)
 
