@@ -279,18 +279,32 @@ def test_dataset_date_in_features(iris):
                 raises(DeepchecksValueError, 'date column target can not be a feature column'))
 
 
-def test_dataset_date_unit_type():
+def test_dataset_date_args_single_arg():
     df = pd.DataFrame({'date': [1, 2]})
     args = {'date': 'date',
-            'date_unit_type': 'D'}
+            'date_args': {'unit': 'D'}}
     dataset = Dataset(df, **args)
     assert_dataset(dataset, args)
     date_col = dataset.date_col
     assert_that(date_col, not_none())
     # disable false positive
     # pylint:disable=unsubscriptable-object
-    assert_that(date_col[0], is_(pd.Timestamp(1, unit='D')))
-    assert_that(date_col[1], is_(pd.Timestamp(2, unit='D')))
+    assert_that(date_col[0], is_(pd.to_datetime(1, unit='D')))
+    assert_that(date_col[1], is_(pd.to_datetime(2, unit='D')))
+
+
+def test_dataset_date_args_multi_arg():
+    df = pd.DataFrame({'date': [160, 180]})
+    args = {'date': 'date',
+            'date_args': {'unit': 'D', 'origin': '2020-02-01'}}
+    dataset = Dataset(df, **args)
+    assert_dataset(dataset, args)
+    date_col = dataset.date_col
+    assert_that(date_col, not_none())
+    # disable false positive
+    # pylint:disable=unsubscriptable-object
+    assert_that(date_col[0], is_(pd.to_datetime(160, unit='D', origin='2020-02-01')))
+    assert_that(date_col[1], is_(pd.to_datetime(180, unit='D', origin='2020-02-01')))
 
 
 def test_dataset_date_convert_date():
