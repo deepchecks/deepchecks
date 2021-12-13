@@ -86,9 +86,12 @@ class StringMismatchComparison(TrainTestBaseCheck):
         """Run check.
 
         Args:
-            train_dataset (Dataset): A dataset object.
-            test_dataset (Dataset): A dataset object.
+            train_dataset (Dataset): The training dataset object.
+            test_dataset (Dataset): The test dataset object.
             model: Not used in this check.
+        
+        Returns:
+            CheckResult: with value of type dict that contains detected different variants of string
         """
         feature_importances = calculate_feature_importance_or_null(test_dataset, model)
         return self._string_mismatch_comparison(train_dataset, test_dataset, feature_importances)
