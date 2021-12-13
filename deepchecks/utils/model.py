@@ -12,12 +12,12 @@
 from deepchecks.base import ModelWrapper, Dataset
 
 def predict_dataset(dataset: Dataset, model):
-    """runs the predict function of the model on a given dataset features
+    """Run the predict function of the model on a given dataset features.
 
     Args:
         dataset (Dataset): dataset to predict
         model: model that runs the prediction
-    
+
     Returns:
         The prediction result
     """
@@ -26,12 +26,12 @@ def predict_dataset(dataset: Dataset, model):
     return model.predict(dataset.features_columns)
 
 def predict_proba_dataset(dataset: Dataset, model):
-    """runs the predict proba function of the model on a given dataset features
+    """Run the predict proba function of the model on a given dataset features.
 
     Args:
         dataset (Dataset): dataset to predict
         model: model that runs the prediction
-    
+
     Returns:
         The prediction result
     """

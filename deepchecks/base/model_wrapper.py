@@ -36,14 +36,15 @@ class ModelWrapper:
 
     @property
     def original_model(self):
+        """Return the original model the wrapper recived."""
         return self._original_model
 
     def predict_dataset(self, dataset: 'Dataset'):
-        """runs and saves (if not saved) the predict function of the model on a given dataset features
+        """Run and save (if not saved) the predict function of the model on a given dataset features.
 
         Args:
             dataset (Dataset): dataset to predict
-        
+
         Returns:
             The prediction result
         """
@@ -55,11 +56,11 @@ class ModelWrapper:
         return prediction
 
     def predict_proba_dataset(self, dataset: 'Dataset'):
-        """runs and saves (if not saved) the predict proba function of the model on a given dataset features
+        """Run and save (if not saved) the predict proba function of the model on a given dataset features.
 
         Args:
             dataset (Dataset): dataset to predict
-        
+
         Returns:
             The prediction result
         """
