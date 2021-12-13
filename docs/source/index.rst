@@ -3,43 +3,34 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+
 Welcome to Deepchecks' documentation!
 =====================================
 
+
 .. toctree::
+   :maxdepth: 2
    :caption: Getting Started
    :hidden:
 
    getting-started/index
 
-How To Guides
-=============
 
 .. toctree::
-   :maxdepth: 1
-   :caption: How To Guides
+   :maxdepth: 2
+   :caption: Examples
+   :glob:
 
-   guides/index
+   examples/index
 
-Checks Demonstration
-====================
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Checks Demonstration
-
-   checks/index
 
 .. toctree::
    :maxdepth: 2
    :caption: User Guide
-   :hidden:
+   :glob:
 
    user-guide/index
 
-
-Reference Guides
-================
 
 .. toctree::
    :maxdepth: 3
@@ -49,7 +40,7 @@ Reference Guides
 
 
 Indices and tables
-==================
+~~~~~~~~~~~~~~~~~~~~
 
 * :ref:`modindex`
 * :ref:`search`

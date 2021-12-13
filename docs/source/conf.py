@@ -170,60 +170,89 @@ def linkcode_resolve(domain, info):
 
 # -- Options for HTML output -------------------------------------------------
 
+
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
 html_theme = 'pydata_sphinx_theme'
+
+
+# Theme specific options.
+# See documentation of the 'pydata_sphinx_theme' theme
+# https://pydata-sphinx-theme.readthedocs.io/en/latest/user_guide/configuring.html#adding-external-links-to-your-nav-bar
+#
+html_theme_options = {
+    "show_nav_level": 2,
+    "icon_links_label": "Quick Links",
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/deepchecks/deepchecks",
+            "icon": "fab fa-github-square",
+        },
+        {
+            "name": "Slack",
+            "url": "https://deepcheckscommunity.slack.com/join/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg#/shared-invite/email",
+            "icon": "fab fa-slack",
+        },
+    ],
+}
+
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-class AutoAutoSummary(Autosummary):
 
-    option_spec = {
-        'methods': directives.unchanged,
-        'attributes': directives.unchanged,
-        'classes': directives.unchanged
-    }
+# -- Other -------------------------------------------------
 
-    required_arguments = 1
+# TODO: Not sure if we need this
 
-    @staticmethod
-    def get_members(obj, typ, include_public=None):
-        if not include_public:
-            include_public = []
-        items = []
-        for name in dir(obj):
-            try:
-                documenter = get_documenter(safe_getattr(obj, name), obj)
-            except AttributeError:
-                continue
-            if documenter.objtype == typ:
-                items.append(name)
-        public = [x for x in items if x in include_public or not x.startswith('_')]
-        return public, items
+# class AutoAutoSummary(Autosummary):
 
-    def run(self):
-        clazz = str(self.arguments[0])
-        try:
-            (module_name, class_name) = clazz.rsplit('.', 1)
-            m = __import__(module_name, globals(), locals(), [class_name])
-            c = getattr(m, class_name)
-            if 'methods' in self.options:
-                _, methods = self.get_members(c, 'method', ['__init__'])
+#     option_spec = {
+#         'methods': directives.unchanged,
+#         'attributes': directives.unchanged,
+#         'classes': directives.unchanged
+#     }
 
-                self.content = ["~%s.%s" % (clazz, method) for method in methods if not method.startswith('_')]
-            if 'attributes' in self.options:
-                _, attribs = self.get_members(c, 'attribute')
-                self.content = ["~%s.%s" % (clazz, attrib) for attrib in attribs if not attrib.startswith('_')]
-            if 'classes' in self.options:
-                _, classes = self.get_members(c, 'class')
-                self.content = ["~%s.%s" % (clazz, cls) for cls in classes if not cls.startswith('_')]
+#     required_arguments = 1
 
-        finally:
-            return super(AutoAutoSummary, self).run()
+#     @staticmethod
+#     def get_members(obj, typ, include_public=None):
+#         if not include_public:
+#             include_public = []
+#         items = []
+#         for name in dir(obj):
+#             try:
+#                 documenter = get_documenter(safe_getattr(obj, name), obj)
+#             except AttributeError:
+#                 continue
+#             if documenter.objtype == typ:
+#                 items.append(name)
+#         public = [x for x in items if x in include_public or not x.startswith('_')]
+#         return public, items
 
-def setup(app):
-    app.add_directive('autoautosummary', AutoAutoSummary)
+#     def run(self):
+#         clazz = str(self.arguments[0])
+#         try:
+#             (module_name, class_name) = clazz.rsplit('.', 1)
+#             m = __import__(module_name, globals(), locals(), [class_name])
+#             c = getattr(m, class_name)
+#             if 'methods' in self.options:
+#                 _, methods = self.get_members(c, 'method', ['__init__'])
+
+#                 self.content = ["~%s.%s" % (clazz, method) for method in methods if not method.startswith('_')]
+#             if 'attributes' in self.options:
+#                 _, attribs = self.get_members(c, 'attribute')
+#                 self.content = ["~%s.%s" % (clazz, attrib) for attrib in attribs if not attrib.startswith('_')]
+#             if 'classes' in self.options:
+#                 _, classes = self.get_members(c, 'class')
+#                 self.content = ["~%s.%s" % (clazz, cls) for cls in classes if not cls.startswith('_')]
+
+#         finally:
+#             return super(AutoAutoSummary, self).run()
+
+# def setup(app):
+#     app.add_directive('autoautosummary', AutoAutoSummary)
