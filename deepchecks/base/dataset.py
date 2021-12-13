@@ -68,7 +68,7 @@ class Dataset:
         use_index: bool = False,
         index: t.Optional[Hashable] = None,
         date: t.Optional[Hashable] = None,
-        date_unit_type: t.Optional[Hashable] = None,
+        date_args: t.Optional[t.Dict] = None,
         convert_date_: bool = True,
         max_categorical_ratio: float = 0.01,
         max_categories: int = 30,
@@ -92,10 +92,9 @@ class Dataset:
                 Name of the index column in the DataFrame.
             date (Optional[Hashable]):
                 Name of the date column in the DataFrame.
-            date_unit_type (Optional[str]):
-                Unit used for conversion if date column is of type int or float.
-                The valid values are 'D', 'h', 'm', 's', 'ms', 'us', and 'ns'.
-                e.g. 's' for seconds, 'ns' for nanoseconds. See pandas.Timestamp unit arg for more detail.
+            date_args (Optional[Dict]):
+                pandas.to_datetime args used for conversion of the date column.
+                (look at https://pandas.pydata.org/docs/reference/api/pandas.to_datetime.html for more documentation)
             max_categorical_ratio (float, default 0.01):
                 The max ratio of unique values in a column in order for it to be inferred as a
                 categorical feature.
@@ -138,7 +137,10 @@ class Dataset:
         self._use_index = use_index
         self._index_name = index
         self._date_name = date
-        self._date_unit_type = date_unit_type
+        if date_args is None:
+            self._date_args = {}
+        else:
+            self._date_args = date_args
         self._max_categorical_ratio = max_categorical_ratio
         self._max_categories = max_categories
         self._max_float_categories = max_float_categories
@@ -168,7 +170,7 @@ class Dataset:
             self.cat_features = self.infer_categorical_features()
 
         if self._date_name and convert_date_:
-            self._data[self._date_name] = self._data[self._date_name].apply(pd.Timestamp, unit=date_unit_type)
+            self._data[self._date_name] = self._data[self._date_name].apply(pd.to_datetime, **self._date_args)
 
     @classmethod
     def from_numpy(
