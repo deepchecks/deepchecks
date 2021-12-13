@@ -20,7 +20,6 @@ class ModelWrapper:
         self._predicted_datasets = {}
         self._predicted_proba_datasets = {}
         self.model_class_name = model.__class__.__name__
-        self.model_features = getattr(model, 'feature_names_in_', None)
         self.feature_importance = None
 
     def predict(self, data, *args, **kwargs):
@@ -44,3 +43,12 @@ class ModelWrapper:
         prediction = self.original_model.predict_proba(dataset.features_columns)
         self._predicted_proba_datasets[dataset] = prediction
         return prediction
+
+    def __getattr__(self, k):
+        def original_model_wrapper(*args, **kwargs):
+            return getattr(self.original_model, k)(*args, **kwargs)
+
+        if hasattr(self.original_model, k):
+            return original_model_wrapper
+        else:
+            super().__getattr__(self, k)
