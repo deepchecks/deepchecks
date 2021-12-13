@@ -18,14 +18,13 @@ from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import OrdinalEncoder
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.checks.distribution.dist_utils import preprocess_for_psi
+from deepchecks.checks.distribution.dist_utils import preprocess_for_psi, PandasSimpleImputer
 from deepchecks.checks.distribution.plot import plot_density
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.utils.typing import Hashable
 
 from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
 from sklearn.experimental import enable_hist_gradient_boosting  # noqa
 from sklearn.ensemble import HistGradientBoostingClassifier
@@ -34,26 +33,36 @@ import matplotlib.pyplot as plt
 __all__ = ['WholeDatasetDrift']
 
 
-class WholeDatasetDrift (TrainTestBaseCheck):
+class WholeDatasetDrift(TrainTestBaseCheck):
     """
-        Calculate drift between train and test datasets as a whole, using a model trained to distinguish between them.
+        Calculate drift between the entire train and test datasets using a model trained to distinguish between them.
 
-        Check trains a model to distinguish between train and test datasets, called a domain classifier. Then,
-        it calculates the feature importance for the domain classifier model. The result of the check is based on the
-        AUC of the domain classifier model, and the check displays the change in distribution between train and test
-        for the top features according to the calculated feature importance.
+        Check fits a new model to distinguish between train and test datasets, called a Domain Classifier.
+        Once the Domain Classifier is fitted the check calculates the feature importance for the domain classifier
+        model. The result of the check is based on the AUC of the domain classifier model, and the check displays
+        the change in distribution between train and test for the top features according to the
+        calculated feature importance.
 
         Args:
             n_top_features (int):
-                Amount of columns to show ordered by domain classifier feature importance.
-            min_feature_importance (float): Minimum feature importance to show in the check display.
+                Amount of columns to show ordered by domain classifier feature importance. This limit is used together
+                (AND) with min_feature_importance, so less than n_top_features features can be displayed.
+            min_feature_importance (float): Minimum feature importance to show in the check display. Feature importance
+                sums to 1, so for example the default value of 0.05 means that all features with importance contributing
+                less than 5% to the predictive power of the Domain Classifier won't be displayed. This limit is used
+                together (AND) with n_top_features, so features more important than min_feature_importance can be
+                hidden.
             max_num_categories (int):
-                Only for categorical columns. Max number of allowed categories. If there are more,
-                they are binned into an "Other" category in the display. If max_num_categories=None, there is no limit.
+                Only for categorical columns. Max number of categories to display in distributio plots. If there are
+                more, they are binned into an "Other" category in the display. If max_num_categories=None, there is
+                no limit.
             sample_size (int):
-                Amount of rows to use from each dataset for the training of the domain classifier.
+                Max number of rows to use from each dataset for the training and evaluation of the domain classifier.
             random_state (int):
                 Random seed for the check.
+            test_size (float):
+                Fraction of the combined datasets to use for the evaluation of the domain classifier.
+
         """
 
     def __init__(
@@ -63,6 +72,7 @@ class WholeDatasetDrift (TrainTestBaseCheck):
         max_num_categories: int = 10,
         sample_size: int = 10000,
         random_state: int = 0,
+        test_size: float = 0.3
     ):
         super().__init__()
 
@@ -72,13 +82,14 @@ class WholeDatasetDrift (TrainTestBaseCheck):
         self.max_num_categories = max_num_categories
         self.sample_size = sample_size
         self.random_state = random_state
+        self.test_size = test_size
 
     def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
         """Run check.
 
         Args:
-            train_dataset (Dataset): The training dataset object. Must contain a label column.
-            test_dataset (Dataset): The test dataset object. Must contain a label column.
+            train_dataset (Dataset): The training dataset object.
+            test_dataset (Dataset): The test dataset object.
             model: not used in this check.
 
         Returns:
@@ -95,11 +106,11 @@ class WholeDatasetDrift (TrainTestBaseCheck):
         train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
         test_dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
 
-        features = train_dataset.validate_shared_features(test_dataset, self.__class__.__name__)
-        cat_features = train_dataset.validate_shared_categorical_features(test_dataset, self.__class__.__name__)
+        features = train_dataset.validate_shared_features(test_dataset)
+        cat_features = train_dataset.validate_shared_categorical_features(test_dataset)
         self._cat_features = cat_features
 
-        model = self._generate_model(list(set(features) - set(cat_features)), cat_features)
+        domain_classifier = self._generate_model(list(set(features) - set(cat_features)), cat_features)
 
         sample_size = min(self.sample_size, train_dataset.n_samples, test_dataset.n_samples)
         train_sample_df = train_dataset.features_columns.sample(sample_size, random_state=self.random_state)
@@ -113,28 +124,29 @@ class WholeDatasetDrift (TrainTestBaseCheck):
         x_train, x_test, y_train, y_test = train_test_split(domain_class_df, domain_class_labels,
                                                             stratify=domain_class_labels,
                                                             random_state=self.random_state,
-                                                            test_size=0.3)
+                                                            test_size=self.test_size)
 
-        model = model.fit(x_train, y_train)
+        domain_classifier = domain_classifier.fit(x_train, y_train)
 
         y_test.name = 'belongs_to_test'
         domain_test_dataset = Dataset(pd.concat([x_test.reset_index(drop=True), y_test.reset_index(drop=True)], axis=1),
                                       cat_features=cat_features, label='belongs_to_test')
 
-        # calculate feature importance of model, containing the information of what features can separate the datasets
-        fi_ser = calculate_feature_importance(model, domain_test_dataset,
+        # calculate feature importance of domain_classifier, containing the information which features separate
+        # the dataset best.
+        fi_ser = calculate_feature_importance(domain_classifier, domain_test_dataset,
                                               force_permutation=True,
                                               permutation_wkargs={'n_repeats': 10}).sort_values(ascending=False)
 
         values_dict = {
-            'domain_classifier_auc': roc_auc_score(y_test, model.predict_proba(x_test)[:, 1]),
+            'domain_classifier_auc': roc_auc_score(y_test, domain_classifier.predict_proba(x_test)[:, 1]),
             'domain_classifier_feature_importance': fi_ser.to_dict(),
         }
 
         headnote = f"""<span>
-                    The shown features are the features that are most important for the domain classifier - the model
-                    trained to distinguish between the train and test datasets.<br> The percents of explained dataset 
-                    difference are the calculated feature importance values for the feature.
+                    The shown features are the features that are most important for the domain classifier - the
+                    domain_classifier trained to distinguish between the train and test datasets.<br> The percents of
+                    explained dataset difference are the calculated feature importance values for the feature.
                 </span>"""
 
         top_fi = fi_ser.head(self.n_top_features)
@@ -182,17 +194,6 @@ class WholeDatasetDrift (TrainTestBaseCheck):
 
     def _generate_model(self, numerical_columns: List[Hashable], categorical_columns: List[Hashable]) -> Pipeline:
 
-        class PandasSimpleImputer(SimpleImputer):
-            """A wrapper around `SimpleImputer` to return data frames with columns.
-            """
-
-            def fit(self, x, y=None):
-                self.columns = x.columns
-                return super().fit(x, y)
-
-            def transform(self, x):
-                return pd.DataFrame(super().transform(x), columns=self.columns)
-
         categorical_transformer = Pipeline(
             steps=[("encoder", OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=np.nan,
                                               dtype=np.float64))]
@@ -216,7 +217,8 @@ class WholeDatasetDrift (TrainTestBaseCheck):
         """Add condition.
 
         Overall drift score, calculated as (2 * AUC - 1) for the AUC of the dataset discriminator model, is not greater
-        than the specified value.
+        than the specified value. This value is used as it scales the AUC value to the range [0, 1], where 0 indicates
+        a random model (and no drift) and 1 indicates a perfect model (and completely distinguishable datasets).
 
         Args:
             max_drift_value (float): Maximal drift value allowed (value 0 and above)

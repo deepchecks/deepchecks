@@ -53,7 +53,8 @@ class TrainTestDrift(TrainTestBaseCheck):
             or "drift score"
         max_num_categories (int):
             Only for categorical columns. Max number of allowed categories. If there are more,
-            they are binned into an "Other" category. If max_num_categories=None, there is no limit.
+            they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
+            for both drift calculation and for distribution plots.
     """
 
     def __init__(
@@ -78,8 +79,8 @@ class TrainTestDrift(TrainTestBaseCheck):
         """Run check.
 
         Args:
-            train_dataset (Dataset): The training dataset object. Must contain a label column.
-            test_dataset (Dataset): The test dataset object. Must contain a label column.
+            train_dataset (Dataset): The training dataset object.
+            test_dataset (Dataset): The test dataset object.
             model: A scikit-learn-compatible fitted estimator instance
 
         Returns:

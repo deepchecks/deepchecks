@@ -2,10 +2,24 @@ from typing import Tuple, List
 
 from scipy.stats import wasserstein_distance
 import numpy as np
+import pandas as pd
 from collections import Counter
 
+from sklearn.impute import SimpleImputer
 
 PSI_MIN_PERCENTAGE = 0.01
+
+
+class PandasSimpleImputer(SimpleImputer):
+    """A wrapper around `SimpleImputer` to return data frames with columns.
+    """
+
+    def fit(self, x, y=None):
+        self.columns = x.columns
+        return super().fit(x, y)
+
+    def transform(self, x):
+        return pd.DataFrame(super().transform(x), columns=self.columns)
 
 
 def preprocess_for_psi(dist1: np.ndarray, dist2: np.ndarray, max_num_categories) -> Tuple[np.ndarray, np.ndarray, List]:
