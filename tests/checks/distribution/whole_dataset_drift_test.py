@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the whole dataset drift check."""
-from hamcrest import assert_that, has_entries, close_to, equal_to
+from hamcrest import assert_that, has_entries, close_to
 
 from deepchecks import Dataset
 from deepchecks.checks import WholeDatasetDrift
@@ -94,5 +94,5 @@ def test_max_drift_score_condition_fail(drifted_data):
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name='Drift value is not greater than 0.3',
-        details=f'Found drift value of: 0.8, corresponding to a domain classifier AUC of: 0.9'
+        details='Found drift value of: 0.8, corresponding to a domain classifier AUC of: 0.9'
     ))

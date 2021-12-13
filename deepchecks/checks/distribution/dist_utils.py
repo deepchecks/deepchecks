@@ -1,3 +1,5 @@
+"""Common utilities for distribution checks."""
+
 from typing import Tuple, List
 
 from scipy.stats import wasserstein_distance
@@ -10,16 +12,20 @@ from sklearn.impute import SimpleImputer
 PSI_MIN_PERCENTAGE = 0.01
 
 
+__all__ = ['PandasSimpleImputer', 'preprocess_for_psi', 'psi', 'earth_movers_distance']
+
+
 class PandasSimpleImputer(SimpleImputer):
-    """A wrapper around `SimpleImputer` to return data frames with columns.
-    """
+    """A wrapper around `SimpleImputer` to return data frames with columns."""
 
-    def fit(self, x, y=None):
-        self.columns = x.columns
-        return super().fit(x, y)
+    def fit(self, X, y=None):
+        """Fit the imputer on X and return self."""
+        self.columns = X.columns
+        return super().fit(X, y)
 
-    def transform(self, x):
-        return pd.DataFrame(super().transform(x), columns=self.columns)
+    def transform(self, X):
+        """Transform X using the imputer."""
+        return pd.DataFrame(super().transform(X), columns=self.columns)
 
 
 def preprocess_for_psi(dist1: np.ndarray, dist2: np.ndarray, max_num_categories) -> Tuple[np.ndarray, np.ndarray, List]:

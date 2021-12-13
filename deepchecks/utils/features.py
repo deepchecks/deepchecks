@@ -69,7 +69,6 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_s
     Raise:
         NotFittedError: Call 'fit' with appropriate arguments before using this estimator.
     """
-
     if permutation_wkargs is None:
         permutation_wkargs = {}
     elif not force_permutation:

@@ -14,11 +14,9 @@ from typing import List
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import roc_auc_score
-from sklearn.preprocessing import OrdinalEncoder
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.checks.distribution.dist_utils import preprocess_for_psi, PandasSimpleImputer
+from deepchecks.checks.distribution.dist_utils import preprocess_for_psi
 from deepchecks.checks.distribution.plot import plot_density
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.strings import format_percent, format_number
@@ -26,8 +24,11 @@ from deepchecks.utils.typing import Hashable
 
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
-from sklearn.experimental import enable_hist_gradient_boosting  # noqa
+from sklearn.experimental import enable_hist_gradient_boosting  # noqa # pylint: disable=unused-import
 from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.metrics import roc_auc_score
+from sklearn.preprocessing import OrdinalEncoder
+from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
 __all__ = ['WholeDatasetDrift']
@@ -35,35 +36,35 @@ __all__ = ['WholeDatasetDrift']
 
 class WholeDatasetDrift(TrainTestBaseCheck):
     """
-        Calculate drift between the entire train and test datasets using a model trained to distinguish between them.
+    Calculate drift between the entire train and test datasets using a model trained to distinguish between them.
 
-        Check fits a new model to distinguish between train and test datasets, called a Domain Classifier.
-        Once the Domain Classifier is fitted the check calculates the feature importance for the domain classifier
-        model. The result of the check is based on the AUC of the domain classifier model, and the check displays
-        the change in distribution between train and test for the top features according to the
-        calculated feature importance.
+    Check fits a new model to distinguish between train and test datasets, called a Domain Classifier.
+    Once the Domain Classifier is fitted the check calculates the feature importance for the domain classifier
+    model. The result of the check is based on the AUC of the domain classifier model, and the check displays
+    the change in distribution between train and test for the top features according to the
+    calculated feature importance.
 
-        Args:
-            n_top_features (int):
-                Amount of columns to show ordered by domain classifier feature importance. This limit is used together
-                (AND) with min_feature_importance, so less than n_top_features features can be displayed.
-            min_feature_importance (float): Minimum feature importance to show in the check display. Feature importance
-                sums to 1, so for example the default value of 0.05 means that all features with importance contributing
-                less than 5% to the predictive power of the Domain Classifier won't be displayed. This limit is used
-                together (AND) with n_top_features, so features more important than min_feature_importance can be
-                hidden.
-            max_num_categories (int):
-                Only for categorical columns. Max number of categories to display in distributio plots. If there are
-                more, they are binned into an "Other" category in the display. If max_num_categories=None, there is
-                no limit.
-            sample_size (int):
-                Max number of rows to use from each dataset for the training and evaluation of the domain classifier.
-            random_state (int):
-                Random seed for the check.
-            test_size (float):
-                Fraction of the combined datasets to use for the evaluation of the domain classifier.
+    Args:
+        n_top_features (int):
+            Amount of columns to show ordered by domain classifier feature importance. This limit is used together
+            (AND) with min_feature_importance, so less than n_top_features features can be displayed.
+        min_feature_importance (float): Minimum feature importance to show in the check display. Feature importance
+            sums to 1, so for example the default value of 0.05 means that all features with importance contributing
+            less than 5% to the predictive power of the Domain Classifier won't be displayed. This limit is used
+            together (AND) with n_top_features, so features more important than min_feature_importance can be
+            hidden.
+        max_num_categories (int):
+            Only for categorical columns. Max number of categories to display in distributio plots. If there are
+            more, they are binned into an "Other" category in the display. If max_num_categories=None, there is
+            no limit.
+        sample_size (int):
+            Max number of rows to use from each dataset for the training and evaluation of the domain classifier.
+        random_state (int):
+            Random seed for the check.
+        test_size (float):
+            Fraction of the combined datasets to use for the evaluation of the domain classifier.
 
-        """
+    """
 
     def __init__(
         self,
@@ -102,7 +103,6 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         Raises:
             DeepchecksValueError: If the object is not a Dataset or DataFrame instance
         """
-
         train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
         test_dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
 
@@ -120,7 +120,6 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         domain_class_df = pd.concat([train_sample_df, test_sample_df])
         domain_class_labels = pd.Series([0] * len(train_sample_df) + [1] * len(test_sample_df))
 
-        from sklearn.model_selection import train_test_split
         x_train, x_test, y_train, y_test = train_test_split(domain_class_df, domain_class_labels,
                                                             stratify=domain_class_labels,
                                                             random_state=self.random_state,
@@ -143,7 +142,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
             'domain_classifier_feature_importance': fi_ser.to_dict(),
         }
 
-        headnote = f"""<span>
+        headnote = """<span>
                     The shown features are the features that are most important for the domain classifier - the
                     domain_classifier trained to distinguish between the train and test datasets.<br> The percents of
                     explained dataset difference are the calculated feature importance values for the feature.
@@ -153,12 +152,13 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         top_fi = top_fi.loc[top_fi > self.min_feature_importance]
 
         displays = [headnote] +\
-                   [partial(self.display_dist, train_sample_df[feature], test_sample_df[feature], fi_ser)
+                   [partial(self._display_dist, train_sample_df[feature], test_sample_df[feature], fi_ser)
                     for feature in top_fi.index]
 
         return CheckResult(value=values_dict, display=displays, header='Whole Dataset Drift')
 
-    def display_dist(self, train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Series):
+    def _display_dist(self, train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Series):
+        """Display a distribution comparison plot for the given columns."""
         colors = ['darkblue', '#69b3a2']
 
         plt.figure(figsize=(8, 3))
@@ -193,22 +193,22 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         plt.title(f'Feature: {column_name} - Explains {format_percent(fi_ser.loc[column_name])} of dataset difference')
 
     def _generate_model(self, numerical_columns: List[Hashable], categorical_columns: List[Hashable]) -> Pipeline:
-
+        """Generate the unfitted Domain Classifier model."""
         categorical_transformer = Pipeline(
-            steps=[("encoder", OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=np.nan,
+            steps=[('encoder', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=np.nan,
                                               dtype=np.float64))]
         )
 
         preprocessor = ColumnTransformer(
             transformers=[
-                ("num", 'passthrough', numerical_columns),
-                ("cat", categorical_transformer, categorical_columns),
+                ('num', 'passthrough', numerical_columns),
+                ('cat', categorical_transformer, categorical_columns),
             ]
         )
 
         return Pipeline(
-            steps=[("preprocessing", preprocessor),
-                   ("model", HistGradientBoostingClassifier(
+            steps=[('preprocessing', preprocessor),
+                   ('model', HistGradientBoostingClassifier(
                        max_depth=2, max_iter=10, random_state=self.random_state,
                        categorical_features=[False] * len(numerical_columns) + [True] * len(categorical_columns)
                                                             ))])
