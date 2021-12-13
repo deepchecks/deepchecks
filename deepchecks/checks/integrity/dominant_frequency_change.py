@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """module contains Dominant Frequency Change check."""
-from typing import Dict
+from typing import Dict, Optional
 
 from scipy.stats import chi2_contingency, fisher_exact
 import numpy as np
@@ -29,10 +29,13 @@ class DominantFrequencyChange(TrainTestBaseCheck):
     """Check if dominant values have increased significantly between test and reference data.
 
     Args:
-        dominance_ratio (float = 2): Next most abundant value has to be THIS times less than the first (0-inf).
-        ratio_change_thres (float = 1.5): The dominant frequency has to change by at least this ratio (0-inf).
-        n_top_columns (int): (optional - used only if model was specified)
-          amount of columns to show ordered by feature importance (date, index, label are first)
+        dominance_ratio (float = 2):
+            Next most abundant value has to be THIS times less than the first (0-inf).
+        ratio_change_thres (float = 1.5):
+            The dominant frequency has to change by at least this ratio (0-inf).
+        n_top_columns (int):
+            (optional - used only if model was specified)
+            amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
     def __init__(self, dominance_ratio: float = 2, ratio_change_thres: float = 1.5,
@@ -48,18 +51,20 @@ class DominantFrequencyChange(TrainTestBaseCheck):
         Args:
             train_dataset (Dataset): The training dataset object. Must contain an index.
             test_dataset (Dataset): The test dataset object. Must contain an index.
+
         Returns:
             CheckResult: Detects values highly represented in the tested and reference data and checks if their..
             relative and absolute percentage have increased significantly and makes a report.
+
         Raises:
             DeepchecksValueError: If the object is not a Dataset or DataFrame instance
         """
-        feature_importances = calculate_feature_importance_or_null(train_dataset, model)
+        feature_importances = calculate_feature_importance_or_null(test_dataset, model)
         return self._dominant_frequency_change(train_dataset=train_dataset, test_dataset=test_dataset,
                                                feature_importances=feature_importances)
 
     def _find_p_val(self, key: str, baseline_hist: Dict, test_hist: Dict, baseline_count: int,
-                    test_count: int, ratio_change_thres: float) -> float:
+                    test_count: int, ratio_change_thres: float) -> Optional[float]:
         """Find p value for column frequency change between the reference dataset to the test dataset.
 
         Args:
@@ -69,6 +74,7 @@ class DominantFrequencyChange(TrainTestBaseCheck):
             baseline_count (int): The reference dataset row count.
             test_count (int): The test dataset row count.
             ratio_change_thres (float): The dominant frequency has to change by at least this ratio (0-inf).
+
         Returns:
             float: p value for the key.
 
@@ -84,12 +90,13 @@ class DominantFrequencyChange(TrainTestBaseCheck):
 
         test_percent = contingency_matrix_df.loc['dominant', 'test'] / test_count
         baseline_percent = contingency_matrix_df.loc['dominant', 'ref'] / baseline_count
+
         if baseline_percent == 0 or test_percent == 0:
             percent_change = np.inf
         else:
             percent_change = max(test_percent, baseline_percent) / min(test_percent, baseline_percent)
         if percent_change < ratio_change_thres:
-            return None
+            return
 
         # if somehow the data is small or has a zero frequency in it, use fisher. Otherwise chi2
         if baseline_count + test_count > 100 and (contingency_matrix_df.values != 0).all():
@@ -111,9 +118,9 @@ class DominantFrequencyChange(TrainTestBaseCheck):
         """
         test_dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
         train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
-        train_dataset.validate_shared_features(test_dataset)
+        test_dataset.validate_shared_features(train_dataset)
 
-        columns = test_dataset.features
+        columns = train_dataset.features
 
         test_df = test_dataset.data
         baseline_df = train_dataset.data
@@ -155,7 +162,7 @@ class DominantFrequencyChange(TrainTestBaseCheck):
             sorted_p_df = pd.DataFrame.from_dict(p_dict, orient='index')
             sorted_p_df = column_importance_sorter_df(
                 sorted_p_df,
-                train_dataset,
+                test_dataset,
                 feature_importances,
                 self.n_top_columns
             )

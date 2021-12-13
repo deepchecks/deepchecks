@@ -58,7 +58,7 @@ class StringMismatchComparison(TrainTestBaseCheck):
     Specifically, we define similarity between strings if they are equal when ignoring case and non-letter
     characters.
     Example:
-    We have a test dataset with similar strings 'string' and 'St. Ring', which have different meanings.
+    We have a train dataset with similar strings 'string' and 'St. Ring', which have different meanings.
     Our tested dataset has the strings 'string', 'St. Ring' and a new phrase, 'st.  ring'.
     Here, we have a new variant of the above strings, and would like to be acknowledged, as this is obviously a
     different version of 'St. Ring'.
@@ -90,16 +90,16 @@ class StringMismatchComparison(TrainTestBaseCheck):
             test_dataset (Dataset): A dataset object.
             model: Not used in this check.
         """
-        feature_importances = calculate_feature_importance_or_null(train_dataset, model)
+        feature_importances = calculate_feature_importance_or_null(test_dataset, model)
         return self._string_mismatch_comparison(train_dataset, test_dataset, feature_importances)
 
     def _string_mismatch_comparison(self, train_dataset: Union[pd.DataFrame, Dataset],
                                    test_dataset: Union[pd.DataFrame, Dataset],
                                    feature_importances: pd.Series=None) -> CheckResult:
         # Validate parameters
-        df: pd.DataFrame = ensure_dataframe_type(train_dataset)
+        df = ensure_dataframe_type(test_dataset)
         df = filter_columns_with_validation(df, self.columns, self.ignore_columns)
-        baseline_df: pd.DataFrame = ensure_dataframe_type(test_dataset)
+        baseline_df = ensure_dataframe_type(train_dataset)
 
         display_mismatches = []
         result_dict = defaultdict(dict)
@@ -148,8 +148,14 @@ class StringMismatchComparison(TrainTestBaseCheck):
                                              'Variants only in baseline',
                                              '% Unique variants out of all baseline samples (count)'])
             df_graph = df_graph.set_index(['Column name', 'Base form'])
-            df_graph = column_importance_sorter_df(df_graph, train_dataset, feature_importances,
-                                                   self.n_top_columns, col='Column name')
+
+            df_graph = column_importance_sorter_df(
+                df_graph,
+                test_dataset if isinstance(test_dataset, Dataset) else Dataset(test_dataset),
+                feature_importances,
+                self.n_top_columns,
+                col='Column name'
+            )
             # For display transpose the dataframe
             display = df_graph.T
         else:
