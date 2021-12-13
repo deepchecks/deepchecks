@@ -51,15 +51,14 @@ def test_dataset_wrong_input():
     x = 'wrong_input'
     assert_that(
         calling(IndexTrainTestLeakage().run).with_args(x, x),
-        raises(DeepchecksValueError, 'Check IndexTrainTestLeakage requires dataset to be of type Dataset. '
-                                   'instead got: str'))
+        raises(DeepchecksValueError, 'Check requires dataset to be of type Dataset. instead got: str'))
 
 
 def test_dataset_no_index():
     ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11]})
     assert_that(
         calling(IndexTrainTestLeakage().run).with_args(ds, ds),
-        raises(DeepchecksValueError, 'Check IndexTrainTestLeakage requires dataset to have an index column'))
+        raises(DeepchecksValueError, 'Check requires dataset to have an index column'))
 
 
 def test_nan():

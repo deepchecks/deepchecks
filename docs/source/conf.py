@@ -41,15 +41,10 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.linkcode',
     'sphinx_copybutton',
+    'sphinx.ext.githubpages',
 ]
 
-# --- autoapi that is being removed
-#autoapi_type = 'python'
-#autoapi_dirs = ['../deepchecks']
-#autoapi_options = ['members', 'undoc-members', 'show-module-summary', 'imported-members', 'inherited-members']
-#autoapi_add_toctree_entry = False
-#autoapi_keep_files = True
-#autoapi_template_dir = "_templates/autoapi"
+html_baseurl = 'docs.deepchecks.com'
 
 
 add_module_names = False

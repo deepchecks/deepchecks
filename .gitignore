@@ -84,3 +84,4 @@ ENV/
 
 # Sphinx Docs
 _autosummary/
+generated/

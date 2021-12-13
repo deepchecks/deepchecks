@@ -90,7 +90,7 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
     def _data_sample_leakage_report(self, test_dataset: Dataset, train_dataset: Dataset):
         test_dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
         train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
-        test_dataset.validate_shared_features(train_dataset, self.__class__.__name__)
+        test_dataset.validate_shared_features(train_dataset)
 
         columns = train_dataset.features
         if train_dataset.label_name:

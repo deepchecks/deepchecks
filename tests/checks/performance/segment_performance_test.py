@@ -20,13 +20,13 @@ def test_dataset_wrong_input():
     # Act & Assert
     assert_that(calling(SegmentPerformance().run).with_args(bad_dataset, None),
                 raises(DeepchecksValueError,
-                       'Check SegmentPerformance requires dataset to be of type Dataset. instead got: str'))
+                       'Check requires dataset to be of type Dataset. instead got: str'))
 
 
 def test_dataset_no_label(iris_dataset, iris_adaboost):
     # Assert
     assert_that(calling(SegmentPerformance().run).with_args(iris_dataset, iris_adaboost),
-                raises(DeepchecksValueError, 'Check SegmentPerformance requires dataset to have a label column'))
+                raises(DeepchecksValueError, 'Check requires dataset to have a label column'))
 
 
 def test_segment_performance_diabetes(diabetes_split_dataset_and_model):

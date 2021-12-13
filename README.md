@@ -22,7 +22,7 @@ This includes checks related to various types of issues, such as model performan
 data integrity, distribution mismatches, and more.
 
 <p align="center">
-   <img src="docs/images/check_suite_diagram.png" height="300">
+   <img src="docs/images/diagram.svg">
 </p>
 
 ## Key Concepts
@@ -157,16 +157,16 @@ df_train, df_test = train_test_split(iris_df, stratify=iris_df[label_col], rando
 To run an existing suite all you need to do is import the suite and run it -
 
 ```python
-from deepchecks.suites import integrity_check_suite
-integrity_suite = integrity_check_suite()
-integrity_suite.run(train_dataset=df_train, test_dataset=df_test, check_datasets_policy='both')
+from deepchecks.suites import integrity_suite
+suite = integrity_check_suite()
+suite.run(train_dataset=df_train, test_dataset=df_test, check_datasets_policy='both')
 ```
 Which will result in printing the summary of the check conditions and then the visual outputs of all of the checks that
 are in that suite.
 
 ### Example Notebooks
 For usage examples, check out: 
-- [**deepchecks Quick Start Notebook**](./notebooks/examples/CheckSuite_Iris_Dataset.ipynb) - for a simple example notebook for working with checks and suites.
+- [**Quickstart Notebook**](./notebooks/examples/quickstart_in_5_minutes.ipynb) - for running your first suite with a few lines of code.
 - [**Example Checks Output Notebooks**](./notebooks/checks) - to see all of the existing checks and their usage examples.
 
 ## Communication

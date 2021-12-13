@@ -53,5 +53,3 @@ Indices and tables
 
 * :ref:`modindex`
 * :ref:`search`
-
-:doc:`notebook.rst`
