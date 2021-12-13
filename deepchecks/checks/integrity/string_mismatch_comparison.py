@@ -73,7 +73,8 @@ class StringMismatchComparison(TrainTestBaseCheck):
     """
 
     def __init__(
-        self, columns: Union[Hashable, List[Hashable], None] = None,
+        self,
+        columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_top_columns: int = 10
     ):
@@ -89,7 +90,7 @@ class StringMismatchComparison(TrainTestBaseCheck):
             train_dataset (Dataset): The training dataset object.
             test_dataset (Dataset): The test dataset object.
             model: Not used in this check.
-        
+
         Returns:
             CheckResult: with value of type dict that contains detected different variants of string
         """
