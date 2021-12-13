@@ -37,10 +37,7 @@ class PartialBoostingModel:
             model: boosting model to wrap.
             step: Number of iterations/estimators to limit the model on predictions.
         """
-        if isinstance(model, ModelWrapper):
-            self.model_class = model.model_class_name
-        else:
-            self.model_class = model.__class__.__name__
+        self.model_class = model.__class__.__name__
         self.step = step
         if self.model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
                                 'GradientBoostingRegressor']:
@@ -76,13 +73,10 @@ class PartialBoostingModel:
 
     @classmethod
     def n_estimators(cls, model):
-        if isinstance(model, ModelWrapper):
-            model_class = model.model_class_name
-        else:
-            model_class = model.__class__.__name__
         model_class = model.__class__.__name__
         if model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
                            'GradientBoostingRegressor']:
+            print(model.estimators_)
             return len(model.estimators_)
         elif model_class in ['LGBMClassifier', 'LGBMRegressor']:
             return model.n_estimators

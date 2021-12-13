@@ -97,7 +97,7 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_s
 def _built_in_importance(model: t.Any, dataset: 'base.Dataset') -> t.Optional[pd.Series]:
     """Get feature importance member if present in model."""
     if isinstance(model, ModelWrapper):
-        model.feature_importance = calculate_feature_importance(model=model.original_model, dataset=dataset)
+        model.feature_importance = calculate_feature_importance(model=model._original_model, dataset=dataset)
         return model.feature_importance
     if 'feature_importances_' in dir(model):  # Ensambles
         normalized_feature_importance_values = model.feature_importances_/model.feature_importances_.sum()
