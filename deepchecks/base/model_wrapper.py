@@ -16,6 +16,11 @@ __all__ = ['ModelWrapper']
 
 
 class ModelWrapper:
+    """wrapper for a model that a suite receives
+
+    Args:
+        model (BaseEstimator): sklearn compatible model
+    """
     def __init__(self, model: BaseEstimator):
         self._original_model = model
         self._predicted_datasets = {}
@@ -26,6 +31,10 @@ class ModelWrapper:
         for n, m in inspect.getmembers(model):
             if not n.startswith('_'):
                 setattr(self, n, m)
+
+    @property
+    def original_model(self):
+        return self._original_model
 
     def predict_dataset(self, dataset: 'Dataset'):
         prediction = self._predicted_datasets.get(dataset)

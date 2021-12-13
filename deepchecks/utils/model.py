@@ -25,5 +25,5 @@ def predict_proba_dataset(dataset: Dataset, model):
 
 def check_is_model_fitted(model):
     if isinstance(model, ModelWrapper):
-        return check_is_fitted(model._original_model)
+        return check_is_fitted(model.original_model)
     return check_is_fitted(model)
