@@ -76,11 +76,10 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_s
         else:
             internal_estimator = None
     else:
-        check_is_fitted(model)
-    
+        check_is_fitted(model)  
     validation.validate_model(dataset, model)
-    feature_importances = _built_in_importance(model, dataset)
 
+    feature_importances = _built_in_importance(model, dataset)
     if feature_importances is None:
         if isinstance(model, Pipeline):
             if internal_estimator is not None:
