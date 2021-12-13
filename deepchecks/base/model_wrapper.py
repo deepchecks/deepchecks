@@ -16,12 +16,14 @@ __all__ = ['ModelWrapper']
 
 
 class ModelWrapper:
-    """wrapper for a model that a suite receives
+    """wrapper for a model that a suite receives."""
 
-    Args:
-        model (BaseEstimator): sklearn compatible model
-    """
     def __init__(self, model: BaseEstimator):
+        """Construct the ModelWrapper class.
+
+        Args:
+            model (BaseEstimator): sklearn compatible model
+        """
         self._original_model = model
         self._predicted_datasets = {}
         self._predicted_proba_datasets = {}

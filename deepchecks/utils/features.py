@@ -13,6 +13,7 @@ import typing as t
 import numpy as np
 import pandas as pd
 
+from sklearn.utils.validation import check_is_fitted
 from sklearn.base import BaseEstimator
 from sklearn.inspection import permutation_importance
 from sklearn.pipeline import Pipeline
@@ -22,7 +23,6 @@ from deepchecks import errors
 from deepchecks.base import ModelWrapper
 from deepchecks.utils import validation
 from deepchecks.utils.typing import Hashable
-from deepchecks.utils.model import check_is_model_fitted
 
 
 __all__ = [
@@ -73,11 +73,11 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_s
         internal_estimator_list = [x[1] for x in model.steps if isinstance(x[1], BaseEstimator)]
         if internal_estimator_list:
             internal_estimator = internal_estimator_list[-1]
-            check_is_model_fitted(internal_estimator)
+            check_is_fitted(internal_estimator)
         else:
             internal_estimator = None
     else:
-        check_is_model_fitted(model)
+        check_is_fitted(model)
 
     validation.validate_model(dataset, model)
 

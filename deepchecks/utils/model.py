@@ -9,21 +9,32 @@
 # ----------------------------------------------------------------------------
 #
 """Model utils module."""
-from sklearn.utils.validation import check_is_fitted
-
 from deepchecks.base import ModelWrapper, Dataset
 
 def predict_dataset(dataset: Dataset, model):
+    """runs the predict function of the model on a given dataset features
+
+    Args:
+        dataset (Dataset): dataset to predict
+        model: model that runs the prediction
+    
+    Returns:
+        The prediction result
+    """
     if isinstance(model, ModelWrapper):
         return model.predict_dataset(dataset)
     return model.predict(dataset.features_columns)
 
 def predict_proba_dataset(dataset: Dataset, model):
+    """runs the predict proba function of the model on a given dataset features
+
+    Args:
+        dataset (Dataset): dataset to predict
+        model: model that runs the prediction
+    
+    Returns:
+        The prediction result
+    """
     if isinstance(model, ModelWrapper):
         return model.predict_proba_dataset(dataset)
     return model.predict_proba(dataset.features_columns)
-
-def check_is_model_fitted(model):
-    if isinstance(model, ModelWrapper):
-        return check_is_fitted(model.original_model)
-    return check_is_fitted(model)
