@@ -22,7 +22,7 @@ def test_dataset_wrong_input():
     # Act & Assert
     assert_that(calling(SimpleModelComparison().run).with_args(bad_dataset, bad_dataset, None),
                 raises(DeepchecksValueError,
-                       'Check SimpleModelComparison requires dataset to be of type Dataset. instead got: str'))
+                       'Check requires dataset to be of type Dataset. instead got: str'))
 
 
 def test_classification_random(iris_split_dataset_and_model):
@@ -105,8 +105,8 @@ def test_condition_ratio_not_less_than_not_passed(diabetes_split_dataset_and_mod
         equal_condition_result(is_pass=False,
                                name='Ratio not less than 1.4 '
                                     'between the given model\'s result and the simple model\'s result',
-                               details=f'The given model performs {format_number(ratio)} times compared' \
-                                       ' to the simple model using the given metric')
+                               details=f'The given model performs {format_number(ratio)} times compared ' \
+                                       'to the simple model using the given metric')
     ))
 
 

@@ -68,7 +68,7 @@ class Dataset:
         use_index: bool = False,
         index: t.Optional[Hashable] = None,
         date: t.Optional[Hashable] = None,
-        date_unit_type: t.Optional[Hashable] = None,
+        date_args: t.Optional[t.Dict] = None,
         convert_date_: bool = True,
         max_categorical_ratio: float = 0.01,
         max_categories: int = 30,
@@ -92,10 +92,9 @@ class Dataset:
                 Name of the index column in the DataFrame.
             date (Optional[Hashable]):
                 Name of the date column in the DataFrame.
-            date_unit_type (Optional[str]):
-                Unit used for conversion if date column is of type int or float.
-                The valid values are 'D', 'h', 'm', 's', 'ms', 'us', and 'ns'.
-                e.g. 's' for seconds, 'ns' for nanoseconds. See pandas.Timestamp unit arg for more detail.
+            date_args (Optional[Dict]):
+                pandas.to_datetime args used for conversion of the date column.
+                (look at https://pandas.pydata.org/docs/reference/api/pandas.to_datetime.html for more documentation)
             max_categorical_ratio (float, default 0.01):
                 The max ratio of unique values in a column in order for it to be inferred as a
                 categorical feature.
@@ -138,7 +137,10 @@ class Dataset:
         self._use_index = use_index
         self._index_name = index
         self._date_name = date
-        self._date_unit_type = date_unit_type
+        if date_args is None:
+            self._date_args = {}
+        else:
+            self._date_args = date_args
         self._max_categorical_ratio = max_categorical_ratio
         self._max_categories = max_categories
         self._max_float_categories = max_float_categories
@@ -168,7 +170,7 @@ class Dataset:
             self.cat_features = self.infer_categorical_features()
 
         if self._date_name and convert_date_:
-            self._data[self._date_name] = self._data[self._date_name].apply(pd.Timestamp, unit=date_unit_type)
+            self._data[self._date_name] = self._data[self._date_name].apply(pd.to_datetime, **self._date_args)
 
     @classmethod
     def from_numpy(
@@ -519,7 +521,7 @@ class Dataset:
 
     # Validations:
 
-    def validate_label(self, check_name: str):
+    def validate_label(self):
         """
         Throws error if dataset does not have a label.
 
@@ -531,10 +533,10 @@ class Dataset:
 
         """
         if self.label_name is None:
-            raise DeepchecksValueError(f'Check {check_name} requires dataset to have a label column')
+            raise DeepchecksValueError('Check requires dataset to have a label column')
         self.check_compatible_labels()
 
-    def validate_features(self, check_name: str):
+    def validate_features(self):
         """
         Throws error if dataset does not have a features columns.
 
@@ -545,9 +547,9 @@ class Dataset:
             DeepchecksValueError: if dataset does not have features columns.
         """
         if not self._features:
-            raise DeepchecksValueError(f'Check {check_name} requires dataset to have features columns!')
+            raise DeepchecksValueError('Check requires dataset to have features columns!')
 
-    def validate_date(self, check_name: str):
+    def validate_date(self):
         """
         Throws error if dataset does not have a date column.
 
@@ -559,9 +561,9 @@ class Dataset:
 
         """
         if self.date_name is None:
-            raise DeepchecksValueError(f'Check {check_name} requires dataset to have a date column')
+            raise DeepchecksValueError('Check requires dataset to have a date column')
 
-    def validate_index(self, check_name: str):
+    def validate_index(self):
         """
         Throws error if dataset does not have an index column / does not use dataframe index as index.
 
@@ -573,7 +575,7 @@ class Dataset:
 
         """
         if self.index_name is None:
-            raise DeepchecksValueError(f'Check {check_name} requires dataset to have an index column')
+            raise DeepchecksValueError('Check requires dataset to have an index column')
 
     def filter_columns_with_validation(
         self: TDataset,
@@ -598,7 +600,7 @@ class Dataset:
         else:
             return self.copy(new_data)
 
-    def validate_shared_features(self, other, check_name: str) -> t.List[Hashable]:
+    def validate_shared_features(self, other) -> t.List[Hashable]:
         """
         Return the list of shared features if both datasets have the same feature column names. Else, raise error.
 
@@ -613,13 +615,13 @@ class Dataset:
             DeepchecksValueError if datasets don't have the same features
 
         """
-        Dataset.validate_dataset(other, check_name)
+        Dataset.validate_dataset(other)
         if sorted(self.features) == sorted(other.features):
             return self.features
         else:
-            raise DeepchecksValueError(f'Check {check_name} requires datasets to share the same features')
+            raise DeepchecksValueError('Check requires datasets to share the same features')
 
-    def validate_shared_categorical_features(self, other, check_name: str) -> t.List[Hashable]:
+    def validate_shared_categorical_features(self, other) -> t.List[Hashable]:
         """
         Return list of categorical features if both datasets have the same categorical features. Else, raise error.
 
@@ -633,16 +635,16 @@ class Dataset:
         Raises:
             DeepchecksValueError if datasets don't have the same features
         """
-        Dataset.validate_dataset(other, check_name)
+        Dataset.validate_dataset(other)
         if sorted(self.cat_features) == sorted(other.cat_features):
             return self.cat_features
         else:
-            raise DeepchecksValueError(f'Check {check_name} requires datasets to share '
+            raise DeepchecksValueError('Check requires datasets to share '
                                        'the same categorical features. Possible reason is that some columns were'
                                        'inferred incorrectly as categorical features. To fix this, manually edit the '
                                        'categorical features using Dataset(cat_features=<list_of_features>')
 
-    def validate_shared_label(self, other, check_name: str) -> Hashable:
+    def validate_shared_label(self, other) -> Hashable:
         """Verify presence of shared labels.
 
         Return the list of shared features if both datasets have the same
@@ -658,14 +660,14 @@ class Dataset:
         Raises:
             DeepchecksValueError if datasets don't have the same label
         """
-        Dataset.validate_dataset(other, check_name)
+        Dataset.validate_dataset(other)
         if (
             self.label_name is not None and other.label_name is not None
             and self.label_name == other.label_name
         ):
             return t.cast(Hashable, self.label_name)
         else:
-            raise DeepchecksValueError(f'Check {check_name} requires datasets to share the same label')
+            raise DeepchecksValueError('Check requires datasets to share the same label')
 
     @classmethod
     def validate_dataset_or_dataframe(cls, obj) -> 'Dataset':
@@ -687,11 +689,11 @@ class Dataset:
                 raise DeepchecksValueError('dataset cannot be empty')
             return Dataset(obj)
         else:
-            raise DeepchecksValueError(f'dataset must be of type DataFrame or Dataset. instead got: '
+            raise DeepchecksValueError('dataset must be of type DataFrame or Dataset. instead got: '
                                        f'{type(obj).__name__}')
 
     @classmethod
-    def validate_dataset(cls, obj, check_name: str) -> 'Dataset':
+    def validate_dataset(cls, obj) -> 'Dataset':
         """Throws error if object is not deepchecks Dataset and returns the object if deepchecks Dataset.
 
         Args:
@@ -702,10 +704,10 @@ class Dataset:
             (Dataset): object that is deepchecks dataset
         """
         if not isinstance(obj, Dataset):
-            raise DeepchecksValueError(f'Check {check_name} requires dataset to be of type Dataset. instead got: '
+            raise DeepchecksValueError('Check requires dataset to be of type Dataset. instead got: '
                                        f'{type(obj).__name__}')
         if len(obj.data) == 0:
-            raise DeepchecksValueError(f'Check {check_name} required a non-empty dataset')
+            raise DeepchecksValueError('Check requires a non-empty dataset')
 
         return obj
 

@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing all the base classes for checks."""
+# pylint: disable=broad-except
 import abc
 import enum
 import re
@@ -41,7 +42,7 @@ class Condition:
     def __init__(self, name: str, function: Callable, params: Dict):
         if not isinstance(function, Callable):
             raise DeepchecksValueError(f'Condition must be a function `(Any) -> Union[ConditionResult, bool]`, '
-                                     f'but got: {type(function).__name__}')
+                                       f'but got: {type(function).__name__}')
         if not isinstance(name, str):
             raise DeepchecksValueError(f'Condition name must be of type str but got: {type(name).__name__}')
         self.name = name
@@ -164,15 +165,18 @@ class CheckResult:
             display_html(f'<p>{summary}</p>', raw=True)
 
         for item in self.display:
-            if isinstance(item, (pd.DataFrame, Styler)):
-                display_dataframe(item)
-            elif isinstance(item, str):
-                display_html(item, raw=True)
-            elif isinstance(item, Callable):
-                item()
-                plt.show()
-            else:
-                raise Exception(f'Unable to display item of type: {type(item)}')
+            try:
+                if isinstance(item, (pd.DataFrame, Styler)):
+                    display_dataframe(item)
+                elif isinstance(item, str):
+                    display_html(item, raw=True)
+                elif isinstance(item, Callable):
+                    item()
+                    plt.show()
+                else:
+                    raise Exception(f'Unable to display item of type: {type(item)}')
+            except Exception as e:
+                display_html(f'Error while trying to display check result:\n{str(e)}', raw=True)
         if not self.display:
             display_html('<p><b>&#x2713;</b> Nothing found</p>', raw=True)
 
@@ -279,7 +283,8 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
     def params(self) -> Dict:
         """Return parameters to show when printing the check."""
-        return {k: v for k, v in vars(self).items() if not k.startswith('_') and v is not None}
+        return {k: v for k, v in vars(self).items()
+                if not k.startswith('_') and v is not None and not callable(v)}
 
     def clean_conditions(self):
         """Remove all conditions from this check instance."""

@@ -101,8 +101,11 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_s
     if feature_importances is None:
         if isinstance(model, Pipeline):
             if internal_estimator is not None:
-                feature_importances = _built_in_importance(internal_estimator, dataset)
-
+                # incase pipeline had an encoder
+                try:
+                    feature_importances = _built_in_importance(internal_estimator, dataset)
+                except ValueError:
+                    pass
             if feature_importances is None:
                 feature_importances = _calc_importance(model, dataset, random_state=random_state, **permutation_wkargs)
         else:  # Others
@@ -132,7 +135,7 @@ def _calc_importance(
     n_samples: int = 10000
 ) -> pd.Series:
     """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal."""
-    dataset.validate_label('_calc_importance')
+    dataset.validate_label()
     n_samples = min(n_samples, dataset.n_samples)
     dataset_sample_idx = dataset.label_col.sample(n_samples).index
     r = permutation_importance(model, dataset.features_columns.loc[dataset_sample_idx, :],

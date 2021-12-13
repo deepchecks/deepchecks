@@ -10,7 +10,7 @@
 #
 """The predefined performance suite module."""
 from deepchecks import Suite
-from deepchecks.checks import TrustScoreComparison
+from deepchecks.checks import TrustScoreComparison, NewLabelTrainTest
 from deepchecks.checks.performance import (
     PerformanceReport,
     ConfusionMatrixReport,
@@ -18,6 +18,8 @@ from deepchecks.checks.performance import (
     CalibrationMetric,
     ClassPerformanceImbalance,
     SimpleModelComparison,
+    RegressionSystematicError,
+    RegressionErrorDistribution
 )
 
 __all__ = [
@@ -41,7 +43,8 @@ def classification_suite() -> Suite:
         RocReport().add_condition_auc_not_less_than(),
         CalibrationMetric(),
         TrustScoreComparison().add_condition_mean_score_percent_decline_not_greater_than(),
-        ClassPerformanceImbalance().add_condition_ratio_difference_not_greater_than()
+        ClassPerformanceImbalance().add_condition_ratio_difference_not_greater_than(),
+        NewLabelTrainTest().add_condition_new_labels_not_greater_than()
     )
 
 
@@ -51,8 +54,11 @@ def regression_suite() -> Suite:
     The suite runs a set of checks that are meant to measure and detect performance
     abnormality of the regression model.
     """
-    # TODO: This suite is here as a placeholder for future regression-specific checks
-    return Suite('Regression Suite')
+    return Suite(
+        'Regression Suite',
+        RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_not_greater_than(),
+        RegressionErrorDistribution().add_condition_kurtosis_not_less_than()
+    )
 
 
 def generic_performance_suite() -> Suite:
@@ -78,5 +84,6 @@ def performance_suite() -> Suite:
     return Suite(
         'Performance Suite',
         generic_performance_suite(),
-        classification_suite()
+        classification_suite(),
+        regression_suite()
     )
