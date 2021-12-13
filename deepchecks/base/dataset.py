@@ -68,7 +68,7 @@ class Dataset:
         use_index: bool = False,
         index: t.Optional[Hashable] = None,
         date: t.Optional[Hashable] = None,
-        date_args: t.Optional[t.Dict] = {},
+        date_args: t.Optional[t.Dict] = t.Dict(),
         convert_date_: bool = True,
         max_categorical_ratio: float = 0.01,
         max_categories: int = 30,
@@ -94,6 +94,7 @@ class Dataset:
                 Name of the date column in the DataFrame.
             date_args (Optional[Dict]):
                 pandas.to_datetime args used for conversion of the date column.
+                (look at https://pandas.pydata.org/docs/reference/api/pandas.to_datetime.html for more documentation)
             max_categorical_ratio (float, default 0.01):
                 The max ratio of unique values in a column in order for it to be inferred as a
                 categorical feature.
