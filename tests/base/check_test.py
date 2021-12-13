@@ -19,6 +19,11 @@ from deepchecks.errors import DeepchecksValueError
 
 class DummyCheck(BaseCheck):
 
+    def __init__(self, param1=1, param2=2):
+        super().__init__()
+        self.param1 = param1
+        self.param2 = param2
+
     def run(self):
         pass
 
@@ -128,3 +133,14 @@ def test_condition_decision():
             has_property('details', 'my actual')
         )
     ))
+
+
+def test_params():
+    # Arrange
+    default_check = DummyCheck()
+    parameter_check = DummyCheck(param1=5)
+
+    # Assert
+    assert_that(default_check.params(), equal_to({}))
+    assert_that(parameter_check.params(), equal_to({'param1': 5}))
+

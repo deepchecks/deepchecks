@@ -283,8 +283,17 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
     def params(self) -> Dict:
         """Return parameters to show when printing the check."""
-        return {k: v for k, v in vars(self).items()
-                if not k.startswith('_') and v is not None and not callable(v)}
+        all_params = {k: v for k, v in vars(self).items()
+                  if not k.startswith('_') and not callable(v)}
+
+        params = {}
+
+        # remove defaults
+        for param_place, (k, v) in enumerate(all_params.items()):
+            if v != self.__init__.__defaults__[param_place]:
+                params[k] = v
+
+        return params
 
     def clean_conditions(self):
         """Remove all conditions from this check instance."""
