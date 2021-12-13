@@ -68,7 +68,7 @@ class Dataset:
         use_index: bool = False,
         index: t.Optional[Hashable] = None,
         date: t.Optional[Hashable] = None,
-        date_args: t.Optional[t.Dict] = t.Dict(),
+        date_args: t.Optional[t.Dict] = None,
         convert_date_: bool = True,
         max_categorical_ratio: float = 0.01,
         max_categories: int = 30,
@@ -137,7 +137,10 @@ class Dataset:
         self._use_index = use_index
         self._index_name = index
         self._date_name = date
-        self._date_args = date_args
+        if date_args is None:
+            self._date_args = {}
+        else:
+            self._date_args = date_args
         self._max_categorical_ratio = max_categorical_ratio
         self._max_categories = max_categories
         self._max_float_categories = max_float_categories
@@ -167,7 +170,7 @@ class Dataset:
             self.cat_features = self.infer_categorical_features()
 
         if self._date_name and convert_date_:
-            self._data[self._date_name] = self._data[self._date_name].apply(pd.to_datetime, **date_args)
+            self._data[self._date_name] = self._data[self._date_name].apply(pd.to_datetime, **self._date_args)
 
     @classmethod
     def from_numpy(
