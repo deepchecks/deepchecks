@@ -9,12 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Handle displays of pandas objects."""
-from typing import Union
+from typing import List, Union
 import warnings
 
 from IPython.core.display import display_html
 import pandas as pd
-__all__ = ['display_dataframe', 'dataframe_to_html']
+__all__ = ['display_dataframe', 'dataframe_to_html', 'display_conditions_table']
 
 from pandas.io.formats.style import Styler
 
@@ -51,3 +51,16 @@ def dataframe_to_html(df: Union[pd.DataFrame, Styler]):
     # attribute, hence we need to display as a regular pd html format.
     except ValueError:
         return df.to_html()
+
+
+def display_conditions_table(conditions_table: List):
+    """Display the conditions table as DataFrame.
+
+    Args:
+        conditions_table (List): list that contains the conditions in table format
+    """
+    conditions_table = pd.DataFrame(data=conditions_table,
+                                    columns=['Status', 'Check', 'Condition', 'More Info', 'sort'], )
+    conditions_table.sort_values(by=['sort'], inplace=True)
+    conditions_table.drop('sort', axis=1, inplace=True)
+    display_dataframe(conditions_table.style.hide_index())
