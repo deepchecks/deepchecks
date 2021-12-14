@@ -43,7 +43,7 @@ jobs:
         with:
           file-path: VERSION
           commit-msg: New version release
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.CI_GH_TOKEN }}
   Create-Release:
     runs-on: ubuntu-latest
     needs: Update-Version
