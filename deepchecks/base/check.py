@@ -183,6 +183,7 @@ class CheckResult:
         if conditions_table:
             display_html('<h5>Conditions Summary</h5>', raw=True)
             display_conditions_table(conditions_table)
+            display_html('<h5>Additional Outputs</h5>', raw=True)
         for item in self.display:
             if isinstance(item, (pd.DataFrame, Styler)):
                 display_dataframe(item)
