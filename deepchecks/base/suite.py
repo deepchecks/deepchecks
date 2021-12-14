@@ -17,7 +17,7 @@ from deepchecks.base.display_suite import display_suite_result, ProgressBar
 from deepchecks.errors import DeepchecksValueError
 from deepchecks.base import Dataset
 from deepchecks.base.check import (
-    BaseCheck, CheckResult, TrainTestBaseCheck, CompareDatasetsBaseCheck,
+    BaseCheck, CheckResult, TrainTestBaseCheck,
     SingleDatasetBaseCheck, ModelOnlyBaseCheck, CheckFailure
 )
 
@@ -100,12 +100,6 @@ class Suite(BaseCheck):
                 if isinstance(check, TrainTestBaseCheck):
                     if train_dataset is not None and test_dataset is not None:
                         check_result = check.run(train_dataset=train_dataset, test_dataset=test_dataset,
-                                                 model=model)
-                        check_result.set_condition_results(check.conditions_decision(check_result))
-                        results.append(check_result)
-                elif isinstance(check, CompareDatasetsBaseCheck):
-                    if train_dataset is not None and test_dataset is not None:
-                        check_result = check.run(dataset=test_dataset, baseline_dataset=train_dataset,
                                                  model=model)
                         check_result.set_condition_results(check.conditions_decision(check_result))
                         results.append(check_result)
