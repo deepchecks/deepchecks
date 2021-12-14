@@ -14,10 +14,9 @@ from distutils.util import convert_path
 import os
 
 main_ns = {}
-ver_path = convert_path('deepchecks/version.py')
-with open(ver_path) as ver_file:
-    exec(ver_file.read(), main_ns)
-VER = main_ns['__version__']
+
+with open(os.path.join('./', 'VERSION')) as version_file:
+    VER = version_file.read().strip()
 
 requirementPath = os.path.dirname(os.path.realpath(__file__)) + '/requirements.txt'
 install_requires = []
@@ -30,7 +29,7 @@ setup(
     version=VER,
     packages=setuptools.find_packages(),
     install_requires=install_requires,
-    #license='Propietery', #TODO: what is the license
+    license_files = ('LICENSE', ),
     description = 'Package for validating your machine learning model and data',
     author = 'deepchecks',  
     author_email = 'info@deepchecks.com', 

@@ -1,3 +1,4 @@
+#!/bin/sh
 # ----------------------------------------------------------------------------
 # Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
 #
@@ -8,5 +9,5 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""the installed package Version."""
-__version__ = '0.0.9'
+
+git describe --tags > VERSION
