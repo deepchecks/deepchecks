@@ -122,16 +122,25 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
             ax.xaxis.set_major_locator(mticker.FixedLocator(range(0, len(categories) + 1)))
             ax.set_xticklabels([''] + categories)
 
+            ax.set_ylabel('error score')
+            ax.set_xlabel(feature_name)
+
             plt.xticks(rotation=30)
             plt.title(feature_name)
 
         def display_numeric(data, feature_name):
             plt.figure(figsize=(10, 7))
+            ax = plt.gca()
             cm = plt.cm.get_cmap('RdYlBu_r')
 
             sc = plt.scatter(x=feature_name, y='score', data=data, alpha=0.1, edgecolors='none',
                              c=data['score'], vmin=min_score, vmax=max_score, cmap=cm)
-            plt.colorbar(sc)
+            ax.set_ylabel('error score')
+            ax.set_xlabel(feature_name)
+            color_bar = plt.colorbar(sc)
+            color_bar.set_alpha(1)
+            color_bar.draw_all()
+
             plt.title(feature_name)
 
         display = []
