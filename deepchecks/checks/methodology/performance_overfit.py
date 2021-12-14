@@ -39,7 +39,8 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
     the difference in performance between the two datasets. If no 'alternative_scorers' are supplied, the check would
     use a list of default scorers. If they are supplied, 'alternative_scorers' must be a dictionary, with the keys
     being score names and the values being either a name of an sklearn scoring function
-    (https://scikit-learn.org/stable/modules/model_evaluation.html#scoring) or an sklearn scoring function.
+    (https://scikit-learn.org/stable/modules/model_evaluation.html#common-cases-predefined-values)
+    or an sklearn scorer object (https://scikit-learn.org/stable/modules/model_evaluation.html#defining-your-scoring-strategy-from-metric-functions).
 
     Args:
         alternative_scorers (Dict[str, Callable]): An optional dictionary of scorer name or scorer functions
