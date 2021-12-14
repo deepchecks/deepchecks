@@ -44,7 +44,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
 
     Args:
         alternative_scorers (Dict[str, Callable]): An optional dictionary of scorer name or scorer functions
-    """
+    """ # pylint: disable=line-too-long
 
     def __init__(
         self,
