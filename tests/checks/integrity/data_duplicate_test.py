@@ -83,6 +83,7 @@ def test_anonimouse_series():
     res = DataDuplicates(ignore_columns=['index']).run(df).value
     assert_that(res, close_to(0.05, 0.001))
 
+
 def test_nan(df_with_nan_row, df_with_single_nan_in_col):
     df = df_with_nan_row.set_index('col2')
     check_obj = DataDuplicates()
