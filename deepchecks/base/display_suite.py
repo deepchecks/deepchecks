@@ -16,8 +16,8 @@ from typing import List, Union
 
 from IPython.core.display import display_html
 
-from deepchecks.base.check import CheckResult, CheckFailure
-from deepchecks.base.display_pandas import dataframe_to_html, display_dataframe
+from deepchecks.base.check import CheckResult, CheckFailure, ConditionResult
+from deepchecks.base.display_pandas import dataframe_to_html, display_conditions_table
 from deepchecks.utils.ipython import is_widgets_enabled
 import pandas as pd
 
@@ -64,11 +64,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     for result in results:
         if isinstance(result, CheckResult):
             if result.have_conditions():
-                for cond_result in result.conditions_results:
-                    sort_value = cond_result.get_sort_value()
-                    icon = cond_result.get_icon()
-                    conditions_table.append([icon, result.get_header(), cond_result.name,
-                                             cond_result.details, sort_value])
+                ConditionResult.append_to_conditions_table(result, conditions_table)
             if result.have_display():
                 display_table.append(result)
             else:
@@ -94,11 +90,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     """
     display_html(html, raw=True)
     if conditions_table:
-        conditions_table = pd.DataFrame(data=conditions_table,
-                                        columns=['Status', 'Check', 'Condition', 'More Info', 'sort'], )
-        conditions_table.sort_values(by=['sort'], inplace=True)
-        conditions_table.drop('sort', axis=1, inplace=True)
-        display_dataframe(conditions_table.style.hide_index())
+        display_conditions_table(conditions_table)
     else:
         display_html('<p>No conditions defined on checks in the suite.</p>', raw=True)
 

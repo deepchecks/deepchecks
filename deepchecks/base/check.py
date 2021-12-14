@@ -13,7 +13,6 @@
 import abc
 import enum
 import re
-import typing
 from collections import OrderedDict
 from dataclasses import dataclass
 from functools import wraps
@@ -27,7 +26,7 @@ from IPython.core.display import display_html
 from matplotlib import pyplot as plt
 from pandas.io.formats.style import Styler
 
-from deepchecks.base.display_pandas import display_dataframe
+from deepchecks.base.display_pandas import display_conditions_table, display_dataframe
 from deepchecks.utils.strings import split_camel_case
 from deepchecks.errors import DeepchecksValueError
 
@@ -113,6 +112,20 @@ class ConditionResult:
         """Return string representation for printing."""
         return str(vars(self))
 
+    @classmethod
+    def append_to_conditions_table(cls, check_result: 'CheckResult', conditions_table: List):
+        """Append the condition the check result has to a given conditions table.
+
+        Args:
+            check_result (CheckResult): The check result.
+            conditions_table (List): list that contains the conditions in table format.
+        """
+        for cond_result in check_result.conditions_results:
+            sort_value = cond_result.get_sort_value()
+            icon = cond_result.get_icon()
+            conditions_table.append([icon, check_result.get_header(), cond_result.name,
+                                        cond_result.details, sort_value])
+
 
 class CheckResult:
     """Class which returns from a check with result that can later be used for automatic pipelines and display value.
@@ -131,7 +144,7 @@ class CheckResult:
     header: str
     display: List[Union[Callable, str, pd.DataFrame, Styler]]
     condition_results: List[ConditionResult]
-    check: typing.ClassVar
+    check: 'BaseCheck'
 
     def __init__(self, value, header: str = None, display: Any = None):
         """Init check result.
@@ -157,26 +170,30 @@ class CheckResult:
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
     def _ipython_display_(self):
+        conditions_table = []
+        if self.check.show_conditions:
+            self.set_condition_results(self.check.conditions_decision(result=self))
+            ConditionResult.append_to_conditions_table(self, conditions_table)
         display_html(f'<h4>{self.get_header()}</h4>', raw=True)
-        if hasattr(self.check, '__doc__'):
-            docs = self.check.__doc__ or ''
+        if hasattr(self.check.__class__, '__doc__'):
+            docs = self.check.__class__.__doc__ or ''
             # Take first non-whitespace line.
             summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
             display_html(f'<p>{summary}</p>', raw=True)
-
+        if conditions_table:
+            display_html('<h5>Conditions Summary</h5>', raw=True)
+            display_conditions_table(conditions_table)
+            display_html('<h5>Additional Outputs</h5>', raw=True)
         for item in self.display:
-            try:
-                if isinstance(item, (pd.DataFrame, Styler)):
-                    display_dataframe(item)
-                elif isinstance(item, str):
-                    display_html(item, raw=True)
-                elif isinstance(item, Callable):
-                    item()
-                    plt.show()
-                else:
-                    raise Exception(f'Unable to display item of type: {type(item)}')
-            except Exception as e:
-                display_html(f'Error while trying to display check result:\n{str(e)}', raw=True)
+            if isinstance(item, (pd.DataFrame, Styler)):
+                display_dataframe(item)
+            elif isinstance(item, str):
+                display_html(item, raw=True)
+            elif isinstance(item, Callable):
+                item()
+                plt.show()
+            else:
+                raise Exception(f'Unable to display item of type: {type(item)}')
         if not self.display:
             display_html('<p><b>&#x2713;</b> Nothing found</p>', raw=True)
 
@@ -214,7 +231,7 @@ def wrap_run(func, class_instance):
     @wraps(func)
     def wrapped(*args, **kwargs):
         result = func(*args, **kwargs)
-        result.check = class_instance.__class__
+        result.check = class_instance
         return result
     return wrapped
 
@@ -224,10 +241,12 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
     _conditions: OrderedDict
     _conditions_index: int
+    _show_conditions: bool
 
     def __init__(self):
         self._conditions = OrderedDict()
         self._conditions_index = 0
+        self._show_conditions = True
         # Replace the run function with wrapped run function
         setattr(self, 'run', wrap_run(getattr(self, 'run'), self))
 
@@ -300,6 +319,19 @@ class BaseCheck(metaclass=abc.ABCMeta):
         if index not in self._conditions:
             raise DeepchecksValueError(f'Index {index} of conditions does not exists')
         self._conditions.pop(index)
+
+    @property
+    def show_conditions(self):
+        """Property that defines if the conditions are displayed."""
+        return self._show_conditions
+
+    def set_conditions_display(self, show_conditions: bool):
+        """Setter that defines if the conditions are displayed.
+
+        Args:
+            show_conditions (bool): boolean that defines if the conditions are displayed
+        """
+        self._show_conditions = show_conditions
 
     @classmethod
     def name(cls):
