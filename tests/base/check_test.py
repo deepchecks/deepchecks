@@ -138,9 +138,11 @@ def test_condition_decision():
 def test_params():
     # Arrange
     default_check = DummyCheck()
-    parameter_check = DummyCheck(param1=5)
+    parameter_check = DummyCheck(param2=5)
+    all_param_check = DummyCheck(8, 9)
 
     # Assert
     assert_that(default_check.params(), equal_to({}))
-    assert_that(parameter_check.params(), equal_to({'param1': 5}))
+    assert_that(parameter_check.params(), equal_to({'param2': 5}))
+    assert_that(all_param_check.params(), equal_to({'param1': 8, 'param2': 9}))
 

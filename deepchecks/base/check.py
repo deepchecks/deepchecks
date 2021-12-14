@@ -12,6 +12,7 @@
 # pylint: disable=broad-except
 import abc
 import enum
+import inspect
 import re
 import typing
 from collections import OrderedDict
@@ -283,17 +284,10 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
     def params(self) -> Dict:
         """Return parameters to show when printing the check."""
-        all_params = {k: v for k, v in vars(self).items()
-                  if not k.startswith('_') and not callable(v)}
+        init_params = inspect.signature(self.__init__).parameters
 
-        params = {}
-
-        # remove defaults
-        for param_place, (k, v) in enumerate(all_params.items()):
-            if v != self.__init__.__defaults__[param_place]:
-                params[k] = v
-
-        return params
+        return {k: v for k, v in vars(self).items()
+                if not k.startswith('_') and k in init_params and v != init_params[k].default}
 
     def clean_conditions(self):
         """Remove all conditions from this check instance."""
