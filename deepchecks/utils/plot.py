@@ -19,10 +19,13 @@ __all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map', 'get_color
 
 
 def get_color_for(name: str):
-    """Common system colors.
+    """Get common system colors.
 
     Args:
         name (str): the name of the value to color
+
+    Returns:
+        str: name of color
     """
     return {'Train': 'darkblue',
             'Test': '#69b3a2'}[name]
