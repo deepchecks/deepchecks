@@ -77,7 +77,7 @@ def test_data_duplicates_ignore_index_column():
     assert_that(check_obj.run(duplicate_data).value, close_to(0.80, 0.01))
 
 
-def test_anonimouse_series():
+def test_anonymous_series():
     np.random.seed(42)
     df = pd.DataFrame(np.random.randint(0,10,(100,3))).reset_index()
     res = DataDuplicates(ignore_columns=['index']).run(df).value
