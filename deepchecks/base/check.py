@@ -13,7 +13,6 @@
 import abc
 import enum
 import re
-import typing
 from collections import OrderedDict
 from dataclasses import dataclass
 from functools import wraps
@@ -115,6 +114,12 @@ class ConditionResult:
 
     @classmethod
     def append_to_conditions_table(cls, check_result: 'CheckResult', conditions_table: List):
+        """Append the condition the check result has to a given conditions table.
+
+        Args:
+            check_result (CheckResult): The check result.
+            conditions_table (List): list that contains the conditions in table format.
+        """
         for cond_result in check_result.conditions_results:
             sort_value = cond_result.get_sort_value()
             icon = cond_result.get_icon()
@@ -316,9 +321,15 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
     @property
     def show_conditions(self):
+        """Property that defines if the conditions are displayed."""
         return self._show_conditions
 
     def set_conditions_display(self, show_conditions: bool):
+        """Setter that defines if the conditions are displayed.
+
+        Args:
+            show_conditions (bool): boolean that defines if the conditions are displayed
+        """
         self._show_conditions = show_conditions
 
     @classmethod
