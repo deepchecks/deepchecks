@@ -287,7 +287,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
         init_params = inspect.signature(self.__init__).parameters
 
         return {k: v for k, v in vars(self).items()
-                if not k.startswith('_') and k in init_params and v != init_params[k].default}
+                if k in init_params and v != init_params[k].default}
 
     def clean_conditions(self):
         """Remove all conditions from this check instance."""
