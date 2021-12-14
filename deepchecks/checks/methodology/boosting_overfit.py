@@ -180,8 +180,10 @@ class BoostingOverfit(TrainTestBaseCheck):
             axes.set_xlabel('Number of boosting iterations')
             axes.set_ylabel(metric_name)
             axes.grid()
-            axes.plot(estimator_steps, np.array(train_scores), 'o-', color=get_color_for('Train'), label='Training score')
-            axes.plot(estimator_steps, np.array(test_scores), 'o-', color=get_color_for('Test'), label='Test score')
+            axes.plot(estimator_steps, np.array(train_scores), 'o-',
+                      color=get_color_for('Train'), label='Training score')
+            axes.plot(estimator_steps, np.array(test_scores), 'o-',
+                      color=get_color_for('Test'), label='Test score')
             axes.legend(loc='best')
             # Display x ticks as integers
             axes.xaxis.set_major_locator(MaxNLocator(integer=True))
