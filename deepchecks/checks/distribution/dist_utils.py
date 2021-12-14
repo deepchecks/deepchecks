@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 """Common utilities for distribution checks."""
 
 from typing import Tuple, List
@@ -18,14 +28,14 @@ __all__ = ['PandasSimpleImputer', 'preprocess_for_psi', 'psi', 'earth_movers_dis
 class PandasSimpleImputer(SimpleImputer):
     """A wrapper around `SimpleImputer` to return data frames with columns."""
 
-    def fit(self, X, y=None):
+    def fit(self, X, y=None):  # pylint: disable=C0103
         """Fit the imputer on X and return self."""
-        self.columns = X.columns
-        return super().fit(X, y)
+        self.columns = X.columns  # pylint: disable=C0103
+        return super().fit(X, y)  # pylint: disable=C0103
 
-    def transform(self, X):
+    def transform(self, X):  # pylint: disable=C0103
         """Transform X using the imputer."""
-        return pd.DataFrame(super().transform(X), columns=self.columns)
+        return pd.DataFrame(super().transform(X), columns=self.columns)  # pylint: disable=C0103
 
 
 def preprocess_for_psi(dist1: np.ndarray, dist2: np.ndarray, max_num_categories) -> Tuple[np.ndarray, np.ndarray, List]:
