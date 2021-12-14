@@ -13,11 +13,13 @@
 import inspect
 import os
 import sys
-from sphinx.ext.autosummary import Autosummary
-from sphinx.ext.autosummary import get_documenter
-from docutils.parsers.rst import directives
-from sphinx.util.inspect import safe_getattr
-import re
+# from sphinx.ext.autosummary import Autosummary
+# from sphinx.ext.autosummary import get_documenter
+# from docutils.parsers.rst import directives
+# from sphinx.util.inspect import safe_getattr
+# import re
+
+import deepchecks.version
 
 
 sys.path.insert(0, os.path.abspath('../deepchecks'))
@@ -28,6 +30,16 @@ project = 'deepchecks'
 copyright = '2021, deepchecks'
 author = 'deepchecks'
 tag = 'main'
+version = deepchecks.version.__version__
+
+
+GIT = {
+    "user": "deepchecks",
+    "repo": "deepchecks",
+    "branch": "main",
+    "documentation-path": "docs/source"
+}
+
 
 # -- General configuration ---------------------------------------------------
 html_logo = "./_static/deepchecks_logo.svg"
@@ -45,8 +57,6 @@ extensions = [
 ]
 
 html_baseurl = 'docs.deepchecks.com'
-
-
 add_module_names = False
 python_use_unqualified_type_names = True
 
@@ -71,6 +81,7 @@ templates_path = ['_templates']
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+
 
 # -- Copybutton settings --------------------------------------------------
 
@@ -182,7 +193,8 @@ html_theme = 'pydata_sphinx_theme'
 # https://pydata-sphinx-theme.readthedocs.io/en/latest/user_guide/configuring.html#adding-external-links-to-your-nav-bar
 #
 html_theme_options = {
-    "use_edit_page_button": True,
+    "page_sidebar_items": ["page-toc", "create-issue", "show-page-source"],
+    "use_edit_page_button": False,
     "icon_links_label": "Quick Links",
     "icon_links": [
         {
@@ -204,12 +216,12 @@ html_theme_options = {
 }
 
 
-html_context = {
-    "github_user": "deepchecks",
-    "github_version": "doc-test-v2",
-    "doc_path": "docs/source",
-    "github_repo": "deepchecks",
-}
+# html_context = {
+#     "github_user": GIT["user"],
+#     "github_repo": GIT["repo"],
+#     "github_version": "doc-test-v2", # TODO: temporaly
+#     "doc_path": GIT["documentation-path"],
+# }
 
 
 # Add any paths that contain custom static files (such as style sheets) here,
