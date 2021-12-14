@@ -15,7 +15,10 @@ from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LinearSegmentedColormap
 
 
-__all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map']
+__all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map', 'colors']
+
+colors = {'Train': 'darkblue',
+          'Test': '#69b3a2'}
 
 
 def create_colorbar_barchart_for_check(

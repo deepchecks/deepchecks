@@ -19,6 +19,7 @@ from deepchecks.checks.distribution.plot import plot_density
 from deepchecks.utils.metrics import task_type_check, ModelType
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
+from deepchecks.utils.plot import colors
 from deepchecks.errors import DeepchecksValueError
 
 
@@ -167,8 +168,8 @@ class TrustScoreComparison(TrainTestBaseCheck):
             x_range = [min(*test_trust_scores_cut, *train_trust_scores_cut),
                      max(*test_trust_scores_cut, *train_trust_scores_cut)]
             xs = np.linspace(x_range[0], x_range[1], 40)
-            plot_density(test_trust_scores_cut, xs, 'darkblue')
-            plot_density(train_trust_scores_cut, xs, '#69b3a2')
+            plot_density(train_trust_scores_cut, xs, colors['Train'])
+            plot_density(test_trust_scores_cut, xs, colors['Test'])
             # Set x axis
             axes.set_xlim(x_range)
             plt.xlabel('Trust score')
@@ -176,8 +177,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
             axes.set_ylim(bottom=0)
             plt.ylabel('Probability Density')
             # Set labels
-            colors = {'Test': 'darkblue',
-                      'Train': '#69b3a2'}
+
             labels = list(colors.keys())
             handles = [plt.Rectangle((0, 0), 1, 1, color=colors[label]) for label in labels]
             plt.legend(handles, labels)
