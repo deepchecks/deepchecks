@@ -20,7 +20,7 @@ from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.metrics import task_type_check, DEFAULT_METRICS_DICT, validate_scorer, DEFAULT_SINGLE_METRIC
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
-from deepchecks.utils.plot import get_color_for
+from deepchecks.utils.plot import colors
 from deepchecks.errors import DeepchecksValueError
 
 
@@ -180,10 +180,8 @@ class BoostingOverfit(TrainTestBaseCheck):
             axes.set_xlabel('Number of boosting iterations')
             axes.set_ylabel(metric_name)
             axes.grid()
-            axes.plot(estimator_steps, np.array(train_scores), 'o-',
-                      color=get_color_for('Train'), label='Training score')
-            axes.plot(estimator_steps, np.array(test_scores), 'o-',
-                      color=get_color_for('Test'), label='Test score')
+            axes.plot(estimator_steps, np.array(train_scores), 'o-', color=colors['Train'], label='Training score')
+            axes.plot(estimator_steps, np.array(test_scores), 'o-', color=colors['Test'], label='Test score')
             axes.legend(loc='best')
             # Display x ticks as integers
             axes.xaxis.set_major_locator(MaxNLocator(integer=True))
