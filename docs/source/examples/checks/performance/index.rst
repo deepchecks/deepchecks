@@ -1,9 +1,8 @@
-Performance Checks
+Performance
 ====================
 
 .. toctree::
     :maxdepth: 1
-    :caption: Performance Checks
     :titlesonly:
     :glob:
 

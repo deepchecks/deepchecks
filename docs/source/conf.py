@@ -182,7 +182,7 @@ html_theme = 'pydata_sphinx_theme'
 # https://pydata-sphinx-theme.readthedocs.io/en/latest/user_guide/configuring.html#adding-external-links-to-your-nav-bar
 #
 html_theme_options = {
-    "show_nav_level": 2,
+    "use_edit_page_button": True,
     "icon_links_label": "Quick Links",
     "icon_links": [
         {
@@ -195,7 +195,20 @@ html_theme_options = {
             "url": "https://deepcheckscommunity.slack.com/join/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg#/shared-invite/email",
             "icon": "fab fa-slack",
         },
+        {
+            "name": "PyPI",
+            "url": "https://pypi.org/project/deepchecks/",
+            "icon": "fab fa-python",
+        }
     ],
+}
+
+
+html_context = {
+    "github_user": "deepchecks",
+    "github_version": "doc-test-v2",
+    "doc_path": "docs/source",
+    "github_repo": "deepchecks",
 }
 
 

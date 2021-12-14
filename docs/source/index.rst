@@ -10,7 +10,6 @@ Welcome to Deepchecks' documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Getting Started
    :hidden:
 
    getting-started/index
@@ -18,23 +17,18 @@ Welcome to Deepchecks' documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Examples
-   :glob:
 
    examples/index
 
 
 .. toctree::
    :maxdepth: 2
-   :caption: User Guide
-   :glob:
 
    user-guide/index
 
 
 .. toctree::
    :maxdepth: 3
-   :caption: API Reference
 
    api/index
 

@@ -1,12 +1,12 @@
 Methodology
-=========
+============
 
 .. py:module:: deepchecks.checks.methodology
 
 .. automodule:: deepchecks.checks.methodology
 
 Classes Summary
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 
 .. currentmodule:: deepchecks.checks.methodology
 

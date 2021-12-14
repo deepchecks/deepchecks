@@ -1,4 +1,5 @@
 User Guide
 ==========
 
-guiding the user here
+.. toctree::
+    :caption: User Guide

@@ -1,4 +1,3 @@
-    :template: check.rst
 Performance
 ===========
 

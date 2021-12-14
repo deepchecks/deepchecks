@@ -39,7 +39,9 @@
 
 Example
 ~~~~~~~
-.. toctree::
-    :titlesonly:
 
-    ../../../checks/{{ checkname[0] }}/{{ checkname[1] }}
+.. toctree::
+   :maxdepth: 1
+   :titlesonly:
+
+   /examples/checks/{{ checkname[0] }}/{{ checkname[1] }}

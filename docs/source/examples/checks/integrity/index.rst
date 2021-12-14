@@ -1,9 +1,8 @@
-Data Integrity Checks
+Data Integrity
 ======================
 
 .. toctree::
     :maxdepth: 1
-    :caption: Data Integrity Checks
     :titlesonly:
     :glob:
 

@@ -1,9 +1,8 @@
-Overview Checks
+Overview
 ==================
 
 .. toctree::
     :maxdepth: 1
-    :caption: Overview Checks
     :titlesonly:
     :glob:
 
