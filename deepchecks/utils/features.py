@@ -74,7 +74,6 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_s
             internal_estimator = internal_estimator_list[-1]
         else:
             internal_estimator = None
- 
 
     feature_importances = _built_in_importance(model, dataset)
     if feature_importances is None:

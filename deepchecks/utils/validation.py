@@ -16,8 +16,6 @@ import sklearn
 from deepchecks import base # pylint: disable=unused-import, is used in type annotations
 from deepchecks import errors
 from deepchecks.utils.typing import Hashable
-from deepchecks.utils.metrics import task_type_check, ModelType
-
 
 
 __all__ = ['model_type_validation', 'ensure_hashable_or_mutable_sequence', 'validate_model']
