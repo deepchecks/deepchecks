@@ -35,17 +35,13 @@ jobs:
     needs: Security-Check
     steps:
       - uses: actions/checkout@v2.3.4
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
       - name: Fetch resources
         run: ./.github/scripts/update_version.sh
 
       - name: Update version
         uses: test-room-7/action-update-file@v1
         with:
-          file-path: ./VERSION
+          file-path: VERSION
           commit-msg: New version release
           github-token: ${{ secrets.GITHUB_TOKEN }}
   Create-Release:
