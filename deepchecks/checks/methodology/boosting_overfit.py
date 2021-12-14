@@ -117,7 +117,7 @@ class BoostingOverfit(TrainTestBaseCheck):
     both the train dataset and the test dataset.
 
     Args:
-        scorer (Union[Callable, str]): Scorer to use verify the model, either function or sklearn scorer name.
+        scorer (Union[Callable, str]): Scorer used to verify the model, either function or sklearn scorer name.
         scorer_name (str): Name to be displayed in the plot on y-axis. must be used together with 'scorer'
         num_steps (int): Number of splits of the model iterations to check.
     """
