@@ -12,7 +12,6 @@
 import pandas as pd
 from hamcrest import equal_to, assert_that, calling, raises, close_to, not_none, none
 from sklearn.ensemble import AdaBoostClassifier
-from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression
 from sklearn.neural_network import MLPClassifier
 
@@ -30,8 +29,9 @@ def test_adaboost(iris_split_dataset_and_model):
 def test_unfitted(iris_dataset):
     clf = AdaBoostClassifier()
     assert_that(calling(calculate_feature_importance).with_args(clf, iris_dataset),
-                raises(NotFittedError, 'This AdaBoostClassifier instance is not fitted yet. Call \'fit\' '
-                                       'with appropriate arguments before using this estimator.'))
+                raises(DeepchecksValueError, 'Got error when trying to predict with model on dataset: '
+                    'This AdaBoostClassifier instance is not fitted yet. '
+                    'Call \'fit\' with appropriate arguments before using this estimator.'))
 
 
 def test_linear_regression(diabetes):
