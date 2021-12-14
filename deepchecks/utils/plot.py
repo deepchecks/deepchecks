@@ -15,10 +15,17 @@ from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LinearSegmentedColormap
 
 
-__all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map', 'colors']
+__all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map', 'get_color_for']
 
-colors = {'Train': 'darkblue',
-          'Test': '#69b3a2'}
+
+def get_color_for(name: str):
+    """Common system colors.
+
+    Args:
+        name (str): the name of the value to color
+    """
+    return {'Train': 'darkblue',
+            'Test': '#69b3a2'}[name]
 
 
 def create_colorbar_barchart_for_check(

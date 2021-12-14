@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from deepchecks.utils.plot import colors
+from deepchecks.utils.plot import get_color_for
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
 from deepchecks.utils.metrics import get_metrics_list
@@ -98,8 +98,8 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
             width = 0.20
             indices = np.arange(len(res_df.index))
 
-            plt.bar(indices, res_df['Training Metrics'].values.flatten(), width=width, color=colors['Train'])
-            plt.bar(indices + width, res_df['Test Metrics'].values.flatten(), width=width, color=colors['Test'])
+            plt.bar(indices, res_df['Training Metrics'].values.flatten(), width=width, color=get_color_for('Train'))
+            plt.bar(indices + width, res_df['Test Metrics'].values.flatten(), width=width, color=get_color_for('Test'))
             plt.ylabel('Metrics')
             plt.xticks(ticks=indices + width / 2., labels=res_df.index)
             plt.xticks(rotation=30)

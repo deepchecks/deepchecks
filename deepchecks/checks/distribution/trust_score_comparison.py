@@ -19,7 +19,7 @@ from deepchecks.checks.distribution.plot import plot_density
 from deepchecks.utils.metrics import task_type_check, ModelType
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
-from deepchecks.utils.plot import colors
+from deepchecks.utils.plot import get_color_for
 from deepchecks.errors import DeepchecksValueError
 
 
@@ -168,8 +168,8 @@ class TrustScoreComparison(TrainTestBaseCheck):
             x_range = [min(*test_trust_scores_cut, *train_trust_scores_cut),
                      max(*test_trust_scores_cut, *train_trust_scores_cut)]
             xs = np.linspace(x_range[0], x_range[1], 40)
-            plot_density(train_trust_scores_cut, xs, colors['Train'])
-            plot_density(test_trust_scores_cut, xs, colors['Test'])
+            plot_density(train_trust_scores_cut, xs, get_color_for('Train'))
+            plot_density(test_trust_scores_cut, xs, get_color_for('Test'))
             # Set x axis
             axes.set_xlim(x_range)
             plt.xlabel('Trust score')
@@ -178,8 +178,8 @@ class TrustScoreComparison(TrainTestBaseCheck):
             plt.ylabel('Probability Density')
             # Set labels
 
-            labels = list(colors.keys())
-            handles = [plt.Rectangle((0, 0), 1, 1, color=colors[label]) for label in labels]
+            labels = ['Train', 'Test']
+            handles = [plt.Rectangle((0, 0), 1, 1, color=get_color_for(label)) for label in labels]
             plt.legend(handles, labels)
             plt.title('Trust Score Distribution')
 

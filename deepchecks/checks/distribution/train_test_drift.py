@@ -20,7 +20,7 @@ from scipy.stats import wasserstein_distance
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.checks.distribution.plot import plot_density
 from deepchecks.utils.features import calculate_feature_importance_or_null
-from deepchecks.utils.plot import colors
+from deepchecks.utils.plot import get_color_for
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 import matplotlib.pyplot as plt
@@ -319,8 +319,8 @@ class TrainTestDrift(TrainTestBaseCheck):
                 fig.suptitle(plot_title, horizontalalignment='left', fontweight='bold', x=0.05)
                 drift_score_bar(axs[0], score, 'Earth Movers Distance')
                 plt.sca(axs[1])
-                pdf1 = plot_density(train_column, xs, colors['Train'])
-                pdf2 = plot_density(test_column, xs, colors['Test'])
+                pdf1 = plot_density(train_column, xs, get_color_for('Train'))
+                pdf2 = plot_density(test_column, xs, get_color_for('Test'))
                 plt.gca().set_ylim(bottom=0, top=max(max(pdf1), max(pdf2)) * 1.1)
                 axs[1].set_xlabel(column_name)
                 axs[1].set_ylabel('Probability Density')
@@ -346,7 +346,7 @@ class TrainTestDrift(TrainTestBaseCheck):
                 fig, axs = plt.subplots(3, figsize=(8, 4.5), gridspec_kw={'height_ratios': [1, 7, 0.2]})
                 fig.suptitle(plot_title, horizontalalignment='left', fontweight='bold', x=0.05)
                 drift_score_bar(axs[0], score, 'PSI')
-                cat_df.plot.bar(ax=axs[1], color=(colors['Train'], colors['Test']))
+                cat_df.plot.bar(ax=axs[1], color=(get_color_for('Train'), get_color_for('Test')))
                 axs[1].set_ylabel('Percentage')
                 axs[1].legend()
                 axs[1].set_title('Distribution')
