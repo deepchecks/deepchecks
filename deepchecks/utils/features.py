@@ -16,7 +16,6 @@ import pandas as pd
 from sklearn.base import BaseEstimator
 from sklearn.inspection import permutation_importance
 from sklearn.pipeline import Pipeline
-from sklearn.utils.validation import check_is_fitted
 
 from deepchecks import base
 from deepchecks import errors
@@ -66,19 +65,15 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_s
     Raise:
         NotFittedError: Call 'fit' with appropriate arguments before using this estimator.
     """
-    # special condition - check_is_fitted doesn't work for Pipeline
+    validation.validate_model(dataset, model)
+
     if isinstance(model, Pipeline):
         # get feature importance from last model in pipeline
         internal_estimator_list = [x[1] for x in model.steps if isinstance(x[1], BaseEstimator)]
         if internal_estimator_list:
             internal_estimator = internal_estimator_list[-1]
-            check_is_fitted(internal_estimator)
         else:
             internal_estimator = None
-    else:
-        check_is_fitted(model)
-
-    validation.validate_model(dataset, model)
 
     feature_importances = _built_in_importance(model, dataset)
     if feature_importances is None:
