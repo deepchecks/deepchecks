@@ -130,7 +130,9 @@ class TrustScoreComparison(TrainTestBaseCheck):
             categorical_columns=test_dataset.cat_features,
             max_num_categories=self.max_number_categories
         )
-# Trust Score model expects labels to be consecutive integers from 0 to n-1, so we transform our label to this format:
+
+        # Trust Score model expects labels to be consecutive integers from 0 to n-1, so we transform our label to
+        # this format.
         label_transform_dict = dict(zip(sorted(list(set(train_data_sample[label_name]))),
                                         range(len(set(train_data_sample[label_name])))))
 
