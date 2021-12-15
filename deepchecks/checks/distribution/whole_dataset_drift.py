@@ -156,7 +156,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
             drift_score_bar(plt.gca(), self.auc_to_drift_score(values_dict['domain_classifier_auc']),
                             'Domain Classifier Drift Score')
 
-        displays = [headnote] + [display_drift_score] + ["<h5>Main features contributing to drift</h5>"] +\
+        displays = [headnote] + [display_drift_score] + ['<h5>Main features contributing to drift</h5>'] +\
                    [partial(self._display_dist, train_sample_df[feature], test_sample_df[feature], fi_ser)
                     for feature in top_fi.index]
 
