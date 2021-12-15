@@ -13,7 +13,6 @@ from copy import deepcopy
 from typing import Callable, Union
 
 from sklearn.pipeline import Pipeline
-from sklearn.base import BaseEstimator
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import numpy as np
