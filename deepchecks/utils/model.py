@@ -10,7 +10,7 @@ __all__ = ['get_model_of_pipeline']
 
 
 def get_model_of_pipeline(model: Union[Pipeline, BaseEstimator]):
-    """return the model of a given Pipeline or itself if a BaseEstimator is given.
+    """Return the model of a given Pipeline or itself if a BaseEstimator is given.
 
     Args:
         model (Union[Pipeline, BaseEstimator]): a Pipeline or a BaseEstimator model
