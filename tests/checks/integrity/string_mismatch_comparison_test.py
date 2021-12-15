@@ -102,12 +102,13 @@ def test_condition_no_new_variants_fail():
     compared_data = {'col1': ['Deep', 'deep', '$deeP$', 'earth', 'foo', 'bar', 'foo?', '?deep']}
     check = StringMismatchComparison().add_condition_no_new_variants()
     # Act
-    result = check.conditions_decision(check.run(pd.DataFrame(data=data), pd.DataFrame(data=compared_data)))
+    data_df, compared_data_df = pd.DataFrame(data=data), pd.DataFrame(data=compared_data)
+    result, *_ = check.conditions_decision(check.run(compared_data_df, data_df))
     # Assert
-    assert_that(result, has_items(
-        equal_condition_result(is_pass=False,
-                               name='No new variants allowed in test data for all columns',
-                               details='Found columns with variants over ratio: {\'col1\': \'14.29%\'}')
+    assert_that(result, equal_condition_result(
+        is_pass=False,
+        name='No new variants allowed in test data for all columns',
+        details='Found columns with variants over ratio: {\'col1\': \'14.29%\'}'
     ))
 
 
@@ -116,12 +117,15 @@ def test_condition_no_new_variants_pass():
     base_data = {'col1': ['Deep', 'deep', 'deep!!!', 'earth', 'foo', 'bar', 'foo?']}
     tested_data = {'col1': ['Deep', 'deep', 'cat', 'earth', 'foo', 'bar', 'foo?', 'bar']}
     check = StringMismatchComparison().add_condition_no_new_variants()
+
     # Act
-    result = check.conditions_decision(check.run(pd.DataFrame(data=tested_data), pd.DataFrame(data=base_data)))
+    test_df, base_df = pd.DataFrame(data=tested_data), pd.DataFrame(data=base_data)
+    result, *_ = check.conditions_decision(check.run(base_df, test_df))
+
     # Assert
-    assert_that(result, has_items(
-        equal_condition_result(is_pass=True,
-                               name='No new variants allowed in test data for all columns')
+    assert_that(result, equal_condition_result(
+        is_pass=True,
+        name='No new variants allowed in test data for all columns'
     ))
 
 
@@ -130,13 +134,16 @@ def test_condition_percent_new_variants_fail():
     base_data = {'col1': ['Deep', 'deep', 'deep!!!', 'earth', 'foo', 'bar', 'foo?']}
     tested_data = {'col1': ['Deep', 'deep', '$deeP$', 'earth', 'foo', 'bar', 'foo?', '?deep']}
     check = StringMismatchComparison().add_condition_ratio_new_variants_not_more_than(0.1)
+
     # Act
-    result = check.conditions_decision(check.run(pd.DataFrame(data=tested_data), pd.DataFrame(data=base_data)))
+    test_df, base_df = pd.DataFrame(data=tested_data), pd.DataFrame(data=base_data)
+    result, *_ = check.conditions_decision(check.run(base_df, test_df,))
+
     # Assert
-    assert_that(result, has_items(
-        equal_condition_result(is_pass=False,
-                               name='Not more than 10.00% new variants in test data for all columns',
-                               details='Found columns with variants over ratio: {\'col1\': \'25.00%\'}')
+    assert_that(result, equal_condition_result(
+        is_pass=False,
+        name='Not more than 10.00% new variants in test data for all columns',
+        details='Found columns with variants over ratio: {\'col1\': \'25.00%\'}'
     ))
 
 
@@ -169,7 +176,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     # Arrange
     check = StringMismatchComparison(n_top_columns=3)
     # Act
-    result = check.run(train, val, clf)
+    result = check.run(test_dataset=train, train_dataset=val, model=clf)
     # Assert - The display table is transposed so check length of columns
     assert_that(result.display[0].columns, has_length(3))
 

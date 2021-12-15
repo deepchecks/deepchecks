@@ -36,7 +36,7 @@ def test_no_leakage(iris_split_dataset_and_model):
     # Arrange
     check = DominantFrequencyChange(ratio_change_thres=3)
     # Act X
-    result = check.run(dataset=val_ds, baseline_dataset=train_ds).value
+    result = check.run(train_dataset=train_ds, test_dataset=val_ds).value
     # Assert
     assert_that(result, empty())
 
@@ -58,7 +58,7 @@ def test_leakage(iris_clean):
     # Arrange
     check = DominantFrequencyChange()
     # Act X
-    result = check.run(dataset=validation_dataset, baseline_dataset=train_dataset).value
+    result = check.run(train_dataset=train_dataset, test_dataset=validation_dataset).value
     row = result['petal length (cm)']
     # Assert
     assert_that(row['Value'], equal_to(5.1))
@@ -74,7 +74,7 @@ def test_show_any(iris_split_dataset_and_model):
     # those params means any value should be included
     check = DominantFrequencyChange(dominance_ratio=0, ratio_change_thres=-1)
     # Act
-    result = check.run(dataset=val_ds, baseline_dataset=train_ds).value
+    result = check.run(train_dataset=train_ds, test_dataset=val_ds).value
     # Assert
     assert_that(len(result), equal_to(len(train_ds.features)))
 
@@ -85,7 +85,7 @@ def test_show_none_dominance_ratio(iris_split_dataset_and_model):
     check = DominantFrequencyChange(dominance_ratio=len(train_ds.features) + 1,
                                     ratio_change_thres=-1)
     # Act
-    result = check.run(dataset=val_ds, baseline_dataset=train_ds).value
+    result = check.run(train_dataset=train_ds, test_dataset=val_ds).value
     # Assert
     assert_that(result, empty())
 
@@ -95,7 +95,7 @@ def test_show_none_ratio_change_thres(iris_split_dataset_and_model):
     # because of ratio_change_thres no value should be included
     check = DominantFrequencyChange(dominance_ratio=0, ratio_change_thres=100)
     # Act
-    result = check.run(dataset=val_ds, baseline_dataset=train_ds).value
+    result = check.run(train_dataset=train_ds, test_dataset=val_ds).value
     # Assert
     assert_that(result, empty())
 
@@ -165,13 +165,13 @@ def test_condition_ratio_of_change_not_more_than_not_passed(iris_split_dataset_a
     check = DominantFrequencyChange().add_condition_ratio_of_change_not_more_than()
 
     # Act
-    result = check.conditions_decision(check.run(train_ds, val_ds))
+    result, *_ = check.conditions_decision(check.run(train_dataset=val_ds, test_dataset=train_ds))
 
     # Assert
-    assert_that(result, has_items(
-        equal_condition_result(is_pass=False,
-                               name='Change in ratio of dominant value in data not more than 25.00%',
-                               details='Found columns with high change in dominant value: [\'sepal width (cm)\']')
+    assert_that(result, equal_condition_result(
+            is_pass=False,
+            name='Change in ratio of dominant value in data not more than 25.00%',
+            details='Found columns with high change in dominant value: [\'sepal width (cm)\']'
     ))
 
 
