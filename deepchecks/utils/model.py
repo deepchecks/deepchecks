@@ -1,3 +1,4 @@
+"""module for model functions utils"""
 from typing import Union
 
 from sklearn.pipeline import Pipeline
