@@ -22,7 +22,7 @@ from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.metrics import task_type_check, DEFAULT_METRICS_DICT, validate_scorer, DEFAULT_SINGLE_METRIC
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
-from deepchecks.utils.model import get_model_of_pipeline, get_model_class_name
+from deepchecks.utils.model import get_model_of_pipeline
 from deepchecks.utils.plot import colors
 from deepchecks.errors import DeepchecksValueError
 
@@ -40,17 +40,13 @@ class PartialBoostingModel:
             model: boosting model to wrap.
             step: Number of iterations/estimators to limit the model on predictions.
         """
-        if isinstance(model, Pipeline):
-            internal_estimator = get_model_of_pipeline(model)
-            self.model_class = internal_estimator.__class__.__name__
-        else:
-            self.model_class = model.__class__.__name__
+        self.model_class = get_model_of_pipeline(model).__class__.__name__
         self.step = step
         if self.model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
                                 'GradientBoostingRegressor']:
             self.model = deepcopy(model)
-            if internal_estimator:
-                internal_estimator = get_model_of_pipeline(model)
+            if isinstance(model, Pipeline):
+                internal_estimator = get_model_of_pipeline(self.model)
                 internal_estimator.estimators_ = internal_estimator.estimators_[:self.step]
             else:
                 self.model.estimators_ = self.model.estimators_[:self.step]
@@ -84,7 +80,8 @@ class PartialBoostingModel:
 
     @classmethod
     def n_estimators(cls, model):
-        model_class = get_model_class_name(model)
+        model = get_model_of_pipeline(model)
+        model_class = model.__class__.__name__
         if model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
                            'GradientBoostingRegressor']:
             return len(model.estimators_)
