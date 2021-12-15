@@ -34,18 +34,18 @@ def assert_dataset(dataset: Dataset, args):
             assert_that(dataset.features_columns.equals(args['df'][args['features']]), is_(True))
     if 'cat_features' in args:
         assert_that(dataset.cat_features, equal_to(args['cat_features']))
-    if 'label' in args:
-        assert_that(dataset.label_name, equal_to(args['label']))
-        assert_that(dataset.label_col.equals(pd.Series(args['df'][args['label']])), is_(True))
+    if 'label_name' in args:
+        assert_that(dataset.label_name, equal_to(args['label_name']))
+        assert_that(dataset.label_col.equals(pd.Series(args['df'][args['label_name']])), is_(True))
     if 'use_index' in args and args['use_index']:
         assert_that(dataset.index_col.equals(pd.Series(args['df'].index)), is_(True))
-    if 'index' in args:
-        assert_that(dataset.index_name, equal_to(args['index']))
-        assert_that(dataset.index_col.equals(pd.Series(args['df'][args['index']])), is_(True))
-    if 'date' in args:
-        assert_that(dataset.date_name, equal_to(args['date']))
+    if 'index_name' in args:
+        assert_that(dataset.index_name, equal_to(args['index_name']))
+        assert_that(dataset.index_col.equals(pd.Series(args['df'][args['index_name']])), is_(True))
+    if 'date_name' in args:
+        assert_that(dataset.date_name, equal_to(args['date_name']))
         if ('convert_date_' in args) and (args['convert_date_'] is False):
-            assert_that(dataset.date_col.equals(pd.Series(args['df'][args['date']])), is_(True))
+            assert_that(dataset.date_col.equals(pd.Series(args['df'][args['date_name']])), is_(True))
         else:
             for date in dataset.date_col:
                 assert_that(date, instance_of(pd.Timestamp))
@@ -183,50 +183,50 @@ def test_dataset_infer_cat_features_max_categorical_ratio(diabetes_df):
     assert_dataset(dataset, args)
 
 
-def test_dataset_label(iris):
+def test_dataset_label_name(iris):
     args = {'df': iris,
-            'label': 'target'}
+            'label_name': 'target'}
     dataset = Dataset(**args)
     assert_dataset(dataset, args)
 
 
-def test_dataset_label_in_features(iris):
+def test_dataset_label_name_in_features(iris):
     args = {'df': iris,
             'features': ['sepal length (cm)',
                          'sepal width (cm)',
                          'petal length (cm)',
                          'petal width (cm)',
                          'target'],
-            'label': 'target'}
+            'label_name': 'target'}
     assert_that(calling(Dataset).with_args(**args),
                 raises(DeepchecksValueError, 'label column target can not be a feature column'))
 
 
-def test_dataset_bad_label(iris):
+def test_dataset_bad_label_name(iris):
     args = {'df': iris,
-            'label': 'shmabel'}
+            'label_name': 'shmabel'}
     assert_that(calling(Dataset).with_args(**args),
                 raises(DeepchecksValueError, 'label column shmabel not found in dataset columns'))
 
 
 def test_dataset_use_index(iris):
     args = {'df': iris,
-            'use_index': True}
+            'use_default_index': True}
     dataset = Dataset(**args)
     assert_dataset(dataset, args)
 
 
 def test_dataset_index_use_index(iris):
     args = {'df': iris,
-            'index': 'target',
-            'use_index': True}
+            'index_name': 'target',
+            'use_default_index': True}
     assert_that(calling(Dataset).with_args(**args),
-                raises(DeepchecksValueError, 'parameter use_index cannot be True if index is given'))
+                raises(DeepchecksValueError, 'parameter use_default_index cannot be True if index is given'))
 
 
 def test_dataset_index_from_column(iris):
     args = {'df': iris,
-            'index': 'target'}
+            'index_name': 'target'}
     dataset = Dataset(**args)
     assert_dataset(dataset, args)
 
@@ -237,10 +237,10 @@ def test_dataset_index_in_df(iris):
                          'sepal width (cm)',
                          'petal length (cm)',
                          'petal width (cm)'],
-            'index': 'index'}
+            'index_name': 'index'}
     assert_that(calling(Dataset).with_args(**args),
                 raises(DeepchecksValueError, 'index column index not found in dataset columns. If you attempted to use '
-                                           'the dataframe index, set use_index to True instead.'))
+                                           'the dataframe index, set use_default_index to True instead.'))
 
 
 def test_dataset_index_in_features(iris):
@@ -250,19 +250,19 @@ def test_dataset_index_in_features(iris):
                          'petal length (cm)',
                          'petal width (cm)',
                          'target'],
-            'index': 'target'}
+            'index_name': 'target'}
     assert_that(calling(Dataset).with_args(**args),
                 raises(DeepchecksValueError, 'index column target can not be a feature column'))
 
 
 def test_dataset_date(iris):
-    args = {'date': 'target'}
+    args = {'date_name': 'target'}
     dataset = Dataset(iris, **args)
     assert_dataset(dataset, args)
 
 
 def test_dataset_date_not_in_columns(iris):
-    args = {'date': 'date'}
+    args = {'date_name': 'date'}
     assert_that(calling(Dataset).with_args(iris, **args),
                 raises(DeepchecksValueError, 'date column date not found in dataset columns'))
 
@@ -274,14 +274,14 @@ def test_dataset_date_in_features(iris):
                          'petal length (cm)',
                          'petal width (cm)',
                          'target'],
-            'date': 'target'}
+            'date_name': 'target'}
     assert_that(calling(Dataset).with_args(**args),
                 raises(DeepchecksValueError, 'date column target can not be a feature column'))
 
 
 def test_dataset_date_args_single_arg():
     df = pd.DataFrame({'date': [1, 2]})
-    args = {'date': 'date',
+    args = {'date_name': 'date',
             'date_args': {'unit': 'D'}}
     dataset = Dataset(df, **args)
     assert_dataset(dataset, args)
@@ -295,7 +295,7 @@ def test_dataset_date_args_single_arg():
 
 def test_dataset_date_args_multi_arg():
     df = pd.DataFrame({'date': [160, 180]})
-    args = {'date': 'date',
+    args = {'date_name': 'date',
             'date_args': {'unit': 'D', 'origin': '2020-02-01'}}
     dataset = Dataset(df, **args)
     assert_dataset(dataset, args)
@@ -310,7 +310,7 @@ def test_dataset_date_args_multi_arg():
 def test_dataset_date_convert_date():
     df = pd.DataFrame({'date': [1, 2]})
     args = {'df': df,
-            'date': 'date',
+            'date_name': 'date',
             'convert_date_': False}
     dataset = Dataset(**args)
     assert_dataset(dataset, args)
@@ -338,7 +338,7 @@ def test_dataset_no_index_col(iris):
 
 
 def test_dataset_validate_label(iris):
-    dataset = Dataset(iris, label='target')
+    dataset = Dataset(iris, label_name='target')
     dataset.validate_label()
 
 
@@ -349,7 +349,7 @@ def test_dataset_validate_no_label(iris):
 
 
 def test_dataset_validate_date(iris):
-    dataset = Dataset(iris, date='target')
+    dataset = Dataset(iris, date_name='target')
     dataset.validate_date()
 
 
@@ -360,7 +360,7 @@ def test_dataset_validate_no_date(iris):
 
 
 def test_dataset_validate_index(iris):
-    dataset = Dataset(iris, index='target')
+    dataset = Dataset(iris, index_name='target')
     dataset.validate_index()
 
 
@@ -473,13 +473,13 @@ def test_dataset_initialization_from_numpy_arrays_with_specified_features_names(
     ds = Dataset.from_numpy(
         iris.data, iris.target,
         label_name=label_column_name,
-        feature_names=feature_columns_names
+        columns=feature_columns_names
     )
     validate_dataset_created_from_numpy_arrays(
         dataset=ds,
         features_array=iris.data,
         labels_array=iris.target,
-        featue_columns_names=feature_columns_names,
+        feature_columns_names=feature_columns_names,
         label_column_name=label_column_name
     )
 
@@ -498,8 +498,7 @@ def test_dataset_initialization_from_numpy_arrays_of_different_length():
         calling(Dataset.from_numpy).with_args(iris.data, iris.target[:10]),
         raises(
             DeepchecksValueError,
-            "'from_numpy' constructor expecting that features and "
-            "labels arrays will be of the same size"
+            "Number of samples of label and data must be equal"
         )
     )
 
@@ -510,8 +509,7 @@ def test_dataset_of_features_initialization_from_not_2d_numpy_arrays():
         calling(Dataset.from_numpy).with_args(iris.target),
         raises(
             DeepchecksValueError,
-            r"'from_numpy' constructor expecting features \(args\[0\]\) "
-            r"to be not empty two dimensional array\."
+            r"'from_numpy' constructor expecting columns \(args\[0\]\) to be not empty two dimensional array\."
         )
     )
 
@@ -522,7 +520,7 @@ def test_dataset_initialization_from_numpy_arrays_without_providing_args():
         raises(
             DeepchecksValueError,
             r"'from_numpy' constructor expecting to receive two numpy arrays \(or at least one\)\."
-            r"First array must contains the features and second the labels\."
+            r"First array must contains the columns and second the labels\."
         )
     )
 
@@ -530,10 +528,10 @@ def test_dataset_initialization_from_numpy_arrays_without_providing_args():
 def test_dataset_initialization_from_numpy_arrays_with_wrong_number_of_feature_columns_names():
     iris = load_iris()
     assert_that(
-        calling(Dataset.from_numpy).with_args(iris.data, iris.target, feature_names=['X1',]),
+        calling(Dataset.from_numpy).with_args(iris.data, iris.target, columns=['X1',]),
         raises(
             DeepchecksValueError,
-            '4 features were provided '
+            '4 columns were provided '
             r'but only 1 name\(s\) for them`s.'
         )
     )
@@ -544,7 +542,7 @@ def test_dataset_initialization_from_numpy_empty_arrays():
         calling(Dataset.from_numpy).with_args(iris.data[:0], iris.target),
         raises(
             DeepchecksValueError,
-            r"'from_numpy' constructor expecting features \(args\[0\]\) "
+            r"'from_numpy' constructor expecting columns \(args\[0\]\) "
             r"to be not empty two dimensional array\."
         )
     )
@@ -554,11 +552,11 @@ def validate_dataset_created_from_numpy_arrays(
     dataset: Dataset,
     features_array: np.ndarray,
     labels_array: np.ndarray = None,
-    featue_columns_names: t.Sequence[str] = None,
+    feature_columns_names: t.Sequence[str] = None,
     label_column_name: str = 'target'
 ):
-    if featue_columns_names is None:
-        featue_columns_names = [f'X{index}'for index in range(1, features_array.shape[1] + 1)]
+    if feature_columns_names is None:
+        feature_columns_names = [str(index) for index in range(1, features_array.shape[1] + 1)]
 
     features = dataset.features_columns
     feature_names = dataset.features
@@ -570,7 +568,7 @@ def validate_dataset_created_from_numpy_arrays(
     assert_that(all(features == features_array))
     assert_that(feature_names, all_of(
         instance_of(list),
-        contains_exactly(*featue_columns_names)
+        contains_exactly(*feature_columns_names)
     ))
 
     if labels_array is not None:
@@ -596,7 +594,7 @@ def test_dataset_initialization_with_integer_columns():
     dataset = Dataset(
         df=df,
         features=[0,1,2],
-        label=3,
+        label_name=3,
         cat_features=[0],
     )
 
@@ -618,11 +616,11 @@ class TestLabel(TestCase):
 
     def test_invalid_label(self):
         valid_label_df = pd.DataFrame(np.array([1, 1, 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
-        Dataset(valid_label_df, label='label')
+        Dataset(valid_label_df, label_name='label')
 
         string_label_df = pd.DataFrame(np.array(['a', 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
         args = {'df': string_label_df,
-                'label': 'label'}
+                'label_name': 'label'}
         with self.assertLogs() as captured:
             Dataset(**args)
         self.assertEqual(len(captured.records), 1)  # check that there is only one log message
@@ -631,9 +629,31 @@ class TestLabel(TestCase):
 
         null_label_df = pd.DataFrame(np.array([np.nan, 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
         args = {'df': null_label_df,
-                'label': 'label'}
+                'label_name': 'label'}
         with self.assertLogs() as captured:
             Dataset(**args)
         self.assertEqual(len(captured.records), 1)  # check that there is only one log message
         self.assertEqual(captured.records[0].getMessage(),
                          'Can not have null values in label column')  # and it is the proper one
+
+
+def test_dataset_label_without_name(iris):
+    # Arrange
+    label = iris['target']
+    data = iris.drop('target', axis=1)
+    # Act
+    dataset = Dataset(data, label)
+    # Assert
+    assert_that(dataset.features, equal_to(list(data.columns)))
+    assert_that(dataset.data.columns, contains_exactly(*data.columns, 'target'))
+
+
+def test_dataset_label_with_name(iris):
+    # Arrange
+    label = iris['target']
+    data = iris.drop('target', axis=1)
+    # Act
+    dataset = Dataset(data, label, label_name='actual')
+    # Assert
+    assert_that(dataset.features, equal_to(list(data.columns)))
+    assert_that(dataset.data.columns, contains_exactly(*data.columns, 'actual'))

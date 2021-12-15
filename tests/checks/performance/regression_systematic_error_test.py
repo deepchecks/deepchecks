@@ -57,7 +57,7 @@ def test_regression_error(diabetes_split_dataset_and_model):
 def test_condition_error_ratio_not_greater_than_not_passed(diabetes_split_dataset_and_model):
     # Arrange
     _, test, clf = diabetes_split_dataset_and_model
-    test = Dataset(test.data.copy(), label='target')
+    test = Dataset(test.data.copy(), label_name='target')
     test._data[test.label_name] = 300
 
     check = RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_not_greater_than()

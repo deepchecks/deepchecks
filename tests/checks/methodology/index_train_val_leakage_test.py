@@ -23,7 +23,7 @@ from tests.checks.utils import equal_condition_result
 
 def dataset_from_dict(d: dict, index_name: str = None) -> Dataset:
     dataframe = pd.DataFrame(data=d)
-    return Dataset(dataframe, index=index_name)
+    return Dataset(dataframe, index_name=index_name)
 
 
 def test_indexes_from_val_in_train():
