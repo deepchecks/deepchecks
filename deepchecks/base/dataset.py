@@ -24,7 +24,6 @@ from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 
 
-
 __all__ = ['Dataset', 'ensure_dataframe_type']
 
 
