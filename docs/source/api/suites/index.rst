@@ -1,22 +1,40 @@
 Suites
 ======
 
-.. py:module:: deepchecks.suites
-
 .. automodule:: deepchecks.suites
 
 
-.. currentmodule:: deepchecks.suites
+:mod:`deepchecks.suites`
 
-Prebuilt Suites
+
+Data Integrity
+~~~~~~~~~~~~~~~~~
+
+.. automodule:: deepchecks.suites.integrity_suite
+    :members:
+
+    
+
+Methodology
+~~~~~~~~~~~~~~~~~
+
+.. automodule:: deepchecks.suites.methodology_suite
+    :members:
+    
+
+
+Overall
+~~~~~~~~~~~~~~~~~
+
+.. automodule:: deepchecks.suites.overall_suite
+    :members:
+    
+
+
+Performance
 ~~~~~~~~~~~~~~~
 
-.. autosummary::
-    :recursive:
-    :toctree: generated
-
-    distribution_suite
-    integrity_suite
-    methodology_suite
-    overall_suite
-    performance_suite
+.. automodule:: deepchecks.suites.performance_suite
+    :members:
+    
+    
