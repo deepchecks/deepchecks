@@ -30,12 +30,7 @@ class ProgressBar:
     def __init__(self, name, length):
         """Initialize progress bar."""
         shared_args = {'total': length, 'desc': name, 'unit': ' Check', 'leave': False, 'file': sys.stdout}
-        if is_widgets_enabled():
-            self.pbar = tqdm.tqdm_notebook(**shared_args, colour='#9d60fb')
-        else:
-            # Normal tqdm with colour in notebooks produce bug that the cleanup doesn't remove all characters. so
-            # until bug fixed, doesn't add the colour to regular tqdm
-            self.pbar = tqdm.tqdm(**shared_args, bar_format=f'{{l_bar}}{{bar:{length}}}{{r_bar}}')
+        self.pbar = tqdm.tqdm(**shared_args, bar_format=f'{{l_bar}}{{bar:{length}}}{{r_bar}}')
 
     def set_text(self, text):
         """Set current running check."""
