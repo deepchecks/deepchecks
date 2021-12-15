@@ -16,7 +16,6 @@ import pandas as pd
 from sklearn.base import BaseEstimator
 from sklearn.inspection import permutation_importance
 from sklearn.pipeline import Pipeline
-from sklearn.utils.validation import check_is_fitted
 
 from deepchecks import base
 from deepchecks import errors
@@ -74,6 +73,8 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_s
     elif not force_permutation:
         raise errors.DeepchecksValueError(
             'permutation_wkargs should be None if force_permutation is False')
+
+    validation.validate_model(dataset, model)
 
     # special condition - check_is_fitted doesn't work for Pipeline
     if isinstance(model, Pipeline):
