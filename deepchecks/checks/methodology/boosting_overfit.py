@@ -111,7 +111,7 @@ def calculate_steps(num_steps, num_estimators):
 
 
 class BoostingOverfit(TrainTestBaseCheck):
-    """Check for overfit occurring when increasing the number of iterations in boosting models.
+    """Check for overfit caused by using too many boosting iterations in a gradient boosted model.
 
     The check runs a pred-defined number of steps, and in each step it limits the boosting model to use up to X
     estimators (number of estimators is monotonic increasing). It plots the given metric calculated for each step for
