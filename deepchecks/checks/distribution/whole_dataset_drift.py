@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.checks.distribution.dist_utils import preprocess_for_psi
+from deepchecks.checks.distribution.dist_utils import preprocess_for_psi, drift_score_bar
 from deepchecks.checks.distribution.plot import plot_density
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.strings import format_percent, format_number
@@ -151,11 +151,21 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         top_fi = fi_ser.head(self.n_top_features)
         top_fi = top_fi.loc[top_fi > self.min_feature_importance]
 
-        displays = [headnote] +\
+        def display_drift_score():
+            plt.figure(figsize=(8, 0.5))
+            drift_score_bar(plt.gca(), self.auc_to_drift_score(values_dict['domain_classifier_auc']),
+                            'Domain Classifier Drift Score')
+
+        displays = [headnote] + [display_drift_score] + ["<h5>Main features contributing to drift</h5>"] +\
                    [partial(self._display_dist, train_sample_df[feature], test_sample_df[feature], fi_ser)
                     for feature in top_fi.index]
 
         return CheckResult(value=values_dict, display=displays, header='Whole Dataset Drift')
+
+    @staticmethod
+    def auc_to_drift_score(auc: float) -> float:
+        """Calculates the drift score, which is 2*auc - 1, with auc being the auc of the Domain Classifier."""
+        return max(2 * auc - 1, 0)
 
     def _display_dist(self, train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Series):
         """Display a distribution comparison plot for the given columns."""
@@ -224,7 +234,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
             max_drift_value (float): Maximal drift value allowed (value 0 and above)
         """
         def condition(result: dict):
-            drift_score = max(2 * result['domain_classifier_auc'] - 1, 0)
+            drift_score = self.auc_to_drift_score(result['domain_classifier_auc'])
             if drift_score > max_drift_value:
                 message = f'Found drift value of: {format_number(drift_score)}, corresponding to a domain classifier ' \
                     f'AUC of: {format_number(result["domain_classifier_auc"])}'

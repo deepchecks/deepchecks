@@ -18,7 +18,7 @@ import pandas as pd
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.checks.distribution.plot import plot_density
-from deepchecks.checks.distribution.dist_utils import preprocess_for_psi, earth_movers_distance, psi
+from deepchecks.checks.distribution.dist_utils import preprocess_for_psi, earth_movers_distance, psi, drift_score_bar
 from deepchecks.utils.features import calculate_feature_importance_or_null
 from deepchecks.utils.plot import colors
 from deepchecks.utils.typing import Hashable
@@ -173,30 +173,6 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         """
         train_dist = train_column.dropna().values.reshape(-1)
         test_dist = test_column.dropna().values.reshape(-1)
-
-        def drift_score_bar(axes, drift_score: float, drift_type: str):
-            """Create a traffic light bar plot representing the drift score.
-
-            Args:
-                axes (): Matplotlib axes object
-                drift_score (float): Drift score
-                drift_type (str): The name of the drift metric used
-            """
-            stop = max(0.4, drift_score + 0.1)
-            traffic_light_colors = [((0, 0.1), '#01B8AA'),
-                                    ((0.1, 0.2), '#F2C80F'),
-                                    ((0.2, 0.3), '#FE9666'),
-                                    ((0.3, 1), '#FD625E')
-                                    ]
-
-            for range_tuple, color in traffic_light_colors:
-                if range_tuple[0] <= drift_score < range_tuple[1]:
-                    axes.barh(0, drift_score - range_tuple[0], left=range_tuple[0], color=color)
-                elif drift_score >= range_tuple[1]:
-                    axes.barh(0, range_tuple[1] - range_tuple[0], left=range_tuple[0], color=color)
-            axes.set_title('Drift Score - ' + drift_type)
-            axes.set_xlim([0, stop])
-            axes.set_yticklabels([])
 
         if feature_importances is not None:
             fi_rank_series = feature_importances.rank(method='first', ascending=False)
