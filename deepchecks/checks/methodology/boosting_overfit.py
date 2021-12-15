@@ -22,6 +22,7 @@ from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.metrics import task_type_check, DEFAULT_METRICS_DICT, validate_scorer, DEFAULT_SINGLE_METRIC
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
+from deepchecks.utils.model import get_model_of_pipeline, get_model_class_name
 from deepchecks.utils.plot import colors
 from deepchecks.errors import DeepchecksValueError
 
@@ -40,13 +41,7 @@ class PartialBoostingModel:
             step: Number of iterations/estimators to limit the model on predictions.
         """
         if isinstance(model, Pipeline):
-            # get feature importance from last model in pipeline
-            internal_estimator_list = [x[1] for x in model.steps if isinstance(x[1], BaseEstimator)]
-            if internal_estimator_list:
-                internal_estimator = internal_estimator_list[-1]
-            else:
-                raise DeepchecksValueError('Recived a pipeline without an sklearn compatible model')
-        if internal_estimator:
+            internal_estimator = get_model_of_pipeline(model)
             self.model_class = internal_estimator.__class__.__name__
         else:
             self.model_class = model.__class__.__name__
@@ -55,10 +50,8 @@ class PartialBoostingModel:
                                 'GradientBoostingRegressor']:
             self.model = deepcopy(model)
             if internal_estimator:
-                internal_estimator_list = [x[1] for x in self.model.steps if isinstance(x[1], BaseEstimator)]
-                if internal_estimator_list:
-                    internal_estimator = internal_estimator_list[-1]
-                    internal_estimator.estimators_ = internal_estimator.estimators_[:self.step]
+                internal_estimator = get_model_of_pipeline(model)
+                internal_estimator.estimators_ = internal_estimator.estimators_[:self.step]
             else:
                 self.model.estimators_ = self.model.estimators_[:self.step]
         else:
@@ -91,18 +84,7 @@ class PartialBoostingModel:
 
     @classmethod
     def n_estimators(cls, model):
-        if isinstance(model, Pipeline):
-            # get feature importance from last model in pipeline
-            internal_estimator_list = [x[1] for x in model.steps if isinstance(x[1], BaseEstimator)]
-            if internal_estimator_list:
-                internal_estimator = internal_estimator_list[-1]
-            else:
-                raise DeepchecksValueError('Recived a pipeline without an sklearn compatible model')
-        if internal_estimator:
-            model_class = internal_estimator.__class__.__name__
-            model = internal_estimator
-        else:
-            model_class = model.__class__.__name__
+        model_class = get_model_class_name(model)
         if model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
                            'GradientBoostingRegressor']:
             return len(model.estimators_)
