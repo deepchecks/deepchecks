@@ -9,17 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Handle display of suite result."""
+from typing import List, Union
+
 # pylint: disable=protected-access
 import sys
 import tqdm
-from typing import List, Union
+import pandas as pd
 
 from IPython.core.display import display_html
 
-from deepchecks.base.check import CheckResult, CheckFailure
-from deepchecks.base.display_pandas import dataframe_to_html, display_dataframe
-from deepchecks.utils.ipython import is_widgets_enabled
-import pandas as pd
+from deepchecks.base.check import CheckResult, CheckFailure, ConditionResult
+from deepchecks.base.display_pandas import dataframe_to_html, display_conditions_table
+
 
 __all__ = ['display_suite_result', 'ProgressBar']
 
@@ -29,13 +30,9 @@ class ProgressBar:
 
     def __init__(self, name, length):
         """Initialize progress bar."""
-        shared_args = {'total': length, 'desc': name, 'unit': ' Check', 'leave': False, 'file': sys.stdout}
-        if is_widgets_enabled():
-            self.pbar = tqdm.tqdm_notebook(**shared_args, colour='#9d60fb')
-        else:
-            # Normal tqdm with colour in notebooks produce bug that the cleanup doesn't remove all characters. so
-            # until bug fixed, doesn't add the colour to regular tqdm
-            self.pbar = tqdm.tqdm(**shared_args, bar_format=f'{{l_bar}}{{bar:{length}}}{{r_bar}}')
+        self.pbar = tqdm.tqdm(total=length,desc=name, unit='Check', \
+                              leave=False, file=sys.stdout, \
+                              bar_format=f'{{l_bar}}{{bar:{length}}}{{r_bar}}')
 
     def set_text(self, text):
         """Set current running check."""
@@ -64,11 +61,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     for result in results:
         if isinstance(result, CheckResult):
             if result.have_conditions():
-                for cond_result in result.conditions_results:
-                    sort_value = cond_result.get_sort_value()
-                    icon = cond_result.get_icon()
-                    conditions_table.append([icon, result.get_header(), cond_result.name,
-                                             cond_result.details, sort_value])
+                ConditionResult.append_to_conditions_table(result, conditions_table)
             if result.have_display():
                 display_table.append(result)
             else:
@@ -94,11 +87,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     """
     display_html(html, raw=True)
     if conditions_table:
-        conditions_table = pd.DataFrame(data=conditions_table,
-                                        columns=['Status', 'Check', 'Condition', 'More Info', 'sort'], )
-        conditions_table.sort_values(by=['sort'], inplace=True)
-        conditions_table.drop('sort', axis=1, inplace=True)
-        display_dataframe(conditions_table.style.hide_index())
+        display_conditions_table(conditions_table)
     else:
         display_html('<p>No conditions defined on checks in the suite.</p>', raw=True)
 

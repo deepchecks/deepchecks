@@ -10,7 +10,9 @@
 #
 """objects validation utilities."""
 import typing as t
+
 import sklearn
+
 from deepchecks import base # pylint: disable=unused-import, is used in type annotations
 from deepchecks import errors
 from deepchecks.utils.typing import Hashable
@@ -33,7 +35,8 @@ def model_type_validation(model: t.Any):
     ):
         raise errors.DeepchecksValueError(
             'Model must inherit from one of supported '
-            'models: sklearn.base.BaseEstimator or CatBoost'
+            'models: sklearn.base.BaseEstimator or CatBoost, '
+            f'Recived: {model.__class__.__name__}'
         )
 
 
