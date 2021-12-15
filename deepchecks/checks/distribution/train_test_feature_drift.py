@@ -25,10 +25,10 @@ from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 import matplotlib.pyplot as plt
 
-__all__ = ['TrainTestDrift']
+__all__ = ['TrainTestFeatureDrift']
 
 
-class TrainTestDrift(TrainTestBaseCheck):
+class TrainTestFeatureDrift(TrainTestBaseCheck):
     """
     Calculate drift between train dataset and test dataset per feature, using statistical measures.
 
