@@ -1,0 +1,7 @@
+{% if is_example_notebook(sourcename) %}
+    <div class="tocsection">
+        <a href="{{ generate_colab_url(sourcename) }}">
+            <i class="fas fa-code"></i> {{ _("Launch Colab") }}
+        </a>
+    </div>
+{% endif %}

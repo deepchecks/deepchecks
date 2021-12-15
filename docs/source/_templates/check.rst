@@ -40,8 +40,18 @@
 Example
 ~~~~~~~
 
-.. toctree::
-   :maxdepth: 1
-   :titlesonly:
+
+.. nbgallery::
+   :name: rst-gallery
+   :glob:
 
    /examples/checks/{{ checkname[0] }}/{{ checkname[1] }}
+
+
+.. 
+   This derictive is commented
+   toctree::
+      :maxdepth: 1
+      :titlesonly:
+
+      /examples/checks/{{ checkname[0] }}/{{ checkname[1] }}
