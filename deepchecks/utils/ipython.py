@@ -9,14 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing useful global functions."""
-import re
-import subprocess
 from functools import lru_cache
 
 from IPython import get_ipython # TODO: I think we should remove ipython from mandatory dependencies
 
 
-__all__ = ['is_notebook', 'is_widgets_enabled']
+__all__ = ['is_notebook']
 
 
 @lru_cache(maxsize=None)
