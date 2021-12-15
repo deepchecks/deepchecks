@@ -164,7 +164,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
 
     @staticmethod
     def auc_to_drift_score(auc: float) -> float:
-        """Calculates the drift score, which is 2*auc - 1, with auc being the auc of the Domain Classifier."""
+        """Calculate the drift score, which is 2*auc - 1, with auc being the auc of the Domain Classifier."""
         return max(2 * auc - 1, 0)
 
     def _display_dist(self, train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Series):
