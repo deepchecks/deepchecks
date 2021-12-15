@@ -69,7 +69,6 @@ class Dataset:
         use_default_index: bool = False,
         index_name: t.Optional[Hashable] = None,
         date_name: t.Optional[Hashable] = None,
-        date_unit_type: t.Optional[Hashable] = None,
         date_args: t.Optional[t.Dict] = None,
         convert_date_: bool = True,
         max_categorical_ratio: float = 0.01,
@@ -148,11 +147,7 @@ class Dataset:
         self._use_default_index = use_default_index
         self._index_name = index_name
         self._date_name = date_name
-        self._date_unit_type = date_unit_type
-        if date_args is None:
-            self._date_args = {}
-        else:
-            self._date_args = date_args
+        self._date_args = date_args or {}
 
         self._max_categorical_ratio = max_categorical_ratio
         self._max_categories = max_categories

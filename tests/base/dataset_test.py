@@ -295,7 +295,7 @@ def test_dataset_date_args_single_arg():
 
 def test_dataset_date_args_multi_arg():
     df = pd.DataFrame({'date': [160, 180]})
-    args = {'date': 'date',
+    args = {'date_name': 'date',
             'date_args': {'unit': 'D', 'origin': '2020-02-01'}}
     dataset = Dataset(df, **args)
     assert_dataset(dataset, args)
