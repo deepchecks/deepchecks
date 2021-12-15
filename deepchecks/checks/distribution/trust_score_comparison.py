@@ -131,15 +131,25 @@ class TrustScoreComparison(TrainTestBaseCheck):
             max_num_categories=self.max_number_categories
         )
 
-        y_train = train_data_sample[label_name]
+        # Trust Score model expects labels to be consecutive integers from 0 to n-1, so we transform our label to
+        # this format.
+        label_transform_dict = dict(zip(sorted(list(set(train_data_sample[label_name]))),
+                                        range(len(set(train_data_sample[label_name])))))
+
+        def transform_numpy_label(np_label: np.ndarray) -> np.ndarray:
+            return np.array([label_transform_dict[lbl] for lbl in np_label])
+
+        y_train = train_data_sample[label_name].replace(label_transform_dict)
         trust_score_model = TrustScore(k_filter=self.k_filter, alpha=self.alpha)
-        trust_score_model.fit(X=x_train.to_numpy(), Y=y_train)
+        trust_score_model.fit(X=x_train.to_numpy(), Y=y_train.to_numpy())
         # Calculate y on train and get scores
         y_train_pred = model.predict(train_data_sample[features_list])
-        train_trust_scores = trust_score_model.score(x_train.to_numpy(), y_train_pred)[0].astype('float64')
+        train_trust_scores = trust_score_model.score(x_train.to_numpy(),
+                                                     transform_numpy_label(y_train_pred))[0].astype('float64')
         # Calculate y on test dataset using the model
         y_test_pred = model.predict(test_data_sample[features_list])
-        test_trust_scores = trust_score_model.score(x_test.to_numpy(), y_test_pred)[0].astype('float64')
+        test_trust_scores = trust_score_model.score(x_test.to_numpy(),
+                                                    transform_numpy_label(y_test_pred))[0].astype('float64')
 
         # Move label and index to the beginning if exists
         if test_dataset.label_name:
