@@ -51,7 +51,7 @@ class Dataset:
 
     _features: t.List[Hashable]
     _label_name: t.Optional[Hashable]
-    _use_index: bool
+    _use_default_index: bool
     _index_name: t.Optional[Hashable]
     _date_name: t.Optional[Hashable]
     cat_features: t.List[Hashable]
@@ -66,7 +66,7 @@ class Dataset:
         features: t.Optional[t.Sequence[Hashable]] = None,
         cat_features: t.Optional[t.Sequence[Hashable]] = None,
         label_name: t.Optional[Hashable] = None,
-        use_index: bool = False,
+        use_default_index: bool = False,
         index_name: t.Optional[Hashable] = None,
         date_name: t.Optional[Hashable] = None,
         date_unit_type: t.Optional[Hashable] = None,
@@ -89,10 +89,11 @@ class Dataset:
                 features inference, pass cat_features=[]
             label_name (Optional[Hashable]):
                 Name of the label column in the DataFrame.
-            use_index (bool, default False):
-                Whether to use the dataframe index as the index column, for index related checks.
+            use_default_index (bool, default False):
+                Whether to use the dataframe index as the index column, for index related checks. can't be used
+                together with `index_name`
             index_name (Optional[Hashable]):
-                Name of the index column in the DataFrame.
+                Name of the index column in the DataFrame. can't be used together with `use_default_index`
             date_name (Optional[Hashable]):
                 Name of the date column in the DataFrame.
             date_unit_type (Optional[str]):
@@ -118,13 +119,13 @@ class Dataset:
             label_name = label_name or 'target'
             self._data[label_name] = label
 
-        if use_index is True and index_name is not None:
-            raise DeepchecksValueError('parameter use_index cannot be True if index is given')
+        if use_default_index is True and index_name is not None:
+            raise DeepchecksValueError('parameter use_default_index cannot be True if index is given')
 
         if index_name is not None and index_name not in self._data.columns:
             error_message = f'index column {index_name} not found in dataset columns.'
             if index_name == 'index':
-                error_message += ' If you attempted to use the dataframe index, set use_index to True instead.'
+                error_message += ' If you attempted to use the dataframe index, set use_default_index to True instead.'
             raise DeepchecksValueError(error_message)
 
         if date_name is not None and date_name not in self._data.columns:
@@ -144,7 +145,7 @@ class Dataset:
             self._features = [x for x in self._data.columns if x not in {label_name, index_name, date_name}]
 
         self._label_name = label_name
-        self._use_index = use_index
+        self._use_default_index = use_default_index
         self._index_name = index_name
         self._date_name = date_name
         self._date_unit_type = date_unit_type
@@ -190,13 +191,12 @@ class Dataset:
 
         Args:
             *args: (np.ndarray):
-                expecting it to contain two numpy arrays (or at least one),
-                first with features, second with labels.
+                Numpy array of data columns, and second optional numpy array of labels.
             columns (Sequence[Hashable], default None):
-                names for the columns. If not provided next names will
-                be assigned to the feature columns: 1-n (where n - number of features)
+                names for the columns. If none provided, the names that will be automatically
+                assigned to the columns will be: 1 - n (where n - number of columns)
             label_name (Hashable, default None):
-                labels column name. If not provided next name will be used - 'target'
+                labels column name. If none is provided, the name 'target' will be used.
             **kwargs:
                 additional arguments that will be passed to the main Dataset constructor.
 
@@ -322,16 +322,15 @@ class Dataset:
         # Filter out if columns were dropped
         features = list(set(self._features).intersection(new_data.columns))
         cat_features = list(set(self.cat_features).intersection(new_data.columns))
-        label = self._label_name if self._label_name in new_data.columns else None
+        label_name = self._label_name if self._label_name in new_data.columns else None
         index = self._index_name if self._index_name in new_data.columns else None
         date = self._date_name if self._date_name in new_data.columns else None
 
         cls = type(self)
 
-        return cls(new_data, features=features, cat_features=cat_features, label_name=label, use_index=self._use_index,
-                   index_name=index, date_name=date, convert_date_=False,
-                   max_categorical_ratio=self._max_categorical_ratio,
-                   max_categories=self._max_categories)
+        return cls(new_data, features=features, cat_features=cat_features, label_name=label_name,
+                   use_default_index=self._use_default_index, index_name=index, date_name=date, convert_date_=False,
+                   max_categorical_ratio=self._max_categorical_ratio, max_categories=self._max_categories)
 
     @property
     def n_samples(self) -> int:
@@ -410,7 +409,7 @@ class Dataset:
         Returns:
            If date column exists, returns a pandas Series of the index column.
         """
-        if self._use_index is True:
+        if self._use_default_index is True:
             return pd.Series(self.data.index)
         elif self._index_name is not None:
             return self.data[self._index_name]

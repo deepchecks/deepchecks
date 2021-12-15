@@ -211,7 +211,7 @@ def test_dataset_bad_label_name(iris):
 
 def test_dataset_use_index(iris):
     args = {'df': iris,
-            'use_index': True}
+            'use_default_index': True}
     dataset = Dataset(**args)
     assert_dataset(dataset, args)
 
@@ -219,9 +219,9 @@ def test_dataset_use_index(iris):
 def test_dataset_index_use_index(iris):
     args = {'df': iris,
             'index_name': 'target',
-            'use_index': True}
+            'use_default_index': True}
     assert_that(calling(Dataset).with_args(**args),
-                raises(DeepchecksValueError, 'parameter use_index cannot be True if index is given'))
+                raises(DeepchecksValueError, 'parameter use_default_index cannot be True if index is given'))
 
 
 def test_dataset_index_from_column(iris):
@@ -240,7 +240,7 @@ def test_dataset_index_in_df(iris):
             'index_name': 'index'}
     assert_that(calling(Dataset).with_args(**args),
                 raises(DeepchecksValueError, 'index column index not found in dataset columns. If you attempted to use '
-                                           'the dataframe index, set use_index to True instead.'))
+                                           'the dataframe index, set use_default_index to True instead.'))
 
 
 def test_dataset_index_in_features(iris):
@@ -465,7 +465,7 @@ def test_dataset_initialization_from_numpy_arrays_with_specified_features_names(
         dataset=ds,
         features_array=iris.data,
         labels_array=iris.target,
-        featue_columns_names=feature_columns_names,
+        feature_columns_names=feature_columns_names,
         label_column_name=label_column_name
     )
 
@@ -538,11 +538,11 @@ def validate_dataset_created_from_numpy_arrays(
     dataset: Dataset,
     features_array: np.ndarray,
     labels_array: np.ndarray = None,
-    featue_columns_names: t.Sequence[str] = None,
+    feature_columns_names: t.Sequence[str] = None,
     label_column_name: str = 'target'
 ):
-    if featue_columns_names is None:
-        featue_columns_names = [str(index) for index in range(1, features_array.shape[1] + 1)]
+    if feature_columns_names is None:
+        feature_columns_names = [str(index) for index in range(1, features_array.shape[1] + 1)]
 
     features = dataset.features_columns
     feature_names = dataset.features
@@ -554,7 +554,7 @@ def validate_dataset_created_from_numpy_arrays(
     assert_that(all(features == features_array))
     assert_that(feature_names, all_of(
         instance_of(list),
-        contains_exactly(*featue_columns_names)
+        contains_exactly(*feature_columns_names)
     ))
 
     if labels_array is not None:
