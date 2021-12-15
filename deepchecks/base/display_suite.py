@@ -9,17 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Handle display of suite result."""
+from typing import List, Union
+
 # pylint: disable=protected-access
 import sys
 import tqdm
-from typing import List, Union
+import pandas as pd
 
 from IPython.core.display import display_html
 
 from deepchecks.base.check import CheckResult, CheckFailure, ConditionResult
 from deepchecks.base.display_pandas import dataframe_to_html, display_conditions_table
-from deepchecks.utils.ipython import is_widgets_enabled
-import pandas as pd
+
 
 __all__ = ['display_suite_result', 'ProgressBar']
 
