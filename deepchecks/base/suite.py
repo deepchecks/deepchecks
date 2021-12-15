@@ -95,6 +95,7 @@ class Suite(BaseCheck):
         # Run all checks
         results = []
         for check in self.checks.values():
+            check.set_conditions_display(False)
             try:
                 progress_bar.set_text(check.name())
                 if isinstance(check, TrainTestBaseCheck):

@@ -20,6 +20,7 @@ from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.checks.distribution.plot import plot_density
 from deepchecks.checks.distribution.dist_utils import preprocess_for_psi, earth_movers_distance, psi
 from deepchecks.utils.features import calculate_feature_importance_or_null
+from deepchecks.utils.plot import colors
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 import matplotlib.pyplot as plt
@@ -197,8 +198,6 @@ class TrainTestDrift(TrainTestBaseCheck):
             axes.set_xlim([0, stop])
             axes.set_yticklabels([])
 
-        colors = ['darkblue', '#69b3a2']
-
         if feature_importances is not None:
             fi_rank_series = feature_importances.rank(method='first', ascending=False)
             fi_rank = fi_rank_series[column_name]
@@ -217,8 +216,8 @@ class TrainTestDrift(TrainTestBaseCheck):
                 fig.suptitle(plot_title, horizontalalignment='left', fontweight='bold', x=0.05)
                 drift_score_bar(axs[0], score, 'Earth Movers Distance')
                 plt.sca(axs[1])
-                pdf1 = plot_density(train_column, xs, colors[0])
-                pdf2 = plot_density(test_column, xs, colors[1])
+                pdf1 = plot_density(train_column, xs, colors['Train'])
+                pdf2 = plot_density(test_column, xs, colors['Test'])
                 plt.gca().set_ylim(bottom=0, top=max(max(pdf1), max(pdf2)) * 1.1)
                 axs[1].set_xlabel(column_name)
                 axs[1].set_ylabel('Probability Density')
@@ -244,7 +243,7 @@ class TrainTestDrift(TrainTestBaseCheck):
                 fig, axs = plt.subplots(3, figsize=(8, 4.5), gridspec_kw={'height_ratios': [1, 7, 0.2]})
                 fig.suptitle(plot_title, horizontalalignment='left', fontweight='bold', x=0.05)
                 drift_score_bar(axs[0], score, 'PSI')
-                cat_df.plot.bar(ax=axs[1], color=colors)
+                cat_df.plot.bar(ax=axs[1], color=(colors['Train'], colors['Test']))
                 axs[1].set_ylabel('Percentage')
                 axs[1].legend()
                 axs[1].set_title('Distribution')

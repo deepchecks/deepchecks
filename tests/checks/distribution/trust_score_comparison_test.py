@@ -10,8 +10,9 @@
 #
 """Test functions of trust score comparison."""
 from hamcrest import assert_that, has_entries, close_to, calling, raises
+from sklearn.ensemble import AdaBoostClassifier
 
-from deepchecks import CheckResult
+from deepchecks import CheckResult, Dataset
 from deepchecks.checks import TrustScoreComparison
 from deepchecks.errors import DeepchecksValueError
 from tests.checks.utils import equal_condition_result
@@ -20,6 +21,28 @@ from tests.checks.utils import equal_condition_result
 def test_trust_score_comparison(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
+    check = TrustScoreComparison(min_test_samples=50)
+
+    # Act
+    result = check.run(train, test, model)
+
+    # Assert
+    assert_that(result.value, has_entries({
+        'train': close_to(5.78, 0.01),
+        'test': close_to(4.49, 0.01)
+    }))
+
+
+def test_trust_score_comparison_non_consecutive_labels(iris_split_dataset_and_model):
+    # Arrange
+    train, test, _ = iris_split_dataset_and_model
+    replace_dict = {train.label_name: {0: -100, 1: 0, 2: 200}}
+    train = Dataset(train.data.replace(replace_dict),
+                    label=train.label_name)
+    test = Dataset(test.data.replace(replace_dict),
+                   label=test.label_name)
+    model = AdaBoostClassifier(random_state=0)
+    model.fit(train.features_columns, train.label_col)
     check = TrustScoreComparison(min_test_samples=50)
 
     # Act
