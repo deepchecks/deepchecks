@@ -13,6 +13,8 @@ from statistics import mean
 
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 from deepchecks import Dataset
 from deepchecks.checks.methodology.boosting_overfit import BoostingOverfit
@@ -40,6 +42,28 @@ def test_boosting_classifier(iris):
     assert_that(test_scores, has_length(20))
     assert_that(mean(train_scores), close_to(0.999, 0.01))
     assert_that(mean(test_scores), close_to(0.961, 0.01))
+
+
+def test_boosting_model_is_pipeline(iris):
+    # Arrange
+    train_df, test = train_test_split(iris, test_size=0.33, random_state=0)
+    train = Dataset(train_df, label_name='target')
+    test = Dataset(test, label_name='target')
+
+    pipe = Pipeline([('scaler', StandardScaler()), ('lr', GradientBoostingClassifier(random_state=0))])
+    pipe.fit(train.features_columns, train.label_col)
+
+    # Act
+    result = BoostingOverfit().run(train, test, pipe)
+
+    # Assert
+    train_scores = result.value['train']
+    test_scores = result.value['test']
+
+    assert_that(train_scores, has_length(20))
+    assert_that(test_scores, has_length(20))
+    assert_that(mean(train_scores), close_to(0.999, 0.01))
+    assert_that(mean(test_scores), close_to(0.976, 0.01))
 
 
 def test_boosting_regressor(diabetes, diabetes_model):
