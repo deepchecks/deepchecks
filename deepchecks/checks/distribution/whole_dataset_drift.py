@@ -25,6 +25,7 @@ from deepchecks.utils.typing import Hashable
 
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
+
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     from sklearn.experimental import enable_hist_gradient_boosting  # noqa # pylint: disable=unused-import
@@ -70,13 +71,13 @@ class WholeDatasetDrift(TrainTestBaseCheck):
     """
 
     def __init__(
-        self,
-        n_top_features: int = 3,
-        min_feature_importance: float = 0.05,
-        max_num_categories: int = 10,
-        sample_size: int = 10000,
-        random_state: int = 0,
-        test_size: float = 0.3
+            self,
+            n_top_features: int = 3,
+            min_feature_importance: float = 0.05,
+            max_num_categories: int = 10,
+            sample_size: int = 10000,
+            random_state: int = 0,
+            test_size: float = 0.3
     ):
         super().__init__()
 
@@ -136,9 +137,9 @@ class WholeDatasetDrift(TrainTestBaseCheck):
 
         # calculate feature importance of domain_classifier, containing the information which features separate
         # the dataset best.
-        fi_ser = calculate_feature_importance(domain_classifier, domain_test_dataset,
-                                              force_permutation=True,
-                                              permutation_wkargs={'n_repeats': 10}).sort_values(ascending=False)
+        fi_ser = calculate_feature_importance(domain_classifier, domain_test_dataset, force_permutation=True,
+                                              permutation_wkargs={'n_repeats': 10, 'random_state': self.random_state}
+                                              ).sort_values(ascending=False)
 
         values_dict = {
             'domain_classifier_auc': roc_auc_score(y_test, domain_classifier.predict_proba(x_test)[:, 1]),
@@ -151,6 +152,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
                     explained dataset difference are the calculated feature importance values for the feature.
                 </span>"""
 
+        print(fi_ser)
         top_fi = fi_ser.head(self.n_top_features)
         top_fi = top_fi.loc[top_fi > self.min_feature_importance]
 
@@ -159,9 +161,9 @@ class WholeDatasetDrift(TrainTestBaseCheck):
             drift_score_bar(plt.gca(), self.auc_to_drift_score(values_dict['domain_classifier_auc']),
                             'Domain Classifier Drift Score')
 
-        displays = [headnote] + [display_drift_score] + ['<h5>Main features contributing to drift</h5>'] +\
-                   [partial(self._display_dist, train_sample_df[feature], test_sample_df[feature], fi_ser)
-                    for feature in top_fi.index]
+        displays = ([headnote] + [display_drift_score] + ['<h5>Main features contributing to drift</h5>'] + \
+                    [partial(self._display_dist, train_sample_df[feature], test_sample_df[feature], fi_ser)
+                     for feature in top_fi.index]) if len(top_fi) else None
 
         return CheckResult(value=values_dict, display=displays, header='Whole Dataset Drift')
 
@@ -224,7 +226,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
                    ('model', HistGradientBoostingClassifier(
                        max_depth=2, max_iter=10, random_state=self.random_state,
                        categorical_features=[False] * len(numerical_columns) + [True] * len(categorical_columns)
-                                                            ))])
+                   ))])
 
     def add_condition_overall_drift_value_not_greater_than(self, max_drift_value: float = 0.25):
         """Add condition.
@@ -236,11 +238,12 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         Args:
             max_drift_value (float): Maximal drift value allowed (value 0 and above)
         """
+
         def condition(result: dict):
             drift_score = self.auc_to_drift_score(result['domain_classifier_auc'])
             if drift_score > max_drift_value:
                 message = f'Found drift value of: {format_number(drift_score)}, corresponding to a domain classifier ' \
-                    f'AUC of: {format_number(result["domain_classifier_auc"])}'
+                          f'AUC of: {format_number(result["domain_classifier_auc"])}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)

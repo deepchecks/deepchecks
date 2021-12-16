@@ -52,7 +52,7 @@ def calculate_feature_importance_or_null(dataset: 'base.Dataset', model: t.Any) 
     return feature_importances
 
 
-def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_state: int = 42,
+def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset',
                                  force_permutation: bool = False, permutation_wkargs: dict = None) -> pd.Series:
     """Calculate features effect on the label.
 
@@ -74,11 +74,15 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_s
         raise errors.DeepchecksValueError(
             'permutation_wkargs should be None if force_permutation is False')
 
+    # Maintain reproducibility
+    if 'random_state' not in permutation_wkargs:
+        permutation_wkargs['random_state'] = 42
+
     validation.validate_model(dataset, model)
 
     if force_permutation:
         # force permutation importance calculation
-        feature_importances = _calc_importance(model, dataset, random_state=random_state, **permutation_wkargs)
+        feature_importances = _calc_importance(model, dataset, **permutation_wkargs)
     else:
         feature_importances = _built_in_importance(model, dataset)
 
@@ -94,9 +98,9 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_s
                 except ValueError:
                     pass
             if feature_importances is None:
-                feature_importances = _calc_importance(model, dataset, random_state=random_state, **permutation_wkargs)
+                feature_importances = _calc_importance(model, dataset, **permutation_wkargs)
         else:  # Others
-            feature_importances = _calc_importance(model, dataset, random_state=random_state, **permutation_wkargs)
+            feature_importances = _calc_importance(model, dataset, **permutation_wkargs)
 
     return feature_importances.fillna(0)
 
@@ -118,19 +122,24 @@ def _calc_importance(
     model: t.Any,
     dataset: 'base.Dataset',
     n_repeats: int = 30,
+    mask_high_variance_features: bool = False,
     random_state: int = 42,
-    n_samples: int = 10000
+    n_samples: int = 10000,
 ) -> pd.Series:
     """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal."""
     dataset.validate_label()
+
     n_samples = min(n_samples, dataset.n_samples)
-    dataset_sample_idx = dataset.label_col.sample(n_samples).index
+    dataset_sample_idx = dataset.label_col.sample(n_samples, random_state=random_state).index
     r = permutation_importance(model, dataset.features_columns.loc[dataset_sample_idx, :],
                                dataset.label_col.loc[dataset_sample_idx],
                                n_repeats=n_repeats,
                                random_state=random_state,
                                n_jobs=-1)
-    significance_mask = r.importances_mean - r.importances_std > 0
+    if mask_high_variance_features:
+        significance_mask = r.importances_mean - r.importances_std > 0
+    else:
+        significance_mask = r.importances_mean > 0
     feature_importances = r.importances_mean * significance_mask
     total = feature_importances.sum()
     if total != 0:
