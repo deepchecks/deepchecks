@@ -11,6 +11,7 @@
 """Module contains the domain classifier drift check."""
 from functools import partial
 from typing import List
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -24,7 +25,9 @@ from deepchecks.utils.typing import Hashable
 
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
-from sklearn.experimental import enable_hist_gradient_boosting  # noqa # pylint: disable=unused-import
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    from sklearn.experimental import enable_hist_gradient_boosting  # noqa # pylint: disable=unused-import
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import OrdinalEncoder
@@ -129,7 +132,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
 
         y_test.name = 'belongs_to_test'
         domain_test_dataset = Dataset(pd.concat([x_test.reset_index(drop=True), y_test.reset_index(drop=True)], axis=1),
-                                      cat_features=cat_features, label='belongs_to_test')
+                                      cat_features=cat_features, label_name='belongs_to_test')
 
         # calculate feature importance of domain_classifier, containing the information which features separate
         # the dataset best.
@@ -223,7 +226,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
                        categorical_features=[False] * len(numerical_columns) + [True] * len(categorical_columns)
                                                             ))])
 
-    def add_condition_overall_drift_value_not_greater_than(self, max_drift_value: float = 0.3):
+    def add_condition_overall_drift_value_not_greater_than(self, max_drift_value: float = 0.25):
         """Add condition.
 
         Overall drift score, calculated as (2 * AUC - 1) for the AUC of the dataset discriminator model, is not greater
