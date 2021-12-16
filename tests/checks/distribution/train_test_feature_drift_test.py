@@ -11,14 +11,14 @@
 """Test functions of the train test drift."""
 from hamcrest import assert_that, has_entries, close_to, equal_to
 
-from deepchecks.checks import TrainTestDrift
+from deepchecks.checks import TrainTestFeatureDrift
 from tests.checks.utils import equal_condition_result
 
 
 def test_drift_with_model(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestDrift()
+    check = TrainTestFeatureDrift()
 
     # Act
     result = check.run(train, test, model)
@@ -51,7 +51,7 @@ def test_drift_with_model(drifted_data_and_model):
 def test_drift_no_model(drifted_data_and_model):
     # Arrange
     train, test, _ = drifted_data_and_model
-    check = TrainTestDrift()
+    check = TrainTestFeatureDrift()
 
     # Act
     result = check.run(train, test)
@@ -84,7 +84,7 @@ def test_drift_no_model(drifted_data_and_model):
 def test_drift_max_drift_score_condition_fail(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestDrift().add_condition_drift_score_not_greater_than()
+    check = TrainTestFeatureDrift().add_condition_drift_score_not_greater_than()
 
     # Act
     result = check.run(train, test, model)
@@ -102,8 +102,8 @@ def test_drift_max_drift_score_condition_fail(drifted_data_and_model):
 def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestDrift().add_condition_drift_score_not_greater_than(max_allowed_psi_score=1,
-                                                                        max_allowed_earth_movers_score=1)
+    check = TrainTestFeatureDrift().add_condition_drift_score_not_greater_than(max_allowed_psi_score=1,
+                                                                               max_allowed_earth_movers_score=1)
 
     # Act
     result = check.run(train, test, model)

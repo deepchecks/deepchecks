@@ -38,9 +38,9 @@ def test_trust_score_comparison_non_consecutive_labels(iris_split_dataset_and_mo
     train, test, _ = iris_split_dataset_and_model
     replace_dict = {train.label_name: {0: -100, 1: 0, 2: 200}}
     train = Dataset(train.data.replace(replace_dict),
-                    label=train.label_name)
+                    label_name=train.label_name)
     test = Dataset(test.data.replace(replace_dict),
-                   label=test.label_name)
+                   label_name=test.label_name)
     model = AdaBoostClassifier(random_state=0)
     model.fit(train.features_columns, train.label_col)
     check = TrustScoreComparison(min_test_samples=50)
