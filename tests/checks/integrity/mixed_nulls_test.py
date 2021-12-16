@@ -193,7 +193,7 @@ def test_condition_max_nulls_passed():
 
 def test_fi_n_top(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
-    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
+    train = Dataset(train.data.copy(), label_name='target', cat_features=['sex'])
     train.data.loc[train.data.index % 4 == 0, 'age'] = 'Nan'
     train.data.loc[train.data.index % 4 == 1, 'age'] = 'null'
     train.data.loc[train.data.index % 4 == 0, 'bmi'] = 'Nan'

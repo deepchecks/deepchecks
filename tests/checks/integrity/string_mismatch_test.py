@@ -159,7 +159,7 @@ def test_condition_percent_variants_no_more_than_pass():
 
 def test_fi_n_top(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
-    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
+    train = Dataset(train.data.copy(), label_name='target', cat_features=['sex'])
     train.data.loc[train.data.index % 3 == 2, 'age'] = 'aaa'
     train.data.loc[train.data.index % 3 == 1, 'age'] = 'aaa!!'
     train.data.loc[train.data.index % 3 == 2, 'bmi'] = 'aaa'

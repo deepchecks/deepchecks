@@ -50,8 +50,8 @@ class Dataset:
     """
 
     _features: t.List[Hashable]
-    _label: t.Optional[Hashable]
-    _use_index: bool
+    _label_name: t.Optional[Hashable]
+    _use_default_index: bool
     _index_name: t.Optional[Hashable]
     _date_name: t.Optional[Hashable]
     cat_features: t.List[Hashable]
@@ -62,12 +62,13 @@ class Dataset:
     def __init__(
         self,
         df: pd.DataFrame,
+        label: pd.Series = None,
         features: t.Optional[t.Sequence[Hashable]] = None,
         cat_features: t.Optional[t.Sequence[Hashable]] = None,
-        label: t.Optional[Hashable] = None,
-        use_index: bool = False,
-        index: t.Optional[Hashable] = None,
-        date: t.Optional[Hashable] = None,
+        label_name: t.Optional[Hashable] = None,
+        use_default_index: bool = False,
+        index_name: t.Optional[Hashable] = None,
+        date_name: t.Optional[Hashable] = None,
         date_args: t.Optional[t.Dict] = None,
         convert_date_: bool = True,
         max_categorical_ratio: float = 0.01,
@@ -78,19 +79,22 @@ class Dataset:
 
         Args:
             df (pandas.DataFrame):
-                A pandas DataFrame containing data relevant for the training or validating of a ML models
+                A pandas DataFrame containing data relevant for the training or validating of a ML models.
+            label (pandas.Series)
+                A pandas series containing data of the labels.
             features (Optional[Sequence[Hashable]]):
                 List of names for the feature columns in the DataFrame.
             cat_features (Optional[Sequence[Hashable]]):
-                List of names for the categorical features in the DataFrame. In order to disable categorical
+                List of names for the categorical features in the DataFrame. In order to disable categorical.
                 features inference, pass cat_features=[]
-            label (Optional[Hashable]):
+            label_name (Optional[Hashable]):
                 Name of the label column in the DataFrame.
-            use_index (bool, default False):
-                Whether to use the dataframe index as the index column, for index related checks.
-            index (Optional[Hashable]):
-                Name of the index column in the DataFrame.
-            date (Optional[Hashable]):
+            use_default_index (bool, default False):
+                Whether to use the dataframe index as the index column, for index related checks. can't be used
+                together with `index_name`
+            index_name (Optional[Hashable]):
+                Name of the index column in the DataFrame. can't be used together with `use_default_index`
+            date_name (Optional[Hashable]):
                 Name of the date column in the DataFrame.
             date_args (Optional[Dict]):
                 pandas.to_datetime args used for conversion of the date column.
@@ -102,26 +106,32 @@ class Dataset:
                 The maximum number of categories in a column in order for it to be inferred as a categorical
                 feature.
             max_float_categories (int, default 5):
-                The maximum number of categories in a float column in order fo it to be inferred as a
-                categorical feature
+                The maximum number of categories in a float column in order for it to be inferred as a
+                categorical feature.
         """
         self._data = df.copy()
 
         # Validations
-        if use_index is True and index is not None:
-            raise DeepchecksValueError('parameter use_index cannot be True if index is given')
+        if label is not None:
+            if label.shape[0] != self._data.shape[0]:
+                raise DeepchecksValueError('Number of samples of label and data must be equal')
+            label_name = label_name or 'target'
+            self._data[label_name] = label
 
-        if index is not None and index not in self._data.columns:
-            error_message = f'index column {index} not found in dataset columns.'
-            if index == 'index':
-                error_message += ' If you attempted to use the dataframe index, set use_index to True instead.'
+        if use_default_index is True and index_name is not None:
+            raise DeepchecksValueError('parameter use_default_index cannot be True if index is given')
+
+        if index_name is not None and index_name not in self._data.columns:
+            error_message = f'index column {index_name} not found in dataset columns.'
+            if index_name == 'index':
+                error_message += ' If you attempted to use the dataframe index, set use_default_index to True instead.'
             raise DeepchecksValueError(error_message)
 
-        if date is not None and date not in self._data.columns:
-            raise DeepchecksValueError(f'date column {date} not found in dataset columns')
+        if date_name is not None and date_name not in self._data.columns:
+            raise DeepchecksValueError(f'date column {date_name} not found in dataset columns')
 
-        if label is not None and label not in self._data.columns:
-            raise DeepchecksValueError(f'label column {label} not found in dataset columns')
+        if label_name is not None and label_name not in self._data.columns:
+            raise DeepchecksValueError(f'label column {label_name} not found in dataset columns')
 
         if features:
             difference = set(features) - set(self._data.columns)
@@ -131,16 +141,14 @@ class Dataset:
                                            'found in input dataframe.')
             self._features = list(features)
         else:
-            self._features = [x for x in self._data.columns if x not in {label, index, date}]
+            self._features = [x for x in self._data.columns if x not in {label_name, index_name, date_name}]
 
-        self._label_name = label
-        self._use_index = use_index
-        self._index_name = index
-        self._date_name = date
-        if date_args is None:
-            self._date_args = {}
-        else:
-            self._date_args = date_args
+        self._label_name = label_name
+        self._use_default_index = use_default_index
+        self._index_name = index_name
+        self._date_name = date_name
+        self._date_args = date_args or {}
+
         self._max_categorical_ratio = max_categorical_ratio
         self._max_categories = max_categories
         self._max_float_categories = max_float_categories
@@ -176,21 +184,19 @@ class Dataset:
     def from_numpy(
         cls: t.Type[TDataset],
         *args: np.ndarray,
-        feature_names: t.Sequence[Hashable] = None,
-        label_name: Hashable = None,
+        columns: t.Sequence[Hashable] = None,
         **kwargs
     ) -> TDataset:
         """Create Dataset instance from numpy arrays.
 
         Args:
             *args: (np.ndarray):
-                expecting it to contain two numpy arrays (or at least one),
-                first with features, second with labels.
-            feature_names (Sequence[Hashable], default None):
-                names for the feature columns. If not provided next names will
-                be assigned to the feature columns: X1-Xn (where n - number of features)
+                Numpy array of data columns, and second optional numpy array of labels.
+            columns (Sequence[Hashable], default None):
+                names for the columns. If none provided, the names that will be automatically
+                assigned to the columns will be: 1 - n (where n - number of columns)
             label_name (Hashable, default None):
-                labels column name. If not provided next name will be used - 'target'
+                labels column name. If none is provided, the name 'target' will be used.
             **kwargs:
                 additional arguments that will be passed to the main Dataset constructor.
 
@@ -200,10 +206,9 @@ class Dataset:
         Raises:
             DeepchecksValueError:
                 if receives zero or more than two numpy arrays;
-                if features (args[0]) is not two dimensional numpy array;
+                if columns (args[0]) is not two dimensional numpy array;
                 if labels (args[1]) is not one dimensional numpy array;
                 if features array or labels array is empty;
-                if features and labels arrays are not of the same size;
 
         Examples
         --------
@@ -226,7 +231,7 @@ class Dataset:
 
         >>> dataset = Dataset.from_numpy(
         ...    features, labels,
-        ...    feature_names=['sensor-1', 'sensor-2', 'sensor-3',],
+        ...    columns=['sensor-1', 'sensor-2', 'sensor-3',],
         ...    label_name='labels'
         ... )
 
@@ -234,63 +239,47 @@ class Dataset:
         if len(args) == 0 or len(args) > 2:
             raise DeepchecksValueError(
                 "'from_numpy' constructor expecting to receive two numpy arrays (or at least one)."
-                "First array must contains the features and second the labels."
+                "First array must contains the columns and second the labels."
             )
 
-        features_array = args[0]
-        features_error_message = (
-            "'from_numpy' constructor expecting features (args[0]) "
+        columns_array = args[0]
+        columns_error_message = (
+            "'from_numpy' constructor expecting columns (args[0]) "
             "to be not empty two dimensional array."
         )
 
-        if len(features_array.shape) != 2:
-            raise DeepchecksValueError(features_error_message)
+        if len(columns_array.shape) != 2:
+            raise DeepchecksValueError(columns_error_message)
 
-        if features_array.shape[0] == 0 or features_array.shape[1] == 0:
-            raise DeepchecksValueError(features_error_message)
+        if columns_array.shape[0] == 0 or columns_array.shape[1] == 0:
+            raise DeepchecksValueError(columns_error_message)
 
-        if feature_names is not None and len(feature_names) != features_array.shape[1]:
+        if columns is not None and len(columns) != columns_array.shape[1]:
             raise DeepchecksValueError(
-                f'{features_array.shape[1]} features were provided '
-                f'but only {len(feature_names)} name(s) for them`s.'
+                f'{columns_array.shape[1]} columns were provided '
+                f'but only {len(columns)} name(s) for them`s.'
             )
 
-        elif feature_names is None:
-            feature_names = [f'X{index}'for index in range(1, features_array.shape[1] + 1)]
+        elif columns is None:
+            columns = [str(index) for index in range(1, columns_array.shape[1] + 1)]
 
         if len(args) == 1:
-            return cls(
-                df=pd.DataFrame(data=features_array, columns=feature_names),
-                features=feature_names, # type: ignore TODO
-                **kwargs
-            )
-
+            labels_array = None
         else:
             labels_array = args[1]
-            label_name = label_name or 'target'
-            columns = list(feature_names) + [label_name]
-
             if len(labels_array.shape) != 1 or labels_array.shape[0] == 0:
                 raise DeepchecksValueError(
                     "'from_numpy' constructor expecting labels (args[1]) "
                     "to be not empty one dimensional array."
                 )
 
-            if labels_array.shape[0] != features_array.shape[0]:
-                raise DeepchecksValueError(
-                    "'from_numpy' constructor expecting that features and "
-                    "labels arrays will be of the same size"
-                )
+            labels_array = pd.Series(labels_array)
 
-            labels_array = labels_array.reshape(len(labels_array), 1)
-            data = np.hstack((features_array, labels_array))
-
-            return cls(
-                df=pd.DataFrame(data=data, columns=columns),
-                features=feature_names,
-                label=label_name,
-                **kwargs
-            )
+        return cls(
+            df=pd.DataFrame(data=columns_array, columns=columns),
+            label=labels_array,
+            **kwargs
+        )
 
     @classmethod
     def from_dict(
@@ -333,15 +322,15 @@ class Dataset:
         # Filter out if columns were dropped
         features = list(set(self._features).intersection(new_data.columns))
         cat_features = list(set(self.cat_features).intersection(new_data.columns))
-        label = self._label_name if self._label_name in new_data.columns else None
+        label_name = self._label_name if self._label_name in new_data.columns else None
         index = self._index_name if self._index_name in new_data.columns else None
         date = self._date_name if self._date_name in new_data.columns else None
 
         cls = type(self)
 
-        return cls(new_data, features=features, cat_features=cat_features, label=label, use_index=self._use_index,
-                   index=index, date=date, convert_date_=False, max_categorical_ratio=self._max_categorical_ratio,
-                   max_categories=self._max_categories)
+        return cls(new_data, features=features, cat_features=cat_features, label_name=label_name,
+                   use_default_index=self._use_default_index, index_name=index, date_name=date, convert_date_=False,
+                   max_categorical_ratio=self._max_categorical_ratio, max_categories=self._max_categories)
 
     @property
     def n_samples(self) -> int:
@@ -424,7 +413,7 @@ class Dataset:
         Returns:
            If date column exists, returns a pandas Series of the index column.
         """
-        if self._use_index is True:
+        if self._use_default_index is True:
             return pd.Series(self.data.index)
         elif self._index_name is not None:
             return self.data[self._index_name]
