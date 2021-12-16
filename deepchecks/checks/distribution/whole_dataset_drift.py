@@ -27,7 +27,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 
 with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
+    warnings.simplefilter('ignore')
     from sklearn.experimental import enable_hist_gradient_boosting  # noqa # pylint: disable=unused-import
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
@@ -150,18 +150,20 @@ class WholeDatasetDrift(TrainTestBaseCheck):
                     The shown features are the features that are most important for the domain classifier - the
                     domain_classifier trained to distinguish between the train and test datasets.<br> The percents of
                     explained dataset difference are the calculated feature importance values for the feature.
-                </span>"""
+                </span><br><br>"""
 
-        print(fi_ser)
         top_fi = fi_ser.head(self.n_top_features)
         top_fi = top_fi.loc[top_fi > self.min_feature_importance]
 
         def display_drift_score():
             plt.figure(figsize=(8, 0.5))
             drift_score_bar(plt.gca(), self.auc_to_drift_score(values_dict['domain_classifier_auc']),
-                            'Domain Classifier Drift Score')
+                            'Whole dataset total')
+            plt.figure(figsize=(8, 0.1))
+            plt.axhline(y=0.5, color='k', linestyle='-', linewidth=0.5)
+            plt.axis('off')
 
-        displays = ([headnote] + [display_drift_score] + ['<h5>Main features contributing to drift</h5>'] + \
+        displays = ([headnote] + [display_drift_score] + ['<h5>Main features contributing to drift</h5>'] +
                     [partial(self._display_dist, train_sample_df[feature], test_sample_df[feature], fi_ser)
                      for feature in top_fi.index]) if len(top_fi) else None
 
