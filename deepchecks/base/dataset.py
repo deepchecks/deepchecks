@@ -117,7 +117,7 @@ class Dataset:
             if label_name is None:
                 label_name = 'target'
                 if label_name in self._data.columns:
-                    raise DeepchecksValueError(f'Data have column with name "{label_name}", use label_name parameter'
+                    raise DeepchecksValueError(f'Data has column with name "{label_name}", use label_name parameter'
                                                'to set column name for label which does\'t exists in the data')
             else:
                 if label_name in self._data.columns:
