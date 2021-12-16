@@ -24,6 +24,7 @@ __all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'TrainTestBaseC
 
 import pandas as pd
 from IPython.core.display import display_html
+from matplotlib import pyplot as plt
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
@@ -167,7 +168,7 @@ class CheckResult:
             self.display = display or []
 
         for item in self.display:
-            if not isinstance(item, (str, pd.DataFrame, Styler, BaseFigure)):
+            if not isinstance(item, (str, pd.DataFrame, Styler, Callable, BaseFigure)):
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
     def _ipython_display_(self):
@@ -192,6 +193,12 @@ class CheckResult:
                 display_html(item, raw=True)
             elif isinstance(item, BaseFigure):
                 item.show()
+            elif callable(item):
+                try:
+                    item()
+                    plt.show()
+                except Exception as exc:
+                    display_html(f'Error in display {str(exc)}', raw=True)
             else:
                 raise Exception(f'Unable to display item of type: {type(item)}')
         if not self.display:
