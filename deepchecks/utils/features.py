@@ -13,7 +13,6 @@ import typing as t
 import numpy as np
 import pandas as pd
 
-from sklearn.base import BaseEstimator
 from sklearn.inspection import permutation_importance
 from sklearn.pipeline import Pipeline
 
@@ -21,6 +20,7 @@ from deepchecks import base
 from deepchecks import errors
 from deepchecks.utils import validation
 from deepchecks.utils.typing import Hashable
+from deepchecks.utils.model import get_model_of_pipeline
 
 
 __all__ = [
@@ -67,17 +67,10 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_s
     """
     validation.validate_model(dataset, model)
 
-    if isinstance(model, Pipeline):
-        # get feature importance from last model in pipeline
-        internal_estimator_list = [x[1] for x in model.steps if isinstance(x[1], BaseEstimator)]
-        if internal_estimator_list:
-            internal_estimator = internal_estimator_list[-1]
-        else:
-            internal_estimator = None
-
     feature_importances = _built_in_importance(model, dataset)
     if feature_importances is None:
         if isinstance(model, Pipeline):
+            internal_estimator = get_model_of_pipeline(model)
             if internal_estimator is not None:
                 # incase pipeline had an encoder
                 try:
