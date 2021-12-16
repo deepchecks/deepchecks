@@ -70,9 +70,6 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset',
     """
     if permutation_wkargs is None:
         permutation_wkargs = {}
-    elif not force_permutation:
-        raise errors.DeepchecksValueError(
-            'permutation_wkargs should be None if force_permutation is False')
 
     # Maintain reproducibility
     if 'random_state' not in permutation_wkargs:
