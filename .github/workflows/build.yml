@@ -46,10 +46,8 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Set Up Env
-      run: make win-env
     - name: Run Tests
-      run: make test
+      run: make test-win
 #
 #  documentation-check:
 #    runs-on: ubuntu-latest

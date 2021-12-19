@@ -28,6 +28,7 @@ pythonpath= PYTHONPATH=.
 
 # Venv Executables
 PIP := $(BIN)/pip
+PIP_WIN := python -m pip 
 PYTHON := $(BIN)/$(python)
 ANALIZE := $(BIN)/pylint
 COVERAGE := $(BIN)/coverage
@@ -105,14 +106,6 @@ $(REQUIREMENTS_LOG): $(PIP) $(REQUIREMENTS)
 	  $(PIP) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
 	done
 
-win-env:
-	test -d $(ENV) || python -m venv $(ENV)
-	$(ENV)\Scripts\activate.bat
-	python -m pip $(INSTALLATION_PKGS)
-	for f in $(REQUIREMENTS); do \
-	  python -m pip install -r $$f | tee -a $(REQUIREMENTS_LOG); \
-	done
-
 
 ### Static Analysis ######################################################
 
@@ -136,6 +129,17 @@ $(ANALIZE): $(PIP)
 test: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 	$(pythonpath) $(TEST_RUNNER) $(args) $(TESTDIR)
 
+
+test-win: 
+	test -d $(ENV) || python -m venv $(ENV)
+	$(ENV)\Scripts\activate.bat
+	$(PIP_WIN) $(INSTALLATION_PKGS)
+	for f in $(REQUIREMENTS); do \
+	 $(PIP_WIN) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
+	done
+	$(PIP_WIN) install $(TEST_RUNNER_PKGS)
+	$(pythonpath) $(TEST_RUNNER) $(args) $(TESTDIR)
+	python -m pytest $(TESTDIR)
 
 notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 # if deepchecks is not installed, we need to install it for testing porpuses,
