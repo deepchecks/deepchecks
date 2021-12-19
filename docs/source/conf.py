@@ -23,7 +23,6 @@ from subprocess import check_output
 # from sphinx.util.inspect import safe_getattr
 # import re
 
-import deepchecks.version
 
 
 
@@ -32,7 +31,7 @@ import deepchecks.version
 project = 'Deepchecks'
 copyright = '2021, Deepchecks'
 author = 'Deepchecks'
-version = deepchecks.version.__version__
+version = "TestVersoion" # This will be changed after merge!
 
 
 CURRENT_DIR = pathlib.Path(__file__).parent
