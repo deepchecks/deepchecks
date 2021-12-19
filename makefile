@@ -24,7 +24,7 @@ repo = pypi
 
 # System Envs
 BIN := $(ENV)/bin
-pythonpath= PYTHONPATH=.
+pythonpath = PYTHONPATH=.
 
 # Venv Executables
 PIP := $(BIN)/pip
@@ -134,7 +134,7 @@ test-win:
 	test -d $(ENV) || python -m venv $(ENV)
 	$(ENV)\Scripts\activate.bat
 	$(PIP_WIN) $(INSTALLATION_PKGS)
-	for f in $(REQUIREMENTS); do \
+	for f in $(REQUIRE); do \
 	 $(PIP_WIN) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
 	done
 	$(PIP_WIN) install $(TEST_RUNNER_PKGS)
