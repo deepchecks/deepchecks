@@ -39,7 +39,7 @@ __all__ = [
 
 
 def get_random_string(n: int = 5):
-    """ Return random string at the given size.
+    """Return random string at the given size.
 
     Args:
         n (int): the size of the string to return.
