@@ -76,7 +76,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
             min_feature_importance: float = 0.05,
             max_num_categories: int = 10,
             sample_size: int = 10000,
-            random_state: int = 0,
+            random_state: int = 42,
             test_size: float = 0.3
     ):
         super().__init__()
@@ -138,7 +138,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         # calculate feature importance of domain_classifier, containing the information which features separate
         # the dataset best.
         fi_ser = calculate_feature_importance(domain_classifier, domain_test_dataset, force_permutation=True,
-                                              n_repeats = 10, random_state = self.random_state
+                                              permutation_wkargs={'n_repeats': 10, 'random_state': self.random_state}
                                               ).sort_values(ascending=False)
 
         values_dict = {
