@@ -32,6 +32,7 @@ from deepchecks.base.dataset import Dataset
 from deepchecks.base.display_pandas import display_conditions_table, display_dataframe
 from deepchecks.utils.strings import split_camel_case
 from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
+from utils.ipython import is_ipython_display
 
 
 class Condition:
@@ -189,7 +190,7 @@ class CheckResult:
 
     def __repr__(self):
         """Return default __repr__ function uses value."""
-        return self.value.__repr__()
+        return f'{self.get_header()}: {self.value}'
 
     def get_header(self):
         """Return header for display. if header was defined return it, else extract name of check class."""
@@ -216,8 +217,11 @@ class CheckResult:
         return max([r.get_sort_value() for r in self.conditions_results])
 
     def show(self, show_conditions=True):
-        """Call the IPython display function."""
-        self._ipython_display_(show_conditions)
+        """Display check result."""
+        if is_ipython_display():
+            self._ipython_display_(show_conditions)
+        else:
+            print(self)
 
 
 def wrap_run(func, class_instance):

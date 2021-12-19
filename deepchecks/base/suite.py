@@ -22,6 +22,8 @@ from deepchecks.base.check import (CheckResult, TrainTestBaseCheck,
 
 __all__ = ['Suite', 'ModelComparisonSuite', 'SuiteResult']
 
+from utils.ipython import is_ipython_display
+
 
 class SuiteResult:
     """Contain the results of a suite run."""
@@ -34,12 +36,19 @@ class SuiteResult:
         self.name = name
         self.results = results
 
+    def __repr__(self):
+        """Return default __repr__ function uses value."""
+        return self.name
+
     def _ipython_display_(self):
         display_suite_result(self.name, self.results)
 
     def show(self):
-        """Call the IPython display method."""
-        self._ipython_display_()
+        """Display suite result."""
+        if is_ipython_display():
+            self._ipython_display_()
+        else:
+            print(self)
 
 
 class BaseSuite:

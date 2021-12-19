@@ -9,12 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing useful global functions."""
+import sys
 from functools import lru_cache
+from importlib import import_module
+
 
 from IPython import get_ipython # TODO: I think we should remove ipython from mandatory dependencies
 
 
-__all__ = ['is_notebook']
+__all__ = ['is_notebook', 'is_ipython_display']
 
 
 @lru_cache(maxsize=None)
@@ -29,3 +32,15 @@ def is_notebook() -> bool:
         return hasattr(shell, 'config')
     except NameError:
         return False  # Probably standard Python interpreter
+
+
+@lru_cache(maxsize=None)
+def is_ipython_display():
+    module = 'IPython.display'
+    if module in sys.modules:
+        return True
+    try:
+        import_module(module)
+        return True
+    except Exception:
+        return False
