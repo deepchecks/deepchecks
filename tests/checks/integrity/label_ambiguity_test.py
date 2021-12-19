@@ -26,7 +26,7 @@ def test_label_ambiguity():
         'col3': [1, 1, 1, 2, 2, 2],
         'label': [1, 1, 2, 2, 3, 4]
     }
-    ds = Dataset(pd.DataFrame(data), label='label')
+    ds = Dataset(pd.DataFrame(data), label_name='label')
     check = LabelAmbiguity()
     # Act
     result = check.run(ds)
@@ -43,7 +43,7 @@ def test_label_ambiguity_empty():
         'col3': [1, 1, 1, 2, 2, 2],
         'label': [1, 1, 1, 1, 1, 1]
     }
-    ds = Dataset(pd.DataFrame(data), label='label')
+    ds = Dataset(pd.DataFrame(data), label_name='label')
     check = LabelAmbiguity()
     # Act
     result = check.run(ds)
@@ -60,7 +60,7 @@ def test_label_ambiguity_mixed():
         'col3': [1, 1, 1, 2, 2, 2],
         'label': [1, 1, 1, 1, 2, 1]
     }
-    ds = Dataset(pd.DataFrame(data), label='label')
+    ds = Dataset(pd.DataFrame(data), label_name='label')
     check = LabelAmbiguity()
     # Act
     result = check.run(ds)
@@ -77,7 +77,7 @@ def test_label_ambiguity_condition():
         'col3': [1, 1, 1, 2, 2, 2],
         'label': [1, 1, 1, 1, 2, 1]
     }
-    ds = Dataset(pd.DataFrame(data), label='label')
+    ds = Dataset(pd.DataFrame(data), label_name='label')
     check = LabelAmbiguity().add_condition_ambiguous_sample_ratio_not_greater_than()
 
     # Act
@@ -100,7 +100,7 @@ def test_label_ambiguity_condition_pass():
         'col3': [1, 1, 1, 2, 2, 2],
         'label': [1, 1, 1, 1, 2, 1]
     }
-    ds = Dataset(pd.DataFrame(data), label='label')
+    ds = Dataset(pd.DataFrame(data), label_name='label')
     check = LabelAmbiguity().add_condition_ambiguous_sample_ratio_not_greater_than(.7)
 
     # Act

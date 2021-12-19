@@ -41,8 +41,8 @@ def diabetes_df():
 def diabetes(diabetes_df):
     """Return diabetes dataset splited to train and test as Datasets."""
     train_df, test_df = train_test_split(diabetes_df, test_size=0.33, random_state=42)
-    train = Dataset(train_df, label='target', cat_features=['sex'])
-    test = Dataset(test_df, label='target', cat_features=['sex'])
+    train = Dataset(train_df, label_name='target', cat_features=['sex'])
+    test = Dataset(test_df, label_name='target', cat_features=['sex'])
     return train, test
 
 
@@ -92,7 +92,7 @@ def iris_adaboost(iris):
 @pytest.fixture(scope='session')
 def iris_labeled_dataset(iris):
     """Return Iris dataset as Dataset object with label."""
-    return Dataset(iris, label='target')
+    return Dataset(iris, label_name='target')
 
 
 @pytest.fixture(scope='session')
@@ -130,7 +130,7 @@ def iris_dataset_single_class_labeled(iris):
     """Return Iris dataset modified to a binary label as Dataset object."""
     idx = iris.target != 2
     df = iris[idx]
-    dataset = Dataset(df, label='target')
+    dataset = Dataset(df, label_name='target')
     return dataset
 
 
@@ -138,8 +138,8 @@ def iris_dataset_single_class_labeled(iris):
 def iris_split_dataset_and_model(iris_clean) -> Tuple[Dataset, Dataset, AdaBoostClassifier]:
     """Return Iris train and val datasets and trained AdaBoostClassifier model."""
     train, test = train_test_split(iris_clean.frame, test_size=0.33, random_state=42)
-    train_ds = Dataset(train, label='target')
-    val_ds = Dataset(test, label='target')
+    train_ds = Dataset(train, label_name='target')
+    val_ds = Dataset(test, label_name='target')
     clf = AdaBoostClassifier(random_state=0)
     clf.fit(train_ds.features_columns, train_ds.label_col)
     return train_ds, val_ds, clf
@@ -149,8 +149,8 @@ def iris_split_dataset_and_model(iris_clean) -> Tuple[Dataset, Dataset, AdaBoost
 def iris_split_dataset_and_model_rf(iris) -> Tuple[Dataset, Dataset, RandomForestClassifier]:
     """Return Iris train and val datasets and trained RF model."""
     train, test = train_test_split(iris, test_size=0.33, random_state=0)
-    train_ds = Dataset(train, label='target')
-    val_ds = Dataset(test, label='target')
+    train_ds = Dataset(train, label_name='target')
+    val_ds = Dataset(test, label_name='target')
     clf = RandomForestClassifier(random_state=0, n_estimators=10, max_depth=2)
     clf.fit(train_ds.features_columns, train_ds.label_col)
     return train_ds, val_ds, clf
@@ -186,7 +186,7 @@ def df_with_fully_nan():
 
 
 @pytest.fixture(scope='session')
-def drifted_data_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
+def drifted_data() -> Tuple[Dataset, Dataset]:
     np.random.seed(42)
 
     train_data = np.concatenate([np.random.randn(1000, 2),
@@ -209,6 +209,22 @@ def drifted_data_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
     df_test['categorical_with_drift'] = np.random.choice(a=['apple', 'orange', 'banana', 'lemon'],
                                                          p=[0.5, 0.25, 0.15, 0.1], size=(1000, 1))
 
+    label = np.random.randint(0, 2, size=(df_train.shape[0],))
+    df_train['target'] = label
+    train_ds = Dataset(df_train, label_name='target')
+
+    label = np.random.randint(0, 2, size=(df_test.shape[0],))
+    df_test['target'] = label
+    test_ds = Dataset(df_test, label_name='target')
+
+    return train_ds, test_ds
+
+
+@pytest.fixture(scope='session')
+def drifted_data_and_model(drifted_data) -> Tuple[Dataset, Dataset, Pipeline]:
+
+    train_ds, test_ds = drifted_data
+
     model = Pipeline([
         ('handle_cat', ColumnTransformer(
             transformers=[
@@ -224,14 +240,6 @@ def drifted_data_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
         ('model', DecisionTreeClassifier(random_state=0, max_depth=2))]
     )
 
-    label = np.random.randint(0, 2, size=(df_train.shape[0],))
-    df_train['target'] = label
-    train_ds = Dataset(df_train, label='target')
-
-    model.fit(train_ds.features_columns, label)
-
-    label = np.random.randint(0, 2, size=(df_test.shape[0],))
-    df_test['target'] = label
-    test_ds = Dataset(df_test, label='target')
+    model.fit(train_ds.features_columns, train_ds.label_col)
 
     return train_ds, test_ds, model
