@@ -186,7 +186,7 @@ def df_with_fully_nan():
 
 
 @pytest.fixture(scope='session')
-def drifted_data_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
+def drifted_data() -> Tuple[Dataset, Dataset]:
     np.random.seed(42)
 
     train_data = np.concatenate([np.random.randn(1000, 2),
@@ -209,6 +209,22 @@ def drifted_data_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
     df_test['categorical_with_drift'] = np.random.choice(a=['apple', 'orange', 'banana', 'lemon'],
                                                          p=[0.5, 0.25, 0.15, 0.1], size=(1000, 1))
 
+    label = np.random.randint(0, 2, size=(df_train.shape[0],))
+    df_train['target'] = label
+    train_ds = Dataset(df_train, label_name='target')
+
+    label = np.random.randint(0, 2, size=(df_test.shape[0],))
+    df_test['target'] = label
+    test_ds = Dataset(df_test, label_name='target')
+
+    return train_ds, test_ds
+
+
+@pytest.fixture(scope='session')
+def drifted_data_and_model(drifted_data) -> Tuple[Dataset, Dataset, Pipeline]:
+
+    train_ds, test_ds = drifted_data
+
     model = Pipeline([
         ('handle_cat', ColumnTransformer(
             transformers=[
@@ -224,14 +240,6 @@ def drifted_data_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
         ('model', DecisionTreeClassifier(random_state=0, max_depth=2))]
     )
 
-    label = np.random.randint(0, 2, size=(df_train.shape[0],))
-    df_train['target'] = label
-    train_ds = Dataset(df_train, label_name='target')
-
-    model.fit(train_ds.features_columns, label)
-
-    label = np.random.randint(0, 2, size=(df_test.shape[0],))
-    df_test['target'] = label
-    test_ds = Dataset(df_test, label_name='target')
+    model.fit(train_ds.features_columns, train_ds.label_col)
 
     return train_ds, test_ds, model

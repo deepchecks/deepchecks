@@ -16,7 +16,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.neural_network import MLPClassifier
 
 from deepchecks.utils.features import calculate_feature_importance, calculate_feature_importance_or_null, \
-                                              column_importance_sorter_df, column_importance_sorter_dict
+    column_importance_sorter_df, column_importance_sorter_dict
 from deepchecks.errors import DeepchecksValueError
 
 
@@ -30,8 +30,8 @@ def test_unfitted(iris_dataset):
     clf = AdaBoostClassifier()
     assert_that(calling(calculate_feature_importance).with_args(clf, iris_dataset),
                 raises(DeepchecksValueError, 'Got error when trying to predict with model on dataset: '
-                    'This AdaBoostClassifier instance is not fitted yet. '
-                    'Call \'fit\' with appropriate arguments before using this estimator.'))
+                                             'This AdaBoostClassifier instance is not fitted yet. '
+                                             'Call \'fit\' with appropriate arguments before using this estimator.'))
 
 
 def test_linear_regression(diabetes):
