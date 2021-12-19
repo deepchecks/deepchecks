@@ -186,7 +186,10 @@ class CheckResult:
         if self.check.show_conditions:
             self.set_condition_results(self.check.conditions_decision(result=self))
             ConditionResult.append_to_conditions_table(self, conditions_table, unique_id)
-        display_html(f'<h4 id="{check_id}">{self.get_header()}</h4>', raw=True)
+        if check_id:
+            display_html(f'<h4 id="{check_id}">{self.get_header()}</h4>', raw=True)
+        else:
+            display_html(f'<h4>{self.get_header()}</h4>', raw=True)
         if hasattr(self.check.__class__, '__doc__'):
             docs = self.check.__class__.__doc__ or ''
             # Take first non-whitespace line.
