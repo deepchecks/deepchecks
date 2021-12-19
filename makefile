@@ -105,6 +105,13 @@ $(REQUIREMENTS_LOG): $(PIP) $(REQUIREMENTS)
 	  $(PIP) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
 	done
 
+win-env:
+	test -d $(ENV) || python -m venv $(ENV)
+	$(ENV)\Scripts\activate.bat
+	python -m pip $(INSTALLATION_PKGS)
+	for f in $(REQUIREMENTS); do \
+	  python -m pip install -r $$f | tee -a $(REQUIREMENTS_LOG); \
+	done
 
 
 ### Static Analysis ######################################################
