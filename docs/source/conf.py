@@ -36,7 +36,7 @@ import deepchecks.version
 project = 'Deepchecks'
 copyright = '2021, Deepchecks'
 author = 'Deepchecks'
-is_readthedoc = os.environ.get("READTHEDOCS")
+is_readthedocs = os.environ.get("READTHEDOCS")
 version = os.environ.get("READTHEDOCS_VERSION") or deepchecks.version.__version__
 language = os.environ.get("READTHEDOCS_LANGUAGE")
 
@@ -167,8 +167,8 @@ nbsphinx_prolog = r"""
                 target="_blank" rel="noopener noreferrer">
                 <img
                     alt="Binder badge"
-                    {% if is_readthedco %}
-                    src="/{{ language }}/{{ version }}/_static/binder-badge.svg"
+                    {% if env.config.html_context["is_readthedocs"] %}
+                    src="/{{ env.config.html_context["language"] }}/{{ env.config.html_context["version"] }}/_static/binder-badge.svg"
                     {% else %}
                     src="/_static/binder-badge.svg"
                     {% endif %}
@@ -182,8 +182,8 @@ nbsphinx_prolog = r"""
                 target="_blank" rel="noopener noreferrer">
                 <img
                     alt="Colab badge"
-                    {% if is_readthedco %}
-                    src="/{{ language }}/{{ version }}/_static/colab-badge.svg"
+                    {% if env.config.html_context["is_readthedocs"] %}
+                    src="/{{ env.config.html_context["language"] }}/{{ env.config.html_context["version"] }}/_static/colab-badge.svg"
                     {% else %}
                     src="/_static/colab-badge.svg"
                     {% endif %}
@@ -352,7 +352,9 @@ html_theme_options = {
 # vars that will be passed to the jinja templates during build
 #
 html_context = {
-    "current_version": version,
+    "version": version,
+    "is_readthedoc": is_readthedocs,
+    "language": language,
 }
 
 
@@ -521,7 +523,7 @@ def setup(app):
 
     # make custom routines available within html templates
     app.connect("html-page-context", add_custom_routines)
-
+    
     # make next functions available within nbsphinx prolog/epilog templates
     app.config.generate_binder_url = generate_binder_url
     app.config.generate_colab_url = generate_colab_url
