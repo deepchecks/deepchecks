@@ -46,15 +46,15 @@ def test_leakage(iris_clean):
     y = iris_clean.target
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=55)
     train_dataset = Dataset(pd.concat([x_train, y_train], axis=1),
-                features=iris_clean.feature_names,
-                label='target')
+                            features=iris_clean.feature_names,
+                            label_name='target')
 
     test_df = pd.concat([x_test, y_test], axis=1)
     test_df.loc[test_df.index % 2 == 0, 'petal length (cm)'] = 5.1
 
     validation_dataset = Dataset(test_df,
-                features=iris_clean.feature_names,
-                label='target')
+                                 features=iris_clean.feature_names,
+                                 label_name='target')
     # Arrange
     check = DominantFrequencyChange()
     # Act X
@@ -114,9 +114,9 @@ def test_condition_ratio_not_less_than_not_passed(iris_clean):
     x = iris_clean.data
     y = iris_clean.target
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=55)
-    train_dataset = Dataset(pd.concat([x_train, y_train], axis=1), 
-                features=iris_clean.feature_names,
-                label='target')
+    train_dataset = Dataset(pd.concat([x_train, y_train], axis=1),
+                            features=iris_clean.feature_names,
+                            label_name='target')
 
     test_df = pd.concat([x_test, y_test], axis=1)
 
@@ -124,9 +124,9 @@ def test_condition_ratio_not_less_than_not_passed(iris_clean):
     test_df.loc[test_df.index % 2 == 0, 'petal length (cm)'] = 5.1
     test_df.loc[test_df.index / 3 > 8, 'sepal width (cm)'] = 2.7
 
-    test_dataset = Dataset(test_df, 
-            features=iris_clean.feature_names,
-            label='target')
+    test_dataset = Dataset(test_df,
+                           features=iris_clean.feature_names,
+                           label_name='target')
 
     check = DominantFrequencyChange().add_condition_p_value_not_less_than(p_value_threshold = 0.0001)
 
