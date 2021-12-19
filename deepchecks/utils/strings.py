@@ -9,6 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """String functions."""
+import random
+import string
 import typing as t
 import re
 from collections import defaultdict
@@ -31,8 +33,19 @@ __all__ = [
     'is_string_column',
     'format_percent',
     'format_number',
-    'format_columns_for_condition'
+    'format_columns_for_condition',
+    'random_string'
 ]
+
+
+def get_random_string(n: int = 5):
+    """ Return random string at the given size.
+
+    Args:
+        n (int): the size of the string to return.
+    Returns:
+        (str): a random string"""
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=n))
 
 
 def string_baseform(string: str) -> str:

@@ -29,7 +29,7 @@ from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
 from deepchecks.base.display_pandas import display_conditions_table, display_dataframe
-from deepchecks.utils.strings import split_camel_case
+from deepchecks.utils.strings import get_random_string, split_camel_case
 from deepchecks.errors import DeepchecksValueError
 
 
@@ -115,7 +115,7 @@ class ConditionResult:
         return str(vars(self))
 
     @classmethod
-    def append_to_conditions_table(cls, check_result: 'CheckResult', conditions_table: List):
+    def append_to_conditions_table(cls, check_result: 'CheckResult', conditions_table: List, unique_id = ''):
         """Append the condition the check result has to a given conditions table.
 
         Args:
@@ -125,7 +125,10 @@ class ConditionResult:
         for cond_result in check_result.conditions_results:
             sort_value = cond_result.get_sort_value()
             icon = cond_result.get_icon()
-            conditions_table.append([icon, check_result.get_header(), cond_result.name,
+            check_id = f'{check_result.check.__class__.__name__}_{unique_id}'
+            check_header = check_result.get_header()
+            link = f'<a href=#{check_id}>{check_header}</a>'
+            conditions_table.append([icon, link, cond_result.name,
                                         cond_result.details, sort_value])
 
 
@@ -171,12 +174,15 @@ class CheckResult:
             if not isinstance(item, (str, pd.DataFrame, Styler, Callable, BaseFigure)):
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
-    def _ipython_display_(self):
+    def _ipython_display_(self, unique_id = None):
+        if unique_id is None:
+            unique_id = get_random_string()
+        check_id = f'{self.check.__class__.__name__}_{unique_id}'
         conditions_table = []
         if self.check.show_conditions:
             self.set_condition_results(self.check.conditions_decision(result=self))
-            ConditionResult.append_to_conditions_table(self, conditions_table)
-        display_html(f'<h4>{self.get_header()}</h4>', raw=True)
+            ConditionResult.append_to_conditions_table(self, conditions_table, check_id)
+        display_html(f'<h4 id="{check_id}">{self.get_header()}</h4>', raw=True)
         if hasattr(self.check.__class__, '__doc__'):
             docs = self.check.__class__.__doc__ or ''
             # Take first non-whitespace line.

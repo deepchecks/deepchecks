@@ -18,6 +18,7 @@ import pandas as pd
 
 from IPython.core.display import display_html
 
+from deepchecks.utils.strings import get_random_string
 from deepchecks.base.check import CheckResult, CheckFailure, ConditionResult
 from deepchecks.base.display_pandas import dataframe_to_html, display_conditions_table
 
@@ -55,13 +56,14 @@ def get_display_exists_icon(exists: bool):
 
 def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]]):
     """Display results of suite in IPython."""
+    unique_id = get_random_string()
     conditions_table = []
     display_table = []
     others_table = []
     for result in results:
         if isinstance(result, CheckResult):
             if result.have_conditions():
-                ConditionResult.append_to_conditions_table(result, conditions_table)
+                ConditionResult.append_to_conditions_table(result, conditions_table, unique_id)
             if result.have_display():
                 display_table.append(result)
             else:
@@ -94,7 +96,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     display_html(f'{bold_hr}<h2>Additional Outputs</h2>', raw=True)
     if display_table:
         for i, r in enumerate(display_table):
-            r._ipython_display_()
+            r._ipython_display_(unique_id=unique_id)
             if i < len(display_table) - 1:
                 display_html(light_hr, raw=True)
     else:
