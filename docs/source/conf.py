@@ -82,6 +82,7 @@ extensions = [
     'sphinx.ext.linkcode',
     'sphinx_copybutton',
     'sphinx.ext.githubpages',
+    'sphinx_search.extension',
 ]
 
 
