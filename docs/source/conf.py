@@ -36,14 +36,15 @@ import deepchecks.version
 project = 'Deepchecks'
 copyright = '2021, Deepchecks'
 author = 'Deepchecks'
+is_readthedoc = os.environ.get("READTHEDOCS")
 version = os.environ.get("READTHEDOCS_VERSION") or deepchecks.version.__version__
+language = os.environ.get("READTHEDOCS_LANGUAGE")
 
 GIT = {
     "user": "deepchecks",
     "repo": "deepchecks",
     "documentation-path": "docs/source"
 }
-
 
 try:
     GIT["branch"] = tag = check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).decode().strip()
@@ -166,7 +167,11 @@ nbsphinx_prolog = r"""
                 target="_blank" rel="noopener noreferrer">
                 <img
                     alt="Binder badge"
+                    {% if is_readthedco %}
+                    src="/{{ language }}/{{ version }}/_static/binder-badge.svg"
+                    {% else %}
                     src="/_static/binder-badge.svg"
+                    {% endif %}
                     style="vertical-align:text-bottom">
             </a>
         </span>
@@ -177,7 +182,11 @@ nbsphinx_prolog = r"""
                 target="_blank" rel="noopener noreferrer">
                 <img
                     alt="Colab badge"
+                    {% if is_readthedco %}
+                    src="/{{ language }}/{{ version }}/_static/colab-badge.svg"
+                    {% else %}
                     src="/_static/colab-badge.svg"
+                    {% endif %}
                     style="vertical-align:text-bottom">
             </a>
         </span>
