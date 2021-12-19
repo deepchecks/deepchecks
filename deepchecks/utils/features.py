@@ -125,17 +125,17 @@ def _calc_importance(
 ) -> pd.Series:
     """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal.
 
-        Args:
-            model (Any): A fitted model
-            dataset (Dataset): dataset used to fit the model
-            n_repeats (int): Number of times to permute a feature
-            mask_high_variance_features (bool): If true, features for whome calculated permuation importance values
-                                                varied gratly would be returned has having 0 feature importance
-            random_state (int): Random seed for permutation importance calculation.
-            n_samples (int): The number of samples to draw from X to compute feature importance
-                            in each repeat (without replacement).
-        Returns:
-            pd.Series of feature importance normalized to 0-1 indexed by feature names
+    Args:
+        model (Any): A fitted model
+        dataset (Dataset): dataset used to fit the model
+        n_repeats (int): Number of times to permute a feature
+        mask_high_variance_features (bool): If true, features for whome calculated permuation importance values
+                                            varied gratly would be returned has having 0 feature importance
+        random_state (int): Random seed for permutation importance calculation.
+        n_samples (int): The number of samples to draw from X to compute feature importance
+                        in each repeat (without replacement).
+    Returns:
+        pd.Series of feature importance normalized to 0-1 indexed by feature names
     """
     dataset.validate_label()
 
