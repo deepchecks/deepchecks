@@ -81,7 +81,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     <span style="color: orange;font-weight:bold;display:inline-block">\U00000021</span>
     """
     html = f"""
-    <h1>{suite_name}</h1>
+    <h1 id="summary_{unique_id}">{suite_name}</h1>
     <p>The suite is composed of various checks such as: {get_first_3(results)}, etc...<br>
     Each check may contain conditions (which results in {icons}), as well as other outputs such as plots or tables.<br>
     Suites, checks and conditions can all be modified (see tutorial [link]).</p>

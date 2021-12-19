@@ -187,7 +187,8 @@ class CheckResult:
             self.set_condition_results(self.check.conditions_decision(result=self))
             ConditionResult.append_to_conditions_table(self, conditions_table, unique_id)
         if check_id:
-            display_html(f'<h4 id="{check_id}">{self.get_header()}</h4>', raw=True)
+            display_html(f'<h4 id="{check_id}" style="display: inline-block">{self.get_header()}</h4>'
+                         f'<a href="#summary_{unique_id}" style="font-size: 11px">Go to summary</a>', raw=True)
         else:
             display_html(f'<h4>{self.get_header()}</h4>', raw=True)
         if hasattr(self.check.__class__, '__doc__'):
