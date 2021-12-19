@@ -26,3 +26,9 @@ class DeepchecksValueError(DeepchecksBaseError):
     """Exception class that represent a fault parameter was passed to Deepchecks."""
 
     pass
+
+
+class DeepchecksProcessError(DeepchecksBaseError):
+    """Exception class that represents an isssue with a process"""
+
+    pass

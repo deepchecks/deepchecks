@@ -21,10 +21,11 @@ from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import log_loss, mean_squared_error
+from sklearn.metrics import log_loss, mean_squared_error, r2_score
 from category_encoders import TargetEncoder
 
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
+from deepchecks.errors import DeepchecksProcessError
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.validation import validate_model
 from deepchecks.utils.typing import Hashable
@@ -38,7 +39,7 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
 
     Args:
         max_segments (int): maximal number of segments to split the a values into.
-        min_error (float): mimun
+        min_feature_contribution (float): minimum contribution to the internal error model
     """
 
     feature_1: Optional[Hashable]
@@ -49,12 +50,12 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
     def __init__(
         self,
         max_features: int = 3,
-        min_error: float = 0.15,
-        random_seed: int = 42,
+        min_feature_contribution: float = 0.15,
+        random_seed: int = 42
     ):
         super().__init__()
         self.max_features = max_features
-        self.min_error = min_error
+        self.min_error = min_feature_contribution
         self.random_seed = random_seed
 
     def run(self, dataset: Dataset, model) -> CheckResult:
@@ -100,6 +101,15 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
 
         error_model.fit(dataset.features_columns, y=score)
 
+        error_model_y = error_model.predict(dataset.features_columns)
+
+        error_model_score = r2_score(error_model_y, score)
+
+        # r2_score returns a negitive value, this check should be ignored,no information gained from the error regressor
+        # But, the graphs can still be of value, despite not able to train an error model.
+        if error_model_score < 0.5:
+            raise DeepchecksProcessError("Unable to train meaningful error model")
+
         error_fi = calculate_feature_importance(error_model, dataset)
         error_fi.sort_values(ascending=False, inplace=True)
 
@@ -133,7 +143,7 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
             ax = plt.gca()
             cm = plt.cm.get_cmap('RdYlBu_r')
 
-            sc = plt.scatter(x=feature_name, y='score', data=data, alpha=0.1, edgecolors='none',
+            sc = plt.scatter(x=feature_name, y='score', data=data, alpha=0.1, edgecolors='none', s=10,
                              c=data['score'], vmin=min_score, vmax=max_score, cmap=cm)
             ax.set_ylabel('error score')
             ax.set_xlabel(feature_name)
