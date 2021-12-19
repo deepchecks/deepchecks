@@ -10,19 +10,17 @@
 #
 """Module containing the Suite object, used for running a set of checks together."""
 # pylint: disable=broad-except
+import abc
 from collections import OrderedDict
-from typing import Union, List, Optional
+from typing import Union, List, Optional, Tuple, Any, Container
 
 from deepchecks.base.display_suite import display_suite_result, ProgressBar
 from deepchecks.errors import DeepchecksValueError
 from deepchecks.base import Dataset
-from deepchecks.base.check import (
-    BaseCheck, CheckResult, TrainTestBaseCheck,
-    SingleDatasetBaseCheck, ModelOnlyBaseCheck, CheckFailure
-)
+from deepchecks.base.check import (CheckResult, TrainTestBaseCheck,
+   SingleDatasetBaseCheck, ModelOnlyBaseCheck, CheckFailure, ModelComparisonBaseCheck)
 
-
-__all__ = ['Suite', 'SuiteResult']
+__all__ = ['Suite', 'ModelComparisonSuite', 'SuiteResult']
 
 
 class SuiteResult:
@@ -39,95 +37,34 @@ class SuiteResult:
     def _ipython_display_(self):
         display_suite_result(self.name, self.results)
 
+    def show(self):
+        """Call the IPython display method."""
+        self._ipython_display_()
 
-class Suite(BaseCheck):
+
+class BaseSuite:
     """Class for running a set of checks together, and returning a unified pass / no-pass.
 
     Attributes:
         checks: A list of checks to run.
+        name: Name of the suite
     """
+
+    @classmethod
+    @abc.abstractmethod
+    def supported_checks(cls) -> Tuple:
+        pass
 
     checks: OrderedDict
     name: str
     _check_index: int
 
     def __init__(self, name: str, *checks):
-        """Get 'Check's and 'Suite's to run in given order."""
-        super().__init__()
         self.name = name
         self.checks = OrderedDict()
         self._check_index = 0
         for check in checks:
             self.add(check)
-
-    def run(
-        self,
-        train_dataset: Optional[Dataset] = None,
-        test_dataset: Optional[Dataset] = None,
-        model: object = None,
-        check_datasets_policy: str = 'test'
-    ) -> SuiteResult:
-        """Run all checks.
-
-        Args:
-          model: A scikit-learn-compatible fitted estimator instance
-          train_dataset: Dataset object, representing data an estimator was fitted on
-          test_dataset: Dataset object, representing data an estimator predicts on
-          check_datasets_policy: str, one of either ['both', 'train', 'test'].
-                                 Determines the policy by which single dataset checks are run when two datasets are
-                                 given, one for train and the other for test.
-
-        Returns:
-          List[CheckResult] - All results by all initialized checks
-
-        Raises:
-             ValueError if check_datasets_policy is not of allowed types
-        """
-        if check_datasets_policy not in ['both', 'train', 'test']:
-            raise ValueError('check_datasets_policy must be one of ["both", "train", "test"]')
-
-        if all(it is None for it in (train_dataset, test_dataset, model)):
-            raise ValueError('At least one dataset (or model) must be passed to the method!')
-
-        # Create progress bar
-        progress_bar = ProgressBar(self.name, len(self.checks))
-
-        # Run all checks
-        results = []
-        for check in self.checks.values():
-            check.set_conditions_display(False)
-            try:
-                progress_bar.set_text(check.name())
-                if isinstance(check, TrainTestBaseCheck):
-                    if train_dataset is not None and test_dataset is not None:
-                        check_result = check.run(train_dataset=train_dataset, test_dataset=test_dataset,
-                                                 model=model)
-                        check_result.set_condition_results(check.conditions_decision(check_result))
-                        results.append(check_result)
-                elif isinstance(check, SingleDatasetBaseCheck):
-                    if check_datasets_policy in ['both', 'train'] and train_dataset is not None:
-                        check_result = check.run(dataset=train_dataset, model=model)
-                        check_result.header = f'{check_result.get_header()} - Train Dataset'
-                        check_result.set_condition_results(check.conditions_decision(check_result))
-                        results.append(check_result)
-                    if check_datasets_policy in ['both', 'test'] and test_dataset is not None:
-                        check_result = check.run(dataset=test_dataset, model=model)
-                        check_result.header = f'{check_result.get_header()} - Test Dataset'
-                        check_result.set_condition_results(check.conditions_decision(check_result))
-                        results.append(check_result)
-                elif isinstance(check, ModelOnlyBaseCheck):
-                    if model is not None:
-                        check_result = check.run(model=model)
-                        check_result.set_condition_results(check.conditions_decision(check_result))
-                        results.append(check_result)
-                else:
-                    raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
-            except Exception as exp:
-                results.append(CheckFailure(check.__class__, exp))
-            progress_bar.inc_progress()
-
-        progress_bar.close()
-        return SuiteResult(self.name, results)
 
     def __repr__(self, tabs=0):
         """Representation of suite as string."""
@@ -147,15 +84,15 @@ class Suite(BaseCheck):
         Args:
             check (BaseCheck): A check or suite to add.
         """
-        if not isinstance(check, BaseCheck):
-            raise DeepchecksValueError(
-                f'Suite receives only `BaseCheck` objects but got: {check.__class__.__name__}'
-            )
-        if isinstance(check, Suite):
+        if isinstance(check, BaseSuite):
             if check is self:
                 return self
             for c in check.checks.values():
                 self.add(c)
+        elif not isinstance(check, self.supported_checks()):
+            raise DeepchecksValueError(
+                f'Suite received unsupported object type: {check.__class__.__name__}'
+            )
         else:
             self.checks[self._check_index] = check
             self._check_index += 1
@@ -171,3 +108,115 @@ class Suite(BaseCheck):
             raise DeepchecksValueError(f'No index {index} in suite')
         self.checks.pop(index)
         return self
+
+
+class Suite(BaseSuite):
+    """Suite to run checks of types: TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck."""
+
+    @classmethod
+    def supported_checks(cls) -> Tuple:
+        """Return tuple of supported check types of this suite."""
+        return TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck
+
+    def run(
+            self,
+            train_dataset: Optional[Dataset] = None,
+            test_dataset: Optional[Dataset] = None,
+            model: object = None,
+    ) -> SuiteResult:
+        """Run all checks.
+
+        Args:
+          model: A scikit-learn-compatible fitted estimator instance
+          train_dataset: Dataset object, representing data an estimator was fitted on
+          test_dataset: Dataset object, representing data an estimator predicts on
+
+        Returns:
+          List[CheckResult] - All results by all initialized checks
+
+        Raises:
+             ValueError if check_datasets_policy is not of allowed types
+        """
+        if all(it is None for it in (train_dataset, test_dataset, model)):
+            raise DeepchecksValueError('At least one dataset (or model) must be passed to the method!')
+
+        # Create progress bar
+        progress_bar = ProgressBar(self.name, len(self.checks))
+
+        # Run all checks
+        results = []
+        for check in self.checks.values():
+            try:
+                progress_bar.set_text(check.name())
+                if isinstance(check, TrainTestBaseCheck):
+                    if train_dataset is not None and test_dataset is not None:
+                        check_result = check.run(train_dataset=train_dataset, test_dataset=test_dataset,
+                                                 model=model)
+                        results.append(check_result)
+                elif isinstance(check, SingleDatasetBaseCheck):
+                    if train_dataset is not None:
+                        check_result = check.run(dataset=train_dataset, model=model)
+                        check_result.header = f'{check_result.get_header()} - Train Dataset'
+                        results.append(check_result)
+                    if test_dataset is not None:
+                        check_result = check.run(dataset=test_dataset, model=model)
+                        check_result.header = f'{check_result.get_header()} - Test Dataset'
+                        results.append(check_result)
+                elif isinstance(check, ModelOnlyBaseCheck):
+                    if model is not None:
+                        check_result = check.run(model=model)
+                        results.append(check_result)
+                else:
+                    raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
+            except Exception as exp:
+                results.append(CheckFailure(check.__class__, exp))
+            progress_bar.inc_progress()
+
+        progress_bar.close()
+        return SuiteResult(self.name, results)
+
+
+class ModelComparisonSuite(BaseSuite):
+    """Suite to run checks of types: CompareModelsBaseCheck."""
+
+    @classmethod
+    def supported_checks(cls) -> Tuple:
+        """Return tuple of supported check types of this suite."""
+        return tuple([ModelComparisonBaseCheck])
+
+    def run(self,
+            train_datasets: Union[Dataset, Container[Dataset]],
+            test_datasets: Union[Dataset, Container[Dataset]],
+            models: Container[Any]
+            ) -> SuiteResult:
+        """Run all checks.
+
+        Args:
+          train_datasets: A scikit-learn-compatible fitted estimator instance
+          test_datasets: Dataset object, representing data an estimator was fitted on
+          models: Dataset object, representing data an estimator predicts on
+
+        Returns:
+          List[CheckResult] - All results by all initialized checks
+
+        Raises:
+             ValueError if check_datasets_policy is not of allowed types
+        """
+        if any(it is None for it in (train_datasets, test_datasets, models)):
+            raise DeepchecksValueError('All parameters must be passed to the suite!')
+
+        # Create progress bar
+        progress_bar = ProgressBar(self.name, len(self.checks))
+
+        # Run all checks
+        results = []
+        for check in self.checks.values():
+            try:
+                check_result = check.run(train_datasets, test_datasets, models)
+                results.append(check_result)
+            except Exception as exp:
+                results.append(CheckFailure(check.__class__, exp))
+            progress_bar.inc_progress()
+
+        progress_bar.close()
+        return SuiteResult(self.name, results)
