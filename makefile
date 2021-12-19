@@ -53,7 +53,7 @@ ANALIZE_PKGS = pylint pydocstyle
 TEST_CODE := tests/
 TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval
 NOTEBOOK_CHECKS = ./notebooks/checks
-NOTEBOOK_EXAMPLES = ./notebooks/examples/**/*.ipynb
+NOTEBOOK_EXAMPLES = ./notebooks/examples/*.ipynb
 NOTEBOOK_SANITIZER_FILE= ./notebooks/.nbval-sanitizer
 
 PYLINT_LOG = .pylint.log
@@ -210,7 +210,7 @@ clean-docs:
 	-@rm -rf docs/deepcheckss
 
 ### Release ######################################################
-.PHONY: authors register dist upload .git-no-changes ammend release
+.PHONY: authors register dist upload .git-no-changes release
 
 authors:
 	echo "Authors\n=======\n\nA huge thanks to all of our contributors:\n\n" > AUTHORS.md
@@ -225,10 +225,6 @@ dist: test
 upload: $(TWINE) 
 	$(TWINE) upload dist/*
 
-ammend:
-	git add deepchecks/version.py
-	git commit --amend --no-edit
-
 
 .git-no-changes:
 	@if git diff --name-only --exit-code;       \
@@ -240,18 +236,11 @@ ammend:
 		exit -1;                                  \
 	fi;
 
-release: version dist upload
+release: dist upload
 
 
 $(TWINE): $(PIP)
 	$(PIP) install twine
-
-#if version variable is passed, the release version will be modified to this version.
-version: 
-ifeq ($(version),)
-else
-	@sed -i -E "s/__version__\ +=\ +'.*+'/__version__ = '${version}'/g" deepchecks/version.py
-endif
 
 
 ### Documentation
@@ -310,7 +299,7 @@ download:
 	$(PIP) install $(PROJECT)
 
 jupyter: $(JUPYTER)
-	$(BIN)/jupyter-notebook $(args) --notebook-dir=$(NOTEBOOK_CHECKS)
+	$(BIN)/jupyter-notebook $(args) --notebook-dir=./notebooks
 
 $(JUPYTER):
 	$(PIP) install jupyter

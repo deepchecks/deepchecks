@@ -149,11 +149,10 @@ class SimpleModelComparison(TrainTestBaseCheck):
         return simple_metric, pred_metric, metric_name
 
     def _simple_model_comparison(self, train_dataset: Dataset, test_dataset: Dataset, model):
-        func_name = self.__class__.__name__
-        Dataset.validate_dataset(train_dataset, func_name)
-        Dataset.validate_dataset(test_dataset, func_name)
-        train_dataset.validate_label(func_name)
-        test_dataset.validate_label(func_name)
+        Dataset.validate_dataset(train_dataset)
+        Dataset.validate_dataset(test_dataset)
+        train_dataset.validate_label()
+        test_dataset.validate_label()
         validate_model(test_dataset, model)
 
         simple_metric, pred_metric, metric_name = self._find_score(train_dataset, test_dataset,
@@ -192,7 +191,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
             if ratio < min_allowed_ratio:
                 return ConditionResult(False,
                                        f'The given model performs {more_than_prefix_adder(ratio, self.maximum_ratio)}'
-                                       f' times comparedto the simple model using the given metric')
+                                       f' times compared to the simple model using the given metric')
             else:
                 return ConditionResult(True)
 

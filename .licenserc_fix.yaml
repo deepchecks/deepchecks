@@ -18,6 +18,7 @@ header:
     - '**/*.ipynb'
     - '.pylintrc'
     - 'LICENSE'
+    - 'VERSION'
     - 'deepchecks.egg-info/PKG-INFO'
     - 'makefile'
     - 'notebooks/'

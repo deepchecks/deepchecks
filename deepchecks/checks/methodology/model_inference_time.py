@@ -64,9 +64,8 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
         dataset: Dataset,
         model: object # TODO: find more precise type for model
     ) -> CheckResult:
-        check_name = type(self).__name__
-        Dataset.validate_dataset(dataset, check_name)
-        Dataset.validate_features(dataset, check_name)
+        Dataset.validate_dataset(dataset)
+        Dataset.validate_features(dataset)
         validate_model(dataset, model)
 
         prediction_method = model.predict # type: ignore

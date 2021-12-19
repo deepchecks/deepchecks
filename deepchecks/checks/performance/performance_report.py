@@ -23,7 +23,7 @@ class PerformanceReport(SingleDatasetBaseCheck):
     """Summarize given metrics on a dataset and model.
 
     Args:
-        alternative_metrics (Dict[str, Callable]): An optional dictionary of metric name to scorer functions.
+        alternative_metrics (Dict[str, Callable]): An optional dictionary of metric name or scorer functions.
         If none given, using default metrics
     """
 
@@ -44,8 +44,8 @@ class PerformanceReport(SingleDatasetBaseCheck):
         return self._performance_report(dataset, model)
 
     def _performance_report(self, dataset: Dataset, model):
-        Dataset.validate_dataset(dataset, self.__class__.__name__)
-        dataset.validate_label(self.__class__.__name__)
+        Dataset.validate_dataset(dataset)
+        dataset.validate_label()
         validate_model(dataset, model)
 
         # Get default metrics if no alternative, or validate alternatives

@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module of functions to partition columns into segments."""
+from copy import deepcopy
 from typing import List, Callable
 
 import numpy as np
@@ -45,10 +46,20 @@ def numeric_segmentation_edges(column: pd.Series, max_segments: int) -> List[Dee
     case some quantiles have the same value they will be filtered, and the result will have less than max_segments + 1
     values.
     """
-    percentile_values = np.nanpercentile(column.to_numpy(), np.linspace(0, 100, max_segments + 1))
-    # If there are a lot of duplicate values, some of the quantiles might be equal,
-    # so filter them leaving only uniques (with preserved order)
-    return pd.unique(percentile_values)
+    percentile_values = np.array([min(column), max(column)])
+    attempt_max_segments = max_segments
+    prev_percentile_values = deepcopy(percentile_values)
+    while len(percentile_values) < max_segments + 1:
+        prev_percentile_values = deepcopy(percentile_values)
+        percentile_values = pd.unique(
+            np.nanpercentile(column.to_numpy(), np.linspace(0, 100, attempt_max_segments + 1))
+        )
+        attempt_max_segments *= 2
+
+    if len(percentile_values) > max_segments + 1:
+        percentile_values = prev_percentile_values
+
+    return percentile_values
 
 
 def largest_category_index_up_to_ratio(histogram, max_segments, max_cat_proportions):

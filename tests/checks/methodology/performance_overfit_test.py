@@ -25,8 +25,7 @@ def test_dataset_wrong_input():
     # Act & Assert
     assert_that(calling(TrainTestDifferenceOverfit().run).with_args(bad_dataset, None, None),
                 raises(DeepchecksValueError,
-                       'Check TrainTestDifferenceOverfit requires dataset to be of type Dataset. instead '
-                       'got: str'))
+                       'Check requires dataset to be of type Dataset. instead got: str'))
 
 
 def test_model_wrong_input(iris_labeled_dataset):
@@ -41,16 +40,15 @@ def test_model_wrong_input(iris_labeled_dataset):
 def test_dataset_no_label(iris_dataset):
     # Assert
     assert_that(calling(TrainTestDifferenceOverfit().run).with_args(iris_dataset, iris_dataset, None),
-                raises(DeepchecksValueError, 'Check TrainTestDifferenceOverfit requires dataset to have a '
-                                           'label column'))
+                raises(DeepchecksValueError, 'Check requires dataset to have a label column'))
 
 
 def test_dataset_no_shared_label(iris_labeled_dataset):
     # Assert
-    iris_dataset_2 = Dataset(iris_labeled_dataset.data, label='sepal length (cm)')
+    iris_dataset_2 = Dataset(iris_labeled_dataset.data, label_name='sepal length (cm)')
     assert_that(calling(TrainTestDifferenceOverfit().run).with_args(iris_labeled_dataset, iris_dataset_2, None),
                 raises(DeepchecksValueError,
-                       'Check TrainTestDifferenceOverfit requires datasets to share the same label'))
+                       'Check requires datasets to share the same label'))
 
 
 def test_dataset_no_shared_features(iris_labeled_dataset):
@@ -59,11 +57,11 @@ def test_dataset_no_shared_features(iris_labeled_dataset):
         [iris_labeled_dataset.data,
          iris_labeled_dataset.data[['sepal length (cm)']].rename(columns={'sepal length (cm)': '1'})],
         axis=1),
-        label=iris_labeled_dataset.label_name)
+        label_name=iris_labeled_dataset.label_name)
     # Assert
     assert_that(calling(TrainTestDifferenceOverfit().run).with_args(iris_labeled_dataset, iris_dataset_2, None),
                 raises(DeepchecksValueError,
-                       'Check TrainTestDifferenceOverfit requires datasets to share the same features'))
+                       'Check requires datasets to share the same features'))
 
 
 def test_no_diff(iris_split_dataset_and_model):

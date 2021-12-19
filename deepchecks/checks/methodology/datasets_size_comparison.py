@@ -14,14 +14,14 @@ import pandas as pd
 from deepchecks import Dataset, CheckResult, ConditionResult, TrainTestBaseCheck
 
 
-__all__ = ['DatasetsSizeComparison',]
+__all__ = ['DatasetsSizeComparison']
 
 
 T = t.TypeVar('T', bound='DatasetsSizeComparison')
 
 
 class DatasetsSizeComparison(TrainTestBaseCheck):
-    """Verify Test dataset size comparing it to the Train dataset size."""
+    """Verify test dataset size comparing it to the train dataset size."""
 
     def run(self, train_dataset: Dataset, test_dataset: Dataset, model: object = None) -> CheckResult:
         """Run check instance.
@@ -41,16 +41,13 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
                 if not dataset instances were provided;
                 if datasets are empty;
         """
-        check_name = type(self).__name__
-        Dataset.validate_dataset(train_dataset, check_name)
-        Dataset.validate_dataset(test_dataset, check_name)
-        result = pd.DataFrame.from_dict({
-            'train': {'size': train_dataset.n_samples},
-            'test': {'size': test_dataset.n_samples},
-        })
+        Dataset.validate_dataset(train_dataset)
+        Dataset.validate_dataset(test_dataset)
+        sizes = {'Train': train_dataset.n_samples, 'Test': test_dataset.n_samples}
+        display = pd.DataFrame(sizes, index=['Size'])
         return CheckResult(
-            value=result,
-            display=result
+            value=sizes,
+            display=display
         )
 
     def add_condition_test_size_not_smaller_than(self: T, value: int = 100) -> T:
@@ -62,15 +59,15 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
         Returns:
             Self: current instance of the DatasetsSizeComparison check.
         """
-        def condition(check_result: pd.DataFrame) -> ConditionResult:
+        def condition(check_result: dict) -> ConditionResult:
             return (
-                ConditionResult(False, f'Test dataset is smaller than {value}.')
-                if check_result['test']['size'] <= value # type: ignore
+                ConditionResult(False, f'Test dataset is {check_result["Test"]}')
+                if check_result['Test'] <= value
                 else ConditionResult(True)
             )
 
         return self.add_condition(
-            name=f'Test dataset size is not smaller than {value}.',
+            name=f'Test dataset size is not smaller than {value}',
             condition_func=condition
         )
 
@@ -84,14 +81,15 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
             Self: current instance of the DatasetsSizeComparison check.
         """
 
-        def condition(check_result: pd.DataFrame) -> ConditionResult:
-            if (check_result['test']['size'] / check_result['train']['size']) <= ratio: # type: ignore
-                return ConditionResult(False, f'Test-Train size ratio is smaller than {ratio}.')
+        def condition(check_result: dict) -> ConditionResult:
+            test_train_ratio = check_result['Test'] / check_result['Train']
+            if test_train_ratio <= ratio:
+                return ConditionResult(False, f'Test-Train size ratio is {test_train_ratio}')
             else:
                 return ConditionResult(True)
 
         return self.add_condition(
-            name=f'Test-Train size ratio is not smaller than {ratio}.',
+            name=f'Test-Train size ratio is not smaller than {ratio}',
             condition_func=condition
         )
 
@@ -102,13 +100,13 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
             Self: current instance of the DatasetsSizeComparison check.
         """
 
-        def condition(check_result: pd.DataFrame) -> ConditionResult:
-            if check_result['train']['size'] < check_result['test']['size']: # type: ignore
-                return ConditionResult(False, 'Train dataset is smaller than test dataset.')
+        def condition(check_result: dict) -> ConditionResult:
+            if check_result['Train'] < check_result['Test']:
+                return ConditionResult(False, 'Train dataset is smaller than test dataset')
             else:
                 return ConditionResult(True)
 
         return self.add_condition(
-            name='Train dataset is not smaller than test dataset.',
+            name='Train dataset is not smaller than test dataset',
             condition_func=condition
         )
