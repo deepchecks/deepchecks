@@ -26,9 +26,7 @@ from deepchecks.errors import DeepchecksValueError
 
 __all__ = ['Dataset', 'ensure_dataframe_type']
 
-
 logger = logging.getLogger('deepchecks.dataset')
-
 
 TDataset = t.TypeVar('TDataset', bound='Dataset')
 
@@ -80,14 +78,16 @@ class Dataset:
             df (pandas.DataFrame):
                 A pandas DataFrame containing data relevant for the training or validating of a ML models.
             label (pandas.Series)
-                A pandas series containing data of the labels.
+                A pandas series containing data of the labels. Will be joined to the data dataframe with the name
+                given by `label_name` parameter or 'target' by default.
             features (Optional[Sequence[Hashable]]):
                 List of names for the feature columns in the DataFrame.
             cat_features (Optional[Sequence[Hashable]]):
                 List of names for the categorical features in the DataFrame. In order to disable categorical.
                 features inference, pass cat_features=[]
             label_name (Optional[Hashable]):
-                Name of the label column in the DataFrame.
+                If `label` is given, then this name is used as the column name for the labels.
+                If `label` is none, then looks for this name in the data dataframe.
             use_default_index (bool, default False):
                 Whether to use the dataframe index as the index column, for index related checks. can't be used
                 together with `index_name`
@@ -114,7 +114,16 @@ class Dataset:
         if label is not None:
             if label.shape[0] != self._data.shape[0]:
                 raise DeepchecksValueError('Number of samples of label and data must be equal')
-            label_name = label_name or 'target'
+            # Make tests to prevent overriding user column
+            if label_name is None:
+                label_name = 'target'
+                if label_name in self._data.columns:
+                    raise DeepchecksValueError(f'Data has column with name "{label_name}", use label_name parameter'
+                                               'to set column name for label which does\'t exists in the data')
+            else:
+                if label_name in self._data.columns:
+                    raise DeepchecksValueError('Can\'t pass label with label_name that exists in the data. change '
+                                               'the label_name parameter')
             self._data[label_name] = label
 
         if use_default_index is True and index_name is not None:
