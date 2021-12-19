@@ -61,7 +61,6 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset',
     Args:
         model (Any): A fitted model
         dataset (Dataset): dataset used to fit the model
-        random_state (int):
         force_permutation (bool): force permutation importance calculation
         permutation_wkargs (dict): kwargs for permutation importance calculation
     Returns:
