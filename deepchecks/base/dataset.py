@@ -23,6 +23,7 @@ from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 
+
 __all__ = ['Dataset', 'ensure_dataframe_type']
 
 logger = logging.getLogger('deepchecks.dataset')
