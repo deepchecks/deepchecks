@@ -30,12 +30,10 @@ def test_dataset_no_label(iris_dataset, iris_adaboost):
 
 
 def test_model_error_analysis_classification(iris_labeled_dataset, iris_adaboost):
-    # Act
-    result = ModelErrorAnalysis().run(iris_labeled_dataset, iris_adaboost)
-
     # Assert
-    assert_that(result.value, is_(None))
-    assert_that(result.display, has_length(3))
+    assert_that(calling(ModelErrorAnalysis().run).with_args(iris_labeled_dataset, iris_adaboost),
+                raises(DeepchecksProcessError,
+                       'Unable to train meaningful error model'))
 
 
 def test_model_error_analysis_regression_not_meaningful(diabetes_split_dataset_and_model):

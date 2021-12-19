@@ -10,13 +10,13 @@
 #
 """Module of segment performance check."""
 from functools import partial
-from typing import Callable, Union, Optional
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 from sklearn.base import is_classifier
+from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
@@ -28,7 +28,6 @@ from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
 from deepchecks.errors import DeepchecksProcessError
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.validation import validate_model
-from deepchecks.utils.typing import Hashable
 
 
 __all__ = ['ModelErrorAnalysis']
@@ -41,11 +40,6 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
         max_segments (int): maximal number of segments to split the a values into.
         min_feature_contribution (float): minimum contribution to the internal error model
     """
-
-    feature_1: Optional[Hashable]
-    feature_2: Optional[Hashable]
-    metric: Union[str, Callable, None]
-    max_segments: int
 
     def __init__(
         self,
@@ -80,35 +74,20 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
             y_pred = model.predict(dataset.features_columns)
             score = list(map(lambda x, y: mean_squared_error([x], [y]), dataset.label_col, y_pred))
 
-        numeric_transformer = SimpleImputer()
-        categorical_transformer = Pipeline(
-            steps=[('imputer', SimpleImputer(strategy='most_frequent')), ('encoder', TargetEncoder(cat_features))]
-        )
+        error_model = create_error_model(dataset, random_seed=self.random_seed)
 
-        numeric_features = [num_feature for num_feature in dataset.features if num_feature not in dataset.cat_features]
+        error_model_train_x, error_model_test_x, error_model_train_y, error_model_test_y = \
+            train_test_split(dataset.features_columns, score, random_state=self.random_seed)
 
-        preprocessor = ColumnTransformer(
-            transformers=[
-                ('num', numeric_transformer, numeric_features),
-                ('cat', categorical_transformer, cat_features),
-            ]
-        )
+        error_model.fit(error_model_train_x, y=error_model_train_y)
 
-        error_model = Pipeline(steps=[
-            ('preprocessing', preprocessor),
-            ('model', RandomForestRegressor(max_depth=4, n_jobs=-1, random_state=self.random_seed))
-        ])
+        error_model_predicted = error_model.predict(error_model_test_x)
 
-        error_model.fit(dataset.features_columns, y=score)
+        error_model_score = r2_score(error_model_predicted, error_model_test_y)
 
-        error_model_y = error_model.predict(dataset.features_columns)
-
-        error_model_score = r2_score(error_model_y, score)
-
-        # r2_score returns a negitive value, this check should be ignored,no information gained from the error regressor
-        # But, the graphs can still be of value, despite not able to train an error model.
+        # This check should be ignored if no information gained from the error model (low r2_score)
         if error_model_score < 0.5:
-            raise DeepchecksProcessError('Unable to train meaningful error model')
+            raise DeepchecksProcessError('Unable to train meaningful error model r')
 
         error_fi = calculate_feature_importance(error_model, dataset)
         error_fi.sort_values(ascending=False, inplace=True)
@@ -170,11 +149,29 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
         value = None
         headnote = """<span>
             The following graphs show the top features that contribute to error and their values compared to the error.
-            </br>
-            Categorical features are represented as a violin graph. (x axis: category, y axis: error)
-            </br>
-            Numerical features are represented as a scatter plot. (x axis: value, y axis: error)
         </span>"""
         display = [headnote] + display if display else None
 
         return CheckResult(value, display=display)
+
+
+def create_error_model(dataset: Dataset, random_seed=42):
+    cat_features = dataset.cat_features
+    numeric_features = [num_feature for num_feature in dataset.features if num_feature not in cat_features]
+
+    numeric_transformer = SimpleImputer()
+    categorical_transformer = Pipeline(
+        steps=[('imputer', SimpleImputer(strategy='most_frequent')), ('encoder', TargetEncoder(cat_features))]
+    )
+
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ('num', numeric_transformer, numeric_features),
+            ('cat', categorical_transformer, cat_features),
+        ]
+    )
+
+    return Pipeline(steps=[
+        ('preprocessing', preprocessor),
+        ('model', RandomForestRegressor(max_depth=4, n_jobs=-1, random_state=random_seed))
+    ])
