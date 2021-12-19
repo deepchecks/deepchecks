@@ -353,7 +353,7 @@ html_theme_options = {
 #
 html_context = {
     "version": version,
-    "is_readthedoc": is_readthedocs,
+    "is_readthedocs": is_readthedocs,
     "language": language,
 }
 

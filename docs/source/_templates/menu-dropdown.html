@@ -13,7 +13,16 @@
             <i class="fas fa-pencil-alt"></i> {{ _("Report a problem") }}
         </a>
         {% if has_source %}
-            <a href="/_sources/{{sourcename}}" class="dropdown-item" target="_blank" rel="noopener noreferrer">
+            <a 
+                {% if is_readthedocs %}
+                    href="/{{ language }}/{{ version }}/_sources/{{sourcename}}" 
+                {% else %}
+                    href="/_sources/{{sourcename}}" 
+                {% endif %}
+                
+                class="dropdown-item" 
+                target="_blank" 
+                rel="noopener noreferrer">
                 <i class="fas fa-code"></i> {{ _("Show Source") }}
             </a>
         {% endif %}
