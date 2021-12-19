@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing feature importance calculations."""
+from functools import lru_cache
 import typing as t
 import numpy as np
 import pandas as pd
@@ -52,6 +53,7 @@ def calculate_feature_importance_or_null(dataset: 'base.Dataset', model: t.Any) 
     return feature_importances
 
 
+@lru_cache(maxsize=32)
 def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset',
                                  force_permutation: bool = False, permutation_wkargs: dict = None) -> pd.Series:
     """Calculate features effect on the label.
