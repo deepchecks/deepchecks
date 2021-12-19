@@ -18,13 +18,13 @@ ext_py := $(shell which python3 || which python)
 
 # Override by putting in commandline python=XXX when needed.
 python = $(shell echo ${ext_py} | rev | cut -d '/' -f 1 | rev)
-TESTDIR = tests
-ENV = venv
+TESTDIR = $(shell realpath tests)
+ENV = $(shell realpath venv)
 repo = pypi
 
 # System Envs
 BIN := $(ENV)/bin
-pythonpath= PYTHONPATH=.
+pythonpath := PYTHONPATH=.
 
 # Venv Executables
 PIP := $(BIN)/pip
@@ -65,9 +65,20 @@ COVERAGE_RC := $(wildcard $(COVERAGE_FILE))
 COVER_ARG := --cov-report term-missing --cov=$(PKGDIR) \
 	$(if $(COVERAGE_RC), --cov-config $(COVERAGE_RC))
 
-# Sphinx
-SPHINX_PKGS = sphinx pydata-sphinx-theme sphinx-markdown-builder sphinx-autoapi sphinx-copybutton nbsphinx
 
+# Documentation
+#
+DOCS         := $(shell realpath ./docs)
+DOCS_SRC     := $(DOCS)/source
+DOCS_BUILD   := $(DOCS)/build
+DOCS_REQUIRE := $(DOCS)/$(REQUIRE)
+
+# variables that will be passed to the documentation make file
+SPHINXOPTS   ?= 
+
+
+# Sphinx
+# SPHINX_PKGS = sphinx pydata-sphinx-theme sphinx-markdown-builder sphinx-autoapi sphinx-copybutton nbsphinx
 
 EGG_INFO := $(subst -,_,$(PROJECT)).egg-info
 EGG_LINK = venv/lib/python3.7/site-packages/deepchecks.egg-link
@@ -198,9 +209,8 @@ clean-test:
 clean-dist:
 	-@rm -rf dist build
 
-clean-docs:
-	-@rm -rf docs/_build
-	-@rm -rf docs/deepcheckss
+clean-docs: $(DOCS) env  $(SPHINX_BUILD)
+	@cd $(DOCS) && make clean SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS)
 
 ### Release ######################################################
 .PHONY: authors register dist upload .git-no-changes ammend release
@@ -250,16 +260,11 @@ endif
 ### Documentation
 .PHONY: docs website dev-docs gen-static-notebooks license-check
 
-API_REFERENCE_DIR=api-reference
+docs: env $(DOCS_SRC)
+	@cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS)
 
-$(APIDOC): env
-	$(PIP) install $(SPHINX_PKGS)	
-
-docs: $(APIDOC)
-	@cd docs && make html
-
-show-docs:
-	@cd docs && make show
+show-docs: $(DOCS_BUILD)/html
+	@cd $(DOCS_BUILD)/html && $(PYTHON) -m http.server
 
 license-check:
 	@wget https://dlcdn.apache.org/skywalking/eyes/0.2.0/skywalking-license-eye-0.2.0-bin.tgz && tar -xzvf skywalking-license-eye-0.2.0-bin.tgz

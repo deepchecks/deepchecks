@@ -6,10 +6,6 @@
 
 # -- Path setup --------------------------------------------------------------
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-#
 import typing as t
 import inspect
 import os
@@ -23,20 +19,24 @@ from subprocess import check_output
 # from sphinx.util.inspect import safe_getattr
 # import re
 
-import deepchecks.version
 
+CURRENT_DIR = pathlib.Path(__file__).parent
+PROJECT_DIR = CURRENT_DIR.parent.parent
+
+
+sys.path.insert(0, str(PROJECT_DIR.absolute()))
+
+
+import deepchecks.version
 
 
 # -- Project information -----------------------------------------------------
 
+
 project = 'Deepchecks'
 copyright = '2021, Deepchecks'
 author = 'Deepchecks'
-version = deepchecks.version.__version__
-
-
-CURRENT_DIR = pathlib.Path(__file__).parent
-PROJECT_FIR = CURRENT_DIR.parent.parent
+version = os.environ.get("DEEPCHECKS_VERSION") or deepchecks.version.__version__
 
 
 GIT = {
@@ -47,16 +47,19 @@ GIT = {
 
 
 try:
-    git_branch = check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"])
-    GIT["branch"] = git_branch.decode().strip()
-    tag = git_branch
-    git_release = check_output(['git', 'describe', '--tags', '--always'])
-    GIT["release"] = git_release.decode().strip()
+    GIT["branch"] = tag = check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).decode().strip()
+    GIT["release"] = release = check_output(['git', 'describe', '--tags', '--always']).decode().strip()
 except Exception as error:
     raise RuntimeError("Failed to extract commit hash!") from error
 
 
 # -- General configuration ---------------------------------------------------
+
+# If true, Sphinx will warn about all references where the target cannot be found.
+# Default is False. You can activate this mode temporarily using the -n command-line switch.
+#
+nitpicky = True
+
 
 # Path to logo
 #
@@ -69,14 +72,14 @@ html_logo = "./_static/deepchecks_logo.svg"
 #
 extensions = [
     'nbsphinx',
-    
+
     # by itself sphinx_gallery is not able to work with jupyter notebooks
-    # but nbsphinx extension is able to use some of it functionality to create 
+    # but nbsphinx extension is able to use some of it functionality to create
     # thumbnail galleries. Link to the doc - https://nbsphinx.readthedocs.io/en/0.8.7/subdir/gallery.html
-    # 
-    'sphinx_gallery.load_style', 
     #
-    
+    'sphinx_gallery.load_style',
+    #
+
     'sphinx.ext.napoleon',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
@@ -86,14 +89,36 @@ extensions = [
 ]
 
 
-html_baseurl = 'docs.deepchecks.com'
+# If true, the reST sources are included in the HTML build as _sources/name. The default is True.
+#
+html_copy_source = True
+
+
+# The base URL which points to the root of the HTML documentation. Default ''
+# TODO: Do we need this
+# html_baseurl = ''
+
+
+# A boolean that decides whether module names are prepended to all object names.
+# Default is True.
+#
 add_module_names = False
+
+
+# If true, suppress the module name of the python reference if it can be resolved.
+# The default is False.
+#
 python_use_unqualified_type_names = True
 
 
-# Autodoc settings
+# Autodoc settings.
+# This value selects how the signature will be displayed for the class defined by autoclass directive.
+# The possible values are:
+# + "mixed"     - Display the signature with the class name (default).
+# + "separated" - Display the signature as a method.
 #
 autodoc_class_signature = 'separated'
+
 
 # Napoleon settings
 #
@@ -135,7 +160,10 @@ nbsphinx_prolog = r"""
         justify-content: flex-end;
     ">
         <span style="white-space: nowrap; margin-right: 10px;">
-            <a href="{{  env.config.generate_binder_url(env.docname) }}" style="vertical-align:text-bottom">
+            <a
+                href="{{  env.config.generate_binder_url(env.docname) }}"
+                style="vertical-align:text-bottom"
+                target="_blank" rel="noopener noreferrer">
                 <img
                     alt="Binder badge"
                     src="/_static/binder-badge.svg"
@@ -143,7 +171,10 @@ nbsphinx_prolog = r"""
             </a>
         </span>
         <span style="white-space: nowrap; margin-right: 10px;">
-            <a href="{{  env.config.generate_colab_url(env.docname) }}" style="vertical-align:text-bottom">
+            <a
+                href="{{  env.config.generate_colab_url(env.docname) }}"
+                style="vertical-align:text-bottom"
+                target="_blank" rel="noopener noreferrer">
                 <img
                     alt="Colab badge"
                     src="/_static/colab-badge.svg"
@@ -152,19 +183,10 @@ nbsphinx_prolog = r"""
         </span>
     </div>
 
-"""
-
-
-nbsphinx_epilog = r"""
-
 {% set apipath =  env.config.get_check_example_api_reference(env.docname) %}
 
 {% if apipath %}
-
-.. rubric:: References
-    
 {{ apipath }}
-
 {% endif %}
 
 """
@@ -287,8 +309,6 @@ html_sidebars = {
 }
 
 
-
-
 # Theme specific options.
 # See documentation of the 'pydata_sphinx_theme' theme
 # https://pydata-sphinx-theme.readthedocs.io/en/latest/user_guide/configuring.html#adding-external-links-to-your-nav-bar
@@ -320,15 +340,26 @@ html_theme_options = {
 }
 
 
+# vars that will be passed to the jinja templates during build
+#
+html_context = {
+    "current_version": version,
+}
+
+
 # -- Other -------------------------------------------------
 
 
-def get_report_issue_url(sourcename: str) -> str:
-    sourcename = sourcename.replace(".txt", "")
-    return (
-        f"https://github.com/{GIT['user']}/{GIT['repo']}/issues/new?"
-        f"title=[Docs][Version:{version}] Issue within file: {sourcename}&"
-        "labels=chore/documentation"
+def get_report_issue_url(pagename: str) -> str:
+    template = (
+        "https://github.com/{user}/{repo}/issues/new?title={title}&body={body}&labels={labels}"
+    )
+    return template.format(
+        user=GIT["user"],
+        repo=GIT["repo"],
+        title="[Docs] Documentation contains a mistake.",
+        body=f"Package Version: {version};\nPage: {pagename}",
+        labels="labels=chore/documentation",
     )
 
 
@@ -336,14 +367,14 @@ def generate_colab_url(notebook_path: str) -> str:
     notebook_path = notebook_path.replace(".txt", "")
     notebook_path = notebook_path if notebook_path.endswith(".ipynb") else notebook_path + ".ipynb"
     notebook_name = notebook_path.split("/")[-1]
-    
+
     if not is_example_notebook(notebook_name):
         raise RuntimeError(f"Not a notebook - {notebook_path}")
-    
+
     template = (
         "https://colab.research.google.com/github/{user}/{repo}/blob/{branch}/{docpath}/{notebook_path}"
     )
-    
+
     return template.format(
         user=GIT['user'],
         repo=GIT['repo'],
@@ -357,14 +388,14 @@ def generate_binder_url(notebook_path: str) -> str:
     notebook_path = notebook_path.replace(".txt", "")
     notebook_path = notebook_path if notebook_path.endswith(".ipynb") else notebook_path + ".ipynb"
     notebook_name = notebook_path.split("/")[-1]
-    
+
     if not is_example_notebook(notebook_name):
         raise RuntimeError(f"Not a notebook - {notebook_path}")
 
     template = (
         "https://mybinder.org/v2/gh/{user}/{repo}/{branch}?labpath={filepath}"
     )
-    
+
     return template.format(
         user=GIT['user'],
         repo=GIT['repo'],
@@ -386,7 +417,7 @@ def get_example_notebooks() -> t.Tuple[pathlib.Path, ...]:
 @functools.lru_cache(maxsize=None)
 def snake_case_to_camel_case(val: str) -> str:
     return "".join(it.capitalize() for it in val.split("_") if it)
-    
+
 
 def is_example_notebook(filepath: str) -> bool:
     notebook_name = filepath.split("/")[-1].replace(".txt", "")
@@ -405,17 +436,16 @@ def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
         .replace(".ipynb", "")
         .replace(".py", "")
     )
-    
+
     import deepchecks.checks
     check_clazz = getattr(deepchecks.checks, notebook_name, None)
-    
+
     if check_clazz is None or not hasattr(check_clazz, "__module__"):
         return
-    
-    apipath = f"/api/checks/generated/{check_clazz.__module__}.{notebook_name}"
-    result = f"* :doc:`{notebook_name} API <{apipath}>`"
-    return result
 
+    apipath = f"/api/checks/generated/{check_clazz.__module__}.{notebook_name}"
+    result = f"* :doc:`API Reference - {notebook_name} <{apipath}>`"
+    return result
 
 
 

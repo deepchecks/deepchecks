@@ -1,0 +1,7 @@
+sphinx >= 1.8.3
+pydata-sphinx-theme 
+sphinx-markdown-builder 
+sphinx-autoapi 
+sphinx-copybutton 
+nbsphinx
+sphinx_gallery >= 0.10.1
