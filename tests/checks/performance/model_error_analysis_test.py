@@ -11,7 +11,7 @@
 """Tests for segment performance check."""
 from hamcrest import assert_that, has_entries, close_to, has_property, equal_to, calling, raises, is_, has_length
 
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError, DeepchecksProcessError
 from deepchecks.checks.performance.model_error_analysis import ModelErrorAnalysis
 
 
@@ -38,25 +38,22 @@ def test_model_error_analysis_classification(iris_labeled_dataset, iris_adaboost
     assert_that(result.display, has_length(3))
 
 
-def test_model_error_analysis_regression(diabetes_split_dataset_and_model):
+def test_model_error_analysis_regression_not_meaningful(diabetes_split_dataset_and_model):
     # Arrange
     _, val, model = diabetes_split_dataset_and_model
 
-    # Act
-    result = ModelErrorAnalysis().run(val, model)
-
     # Assert
-    assert_that(result.value, is_(None))
-    assert_that(result.display, has_length(4))
+    assert_that(calling(ModelErrorAnalysis().run).with_args(val, model),
+                raises(DeepchecksProcessError,
+                       'Unable to train meaningful error model'))
 
 
-def test_model_error_analysis_top_features(diabetes_split_dataset_and_model):
+def test_model_error_analysis_not_meaningful(diabetes_split_dataset_and_model):
     # Arrange
     _, val, model = diabetes_split_dataset_and_model
 
-    # Act
-    result = ModelErrorAnalysis(max_features=1).run(val, model)
-
     # Assert
-    assert_that(result.value, is_(None))
-    assert_that(result.display, has_length(2))
+    assert_that(calling(ModelErrorAnalysis().run).with_args(val, model),
+                raises(DeepchecksProcessError,
+                       'Unable to train meaningful error model'))
+

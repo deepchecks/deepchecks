@@ -108,7 +108,7 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
         # r2_score returns a negitive value, this check should be ignored,no information gained from the error regressor
         # But, the graphs can still be of value, despite not able to train an error model.
         if error_model_score < 0.5:
-            raise DeepchecksProcessError("Unable to train meaningful error model")
+            raise DeepchecksProcessError('Unable to train meaningful error model')
 
         error_fi = calculate_feature_importance(error_model, dataset)
         error_fi.sort_values(ascending=False, inplace=True)
