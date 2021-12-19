@@ -138,7 +138,6 @@ test-win:
 	 $(PIP_WIN) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
 	done
 	$(PIP_WIN) install $(TEST_RUNNER_PKGS)
-	$(pythonpath) $(TEST_RUNNER) $(args) $(TESTDIR)
 	python -m pytest $(TESTDIR)
 
 notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
