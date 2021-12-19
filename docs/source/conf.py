@@ -36,8 +36,7 @@ import deepchecks.version
 project = 'Deepchecks'
 copyright = '2021, Deepchecks'
 author = 'Deepchecks'
-version = os.environ.get("DEEPCHECKS_VERSION") or deepchecks.version.__version__
-
+version = os.environ.get("READTHEDOCS_VERSION") or deepchecks.version.__version__
 
 GIT = {
     "user": "deepchecks",
@@ -86,6 +85,7 @@ extensions = [
     'sphinx.ext.linkcode',
     'sphinx_copybutton',
     'sphinx.ext.githubpages',
+    'sphinx_search.extension',
 ]
 
 
