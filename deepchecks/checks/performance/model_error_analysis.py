@@ -27,6 +27,7 @@ from category_encoders import TargetEncoder
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
 from deepchecks.errors import DeepchecksProcessError
 from deepchecks.utils.features import calculate_feature_importance
+from deepchecks.utils.strings import format_number
 from deepchecks.utils.validation import validate_model
 
 
@@ -34,22 +35,26 @@ __all__ = ['ModelErrorAnalysis']
 
 
 class ModelErrorAnalysis(SingleDatasetBaseCheck):
-    """Top features that contribute to error in the model.
+    """Find features that contribute to error in the model.
 
     Args:
-        max_segments (int): maximal number of segments to split the a values into.
-        min_feature_contribution (float): minimum contribution to the internal error model
+        max_features (int): maximal number of features to show. (default: 3)
+        min_feature_contribution (float): minimum contribution to the internal error model. (default: 0.15)
+        min_error_model_score (float): minimum r^2 score for displaying the check. (default: 0.5)
+        random_seed (int): seed to calculate random from. (default: 42)
     """
 
     def __init__(
         self,
         max_features: int = 3,
         min_feature_contribution: float = 0.15,
+        min_error_model_score: float = 0.5,
         random_seed: int = 42
     ):
         super().__init__()
         self.max_features = max_features
         self.min_error = min_feature_contribution
+        self.min_error_model_score = min_error_model_score
         self.random_seed = random_seed
 
     def run(self, dataset: Dataset, model) -> CheckResult:
@@ -86,8 +91,9 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
         error_model_score = r2_score(error_model_predicted, error_model_test_y)
 
         # This check should be ignored if no information gained from the error model (low r2_score)
-        if error_model_score < 0.5:
-            raise DeepchecksProcessError('Unable to train meaningful error model r')
+        if error_model_score < self.min_error_model_score:
+            raise DeepchecksProcessError(f'Unable to train meaningful error model '
+                                         f'(r^2 score: {format_number(error_model_score)})')
 
         error_fi = calculate_feature_importance(error_model, dataset)
         error_fi.sort_values(ascending=False, inplace=True)
@@ -148,7 +154,8 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
 
         value = None
         headnote = """<span>
-            The following graphs show the top features that contribute to error and their values compared to the error.
+            The following graphs show the top features that are most useful for distinguishing high error 
+            samples from low error samples. 
         </span>"""
         display = [headnote] + display if display else None
 
