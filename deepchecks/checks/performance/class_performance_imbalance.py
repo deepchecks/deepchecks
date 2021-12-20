@@ -150,7 +150,7 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
 
     @property
     def _default_scorers(self) -> t.Dict[str, t.Callable[..., np.ndarray]]:
-        # TODO: use `get_metrics_list` from utils package
+        # TODO: use `get_scorers_list` from utils package
         # but first we need to refactor it to accept 'average' argument
         if hasattr(self, '_chached_default_scorers'):
             return getattr(self, '_chached_default_scorers')

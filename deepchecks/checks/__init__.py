@@ -59,7 +59,7 @@ __all__ = [
     'ConfusionMatrixReport',
     'RocReport',
     'SimpleModelComparison',
-    'CalibrationMetric',
+    'CalibrationScore',
     'SegmentPerformance',
     'RegressionSystematicError',
     'RegressionErrorDistribution',

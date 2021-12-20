@@ -13,7 +13,7 @@ from .performance_report import PerformanceReport
 from .confusion_matrix_report import ConfusionMatrixReport
 from .roc_report import RocReport
 from .simple_model_comparison import SimpleModelComparison
-from .calibration_metric import CalibrationMetric
+from .calibration_score import CalibrationScore
 from .segment_performance import SegmentPerformance
 from .regression_systematic_error import RegressionSystematicError
 from .regression_error_distribution import RegressionErrorDistribution
@@ -25,7 +25,7 @@ __all__ = [
     'ConfusionMatrixReport',
     'RocReport',
     'SimpleModelComparison',
-    'CalibrationMetric',
+    'CalibrationScore',
     'SegmentPerformance',
     'RegressionSystematicError',
     'RegressionErrorDistribution',
