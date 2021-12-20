@@ -32,7 +32,7 @@ from deepchecks.base.dataset import Dataset
 from deepchecks.base.display_pandas import display_conditions_table, display_dataframe
 from deepchecks.utils.strings import split_camel_case
 from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
-from utils.ipython import is_ipython_display
+from deepchecks.utils.ipython import is_ipython_display
 
 
 class Condition:

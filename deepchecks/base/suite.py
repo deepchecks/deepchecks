@@ -19,10 +19,9 @@ from deepchecks.errors import DeepchecksValueError
 from deepchecks.base import Dataset
 from deepchecks.base.check import (CheckResult, TrainTestBaseCheck,
    SingleDatasetBaseCheck, ModelOnlyBaseCheck, CheckFailure, ModelComparisonBaseCheck)
+from deepchecks.utils.ipython import is_ipython_display
 
 __all__ = ['Suite', 'ModelComparisonSuite', 'SuiteResult']
-
-from utils.ipython import is_ipython_display
 
 
 class SuiteResult:

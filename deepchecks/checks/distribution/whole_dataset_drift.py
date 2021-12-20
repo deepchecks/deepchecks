@@ -76,7 +76,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
             min_feature_importance: float = 0.05,
             max_num_categories: int = 10,
             sample_size: int = 10000,
-            random_state: int = 0,
+            random_state: int = 42,
             test_size: float = 0.3
     ):
         super().__init__()
