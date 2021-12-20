@@ -110,7 +110,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
 
             elif task_type in (ModelType.BINARY, ModelType.MULTICLASS):
                 counts = train_ds.label_col.mode()
-                simple_pred = np.array([counts.index[0]] * len(test_df))
+                simple_pred = np.array([counts.iloc[0]] * len(test_df))
 
         elif self.simple_model_type == 'tree':
             y_train = train_ds.label_col
@@ -138,7 +138,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
 
         if self.metric is not None:
             scorer = validate_scorer(self.metric, model, train_ds)
-            metric_name = self.metric_name or self.metric if isinstance(self.metric, str) else 'User metric'
+            metric_name = self.metric if isinstance(self.metric, str) else (self.metric_name or 'User Metric')
         else:
             metric_name = DEFAULT_SINGLE_METRIC[task_type]
             scorer = DEFAULT_METRICS_DICT[task_type][metric_name]
@@ -155,13 +155,16 @@ class SimpleModelComparison(TrainTestBaseCheck):
         test_dataset.validate_label()
         validate_model(test_dataset, model)
 
-        simple_metric, pred_metric, metric_name = self._find_score(train_dataset, test_dataset,
-                                                            task_type_check(model, train_dataset), model)
+        task_type = task_type_check(model, train_dataset)
+        simple_metric, pred_metric, metric_name = self._find_score(train_dataset, test_dataset, task_type, model)
+
+        if metric_name == DEFAULT_SINGLE_METRIC[task_type]:
+            metric_name = str(metric_name) + ' (Default)'
 
         ratio = get_metrics_ratio(simple_metric, pred_metric, self.maximum_ratio)
 
-        text = f'The given model performs {more_than_prefix_adder(ratio, self.maximum_ratio)} times compared to' \
-               f' the simple model using the {metric_name} metric.<br>' \
+        text = f'The given model performance is {more_than_prefix_adder(ratio, self.maximum_ratio)} times the ' \
+               f'performance of the simple model, measuring performance using the {metric_name} metric.<br>' \
                f'{type(model).__name__} model prediction has achieved a score of {format_number(pred_metric)} ' \
                f'compared to Simple {self.simple_model_type} prediction ' \
                f'which achieved a score of {format_number(simple_metric)} on tested data.'

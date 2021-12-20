@@ -116,7 +116,7 @@ def calculate_steps(num_steps, num_estimators):
 
 
 class BoostingOverfit(TrainTestBaseCheck):
-    """Check for overfit occurring when increasing the number of iterations in boosting models.
+    """Check for overfit caused by using too many iterations in a gradient boosted model.
 
     The check runs a pred-defined number of steps, and in each step it limits the boosting model to use up to X
     estimators (number of estimators is monotonic increasing). It plots the given metric calculated for each step for
@@ -169,6 +169,7 @@ class BoostingOverfit(TrainTestBaseCheck):
         else:
             metric_name = DEFAULT_SINGLE_METRIC[model_type]
             scorer = DEFAULT_METRICS_DICT[model_type][metric_name]
+            metric_name = metric_name + ' (Default)'
 
         # Get number of estimators on model
         num_estimators = PartialBoostingModel.n_estimators(model)
@@ -187,13 +188,18 @@ class BoostingOverfit(TrainTestBaseCheck):
         fig.add_trace(go.Scatter(x=estimator_steps, y=np.array(test_scores),
                             mode='lines+markers',
                             name='Test score'))
-        fig.update_layout(title_text=f'{metric_name} score compared to number of bbosting iteration',
+        fig.update_layout(title_text=f'{metric_name} score compared to number of boosting iteration',
                           width=800, height=500)
         fig.update_xaxes(title='Number of boosting iterations')
         fig.update_yaxes(title=metric_name)
 
+        display_text = f"""<span>
+            The check limits the boosting model to using up to N estimators each time, and plotting the
+            {metric_name} calculated for each subset of estimators for both the train dataset and the test dataset.
+        </span>"""
+
         result = {'test': test_scores, 'train': train_scores}
-        return CheckResult(result, display=fig, header='Boosting Overfit')
+        return CheckResult(result, display=[display_text, fig], header='Boosting Overfit')
 
     def add_condition_test_score_percent_decline_not_greater_than(self, threshold: float = 0.05):
         """Add condition.
