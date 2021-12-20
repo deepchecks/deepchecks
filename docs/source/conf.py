@@ -21,8 +21,8 @@ PROJECT_DIR = CURRENT_DIR.parent.parent
 
 sys.path.insert(0, str(PROJECT_DIR.absolute()))
 
-
-import deepchecks.version
+with open(os.path.join(PROJECT_DIR, 'VERSION')) as version_file:
+    VER = version_file.read().strip()
 
 
 # -- Project information -----------------------------------------------------
@@ -32,7 +32,7 @@ project = 'Deepchecks'
 copyright = '2021, Deepchecks'
 author = 'Deepchecks'
 is_readthedocs = os.environ.get("READTHEDOCS")
-version = os.environ.get("READTHEDOCS_VERSION") or deepchecks.version.__version__
+version = os.environ.get("READTHEDOCS_VERSION") or VER
 language = os.environ.get("READTHEDOCS_LANGUAGE")
 
 GIT = {
