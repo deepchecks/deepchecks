@@ -33,6 +33,8 @@ __all__ = [
     'get_scores_ratio'
 ]
 
+from deepchecks.utils.strings import is_string_column
+
 
 class ModelType(enum.Enum):
     """Enum containing suppoerted task types."""
@@ -93,7 +95,12 @@ def task_type_check(
     dataset.validate_label()
 
     if not hasattr(model, 'predict_proba'):
-        return ModelType.REGRESSION
+        if is_string_column(dataset.label_col):
+            raise errors.DeepchecksValueError(
+                f'Model was identified as a regression model, but label column was found to contain strings.'
+            )
+        else:
+            return ModelType.REGRESSION
     else:
         labels = t.cast(pd.Series, dataset.label_col)
 
