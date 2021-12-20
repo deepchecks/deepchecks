@@ -17,24 +17,14 @@ REQUIRE = requirements.txt
 ext_py := $(shell which python3 || which python)
 
 # Override by putting in commandline python=XXX when needed.
-<<<<<<< HEAD
 python = $(shell echo ${ext_py} | rev | cut -d '/' -f 1 | rev)
 TESTDIR = $(shell realpath tests)
 ENV = $(shell realpath venv)
-=======
-python = $(shell basename `echo ${ext_py}`)
-TESTDIR = tests
-ENV = venv
->>>>>>> main
 repo = pypi
 
 # System Envs
 BIN := $(ENV)/bin
-<<<<<<< HEAD
 pythonpath := PYTHONPATH=.
-=======
-pythonpath = PYTHONPATH=.
->>>>>>> main
 
 # Venv Executables
 PIP := $(BIN)/pip
