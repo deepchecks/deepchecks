@@ -42,9 +42,11 @@ jobs:
           python-version: 3.9
       - name: Set Up Env
         run: make env
+      - name: Install Jupyter and nbconvert
+        run: pip install jupyter nbconvert
       - name: Update notebooks
         run: ./.github/scripts/update_notebooks.sh
-      - name: Update version
+      - name: Commit examples
         uses: test-room-7/action-update-file@v1
         with:
           file-path: docs/source/examples/howto-guides/*.ipynb
