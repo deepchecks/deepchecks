@@ -103,7 +103,7 @@ def test_custom_metrics(iris_split_dataset_and_model):
     # Arrange
     train, val, model = iris_split_dataset_and_model
     check_obj = TrainTestDifferenceOverfit(
-        alternative_metrics={'Accuracy': 'accuracy', 'Always 0.5': lambda x, y, z: 0.5}
+        alternative_scorers={'Accuracy': 'accuracy', 'Always 0.5': lambda x, y, z: 0.5}
     )
 
     # Act
@@ -135,7 +135,7 @@ def test_train_test_difference_condition_that_should_pass():
     # Assert
     assert_that(condition_result, equal_condition_result(
             is_pass=True,
-            name='Train-Test metrics difference is not greater than 0.1'
+            name='Train-Test scores difference is not greater than 0.1'
     ))
 
 
@@ -156,7 +156,7 @@ def test_train_test_difference_condition_that_should_not_pass():
     # Assert
     assert_that(condition_result, equal_condition_result(
             is_pass=False,
-            name='Train-Test metrics difference is not greater than 0.1',
+            name='Train-Test scores difference is not greater than 0.1',
             details="Found performance degradation in: x1 (train=88.00% test=50.00%), "
                     "x2 (train=64.00% test=20.00%), x3 (train=71.00% test=30.00%)"
     ))
@@ -179,7 +179,7 @@ def test_train_test_percentage_degradation_condition_that_should_pass():
     # Assert
     assert_that(condition_result, equal_condition_result(
             is_pass=True,
-            name='Train-Test metrics degradation ratio is not greater than 0.1'
+            name='Train-Test scores degradation ratio is not greater than 0.1'
     ))
 
 
@@ -200,6 +200,6 @@ def test_train_test_ratio_condition_that_should_not_pass():
     # Assert
     assert_that(condition_result, equal_condition_result(
             is_pass=False,
-            name='Train-Test metrics degradation ratio is not greater than 0.2',
+            name='Train-Test scores degradation ratio is not greater than 0.2',
             details="Found performance degradation in: x1 (train=88.00% test=41.00%), x2 (train=64.00% test=50.00%)"
     ))
