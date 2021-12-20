@@ -31,7 +31,7 @@ jobs:
           labels: 'help wanted, wontfix, question, good first issue, invalid, duplicate'
 
   notebooks-update:
-    if: "!contains(github.event.head_commit.message, '[NotebooksUpdateBot]')"
+    if: "!contains(github.event.head_commit.message, [NotebooksUpdateBot])"
     runs-on: ubuntu-latest
     name: Update Example notebooks
     needs: labels
