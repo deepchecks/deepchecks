@@ -166,21 +166,20 @@ class UnusedFeatures(TrainTestBaseCheck):
             fig = go.Figure()
             fig.add_trace(go.Bar(
                 y=display_feature_df.index,
-                x=display_feature_df['Feature Importance'].values.flatten(),
-                name='Feature Importance',
+                x=display_feature_df['Feature Importance'].multiply(100).values.flatten(),
+                name='Feature Importance %',
                 marker_color='indianred',
                 orientation='h'
             ))
             fig.add_trace(go.Bar(
                 y=display_feature_df.index,
-                x=display_feature_df['Feature Variance'].values.flatten(),
-                name='Feature Variance',
+                x=display_feature_df['Feature Variance'].multiply(100).values.flatten(),
+                name='Feature Variance %',
                 marker_color='lightsalmon',
                 orientation='h'
             ))
 
             fig.update_yaxes(autorange="reversed")
-            fig.update_xaxes(title='Importance / Variance [%]')
             fig.update_layout(title_text='Unused features compared to top important features', title_x=0.5, autosize=True, width=800, height=500)
 
             last_important_feature_index_to_plot = min(last_important_feature_index, self.n_top_fi_to_show - 1)
