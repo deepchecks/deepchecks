@@ -160,6 +160,7 @@ class DominantFrequencyChange(TrainTestBaseCheck):
 
         if len(p_dict):
             sorted_p_df = pd.DataFrame.from_dict(p_dict, orient='index')
+            sorted_p_df.index.name = 'Column'
             sorted_p_df = column_importance_sorter_df(
                 sorted_p_df,
                 test_dataset,
