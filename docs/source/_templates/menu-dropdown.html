@@ -1,0 +1,30 @@
+<div id="topright-dropdown-menu" class="dropdown" style="width: fit-content;">
+    <a 
+        class="btn dropdown-toggle" 
+        id="topright-dropdown-menu-link" 
+        data-toggle="dropdown" 
+        aria-haspopup="true" 
+        aria-expanded="false"
+        data-offset="-100,10">
+            <i class="fas fa-bars"></i>
+    </a>
+    <div class="dropdown-menu" aria-labelledby="topright-dropdown-menu-link" x-placement="bottom-start">
+        <a class="dropdown-item" href="{{ get_report_issue_url(pagename or sourcename) }}" target="_blank" rel="noopener noreferrer">
+            <i class="fas fa-pencil-alt"></i> {{ _("Report a problem") }}
+        </a>
+        {% if has_source %}
+            <a 
+                {% if is_readthedocs %}
+                    href="/{{ language }}/{{ version }}/_sources/{{sourcename}}" 
+                {% else %}
+                    href="/_sources/{{sourcename}}" 
+                {% endif %}
+                
+                class="dropdown-item" 
+                target="_blank" 
+                rel="noopener noreferrer">
+                <i class="fas fa-code"></i> {{ _("Show Source") }}
+            </a>
+        {% endif %}
+    </div>
+</div>

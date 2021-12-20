@@ -16,7 +16,6 @@ history/
 .idea/
 .DS_Store
 *.pdf
-*.rst
 
 test/AutogluonModels
 test/.agModels
@@ -84,5 +83,5 @@ ENV/
 .ipynb_checkpoints
 
 # Sphinx Docs
-_build/
-api-reference
+_autosummary/
+generated/

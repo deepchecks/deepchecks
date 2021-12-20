@@ -1,5 +1,5 @@
 # This makefile helps with deepchecks Development environment
-# including syntax checking, virtual environments creation, 
+# including syntax checking, virtual environments creation,
 # test running and coverage
 # This Makefile is based on Makefile by jidn: https://github.com/jidn/python-Makefile/blob/master/Makefile
 
@@ -11,24 +11,28 @@ REQUIRE = requirements.txt
 
 # python3 binary takes predecence over python binary,
 # this variable is used when setting python variable, (Line 18)
-# and on 'env' goal ONLY 
+# and on 'env' goal ONLY
 # If your python path binary name is not python/python3,
 # override using ext_python=XXX and it'll propogate into python variable, too
 ext_py := $(shell which python3 || which python)
 
 # Override by putting in commandline python=XXX when needed.
-python = $(shell basename `echo ${ext_py}`)
-TESTDIR = tests
-ENV = venv
+python = $(shell echo ${ext_py} | rev | cut -d '/' -f 1 | rev)
+TESTDIR = $(shell realpath tests)
+ENV = $(shell realpath venv)
 repo = pypi
+
+WIN_ENV := venv
+WIN_TESTDIR := tests
+WIN_BIN := $(WIN_ENV)/bin
 
 # System Envs
 BIN := $(ENV)/bin
-pythonpath = PYTHONPATH=.
+pythonpath := PYTHONPATH=.
 
 # Venv Executables
 PIP := $(BIN)/pip
-PIP_WIN := python -m pip 
+PIP_WIN := python -m pip
 PYTHON := $(BIN)/$(python)
 ANALIZE := $(BIN)/pylint
 COVERAGE := $(BIN)/coverage
@@ -50,7 +54,7 @@ REQUIREMENTS := $(shell find . -name $(REQUIRE))
 REQUIREMENTS_LOG := .requirements.log
 
 # Test and Analyize
-ANALIZE_PKGS = pylint pydocstyle 
+ANALIZE_PKGS = pylint pydocstyle
 TEST_CODE := tests/
 TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval
 NOTEBOOK_CHECKS = ./notebooks/checks
@@ -66,16 +70,27 @@ COVERAGE_RC := $(wildcard $(COVERAGE_FILE))
 COVER_ARG := --cov-report term-missing --cov=$(PKGDIR) \
 	$(if $(COVERAGE_RC), --cov-config $(COVERAGE_RC))
 
-# Sphinx
-SPHINX_PKGS = sphinx sphinx_rtd_theme sphinx-markdown-builder
 
+# Documentation
+#
+DOCS         := $(shell realpath ./docs)
+DOCS_SRC     := $(DOCS)/source
+DOCS_BUILD   := $(DOCS)/build
+DOCS_REQUIRE := $(DOCS)/$(REQUIRE)
+
+# variables that will be passed to the documentation make file
+SPHINXOPTS   ?=
+
+
+# Sphinx
+# SPHINX_PKGS = sphinx pydata-sphinx-theme sphinx-markdown-builder sphinx-autoapi sphinx-copybutton nbsphinx
 
 EGG_INFO := $(subst -,_,$(PROJECT)).egg-info
 EGG_LINK = venv/lib/python3.7/site-packages/deepchecks.egg-link
 
 ### Main Targets ######################################################
 
-.PHONY: help env all 
+.PHONY: help env all
 
 help:
 	@echo "env      -  Create virtual environment and install requirements"
@@ -129,16 +144,15 @@ $(ANALIZE): $(PIP)
 test: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 	$(pythonpath) $(TEST_RUNNER) $(args) $(TESTDIR)
 
-
-test-win: 
-	test -d $(ENV) || python -m venv $(ENV)
-	$(ENV)\Scripts\activate.bat
+test-win:
+	test -d $(WIN_ENV) || python -m venv $(WIN_ENV)
+	$(WIN_ENV)\Scripts\activate.bat
 	$(PIP_WIN) $(INSTALLATION_PKGS)
 	for f in $(REQUIRE); do \
 	 $(PIP_WIN) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
 	done
 	$(PIP_WIN) install $(TEST_RUNNER_PKGS)
-	python -m pytest $(TESTDIR)
+	python -m pytest $(WIN_TESTDIR)
 
 notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 # if deepchecks is not installed, we need to install it for testing porpuses,
@@ -151,7 +165,7 @@ notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 $(TEST_RUNNER):
 	$(PIP) install $(TEST_RUNNER_PKGS) | tee -a $(REQUIREMENTS_LOG)
 
-coverage: $(REQUIREMENTS_LOG) $(TEST_RUNNER) 
+coverage: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 	$(pythonpath) $(TEST_RUNNER) $(args) $(COVER_ARG) $(TESTDIR) | tee -a $(COVERAGE_LOG)
 
 
@@ -208,9 +222,8 @@ clean-test:
 clean-dist:
 	-@rm -rf dist build
 
-clean-docs:
-	-@rm -rf docs/_build
-	-@rm -rf docs/deepcheckss
+clean-docs: $(DOCS) env  $(SPHINX_BUILD)
+	@cd $(DOCS) && make clean SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS)
 
 ### Release ######################################################
 .PHONY: authors register dist upload .git-no-changes release
@@ -225,7 +238,7 @@ dist: test
 
 # upload expects to get all twine args as environment,
 # refer to https://twine.readthedocs.io/en/latest/ for more information
-upload: $(TWINE) 
+upload: $(TWINE)
 	$(TWINE) upload dist/*
 
 
@@ -249,36 +262,11 @@ $(TWINE): $(PIP)
 ### Documentation
 .PHONY: docs website dev-docs gen-static-notebooks license-check
 
-API_REFERENCE_DIR=api-reference
-WEBSITE_DIR=docs/_website
-DOCOSAURUS := docs/_website/node_modules/.bin/docusaurus-start
+docs: env $(DOCS_SRC)
+	@cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS)
 
-$(DOCOSAURUS):
-	@cd $(WEBSITE_DIR) ; \
-	npm install
-
-$(APIDOC): env
-	$(PIP) install $(SPHINX_PKGS)	
-
-gen-static-notebooks: $(JUPYTER)
-	 $(BIN)/jupyter nbconvert --to html --output-dir $(WEBSITE_DIR)/static/notebooks/  ./notebooks/*/*/*.ipynb 
-
-docs: $(APIDOC)
-	$(pythonpath) $(BIN)/sphinx-apidoc -t docs/_templates -f ./deepchecks -o docs/$(API_REFERENCE_DIR)
-	$(pythonpath) $(BIN)/sphinx-build -M markdown docs docs/_build/
-	@rm -rf docs/api-reference
-	@find docs/_build/markdown/ -name '*.md' | xargs sed '/^$$/N;/^\n$$/D'  -i
-
-website: docs gen-static-notebooks
-	@rm -rf $(WEBSITE_DIR)/docs/$(API_REFERENCE_DIR)
-	@cp -rf docs/_build/markdown/$(API_REFERENCE_DIR) $(WEBSITE_DIR)/docs/$(API_REFERENCE_DIR)/
-	@rm -rf docs/_build/markdown
-
-
-
-dev-docs: $(DOCOSAURUS) website
-	@cd $(WEBSITE_DIR) &&  \
-	npm start
+show-docs: $(DOCS_BUILD)/html
+	@cd $(DOCS_BUILD)/html && $(PYTHON) -m http.server
 
 license-check:
 	@wget https://dlcdn.apache.org/skywalking/eyes/0.2.0/skywalking-license-eye-0.2.0-bin.tgz && tar -xzvf skywalking-license-eye-0.2.0-bin.tgz
@@ -295,7 +283,7 @@ license-check:
 develop:
 	$(PYTHON) setup.py develop
 
-install: 
+install:
 	$(PYTHON) setup.py install
 
 download:
