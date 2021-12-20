@@ -26,12 +26,13 @@ from deepchecks.utils import validation
 __all__ = [
     'ModelType',
     'task_type_check',
-    'get_metrics_list',
-    'validate_scorer',
-    'DEFAULT_METRICS_DICT',
-    'DEFAULT_SINGLE_METRIC',
-    'get_metrics_ratio'
+    'get_scorers',
+    'get_validate_scorer',
+    'get_metrics_ratio',
+    'initialize_user_scorers'
 ]
+
+from deepchecks.errors import DeepchecksNotSupportedError, DeepchecksValueError
 
 
 class ModelType(enum.Enum):
@@ -40,36 +41,6 @@ class ModelType(enum.Enum):
     REGRESSION = 'regression'
     BINARY = 'binary'
     MULTICLASS = 'multiclass'
-
-
-DEFAULT_BINARY_METRICS = {
-    'Accuracy': make_scorer(accuracy_score),
-    'Precision': make_scorer(precision_score, zero_division=0),
-    'Recall': make_scorer(recall_score, zero_division=0)
-}
-
-DEFAULT_MULTICLASS_METRICS = {
-    'Accuracy': make_scorer(accuracy_score),
-    'Precision - Macro Average': make_scorer(precision_score, average='macro', zero_division=0),
-    'Recall - Macro Average': make_scorer(recall_score, average='macro', zero_division=0)
-}
-
-DEFAULT_REGRESSION_METRICS = {
-    'RMSE': make_scorer(mean_squared_error, squared=False, greater_is_better=False),
-    'MSE': make_scorer(mean_squared_error, greater_is_better=False),
-}
-
-DEFAULT_SINGLE_METRIC = {
-    ModelType.BINARY: 'Accuracy',
-    ModelType.MULTICLASS: 'Accuracy',
-    ModelType.REGRESSION: 'RMSE'
-}
-
-DEFAULT_METRICS_DICT = {
-    ModelType.BINARY: DEFAULT_BINARY_METRICS,
-    ModelType.MULTICLASS: DEFAULT_MULTICLASS_METRICS,
-    ModelType.REGRESSION: DEFAULT_REGRESSION_METRICS
-}
 
 
 def task_type_check(
@@ -117,17 +88,31 @@ def task_type_validation(
             DeepchecksValueError if model type doesn't match one of the expected_types
     """
     task_type = task_type_check(model, dataset)
-    if not task_type in expected_types:
+    if task_type not in expected_types:
         raise errors.DeepchecksValueError(
             f'Expected model to be a type from {[e.value for e in expected_types]}, '
             f'but received model of type: {task_type.value}'
         )
 
 
-def get_metrics_list(
+def initialize_user_scorers(alternative_scorers: t.Mapping[str, t.Union[str, t.Callable]]):
+    """Transform and validate user given scorers dict."""
+    if len(alternative_scorers) == 0:
+        raise DeepchecksValueError('can\'t have empty scorers dictionary')
+
+    scorers = {}
+    for name, scorer in alternative_scorers.items():
+        scorers[name] = get_single_scorer(scorer)
+
+    return scorers
+
+
+def get_scorers(
     model,
     dataset: 'base.Dataset',
-    alternative_metrics: t.Dict[str, t.Callable] = None
+    user_scorers: t.Dict[str, t.Callable] = None,
+    single: bool = False,
+    average: bool = True
 ) -> t.Dict[str, t.Callable]:
     """Return list of scorer objects to use in a metrics-dependant check.
 
@@ -137,34 +122,104 @@ def get_metrics_list(
     Args:
         model (BaseEstimator): Model object for which the metrics would be calculated
         dataset (Dataset): Dataset object on which the metrics would be calculated
-        alternative_metrics (Dict[str, Callable]): Optional dictionary of sklearn scorers to use instead of default list
-
+        user_scorers (Dict[str, Callable]): Optional dictionary of sklearn scorers to use instead of default list
+        single (bool): Whether to return a single default scorer
+        average (bool): For multiclass, whether to do average to do over the classes. False will return each class
+            in a numpy array.
     Returns:
         Dictionary containing names of metrics and scorer functions for the metrics.
     """
-    if alternative_metrics:
-        metrics = {}
-        for name, scorer in alternative_metrics.items():
-            metrics[name] = validate_scorer(scorer, model, dataset)
+    # Check for model type
+    model_type = task_type_check(model, dataset)
+
+    if user_scorers:
+        scorers = user_scorers
     else:
-        # Check for model type
-        model_type = task_type_check(model, dataset)
-        metrics = DEFAULT_METRICS_DICT[model_type]
+        if model_type == ModelType.BINARY:
+            scorers = {
+                'Accuracy': make_scorer(accuracy_score)
+            }
+            if not single:
+                scorers.update({
+                    'Precision': make_scorer(precision_score, zero_division=0),
+                    'Recall': make_scorer(recall_score, zero_division=0)
+                })
+        elif model_type == ModelType.MULTICLASS:
+            if average:
+                scorers = {
+                    'Accuracy': make_scorer(accuracy_score)
+                }
+                if not single:
+                    scorers.update({
+                        'Precision - Macro Average': make_scorer(precision_score, average='macro', zero_division=0),
+                        'Recall - Macro Average': make_scorer(recall_score, average='macro', zero_division=0)
+                    })
+            else:
+                scorers = {
+                    'Precision': make_scorer(precision_score, average=None, zero_division=0),
+                }
+                if not single:
+                    scorers.update({
+                        'Recall': make_scorer(recall_score, average=None, zero_division=0)
+                    })
+        elif model_type == ModelType.REGRESSION:
+            scorers = {
+                'RMSE': make_scorer(mean_squared_error, squared=False, greater_is_better=False)
+            }
+            if not single:
+                scorers.update({
+                    'MSE': make_scorer(mean_squared_error, greater_is_better=False)
+                })
+        else:
+            raise DeepchecksNotSupportedError('Default scorers not supported for given model type')
 
-    return metrics
+    # Validate
+    for scorer in scorers.values():
+        result_is_array = model_type == ModelType.MULTICLASS and average is False
+        validate_scorer(scorer, model, dataset, result_is_array)
+
+    return scorers
 
 
-def validate_scorer(scorer, model, dataset):
-    """If string, get scorer from sklearn. If callable, do heuristic to see if valid."""
-    # Borrowed code from:
-    # https://github.com/scikit-learn/scikit-learn/blob/844b4be24d20fc42cc13b957374c718956a0db39/sklearn/metrics/_scorer.py#L421
-    if isinstance(scorer, str):
-        return get_scorer(scorer)
-    elif callable(scorer):
-        # Check that scorer runs for given model and data
-        assert isinstance(scorer(model, dataset.data[dataset.features].head(2), dataset.label_col.head(2)),
-                          Number)
+def validate_scorer(scorer, model, dataset, result_is_array=False):
+    """Validate scorer works for dataset and model."""
+    try:
+        result = scorer(model, dataset.data[dataset.features].head(2), dataset.label_col.head(2))
+    except Exception as exc:
+        raise DeepchecksValueError(f'Error using scorer: {str(exc)}') from exc
+
+    if not result_is_array and not isinstance(result, Number):
+        raise DeepchecksValueError(f'Expected scorer to return number but got: {type(result).__name__}')
+
+    if result_is_array:
+        expected_types = t.cast(
+            str,
+            np.typecodes['AllInteger'] + np.typecodes['AllFloat']  # type: ignore
+        )
+        if not isinstance(result, np.ndarray):
+            raise DeepchecksValueError(f'Expected scorer to return numpy array, but got: {type(result).__name__}')
+        if result.dtype.kind not in expected_types:
+            raise DeepchecksValueError(f'Expected scorer to return ndarray of type int/float, '
+                                       f'but got ndarray of type: {result.dtype.kind}')
+
+
+def get_validate_scorer(scorer, model, dataset):
+    """Get scorer if string or callable and validate it works on data and model."""
+    scorer = get_single_scorer(scorer)
+    validate_scorer(scorer, model, dataset)
+    return scorer
+
+
+def get_single_scorer(scorer: t.Union[str, t.Callable]):
+    """Verify scorer is string or callable, and return scorer as callable."""
+    if isinstance(scorer, t.Callable):
         return scorer
+    elif isinstance(scorer, str):
+        return get_scorer(scorer)
+    else:
+        raise DeepchecksValueError(
+            f'Expected scorer to be scorer name or callable but was: {type(scorer).__name__}'
+        )
 
 
 def get_metrics_ratio(train_metric: float, test_metric: float, max_ratio=np.Inf) -> float:

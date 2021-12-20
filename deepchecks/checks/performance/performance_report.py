@@ -10,10 +10,10 @@
 #
 """Module containing performance report check."""
 from typing import Callable, Dict
+
 import pandas as pd
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
-from deepchecks.utils.metrics import get_metrics_list
-from deepchecks.utils.validation import validate_model
+from deepchecks.utils.metrics import get_scorers, initialize_user_scorers
 
 
 __all__ = ['PerformanceReport']
@@ -29,7 +29,9 @@ class PerformanceReport(SingleDatasetBaseCheck):
 
     def __init__(self, alternative_metrics: Dict[str, Callable] = None):
         super().__init__()
-        self.alternative_metrics = alternative_metrics
+        self.alternative_metrics = None
+        if alternative_metrics:
+            self.alternative_metrics = initialize_user_scorers(alternative_metrics)
 
     def run(self, dataset, model=None) -> CheckResult:
         """Run check.
@@ -46,12 +48,9 @@ class PerformanceReport(SingleDatasetBaseCheck):
     def _performance_report(self, dataset: Dataset, model):
         Dataset.validate_dataset(dataset)
         dataset.validate_label()
-        validate_model(dataset, model)
 
-        # Get default metrics if no alternative, or validate alternatives
-        metrics = get_metrics_list(model, dataset, self.alternative_metrics)
-        scores = {key: scorer(model, dataset.features_columns, dataset.label_col) for key, scorer in
-                  metrics.items()}
+        scorers = get_scorers(model, dataset, self.alternative_metrics, average=True)
+        scores = {key: scorer(model, dataset.features_columns, dataset.label_col) for key, scorer in scorers.items()}
 
         display_df = pd.DataFrame(scores.values(), columns=['Score'], index=scores.keys())
         display_df.index.name = 'Metric'
@@ -74,3 +73,5 @@ class PerformanceReport(SingleDatasetBaseCheck):
             return ConditionResult(True)
 
         return self.add_condition(name, condition, min_score=min_score)
+
+

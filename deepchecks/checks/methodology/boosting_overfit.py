@@ -18,7 +18,7 @@ from matplotlib.ticker import MaxNLocator
 import numpy as np
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.utils.metrics import task_type_check, DEFAULT_METRICS_DICT, validate_scorer, DEFAULT_SINGLE_METRIC
+from deepchecks.utils.metrics import get_validate_scorer, get_scorers
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
 from deepchecks.utils.model import get_model_of_pipeline
@@ -164,13 +164,12 @@ class BoostingOverfit(TrainTestBaseCheck):
         validate_model(train_dataset, model)
 
         # Get default metric
-        model_type = task_type_check(model, train_dataset)
         if self.metric is not None:
-            scorer = validate_scorer(self.metric, model, train_dataset)
+            scorer = get_validate_scorer(self.metric, model, train_dataset)
             metric_name = self.metric_name or self.metric if isinstance(self.metric, str) else 'User metric'
         else:
-            metric_name = DEFAULT_SINGLE_METRIC[model_type]
-            scorer = DEFAULT_METRICS_DICT[model_type][metric_name]
+            default_scorer = get_scorers(model, train_dataset, single=True)
+            metric_name, scorer = next(iter(default_scorer.items()))
             metric_name = metric_name + ' (Default)'
 
         # Get number of estimators on model

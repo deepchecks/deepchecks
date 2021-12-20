@@ -18,8 +18,7 @@ from deepchecks.utils.strings import format_number
 
 from deepchecks import CheckResult, Dataset
 from deepchecks.base.check import ConditionResult, TrainTestBaseCheck
-from deepchecks.utils.metrics import DEFAULT_METRICS_DICT, DEFAULT_SINGLE_METRIC, task_type_check, \
-                                     ModelType, validate_scorer, get_metrics_ratio
+from deepchecks.utils.metrics import task_type_check, ModelType, get_validate_scorer, get_metrics_ratio, get_scorers
 from deepchecks.utils.validation import validate_model
 
 __all__ = ['SimpleModelComparison']
@@ -137,11 +136,12 @@ class SimpleModelComparison(TrainTestBaseCheck):
         y_test = test_ds.label_col
 
         if self.metric is not None:
-            scorer = validate_scorer(self.metric, model, train_ds)
+            scorer = get_validate_scorer(self.metric, model, train_ds)
             metric_name = self.metric if isinstance(self.metric, str) else (self.metric_name or 'User Metric')
         else:
-            metric_name = DEFAULT_SINGLE_METRIC[task_type]
-            scorer = DEFAULT_METRICS_DICT[task_type][metric_name]
+            default_scorer = get_scorers(model, train_ds, single=True)
+            metric_name, scorer = next(iter(default_scorer.items()))
+            metric_name = metric_name + ' (Default)'
 
         simple_metric = scorer(DummyModel, simple_pred, y_test)
         pred_metric = scorer(model, test_ds.features_columns, y_test)
@@ -157,9 +157,6 @@ class SimpleModelComparison(TrainTestBaseCheck):
 
         task_type = task_type_check(model, train_dataset)
         simple_metric, pred_metric, metric_name = self._find_score(train_dataset, test_dataset, task_type, model)
-
-        if metric_name == DEFAULT_SINGLE_METRIC[task_type]:
-            metric_name = str(metric_name) + ' (Default)'
 
         ratio = get_metrics_ratio(simple_metric, pred_metric, self.maximum_ratio)
 

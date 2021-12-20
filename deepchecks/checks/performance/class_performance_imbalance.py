@@ -14,11 +14,11 @@ import typing as t
 
 import pandas as pd
 import numpy as np
-from sklearn.metrics import precision_score, recall_score, get_scorer, make_scorer, f1_score
+from sklearn.metrics import make_scorer, f1_score
 from sklearn.utils.multiclass import unique_labels as get_unique_labels
 
 from deepchecks import SingleDatasetBaseCheck, Dataset, CheckResult, ConditionResult
-from deepchecks.utils.metrics import task_type_validation, ModelType
+from deepchecks.utils.metrics import task_type_validation, ModelType, initialize_user_scorers, get_scorers
 from deepchecks.utils.strings import format_percent
 from deepchecks.errors import DeepchecksValueError
 
@@ -58,28 +58,13 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
     ):
         super().__init__()
         self.alternative_scorers: t.Optional[t.Mapping[str, ScorerFunc]] = None
-
-        if alternative_scorers is not None and len(alternative_scorers) == 0:
-            raise DeepchecksValueError('alternative_scorers - expected to receive not empty dict of scorers!')
-
-        elif alternative_scorers is not None:
-            self.alternative_scorers = {}
-
-            for name, scorer in alternative_scorers.items():
-                if isinstance(scorer, t.Callable):
-                    self.alternative_scorers[name] = scorer
-                elif isinstance(scorer, str):
-                    self.alternative_scorers[name] = get_scorer(scorer)
-                else:
-                    raise DeepchecksValueError(
-                        f"alternative_scorers - expected to receive 'Mapping[str, Callable]' but got "
-                        f"'Mapping[str, {type(scorer).__name__}]'!"
-                    )
+        if alternative_scorers is not None:
+            self.alternative_scorers = initialize_user_scorers(alternative_scorers)
 
     def run(
         self,
         dataset: Dataset,
-        model: t.Any # TODO: find more precise type for model
+        model: t.Any
     ) -> CheckResult:
         """Run Check.
 
@@ -116,7 +101,10 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
         features = t.cast(pd.DataFrame, dataset.features_columns)
 
         unique_labels = get_unique_labels(labels)
-        scorers = self.alternative_scorers or self._default_scorers
+        scorers = get_scorers(model, dataset, self.alternative_scorers, average=False)
+        # In case of default scorers adds F1
+        if self.alternative_scorers is None:
+            scorers['F1'] = make_scorer(f1_score, average=None)
 
         scorer_results = (
             (scorer_name, scorer_func(model, features, labels))
@@ -147,21 +135,6 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
             header='Class Performance Imbalance',
             display=display
         )
-
-    @property
-    def _default_scorers(self) -> t.Dict[str, t.Callable[..., np.ndarray]]:
-        # TODO: use `get_metrics_list` from utils package
-        # but first we need to refactor it to accept 'average' argument
-        if hasattr(self, '_chached_default_scorers'):
-            return getattr(self, '_chached_default_scorers')
-
-        scorers = {
-            'Precision': make_scorer(precision_score, zero_division=0, average=None),
-            'Recall': make_scorer(recall_score, zero_division=0, average=None),
-            'F1': make_scorer(f1_score, zero_division=0, average=None)
-        }
-        setattr(self, '_chached_default_scorers', scorers)
-        return scorers
 
     def _validate_results(
         self,
@@ -218,8 +191,10 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
             DeepchecksValueError:
                 if unknown score function name were passed;
         """
-        scorers = self.alternative_scorers or self._default_scorers
-        scorers = set(scorers.keys())
+        if self.alternative_scorers:
+            scorers = set(self.alternative_scorers.keys())
+        else:
+            scorers = ['Precision', 'Recall', 'F1']
 
         if score not in scorers:
             raise DeepchecksValueError(f'Unknown score function  - {score}')

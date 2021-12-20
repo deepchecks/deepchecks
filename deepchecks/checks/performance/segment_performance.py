@@ -17,7 +17,7 @@ from matplotlib.axes import Axes
 
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
 from deepchecks.checks.performance.partition import partition_column
-from deepchecks.utils.metrics import validate_scorer, task_type_check, DEFAULT_SINGLE_METRIC, DEFAULT_METRICS_DICT
+from deepchecks.utils.metrics import get_validate_scorer, get_scorers
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.validation import validate_model
@@ -88,12 +88,12 @@ class SegmentPerformance(SingleDatasetBaseCheck):
                 raise DeepchecksValueError('Must define both "feature_1" and "feature_2" or none of them')
 
         if self.metric is not None:
-            scorer = validate_scorer(self.metric, model, dataset)
+            scorer = get_validate_scorer(self.metric, model, dataset)
             metric_name = self.metric if isinstance(self.metric, str) else 'User metric'
         else:
-            model_type = task_type_check(model, dataset)
-            metric_name = DEFAULT_SINGLE_METRIC[model_type]
-            scorer = DEFAULT_METRICS_DICT[model_type][metric_name]
+            default_scorer = get_scorers(model, dataset, single=True)
+            metric_name, scorer = next(iter(default_scorer.items()))
+            metric_name = metric_name + ' (Default)'
 
         feature_1_filters = partition_column(dataset, self.feature_1, max_segments=self.max_segments)
         feature_2_filters = partition_column(dataset, self.feature_2, max_segments=self.max_segments)
