@@ -44,10 +44,10 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
 
     Args:
         alternative_scorers (Dict[str, Callable]): An optional dictionary of scorer name or scorer functions
-    
+
     .. _Scikit-learn scorers:
         https://scikit-learn.org/stable/modules/model_evaluation.html#common-cases-predefined-values
-    
+
     .. Scikit-learn - defining scoring strategy:
         https://scikit-learn.org/stable/modules/model_evaluation.html#defining-your-scoring-strategy-from-metric-functions
     """
