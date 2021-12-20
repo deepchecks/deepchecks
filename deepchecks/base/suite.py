@@ -136,9 +136,9 @@ class Suite(BaseSuite):
         """Run all checks.
 
         Args:
-          model: A scikit-learn-compatible fitted estimator instance
           train_dataset: Dataset object, representing data an estimator was fitted on
           test_dataset: Dataset object, representing data an estimator predicts on
+          model: A scikit-learn-compatible fitted estimator instance
 
         Returns:
           List[CheckResult] - All results by all initialized checks
@@ -201,9 +201,9 @@ class ModelComparisonSuite(BaseSuite):
         """Run all checks.
 
         Args:
-          train_datasets: A scikit-learn-compatible fitted estimator instance
-          test_datasets: Dataset object, representing data an estimator was fitted on
-          models: Dataset object, representing data an estimator predicts on
+          train_datasets: 1 or more dataset object, representing data an estimator was fitted on
+          test_datasets: 1 or more dataset object, representing data an estimator was fitted on
+          models: 2 or more scikit-learn-compatible fitted estimator instance
 
         Returns:
           List[CheckResult] - All results by all initialized checks

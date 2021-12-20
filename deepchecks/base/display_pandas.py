@@ -60,10 +60,10 @@ def display_conditions_table(check_results: Union['CheckResult', List['CheckResu
         check_results (Union['CheckResult', List['CheckResult']]): check results to show conditions of.
     """
     if not isinstance(check_results, List):
-        show_check = False
+        show_check_column = False
         check_results = [check_results]
     else:
-        show_check = True
+        show_check_column = True
 
     table = []
     for check_result in check_results:
@@ -77,6 +77,6 @@ def display_conditions_table(check_results: Union['CheckResult', List['CheckResu
                                     columns=['Status', 'Check', 'Condition', 'More Info', 'sort'])
     conditions_table.sort_values(by=['sort'], inplace=True)
     conditions_table.drop('sort', axis=1, inplace=True)
-    if show_check is False:
+    if show_check_column is False:
         conditions_table.drop('Check', axis=1, inplace=True)
     display_dataframe(conditions_table.style.hide_index())
