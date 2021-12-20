@@ -33,7 +33,7 @@ jobs:
   notebooks-update:
     runs-on: ubuntu-latest
     name: Update Example notebooks
-
+    needs: Validate Label
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.9
@@ -41,7 +41,7 @@ jobs:
         with:
           python-version: 3.9
       - name: Update notebooks
-        run: ./.github/scripts/update_version.sh
+        run: ./.github/scripts/update_notebooks.sh
 
       - name: Update version
         uses: test-room-7/action-update-file@v1
