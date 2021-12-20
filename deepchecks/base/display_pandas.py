@@ -68,7 +68,6 @@ def display_conditions_table(check_results: Union['CheckResult', List['CheckResu
         show_check_column = True
 
     table = []
-    
     for check_result in check_results:
         for cond_result in check_result.conditions_results:
             sort_value = cond_result.get_sort_value()
