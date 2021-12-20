@@ -18,7 +18,7 @@ import numpy as np
 from deepchecks.utils.plot import colors
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
-from deepchecks.utils.metrics import get_metrics_list
+from deepchecks.utils.metrics import get_scorers_list
 from deepchecks import (
     Dataset,
     CheckResult,
@@ -34,24 +34,30 @@ TD = t.TypeVar('TD', bound='TrainTestDifferenceOverfit')
 
 
 class TrainTestDifferenceOverfit(TrainTestBaseCheck):
-    """Visualize overfit by displaying the difference between model metrics on train and on test data.
+    """Visualize overfit by displaying the difference between model scores on train and on test data.
 
-    The check would display the selected metrics for the training and test data, helping the user visualize
-    the difference in performance between the two datasets. If no alternative_metrics are supplied, the check would
-    use a list of default metrics. If they are supplied, alternative_metrics must be a dictionary, with the keys
-    being metric names and the values being either a name of an sklearn scoring function
-    (https://scikit-learn.org/stable/modules/model_evaluation.html#scoring) or an sklearn scoring function.
+    The check would display the selected scores for the training and test data, helping the user visualize
+    the difference in performance between the two datasets. If no 'alternative_scorers' are supplied, the check would
+    use a list of default scorers. If they are supplied, 'alternative_scorers' must be a dictionary, with the keys
+    being score names and the values being either a name of an sklearn scoring function
+    (`Scikit-learn scorers`_) or an sklearn scorer object (`Scikit-learn - defining scoring strategy`_).
 
     Args:
-        alternative_metrics (Dict[str, Callable]): An optional dictionary of metric name or scorer functions
+        alternative_scorers (Dict[str, Callable]): An optional dictionary of scorer name or scorer functions
+
+    .. _Scikit-learn scorers:
+        https://scikit-learn.org/stable/modules/model_evaluation.html#common-cases-predefined-values
+
+    .. Scikit-learn - defining scoring strategy:
+        https://scikit-learn.org/stable/modules/model_evaluation.html#defining-your-scoring-strategy-from-metric-functions
     """
 
     def __init__(
         self,
-        alternative_metrics: t.Dict[str, t.Callable[[object, pd.DataFrame, str], float]] = None
+        alternative_scorers: t.Dict[str, t.Callable[[object, pd.DataFrame, str], float]] = None
     ):
         super().__init__()
-        self.alternative_metrics = alternative_metrics
+        self.alternative_scorers = alternative_scorers
 
     def run(self, train_dataset: Dataset, test_dataset: Dataset, model=None) -> CheckResult:
         """Run check.
@@ -63,8 +69,8 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
 
         Returns:
             CheckResult:
-                value is a dataframe with metrics as indexes, and scores per training and test in the columns.
-                data is a bar graph of the metrics for training and test data.
+                value is a dataframe with scores as indexes, and scores per training and test in the columns.
+                data is a bar graph of the scores for training and test data.
 
         Raises:
             DeepchecksValueError: If either of the dataset objects are not a Dataset instance with a label
@@ -82,25 +88,25 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
         train_dataset.validate_shared_features(test_dataset)
         validate_model(test_dataset, model)
 
-        metrics = get_metrics_list(model, train_dataset, self.alternative_metrics)
+        scorers = get_scorers_list(model, train_dataset, self.alternative_scorers)
 
-        train_metrics = {key: scorer(model, train_dataset.data[train_dataset.features], train_dataset.label_col)
-                         for key, scorer in metrics.items()}
+        train_scores = {key: scorer(model, train_dataset.data[train_dataset.features], train_dataset.label_col)
+                         for key, scorer in scorers.items()}
 
-        test_metrics = {key: scorer(model, test_dataset.data[test_dataset.features],
+        test_scores = {key: scorer(model, test_dataset.data[test_dataset.features],
                                     test_dataset.label_col)
-                        for key, scorer in metrics.items()}
+                        for key, scorer in scorers.items()}
 
-        result = {'test': test_metrics, 'train': train_metrics}
+        result = {'test': test_scores, 'train': train_scores}
 
         def plot_overfit():
-            res_df = pd.DataFrame.from_dict({'Training Metrics': train_metrics, 'Test Metrics': test_metrics})
+            res_df = pd.DataFrame.from_dict({'Training Scores': train_scores, 'Test Scores': test_scores})
             width = 0.20
             indices = np.arange(len(res_df.index))
 
-            plt.bar(indices, res_df['Training Metrics'].values.flatten(), width=width, color=colors['Train'])
-            plt.bar(indices + width, res_df['Test Metrics'].values.flatten(), width=width, color=colors['Test'])
-            plt.ylabel('Metrics')
+            plt.bar(indices, res_df['Training Scores'].values.flatten(), width=width, color=colors['Train'])
+            plt.bar(indices + width, res_df['Test Scores'].values.flatten(), width=width, color=colors['Test'])
+            plt.ylabel('Scores')
             plt.xticks(ticks=indices + width / 2., labels=res_df.index)
             plt.xticks(rotation=30)
             plt.legend(res_df.columns, loc='upper right', bbox_to_anchor=(1.45, 1.02))
@@ -111,28 +117,28 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
         """
         Add new condition.
 
-        Add condition that will check that difference between train dataset metrics and test
-        dataset metrics is not greater than X.
+        Add condition that will check that difference between train dataset scores and test
+        dataset scores is not greater than X.
 
         Args:
-            threshold: metrics difference upper bound
+            threshold: scores difference upper bound
         """
         def condition(res: dict) -> ConditionResult:
-            test_metrics = res['test']
-            train_metrics = res['train']
-            diff = {metric: score - test_metrics[metric] for metric, score in train_metrics.items()}
-            failed_metrics = [k for k, v in diff.items() if v > threshold]
-            if failed_metrics:
+            test_scores = res['test']
+            train_scores = res['train']
+            diff = {score_name: score - test_scores[score_name] for score_name, score in train_scores.items()}
+            failed_scores = [k for k, v in diff.items() if v > threshold]
+            if failed_scores:
                 explained_failures = []
-                for metric in failed_metrics:
-                    explained_failures.append(f'{metric} (train={format_percent(train_metrics[metric])} '
-                                              f'test={format_percent(test_metrics[metric])})')
+                for score_name in failed_scores:
+                    explained_failures.append(f'{score_name} (train={format_percent(train_scores[score_name])} '
+                                              f'test={format_percent(test_scores[score_name])})')
                 message = f'Found performance degradation in: {", ".join(explained_failures)}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Train-Test metrics difference is not greater than {threshold}', condition)
+        return self.add_condition(f'Train-Test scores difference is not greater than {threshold}', condition)
 
     def add_condition_degradation_ratio_not_greater_than(self: TD, threshold: float = 0.1) -> TD:
         """
@@ -144,21 +150,21 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
             threshold: maximum degradation ratio allowed (value between 0 to 1)
         """
         def condition(res: dict) -> ConditionResult:
-            test_metrics = res['test']
-            train_metrics = res['train']
+            test_scores = res['test']
+            train_scores = res['train']
             # Calculate percentage of change from train to test
-            diff = {metric: ((score - test_metrics[metric]) / score)
-                    for metric, score in train_metrics.items()}
-            failed_metrics = [k for k, v in diff.items() if v > threshold]
-            if failed_metrics:
+            diff = {score_name: ((score - test_scores[score_name]) / score)
+                    for score_name, score in train_scores.items()}
+            failed_scores = [k for k, v in diff.items() if v > threshold]
+            if failed_scores:
                 explained_failures = []
-                for metric in failed_metrics:
-                    explained_failures.append(f'{metric} (train={format_percent(train_metrics[metric])} '
-                                              f'test={format_percent(test_metrics[metric])})')
+                for score_name in failed_scores:
+                    explained_failures.append(f'{score_name} (train={format_percent(train_scores[score_name])} '
+                                              f'test={format_percent(test_scores[score_name])})')
                 message = f'Found performance degradation in: {", ".join(explained_failures)}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Train-Test metrics degradation ratio is not greater than {threshold}',
+        return self.add_condition(f'Train-Test scores degradation ratio is not greater than {threshold}',
                                   condition)

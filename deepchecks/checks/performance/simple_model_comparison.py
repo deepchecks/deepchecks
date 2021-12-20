@@ -18,9 +18,11 @@ from deepchecks.utils.strings import format_number
 
 from deepchecks import CheckResult, Dataset
 from deepchecks.base.check import ConditionResult, TrainTestBaseCheck
-from deepchecks.utils.metrics import DEFAULT_METRICS_DICT, DEFAULT_SINGLE_METRIC, task_type_check, \
-                                     ModelType, validate_scorer, get_metrics_ratio
+from deepchecks.utils.metrics import DEFAULT_SCORERS_DICT, DEFAULT_SINGLE_SCORER, task_type_check, \
+                                     ModelType, validate_scorer, get_scores_ratio
 from deepchecks.utils.validation import validate_model
+from deepchecks.errors import DeepchecksValueError
+
 
 __all__ = ['SimpleModelComparison']
 
@@ -44,23 +46,27 @@ class SimpleModelComparison(TrainTestBaseCheck):
     """Compare given model score to simple model score (according to given model type).
 
     Args:
-        simple_model_type (st):  Type of the simple model ['random', 'constant', 'tree'].
-                    random - select one of the labels by random.
-                    constant - in regression is mean value, in classification the most common value.
-                    tree - runs a simple desion tree.
-        metric (Union[str, Callable]): a custom metric given by user.
-        metric_name (str): name of a default metric.
-        maximum_ratio (int): the ratio can be up to infinity so choose maximum value to limit to.
-        max_depth (int): the max depth of the tree (used only if simple model type is tree).
-        random_state (int): the random state (used only if simple model type is tree or random).
+        simple_model_type (str):
+            Type of the simple model ['random', 'constant', 'tree'].
+                + random - select one of the labels by random.
+                + constant - in regression is mean value, in classification the most common value.
+                + tree - runs a simple desion tree.
+        scorer (Union[str, Callable]):
+            Score to show, either function or sklearn scorer name.
+            If is not given a default scorer (per the model type) will be used.
+        maximum_ratio (int):
+            the ratio can be up to infinity so choose maximum value to limit to.
+        max_depth (int):
+            the max depth of the tree (used only if simple model type is tree).
+        random_state (int):
+            the random state (used only if simple model type is tree or random).
     """
 
-    def __init__(self, simple_model_type: str = 'constant', metric: Union[str, Callable] = None,
-                 metric_name: str =None, maximum_ratio: int = 50, max_depth: int = 3, random_state: int = 42):
+    def __init__(self, simple_model_type: str = 'constant', scorer: Union[str, Callable] = None,
+                 maximum_ratio: int = 50, max_depth: int = 3, random_state: int = 42):
         super().__init__()
         self.simple_model_type = simple_model_type
-        self.metric = metric
-        self.metric_name = metric_name
+        self.scorer = scorer
         self.maximum_ratio = maximum_ratio
         self.max_depth = max_depth
         self.random_state = random_state
@@ -75,7 +81,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
 
         Returns:
             CheckResult: value is a Dict of: given_model_score, simple_model_score, ratio
-                         ratio is given model / simple model (if the metric returns negative values we divide 1 by it)
+                         ratio is given model / simple model (if the scorer returns negative values we divide 1 by it)
                          if ratio is infinite max_ratio is returned
 
         Raises:
@@ -92,11 +98,10 @@ class SimpleModelComparison(TrainTestBaseCheck):
             task_type (ModelType): the model type.
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
         Returns:
-            score for simple and given model respectively and the metric type in a tuple
+            score for simple and given model respectively and the score name in a tuple
 
         Raises:
             NotImplementedError: If the simple_model_type is not supported
-
         """
         test_df = test_ds.data
         np.random.seed(self.random_state)
@@ -107,10 +112,11 @@ class SimpleModelComparison(TrainTestBaseCheck):
         elif self.simple_model_type == 'constant':
             if task_type == ModelType.REGRESSION:
                 simple_pred = np.array([np.mean(train_ds.label_col)] * len(test_df))
-
-            elif task_type in (ModelType.BINARY, ModelType.MULTICLASS):
+            elif task_type in {ModelType.BINARY, ModelType.MULTICLASS}:
                 counts = train_ds.label_col.mode()
-                simple_pred = np.array([counts.iloc[0]] * len(test_df))
+                simple_pred = np.array([counts.index[0]] * len(test_df))
+            else:
+                raise DeepchecksValueError(f'Unknown task type - {task_type}')
 
         elif self.simple_model_type == 'tree':
             y_train = train_ds.label_col
@@ -122,31 +128,41 @@ class SimpleModelComparison(TrainTestBaseCheck):
             )
 
             if task_type == ModelType.REGRESSION:
-                clf = DecisionTreeRegressor(max_depth=self.max_depth, random_state=self.random_state)
-            elif task_type in (ModelType.BINARY, ModelType.MULTICLASS):
-                clf = DecisionTreeClassifier(max_depth=self.max_depth,
-                                             random_state=self.random_state, class_weight='balanced')
-            if clf:
-                clf = clf.fit(x_train, y_train)
-                simple_pred = clf.predict(x_test)
+                clf = DecisionTreeRegressor(
+                    max_depth=self.max_depth,
+                    random_state=self.random_state
+                )
+            elif task_type in {ModelType.BINARY, ModelType.MULTICLASS}:
+                clf = DecisionTreeClassifier(
+                    max_depth=self.max_depth,
+                    random_state=self.random_state,
+                    class_weight='balanced'
+                )
+            else:
+                raise DeepchecksValueError(f'Unknown task type - {task_type}')
+
+            clf = clf.fit(x_train, y_train)
+            simple_pred = clf.predict(x_test)
 
         else:
-            raise NotImplementedError(f"expected to be one of ['random', 'constant', 'tree'] \
-                                    but instead got {self.simple_model_type}")
+            raise DeepchecksValueError(
+                f'Unknown model type - {self.simple_model_type}, expected to be one of '
+                f"['random', 'constant', 'tree'] but instead got {self.simple_model_type}" # pylint: disable=inconsistent-quotes
+            )
 
         y_test = test_ds.label_col
 
-        if self.metric is not None:
-            scorer = validate_scorer(self.metric, model, train_ds)
-            metric_name = self.metric if isinstance(self.metric, str) else (self.metric_name or 'User Metric')
+        if self.scorer is not None:
+            scorer = validate_scorer(self.scorer, model, train_ds)
+            scorer_name = self.scorer if isinstance(self.scorer, str) else 'User Scorer'
         else:
-            metric_name = DEFAULT_SINGLE_METRIC[task_type]
-            scorer = DEFAULT_METRICS_DICT[task_type][metric_name]
+            scorer_name = DEFAULT_SINGLE_SCORER[task_type]
+            scorer = DEFAULT_SCORERS_DICT[task_type][scorer_name]
 
-        simple_metric = scorer(DummyModel, simple_pred, y_test)
-        pred_metric = scorer(model, test_ds.features_columns, y_test)
+        simple_score = scorer(DummyModel, simple_pred, y_test)
+        pred_score = scorer(model, test_ds.features_columns, y_test)
 
-        return simple_metric, pred_metric, metric_name
+        return simple_score, pred_score, scorer_name
 
     def _simple_model_comparison(self, train_dataset: Dataset, test_dataset: Dataset, model):
         Dataset.validate_dataset(train_dataset)
@@ -156,29 +172,29 @@ class SimpleModelComparison(TrainTestBaseCheck):
         validate_model(test_dataset, model)
 
         task_type = task_type_check(model, train_dataset)
-        simple_metric, pred_metric, metric_name = self._find_score(train_dataset, test_dataset, task_type, model)
+        simple_score, pred_score, score_name = self._find_score(train_dataset, test_dataset, task_type, model)
 
-        if metric_name == DEFAULT_SINGLE_METRIC[task_type]:
-            metric_name = str(metric_name) + ' (Default)'
+        if score_name == DEFAULT_SINGLE_SCORER[task_type]:
+            score_name = str(score_name) + ' (Default)'
 
-        ratio = get_metrics_ratio(simple_metric, pred_metric, self.maximum_ratio)
+        ratio = get_scores_ratio(simple_score, pred_score, self.maximum_ratio)
 
         text = f'The given model performance is {more_than_prefix_adder(ratio, self.maximum_ratio)} times the ' \
-               f'performance of the simple model, measuring performance using the {metric_name} metric.<br>' \
-               f'{type(model).__name__} model prediction has achieved a score of {format_number(pred_metric)} ' \
+               f'performance of the simple model, measuring performance using the {score_name} metric.<br>' \
+               f'{type(model).__name__} model prediction has achieved a score of {format_number(pred_score)} ' \
                f'compared to Simple {self.simple_model_type} prediction ' \
-               f'which achieved a score of {format_number(simple_metric)} on tested data.'
+               f'which achieved a score of {format_number(simple_score)} on tested data.'
 
         def display_func():
             fig = plt.figure()
             ax = fig.add_axes([0, 0, 1, 1])
             models = [f'Simple model - {self.simple_model_type}', f'{type(model).__name__} model']
-            metrics_results = [simple_metric, pred_metric]
-            ax.bar(models, metrics_results)
-            ax.set_ylabel(metric_name)
+            results = [simple_score, pred_score]
+            ax.bar(models, results)
+            ax.set_ylabel(score_name)
 
-        return CheckResult({'given_model_score': pred_metric,
-                            'simple_model_score': simple_metric,
+        return CheckResult({'given_model_score': pred_score,
+                            'simple_model_score': simple_score,
                             'ratio': ratio},
                            display=[text, display_func])
 
@@ -187,17 +203,17 @@ class SimpleModelComparison(TrainTestBaseCheck):
 
         Args:
             min_allowed_ratio (float): Min allowed ratio between the given and the simple model -
-            ratio is given model / simple model (if the metric returns negative values we divide 1 by it)
+            ratio is given model / simple model (if the scorer returns negative values we divide 1 by it)
         """
         def condition(result: Dict) -> ConditionResult:
             ratio = result['ratio']
             if ratio < min_allowed_ratio:
                 return ConditionResult(False,
-                                       f'The given model performs {more_than_prefix_adder(ratio, self.maximum_ratio)}'
-                                       f' times compared to the simple model using the given metric')
+                                       f'The given model performs {more_than_prefix_adder(ratio, self.maximum_ratio)} '
+                                       'times compared to the simple model using the given scorer')
             else:
                 return ConditionResult(True)
 
         return self.add_condition(f'Ratio not less than {format_number(min_allowed_ratio)} '
-                                  f'between the given model\'s result and the simple model\'s result',
+                                  'between the given model\'s result and the simple model\'s result',
                                   condition)
