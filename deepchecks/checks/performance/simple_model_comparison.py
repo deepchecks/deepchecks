@@ -171,13 +171,16 @@ class SimpleModelComparison(TrainTestBaseCheck):
         test_dataset.validate_label()
         validate_model(test_dataset, model)
 
-        simple_score, pred_score, score_name = self._find_score(train_dataset, test_dataset,
-                                                            task_type_check(model, train_dataset), model)
+        task_type = task_type_check(model, train_dataset)
+        simple_score, pred_score, score_name = self._find_score(train_dataset, test_dataset, task_type, model)
+
+        if score_name == DEFAULT_SINGLE_SCORER[task_type]:
+            score_name = str(score_name) + ' (Default)'
 
         ratio = get_scores_ratio(simple_score, pred_score, self.maximum_ratio)
 
-        text = f'The given model performs {more_than_prefix_adder(ratio, self.maximum_ratio)} times compared to' \
-               f' the simple model using the {score_name} score.<br>' \
+        text = f'The given model performance is {more_than_prefix_adder(ratio, self.maximum_ratio)} times the ' \
+               f'performance of the simple model, measuring performance using the {score_name} metric.<br>' \
                f'{type(model).__name__} model prediction has achieved a score of {format_number(pred_score)} ' \
                f'compared to Simple {self.simple_model_type} prediction ' \
                f'which achieved a score of {format_number(simple_score)} on tested data.'

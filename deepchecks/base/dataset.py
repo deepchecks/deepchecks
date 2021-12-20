@@ -186,7 +186,7 @@ class Dataset:
             self.cat_features = self.infer_categorical_features()
 
         if self._date_name and convert_date_:
-            self._data[self._date_name] = self._data[self._date_name].apply(pd.to_datetime, **self._date_args)
+            self._data[self._date_name] = pd.to_datetime(self._data[self._date_name], **self._date_args)
 
     @classmethod
     def from_numpy(

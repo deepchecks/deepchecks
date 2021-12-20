@@ -3,29 +3,38 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+
 Welcome to Deepchecks' documentation!
-====================================
+=====================================
+
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :hidden:
+
+   getting-started/index
+
 
 .. toctree::
    :maxdepth: 2
-   :caption: Docstring
 
-Reference Guides
-================
+   examples/index
+
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   deepcheckss/deepchecks.rst
+   user-guide/index
+
+
+.. toctree::
+   :maxdepth: 3
+
+   api/index
+
 
 Indices and tables
-==================
+~~~~~~~~~~~~~~~~~~~~
 
 * :ref:`modindex`
 * :ref:`search`
-
-:doc:`notebook.rst`

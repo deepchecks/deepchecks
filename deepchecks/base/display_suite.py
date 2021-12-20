@@ -18,7 +18,7 @@ import pandas as pd
 
 from IPython.core.display import display_html
 
-from deepchecks.base.check import CheckResult, CheckFailure, ConditionResult
+from deepchecks.base.check import CheckResult, CheckFailure
 from deepchecks.base.display_pandas import dataframe_to_html, display_conditions_table
 
 
@@ -30,8 +30,7 @@ class ProgressBar:
 
     def __init__(self, name, length):
         """Initialize progress bar."""
-        self.pbar = tqdm.tqdm(total=length,desc=name, unit='Check', \
-                              leave=False, file=sys.stdout, \
+        self.pbar = tqdm.tqdm(total=length, desc=name, unit='Check', leave=False, file=sys.stdout,
                               bar_format=f'{{l_bar}}{{bar:{length}}}{{r_bar}}')
 
     def set_text(self, text):
@@ -55,13 +54,13 @@ def get_display_exists_icon(exists: bool):
 
 def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]]):
     """Display results of suite in IPython."""
-    conditions_table = []
+    checks_with_conditions = []
     display_table = []
     others_table = []
     for result in results:
         if isinstance(result, CheckResult):
             if result.have_conditions():
-                ConditionResult.append_to_conditions_table(result, conditions_table)
+                checks_with_conditions.append(result)
             if result.have_display():
                 display_table.append(result)
             else:
@@ -86,15 +85,15 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     {bold_hr}<h2>Conditions Summary</h2>
     """
     display_html(html, raw=True)
-    if conditions_table:
-        display_conditions_table(conditions_table)
+    if checks_with_conditions:
+        display_conditions_table(checks_with_conditions)
     else:
         display_html('<p>No conditions defined on checks in the suite.</p>', raw=True)
 
     display_html(f'{bold_hr}<h2>Additional Outputs</h2>', raw=True)
     if display_table:
         for i, r in enumerate(display_table):
-            r._ipython_display_()
+            r.show(show_conditions=False)
             if i < len(display_table) - 1:
                 display_html(light_hr, raw=True)
     else:
