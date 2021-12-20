@@ -40,10 +40,10 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - name: Update notebooks
-        run: ./.github/scripts/update_notebooks.sh
       - name: Set Up Env
         run: make env
+      - name: Update notebooks
+        run: ./.github/scripts/update_notebooks.sh
       - name: Update version
         uses: test-room-7/action-update-file@v1
         with:
