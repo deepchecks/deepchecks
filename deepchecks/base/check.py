@@ -356,6 +356,7 @@ class ModelOnlyBaseCheck(BaseCheck):
         pass
 
 
+<<<<<<< HEAD
 class ModelComparisonBaseCheck(BaseCheck):
     """Parent class for check that compares between two or more models."""
 
@@ -391,6 +392,8 @@ class ModelComparisonBaseCheck(BaseCheck):
         pass
 
 
+=======
+>>>>>>> aeb7dd9b714b4607e885e588e6711512050c2a11
 class CheckFailure:
     """Class which holds a run exception of a check."""
 
