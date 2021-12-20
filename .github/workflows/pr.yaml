@@ -32,8 +32,8 @@ jobs:
 
   notebooks-update:
     runs-on: ubuntu-latest
-    name: labels
-    needs: Validate-Label
+    name: Update Example notebooks
+    needs: labels
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.9
