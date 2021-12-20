@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """The UnusedFeatures check module."""
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 import numpy as np
 import pandas as pd
 from sklearn.base import TransformerMixin
@@ -161,34 +161,34 @@ class UnusedFeatures(TrainTestBaseCheck):
                 [feature_df.iloc[:(last_important_feature_index + 1)].head(self.n_top_fi_to_show),
                  unviable_feature_df.iloc[:last_variable_feature_index].head(self.n_top_unused_to_show)],
                 axis=0)
+            
+            
+            fig = go.Figure()
+            fig.add_trace(go.Bar(
+                y=display_feature_df.index,
+                x=display_feature_df['Feature Importance'].values.flatten(),
+                name='Feature Importance',
+                marker_color='indianred',
+                orientation='h'
+            ))
+            fig.add_trace(go.Bar(
+                y=display_feature_df.index,
+                x=display_feature_df['Feature Variance'].values.flatten(),
+                name='Feature Variance',
+                marker_color='lightsalmon',
+                orientation='h'
+            ))
 
-            def plot_feature_importance():
+            fig.update_yaxes(autorange="reversed")
+            fig.update_xaxes(title='Importance / Variance [%]')
+            fig.update_layout(title_text='Unused features compared to top important features', title_x=0.5, autosize=True, width=800, height=500)
 
-                width = 0.20
-                my_cmap = plt.cm.get_cmap('Set2')
+            last_important_feature_index_to_plot = min(last_important_feature_index, self.n_top_fi_to_show - 1)
 
-                indices = np.arange(len(display_feature_df.index))
-
-                colors = my_cmap(range(len(display_feature_df)))
-                plt.figure(figsize=[8.0, 6.0 * len(display_feature_df) / 8.0])
-                plt.barh(indices, display_feature_df['Feature Importance'].values.flatten(), height=width,
-                         color=colors[0])
-                plt.barh(indices + width, display_feature_df['Feature Variance'].values.flatten(), height=width,
-                         color=colors[1])
-                plt.xlabel('Importance / Variance [%]')
-                plt.yticks(ticks=indices + width / 2., labels=display_feature_df.index)
-                plt.yticks(rotation=30)
-                last_important_feature_index_to_plot = min(last_important_feature_index, self.n_top_fi_to_show - 1)
-                legend_labels = display_feature_df.columns.values.tolist()
-                if last_important_feature_index_to_plot < len(display_feature_df) - 1:
-                    last_important_feature_line_loc = last_important_feature_index_to_plot + 0.6
-                    plt.plot(plt.gca().get_xlim(),
-                             [last_important_feature_line_loc, last_important_feature_line_loc], 'k--')
-                    legend_labels = ['Last shown significant feature'] + legend_labels
-                plt.gca().invert_yaxis()
-                plt.legend(legend_labels, loc='upper right', bbox_to_anchor=(1.55, 1.02))
-                plt.title('Unused features compared to top important features')
-
+            if last_important_feature_index_to_plot < len(display_feature_df) - 1:
+                last_important_feature_line_loc = last_important_feature_index_to_plot + 0.5
+                fig.add_hline(y=last_important_feature_line_loc, line_width=2, line_dash="dash", line_color="green", annotation_text='Last shown significant feature')
+            
             # display only if high variance features exist (as set by self.feature_variance_threshold)
             if not last_variable_feature_index:
                 display_list = []
@@ -196,7 +196,7 @@ class UnusedFeatures(TrainTestBaseCheck):
                 display_list = [
                     'Features above the line are a sample of the most important features, while the features '
                     'below the line are the unused features with highest variance, as defined by check'
-                    ' parameters', plot_feature_importance]
+                    ' parameters', fig]
 
         else:
             display_list = []
