@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing feature importance calculations."""
+from functools import lru_cache
 import typing as t
 import numpy as np
 import pandas as pd
@@ -53,13 +54,13 @@ def calculate_feature_importance_or_null(dataset: 'base.Dataset', model: t.Any) 
 
 
 def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset',
-                                 force_permutation: bool = False, permutation_wkargs: dict = None) -> pd.Series:
+                                 force_permutation: bool = False,
+                                 permutation_wkargs: dict = None) -> pd.Series:
     """Calculate features effect on the label.
 
     Args:
         model (Any): A fitted model
         dataset (Dataset): dataset used to fit the model
-        random_state (int): random seed for permutation importance calculation
         force_permutation (bool): force permutation importance calculation
         permutation_wkargs (dict): kwargs for permutation importance calculation
     Returns:
@@ -85,19 +86,17 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset',
 
     # if _built_in_importance was calculated and returned None, check if pipeline and / or attempt
     # permutation importance
+    if isinstance(model, Pipeline) and feature_importances is None:
+        internal_estimator = get_model_of_pipeline(model)
+        if internal_estimator is not None:
+            # incase pipeline had an encoder
+            try:
+                feature_importances = _built_in_importance(internal_estimator, dataset)
+            except ValueError:
+                pass
+
     if feature_importances is None:
-        if isinstance(model, Pipeline):
-            internal_estimator = get_model_of_pipeline(model)
-            if internal_estimator is not None:
-                # incase pipeline had an encoder
-                try:
-                    feature_importances = _built_in_importance(internal_estimator, dataset)
-                except ValueError:
-                    pass
-            if feature_importances is None:
-                feature_importances = _calc_importance(model, dataset, **permutation_wkargs)
-        else:  # Others
-            feature_importances = _calc_importance(model, dataset, **permutation_wkargs)
+        feature_importances = _calc_importance(model, dataset, **permutation_wkargs)
 
     return feature_importances.fillna(0)
 
@@ -115,6 +114,7 @@ def _built_in_importance(model: t.Any, dataset: 'base.Dataset') -> t.Optional[pd
         return
 
 
+@lru_cache(maxsize=32)
 def _calc_importance(
     model: t.Any,
     dataset: 'base.Dataset',
@@ -123,7 +123,20 @@ def _calc_importance(
     random_state: int = 42,
     n_samples: int = 10000,
 ) -> pd.Series:
-    """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal."""
+    """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal.
+
+    Args:
+        model (Any): A fitted model
+        dataset (Dataset): dataset used to fit the model
+        n_repeats (int): Number of times to permute a feature
+        mask_high_variance_features (bool): If true, features for whome calculated permuation importance values
+                                            varied gratly would be returned has having 0 feature importance
+        random_state (int): Random seed for permutation importance calculation.
+        n_samples (int): The number of samples to draw from X to compute feature importance
+                        in each repeat (without replacement).
+    Returns:
+        pd.Series of feature importance normalized to 0-1 indexed by feature names
+    """
     dataset.validate_label()
 
     n_samples = min(n_samples, dataset.n_samples)
