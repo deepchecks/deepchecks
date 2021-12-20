@@ -47,6 +47,6 @@ jobs:
         uses: test-room-7/action-update-file@v1
         with:
           file-path: docs/source/examples/howto-guides/*.ipynb
-          commit-msg: [NotebooksUpdateBot] Updating example notebooks
+          commit-msg: "[NotebooksUpdateBot] Updating example notebooks"
           github-token: ${{ secrets.CI_GH_TOKEN }}
           branch: ${{ github.head_ref }}
