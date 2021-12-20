@@ -14,9 +14,10 @@ import warnings
 
 from IPython.core.display import display_html
 import pandas as pd
-__all__ = ['display_dataframe', 'dataframe_to_html', 'display_conditions_table']
-
 from pandas.io.formats.style import Styler
+
+
+__all__ = ['display_dataframe', 'dataframe_to_html', 'display_conditions_table']
 
 
 def display_dataframe(df: Union[pd.DataFrame, Styler]):

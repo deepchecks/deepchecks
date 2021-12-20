@@ -9,6 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing all data distribution checks."""
-from .trust_score_comparison import *
-from .train_test_feature_drift import *
-from .whole_dataset_drift import *
+from .trust_score_comparison import TrustScoreComparison
+from .train_test_feature_drift import TrainTestFeatureDrift
+from .whole_dataset_drift import WholeDatasetDrift
+
+
+__all__ = [
+    'TrustScoreComparison',
+    'TrainTestFeatureDrift',
+    'WholeDatasetDrift'
+]

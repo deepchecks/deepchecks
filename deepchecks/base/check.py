@@ -18,9 +18,6 @@ from collections import OrderedDict
 from functools import wraps
 from typing import Any, Callable, List, Union, Dict, cast, Tuple
 
-__all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'TrainTestBaseCheck',
-           'ModelOnlyBaseCheck', 'ModelComparisonBaseCheck', 'ConditionResult', 'ConditionCategory', 'CheckFailure']
-
 import pandas as pd
 from IPython.core.display import display_html
 from matplotlib import pyplot as plt
@@ -32,6 +29,19 @@ from deepchecks.base.display_pandas import display_conditions_table, display_dat
 from deepchecks.utils.strings import split_camel_case
 from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.utils.ipython import is_ipython_display
+
+
+__all__ = [
+    'CheckResult',
+    'BaseCheck',
+    'SingleDatasetBaseCheck',
+    'TrainTestBaseCheck',
+    'ModelOnlyBaseCheck',
+    'ModelComparisonBaseCheck',
+    'ConditionResult',
+    'ConditionCategory',
+    'CheckFailure'
+]
 
 
 class Condition:

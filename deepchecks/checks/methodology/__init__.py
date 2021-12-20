@@ -9,15 +9,31 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains checks for methodological flaws in the model building process."""
-from .performance_overfit import *
-from .boosting_overfit import *
-from .unused_features import *
-from .single_feature_contribution import *
-from .single_feature_contribution_train_validation import *
-from .index_leakage import *
-from .train_test_samples_mix import *
-from .date_train_test_leakage_duplicates import *
-from .date_train_test_leakage_overlap import *
-from .identifier_leakage import *
-from .model_inference_time import *
-from .datasets_size_comparison import *
+from .performance_overfit import TrainTestDifferenceOverfit
+from .boosting_overfit import BoostingOverfit
+from .unused_features import UnusedFeatures
+from .single_feature_contribution import SingleFeatureContribution
+from .single_feature_contribution_train_validation import SingleFeatureContributionTrainTest
+from .index_leakage import IndexTrainTestLeakage
+from .train_test_samples_mix import TrainTestSamplesMix
+from .date_train_test_leakage_duplicates import DateTrainTestLeakageDuplicates
+from .date_train_test_leakage_overlap import DateTrainTestLeakageOverlap
+from .identifier_leakage import IdentifierLeakage
+from .model_inference_time import ModelInferenceTimeCheck
+from .datasets_size_comparison import DatasetsSizeComparison
+
+
+__all__ = [
+    'TrainTestDifferenceOverfit',
+    'BoostingOverfit',
+    'UnusedFeatures',
+    'SingleFeatureContribution',
+    'SingleFeatureContributionTrainTest',
+    'IndexTrainTestLeakage',
+    'TrainTestSamplesMix',
+    'DateTrainTestLeakageDuplicates',
+    'DateTrainTestLeakageOverlap',
+    'IdentifierLeakage',
+    'ModelInferenceTimeCheck',
+    'DatasetsSizeComparison',
+]
