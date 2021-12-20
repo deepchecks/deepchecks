@@ -15,7 +15,7 @@ on:
     branches: [ main ]
 jobs:
   labels:
-    name: Validate Label 
+    name: Validate-Label
     runs-on: ubuntu-latest
 
     steps:
@@ -33,7 +33,7 @@ jobs:
   notebooks-update:
     runs-on: ubuntu-latest
     name: Update Example notebooks
-    needs: Validate Label
+    needs: Validate-Label
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.9
