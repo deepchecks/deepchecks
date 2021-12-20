@@ -75,7 +75,6 @@ def display_conditions_table(check_results: Union['CheckResult', List['CheckResu
             icon = cond_result.get_icon()
             check_header = check_result.get_header()
             if unique_id:
-                print('iulguigi')
                 check_id = f'{check_result.check.__class__.__name__}_{unique_id}'
                 link = f'<a href=#{check_id}>{check_header}</a>'
             else:

@@ -88,7 +88,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     """
     display_html(html, raw=True)
     if checks_with_conditions:
-        display_conditions_table(checks_with_conditions)
+        display_conditions_table(checks_with_conditions, unique_id)
     else:
         display_html('<p>No conditions defined on checks in the suite.</p>', raw=True)
 
