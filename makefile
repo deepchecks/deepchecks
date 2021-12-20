@@ -165,6 +165,13 @@ notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 $(TEST_RUNNER):
 	$(PIP) install $(TEST_RUNNER_PKGS) | tee -a $(REQUIREMENTS_LOG)
 
+examples:  $(REQUIREMENTS_LOG) $(TEST_RUNNER)
+	$(PIP) install --no-deps -e .
+# Making sure the examples are running, without validating their outputs.
+	for path in $(NOTEBOOK_EXAMPLES) ; do \
+	  jupyter nbconvert --to notebook --execute $$path --stdout > $$path.new && mv $$path.new $$path ; \
+	done
+
 coverage: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 	$(pythonpath) $(TEST_RUNNER) $(args) $(COVER_ARG) $(TESTDIR) | tee -a $(COVERAGE_LOG)
 
