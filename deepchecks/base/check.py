@@ -115,12 +115,14 @@ class ConditionResult:
         return str(vars(self))
 
     @classmethod
-    def append_to_conditions_table(cls, check_result: 'CheckResult', conditions_table: List, unique_id = ''):
+    def append_to_conditions_table(cls, check_result: 'CheckResult', conditions_table: List, unique_id: str = None):
         """Append the condition the check result has to a given conditions table.
 
         Args:
             check_result (CheckResult): The check result.
             conditions_table (List): list that contains the conditions in table format.
+            unique_id (str): the unique id to append for the check names to create links
+                              (won't create links if None/empty)
         """
         for cond_result in check_result.conditions_results:
             sort_value = cond_result.get_sort_value()
