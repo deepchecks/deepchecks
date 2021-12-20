@@ -36,11 +36,13 @@ def is_notebook() -> bool:
 
 @lru_cache(maxsize=None)
 def is_ipython_display():
+    """Check whether we have IPython display module in current environment."""
     module = 'IPython.display'
     if module in sys.modules:
         return True
     try:
         import_module(module)
         return True
+    # pylint: disable=broad-except
     except Exception:
         return False
