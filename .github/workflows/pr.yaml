@@ -15,7 +15,7 @@ on:
     branches: [ main ]
 jobs:
   labels:
-    name: Validate-Label
+    name: Validate Label
     runs-on: ubuntu-latest
 
     steps:
@@ -32,7 +32,7 @@ jobs:
 
   notebooks-update:
     runs-on: ubuntu-latest
-    name: Update Example notebooks
+    name: labels
     needs: Validate-Label
     steps:
       - uses: actions/checkout@v2
