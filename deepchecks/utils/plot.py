@@ -15,7 +15,10 @@ from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LinearSegmentedColormap
 
 
-__all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map']
+__all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map', 'colors']
+
+colors = {'Train': 'darkblue',
+          'Test': '#69b3a2'}
 
 
 def create_colorbar_barchart_for_check(
@@ -56,8 +59,8 @@ def create_colorbar_barchart_for_check(
         my_cmap = shifted_color_map(my_cmap, start=start, midpoint=color_shift_midpoint, stop=stop,
                                   name=color_map + check_name)
 
-    colors = my_cmap(list(y))
-    rects = ax.bar(x, y, color=colors)  # pylint: disable=unused-variable
+    cmap_colors = my_cmap(list(y))
+    rects = ax.bar(x, y, color=cmap_colors)  # pylint: disable=unused-variable
 
     sm = ScalarMappable(cmap=my_cmap, norm=plt.Normalize(start, stop))
     sm.set_array([])

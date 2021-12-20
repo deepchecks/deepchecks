@@ -17,17 +17,18 @@ REQUIRE = requirements.txt
 ext_py := $(shell which python3 || which python)
 
 # Override by putting in commandline python=XXX when needed.
-python = $(shell echo ${ext_py} | rev | cut -d '/' -f 1 | rev)
+python = $(shell basename `echo ${ext_py}`)
 TESTDIR = tests
 ENV = venv
 repo = pypi
 
 # System Envs
 BIN := $(ENV)/bin
-pythonpath= PYTHONPATH=.
+pythonpath = PYTHONPATH=.
 
 # Venv Executables
 PIP := $(BIN)/pip
+PIP_WIN := python -m pip 
 PYTHON := $(BIN)/$(python)
 ANALIZE := $(BIN)/pylint
 COVERAGE := $(BIN)/coverage
@@ -97,14 +98,13 @@ env: $(REQUIREMENTS_LOG)
 $(PIP):
 	$(info #### Remember to source new environment  [ $(ENV) ] ####)
 	@echo "external python_exe is $(ext_py)"
-	test -d $(ENV) || $(ext_py) -m venv $(ENV) 
+	test -d $(ENV) || $(ext_py) -m venv $(ENV)
 $(REQUIREMENTS_LOG): $(PIP) $(REQUIREMENTS)
-	$(PIP) install --upgrade pip
+	$(ext_py) -m pip install --upgrade pip
 	$(PIP) install $(INSTALLATION_PKGS)
 	for f in $(REQUIREMENTS); do \
 	  $(PIP) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
 	done
-
 
 
 ### Static Analysis ######################################################
@@ -129,6 +129,16 @@ $(ANALIZE): $(PIP)
 test: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 	$(pythonpath) $(TEST_RUNNER) $(args) $(TESTDIR)
 
+
+test-win: 
+	test -d $(ENV) || python -m venv $(ENV)
+	$(ENV)\Scripts\activate.bat
+	$(PIP_WIN) $(INSTALLATION_PKGS)
+	for f in $(REQUIRE); do \
+	 $(PIP_WIN) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
+	done
+	$(PIP_WIN) install $(TEST_RUNNER_PKGS)
+	python -m pytest $(TESTDIR)
 
 notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 # if deepchecks is not installed, we need to install it for testing porpuses,
@@ -203,7 +213,7 @@ clean-docs:
 	-@rm -rf docs/deepcheckss
 
 ### Release ######################################################
-.PHONY: authors register dist upload .git-no-changes ammend release
+.PHONY: authors register dist upload .git-no-changes release
 
 authors:
 	echo "Authors\n=======\n\nA huge thanks to all of our contributors:\n\n" > AUTHORS.md
@@ -218,10 +228,6 @@ dist: test
 upload: $(TWINE) 
 	$(TWINE) upload dist/*
 
-ammend:
-	git add deepchecks/version.py
-	git commit --amend --no-edit
-
 
 .git-no-changes:
 	@if git diff --name-only --exit-code;       \
@@ -233,18 +239,11 @@ ammend:
 		exit -1;                                  \
 	fi;
 
-release: version dist upload
+release: dist upload
 
 
 $(TWINE): $(PIP)
 	$(PIP) install twine
-
-#if version variable is passed, the release version will be modified to this version.
-version: 
-ifeq ($(version),)
-else
-	@sed -i -E "s/__version__\ +=\ +'.*+'/__version__ = '${version}'/g" deepchecks/version.py
-endif
 
 
 ### Documentation
@@ -303,7 +302,7 @@ download:
 	$(PIP) install $(PROJECT)
 
 jupyter: $(JUPYTER)
-	$(BIN)/jupyter-notebook $(args) --notebook-dir=$(NOTEBOOK_CHECKS)
+	$(BIN)/jupyter-notebook $(args) --notebook-dir=./notebooks
 
 $(JUPYTER):
 	$(PIP) install jupyter

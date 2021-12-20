@@ -96,13 +96,6 @@ def task_type_check(
         return ModelType.REGRESSION
     else:
         labels = t.cast(pd.Series, dataset.label_col)
-        unique_labels = labels.unique()
-
-        if sorted(unique_labels) != list(range(len(unique_labels))):
-            raise errors.DeepchecksValueError(
-                'Classification labels must be a consecutive set from 0 to MAX_LABEL,'
-                f' found {sorted(unique_labels)}.'
-            )
 
         return (
             ModelType.MULTICLASS

@@ -19,6 +19,7 @@ from deepchecks.checks.distribution.plot import plot_density
 from deepchecks.utils.metrics import task_type_check, ModelType
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
+from deepchecks.utils.plot import colors
 from deepchecks.errors import DeepchecksValueError
 
 
@@ -130,15 +131,25 @@ class TrustScoreComparison(TrainTestBaseCheck):
             max_num_categories=self.max_number_categories
         )
 
-        y_train = train_data_sample[label_name]
+        # Trust Score model expects labels to be consecutive integers from 0 to n-1, so we transform our label to
+        # this format.
+        label_transform_dict = dict(zip(sorted(list(set(train_data_sample[label_name]))),
+                                        range(len(set(train_data_sample[label_name])))))
+
+        def transform_numpy_label(np_label: np.ndarray) -> np.ndarray:
+            return np.array([label_transform_dict[lbl] for lbl in np_label])
+
+        y_train = train_data_sample[label_name].replace(label_transform_dict)
         trust_score_model = TrustScore(k_filter=self.k_filter, alpha=self.alpha)
-        trust_score_model.fit(X=x_train.to_numpy(), Y=y_train)
+        trust_score_model.fit(X=x_train.to_numpy(), Y=y_train.to_numpy())
         # Calculate y on train and get scores
         y_train_pred = model.predict(train_data_sample[features_list])
-        train_trust_scores = trust_score_model.score(x_train.to_numpy(), y_train_pred)[0].astype('float64')
+        train_trust_scores = trust_score_model.score(x_train.to_numpy(),
+                                                     transform_numpy_label(y_train_pred))[0].astype('float64')
         # Calculate y on test dataset using the model
         y_test_pred = model.predict(test_data_sample[features_list])
-        test_trust_scores = trust_score_model.score(x_test.to_numpy(), y_test_pred)[0].astype('float64')
+        test_trust_scores = trust_score_model.score(x_test.to_numpy(),
+                                                    transform_numpy_label(y_test_pred))[0].astype('float64')
 
         # Move label and index to the beginning if exists
         if test_dataset.label_name:
@@ -167,8 +178,8 @@ class TrustScoreComparison(TrainTestBaseCheck):
             x_range = [min(*test_trust_scores_cut, *train_trust_scores_cut),
                      max(*test_trust_scores_cut, *train_trust_scores_cut)]
             xs = np.linspace(x_range[0], x_range[1], 40)
-            plot_density(test_trust_scores_cut, xs, 'darkblue')
-            plot_density(train_trust_scores_cut, xs, '#69b3a2')
+            plot_density(train_trust_scores_cut, xs, colors['Train'])
+            plot_density(test_trust_scores_cut, xs, colors['Test'])
             # Set x axis
             axes.set_xlim(x_range)
             plt.xlabel('Trust score')
@@ -176,8 +187,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
             axes.set_ylim(bottom=0)
             plt.ylabel('Probability Density')
             # Set labels
-            colors = {'Test': 'darkblue',
-                      'Train': '#69b3a2'}
+
             labels = list(colors.keys())
             handles = [plt.Rectangle((0, 0), 1, 1, color=colors[label]) for label in labels]
             plt.legend(handles, labels)

@@ -10,7 +10,7 @@
 #
 """The predefined Data Distribution suite module."""
 from deepchecks import Suite
-from deepchecks.checks.distribution import TrainTestDrift
+from deepchecks.checks.distribution import TrainTestFeatureDrift, WholeDatasetDrift
 
 
 def data_distribution_suite() -> Suite:
@@ -20,5 +20,6 @@ def data_distribution_suite() -> Suite:
     """
     return Suite(
         'Data Distribution',
-        TrainTestDrift().add_condition_drift_score_not_greater_than(),
+        TrainTestFeatureDrift().add_condition_drift_score_not_greater_than(),
+        WholeDatasetDrift().add_condition_overall_drift_value_not_greater_than()
     )
