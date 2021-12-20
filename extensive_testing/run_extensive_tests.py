@@ -53,9 +53,9 @@ if __name__ == "__main__":
         train_df = pd.read_csv(f's3://{bucket_name}/{dataset}/train.csv')
         test_df = pd.read_csv(f's3://{bucket_name}/{dataset}/val.csv')
         metadata = json.loads(s3.Object(bucket_name, f'{dataset}/metadata.json').get()['Body'].read().decode('utf-8'))
-        train_ds = Dataset(train_df, label=metadata['label_name'], features=metadata['features'],
+        train_ds = Dataset(train_df, label_name=metadata['label_name'], features=metadata['features'],
                            cat_features=metadata['cat_features'])
-        test_ds = Dataset(test_df, label=metadata['label_name'], features=metadata['features'],
+        test_ds = Dataset(test_df, label_name=metadata['label_name'], features=metadata['features'],
                           cat_features=metadata['cat_features'])
         models = list(filter(lambda x: x.key.endswith('joblib'), list(S3_BUCKET.objects.filter(Prefix=dataset).all())))
         for model_obj in models:
