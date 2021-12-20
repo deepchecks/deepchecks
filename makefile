@@ -1,5 +1,5 @@
 # This makefile helps with deepchecks Development environment
-# including syntax checking, virtual environments creation, 
+# including syntax checking, virtual environments creation,
 # test running and coverage
 # This Makefile is based on Makefile by jidn: https://github.com/jidn/python-Makefile/blob/master/Makefile
 
@@ -11,7 +11,7 @@ REQUIRE = requirements.txt
 
 # python3 binary takes predecence over python binary,
 # this variable is used when setting python variable, (Line 18)
-# and on 'env' goal ONLY 
+# and on 'env' goal ONLY
 # If your python path binary name is not python/python3,
 # override using ext_python=XXX and it'll propogate into python variable, too
 ext_py := $(shell which python3 || which python)
@@ -19,19 +19,20 @@ ext_py := $(shell which python3 || which python)
 # Override by putting in commandline python=XXX when needed.
 python = $(shell echo ${ext_py} | rev | cut -d '/' -f 1 | rev)
 TESTDIR = $(shell realpath tests)
-WIN_TESTDIR = tests # FIXME: this is tmp solution - replace it
 ENV = $(shell realpath venv)
-WIN_ENV = venv # FIXME: this is tmp solution - replace it
 repo = pypi
+
+WIN_ENV := venv
+WIN_TESTDIR := tests
+WIN_BIN := $(WIN_ENV)/bin
 
 # System Envs
 BIN := $(ENV)/bin
-WIN_BIN := $(WIN_ENV)/bin
 pythonpath := PYTHONPATH=.
 
 # Venv Executables
 PIP := $(BIN)/pip
-PIP_WIN := python -m pip 
+PIP_WIN := python -m pip
 PYTHON := $(BIN)/$(python)
 ANALIZE := $(BIN)/pylint
 COVERAGE := $(BIN)/coverage
@@ -53,7 +54,7 @@ REQUIREMENTS := $(shell find . -name $(REQUIRE))
 REQUIREMENTS_LOG := .requirements.log
 
 # Test and Analyize
-ANALIZE_PKGS = pylint pydocstyle 
+ANALIZE_PKGS = pylint pydocstyle
 TEST_CODE := tests/
 TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval
 NOTEBOOK_CHECKS = ./notebooks/checks
@@ -78,7 +79,7 @@ DOCS_BUILD   := $(DOCS)/build
 DOCS_REQUIRE := $(DOCS)/$(REQUIRE)
 
 # variables that will be passed to the documentation make file
-SPHINXOPTS   ?= 
+SPHINXOPTS   ?=
 
 
 # Sphinx
@@ -89,7 +90,7 @@ EGG_LINK = venv/lib/python3.7/site-packages/deepchecks.egg-link
 
 ### Main Targets ######################################################
 
-.PHONY: help env all 
+.PHONY: help env all
 
 help:
 	@echo "env      -  Create virtual environment and install requirements"
@@ -143,7 +144,7 @@ $(ANALIZE): $(PIP)
 test: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 	$(pythonpath) $(TEST_RUNNER) $(args) $(TESTDIR)
 
-test-win: 
+test-win:
 	test -d $(WIN_ENV) || python -m venv $(WIN_ENV)
 	$(WIN_ENV)\Scripts\activate.bat
 	$(PIP_WIN) $(INSTALLATION_PKGS)
@@ -164,7 +165,7 @@ notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 $(TEST_RUNNER):
 	$(PIP) install $(TEST_RUNNER_PKGS) | tee -a $(REQUIREMENTS_LOG)
 
-coverage: $(REQUIREMENTS_LOG) $(TEST_RUNNER) 
+coverage: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 	$(pythonpath) $(TEST_RUNNER) $(args) $(COVER_ARG) $(TESTDIR) | tee -a $(COVERAGE_LOG)
 
 
@@ -237,7 +238,7 @@ dist: test
 
 # upload expects to get all twine args as environment,
 # refer to https://twine.readthedocs.io/en/latest/ for more information
-upload: $(TWINE) 
+upload: $(TWINE)
 	$(TWINE) upload dist/*
 
 
@@ -282,7 +283,7 @@ license-check:
 develop:
 	$(PYTHON) setup.py develop
 
-install: 
+install:
 	$(PYTHON) setup.py install
 
 download:
