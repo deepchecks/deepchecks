@@ -59,7 +59,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     others_table = []
 
     for result in results:
-        if isinstance(result, CheckResult.priority):
+        if isinstance(result, CheckResult):
             if result.have_conditions():
                 checks_with_conditions.append(result)
             if result.have_display():
