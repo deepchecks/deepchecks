@@ -97,7 +97,7 @@ def task_type_check(
     if not hasattr(model, 'predict_proba'):
         if is_string_column(dataset.label_col):
             raise errors.DeepchecksValueError(
-                f'Model was identified as a regression model, but label column was found to contain strings.'
+                'Model was identified as a regression model, but label column was found to contain strings.'
             )
         else:
             return ModelType.REGRESSION
