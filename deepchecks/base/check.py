@@ -15,7 +15,6 @@ import enum
 import inspect
 import re
 from collections import OrderedDict
-from dataclasses import dataclass
 from functools import wraps
 from typing import Any, Callable, List, Union, Dict, cast, Tuple
 
@@ -143,7 +142,7 @@ class CheckResult:
             value (Any): Value calculated by check. Can be used to decide if decidable check passed.
             header (str): Header to be displayed in python notebook.
             check (Class): The check class which created this result. Used to extract the summary to be
-            displayed in notebook.
+                displayed in notebook.
             display (List): Objects to be displayed (dataframe or function or html)
         """
         self.value = value
@@ -392,9 +391,9 @@ class ModelComparisonBaseCheck(BaseCheck):
         pass
 
 
-@dataclass
 class CheckFailure:
     """Class which holds a run exception of a check."""
 
-    check: Any  # Check class, not instance
-    exception: Exception
+    def __init__(self, check: Any, exception: Exception):
+        self.check = check
+        self.exception = exception
