@@ -178,17 +178,17 @@ class UnusedFeatures(TrainTestBaseCheck):
                 orientation='h'
             ))
 
-            fig.update_yaxes(autorange="reversed")
+            fig.update_yaxes(autorange='reversed')
             fig.update_layout(title_text='Unused features compared to top important features',
-                              title_x=0.5, autosize=True, width=800, height=500)
+                              width=800, height=500)
 
             last_important_feature_index_to_plot = min(last_important_feature_index, self.n_top_fi_to_show - 1)
 
             if last_important_feature_index_to_plot < len(display_feature_df) - 1:
                 last_important_feature_line_loc = last_important_feature_index_to_plot + 0.5
-                fig.add_hline(y=last_important_feature_line_loc, line_width=2, line_dash="dash", line_color="green",
+                fig.add_hline(y=last_important_feature_line_loc, line_width=2, line_dash='dash', line_color='green',
                               annotation_text='Last shown significant feature')
-            
+
             # display only if high variance features exist (as set by self.feature_variance_threshold)
             if not last_variable_feature_index:
                 display_list = []
