@@ -108,19 +108,19 @@ class UnusedFeatures(TrainTestBaseCheck):
             DeepchecksValueError: If neither train_dataset nor test_dataset exist, or either of the dataset objects are
                                   not a Dataset instance with a label.
         """
-        func_name = self.__class__.__name__
         if test_dataset:
             dataset = test_dataset
         elif train_dataset:
             dataset = train_dataset
         else:
             raise DeepchecksValueError('Either train_dataset or test_dataset must be supplied')
-        Dataset.validate_dataset(dataset, func_name)
-        dataset.validate_label(func_name)
-        dataset.validate_label(func_name)
+        Dataset.validate_dataset(dataset)
+        dataset.validate_label()
+        dataset.validate_label()
         validate_model(dataset, model)
 
-        feature_importance = calculate_feature_importance(model, dataset, random_state=self.random_state)
+        feature_importance = calculate_feature_importance(model, dataset,
+                                                          permutation_wkargs={'random_state': self.random_state})
 
         # Calculate normalized variance per feature based on PCA decomposition
         pre_pca_transformer = naive_encoder(dataset)

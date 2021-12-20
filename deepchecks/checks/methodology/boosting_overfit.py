@@ -11,15 +11,18 @@
 """Boosting overfit check module."""
 from copy import deepcopy
 from typing import Callable, Union
+
+from sklearn.pipeline import Pipeline
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
-
 import numpy as np
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.metrics import task_type_check, DEFAULT_METRICS_DICT, validate_scorer, DEFAULT_SINGLE_METRIC
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
+from deepchecks.utils.model import get_model_of_pipeline
+from deepchecks.utils.plot import colors
 from deepchecks.errors import DeepchecksValueError
 
 
@@ -36,12 +39,16 @@ class PartialBoostingModel:
             model: boosting model to wrap.
             step: Number of iterations/estimators to limit the model on predictions.
         """
-        self.model_class = model.__class__.__name__
+        self.model_class = get_model_of_pipeline(model).__class__.__name__
         self.step = step
         if self.model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
                                 'GradientBoostingRegressor']:
             self.model = deepcopy(model)
-            self.model.estimators_ = self.model.estimators_[:self.step]
+            if isinstance(model, Pipeline):
+                internal_estimator = get_model_of_pipeline(self.model)
+                internal_estimator.estimators_ = internal_estimator.estimators_[:self.step]
+            else:
+                self.model.estimators_ = self.model.estimators_[:self.step]
         else:
             self.model = model
 
@@ -72,6 +79,7 @@ class PartialBoostingModel:
 
     @classmethod
     def n_estimators(cls, model):
+        model = get_model_of_pipeline(model)
         model_class = model.__class__.__name__
         if model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
                            'GradientBoostingRegressor']:
@@ -110,7 +118,7 @@ def calculate_steps(num_steps, num_estimators):
 
 
 class BoostingOverfit(TrainTestBaseCheck):
-    """Check for overfit occurring when increasing the number of iterations in boosting models.
+    """Check for overfit caused by using too many iterations in a gradient boosted model.
 
     The check runs a pred-defined number of steps, and in each step it limits the boosting model to use up to X
     estimators (number of estimators is monotonic increasing). It plots the given metric calculated for each step for
@@ -147,12 +155,12 @@ class BoostingOverfit(TrainTestBaseCheck):
             raise DeepchecksValueError('Can not have metric_name without metric')
         if not isinstance(self.num_steps, int) or self.num_steps < 2:
             raise DeepchecksValueError('num_steps must be an integer larger than 1')
-        Dataset.validate_dataset(train_dataset, self.__class__.__name__)
-        Dataset.validate_dataset(test_dataset, self.__class__.__name__)
-        train_dataset.validate_label(self.__class__.__name__)
-        test_dataset.validate_label(self.__class__.__name__)
-        train_dataset.validate_shared_features(test_dataset, self.__class__.__name__)
-        train_dataset.validate_shared_label(test_dataset, self.__class__.__name__)
+        Dataset.validate_dataset(train_dataset)
+        Dataset.validate_dataset(test_dataset)
+        train_dataset.validate_label()
+        test_dataset.validate_label()
+        train_dataset.validate_shared_features(test_dataset)
+        train_dataset.validate_shared_label(test_dataset)
         validate_model(train_dataset, model)
 
         # Get default metric
@@ -163,6 +171,7 @@ class BoostingOverfit(TrainTestBaseCheck):
         else:
             metric_name = DEFAULT_SINGLE_METRIC[model_type]
             scorer = DEFAULT_METRICS_DICT[model_type][metric_name]
+            metric_name = metric_name + ' (Default)'
 
         # Get number of estimators on model
         num_estimators = PartialBoostingModel.n_estimators(model)
@@ -179,14 +188,19 @@ class BoostingOverfit(TrainTestBaseCheck):
             axes.set_xlabel('Number of boosting iterations')
             axes.set_ylabel(metric_name)
             axes.grid()
-            axes.plot(estimator_steps, np.array(train_scores), 'o-', color='r', label='Training score')
-            axes.plot(estimator_steps, np.array(test_scores), 'o-', color='g', label='Test score')
+            axes.plot(estimator_steps, np.array(train_scores), 'o-', color=colors['Train'], label='Training score')
+            axes.plot(estimator_steps, np.array(test_scores), 'o-', color=colors['Test'], label='Test score')
             axes.legend(loc='best')
             # Display x ticks as integers
             axes.xaxis.set_major_locator(MaxNLocator(integer=True))
 
+        display_text = f"""<span>
+            The check limits the boosting model to using up to N estimators each time, and plotting the
+            {metric_name} calculated for each subset of estimators for both the train dataset and the test dataset.
+        </span>"""
+
         result = {'test': test_scores, 'train': train_scores}
-        return CheckResult(result, display=display_func, header='Boosting Overfit')
+        return CheckResult(result, display=[display_text, display_func], header='Boosting Overfit')
 
     def add_condition_test_score_percent_decline_not_greater_than(self, threshold: float = 0.05):
         """Add condition.

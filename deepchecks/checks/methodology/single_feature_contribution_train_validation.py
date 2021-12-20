@@ -61,12 +61,12 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
                                                             test_dataset=test_dataset)
 
     def _single_feature_contribution_train_test(self, train_dataset: Dataset, test_dataset: Dataset):
-        train_dataset = Dataset.validate_dataset(train_dataset, self.__class__.__name__)
-        train_dataset.validate_label(self.__class__.__name__)
-        test_dataset = Dataset.validate_dataset(test_dataset, self.__class__.__name__)
-        test_dataset.validate_label(self.__class__.__name__)
-        features_names = train_dataset.validate_shared_features(test_dataset, self.__class__.__name__)
-        label_name = train_dataset.validate_shared_label(test_dataset, self.__class__.__name__)
+        train_dataset = Dataset.validate_dataset(train_dataset)
+        train_dataset.validate_label()
+        test_dataset = Dataset.validate_dataset(test_dataset)
+        test_dataset.validate_label()
+        features_names = train_dataset.validate_shared_features(test_dataset)
+        label_name = train_dataset.validate_shared_label(test_dataset)
         ppscore_params = self.ppscore_params or {}
 
         relevant_columns = features_names + [label_name]

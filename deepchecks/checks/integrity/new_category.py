@@ -53,7 +53,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
             displays a dataframe that shows columns with new categories
         """
         return self._new_category_train_test(train_dataset=train_dataset,
-                                                   test_dataset=test_dataset)
+                                             test_dataset=test_dataset)
 
     def _new_category_train_test(self, train_dataset: Dataset, test_dataset: Dataset):
         """Run check.
@@ -73,8 +73,8 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
         test_dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
         train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
 
-        features = test_dataset.validate_shared_features(train_dataset, self.__class__.__name__)
-        cat_features = train_dataset.validate_shared_categorical_features(test_dataset, self.__class__.__name__)
+        features = test_dataset.validate_shared_features(train_dataset)
+        cat_features = train_dataset.validate_shared_categorical_features(test_dataset)
 
         test_dataset = test_dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
         train_dataset = train_dataset.filter_columns_with_validation(self.columns, self.ignore_columns)

@@ -42,7 +42,8 @@ def test_column_partition_numerical_with_dominant():
     # Assert
     h.assert_that(filter_results, h.has_items(
         h.has_entries({'count': 16, 'label': '[1 - 5)'}),
-        h.has_entries({'count': 6, 'label': '[5 - 11]'}),
+        h.has_entries({'count': 3, 'label': '[5 - 8.9)'}),
+        h.has_entries({'count': 3, 'label': '[8.9 - 11]'}),
     ))
 
 

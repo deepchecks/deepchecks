@@ -22,20 +22,20 @@ def test_dataset_wrong_input():
     # Act & Assert
     assert_that(calling(RegressionErrorDistribution().run).with_args(bad_dataset, None),
                 raises(DeepchecksValueError,
-                       'Check RegressionErrorDistribution requires dataset to be of type Dataset. instead got: str'))
+                       'Check requires dataset to be of type Dataset. instead got: str'))
 
 
 def test_dataset_no_label(diabetes_df, diabetes_model):
     # Assert
     assert_that(calling(RegressionErrorDistribution().run).with_args(Dataset(diabetes_df), diabetes_model),
-                raises(DeepchecksValueError, 'Check RegressionErrorDistribution requires dataset to have a label column'))
+                raises(DeepchecksValueError, 'Check requires dataset to have a label column'))
 
 
 def test_multiclass_model(iris_split_dataset_and_model):
     # Assert
     _, test, clf = iris_split_dataset_and_model
     assert_that(calling(RegressionErrorDistribution().run).with_args(test, clf),
-                raises(DeepchecksValueError, r'Check RegressionErrorDistribution Expected model to be a type from'
+                raises(DeepchecksValueError, r'Expected model to be a type from'
                                            r' \[\'regression\'\], but received model of type: multiclass'))
 
 
@@ -52,7 +52,7 @@ def test_regression_error_distribution(diabetes_split_dataset_and_model):
 def test_condition_absolute_kurtosis_not_greater_than_not_passed(diabetes_split_dataset_and_model):
     # Arrange
     _, test, clf = diabetes_split_dataset_and_model
-    test = Dataset(test.data.copy(), label='target')
+    test = Dataset(test.data.copy(), label_name='target')
     test._data[test.label_name] =300
 
     check = RegressionErrorDistribution().add_condition_kurtosis_not_less_than()

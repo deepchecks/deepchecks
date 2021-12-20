@@ -9,12 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Handle displays of pandas objects."""
-from typing import Union
+from typing import List, Union
 import warnings
 
 from IPython.core.display import display_html
 import pandas as pd
-__all__ = ['display_dataframe', 'dataframe_to_html']
+__all__ = ['display_dataframe', 'dataframe_to_html', 'display_conditions_table']
 
 from pandas.io.formats.style import Styler
 
@@ -51,3 +51,32 @@ def dataframe_to_html(df: Union[pd.DataFrame, Styler]):
     # attribute, hence we need to display as a regular pd html format.
     except ValueError:
         return df.to_html()
+
+
+def display_conditions_table(check_results: Union['CheckResult', List['CheckResult']]):
+    """Display the conditions table as DataFrame.
+
+    Args:
+        check_results (Union['CheckResult', List['CheckResult']]): check results to show conditions of.
+    """
+    if not isinstance(check_results, List):
+        show_check_column = False
+        check_results = [check_results]
+    else:
+        show_check_column = True
+
+    table = []
+    for check_result in check_results:
+        for cond_result in check_result.conditions_results:
+            sort_value = cond_result.get_sort_value()
+            icon = cond_result.get_icon()
+            header = check_result.get_header()
+            table.append([icon, header, cond_result.name, cond_result.details, sort_value])
+
+    conditions_table = pd.DataFrame(data=table,
+                                    columns=['Status', 'Check', 'Condition', 'More Info', 'sort'])
+    conditions_table.sort_values(by=['sort'], inplace=True)
+    conditions_table.drop('sort', axis=1, inplace=True)
+    if show_check_column is False:
+        conditions_table.drop('Check', axis=1, inplace=True)
+    display_dataframe(conditions_table.style.hide_index())

@@ -10,6 +10,7 @@
 #
 """Tests for Mixed Nulls check"""
 import pandas as pd
+import numpy as np
 
 from hamcrest import assert_that, close_to, equal_to, calling, raises, has_items
 
@@ -74,6 +75,13 @@ def test_data_duplicates_ignore_index_column():
     duplicate_data = duplicate_data.set_index('col3')
     check_obj = DataDuplicates()
     assert_that(check_obj.run(duplicate_data).value, close_to(0.80, 0.01))
+
+
+def test_anonymous_series():
+    np.random.seed(42)
+    df = pd.DataFrame(np.random.randint(0,10,(100,3))).reset_index()
+    res = DataDuplicates(ignore_columns=['index']).run(df).value
+    assert_that(res, close_to(0.05, 0.001))
 
 
 def test_nan(df_with_nan_row, df_with_single_nan_in_col):

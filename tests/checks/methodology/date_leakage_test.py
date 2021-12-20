@@ -26,7 +26,7 @@ from tests.checks.utils import equal_condition_result
 
 def dataset_from_dict(d: dict, date_name: str = None) -> Dataset:
     dataframe = pd.DataFrame(data=d)
-    return Dataset(dataframe, date=date_name)
+    return Dataset(dataframe, date_name=date_name)
 
 
 def test_dates_from_val_in_train():
@@ -105,24 +105,20 @@ def test_dataset_wrong_input():
     x = 'wrong_input'
     assert_that(
         calling(DateTrainTestLeakageDuplicates().run).with_args(x, x),
-        raises(DeepchecksValueError, 'Check DateTrainTestLeakageDuplicates '
-                                   'requires dataset to be of type Dataset. instead got: str'))
+        raises(DeepchecksValueError, 'Check requires dataset to be of type Dataset. instead got: str'))
     assert_that(
         calling(DateTrainTestLeakageOverlap().run).with_args(x, x),
-        raises(DeepchecksValueError, 'Check DateTrainTestLeakageOverlap '
-                                   'requires dataset to be of type Dataset. instead got: str'))
+        raises(DeepchecksValueError, 'Check requires dataset to be of type Dataset. instead got: str'))
 
 
 def test_dataset_no_index():
     ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11]})
     assert_that(
         calling(DateTrainTestLeakageDuplicates().run).with_args(ds, ds),
-        raises(DeepchecksValueError, 'Check DateTrainTestLeakageDuplicates '
-                                   'requires dataset to have a date column'))
+        raises(DeepchecksValueError, 'Check requires dataset to have a date column'))
     assert_that(
         calling(DateTrainTestLeakageOverlap().run).with_args(ds, ds),
-        raises(DeepchecksValueError, 'Check DateTrainTestLeakageOverlap '
-                                   'requires dataset to have a date column'))
+        raises(DeepchecksValueError, 'Check requires dataset to have a date column'))
 
 def test_dates_from_val_before_train():
     train_ds = dataset_from_dict({'col1': [

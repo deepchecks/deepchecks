@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
+from deepchecks.utils.plot import colors
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
 from deepchecks.utils.metrics import get_metrics_list
@@ -73,13 +74,12 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
     def _train_test_difference_overfit(self, train_dataset: Dataset, test_dataset: Dataset, model,
                                        ) -> CheckResult:
         # Validate parameters
-        func_name = self.__class__.__name__
-        Dataset.validate_dataset(train_dataset, func_name)
-        Dataset.validate_dataset(test_dataset, func_name)
-        train_dataset.validate_label(func_name)
-        test_dataset.validate_label(func_name)
-        train_dataset.validate_shared_label(test_dataset, func_name)
-        train_dataset.validate_shared_features(test_dataset, func_name)
+        Dataset.validate_dataset(train_dataset)
+        Dataset.validate_dataset(test_dataset)
+        train_dataset.validate_label()
+        test_dataset.validate_label()
+        train_dataset.validate_shared_label(test_dataset)
+        train_dataset.validate_shared_features(test_dataset)
         validate_model(test_dataset, model)
 
         metrics = get_metrics_list(model, train_dataset, self.alternative_metrics)
@@ -96,12 +96,10 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
         def plot_overfit():
             res_df = pd.DataFrame.from_dict({'Training Metrics': train_metrics, 'Test Metrics': test_metrics})
             width = 0.20
-            my_cmap = plt.cm.get_cmap('Set2')
             indices = np.arange(len(res_df.index))
 
-            colors = my_cmap(range(len(res_df.columns)))
-            plt.bar(indices, res_df['Training Metrics'].values.flatten(), width=width, color=colors[0])
-            plt.bar(indices + width, res_df['Test Metrics'].values.flatten(), width=width, color=colors[1])
+            plt.bar(indices, res_df['Training Metrics'].values.flatten(), width=width, color=colors['Train'])
+            plt.bar(indices + width, res_df['Test Metrics'].values.flatten(), width=width, color=colors['Test'])
             plt.ylabel('Metrics')
             plt.xticks(ticks=indices + width / 2., labels=res_df.index)
             plt.xticks(rotation=30)

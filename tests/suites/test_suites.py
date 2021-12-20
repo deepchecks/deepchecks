@@ -38,8 +38,8 @@ def iris(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBoostClassifier]:
     )
 
     train, test = (
-        Dataset(train, label='target', date='date', index='index'),
-        Dataset(test, label='target', date='date', index='index')
+        Dataset(train, label_name='target', date_name='date', index_name='index'),
+        Dataset(test, label_name='target', date_name='date', index_name='index')
     )
 
     model = AdaBoostClassifier(random_state=0)
@@ -88,12 +88,12 @@ def iris_with_non_textual_columns(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBo
         Dataset(
             train.rename(columns=renamer),
             features=list(renamer.values())[:-1],
-            label=4, date=6, index=5
+            label_name=4, date_name=6, index_name=5
         ),
         Dataset(
             test.rename(columns=renamer),
             features=list(renamer.values())[:-1],
-            label=4, date=6, index=5
+            label_name=4, date_name=6, index_name=5
         )
     )
 
@@ -112,9 +112,9 @@ def test_classification_suite(iris: t.Tuple[Dataset, Dataset, AdaBoostClassifier
     # suite[21].min_test_samples = 50
 
     arguments = (
-        dict(train_dataset=train, test_dataset=test, model=model, check_datasets_policy='both'),
-        dict(train_dataset=train, model=model, check_datasets_policy='both'),
-        dict(test_dataset=test, model=model, check_datasets_policy='both'),
+        dict(train_dataset=train, test_dataset=test, model=model),
+        dict(train_dataset=train, model=model),
+        dict(test_dataset=test, model=model),
     )
 
     for args in arguments:
@@ -132,9 +132,9 @@ def test_overall_suite_with_datasets_that_have_non_textual_columns(
     # suite[1].min_test_samples = 50
 
     arguments = (
-        dict(train_dataset=train, test_dataset=test, model=model, check_datasets_policy='both'),
-        dict(train_dataset=train, model=model, check_datasets_policy='both'),
-        dict(test_dataset=test, model=model, check_datasets_policy='both'),
+        dict(train_dataset=train, test_dataset=test, model=model),
+        dict(train_dataset=train, model=model),
+        dict(test_dataset=test, model=model),
     )
 
     for args in arguments:
@@ -150,9 +150,9 @@ def test_regression_suite(
     suite = suites.overall_regression_suite()
 
     arguments = (
-        dict(train_dataset=train, test_dataset=test, model=diabetes_model, check_datasets_policy='both'),
-        dict(train_dataset=train, model=diabetes_model, check_datasets_policy='both'),
-        dict(test_dataset=test, model=diabetes_model, check_datasets_policy='both'),
+        dict(train_dataset=train, test_dataset=test, model=diabetes_model),
+        dict(train_dataset=train, model=diabetes_model),
+        dict(test_dataset=test, model=diabetes_model),
     )
 
     for args in arguments:
@@ -169,16 +169,15 @@ def test_generic_suite(
     suite = suites.overall_generic_suite()
 
     arguments = (
-        dict(train_dataset=iris_train, test_dataset=iris_test, model=iris_model, check_datasets_policy='both'),
-        dict(train_dataset=iris_train, model=iris_model, check_datasets_policy='both'),
-        dict(test_dataset=iris_test, model=iris_model, check_datasets_policy='both'),
-        dict(train_dataset=diabetes_train, model=diabetes_model, check_datasets_policy='both'),
-        dict(test_dataset=diabetes_test, model=diabetes_model, check_datasets_policy='both'),
+        dict(train_dataset=iris_train, test_dataset=iris_test, model=iris_model),
+        dict(train_dataset=iris_train, model=iris_model),
+        dict(test_dataset=iris_test, model=iris_model),
+        dict(train_dataset=diabetes_train, model=diabetes_model),
+        dict(test_dataset=diabetes_test, model=diabetes_model),
         dict(
             train_dataset=diabetes_train,
             test_dataset=diabetes_test,
-            model=diabetes_model,
-            check_datasets_policy='both'
+            model=diabetes_model
         ),
     )
 

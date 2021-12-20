@@ -34,24 +34,21 @@ jobs:
     - name: Run Tests
       run: make test
 
-#
-#  documentation-check:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v2
-#      - uses: actions/setup-node@v1
-#        with:
-#          node-version: '14.x'
-#      - name: Test Build
-#        run: |
-#          make website
-#          cd docs/_website
-#          if [ -e package-lock.json ]; then
-#            npm ci
-#          else
-#            npm i
-#          fi
-#          npm run build
+  tests-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: ["3.8"] #TODO: add 3.10 when scikit-learn have a wheel https://github.com/scikit-learn/scikit-learn/pull/21232
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Run Tests
+      run: make test-win
+
 
   dependencies-license-check:
     runs-on: ubuntu-latest
@@ -74,11 +71,31 @@ jobs:
       with:
         requirements: 'requirements-all.txt'
         fail: 'Copyleft,Other,Error'
-        exclude: '(pyzmq.*22\.3\.0|debugpy.*1\.5\.1|certifi.*2021\.10\.8|tqdm.*4\.62\.3)'
+        exclude: '(pyzmq.*22\.3\.0|debugpy.*1\.5\.1|certifi.*2021\.10\.8|tqdm.*4\.62\.3|webencodings.*0\.5\.1)'
         # pyzmq is Revised BSD https://github.com/zeromq/pyzmq/blob/main/examples/LICENSE
         # debugpy is MIT https://github.com/microsoft/debugpy/blob/main/LICENSE
         # certifi is MPL-2.0 https://github.com/certifi/python-certifi/blob/master/LICENSE
         # tqdm is MPL-2.0 https://github.com/tqdm/tqdm/blob/master/LICENCE
+        # webencodings is BSD https://github.com/gsnedders/python-webencodings/blob/master/LICENSE
     - name: Print report
       if: ${{ always() }}
       run: echo "${{ steps.license_check_report.outputs.report }}"
+
+
+#  documentation-check:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v2
+#      - uses: actions/setup-node@v1
+#        with:
+#          node-version: '14.x'
+#      - name: Test Build
+#        run: |
+#          make website
+#          cd docs/_website
+#          if [ -e package-lock.json ]; then
+#            npm ci
+#          else
+#            npm i
+#          fi
+#          npm run build

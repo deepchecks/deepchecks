@@ -19,8 +19,6 @@ from deepchecks.checks.integrity import (
     SpecialCharacters,
     StringMismatchComparison,
     CategoryMismatchTrainTest,
-    NewLabelTrainTest,
-    RareFormatDetection,
     DominantFrequencyChange,
     StringLengthOutOfBounds,
     LabelAmbiguity
@@ -46,7 +44,6 @@ def single_dataset_integrity_suite() -> Suite:
         MixedTypes().add_condition_rare_type_ratio_not_less_than(),
         StringMismatch().add_condition_no_variants(),
         DataDuplicates().add_condition_ratio_not_greater_than(),
-        RareFormatDetection().add_condition_ratio_of_rare_formats_not_greater_than(),
         StringLengthOutOfBounds().add_condition_ratio_of_outliers_not_greater_than(),
         SpecialCharacters().add_condition_ratio_of_special_characters_not_grater_than(),
         LabelAmbiguity().add_condition_ambiguous_sample_ratio_not_greater_than()
@@ -63,7 +60,6 @@ def comparative_integrity_suite() -> Suite:
         StringMismatchComparison().add_condition_no_new_variants(),
         CategoryMismatchTrainTest().add_condition_new_categories_not_greater_than(),
         DominantFrequencyChange().add_condition_ratio_of_change_not_more_than(),
-        NewLabelTrainTest().add_condition_new_labels_not_greater_than()
     )
 
 

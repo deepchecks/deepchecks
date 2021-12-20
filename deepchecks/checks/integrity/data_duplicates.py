@@ -74,7 +74,17 @@ class DataDuplicates(SingleDatasetBaseCheck):
         percent_duplicate = 1 - (1.0 * int(n_unique)) / (1.0 * int(n_samples))
 
         if percent_duplicate > 0:
+            # patched for anonymous_series
+            is_anonymous_series = 0 in group_unique_data.keys().names
+            if is_anonymous_series:
+                new_name = str(group_unique_data.keys().names)
+                new_index = group_unique_data.keys()
+                new_index.names = [new_name if name==0 else name for name in new_index.names]
+                group_unique_data = group_unique_data.reindex(new_index)
             duplicates_counted = group_unique_data.reset_index().rename(columns={0: 'Number of Duplicates'})
+            if is_anonymous_series:
+                duplicates_counted.rename(columns={new_name: 0}, inplace=True)
+
             most_duplicates = duplicates_counted[duplicates_counted['Number of Duplicates'] > 1]. \
                 nlargest(self.n_to_show, ['Number of Duplicates'])
 
