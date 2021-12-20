@@ -44,7 +44,7 @@ def util_generate_second_similar_dataframe_and_expected():
 
 def test_assert_single_feature_contribution():
     df, expected = util_generate_dataframe_and_expected()
-    result = SingleFeatureContribution().run(dataset=Dataset(df, label='label'))
+    result = SingleFeatureContribution().run(dataset=Dataset(df, label_name='label'))
 
     assert_that(result.value, has_entries(expected))
 
@@ -55,7 +55,7 @@ def test_show_top_single_feature_contribution():
     check = SingleFeatureContribution(n_show_top=3)
 
     # Act
-    result = check.run(dataset=Dataset(df, label='label'))
+    result = check.run(dataset=Dataset(df, label_name='label'))
 
     # Assert
     assert_that(result.value, has_length(5))
@@ -79,16 +79,16 @@ def test_dataset_no_label():
 
 def test_trainval_assert_single_feature_contribution():
     df, df2, expected = util_generate_second_similar_dataframe_and_expected()
-    result = SingleFeatureContributionTrainTest().run(train_dataset=Dataset(df, label='label'),
-                                                      test_dataset=Dataset(df2, label='label'))
+    result = SingleFeatureContributionTrainTest().run(train_dataset=Dataset(df, label_name='label'),
+                                                      test_dataset=Dataset(df2, label_name='label'))
 
     assert_that(result.value, has_entries(expected))
 
 
 def test_trainval_show_top_single_feature_contribution():
     df, df2, expected = util_generate_second_similar_dataframe_and_expected()
-    result = SingleFeatureContributionTrainTest(n_show_top=3).run(train_dataset=Dataset(df, label='label'),
-                                                                  test_dataset=Dataset(df2, label='label'))
+    result = SingleFeatureContributionTrainTest(n_show_top=3).run(train_dataset=Dataset(df, label_name='label'),
+                                                                  test_dataset=Dataset(df2, label_name='label'))
     assert_that(result.value, has_length(5))
     assert_that(result.value, has_entries(expected))
 
@@ -115,8 +115,8 @@ def test_trainval_dataset_diff_columns():
     df = df.rename({'x2': 'x6'}, axis=1)
     assert_that(
         calling(SingleFeatureContributionTrainTest().run)
-            .with_args(train_dataset=Dataset(df, label='label'),
-                       test_dataset=Dataset(df2, label='label')),
+            .with_args(train_dataset=Dataset(df, label_name='label'),
+                       test_dataset=Dataset(df2, label_name='label')),
         raises(DeepchecksValueError,
                'Check requires datasets to share the same features'))
 
@@ -124,7 +124,7 @@ def test_trainval_dataset_diff_columns():
 def test_all_features_pps_upper_bound_condition_that_should_not_pass():
     # Arrange
     df, _ = util_generate_dataframe_and_expected()
-    dataset = Dataset(df, label="label")
+    dataset = Dataset(df, label_name="label")
     condition_value = 0.4
     check = SingleFeatureContribution().add_condition_feature_pps_not_greater_than(condition_value)
 
@@ -145,7 +145,7 @@ def test_all_features_pps_upper_bound_condition_that_should_not_pass():
 def test_all_features_pps_upper_bound_condition_that_should_pass():
     # Arrange
     df, expected = util_generate_dataframe_and_expected()
-    dataset = Dataset(df, label="label")
+    dataset = Dataset(df, label_name="label")
     condition_value = 0.9
     check = SingleFeatureContribution().add_condition_feature_pps_not_greater_than(condition_value)
 
@@ -169,8 +169,8 @@ def test_train_test_condition_pps_difference_pass():
     check = SingleFeatureContributionTrainTest().add_condition_feature_pps_difference_not_greater_than(condition_value)
 
     # Act
-    result = SingleFeatureContributionTrainTest().run(train_dataset=Dataset(df, label='label'),
-                                                      test_dataset=Dataset(df2, label='label'))
+    result = SingleFeatureContributionTrainTest().run(train_dataset=Dataset(df, label_name='label'),
+                                                      test_dataset=Dataset(df2, label_name='label'))
     condition_result, *_ = check.conditions_decision(result)
     print(result)
 
@@ -191,8 +191,8 @@ def test_train_test_condition_pps_difference_fail():
     check = SingleFeatureContributionTrainTest().add_condition_feature_pps_difference_not_greater_than(condition_value)
 
     # Act
-    result = SingleFeatureContributionTrainTest().run(train_dataset=Dataset(df, label='label'),
-                                                      test_dataset=Dataset(df2, label='label'))
+    result = SingleFeatureContributionTrainTest().run(train_dataset=Dataset(df, label_name='label'),
+                                                      test_dataset=Dataset(df2, label_name='label'))
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert

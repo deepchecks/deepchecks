@@ -9,19 +9,19 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing feature importance calculations."""
+from functools import lru_cache
 import typing as t
 import numpy as np
 import pandas as pd
 
-from sklearn.base import BaseEstimator
 from sklearn.inspection import permutation_importance
 from sklearn.pipeline import Pipeline
-from sklearn.utils.validation import check_is_fitted
 
 from deepchecks import base
 from deepchecks import errors
 from deepchecks.utils import validation
 from deepchecks.utils.typing import Hashable
+from deepchecks.utils.model import get_model_of_pipeline
 
 
 __all__ = [
@@ -53,42 +53,50 @@ def calculate_feature_importance_or_null(dataset: 'base.Dataset', model: t.Any) 
     return feature_importances
 
 
-def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset', random_state: int = 42) -> pd.Series:
+def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset',
+                                 force_permutation: bool = False,
+                                 permutation_wkargs: dict = None) -> pd.Series:
     """Calculate features effect on the label.
 
     Args:
         model (Any): A fitted model
         dataset (Dataset): dataset used to fit the model
-        random_state (int): random seed for permutation importance calculation
+        force_permutation (bool): force permutation importance calculation
+        permutation_wkargs (dict): kwargs for permutation importance calculation
     Returns:
         pd.Series of feature importance normalized to 0-1 indexed by feature names
 
     Raise:
         NotFittedError: Call 'fit' with appropriate arguments before using this estimator.
     """
-    # special condition - check_is_fitted doesn't work for Pipeline
-    if isinstance(model, Pipeline):
-        # get feature importance from last model in pipeline
-        internal_estimator_list = [x[1] for x in model.steps if isinstance(x[1], BaseEstimator)]
-        if internal_estimator_list:
-            internal_estimator = internal_estimator_list[-1]
-            check_is_fitted(internal_estimator)
-        else:
-            internal_estimator = None
-    else:
-        check_is_fitted(model)
+    if permutation_wkargs is None:
+        permutation_wkargs = {}
+
+    # Maintain reproducibility
+    if 'random_state' not in permutation_wkargs:
+        permutation_wkargs['random_state'] = 42
 
     validation.validate_model(dataset, model)
 
-    feature_importances = _built_in_importance(model, dataset)
-    if feature_importances is None:
-        if isinstance(model, Pipeline):
-            if internal_estimator is not None:
+    if force_permutation:
+        # force permutation importance calculation
+        feature_importances = _calc_importance(model, dataset, **permutation_wkargs)
+    else:
+        feature_importances = _built_in_importance(model, dataset)
+
+    # if _built_in_importance was calculated and returned None, check if pipeline and / or attempt
+    # permutation importance
+    if isinstance(model, Pipeline) and feature_importances is None:
+        internal_estimator = get_model_of_pipeline(model)
+        if internal_estimator is not None:
+            # incase pipeline had an encoder
+            try:
                 feature_importances = _built_in_importance(internal_estimator, dataset)
-            else:
-                feature_importances = _calc_importance(model, dataset, random_state=random_state)
-        else:  # Others
-            feature_importances = _calc_importance(model, dataset, random_state=random_state)
+            except ValueError:
+                pass
+
+    if feature_importances is None:
+        feature_importances = _calc_importance(model, dataset, **permutation_wkargs)
 
     return feature_importances.fillna(0)
 
@@ -106,22 +114,42 @@ def _built_in_importance(model: t.Any, dataset: 'base.Dataset') -> t.Optional[pd
         return
 
 
+@lru_cache(maxsize=32)
 def _calc_importance(
     model: t.Any,
     dataset: 'base.Dataset',
     n_repeats: int = 30,
+    mask_high_variance_features: bool = False,
     random_state: int = 42,
-    n_samples: int = 10000
+    n_samples: int = 10000,
 ) -> pd.Series:
-    """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal."""
+    """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal.
+
+    Args:
+        model (Any): A fitted model
+        dataset (Dataset): dataset used to fit the model
+        n_repeats (int): Number of times to permute a feature
+        mask_high_variance_features (bool): If true, features for whome calculated permuation importance values
+                                            varied gratly would be returned has having 0 feature importance
+        random_state (int): Random seed for permutation importance calculation.
+        n_samples (int): The number of samples to draw from X to compute feature importance
+                        in each repeat (without replacement).
+    Returns:
+        pd.Series of feature importance normalized to 0-1 indexed by feature names
+    """
     dataset.validate_label()
+
     n_samples = min(n_samples, dataset.n_samples)
-    dataset_sample_idx = dataset.label_col.sample(n_samples).index
+    dataset_sample_idx = dataset.label_col.sample(n_samples, random_state=random_state).index
     r = permutation_importance(model, dataset.features_columns.loc[dataset_sample_idx, :],
                                dataset.label_col.loc[dataset_sample_idx],
                                n_repeats=n_repeats,
-                               random_state=random_state)
-    significance_mask = r.importances_mean - r.importances_std > 0
+                               random_state=random_state,
+                               n_jobs=-1)
+    if mask_high_variance_features:
+        significance_mask = r.importances_mean - r.importances_std > 0
+    else:
+        significance_mask = r.importances_mean > 0
     feature_importances = r.importances_mean * significance_mask
     total = feature_importances.sum()
     if total != 0:

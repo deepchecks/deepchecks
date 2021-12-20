@@ -22,7 +22,7 @@ class SimpleDatasetCheck(base.SingleDatasetBaseCheck):
         return base.CheckResult("Simple Check")
 
 
-class SimpleTwoDatasetsCheck(base.CompareDatasetsBaseCheck):
+class SimpleTwoDatasetsCheck(base.TrainTestBaseCheck):
     def run(self, first: base.Dataset, second: base.Dataset, model: object = None) -> base.CheckResult:
         return base.CheckResult("Simple Check")
 
