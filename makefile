@@ -19,11 +19,14 @@ ext_py := $(shell which python3 || which python)
 # Override by putting in commandline python=XXX when needed.
 python = $(shell echo ${ext_py} | rev | cut -d '/' -f 1 | rev)
 TESTDIR = $(shell realpath tests)
+WIN_TESTDIR = tests # FIXME: this is tmp solution - replace it
 ENV = $(shell realpath venv)
+WIN_ENV = venv # FIXME: this is tmp solution - replace it
 repo = pypi
 
 # System Envs
 BIN := $(ENV)/bin
+WIN_BIN := $(WIN_ENV)/bin
 pythonpath := PYTHONPATH=.
 
 # Venv Executables
@@ -140,16 +143,15 @@ $(ANALIZE): $(PIP)
 test: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 	$(pythonpath) $(TEST_RUNNER) $(args) $(TESTDIR)
 
-
 test-win: 
-	test -d $(ENV) || python -m venv $(ENV)
-	$(ENV)\Scripts\activate.bat
+	test -d $(WIN_ENV) || python -m venv $(WIN_ENV)
+	$(WIN_ENV)\Scripts\activate.bat
 	$(PIP_WIN) $(INSTALLATION_PKGS)
 	for f in $(REQUIRE); do \
 	 $(PIP_WIN) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
 	done
 	$(PIP_WIN) install $(TEST_RUNNER_PKGS)
-	python -m pytest $(TESTDIR)
+	python -m pytest $(WIN_TESTDIR)
 
 notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 # if deepchecks is not installed, we need to install it for testing porpuses,
