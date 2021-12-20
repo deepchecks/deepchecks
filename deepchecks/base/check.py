@@ -96,8 +96,10 @@ class ConditionResult:
     @property
     def priority(self) -> int:
         """Return priority of the current condition.
+
         This value is primarily used to determine the order in which
         conditions should be displayed.
+
         Returns:
             int: condition priority value;
         """
@@ -220,12 +222,14 @@ class CheckResult:
     @property
     def priority(self) -> int:
         """Return priority of the current result.
+
         This value is primarly used to determine suite output order.
         The logic is next:
             - if at least one condition did not pass and is of category 'FAIL', return 1;
             - if at least one condition did not pass and is of category 'WARN', return 2;
             - if check result do not have assigned conditions, return 3
             - if all conditions passed, return 4 ;
+
         Returns:
             int: priority of the cehck result.
         """
@@ -233,7 +237,6 @@ class CheckResult:
             return 3
 
         for c in self.conditions_results:
-            c.priority
             if c.is_pass is False and c.category == ConditionCategory.FAIL:
                 return 1
             if c.is_pass is False and c.category == ConditionCategory.WARN:
