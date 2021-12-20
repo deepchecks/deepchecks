@@ -12,6 +12,7 @@ name: Pull Request
 on:
   pull_request:
     types: [opened, labeled, unlabeled, synchronize]
+    branches: [ main ]
 jobs:
   labels:
     name: Validate Label 
@@ -28,3 +29,24 @@ jobs:
           mode: exactly
           count: 0
           labels: 'help wanted, wontfix, question, good first issue, invalid, duplicate'
+
+  notebooks-update:
+    runs-on: ubuntu-latest
+    name: Update Example notebooks
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Update notebooks
+        run: ./.github/scripts/update_version.sh
+
+      - name: Update version
+        uses: test-room-7/action-update-file@v1
+        with:
+          file-path: docs/source/examples/howto-guides/*.ipynb
+          commit-msg: Updating example notebooks
+          github-token: ${{ secrets.CI_GH_TOKEN }}
+
