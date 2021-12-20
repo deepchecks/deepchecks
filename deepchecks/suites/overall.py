@@ -9,8 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """The predefined overfit suite module."""
-from deepchecks.suites.methodology_suite import methodological_flaws_suite
-from deepchecks.suites.distribution_suite import data_distribution_suite
+from deepchecks.suites.methodology import methodological_flaws_suite
+from deepchecks.suites.distribution import data_distribution_suite
 from deepchecks import Suite
 from deepchecks.suites import (
     integrity_suite,

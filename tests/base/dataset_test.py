@@ -211,7 +211,7 @@ def test_dataset_bad_label_name(iris):
 
 def test_dataset_use_index(iris):
     args = {'df': iris,
-            'use_default_index': True}
+            'create_index_from_dataframe_index': True}
     dataset = Dataset(**args)
     assert_dataset(dataset, args)
 
@@ -219,9 +219,9 @@ def test_dataset_use_index(iris):
 def test_dataset_index_use_index(iris):
     args = {'df': iris,
             'index_name': 'target',
-            'use_default_index': True}
+            'create_index_from_dataframe_index': True}
     assert_that(calling(Dataset).with_args(**args),
-                raises(DeepchecksValueError, 'parameter use_default_index cannot be True if index is given'))
+                raises(DeepchecksValueError, 'parameter create_index_from_dataframe_index cannot be True if index is given'))
 
 
 def test_dataset_index_from_column(iris):
@@ -240,7 +240,7 @@ def test_dataset_index_in_df(iris):
             'index_name': 'index'}
     assert_that(calling(Dataset).with_args(**args),
                 raises(DeepchecksValueError, 'index column index not found in dataset columns. If you attempted to use '
-                                           'the dataframe index, set use_default_index to True instead.'))
+                                           'the dataframe index, set create_index_from_dataframe_index to True instead.'))
 
 
 def test_dataset_index_in_features(iris):

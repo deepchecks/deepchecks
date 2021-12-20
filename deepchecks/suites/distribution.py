@@ -13,6 +13,9 @@ from deepchecks import Suite
 from deepchecks.checks.distribution import TrainTestFeatureDrift, WholeDatasetDrift
 
 
+__all__ = ["data_distribution_suite"]
+
+
 def data_distribution_suite() -> Suite:
     """Create 'Data Distribution Suite'.
 

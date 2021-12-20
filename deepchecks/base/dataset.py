@@ -63,9 +63,10 @@ class Dataset:
         features: t.Optional[t.Sequence[Hashable]] = None,
         cat_features: t.Optional[t.Sequence[Hashable]] = None,
         label_name: t.Optional[Hashable] = None,
-        use_default_index: bool = False,
         index_name: t.Optional[Hashable] = None,
+        create_index_from_dataframe_index: bool = False,
         date_name: t.Optional[Hashable] = None,
+        create_date_from_dataframe_index: bool = False,
         date_args: t.Optional[t.Dict] = None,
         convert_date_: bool = True,
         max_categorical_ratio: float = 0.01,
@@ -88,13 +89,20 @@ class Dataset:
             label_name (Optional[Hashable]):
                 If `label` is given, then this name is used as the column name for the labels.
                 If `label` is none, then looks for this name in the data dataframe.
-            use_default_index (bool, default False):
-                Whether to use the dataframe index as the index column, for index related checks. can't be used
-                together with `index_name`
             index_name (Optional[Hashable]):
-                Name of the index column in the DataFrame. can't be used together with `use_default_index`
+                Name of the index column in the dataframe. If create_index_from_dataframe_index is True and index_name
+                is not None,index will be created from the dataframe index level with the given name. If index levels
+                have no names, an int must be used to select the appropriate level by order.
+            create_index_from_dataframe_index (bool, default False):
+                If set to true, index will be created from the dataframe index instead of dataframe columns (default).
+                If index_name is None, first level of the index will be used in case of a multilevel index.
             date_name (Optional[Hashable]):
-                Name of the date column in the DataFrame.
+                Name of the date column in the dataframe. If create_date_from_dataframe_index is True and date_name
+                is not None,date will be created from the dataframe index level with the given name. If index levels
+                have no names, an int must be used to select the appropriate level by order.
+            create_date_from_dataframe_index (bool, default False):
+                If set to true, date will be created from the dataframe index instead of dataframe columns (default).
+                If date_name is None, first level of the index will be used in case of a multilevel index.
             date_args (Optional[Dict]):
                 pandas.to_datetime args used for conversion of the date column.
                 (look at https://pandas.pydata.org/docs/reference/api/pandas.to_datetime.html for more documentation)
@@ -114,6 +122,8 @@ class Dataset:
         if label is not None:
             if label.shape[0] != self._data.shape[0]:
                 raise DeepchecksValueError('Number of samples of label and data must be equal')
+            if label.shape[1] != 1:
+                raise DeepchecksValueError('Label must be a column vector')
             # Make tests to prevent overriding user column
             if label_name is None:
                 label_name = 'target'
@@ -124,15 +134,16 @@ class Dataset:
                 if label_name in self._data.columns:
                     raise DeepchecksValueError('Can\'t pass label with label_name that exists in the data. change '
                                                'the label_name parameter')
-            self._data[label_name] = label
+            # Cast to numpy to promise no index collisions
+            self._data[label_name] = np.array(label)
 
-        if use_default_index is True and index_name is not None:
-            raise DeepchecksValueError('parameter use_default_index cannot be True if index is given')
+        if create_index_from_dataframe_index is True and index_name is not None:
+            raise DeepchecksValueError('parameter create_index_from_dataframe_index cannot be True if index is given')
 
         if index_name is not None and index_name not in self._data.columns:
             error_message = f'index column {index_name} not found in dataset columns.'
             if index_name == 'index':
-                error_message += ' If you attempted to use the dataframe index, set use_default_index to True instead.'
+                error_message += ' If you attempted to use the dataframe index, set create_index_from_dataframe_index to True instead.'
             raise DeepchecksValueError(error_message)
 
         if date_name is not None and date_name not in self._data.columns:
@@ -152,7 +163,7 @@ class Dataset:
             self._features = [x for x in self._data.columns if x not in {label_name, index_name, date_name}]
 
         self._label_name = label_name
-        self._use_default_index = use_default_index
+        self._use_default_index = create_index_from_dataframe_index
         self._index_name = index_name
         self._date_name = date_name
         self._date_args = date_args or {}
