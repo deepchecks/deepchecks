@@ -18,7 +18,7 @@ import numpy as np
 from deepchecks.utils.plot import colors
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
-from deepchecks.utils.metrics import get_scorers_list
+from deepchecks.utils.metrics import get_scorers_list, calculate_scorer_with_nulls
 from deepchecks import (
     Dataset,
     CheckResult,
@@ -90,12 +90,11 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
 
         scorers = get_scorers_list(model, train_dataset, self.alternative_scorers)
 
-        train_scores = {key: scorer(model, train_dataset.data[train_dataset.features], train_dataset.label_col)
-                         for key, scorer in scorers.items()}
-
-        test_scores = {key: scorer(model, test_dataset.data[test_dataset.features],
-                                    test_dataset.label_col)
+        train_scores = {key: calculate_scorer_with_nulls(model, train_dataset, scorer)
                         for key, scorer in scorers.items()}
+
+        test_scores = {key: calculate_scorer_with_nulls(model, test_dataset, scorer)
+                       for key, scorer in scorers.items()}
 
         result = {'test': test_scores, 'train': train_scores}
 

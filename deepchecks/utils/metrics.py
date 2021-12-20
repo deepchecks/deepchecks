@@ -135,6 +135,12 @@ def task_type_validation(
         )
 
 
+def calculate_scorer_with_nulls(model, dataset: 'base.Dataset', scorer: t.Callable) -> float:
+    label = dataset.label_col
+    valid_idx = label.notna()
+    return scorer(model, dataset.features_columns[valid_idx], label[valid_idx])
+
+
 def get_scorers_list(
     model,
     dataset: 'base.Dataset',
