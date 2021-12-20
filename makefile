@@ -109,7 +109,7 @@ help:
 all: validate test notebook
 
 
-env: $(REQUIREMENTS_LOG)
+env: $(REQUIREMENTS_LOG) $(JUPYTER)
 $(PIP):
 	$(info #### Remember to source new environment  [ $(ENV) ] ####)
 	@echo "external python_exe is $(ext_py)"
