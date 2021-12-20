@@ -171,6 +171,7 @@ class BoostingOverfit(TrainTestBaseCheck):
         else:
             metric_name = DEFAULT_SINGLE_METRIC[model_type]
             scorer = DEFAULT_METRICS_DICT[model_type][metric_name]
+            metric_name = metric_name + ' (Default)'
 
         # Get number of estimators on model
         num_estimators = PartialBoostingModel.n_estimators(model)
@@ -193,8 +194,13 @@ class BoostingOverfit(TrainTestBaseCheck):
             # Display x ticks as integers
             axes.xaxis.set_major_locator(MaxNLocator(integer=True))
 
+        display_text = f"""<span>
+            The check is done by limiting the boosting model to use up to X estimators ech time, and plotting the
+            {metric_name} calculated for each subset of estimators for both the train dataset and the test dataset.
+        </span>"""
+
         result = {'test': test_scores, 'train': train_scores}
-        return CheckResult(result, display=display_func, header='Boosting Overfit')
+        return CheckResult(result, display=[display_text, display_func], header='Boosting Overfit')
 
     def add_condition_test_score_percent_decline_not_greater_than(self, threshold: float = 0.05):
         """Add condition.
