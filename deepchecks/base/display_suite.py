@@ -19,7 +19,7 @@ import pandas as pd
 from IPython.core.display import display_html
 
 from deepchecks.utils.strings import get_random_string
-from deepchecks.base.check import CheckResult, CheckFailure, ConditionResult
+from deepchecks.base.check import CheckResult, CheckFailure
 from deepchecks.base.display_pandas import dataframe_to_html, display_conditions_table
 
 
