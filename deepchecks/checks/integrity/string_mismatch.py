@@ -22,7 +22,7 @@ from deepchecks import (
     ConditionResult,
     ConditionCategory
 )
-from deepchecks.utils.dataframes import filter_columns_with_validation
+from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.strings import (
@@ -85,7 +85,7 @@ class StringMismatch(SingleDatasetBaseCheck):
         # Validate parameters
         original_dataset = dataset
         dataset: pd.DataFrame = ensure_dataframe_type(dataset)
-        dataset = filter_columns_with_validation(dataset, self.columns, self.ignore_columns)
+        dataset = select_from_dataframe(dataset, self.columns, self.ignore_columns)
 
         results = []
         result_dict = defaultdict(dict)

@@ -21,7 +21,7 @@ from scipy import stats
 from deepchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ensure_dataframe_type, ConditionResult
 from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
 from deepchecks.utils.strings import is_string_column, format_number, format_columns_for_condition, format_percent
-from deepchecks.utils.dataframes import filter_columns_with_validation
+from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.typing import Hashable
 
 
@@ -126,7 +126,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                                      feature_importances: pd.Series = None) -> CheckResult:
         # Validate parameters
         df: pd.DataFrame = ensure_dataframe_type(dataset)
-        df = filter_columns_with_validation(df, self.columns, self.ignore_columns)
+        df = select_from_dataframe(df, self.columns, self.ignore_columns)
 
         display_format = []
         results = defaultdict(lambda: {'outliers': []})

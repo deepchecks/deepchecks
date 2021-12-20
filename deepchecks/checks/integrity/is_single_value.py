@@ -12,7 +12,7 @@
 from typing import Union, List
 import pandas as pd
 from deepchecks import SingleDatasetBaseCheck, CheckResult, ensure_dataframe_type, Dataset, ConditionResult
-from deepchecks.utils.dataframes import filter_columns_with_validation
+from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_columns_for_condition
 from deepchecks.utils.typing import Hashable
 
@@ -57,7 +57,7 @@ class IsSingleValue(SingleDatasetBaseCheck):
     def _is_single_value(self, dataset: Union[pd.DataFrame, Dataset]) -> CheckResult:
         # Validate parameters
         dataset = ensure_dataframe_type(dataset)
-        dataset = filter_columns_with_validation(dataset, self.columns, self.ignore_columns)
+        dataset = select_from_dataframe(dataset, self.columns, self.ignore_columns)
 
         is_single_unique_value = (dataset.nunique(dropna=False) == 1)
 

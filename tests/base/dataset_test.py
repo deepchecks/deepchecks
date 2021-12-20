@@ -370,21 +370,21 @@ def test_dataset_validate_no_index(iris):
                 raises(DeepchecksValueError, 'Check requires dataset to have an index column'))
 
 
-def test_dataset_filter_columns_with_validation(iris):
+def test_dataset_select_method(iris):
     dataset = Dataset(iris)
-    filtered = dataset.filter_columns_with_validation(columns=['target'])
+    filtered = dataset.select(columns=['target'])
     assert_that(filtered, instance_of(Dataset))
 
 
-def test_dataset_filter_columns_with_validation_ignore_columns(iris):
+def test_dataset_select_ignore_columns(iris):
     dataset = Dataset(iris)
-    filtered = dataset.filter_columns_with_validation(ignore_columns=['target'])
+    filtered = dataset.select(ignore_columns=['target'])
     assert_that(filtered, instance_of(Dataset))
 
 
-def test_dataset_filter_columns_with_validation_same_table(iris):
+def test_dataset_select_same_table(iris):
     dataset = Dataset(iris, features=['target'])
-    filtered = dataset.filter_columns_with_validation(ignore_columns=['target'])
+    filtered = dataset.select(ignore_columns=['target'])
     assert_that(filtered, instance_of(Dataset))
 
 

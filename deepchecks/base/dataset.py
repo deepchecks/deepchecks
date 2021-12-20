@@ -16,9 +16,9 @@ import logging
 
 import numpy as np
 import pandas as pd
-from pandas.core.dtypes.common import is_float_dtype
 
-from deepchecks.utils.dataframes import filter_columns_with_validation
+from deepchecks.utils.dataframes import select_from_dataframe
+from deepchecks.utils.features import is_categorical, infer_categorical_features
 from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
@@ -183,7 +183,13 @@ class Dataset:
                                            f'have not been found in feature list.')
             self.cat_features = list(cat_features)
         else:
-            self.cat_features = self.infer_categorical_features()
+            self.cat_features = self._infer_categorical_features(
+                self._data,
+                max_categorical_ratio,
+                max_categories,
+                max_float_categories,
+                self._features
+            )
 
         if self._date_name and convert_date_:
             self._data[self._date_name] = pd.to_datetime(self._data[self._date_name], **self._date_args)
@@ -349,43 +355,48 @@ class Dataset:
         """
         return self.data.shape[0]
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Return number of samples in the member dataframe."""
         return self.n_samples
 
-    def infer_categorical_features(self) -> t.List[Hashable]:
+    @staticmethod
+    def _infer_categorical_features(
+        df: pd.DataFrame,
+        max_categorical_ratio: float,
+        max_categories: int,
+        max_float_categories: int,
+        columns: t.Optional[t.List[Hashable]] = None,
+    ) -> t.List[Hashable]:
         """Infers which features are categorical by checking types and number of unique values.
 
         Returns:
            Out of the list of feature names, returns list of categorical features
         """
-        cat_columns = []
+        categorical_columns = infer_categorical_features(
+            df,
+            max_categorical_ratio,
+            max_categories,
+            max_float_categories,
+            columns
+        )
 
-        # Checking for categorical dtypes
-        cat_dtypes = self.data.select_dtypes(include='category')
-        if len(cat_dtypes.columns) > 0:
-            return list(cat_dtypes.columns)
-
-        for col in self._features:
-            if self.is_categorical(col):
-                cat_columns.append(col)
-
-        if len(cat_columns) > 0:
-            if len(cat_columns) < 7:
-                stringified_columns = ", ".join(map(str, cat_columns))
-                print(
-                    'Automatically inferred these columns as categorical features: '
-                    f'{stringified_columns}. \n'
+        if len(categorical_columns) > 0:
+            columns = list(map(str, categorical_columns))[:7]
+            stringified_columns = ", ".join(columns)
+            if len(categorical_columns) < 7:
+                logger.warning(
+                    'Automatically inferred these columns as categorical features: %s. \n',
+                    stringified_columns
                 )
             else:
-                stringified_columns = ", ".join(list(map(str, cat_columns))[:7])
-                print(
+                logger.warning(
                     'Some columns have been inferred as categorical features: '
-                    f'{stringified_columns}. \n and more... \n For the full list '
-                    'of columns, use dataset.cat_features'
+                    '%s. \n and more... \n For the full list '
+                    'of columns, use dataset.cat_features',
+                    stringified_columns
                 )
 
-        return cat_columns
+        return categorical_columns
 
     def is_categorical(self, col_name: Hashable) -> bool:
         """Check if uniques are few enough to count as categorical.
@@ -396,14 +407,7 @@ class Dataset:
         Returns:
             If is categorical according to input numbers
         """
-        col_data = self.data[col_name]
-        n_unique = col_data.nunique(dropna=True)
-        n_samples = len(col_data.dropna())
-
-        if is_float_dtype(col_data):
-            return n_unique <= self._max_float_categories
-
-        return n_unique / n_samples < self._max_categorical_ratio and n_unique <= self._max_categories
+        return is_categorical(t.cast(pd.Series, self._data[col_name]))
 
     @property
     def index_name(self) -> t.Optional[Hashable]:
@@ -575,7 +579,7 @@ class Dataset:
         if self.index_name is None:
             raise DeepchecksValueError('Check requires dataset to have an index column')
 
-    def filter_columns_with_validation(
+    def select(
         self: TDataset,
         columns: t.Union[Hashable, t.List[Hashable], None] = None,
         ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None
@@ -592,7 +596,7 @@ class Dataset:
         Raise:
             DeepchecksValueError: In case one of columns given don't exists raise error
         """
-        new_data = filter_columns_with_validation(self.data, columns, ignore_columns)
+        new_data = select_from_dataframe(self._data, columns, ignore_columns)
         if new_data.equals(self.data):
             return self
         else:
