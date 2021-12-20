@@ -57,9 +57,9 @@ REQUIREMENTS_LOG := .requirements.log
 ANALIZE_PKGS = pylint pydocstyle
 TEST_CODE := tests/
 TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval
-NOTEBOOK_CHECKS = ./notebooks/checks
-NOTEBOOK_EXAMPLES = ./notebooks/examples/*.ipynb
-NOTEBOOK_SANITIZER_FILE= ./notebooks/.nbval-sanitizer
+NOTEBOOK_CHECKS = ./docs/source/examples/checks
+NOTEBOOK_EXAMPLES = ./docs/source/examples/howto-guides/*.ipynb
+NOTEBOOK_SANITIZER_FILE= ./docs/source/examples/.nbval-sanitizer
 
 PYLINT_LOG = .pylint.log
 
