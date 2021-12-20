@@ -30,16 +30,22 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
         ignore_columns (Union[Hashable, List[Hashable]]):
             Columns to ignore, if none given checks based on columns
             variable.
+        max_features_to_show (int): maximum features with new categories to show
+        max_new_categories_to_show (int): maximum new categories to show in feature
     """
 
     def __init__(
         self,
         columns: Union[Hashable, List[Hashable], None] = None,
-        ignore_columns: Union[Hashable, List[Hashable], None] = None
+        ignore_columns: Union[Hashable, List[Hashable], None] = None,
+        max_features_to_show: int = 5,
+        max_new_categories_to_show: int = 5
     ):
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
+        self.max_features_to_show = max_features_to_show
+        self.max_new_categories_to_show = max_new_categories_to_show
 
     def run(self, train_dataset: Dataset, test_dataset: Dataset, model=None) -> CheckResult:
         """Run check.
@@ -101,25 +107,30 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
             if new_category_values:
                 n_new_cat = len(test_column[test_column.isin(new_category_values)])
 
-                new_categories.append([feature,
-                                       n_new_cat,
-                                       n_test_samples,
-                                       sorted(new_category_values)])
+                new_categories.append({'name': feature,
+                                       'n_new': n_new_cat,
+                                       'n_total_samples': n_test_samples,
+                                       'new_categories': sorted(new_category_values)})
 
         if new_categories:
-            dataframe = pd.DataFrame(data=[[new_category[0],
-                                            format_percent(new_category[1]/new_category[2]),
-                                            new_category[3]]
-                                           for new_category in new_categories],
-                                     columns=['Column', 'Percent of new categories in sample', 'New categories'])
+            dataframe = pd.DataFrame(data=[[new_category['name'],
+                                            len(new_category['new_categories']),
+                                            format_percent(
+                                                new_category['n_new']/new_category['n_total_samples']),
+                                            new_category['new_categories'][:self.max_new_categories_to_show]]
+                                           for new_category in new_categories[:self.max_features_to_show]],
+                                     columns=['Column',
+                                              'Number of new categories',
+                                              'Percent of new categories in sample',
+                                              'New categories examples'])
             dataframe = dataframe.set_index(['Column'])
 
             display = dataframe
 
-            new_categories = dict(map(lambda category: (category[0], {
-                'n_new': category[1],
-                'n_total_samples': category[2],
-                'new_categories': category[3]
+            new_categories = dict(map(lambda category: (category['name'], {
+                'n_new': category['n_new'],
+                'n_total_samples': category['n_total_samples'],
+                'new_categories': category['new_categories']
             }), new_categories))
         else:
             display = None
