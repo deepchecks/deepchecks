@@ -49,4 +49,4 @@ jobs:
           file-path: docs/source/examples/howto-guides/*.ipynb
           commit-msg: NotebooksUpdateBot@@Updating example notebooks
           github-token: ${{ secrets.CI_GH_TOKEN }}
-          branch: $GITHUB_REF_NAME
+          branch: ${{ github.ref_name }}
