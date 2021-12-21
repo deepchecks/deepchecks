@@ -40,7 +40,7 @@ def test_class_performance_imbalance(
 def test_init_class_performance_imbalance_with_empty_dict_of_scorers():
     assert_that(
         calling(ClassPerformanceImbalance).with_args(alternative_scorers=dict()),
-        raises(DeepchecksValueError, 'alternative_scorers - expected to receive not empty dict of scorers!')
+        raises(DeepchecksValueError, 'Scorers dictionary can\'t be empty')
     )
 
 
@@ -49,7 +49,7 @@ def test_init_class_performance_imbalance_with_scorers_dict_that_contains_not_ca
         calling(ClassPerformanceImbalance).with_args(alternative_scorers=dict(Metric=1)),
         raises(
             DeepchecksValueError,
-            r"alternative_scorers - expected to receive 'Mapping\[str, Callable\]' but got 'Mapping\[str, int\]'!"
+            r"Scorer Metric value should be either a callable or string but got: int"
         )
     )
 
@@ -103,9 +103,7 @@ def test_class_performance_imbalance_with_custom_scorers_that_return_not_array(
         calling(check.run).with_args(dataset=test, model=model),
         raises(
             DeepchecksValueError,
-            r"Check 'ClassPerformanceImbalance' expecting that scorer 'Test1' "
-            r"will return an instance of numpy array with items of type int\|float and with shape \(3,\)! "
-            r"But got instance of 'int'."
+            r"Expected scorer Test1 to return np.ndarray but got: int"
         )
     )
 
@@ -125,9 +123,7 @@ def test_class_performance_imbalance_with_custom_scorers_that_return_empty_array
         calling(check.run).with_args(dataset=test, model=model),
         raises(
             DeepchecksValueError,
-            r"Check 'ClassPerformanceImbalance' expecting that scorer 'Test3' will "
-            r"return an instance of numpy array with items of type int\|float and with shape \(3,\)! "
-            r"But got array with shape \(0,\)."
+            r"Expected scorer to return array of length 3, but got length 0"
         )
     )
 
@@ -147,9 +143,7 @@ def test_class_performance_imbalance_with_custom_scorers_that_return_array_with_
         calling(check.run).with_args(dataset=test, model=model),
         raises(
             DeepchecksValueError,
-            r"Check 'ClassPerformanceImbalance' expecting that scorer 'Test3' "
-            r"will return an instance of numpy array with items of type int\|float and "
-            r"with shape \(3,\)! But got array of '<U1'."
+            r"Expected scorer Test3 to return np.ndarray of number kind but got: U"
         )
     )
 

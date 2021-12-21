@@ -18,7 +18,7 @@ from matplotlib.ticker import MaxNLocator
 import numpy as np
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.utils.metrics import task_type_check, DEFAULT_SCORERS_DICT, validate_scorer, DEFAULT_SINGLE_SCORER
+from deepchecks.utils.metrics import initialize_single_scorer, get_scorer_single
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
 from deepchecks.utils.model import get_model_of_pipeline
@@ -132,7 +132,7 @@ class BoostingOverfit(TrainTestBaseCheck):
 
     def __init__(self, scorer: Union[Callable, str] = None, scorer_name: str = None, num_steps: int = 20):
         super().__init__()
-        self.scorer = scorer
+        self.scorer = initialize_single_scorer(scorer)
         self.scorer_name = scorer_name
         self.num_steps = num_steps
 
@@ -164,16 +164,7 @@ class BoostingOverfit(TrainTestBaseCheck):
         validate_model(train_dataset, model)
 
         # Get default scorer
-        model_type = task_type_check(model, train_dataset)
-        if self.scorer is not None:
-            scorer = validate_scorer(self.scorer, model, train_dataset)
-            # TODO:
-            # if I understood it right 'scorer_name' var is here to give user ability
-            # to name his scorer function, but it is never used if 'scorer' is instance of callable
-            scorer_name = self.scorer_name or self.scorer if isinstance(self.scorer, str) else 'User score'
-        else:
-            scorer_name = DEFAULT_SINGLE_SCORER[model_type]
-            scorer = DEFAULT_SCORERS_DICT[model_type][scorer_name]
+        scorer_name, scorer = get_scorer_single(model, train_dataset, self.scorer)
 
         # Get number of estimators on model
         num_estimators = PartialBoostingModel.n_estimators(model)
