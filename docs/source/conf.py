@@ -82,6 +82,7 @@ extensions = [
     'sphinx_copybutton',
     'sphinx.ext.githubpages',
     'sphinx_search.extension',
+    'nbsphinx_link',
 ]
 
 
@@ -375,6 +376,7 @@ def generate_colab_url(notebook_path: str) -> str:
     notebook_name = notebook_path.split("/")[-1]
 
     if not is_example_notebook(notebook_name):
+        return None
         raise RuntimeError(f"Not a notebook - {notebook_path}")
 
     template = (
@@ -396,6 +398,7 @@ def generate_binder_url(notebook_path: str) -> str:
     notebook_name = notebook_path.split("/")[-1]
 
     if not is_example_notebook(notebook_name):
+        return None
         raise RuntimeError(f"Not a notebook - {notebook_path}")
 
     template = (
@@ -412,7 +415,7 @@ def generate_binder_url(notebook_path: str) -> str:
 
 @functools.lru_cache(maxsize=None)
 def get_example_notebooks() -> t.Tuple[pathlib.Path, ...]:
-    examples_folder = CURRENT_DIR / "examples"
+    examples_folder = PROJECT_DIR / "notebooks"
 
     if not examples_folder.exists() or not examples_folder.is_dir():
         raise RuntimeError("Did not find the folder with the example notebooks.")

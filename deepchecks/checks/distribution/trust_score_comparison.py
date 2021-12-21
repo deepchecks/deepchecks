@@ -150,11 +150,11 @@ class TrustScoreComparison(TrainTestBaseCheck):
         trust_score_model = TrustScore(k_filter=self.k_filter, alpha=self.alpha)
         trust_score_model.fit(X=x_train.to_numpy(), Y=y_train.to_numpy())
         # Calculate y on train and get scores
-        y_train_pred = model.predict(train_data_sample[features_list])
+        y_train_pred = model.predict(train_data_sample[features_list]).flatten()
         train_trust_scores = trust_score_model.score(x_train.to_numpy(),
                                                      transform_numpy_label(y_train_pred))[0].astype('float64')
         # Calculate y on test dataset using the model
-        y_test_pred = model.predict(test_data_sample[features_list])
+        y_test_pred = model.predict(test_data_sample[features_list]).flatten()
         test_trust_scores = trust_score_model.score(x_test.to_numpy(),
                                                     transform_numpy_label(y_test_pred))[0].astype('float64')
 
