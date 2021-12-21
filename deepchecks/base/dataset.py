@@ -19,7 +19,6 @@ import pandas as pd
 from pandas.core.dtypes.common import is_float_dtype
 
 from deepchecks.utils.dataframes import filter_columns_with_validation
-from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 
@@ -513,10 +512,6 @@ class Dataset:
         labels = self.label_col
         if labels is None:
             return
-        if is_string_column(labels):
-            raise DeepchecksValueError('String labels are not supported')
-        elif pd.isnull(labels).any():
-            raise DeepchecksValueError('Can not have null values in label column')
 
     # Validations:
 

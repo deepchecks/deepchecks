@@ -17,7 +17,7 @@ from .calibration_score import CalibrationScore
 from .segment_performance import SegmentPerformance
 from .regression_systematic_error import RegressionSystematicError
 from .regression_error_distribution import RegressionErrorDistribution
-from .class_performance_imbalance import ClassPerformanceImbalance
+from .class_performance import ClassPerformance
 
 
 __all__ = [
@@ -31,3 +31,4 @@ __all__ = [
     'RegressionErrorDistribution',
     'ClassPerformanceImbalance',
 ]
+

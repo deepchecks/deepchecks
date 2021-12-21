@@ -12,7 +12,7 @@
 from typing import Callable, Dict
 import pandas as pd
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
-from deepchecks.utils.metrics import get_scorers_list
+from deepchecks.utils.metrics import get_scorers_dict, initialize_user_scorers
 from deepchecks.utils.validation import validate_model
 
 
@@ -30,7 +30,7 @@ class PerformanceReport(SingleDatasetBaseCheck):
 
     def __init__(self, alternative_scorers: Dict[str, Callable] = None):
         super().__init__()
-        self.alternative_scorers = alternative_scorers
+        self.alternative_scorers = initialize_user_scorers(alternative_scorers)
 
     def run(self, dataset, model=None) -> CheckResult:
         """Run check.
@@ -50,9 +50,9 @@ class PerformanceReport(SingleDatasetBaseCheck):
         validate_model(dataset, model)
 
         # Get default scorers if no alternative, or validate alternatives
-        scorers = get_scorers_list(model, dataset, self.alternative_scorers)
+        scorers = get_scorers_dict(model, dataset, self.alternative_scorers)
         scores = {
-            key: scorer(model, dataset.features_columns, dataset.label_col)
+            key: scorer(model, dataset)
             for key, scorer in scorers.items()
         }
 

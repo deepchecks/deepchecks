@@ -33,10 +33,32 @@ def test_trust_score_comparison(iris_split_dataset_and_model):
     }))
 
 
-def test_trust_score_comparison_non_consecutive_labels(iris_split_dataset_and_model):
+def test_trust_score_comparison_null_labels(iris_split_dataset_and_model):
     # Arrange
     train, test, _ = iris_split_dataset_and_model
-    replace_dict = {train.label_name: {0: -100, 1: 0, 2: 200}}
+    modified_train_data = test.data.copy()
+    modified_train_data[train.label_name].iloc[0] = float('nan')
+    test = Dataset(modified_train_data,
+                   label_name=test.label_name)
+
+    model = AdaBoostClassifier(random_state=0)
+    model.fit(train.features_columns, train.label_col)
+    check = TrustScoreComparison(min_test_samples=50)
+
+    # Act
+    result = check.run(train, test, model)
+
+    # Assert
+    assert_that(result.value, has_entries({
+        'train': close_to(5.78, 0.01),
+        'test': close_to(4.53, 0.01)
+    }))
+
+
+def test_trust_score_comparison_non_consecutive_string_labels(iris_split_dataset_and_model):
+    # Arrange
+    train, test, _ = iris_split_dataset_and_model
+    replace_dict = {train.label_name: {0: 'b', 1: 'e', 2: 'a'}}
     train = Dataset(train.data.replace(replace_dict),
                     label_name=train.label_name)
     test = Dataset(test.data.replace(replace_dict),
