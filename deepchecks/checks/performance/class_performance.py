@@ -111,7 +111,7 @@ class ClassPerformance(SingleDatasetBaseCheck):
         def display():
             title = (
                 'Binary Class'
-                if unique_labels == 2
+                if len(unique_labels) == 2
                 else 'Multi-Class'
             )
 
