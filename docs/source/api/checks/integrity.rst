@@ -23,7 +23,6 @@ Classes Summary
     mixed_types.MixedTypes
     new_category.CategoryMismatchTrainTest
     new_label.NewLabelTrainTest
-    rare_format_detection.RareFormatDetection
     special_chars.SpecialCharacters
     string_length_out_of_bounds.StringLengthOutOfBounds
     string_mismatch.StringMismatch

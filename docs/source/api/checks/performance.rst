@@ -15,10 +15,12 @@ Classes Summary
     :toctree: generated
     :template: check.rst
 
-    calibration_metric.CalibrationMetric
-    class_performance_imbalance.ClassPerformanceImbalance
+    calibration_score.CalibrationScore
+    class_performance.ClassPerformance
     confusion_matrix_report.ConfusionMatrixReport
     performance_report.PerformanceReport
+    regression_error_distribution.RegressionErrorDistribution
+    regression_systematic_error.RegressionSystematicError
     roc_report.RocReport
     segment_performance.SegmentPerformance
     simple_model_comparison.SimpleModelComparison
