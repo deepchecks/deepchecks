@@ -17,7 +17,8 @@ from matplotlib.axes import Axes
 
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
 from deepchecks.checks.performance.partition import partition_column
-from deepchecks.utils.metrics import validate_scorer, task_type_check, DEFAULT_SINGLE_SCORER, DEFAULT_SCORERS_DICT
+from deepchecks.utils.metrics import validate_scorer, task_type_check, DEFAULT_SINGLE_SCORER, DEFAULT_SCORERS_DICT, \
+    calculate_scorer_with_nulls
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.validation import validate_model
@@ -117,7 +118,8 @@ class SegmentPerformance(SingleDatasetBaseCheck):
                 if feature_2_df.empty:
                     score = np.NaN
                 else:
-                    score = scorer(model, feature_2_df[dataset.features], feature_2_df[dataset.label_name])
+                    score = calculate_scorer_with_nulls(model, Dataset(feature_2_df, features=dataset.features,
+                                                                       label_name=dataset.label_name), scorer)
                 scores[i, j] = score
                 counts[i, j] = len(feature_2_df)
 
