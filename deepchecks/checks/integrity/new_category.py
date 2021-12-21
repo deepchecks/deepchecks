@@ -102,7 +102,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
             unique_training_values = train_column.unique()
             unique_test_values = test_column.unique()
 
-            new_category_values = set(unique_test_values).difference(set(unique_training_values))
+            new_category_values = sorted(set(unique_test_values).difference(set(unique_training_values)))
             new_category_samples = dict(test_column.value_counts()[new_category_values])
             sorted_new_categories = sorted(new_category_values,
                                            key=lambda x, count=new_category_samples: count[x],
