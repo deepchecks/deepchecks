@@ -58,6 +58,7 @@ class ConfusionMatrixReport(SingleDatasetBaseCheck):
         fig.update_xaxes(title='Predicted Value')
         fig.update_yaxes(title='True value', autorange='reversed')
         fig['data'][0]['showscale'] = True
+        fig['layout']['xaxis']['side'] = 'bottom'
 
         return CheckResult(confusion_matrix, display=fig)
 

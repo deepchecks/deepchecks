@@ -12,8 +12,8 @@
 from typing import Callable, Union, Optional
 
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.axes import Axes
+from numpy.core.fromnumeric import shape
+import plotly.figure_factory as ff
 
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
 from deepchecks.checks.performance.partition import partition_column
@@ -124,42 +124,27 @@ class SegmentPerformance(SingleDatasetBaseCheck):
                 scores[i, j] = score
                 counts[i, j] = len(feature_2_df)
 
-        def display(feat1=self.feature_1, feat2=self.feature_2):
-            ax: Axes
-            _, ax = plt.subplots(1, 1, figsize=(10, 7))
-            im = ax.imshow(np.array(scores, dtype=float), cmap='RdYlGn')
+        x = [v.label for v in feature_2_filters]
+        y = [v.label for v in feature_1_filters]
 
-            # Create colorbar
-            cbar = ax.figure.colorbar(im, ax=ax)
-            cbar.ax.set_ylabel(f'{scorer_name}', rotation=-90, va='bottom')
+        scores_text = [ [0]*scores.shape[0] for i in range(scores.shape[1])]
+  
+        for i in range(len(y)):
+            for j in range(len(x)):
+                score = scores[i, j]
+                if not np.isnan(score):
+                    scores_text[i][j] = f'{format_number(score)}\n({counts[i, j]})'
+                else:
+                    scores_text[i][j] = f'{score}\n({counts[i, j]})'
 
-            x = [v.label for v in feature_2_filters]
-            y = [v.label for v in feature_1_filters]
-
-            # Set ticks with labels
-            ax.set_xticks(np.arange(len(x)), minor=False)
-            ax.set_yticks(np.arange(len(y)), minor=False)
-            ax.set_xticklabels(x, minor=False)
-            ax.set_yticklabels(y, minor=False)
-
-            plt.xlabel(feat2)
-            plt.ylabel(feat1)
-
-            # Rotate the tick labels and set their alignment.
-            plt.setp(ax.get_xticklabels(), rotation=45, ha='right', rotation_mode='anchor')
-
-            # Loop over data dimensions and create text annotations.
-            q1, q2 = np.nanquantile(scores.flatten(), [0.1, 0.9])
-            for i in range(len(y)):
-                for j in range(len(x)):
-                    score = scores[i, j]
-                    if not np.isnan(score):
-                        # The largest and smallest scores have dark background, so give them white text color
-                        color = 'black' if q1 < score < q2 else 'white'
-                        text = f'{format_number(score)}\n({counts[i, j]})'
-                        ax.text(j, i, text, ha='center', va='center', color=color)
-
-            ax.set_title(f'{scorer_name} (count) by features {feat1}/{feat2}')
+        fig = ff.create_annotated_heatmap(scores, annotation_text=scores_text,
+                                          x=x, y=y, colorscale='rdylgn')
+        fig.update_layout(title=f'{scorer_name} (count) by features {self.feature_1}/{self.feature_2}',
+                          width=800, height=800)
+        fig.update_xaxes(title=self.feature_2)
+        fig.update_yaxes(title=self.feature_1, autorange='reversed')
+        fig['data'][0]['showscale'] = True
+        fig['layout']['xaxis']['side'] = 'bottom'
 
         value = {'scores': scores, 'counts': counts, 'feature_1': self.feature_1,'feature_2': self.feature_2}
-        return CheckResult(value, display=display)
+        return CheckResult(value, display=fig)
