@@ -18,6 +18,7 @@ import pandas as pd
 
 from IPython.core.display import display_html
 
+from deepchecks import errors
 from deepchecks.base.check import CheckResult, CheckFailure
 from deepchecks.base.display_pandas import dataframe_to_html, display_conditions_table
 
@@ -54,6 +55,10 @@ def get_display_exists_icon(exists: bool):
 
 def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]]):
     """Display results of suite in IPython."""
+    if len(results) == 0:
+        display_html(f"""<h1>{suite_name}</h1><p>Suite is empty.</p>""", raw=True)
+        return
+
     checks_with_conditions = []
     display_table = []
     others_table = []
@@ -70,24 +75,41 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
             msg = result.exception.__class__.__name__ + ': ' + str(result.exception)
             name = result.check.name()
             others_table.append([name, msg, 1])
+        else:
+            raise errors.DeepchecksValueError(
+                f"Expecting list of 'CheckResult'|'CheckFailure', but got list of {type(result)}."
+            )
 
     display_table = sorted(display_table, key=lambda it: it.priority)
 
     light_hr = '<hr style="background-color: #eee;border: 0 none;color: #eee;height: 1px;">'
     bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'
+
     icons = """
     <span style="color: green;display:inline-block">\U00002713</span> /
     <span style="color: red;display:inline-block">\U00002716</span> /
     <span style="color: orange;font-weight:bold;display:inline-block">\U00000021</span>
     """
-    html = f"""
-    <h1>{suite_name}</h1>
-    <p>The suite is composed of various checks such as: {get_first_3(results)}, etc...<br>
-    Each check may contain conditions (which results in {icons}), as well as other outputs such as plots or tables.<br>
-    Suites, checks and conditions can all be modified (see tutorial [link]).</p>
-    {bold_hr}<h2>Conditions Summary</h2>
-    """
-    display_html(html, raw=True)
+
+    check_names = list(set(it.check.name() for it in results))
+    prologue = (
+        f"The suite is composed of various checks such as: {', '.join(check_names[:3])}, etc..."
+        if len(check_names) > 3
+        else f"The suite is composed of next checks: {', '.join(check_names)}."
+    )
+
+    display_html(
+        f"""
+        <h1>{suite_name}</h1>
+        <p>{prologue}<br>
+        Each check may contain conditions (which results in {icons}),
+        as well as other outputs such as plots or tables.<br>
+        Suites, checks and conditions can all be modified (see tutorial [link]).</p>
+        {bold_hr}<h2>Conditions Summary</h2>
+        """,
+        raw=True
+    )
+
     if checks_with_conditions:
         display_conditions_table(checks_with_conditions)
     else:
@@ -113,13 +135,13 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         display_html(html, raw=True)
 
 
-def get_first_3(results: List[Union[CheckResult, CheckFailure]]):
-    first_3 = []
-    i = 0
-    while len(first_3) < 3 and i < len(results):
-        curr = results[i]
-        curr_name = curr.check.name()
-        if curr_name not in first_3:
-            first_3.append(curr_name)
-        i += 1
-    return ', '.join(first_3)
+# def get_first_3(results: List[Union[CheckResult, CheckFailure]]):
+#     first_3 = []
+#     i = 0
+#     while len(first_3) < 3 and i < len(results):
+#         curr = results[i]
+#         curr_name = curr.check.name()
+#         if curr_name not in first_3:
+#             first_3.append(curr_name)
+#         i += 1
+#     return ', '.join(first_3)
