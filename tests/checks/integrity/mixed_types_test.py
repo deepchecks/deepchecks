@@ -15,6 +15,7 @@ import pandas as pd
 # Disable wildcard import check for hamcrest
 from hamcrest import assert_that, has_length, calling, raises, has_items, has_entry, has_entries, close_to
 from deepchecks.base import Dataset
+from deepchecks.base.check import ConditionCategory
 
 from deepchecks.checks.integrity.mixed_types import MixedTypes
 from deepchecks.errors import DeepchecksValueError
@@ -117,12 +118,13 @@ def test_condition_pass_all_columns():
     # Arrange
     data = {'col1': ['1', 'bar', 'cat'], 'col2': [6, 66, 666.66]}
     dataframe = pd.DataFrame(data=data)
-    check = MixedTypes().add_condition_rare_type_ratio_not_less_than(0.1)
+    check = MixedTypes().add_condition_rare_type_ratio_not_in_range()
     # Act
     result = check.conditions_decision(check.run(dataframe))
     # Assert
     assert_that(result, has_items(
-        equal_condition_result(is_pass=True, name='Rare type ratio is not less than 10.00% of samples in all columns')
+        equal_condition_result(is_pass=True, name='Rare data types in all columns are either more than 10.00% or less '
+                                                  'than 1.00% of the data')
     ))
 
 
@@ -130,14 +132,17 @@ def test_condition_pass_fail_single_column():
     # Arrange
     data = {'col1': ['1', 'bar', 'cat'], 'col2': [6, 66, 666.66]}
     dataframe = pd.DataFrame(data=data)
-    check = MixedTypes(columns=['col1']).add_condition_rare_type_ratio_not_less_than(0.4)
+    check = MixedTypes(columns=['col1']).add_condition_rare_type_ratio_not_in_range((0.01, 0.4))
     # Act
     result = check.conditions_decision(check.run(dataframe))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Rare type ratio is not less than 40.00% of samples in columns: col1',
-                               details='Found columns with low type ratio: col1')
+                               name='Rare data types in columns: col1 are either more than 40.00% or less '
+                                    'than 1.00% of the data',
+                               details='Found columns with non-negligible quantities of samples with a different '
+                                       'data type from the majority of samples: col1',
+                               category=ConditionCategory.WARN)
     ))
 
 
@@ -145,14 +150,17 @@ def test_condition_pass_fail_ignore_column():
     # Arrange
     data = {'col1': ['1', 'bar', 'cat'], 'col2': [6, 66, 666.66]}
     dataframe = pd.DataFrame(data=data)
-    check = MixedTypes(ignore_columns=['col2']).add_condition_rare_type_ratio_not_less_than(0.4)
+    check = MixedTypes(ignore_columns=['col2']).add_condition_rare_type_ratio_not_in_range((0.01, 0.4))
     # Act
     result = check.conditions_decision(check.run(dataframe))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Rare type ratio is not less than 40.00% of samples in all columns ignoring: col2',
-                               details='Found columns with low type ratio: col1')
+                               name='Rare data types in all columns ignoring: col2 are either more than 40.00% or less '
+                                    'than 1.00% of the data',
+                               details='Found columns with non-negligible quantities of samples with a different '
+                                       'data type from the majority of samples: col1',
+                               category=ConditionCategory.WARN)
     ))
 
 
