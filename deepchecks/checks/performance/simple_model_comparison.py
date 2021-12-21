@@ -19,8 +19,8 @@ from deepchecks.utils.strings import format_number
 
 from deepchecks import CheckResult, Dataset
 from deepchecks.base.check import ConditionResult, TrainTestBaseCheck
-from deepchecks.utils.metrics import DEFAULT_SCORERS_DICT, DEFAULT_SINGLE_SCORER, task_type_check, \
-    ModelType, validate_scorer, get_scores_ratio, calculate_scorer_with_nulls
+from deepchecks.utils.metrics import DEFAULT_SINGLE_SCORER, task_type_check, \
+    ModelType, get_scores_ratio, get_scorer_single, initialize_single_scorer
 from deepchecks.utils.validation import validate_model
 from deepchecks.errors import DeepchecksValueError
 
@@ -67,7 +67,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
                  maximum_ratio: int = 50, max_depth: int = 3, random_state: int = 42):
         super().__init__()
         self.simple_model_type = simple_model_type
-        self.scorer = scorer
+        self.scorer = initialize_single_scorer(scorer)
         self.maximum_ratio = maximum_ratio
         self.max_depth = max_depth
         self.random_state = random_state
@@ -153,15 +153,10 @@ class SimpleModelComparison(TrainTestBaseCheck):
 
         y_test = test_ds.label_col.values
 
-        if self.scorer is not None:
-            scorer = validate_scorer(self.scorer, model, train_ds)
-            scorer_name = self.scorer if isinstance(self.scorer, str) else 'User Scorer'
-        else:
-            scorer_name = DEFAULT_SINGLE_SCORER[task_type]
-            scorer = DEFAULT_SCORERS_DICT[task_type][scorer_name]
+        scorer_name, scorer = get_scorer_single(model, train_ds, self.scorer)
 
-        simple_score = calculate_scorer_with_nulls(DummyModel, Dataset(pd.DataFrame(simple_pred), label=y_test), scorer)
-        pred_score = calculate_scorer_with_nulls(model, Dataset(test_ds.features_columns, label=y_test), scorer)
+        simple_score = scorer(DummyModel, Dataset(pd.DataFrame(simple_pred), label=y_test))
+        pred_score = scorer(model, Dataset(test_ds.features_columns, label=y_test))
 
         return simple_score, pred_score, scorer_name
 
