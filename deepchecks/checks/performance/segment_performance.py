@@ -138,7 +138,7 @@ class SegmentPerformance(SingleDatasetBaseCheck):
                     scores_text[i][j] = f'{score}\n({counts[i, j]})'
 
         fig = ff.create_annotated_heatmap(scores, annotation_text=scores_text,
-                                          x=x, y=y, colorscale='rdylgn')
+                                          x=x, y=y, colorscale='rdylgn', font_colors=['black', 'black'])
         fig.update_layout(title=f'{scorer_name} (count) by features {self.feature_1}/{self.feature_2}',
                           width=800, height=800)
         fig.update_xaxes(title=self.feature_2)
