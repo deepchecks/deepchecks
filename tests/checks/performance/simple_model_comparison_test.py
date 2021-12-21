@@ -50,7 +50,7 @@ def test_classification_constant(iris_split_dataset_and_model):
 def test_classification_tree_custom_metric(iris_split_dataset_and_model):
     train_ds, test_ds, clf = iris_split_dataset_and_model
     # Arrange
-    check = SimpleModelComparison(simple_model_type='random', metric='recall_micro')
+    check = SimpleModelComparison(simple_model_type='random', scorer='recall_micro')
     # Act X
     result = check.run(train_ds, test_ds, clf).value
     # Assert
@@ -106,7 +106,7 @@ def test_condition_ratio_not_less_than_not_passed(diabetes_split_dataset_and_mod
                                name='Ratio not less than 1.4 '
                                     'between the given model\'s result and the simple model\'s result',
                                details=f'The given model performs {format_number(ratio)} times compared ' \
-                                       'to the simple model using the given metric')
+                                       'to the simple model using the given scorer')
     ))
 
 
@@ -136,7 +136,7 @@ def test_classification_tree(iris_split_dataset_and_model):
 def test_classification_tree_custom_metric(iris_split_dataset_and_model):
     train_ds, test_ds, clf = iris_split_dataset_and_model
     # Arrange
-    check = SimpleModelComparison(simple_model_type='tree', metric='recall_micro')
+    check = SimpleModelComparison(simple_model_type='tree', scorer='recall_micro')
     # Act X
     ratio = check.run(train_ds, test_ds, clf).value['ratio']
     # Assert

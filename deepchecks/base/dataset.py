@@ -19,7 +19,6 @@ import pandas as pd
 from pandas.core.dtypes.common import is_float_dtype
 
 from deepchecks.utils.dataframes import filter_columns_with_validation
-from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 
@@ -197,7 +196,7 @@ class Dataset:
             self.cat_features = self.infer_categorical_features()
 
         if self._date_name and convert_date_:
-            self._data[self._date_name] = self._data[self._date_name].apply(pd.to_datetime, **self._date_args)
+            self._data[self._date_name] = pd.to_datetime(self._data[self._date_name], **self._date_args)
 
     @classmethod
     def from_numpy(
@@ -523,10 +522,6 @@ class Dataset:
         labels = self.label_col
         if labels is None:
             return
-        if is_string_column(labels):
-            raise DeepchecksValueError('String labels are not supported')
-        elif pd.isnull(labels).any():
-            raise DeepchecksValueError('Can not have null values in label column')
 
     # Validations:
 

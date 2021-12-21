@@ -11,6 +11,7 @@
 """String mismatch functions."""
 from collections import defaultdict
 from typing import Union, List
+import itertools
 
 import pandas as pd
 
@@ -36,14 +37,16 @@ from deepchecks.utils.strings import (
 __all__ = ['StringMismatch']
 
 
-def _condition_variants_number(result, num_max_variants: int):
+def _condition_variants_number(result, num_max_variants: int, max_cols_to_show: int = 5, max_forms_to_show: int = 5):
     not_passing_variants = defaultdict(list)
     for col, baseforms in result.items():
         for base_form, variants_list in baseforms.items():
             if len(variants_list) > num_max_variants:
-                not_passing_variants[col].append(base_form)
+                if len(not_passing_variants[col]) < max_forms_to_show:
+                    not_passing_variants[col].append(base_form)
     if not_passing_variants:
-        details = f'Found columns with variants: {dict(not_passing_variants)}'
+        variants_to_show = dict(itertools.islice(not_passing_variants.items(), max_cols_to_show))
+        details = f'Found columns with variants: {variants_to_show}'
         return ConditionResult(False, details, ConditionCategory.WARN)
     return ConditionResult(True)
 
