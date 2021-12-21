@@ -82,8 +82,8 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
         features = test_dataset.validate_shared_features(train_dataset)
         cat_features = train_dataset.validate_shared_categorical_features(test_dataset)
 
-        test_dataset = test_dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
-        train_dataset = train_dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
+        test_dataset = test_dataset.select(self.columns, self.ignore_columns)
+        train_dataset = train_dataset.select(self.columns, self.ignore_columns)
 
         if set(features).symmetric_difference(set(test_dataset.features)):
             cat_features = test_dataset.features

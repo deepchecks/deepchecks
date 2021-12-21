@@ -16,7 +16,7 @@ import numpy as np
 
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
-from deepchecks.utils.dataframes import filter_columns_with_validation
+from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
 from deepchecks.utils.strings import is_string_column, format_percent, format_columns_for_condition
 from deepchecks.utils.validation import ensure_dataframe_type
@@ -77,7 +77,7 @@ class MixedTypes(SingleDatasetBaseCheck):
         # Validate parameters
         original_dataset = dataset
         dataset: pd.DataFrame = ensure_dataframe_type(dataset)
-        dataset = filter_columns_with_validation(dataset, self.columns, self.ignore_columns)
+        dataset = select_from_dataframe(dataset, self.columns, self.ignore_columns)
 
         # Result value: { Column Name: {string: pct, numbers: pct}}
         display_dict = {}
