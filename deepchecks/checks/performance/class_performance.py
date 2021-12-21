@@ -23,7 +23,7 @@ from deepchecks.utils.strings import format_percent
 from deepchecks.errors import DeepchecksValueError
 
 
-__all__ = ['ClassPerformanceImbalance']
+__all__ = ['ClassPerformance']
 
 
 ScorerFunc = t.Callable[
@@ -34,11 +34,11 @@ ScorerFunc = t.Callable[
 AlternativeScorer = t.Union[str, ScorerFunc]
 
 
-CP = t.TypeVar('CP', bound='ClassPerformanceImbalance')
+CP = t.TypeVar('CP', bound='ClassPerformance')
 
 
-class ClassPerformanceImbalance(SingleDatasetBaseCheck):
-    """Visualize class imbalance by displaying the difference between class score values.
+class ClassPerformance(SingleDatasetBaseCheck):
+    """Visualize performance per class - aiding detection of class imbalance.
 
     Args:
         alternative_scorers (Mapping[str, Union[str, Callable]]):
@@ -95,14 +95,11 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
         dataset.validate_features()
         task_type_validation(model, dataset, expected_model_types)
 
-        labels = t.cast(pd.Series, dataset.label_col)
-        features = t.cast(pd.DataFrame, dataset.features_columns)
-
-        unique_labels = get_unique_labels(labels)
+        unique_labels = get_unique_labels(dataset.label_col)
         scorers = get_scorers_dict(model, dataset, self.alternative_scorers, multiclass_avg=False)
 
         scorer_results = (
-            (scorer_name, scorer_func(model, features, labels))
+            (scorer_name, scorer_func(model, dataset))
             for scorer_name, scorer_func in scorers.items()
         )
 
@@ -113,21 +110,21 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
 
         def display():
             title = (
-                'Class Performance Imbalance Check for binary data'
-                if len(labels) == 2
-                else 'Class Performance Imbalance Check for multi-class data'
+                'Binary Class'
+                if unique_labels == 2
+                else 'Multi-Class'
             )
 
             df.transpose().plot.bar(
                 title=title,
                 backend='matplotlib',
-                xlabel='Score',
+                xlabel='Scorer',
                 ylabel='Values'
             )
 
         return CheckResult(
             value=df.transpose().to_dict(),
-            header='Class Performance Imbalance',
+            header='Class Performance',
             display=display
         )
 
@@ -162,7 +159,7 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
             score: limit score for condition
 
         Returns:
-            Self: instance of 'ClassPerformanceImbalance' or it subtype
+            Self: instance of 'ClassPerformance' or it subtype
 
         Raises:
             DeepchecksValueError:

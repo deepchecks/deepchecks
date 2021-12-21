@@ -12,6 +12,7 @@
 from typing import Callable, Dict, Union
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from deepchecks.checks.distribution.preprocessing import preprocess_dataset_to_scaled_numerics
 from deepchecks.utils.strings import format_number
@@ -150,12 +151,12 @@ class SimpleModelComparison(TrainTestBaseCheck):
                 f"['random', 'constant', 'tree'] but instead got {self.simple_model_type}" # pylint: disable=inconsistent-quotes
             )
 
-        y_test = test_ds.label_col
+        y_test = test_ds.label_col.values
 
         scorer_name, scorer = get_scorer_single(model, train_ds, self.scorer)
 
-        simple_score = scorer(DummyModel, simple_pred, y_test)
-        pred_score = scorer(model, test_ds.features_columns, y_test)
+        simple_score = scorer(DummyModel, Dataset(pd.DataFrame(simple_pred), label=y_test))
+        pred_score = scorer(model, Dataset(test_ds.features_columns, label=y_test))
 
         return simple_score, pred_score, scorer_name
 

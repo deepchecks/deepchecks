@@ -111,7 +111,9 @@ class SegmentPerformance(SingleDatasetBaseCheck):
                 if feature_2_df.empty:
                     score = np.NaN
                 else:
-                    score = scorer(model, feature_2_df[dataset.features], feature_2_df[dataset.label_name])
+                    score = scorer(model,
+                                   Dataset(feature_2_df, features=dataset.features, label_name=dataset.label_name)
+                                   )
                 scores[i, j] = score
                 counts[i, j] = len(feature_2_df)
 

@@ -52,7 +52,7 @@ class PerformanceReport(SingleDatasetBaseCheck):
         # Get default scorers if no alternative, or validate alternatives
         scorers = get_scorers_dict(model, dataset, self.alternative_scorers)
         scores = {
-            key: scorer(model, dataset.features_columns, dataset.label_col)
+            key: scorer(model, dataset)
             for key, scorer in scorers.items()
         }
 

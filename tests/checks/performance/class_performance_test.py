@@ -19,34 +19,35 @@ from hamcrest import (
 )
 
 from deepchecks import Dataset, CheckResult, ConditionCategory
-from deepchecks.checks import ClassPerformanceImbalance
+from deepchecks.checks import ClassPerformance
 from deepchecks.errors import DeepchecksValueError
 
 from tests.checks.utils import equal_condition_result
 
 
-def test_class_performance_imbalance(
+def test_class_performance(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, AdaBoostClassifier]
 ):
     # Arrange
     _, test, model = iris_split_dataset_and_model
-    check = ClassPerformanceImbalance()
+    check = ClassPerformance()
     # Act
     check_result = check.run(dataset=test, model=model)
     # Assert
-    validate_class_performance_imbalance_check_result(check_result)
+    validate_class_performance_check_result(check_result)
 
 
-def test_init_class_performance_imbalance_with_empty_dict_of_scorers():
+def test_init_class_performance_with_empty_dict_of_scorers():
     assert_that(
-        calling(ClassPerformanceImbalance).with_args(alternative_scorers=dict()),
+        calling(ClassPerformance).with_args(alternative_scorers=dict()),
         raises(DeepchecksValueError, 'Scorers dictionary can\'t be empty')
+
     )
 
 
-def test_init_class_performance_imbalance_with_scorers_dict_that_contains_not_callable_and_not_name_of_sklearn_scorer():
+def test_init_class_performance_with_scorers_dict_that_contains_not_callable_and_not_name_of_sklearn_scorer():
     assert_that(
-        calling(ClassPerformanceImbalance).with_args(alternative_scorers=dict(Metric=1)),
+        calling(ClassPerformance).with_args(alternative_scorers=dict(Metric=1)),
         raises(
             DeepchecksValueError,
             r"Scorer Metric value should be either a callable or string but got: int"
@@ -54,7 +55,7 @@ def test_init_class_performance_imbalance_with_scorers_dict_that_contains_not_ca
     )
 
 
-def test_class_performance_imbalance_with_custom_scorers(
+def test_class_performance_with_custom_scorers(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, AdaBoostClassifier]
 ):
     # Arrange
@@ -64,7 +65,7 @@ def test_class_performance_imbalance_with_custom_scorers(
         'Test2': lambda model, features, labels: np.array([1,2,3]),
         'Test3': lambda model, features, labels: np.array([1,2,3])
     }
-    check = ClassPerformanceImbalance(alternative_scorers=alternative_scorers)
+    check = ClassPerformance(alternative_scorers=alternative_scorers)
 
     # Act
     check_result = check.run(dataset=test, model=model)
@@ -83,20 +84,20 @@ def test_class_performance_imbalance_with_custom_scorers(
         })
     )
 
-    validate_class_performance_imbalance_check_result(
+    validate_class_performance_check_result(
         check_result,
         value=value_matcher
     )
 
 
-def test_class_performance_imbalance_with_custom_scorers_that_return_not_array(
+def test_class_performance_with_custom_scorers_that_return_not_array(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, AdaBoostClassifier]
 ):
     # Arrange
     _, test, model = iris_split_dataset_and_model
 
     alternative_scorers = {'Test1': lambda model, features, labels: 1,}
-    check = ClassPerformanceImbalance(alternative_scorers=alternative_scorers)
+    check = ClassPerformance(alternative_scorers=alternative_scorers)
 
     # Assert
     assert_that(
@@ -108,7 +109,7 @@ def test_class_performance_imbalance_with_custom_scorers_that_return_not_array(
     )
 
 
-def test_class_performance_imbalance_with_custom_scorers_that_return_empty_array(
+def test_class_performance_with_custom_scorers_that_return_empty_array(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, AdaBoostClassifier]
 ):
     # Arrage
@@ -116,7 +117,7 @@ def test_class_performance_imbalance_with_custom_scorers_that_return_empty_array
 
     # dict dtype is allowed but it cannot be empty
     alternative_scorers = {'Test3': lambda model, features, labels: np.array([])}
-    check = ClassPerformanceImbalance(alternative_scorers=alternative_scorers)
+    check = ClassPerformance(alternative_scorers=alternative_scorers)
 
     # Assert
     assert_that(
@@ -128,7 +129,7 @@ def test_class_performance_imbalance_with_custom_scorers_that_return_empty_array
     )
 
 
-def test_class_performance_imbalance_with_custom_scorers_that_return_array_with_incorrect_dtype(
+def test_class_performance_with_custom_scorers_that_return_array_with_incorrect_dtype(
     iris_split_dataset_and_model: t.Tuple[Dataset, Dataset, AdaBoostClassifier]
 ):
     # Arrange
@@ -136,7 +137,7 @@ def test_class_performance_imbalance_with_custom_scorers_that_return_array_with_
 
     # dict dtype is allowed but values dtype must be int|float
     alternative_scorers = {'Test3': lambda model, features, labels: np.array(["a", "b", "c"])}
-    check = ClassPerformanceImbalance(alternative_scorers=alternative_scorers)
+    check = ClassPerformance(alternative_scorers=alternative_scorers)
 
     # Assert
     assert_that(
@@ -153,11 +154,11 @@ def test_condition_ratio_difference_not_greater_than_threshold_that_should_pass(
 ):
     # Arrange
     _, test, model = iris_split_dataset_and_model
-    check = ClassPerformanceImbalance().add_condition_ratio_difference_not_greater_than(0.5)
+    check = ClassPerformance().add_condition_ratio_difference_not_greater_than(0.5)
 
     # Act
     check_result = check.run(dataset=test, model=model)
-    validate_class_performance_imbalance_check_result(check_result)
+    validate_class_performance_check_result(check_result)
 
     condition_result, *_ = check.conditions_decision(check_result)
 
@@ -178,11 +179,11 @@ def test_condition_ratio_difference_not_greater_than_threshold_that_should_not_p
 ):
     # Arrange
     _, test, model = iris_split_dataset_and_model
-    check = ClassPerformanceImbalance().add_condition_ratio_difference_not_greater_than(0.12)
+    check = ClassPerformance().add_condition_ratio_difference_not_greater_than(0.12)
 
     # Act
     check_result = check.run(dataset=test, model=model)
-    validate_class_performance_imbalance_check_result(check_result)
+    validate_class_performance_check_result(check_result)
     condition_result, *_ = check.conditions_decision(check_result)
 
     # Assert
@@ -203,12 +204,12 @@ def test_condition_ratio_difference_not_greater_than_threshold_that_should_not_p
 
 def test_add_condition_for_unknown_score_function():
     assert_that(
-        calling(ClassPerformanceImbalance().add_condition_ratio_difference_not_greater_than).with_args(0.12, 'acuracy'),
+        calling(ClassPerformance().add_condition_ratio_difference_not_greater_than).with_args(0.12, 'acuracy'),
         raises(DeepchecksValueError, 'Unknown score function  - acuracy')
     )
 
 
-def validate_class_performance_imbalance_check_result(
+def validate_class_performance_check_result(
     result: CheckResult,
     value: t.Optional[Matcher] = None
 ):
@@ -233,7 +234,7 @@ def validate_class_performance_imbalance_check_result(
     assert_that(result, all_of(
         instance_of(CheckResult),
         has_property('value', value_matcher),
-        has_property('header', all_of(instance_of(str), equal_to('Class Performance Imbalance'))),
+        has_property('header', all_of(instance_of(str), equal_to('Class Performance'))),
         has_property('display', only_contains(has_property('__call__')))
     ))
 

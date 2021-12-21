@@ -77,7 +77,8 @@ class TrustScore:
             (np.ndarray): Filtered data
         """
         kdtree = KDTree(X, leaf_size=self.leaf_size, metric=self.metric)
-        knn_r = kdtree.query(X, k=self.k_filter + 1)[0]  # distances from 0 to k-nearest points
+        k = min(self.k_filter + 1, len(X))
+        knn_r = kdtree.query(X, k=k)[0]  # distances from 0 to k-nearest points
         if self.dist_filter_type == 'point':
             knn_r = knn_r[:, -1]
         elif self.dist_filter_type == 'mean':

@@ -11,6 +11,7 @@
 """Utils module containing utilities for checks working with metrics."""
 import typing as t
 import enum
+from functools import partial
 from numbers import Number
 
 import numpy as np
@@ -36,6 +37,8 @@ __all__ = [
     'initialize_user_scorers',
     'get_scorer_single'
 ]
+
+from deepchecks.utils.strings import is_string_column
 
 
 class ModelType(enum.Enum):
@@ -103,7 +106,12 @@ def task_type_check(
     dataset.validate_label()
 
     if not hasattr(model, 'predict_proba'):
-        return ModelType.REGRESSION
+        if is_string_column(dataset.label_col):
+            raise errors.DeepchecksValueError(
+                'Model was identified as a regression model, but label column was found to contain strings.'
+            )
+        else:
+            return ModelType.REGRESSION
     else:
         labels = t.cast(pd.Series, dataset.label_col)
 
@@ -136,6 +144,12 @@ def task_type_validation(
             f'Expected model to be a type from {[e.value for e in expected_types]}, '
             f'but received model of type: {task_type.value}'
         )
+
+
+def calculate_scorer_with_nulls(model, dataset: 'base.Dataset', scorer: t.Callable) -> float:
+    label = dataset.label_col
+    valid_idx = label.notna()
+    return scorer(model, dataset.features_columns[valid_idx], label[valid_idx])
 
 
 def get_scorers_dict(
@@ -172,7 +186,9 @@ def get_scorers_dict(
     for name, scorer in scorers.items():
         should_return_array = model_type == ModelType.MULTICLASS and multiclass_avg is False
         validate_scorer(scorer, model, dataset, should_return_array, name)
-    return scorers
+
+    # Transform scorers into calculate_without_nulls
+    return {k: partial(calculate_scorer_with_nulls, scorer=v) for k, v in scorers.items()}
 
 
 def get_scorer_single(model, dataset: 'base.Dataset', alternative_scorer: t.Tuple[str, t.Callable] = None,
@@ -193,7 +209,8 @@ def get_scorer_single(model, dataset: 'base.Dataset', alternative_scorer: t.Tupl
             scorer_func = DEFAULT_SCORERS_DICT[model_type][scorer_name]
 
     validate_scorer(scorer_func, model, dataset, multiclass_array, scorer_name)
-    return scorer_name, scorer_func
+    # Transform scorer into calculate without nulls
+    return scorer_name, partial(calculate_scorer_with_nulls, scorer=scorer_func)
 
 
 def initialize_single_scorer(scorer: t.Optional[t.Union[str, t.Callable]], scorer_name=None) \
@@ -218,7 +235,9 @@ def initialize_single_scorer(scorer: t.Optional[t.Union[str, t.Callable]], score
 
 def validate_scorer(scorer: t.Callable, model, dataset, should_return_array: bool, scorer_name: str):
     """Validate given scorer for the model and dataset."""
-    result = scorer(model, dataset.data[dataset.features].head(2), dataset.label_col.head(2))
+    label = dataset.label_col
+    valid_idx = label.notna()
+    result = scorer(model, dataset.features_columns[valid_idx].head(2), label[valid_idx].head(2))
     if should_return_array:
         if not isinstance(result, np.ndarray):
             raise errors.DeepchecksValueError(f'Expected scorer {scorer_name} to return np.ndarray '
