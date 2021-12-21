@@ -29,6 +29,6 @@ __all__ = [
     'SegmentPerformance',
     'RegressionSystematicError',
     'RegressionErrorDistribution',
-    'ClassPerformanceImbalance',
+    'ClassPerformance',
 ]
 
