@@ -167,6 +167,17 @@ notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 $(TEST_RUNNER):
 	$(PIP) install $(TEST_RUNNER_PKGS) | tee -a $(REQUIREMENTS_LOG)
 
+regenerate-examples: $(REQUIREMENTS_LOG)
+	$(PIP) install --no-deps -e .
+	for path in $(NOTEBOOK_EXAMPLES) ; do \
+	  $(JUPYTER) nbconvert --to notebook --inplace --execute $$path ; \
+	done
+	for path in $(NOTEBOOK_CHECKS)/**/*.ipynb ; do \
+	  $(JUPYTER) nbconvert --to notebook --inplace --execute $$path ; \
+	done
+
+
+
 coverage: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 	$(pythonpath) $(TEST_RUNNER) $(args) $(COVER_ARG) $(TESTDIR) | tee -a $(COVERAGE_LOG)
 
