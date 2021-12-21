@@ -18,7 +18,8 @@ from matplotlib.ticker import MaxNLocator
 import numpy as np
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.utils.metrics import task_type_check, DEFAULT_SCORERS_DICT, validate_scorer, DEFAULT_SINGLE_SCORER
+from deepchecks.utils.metrics import task_type_check, DEFAULT_SCORERS_DICT, validate_scorer, DEFAULT_SINGLE_SCORER, \
+    calculate_scorer_with_nulls
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
 from deepchecks.utils.model import get_model_of_pipeline
@@ -96,7 +97,7 @@ class PartialBoostingModel:
 
 def partial_score(scorer, dataset, model, step):
     partial_model = PartialBoostingModel(model, step)
-    return scorer(partial_model, dataset.features_columns, dataset.label_col)
+    return calculate_scorer_with_nulls(partial_model, dataset, scorer)
 
 
 def calculate_steps(num_steps, num_estimators):

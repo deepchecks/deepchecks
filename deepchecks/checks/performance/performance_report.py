@@ -12,7 +12,7 @@
 from typing import Callable, Dict
 import pandas as pd
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
-from deepchecks.utils.metrics import get_scorers_list
+from deepchecks.utils.metrics import get_scorers_list, calculate_scorer_with_nulls
 from deepchecks.utils.validation import validate_model
 
 
@@ -52,7 +52,7 @@ class PerformanceReport(SingleDatasetBaseCheck):
         # Get default scorers if no alternative, or validate alternatives
         scorers = get_scorers_list(model, dataset, self.alternative_scorers)
         scores = {
-            key: scorer(model, dataset.features_columns, dataset.label_col)
+            key: calculate_scorer_with_nulls(model, dataset, scorer)
             for key, scorer in scorers.items()
         }
 
