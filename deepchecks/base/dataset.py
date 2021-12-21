@@ -23,7 +23,8 @@ from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 
 
-__all__ = ['Dataset', 'ensure_dataframe_type']
+__all__ = ['Dataset',]
+
 
 logger = logging.getLogger('deepchecks.dataset')
 
@@ -703,20 +704,3 @@ class Dataset:
             raise DeepchecksValueError('Check requires a non-empty dataset')
 
         return obj
-
-
-def ensure_dataframe_type(obj: t.Any) -> pd.DataFrame:
-    """Ensure that given object is of type DataFrame or Dataset and return it as DataFrame. else raise error.
-
-    Args:
-        obj: Object to ensure it is DataFrame or Dataset
-
-    Returns:
-        (pd.DataFrame)
-    """
-    if isinstance(obj, pd.DataFrame):
-        return obj
-    elif isinstance(obj, Dataset):
-        return obj.data
-    else:
-        raise DeepchecksValueError(f'dataset must be of type DataFrame or Dataset, but got: {type(obj).__name__}')

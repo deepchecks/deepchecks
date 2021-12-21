@@ -21,6 +21,7 @@ from deepchecks.base.check import (CheckResult, TrainTestBaseCheck,
    SingleDatasetBaseCheck, ModelOnlyBaseCheck, CheckFailure, ModelComparisonBaseCheck)
 from deepchecks.utils.ipython import is_ipython_display
 
+
 __all__ = ['Suite', 'ModelComparisonSuite', 'SuiteResult']
 
 

@@ -14,11 +14,12 @@ import pandas as pd
 
 import numpy as np
 
-from deepchecks import Dataset, ensure_dataframe_type
+from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
 from deepchecks.utils.dataframes import filter_columns_with_validation
 from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
 from deepchecks.utils.strings import is_string_column, format_percent, format_columns_for_condition
+from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
 
 

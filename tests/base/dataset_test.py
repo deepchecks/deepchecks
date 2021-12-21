@@ -15,13 +15,14 @@ from unittest import TestCase
 import numpy as np
 import pandas as pd
 from sklearn.datasets import load_iris
-
-from deepchecks import Dataset, ensure_dataframe_type
-from deepchecks.errors import DeepchecksValueError
 from hamcrest import (
     assert_that, instance_of, equal_to, is_,
     calling, raises, not_none, has_property, all_of, contains_exactly
 )
+
+from deepchecks import Dataset
+from deepchecks.utils.validation import ensure_dataframe_type
+from deepchecks.errors import DeepchecksValueError
 
 
 def assert_dataset(dataset: Dataset, args):
