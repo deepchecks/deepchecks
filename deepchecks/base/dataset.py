@@ -185,10 +185,10 @@ class Dataset:
         else:
             self.cat_features = self._infer_categorical_features(
                 self._data,
-                max_categorical_ratio,
-                max_categories,
-                max_float_categories,
-                self._features
+                max_categorical_ratio=max_categorical_ratio,
+                max_categories=max_categories,
+                max_float_categories=max_float_categories,
+                columns=self._features
             )
 
         if self._date_name and convert_date_:
@@ -374,10 +374,10 @@ class Dataset:
         """
         categorical_columns = infer_categorical_features(
             df,
-            max_categorical_ratio,
-            max_categories,
-            max_float_categories,
-            columns
+            max_categorical_ratio=max_categorical_ratio,
+            max_categories=max_categories,
+            max_float_categories=max_float_categories,
+            columns=columns
         )
 
         if len(categorical_columns) > 0:
@@ -407,7 +407,12 @@ class Dataset:
         Returns:
             If is categorical according to input numbers
         """
-        return is_categorical(t.cast(pd.Series, self._data[col_name]))
+        return is_categorical(
+            t.cast(pd.Series, self._data[col_name]),
+            max_categorical_ratio=self._max_categorical_ratio,
+            max_categories=self._max_categories,
+            max_float_categories=self._max_float_categories
+        )
 
     @property
     def index_name(self) -> t.Optional[Hashable]:
