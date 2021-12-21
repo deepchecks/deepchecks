@@ -15,6 +15,7 @@
 ![pyVersions](https://img.shields.io/pypi/pyversions/deepchecks)
 ![pkgVersion](https://img.shields.io/pypi/v/deepchecks)
 ![build](https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg)
+[![Documentation Status](https://readthedocs.org/projects/deepchecks/badge/?version=latest)](https://docs.deepchecks.com/en/latest/?badge=latest)
 
 Deepchecks is a Python package for comprehensively validating your machine learning
 models and data with minimal effort.
