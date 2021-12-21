@@ -38,7 +38,7 @@ CP = t.TypeVar('CP', bound='ClassPerformance')
 
 
 class ClassPerformance(SingleDatasetBaseCheck):
-    """Visualize class performance compared to other classes.
+    """Visualize performance per class - aiding detection of class imbalance.
 
     Args:
         alternative_scorers (Mapping[str, Union[str, Callable]]):
