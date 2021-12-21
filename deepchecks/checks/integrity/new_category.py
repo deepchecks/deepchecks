@@ -104,7 +104,9 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
 
             new_category_values = set(unique_test_values).difference(set(unique_training_values))
             new_category_samples = dict(test_column.value_counts()[new_category_values])
-            sorted_new_categories = sorted(new_category_values, key=lambda c: new_category_samples[c], reverse=True)
+            sorted_new_categories = sorted(new_category_values,
+                                           key=lambda x, count=new_category_samples: count[x],
+                                           reverse=True)
 
             if new_category_values:
                 n_new_cat = len(test_column[test_column.isin(new_category_values)])
