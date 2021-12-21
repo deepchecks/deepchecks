@@ -23,7 +23,7 @@ class ColumnsInfo(SingleDatasetBaseCheck):
     """Return the role and logical type of each column.
 
     Args:
-        n_top_columns (int): (optinal - used only if model was specified)
+        n_top_columns (int): (optional - used only if model was specified)
                              amount of columns to show ordered by feature importance (date, index, label are first)
     """
 

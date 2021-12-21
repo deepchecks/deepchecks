@@ -175,7 +175,7 @@ def column_importance_sorter_dict(cols_dict: t.Dict, ds: 'base.Dataset', feature
         cols_dict (Dict): dict where columns are the keys
         ds (Dataset): dataset used to fit the model
         feature_importances (pd.Series): feature importance normalized to 0-1 indexed by feature names
-        n_top_columns (int): (optinal - used only if model was specified)
+        n_top_columns (int): (optional - used only if model was specified)
                              amount of columns to show ordered by feature importance (date, index, label are first)
     Returns:
         Dict: the dict of columns sorted and limited by feature importance.
