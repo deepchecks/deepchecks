@@ -103,6 +103,8 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
             unique_test_values = test_column.unique()
 
             new_category_values = set(unique_test_values).difference(set(unique_training_values))
+            new_category_samples = dict(test_column.value_counts()[new_category_values])
+            sorted_new_categories = sorted(new_category_values, key=lambda c: new_category_samples[c], reverse=True)
 
             if new_category_values:
                 n_new_cat = len(test_column[test_column.isin(new_category_values)])
@@ -110,7 +112,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
                 new_categories.append({'name': feature,
                                        'n_new': n_new_cat,
                                        'n_total_samples': n_test_samples,
-                                       'new_categories': sorted(new_category_values)})
+                                       'new_categories': sorted_new_categories})
 
         if new_categories:
             dataframe = pd.DataFrame(data=[[new_category['name'],
