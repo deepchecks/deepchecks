@@ -11,8 +11,9 @@
 """Module contains is_single_value check."""
 from typing import Union, List
 import pandas as pd
-from deepchecks import SingleDatasetBaseCheck, CheckResult, ensure_dataframe_type, Dataset, ConditionResult
+from deepchecks import SingleDatasetBaseCheck, CheckResult, Dataset, ConditionResult
 from deepchecks.utils.dataframes import select_from_dataframe
+from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.strings import format_columns_for_condition
 from deepchecks.utils.typing import Hashable
 

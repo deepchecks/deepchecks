@@ -14,10 +14,11 @@ from typing import Union, List
 
 import pandas as pd
 
-from deepchecks import CheckResult, Dataset, ensure_dataframe_type, TrainTestBaseCheck, ConditionResult
+from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
 from deepchecks.utils.typing import Hashable
+from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.strings import (
     get_base_form_to_variants_dict,
     format_columns_for_condition,
