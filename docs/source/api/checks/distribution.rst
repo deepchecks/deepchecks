@@ -15,5 +15,6 @@ Classes Summary
     :toctree: generated
     :template: check.rst
 
-    train_test_drift.TrainTestDrift
+    train_test_feature_drift.TrainTestFeatureDrift
     trust_score_comparison.TrustScoreComparison
+    whole_dataset_drift.WholeDatasetDrift
