@@ -14,16 +14,16 @@ import typing as t
 
 import pandas as pd
 import numpy as np
-from sklearn.metrics import precision_score, recall_score, get_scorer, make_scorer, f1_score
 from sklearn.utils.multiclass import unique_labels as get_unique_labels
 
 from deepchecks import SingleDatasetBaseCheck, Dataset, CheckResult, ConditionResult
-from deepchecks.utils.metrics import task_type_validation, ModelType
+from deepchecks.utils.metrics import task_type_validation, ModelType, MULTICLASS_SCORERS_NON_AVERAGE, \
+    get_scorers_dict, initialize_user_scorers
 from deepchecks.utils.strings import format_percent
 from deepchecks.errors import DeepchecksValueError
 
 
-__all__ = ['ClassPerformanceImbalance']
+__all__ = ['ClassPerformance']
 
 
 ScorerFunc = t.Callable[
@@ -34,11 +34,11 @@ ScorerFunc = t.Callable[
 AlternativeScorer = t.Union[str, ScorerFunc]
 
 
-CP = t.TypeVar('CP', bound='ClassPerformanceImbalance')
+CP = t.TypeVar('CP', bound='ClassPerformance')
 
 
-class ClassPerformanceImbalance(SingleDatasetBaseCheck):
-    """Visualize class imbalance by displaying the difference between class score values.
+class ClassPerformance(SingleDatasetBaseCheck):
+    """Visualize performance per class - aiding detection of class imbalance.
 
     Args:
         alternative_scorers (Mapping[str, Union[str, Callable]]):
@@ -57,24 +57,7 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
         alternative_scorers: t.Optional[t.Mapping[str, AlternativeScorer]] = None
     ):
         super().__init__()
-        self.alternative_scorers: t.Optional[t.Mapping[str, ScorerFunc]] = None
-
-        if alternative_scorers is not None and len(alternative_scorers) == 0:
-            raise DeepchecksValueError('alternative_scorers - expected to receive not empty dict of scorers!')
-
-        elif alternative_scorers is not None:
-            self.alternative_scorers = {}
-
-            for name, scorer in alternative_scorers.items():
-                if isinstance(scorer, t.Callable):
-                    self.alternative_scorers[name] = scorer
-                elif isinstance(scorer, str):
-                    self.alternative_scorers[name] = get_scorer(scorer)
-                else:
-                    raise DeepchecksValueError(
-                        f"alternative_scorers - expected to receive 'Mapping[str, Callable]' but got "
-                        f"'Mapping[str, {type(scorer).__name__}]'!"
-                    )
+        self.alternative_scorers = initialize_user_scorers(alternative_scorers)
 
     def run(
         self,
@@ -103,7 +86,7 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
     def _class_performance_imbalance(
         self,
         dataset: Dataset,
-        model: t.Any # TODO: find more precise type for model
+        model: t.Any
     ) -> CheckResult:
         expected_model_types = [ModelType.BINARY, ModelType.MULTICLASS]
 
@@ -112,14 +95,11 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
         dataset.validate_features()
         task_type_validation(model, dataset, expected_model_types)
 
-        labels = t.cast(pd.Series, dataset.label_col)
-        features = t.cast(pd.DataFrame, dataset.features_columns)
-
-        unique_labels = get_unique_labels(labels)
-        scorers = self.alternative_scorers or self._default_scorers
+        unique_labels = get_unique_labels(dataset.label_col)
+        scorers = get_scorers_dict(model, dataset, self.alternative_scorers, multiclass_avg=False)
 
         scorer_results = (
-            (scorer_name, scorer_func(model, features, labels))
+            (scorer_name, scorer_func(model, dataset))
             for scorer_name, scorer_func in scorers.items()
         )
 
@@ -130,72 +110,38 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
 
         def display():
             title = (
-                'Class Performance Imbalance Check for binary data'
-                if len(labels) == 2
-                else 'Class Performance Imbalance Check for multi-class data'
+                'Binary Class'
+                if len(unique_labels) == 2
+                else 'Multi-Class'
             )
 
             df.transpose().plot.bar(
                 title=title,
                 backend='matplotlib',
-                xlabel='Score',
+                xlabel='Scorer',
                 ylabel='Values'
             )
 
         return CheckResult(
             value=df.transpose().to_dict(),
-            header='Class Performance Imbalance',
+            header='Class Performance',
             display=display
         )
 
     @property
     def _default_scorers(self) -> t.Dict[str, t.Callable[..., np.ndarray]]:
-        # TODO: use `get_scorers_list` from utils package
-        # but first we need to refactor it to accept 'average' argument
-        if hasattr(self, '_chached_default_scorers'):
-            return getattr(self, '_chached_default_scorers')
-
-        scorers = {
-            'Precision': make_scorer(precision_score, zero_division=0, average=None),
-            'Recall': make_scorer(recall_score, zero_division=0, average=None),
-            'F1': make_scorer(f1_score, zero_division=0, average=None)
-        }
-        setattr(self, '_chached_default_scorers', scorers)
-        return scorers
+        return MULTICLASS_SCORERS_NON_AVERAGE
 
     def _validate_results(
         self,
         results: t.Iterable[t.Tuple[str, object]],
         number_of_classes: int
     ) -> t.Iterator[t.Tuple[str, np.ndarray]]:
-        # We need to be sure that user-provided scorers returned value with correct
-        # datatype, otherwise we need to raise an exception with an informative message
-        expected_types = t.cast(
-            str,
-            np.typecodes['AllInteger'] + np.typecodes['AllFloat'] # type: ignore
-        )
-        message = (
-            f"Check '{type(self).__name__}' expecting that scorer "
-            "'{scorer_name}' will return an instance of numpy array with "
-            f"items of type int|float and with shape ({number_of_classes},)! {{additional}}."
-        )
-
         for scorer_name, score in results:
-            if not isinstance(score, np.ndarray):
-                raise DeepchecksValueError(message.format(
-                    scorer_name=scorer_name,
-                    additional=f"But got instance of '{type(score).__name__}'"
-                ))
-            if score.dtype.kind not in expected_types:
-                raise DeepchecksValueError(message.format(
-                    scorer_name=scorer_name,
-                    additional=f"But got array of '{str(score.dtype)}'"
-                ))
-            if len(score) != number_of_classes:
-                raise DeepchecksValueError(message.format(
-                    scorer_name=scorer_name,
-                    additional=f"But got array with shape ({len(score)},)"
-                ))
+            score_length = len(score)
+            if score_length != number_of_classes:
+                raise DeepchecksValueError(f'Expected scorer to return array of length {number_of_classes}, but got '
+                                           f'length {score_length}')
             yield scorer_name, score
 
     def add_condition_ratio_difference_not_greater_than(
@@ -210,9 +156,10 @@ class ClassPerformanceImbalance(SingleDatasetBaseCheck):
 
         Args:
             threshold: ratio difference threshold
+            score: limit score for condition
 
         Returns:
-            Self: instance of 'ClassPerformanceImbalance' or it subtype
+            Self: instance of 'ClassPerformance' or it subtype
 
         Raises:
             DeepchecksValueError:

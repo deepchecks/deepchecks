@@ -17,7 +17,7 @@ from matplotlib.axes import Axes
 
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
 from deepchecks.checks.performance.partition import partition_column
-from deepchecks.utils.metrics import validate_scorer, task_type_check, DEFAULT_SINGLE_SCORER, DEFAULT_SCORERS_DICT
+from deepchecks.utils.metrics import initialize_single_scorer, get_scorer_single
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.validation import validate_model
@@ -68,7 +68,7 @@ class SegmentPerformance(SingleDatasetBaseCheck):
             raise DeepchecksValueError('"num_segments" must be positive integer')
 
         self.max_segments = max_segments
-        self.scorer = scorer
+        self.scorer = initialize_single_scorer(scorer)
 
     def run(self, dataset, model) -> CheckResult:
         """Run check.
@@ -93,13 +93,7 @@ class SegmentPerformance(SingleDatasetBaseCheck):
             else:
                 raise DeepchecksValueError('Must define both "feature_1" and "feature_2" or none of them')
 
-        if self.scorer is not None:
-            scorer = validate_scorer(self.scorer, model, dataset)
-            scorer_name = self.scorer if isinstance(self.scorer, str) else 'User Scorer'
-        else:
-            model_type = task_type_check(model, dataset)
-            scorer_name = DEFAULT_SINGLE_SCORER[model_type]
-            scorer = DEFAULT_SCORERS_DICT[model_type][scorer_name]
+        scorer_name, scorer = get_scorer_single(model, dataset, self.scorer)
 
         feature_1_filters = partition_column(dataset, self.feature_1, max_segments=self.max_segments)
         feature_2_filters = partition_column(dataset, self.feature_2, max_segments=self.max_segments)
@@ -117,7 +111,9 @@ class SegmentPerformance(SingleDatasetBaseCheck):
                 if feature_2_df.empty:
                     score = np.NaN
                 else:
-                    score = scorer(model, feature_2_df[dataset.features], feature_2_df[dataset.label_name])
+                    score = scorer(model,
+                                   Dataset(feature_2_df, features=dataset.features, label_name=dataset.label_name)
+                                   )
                 scores[i, j] = score
                 counts[i, j] = len(feature_2_df)
 
