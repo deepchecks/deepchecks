@@ -37,11 +37,13 @@ class DummyModel:
     def predict_proba(a):
         return a
 
+
 def more_than_prefix_adder(number, max_number):
     if number < max_number:
         return format_number(number)
     else:
         return 'more than ' + format_number(number)
+
 
 class SimpleModelComparison(TrainTestBaseCheck):
     """Compare given model score to simple model score (according to given model type).
@@ -122,7 +124,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
         elif self.simple_model_type == 'tree':
             y_train = train_ds.label_col
             x_train, x_test = preprocess_dataset_to_scaled_numerics(
-                baseline_features= train_ds.features_columns,
+                baseline_features=train_ds.features_columns,
                 test_features=test_ds.features_columns,
                 categorical_columns=test_ds.cat_features,
                 max_num_categories=10
@@ -148,7 +150,8 @@ class SimpleModelComparison(TrainTestBaseCheck):
         else:
             raise DeepchecksValueError(
                 f'Unknown model type - {self.simple_model_type}, expected to be one of '
-                f"['random', 'constant', 'tree'] but instead got {self.simple_model_type}" # pylint: disable=inconsistent-quotes
+                f"['random', 'constant', 'tree'] "
+                f"but instead got {self.simple_model_type}"  # pylint: disable=inconsistent-quotes
             )
 
         y_test = test_ds.label_col.values

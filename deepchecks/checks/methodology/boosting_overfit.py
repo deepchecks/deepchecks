@@ -13,8 +13,7 @@ from copy import deepcopy
 from typing import Callable, Union
 
 from sklearn.pipeline import Pipeline
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
+import plotly.graph_objects as go
 import numpy as np
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
@@ -23,7 +22,6 @@ from deepchecks.utils.metrics import initialize_single_scorer, get_scorer_single
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
 from deepchecks.utils.model import get_model_of_pipeline
-from deepchecks.utils.plot import colors
 from deepchecks.errors import DeepchecksValueError
 
 
@@ -177,16 +175,17 @@ class BoostingOverfit(TrainTestBaseCheck):
             train_scores.append(partial_score(scorer, train_dataset, model, step))
             test_scores.append(partial_score(scorer, test_dataset, model, step))
 
-        def display_func():
-            _, axes = plt.subplots(1, 1, figsize=(7, 4))
-            axes.set_xlabel('Number of boosting iterations')
-            axes.set_ylabel(scorer_name)
-            axes.grid()
-            axes.plot(estimator_steps, np.array(train_scores), 'o-', color=colors['Train'], label='Training score')
-            axes.plot(estimator_steps, np.array(test_scores), 'o-', color=colors['Test'], label='Test score')
-            axes.legend(loc='best')
-            # Display x ticks as integers
-            axes.xaxis.set_major_locator(MaxNLocator(integer=True))
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=estimator_steps, y=np.array(train_scores),
+                                 mode='lines+markers',
+                                 name='Training score'))
+        fig.add_trace(go.Scatter(x=estimator_steps, y=np.array(test_scores),
+                                 mode='lines+markers',
+                                 name='Test score'))
+        fig.update_layout(title_text=f'{scorer_name} score compared to number of boosting iteration',
+                          width=800, height=500)
+        fig.update_xaxes(title='Number of boosting iterations')
+        fig.update_yaxes(title=scorer_name)
 
         display_text = f"""<span>
             The check limits the boosting model to using up to N estimators each time, and plotting the
@@ -194,7 +193,7 @@ class BoostingOverfit(TrainTestBaseCheck):
         </span>"""
 
         result = {'test': test_scores, 'train': train_scores}
-        return CheckResult(result, display=[display_text, display_func], header='Boosting Overfit')
+        return CheckResult(result, display=[display_text, fig], header='Boosting Overfit')
 
     def add_condition_test_score_percent_decline_not_greater_than(self, threshold: float = 0.05):
         """Add condition.

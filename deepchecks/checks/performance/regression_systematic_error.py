@@ -75,7 +75,7 @@ class RegressionSystematicError(SingleDatasetBaseCheck):
             mean_error = result['mean_error']
             if abs(mean_error) > max_ratio * rmse:
                 return ConditionResult(False,
-                                      f'mean error: {format_number(mean_error, 5)}, RMSE: {format_number(rmse)}')
+                                       f'mean error: {format_number(mean_error, 5)}, RMSE: {format_number(rmse)}')
             else:
                 return ConditionResult(True)
 

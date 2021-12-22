@@ -80,7 +80,7 @@ class DataDuplicates(SingleDatasetBaseCheck):
             if is_anonymous_series:
                 new_name = str(group_unique_data.keys().names)
                 new_index = group_unique_data.keys()
-                new_index.names = [new_name if name==0 else name for name in new_index.names]
+                new_index.names = [new_name if name == 0 else name for name in new_index.names]
                 group_unique_data = group_unique_data.reindex(new_index)
             duplicates_counted = group_unique_data.reset_index().rename(columns={0: 'Number of Duplicates'})
             if is_anonymous_series:

@@ -20,15 +20,20 @@ __all__ = ['Hashable']
 class Hashable(Protocol):
     """Trait for any hashable type that also defines comparison operators."""
 
-    def __hash__(self) -> int: # noqa: D105
+    def __hash__(self) -> int:  # noqa: D105
         ...
-    def __le__(self, __value) -> bool: # noqa: D105
+
+    def __le__(self, __value) -> bool:  # noqa: D105
         ...
-    def __lt__(self, __value) -> bool: # noqa: D105
+
+    def __lt__(self, __value) -> bool:  # noqa: D105
         ...
-    def __ge__(self, __value) -> bool: # noqa: D105
+
+    def __ge__(self, __value) -> bool:  # noqa: D105
         ...
-    def __gt__(self, __value) -> bool: # noqa: D105
+
+    def __gt__(self, __value) -> bool:  # noqa: D105
         ...
-    def __eq__(self, __value) -> bool: # noqa: D105
+
+    def __eq__(self, __value) -> bool:  # noqa: D105
         ...

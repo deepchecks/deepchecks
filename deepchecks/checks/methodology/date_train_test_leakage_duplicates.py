@@ -84,4 +84,3 @@ class DateTrainTestLeakageDuplicates(TrainTestBaseCheck):
 
         return self.add_condition(f'Date leakage ratio is not greater than {format_percent(max_ratio)}',
                                   max_ratio_condition)
-

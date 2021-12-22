@@ -16,11 +16,11 @@ from numbers import Number
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import get_scorer, make_scorer, accuracy_score, precision_score, recall_score, mean_squared_error, \
-    f1_score
+from sklearn.metrics import get_scorer, make_scorer, accuracy_score, precision_score, recall_score, \
+    mean_squared_error, f1_score
 from sklearn.base import ClassifierMixin, RegressorMixin
 
-from deepchecks import base #pylint: disable=unused-import; it is used for type annotations
+from deepchecks import base  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks import errors
 from deepchecks.utils import validation
 
@@ -139,7 +139,7 @@ def task_type_validation(
             DeepchecksValueError if model type doesn't match one of the expected_types
     """
     task_type = task_type_check(model, dataset)
-    if not task_type in expected_types:
+    if task_type not in expected_types:
         raise errors.DeepchecksValueError(
             f'Expected model to be a type from {[e.value for e in expected_types]}, '
             f'but received model of type: {task_type.value}'
@@ -244,7 +244,7 @@ def validate_scorer(scorer: t.Callable, model, dataset, should_return_array: boo
                                               f'but got: {type(result).__name__}')
         expected_types = t.cast(
             str,
-            np.typecodes['AllInteger'] + np.typecodes['AllFloat'] # type: ignore
+            np.typecodes['AllInteger'] + np.typecodes['AllFloat']  # type: ignore
         )
         kind = result.dtype.kind
         if kind not in expected_types:

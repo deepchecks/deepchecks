@@ -14,3 +14,4 @@ from .default_suites import single_dataset_integrity, train_test_leakage, train_
 
 __all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validation',
            'model_performance', 'full_suite']
+
