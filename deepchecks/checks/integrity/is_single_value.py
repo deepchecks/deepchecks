@@ -11,8 +11,9 @@
 """Module contains is_single_value check."""
 from typing import Union, List
 import pandas as pd
-from deepchecks import SingleDatasetBaseCheck, CheckResult, ensure_dataframe_type, Dataset, ConditionResult
-from deepchecks.utils.dataframes import filter_columns_with_validation
+from deepchecks import SingleDatasetBaseCheck, CheckResult, Dataset, ConditionResult
+from deepchecks.utils.dataframes import select_from_dataframe
+from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.strings import format_columns_for_condition
 from deepchecks.utils.typing import Hashable
 
@@ -52,12 +53,12 @@ class IsSingleValue(SingleDatasetBaseCheck):
             CheckResult: value is a boolean if there was at least one column with only one unique,
             display is a series with columns that have only one unique
         """
-        return self._is_single_value(dataset)
+        return self._single_value_check(dataset)
 
-    def _is_single_value(self, dataset: Union[pd.DataFrame, Dataset]) -> CheckResult:
+    def _single_value_check(self, dataset: Union[pd.DataFrame, Dataset]) -> CheckResult:
         # Validate parameters
         dataset = ensure_dataframe_type(dataset)
-        dataset = filter_columns_with_validation(dataset, self.columns, self.ignore_columns)
+        dataset = select_from_dataframe(dataset, self.columns, self.ignore_columns)
 
         is_single_unique_value = (dataset.nunique(dropna=False) == 1)
 

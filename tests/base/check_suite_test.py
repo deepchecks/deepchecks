@@ -43,18 +43,7 @@ def test_run_check_suite_with_incorrect_args(diabetes):
     args = {"train_dataset": None, "test_dataset": None,}
     assert_that(
         calling(suite.run).with_args(**args), 
-        raises(ValueError, r'At least one dataset \(or model\) must be passed to the method!')
-    )
-
-    args = {
-        "train_dataset": train_dataset,
-        "test_dataset": test_dataset,
-        "check_datasets_policy": "ttest" # incorrect policy literal
-    }
-
-    assert_that(
-        calling(suite.run).with_args(**args), 
-        raises(ValueError, r'check_datasets_policy must be one of \["both", "train", "test"\]')
+        raises(DeepchecksValueError, r'At least one dataset \(or model\) must be passed to the method!')
     )
 
 
@@ -82,7 +71,7 @@ def test_try_add_not_a_check_to_the_suite():
     suite = base.Suite("second suite")
     assert_that(
         calling(suite.add).with_args(object()),
-        raises(DeepchecksValueError, 'Suite receives only `BaseCheck` objects but got: object')
+        raises(DeepchecksValueError, 'Suite received unsupported object type: object')
     )
 
 
@@ -140,7 +129,7 @@ def test_check_suite_instantiation_by_extending_another_check_suite():
         base.Suite(
             "inner1",
             builtin_checks.MixedNulls(),
-            base.Suite("inner2", builtin_checks.MixedTypes()),
+            base.Suite("inner2", builtin_checks.MixedDataTypes()),
             builtin_checks.TrainTestDifferenceOverfit()
         )
     )
@@ -154,6 +143,6 @@ def test_check_suite_instantiation_by_extending_another_check_suite():
     assert checks_types == [
         builtin_checks.IsSingleValue,
         builtin_checks.MixedNulls,
-        builtin_checks.MixedTypes,
+        builtin_checks.MixedDataTypes,
         builtin_checks.TrainTestDifferenceOverfit
     ]

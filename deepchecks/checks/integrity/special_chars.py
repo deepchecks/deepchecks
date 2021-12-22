@@ -14,11 +14,12 @@ from typing import Union, List
 import pandas as pd
 from pandas.api.types import infer_dtype
 
-from deepchecks import Dataset, ensure_dataframe_type
+from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
-from deepchecks.utils.dataframes import filter_columns_with_validation
+from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
 from deepchecks.utils.strings import string_baseform, format_percent, format_columns_for_condition
+from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
 
 
@@ -36,7 +37,7 @@ def get_special_samples(column_data: pd.Series) -> Union[dict, None]:
     return samples_to_count or None
 
 
-def is_stringed_type(col):
+def is_stringed_type(col) -> bool:
     return infer_dtype(col) not in ['integer', 'decimal', 'floating']
 
 
@@ -50,7 +51,7 @@ class SpecialCharacters(SingleDatasetBaseCheck):
             Columns to ignore, if none given checks based on columns variable.
         n_most_common (int):
             Number of most common special-only samples to show in results
-        n_top_columns (int): (optinal - used only if model was specified)
+        n_top_columns (int): (optional - used only if model was specified)
           amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
@@ -80,7 +81,7 @@ class SpecialCharacters(SingleDatasetBaseCheck):
         return self._special_characters(dataset, feature_importances)
 
     def _special_characters(self, dataset: Union[pd.DataFrame, Dataset],
-                            feature_importances: pd.Series=None) -> CheckResult:
+                            feature_importances: pd.Series = None) -> CheckResult:
         """Run check.
 
         Args:
@@ -91,7 +92,7 @@ class SpecialCharacters(SingleDatasetBaseCheck):
         """
         # Validate parameters
         dataset: pd.DataFrame = ensure_dataframe_type(dataset)
-        dataset = filter_columns_with_validation(dataset, self.columns, self.ignore_columns)
+        dataset = select_from_dataframe(dataset, self.columns, self.ignore_columns)
 
         # Result value: { Column Name: {invalid: pct}}
         display_array = []

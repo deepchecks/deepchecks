@@ -23,7 +23,7 @@ class ColumnsInfo(SingleDatasetBaseCheck):
     """Return the role and logical type of each column.
 
     Args:
-        n_top_columns (int): (optinal - used only if model was specified)
+        n_top_columns (int): (optional - used only if model was specified)
                              amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
@@ -44,7 +44,7 @@ class ColumnsInfo(SingleDatasetBaseCheck):
         feature_importances = calculate_feature_importance_or_null(dataset, model)
         return self._columns_info(dataset, feature_importances)
 
-    def _columns_info(self, dataset: Dataset, feature_importances: pd.Series=None):
+    def _columns_info(self, dataset: Dataset, feature_importances: pd.Series = None):
         dataset = Dataset.validate_dataset_or_dataframe(dataset)
         value = dataset.columns_info
         value = column_importance_sorter_dict(value, dataset, feature_importances, self.n_top_columns)
@@ -52,4 +52,3 @@ class ColumnsInfo(SingleDatasetBaseCheck):
         df = df.transpose()
 
         return CheckResult(value, header='Columns Info', display=df)
-

@@ -9,7 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains all prebuilt suites."""
-from .integrity_suite import *
-from .methodology_suite import *
-from .performance_suite import *
-from .overall_suite import *
+from .default_suites import single_dataset_integrity, train_test_leakage, train_test_validation, \
+    model_evaluation, full_suite
+
+__all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validation',
+           'model_evaluation', 'full_suite']

@@ -17,6 +17,7 @@ from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionRe
 from deepchecks.utils.metrics import ModelType, task_type_validation
 from deepchecks.utils.strings import format_number
 
+
 __all__ = ['RegressionSystematicError']
 
 
@@ -74,7 +75,7 @@ class RegressionSystematicError(SingleDatasetBaseCheck):
             mean_error = result['mean_error']
             if abs(mean_error) > max_ratio * rmse:
                 return ConditionResult(False,
-                                      f'mean error: {format_number(mean_error, 5)}, RMSE: {format_number(rmse)}')
+                                       f'mean error: {format_number(mean_error, 5)}, RMSE: {format_number(rmse)}')
             else:
                 return ConditionResult(True)
 

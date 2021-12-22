@@ -13,16 +13,15 @@ from copy import deepcopy
 from typing import Callable, Union
 
 from sklearn.pipeline import Pipeline
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
+import plotly.graph_objects as go
 import numpy as np
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.utils.metrics import task_type_check, DEFAULT_METRICS_DICT, validate_scorer, DEFAULT_SINGLE_METRIC
+from deepchecks.utils.metrics import initialize_single_scorer, get_scorer_single
+
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
 from deepchecks.utils.model import get_model_of_pipeline
-from deepchecks.utils.plot import colors
 from deepchecks.errors import DeepchecksValueError
 
 
@@ -96,7 +95,7 @@ class PartialBoostingModel:
 
 def partial_score(scorer, dataset, model, step):
     partial_model = PartialBoostingModel(model, step)
-    return scorer(partial_model, dataset.features_columns, dataset.label_col)
+    return scorer(partial_model, dataset)
 
 
 def calculate_steps(num_steps, num_estimators):
@@ -118,22 +117,22 @@ def calculate_steps(num_steps, num_estimators):
 
 
 class BoostingOverfit(TrainTestBaseCheck):
-    """Check for overfit occurring when increasing the number of iterations in boosting models.
+    """Check for overfit caused by using too many iterations in a gradient boosted model.
 
     The check runs a pred-defined number of steps, and in each step it limits the boosting model to use up to X
-    estimators (number of estimators is monotonic increasing). It plots the given metric calculated for each step for
+    estimators (number of estimators is monotonic increasing). It plots the given score calculated for each step for
     both the train dataset and the test dataset.
 
     Args:
-        metric (Union[Callable, str]): Metric to use verify the model, either function or sklearn scorer name.
-        metric_name (str): Name to be displayed in the plot on y-axis. must be used together with 'metric'
+        scorer (Union[Callable, str]): Scorer used to verify the model, either function or sklearn scorer name.
+        scorer_name (str): Name to be displayed in the plot on y-axis. must be used together with 'scorer'
         num_steps (int): Number of splits of the model iterations to check.
     """
 
-    def __init__(self, metric: Union[Callable, str] = None, metric_name: str = None, num_steps: int = 20):
+    def __init__(self, scorer: Union[Callable, str] = None, scorer_name: str = None, num_steps: int = 20):
         super().__init__()
-        self.metric = metric
-        self.metric_name = metric_name
+        self.scorer = initialize_single_scorer(scorer)
+        self.scorer_name = scorer_name
         self.num_steps = num_steps
 
     def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
@@ -145,14 +144,14 @@ class BoostingOverfit(TrainTestBaseCheck):
             model: Boosting model.
 
         Returns:
-            The metric value on the test dataset.
+            The score value on the test dataset.
         """
         return self._boosting_overfit(train_dataset, test_dataset, model=model)
 
     def _boosting_overfit(self, train_dataset: Dataset, test_dataset: Dataset, model) -> CheckResult:
         # Validate params
-        if self.metric_name is not None and self.metric is None:
-            raise DeepchecksValueError('Can not have metric_name without metric')
+        if self.scorer_name is not None and self.scorer is None:
+            raise DeepchecksValueError('Can not have scorer_name without scorer')
         if not isinstance(self.num_steps, int) or self.num_steps < 2:
             raise DeepchecksValueError('num_steps must be an integer larger than 1')
         Dataset.validate_dataset(train_dataset)
@@ -163,14 +162,8 @@ class BoostingOverfit(TrainTestBaseCheck):
         train_dataset.validate_shared_label(test_dataset)
         validate_model(train_dataset, model)
 
-        # Get default metric
-        model_type = task_type_check(model, train_dataset)
-        if self.metric is not None:
-            scorer = validate_scorer(self.metric, model, train_dataset)
-            metric_name = self.metric_name or self.metric if isinstance(self.metric, str) else 'User metric'
-        else:
-            metric_name = DEFAULT_SINGLE_METRIC[model_type]
-            scorer = DEFAULT_METRICS_DICT[model_type][metric_name]
+        # Get default scorer
+        scorer_name, scorer = get_scorer_single(model, train_dataset, self.scorer)
 
         # Get number of estimators on model
         num_estimators = PartialBoostingModel.n_estimators(model)
@@ -182,19 +175,25 @@ class BoostingOverfit(TrainTestBaseCheck):
             train_scores.append(partial_score(scorer, train_dataset, model, step))
             test_scores.append(partial_score(scorer, test_dataset, model, step))
 
-        def display_func():
-            _, axes = plt.subplots(1, 1, figsize=(7, 4))
-            axes.set_xlabel('Number of boosting iterations')
-            axes.set_ylabel(metric_name)
-            axes.grid()
-            axes.plot(estimator_steps, np.array(train_scores), 'o-', color=colors['Train'], label='Training score')
-            axes.plot(estimator_steps, np.array(test_scores), 'o-', color=colors['Test'], label='Test score')
-            axes.legend(loc='best')
-            # Display x ticks as integers
-            axes.xaxis.set_major_locator(MaxNLocator(integer=True))
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=estimator_steps, y=np.array(train_scores),
+                                 mode='lines+markers',
+                                 name='Training score'))
+        fig.add_trace(go.Scatter(x=estimator_steps, y=np.array(test_scores),
+                                 mode='lines+markers',
+                                 name='Test score'))
+        fig.update_layout(title_text=f'{scorer_name} score compared to number of boosting iteration',
+                          width=800, height=500)
+        fig.update_xaxes(title='Number of boosting iterations')
+        fig.update_yaxes(title=scorer_name)
+
+        display_text = f"""<span>
+            The check limits the boosting model to using up to N estimators each time, and plotting the
+            {scorer_name} calculated for each subset of estimators for both the train dataset and the test dataset.
+        </span>"""
 
         result = {'test': test_scores, 'train': train_scores}
-        return CheckResult(result, display=display_func, header='Boosting Overfit')
+        return CheckResult(result, display=[display_text, fig], header='Boosting Overfit')
 
     def add_condition_test_score_percent_decline_not_greater_than(self, threshold: float = 0.05):
         """Add condition.
@@ -211,7 +210,7 @@ class BoostingOverfit(TrainTestBaseCheck):
             pct_diff = (max_score - last_score) / abs(max_score)
 
             if pct_diff > threshold:
-                message = f'Found metric decline of: -{format_percent(pct_diff)}'
+                message = f'Found score decline of: -{format_percent(pct_diff)}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)

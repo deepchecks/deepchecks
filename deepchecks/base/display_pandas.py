@@ -14,9 +14,15 @@ import warnings
 
 from IPython.core.display import display_html
 import pandas as pd
+from pandas.io.formats.style import Styler
+
+from . import check  # pylint: disable=unused-import
+
+
 __all__ = ['display_dataframe', 'dataframe_to_html', 'display_conditions_table']
 
-from pandas.io.formats.style import Styler
+
+__all__ = ['display_dataframe', 'dataframe_to_html', 'display_conditions_table']
 
 
 def display_dataframe(df: Union[pd.DataFrame, Styler]):
@@ -53,14 +59,40 @@ def dataframe_to_html(df: Union[pd.DataFrame, Styler]):
         return df.to_html()
 
 
-def display_conditions_table(conditions_table: List):
+def display_conditions_table(check_results: Union['check.CheckResult', List['check.CheckResult']],
+                             unique_id=None):
     """Display the conditions table as DataFrame.
 
     Args:
-        conditions_table (List): list that contains the conditions in table format
+        check_results (Union['CheckResult', List['CheckResult']]): check results to show conditions of.
+        unique_id (str): the unique id to append for the check names to create links
+                              (won't create links if None/empty).
     """
-    conditions_table = pd.DataFrame(data=conditions_table,
-                                    columns=['Status', 'Check', 'Condition', 'More Info', 'sort'], )
+    if not isinstance(check_results, List):
+        show_check_column = False
+        check_results = [check_results]
+    else:
+        show_check_column = True
+
+    table = []
+    for check_result in check_results:
+        for cond_result in check_result.conditions_results:
+            sort_value = cond_result.priority
+            icon = cond_result.get_icon()
+            check_header = check_result.get_header()
+            if unique_id and check_result.have_display():
+                check_id = f'{check_result.check.__class__.__name__}_{unique_id}'
+                link = f'<a href=#{check_id}>{check_header}</a>'
+            else:
+                link = check_header
+                sort_value = 1 if sort_value == 1 else 5  # if it failed but has no display still show on top
+            table.append([icon, link, cond_result.name,
+                         cond_result.details, sort_value])
+
+    conditions_table = pd.DataFrame(data=table,
+                                    columns=['Status', 'Check', 'Condition', 'More Info', 'sort'])
     conditions_table.sort_values(by=['sort'], inplace=True)
     conditions_table.drop('sort', axis=1, inplace=True)
+    if show_check_column is False:
+        conditions_table.drop('Check', axis=1, inplace=True)
     display_dataframe(conditions_table.style.hide_index())

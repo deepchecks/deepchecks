@@ -18,7 +18,8 @@ import pandas as pd
 
 from IPython.core.display import display_html
 
-from deepchecks.base.check import CheckResult, CheckFailure, ConditionResult
+from deepchecks.utils.strings import get_random_string
+from deepchecks.base.check import CheckResult, CheckFailure
 from deepchecks.base.display_pandas import dataframe_to_html, display_conditions_table
 
 
@@ -30,8 +31,7 @@ class ProgressBar:
 
     def __init__(self, name, length):
         """Initialize progress bar."""
-        self.pbar = tqdm.tqdm(total=length,desc=name, unit='Check', \
-                              leave=False, file=sys.stdout, \
+        self.pbar = tqdm.tqdm(total=length, desc=name, unit='Check', leave=False, file=sys.stdout,
                               bar_format=f'{{l_bar}}{{bar:{length}}}{{r_bar}}')
 
     def set_text(self, text):
@@ -55,13 +55,15 @@ def get_display_exists_icon(exists: bool):
 
 def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]]):
     """Display results of suite in IPython."""
-    conditions_table = []
-    display_table = []
+    unique_id = get_random_string()
+    checks_with_conditions = []
+    display_table: List[CheckResult] = []
     others_table = []
+
     for result in results:
         if isinstance(result, CheckResult):
             if result.have_conditions():
-                ConditionResult.append_to_conditions_table(result, conditions_table)
+                checks_with_conditions.append(result)
             if result.have_display():
                 display_table.append(result)
             else:
@@ -71,6 +73,8 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
             name = result.check.name()
             others_table.append([name, msg, 1])
 
+    display_table = sorted(display_table, key=lambda it: it.priority)
+
     light_hr = '<hr style="background-color: #eee;border: 0 none;color: #eee;height: 1px;">'
     bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'
     icons = """
@@ -79,22 +83,22 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     <span style="color: orange;font-weight:bold;display:inline-block">\U00000021</span>
     """
     html = f"""
-    <h1>{suite_name}</h1>
+    <h1 id="summary_{unique_id}">{suite_name}</h1>
     <p>The suite is composed of various checks such as: {get_first_3(results)}, etc...<br>
     Each check may contain conditions (which results in {icons}), as well as other outputs such as plots or tables.<br>
     Suites, checks and conditions can all be modified (see tutorial [link]).</p>
     {bold_hr}<h2>Conditions Summary</h2>
     """
     display_html(html, raw=True)
-    if conditions_table:
-        display_conditions_table(conditions_table)
+    if checks_with_conditions:
+        display_conditions_table(checks_with_conditions, unique_id)
     else:
         display_html('<p>No conditions defined on checks in the suite.</p>', raw=True)
 
     display_html(f'{bold_hr}<h2>Additional Outputs</h2>', raw=True)
     if display_table:
         for i, r in enumerate(display_table):
-            r._ipython_display_()
+            r.show(show_conditions=False, unique_id=unique_id)
             if i < len(display_table) - 1:
                 display_html(light_hr, raw=True)
     else:
@@ -109,6 +113,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         {dataframe_to_html(others_table.style.hide_index())}
         """
         display_html(html, raw=True)
+        display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
 
 
 def get_first_3(results: List[Union[CheckResult, CheckFailure]]):

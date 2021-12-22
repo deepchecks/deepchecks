@@ -11,6 +11,7 @@
 """String mismatch functions."""
 from collections import defaultdict
 from typing import Union, List
+import itertools
 
 import pandas as pd
 
@@ -18,13 +19,13 @@ from deepchecks import (
     CheckResult,
     SingleDatasetBaseCheck,
     Dataset,
-    ensure_dataframe_type,
     ConditionResult,
     ConditionCategory
 )
-from deepchecks.utils.dataframes import filter_columns_with_validation
+from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
 from deepchecks.utils.typing import Hashable
+from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.strings import (
     get_base_form_to_variants_dict,
     is_string_column,
@@ -36,14 +37,16 @@ from deepchecks.utils.strings import (
 __all__ = ['StringMismatch']
 
 
-def _condition_variants_number(result, num_max_variants: int):
+def _condition_variants_number(result, num_max_variants: int, max_cols_to_show: int = 5, max_forms_to_show: int = 5):
     not_passing_variants = defaultdict(list)
     for col, baseforms in result.items():
         for base_form, variants_list in baseforms.items():
             if len(variants_list) > num_max_variants:
-                not_passing_variants[col].append(base_form)
+                if len(not_passing_variants[col]) < max_forms_to_show:
+                    not_passing_variants[col].append(base_form)
     if not_passing_variants:
-        details = f'Found columns with variants: {dict(not_passing_variants)}'
+        variants_to_show = dict(itertools.islice(not_passing_variants.items(), max_cols_to_show))
+        details = f'Found columns with variants: {variants_to_show}'
         return ConditionResult(False, details, ConditionCategory.WARN)
     return ConditionResult(True)
 
@@ -56,7 +59,7 @@ class StringMismatch(SingleDatasetBaseCheck):
             Columns to check, if none are given checks all columns except ignored ones.
         ignore_columns (Union[Hashable, List[Hashable]]):
             Columns to ignore, if none given checks based on columns variable
-        n_top_columns (int): (optinal - used only if model was specified)
+        n_top_columns (int): (optional - used only if model was specified)
           amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
@@ -81,11 +84,11 @@ class StringMismatch(SingleDatasetBaseCheck):
         return self._string_mismatch(dataset, feature_importances)
 
     def _string_mismatch(self, dataset: Union[pd.DataFrame, Dataset],
-                         feature_importances: pd.Series=None) -> CheckResult:
+                         feature_importances: pd.Series = None) -> CheckResult:
         # Validate parameters
         original_dataset = dataset
         dataset: pd.DataFrame = ensure_dataframe_type(dataset)
-        dataset = filter_columns_with_validation(dataset, self.columns, self.ignore_columns)
+        dataset = select_from_dataframe(dataset, self.columns, self.ignore_columns)
 
         results = []
         result_dict = defaultdict(dict)

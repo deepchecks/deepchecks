@@ -9,13 +9,27 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains checks of model performance metrics."""
-from .performance_report import *
-from .confusion_matrix_report import *
-from .roc_report import *
-from .simple_model_comparison import *
-from .calibration_metric import *
-from .segment_performance import *
-from .regression_systematic_error import *
-from .regression_error_distribution import *
-from .class_performance_imbalance import *
-from .model_error_analysis import *
+from .performance_report import PerformanceReport
+from .confusion_matrix_report import ConfusionMatrixReport
+from .roc_report import RocReport
+from .simple_model_comparison import SimpleModelComparison
+from .calibration_score import CalibrationScore
+from .segment_performance import SegmentPerformance
+from .regression_systematic_error import RegressionSystematicError
+from .regression_error_distribution import RegressionErrorDistribution
+from .class_performance import ClassPerformance
+from .model_error_analysis import ModelErrorAnalysis
+
+
+__all__ = [
+    'PerformanceReport',
+    'ConfusionMatrixReport',
+    'RocReport',
+    'SimpleModelComparison',
+    'CalibrationScore',
+    'SegmentPerformance',
+    'RegressionSystematicError',
+    'RegressionErrorDistribution',
+    'ClassPerformance',
+    'ModelErrorAnalysis'
+]

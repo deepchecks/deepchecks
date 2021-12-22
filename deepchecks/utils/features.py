@@ -9,10 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing feature importance calculations."""
+from functools import lru_cache
 import typing as t
+
 import numpy as np
 import pandas as pd
-
+from pandas.core.dtypes.common import is_float_dtype
 from sklearn.inspection import permutation_importance
 from sklearn.pipeline import Pipeline
 
@@ -27,7 +29,9 @@ __all__ = [
     'calculate_feature_importance',
     'calculate_feature_importance_or_null',
     'column_importance_sorter_dict',
-    'column_importance_sorter_df'
+    'column_importance_sorter_df',
+    'infer_categorical_features',
+    'is_categorical'
 ]
 
 
@@ -53,13 +57,13 @@ def calculate_feature_importance_or_null(dataset: 'base.Dataset', model: t.Any) 
 
 
 def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset',
-                                 force_permutation: bool = False, permutation_wkargs: dict = None) -> pd.Series:
+                                 force_permutation: bool = False,
+                                 permutation_wkargs: dict = None) -> pd.Series:
     """Calculate features effect on the label.
 
     Args:
         model (Any): A fitted model
         dataset (Dataset): dataset used to fit the model
-        random_state (int): random seed for permutation importance calculation
         force_permutation (bool): force permutation importance calculation
         permutation_wkargs (dict): kwargs for permutation importance calculation
     Returns:
@@ -85,26 +89,24 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset',
 
     # if _built_in_importance was calculated and returned None, check if pipeline and / or attempt
     # permutation importance
+    if isinstance(model, Pipeline) and feature_importances is None:
+        internal_estimator = get_model_of_pipeline(model)
+        if internal_estimator is not None:
+            # in case pipeline had an encoder
+            try:
+                feature_importances = _built_in_importance(internal_estimator, dataset)
+            except ValueError:
+                pass
+
     if feature_importances is None:
-        if isinstance(model, Pipeline):
-            internal_estimator = get_model_of_pipeline(model)
-            if internal_estimator is not None:
-                # incase pipeline had an encoder
-                try:
-                    feature_importances = _built_in_importance(internal_estimator, dataset)
-                except ValueError:
-                    pass
-            if feature_importances is None:
-                feature_importances = _calc_importance(model, dataset, **permutation_wkargs)
-        else:  # Others
-            feature_importances = _calc_importance(model, dataset, **permutation_wkargs)
+        feature_importances = _calc_importance(model, dataset, **permutation_wkargs)
 
     return feature_importances.fillna(0)
 
 
 def _built_in_importance(model: t.Any, dataset: 'base.Dataset') -> t.Optional[pd.Series]:
     """Get feature importance member if present in model."""
-    if 'feature_importances_' in dir(model):  # Ensambles
+    if 'feature_importances_' in dir(model):  # Ensembles
         normalized_feature_importance_values = model.feature_importances_/model.feature_importances_.sum()
         return pd.Series(normalized_feature_importance_values, index=dataset.features)
     elif 'coef_' in dir(model):  # Linear models
@@ -115,6 +117,7 @@ def _built_in_importance(model: t.Any, dataset: 'base.Dataset') -> t.Optional[pd
         return
 
 
+@lru_cache(maxsize=32)
 def _calc_importance(
     model: t.Any,
     dataset: 'base.Dataset',
@@ -123,7 +126,20 @@ def _calc_importance(
     random_state: int = 42,
     n_samples: int = 10000,
 ) -> pd.Series:
-    """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal."""
+    """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal.
+
+    Args:
+        model (Any): A fitted model
+        dataset (Dataset): dataset used to fit the model
+        n_repeats (int): Number of times to permute a feature
+        mask_high_variance_features (bool): If true, features for whome calculated permuation importance values
+                                            varied gratly would be returned has having 0 feature importance
+        random_state (int): Random seed for permutation importance calculation.
+        n_samples (int): The number of samples to draw from X to compute feature importance
+                        in each repeat (without replacement).
+    Returns:
+        pd.Series of feature importance normalized to 0-1 indexed by feature names
+    """
     dataset.validate_label()
 
     n_samples = min(n_samples, dataset.n_samples)
@@ -162,7 +178,7 @@ def column_importance_sorter_dict(cols_dict: t.Dict, ds: 'base.Dataset', feature
         cols_dict (Dict): dict where columns are the keys
         ds (Dataset): dataset used to fit the model
         feature_importances (pd.Series): feature importance normalized to 0-1 indexed by feature names
-        n_top_columns (int): (optinal - used only if model was specified)
+        n_top_columns (int): (optional - used only if model was specified)
                              amount of columns to show ordered by feature importance (date, index, label are first)
     Returns:
         Dict: the dict of columns sorted and limited by feature importance.
@@ -203,3 +219,64 @@ def column_importance_sorter_df(
         if n_top:
             return df.head(n_top)
     return df
+
+
+def infer_categorical_features(
+    df: pd.DataFrame,
+    max_categorical_ratio: float = 0.01,
+    max_categories: int = 30,
+    max_float_categories: int = 5,
+    columns: t.Optional[t.List[Hashable]] = None,
+) -> t.List[Hashable]:
+    """Infers which features are categorical by checking types and number of unique values.
+
+    Arguments:
+        df (DataFrame): dataframe for which to infer categorical features
+
+    Returns:
+        List[hashable]: list of categorical features
+    """
+    categorical_dtypes = df.select_dtypes(include='category')
+
+    if len(categorical_dtypes.columns) > 0:
+        return list(categorical_dtypes.columns)
+
+    if columns is not None:
+        dataframe_columns = validation.ensure_hashable_or_mutable_sequence(columns)
+    else:
+        dataframe_columns = df.columns
+
+    return [
+        column
+        for column in dataframe_columns
+        if is_categorical(
+            t.cast(pd.Series, df[column]),
+            max_categorical_ratio,
+            max_categories,
+            max_float_categories
+        )
+    ]
+
+
+def is_categorical(
+    column: pd.Series,
+    max_categorical_ratio: float = 0.01,
+    max_categories: int = 30,
+    max_float_categories: int = 5
+) -> bool:
+    """Check if uniques are few enough to count as categorical.
+
+    Args:
+        column (Series):
+            The name of the column in the dataframe
+
+    Returns:
+        bool: True if is categorical according to input numbers
+    """
+    n_unique = column.nunique(dropna=True)
+    n_samples = len(column.dropna())
+
+    if is_float_dtype(column):
+        return n_unique <= max_float_categories
+
+    return n_unique / n_samples < max_categorical_ratio and n_unique <= max_categories

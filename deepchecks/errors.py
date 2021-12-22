@@ -11,7 +11,7 @@
 """Module with all deepchecks error types."""
 
 
-__all__ = ['DeepchecksBaseError', 'DeepchecksValueError', 'DeepchecksProcessError']
+__all__ = ['DeepchecksValueError', 'DeepchecksNotSupportedError', 'DeepchecksProcessError']
 
 
 class DeepchecksBaseError(Exception):
@@ -28,7 +28,13 @@ class DeepchecksValueError(DeepchecksBaseError):
     pass
 
 
+class DeepchecksNotSupportedError(DeepchecksBaseError):
+    """Exception class that represents an unsupported action in Deepchecks."""
+
+    pass
+
+
 class DeepchecksProcessError(DeepchecksBaseError):
-    """Exception class that represents an isssue with a process."""
+    """Exception class that represents an issue with a process."""
 
     pass

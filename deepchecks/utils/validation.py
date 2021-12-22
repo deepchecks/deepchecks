@@ -11,14 +11,15 @@
 """objects validation utilities."""
 import typing as t
 
+import pandas as pd
 import sklearn
 
-from deepchecks import base # pylint: disable=unused-import, is used in type annotations
+from deepchecks import base  # pylint: disable=unused-import, is used in type annotations
 from deepchecks import errors
 from deepchecks.utils.typing import Hashable
 
 
-__all__ = ['model_type_validation', 'ensure_hashable_or_mutable_sequence', 'validate_model']
+__all__ = ['model_type_validation', 'ensure_hashable_or_mutable_sequence', 'validate_model', 'ensure_dataframe_type']
 
 
 def model_type_validation(model: t.Any):
@@ -68,7 +69,7 @@ def validate_model(dataset: 'base.Dataset', model: t.Any):
         ))
 
     try:
-        model_features = set(model_features) # type: ignore
+        model_features = set(model_features)  # type: ignore
         if model_features != features_names:
             raise errors.DeepchecksValueError(error_message.format(
                 'But function received dataset with a different set of features.'
@@ -108,3 +109,22 @@ def ensure_hashable_or_mutable_sequence(
     raise errors.DeepchecksValueError(message.format(
         type=type(value).__name__
     ))
+
+
+def ensure_dataframe_type(obj: t.Any) -> pd.DataFrame:
+    """Ensure that given object is of type DataFrame or Dataset and return it as DataFrame. else raise error.
+
+    Args:
+        obj: Object to ensure it is DataFrame or Dataset
+
+    Returns:
+        (pd.DataFrame)
+    """
+    if isinstance(obj, pd.DataFrame):
+        return obj
+    elif isinstance(obj, base.Dataset):
+        return obj.data
+    else:
+        raise errors.DeepchecksValueError(
+            f'dataset must be of type DataFrame or Dataset, but got: {type(obj).__name__}'
+        )

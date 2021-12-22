@@ -26,11 +26,11 @@ from deepchecks.errors import DeepchecksValueError
 __all__ = ['TrustScoreComparison']
 
 
-def is_positive_int(x):
+def is_positive_int(x) -> bool:
     return x is not None and isinstance(x, int) and x > 0
 
 
-def is_float_0_to_1(x):
+def is_float_0_to_1(x) -> bool:
     return x is not None and isinstance(x, float) and 0 <= x <= 1
 
 
@@ -117,10 +117,17 @@ class TrustScoreComparison(TrainTestBaseCheck):
         if model_type not in [ModelType.BINARY, ModelType.MULTICLASS]:
             raise DeepchecksValueError('Check supports only classification')
 
-        train_data_sample = train_dataset.data.sample(min(self.sample_size, train_dataset.n_samples),
-                                                      random_state=self.random_state)
-        test_data_sample = test_dataset.data.sample(min(self.sample_size, test_dataset.n_samples),
-                                                    random_state=self.random_state)
+        no_null_label_train = train_dataset.data[train_dataset.label_col.notna()]
+        train_data_sample = no_null_label_train.sample(
+            min(self.sample_size, len(no_null_label_train)),
+            random_state=self.random_state
+        )
+
+        no_null_label_test = test_dataset.data[test_dataset.label_col.notna()]
+        test_data_sample = no_null_label_test.sample(
+            min(self.sample_size, len(no_null_label_test)),
+            random_state=self.random_state
+        )
         features_list = train_dataset.features
         label_name = train_dataset.label_name
 
@@ -143,11 +150,11 @@ class TrustScoreComparison(TrainTestBaseCheck):
         trust_score_model = TrustScore(k_filter=self.k_filter, alpha=self.alpha)
         trust_score_model.fit(X=x_train.to_numpy(), Y=y_train.to_numpy())
         # Calculate y on train and get scores
-        y_train_pred = model.predict(train_data_sample[features_list])
+        y_train_pred = model.predict(train_data_sample[features_list]).flatten()
         train_trust_scores = trust_score_model.score(x_train.to_numpy(),
                                                      transform_numpy_label(y_train_pred))[0].astype('float64')
         # Calculate y on test dataset using the model
-        y_test_pred = model.predict(test_data_sample[features_list])
+        y_test_pred = model.predict(test_data_sample[features_list]).flatten()
         test_trust_scores = trust_score_model.score(x_test.to_numpy(),
                                                     transform_numpy_label(y_test_pred))[0].astype('float64')
 
@@ -176,7 +183,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
             test_trust_scores_cut = filter_quantile(test_trust_scores)
             train_trust_scores_cut = filter_quantile(train_trust_scores)
             x_range = [min(*test_trust_scores_cut, *train_trust_scores_cut),
-                     max(*test_trust_scores_cut, *train_trust_scores_cut)]
+                       max(*test_trust_scores_cut, *train_trust_scores_cut)]
             xs = np.linspace(x_range[0], x_range[1], 40)
             plot_density(train_trust_scores_cut, xs, colors['Train'])
             plot_density(test_trust_scores_cut, xs, colors['Test'])
@@ -202,8 +209,8 @@ class TrustScoreComparison(TrainTestBaseCheck):
         footnote = """<span style="font-size:0.8em"><i>
             The test trust score distribution should be quite similar to the train's. If it is skewed to the left, the
             confidence of the model in the test data is lower than the train, indicating a difference that may affect
-            model performance on similar data. If it is skewed to the right, it indicates an underlying problem with the creation of the test dataset
-            (test confidence isn't expected to be higher than train's).
+            model performance on similar data. If it is skewed to the right, it indicates an underlying problem with the
+            creation of the test dataset (test confidence isn't expected to be higher than train's).
             </i></span>"""
         display = [headnote, display_plot, footnote, '<h5>Worst Trust Score Samples</h5>', bottom_k,
                    '<h5>Top Trust Score Samples</h5>', top_k]
