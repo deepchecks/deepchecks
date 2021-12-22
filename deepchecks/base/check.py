@@ -179,9 +179,6 @@ class CheckResult:
     def _ipython_display_(self, show_conditions=True, unique_id=None):
         if unique_id:
             check_id = f'{self.check.__class__.__name__}_{unique_id}'
-        else:
-            check_id = None
-        if check_id:
             display_html(f'<h4 id="{check_id}">{self.get_header()}</h4>', raw=True)
         else:
             display_html(f'<h4>{self.get_header()}</h4>', raw=True)
