@@ -17,7 +17,7 @@ from numbers import Number
 import numpy as np
 import pandas as pd
 from sklearn.metrics import get_scorer, make_scorer, accuracy_score, precision_score, recall_score, mean_squared_error, \
-    f1_score
+    f1_score, mean_absolute_error
 from sklearn.base import ClassifierMixin, RegressorMixin
 
 from deepchecks import base #pylint: disable=unused-import; it is used for type annotations
@@ -71,7 +71,7 @@ MULTICLASS_SCORERS_NON_AVERAGE = {
 
 DEFAULT_REGRESSION_SCORERS = {
     'RMSE': make_scorer(mean_squared_error, squared=False, greater_is_better=False),
-    'MSE': make_scorer(mean_squared_error, greater_is_better=False),
+    'MAE': make_scorer(mean_absolute_error, greater_is_better=False),
 }
 
 

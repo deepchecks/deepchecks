@@ -11,12 +11,16 @@
 """Module containing performance report check."""
 from typing import Callable, Dict
 import pandas as pd
-from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
-from deepchecks.utils.metrics import get_scorers_dict, initialize_user_scorers
+import plotly.graph_objects as go
+
+
+from deepchecks.base.check import ModelComparisonContext
+from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult, ModelComparisonBaseCheck
+from deepchecks.utils.metrics import get_scorers_dict, initialize_user_scorers, ModelType
 from deepchecks.utils.validation import validate_model
 
 
-__all__ = ['PerformanceReport']
+__all__ = ['PerformanceReport', 'MultiModelPerformanceReport']
 
 
 class PerformanceReport(SingleDatasetBaseCheck):
@@ -77,3 +81,62 @@ class PerformanceReport(SingleDatasetBaseCheck):
             return ConditionResult(True)
 
         return self.add_condition(name, condition, min_score=min_score)
+
+
+class MultiModelPerformanceReport(ModelComparisonBaseCheck):
+    """Summarize given scores between models on test datasets
+
+    Args:
+        alternative_scorers (Dict[str, Callable], default None):
+            An optional dictionary of scorer name to scorer functions.
+            If none given, using default scorers
+    """
+
+    def __init__(self, alternative_scorers: Dict[str, Callable] = None):
+        super().__init__()
+        self.alternative_scorers = initialize_user_scorers(alternative_scorers)
+
+    def _run(self, context: ModelComparisonContext):
+        first_model = context.models[0]
+        first_test_ds = context.test_datasets[0]
+        scorers = get_scorers_dict(first_model, first_test_ds, self.alternative_scorers, multiclass_avg=False)
+
+        models_results = {}
+        for _, test, model, model_name in context:
+            curr_results = []
+            for metric, scorer in scorers.items():
+                score = scorer(model, test)
+                # Multiclass scorers return numpy array of result per class
+                if context.task_type == ModelType.MULTICLASS:
+                    for class_i, value in enumerate(score):
+                        curr_results.append([value, metric, class_i])
+                else:
+                    curr_results.append([score, metric])
+            models_results[model_name] = curr_results
+
+        # === Display ===
+        if context.task_type == ModelType.MULTICLASS:
+            fig = go.Figure()
+            for model_name, results in models_results.items():
+                display_df = pd.DataFrame(results, columns=['Value', 'Metric', 'Class'])
+                display_df = display_df.sort_values(by=['Class', 'Metric'])
+                # Edit classes names to add prefix 'Class '
+                classes = display_df['Class'].apply(lambda x: f'Class {x}')
+                fig.add_trace(go.Bar(
+                    x=[classes, display_df['Metric']],
+                    y=display_df['Value'],
+                    name=model_name,
+                ))
+            fig.update_layout(bargap=0.4, bargroupgap=0)
+        else:
+            fig = go.Figure()
+            for model_name, results in models_results.items():
+                display_df = pd.DataFrame(results, columns=['Value', 'Metric'])
+                values = display_df['Value'].apply(lambda x: abs(x))
+                fig.add_trace(go.Bar(
+                    x=display_df['Metric'],
+                    y=values,
+                    name=model_name,
+                ))
+
+        return CheckResult(models_results, display=[fig])
