@@ -84,7 +84,7 @@ class StringMismatch(SingleDatasetBaseCheck):
         return self._string_mismatch(dataset, feature_importances)
 
     def _string_mismatch(self, dataset: Union[pd.DataFrame, Dataset],
-                         feature_importances: pd.Series=None) -> CheckResult:
+                         feature_importances: pd.Series = None) -> CheckResult:
         # Validate parameters
         original_dataset = dataset
         dataset: pd.DataFrame = ensure_dataframe_type(dataset)

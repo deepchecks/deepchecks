@@ -225,11 +225,11 @@ class CheckResult:
         """Process the conditions results from current result and check."""
         self.conditions_results = self.check.conditions_decision(self)
 
-    def have_conditions(self):
+    def have_conditions(self) -> bool:
         """Return if this check have condition results."""
         return bool(self.conditions_results)
 
-    def have_display(self):
+    def have_display(self) -> bool:
         """Return if this check have dsiplay."""
         return bool(self.display)
 

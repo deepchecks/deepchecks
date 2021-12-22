@@ -11,7 +11,7 @@
 """Module containing simple comparison check."""
 from typing import Callable, Dict, Union
 import numpy as np
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from deepchecks.checks.distribution.preprocessing import preprocess_dataset_to_scaled_numerics
@@ -37,11 +37,13 @@ class DummyModel:
     def predict_proba(a):
         return a
 
+
 def more_than_prefix_adder(number, max_number):
     if number < max_number:
         return format_number(number)
     else:
         return 'more than ' + format_number(number)
+
 
 class SimpleModelComparison(TrainTestBaseCheck):
     """Compare given model score to simple model score (according to given model type).
@@ -122,7 +124,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
         elif self.simple_model_type == 'tree':
             y_train = train_ds.label_col
             x_train, x_test = preprocess_dataset_to_scaled_numerics(
-                baseline_features= train_ds.features_columns,
+                baseline_features=train_ds.features_columns,
                 test_features=test_ds.features_columns,
                 categorical_columns=test_ds.cat_features,
                 max_num_categories=10
@@ -148,7 +150,8 @@ class SimpleModelComparison(TrainTestBaseCheck):
         else:
             raise DeepchecksValueError(
                 f'Unknown model type - {self.simple_model_type}, expected to be one of '
-                f"['random', 'constant', 'tree'] but instead got {self.simple_model_type}" # pylint: disable=inconsistent-quotes
+                f"['random', 'constant', 'tree'] "
+                f"but instead got {self.simple_model_type}"  # pylint: disable=inconsistent-quotes
             )
 
         y_test = test_ds.label_col.values
@@ -181,18 +184,16 @@ class SimpleModelComparison(TrainTestBaseCheck):
                f'compared to Simple {self.simple_model_type} prediction ' \
                f'which achieved a score of {format_number(simple_score)} on tested data.'
 
-        def display_func():
-            fig = plt.figure()
-            ax = fig.add_axes([0, 0, 1, 1])
-            models = [f'Simple model - {self.simple_model_type}', f'{type(model).__name__} model']
-            results = [simple_score, pred_score]
-            ax.bar(models, results)
-            ax.set_ylabel(score_name)
+        models = [f'Simple model - {self.simple_model_type}', f'{type(model).__name__} model']
+        results = [simple_score, pred_score]
+        fig = go.Figure([go.Bar(x=models, y=results)])
+        fig.update_layout(width=600, height=500)
+        fig.update_yaxes(title=score_name)
 
         return CheckResult({'given_model_score': pred_score,
                             'simple_model_score': simple_score,
                             'ratio': ratio},
-                           display=[text, display_func])
+                           display=[text, fig])
 
     def add_condition_ratio_not_less_than(self, min_allowed_ratio: float = 1.1):
         """Add condition - require min allowed ratio between the given and the simple model.

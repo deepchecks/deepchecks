@@ -115,7 +115,7 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
         idx_in_array = 0
         for index in duplicate_rows_df.index:
             if index.startswith('Test'):
-                if not 'Tot.' in index:
+                if 'Tot.' not in index:
                     count_val_array[idx_in_array] = len(index.split(','))
                 else:
                     count_val_array[idx_in_array] = int(re.findall(r'Tot. (\d+)', index)[0])
