@@ -9,50 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains all prebuilt suites."""
-from .integrity_suite import (
-    single_dataset_integrity_suite,
-    comparative_integrity_suite,
-    integrity_suite
-)
-from .methodology_suite import (
-    index_leakage_suite,
-    date_leakage_suite,
-    data_leakage_suite,
-    leakage_suite,
-    overfit_suite,
-    methodological_flaws_suite
-)
-from .performance_suite import (
-    classification_suite,
-    regression_suite,
-    generic_performance_suite,
-    performance_suite
-)
-from .overall_suite import (
-    overall_suite,
-    overall_classification_suite,
-    overall_regression_suite,
-    overall_generic_suite
-)
+from .default_suites import single_dataset_integrity, train_test_leakage, train_test_validation, \
+    model_evaluation, full_suite
 
-
-__all__ = [
-    'single_dataset_integrity_suite',
-    'comparative_integrity_suite',
-    'integrity_suite',
-    'index_leakage_suite',
-    'date_leakage_suite',
-    'data_leakage_suite',
-    'leakage_suite',
-    'overfit_suite',
-    'methodological_flaws_suite',
-    'classification_suite',
-    'regression_suite',
-    'generic_performance_suite',
-    'regression_suite',
-    'performance_suite',
-    'overall_suite',
-    'overall_classification_suite',
-    'overall_regression_suite',
-    'overall_generic_suite'
-]
+__all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validation',
+           'model_evaluation', 'full_suite']
