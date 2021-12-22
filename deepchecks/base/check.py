@@ -182,8 +182,7 @@ class CheckResult:
         else:
             check_id = None
         if check_id:
-            display_html(f'<h4 id="{check_id}" style="display: inline-block">{self.get_header()}</h4>'
-                         f'<a href="#summary_{unique_id}" style="font-size: 11px">Go to summary</a>', raw=True)
+            display_html(f'<h4 id="{check_id}">{self.get_header()}</h4>', raw=True)
         else:
             display_html(f'<h4>{self.get_header()}</h4>', raw=True)
         if hasattr(self.check.__class__, '__doc__'):
@@ -212,6 +211,8 @@ class CheckResult:
                 raise Exception(f'Unable to display item of type: {type(item)}')
         if not self.display:
             display_html('<p><b>&#x2713;</b> Nothing found</p>', raw=True)
+        if check_id:
+            display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
 
     def __repr__(self):
         """Return default __repr__ function uses value."""

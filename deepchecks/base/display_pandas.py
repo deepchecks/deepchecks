@@ -80,11 +80,12 @@ def display_conditions_table(check_results: Union['check.CheckResult', List['che
             sort_value = cond_result.priority
             icon = cond_result.get_icon()
             check_header = check_result.get_header()
-            if unique_id:
+            if unique_id and check_result.have_display():
                 check_id = f'{check_result.check.__class__.__name__}_{unique_id}'
                 link = f'<a href=#{check_id}>{check_header}</a>'
             else:
                 link = check_header
+                sort_value = 5
             table.append([icon, link, cond_result.name,
                                         cond_result.details, sort_value])
 
