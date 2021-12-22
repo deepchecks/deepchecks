@@ -255,12 +255,39 @@ def test_dataset_index_use_index_by_name(multi_index_dataframe):
     assert_dataset(dataset, args)
 
 
+def test_dataset_index_use_index_by_non_existent_name(multi_index_dataframe):
+    args = {'df': multi_index_dataframe,
+            'index_name': 'third',
+            'set_index_from_dataframe_index': True}
+    assert_that(calling(Dataset).with_args(**args),
+                raises(DeepchecksValueError, 'Index third not found in dataframe index level names.')
+                )
+
+
 def test_dataset_index_use_index_by_int(multi_index_dataframe):
     args = {'df': multi_index_dataframe,
             'index_name': 0,
             'set_index_from_dataframe_index': True}
     dataset = Dataset(**args)
     assert_dataset(dataset, args)
+
+
+def test_dataset_index_use_index_by_int_too_large(multi_index_dataframe):
+    args = {'df': multi_index_dataframe,
+            'index_name': 2,
+            'set_index_from_dataframe_index': True}
+    assert_that(calling(Dataset).with_args(**args),
+                raises(DeepchecksValueError, 'Dataframe index has less levels than 3.')
+                )
+
+
+def test_dataset_date_use_date_by_int_too_large(multi_index_dataframe):
+    args = {'df': multi_index_dataframe,
+            'datetime_name': 2,
+            'set_datetime_from_dataframe_index': True}
+    assert_that(calling(Dataset).with_args(**args),
+                raises(DeepchecksValueError, 'Dataframe index has less levels than 3.')
+                )
 
 
 def test_dataset_index_from_column(iris):
@@ -319,6 +346,24 @@ def test_dataset_date_in_features(iris):
             'datetime_name': 'target'}
     assert_that(calling(Dataset).with_args(**args),
                 raises(DeepchecksValueError, 'datetime column target can not be a feature column'))
+
+
+def test_dataset_datetime_use_datetime_by_name(multi_index_dataframe):
+    args = {'df': multi_index_dataframe,
+            'datetime_name': 'first',
+            'set_datetime_from_dataframe_index': True,
+            'convert_datetime': False}
+    dataset = Dataset(**args)
+    assert_dataset(dataset, args)
+
+
+def test_dataset_datetime_use_datetime_by_int(multi_index_dataframe):
+    args = {'df': multi_index_dataframe,
+            'datetime_name': 0,
+            'set_datetime_from_dataframe_index': True,
+            'convert_datetime': False}
+    dataset = Dataset(**args)
+    assert_dataset(dataset, args)
 
 
 def test_dataset_date_args_single_arg():

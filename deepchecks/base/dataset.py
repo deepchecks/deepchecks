@@ -87,6 +87,7 @@ class Dataset:
     _set_index_from_dataframe_index: t.Optional[bool]
     _datetime_name: t.Optional[Hashable]
     _set_datetime_from_dataframe_index: t.Optional[bool]
+    _datetime_column: t.Optional[pd.Series]
     cat_features: t.List[Hashable]
     _data: pd.DataFrame
     _max_categorical_ratio: float
@@ -177,6 +178,7 @@ class Dataset:
                 else:
                     raise DeepchecksValueError(f'When set_index_from_dataframe_index is True index_name can be None,'
                                                f' int or str, but found {type(index_name)}')
+            self._datetime_column = self.get_datetime_column_from_index(datetime_name)
 
         if label_name is not None and label_name not in self._data.columns:
             raise DeepchecksValueError(f'label column {label_name} not found in dataset columns')
@@ -235,8 +237,11 @@ class Dataset:
                 columns=self._features
             )
 
-        if self._datetime_name and convert_datetime:
-            self._data[self._datetime_name] = pd.to_datetime(self._data[self._datetime_name], **self._datetime_args)
+        if ((self._datetime_name is not None) or self._set_datetime_from_dataframe_index) and convert_datetime:
+            if self._set_datetime_from_dataframe_index:
+                self._datetime_column = pd.to_datetime(self._datetime_column, **self._datetime_args)
+            else:
+                self._data[self._datetime_name] = pd.to_datetime(self._data[self._datetime_name], **self._datetime_args)
 
     @classmethod
     def from_numpy(
@@ -499,6 +504,15 @@ class Dataset:
         """
         return self._datetime_name
 
+    def get_datetime_column_from_index(self, datetime_name):
+        """Retrieve the datetime info from the index if _set_datetime_from_dataframe_index is True"""
+        if datetime_name is None:
+            return pd.Series(self.data.index.get_level_values(0), name='datetime',
+                             index=self.data.index)
+        elif isinstance(datetime_name, (str, int)):
+            return pd.Series(self.data.index.get_level_values(datetime_name), name='datetime',
+                             index=self.data.index)
+
     @property
     def datetime_col(self) -> t.Optional[pd.Series]:
         """Return datetime column if exists.
@@ -507,12 +521,7 @@ class Dataset:
            (Series): Series of the datetime column
         """
         if self._set_datetime_from_dataframe_index is True:
-            if self._datetime_name is None:
-                return pd.Series(self.data.index.get_level_values(0), name='datetime',
-                                 index=self.data.index)
-            elif isinstance(self._datetime_name, (str, int)):
-                return pd.Series(self.data.index.get_level_values(self._datetime_name), name='datetime',
-                                 index=self.data.index)
+            return self._datetime_column
         elif self._datetime_name is not None:
             return self.data[self._datetime_name]
         else:  # No meaningful Datetime to use: Datetime column not configured, and _set_datetime_from_dataframe_index
