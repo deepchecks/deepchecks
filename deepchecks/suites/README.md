@@ -19,7 +19,7 @@
   - single_dataset_integrity - Runs a set of checks that are meant to detect integrity issues within a single dataset.
   - train_test_leakage - Runs a set of checks that are meant to detect data leakage from the training dataset to the test dataset.
   - train_test_validation - Runs a set of checks that are meant to validate correctness of train-test split, including integrity, drift and leakage.
-  - model_performance - Runs a set of checks that are meant to test model performance and overfit.
+  - model_evaluation - Runs a set of checks that are meant to test model performance and overfit.
   - full_suite - Runs all deepchecks' checks.
   
 

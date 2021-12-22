@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Predefined suites for various use-cases."""
-from checks import DatasetsSizeComparison
 from deepchecks.checks import (
     MixedNulls, MixedTypes, SpecialCharacters, StringLengthOutOfBounds, StringMismatch,
     DateTrainTestLeakageDuplicates, SingleFeatureContribution, SingleFeatureContributionTrainTest, TrainTestSamplesMix,
@@ -17,12 +16,13 @@ from deepchecks.checks import (
     CategoryMismatchTrainTest, NewLabelTrainTest, StringMismatchComparison, TrainTestFeatureDrift, WholeDatasetDrift,
     ConfusionMatrixReport, RocReport, CalibrationScore, TrustScoreComparison, ClassPerformance,
     RegressionErrorDistribution, RegressionSystematicError, PerformanceReport, SimpleModelComparison, BoostingOverfit,
-    TrainTestDifferenceOverfit, ModelInfo, ColumnsInfo, DataDuplicates, IsSingleValue, LabelAmbiguity
+    TrainTestDifferenceOverfit, ModelInfo, ColumnsInfo, DataDuplicates, IsSingleValue, LabelAmbiguity,
+    DatasetsSizeComparison, UnusedFeatures, ModelInferenceTimeCheck
 )
 from deepchecks import Suite
 
 __all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validation',
-           'model_performance', 'full_suite']
+           'model_evaluation', 'full_suite']
 
 
 def single_dataset_integrity() -> Suite:
@@ -79,13 +79,13 @@ def train_test_validation() -> Suite:
     )
 
 
-def model_performance() -> Suite:
-    """Create 'Model Performance Suite'.
+def model_evaluation() -> Suite:
+    """Create 'Model Evaluation Suite'.
 
     The suite runs a set of checks that are meant to test model performance and overfit.
     """
     return Suite(
-        'Model Performance Suite',
+        'Model Evaluation Suite',
         ConfusionMatrixReport(),
         RocReport().add_condition_auc_not_less_than(),
         CalibrationScore(),
@@ -98,6 +98,8 @@ def model_performance() -> Suite:
         SimpleModelComparison().add_condition_ratio_not_less_than(),
         BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(),
         TrainTestDifferenceOverfit().add_condition_degradation_ratio_not_greater_than(),
+        UnusedFeatures().add_condition_number_of_high_variance_unused_features_not_greater_than(),
+        ModelInferenceTimeCheck().add_condition_inference_time_is_not_greater_than()
     )
 
 
@@ -113,5 +115,5 @@ def full_suite() -> Suite:
         single_dataset_integrity(),
         train_test_leakage(),
         train_test_validation(),
-        model_performance()
+        model_evaluation()
     )
