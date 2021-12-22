@@ -59,6 +59,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     checks_with_conditions = []
     display_table = []
     others_table = []
+
     for result in results:
         if isinstance(result, CheckResult):
             if result.have_conditions():
@@ -71,6 +72,8 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
             msg = result.exception.__class__.__name__ + ': ' + str(result.exception)
             name = result.check.name()
             others_table.append([name, msg, 1])
+
+    display_table = sorted(display_table, key=lambda it: it.priority)
 
     light_hr = '<hr style="background-color: #eee;border: 0 none;color: #eee;height: 1px;">'
     bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'

@@ -16,7 +16,7 @@ from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 from deepchecks.errors import DeepchecksValueError
 
 
-__all__ = ['validate_columns_exist', 'filter_columns_with_validation']
+__all__ = ['validate_columns_exist', 'select_from_dataframe']
 
 
 def validate_columns_exist(
@@ -60,7 +60,7 @@ def validate_columns_exist(
     return all_columns_present
 
 
-def filter_columns_with_validation(
+def select_from_dataframe(
     df: pd.DataFrame,
     columns: t.Union[Hashable, t.List[Hashable], None] = None,
     ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None

@@ -92,7 +92,7 @@ def test_boosting_classifier_with_metric(iris):
     clf.fit(train.features_columns, train.label_col)
 
     # Act
-    result = BoostingOverfit(metric='recall_micro').run(train, validation, clf)
+    result = BoostingOverfit(scorer='recall_micro').run(train, validation, clf)
 
     # Assert
     train_scores = result.value['train']
@@ -130,5 +130,5 @@ def test_condition_score_percentage_decline_not_greater_than_not_pass(diabetes, 
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name='Test score decline is not greater than 1.00%',
-        details='Found metric decline of: -3.64%'
+        details='Found score decline of: -3.64%'
     ))

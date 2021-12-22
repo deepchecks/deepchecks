@@ -11,11 +11,13 @@
 """Utils module containing utilities for checks working with metrics."""
 import typing as t
 import enum
+from functools import partial
 from numbers import Number
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import get_scorer, make_scorer, accuracy_score, precision_score, recall_score, mean_squared_error
+from sklearn.metrics import get_scorer, make_scorer, accuracy_score, precision_score, recall_score, mean_squared_error, \
+    f1_score
 from sklearn.base import ClassifierMixin, RegressorMixin
 
 from deepchecks import base #pylint: disable=unused-import; it is used for type annotations
@@ -26,12 +28,17 @@ from deepchecks.utils import validation
 __all__ = [
     'ModelType',
     'task_type_check',
-    'get_metrics_list',
-    'validate_scorer',
-    'DEFAULT_METRICS_DICT',
-    'DEFAULT_SINGLE_METRIC',
-    'get_metrics_ratio'
+    'get_scorers_dict',
+    'initialize_single_scorer',
+    'DEFAULT_SCORERS_DICT',
+    'DEFAULT_SINGLE_SCORER',
+    'MULTICLASS_SCORERS_NON_AVERAGE',
+    'get_scores_ratio',
+    'initialize_user_scorers',
+    'get_scorer_single'
 ]
+
+from deepchecks.utils.strings import is_string_column
 
 
 class ModelType(enum.Enum):
@@ -42,33 +49,43 @@ class ModelType(enum.Enum):
     MULTICLASS = 'multiclass'
 
 
-DEFAULT_BINARY_METRICS = {
+DEFAULT_BINARY_SCORERS = {
     'Accuracy': make_scorer(accuracy_score),
     'Precision': make_scorer(precision_score, zero_division=0),
     'Recall': make_scorer(recall_score, zero_division=0)
 }
 
-DEFAULT_MULTICLASS_METRICS = {
+
+DEFAULT_MULTICLASS_SCORERS = {
     'Accuracy': make_scorer(accuracy_score),
     'Precision - Macro Average': make_scorer(precision_score, average='macro', zero_division=0),
     'Recall - Macro Average': make_scorer(recall_score, average='macro', zero_division=0)
 }
 
-DEFAULT_REGRESSION_METRICS = {
+MULTICLASS_SCORERS_NON_AVERAGE = {
+    'F1': make_scorer(f1_score, average=None),
+    'Precision': make_scorer(precision_score, average=None),
+    'Recall': make_scorer(recall_score, average=None)
+}
+
+
+DEFAULT_REGRESSION_SCORERS = {
     'RMSE': make_scorer(mean_squared_error, squared=False, greater_is_better=False),
     'MSE': make_scorer(mean_squared_error, greater_is_better=False),
 }
 
-DEFAULT_SINGLE_METRIC = {
+
+DEFAULT_SINGLE_SCORER = {
     ModelType.BINARY: 'Accuracy',
     ModelType.MULTICLASS: 'Accuracy',
     ModelType.REGRESSION: 'RMSE'
 }
 
-DEFAULT_METRICS_DICT = {
-    ModelType.BINARY: DEFAULT_BINARY_METRICS,
-    ModelType.MULTICLASS: DEFAULT_MULTICLASS_METRICS,
-    ModelType.REGRESSION: DEFAULT_REGRESSION_METRICS
+
+DEFAULT_SCORERS_DICT = {
+    ModelType.BINARY: DEFAULT_BINARY_SCORERS,
+    ModelType.MULTICLASS: DEFAULT_MULTICLASS_SCORERS,
+    ModelType.REGRESSION: DEFAULT_REGRESSION_SCORERS
 }
 
 
@@ -89,7 +106,12 @@ def task_type_check(
     dataset.validate_label()
 
     if not hasattr(model, 'predict_proba'):
-        return ModelType.REGRESSION
+        if is_string_column(dataset.label_col):
+            raise errors.DeepchecksValueError(
+                'Model was identified as a regression model, but label column was found to contain strings.'
+            )
+        else:
+            return ModelType.REGRESSION
     else:
         labels = t.cast(pd.Series, dataset.label_col)
 
@@ -124,56 +146,134 @@ def task_type_validation(
         )
 
 
-def get_metrics_list(
+def calculate_scorer_with_nulls(model, dataset: 'base.Dataset', scorer: t.Callable) -> float:
+    label = dataset.label_col
+    valid_idx = label.notna()
+    return scorer(model, dataset.features_columns[valid_idx], label[valid_idx])
+
+
+def get_scorers_dict(
     model,
     dataset: 'base.Dataset',
-    alternative_metrics: t.Dict[str, t.Callable] = None
+    alternative_scorers: t.Dict[str, t.Callable] = None,
+    multiclass_avg: bool = True
 ) -> t.Dict[str, t.Callable]:
-    """Return list of scorer objects to use in a metrics-dependant check.
+    """Return list of scorer objects to use in a score-dependant check.
 
-    If no alternative_metrics is supplied, then a default list of metrics is used per task type, as it is inferred
+    If no alternative_scorers is supplied, then a default list of scorers is used per task type, as it is inferred
     from the dataset and model. If a list is supplied, then the scorer functions are checked and used instead.
 
     Args:
-        model (BaseEstimator): Model object for which the metrics would be calculated
-        dataset (Dataset): Dataset object on which the metrics would be calculated
-        alternative_metrics (Dict[str, Callable]): Optional dictionary of sklearn scorers to use instead of default list
+        model (BaseEstimator): Model object for which the scores would be calculated
+        dataset (Dataset): Dataset object on which the scores would be calculated
+        alternative_scorers (Dict[str, Callable]): Optional dictionary of sklearn scorers to use instead of default list
+        multiclass_avg
 
     Returns:
-        Dictionary containing names of metrics and scorer functions for the metrics.
+        Dictionary containing names of scorer functions.
     """
-    if alternative_metrics:
-        metrics = {}
-        for name, scorer in alternative_metrics.items():
-            metrics[name] = validate_scorer(scorer, model, dataset)
+    # Check for model type
+    model_type = task_type_check(model, dataset)
+
+    if alternative_scorers:
+        scorers = alternative_scorers
     else:
-        # Check for model type
-        model_type = task_type_check(model, dataset)
-        metrics = DEFAULT_METRICS_DICT[model_type]
+        if model_type == ModelType.MULTICLASS and multiclass_avg is False:
+            scorers = MULTICLASS_SCORERS_NON_AVERAGE
+        else:
+            scorers = DEFAULT_SCORERS_DICT[model_type]
 
-    return metrics
+    for name, scorer in scorers.items():
+        should_return_array = model_type == ModelType.MULTICLASS and multiclass_avg is False
+        validate_scorer(scorer, model, dataset, should_return_array, name)
+
+    # Transform scorers into calculate_without_nulls
+    return {k: partial(calculate_scorer_with_nulls, scorer=v) for k, v in scorers.items()}
 
 
-def validate_scorer(scorer, model, dataset):
-    """If string, get scorer from sklearn. If callable, do heuristic to see if valid."""
-    # Borrowed code from:
-    # https://github.com/scikit-learn/scikit-learn/blob/844b4be24d20fc42cc13b957374c718956a0db39/sklearn/metrics/_scorer.py#L421
+def get_scorer_single(model, dataset: 'base.Dataset', alternative_scorer: t.Tuple[str, t.Callable] = None,
+                      multiclass_avg: bool = True):
+    """Return single score to use in check, and validate scorer fit the model and dataset."""
+    model_type = task_type_check(model, dataset)
+    multiclass_array = model_type == ModelType.MULTICLASS and multiclass_avg is False
+
+    if alternative_scorer is not None:
+        scorer_name = alternative_scorer[0]
+        scorer_func = alternative_scorer[1]
+    else:
+        if multiclass_array:
+            scorer_name = 'F1'
+            scorer_func = MULTICLASS_SCORERS_NON_AVERAGE[scorer_name]
+        else:
+            scorer_name = DEFAULT_SINGLE_SCORER[model_type]
+            scorer_func = DEFAULT_SCORERS_DICT[model_type][scorer_name]
+
+    validate_scorer(scorer_func, model, dataset, multiclass_array, scorer_name)
+    # Transform scorer into calculate without nulls
+    return scorer_name, partial(calculate_scorer_with_nulls, scorer=scorer_func)
+
+
+def initialize_single_scorer(scorer: t.Optional[t.Union[str, t.Callable]], scorer_name=None) \
+        -> t.Optional[t.Tuple[str, t.Callable]]:
+    """If string, get scorer from sklearn. If none, return none."""
+    if scorer is None:
+        return None
+
+    scorer_name = scorer_name or (scorer if isinstance(scorer, str) else 'User Scorer')
     if isinstance(scorer, str):
-        return get_scorer(scorer)
+        return scorer_name, get_scorer(scorer)
     elif callable(scorer):
-        # Check that scorer runs for given model and data
-        assert isinstance(scorer(model, dataset.data[dataset.features].head(2), dataset.label_col.head(2)),
-                          Number)
-        return scorer
+        return scorer_name, scorer
+    else:
+        scorer_type = type(scorer).__name__
+        if scorer_name:
+            message = f'Scorer {scorer_name} value should be either a callable or string but got: {scorer_type}'
+        else:
+            message = f'Scorer should be should be either a callable or string but got: {scorer_type}'
+        raise errors.DeepchecksValueError(message)
 
 
-def get_metrics_ratio(train_metric: float, test_metric: float, max_ratio=np.Inf) -> float:
+def validate_scorer(scorer: t.Callable, model, dataset, should_return_array: bool, scorer_name: str):
+    """Validate given scorer for the model and dataset."""
+    label = dataset.label_col
+    valid_idx = label.notna()
+    result = scorer(model, dataset.features_columns[valid_idx].head(2), label[valid_idx].head(2))
+    if should_return_array:
+        if not isinstance(result, np.ndarray):
+            raise errors.DeepchecksValueError(f'Expected scorer {scorer_name} to return np.ndarray '
+                                              f'but got: {type(result).__name__}')
+        expected_types = t.cast(
+            str,
+            np.typecodes['AllInteger'] + np.typecodes['AllFloat'] # type: ignore
+        )
+        kind = result.dtype.kind
+        if kind not in expected_types:
+            raise errors.DeepchecksValueError(f'Expected scorer {scorer_name} to return np.ndarray of number kind '
+                                              f'but got: {kind}')
+    else:
+        if not isinstance(result, Number):
+            raise errors.DeepchecksValueError(f'Expected scorer {scorer_name} to return number '
+                                              f'but got: {type(result).__name__}')
+
+
+def initialize_user_scorers(alternative_scorers: t.Optional[t.Mapping[str, t.Callable]]) -> \
+        t.Optional[t.Dict[str, t.Callable]]:
+    """Initialize user scorers and return all of them as callable."""
+    if alternative_scorers is None:
+        return None
+    elif len(alternative_scorers) == 0:
+        raise errors.DeepchecksValueError('Scorers dictionary can\'t be empty')
+    else:
+        return dict([initialize_single_scorer(v, scorer_name=k) for k, v in alternative_scorers.items()])
+
+
+def get_scores_ratio(train_score: float, test_score: float, max_ratio=np.Inf) -> float:
     """Return the ratio of test metric compared to train metric."""
-    if train_metric == 0:
+    if train_score == 0:
         return max_ratio
     else:
-        ratio = test_metric / train_metric
-        if train_metric < 0 and test_metric < 0:
+        ratio = test_score / train_score
+        if train_score < 0 and test_score < 0:
             ratio = 1 / ratio
         ratio = min(max_ratio, ratio)
         return ratio

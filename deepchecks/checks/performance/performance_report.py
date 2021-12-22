@@ -12,7 +12,7 @@
 from typing import Callable, Dict
 import pandas as pd
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
-from deepchecks.utils.metrics import get_metrics_list
+from deepchecks.utils.metrics import get_scorers_dict, initialize_user_scorers
 from deepchecks.utils.validation import validate_model
 
 
@@ -20,16 +20,17 @@ __all__ = ['PerformanceReport']
 
 
 class PerformanceReport(SingleDatasetBaseCheck):
-    """Summarize given metrics on a dataset and model.
+    """Summarize given scores on a dataset and model.
 
     Args:
-        alternative_metrics (Dict[str, Callable]): An optional dictionary of metric name or scorer functions.
-        If none given, using default metrics
+        alternative_scorers (Dict[str, Callable], default None):
+            An optional dictionary of scorer name to scorer functions.
+            If none given, using default scorers
     """
 
-    def __init__(self, alternative_metrics: Dict[str, Callable] = None):
+    def __init__(self, alternative_scorers: Dict[str, Callable] = None):
         super().__init__()
-        self.alternative_metrics = alternative_metrics
+        self.alternative_scorers = initialize_user_scorers(alternative_scorers)
 
     def run(self, dataset, model=None) -> CheckResult:
         """Run check.
@@ -39,7 +40,7 @@ class PerformanceReport(SingleDatasetBaseCheck):
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
 
         Returns:
-            CheckResult: value is dictionary in format 'metric': score
+            CheckResult: value is dictionary in format 'score-name': score-value
         """
         return self._performance_report(dataset, model)
 
@@ -48,13 +49,15 @@ class PerformanceReport(SingleDatasetBaseCheck):
         dataset.validate_label()
         validate_model(dataset, model)
 
-        # Get default metrics if no alternative, or validate alternatives
-        metrics = get_metrics_list(model, dataset, self.alternative_metrics)
-        scores = {key: scorer(model, dataset.features_columns, dataset.label_col) for key, scorer in
-                  metrics.items()}
+        # Get default scorers if no alternative, or validate alternatives
+        scorers = get_scorers_dict(model, dataset, self.alternative_scorers)
+        scores = {
+            key: scorer(model, dataset)
+            for key, scorer in scorers.items()
+        }
 
-        display_df = pd.DataFrame(scores.values(), columns=['Score'], index=scores.keys())
-        display_df.index.name = 'Metric'
+        display_df = pd.DataFrame(scores.values(), columns=['Value'], index=scores.keys())
+        display_df.index.name = 'Score'
 
         return CheckResult(scores, header='Performance Report', display=display_df)
 
@@ -64,12 +67,12 @@ class PerformanceReport(SingleDatasetBaseCheck):
         Args:
             min_score (float): Minimal score to pass.
         """
-        name = f'Metrics score is not less than {min_score}'
+        name = f'Score is not less than {min_score}'
 
         def condition(result, min_score):
             not_passed = {k: v for k, v in result.items() if v < min_score}
             if not_passed:
-                details = f'Metrics with lower score: {not_passed}'
+                details = f'Scores that did not pass threshold: {not_passed}'
                 return ConditionResult(False, details)
             return ConditionResult(True)
 

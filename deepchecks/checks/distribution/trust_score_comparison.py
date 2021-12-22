@@ -117,10 +117,17 @@ class TrustScoreComparison(TrainTestBaseCheck):
         if model_type not in [ModelType.BINARY, ModelType.MULTICLASS]:
             raise DeepchecksValueError('Check supports only classification')
 
-        train_data_sample = train_dataset.data.sample(min(self.sample_size, train_dataset.n_samples),
-                                                      random_state=self.random_state)
-        test_data_sample = test_dataset.data.sample(min(self.sample_size, test_dataset.n_samples),
-                                                    random_state=self.random_state)
+        no_null_label_train = train_dataset.data[train_dataset.label_col.notna()]
+        train_data_sample = no_null_label_train.sample(
+            min(self.sample_size, len(no_null_label_train)),
+            random_state=self.random_state
+        )
+
+        no_null_label_test = test_dataset.data[test_dataset.label_col.notna()]
+        test_data_sample = no_null_label_test.sample(
+            min(self.sample_size, len(no_null_label_test)),
+            random_state=self.random_state
+        )
         features_list = train_dataset.features
         label_name = train_dataset.label_name
 
@@ -143,11 +150,11 @@ class TrustScoreComparison(TrainTestBaseCheck):
         trust_score_model = TrustScore(k_filter=self.k_filter, alpha=self.alpha)
         trust_score_model.fit(X=x_train.to_numpy(), Y=y_train.to_numpy())
         # Calculate y on train and get scores
-        y_train_pred = model.predict(train_data_sample[features_list])
+        y_train_pred = model.predict(train_data_sample[features_list]).flatten()
         train_trust_scores = trust_score_model.score(x_train.to_numpy(),
                                                      transform_numpy_label(y_train_pred))[0].astype('float64')
         # Calculate y on test dataset using the model
-        y_test_pred = model.predict(test_data_sample[features_list])
+        y_test_pred = model.predict(test_data_sample[features_list]).flatten()
         test_trust_scores = trust_score_model.score(x_test.to_numpy(),
                                                     transform_numpy_label(y_test_pred))[0].astype('float64')
 

@@ -12,8 +12,9 @@
 import re
 from typing import List
 from hamcrest import assert_that, calling, raises, close_to, has_entries, has_items
+from sklearn.ensemble import AdaBoostClassifier
 
-from deepchecks import ConditionResult
+from deepchecks import ConditionResult, Dataset
 from deepchecks.checks.performance import PerformanceReport
 from deepchecks.errors import DeepchecksValueError
 
@@ -47,6 +48,42 @@ def test_classification(iris_labeled_dataset, iris_adaboost):
     }))
 
 
+def test_classification_string_labels(iris_labeled_dataset):
+    # Arrange
+    check = PerformanceReport()
+    replace_dict = {iris_labeled_dataset.label_name: {0: 'b', 1: 'e', 2: 'a'}}
+    iris_labeled_dataset = Dataset(iris_labeled_dataset.data.replace(replace_dict),
+                                   label_name=iris_labeled_dataset.label_name)
+
+    iris_adaboost = AdaBoostClassifier(random_state=0)
+    iris_adaboost.fit(iris_labeled_dataset.features_columns, iris_labeled_dataset.label_col)
+    # Act X
+    result = check.run(iris_labeled_dataset, iris_adaboost).value
+    # Assert
+    assert_that(result, has_entries({
+        'Accuracy': close_to(0.96, 0.01),
+        'Precision - Macro Average': close_to(0.96, 0.01),
+        'Recall - Macro Average': close_to(0.96, 0.01)
+    }))
+
+
+def test_classification_nan_labels(iris_labeled_dataset, iris_adaboost):
+    # Arrange
+    check = PerformanceReport()
+    data_with_nan = iris_labeled_dataset.data.copy()
+    data_with_nan[iris_labeled_dataset.label_name].iloc[0] = float('nan')
+    iris_labeled_dataset = Dataset(data_with_nan,
+                                   label_name=iris_labeled_dataset.label_name)
+    # Act X
+    result = check.run(iris_labeled_dataset, iris_adaboost).value
+    # Assert
+    assert_that(result, has_entries({
+        'Accuracy': close_to(0.96, 0.01),
+        'Precision - Macro Average': close_to(0.96, 0.01),
+        'Recall - Macro Average': close_to(0.96, 0.01)
+    }))
+
+
 def test_regression(diabetes, diabetes_model):
     # Arrange
     _, validation = diabetes
@@ -69,8 +106,8 @@ def test_condition_min_score_not_passed(diabetes, diabetes_model):
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details=re.compile('Metrics with lower score: \\{\'MSE\':'),
-                               name='Metrics score is not less than -100')
+                               details=re.compile('Scores that did not pass threshold: \\{\'MSE\':'),
+                               name='Score is not less than -100')
     ))
 
 
@@ -83,5 +120,5 @@ def test_condition_min_score_passed(diabetes, diabetes_model):
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Metrics score is not less than -5000')
+                               name='Score is not less than -5000')
     ))

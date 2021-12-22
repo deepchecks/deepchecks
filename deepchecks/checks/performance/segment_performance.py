@@ -17,7 +17,7 @@ from matplotlib.axes import Axes
 
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
 from deepchecks.checks.performance.partition import partition_column
-from deepchecks.utils.metrics import validate_scorer, task_type_check, DEFAULT_SINGLE_METRIC, DEFAULT_METRICS_DICT
+from deepchecks.utils.metrics import initialize_single_scorer, get_scorer_single
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.validation import validate_model
@@ -29,26 +29,30 @@ __all__ = ['SegmentPerformance']
 
 
 class SegmentPerformance(SingleDatasetBaseCheck):
-    """Display performance metric segmented by 2 top (or given) features in a heatmap.
+    """Display performance score segmented by 2 top (or given) features in a heatmap.
 
     Args:
-        feature_1 (Hashable): feature to segment by on y-axis.
-        feature_2 (Hashable): feature to segment by on x-axis.
-        metric (Union[str, Callable]): Metric to show, either function or sklearn scorer name. If no metric is given
-            a default metric (per the model type) will be used.
-        max_segments (int): maximal number of segments to split the a values into.
+        feature_1 (Hashable):
+            feature to segment by on y-axis.
+        feature_2 (Hashable):
+            feature to segment by on x-axis.
+        scorer (Union[str, Callable]):
+            Score to show, either function or sklearn scorer name.
+            If is not given a default scorer (per the model type) will be used.
+        max_segments (int):
+            maximal number of segments to split the a values into.
     """
 
     feature_1: Optional[Hashable]
     feature_2: Optional[Hashable]
-    metric: Union[str, Callable, None]
+    scorer: Union[str, Callable, None]
     max_segments: int
 
     def __init__(
         self,
         feature_1: Optional[Hashable] = None,
         feature_2: Optional[Hashable] = None,
-        metric: Union[str, Callable] = None,
+        scorer: Union[str, Callable] = None,
         max_segments: int = 10
     ):
         super().__init__()
@@ -56,13 +60,15 @@ class SegmentPerformance(SingleDatasetBaseCheck):
         # if they're both none it's ok
         if feature_1 and feature_1 == feature_2:
             raise DeepchecksValueError('"feature_1" must be different than "feature_2"')
+
         self.feature_1 = feature_1
         self.feature_2 = feature_2
 
         if not isinstance(max_segments, int) or max_segments < 0:
             raise DeepchecksValueError('"num_segments" must be positive integer')
+
         self.max_segments = max_segments
-        self.metric = metric
+        self.scorer = initialize_single_scorer(scorer)
 
     def run(self, dataset, model) -> CheckResult:
         """Run check.
@@ -87,13 +93,7 @@ class SegmentPerformance(SingleDatasetBaseCheck):
             else:
                 raise DeepchecksValueError('Must define both "feature_1" and "feature_2" or none of them')
 
-        if self.metric is not None:
-            scorer = validate_scorer(self.metric, model, dataset)
-            metric_name = self.metric if isinstance(self.metric, str) else 'User metric'
-        else:
-            model_type = task_type_check(model, dataset)
-            metric_name = DEFAULT_SINGLE_METRIC[model_type]
-            scorer = DEFAULT_METRICS_DICT[model_type][metric_name]
+        scorer_name, scorer = get_scorer_single(model, dataset, self.scorer)
 
         feature_1_filters = partition_column(dataset, self.feature_1, max_segments=self.max_segments)
         feature_2_filters = partition_column(dataset, self.feature_2, max_segments=self.max_segments)
@@ -111,7 +111,9 @@ class SegmentPerformance(SingleDatasetBaseCheck):
                 if feature_2_df.empty:
                     score = np.NaN
                 else:
-                    score = scorer(model, feature_2_df[dataset.features], feature_2_df[dataset.label_name])
+                    score = scorer(model,
+                                   Dataset(feature_2_df, features=dataset.features, label_name=dataset.label_name)
+                                   )
                 scores[i, j] = score
                 counts[i, j] = len(feature_2_df)
 
@@ -122,7 +124,7 @@ class SegmentPerformance(SingleDatasetBaseCheck):
 
             # Create colorbar
             cbar = ax.figure.colorbar(im, ax=ax)
-            cbar.ax.set_ylabel(f'{metric_name}', rotation=-90, va='bottom')
+            cbar.ax.set_ylabel(f'{scorer_name}', rotation=-90, va='bottom')
 
             x = [v.label for v in feature_2_filters]
             y = [v.label for v in feature_1_filters]
@@ -150,7 +152,7 @@ class SegmentPerformance(SingleDatasetBaseCheck):
                         text = f'{format_number(score)}\n({counts[i, j]})'
                         ax.text(j, i, text, ha='center', va='center', color=color)
 
-            ax.set_title(f'{metric_name} (count) by features {feat1}/{feat2}')
+            ax.set_title(f'{scorer_name} (count) by features {feat1}/{feat2}')
 
         value = {'scores': scores, 'counts': counts, 'feature_1': self.feature_1,'feature_2': self.feature_2}
         return CheckResult(value, display=display)
