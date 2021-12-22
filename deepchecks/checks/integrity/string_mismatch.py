@@ -59,7 +59,7 @@ class StringMismatch(SingleDatasetBaseCheck):
             Columns to check, if none are given checks all columns except ignored ones.
         ignore_columns (Union[Hashable, List[Hashable]]):
             Columns to ignore, if none given checks based on columns variable
-        n_top_columns (int): (optinal - used only if model was specified)
+        n_top_columns (int): (optional - used only if model was specified)
           amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
