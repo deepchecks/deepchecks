@@ -11,7 +11,7 @@
 """Module containing simple comparison check."""
 from typing import Callable, Dict, Union
 import numpy as np
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from deepchecks.checks.distribution.preprocessing import preprocess_dataset_to_scaled_numerics
@@ -186,18 +186,16 @@ class SimpleModelComparison(TrainTestBaseCheck):
                f'compared to Simple {self.simple_model_type} prediction ' \
                f'which achieved a score of {format_number(simple_score)} on tested data.'
 
-        def display_func():
-            fig = plt.figure()
-            ax = fig.add_axes([0, 0, 1, 1])
-            models = [f'Simple model - {self.simple_model_type}', f'{type(model).__name__} model']
-            results = [simple_score, pred_score]
-            ax.bar(models, results)
-            ax.set_ylabel(score_name)
+        models = [f'Simple model - {self.simple_model_type}', f'{type(model).__name__} model']
+        results = [simple_score, pred_score]  
+        fig = go.Figure([go.Bar(x=models, y=results)])
+        fig.update_layout(width=600, height=500)
+        fig.update_yaxes(title=score_name)
 
         return CheckResult({'given_model_score': pred_score,
                             'simple_model_score': simple_score,
                             'ratio': ratio},
-                           display=[text, display_func])
+                           display=[text, fig])
 
     def add_condition_ratio_not_less_than(self, min_allowed_ratio: float = 1.1):
         """Add condition - require min allowed ratio between the given and the simple model.
