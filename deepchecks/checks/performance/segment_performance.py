@@ -12,7 +12,6 @@
 from typing import Callable, Union, Optional
 
 import numpy as np
-from numpy.core.fromnumeric import shape
 import plotly.figure_factory as ff
 
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
@@ -121,7 +120,7 @@ class SegmentPerformance(SingleDatasetBaseCheck):
         y = [v.label for v in feature_1_filters]
 
         scores_text = [ [0]*scores.shape[0] for i in range(scores.shape[1])]
-  
+
         for i in range(len(y)):
             for j in range(len(x)):
                 score = scores[i, j]

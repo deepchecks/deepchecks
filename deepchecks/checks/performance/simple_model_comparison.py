@@ -182,7 +182,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
                f'which achieved a score of {format_number(simple_score)} on tested data.'
 
         models = [f'Simple model - {self.simple_model_type}', f'{type(model).__name__} model']
-        results = [simple_score, pred_score]  
+        results = [simple_score, pred_score]
         fig = go.Figure([go.Bar(x=models, y=results)])
         fig.update_layout(width=600, height=500)
         fig.update_yaxes(title=score_name)
