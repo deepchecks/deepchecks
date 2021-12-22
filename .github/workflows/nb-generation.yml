@@ -31,7 +31,7 @@ jobs:
         with:
           add-paths: |
             notebooks/*
-          token: ${{ secret.CI_GH_TOKEN }}
+          token: ${{ secrets.CI_GH_TOKEN }}
           commit-message: '[Automatic] Examples Update'
           delete-branch: true
           branch: examples-update
