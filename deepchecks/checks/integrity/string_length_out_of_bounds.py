@@ -29,53 +29,6 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['StringLengthOutOfBounds']
 
 
-def in_range(x, a, b):
-    return a <= x <= b
-
-
-def outlier_on_percentile_histogram(percentile_histogram: Dict[float, float], iqr_percent: float = 85,
-                                    outlier_factor: float = 5) -> Tuple[Tuple[float, float]]:
-    """Get outlier ranges on histogram.
-
-    Args:
-        percentile_histogram (Dict[float, float]): histogram to search for outliers in shape [0.0-100.0]->[float]
-        iqr_percent (float): Interquartile range upper percentage, start searching for outliers outside IQR.
-        outlier_factor (float): a factor to consider outlier.
-
-    Returns:
-         (Tuple[Tuple[float, float]]): percent ranges in the histogram that are outliers, empty tuple if none is found
-    """
-    if any((k < 0) or k > 100 for k in percentile_histogram.keys()):
-        raise ValueError('dict keys must be percentiles between 0 and 100')
-    if any((v < 0) for v in percentile_histogram.values()):
-        raise ValueError('dict values must be counts that are non-negative numbers')
-
-    percentile_df = pd.DataFrame.from_dict(percentile_histogram, orient='index')
-
-    # calculate IQR with iqr_percent
-    closest_point_upper = np.argmin(np.abs(iqr_percent - percentile_df.index.values))
-    closest_point_lower = np.argmin(np.abs(100 - iqr_percent - percentile_df.index.values))
-    center_point = np.argmin(np.abs(50 - percentile_df.index.values))
-
-    iqr = np.abs(percentile_df.iloc[closest_point_upper] - percentile_df.iloc[closest_point_lower])
-
-    outlier_df = percentile_df[
-        (np.abs(percentile_df - percentile_df.iloc[center_point])
-         > outlier_factor * iqr / 2).values
-    ]
-
-    outlier_section_list = []
-    lower_outlier_range = outlier_df[outlier_df.index < 50]
-    if lower_outlier_range.shape[0] > 0:
-        outlier_section_list.append((lower_outlier_range.index.values[0], lower_outlier_range.index.values[-1]))
-
-    upper_outlier_range = outlier_df[outlier_df.index > 50]
-    if upper_outlier_range.shape[0] > 0:
-        outlier_section_list.append((upper_outlier_range.index.values[0], upper_outlier_range.index.values[-1]))
-
-    return tuple(outlier_section_list)
-
-
 class StringLengthOutOfBounds(SingleDatasetBaseCheck):
     """Detect strings with length that is much longer/shorter than the identified "normal" string lengths.
 
@@ -156,13 +109,13 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                                                                self.outlier_factor)
             if outlier_sections:
                 quantiles_not_in_section = \
-                    [x for x in quantile_list if all((not in_range(x, a, b)) for a, b in outlier_sections)]
+                    [x for x in quantile_list if all((not _in_range(x, a, b)) for a, b in outlier_sections)]
                 non_outlier_section = (min(quantiles_not_in_section), max(quantiles_not_in_section))
 
                 # add to result
                 for outlier_section in outlier_sections:
                     n_outlier_samples = reduce(lambda value, x, ph=percentile_histogram, os=outlier_section:
-                                               value + in_range(x, ph[os[0]], ph[os[1]]),
+                                               value + _in_range(x, ph[os[0]], ph[os[1]]),
                                                string_length_column, 0)
                     if n_outlier_samples:
                         display_format.append([column_name,
@@ -257,3 +210,50 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         return self.add_condition(
             f'Ratio of outliers not greater than {format_percent(max_ratio)} string length outliers for {column_names}',
             compare_outlier_ratio)
+
+
+def outlier_on_percentile_histogram(percentile_histogram: Dict[float, float], iqr_percent: float = 85,
+                                    outlier_factor: float = 5) -> Tuple[Tuple[float, float]]:
+    """Get outlier ranges on histogram.
+
+    Args:
+        percentile_histogram (Dict[float, float]): histogram to search for outliers in shape [0.0-100.0]->[float]
+        iqr_percent (float): Interquartile range upper percentage, start searching for outliers outside IQR.
+        outlier_factor (float): a factor to consider outlier.
+
+    Returns:
+         (Tuple[Tuple[float, float]]): percent ranges in the histogram that are outliers, empty tuple if none is found
+    """
+    if any((k < 0) or k > 100 for k in percentile_histogram.keys()):
+        raise ValueError('dict keys must be percentiles between 0 and 100')
+    if any((v < 0) for v in percentile_histogram.values()):
+        raise ValueError('dict values must be counts that are non-negative numbers')
+
+    percentile_df = pd.DataFrame.from_dict(percentile_histogram, orient='index')
+
+    # calculate IQR with iqr_percent
+    closest_point_upper = np.argmin(np.abs(iqr_percent - percentile_df.index.values))
+    closest_point_lower = np.argmin(np.abs(100 - iqr_percent - percentile_df.index.values))
+    center_point = np.argmin(np.abs(50 - percentile_df.index.values))
+
+    iqr = np.abs(percentile_df.iloc[closest_point_upper] - percentile_df.iloc[closest_point_lower])
+
+    outlier_df = percentile_df[
+        (np.abs(percentile_df - percentile_df.iloc[center_point])
+         > outlier_factor * iqr / 2).values
+    ]
+
+    outlier_section_list = []
+    lower_outlier_range = outlier_df[outlier_df.index < 50]
+    if lower_outlier_range.shape[0] > 0:
+        outlier_section_list.append((lower_outlier_range.index.values[0], lower_outlier_range.index.values[-1]))
+
+    upper_outlier_range = outlier_df[outlier_df.index > 50]
+    if upper_outlier_range.shape[0] > 0:
+        outlier_section_list.append((upper_outlier_range.index.values[0], upper_outlier_range.index.values[-1]))
+
+    return tuple(outlier_section_list)
+
+
+def _in_range(x, a, b):
+    return a <= x <= b

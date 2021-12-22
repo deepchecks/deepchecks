@@ -28,38 +28,6 @@ from deepchecks.errors import DeepchecksValueError
 __all__ = ['UnusedFeatures']
 
 
-def naive_encoder(dataset: Dataset) -> TransformerMixin:
-    """Create a naive encoder for categorical and numerical features.
-
-    The encoder handles nans for all features and uses label encoder for categorical features. Then, all features are
-    scaled using RobustScaler.
-
-    Args:
-        dataset: The dataset to encode.
-
-    Returns:
-        A transformer object.
-    """
-    numeric_features = list(set(dataset.features) - set(dataset.cat_features))
-
-    return ColumnTransformer(
-        transformers=[
-            ('num', Pipeline([
-                ('nan_handling', SimpleImputer()),
-                ('norm', RobustScaler())
-            ]),
-             numeric_features),
-            ('cat',
-             Pipeline([
-                 ('nan_handling', SimpleImputer(strategy='most_frequent')),
-                 ('encode', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)),
-                 ('norm', RobustScaler())
-             ]),
-             dataset.cat_features)
-        ]
-    )
-
-
 class UnusedFeatures(TrainTestBaseCheck):
     """Detect features that are nearly unused by the model.
 
@@ -230,3 +198,35 @@ class UnusedFeatures(TrainTestBaseCheck):
         return self.add_condition(f'Number of high variance unused features is not greater than'
                                   f' {max_high_variance_unused_features}',
                                   max_high_variance_unused_features_condition)
+
+
+def naive_encoder(dataset: Dataset) -> TransformerMixin:
+    """Create a naive encoder for categorical and numerical features.
+
+    The encoder handles nans for all features and uses label encoder for categorical features. Then, all features are
+    scaled using RobustScaler.
+
+    Args:
+        dataset: The dataset to encode.
+
+    Returns:
+        A transformer object.
+    """
+    numeric_features = list(set(dataset.features) - set(dataset.cat_features))
+
+    return ColumnTransformer(
+        transformers=[
+            ('num', Pipeline([
+                ('nan_handling', SimpleImputer()),
+                ('norm', RobustScaler())
+            ]),
+             numeric_features),
+            ('cat',
+             Pipeline([
+                 ('nan_handling', SimpleImputer(strategy='most_frequent')),
+                 ('encode', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)),
+                 ('norm', RobustScaler())
+             ]),
+             dataset.cat_features)
+        ]
+    )
