@@ -83,7 +83,7 @@ class RocReport(SingleDatasetBaseCheck):
                     break
                 else:
                     plt.plot(fpr[i], tpr[i], color=color,
-                            label=f'ROC curve of class {i} (auc = {roc_auc[i]:0.2f})')
+                             label=f'ROC curve of class {i} (auc = {roc_auc[i]:0.2f})')
             plt.plot([0, 1], [0, 1], 'k--')
             plt.xlim([-0.05, 1.0])
             plt.ylim([0.0, 1.05])

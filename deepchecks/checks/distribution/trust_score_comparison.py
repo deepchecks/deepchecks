@@ -26,11 +26,11 @@ from deepchecks.errors import DeepchecksValueError
 __all__ = ['TrustScoreComparison']
 
 
-def is_positive_int(x):
+def is_positive_int(x) -> bool:
     return x is not None and isinstance(x, int) and x > 0
 
 
-def is_float_0_to_1(x):
+def is_float_0_to_1(x) -> bool:
     return x is not None and isinstance(x, float) and 0 <= x <= 1
 
 
@@ -183,7 +183,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
             test_trust_scores_cut = filter_quantile(test_trust_scores)
             train_trust_scores_cut = filter_quantile(train_trust_scores)
             x_range = [min(*test_trust_scores_cut, *train_trust_scores_cut),
-                     max(*test_trust_scores_cut, *train_trust_scores_cut)]
+                       max(*test_trust_scores_cut, *train_trust_scores_cut)]
             xs = np.linspace(x_range[0], x_range[1], 40)
             plot_density(train_trust_scores_cut, xs, colors['Train'])
             plot_density(test_trust_scores_cut, xs, colors['Test'])
@@ -209,8 +209,8 @@ class TrustScoreComparison(TrainTestBaseCheck):
         footnote = """<span style="font-size:0.8em"><i>
             The test trust score distribution should be quite similar to the train's. If it is skewed to the left, the
             confidence of the model in the test data is lower than the train, indicating a difference that may affect
-            model performance on similar data. If it is skewed to the right, it indicates an underlying problem with the creation of the test dataset
-            (test confidence isn't expected to be higher than train's).
+            model performance on similar data. If it is skewed to the right, it indicates an underlying problem with the
+            creation of the test dataset (test confidence isn't expected to be higher than train's).
             </i></span>"""
         display = [headnote, display_plot, footnote, '<h5>Worst Trust Score Samples</h5>', bottom_k,
                    '<h5>Top Trust Score Samples</h5>', top_k]

@@ -62,7 +62,7 @@ class MixedNulls(SingleDatasetBaseCheck):
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
 
-    def run(self, dataset, model = None) -> CheckResult:
+    def run(self, dataset, model=None) -> CheckResult:
         """Run check.
 
         Args:
