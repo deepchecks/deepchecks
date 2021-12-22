@@ -18,7 +18,7 @@ from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
 from deepchecks.utils.metrics import ModelType, task_type_validation
 
 
-__all__ = ["CalibrationScore"]
+__all__ = ['CalibrationScore']
 
 
 class CalibrationScore(SingleDatasetBaseCheck):
@@ -103,5 +103,5 @@ class CalibrationScore(SingleDatasetBaseCheck):
                            'frequency of the positive label against its predicted probability, for binned predictions.'
         brier_text = 'The Brier score metric may be used to assess how well a classifier is calibrated. For more ' \
                      'info, please visit https://en.wikipedia.org/wiki/Brier_score'
-        return CheckResult(briers_scores, header="Calibration Metric",
+        return CheckResult(briers_scores, header='Calibration Metric',
                            display=[calibration_text, fig, brier_text])
