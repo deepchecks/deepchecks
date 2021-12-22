@@ -158,9 +158,9 @@ df_train, df_test = train_test_split(iris_df, stratify=iris_df[label_col], rando
 To run an existing suite all you need to do is import the suite and run it -
 
 ```python
-from deepchecks.suites import integrity_suite
-suite = integrity_check_suite()
-suite.run(train_dataset=df_train, test_dataset=df_test, check_datasets_policy='both')
+from deepchecks.suites import train_test_validation
+suite = train_test_validation()
+suite.run(train_dataset=df_train, test_dataset=df_test)
 ```
 Which will result in printing the summary of the check conditions and then the visual outputs of all of the checks that
 are in that suite.
