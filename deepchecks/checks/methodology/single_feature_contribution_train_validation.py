@@ -32,7 +32,7 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
 
     When we compare train PPS to test PPS, A high difference can strongly indicate leakage,
     as a feature that was "powerful" in train but not in test can be explained by leakage in train that does
-     not affect a new dataset.
+    not affect a new dataset.
 
     Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
 
@@ -74,8 +74,8 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
                                       random_seed=42,
                                       **ppscore_params)
         df_pps_test = pps.predictors(df=test_dataset.data[relevant_columns],
-                                           y=test_dataset.label_name,
-                                           random_seed=42, **ppscore_params)
+                                     y=test_dataset.label_name,
+                                     random_seed=42, **ppscore_params)
         s_pps_train = df_pps_train.set_index('x', drop=True)['ppscore']
         s_pps_test = df_pps_test.set_index('x', drop=True)['ppscore']
         s_difference = s_pps_train - s_pps_test

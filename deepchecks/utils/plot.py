@@ -57,10 +57,10 @@ def create_colorbar_barchart_for_check(
     except ValueError:
         my_cmap = plt.cm.get_cmap(color_map)
         my_cmap = shifted_color_map(my_cmap, start=start, midpoint=color_shift_midpoint, stop=stop,
-                                  name=color_map + check_name)
+                                    name=color_map + check_name)
 
     cmap_colors = my_cmap(list(y))
-    rects = ax.bar(x, y, color=cmap_colors)  # pylint: disable=unused-variable
+    _ = ax.bar(x, y, color=cmap_colors)  # pylint: disable=unused-variable
 
     sm = ScalarMappable(cmap=my_cmap, norm=plt.Normalize(start, stop))
     sm.set_array([])

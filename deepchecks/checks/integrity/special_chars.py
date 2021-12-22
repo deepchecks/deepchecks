@@ -37,7 +37,7 @@ def get_special_samples(column_data: pd.Series) -> Union[dict, None]:
     return samples_to_count or None
 
 
-def is_stringed_type(col):
+def is_stringed_type(col) -> bool:
     return infer_dtype(col) not in ['integer', 'decimal', 'floating']
 
 
@@ -81,7 +81,7 @@ class SpecialCharacters(SingleDatasetBaseCheck):
         return self._special_characters(dataset, feature_importances)
 
     def _special_characters(self, dataset: Union[pd.DataFrame, Dataset],
-                            feature_importances: pd.Series=None) -> CheckResult:
+                            feature_importances: pd.Series = None) -> CheckResult:
         """Run check.
 
         Args:

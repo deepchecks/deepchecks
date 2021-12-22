@@ -28,7 +28,12 @@ from .performance_suite import (
     generic_performance_suite,
     performance_suite
 )
-from .overall_suite import *
+from .overall_suite import (
+    overall_suite,
+    overall_classification_suite,
+    overall_regression_suite,
+    overall_generic_suite
+)
 
 
 __all__ = [
@@ -45,5 +50,9 @@ __all__ = [
     'regression_suite',
     'generic_performance_suite',
     'regression_suite',
-    'performance_suite'
+    'performance_suite',
+    'overall_suite',
+    'overall_classification_suite',
+    'overall_regression_suite',
+    'overall_generic_suite'
 ]

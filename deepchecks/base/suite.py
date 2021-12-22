@@ -18,7 +18,7 @@ from deepchecks.base.display_suite import display_suite_result, ProgressBar
 from deepchecks.errors import DeepchecksValueError
 from deepchecks.base import Dataset
 from deepchecks.base.check import (CheckResult, TrainTestBaseCheck,
-   SingleDatasetBaseCheck, ModelOnlyBaseCheck, CheckFailure, ModelComparisonBaseCheck)
+                                   SingleDatasetBaseCheck, ModelOnlyBaseCheck, CheckFailure, ModelComparisonBaseCheck)
 from deepchecks.utils.ipython import is_ipython_display
 
 

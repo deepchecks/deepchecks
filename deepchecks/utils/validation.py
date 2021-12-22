@@ -14,7 +14,7 @@ import typing as t
 import pandas as pd
 import sklearn
 
-from deepchecks import base # pylint: disable=unused-import, is used in type annotations
+from deepchecks import base  # pylint: disable=unused-import, is used in type annotations
 from deepchecks import errors
 from deepchecks.utils.typing import Hashable
 
@@ -69,7 +69,7 @@ def validate_model(dataset: 'base.Dataset', model: t.Any):
         ))
 
     try:
-        model_features = set(model_features) # type: ignore
+        model_features = set(model_features)  # type: ignore
         if model_features != features_names:
             raise errors.DeepchecksValueError(error_message.format(
                 'But function received dataset with a different set of features.'

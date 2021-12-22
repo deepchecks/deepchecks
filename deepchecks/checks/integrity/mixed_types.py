@@ -65,7 +65,7 @@ class MixedTypes(SingleDatasetBaseCheck):
         feature_importances = calculate_feature_importance_or_null(dataset, model)
         return self._mixed_types(dataset, feature_importances)
 
-    def _mixed_types(self, dataset: Union[pd.DataFrame, Dataset], feature_importances: pd.Series=None) -> CheckResult:
+    def _mixed_types(self, dataset: Union[pd.DataFrame, Dataset], feature_importances: pd.Series = None) -> CheckResult:
         """Run check.
 
         Args:
@@ -109,7 +109,7 @@ class MixedTypes(SingleDatasetBaseCheck):
     def _check_mixed_percentage(self, column_data: pd.Series) -> dict:
         total_rows = column_data.count()
 
-        def is_float(x):
+        def is_float(x) -> bool:
             try:
                 float(x)
                 return True

@@ -53,9 +53,9 @@ class IsSingleValue(SingleDatasetBaseCheck):
             CheckResult: value is a boolean if there was at least one column with only one unique,
             display is a series with columns that have only one unique
         """
-        return self._is_single_value(dataset)
+        return self._single_value_check(dataset)
 
-    def _is_single_value(self, dataset: Union[pd.DataFrame, Dataset]) -> CheckResult:
+    def _single_value_check(self, dataset: Union[pd.DataFrame, Dataset]) -> CheckResult:
         # Validate parameters
         dataset = ensure_dataframe_type(dataset)
         dataset = select_from_dataframe(dataset, self.columns, self.ignore_columns)
