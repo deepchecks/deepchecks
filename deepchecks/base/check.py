@@ -211,7 +211,7 @@ class CheckResult:
                 raise Exception(f'Unable to display item of type: {type(item)}')
         if not self.display:
             display_html('<p><b>&#x2713;</b> Nothing found</p>', raw=True)
-        if check_id:
+        if unique_id:
             display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
 
     def __repr__(self):
