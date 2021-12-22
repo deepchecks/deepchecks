@@ -63,7 +63,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     for result in results:
         if isinstance(result, CheckResult):
             if result.have_conditions():
-                    checks_with_conditions.append(result)
+                checks_with_conditions.append(result)
             if result.have_display():
                 display_table.append(result)
             else:
@@ -90,7 +90,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     {bold_hr}<h2>Conditions Summary</h2>
     """
     display_html(html, raw=True)
-    if checks_with_conditions or checks_with_conditions_no_dispaly:
+    if checks_with_conditions:
         display_conditions_table(checks_with_conditions, unique_id)
     else:
         display_html('<p>No conditions defined on checks in the suite.</p>', raw=True)
