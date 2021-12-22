@@ -36,6 +36,8 @@ PIP_WIN := python -m pip
 PYTHON := $(BIN)/$(python)
 ANALIZE := $(BIN)/pylint
 COVERAGE := $(BIN)/coverage
+FLAKE8 := $(BIN)/flake8
+FLAKE8_RST := $(BIN)/flake8-rst
 TEST_RUNNER := $(BIN)/pytest
 TOX := $(BIN)/tox
 TWINE := $(BIN)/twine
@@ -130,8 +132,8 @@ validate: $(REQUIREMENTS_LOG) pylint docstring
 
 pylint: $(ANALIZE)
 	$(ANALIZE) $(SOURCES) $(TEST_CODE)
-	flake8 deepchecks
-	flake8-rst deepchecks
+	$(FLAKE8) $(SOURCES)
+	$(FLAKE8_RST) $(SOURCES)
 
 docstring: $(ANALIZE) # We Use PEP257 Style Python Docstring
 	$(PYTHON) -m pydocstyle --convention=pep257 --add-ignore=D107 $(SOURCES)
