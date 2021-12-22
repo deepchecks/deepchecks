@@ -85,7 +85,7 @@ def display_conditions_table(check_results: Union['check.CheckResult', List['che
                 link = f'<a href=#{check_id}>{check_header}</a>'
             else:
                 link = check_header
-                sort_value = 5
+                sort_value = 1 if sort_value == 1 else 5 # if it failed but has no display still show on top
             table.append([icon, link, cond_result.name,
                                         cond_result.details, sort_value])
 
