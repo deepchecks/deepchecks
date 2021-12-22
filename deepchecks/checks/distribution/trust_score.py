@@ -131,8 +131,8 @@ class TrustScore:
         else:
             self.classes = len(np.unique(Y))
         # KDTree and kNeighborsClassifier need 2D data
-        self.kdtrees = [None] * self.classes  # type: Any
-        self.X_kdtree = [None] * self.classes  # type: Any
+        self.kdtrees = [None] * self.classes
+        self.X_kdtree = [None] * self.classes
 
         if self.filter == 'probability_knn':
             X_filter, Y_filter = self.filter_by_probability_knn(X, Y)
@@ -219,8 +219,8 @@ class TrustScore:
 
         center_size = max(np.nanpercentile(baseline_confidence, 50 + filter_center_size / 2),
                           np.nanpercentile(test_confidence, 50 + filter_center_size / 2)) - \
-                      min(np.nanpercentile(baseline_confidence, 50 - filter_center_size / 2),
-                          np.nanpercentile(test_confidence, 50 - filter_center_size / 2))
+            min(np.nanpercentile(baseline_confidence, 50 - filter_center_size / 2),
+                np.nanpercentile(test_confidence, 50 - filter_center_size / 2))
         max_median = max(np.nanmedian(baseline_confidence), np.nanmedian(test_confidence))
         min_median = min(np.nanmedian(baseline_confidence), np.nanmedian(test_confidence))
 

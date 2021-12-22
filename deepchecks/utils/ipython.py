@@ -14,7 +14,7 @@ from functools import lru_cache
 from importlib import import_module
 
 
-from IPython import get_ipython # TODO: I think we should remove ipython from mandatory dependencies
+from IPython import get_ipython  # TODO: I think we should remove ipython from mandatory dependencies
 
 
 __all__ = ['is_notebook', 'is_ipython_display']
@@ -35,7 +35,7 @@ def is_notebook() -> bool:
 
 
 @lru_cache(maxsize=None)
-def is_ipython_display():
+def is_ipython_display() -> bool:
     """Check whether we have IPython display module in current environment."""
     module = 'IPython.display'
     if module in sys.modules:

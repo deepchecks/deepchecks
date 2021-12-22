@@ -23,7 +23,7 @@ from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 
 
-__all__ = ['Dataset',]
+__all__ = ['Dataset']
 
 
 logger = logging.getLogger('deepchecks.dataset')
@@ -226,8 +226,13 @@ class Dataset:
 
         Examples
         --------
-        >>> features = np.array([[0.25, 0.3, 0.3], [0.14, 0.75, 0.3], [0.23, 0.39, 0.1]])
-        >>> labels = np.array([0.1, 0.1, 0.7])
+        >>> import numpy
+        >>> from deepchecks import Dataset
+
+        >>> features = numpy.array([[0.25, 0.3, 0.3],
+        ...                        [0.14, 0.75, 0.3],
+        ...                        [0.23, 0.39, 0.1]])
+        >>> labels = numpy.array([0.1, 0.1, 0.7])
         >>> dataset = Dataset.from_numpy(features, labels)
 
         Creating dataset only from features array.
@@ -236,17 +241,14 @@ class Dataset:
 
         Passing additional arguments to the main Dataset constructor
 
-        >>> dataset = Dataset.from_numpy(
-        ...    features, labels,
-        ...    max_categorical_ratio=0.5
-        ... )
+        >>> dataset = Dataset.from_numpy(features, labels, max_categorical_ratio=0.5)
 
         Specifying features and label columns names.
 
         >>> dataset = Dataset.from_numpy(
-        ...    features, labels,
-        ...    columns=['sensor-1', 'sensor-2', 'sensor-3',],
-        ...    label_name='labels'
+        ...     features, labels,
+        ...     columns=['sensor-1', 'sensor-2', 'sensor-3'],
+        ...     label_name='labels'
         ... )
 
         """

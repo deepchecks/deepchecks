@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """The class performance imbalance check."""
-#pylint: disable=inconsistent-quotes
+# pylint: disable=inconsistent-quotes
 import typing as t
 
 import pandas as pd
@@ -27,8 +27,8 @@ __all__ = ['ClassPerformance']
 
 
 ScorerFunc = t.Callable[
-    [object, pd.DataFrame, pd.Series], # model, features, labels
-    np.ndarray # scores
+    [object, pd.DataFrame, pd.Series],  # model, features, labels
+    np.ndarray  # scores
 ]
 
 AlternativeScorer = t.Union[str, ScorerFunc]
@@ -62,7 +62,7 @@ class ClassPerformance(SingleDatasetBaseCheck):
     def run(
         self,
         dataset: Dataset,
-        model: t.Any # TODO: find more precise type for model
+        model: t.Any  # TODO: find more precise type for model
     ) -> CheckResult:
         """Run Check.
 
