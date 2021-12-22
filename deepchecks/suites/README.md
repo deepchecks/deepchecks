@@ -31,7 +31,7 @@ from deepchecks.suites import *
 ```
 Then run it with the required input parameters (datasets and models)
 ```python
-model_performance().run(model=my_classification_model, train_dataset=ds_train, test_dataset=ds_test)
+model_evaluation().run(model=my_classification_model, train_dataset=ds_train, test_dataset=ds_test)
 ```
 
 ## Creating Your Custom Suite
