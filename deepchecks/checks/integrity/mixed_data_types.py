@@ -23,10 +23,10 @@ from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
 
 
-__all__ = ['MixedTypes']
+__all__ = ['MixedDataTypes']
 
 
-class MixedTypes(SingleDatasetBaseCheck):
+class MixedDataTypes(SingleDatasetBaseCheck):
     """Detect a minority of a data type within a column, such as few string samples in a mostly numeric column.
 
     Args:
@@ -99,7 +99,7 @@ class MixedTypes(SingleDatasetBaseCheck):
         else:
             display = None
 
-        return CheckResult(result_dict, display=display, )
+        return CheckResult(result_dict, display=display)
 
     def _get_data_mix(self, column_data: pd.Series) -> dict:
         if is_string_column(column_data):

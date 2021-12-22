@@ -17,7 +17,7 @@ from hamcrest import assert_that, has_length, calling, raises, has_items, has_en
 from deepchecks.base import Dataset
 from deepchecks.base.check import ConditionCategory
 
-from deepchecks.checks.integrity.mixed_types import MixedTypes
+from deepchecks.checks.integrity.mixed_data_types import MixedDataTypes
 from deepchecks.errors import DeepchecksValueError
 from tests.checks.utils import equal_condition_result
 
@@ -27,7 +27,7 @@ def test_single_column_no_mix():
     data = {'col1': ['foo', 'bar', 'cat']}
     dataframe = pd.DataFrame(data=data)
     # Act
-    result = MixedTypes().run(dataframe)
+    result = MixedDataTypes().run(dataframe)
     # Assert
     assert_that(result.value, has_length(0))
 
@@ -37,7 +37,7 @@ def test_single_column_explicit_mix():
     data = {'col1': [1, 'bar', 'cat']}
     dataframe = pd.DataFrame(data=data)
     # Act
-    result = MixedTypes().run(dataframe)
+    result = MixedDataTypes().run(dataframe)
     # Assert
     assert_that(result.value, has_entry('col1', has_entries({
         'strings': close_to(0.66, 0.01), 'numbers': close_to(0.33, 0.01)
@@ -49,7 +49,7 @@ def test_single_column_stringed_mix():
     data = {'col1': ['1', 'bar', 'cat']}
     dataframe = pd.DataFrame(data=data)
     # Act
-    result = MixedTypes().run(dataframe)
+    result = MixedDataTypes().run(dataframe)
     # Assert
     assert_that(result.value, has_entry('col1', has_entries({
         'strings': close_to(0.66, 0.01), 'numbers': close_to(0.33, 0.01)
@@ -61,7 +61,7 @@ def test_double_column_one_mix():
     data = {'col1': ['1', 'bar', 'cat'], 'col2': [6, 66, 666.66]}
     dataframe = pd.DataFrame(data=data)
     # Act
-    result = MixedTypes().run(dataframe)
+    result = MixedDataTypes().run(dataframe)
     # Assert
     assert_that(result.value, has_entry('col1', has_entries({
         'strings': close_to(0.66, 0.01), 'numbers': close_to(0.33, 0.01)
@@ -73,7 +73,7 @@ def test_double_column_ignored_mix():
     data = {'col1': ['1', 'bar', 'cat'], 'col2': [6, 66, 666.66]}
     dataframe = pd.DataFrame(data=data)
     # Act
-    result = MixedTypes(ignore_columns=['col1']).run(dataframe)
+    result = MixedDataTypes(ignore_columns=['col1']).run(dataframe)
     # Assert
     assert_that(result.value, has_length(0))
 
@@ -83,7 +83,7 @@ def test_double_column_specific_mix():
     data = {'col1': ['1', 'bar', 'cat'], 'col2': ['6', 66, 666.66]}
     dataframe = pd.DataFrame(data=data)
     # Act
-    result = MixedTypes(columns=['col1']).run(dataframe)
+    result = MixedDataTypes(columns=['col1']).run(dataframe)
     # Assert
     assert_that(result.value, has_length(1))
     assert_that(result.value, has_entry('col1', has_entries({
@@ -96,7 +96,7 @@ def test_double_column_specific_and_ignored_mix():
     data = {'col1': ['1', 'bar', 'cat'], 'col2': [6, 66, 666.66]}
     dataframe = pd.DataFrame(data=data)
     # Act & Assert
-    check = MixedTypes(ignore_columns=['col1'], columns=['col1'])
+    check = MixedDataTypes(ignore_columns=['col1'], columns=['col1'])
     assert_that(calling(check.run).with_args(dataframe),
                 raises(DeepchecksValueError))
 
@@ -106,7 +106,7 @@ def test_double_column_double_mix():
     data = {'col1': ['1', 'bar', 'cat'], 'col2': [6, '66.66.6', 666.66]}
     dataframe = pd.DataFrame(data=data)
     # Act
-    result = MixedTypes().run(dataframe)
+    result = MixedDataTypes().run(dataframe)
     # Assert
     assert_that(result.value, has_entries({
         'col1': has_entries({'strings': close_to(0.66, 0.01), 'numbers': close_to(0.33, 0.01)}),
@@ -118,7 +118,7 @@ def test_condition_pass_all_columns():
     # Arrange
     data = {'col1': ['1', 'bar', 'cat'], 'col2': [6, 66, 666.66]}
     dataframe = pd.DataFrame(data=data)
-    check = MixedTypes().add_condition_rare_type_ratio_not_in_range()
+    check = MixedDataTypes().add_condition_rare_type_ratio_not_in_range()
     # Act
     result = check.conditions_decision(check.run(dataframe))
     # Assert
@@ -132,7 +132,7 @@ def test_condition_pass_fail_single_column():
     # Arrange
     data = {'col1': ['1', 'bar', 'cat'], 'col2': [6, 66, 666.66]}
     dataframe = pd.DataFrame(data=data)
-    check = MixedTypes(columns=['col1']).add_condition_rare_type_ratio_not_in_range((0.01, 0.4))
+    check = MixedDataTypes(columns=['col1']).add_condition_rare_type_ratio_not_in_range((0.01, 0.4))
     # Act
     result = check.conditions_decision(check.run(dataframe))
     # Assert
@@ -150,7 +150,7 @@ def test_condition_pass_fail_ignore_column():
     # Arrange
     data = {'col1': ['1', 'bar', 'cat'], 'col2': [6, 66, 666.66]}
     dataframe = pd.DataFrame(data=data)
-    check = MixedTypes(ignore_columns=['col2']).add_condition_rare_type_ratio_not_in_range((0.01, 0.4))
+    check = MixedDataTypes(ignore_columns=['col2']).add_condition_rare_type_ratio_not_in_range((0.01, 0.4))
     # Act
     result = check.conditions_decision(check.run(dataframe))
     # Assert
@@ -172,7 +172,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     train.data.loc[train.data.index % 4 == 1, 'bp'] = 'a'
     train.data.loc[train.data.index % 4 == 1, 'sex'] = 'a'
     # Arrange
-    check = MixedTypes(n_top_columns=3)
+    check = MixedDataTypes(n_top_columns=3)
     # Act
     result = check.run(train, clf)
     # Assert - Display table is transposed so check columns length
@@ -184,7 +184,7 @@ def test_no_mix_nan():
     data = {'col1': [np.nan, 'bar', 'cat'], 'col2': ['a', np.nan, np.nan]}
     dataframe = pd.DataFrame(data=data)
     # Act
-    result = MixedTypes().run(dataframe)
+    result = MixedDataTypes().run(dataframe)
     # Assert
     assert_that(result.value, has_length(0))
 
@@ -194,6 +194,6 @@ def test_mix_nan():
     data = {'col1': [np.nan, '1', 'cat'], 'col2': ['7', np.nan, np.nan]}
     dataframe = pd.DataFrame(data=data)
     # Act
-    result = MixedTypes().run(dataframe)
+    result = MixedDataTypes().run(dataframe)
     # Assert
     assert_that(result.value, has_length(1))
