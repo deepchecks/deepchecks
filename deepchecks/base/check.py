@@ -176,7 +176,7 @@ class CheckResult:
             if not isinstance(item, (str, pd.DataFrame, Styler, Callable, BaseFigure)):
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
-    def _ipython_display_(self, show_conditions=True, unique_id = None):
+    def _ipython_display_(self, show_conditions=True, unique_id=None):
         if unique_id:
             check_id = f'{self.check.__class__.__name__}_{unique_id}'
         else:
