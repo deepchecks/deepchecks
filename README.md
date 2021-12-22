@@ -32,7 +32,7 @@ data integrity, distribution mismatches, and more.
 Each check enables you to inspect a specific aspect of your data and models.
 They are the basic building block of the deepchecks package, covering all kinds of common issues,
 such as: PerformanceOverfit, DataSampleLeakage, SingleFeatureContribution,
-DataDuplicates, and [many more checks](./notebooks/checks).
+DataDuplicates, and [many more checks](examples/checks).
 Each check can have two types of results:
 1. A visual result meant for display (e.g. a figure or a table).
 2. A return value that can be used for validating the expected check results
@@ -167,8 +167,8 @@ are in that suite.
 
 ### Example Notebooks
 For usage examples, check out: 
-- [**Quickstart Notebook**](./notebooks/examples/quickstart_in_5_minutes.ipynb) - for running your first suite with a few lines of code.
-- [**Example Checks Output Notebooks**](./notebooks/checks) - to see all of the existing checks and their usage examples.
+- [**Quickstart Notebook**](examples/howto-guides/quickstart_in_5_minutes.ipynb) - for running your first suite with a few lines of code.
+- [**Example Checks Output Notebooks**](examples/checks) - to see all of the existing checks and their usage examples.
 
 ## Communication
 - Join our [Slack Community](https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg) to connect with the maintainers and follow users and interesting discussions

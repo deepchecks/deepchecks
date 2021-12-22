@@ -34,8 +34,7 @@ language = os.environ.get("READTHEDOCS_LANGUAGE")
 
 GIT = {
     "user": "deepchecks",
-    "repo": "deepchecks",
-    "documentation-path": "docs/source"
+    "repo": "deepchecks"
 }
 
 try:
@@ -367,14 +366,13 @@ def generate_colab_url(notebook_path: str) -> str:
         raise RuntimeError(f"Not a notebook - {notebook_path}")
 
     template = (
-        "https://colab.research.google.com/github/{user}/{repo}/blob/{branch}/{docpath}/{notebook_path}"
+        "https://colab.research.google.com/github/{user}/{repo}/blob/{branch}/{notebook_path}"
     )
 
     return template.format(
         user=GIT['user'],
         repo=GIT['repo'],
         branch=GIT['release'],
-        docpath=GIT['documentation-path'],
         notebook_path=notebook_path
     )
 
@@ -396,13 +394,13 @@ def generate_binder_url(notebook_path: str) -> str:
         user=GIT['user'],
         repo=GIT['repo'],
         branch=GIT['release'],
-        filepath=f"{GIT['documentation-path']}/{notebook_path}"
+        filepath=notebook_path
     )
 
 
 @functools.lru_cache(maxsize=None)
 def get_example_notebooks() -> t.Tuple[pathlib.Path, ...]:
-    examples_folder = PROJECT_DIR / "notebooks"
+    examples_folder = PROJECT_DIR / "examples"
 
     if not examples_folder.exists() or not examples_folder.is_dir():
         raise RuntimeError("Did not find the folder with the example notebooks.")
