@@ -115,10 +115,11 @@ def test_dataset_no_index():
     ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11]})
     assert_that(
         calling(DateTrainTestLeakageDuplicates().run).with_args(ds, ds),
-        raises(DeepchecksValueError, 'Check requires dataset to have a date column'))
+        raises(DeepchecksValueError, 'Check requires dataset to have a datetime column'))
     assert_that(
         calling(DateTrainTestLeakageOverlap().run).with_args(ds, ds),
-        raises(DeepchecksValueError, 'Check requires dataset to have a date column'))
+        raises(DeepchecksValueError, 'Check requires dataset to have a datetime column'))
+
 
 def test_dates_from_val_before_train():
     train_ds = dataset_from_dict({'col1': [

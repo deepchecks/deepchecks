@@ -398,7 +398,7 @@ def test_dataset_validate_date(iris):
 def test_dataset_validate_no_date(iris):
     dataset = Dataset(iris)
     assert_that(calling(dataset.validate_date),
-                raises(DeepchecksValueError, 'Check requires dataset to have a date column'))
+                raises(DeepchecksValueError, 'Check requires dataset to have a datetime column'))
 
 
 def test_dataset_validate_index(iris):
