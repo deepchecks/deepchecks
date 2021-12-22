@@ -54,7 +54,7 @@ class ConfusionMatrixReport(SingleDatasetBaseCheck):
 
         labels = [str(val) for val in np.unique(ds_y)]
         fig = ff.create_annotated_heatmap(confusion_matrix, x=labels, y=labels, colorscale='Viridis')
-        fig.update_layout(width=400, height=400)
+        fig.update_layout(width=600, height=600)
         fig.update_xaxes(title='Predicted Value')
         fig.update_yaxes(title='True value', autorange='reversed')
         fig['data'][0]['showscale'] = True
