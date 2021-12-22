@@ -26,7 +26,7 @@ from sklearn.tree import DecisionTreeClassifier
 from deepchecks import Dataset
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def multi_index_dataframe():
     """Return a multi-indexed DataFrame."""
     return pd.DataFrame(
