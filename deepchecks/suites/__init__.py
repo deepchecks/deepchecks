@@ -34,6 +34,9 @@ from .overall_suite import (
     overall_regression_suite,
     overall_generic_suite
 )
+from .distribution_suite import (
+    data_distribution_suite
+)
 
 
 __all__ = [
@@ -41,6 +44,7 @@ __all__ = [
     'comparative_integrity_suite',
     'integrity_suite',
     'index_leakage_suite',
+    'data_distribution_suite',
     'date_leakage_suite',
     'data_leakage_suite',
     'leakage_suite',
