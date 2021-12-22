@@ -95,7 +95,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     prologue = (
         f"The suite is composed of various checks such as: {', '.join(check_names[:3])}, etc..."
         if len(check_names) > 3
-        else f"The suite is composed of next checks: {', '.join(check_names)}."
+        else f"The suite is composed of the following checks: {', '.join(check_names)}."
     )
 
     display_html(
