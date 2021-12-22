@@ -15,13 +15,14 @@ from unittest import TestCase
 import numpy as np
 import pandas as pd
 from sklearn.datasets import load_iris
-
-from deepchecks import Dataset, ensure_dataframe_type
-from deepchecks.errors import DeepchecksValueError
 from hamcrest import (
     assert_that, instance_of, equal_to, is_,
     calling, raises, not_none, has_property, all_of, contains_exactly
 )
+
+from deepchecks import Dataset
+from deepchecks.utils.validation import ensure_dataframe_type
+from deepchecks.errors import DeepchecksValueError
 
 
 def assert_dataset(dataset: Dataset, args):
@@ -370,21 +371,21 @@ def test_dataset_validate_no_index(iris):
                 raises(DeepchecksValueError, 'Check requires dataset to have an index column'))
 
 
-def test_dataset_filter_columns_with_validation(iris):
+def test_dataset_select_method(iris):
     dataset = Dataset(iris)
-    filtered = dataset.filter_columns_with_validation(columns=['target'])
+    filtered = dataset.select(columns=['target'])
     assert_that(filtered, instance_of(Dataset))
 
 
-def test_dataset_filter_columns_with_validation_ignore_columns(iris):
+def test_dataset_select_ignore_columns(iris):
     dataset = Dataset(iris)
-    filtered = dataset.filter_columns_with_validation(ignore_columns=['target'])
+    filtered = dataset.select(ignore_columns=['target'])
     assert_that(filtered, instance_of(Dataset))
 
 
-def test_dataset_filter_columns_with_validation_same_table(iris):
+def test_dataset_select_same_table(iris):
     dataset = Dataset(iris, features=['target'])
-    filtered = dataset.filter_columns_with_validation(ignore_columns=['target'])
+    filtered = dataset.select(ignore_columns=['target'])
     assert_that(filtered, instance_of(Dataset))
 
 
@@ -609,32 +610,6 @@ def test_dataset_initialization_with_integer_columns():
     assert_that(
         (dataset.label_col == df[3]).all()
     )
-
-
-class TestLabel(TestCase):
-    """Unittest class for invalid labels"""
-
-    def test_invalid_label(self):
-        valid_label_df = pd.DataFrame(np.array([1, 1, 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
-        Dataset(valid_label_df, label_name='label')
-
-        string_label_df = pd.DataFrame(np.array(['a', 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
-        args = {'df': string_label_df,
-                'label_name': 'label'}
-        with self.assertLogs() as captured:
-            Dataset(**args)
-        self.assertEqual(len(captured.records), 1)  # check that there is only one log message
-        self.assertEqual(captured.records[0].getMessage(),
-                         'String labels are not supported')  # and it is the proper one
-
-        null_label_df = pd.DataFrame(np.array([np.nan, 0, 0, 2, 2]).reshape((-1, 1)), columns=['label'])
-        args = {'df': null_label_df,
-                'label_name': 'label'}
-        with self.assertLogs() as captured:
-            Dataset(**args)
-        self.assertEqual(len(captured.records), 1)  # check that there is only one log message
-        self.assertEqual(captured.records[0].getMessage(),
-                         'Can not have null values in label column')  # and it is the proper one
 
 
 def test_dataset_label_without_name(iris):

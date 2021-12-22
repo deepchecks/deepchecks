@@ -57,7 +57,7 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
           (CheckResult): percentage of ambiguous samples and display of the top n_to_show most ambiguous.
         """
         dataset: Dataset = Dataset.validate_dataset(dataset)
-        dataset = dataset.filter_columns_with_validation(self.columns, self.ignore_columns)
+        dataset = dataset.select(self.columns, self.ignore_columns)
         dataset.validate_label()
 
         label_col = dataset.label_name

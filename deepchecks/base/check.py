@@ -18,9 +18,6 @@ from collections import OrderedDict
 from functools import wraps
 from typing import Any, Callable, List, Union, Dict, cast, Tuple
 
-__all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'TrainTestBaseCheck',
-           'ModelOnlyBaseCheck', 'ModelComparisonBaseCheck', 'ConditionResult', 'ConditionCategory', 'CheckFailure']
-
 import pandas as pd
 from IPython.core.display import display_html
 from matplotlib import pyplot as plt
@@ -32,6 +29,19 @@ from deepchecks.base.display_pandas import display_conditions_table, display_dat
 from deepchecks.utils.strings import split_camel_case
 from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.utils.ipython import is_ipython_display
+
+
+__all__ = [
+    'CheckResult',
+    'BaseCheck',
+    'SingleDatasetBaseCheck',
+    'TrainTestBaseCheck',
+    'ModelOnlyBaseCheck',
+    'ModelComparisonBaseCheck',
+    'ConditionResult',
+    'ConditionCategory',
+    'CheckFailure'
+]
 
 
 class Condition:
@@ -93,9 +103,17 @@ class ConditionResult:
         """
         self.name = name
 
-    def get_sort_value(self):
-        """Return sort value of the result."""
-        if self.is_pass:
+    @property
+    def priority(self) -> int:
+        """Return priority of the current condition.
+
+        This value is primarily used to determine the order in which
+        conditions should be displayed.
+
+        Returns:
+            int: condition priority value;
+        """
+        if self.is_pass is True:
             return 3
         elif self.category == ConditionCategory.FAIL:
             return 1
@@ -211,9 +229,30 @@ class CheckResult:
         """Return if this check have not passing condition results."""
         return all((r.is_pass for r in self.conditions_results))
 
-    def get_conditions_sort_value(self):
-        """Get largest sort value of the conditions results."""
-        return max([r.get_sort_value() for r in self.conditions_results])
+    @property
+    def priority(self) -> int:
+        """Return priority of the current result.
+
+        This value is primarly used to determine suite output order.
+        The logic is next:
+            - if at least one condition did not pass and is of category 'FAIL', return 1;
+            - if at least one condition did not pass and is of category 'WARN', return 2;
+            - if check result do not have assigned conditions, return 3
+            - if all conditions passed, return 4 ;
+
+        Returns:
+            int: priority of the cehck result.
+        """
+        if not self.have_conditions:
+            return 3
+
+        for c in self.conditions_results:
+            if c.is_pass is False and c.category == ConditionCategory.FAIL:
+                return 1
+            if c.is_pass is False and c.category == ConditionCategory.WARN:
+                return 2
+
+        return 4
 
     def show(self, show_conditions=True):
         """Display check result."""

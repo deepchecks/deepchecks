@@ -12,7 +12,41 @@
 
 Import objects to be available in parent deepchecks module.
 """
-from .dataset import *
-from .check import *
-from .suite import *
+from .dataset import Dataset
+from .check import (
+    BaseCheck,
+    SingleDatasetBaseCheck,
+    TrainTestBaseCheck,
+    ModelOnlyBaseCheck,
+    ModelComparisonBaseCheck,
+    CheckResult,
+    CheckFailure,
+    Condition,
+    ConditionResult,
+    ConditionCategory
+)
+from .suite import (
+    BaseSuite,
+    Suite,
+    SuiteResult,
+    ModelComparisonSuite
+)
 
+
+__all__ = [
+    'Dataset',
+    'BaseCheck',
+    'SingleDatasetBaseCheck',
+    'TrainTestBaseCheck',
+    'ModelOnlyBaseCheck',
+    'ModelComparisonBaseCheck',
+    'CheckResult',
+    'CheckFailure',
+    'Condition',
+    'ConditionResult',
+    'ConditionCategory',
+    'BaseSuite',
+    'Suite',
+    'SuiteResult',
+    'ModelComparisonSuite',
+]

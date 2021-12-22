@@ -14,9 +14,15 @@ import warnings
 
 from IPython.core.display import display_html
 import pandas as pd
+from pandas.io.formats.style import Styler
+
+from . import check # pylint: disable=unused-import
+
+
 __all__ = ['display_dataframe', 'dataframe_to_html', 'display_conditions_table']
 
-from pandas.io.formats.style import Styler
+
+__all__ = ['display_dataframe', 'dataframe_to_html', 'display_conditions_table']
 
 
 def display_dataframe(df: Union[pd.DataFrame, Styler]):
@@ -53,7 +59,7 @@ def dataframe_to_html(df: Union[pd.DataFrame, Styler]):
         return df.to_html()
 
 
-def display_conditions_table(check_results: Union['CheckResult', List['CheckResult']]):
+def display_conditions_table(check_results: Union['check.CheckResult', List['check.CheckResult']]):
     """Display the conditions table as DataFrame.
 
     Args:
@@ -68,7 +74,7 @@ def display_conditions_table(check_results: Union['CheckResult', List['CheckResu
     table = []
     for check_result in check_results:
         for cond_result in check_result.conditions_results:
-            sort_value = cond_result.get_sort_value()
+            sort_value = cond_result.priority
             icon = cond_result.get_icon()
             header = check_result.get_header()
             table.append([icon, header, cond_result.name, cond_result.details, sort_value])
