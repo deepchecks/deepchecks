@@ -505,7 +505,7 @@ class Dataset:
         return self._datetime_name
 
     def get_datetime_column_from_index(self, datetime_name):
-        """Retrieve the datetime info from the index if _set_datetime_from_dataframe_index is True"""
+        """Retrieve the datetime info from the index if _set_datetime_from_dataframe_index is True."""
         if datetime_name is None:
             return pd.Series(self.data.index.get_level_values(0), name='datetime',
                              index=self.data.index)
