@@ -60,7 +60,7 @@ def dataframe_to_html(df: Union[pd.DataFrame, Styler]):
 
 
 def display_conditions_table(check_results: Union['check.CheckResult', List['check.CheckResult']],
-                             unique_id = None):
+                             unique_id=None):
     """Display the conditions table as DataFrame.
 
     Args:
@@ -85,9 +85,9 @@ def display_conditions_table(check_results: Union['check.CheckResult', List['che
                 link = f'<a href=#{check_id}>{check_header}</a>'
             else:
                 link = check_header
-                sort_value = 1 if sort_value == 1 else 5 # if it failed but has no display still show on top
+                sort_value = 1 if sort_value == 1 else 5  # if it failed but has no display still show on top
             table.append([icon, link, cond_result.name,
-                                        cond_result.details, sort_value])
+                         cond_result.details, sort_value])
 
     conditions_table = pd.DataFrame(data=table,
                                     columns=['Status', 'Check', 'Condition', 'More Info', 'sort'])
