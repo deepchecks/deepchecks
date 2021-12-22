@@ -92,7 +92,7 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset',
     if isinstance(model, Pipeline) and feature_importances is None:
         internal_estimator = get_model_of_pipeline(model)
         if internal_estimator is not None:
-            # incase pipeline had an encoder
+            # in case pipeline had an encoder
             try:
                 feature_importances = _built_in_importance(internal_estimator, dataset)
             except ValueError:
@@ -106,7 +106,7 @@ def calculate_feature_importance(model: t.Any, dataset: 'base.Dataset',
 
 def _built_in_importance(model: t.Any, dataset: 'base.Dataset') -> t.Optional[pd.Series]:
     """Get feature importance member if present in model."""
-    if 'feature_importances_' in dir(model):  # Ensambles
+    if 'feature_importances_' in dir(model):  # Ensembles
         normalized_feature_importance_values = model.feature_importances_/model.feature_importances_.sum()
         return pd.Series(normalized_feature_importance_values, index=dataset.features)
     elif 'coef_' in dir(model):  # Linear models
@@ -273,7 +273,6 @@ def is_categorical(
     Returns:
         bool: True if is categorical according to input numbers
     """
-    # col_data = self.data[col_name]
     n_unique = column.nunique(dropna=True)
     n_samples = len(column.dropna())
 

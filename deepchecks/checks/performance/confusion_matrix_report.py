@@ -61,4 +61,3 @@ class ConfusionMatrixReport(SingleDatasetBaseCheck):
         fig['layout']['xaxis']['side'] = 'bottom'
 
         return CheckResult(confusion_matrix, display=fig)
-
