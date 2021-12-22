@@ -17,11 +17,6 @@ import re
 from collections import OrderedDict
 from functools import wraps
 from typing import Any, Callable, List, Union, Dict, cast, Mapping
-
-__all__ = ['CheckResult', 'BaseCheck', 'SingleDatasetBaseCheck', 'TrainTestBaseCheck',
-           'ModelOnlyBaseCheck', 'ModelComparisonBaseCheck', 'ConditionResult', 'ConditionCategory', 'CheckFailure',
-           'ModelComparisonContext']
-
 import pandas as pd
 from IPython.core.display import display_html
 from matplotlib import pyplot as plt
@@ -35,6 +30,20 @@ from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.utils.ipython import is_ipython_display
 from deepchecks.utils.metrics import task_type_check
 from deepchecks.utils.validation import validate_model
+
+
+__all__ = [
+    'CheckResult',
+    'BaseCheck',
+    'SingleDatasetBaseCheck',
+    'TrainTestBaseCheck',
+    'ModelOnlyBaseCheck',
+    'ModelComparisonBaseCheck',
+    'ConditionResult',
+    'ConditionCategory',
+    'CheckFailure',
+    'ModelComparisonContext'
+]
 
 
 class Condition:

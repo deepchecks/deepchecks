@@ -13,10 +13,11 @@ from typing import Union, List
 
 import pandas as pd
 
-from deepchecks import Dataset, ensure_dataframe_type
+from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
-from deepchecks.utils.dataframes import filter_columns_with_validation
+from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_percent
+from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 
@@ -59,7 +60,7 @@ class DataDuplicates(SingleDatasetBaseCheck):
             (CheckResult): percentage of duplicates and display of the top n_to_show most duplicated.
         """
         df: pd.DataFrame = ensure_dataframe_type(dataset)
-        df = filter_columns_with_validation(df, self.columns, self.ignore_columns)
+        df = select_from_dataframe(df, self.columns, self.ignore_columns)
 
         data_columns = list(df.columns)
 
