@@ -10,7 +10,6 @@
 #
 """Top module for deepchecks library."""
 import matplotlib
-import matplotlib.pyplot as plt
 from .utils.ipython import is_notebook
 from .base import (
     Dataset,

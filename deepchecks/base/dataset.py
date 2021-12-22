@@ -23,7 +23,7 @@ from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 
 
-__all__ = ['Dataset',]
+__all__ = ['Dataset']
 
 
 logger = logging.getLogger('deepchecks.dataset')
@@ -175,12 +175,6 @@ class Dataset:
         if self._label_name in self.features:
             raise DeepchecksValueError(f'label column {self._label_name} can not be a feature column')
 
-        if self._label_name:
-            try:
-                self.check_compatible_labels()
-            except DeepchecksValueError as e:
-                logger.warning(str(e))
-
         if self._date_name in self.features:
             raise DeepchecksValueError(f'date column {self._date_name} can not be a feature column')
 
@@ -237,8 +231,13 @@ class Dataset:
 
         Examples
         --------
-        >>> features = np.array([[0.25, 0.3, 0.3], [0.14, 0.75, 0.3], [0.23, 0.39, 0.1]])
-        >>> labels = np.array([0.1, 0.1, 0.7])
+        >>> import numpy
+        >>> from deepchecks import Dataset
+
+        >>> features = numpy.array([[0.25, 0.3, 0.3],
+        ...                        [0.14, 0.75, 0.3],
+        ...                        [0.23, 0.39, 0.1]])
+        >>> labels = numpy.array([0.1, 0.1, 0.7])
         >>> dataset = Dataset.from_numpy(features, labels)
 
         Creating dataset only from features array.
@@ -247,17 +246,14 @@ class Dataset:
 
         Passing additional arguments to the main Dataset constructor
 
-        >>> dataset = Dataset.from_numpy(
-        ...    features, labels,
-        ...    max_categorical_ratio=0.5
-        ... )
+        >>> dataset = Dataset.from_numpy(features, labels, max_categorical_ratio=0.5)
 
         Specifying features and label columns names.
 
         >>> dataset = Dataset.from_numpy(
-        ...    features, labels,
-        ...    columns=['sensor-1', 'sensor-2', 'sensor-3',],
-        ...    label_name='labels'
+        ...     features, labels,
+        ...     columns=['sensor-1', 'sensor-2', 'sensor-3'],
+        ...     label_name='labels'
         ... )
 
         """
@@ -527,12 +523,6 @@ class Dataset:
             columns[column] = value
         return columns
 
-    def check_compatible_labels(self):
-        """Check if label column is supported by deepchecks."""
-        labels = self.label_col
-        if labels is None:
-            return
-
     # Validations:
 
     def validate_label(self):
@@ -548,7 +538,6 @@ class Dataset:
         """
         if self.label_name is None:
             raise DeepchecksValueError('Check requires dataset to have a label column')
-        self.check_compatible_labels()
 
     def validate_features(self):
         """
