@@ -26,7 +26,7 @@ from tests.checks.utils import equal_condition_result
 
 def dataset_from_dict(d: dict, date_name: str = None) -> Dataset:
     dataframe = pd.DataFrame(data=d)
-    return Dataset(dataframe, date_name=date_name)
+    return Dataset(dataframe, datetime_name=date_name)
 
 
 def test_dates_from_val_in_train():

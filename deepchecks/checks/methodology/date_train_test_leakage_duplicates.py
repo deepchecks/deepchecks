@@ -53,8 +53,8 @@ class DateTrainTestLeakageDuplicates(TrainTestBaseCheck):
         train_dataset.validate_date()
         test_dataset.validate_date()
 
-        train_date = train_dataset.date_col
-        val_date = test_dataset.date_col
+        train_date = train_dataset.datetime_col
+        val_date = test_dataset.datetime_col
 
         date_intersection = set(train_date).intersection(val_date)
         if len(date_intersection) > 0:

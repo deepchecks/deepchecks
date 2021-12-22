@@ -38,8 +38,8 @@ def iris(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBoostClassifier]:
     )
 
     train, test = (
-        Dataset(train, label_name='target', date_name='date', index_name='index'),
-        Dataset(test, label_name='target', date_name='date', index_name='index')
+        Dataset(train, label_name='target', datetime_name='date', index_name='index'),
+        Dataset(test, label_name='target', datetime_name='date', index_name='index')
     )
 
     model = AdaBoostClassifier(random_state=0)
@@ -88,12 +88,12 @@ def iris_with_non_textual_columns(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBo
         Dataset(
             train.rename(columns=renamer),
             features=list(renamer.values())[:-1],
-            label_name=4, date_name=6, index_name=5
+            label_name=4, datetime_name=6, index_name=5
         ),
         Dataset(
             test.rename(columns=renamer),
             features=list(renamer.values())[:-1],
-            label_name=4, date_name=6, index_name=5
+            label_name=4, datetime_name=6, index_name=5
         )
     )
 
