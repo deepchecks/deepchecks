@@ -36,6 +36,8 @@ PIP_WIN := python -m pip
 PYTHON := $(BIN)/$(python)
 ANALIZE := $(BIN)/pylint
 COVERAGE := $(BIN)/coverage
+FLAKE8 := $(BIN)/flake8
+FLAKE8_RST := $(BIN)/flake8-rst
 TEST_RUNNER := $(BIN)/pytest
 TOX := $(BIN)/tox
 TWINE := $(BIN)/twine
@@ -54,7 +56,7 @@ REQUIREMENTS := $(shell find . -name $(REQUIRE))
 REQUIREMENTS_LOG := .requirements.log
 
 # Test and Analyize
-ANALIZE_PKGS = pylint pydocstyle
+ANALIZE_PKGS = pylint pydocstyle flake8 flake8-spellcheck flake8-eradicate flake8-rst
 TEST_CODE := tests/
 TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval
 NOTEBOOK_CHECKS = ./notebooks/checks
@@ -130,6 +132,9 @@ validate: $(REQUIREMENTS_LOG) pylint docstring
 
 pylint: $(ANALIZE)
 	$(ANALIZE) $(SOURCES) $(TEST_CODE)
+	$(FLAKE8) $(SOURCES)
+	$(FLAKE8_RST) $(SOURCES)
+
 docstring: $(ANALIZE) # We Use PEP257 Style Python Docstring
 	$(PYTHON) -m pydocstyle --convention=pep257 --add-ignore=D107 $(SOURCES)
 

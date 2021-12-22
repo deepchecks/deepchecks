@@ -24,7 +24,6 @@ from deepchecks.checks.methodology import (
     DatasetsSizeComparison
 )
 
-
 __all__ = [
     'index_leakage_suite',
     'date_leakage_suite',
@@ -120,6 +119,6 @@ def methodological_flaws_suite() -> Suite:
         UnusedFeatures().add_condition_number_of_high_variance_unused_features_not_greater_than(),
         ModelInferenceTimeCheck().add_condition_inference_time_is_not_greater_than(),
         DatasetsSizeComparison()
-            .add_condition_train_dataset_not_smaller_than_test()
-            .add_condition_test_train_size_ratio_not_smaller_than(),
+        .add_condition_train_dataset_not_smaller_than_test()
+        .add_condition_test_train_size_ratio_not_smaller_than(),
     )

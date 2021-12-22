@@ -66,7 +66,7 @@ class UnusedFeatures(TrainTestBaseCheck):
     The check uses feature importance (either internally computed in appropriate models or calculated by permutation
     feature importance) to detect features that are not used by the model. From this list, the check sorts the features
     by their variance (as calculated by a PCA transformation). High variance unused features may be containing
-     information that is ignored by the model.
+    information that is ignored by the model.
 
     Args:
         feature_importance_threshold (float): A cutoff value for the feature importance, measured by the ratio of
@@ -97,7 +97,7 @@ class UnusedFeatures(TrainTestBaseCheck):
             train_dataset (Dataset): The training dataset object. Must contain a label column. If test_dataset is not
                                      supplied this dataset will be used.
             test_dataset (Dataset): The test dataset object. Must contain a label column. Will be used if supplied.
-            model: A scikit-learn-compatible fitted estimator instance
+            model: A scikit-learn-compatible fitted estimator instance.
 
         Returns:
             CheckResult:

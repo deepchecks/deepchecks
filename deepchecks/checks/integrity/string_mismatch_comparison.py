@@ -99,8 +99,8 @@ class StringMismatchComparison(TrainTestBaseCheck):
         return self._string_mismatch_comparison(train_dataset, test_dataset, feature_importances)
 
     def _string_mismatch_comparison(self, train_dataset: Union[pd.DataFrame, Dataset],
-                                   test_dataset: Union[pd.DataFrame, Dataset],
-                                   feature_importances: pd.Series=None) -> CheckResult:
+                                    test_dataset: Union[pd.DataFrame, Dataset],
+                                    feature_importances: pd.Series = None) -> CheckResult:
         # Validate parameters
         df = ensure_dataframe_type(test_dataset)
         df = select_from_dataframe(df, self.columns, self.ignore_columns)

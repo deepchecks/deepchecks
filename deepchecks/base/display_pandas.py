@@ -16,7 +16,7 @@ from IPython.core.display import display_html
 import pandas as pd
 from pandas.io.formats.style import Styler
 
-from . import check # pylint: disable=unused-import
+from . import check  # pylint: disable=unused-import
 
 
 __all__ = ['display_dataframe', 'dataframe_to_html', 'display_conditions_table']
