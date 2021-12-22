@@ -10,7 +10,7 @@
 #
 """Predefined suites for various use-cases."""
 from deepchecks.checks import (
-    MixedNulls, MixedTypes, SpecialCharacters, StringLengthOutOfBounds, StringMismatch,
+    MixedNulls, SpecialCharacters, StringLengthOutOfBounds, StringMismatch, MixedDataTypes,
     DateTrainTestLeakageDuplicates, SingleFeatureContribution, SingleFeatureContributionTrainTest, TrainTestSamplesMix,
     DateTrainTestLeakageOverlap, IdentifierLeakage, IndexTrainTestLeakage, DominantFrequencyChange,
     CategoryMismatchTrainTest, NewLabelTrainTest, StringMismatchComparison, TrainTestFeatureDrift, WholeDatasetDrift,
@@ -34,7 +34,7 @@ def single_dataset_integrity() -> Suite:
         'Single Dataset Integrity Suite',
         IsSingleValue().add_condition_not_single_value(),
         MixedNulls().add_condition_different_nulls_not_more_than(),
-        MixedTypes().add_condition_rare_type_ratio_not_less_than(),
+        MixedDataTypes().add_condition_rare_type_ratio_not_in_range(),
         StringMismatch().add_condition_no_variants(),
         DataDuplicates().add_condition_ratio_not_greater_than(),
         StringLengthOutOfBounds().add_condition_ratio_of_outliers_not_greater_than(),
