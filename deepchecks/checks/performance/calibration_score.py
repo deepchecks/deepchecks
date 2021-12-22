@@ -12,7 +12,8 @@
 from sklearn.base import BaseEstimator
 from sklearn.calibration import calibration_curve
 from sklearn.metrics import brier_score_loss
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
 from deepchecks.utils.metrics import ModelType, task_type_validation
 
@@ -58,35 +59,44 @@ class CalibrationScore(SingleDatasetBaseCheck):
                 clf_score = brier_score_loss(ds_y == n_class, prob_pos, pos_label=n_class)
                 briers_scores[n_class] = clf_score
 
-        def display():
-            fig = plt.figure(figsize=(6, 6))
-            ax1 = fig.add_subplot(111)
+        fig = go.Figure()
 
-            ax1.plot([0, 1], [0, 1], "k:", label="Perfectly calibrated")
-            # If it's a binary classification
-            if len(unique_labels) == 2:
+        fig.add_trace(go.Scatter(
+                    x=[0, 1],
+                    y=[0, 1],
+                    line_width=2, line_dash='dash',
+                    name="Perfectly calibrated",
+                ))
+
+        if len(unique_labels) == 2:
                 fraction_of_positives, mean_predicted_value = calibration_curve(ds_y, y_pred[:, 1], n_bins=10)
 
-                ax1.plot(mean_predicted_value, fraction_of_positives, "s-",
-                         label=f"(brier={briers_scores[0]:9.4f})")
-            else:
-                for n_class in unique_labels:
-                    prob_pos = y_pred[:, n_class]
+                fig.add_trace(go.Scatter(
+                    x=mean_predicted_value,
+                    y=fraction_of_positives,
+                    mode='lines+markers',
+                    name=f"(brier:{briers_scores[0]:9.4f})",
+                ))
+        else:
+            for n_class in unique_labels:
+                prob_pos = y_pred[:, n_class]
 
-                    fraction_of_positives, mean_predicted_value = \
-                        calibration_curve(ds_y == n_class, prob_pos, n_bins=10)
+                fraction_of_positives, mean_predicted_value = \
+                    calibration_curve(ds_y == n_class, prob_pos, n_bins=10)
 
-                    ax1.plot(mean_predicted_value, fraction_of_positives, "s-",
-                             label=f"{n_class} (brier={briers_scores[n_class]:9.4f})")
+                fig.add_trace(go.Scatter(
+                    x=mean_predicted_value,
+                    y=fraction_of_positives,
+                    mode='lines+markers',
+                    name=f"{n_class} (brier:{briers_scores[n_class]:9.4f})",
+                ))
 
-                ax1.set_ylabel("Fraction of positives")
-                ax1.set_ylim([-0.05, 1.05])
-                ax1.set_title("Calibration plots  (reliability curve)")
-                ax1.legend(loc="upper center", bbox_to_anchor=(0.5, -0.2), )
+        fig.update_layout(title_text="Calibration plots  (reliability curve)",
+                    width=700, height=500)
+        fig.update_yaxes(title="Fraction of positives")
+        fig.update_xaxes(title="Mean predicted value")
 
-                ax1.set_xlabel("Mean predicted value")
 
-            plt.tight_layout()
 
         calibration_text = "Calibration curves (also known as reliability diagrams) compare how well the " \
                            "probabilistic predictions of a binary classifier are calibrated. It plots the true " \
@@ -94,4 +104,4 @@ class CalibrationScore(SingleDatasetBaseCheck):
         brier_text = "The Brier score metric may be used to assess how well a classifier is calibrated. For more " \
                      "info, please visit https://en.wikipedia.org/wiki/Brier_score"
         return CheckResult(briers_scores, header="Calibration Metric",
-                           display=[calibration_text, display, brier_text])
+                           display=[calibration_text, fig, brier_text])
