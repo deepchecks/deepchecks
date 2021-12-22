@@ -9,9 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """The confusion_matrix_report check module."""
+import numpy as np
 import sklearn
 from sklearn.base import BaseEstimator
 
+import plotly.figure_factory as ff
 from deepchecks import CheckResult, Dataset
 from deepchecks.base.check import SingleDatasetBaseCheck
 from deepchecks.utils.metrics import ModelType, task_type_validation
@@ -50,7 +52,12 @@ class ConfusionMatrixReport(SingleDatasetBaseCheck):
 
         confusion_matrix = sklearn.metrics.confusion_matrix(ds_y, y_pred)
 
-        def display():
-            sklearn.metrics.ConfusionMatrixDisplay(confusion_matrix).plot()
+        labels = [str(val) for val in np.unique(ds_y)]
+        fig = ff.create_annotated_heatmap(confusion_matrix, x=labels, y=labels, colorscale='Viridis')
+        fig.update_layout(width=600, height=600)
+        fig.update_xaxes(title='Predicted Value')
+        fig.update_yaxes(title='True value', autorange='reversed')
+        fig['data'][0]['showscale'] = True
+        fig['layout']['xaxis']['side'] = 'bottom'
 
-        return CheckResult(confusion_matrix, display=display)
+        return CheckResult(confusion_matrix, display=fig)
