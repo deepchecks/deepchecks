@@ -16,24 +16,24 @@
 
 ### List of Prebuilt Suites
 
-[**Overall Suites**](./overall.py)
+[**Overall Suites**](./overall_suite.py)
 
   - overall_suite - run all deepchecks checks, including checks for index and date
   - overall_classification_suite - run all deepchecks checks for classification tasks with no index or date
   - overall_regression_suite - run all deepchecks checks for regression tasks with no index or date
   - overall_generic_suite - run all deepchecks checks that work regardless of task type with no index or date
 
-[**Distribution Suites**](./distribution.py)
+[**Distribution Suites**](./distribution_suite.py)
 
   - data_distribution_suite - run all data distribution checks
 
-[**Integrity Suites**](./integrity.py)
+[**Integrity Suites**](./integrity_suite.py)
 
   - single_dataset_integrity_suite - for a single dataset / dataframe
   - comparative_integrity_suite - comparing two datasets / dataframes
   - integrity_suite - includes both check types 
 
-[**Methodology Suites**](./methodology.py)
+[**Methodology Suites**](./methodology_suite.py)
   - index_leakage_suite - for datasets with an index column
   - date_leakage_suite - for datasets with a date column
   - data_leakage_suite  - for all datasets
@@ -41,7 +41,7 @@
   - overfit_suite - run all overfit checks
   - methodological_flaws_suite - checks for all methodological flaws, including unused features
   
-[**Performance Suite**](./performance.py)
+[**Performance Suite**](./performance_suite.py)
   - performance_suite - run all performance checks
   - classification_suite - check performance for classification tasks
   - regression_suite - check performance for regression tasks
