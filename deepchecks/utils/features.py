@@ -11,9 +11,10 @@
 """Utils module containing feature importance calculations."""
 from functools import lru_cache
 import typing as t
+
 import numpy as np
 import pandas as pd
-
+from pandas.core.dtypes.common import is_float_dtype
 from sklearn.inspection import permutation_importance
 from sklearn.pipeline import Pipeline
 
@@ -28,7 +29,9 @@ __all__ = [
     'calculate_feature_importance',
     'calculate_feature_importance_or_null',
     'column_importance_sorter_dict',
-    'column_importance_sorter_df'
+    'column_importance_sorter_df',
+    'infer_categorical_features',
+    'is_categorical'
 ]
 
 
@@ -216,3 +219,65 @@ def column_importance_sorter_df(
         if n_top:
             return df.head(n_top)
     return df
+
+
+def infer_categorical_features(
+    df: pd.DataFrame,
+    max_categorical_ratio: float = 0.01,
+    max_categories: int = 30,
+    max_float_categories: int = 5,
+    columns: t.Optional[t.List[Hashable]] = None,
+) -> t.List[Hashable]:
+    """Infers which features are categorical by checking types and number of unique values.
+
+    Arguments:
+        df (DataFrame): dataframe for which to infer categorical features
+
+    Returns:
+        List[hashable]: list of categorical features
+    """
+    categorical_dtypes = df.select_dtypes(include='category')
+
+    if len(categorical_dtypes.columns) > 0:
+        return list(categorical_dtypes.columns)
+
+    if columns is not None:
+        dataframe_columns = validation.ensure_hashable_or_mutable_sequence(columns)
+    else:
+        dataframe_columns = df.columns
+
+    return [
+        column
+        for column in dataframe_columns
+        if is_categorical(
+            t.cast(pd.Series, df[column]),
+            max_categorical_ratio,
+            max_categories,
+            max_float_categories
+        )
+    ]
+
+
+def is_categorical(
+    column: pd.Series,
+    max_categorical_ratio: float = 0.01,
+    max_categories: int = 30,
+    max_float_categories: int = 5
+) -> bool:
+    """Check if uniques are few enough to count as categorical.
+
+    Args:
+        column (Series):
+            The name of the column in the dataframe
+
+    Returns:
+        bool: True if is categorical according to input numbers
+    """
+    # col_data = self.data[col_name]
+    n_unique = column.nunique(dropna=True)
+    n_samples = len(column.dropna())
+
+    if is_float_dtype(column):
+        return n_unique <= max_float_categories
+
+    return n_unique / n_samples < max_categorical_ratio and n_unique <= max_categories
