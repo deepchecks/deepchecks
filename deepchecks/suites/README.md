@@ -20,7 +20,7 @@
   - train_test_leakage - Runs a set of checks that are meant to detect data leakage from the training dataset to the test dataset.
   - train_test_validation - Runs a set of checks that are meant to validate correctness of train-test split, including integrity, drift and leakage.
   - model_evaluation - Runs a set of checks that are meant to test model performance and overfit.
-  - full_suite - Runs all deepchecks' checks.
+  - full_suite - Runs all previously mentioned suites and overview checks.
   
 
 ### Running a Suite
