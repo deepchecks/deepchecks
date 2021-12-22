@@ -18,6 +18,7 @@ import pandas as pd
 
 from IPython.core.display import display_html
 
+from deepchecks.utils.strings import get_random_string
 from deepchecks.base.check import CheckResult, CheckFailure
 from deepchecks.base.display_pandas import dataframe_to_html, display_conditions_table
 
@@ -54,8 +55,9 @@ def get_display_exists_icon(exists: bool):
 
 def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]]):
     """Display results of suite in IPython."""
+    unique_id = get_random_string()
     checks_with_conditions = []
-    display_table = []
+    display_table: List[CheckResult] = []
     others_table = []
 
     for result in results:
@@ -81,7 +83,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     <span style="color: orange;font-weight:bold;display:inline-block">\U00000021</span>
     """
     html = f"""
-    <h1>{suite_name}</h1>
+    <h1 id="summary_{unique_id}">{suite_name}</h1>
     <p>The suite is composed of various checks such as: {get_first_3(results)}, etc...<br>
     Each check may contain conditions (which results in {icons}), as well as other outputs such as plots or tables.<br>
     Suites, checks and conditions can all be modified (see tutorial [link]).</p>
@@ -89,14 +91,14 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     """
     display_html(html, raw=True)
     if checks_with_conditions:
-        display_conditions_table(checks_with_conditions)
+        display_conditions_table(checks_with_conditions, unique_id)
     else:
         display_html('<p>No conditions defined on checks in the suite.</p>', raw=True)
 
     display_html(f'{bold_hr}<h2>Additional Outputs</h2>', raw=True)
     if display_table:
         for i, r in enumerate(display_table):
-            r.show(show_conditions=False)
+            r.show(show_conditions=False, unique_id=unique_id)
             if i < len(display_table) - 1:
                 display_html(light_hr, raw=True)
     else:
@@ -111,6 +113,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         {dataframe_to_html(others_table.style.hide_index())}
         """
         display_html(html, raw=True)
+        display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
 
 
 def get_first_3(results: List[Union[CheckResult, CheckFailure]]):
