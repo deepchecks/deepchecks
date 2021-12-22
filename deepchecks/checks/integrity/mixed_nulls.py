@@ -15,11 +15,12 @@ from typing import Union, Dict, List, Iterable
 import numpy as np
 import pandas as pd
 
-from deepchecks import Dataset, CheckResult, ensure_dataframe_type
+from deepchecks import Dataset, CheckResult
 from deepchecks.base.check import SingleDatasetBaseCheck, ConditionResult
-from deepchecks.utils.dataframes import filter_columns_with_validation
+from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
 from deepchecks.utils.strings import string_baseform, format_percent, format_columns_for_condition
+from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 
@@ -114,7 +115,7 @@ class MixedNulls(SingleDatasetBaseCheck):
         # Validate parameters
         original_dataset = dataset
         dataset: pd.DataFrame = ensure_dataframe_type(dataset)
-        dataset = filter_columns_with_validation(dataset, self.columns, self.ignore_columns)
+        dataset = select_from_dataframe(dataset, self.columns, self.ignore_columns)
         null_string_list: set = self._validate_null_string_list(self.null_string_list, self.check_nan)
 
         # Result value
