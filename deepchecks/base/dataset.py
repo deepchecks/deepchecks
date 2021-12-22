@@ -19,7 +19,6 @@ import pandas as pd
 
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import is_categorical, infer_categorical_features
-from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 
@@ -164,12 +163,6 @@ class Dataset:
 
         if self._label_name in self.features:
             raise DeepchecksValueError(f'label column {self._label_name} can not be a feature column')
-
-        if self._label_name:
-            try:
-                self.check_compatible_labels()
-            except DeepchecksValueError as e:
-                logger.warning(str(e))
 
         if self._date_name in self.features:
             raise DeepchecksValueError(f'date column {self._date_name} can not be a feature column')
@@ -517,16 +510,6 @@ class Dataset:
             columns[column] = value
         return columns
 
-    def check_compatible_labels(self):
-        """Check if label column is supported by deepchecks."""
-        labels = self.label_col
-        if labels is None:
-            return
-        if is_string_column(labels):
-            raise DeepchecksValueError('String labels are not supported')
-        elif pd.isnull(labels).any():
-            raise DeepchecksValueError('Can not have null values in label column')
-
     # Validations:
 
     def validate_label(self):
@@ -542,7 +525,6 @@ class Dataset:
         """
         if self.label_name is None:
             raise DeepchecksValueError('Check requires dataset to have a label column')
-        self.check_compatible_labels()
 
     def validate_features(self):
         """
