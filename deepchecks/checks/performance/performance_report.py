@@ -11,8 +11,7 @@
 """Module containing performance report check."""
 from typing import Callable, Dict
 import pandas as pd
-import plotly.graph_objects as go
-
+import plotly.express as px
 
 from deepchecks.base.check import ModelComparisonContext
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult, ModelComparisonBaseCheck
@@ -96,47 +95,38 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
         super().__init__()
         self.alternative_scorers = initialize_user_scorers(alternative_scorers)
 
-    def _run(self, context: ModelComparisonContext):
+    def run_logic(self, context: ModelComparisonContext):
         first_model = context.models[0]
         first_test_ds = context.test_datasets[0]
         scorers = get_scorers_dict(first_model, first_test_ds, self.alternative_scorers, multiclass_avg=False)
 
-        models_results = {}
+        results = []
         for _, test, model, model_name in context:
-            curr_results = []
             for metric, scorer in scorers.items():
                 score = scorer(model, test)
                 # Multiclass scorers return numpy array of result per class
                 if context.task_type == ModelType.MULTICLASS:
                     for class_i, value in enumerate(score):
-                        curr_results.append([value, metric, class_i])
+                        results.append([model_name, value, metric, class_i])
                 else:
-                    curr_results.append([score, metric])
-            models_results[model_name] = curr_results
+                    results.append([model_name, score, metric])
 
         # === Display ===
         if context.task_type == ModelType.MULTICLASS:
-            fig = go.Figure()
-            for model_name, results in models_results.items():
-                display_df = pd.DataFrame(results, columns=['Value', 'Metric', 'Class'])
-                display_df = display_df.sort_values(by=['Class', 'Metric'])
-                # Edit classes names to add prefix 'Class '
-                classes = display_df['Class'].apply(lambda x: f'Class {x}')
-                fig.add_trace(go.Bar(
-                    x=[classes, display_df['Metric']],
-                    y=display_df['Value'],
-                    name=model_name,
-                ))
-            fig.update_layout(bargap=0.4, bargroupgap=0)
+            display_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric', 'Class'])
+            fig = px.bar(display_df, x=['Class', 'Model'], y="Value", color="Model", barmode="group",
+                         facet_col="Metric", facet_col_spacing=0.05)
+            fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60)
+            fig.update_yaxes(title=None, matches=None)
+            fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
+            fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
         else:
-            fig = go.Figure()
-            for model_name, results in models_results.items():
-                display_df = pd.DataFrame(results, columns=['Value', 'Metric'])
-                values = display_df['Value'].apply(lambda x: abs(x))
-                fig.add_trace(go.Bar(
-                    x=display_df['Metric'],
-                    y=values,
-                    name=model_name,
-                ))
+            display_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric'])
+            fig = px.bar(display_df, x='Model', y='Value', color='Model', barmode='group',
+                         facet_col='Metric', facet_col_spacing=0.05)
+            fig.update_xaxes(title=None)
+            fig.update_yaxes(title=None, matches=None)
+            fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
+            fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
 
-        return CheckResult(models_results, display=[fig])
+        return CheckResult(results, display=[fig])

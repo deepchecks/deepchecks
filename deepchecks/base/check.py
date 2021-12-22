@@ -474,10 +474,10 @@ class ModelComparisonBaseCheck(BaseCheck):
             test_datasets: Union[Dataset, List[Dataset]],
             models: Union[List[Any], Mapping[str, Any]]
             ) -> CheckResult:
-        return self._run(ModelComparisonContext(train_datasets, test_datasets, models))
+        return self.run_logic(ModelComparisonContext(train_datasets, test_datasets, models))
 
     @abc.abstractmethod
-    def _run(self, context: ModelComparisonContext):
+    def run_logic(self, context: ModelComparisonContext):
         pass
 
 

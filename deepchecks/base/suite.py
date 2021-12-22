@@ -221,7 +221,7 @@ class ModelComparisonSuite(BaseSuite):
         results = []
         for check in self.checks.values():
             try:
-                check_result = check._run(context)
+                check_result = check.run_logic(context)
                 results.append(check_result)
             except Exception as exp:
                 results.append(CheckFailure(check.__class__, exp))
