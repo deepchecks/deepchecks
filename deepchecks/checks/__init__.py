@@ -12,7 +12,7 @@
 from .integrity import (
     MixedNulls,
     StringMismatch,
-    MixedTypes,
+    MixedDataTypes,
     IsSingleValue,
     SpecialCharacters,
     StringLengthOutOfBounds,
@@ -68,7 +68,7 @@ __all__ = [
     # integrity checks
     'MixedNulls',
     'StringMismatch',
-    'MixedTypes',
+    'MixedDataTypes',
     'IsSingleValue',
     'SpecialCharacters',
     'StringLengthOutOfBounds',

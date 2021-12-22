@@ -22,7 +22,7 @@ Category | Check | Description |
 | Methodology| [DataSampleLeakage](./methodology/data_sample_leakage.ipynb) |Find what percent of the validation data is in the train data |
 | Integrity| [DominantFrequencyChange](./integrity/dominant_frequency_change.ipynb) |Find what percent of the validation data is in the train data |
 | Integrity| [MixedNulls](./integrity/mixed_nulls.ipynb) | Search for various types of null values in a string column(s), including string representations of null |
-| Integrity| [MixedTypes](./integrity/mixed_types.ipynb) | Search for mixed types of Data in a single column |
+| Integrity| [MixedDataTypes](./integrity/mixed_data_types.ipynb) | Search for mixed types of Data in a single column |
 | Integrity| [NewCategory](./integrity/new_category.ipynb) | Find new categories in validation |
 | Integrity| [RareFormatDetection](./integrity/rare_format_detection.ipynb) | Check whether columns have common formats (e.g. "XX-XX-XXXX" for dates") and detects values that don't match |
 | Integrity| [SpecialCharacters](./integrity/special_characters.ipynb) | Search in column[s] for values that contains only special characters |

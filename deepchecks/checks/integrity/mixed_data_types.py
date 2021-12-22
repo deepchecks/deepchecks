@@ -9,13 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """module contains Mixed Types check."""
-from typing import List, Union
+from typing import List, Union, Tuple
 import pandas as pd
 
 import numpy as np
 
 from deepchecks import Dataset
-from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
+from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
 from deepchecks.utils.strings import is_string_column, format_percent, format_columns_for_condition
@@ -23,11 +23,11 @@ from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
 
 
-__all__ = ['MixedTypes']
+__all__ = ['MixedDataTypes']
 
 
-class MixedTypes(SingleDatasetBaseCheck):
-    """Search for various types of data in (a) column[s], including hidden mixes in strings.
+class MixedDataTypes(SingleDatasetBaseCheck):
+    """Detect a minority of a data type within a column, such as few string samples in a mostly numeric column.
 
     Args:
         columns (Union[Hashable, List[Hashable]]):
@@ -36,7 +36,7 @@ class MixedTypes(SingleDatasetBaseCheck):
         ignore_columns (Union[Hashable, List[Hashable]]):
             Columns to ignore, if none given checks based on columns
             variable.
-        n_top_columns (int): (optinal - used only if model was specified)
+        n_top_columns (int): (optional - used only if model was specified)
           amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
@@ -126,22 +126,32 @@ class MixedTypes(SingleDatasetBaseCheck):
 
         return {'strings': strs_pct, 'numbers': nums_pct}
 
-    def add_condition_rare_type_ratio_not_less_than(self, max_rare_type_ratio: float = 0.01):
-        """Add condition - Whether the rarer data type (strings or numbers) have ratio higher than given ratio.
+    def add_condition_rare_type_ratio_not_in_range(self, ratio_range: Tuple[float, float] = (0.01, 0.1)):
+        """Add condition - Whether the ratio of rarer data type (strings or numbers) is not in the "danger zone".
+
+        The "danger zone" represents the following logic - if the rarer data type is, for example, 30% of the data,
+        than the column is presumable supposed to contain both numbers and numeric values. If the rarer data type is,
+        for example, less than 1% of the data, than it's presumably a contamination, but a negligible one. In the range
+        between, there is a real chance that the rarer data type may represent a problem to model training and
+        inference.
 
         Args:
-            max_rare_type_ratio (float): Minimal ratio allowed for the rarer type (numbers or strings)
+            ratio_range (Tuple[float, float]): The range between which the ratio of rarer data type in the column is
+                considered a problem.
         """
-        def condition(result, max_rare_type_ratio):
+        def condition(result):
             failing_columns = []
             for col, ratios in result.items():
-                if ratios['strings'] < max_rare_type_ratio or ratios['numbers'] < max_rare_type_ratio:
+                rarer_ratio = min(ratios['strings'], ratios['numbers'])
+                if ratio_range[0] < rarer_ratio < ratio_range[1]:
                     failing_columns.append(col)
             if failing_columns:
-                details = f'Found columns with low type ratio: {", ".join(map(str, failing_columns))}'
-                return ConditionResult(False, details)
+                details = f'Found columns with non-negligible quantities of samples with a different data type from ' \
+                          f'the majority of samples: {", ".join(map(str, failing_columns))}'
+                return ConditionResult(False, details, category=ConditionCategory.WARN)
             return ConditionResult(True)
 
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        name = f'Rare type ratio is not less than {format_percent(max_rare_type_ratio)} of samples in {column_names}'
-        return self.add_condition(name, condition_func=condition, max_rare_type_ratio=max_rare_type_ratio)
+        name = f'Rare data types in {column_names} are either more than {format_percent(ratio_range[1])} or less ' \
+               f'than {format_percent(ratio_range[0])} of the data'
+        return self.add_condition(name, condition)
