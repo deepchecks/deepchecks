@@ -92,11 +92,9 @@ class CalibrationScore(SingleDatasetBaseCheck):
                 ))
 
         fig.update_layout(title_text='Calibration plots  (reliability curve)',
-                    width=700, height=500)
+                          width=700, height=500)
         fig.update_yaxes(title='Fraction of positives')
         fig.update_xaxes(title='Mean predicted value')
-
-
 
         calibration_text = 'Calibration curves (also known as reliability diagrams) compare how well the ' \
                            'probabilistic predictions of a binary classifier are calibrated. It plots the true ' \

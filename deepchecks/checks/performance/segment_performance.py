@@ -119,7 +119,7 @@ class SegmentPerformance(SingleDatasetBaseCheck):
         x = [v.label for v in feature_2_filters]
         y = [v.label for v in feature_1_filters]
 
-        scores_text = [ [0]*scores.shape[1] for _ in range(scores.shape[0])]
+        scores_text = [[0]*scores.shape[1] for _ in range(scores.shape[0])]
 
         for i in range(len(y)):
             for j in range(len(x)):
@@ -138,5 +138,5 @@ class SegmentPerformance(SingleDatasetBaseCheck):
         fig['data'][0]['showscale'] = True
         fig['layout']['xaxis']['side'] = 'bottom'
 
-        value = {'scores': scores, 'counts': counts, 'feature_1': self.feature_1,'feature_2': self.feature_2}
+        value = {'scores': scores, 'counts': counts, 'feature_1': self.feature_1, 'feature_2': self.feature_2}
         return CheckResult(value, display=fig)
