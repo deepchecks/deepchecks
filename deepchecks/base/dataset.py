@@ -346,37 +346,6 @@ class Dataset:
             **kwargs
         )
 
-    @classmethod
-    def from_dict(
-            cls: t.Type[TDataset],
-            data: t.Mapping[Hashable, t.Any],
-            orient: str = 'columns',
-            dtype: t.Optional[np.dtype] = None,
-            columns: t.Optional[t.Sequence[Hashable]] = None,
-            **kwargs
-    ) -> TDataset:
-        """Create instance of the Dataset from the dict object.
-
-        Args:
-            data (t.Mapping[t.Hashable, t.Any]):
-                dict from which to create a dataset
-            orient (Literal['columns'] | Literal['index'], default 'columns'):
-                The “orientation” of the data. Will be passed to the dataframe constructor.
-            dtype (Optional[numpy.dtype], default None):
-                Data type to force, otherwise infer. Will be passed to the dataframe constructor.
-            columns (t.Optional[t.Sequence[t.Hashable]]):
-                Column labels. Will be passed to the dataframe constructor.
-            **kwargs:
-                additional arguments that will be passed to the main Dataset constructor.
-
-        Returns:
-            Dataset: instance of the Dataset.
-        """
-        return cls(
-            df=pd.DataFrame.from_dict(data=data, orient=orient, dtype=dtype, columns=columns),
-            **kwargs
-        )
-
     @property
     def data(self) -> pd.DataFrame:
         """Return the data of dataset."""
