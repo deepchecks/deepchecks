@@ -57,7 +57,7 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
         dataset.validate_label()
         ppscore_params = ppscore_params or {}
 
-        relevant_columns = list(filter(None, [dataset.date_name, dataset.index_name, dataset.label_name]))
+        relevant_columns = list(filter(None, [dataset.datetime_name, dataset.index_name, dataset.label_name]))
 
         if len(relevant_columns) == 1:
             raise DeepchecksValueError('Dataset needs to have a date or index column.')
