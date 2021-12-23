@@ -52,14 +52,16 @@ class RegressionSystematicError(SingleDatasetBaseCheck):
         diff_mean = diff.mean()
 
         display = [
-            'Non-zero mean of the error distribution indicated the presents ' \
+            'Non-zero mean of the error distribution indicated the presents '
             'of systematic error in model predictions',
             go.Figure()
             .add_trace(go.Box(
                 x=diff.values,
                 name='Model Prediction Error',
                 boxpoints='suspectedoutliers',
-                marker=dict(outliercolor='red')))
+                marker=dict(outliercolor='red'),
+                hoverinfo='x',
+                hoveron='points'))
             .update_layout(
                 title_text='Box plot of the model prediction error',
                 width=800, height=500)
