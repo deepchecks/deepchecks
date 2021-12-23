@@ -76,8 +76,9 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
             name = result.check.name()
             others_table.append([name, msg, 1])
         else:
+            # Should never reach here!
             raise errors.DeepchecksValueError(
-                f"Expecting list of 'CheckResult'|'CheckFailure', but got list of {type(result)}."
+                f"Expecting list of 'CheckResult'|'CheckFailure', but got {type(result)}."
             )
 
     display_table = sorted(display_table, key=lambda it: it.priority)
@@ -133,15 +134,3 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         {dataframe_to_html(others_table.style.hide_index())}
         """
         display_html(html, raw=True)
-
-
-# def get_first_3(results: List[Union[CheckResult, CheckFailure]]):
-#     first_3 = []
-#     i = 0
-#     while len(first_3) < 3 and i < len(results):
-#         curr = results[i]
-#         curr_name = curr.check.name()
-#         if curr_name not in first_3:
-#             first_3.append(curr_name)
-#         i += 1
-#     return ', '.join(first_3)
