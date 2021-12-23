@@ -88,7 +88,7 @@ class Dataset:
     _datetime_name: t.Optional[Hashable]
     _set_datetime_from_dataframe_index: t.Optional[bool]
     _datetime_column: t.Optional[pd.Series]
-    cat_features: t.List[Hashable]
+    _cat_features: t.List[Hashable]
     _data: pd.DataFrame
     _max_categorical_ratio: float
     _max_categories: int
@@ -227,9 +227,9 @@ class Dataset:
                 raise DeepchecksValueError(f'Categorical features must be a subset of features. '
                                            f'Categorical features {set(cat_features) - set(self._features)} '
                                            f'have not been found in feature list.')
-            self.cat_features = list(cat_features)
+            self._cat_features = list(cat_features)
         else:
-            self.cat_features = self._infer_categorical_features(
+            self._cat_features = self._infer_categorical_features(
                 self._data,
                 max_categorical_ratio=max_categorical_ratio,
                 max_categories=max_categories,
@@ -554,6 +554,15 @@ class Dataset:
            List of feature names.
         """
         return self._features
+
+    @property
+    def cat_features(self) -> t.List[Hashable]:
+        """Return list of categorical feature names.
+
+        Returns:
+           List of categorical feature names.
+        """
+        return self._cat_features
 
     @property
     def features_columns(self) -> t.Optional[pd.DataFrame]:

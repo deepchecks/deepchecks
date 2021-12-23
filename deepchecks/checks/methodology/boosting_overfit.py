@@ -93,29 +93,6 @@ class PartialBoostingModel:
             raise DeepchecksValueError(f'Unsupported model of type: {model_class}')
 
 
-def partial_score(scorer, dataset, model, step):
-    partial_model = PartialBoostingModel(model, step)
-    return scorer(partial_model, dataset)
-
-
-def calculate_steps(num_steps, num_estimators):
-    """Calculate steps (integers between 1 to num_estimators) to work on."""
-    if num_steps >= num_estimators:
-        return list(range(1, num_estimators + 1))
-    if num_steps <= 5:
-        steps_percents = np.linspace(0, 1.0, num_steps + 1)[1:]
-        steps_numbers = np.ceil(steps_percents * num_estimators)
-        steps_set = {int(s) for s in steps_numbers}
-    else:
-        steps_percents = np.linspace(5 / num_estimators, 1.0, num_steps - 4)[1:]
-        steps_numbers = np.ceil(steps_percents * num_estimators)
-        steps_set = {int(s) for s in steps_numbers}
-        # We want to forcefully take the first 5 estimators, since they have the largest affect on the model performance
-        steps_set.update({1, 2, 3, 4, 5})
-
-    return sorted(steps_set)
-
-
 class BoostingOverfit(TrainTestBaseCheck):
     """Check for overfit caused by using too many iterations in a gradient boosted model.
 
@@ -167,13 +144,13 @@ class BoostingOverfit(TrainTestBaseCheck):
 
         # Get number of estimators on model
         num_estimators = PartialBoostingModel.n_estimators(model)
-        estimator_steps = calculate_steps(self.num_steps, num_estimators)
+        estimator_steps = _calculate_steps(self.num_steps, num_estimators)
 
         train_scores = []
         test_scores = []
         for step in estimator_steps:
-            train_scores.append(partial_score(scorer, train_dataset, model, step))
-            test_scores.append(partial_score(scorer, test_dataset, model, step))
+            train_scores.append(_partial_score(scorer, train_dataset, model, step))
+            test_scores.append(_partial_score(scorer, test_dataset, model, step))
 
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=estimator_steps, y=np.array(train_scores),
@@ -216,3 +193,26 @@ class BoostingOverfit(TrainTestBaseCheck):
                 return ConditionResult(True)
 
         return self.add_condition(f'Test score decline is not greater than {format_percent(threshold)}', condition)
+
+
+def _partial_score(scorer, dataset, model, step):
+    partial_model = PartialBoostingModel(model, step)
+    return scorer(partial_model, dataset)
+
+
+def _calculate_steps(num_steps, num_estimators):
+    """Calculate steps (integers between 1 to num_estimators) to work on."""
+    if num_steps >= num_estimators:
+        return list(range(1, num_estimators + 1))
+    if num_steps <= 5:
+        steps_percents = np.linspace(0, 1.0, num_steps + 1)[1:]
+        steps_numbers = np.ceil(steps_percents * num_estimators)
+        steps_set = {int(s) for s in steps_numbers}
+    else:
+        steps_percents = np.linspace(5 / num_estimators, 1.0, num_steps - 4)[1:]
+        steps_numbers = np.ceil(steps_percents * num_estimators)
+        steps_set = {int(s) for s in steps_numbers}
+        # We want to forcefully take the first 5 estimators, since they have the largest affect on the model performance
+        steps_set.update({1, 2, 3, 4, 5})
+
+    return sorted(steps_set)
