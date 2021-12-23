@@ -43,7 +43,7 @@ class MixedNulls(SingleDatasetBaseCheck):
             Columns to check, if none are given checks all columns except ignored ones.
         ignore_columns (Union[Hashable, List[Hashable]]):
             Columns to ignore, if none given checks based on columns variable
-        n_top_columns (int): (optinal - used only if model was specified)
+        n_top_columns (int): (optional - used only if model was specified)
           amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
@@ -62,7 +62,7 @@ class MixedNulls(SingleDatasetBaseCheck):
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
 
-    def run(self, dataset, model = None) -> CheckResult:
+    def run(self, dataset, model=None) -> CheckResult:
         """Run check.
 
         Args:

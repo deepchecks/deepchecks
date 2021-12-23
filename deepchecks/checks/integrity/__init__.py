@@ -11,7 +11,7 @@
 """Module contains all data integrity checks."""
 from .mixed_nulls import MixedNulls
 from .string_mismatch import StringMismatch
-from .mixed_types import MixedTypes
+from .mixed_data_types import MixedDataTypes
 from .is_single_value import IsSingleValue
 from .special_chars import SpecialCharacters
 from .string_length_out_of_bounds import StringLengthOutOfBounds
@@ -26,7 +26,7 @@ from .label_ambiguity import LabelAmbiguity
 __all__ = [
     'MixedNulls',
     'StringMismatch',
-    'MixedTypes',
+    'MixedDataTypes',
     'IsSingleValue',
     'SpecialCharacters',
     'StringLengthOutOfBounds',
@@ -37,5 +37,3 @@ __all__ = [
     'NewLabelTrainTest',
     'LabelAmbiguity',
 ]
-
-

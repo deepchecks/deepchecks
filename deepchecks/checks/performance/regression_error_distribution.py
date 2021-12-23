@@ -62,22 +62,22 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         kurtosis_value = kurtosis(diff)
 
         n_largest_diff = diff.nlargest(self.n_top_samples)
-        n_largest_diff.name= n_largest_diff.name + ' Prediction Difference'
+        n_largest_diff.name = n_largest_diff.name + ' Prediction Difference'
         n_largest = pd.concat([dataset.data.loc[n_largest_diff.index], n_largest_diff], axis=1)
 
         n_smallest_diff = diff.nsmallest(self.n_top_samples)
-        n_smallest_diff.name= n_smallest_diff.name + ' Prediction Difference'
+        n_smallest_diff.name = n_smallest_diff.name + ' Prediction Difference'
         n_smallest = pd.concat([dataset.data.loc[n_smallest_diff.index], n_smallest_diff], axis=1)
 
         def display_hist():
             diff = y_test - y_pred
-            diff.hist(bins = 40)
+            diff.hist(bins=40)
             plt.title('Histogram of prediction errors')
             plt.xlabel(f'{dataset.label_name} prediction error')
             plt.ylabel('Count')
 
         display = [display_hist, 'Largest over estimation errors:', n_largest,
-                   'Largest under estimation errors:', n_smallest,]
+                   'Largest under estimation errors:', n_smallest]
         return CheckResult(value=kurtosis_value, display=display)
 
     def add_condition_kurtosis_not_less_than(self, min_kurtosis: float = -0.1):

@@ -15,10 +15,10 @@ from typing import List, Union
 import sys
 import tqdm
 import pandas as pd
-
 from IPython.core.display import display_html
 
 from deepchecks import errors
+from deepchecks.utils.strings import get_random_string
 from deepchecks.base.check import CheckResult, CheckFailure
 from deepchecks.base.display_pandas import dataframe_to_html, display_conditions_table
 
@@ -59,8 +59,9 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         display_html(f"""<h1>{suite_name}</h1><p>Suite is empty.</p>""", raw=True)
         return
 
+    unique_id = get_random_string()
     checks_with_conditions = []
-    display_table = []
+    display_table: List[CheckResult] = []
     others_table = []
 
     for result in results:
@@ -101,7 +102,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
 
     display_html(
         f"""
-        <h1>{suite_name}</h1>
+        <h1 id="summary_{unique_id}">{suite_name}</h1>
         <p>{prologue}<br>
         Each check may contain conditions (which results in {icons}),
         as well as other outputs such as plots or tables.<br>
@@ -112,14 +113,14 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     )
 
     if checks_with_conditions:
-        display_conditions_table(checks_with_conditions)
+        display_conditions_table(checks_with_conditions, unique_id)
     else:
         display_html('<p>No conditions defined on checks in the suite.</p>', raw=True)
 
     display_html(f'{bold_hr}<h2>Additional Outputs</h2>', raw=True)
     if display_table:
         for i, r in enumerate(display_table):
-            r.show(show_conditions=False)
+            r.show(show_conditions=False, unique_id=unique_id)
             if i < len(display_table) - 1:
                 display_html(light_hr, raw=True)
     else:
@@ -134,3 +135,5 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         {dataframe_to_html(others_table.style.hide_index())}
         """
         display_html(html, raw=True)
+
+    display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)

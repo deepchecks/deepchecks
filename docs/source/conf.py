@@ -14,16 +14,13 @@ import pathlib
 import functools
 from subprocess import check_output
 
-
 CURRENT_DIR = pathlib.Path(__file__).parent
 PROJECT_DIR = CURRENT_DIR.parent.parent
-
 
 sys.path.insert(0, str(PROJECT_DIR.absolute()))
 
 with open(os.path.join(PROJECT_DIR, 'VERSION')) as version_file:
     VER = version_file.read().strip()
-
 
 # -- Project information -----------------------------------------------------
 
@@ -37,8 +34,7 @@ language = os.environ.get("READTHEDOCS_LANGUAGE")
 
 GIT = {
     "user": "deepchecks",
-    "repo": "deepchecks",
-    "documentation-path": "docs/source"
+    "repo": "deepchecks"
 }
 
 try:
@@ -47,7 +43,6 @@ try:
 except Exception as error:
     raise RuntimeError("Failed to extract commit hash!") from error
 
-
 # -- General configuration ---------------------------------------------------
 
 # If true, Sphinx will warn about all references where the target cannot be found.
@@ -55,11 +50,9 @@ except Exception as error:
 #
 nitpicky = True
 
-
 # Path to logo
 #
 html_logo = "./_static/deepchecks_logo.svg"
-
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -85,11 +78,9 @@ extensions = [
     'nbsphinx_link',
 ]
 
-
 # If true, the reST sources are included in the HTML build as _sources/name. The default is True.
 #
 html_copy_source = True
-
 
 # The base URL which points to the root of the HTML documentation. Default ''
 # TODO: Do we need this
@@ -101,12 +92,10 @@ html_copy_source = True
 #
 add_module_names = False
 
-
 # If true, suppress the module name of the python reference if it can be resolved.
 # The default is False.
 #
 python_use_unqualified_type_names = True
-
 
 # Autodoc settings.
 # This value selects how the signature will be displayed for the class defined by autoclass directive.
@@ -115,7 +104,6 @@ python_use_unqualified_type_names = True
 # + "separated" - Display the signature as a method.
 #
 autodoc_class_signature = 'separated'
-
 
 # Napoleon settings
 #
@@ -130,18 +118,15 @@ napoleon_use_ivar = False
 napoleon_use_param = True
 napoleon_use_rtype = True
 
-
 # Add any paths that contain templates here, relative to this directory.
 #
 templates_path = ['_templates']
-
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 #
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
-
 
 # -- nbsphinx extension settings --------------------------------------------------
 
@@ -196,7 +181,12 @@ nbsphinx_prolog = r"""
 
 """
 
-
+nbsphinx_requirejs_options = {
+    "src": "https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js",
+    "integrity": "sha512-VCK7oF67GXNc+J7zsu5o57jtxhLA75nSMHGaq8Q8TCOxDj4nMDw5dhQZvm9Cd9RN+3zgcodqbKcRc9gyPP8a2w==",
+    "crossorigin": "anonymous"
+}
+nbsphinx_assume_equations = False
 # -- Copybutton settings --------------------------------------------------
 
 # Only copy lines starting with the input prompts,
@@ -300,19 +290,16 @@ def linkcode_resolve(domain, info):
 #
 html_theme = "pydata_sphinx_theme"
 
-
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 #
 html_static_path = ['_static']
 
-
 #
 html_sidebars = {
     "**": ["sidebar-nav-bs"]
 }
-
 
 # Theme specific options.
 # See documentation of the 'pydata_sphinx_theme' theme
@@ -321,7 +308,7 @@ html_sidebars = {
 html_theme_options = {
     "show_nav_level": 4,
     "collapse_navigation": False,
-    "navbar_end": ["search-field", "navbar-icon-links", "menu-dropdown",],
+    "navbar_end": ["search-field", "navbar-icon-links", "menu-dropdown", ],
     # "page_sidebar_items": ["page-toc", "create-issue", "show-page-source"],
     "page_sidebar_items": ["page-toc", ],
     "icon_links_label": "Quick Links",
@@ -343,7 +330,6 @@ html_theme_options = {
         }
     ],
 }
-
 
 # vars that will be passed to the jinja templates during build
 #
@@ -380,14 +366,13 @@ def generate_colab_url(notebook_path: str) -> str:
         raise RuntimeError(f"Not a notebook - {notebook_path}")
 
     template = (
-        "https://colab.research.google.com/github/{user}/{repo}/blob/{branch}/{docpath}/{notebook_path}"
+        "https://colab.research.google.com/github/{user}/{repo}/blob/{branch}/{notebook_path}"
     )
 
     return template.format(
         user=GIT['user'],
         repo=GIT['repo'],
         branch=GIT['release'],
-        docpath=GIT['documentation-path'],
         notebook_path=notebook_path
     )
 
@@ -409,13 +394,13 @@ def generate_binder_url(notebook_path: str) -> str:
         user=GIT['user'],
         repo=GIT['repo'],
         branch=GIT['release'],
-        filepath=f"{GIT['documentation-path']}/{notebook_path}"
+        filepath=notebook_path
     )
 
 
 @functools.lru_cache(maxsize=None)
 def get_example_notebooks() -> t.Tuple[pathlib.Path, ...]:
-    examples_folder = PROJECT_DIR / "notebooks"
+    examples_folder = PROJECT_DIR / "examples"
 
     if not examples_folder.exists() or not examples_folder.is_dir():
         raise RuntimeError("Did not find the folder with the example notebooks.")
@@ -435,15 +420,14 @@ def is_example_notebook(filepath: str) -> bool:
 
 
 def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
-
     if not filepath.startswith("examples/checks/"):
         return
 
     notebook_name = snake_case_to_camel_case(
         filepath.split("/")[-1]
-        .replace(".txt", "")
-        .replace(".ipynb", "")
-        .replace(".py", "")
+            .replace(".txt", "")
+            .replace(".ipynb", "")
+            .replace(".py", "")
     )
 
     import deepchecks.checks
@@ -472,7 +456,7 @@ def setup(app):
 
     # make custom routines available within html templates
     app.connect("html-page-context", add_custom_routines)
-    
+
     # make next functions available within nbsphinx prolog/epilog templates
     app.config.generate_binder_url = generate_binder_url
     app.config.generate_colab_url = generate_colab_url

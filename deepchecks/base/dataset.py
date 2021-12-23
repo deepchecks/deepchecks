@@ -23,7 +23,7 @@ from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 
 
-__all__ = ['Dataset',]
+__all__ = ['Dataset']
 
 
 logger = logging.getLogger('deepchecks.dataset')
@@ -51,7 +51,7 @@ class Dataset:
     _use_default_index: bool
     _index_name: t.Optional[Hashable]
     _date_name: t.Optional[Hashable]
-    cat_features: t.List[Hashable]
+    _cat_features: t.List[Hashable]
     _data: pd.DataFrame
     _max_categorical_ratio: float
     _max_categories: int
@@ -175,9 +175,9 @@ class Dataset:
                 raise DeepchecksValueError(f'Categorical features must be a subset of features. '
                                            f'Categorical features {set(cat_features) - set(self._features)} '
                                            f'have not been found in feature list.')
-            self.cat_features = list(cat_features)
+            self._cat_features = list(cat_features)
         else:
-            self.cat_features = self._infer_categorical_features(
+            self._cat_features = self._infer_categorical_features(
                 self._data,
                 max_categorical_ratio=max_categorical_ratio,
                 max_categories=max_categories,
@@ -220,8 +220,13 @@ class Dataset:
 
         Examples
         --------
-        >>> features = np.array([[0.25, 0.3, 0.3], [0.14, 0.75, 0.3], [0.23, 0.39, 0.1]])
-        >>> labels = np.array([0.1, 0.1, 0.7])
+        >>> import numpy
+        >>> from deepchecks import Dataset
+
+        >>> features = numpy.array([[0.25, 0.3, 0.3],
+        ...                        [0.14, 0.75, 0.3],
+        ...                        [0.23, 0.39, 0.1]])
+        >>> labels = numpy.array([0.1, 0.1, 0.7])
         >>> dataset = Dataset.from_numpy(features, labels)
 
         Creating dataset only from features array.
@@ -230,17 +235,14 @@ class Dataset:
 
         Passing additional arguments to the main Dataset constructor
 
-        >>> dataset = Dataset.from_numpy(
-        ...    features, labels,
-        ...    max_categorical_ratio=0.5
-        ... )
+        >>> dataset = Dataset.from_numpy(features, labels, max_categorical_ratio=0.5)
 
         Specifying features and label columns names.
 
         >>> dataset = Dataset.from_numpy(
-        ...    features, labels,
-        ...    columns=['sensor-1', 'sensor-2', 'sensor-3',],
-        ...    label_name='labels'
+        ...     features, labels,
+        ...     columns=['sensor-1', 'sensor-2', 'sensor-3'],
+        ...     label_name='labels'
         ... )
 
         """
@@ -475,6 +477,15 @@ class Dataset:
            List of feature names.
         """
         return self._features
+
+    @property
+    def cat_features(self) -> t.List[Hashable]:
+        """Return list of categorical feature names.
+
+        Returns:
+           List of categorical feature names.
+        """
+        return self._cat_features
 
     @property
     def features_columns(self) -> t.Optional[pd.DataFrame]:

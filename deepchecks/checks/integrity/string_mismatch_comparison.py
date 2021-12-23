@@ -30,27 +30,6 @@ from deepchecks.utils.strings import (
 __all__ = ['StringMismatchComparison']
 
 
-def _condition_percent_limit(result, ratio: float):
-    not_passing_columns = {}
-    for col, baseforms in result.items():
-        sum_percent = 0
-        for info in baseforms.values():
-            sum_percent += info['percent_variants_only_in_tested']
-        if sum_percent > ratio:
-            not_passing_columns[col] = format_percent(sum_percent)
-
-    if not_passing_columns:
-        details = f'Found columns with variants over ratio: {not_passing_columns}'
-        return ConditionResult(False, details)
-    return ConditionResult(True)
-
-
-def percentage_in_series(series, values):
-    count = sum(series.isin(values))
-    percent = count / series.size
-    return percent, f'{format_percent(percent)} ({count})'
-
-
 class StringMismatchComparison(TrainTestBaseCheck):
     """Detect different variants of string categories between the same categorical column in two datasets.
 
@@ -99,8 +78,8 @@ class StringMismatchComparison(TrainTestBaseCheck):
         return self._string_mismatch_comparison(train_dataset, test_dataset, feature_importances)
 
     def _string_mismatch_comparison(self, train_dataset: Union[pd.DataFrame, Dataset],
-                                   test_dataset: Union[pd.DataFrame, Dataset],
-                                   feature_importances: pd.Series=None) -> CheckResult:
+                                    test_dataset: Union[pd.DataFrame, Dataset],
+                                    feature_importances: pd.Series = None) -> CheckResult:
         # Validate parameters
         df = ensure_dataframe_type(test_dataset)
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
@@ -132,8 +111,8 @@ class StringMismatchComparison(TrainTestBaseCheck):
                     variants_only_in_dataset = list(tested_values - baseline_values)
                     variants_only_in_baseline = list(baseline_values - tested_values)
                     common_variants = list(tested_values & baseline_values)
-                    percent_variants_only_in_dataset = percentage_in_series(tested_column, variants_only_in_dataset)
-                    percent_variants_in_baseline = percentage_in_series(baseline_column, variants_only_in_baseline)
+                    percent_variants_only_in_dataset = _percentage_in_series(tested_column, variants_only_in_dataset)
+                    percent_variants_in_baseline = _percentage_in_series(baseline_column, variants_only_in_baseline)
 
                     display_mismatches.append([column_name, baseform, common_variants,
                                                variants_only_in_dataset, percent_variants_only_in_dataset[1],
@@ -183,3 +162,24 @@ class StringMismatchComparison(TrainTestBaseCheck):
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
         name = f'Not more than {format_percent(ratio)} new variants in test data for {column_names}'
         return self.add_condition(name, _condition_percent_limit, ratio=ratio)
+
+
+def _condition_percent_limit(result, ratio: float):
+    not_passing_columns = {}
+    for col, baseforms in result.items():
+        sum_percent = 0
+        for info in baseforms.values():
+            sum_percent += info['percent_variants_only_in_tested']
+        if sum_percent > ratio:
+            not_passing_columns[col] = format_percent(sum_percent)
+
+    if not_passing_columns:
+        details = f'Found columns with variants over ratio: {not_passing_columns}'
+        return ConditionResult(False, details)
+    return ConditionResult(True)
+
+
+def _percentage_in_series(series, values):
+    count = sum(series.isin(values))
+    percent = count / series.size
+    return percent, f'{format_percent(percent)} ({count})'

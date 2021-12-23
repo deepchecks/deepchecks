@@ -16,10 +16,7 @@ from IPython.core.display import display_html
 import pandas as pd
 from pandas.io.formats.style import Styler
 
-from . import check # pylint: disable=unused-import
-
-
-__all__ = ['display_dataframe', 'dataframe_to_html', 'display_conditions_table']
+from . import check  # pylint: disable=unused-import
 
 
 __all__ = ['display_dataframe', 'dataframe_to_html', 'display_conditions_table']
@@ -59,11 +56,14 @@ def dataframe_to_html(df: Union[pd.DataFrame, Styler]):
         return df.to_html()
 
 
-def display_conditions_table(check_results: Union['check.CheckResult', List['check.CheckResult']]):
+def display_conditions_table(check_results: Union['check.CheckResult', List['check.CheckResult']],
+                             unique_id=None):
     """Display the conditions table as DataFrame.
 
     Args:
         check_results (Union['CheckResult', List['CheckResult']]): check results to show conditions of.
+        unique_id (str): the unique id to append for the check names to create links
+                              (won't create links if None/empty).
     """
     if not isinstance(check_results, List):
         show_check_column = False
@@ -76,8 +76,15 @@ def display_conditions_table(check_results: Union['check.CheckResult', List['che
         for cond_result in check_result.conditions_results:
             sort_value = cond_result.priority
             icon = cond_result.get_icon()
-            header = check_result.get_header()
-            table.append([icon, header, cond_result.name, cond_result.details, sort_value])
+            check_header = check_result.get_header()
+            if unique_id and check_result.have_display():
+                check_id = f'{check_result.check.__class__.__name__}_{unique_id}'
+                link = f'<a href=#{check_id}>{check_header}</a>'
+            else:
+                link = check_header
+                sort_value = 1 if sort_value == 1 else 5  # if it failed but has no display still show on top
+            table.append([icon, link, cond_result.name,
+                         cond_result.details, sort_value])
 
     conditions_table = pd.DataFrame(data=table,
                                     columns=['Status', 'Check', 'Condition', 'More Info', 'sort'])

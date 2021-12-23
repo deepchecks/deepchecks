@@ -36,6 +36,8 @@ PIP_WIN := python -m pip
 PYTHON := $(BIN)/$(python)
 ANALIZE := $(BIN)/pylint
 COVERAGE := $(BIN)/coverage
+FLAKE8 := $(BIN)/flake8
+FLAKE8_RST := $(BIN)/flake8-rst
 TEST_RUNNER := $(BIN)/pytest
 TOX := $(BIN)/tox
 TWINE := $(BIN)/twine
@@ -54,12 +56,12 @@ REQUIREMENTS := $(shell find . -name $(REQUIRE))
 REQUIREMENTS_LOG := .requirements.log
 
 # Test and Analyize
-ANALIZE_PKGS = pylint pydocstyle
+ANALIZE_PKGS = pylint pydocstyle flake8 flake8-spellcheck flake8-eradicate flake8-rst
 TEST_CODE := tests/
 TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval
-NOTEBOOK_CHECKS = ./notebooks/checks
-NOTEBOOK_EXAMPLES = ./notebooks/examples/*.ipynb
-NOTEBOOK_SANITIZER_FILE= ./notebooks/.nbval-sanitizer
+NOTEBOOK_CHECKS = ./examples/checks
+NOTEBOOK_EXAMPLES = ./examples/howto-guides/*.ipynb
+NOTEBOOK_SANITIZER_FILE= ./examples/.nbval-sanitizer
 
 PYLINT_LOG = .pylint.log
 
@@ -101,7 +103,7 @@ help:
 	@echo "test -      TEST_RUNNER on '$(TESTDIR)'"
 	@echo "            args=\"<pytest Arguements>\"  optional arguments"
 	@echo "coverage -  Get coverage information, optional 'args' like test\n"
-	@echo "jupyter - Deploy jupyer-notebook using './notebook' directory"
+	@echo "jupyter - Deploy jupyer-notebook using './examples' directory"
 	@echo "					 args=\"<jupyter Arguments\" -passable\n"
 	@echo "tox      -  Test against multiple versions of python as defined in tox.ini"
 	@echo "clean | clean-all -  Clean up | clean up & removing virtualenv"
@@ -130,6 +132,9 @@ validate: $(REQUIREMENTS_LOG) pylint docstring
 
 pylint: $(ANALIZE)
 	$(ANALIZE) $(SOURCES) $(TEST_CODE)
+	$(FLAKE8) $(SOURCES)
+	$(FLAKE8_RST) $(SOURCES)
+
 docstring: $(ANALIZE) # We Use PEP257 Style Python Docstring
 	$(PYTHON) -m pydocstyle --convention=pep257 --add-ignore=D107 $(SOURCES)
 
@@ -303,7 +308,7 @@ download:
 	$(PIP) install $(PROJECT)
 
 jupyter: $(JUPYTER)
-	$(BIN)/jupyter-notebook $(args) --notebook-dir=./notebooks
+	$(BIN)/jupyter-notebook $(args) --notebook-dir=./examples
 
 $(JUPYTER):
 	$(PIP) install jupyter
