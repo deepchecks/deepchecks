@@ -342,6 +342,20 @@ class Dataset:
                    use_default_index=self._use_default_index, index_name=index, date_name=date, convert_date_=False,
                    max_categorical_ratio=self._max_categorical_ratio, max_categories=self._max_categories)
 
+    def sample(self, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None) -> TDataset:
+        """Create a copy of the dataset object, with the internal dataframe being a sample of the original dataframe.
+
+        Args:
+            n_samples (int): Number of samples to draw.
+            replace (bool, default False): Whether to sample with replacement.
+            random_state (int, default None): Random state.
+
+        Returns:
+            Dataset: instance of the Dataset with sampled internal dataframe.
+        """
+        n_samples = min(n_samples, len(self))
+        return self.copy(self._data.sample(n_samples, replace=replace, random_state=random_state))
+
     @property
     def n_samples(self) -> int:
         """Return number of samples in dataframe.

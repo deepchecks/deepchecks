@@ -41,6 +41,7 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
         max_features (int): maximal number of features to show. (default: 3)
         min_feature_contribution (float): minimum contribution to the internal error model. (default: 0.15)
         min_error_model_score (float): minimum r^2 score for displaying the check. (default: 0.5)
+        n_samples (int): number of samples to use for this check. (default: 50000)
         random_seed (int): seed to calculate random from. (default: 42)
     """
 
@@ -49,13 +50,15 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
         max_features: int = 3,
         min_feature_contribution: float = 0.15,
         min_error_model_score: float = 0.5,
+        n_samples: int = 50_000,
         random_seed: int = 42
     ):
         super().__init__()
         self.max_features = max_features
         self.min_error = min_feature_contribution
         self.min_error_model_score = min_error_model_score
-        self.random_seed = random_seed
+        self.n_samples = n_samples
+        self.random_state = random_seed
 
     def run(self, dataset: Dataset, model) -> CheckResult:
         """Run check.
@@ -71,6 +74,8 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
 
         cat_features = dataset.cat_features
 
+        dataset = dataset.sample(self.n_samples, random_state=self.random_state)
+
         if is_classifier(model):
             y_pred = model.predict_proba(dataset.features_columns)
             labels = sorted(np.unique(dataset.label_col))
@@ -79,10 +84,10 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
             y_pred = model.predict(dataset.features_columns)
             score = list(map(lambda x, y: mean_squared_error([x], [y]), dataset.label_col, y_pred))
 
-        error_model = create_error_model(dataset, random_seed=self.random_seed)
+        error_model = create_error_model(dataset, random_state=self.random_state)
 
         error_model_train_x, error_model_test_x, error_model_train_y, error_model_test_y = \
-            train_test_split(dataset.features_columns, score, random_state=self.random_seed)
+            train_test_split(dataset.features_columns, score, random_state=self.random_state)
 
         error_model.fit(error_model_train_x, y=error_model_train_y)
 
@@ -162,7 +167,7 @@ class ModelErrorAnalysis(SingleDatasetBaseCheck):
         return CheckResult(value, display=display)
 
 
-def create_error_model(dataset: Dataset, random_seed=42):
+def create_error_model(dataset: Dataset, random_state=42):
     cat_features = dataset.cat_features
     numeric_features = [num_feature for num_feature in dataset.features if num_feature not in cat_features]
 
@@ -180,5 +185,5 @@ def create_error_model(dataset: Dataset, random_seed=42):
 
     return Pipeline(steps=[
         ('preprocessing', preprocessor),
-        ('model', RandomForestRegressor(max_depth=4, n_jobs=-1, random_state=random_seed))
+        ('model', RandomForestRegressor(max_depth=4, n_jobs=-1, random_state=random_state))
     ])
