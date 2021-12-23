@@ -23,10 +23,8 @@ from deepchecks.utils.features import calculate_feature_importance_or_null
 from deepchecks.utils.plot import colors
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
-import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from scipy.stats import gaussian_kde
 
 
 __all__ = ['TrainTestFeatureDrift']
@@ -185,11 +183,8 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         else:
             plot_title = column_name
 
-        fig = make_subplots(rows=2, cols=1, vertical_spacing=0.4, shared_yaxes=False, shared_xaxes=False,
-                            row_heights=[0.1, 0.9],
-                            subplot_titles=['Drift Score - Earth Mover\'s Distance', 'Distribution'])
-
         if column_type == 'numerical':
+            scorer_name = "Earth Mover's Distance"
             score = earth_movers_distance(dist1=train_column.astype('float'), dist2=test_column.astype('float'))
             bar_stop = max(0.4, score + 0.1)
 
@@ -197,53 +192,20 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
             xs = np.linspace(x_range[0], x_range[1], 40)
 
             score_bar = drift_score_bar(score)
-            ds_density = [go.Scatter(x=xs, y=plotly_density(train_column, xs), fill='tozeroy', name='Train Dataset',
-                                     line_color=colors['Train']),
-                          go.Scatter(x=xs, y=plotly_density(test_column, xs), fill='tozeroy', name='Test Dataset',
-                                     line_color=colors['Test'])]
+            data_plot = [go.Scatter(x=xs, y=plotly_density(train_column, xs), fill='tozeroy', name='Train Dataset',
+                                    line_color=colors['Train']),
+                         go.Scatter(x=xs, y=plotly_density(test_column, xs), fill='tozeroy', name='Test Dataset',
+                                    line_color=colors['Test'])]
 
-            layout = go.Layout(
-                xaxis=dict(
-                    showgrid=False,
-                    gridcolor='black',
-                    linecolor='black',
-                    range=[0, bar_stop],
-                    dtick=0.05,
-                    title='drift score'
-                ),
-                yaxis=dict(
-                    showgrid=False,
-                    showline=False,
-                    showticklabels=False,
-                    zeroline=False,
-                    color='black'
-                ),
+            specific_layout = go.Layout(
                 xaxis2=dict(fixedrange=True,
                             range=x_range,
                             title=plot_title),
                 yaxis2=dict(title='Probability Density'),
-
-                paper_bgcolor='white',
-                plot_bgcolor='white',
-                showlegend=True,
-                legend=dict(
-                    title='Dataset',
-                    yanchor="top",
-                    y=0.7,
-                    xanchor="left",
-                    x=0.85),
-                width=700,
-                height=400
             )
 
-            fig.add_traces(score_bar, rows=[1] * len(score_bar), cols=[1] * len(score_bar))
-            fig.add_traces(ds_density, rows=[2] * len(ds_density), cols=[1] * len(ds_density))
-            fig.update_layout(layout)
-
-            return score, "Earth Mover's Distance", fig
-
         elif column_type == 'categorical':
-
+            scorer_name = 'PSI'
             expected_percents, actual_percents, categories_list = \
                 preprocess_for_psi(dist1=train_dist, dist2=test_dist, max_num_categories=self.max_num_categories)
             score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
@@ -273,61 +235,55 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
                 showlegend=False
             )
 
-            fig.add_traces(score_bar, rows=[1] * len(score_bar), cols=[1] * len(score_bar))
-            fig.add_traces([train_bar, test_bar], rows=[2]*2, cols=[1]*2)
+            data_plot = [train_bar, test_bar]
 
-            layout = go.Layout(
-                xaxis=dict(
-                    showgrid=False,
-                    gridcolor='black',
-                    linecolor='black',
-                    range=[0, bar_stop],
-                    dtick=0.05,
-                    title='drift score'
-                ),
-                yaxis=dict(
-                    showgrid=False,
-                    showline=False,
-                    showticklabels=False,
-                    zeroline=False,
-                    color='black'
-                ),
-                xaxis2=dict(#fixedrange=True,
-                            #range=x_range,
-                            title=plot_title),
+            specific_layout = go.Layout(
+                xaxis2=dict(title=plot_title),
                 yaxis2=dict(fixedrange=True,
                             range=(0, 1),
                             title='Percentage'),
-                paper_bgcolor='white',
-                plot_bgcolor='white',
-                showlegend=True,
-                legend=dict(
-                    title='Dataset',
-                    yanchor="top",
-                    y=0.7,
-                    xanchor="left",
-                    x=0.85),
-                width=700,
-                height=400
             )
 
-            fig.update_layout(layout)
+        fig = make_subplots(rows=2, cols=1, vertical_spacing=0.4, shared_yaxes=False, shared_xaxes=False,
+                            row_heights=[0.1, 0.9],
+                            subplot_titles=['Drift Score - ' + scorer_name, 'Distribution'])
 
-            def plot_categorical():
-                fig, axs = plt.subplots(3, figsize=(8, 4.5), gridspec_kw={'height_ratios': [1, 7, 0.2]})
-                fig.suptitle(plot_title, horizontalalignment='left', fontweight='bold', x=0.05)
-                drift_score_bar(axs[0], score, 'PSI')
-                cat_df.plot.bar(ax=axs[1], color=(colors['Train'], colors['Test']))
-                axs[1].set_ylabel('Percentage')
-                axs[1].legend()
-                axs[1].set_title('Distribution')
-                plt.sca(axs[1])
-                plt.xticks(rotation=30)
-                fig.tight_layout(pad=1.0)
-                axs[2].axhline(y=0.5, color='k', linestyle='-', linewidth=0.5)
-                axs[2].axis('off')
+        fig.add_traces(score_bar, rows=[1] * len(score_bar), cols=[1] * len(score_bar))
+        fig.add_traces(data_plot, rows=[2] * len(data_plot), cols=[1] * len(data_plot))
 
-            return score, 'PSI', fig
+        shared_layout = go.Layout(
+            xaxis=dict(
+                showgrid=False,
+                gridcolor='black',
+                linecolor='black',
+                range=[0, bar_stop],
+                dtick=0.05,
+                title='drift score'
+            ),
+            yaxis=dict(
+                showgrid=False,
+                showline=False,
+                showticklabels=False,
+                zeroline=False,
+                color='black'
+            ),
+            paper_bgcolor='white',
+            plot_bgcolor='white',
+            showlegend=True,
+            legend=dict(
+                title='Dataset',
+                yanchor='top',
+                y=0.7,
+                xanchor='left',
+                x=0.85),
+            width=700,
+            height=400
+        )
+
+        fig.update_layout(shared_layout)
+        fig.update_layout(specific_layout)
+
+        return score, scorer_name, fig
 
     def add_condition_drift_score_not_greater_than(self, max_allowed_psi_score: float = 0.2,
                                                    max_allowed_earth_movers_score: float = 0.1,
