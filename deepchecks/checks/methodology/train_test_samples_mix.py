@@ -27,46 +27,6 @@ pd.options.mode.chained_assignment = None
 __all__ = ['TrainTestSamplesMix']
 
 
-def get_dup_indexes_map(df: pd.DataFrame, columns: List[Hashable]) -> Dict:
-    """Find duplicated indexes in the dataframe.
-
-    Args:
-        df: a Dataframe object of the dataset
-        columns: list of column that duplicates are defined by
-    Returns:
-        dictionary of each of the first indexes and its' duplicated indexes
-
-    """
-    dup = df[df.duplicated(columns, keep=False)].groupby(columns).groups.values()
-    dup_map = {}
-    for i_arr in dup:
-        key = i_arr[0]
-        dup_map[key] = [int(i) for i in i_arr[1:]]
-    return dup_map
-
-
-def get_dup_txt(i: int, dup_map: Dict) -> str:
-    """Return a prettified text for a key in the dict.
-
-    Args:
-        i: the index key
-        dup_map: the dict of the duplicated indexes
-    Returns:
-        prettified text for a key in the dict
-
-    """
-    val = dup_map.get(i)
-    if not val:
-        return str(i)
-    txt = f'{i}, '
-    for j in val:
-        txt += f'{j}, '
-    txt = txt[:-2]
-    if len(txt) < 30:
-        return txt
-    return f'{txt[:30]}.. Tot. {(1 + len(val))}'
-
-
 class TrainTestSamplesMix(TrainTestBaseCheck):
     """Detect samples in the test data that appear also in training data."""
 
@@ -99,12 +59,12 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
         train_f = train_dataset.data.copy()
         test_f = test_dataset.data.copy()
 
-        train_dups = get_dup_indexes_map(train_f, columns)
-        train_f.index = [f'Train indices: {get_dup_txt(i, train_dups)}' for i in train_f.index]
+        train_dups = _get_dup_indexes_map(train_f, columns)
+        train_f.index = [f'Train indices: {_get_dup_txt(i, train_dups)}' for i in train_f.index]
         train_f.drop_duplicates(columns, inplace=True)
 
-        test_dups = get_dup_indexes_map(test_f, columns)
-        test_f.index = [f'Test indices: {get_dup_txt(i, test_dups)}' for i in test_f.index]
+        test_dups = _get_dup_indexes_map(test_f, columns)
+        test_f.index = [f'Test indices: {_get_dup_txt(i, test_dups)}' for i in test_f.index]
         test_f.drop_duplicates(columns, inplace=True)
 
         appended_df = train_f.append(test_f)
@@ -150,3 +110,43 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
         return self.add_condition(f'Percentage of test data samples that appear in train data '
                                   f'not greater than {format_percent(max_ratio)}',
                                   condition)
+
+
+def _get_dup_indexes_map(df: pd.DataFrame, columns: List[Hashable]) -> Dict:
+    """Find duplicated indexes in the dataframe.
+
+    Args:
+        df: a Dataframe object of the dataset
+        columns: list of column that duplicates are defined by
+
+    Returns:
+        dictionary of each of the first indexes and its' duplicated indexes
+    """
+    dup = df[df.duplicated(columns, keep=False)].groupby(columns).groups.values()
+    dup_map = {}
+    for i_arr in dup:
+        key = i_arr[0]
+        dup_map[key] = [int(i) for i in i_arr[1:]]
+    return dup_map
+
+
+def _get_dup_txt(i: int, dup_map: Dict) -> str:
+    """Return a prettified text for a key in the dict.
+
+    Args:
+        i: the index key
+        dup_map: the dict of the duplicated indexes
+
+    Returns:
+        prettified text for a key in the dict
+    """
+    val = dup_map.get(i)
+    if not val:
+        return str(i)
+    txt = f'{i}, '
+    for j in val:
+        txt += f'{j}, '
+    txt = txt[:-2]
+    if len(txt) < 30:
+        return txt
+    return f'{txt[:30]}.. Tot. {(1 + len(val))}'

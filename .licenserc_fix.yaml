@@ -21,7 +21,7 @@ header:
     - 'VERSION'
     - 'deepchecks.egg-info/PKG-INFO'
     - 'makefile'
-    - 'notebooks/'
+    - 'examples/'
     - 'docs/'
     - 'deepchecks/ppscore.py'
   comment: on-failure

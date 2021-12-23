@@ -28,23 +28,6 @@ from deepchecks.errors import DeepchecksValueError
 __all__ = ['SimpleModelComparison']
 
 
-class DummyModel:
-    @staticmethod
-    def predict(a):
-        return a
-
-    @staticmethod
-    def predict_proba(a):
-        return a
-
-
-def more_than_prefix_adder(number, max_number):
-    if number < max_number:
-        return format_number(number)
-    else:
-        return 'more than ' + format_number(number)
-
-
 class SimpleModelComparison(TrainTestBaseCheck):
     """Compare given model score to simple model score (according to given model type).
 
@@ -158,7 +141,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
 
         scorer = get_scorer_single(model, train_ds, self.scorer)
 
-        simple_score = scorer(DummyModel, Dataset(pd.DataFrame(simple_pred), label=y_test))
+        simple_score = scorer(_DummyModel, Dataset(pd.DataFrame(simple_pred), label=y_test))
         pred_score = scorer(model, Dataset(test_ds.features_columns, label=y_test))
 
         return simple_score, pred_score, scorer.name
@@ -178,7 +161,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
 
         ratio = get_scores_ratio(simple_score, pred_score, self.maximum_ratio)
 
-        text = f'The given model performance is {more_than_prefix_adder(ratio, self.maximum_ratio)} times the ' \
+        text = f'The given model performance is {_more_than_prefix_adder(ratio, self.maximum_ratio)} times the ' \
                f'performance of the simple model, measuring performance using the {score_name} metric.<br>' \
                f'{type(model).__name__} model prediction has achieved a score of {format_number(pred_score)} ' \
                f'compared to Simple {self.simple_model_type} prediction ' \
@@ -206,7 +189,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
             ratio = result['ratio']
             if ratio < min_allowed_ratio:
                 return ConditionResult(False,
-                                       f'The given model performs {more_than_prefix_adder(ratio, self.maximum_ratio)} '
+                                       f'The given model performs {_more_than_prefix_adder(ratio, self.maximum_ratio)} '
                                        'times compared to the simple model using the given scorer')
             else:
                 return ConditionResult(True)
@@ -214,3 +197,20 @@ class SimpleModelComparison(TrainTestBaseCheck):
         return self.add_condition(f'Ratio not less than {format_number(min_allowed_ratio)} '
                                   'between the given model\'s result and the simple model\'s result',
                                   condition)
+
+
+class _DummyModel:
+    @staticmethod
+    def predict(a):
+        return a
+
+    @staticmethod
+    def predict_proba(a):
+        return a
+
+
+def _more_than_prefix_adder(number, max_number):
+    if number < max_number:
+        return format_number(number)
+    else:
+        return 'more than ' + format_number(number)

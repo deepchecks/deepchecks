@@ -37,20 +37,6 @@ from deepchecks.utils.strings import (
 __all__ = ['StringMismatch']
 
 
-def _condition_variants_number(result, num_max_variants: int, max_cols_to_show: int = 5, max_forms_to_show: int = 5):
-    not_passing_variants = defaultdict(list)
-    for col, baseforms in result.items():
-        for base_form, variants_list in baseforms.items():
-            if len(variants_list) > num_max_variants:
-                if len(not_passing_variants[col]) < max_forms_to_show:
-                    not_passing_variants[col].append(base_form)
-    if not_passing_variants:
-        variants_to_show = dict(itertools.islice(not_passing_variants.items(), max_cols_to_show))
-        details = f'Found columns with variants: {variants_to_show}'
-        return ConditionResult(False, details, ConditionCategory.WARN)
-    return ConditionResult(True)
-
-
 class StringMismatch(SingleDatasetBaseCheck):
     """Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column.
 
@@ -59,7 +45,7 @@ class StringMismatch(SingleDatasetBaseCheck):
             Columns to check, if none are given checks all columns except ignored ones.
         ignore_columns (Union[Hashable, List[Hashable]]):
             Columns to ignore, if none given checks based on columns variable
-        n_top_columns (int): (optinal - used only if model was specified)
+        n_top_columns (int): (optional - used only if model was specified)
           amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
@@ -163,3 +149,17 @@ class StringMismatch(SingleDatasetBaseCheck):
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
         name = f'Not more than {format_percent(max_ratio)} variants for {column_names}'
         return self.add_condition(name, condition, max_ratio=max_ratio)
+
+
+def _condition_variants_number(result, num_max_variants: int, max_cols_to_show: int = 5, max_forms_to_show: int = 5):
+    not_passing_variants = defaultdict(list)
+    for col, baseforms in result.items():
+        for base_form, variants_list in baseforms.items():
+            if len(variants_list) > num_max_variants:
+                if len(not_passing_variants[col]) < max_forms_to_show:
+                    not_passing_variants[col].append(base_form)
+    if not_passing_variants:
+        variants_to_show = dict(itertools.islice(not_passing_variants.items(), max_cols_to_show))
+        details = f'Found columns with variants: {variants_to_show}'
+        return ConditionResult(False, details, ConditionCategory.WARN)
+    return ConditionResult(True)

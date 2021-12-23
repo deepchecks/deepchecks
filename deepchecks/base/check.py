@@ -178,8 +178,12 @@ class CheckResult:
             if not isinstance(item, (str, pd.DataFrame, Styler, Callable, BaseFigure)):
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
-    def _ipython_display_(self, show_conditions=True):
-        display_html(f'<h4>{self.get_header()}</h4>', raw=True)
+    def _ipython_display_(self, show_conditions=True, unique_id=None):
+        if unique_id:
+            check_id = f'{self.check.__class__.__name__}_{unique_id}'
+            display_html(f'<h4 id="{check_id}">{self.get_header()}</h4>', raw=True)
+        else:
+            display_html(f'<h4>{self.get_header()}</h4>', raw=True)
         if hasattr(self.check.__class__, '__doc__'):
             docs = self.check.__class__.__doc__ or ''
             # Take first non-whitespace line.
@@ -187,7 +191,7 @@ class CheckResult:
             display_html(f'<p>{summary}</p>', raw=True)
         if self.conditions_results and show_conditions:
             display_html('<h5>Conditions Summary</h5>', raw=True)
-            display_conditions_table(self)
+            display_conditions_table(self, unique_id)
             display_html('<h5>Additional Outputs</h5>', raw=True)
         for item in self.display:
             if isinstance(item, (pd.DataFrame, Styler)):
@@ -206,6 +210,8 @@ class CheckResult:
                 raise Exception(f'Unable to display item of type: {type(item)}')
         if not self.display:
             display_html('<p><b>&#x2713;</b> Nothing found</p>', raw=True)
+        if unique_id:
+            display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
 
     def __repr__(self):
         """Return default __repr__ function uses value."""
@@ -256,20 +262,22 @@ class CheckResult:
 
         return 4
 
-    def show(self, show_conditions=True):
+    def show(self, show_conditions=True, unique_id=None):
         """Display check result."""
         if is_ipython_display():
-            self._ipython_display_(show_conditions)
+            self._ipython_display_(show_conditions=show_conditions, unique_id=unique_id)
         else:
             print(self)
 
 
 def wrap_run(func, class_instance):
     """Wrap the run function of checks, and sets the `check` property on the check result."""
-
     @wraps(func)
     def wrapped(*args, **kwargs):
         result = func(*args, **kwargs)
+        if not isinstance(result, CheckResult):
+            raise DeepchecksValueError(f'Check {class_instance.name()} expected to return CheckResult bot got: '
+                                       + type(result).__name__)
         result.check = class_instance
         result.process_conditions()
         return result
