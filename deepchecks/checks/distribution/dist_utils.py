@@ -33,15 +33,15 @@ def drift_score_bar(drift_score: float) -> List[go.Bar]:
         drift_score (float): Drift score
         drift_type (str): The name of the drift metric used
     """
-    traffic_light_colors = [((0, 0.1), '#01B8AA', '1'),
-                            ((0.1, 0.2), '#F2C80F', '2'),
-                            ((0.2, 0.3), '#FE9666', '3'),
-                            ((0.3, 1), '#FD625E', '4')
+    traffic_light_colors = [((0, 0.1), '#01B8AA'),
+                            ((0.1, 0.2), '#F2C80F'),
+                            ((0.2, 0.3), '#FE9666'),
+                            ((0.3, 1), '#FD625E')
                             ]
 
     bars = []
 
-    for range_tuple, color, yd in traffic_light_colors:
+    for range_tuple, color in traffic_light_colors:
         if range_tuple[0] <= drift_score < range_tuple[1]:
             bars.append(go.Bar(
                 x=[drift_score - range_tuple[0]], y=['Drift Score'],
@@ -50,6 +50,8 @@ def drift_score_bar(drift_score: float) -> List[go.Bar]:
                     color=color,
                     line=dict(color='rgb(248, 248, 249)', width=1)
                 ),
+                offsetgroup=0,
+                base=range_tuple[0],
                 showlegend=False
 
             ))
@@ -61,8 +63,9 @@ def drift_score_bar(drift_score: float) -> List[go.Bar]:
                     color=color,
                     line=dict(color='rgb(248, 248, 249)', width=1)
                 ),
+                offsetgroup=0,
+                base=range_tuple[0],
                 showlegend=False
-
             ))
 
     return bars

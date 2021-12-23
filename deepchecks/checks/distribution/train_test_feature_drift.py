@@ -223,7 +223,6 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
                             title=plot_title),
                 yaxis2=dict(title='Probability Density'),
 
-                barmode='stack',
                 paper_bgcolor='white',
                 plot_bgcolor='white',
                 showlegend=True,
@@ -235,7 +234,6 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
                     x=0.85),
                 width=700,
                 height=400
-
             )
 
             fig.add_traces(score_bar, rows=[1] * len(score_bar), cols=[1] * len(score_bar))
@@ -249,30 +247,73 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
             expected_percents, actual_percents, categories_list = \
                 preprocess_for_psi(dist1=train_dist, dist2=test_dist, max_num_categories=self.max_num_categories)
             score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
+            bar_stop = max(0.4, score + 0.1)
 
             score_bar = drift_score_bar(score)
 
             cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
                                   index=categories_list)
-            value_bar = go.Bar(
-                x=cat_df, y=['Train dataset', 'Test dataset'],
+            train_bar = go.Bar(
+                x=cat_df.index, y=cat_df['Train dataset'],
                 orientation='v',
                 marker=dict(
                     color=colors['Train'],
                     line=dict(color='rgb(248, 248, 249)', width=1)
                 ),
                 showlegend=False
+            )
 
+            test_bar = go.Bar(
+                x=cat_df.index, y=cat_df['Test dataset'],
+                orientation='v',
+                marker=dict(
+                    color=colors['Test'],
+                    line=dict(color='rgb(248, 248, 249)', width=1)
+                ),
+                showlegend=False
             )
 
             fig.add_traces(score_bar, rows=[1] * len(score_bar), cols=[1] * len(score_bar))
-            fig.add_trace(value_bar, row=2, col=1)
+            fig.add_traces([train_bar, test_bar], rows=[2]*2, cols=[1]*2)
 
+            layout = go.Layout(
+                xaxis=dict(
+                    showgrid=False,
+                    gridcolor='black',
+                    linecolor='black',
+                    range=[0, bar_stop],
+                    dtick=0.05,
+                    title='drift score'
+                ),
+                yaxis=dict(
+                    showgrid=False,
+                    showline=False,
+                    showticklabels=False,
+                    zeroline=False,
+                    color='black'
+                ),
+                xaxis2=dict(#fixedrange=True,
+                            #range=x_range,
+                            title=plot_title),
+                yaxis2=dict(fixedrange=True,
+                            range=(0, 1),
+                            title='Percentage'),
+                paper_bgcolor='white',
+                plot_bgcolor='white',
+                showlegend=True,
+                legend=dict(
+                    title='Dataset',
+                    yanchor="top",
+                    y=0.7,
+                    xanchor="left",
+                    x=0.85),
+                width=700,
+                height=400
+            )
+
+            fig.update_layout(layout)
 
             def plot_categorical():
-
-
-
                 fig, axs = plt.subplots(3, figsize=(8, 4.5), gridspec_kw={'height_ratios': [1, 7, 0.2]})
                 fig.suptitle(plot_title, horizontalalignment='left', fontweight='bold', x=0.05)
                 drift_score_bar(axs[0], score, 'PSI')
