@@ -264,10 +264,12 @@ class CheckResult:
 
 def wrap_run(func, class_instance):
     """Wrap the run function of checks, and sets the `check` property on the check result."""
-
     @wraps(func)
     def wrapped(*args, **kwargs):
         result = func(*args, **kwargs)
+        if not isinstance(result, CheckResult):
+            raise DeepchecksValueError(f'Check {class_instance.name()} expected to return CheckResult bot got: '
+                                       + type(result).__name__)
         result.check = class_instance
         result.process_conditions()
         return result
