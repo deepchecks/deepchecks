@@ -1,0 +1,31 @@
+package:
+  name: deepchecks
+  version: "0.0.13"
+
+source:
+  # Relative path to the parent directory.
+  path: ..
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - pip
+    - python=3.7
+    - setuptools
+  run:
+    - python=3.7
+    - pandas
+    - numpy
+    - scikit-learn
+    - ipython
+    - ipykernel
+    - ipywidgets
+    - tqdm
+    - category-encoders
+    - scipy
+    - typing_extensions
+    - dataclasses
+    - plotly
+    - matplotlib
