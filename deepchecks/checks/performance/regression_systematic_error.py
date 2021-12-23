@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """The RegressionSystematicError check module."""
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 from sklearn.base import BaseEstimator
 from sklearn.metrics import mean_squared_error
 
@@ -51,16 +51,23 @@ class RegressionSystematicError(SingleDatasetBaseCheck):
         diff = y_test - y_pred
         diff_mean = diff.mean()
 
-        def display_box_plot():
-            red_square = dict(markerfacecolor='r', marker='s')
-            _, ax = plt.subplots()
-            ax.set_title('Box plot of the model prediction error')
-            ax.boxplot(diff, vert=False, flierprops=red_square)
-            ax.axvline(x=diff_mean, linestyle='--')
-            ax.annotate(xy=(diff_mean + 0.01, 1.2), text='mean error')
-
-        display = ['Non-zero mean of the error distribution indicated the presents of \
-            systematic error in model predictions', display_box_plot]
+        display = [
+            'Non-zero mean of the error distribution indicated the presents ' \
+            'of systematic error in model predictions',
+            go.Figure()
+            .add_trace(go.Box(
+                x=diff.values,
+                name='Model Prediction Error',
+                boxpoints='suspectedoutliers',
+                marker=dict(outliercolor='red')))
+            .update_layout(
+                title_text='Box plot of the model prediction error',
+                width=800, height=500)
+            .add_vline(
+                x=diff_mean + 0.01,
+                line_dash='dash',
+                annotation_text='Mean error')
+        ]
 
         return CheckResult(value={'rmse': rmse, 'mean_error': diff_mean}, display=display)
 
