@@ -4,7 +4,7 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
-from checks.performance import MultiModelPerformanceReport
+from deepchecks.checks import MultiModelPerformanceReport
 
 
 @pytest.fixture
