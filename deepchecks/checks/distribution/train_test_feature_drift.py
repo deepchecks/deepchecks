@@ -17,13 +17,17 @@ import numpy as np
 import pandas as pd
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.checks.distribution.plot import plot_density
+from deepchecks.checks.distribution.plot import plotly_density
 from deepchecks.checks.distribution.dist_utils import preprocess_for_psi, earth_movers_distance, psi, drift_score_bar
 from deepchecks.utils.features import calculate_feature_importance_or_null
 from deepchecks.utils.plot import colors
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from scipy.stats import gaussian_kde
+
 
 __all__ = ['TrainTestFeatureDrift']
 
@@ -181,29 +185,64 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         else:
             plot_title = column_name
 
+        fig = make_subplots(rows=2, cols=1, vertical_spacing=0.4, shared_yaxes=False, shared_xaxes=False,
+                            row_heights=[0.1, 0.9],
+                            subplot_titles=['Drift Score - Earth Mover\'s Distance', 'Distribution'])
+
         if column_type == 'numerical':
             score = earth_movers_distance(dist1=train_column.astype('float'), dist2=test_column.astype('float'))
+            bar_stop = max(0.4, score + 0.1)
 
-            def plot_numerical():
+            x_range = (min(train_column.min(), test_column.min()), max(train_column.max(), test_column.max()))
+            xs = np.linspace(x_range[0], x_range[1], 40)
 
-                x_range = (min(train_column.min(), test_column.min()), max(train_column.max(), test_column.max()))
-                xs = np.linspace(x_range[0], x_range[1], 40)
-                fig, axs = plt.subplots(3, figsize=(8, 4.5), gridspec_kw={'height_ratios': [1, 7, 0.2]})
-                fig.suptitle(plot_title, horizontalalignment='left', fontweight='bold', x=0.05)
-                drift_score_bar(axs[0], score, 'Earth Movers Distance')
-                plt.sca(axs[1])
-                pdf1 = plot_density(train_column, xs, colors['Train'])
-                pdf2 = plot_density(test_column, xs, colors['Test'])
-                plt.gca().set_ylim(bottom=0, top=max(max(pdf1), max(pdf2)) * 1.1)
-                axs[1].set_xlabel(column_name)
-                axs[1].set_ylabel('Probability Density')
-                axs[1].legend(['Train dataset', 'Test Dataset'])
-                axs[1].set_title('Distribution')
-                fig.tight_layout(pad=1.0)
-                axs[2].axhline(y=0.5, color='k', linestyle='-', linewidth=0.5)
-                axs[2].axis('off')
+            score_bar = drift_score_bar(score)
+            ds_density = [go.Scatter(x=xs, y=plotly_density(train_column, xs), fill='tozeroy', name='Train Dataset',
+                                     line_color=colors['Train']),
+                          go.Scatter(x=xs, y=plotly_density(test_column, xs), fill='tozeroy', name='Test Dataset',
+                                     line_color=colors['Test'])]
 
-            return score, "Earth Mover's Distance", plot_numerical
+            layout = go.Layout(
+                xaxis=dict(
+                    showgrid=False,
+                    gridcolor='black',
+                    linecolor='black',
+                    range=[0, bar_stop],
+                    dtick=0.05,
+                    title='drift score'
+                ),
+                yaxis=dict(
+                    showgrid=False,
+                    showline=False,
+                    showticklabels=False,
+                    zeroline=False,
+                    color='black'
+                ),
+                xaxis2=dict(fixedrange=True,
+                            range=x_range,
+                            title=plot_title),
+                yaxis2=dict(title='Probability Density'),
+
+                barmode='stack',
+                paper_bgcolor='white',
+                plot_bgcolor='white',
+                showlegend=True,
+                legend=dict(
+                    title='Dataset',
+                    yanchor="top",
+                    y=0.7,
+                    xanchor="left",
+                    x=0.85),
+                width=700,
+                height=400
+
+            )
+
+            fig.add_traces(score_bar, rows=[1] * len(score_bar), cols=[1] * len(score_bar))
+            fig.add_traces(ds_density, rows=[2] * len(ds_density), cols=[1] * len(ds_density))
+            fig.update_layout(layout)
+
+            return score, "Earth Mover's Distance", fig
 
         elif column_type == 'categorical':
 
@@ -211,10 +250,28 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
                 preprocess_for_psi(dist1=train_dist, dist2=test_dist, max_num_categories=self.max_num_categories)
             score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
 
+            score_bar = drift_score_bar(score)
+
+            cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
+                                  index=categories_list)
+            value_bar = go.Bar(
+                x=cat_df, y=['Train dataset', 'Test dataset'],
+                orientation='v',
+                marker=dict(
+                    color=colors['Train'],
+                    line=dict(color='rgb(248, 248, 249)', width=1)
+                ),
+                showlegend=False
+
+            )
+
+            fig.add_traces(score_bar, rows=[1] * len(score_bar), cols=[1] * len(score_bar))
+            fig.add_trace(value_bar, row=2, col=1)
+
+
             def plot_categorical():
 
-                cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
-                                      index=categories_list)
+
 
                 fig, axs = plt.subplots(3, figsize=(8, 4.5), gridspec_kw={'height_ratios': [1, 7, 0.2]})
                 fig.suptitle(plot_title, horizontalalignment='left', fontweight='bold', x=0.05)
@@ -229,7 +286,7 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
                 axs[2].axhline(y=0.5, color='k', linestyle='-', linewidth=0.5)
                 axs[2].axis('off')
 
-            return score, 'PSI', plot_categorical
+            return score, 'PSI', fig
 
     def add_condition_drift_score_not_greater_than(self, max_allowed_psi_score: float = 0.2,
                                                    max_allowed_earth_movers_score: float = 0.1,

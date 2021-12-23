@@ -37,3 +37,10 @@ def plot_density(data, xs, color='b', alpha: float = 0.7, **kwargs) -> np.ndarra
     plt.gca().set_ylim(bottom=0)
 
     return density(xs)
+
+def plotly_density(data, xs):
+    density = gaussian_kde(data)
+    density.covariance_factor = lambda: .25
+    # pylint: disable=protected-access
+    density._compute_covariance()
+    return density(xs)

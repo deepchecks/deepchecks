@@ -11,6 +11,7 @@
 """Common utilities for distribution checks."""
 
 from typing import Tuple, List
+import plotly.graph_objects as go
 
 from scipy.stats import wasserstein_distance
 import numpy as np
@@ -25,29 +26,46 @@ PSI_MIN_PERCENTAGE = 0.01
 __all__ = ['PandasSimpleImputer', 'preprocess_for_psi', 'psi', 'earth_movers_distance', 'drift_score_bar']
 
 
-def drift_score_bar(axes, drift_score: float, drift_type: str):
+def drift_score_bar(drift_score: float) -> List[go.Bar]:
     """Create a traffic light bar plot representing the drift score.
 
     Args:
-        axes (): Matplotlib axes object
         drift_score (float): Drift score
         drift_type (str): The name of the drift metric used
     """
-    stop = max(0.4, drift_score + 0.1)
-    traffic_light_colors = [((0, 0.1), '#01B8AA'),
-                            ((0.1, 0.2), '#F2C80F'),
-                            ((0.2, 0.3), '#FE9666'),
-                            ((0.3, 1), '#FD625E')
+    traffic_light_colors = [((0, 0.1), '#01B8AA', '1'),
+                            ((0.1, 0.2), '#F2C80F', '2'),
+                            ((0.2, 0.3), '#FE9666', '3'),
+                            ((0.3, 1), '#FD625E', '4')
                             ]
 
-    for range_tuple, color in traffic_light_colors:
+    bars = []
+
+    for range_tuple, color, yd in traffic_light_colors:
         if range_tuple[0] <= drift_score < range_tuple[1]:
-            axes.barh(0, drift_score - range_tuple[0], left=range_tuple[0], color=color)
-        elif drift_score >= range_tuple[1]:
-            axes.barh(0, range_tuple[1] - range_tuple[0], left=range_tuple[0], color=color)
-    axes.set_title('Drift Score - ' + drift_type)
-    axes.set_xlim([0, stop])
-    axes.set_yticklabels([])
+            bars.append(go.Bar(
+                x=[drift_score - range_tuple[0]], y=['Drift Score'],
+                orientation='h',
+                marker=dict(
+                    color=color,
+                    line=dict(color='rgb(248, 248, 249)', width=1)
+                ),
+                showlegend=False
+
+            ))
+        if drift_score >= range_tuple[1]:
+            bars.append(go.Bar(
+                x=[range_tuple[1] - range_tuple[0]], y=['Drift Score'],
+                orientation='h',
+                marker=dict(
+                    color=color,
+                    line=dict(color='rgb(248, 248, 249)', width=1)
+                ),
+                showlegend=False
+
+            ))
+
+    return bars
 
 
 class PandasSimpleImputer(SimpleImputer):
