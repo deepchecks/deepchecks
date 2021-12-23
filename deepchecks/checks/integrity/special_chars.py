@@ -26,21 +26,6 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['SpecialCharacters']
 
 
-def get_special_samples(column_data: pd.Series) -> Union[dict, None]:
-    if not is_stringed_type(column_data):
-        return None
-    samples_to_count = defaultdict(lambda: 0)
-    for sample in column_data:
-        if isinstance(sample, str) and len(sample) > 0 and len(string_baseform(sample)) == 0:
-            samples_to_count[sample] = samples_to_count[sample] + 1
-
-    return samples_to_count or None
-
-
-def is_stringed_type(col) -> bool:
-    return infer_dtype(col) not in ['integer', 'decimal', 'floating']
-
-
 class SpecialCharacters(SingleDatasetBaseCheck):
     """Search in column[s] for values that contains only special characters.
 
@@ -101,7 +86,7 @@ class SpecialCharacters(SingleDatasetBaseCheck):
         for column_name in dataset.columns:
             column_data = dataset[column_name]
             # Get dict of samples to count
-            special_samples = get_special_samples(column_data)
+            special_samples = _get_special_samples(column_data)
             if special_samples:
                 result[column_name] = sum(special_samples.values()) / column_data.size
                 percent = format_percent(sum(special_samples.values()) / column_data.size)
@@ -141,3 +126,18 @@ class SpecialCharacters(SingleDatasetBaseCheck):
             return ConditionResult(True)
 
         return self.add_condition(name, condition)
+
+
+def _get_special_samples(column_data: pd.Series) -> Union[dict, None]:
+    if not _is_stringed_type(column_data):
+        return None
+    samples_to_count = defaultdict(lambda: 0)
+    for sample in column_data:
+        if isinstance(sample, str) and len(sample) > 0 and len(string_baseform(sample)) == 0:
+            samples_to_count[sample] = samples_to_count[sample] + 1
+
+    return samples_to_count or None
+
+
+def _is_stringed_type(col) -> bool:
+    return infer_dtype(col) not in ['integer', 'decimal', 'floating']
