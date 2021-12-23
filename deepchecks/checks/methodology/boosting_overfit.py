@@ -131,8 +131,7 @@ class BoostingOverfit(TrainTestBaseCheck):
 
     def __init__(self, scorer: Union[Callable, str] = None, scorer_name: str = None, num_steps: int = 20):
         super().__init__()
-        self.scorer = initialize_single_scorer(scorer)
-        self.scorer_name = scorer_name
+        self.scorer = initialize_single_scorer(scorer, scorer_name=scorer_name)
         self.num_steps = num_steps
 
     def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
@@ -150,8 +149,6 @@ class BoostingOverfit(TrainTestBaseCheck):
 
     def _boosting_overfit(self, train_dataset: Dataset, test_dataset: Dataset, model) -> CheckResult:
         # Validate params
-        if self.scorer_name is not None and self.scorer is None:
-            raise DeepchecksValueError('Can not have scorer_name without scorer')
         if not isinstance(self.num_steps, int) or self.num_steps < 2:
             raise DeepchecksValueError('num_steps must be an integer larger than 1')
         Dataset.validate_dataset(train_dataset)
@@ -163,7 +160,7 @@ class BoostingOverfit(TrainTestBaseCheck):
         validate_model(train_dataset, model)
 
         # Get default scorer
-        scorer_name, scorer = get_scorer_single(model, train_dataset, self.scorer)
+        scorer = get_scorer_single(model, train_dataset, self.scorer)
 
         # Get number of estimators on model
         num_estimators = PartialBoostingModel.n_estimators(model)
@@ -182,14 +179,14 @@ class BoostingOverfit(TrainTestBaseCheck):
         fig.add_trace(go.Scatter(x=estimator_steps, y=np.array(test_scores),
                                  mode='lines+markers',
                                  name='Test score'))
-        fig.update_layout(title_text=f'{scorer_name} score compared to number of boosting iteration',
+        fig.update_layout(title_text=f'{scorer.name} score compared to number of boosting iteration',
                           width=800, height=500)
         fig.update_xaxes(title='Number of boosting iterations')
-        fig.update_yaxes(title=scorer_name)
+        fig.update_yaxes(title=scorer.name)
 
         display_text = f"""<span>
             The check limits the boosting model to using up to N estimators each time, and plotting the
-            {scorer_name} calculated for each subset of estimators for both the train dataset and the test dataset.
+            {scorer.name} calculated for each subset of estimators for both the train dataset and the test dataset.
         </span>"""
 
         result = {'test': test_scores, 'train': train_scores}

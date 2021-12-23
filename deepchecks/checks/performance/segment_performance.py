@@ -92,7 +92,7 @@ class SegmentPerformance(SingleDatasetBaseCheck):
             else:
                 raise DeepchecksValueError('Must define both "feature_1" and "feature_2" or none of them')
 
-        scorer_name, scorer = get_scorer_single(model, dataset, self.scorer)
+        scorer = get_scorer_single(model, dataset, self.scorer)
 
         feature_1_filters = partition_column(dataset, self.feature_1, max_segments=self.max_segments)
         feature_2_filters = partition_column(dataset, self.feature_2, max_segments=self.max_segments)
@@ -131,7 +131,7 @@ class SegmentPerformance(SingleDatasetBaseCheck):
 
         fig = ff.create_annotated_heatmap(scores, annotation_text=scores_text,
                                           x=x, y=y, colorscale='rdylgn', font_colors=['black', 'black'])
-        fig.update_layout(title=f'{scorer_name} (count) by features {self.feature_1}/{self.feature_2}',
+        fig.update_layout(title=f'{scorer.name} (count) by features {self.feature_1}/{self.feature_2}',
                           width=800, height=800)
         fig.update_xaxes(title=self.feature_2)
         fig.update_yaxes(title=self.feature_1, autorange='reversed')

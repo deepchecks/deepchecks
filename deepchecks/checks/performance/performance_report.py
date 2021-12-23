@@ -15,7 +15,7 @@ import plotly.express as px
 
 from deepchecks.base.check import ModelComparisonContext
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult, ModelComparisonBaseCheck
-from deepchecks.utils.metrics import get_scorers_dict, initialize_user_scorers, ModelType
+from deepchecks.utils.metrics import get_scorers_list, initialize_multi_scorers, ModelType
 from deepchecks.utils.validation import validate_model
 
 
@@ -33,7 +33,7 @@ class PerformanceReport(SingleDatasetBaseCheck):
 
     def __init__(self, alternative_scorers: Dict[str, Callable] = None):
         super().__init__()
-        self.alternative_scorers = initialize_user_scorers(alternative_scorers)
+        self.alternative_scorers = initialize_multi_scorers(alternative_scorers)
 
     def run(self, dataset, model=None) -> CheckResult:
         """Run check.
@@ -53,10 +53,10 @@ class PerformanceReport(SingleDatasetBaseCheck):
         validate_model(dataset, model)
 
         # Get default scorers if no alternative, or validate alternatives
-        scorers = get_scorers_dict(model, dataset, self.alternative_scorers)
+        scorers = get_scorers_list(model, dataset, self.alternative_scorers)
         scores = {
-            key: scorer(model, dataset)
-            for key, scorer in scorers.items()
+            scorer.name: scorer(model, dataset)
+            for scorer in scorers
         }
 
         display_df = pd.DataFrame(scores.values(), columns=['Value'], index=scores.keys())
@@ -83,7 +83,7 @@ class PerformanceReport(SingleDatasetBaseCheck):
 
 
 class MultiModelPerformanceReport(ModelComparisonBaseCheck):
-    """Summarize given scores between models on test datasets
+    """Summarize given scores between models on test datasets.
 
     Args:
         alternative_scorers (Dict[str, Callable], default None):
@@ -93,40 +93,46 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
 
     def __init__(self, alternative_scorers: Dict[str, Callable] = None):
         super().__init__()
-        self.alternative_scorers = initialize_user_scorers(alternative_scorers)
+        self.alternative_scorers = initialize_multi_scorers(alternative_scorers)
 
     def run_logic(self, context: ModelComparisonContext):
+        """Run check logic."""
         first_model = context.models[0]
         first_test_ds = context.test_datasets[0]
-        scorers = get_scorers_dict(first_model, first_test_ds, self.alternative_scorers, multiclass_avg=False)
+        scorers = get_scorers_list(first_model, first_test_ds, self.alternative_scorers, multiclass_avg=False)
 
-        results = []
-        for _, test, model, model_name in context:
-            for metric, scorer in scorers.items():
-                score = scorer(model, test)
-                # Multiclass scorers return numpy array of result per class
-                if context.task_type == ModelType.MULTICLASS:
-                    for class_i, value in enumerate(score):
-                        results.append([model_name, value, metric, class_i])
-                else:
-                    results.append([model_name, score, metric])
-
-        # === Display ===
         if context.task_type == ModelType.MULTICLASS:
-            display_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric', 'Class'])
-            fig = px.bar(display_df, x=['Class', 'Model'], y="Value", color="Model", barmode="group",
-                         facet_col="Metric", facet_col_spacing=0.05)
+            results = []
+            for _, test, model, model_name in context:
+                for scorer in scorers:
+                    score_result = scorer(model, test)
+                    # Multiclass scorers return numpy array of result per class
+                    for class_i, value in enumerate(score_result):
+                        if scorer.is_negative_scorer():
+                            value = -value
+                        results.append([model_name, value, scorer.name, class_i])
+            results_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric', 'Class'])
+            fig = px.bar(results_df, x=['Class', 'Model'], y='Value', color='Model', barmode='group',
+                         facet_col='Metric', facet_col_spacing=0.05)
             fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60)
             fig.update_yaxes(title=None, matches=None)
-            fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
+            fig.for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
             fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
         else:
-            display_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric'])
-            fig = px.bar(display_df, x='Model', y='Value', color='Model', barmode='group',
+            results = []
+            for _, test, model, model_name in context:
+                for scorer in scorers:
+                    score_result = scorer(model, test)
+                    if scorer.is_negative_scorer():
+                        score_result = -score_result
+                    results.append([model_name, score_result, scorer.name])
+
+            results_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric'])
+            fig = px.bar(results_df, x='Model', y='Value', color='Model', barmode='group',
                          facet_col='Metric', facet_col_spacing=0.05)
             fig.update_xaxes(title=None)
             fig.update_yaxes(title=None, matches=None)
-            fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
+            fig.for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
             fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
 
-        return CheckResult(results, display=[fig])
+        return CheckResult(results_df, display=[fig])

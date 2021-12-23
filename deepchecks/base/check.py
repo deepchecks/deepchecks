@@ -399,12 +399,13 @@ class ModelOnlyBaseCheck(BaseCheck):
 
 class ModelComparisonContext:
     """Contain processed input for model comparison checks."""
+
     def __init__(self,
                  train_datasets: Union[Dataset, List[Dataset]],
                  test_datasets: Union[Dataset, List[Dataset]],
                  models: Union[List[Any], Mapping[str, Any]]
                  ):
-        """Preprocess the parameters"""
+        """Preprocess the parameters."""
         # Validations
         if isinstance(train_datasets, Dataset) and isinstance(test_datasets, List):
             raise DeepchecksNotSupportedError('Single train dataset with multiple test datasets is not supported.')
@@ -461,23 +462,28 @@ class ModelComparisonContext:
                 raise DeepchecksNotSupportedError('Got models of different task types')
 
     def __len__(self):
+        """Return number of models."""
         return len(self.models)
 
     def __iter__(self):
+        """Return iterator over context objects."""
         return zip(self.train_datasets, self.test_datasets, self.models, self.model_names)
 
 
 class ModelComparisonBaseCheck(BaseCheck):
     """Parent class for check that compares between two or more models."""
+
     def run(self,
             train_datasets: Union[Dataset, List[Dataset]],
             test_datasets: Union[Dataset, List[Dataset]],
             models: Union[List[Any], Mapping[str, Any]]
             ) -> CheckResult:
+        """Initialize context and pass to check logic."""
         return self.run_logic(ModelComparisonContext(train_datasets, test_datasets, models))
 
     @abc.abstractmethod
     def run_logic(self, context: ModelComparisonContext):
+        """Implement here logic of check."""
         pass
 
 
