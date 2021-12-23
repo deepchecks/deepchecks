@@ -27,6 +27,23 @@ from deepchecks import Dataset
 
 
 @pytest.fixture(scope='session')
+def multi_index_dataframe():
+    """Return a multi-indexed DataFrame."""
+    return pd.DataFrame(
+        {
+            'a': [1, 2, 3, 4],
+            'b': [5, 6, 7, 8],
+            'c': [9, 10, 11, 12],
+            'd': [13, 14, 15, 16],
+        },
+        index=pd.MultiIndex.from_product(
+            [['a', 'b'], ['c', 'd']],
+            names=['first', 'second'],
+        ),
+    )
+
+
+@pytest.fixture(scope='session')
 def empty_df():
     return pd.DataFrame([])
 
@@ -68,7 +85,7 @@ def iris_clean():
 
 
 @pytest.fixture(scope='session')
-def iris(iris_clean):
+def iris(iris_clean) -> pd.DataFrame:
     """Return Iris dataset as DataFrame."""
     return iris_clean.frame
 

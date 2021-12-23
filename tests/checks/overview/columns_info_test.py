@@ -33,7 +33,7 @@ def test_columns_info():
     data = {'index': index, 'date': date, 'a': cat_fe, 'b': num_fe, 'c': num_fe, 'label': cat_fe}
     df = pd.DataFrame.from_dict(data)
 
-    dataset = Dataset(df, label_name='label', date_name='date', index_name='index', features=['a', 'b'])
+    dataset = Dataset(df, label_name='label', datetime_name='date', index_name='index', features=['a', 'b'])
     # Arrange
     check = ColumnsInfo()
     # Act
