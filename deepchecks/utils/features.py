@@ -125,27 +125,19 @@ def calculate_feature_importance(
         NumberOfFeaturesLimitError:
             if the number of features limit were exceeded;
     """
-    # TODO: I think it is better to split it into two functions, one for dataframe instances
+    # TODO: maybe it is better to split it into two functions, one for dataframe instances
     # second for dataset instances
-
-    n_features = (
-        len(dataset.features)
-        if isinstance(dataset, base.Dataset)
-        else len(dataset.columns)
-    )
-
-    if n_features > _NUMBER_OF_FEATURES_LIMIT:
-        raise errors.NumberOfFeaturesLimitError(
-            f"Dataset contains more than {_NUMBER_OF_FEATURES_LIMIT} of features, "
-            "therefore features importance is not calculated. If you want to "
-            "change this behaviour please use :function:`deepchecks.utils.features.set_number_of_features_limit`"
-        )
-
     permutation_kwargs = permutation_kwargs or {}
     permutation_kwargs['random_state'] = permutation_kwargs.get('random_state') or 42
     validation.validate_model(dataset, model)
 
     if isinstance(dataset, base.Dataset) and force_permutation is True:
+        if len(dataset.features) > _NUMBER_OF_FEATURES_LIMIT:
+            raise errors.NumberOfFeaturesLimitError(
+                f"Dataset contains more than {_NUMBER_OF_FEATURES_LIMIT} of features, "
+                "therefore features importance is not calculated. If you want to "
+                "change this behaviour please use :function:`deepchecks.utils.features.set_number_of_features_limit`"
+            )
         return _calc_importance(model, dataset, **permutation_kwargs).fillna(0)
 
     feature_importances = _built_in_importance(model, dataset)
