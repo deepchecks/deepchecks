@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """module contains Dominant Frequency Change check."""
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from scipy.stats import chi2_contingency, fisher_exact
 import numpy as np
@@ -17,7 +17,7 @@ import pandas as pd
 
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
+from deepchecks.utils.features import calculate_feature_importance_or_none, column_importance_sorter_df
 from deepchecks.utils.strings import format_percent
 from deepchecks.errors import DeepchecksValueError
 
@@ -45,12 +45,19 @@ class DominantFrequencyChange(TrainTestBaseCheck):
         self.ratio_change_thres = ratio_change_thres
         self.n_top_columns = n_top_columns
 
-    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
+    def run(
+        self,
+        train_dataset: Union[Dataset, pd.DataFrame],
+        test_dataset: Union[Dataset, pd.DataFrame],
+        model=None
+    ) -> CheckResult:
         """Run check.
 
         Args:
-            train_dataset (Dataset): The training dataset object. Must contain an index.
-            test_dataset (Dataset): The test dataset object. Must contain an index.
+            train_dataset (Union[Dataset, pandas.DataFrame]):
+                The training dataset object. Must contain an index.
+            test_dataset (Union[Dataset, pandas.DataFrame]):
+                The test dataset object. Must contain an index.
 
         Returns:
             CheckResult: Detects values highly represented in the tested and reference data and checks if their..
@@ -59,9 +66,15 @@ class DominantFrequencyChange(TrainTestBaseCheck):
         Raises:
             DeepchecksValueError: If the object is not a Dataset or DataFrame instance
         """
-        feature_importances = calculate_feature_importance_or_null(test_dataset, model)
-        return self._dominant_frequency_change(train_dataset=train_dataset, test_dataset=test_dataset,
-                                               feature_importances=feature_importances)
+        test_dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
+        train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
+        test_dataset.validate_shared_features(train_dataset)
+        feature_importances = calculate_feature_importance_or_none(model, test_dataset)
+        return self._dominant_frequency_change(
+            train_dataset=train_dataset,
+            test_dataset=test_dataset,
+            feature_importances=feature_importances
+        )
 
     def _find_p_val(self, key: str, baseline_hist: Dict, test_hist: Dict, baseline_count: int,
                     test_count: int, ratio_change_thres: float) -> Optional[float]:
@@ -106,20 +119,21 @@ class DominantFrequencyChange(TrainTestBaseCheck):
 
         return p_val
 
-    def _dominant_frequency_change(self, train_dataset: Dataset, test_dataset: Dataset,
-                                   feature_importances: pd.Series = None):
+    def _dominant_frequency_change(
+        self,
+        train_dataset: Dataset,
+        test_dataset: Dataset,
+        feature_importances: pd.Series = None
+    ):
         """Run the check logic.
 
         Args:
             train_dataset (Dataset): The training dataset object. Must contain an index.
             test_dataset (Dataset): The test dataset object. Must contain an index.
+
         Returns:
             CheckResult: result value is dict that contains the dominant value change for each column.
         """
-        test_dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
-        train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
-        test_dataset.validate_shared_features(train_dataset)
-
         columns = train_dataset.features
 
         test_df = test_dataset.data

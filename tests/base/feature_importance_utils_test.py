@@ -15,7 +15,7 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.linear_model import LinearRegression
 from sklearn.neural_network import MLPClassifier
 
-from deepchecks.utils.features import calculate_feature_importance, calculate_feature_importance_or_null, \
+from deepchecks.utils.features import calculate_feature_importance, calculate_feature_importance_or_none, \
     column_importance_sorter_df, column_importance_sorter_dict
 from deepchecks.errors import DeepchecksValueError
 
@@ -67,7 +67,7 @@ def test_bad_dataset_model(iris_random_forest, diabetes):
 
 def test_calculate_or_null(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
-    feature_importances = calculate_feature_importance_or_null(train.data, clf)
+    feature_importances = calculate_feature_importance_or_none(clf, train.data)
     assert_that(feature_importances, none())
 
 
@@ -75,7 +75,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     num_values = 5
     train, _, clf = diabetes_split_dataset_and_model
     columns_info = train.columns_info
-    feature_importances = calculate_feature_importance_or_null(train, clf)
+    feature_importances = calculate_feature_importance_or_none(clf, train)
     assert_that(feature_importances, not_none())
 
     feature_importances_sorted = list(feature_importances.sort_values(ascending=False).keys())

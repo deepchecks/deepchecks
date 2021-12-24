@@ -11,7 +11,7 @@
 """Module contains Train Test Drift check."""
 
 from collections import OrderedDict
-from typing import Union, Tuple, List, Dict, Callable
+from typing import Union, Tuple, List, Dict, Callable, Optional
 
 import numpy as np
 import pandas as pd
@@ -19,7 +19,7 @@ import pandas as pd
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.checks.distribution.plot import plot_density
 from deepchecks.checks.distribution.dist_utils import preprocess_for_psi, earth_movers_distance, psi, drift_score_bar
-from deepchecks.utils.features import calculate_feature_importance_or_null
+from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.plot import colors
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
@@ -92,10 +92,15 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         Raises:
             DeepchecksValueError: If the object is not a Dataset or DataFrame instance
         """
-        feature_importances = calculate_feature_importance_or_null(train_dataset, model)
+        feature_importances = calculate_feature_importance_or_none(model, train_dataset)
         return self._calc_drift(train_dataset, test_dataset, feature_importances)
 
-    def _calc_drift(self, train_dataset: Dataset, test_dataset: Dataset, feature_importances: pd.Series) -> CheckResult:
+    def _calc_drift(
+        self,
+        train_dataset: Dataset,
+        test_dataset: Dataset,
+        feature_importances: Optional[pd.Series] = None
+    ) -> CheckResult:
         """
         Calculate drift for all columns.
 

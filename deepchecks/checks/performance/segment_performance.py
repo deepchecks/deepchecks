@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module of segment performance check."""
-from typing import Callable, Union, Optional
+from typing import Callable, Union, Optional, Any, List, cast
 
 import numpy as np
 import plotly.figure_factory as ff
@@ -18,7 +18,7 @@ from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
 from deepchecks.checks.performance.partition import partition_column
 from deepchecks.utils.metrics import initialize_single_scorer, get_scorer_single
 from deepchecks.utils.strings import format_number
-from deepchecks.utils.features import calculate_feature_importance
+from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.validation import validate_model
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
@@ -69,7 +69,7 @@ class SegmentPerformance(SingleDatasetBaseCheck):
         self.max_segments = max_segments
         self.scorer = initialize_single_scorer(scorer)
 
-    def run(self, dataset, model) -> CheckResult:
+    def run(self, dataset: Dataset, model: Any) -> CheckResult:
         """Run check.
 
         Args:
@@ -81,16 +81,19 @@ class SegmentPerformance(SingleDatasetBaseCheck):
         dataset.validate_label()
         validate_model(dataset, model)
 
-        if self.feature_1 is None or self.feature_2 is None:
-            # only one none is not ok
-            if self.feature_1 is None and self.feature_2 is None:
-                feature_importance = calculate_feature_importance(dataset=dataset, model=model)
-                if len(feature_importance) < 2:
-                    raise DeepchecksValueError('Must have at least 2 features')
-                feature_importance.sort_values(ascending=False, inplace=True)
-                self.feature_1, self.feature_2 = feature_importance.keys()[0], feature_importance.keys()[1]
+        if len(dataset.features) < 2:
+            raise DeepchecksValueError('Dataset must have at least 2 features')
+
+        if self.feature_1 is None and self.feature_2 is None:
+            feature_importance = calculate_feature_importance_or_none(model=model, dataset=dataset)
+            if feature_importance is None:
+                self.feature_1, self.feature_2, *_ = dataset.features
             else:
-                raise DeepchecksValueError('Must define both "feature_1" and "feature_2" or none of them')
+                feature_importance.sort_values(ascending=False, inplace=True)
+                self.feature_1, self.feature_2, *_ = cast(List[Hashable], list(feature_importance.keys()))
+
+        elif self.feature_1 is None or self.feature_2 is None:
+            raise DeepchecksValueError('Must define both "feature_1" and "feature_2" or none of them')
 
         scorer_name, scorer = get_scorer_single(model, dataset, self.scorer)
 
