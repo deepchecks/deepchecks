@@ -18,7 +18,7 @@ import numpy as np
 from deepchecks.utils.plot import colors
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
-from deepchecks.utils.metrics import get_scorers_dict, initialize_user_scorers
+from deepchecks.utils.metrics import get_scorers_list, initialize_multi_scorers
 from deepchecks import (
     Dataset,
     CheckResult,
@@ -57,7 +57,7 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
         alternative_scorers: t.Dict[str, t.Callable[[object, pd.DataFrame, str], float]] = None
     ):
         super().__init__()
-        self.alternative_scorers = initialize_user_scorers(alternative_scorers)
+        self.alternative_scorers = initialize_multi_scorers(alternative_scorers)
 
     def run(self, train_dataset: Dataset, test_dataset: Dataset, model=None) -> CheckResult:
         """Run check.
@@ -88,13 +88,13 @@ class TrainTestDifferenceOverfit(TrainTestBaseCheck):
         train_dataset.validate_shared_features(test_dataset)
         validate_model(test_dataset, model)
 
-        scorers = get_scorers_dict(model, train_dataset, self.alternative_scorers)
+        scorers = get_scorers_list(model, train_dataset, self.alternative_scorers)
 
-        train_scores = {key: scorer(model, train_dataset)
-                        for key, scorer in scorers.items()}
+        train_scores = {scorer.name: scorer(model, train_dataset)
+                        for scorer in scorers}
 
-        test_scores = {key: scorer(model, test_dataset)
-                       for key, scorer in scorers.items()}
+        test_scores = {scorer.name: scorer(model, test_dataset)
+                       for scorer in scorers}
 
         result = {'test': test_scores, 'train': train_scores}
 
