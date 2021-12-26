@@ -1,6 +1,6 @@
 package:
   name: deepchecks
-  version: "0.0.13"
+  version: "0.0.15"
 
 source:
   # Relative path to the parent directory.
@@ -10,12 +10,13 @@ build:
   number: 0
 
 requirements:
-  build:
-    - pip
-    - python=3.7
+  host:
+    - python
     - setuptools
+  build:
+    - python
   run:
-    - python=3.7
+    - python
     - pandas
     - numpy
     - scikit-learn
@@ -23,7 +24,7 @@ requirements:
     - ipykernel
     - ipywidgets
     - tqdm
-    - category-encoders
+    - category_encoders
     - scipy
     - typing_extensions
     - dataclasses
