@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 from hamcrest import assert_that, has_length, calling, raises, has_items, close_to
 
+from deepchecks import ConditionCategory
 from deepchecks.base import Dataset
 from deepchecks.checks.integrity.special_chars import SpecialCharacters
 from deepchecks.errors import DeepchecksValueError
@@ -153,7 +154,8 @@ def test_condition_fail_all(diabetes_split_dataset_and_model):
     assert_that(results, has_items(equal_condition_result(
         is_pass=False,
         name='Ratio of entirely special character samples not greater than 0.10% for all columns',
-        details='Found columns over threshold ratio: [\'age\', \'sex\', \'bmi\', \'bp\']'
+        details='Found columns over threshold ratio: [\'age\', \'sex\', \'bmi\', \'bp\']',
+        category=ConditionCategory.WARN
     )))
 
 
@@ -172,7 +174,8 @@ def test_condition_fail_some(diabetes_split_dataset_and_model):
     assert_that(results, has_items(equal_condition_result(
         is_pass=False,
         name='Ratio of entirely special character samples not greater than 30.00% for all columns',
-        details='Found columns over threshold ratio: [\'sex\', \'bmi\']'
+        details='Found columns over threshold ratio: [\'sex\', \'bmi\']',
+        category=ConditionCategory.WARN
     )))
 
 
