@@ -229,9 +229,6 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
             ),
             xaxis2=xaxis_layout,
             yaxis2=yaxis_layout,
-            paper_bgcolor='white',
-            plot_bgcolor='white',
-            showlegend=True,
             legend=dict(
                 title='Dataset',
                 yanchor='top',

@@ -125,23 +125,21 @@ def feature_distribution_traces(train_column,
         cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
                               index=categories_list)
         train_bar = go.Bar(
-            x=cat_df.index, y=cat_df['Train dataset'],
-            orientation='v',
+            x=cat_df.index,
+            y=cat_df['Train dataset'],
             marker=dict(
                 color=colors['Train'],
             ),
             name='Train Dataset',
-            showlegend=True
         )
 
         test_bar = go.Bar(
-            x=cat_df.index, y=cat_df['Test dataset'],
-            orientation='v',
+            x=cat_df.index,
+            y=cat_df['Test dataset'],
             marker=dict(
                 color=colors['Test'],
             ),
             name='Test Dataset',
-            showlegend=True
         )
 
         traces = [train_bar, test_bar]

@@ -194,8 +194,6 @@ class WholeDatasetDrift(TrainTestBaseCheck):
                 zeroline=False,
                 color='black'
             ),
-            paper_bgcolor='white',
-            plot_bgcolor='white',
             width=700,
             height=200
 
@@ -220,13 +218,10 @@ class WholeDatasetDrift(TrainTestBaseCheck):
             title=title,
             xaxis=xaxis_layout,
             yaxis=yaxis_layout,
-            paper_bgcolor='white',
-            plot_bgcolor='white',
-            showlegend=True,
             legend=dict(
                 title='Dataset',
                 yanchor='top',
-                y=1,
+                y=0.9,
                 xanchor='left',
                 x=0.85),
             width=700,
