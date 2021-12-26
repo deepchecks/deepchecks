@@ -11,7 +11,6 @@
 """Common utilities for distribution checks."""
 
 from typing import Tuple, List
-import plotly.graph_objects as go
 
 from scipy.stats import wasserstein_distance
 import numpy as np
@@ -23,52 +22,7 @@ from sklearn.impute import SimpleImputer
 PSI_MIN_PERCENTAGE = 0.01
 
 
-__all__ = ['PandasSimpleImputer', 'preprocess_for_psi', 'psi', 'earth_movers_distance', 'drift_score_bar']
-
-
-def drift_score_bar(drift_score: float) -> List[go.Bar]:
-    """Create a traffic light bar plot representing the drift score.
-
-    Args:
-        drift_score (float): Drift score
-        drift_type (str): The name of the drift metric used
-    """
-    traffic_light_colors = [((0, 0.1), '#01B8AA'),
-                            ((0.1, 0.2), '#F2C80F'),
-                            ((0.2, 0.3), '#FE9666'),
-                            ((0.3, 1), '#FD625E')
-                            ]
-
-    bars = []
-
-    for range_tuple, color in traffic_light_colors:
-        if range_tuple[0] <= drift_score < range_tuple[1]:
-            bars.append(go.Bar(
-                x=[drift_score - range_tuple[0]], y=['Drift Score'],
-                orientation='h',
-                marker=dict(
-                    color=color,
-                    line=dict(color='rgb(248, 248, 249)', width=1)
-                ),
-                offsetgroup=0,
-                base=range_tuple[0],
-                showlegend=False
-
-            ))
-        if drift_score >= range_tuple[1]:
-            bars.append(go.Bar(
-                x=[range_tuple[1] - range_tuple[0]], y=['Drift Score'],
-                orientation='h',
-                marker=dict(
-                    color=color,
-                    line=dict(color='rgb(248, 248, 249)', width=1)
-                ),
-                offsetgroup=0,
-                base=range_tuple[0],
-                showlegend=False
-            ))
-
-    return bars
+__all__ = ['PandasSimpleImputer', 'preprocess_for_psi', 'psi', 'earth_movers_distance']
 
 
 class PandasSimpleImputer(SimpleImputer):

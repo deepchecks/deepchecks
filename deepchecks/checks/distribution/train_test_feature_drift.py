@@ -13,14 +13,12 @@
 from collections import OrderedDict
 from typing import Union, Tuple, List, Dict, Callable
 
-import numpy as np
 import pandas as pd
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.checks.distribution.plot import plotly_density
-from deepchecks.checks.distribution.dist_utils import preprocess_for_psi, earth_movers_distance, psi, drift_score_bar
+from deepchecks.checks.distribution.plot import drift_score_bar_traces, feature_distribution_traces
+from deepchecks.checks.distribution.dist_utils import preprocess_for_psi, earth_movers_distance, psi
 from deepchecks.utils.features import calculate_feature_importance_or_null
-from deepchecks.utils.plot import colors
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 import plotly.graph_objects as go
@@ -188,68 +186,33 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
             score = earth_movers_distance(dist1=train_column.astype('float'), dist2=test_column.astype('float'))
             bar_stop = max(0.4, score + 0.1)
 
-            x_range = (min(train_column.min(), test_column.min()), max(train_column.max(), test_column.max()))
-            xs = np.linspace(x_range[0], x_range[1], 40)
+            score_bar = drift_score_bar_traces(score)
 
-            score_bar = drift_score_bar(score)
-            data_plot = [go.Scatter(x=xs, y=plotly_density(train_column, xs), fill='tozeroy', name='Train Dataset',
-                                    line_color=colors['Train']),
-                         go.Scatter(x=xs, y=plotly_density(test_column, xs), fill='tozeroy', name='Test Dataset',
-                                    line_color=colors['Test'])]
-
-            specific_layout = go.Layout(
-                xaxis2=dict(fixedrange=True,
-                            range=x_range,
-                            title=plot_title),
-                yaxis2=dict(title='Probability Density'),
-            )
+            traces, xaxis_layout, yaxis_layout = feature_distribution_traces(train_column,
+                                                                             test_dist,
+                                                                             plot_title=plot_title)
 
         elif column_type == 'categorical':
             scorer_name = 'PSI'
-            expected_percents, actual_percents, categories_list = \
+            expected_percents, actual_percents, _ = \
                 preprocess_for_psi(dist1=train_dist, dist2=test_dist, max_num_categories=self.max_num_categories)
             score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
             bar_stop = max(0.4, score + 0.1)
 
-            score_bar = drift_score_bar(score)
+            score_bar = drift_score_bar_traces(score)
 
-            cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
-                                  index=categories_list)
-            train_bar = go.Bar(
-                x=cat_df.index, y=cat_df['Train dataset'],
-                orientation='v',
-                marker=dict(
-                    color=colors['Train'],
-                    line=dict(color='rgb(248, 248, 249)', width=1)
-                ),
-                showlegend=False
-            )
-
-            test_bar = go.Bar(
-                x=cat_df.index, y=cat_df['Test dataset'],
-                orientation='v',
-                marker=dict(
-                    color=colors['Test'],
-                    line=dict(color='rgb(248, 248, 249)', width=1)
-                ),
-                showlegend=False
-            )
-
-            data_plot = [train_bar, test_bar]
-
-            specific_layout = go.Layout(
-                xaxis2=dict(title=plot_title),
-                yaxis2=dict(fixedrange=True,
-                            range=(0, 1),
-                            title='Percentage'),
-            )
+            traces, xaxis_layout, yaxis_layout = feature_distribution_traces(train_dist,
+                                                                             test_dist,
+                                                                             plot_title=plot_title,
+                                                                             is_categorical=True,
+                                                                             max_num_categories=self.max_num_categories)
 
         fig = make_subplots(rows=2, cols=1, vertical_spacing=0.4, shared_yaxes=False, shared_xaxes=False,
                             row_heights=[0.1, 0.9],
                             subplot_titles=['Drift Score - ' + scorer_name, 'Distribution'])
 
         fig.add_traces(score_bar, rows=[1] * len(score_bar), cols=[1] * len(score_bar))
-        fig.add_traces(data_plot, rows=[2] * len(data_plot), cols=[1] * len(data_plot))
+        fig.add_traces(traces, rows=[2] * len(traces), cols=[1] * len(traces))
 
         shared_layout = go.Layout(
             xaxis=dict(
@@ -265,8 +228,9 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
                 showline=False,
                 showticklabels=False,
                 zeroline=False,
-                color='black'
             ),
+            xaxis2=xaxis_layout,
+            yaxis2=yaxis_layout,
             paper_bgcolor='white',
             plot_bgcolor='white',
             showlegend=True,
@@ -281,7 +245,6 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         )
 
         fig.update_layout(shared_layout)
-        fig.update_layout(specific_layout)
 
         return score, scorer_name, fig
 

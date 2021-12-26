@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains the domain classifier drift check."""
-from functools import partial
 from typing import List
 import warnings
 
@@ -17,8 +16,7 @@ import numpy as np
 import pandas as pd
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.checks.distribution.dist_utils import preprocess_for_psi, drift_score_bar
-from deepchecks.checks.distribution.plot import plot_density
+from deepchecks.checks.distribution.plot import feature_distribution_traces, drift_score_bar_traces
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.utils.typing import Hashable
@@ -33,7 +31,7 @@ from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 
 
 __all__ = ['WholeDatasetDrift']
@@ -156,17 +154,15 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         top_fi = fi_ser.head(self.n_top_features)
         top_fi = top_fi.loc[top_fi > self.min_feature_importance]
 
-        def display_drift_score():
-            plt.figure(figsize=(8, 0.5))
-            drift_score_bar(plt.gca(), self.auc_to_drift_score(values_dict['domain_classifier_auc']),
-                            'Whole dataset total')
-            plt.figure(figsize=(8, 0.1))
-            plt.axhline(y=0.5, color='k', linestyle='-', linewidth=0.5)
-            plt.axis('off')
+        if len(top_fi):
+            score = self.auc_to_drift_score(values_dict['domain_classifier_auc'])
 
-        displays = ([headnote] + [display_drift_score] + ['<h5>Main features contributing to drift</h5>'] +
-                    [partial(self._display_dist, train_sample_df[feature], test_sample_df[feature], fi_ser)
-                     for feature in top_fi.index]) if len(top_fi) else None
+            displays = ([headnote] + [self._build_drift_plot(score)] +
+                        ['<h5>Main features contributing to drift</h5>'] +
+                        [self._display_dist(train_sample_df[feature], test_sample_df[feature], fi_ser)
+                         for feature in top_fi.index]) if len(top_fi) else None
+        else:
+            displays = None
 
         return CheckResult(value=values_dict, display=displays, header='Whole Dataset Drift')
 
@@ -175,40 +171,71 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         """Calculate the drift score, which is 2*auc - 1, with auc being the auc of the Domain Classifier."""
         return max(2 * auc - 1, 0)
 
+    def _build_drift_plot(self, score):
+        """Build traffic light drift plot."""
+        stop = max(0.4, score + 0.1)
+
+        drift = drift_score_bar_traces(score)
+
+        drift_plot = go.Figure(layout=dict(
+            title='Drift Score - Whole Dataset Total',
+            xaxis=dict(
+                showgrid=False,
+                gridcolor='black',
+                linecolor='black',
+                range=[0, stop],
+                dtick=0.05,
+                title='drift score'
+            ),
+            yaxis=dict(
+                showgrid=False,
+                showline=False,
+                showticklabels=False,
+                zeroline=False,
+                color='black'
+            ),
+            paper_bgcolor='white',
+            plot_bgcolor='white',
+            width=700,
+            height=200
+
+        ))
+
+        drift_plot.add_traces(drift)
+
+        return drift_plot
+
     def _display_dist(self, train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Series):
         """Display a distribution comparison plot for the given columns."""
-        colors = ['darkblue', '#69b3a2']
-
-        plt.figure(figsize=(8, 3))
-        axs = plt.gca()
-
         column_name = train_column.name
 
-        if column_name in self._cat_features:
-            expected_percents, actual_percents, categories_list = \
-                preprocess_for_psi(dist1=train_column.dropna().values.reshape(-1),
-                                   dist2=test_column.dropna().values.reshape(-1),
-                                   max_num_categories=self.max_num_categories)
+        title = f'Feature: {column_name} - Explains {format_percent(fi_ser.loc[column_name])} of dataset difference'
+        traces, xaxis_layout, yaxis_layout = \
+            feature_distribution_traces(train_column,
+                                        test_column,
+                                        plot_title=title,
+                                        is_categorical=column_name in self._cat_features,
+                                        max_num_categories=self.max_num_categories)
 
-            cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
-                                  index=categories_list)
+        figure = go.Figure(layout=go.Layout(
+            xaxis=xaxis_layout,
+            yaxis=yaxis_layout,
+            paper_bgcolor='white',
+            plot_bgcolor='white',
+            showlegend=True,
+            legend=dict(
+                title='Dataset',
+                yanchor='top',
+                y=1,
+                xanchor='left',
+                x=0.85),
+            width=700,
+            height=300
+        ))
 
-            cat_df.plot.bar(ax=axs, color=colors)
-            axs.set_ylabel('Percentage')
-            axs.legend()
-            plt.xticks(rotation=30)
+        figure.add_traces(traces)
 
-        else:
-            x_range = (min(train_column.min(), test_column.min()), max(train_column.max(), test_column.max()))
-            xs = np.linspace(x_range[0], x_range[1], 40)
-            pdf1 = plot_density(train_column, xs, colors[0])
-            pdf2 = plot_density(test_column, xs, colors[1])
-            plt.gca().set_ylim(bottom=0, top=max(max(pdf1), max(pdf2)) * 1.1)
-            axs.set_xlabel(column_name)
-            axs.set_ylabel('Probability Density')
-            axs.legend(['Train dataset', 'Test Dataset'])
-
-        plt.title(f'Feature: {column_name} - Explains {format_percent(fi_ser.loc[column_name])} of dataset difference')
+        return figure
 
     def _generate_model(self, numerical_columns: List[Hashable], categorical_columns: List[Hashable]) -> Pipeline:
         """Generate the unfitted Domain Classifier model."""
