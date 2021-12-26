@@ -1,13 +1,18 @@
 package:
   name: deepchecks
-  version: "0.0.15"
+  version: "0.0.15_noarch"
 
+about:
+  home: https://github.com/deepchecks/deepchecks
+  license: AGPLv3
+  license_file: ../LICENSE
 source:
   # Relative path to the parent directory.
   path: ..
 
 build:
   number: 0
+  noarch: python
 
 requirements:
   host:
