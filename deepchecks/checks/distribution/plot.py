@@ -45,7 +45,16 @@ def plot_density(data, xs, color='b', alpha: float = 0.7, **kwargs) -> np.ndarra
     return density(xs)
 
 
-def plotly_density(data, xs):
+def get_density(data, xs) -> np.ndarray:
+    """Get gaussian kde density to plot
+
+    Args:
+        data (): The data used to compute the pdf function.
+        xs (iterable): List of x values to plot the computed pdf for.
+
+    Returns:
+        np.array: The computed pdf values at the points xs.
+    """
     density = gaussian_kde(data)
     density.covariance_factor = lambda: .25
     # pylint: disable=protected-access
@@ -71,29 +80,20 @@ def drift_score_bar_traces(drift_score: float) -> List[go.Bar]:
     bars = []
 
     for range_tuple, color in traffic_light_colors:
-        if range_tuple[0] <= drift_score < range_tuple[1]:
-            bars.append(go.Bar(
-                x=[drift_score - range_tuple[0]], y=['Drift Score'],
-                orientation='h',
-                marker=dict(
-                    color=color,
-                ),
-                offsetgroup=0,
-                base=range_tuple[0],
-                showlegend=False
+        if drift_score < range_tuple[0]:
+            break
 
-            ))
-        if drift_score >= range_tuple[1]:
-            bars.append(go.Bar(
-                x=[range_tuple[1] - range_tuple[0]], y=['Drift Score'],
-                orientation='h',
-                marker=dict(
-                    color=color,
-                ),
-                offsetgroup=0,
-                base=range_tuple[0],
-                showlegend=False
-            ))
+        bars.append(go.Bar(
+            x=[min(drift_score, range_tuple[1]) - range_tuple[0]], y=['Drift Score'],
+            orientation='h',
+            marker=dict(
+                color=color,
+            ),
+            offsetgroup=0,
+            base=range_tuple[0],
+            showlegend=False
+
+        ))
 
     return bars
 
@@ -155,9 +155,9 @@ def feature_distribution_traces(train_column,
         x_range = (min(train_column.min(), test_column.min()), max(train_column.max(), test_column.max()))
         xs = np.linspace(x_range[0], x_range[1], 40)
 
-        traces = [go.Scatter(x=xs, y=plotly_density(train_column, xs), fill='tozeroy', name='Train Dataset',
+        traces = [go.Scatter(x=xs, y=get_density(train_column, xs), fill='tozeroy', name='Train Dataset',
                              line_color=colors['Train']),
-                  go.Scatter(x=xs, y=plotly_density(test_column, xs), fill='tozeroy', name='Test Dataset',
+                  go.Scatter(x=xs, y=get_density(test_column, xs), fill='tozeroy', name='Test Dataset',
                              line_color=colors['Test'])]
 
         xaxis_layout = dict(fixedrange=True,
