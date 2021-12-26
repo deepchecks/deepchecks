@@ -218,7 +218,7 @@ def _validate_parameters(k_filter, alpha, max_number_categories, min_test_sample
                                    f'{percent_top_scores_to_hide}')
 
 
-def _display_plot( train_trust_scores, test_trust_scores, percent_to_cut):
+def _display_plot(train_trust_scores, test_trust_scores, percent_to_cut):
     """Display a distribution comparison plot for the given columns."""
 
     def filter_quantile(data):
