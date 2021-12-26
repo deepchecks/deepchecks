@@ -46,7 +46,7 @@ def plot_density(data, xs, color='b', alpha: float = 0.7, **kwargs) -> np.ndarra
 
 
 def get_density(data, xs) -> np.ndarray:
-    """Get gaussian kde density to plot
+    """Get gaussian kde density to plot.
 
     Args:
         data (): The data used to compute the pdf function.
