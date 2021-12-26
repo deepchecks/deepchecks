@@ -42,14 +42,44 @@ def assert_dataset(dataset: Dataset, args):
         assert_that(dataset.index_col.equals(pd.Series(args['df'].index)), is_(True))
     if 'index_name' in args:
         assert_that(dataset.index_name, equal_to(args['index_name']))
-        assert_that(dataset.index_col.equals(pd.Series(args['df'][args['index_name']])), is_(True))
-    if 'date_name' in args:
-        assert_that(dataset.date_name, equal_to(args['date_name']))
-        if ('convert_date_' in args) and (args['convert_date_'] is False):
-            assert_that(dataset.date_col.equals(pd.Series(args['df'][args['date_name']])), is_(True))
+        if 'set_index_from_dataframe_index' not in args or not args['set_index_from_dataframe_index']:
+            assert_that(dataset.index_col.equals(pd.Series(dataset.data[args['index_name']])), is_(True))
+        elif args['index_name']:
+            assert_that(dataset.index_col.equals(
+                pd.Series(args['df'].index.get_level_values(args['index_name']),
+                          name=args['df'].index.name,
+                          index=args['df'].index)
+            ),
+                is_(True)
+            )
         else:
-            for date in dataset.date_col:
-                assert_that(date, instance_of(pd.Timestamp))
+            assert_that(dataset.index_col.equals(
+                pd.Series(args['df'].index.get_level_values(0),
+                          name=args['df'].index.name,
+                          index=args['df'].index)
+            ),
+                is_(True)
+            )
+    if 'datetime_name' in args:
+        assert_that(dataset.datetime_name, equal_to(args['datetime_name']))
+        if 'set_datetime_from_dataframe_index' not in args or not args['set_datetime_from_dataframe_index']:
+            assert_that(dataset.datetime_col.equals(pd.Series(dataset.data[args['datetime_name']])), is_(True))
+        elif args['datetime_name']:
+            assert_that(dataset.datetime_col.equals(
+                pd.Series(args['df'].index.get_level_values(args['datetime_name']),
+                          name='datetime',
+                          index=args['df'].index)
+            ),
+                is_(True)
+            )
+        else:
+            assert_that(dataset.datetime_col.equals(
+                pd.Series(args['df'].index.get_level_values(0),
+                          name='datetime',
+                          index=args['df'].index)
+            ),
+                is_(True)
+            )
 
 
 def test_dataset_empty_df(empty_df):
@@ -82,7 +112,7 @@ def test_dataset_bad_feature(iris):
             'features': ['sepal length - no exists']}
     assert_that(calling(Dataset).with_args(**args),
                 raises(DeepchecksValueError, 'Features must be names of columns in dataframe. Features '
-                                           '{\'sepal length - no exists\'} have not been found in input dataframe.'))
+                                             '{\'sepal length - no exists\'} have not been found in input dataframe.'))
 
 
 def test_dataset_empty_features(iris):
@@ -104,8 +134,8 @@ def test_dataset_bad_cat_feature(diabetes_df):
             'cat_features': ['something else']}
     assert_that(calling(Dataset).with_args(**args),
                 raises(DeepchecksValueError, 'Categorical features must be a subset of features. '
-                                           'Categorical features {\'something else\'} '
-                                           'have not been found in feature list.'))
+                                             'Categorical features {\'something else\'} '
+                                             'have not been found in feature list.'))
 
 
 def test_dataset_cat_feature_not_in_features(diabetes_df):
@@ -122,8 +152,8 @@ def test_dataset_cat_feature_not_in_features(diabetes_df):
             'cat_features': ['sex']}
     assert_that(calling(Dataset).with_args(**args),
                 raises(DeepchecksValueError, 'Categorical features must be a subset of features. '
-                                           'Categorical features {\'sex\'} '
-                                           'have not been found in feature list.'))
+                                             'Categorical features {\'sex\'} '
+                                             'have not been found in feature list.'))
 
 
 def test_dataset_infer_cat_features(diabetes_df):
@@ -212,17 +242,52 @@ def test_dataset_bad_label_name(iris):
 
 def test_dataset_use_index(iris):
     args = {'df': iris,
-            'use_default_index': True}
+            'set_index_from_dataframe_index': True}
     dataset = Dataset(**args)
     assert_dataset(dataset, args)
 
 
-def test_dataset_index_use_index(iris):
-    args = {'df': iris,
-            'index_name': 'target',
-            'use_default_index': True}
+def test_dataset_index_use_index_by_name(multi_index_dataframe):
+    args = {'df': multi_index_dataframe,
+            'index_name': 'first',
+            'set_index_from_dataframe_index': True}
+    dataset = Dataset(**args)
+    assert_dataset(dataset, args)
+
+
+def test_dataset_index_use_index_by_non_existent_name(multi_index_dataframe):
+    args = {'df': multi_index_dataframe,
+            'index_name': 'third',
+            'set_index_from_dataframe_index': True}
     assert_that(calling(Dataset).with_args(**args),
-                raises(DeepchecksValueError, 'parameter use_default_index cannot be True if index is given'))
+                raises(DeepchecksValueError, 'Index third not found in dataframe index level names.')
+                )
+
+
+def test_dataset_index_use_index_by_int(multi_index_dataframe):
+    args = {'df': multi_index_dataframe,
+            'index_name': 0,
+            'set_index_from_dataframe_index': True}
+    dataset = Dataset(**args)
+    assert_dataset(dataset, args)
+
+
+def test_dataset_index_use_index_by_int_too_large(multi_index_dataframe):
+    args = {'df': multi_index_dataframe,
+            'index_name': 2,
+            'set_index_from_dataframe_index': True}
+    assert_that(calling(Dataset).with_args(**args),
+                raises(DeepchecksValueError, 'Dataframe index has less levels than 3.')
+                )
+
+
+def test_dataset_date_use_date_by_int_too_large(multi_index_dataframe):
+    args = {'df': multi_index_dataframe,
+            'datetime_name': 2,
+            'set_datetime_from_dataframe_index': True}
+    assert_that(calling(Dataset).with_args(**args),
+                raises(DeepchecksValueError, 'Dataframe index has less levels than 3.')
+                )
 
 
 def test_dataset_index_from_column(iris):
@@ -240,8 +305,9 @@ def test_dataset_index_in_df(iris):
                          'petal width (cm)'],
             'index_name': 'index'}
     assert_that(calling(Dataset).with_args(**args),
-                raises(DeepchecksValueError, 'index column index not found in dataset columns. If you attempted to use '
-                                           'the dataframe index, set use_default_index to True instead.'))
+                raises(DeepchecksValueError, 'Index column index not found in dataset columns. If you attempted to use '
+                                             'the dataframe index, set set_index_from_dataframe_index to True instead.')
+                )
 
 
 def test_dataset_index_in_features(iris):
@@ -257,15 +323,17 @@ def test_dataset_index_in_features(iris):
 
 
 def test_dataset_date(iris):
-    args = {'date_name': 'target'}
+    args = {'datetime_name': 'target'}
     dataset = Dataset(iris, **args)
     assert_dataset(dataset, args)
 
 
 def test_dataset_date_not_in_columns(iris):
-    args = {'date_name': 'date'}
+    args = {'datetime_name': 'date'}
     assert_that(calling(Dataset).with_args(iris, **args),
-                raises(DeepchecksValueError, 'date column date not found in dataset columns'))
+                raises(DeepchecksValueError,
+                       'Datetime column date not found in dataset columns. If you attempted to use the dataframe index,'
+                       ' set set_datetime_from_dataframe_index to True instead.'))
 
 
 def test_dataset_date_in_features(iris):
@@ -275,18 +343,36 @@ def test_dataset_date_in_features(iris):
                          'petal length (cm)',
                          'petal width (cm)',
                          'target'],
-            'date_name': 'target'}
+            'datetime_name': 'target'}
     assert_that(calling(Dataset).with_args(**args),
-                raises(DeepchecksValueError, 'date column target can not be a feature column'))
+                raises(DeepchecksValueError, 'datetime column target can not be a feature column'))
+
+
+def test_dataset_datetime_use_datetime_by_name(multi_index_dataframe):
+    args = {'df': multi_index_dataframe,
+            'datetime_name': 'first',
+            'set_datetime_from_dataframe_index': True,
+            'convert_datetime': False}
+    dataset = Dataset(**args)
+    assert_dataset(dataset, args)
+
+
+def test_dataset_datetime_use_datetime_by_int(multi_index_dataframe):
+    args = {'df': multi_index_dataframe,
+            'datetime_name': 0,
+            'set_datetime_from_dataframe_index': True,
+            'convert_datetime': False}
+    dataset = Dataset(**args)
+    assert_dataset(dataset, args)
 
 
 def test_dataset_date_args_single_arg():
     df = pd.DataFrame({'date': [1, 2]})
-    args = {'date_name': 'date',
-            'date_args': {'unit': 'D'}}
+    args = {'datetime_name': 'date',
+            'datetime_args': {'unit': 'D'}}
     dataset = Dataset(df, **args)
     assert_dataset(dataset, args)
-    date_col = dataset.date_col
+    date_col = dataset.datetime_col
     assert_that(date_col, not_none())
     # disable false positive
     # pylint:disable=unsubscriptable-object
@@ -296,11 +382,11 @@ def test_dataset_date_args_single_arg():
 
 def test_dataset_date_args_multi_arg():
     df = pd.DataFrame({'date': [160, 180]})
-    args = {'date_name': 'date',
-            'date_args': {'unit': 'D', 'origin': '2020-02-01'}}
+    args = {'datetime_name': 'date',
+            'datetime_args': {'unit': 'D', 'origin': '2020-02-01'}}
     dataset = Dataset(df, **args)
     assert_dataset(dataset, args)
-    date_col = dataset.date_col
+    date_col = dataset.datetime_col
     assert_that(date_col, not_none())
     # disable false positive
     # pylint:disable=unsubscriptable-object
@@ -311,11 +397,11 @@ def test_dataset_date_args_multi_arg():
 def test_dataset_date_convert_date():
     df = pd.DataFrame({'date': [1, 2]})
     args = {'df': df,
-            'date_name': 'date',
-            'convert_date_': False}
+            'datetime_name': 'date',
+            'convert_datetime': False}
     dataset = Dataset(**args)
     assert_dataset(dataset, args)
-    date_col = dataset.date_col
+    date_col = dataset.datetime_col
     assert_that(date_col, not_none())
     # disable false positive
     # pylint:disable=unsubscriptable-object
@@ -350,14 +436,14 @@ def test_dataset_validate_no_label(iris):
 
 
 def test_dataset_validate_date(iris):
-    dataset = Dataset(iris, date_name='target')
+    dataset = Dataset(iris, datetime_name='target')
     dataset.validate_date()
 
 
 def test_dataset_validate_no_date(iris):
     dataset = Dataset(iris)
     assert_that(calling(dataset.validate_date),
-                raises(DeepchecksValueError, 'Check requires dataset to have a date column'))
+                raises(DeepchecksValueError, 'Check requires dataset to have a datetime column'))
 
 
 def test_dataset_validate_index(iris):
@@ -416,7 +502,7 @@ def test_dataset_shared_categorical_features(diabetes_df, iris):
     iris_dataset = Dataset(iris)
     assert_that(calling(diabetes_dataset.validate_shared_categorical_features).with_args(iris_dataset),
                 raises(DeepchecksValueError, 'Check requires datasets to share'
-                                           ' the same categorical features'))
+                                             ' the same categorical features'))
 
 
 def test_validate_dataset_or_dataframe_empty_df(empty_df):
@@ -441,7 +527,7 @@ def test_validate_dataset_empty_df(empty_df):
 def test_validate_dataset_not_dataset():
     assert_that(calling(Dataset.validate_dataset).with_args('not_dataset'),
                 raises(DeepchecksValueError, 'Check requires dataset to be of type Dataset. instead got:'
-                                           ' str'))
+                                             ' str'))
 
 
 def test_ensure_dataframe_type(iris):
@@ -529,13 +615,14 @@ def test_dataset_initialization_from_numpy_arrays_without_providing_args():
 def test_dataset_initialization_from_numpy_arrays_with_wrong_number_of_feature_columns_names():
     iris = load_iris()
     assert_that(
-        calling(Dataset.from_numpy).with_args(iris.data, iris.target, columns=['X1',]),
+        calling(Dataset.from_numpy).with_args(iris.data, iris.target, columns=['X1', ]),
         raises(
             DeepchecksValueError,
             '4 columns were provided '
             r'but only 1 name\(s\) for them`s.'
         )
     )
+
 
 def test_dataset_initialization_from_numpy_empty_arrays():
     iris = load_iris()
@@ -550,11 +637,11 @@ def test_dataset_initialization_from_numpy_empty_arrays():
 
 
 def validate_dataset_created_from_numpy_arrays(
-    dataset: Dataset,
-    features_array: np.ndarray,
-    labels_array: np.ndarray = None,
-    feature_columns_names: t.Sequence[str] = None,
-    label_column_name: str = 'target'
+        dataset: Dataset,
+        features_array: np.ndarray,
+        labels_array: np.ndarray = None,
+        feature_columns_names: t.Sequence[str] = None,
+        label_column_name: str = 'target'
 ):
     if feature_columns_names is None:
         feature_columns_names = [str(index) for index in range(1, features_array.shape[1] + 1)]
@@ -594,18 +681,18 @@ def test_dataset_initialization_with_integer_columns():
 
     dataset = Dataset(
         df=df,
-        features=[0,1,2],
+        features=[0, 1, 2],
         label_name=3,
         cat_features=[0],
     )
 
-    assert_that(actual=dataset.features, matcher=contains_exactly(0,1,2))
+    assert_that(actual=dataset.features, matcher=contains_exactly(0, 1, 2))
     assert_that(actual=dataset.label_name, matcher=equal_to(3))
     assert_that(actual=dataset.cat_features, matcher=contains_exactly(0))
 
     assert_that(
         (dataset.features_columns == df.drop(3, axis=1))
-        .all().all()
+            .all().all()
     )
     assert_that(
         (dataset.label_col == df[3]).all()
