@@ -613,7 +613,7 @@ class Dataset:
             DeepchecksValueError if dataset does not have a datetime column
 
         """
-        if self.datetime_name is None:
+        if self.datetime_col is None:
             raise DeepchecksValueError('Check requires dataset to have a datetime column')
 
     def validate_index(self):
@@ -627,7 +627,7 @@ class Dataset:
             DeepchecksValueError if dataset does not have an index
 
         """
-        if self.index_name is None:
+        if self.index_col is None:
             raise DeepchecksValueError('Check requires dataset to have an index column')
 
     def select(
