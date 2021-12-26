@@ -43,8 +43,8 @@ class DateTrainTestLeakageOverlap(TrainTestBaseCheck):
         train_dataset.validate_date()
         test_dataset.validate_date()
 
-        train_date = train_dataset.date_col
-        val_date = test_dataset.date_col
+        train_date = train_dataset.datetime_col
+        val_date = test_dataset.datetime_col
 
         max_train_date = max(train_date)
         dates_leaked = sum(date <= max_train_date for date in val_date)
