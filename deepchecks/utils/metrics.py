@@ -92,6 +92,10 @@ DEFAULT_SCORERS_DICT = {
 class DeepcheckScorer:
     """Encapsulate scorer function with extra methods.
 
+    Scorer functions are functions used to compute various performance metrics, using the model and data as inputs,
+    rather than the labels and predictions. Scorers are callables with the signature scorer(model, features, y_true).
+    Additional data on scorer functions can be found at https://scikit-learn.org/stable/modules/model_evaluation.html.
+
     Args:
         scorer (t.Union[str, t.Callable]): sklearn scorer name or callable
         name (str): scorer name

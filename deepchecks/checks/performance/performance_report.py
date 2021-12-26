@@ -83,7 +83,7 @@ class PerformanceReport(SingleDatasetBaseCheck):
 
 
 class MultiModelPerformanceReport(ModelComparisonBaseCheck):
-    """Summarize given scores between models on test datasets.
+    """Summarize performance scores for multiple models on test datasets.
 
     Args:
         alternative_scorers (Dict[str, Callable], default None):
