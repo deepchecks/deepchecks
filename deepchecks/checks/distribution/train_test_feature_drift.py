@@ -189,8 +189,7 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
             score_bar = drift_score_bar_traces(score)
 
             traces, xaxis_layout, yaxis_layout = feature_distribution_traces(train_column,
-                                                                             test_dist,
-                                                                             plot_title=plot_title)
+                                                                             test_dist)
 
         elif column_type == 'categorical':
             scorer_name = 'PSI'
@@ -203,13 +202,12 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
 
             traces, xaxis_layout, yaxis_layout = feature_distribution_traces(train_dist,
                                                                              test_dist,
-                                                                             plot_title=plot_title,
                                                                              is_categorical=True,
                                                                              max_num_categories=self.max_num_categories)
 
         fig = make_subplots(rows=2, cols=1, vertical_spacing=0.4, shared_yaxes=False, shared_xaxes=False,
                             row_heights=[0.1, 0.9],
-                            subplot_titles=['Drift Score - ' + scorer_name, 'Distribution'])
+                            subplot_titles=['Drift Score - ' + scorer_name, plot_title])
 
         fig.add_traces(score_bar, rows=[1] * len(score_bar), cols=[1] * len(score_bar))
         fig.add_traces(traces, rows=[2] * len(traces), cols=[1] * len(traces))

@@ -100,7 +100,6 @@ def drift_score_bar_traces(drift_score: float) -> List[go.Bar]:
 
 def feature_distribution_traces(train_column,
                                 test_column,
-                                plot_title: str,
                                 is_categorical: bool = False,
                                 max_num_categories: int = 10) -> [List[Union[go.Bar, go.Scatter]], Dict, Dict]:
     """Create traces for comparison between train and test column.
@@ -147,7 +146,7 @@ def feature_distribution_traces(train_column,
 
         traces = [train_bar, test_bar]
 
-        xaxis_layout = dict(title=plot_title)
+        xaxis_layout = dict(title='Distribution')
         yaxis_layout = dict(fixedrange=True,
                             range=(0, 1),
                             title='Percentage')
@@ -163,7 +162,7 @@ def feature_distribution_traces(train_column,
 
         xaxis_layout = dict(fixedrange=True,
                             range=x_range,
-                            title=plot_title)
+                            title='Distribution')
         yaxis_layout = dict(title='Probability Density')
 
     return traces, xaxis_layout, yaxis_layout

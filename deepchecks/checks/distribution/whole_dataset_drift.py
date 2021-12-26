@@ -213,11 +213,11 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         traces, xaxis_layout, yaxis_layout = \
             feature_distribution_traces(train_column,
                                         test_column,
-                                        plot_title=title,
                                         is_categorical=column_name in self._cat_features,
                                         max_num_categories=self.max_num_categories)
 
         figure = go.Figure(layout=go.Layout(
+            title=title,
             xaxis=xaxis_layout,
             yaxis=yaxis_layout,
             paper_bgcolor='white',
