@@ -12,7 +12,7 @@
 import numpy as np
 import plotly.graph_objects as go
 
-from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
+from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.checks.distribution.trust_score import TrustScore
 from deepchecks.checks.distribution.preprocessing import preprocess_dataset_to_scaled_numerics
 from deepchecks.checks.distribution.plot import get_density
@@ -181,7 +181,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
 
             if pct_diff > threshold:
                 message = f'Found decline of: {format_percent(-pct_diff)}'
-                return ConditionResult(False, message)
+                return ConditionResult(False, message, category=ConditionCategory.WARN)
             else:
                 return ConditionResult(True)
 

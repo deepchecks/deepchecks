@@ -14,6 +14,7 @@ import numpy as np
 
 from hamcrest import assert_that, close_to, equal_to, calling, raises, has_items
 
+from deepchecks import ConditionCategory
 from deepchecks.checks.integrity.data_duplicates import DataDuplicates
 from deepchecks.errors import DeepchecksValueError
 from tests.checks.utils import equal_condition_result
@@ -107,7 +108,8 @@ def test_condition_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                details='Found 40.00% duplicate data',
-                               name='Duplicate data is not greater than 10.00%')))
+                               name='Duplicate data is not greater than 10.00%',
+                               category=ConditionCategory.WARN)))
 
 
 def test_condition():
