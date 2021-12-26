@@ -93,21 +93,21 @@ def test_regression(diabetes, diabetes_model):
     # Assert
     assert_that(result, has_entries({
         'RMSE': close_to(-50, 20),
-        'MSE': close_to(-3200, 1000),
+        'MAE': close_to(-45, 20),
     }))
 
 
 def test_condition_min_score_not_passed(diabetes, diabetes_model):
     # Arrange
     _, validation = diabetes
-    check = PerformanceReport().add_condition_score_not_less_than(-100)
+    check = PerformanceReport().add_condition_score_not_less_than(-50)
     # Act X
     result: List[ConditionResult] = check.conditions_decision(check.run(validation, diabetes_model))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details=re.compile('Scores that did not pass threshold: \\{\'MSE\':'),
-                               name='Score is not less than -100')
+                               details=re.compile('Scores that did not pass threshold: \\{\'RMSE\':'),
+                               name='Score is not less than -50')
     ))
 
 

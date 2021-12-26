@@ -22,3 +22,5 @@ backends
 params
 PCA
 encodings
+Multiclass
+numpy

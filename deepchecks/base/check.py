@@ -16,8 +16,7 @@ import inspect
 import re
 from collections import OrderedDict
 from functools import wraps
-from typing import Any, Callable, List, Union, Dict, cast, Tuple
-
+from typing import Any, Callable, List, Union, Dict, cast, Mapping
 import pandas as pd
 from IPython.core.display import display_html
 from matplotlib import pyplot as plt
@@ -29,6 +28,8 @@ from deepchecks.base.display_pandas import display_conditions_table, display_dat
 from deepchecks.utils.strings import split_camel_case
 from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.utils.ipython import is_ipython_display
+from deepchecks.utils.metrics import task_type_check
+from deepchecks.utils.validation import validate_model
 
 
 __all__ = [
@@ -40,7 +41,8 @@ __all__ = [
     'ModelComparisonBaseCheck',
     'ConditionResult',
     'ConditionCategory',
-    'CheckFailure'
+    'CheckFailure',
+    'ModelComparisonContext'
 ]
 
 
@@ -403,23 +405,35 @@ class ModelOnlyBaseCheck(BaseCheck):
         pass
 
 
-class ModelComparisonBaseCheck(BaseCheck):
-    """Parent class for check that compares between two or more models."""
+class ModelComparisonContext:
+    """Contain processed input for model comparison checks."""
 
-    def run(self,
-            train_datasets: Union[Dataset, List[Dataset]],
-            test_datasets: Union[Dataset, List[Dataset]],
-            models: List[Any]
-            ) -> CheckResult:
-        """Preprocess the parameters and pass them to `_run`."""
+    def __init__(self,
+                 train_datasets: Union[Dataset, List[Dataset]],
+                 test_datasets: Union[Dataset, List[Dataset]],
+                 models: Union[List[Any], Mapping[str, Any]]
+                 ):
+        """Preprocess the parameters."""
         # Validations
         if isinstance(train_datasets, Dataset) and isinstance(test_datasets, List):
             raise DeepchecksNotSupportedError('Single train dataset with multiple test datasets is not supported.')
 
-        if not isinstance(models, List):
-            raise DeepchecksValueError('`models` must be a list for compare models checks.')
+        if not isinstance(models, (List, Mapping)):
+            raise DeepchecksValueError('`models` must be a list or dictionary for compare models checks.')
         if len(models) < 2:
             raise DeepchecksValueError('`models` must receive 2 or more models')
+        # Some logic to assign names to models
+        if isinstance(models, List):
+            models_dict = {}
+            for m in models:
+                model_type = type(m).__name__
+                numerator = 1
+                name = model_type
+                while name in models_dict:
+                    name = f'{model_type}_{numerator}'
+                    numerator += 1
+                models_dict[name] = m
+            models = models_dict
 
         if not isinstance(train_datasets, List):
             train_datasets = [train_datasets] * len(models)
@@ -431,10 +445,53 @@ class ModelComparisonBaseCheck(BaseCheck):
         if len(test_datasets) != len(models):
             raise DeepchecksValueError('number of test_datasets must equal to number of models')
 
-        return self._run(list(zip(train_datasets, test_datasets, models)))
+        self.train_datasets = train_datasets
+        self.test_datasets = test_datasets
+        self.model_names = list(models.keys())
+        self.models = list(models.values())
+
+        # Additional validations
+        self.task_type = None
+        for i in range(len(models)):
+            train = self.train_datasets[i]
+            test = self.test_datasets[i]
+            model = self.models[i]
+            Dataset.validate_dataset(train)
+            Dataset.validate_dataset(test)
+            train.validate_label()
+            train.validate_features()
+            train.validate_shared_features(test)
+            train.validate_shared_label(test)
+            validate_model(train, model)
+            curr_task_type = task_type_check(model, train)
+            if self.task_type is None:
+                self.task_type = curr_task_type
+            elif curr_task_type != self.task_type:
+                raise DeepchecksNotSupportedError('Got models of different task types')
+
+    def __len__(self):
+        """Return number of models."""
+        return len(self.models)
+
+    def __iter__(self):
+        """Return iterator over context objects."""
+        return zip(self.train_datasets, self.test_datasets, self.models, self.model_names)
+
+
+class ModelComparisonBaseCheck(BaseCheck):
+    """Parent class for check that compares between two or more models."""
+
+    def run(self,
+            train_datasets: Union[Dataset, List[Dataset]],
+            test_datasets: Union[Dataset, List[Dataset]],
+            models: Union[List[Any], Mapping[str, Any]]
+            ) -> CheckResult:
+        """Initialize context and pass to check logic."""
+        return self.run_logic(ModelComparisonContext(train_datasets, test_datasets, models))
 
     @abc.abstractmethod
-    def _run(self, datasets_models: List[Tuple[Dataset, Dataset, Any]]):
+    def run_logic(self, context: ModelComparisonContext):
+        """Implement here logic of check."""
         pass
 
 
