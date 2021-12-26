@@ -14,7 +14,7 @@ import pandas as pd
 from scipy.stats import kurtosis
 from sklearn.base import BaseEstimator
 
-from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
+from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.metrics import ModelType, task_type_validation
 from deepchecks.utils.strings import format_number
 
@@ -91,7 +91,8 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         """
         def min_kurtosis_condition(result: float) -> ConditionResult:
             if result < min_kurtosis:
-                return ConditionResult(False, f'kurtosis: {format_number(result, 5)}')
+                return ConditionResult(False, f'kurtosis: {format_number(result, 5)}',
+                                       category=ConditionCategory.WARN)
             else:
                 return ConditionResult(True)
 

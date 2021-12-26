@@ -19,7 +19,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import RobustScaler, OrdinalEncoder
 
-from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
+from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.validation import validate_model
 from deepchecks.errors import DeepchecksValueError
@@ -191,7 +191,8 @@ class UnusedFeatures(TrainTestBaseCheck):
             if len(result['unused features']['high variance']) > max_high_variance_unused_features:
                 return ConditionResult(
                     False,
-                    f'Found {result["unused features"]["high variance"]} unused high variance features')
+                    f'Found {result["unused features"]["high variance"]} unused high variance features',
+                    category=ConditionCategory.WARN)
             else:
                 return ConditionResult(True)
 
