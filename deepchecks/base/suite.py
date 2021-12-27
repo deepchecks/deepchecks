@@ -12,13 +12,14 @@
 # pylint: disable=broad-except
 import abc
 from collections import OrderedDict
-from typing import Union, List, Optional, Tuple, Any, Container
+from typing import Union, List, Optional, Tuple, Any, Container, Mapping
 
 from deepchecks.base.display_suite import display_suite_result, ProgressBar
 from deepchecks.errors import DeepchecksValueError
 from deepchecks.base import Dataset
-from deepchecks.base.check import (CheckResult, TrainTestBaseCheck,
-                                   SingleDatasetBaseCheck, ModelOnlyBaseCheck, CheckFailure, ModelComparisonBaseCheck)
+from deepchecks.base.check import (CheckResult, TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck,
+                                   CheckFailure, ModelComparisonBaseCheck, ModelComparisonContext)
+
 from deepchecks.utils.ipython import is_ipython_display
 
 
@@ -196,7 +197,7 @@ class ModelComparisonSuite(BaseSuite):
     def run(self,
             train_datasets: Union[Dataset, Container[Dataset]],
             test_datasets: Union[Dataset, Container[Dataset]],
-            models: Container[Any]
+            models: Union[Container[Any], Mapping[str, Any]]
             ) -> SuiteResult:
         """Run all checks.
 
@@ -211,8 +212,7 @@ class ModelComparisonSuite(BaseSuite):
         Raises:
              ValueError if check_datasets_policy is not of allowed types
         """
-        if any(it is None for it in (train_datasets, test_datasets, models)):
-            raise DeepchecksValueError('All parameters must be passed to the suite!')
+        context = ModelComparisonContext(train_datasets, test_datasets, models)
 
         # Create progress bar
         progress_bar = ProgressBar(self.name, len(self.checks))
@@ -221,7 +221,7 @@ class ModelComparisonSuite(BaseSuite):
         results = []
         for check in self.checks.values():
             try:
-                check_result = check.run(train_datasets, test_datasets, models)
+                check_result = check.run_logic(context)
                 results.append(check_result)
             except Exception as exp:
                 results.append(CheckFailure(check.__class__, exp))
