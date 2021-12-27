@@ -24,6 +24,7 @@ header:
     - 'examples/'
     - 'docs/'
     - 'deepchecks/ppscore.py'
+    - '.projectignore'
   comment: on-failure
 
 dependency:
