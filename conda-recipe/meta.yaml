@@ -1,6 +1,8 @@
+{% set data = load_setup_py_data() %}
+
 package:
   name: deepchecks
-  version: "0.0.15_noarch"
+  version: {{ data.get('version') }}
 
 about:
   home: https://github.com/deepchecks/deepchecks

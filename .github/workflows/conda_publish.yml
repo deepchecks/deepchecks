@@ -1,0 +1,24 @@
+name: publish_conda
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  conda-publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up conda env
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        auto-update-conda: true
+        python-version: 3.9
+        conda-build-version: 3.21.7
+    - name: publish-to-conda
+      uses: maxibor/conda-package-publish-action@v1.1
+      with:
+        subDir: 'conda-recipe'
+        AnacondaToken: ${{ secrets.ANACONDA_TOKEN }}
+
+        #de-a1b2e610-0f68-4990-8993-022b9c1797cc
