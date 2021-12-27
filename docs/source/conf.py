@@ -78,6 +78,7 @@ extensions = [
     'nbsphinx_link',
 ]
 
+
 # If true, the reST sources are included in the HTML build as _sources/name. The default is True.
 #
 html_copy_source = True
@@ -126,7 +127,7 @@ templates_path = ['_templates']
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 #
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'api', 'examples']
 
 # -- nbsphinx extension settings --------------------------------------------------
 
