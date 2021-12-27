@@ -47,6 +47,6 @@ def test_task_type_check_class_with_no_proba(iris_dataset_single_class):
 
     assert_that(calling(task_type_check).with_args(clf, iris_dataset_single_class),
                 raises(DeepchecksValueError,
-                       'Model is a sklearn classification model (a subclass of ClassifierMixin), but lacks the'
-                       ' predict_proba method. Please train the model with probability=True, or skip / ignore this'
-                       ' check.'))
+                       r'Model is a sklearn classification model \(a subclass of ClassifierMixin\), but lacks the'
+                       r' predict_proba method. Please train the model with probability=True, or skip \/ ignore this'
+                       r' check.'))
