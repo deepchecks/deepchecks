@@ -719,3 +719,27 @@ def test_dataset_label_with_name(iris):
     # Assert
     assert_that(dataset.features, equal_to(list(data.columns)))
     assert_that(dataset.data.columns, contains_exactly(*data.columns, 'actual'))
+
+
+def test_train_test_split(iris):
+    # Arrange
+    label = iris['target']
+    data = iris.drop('target', axis=1)
+    dataset = Dataset(data, label, label_name='actual')
+    # Act
+    train_ds, test_ds = dataset.train_test_split()
+    # Assert
+    assert_that(train_ds.n_samples, 150)
+    assert_that(test_ds.n_samples, 50)
+
+
+def test_train_test_split_changed(iris):
+    # Arrange
+    label = iris['target']
+    data = iris.drop('target', axis=1)
+    dataset = Dataset(data, label, label_name='actual')
+    # Act
+    train_ds, test_ds = dataset.train_test_split(0.1,0.2)
+    # Assert
+    assert_that(train_ds.n_samples, 15)
+    assert_that(test_ds.n_samples, 10)

@@ -16,6 +16,7 @@ import logging
 
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import is_categorical, infer_categorical_features
@@ -380,6 +381,41 @@ class Dataset:
     def __len__(self) -> int:
         """Return number of samples in the member dataframe."""
         return self.n_samples
+
+    def train_test_split(self,
+                         train_size: t.Union[int, float] = None,
+                         test_size: t.Union[int, float] = None,
+                         random_state: int = 42,
+                         shuffle: bool = True) -> t.Tuple[TDataset, TDataset]:
+        """Split dataset into random train and test.
+
+        Args:
+            train_size (float or int):
+                If float, should be between 0.0 and 1.0 and represent the proportion
+                of the dataset to include in the test split. If int, represents the
+                absolute number of test samples. If None, the value is set to the
+                complement of the train size. If ``train_size`` is also None, it will
+                be set to 0.25.
+            train_size (float or int):
+                If float, should be between 0.0 and 1.0 and represent the
+                proportion of the dataset to include in the train split. If
+                int, represents the absolute number of train samples. If None,
+                the value is automatically set to the complement of the test size.
+            random_state (int):
+                The random state to use for shuffling. (default=42)
+            shuffle (bool):
+                Whether or not to shuffle the data before splitting. (default=True)
+
+        Returns:
+            Train Dataset
+            Test Dataset
+        """
+        train_df, test_df = train_test_split(self._data,
+                                             test_size=test_size,
+                                             train_size=train_size,
+                                             random_state=random_state,
+                                             shuffle=shuffle)
+        return self.copy(train_df), self.copy(test_df)
 
     @staticmethod
     def _infer_categorical_features(
