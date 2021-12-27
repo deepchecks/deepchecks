@@ -1,0 +1,18 @@
+# This file contains a list of match patterns that instructs
+# anaconda-project to exclude certain files or directories when
+# building a project archive. The file format is a simplfied
+# version of Git's .gitignore file format. In fact, if the
+# project is hosted in a Git repository, these patterns can be
+# merged into the .gitignore file and this file removed.
+# See the anaconda-project documentation for more details.
+
+# Python caching
+*.pyc
+*.pyd
+*.pyo
+__pycache__/
+
+# Jupyter & Spyder stuff
+.ipynb_checkpoints/
+.Trash-*/
+/.spyderproject

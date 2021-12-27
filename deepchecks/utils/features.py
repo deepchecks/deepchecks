@@ -110,7 +110,7 @@ def _built_in_importance(model: t.Any, dataset: 'base.Dataset') -> t.Optional[pd
         normalized_feature_importance_values = model.feature_importances_/model.feature_importances_.sum()
         return pd.Series(normalized_feature_importance_values, index=dataset.features)
     elif 'coef_' in dir(model):  # Linear models
-        coef = np.abs(model.coef_)
+        coef = np.abs(model.coef_.flatten())
         coef = coef / coef.sum()
         return pd.Series(coef, index=dataset.features)
     else:
