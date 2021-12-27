@@ -11,6 +11,7 @@
 """Contains unit tests for the RegressionErrorDistribution check."""
 from hamcrest import assert_that, calling, raises, has_items, close_to
 
+from deepchecks import ConditionCategory
 from deepchecks.base import Dataset
 from deepchecks.checks.performance import RegressionErrorDistribution
 from deepchecks.errors import DeepchecksValueError
@@ -63,7 +64,8 @@ def test_condition_absolute_kurtosis_not_greater_than_not_passed(diabetes_split_
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Kurtosis value not less than -0.1',
-                               details='kurtosis: -0.92572')
+                               details='kurtosis: -0.92572',
+                               category=ConditionCategory.WARN)
     ))
 
 
@@ -80,6 +82,7 @@ def test_condition_absolute_kurtosis_not_greater_than_passed(diabetes_split_data
                                name='Kurtosis value not less than -0.1')
     )) 
 
+
 def test_condition_absolute_kurtosis_not_greater_than_not_passed_0_max(diabetes_split_dataset_and_model):
     _, test, clf = diabetes_split_dataset_and_model
 
@@ -91,5 +94,6 @@ def test_condition_absolute_kurtosis_not_greater_than_not_passed_0_max(diabetes_
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Kurtosis value not less than 1',
-                               details='kurtosis: 0.02867')
+                               details='kurtosis: 0.02867',
+                               category=ConditionCategory.WARN)
     )) 

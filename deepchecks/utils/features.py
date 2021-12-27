@@ -165,7 +165,7 @@ def get_importance(name: str, feature_importances: pd.Series, ds: 'base.Dataset'
     """Return importance based on feature importance or label/date/index first."""
     if name in feature_importances.keys():
         return feature_importances[name]
-    if name in [ds.label_name, ds.date_name, ds.index_name]:
+    if name in [ds.label_name, ds.datetime_name, ds.index_name]:
         return 1
     return 0
 

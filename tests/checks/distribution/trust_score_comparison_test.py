@@ -12,7 +12,7 @@
 from hamcrest import assert_that, has_entries, close_to, calling, raises
 from sklearn.ensemble import AdaBoostClassifier
 
-from deepchecks import CheckResult, Dataset
+from deepchecks import CheckResult, Dataset, ConditionCategory
 from deepchecks.checks import TrustScoreComparison
 from deepchecks.errors import DeepchecksValueError
 from tests.checks.utils import equal_condition_result
@@ -89,7 +89,8 @@ def test_condition_mean_score_percent_decline_fail():
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name='Mean trust score decline is not greater than 10.00%',
-        details='Found decline of: -33.33%'
+        details='Found decline of: -33.33%',
+        category=ConditionCategory.WARN
     ))
 
 
