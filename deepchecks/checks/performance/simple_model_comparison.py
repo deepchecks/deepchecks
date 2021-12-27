@@ -139,12 +139,12 @@ class SimpleModelComparison(TrainTestBaseCheck):
 
         y_test = test_ds.label_col.values
 
-        scorer_name, scorer = get_scorer_single(model, train_ds, self.scorer)
+        scorer = get_scorer_single(model, train_ds, self.scorer)
 
         simple_score = scorer(_DummyModel, Dataset(pd.DataFrame(simple_pred), label=y_test))
         pred_score = scorer(model, Dataset(test_ds.features_columns, label=y_test))
 
-        return simple_score, pred_score, scorer_name
+        return simple_score, pred_score, scorer.name
 
     def _simple_model_comparison(self, train_dataset: Dataset, test_dataset: Dataset, model):
         Dataset.validate_dataset(train_dataset)

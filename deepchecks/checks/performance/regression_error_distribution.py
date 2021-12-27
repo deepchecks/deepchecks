@@ -9,12 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """The regression_error_distribution check module."""
-import matplotlib.pyplot as plt
+import plotly.express as px
 import pandas as pd
 from scipy.stats import kurtosis
 from sklearn.base import BaseEstimator
 
-from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
+from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.metrics import ModelType, task_type_validation
 from deepchecks.utils.strings import format_number
 
@@ -69,15 +69,18 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         n_smallest_diff.name = n_smallest_diff.name + ' Prediction Difference'
         n_smallest = pd.concat([dataset.data.loc[n_smallest_diff.index], n_smallest_diff], axis=1)
 
-        def display_hist():
-            diff = y_test - y_pred
-            diff.hist(bins=40)
-            plt.title('Histogram of prediction errors')
-            plt.xlabel(f'{dataset.label_name} prediction error')
-            plt.ylabel('Count')
+        display = [
+            px.histogram(
+                x=diff.values,
+                nbins=40,
+                title='Histogram of prediction errors',
+                labels={'x': f'{dataset.label_name} prediction error', 'y': 'Count'},
+                width=700, height=500
+            ),
+            'Largest over estimation errors:', n_largest,
+            'Largest under estimation errors:', n_smallest
+        ]
 
-        display = [display_hist, 'Largest over estimation errors:', n_largest,
-                   'Largest under estimation errors:', n_smallest]
         return CheckResult(value=kurtosis_value, display=display)
 
     def add_condition_kurtosis_not_less_than(self, min_kurtosis: float = -0.1):
@@ -88,7 +91,8 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         """
         def min_kurtosis_condition(result: float) -> ConditionResult:
             if result < min_kurtosis:
-                return ConditionResult(False, f'kurtosis: {format_number(result, 5)}')
+                return ConditionResult(False, f'kurtosis: {format_number(result, 5)}',
+                                       category=ConditionCategory.WARN)
             else:
                 return ConditionResult(True)
 

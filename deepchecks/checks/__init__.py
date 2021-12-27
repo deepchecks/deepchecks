@@ -51,7 +51,6 @@ from .distribution import (
 )
 
 from .performance import (
-
     PerformanceReport,
     ConfusionMatrixReport,
     RocReport,
@@ -60,7 +59,8 @@ from .performance import (
     SegmentPerformance,
     RegressionSystematicError,
     RegressionErrorDistribution,
-    ClassPerformance
+    ClassPerformance,
+    MultiModelPerformanceReport
 )
 
 
@@ -112,4 +112,5 @@ __all__ = [
     'RegressionSystematicError',
     'RegressionErrorDistribution',
     'ClassPerformance',
+    'MultiModelPerformanceReport'
 ]
