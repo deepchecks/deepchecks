@@ -183,6 +183,11 @@ def task_type_check(
             raise errors.DeepchecksValueError(
                 'Model was identified as a regression model, but label column was found to contain strings.'
             )
+        elif isinstance(model, ClassifierMixin):
+            raise errors.DeepchecksValueError(
+                'Model is a sklearn classification model (a subclass of ClassifierMixin), but lacks the '
+                'predict_proba method. Please train the model with probability=True, or skip / ignore this check.'
+            )
         else:
             return ModelType.REGRESSION
     else:
