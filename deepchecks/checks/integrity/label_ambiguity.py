@@ -66,7 +66,8 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
         group_unique_labels = group_unique_data.nunique()[label_col]
 
         num_ambiguous = 0
-        display = pd.DataFrame(columns=[dataset.label_name, *dataset.features])
+        ambiguous_label_name = 'Observed Labels'
+        display = pd.DataFrame(columns=[ambiguous_label_name, *dataset.features])
 
         for num_labels, group_data in sorted(zip(group_unique_labels, group_unique_data),
                                              key=lambda x: x[0], reverse=True):
@@ -75,15 +76,18 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
 
             group_df = group_data[1]
             sample_values = dict(group_df[dataset.features].iloc[0])
-            labels = list(group_df[label_col].unique())
+            labels = tuple(group_df[label_col].unique())
             n_data_sample = group_df.shape[0]
             num_ambiguous += n_data_sample
 
-            display = display.append({label_col: labels, **sample_values}, ignore_index=True)
+            display = display.append({ambiguous_label_name: labels, **sample_values}, ignore_index=True)
 
-        display.set_index(label_col)
+        display = display.set_index(ambiguous_label_name)
 
-        display = None if display.empty else display.head(self.n_to_show)
+        explanation = ('Each row in the table shows an example of a data sample '
+                       'and the it\'s observed labels as a found in the dataset.')
+
+        display = None if display.empty else [explanation, display.head(self.n_to_show)]
 
         percent_ambiguous = num_ambiguous/dataset.n_samples
 
