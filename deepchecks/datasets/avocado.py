@@ -1,3 +1,14 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Module for working with the avocado dataset."""
 import typing as t
 import pandas as pd
 import joblib
@@ -6,15 +17,16 @@ from deepchecks import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
 
-_MODEL_URL = "https://figshare.com/ndownloader/files/32393723"
-_FULL_DATA_URL = "https://figshare.com/ndownloader/files/32393729"
-_TRAIN_DATA_URL = "https://figshare.com/ndownloader/files/32393732"
-_TEST_DATA_URL = "https://figshare.com/ndownloader/files/32393726"
-_target = "AveragePrice"
-_CAT_FEATURES = ["region", "type"]
+_MODEL_URL = 'https://figshare.com/ndownloader/files/32393723'
+_FULL_DATA_URL = 'https://figshare.com/ndownloader/files/32393729'
+_TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/32393732'
+_TEST_DATA_URL = 'https://figshare.com/ndownloader/files/32393726'
+_target = 'AveragePrice'
+_CAT_FEATURES = ['region', 'type']
 
 
-def load_data(format: str = 'Dataset', as_train_test: bool = True) -> t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
+def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
+        t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
     """Load and returns the Avocado dataset (regression).
 
     The avocado dataset contains historical data on avocado prices and sales volume in multiple US markets
@@ -46,7 +58,7 @@ def load_data(format: str = 'Dataset', as_train_test: bool = True) -> t.Union[t.
     ==============      =============
 
     Args:
-        format (str, default 'Dataset'):
+        data_format (str, default 'Dataset'):
             Represent the format of the returned value. Can be 'Dataset'|'Dataframe'
             'Dataset' will return the data as a Dataset object
             'Dataframe' will return the data as a pandas Dataframe object
@@ -58,17 +70,15 @@ def load_data(format: str = 'Dataset', as_train_test: bool = True) -> t.Union[t.
             Otherwise, returns a single object.
 
     Returns:
-        data (Union[deepchecks.Dataset, pd.DataFrame]) the data object, corresponding to the format attribute.
+        data (Union[deepchecks.Dataset, pd.DataFrame]) the data object, corresponding to the data_format attribute.
 
         (train_data, test_data) (Tuple[Union[deepchecks.Dataset, pd.DataFrame], Union[deepchecks.Dataset, pd.DataFrame])
            tuple if as_train_test = True. Tuple of two objects represents the dataset splitted to train and test sets.
-
     """
-
     if not as_train_test:
         dataset = pd.read_csv(_FULL_DATA_URL)
 
-        if format == 'Dataset':
+        if data_format == 'Dataset':
             dataset = Dataset(dataset, label_name='AveragePrice', cat_features=_CAT_FEATURES, datetime_name='Date')
 
         return dataset
@@ -76,7 +86,7 @@ def load_data(format: str = 'Dataset', as_train_test: bool = True) -> t.Union[t.
         train = pd.read_csv(_TRAIN_DATA_URL)
         test = pd.read_csv(_TEST_DATA_URL)
 
-        if format == 'Dataset':
+        if data_format == 'Dataset':
             train = Dataset(train, label_name='AveragePrice', cat_features=_CAT_FEATURES, datetime_name='Date')
             test = Dataset(test, label_name='AveragePrice', cat_features=_CAT_FEATURES, datetime_name='Date')
 
@@ -90,6 +100,7 @@ def load_fitted_model():
         model (Joblib model) the model/pipeline that was trained on the Avocado dataset.
 
     """
-    model = joblib.load(urlopen(_MODEL_URL))
+    with urlopen(_MODEL_URL) as f:
+        model = joblib.load(f)
 
     return model
