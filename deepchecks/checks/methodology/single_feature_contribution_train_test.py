@@ -109,7 +109,7 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
             title='PPS Per Column',
             xaxis_title='Column',
             yaxis_title='PPS (Predictive Power Score)',
-            yaxis_range=[0, 1],
+            yaxis_range=[0, 1.05],
             legend=dict(x=1.0, y=1.0),
             barmode='group',
             width=800, height=500
