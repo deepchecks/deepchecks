@@ -62,6 +62,7 @@ class PerformanceReport(TrainTestBaseCheck):
         scorers = get_scorers_list(model, test_dataset, self.alternative_scorers, multiclass_avg=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
         if task_type == ModelType.MULTICLASS:
+            x = ['Class', 'Dataset']
             results = []
             for dataset in datasets.keys():
                 for scorer in scorers:
@@ -74,18 +75,22 @@ class PerformanceReport(TrainTestBaseCheck):
             results_df = pd.DataFrame(results, columns=['Dataset', 'Value', 'Metric', 'Class'])
 
         else:
+            x = 'Dataset'
             results = []
-            for scorer in scorers:
-                score_result = scorer(model, test_dataset)
-                if scorer.is_negative_scorer():
-                    score_result = -score_result
-                results.append([score_result, scorer.name])
+            for dataset in datasets.keys():
+                for scorer in scorers:
+                    score_result = scorer(model, datasets[dataset])
+                    if scorer.is_negative_scorer():
+                        score_result = -score_result
+                    results.append([dataset, score_result, scorer.name])
 
-            results_df = pd.DataFrame(results, columns=['Value', 'Metric'])
-
-        fig = px.bar(results_df, x=['Class', 'Dataset'], y='Value', color='Dataset', barmode='group',
+            results_df = pd.DataFrame(results, columns=['Dataset', 'Value', 'Metric'])
+        fig = px.bar(results_df, x=x, y='Value', color='Dataset', barmode='group',
                         facet_col='Metric', facet_col_spacing=0.05)
-        fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60)
+        if task_type == ModelType.MULTICLASS:
+            fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60)
+        else:
+            fig.update_xaxes(title=None)
         fig.update_yaxes(title=None, matches=None)
         fig.for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
         fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
