@@ -16,6 +16,7 @@ import logging
 
 import numpy as np
 import pandas as pd
+from pandas.core.dtypes.common import is_float_dtype, is_numeric_dtype
 from sklearn.model_selection import train_test_split
 
 from deepchecks.utils.dataframes import select_from_dataframe
@@ -80,6 +81,9 @@ class Dataset:
         max_float_categories (int, default 5):
             The maximum number of categories in a float column in order for it to be inferred as a
             categorical feature.
+        problem_type (str, default None):
+            Used to assume problem type if not found on model. Values ('binary', 'multilabel', 'regression')
+            If None then problem type is inferred from label is_categorical logic.
     """
 
     _features: t.List[Hashable]
@@ -93,6 +97,7 @@ class Dataset:
     _data: pd.DataFrame
     _max_categorical_ratio: float
     _max_categories: int
+    _problem_type: str
 
     def __init__(
             self,
@@ -109,7 +114,8 @@ class Dataset:
             datetime_args: t.Optional[t.Dict] = None,
             max_categorical_ratio: float = 0.01,
             max_categories: int = 30,
-            max_float_categories: int = 5
+            max_float_categories: int = 5,
+            problem_type: str = None
     ):
 
         self._data = df.copy()
@@ -243,6 +249,16 @@ class Dataset:
                 self._datetime_column = pd.to_datetime(self._datetime_column, **self._datetime_args)
             else:
                 self._data[self._datetime_name] = pd.to_datetime(self._data[self._datetime_name], **self._datetime_args)
+
+        if problem_type:
+            self._problem_type = problem_type
+        else:
+            self._problem_type = self._infer_problem_type(
+                self.label_col,
+                max_categorical_ratio=max_categorical_ratio,
+                max_categories=max_categories,
+                max_float_categories=max_float_categories
+            )
 
     @classmethod
     def from_numpy(
@@ -382,6 +398,11 @@ class Dataset:
         """Return number of samples in the member dataframe."""
         return self.n_samples
 
+    @property
+    def problem_type(self):
+        self.validate_label()
+        return self._problem_type
+
     def train_test_split(self,
                          train_size: t.Union[int, float, None] = None,
                          test_size: t.Union[int, float] = 0.25,
@@ -419,6 +440,37 @@ class Dataset:
                                              shuffle=shuffle,
                                              stratify=stratify)
         return self.copy(train_df), self.copy(test_df)
+
+    @staticmethod
+    def _infer_problem_type(
+            label_col: pd.Series,
+            max_categorical_ratio: float,
+            max_categories: int,
+            max_float_categories: int
+    ):
+        n_unique = label_col.nunique(dropna=True)
+        n_samples = len(label_col.dropna())
+
+        if not is_numeric_dtype(label_col):
+            if n_unique <= 2:
+                return 'binary'
+            else:
+                return 'multiclass'
+        elif is_float_dtype(label_col):
+            if n_unique <= max_float_categories:
+                if n_unique <= 2:
+                    return 'binary'
+                else:
+                    return 'multiclass'
+            else:
+                return 'regression'
+        elif n_unique <= max_categories and n_unique / n_samples < max_categorical_ratio:
+            if n_unique <= 2:
+                return 'binary'
+            else:
+                return 'multiclass'
+        else:
+            return 'regression'
 
     @staticmethod
     def _infer_categorical_features(

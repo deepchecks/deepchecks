@@ -15,6 +15,7 @@ import pandas as pd
 
 from deepchecks import Dataset, ConditionResult
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck
+from deepchecks.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
@@ -59,6 +60,9 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
         dataset: Dataset = Dataset.validate_dataset(dataset)
         dataset = dataset.select(self.columns, self.ignore_columns)
         dataset.validate_label()
+
+        if (model and model.is_regression()) or (dataset.problem_type == 'regression'):
+            raise DeepchecksValueError('Task type cannot be regression')
 
         label_col = dataset.label_name
 
