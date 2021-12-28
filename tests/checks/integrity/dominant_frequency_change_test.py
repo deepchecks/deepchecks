@@ -62,10 +62,10 @@ def test_leakage(iris_clean):
     row = result['petal length (cm)']
     # Assert
     assert_that(row['Value'], equal_to(5.1))
-    assert_that(row['Reference data %'], close_to(5.7, 0.05))
-    assert_that(row['Tested data %'], close_to(55.5, 0.06))
-    assert_that(row['Reference data #'], equal_to(6))
-    assert_that(row['Tested data #'], equal_to(25))
+    assert_that(row['Train data %'], close_to(5.7, 0.05))
+    assert_that(row['Test data %'], close_to(55.5, 0.06))
+    assert_that(row['Train data #'], equal_to(6))
+    assert_that(row['Test data #'], equal_to(25))
     assert_that(row['P value'], close_to(0, 0.00001))
 
 
