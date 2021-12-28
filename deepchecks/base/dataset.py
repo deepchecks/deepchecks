@@ -383,8 +383,8 @@ class Dataset:
         return self.n_samples
 
     def train_test_split(self,
-                         train_size: t.Union[int, float] = 0.75,
-                         test_size: t.Union[int, float] = None,
+                         train_size: t.Union[int, float] = None,
+                         test_size: t.Union[int, float] = 0.25,
                          random_state: int = 42,
                          shuffle: bool = True) -> t.Tuple[TDataset, TDataset]:
         """Split dataset into random train and test datasets.
@@ -392,11 +392,11 @@ class Dataset:
         Args:
             train_size (float or int):
                 If float, should be between 0.0 and 1.0 and represent the proportion of the dataset to include in
-                the train split. If int, represents the absolute number of train samples. (default = 0.75)
+                the train split. If int, represents the absolute number of train samples. If None, the value is
+                automatically set to the complement of the test size.(default = None)
             test_size (float or int):
                 If float, should be between 0.0 and 1.0 and represent the proportion of the dataset to include in the
-                test split. If int, represents the absolute number of test samples. If None, the value is
-                automatically set to the complement of the train size. (default = None)
+                test split. If int, represents the absolute number of test samples. (default = 0.25)
             random_state (int):
                 The random state to use for shuffling. (default=42)
             shuffle (bool):

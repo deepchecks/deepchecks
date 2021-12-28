@@ -739,7 +739,7 @@ def test_train_test_split_changed(iris):
     data = iris.drop('target', axis=1)
     dataset = Dataset(data, label, label_name='actual')
     # Act
-    train_ds, test_ds = dataset.train_test_split(0.1,0.2)
+    train_ds, test_ds = dataset.train_test_split(train_size=0.2, test_size=0.1)
     # Assert
     assert_that(train_ds.n_samples, 15)
     assert_that(test_ds.n_samples, 10)
