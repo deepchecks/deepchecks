@@ -136,6 +136,7 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
         scorers = get_scorers_list(first_model, first_test_ds, self.alternative_scorers, multiclass_avg=False)
 
         if context.task_type == ModelType.MULTICLASS:
+            x = ['Class', 'Model']
             results = []
             for _, test, model, model_name in context:
                 for scorer in scorers:
@@ -146,13 +147,8 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
                             value = -value
                         results.append([model_name, value, scorer.name, class_i])
             results_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric', 'Class'])
-            fig = px.bar(results_df, x=['Class', 'Model'], y='Value', color='Model', barmode='group',
-                         facet_col='Metric', facet_col_spacing=0.05)
-            fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60)
-            fig.update_yaxes(title=None, matches=None)
-            fig.for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-            fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
         else:
+            x = 'Model'
             results = []
             for _, test, model, model_name in context:
                 for scorer in scorers:
@@ -162,11 +158,15 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
                     results.append([model_name, score_result, scorer.name])
 
             results_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric'])
-            fig = px.bar(results_df, x='Model', y='Value', color='Model', barmode='group',
-                         facet_col='Metric', facet_col_spacing=0.05)
+
+        fig = px.bar(results_df, x=x, y='Value', color='Model', barmode='group',
+                        facet_col='Metric', facet_col_spacing=0.05)
+        if context.task_type == ModelType.MULTICLASS:
+            fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60)
+        else:
             fig.update_xaxes(title=None)
-            fig.update_yaxes(title=None, matches=None)
-            fig.for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-            fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+        fig.update_yaxes(title=None, matches=None)
+        fig.for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+        fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
 
         return CheckResult(results_df, display=[fig])
