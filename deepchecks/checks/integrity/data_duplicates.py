@@ -11,12 +11,13 @@
 """module contains Data Duplicates check."""
 from typing import Union, List
 
+import numpy as np
 import pandas as pd
 
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.strings import format_percent
+from deepchecks.utils.strings import format_percent, format_list
 from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
@@ -89,10 +90,13 @@ class DataDuplicates(SingleDatasetBaseCheck):
             most_duplicates = duplicates_counted[duplicates_counted['Number of Duplicates'] > 1]. \
                 nlargest(self.n_to_show, ['Number of Duplicates'])
 
-            most_duplicates['Index'] = \
-                most_duplicates.reset_index(drop=True).index
+            indexes = []
+            for row in most_duplicates.iloc():
+                indexes.append(format_list(df.index[np.all(df == row[data_columns], axis=1)].to_list()))
 
-            most_duplicates = most_duplicates.set_index(['Index', 'Number of Duplicates'])
+            most_duplicates['Instances'] = indexes
+
+            most_duplicates = most_duplicates.set_index(['Instances', 'Number of Duplicates'])
 
             text = f'{format_percent(percent_duplicate)} of data samples are duplicates'
             explanation = 'Each row in the table shows an example of duplicate data and the number of times it appears.'
