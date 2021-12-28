@@ -10,12 +10,13 @@
 #
 """The single_feature_contribution check module."""
 import typing as t
+import numpy as np
+import plotly.graph_objects as go
 
 import deepchecks.ppscore as pps
 from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
-from deepchecks.utils.plot import create_colorbar_barchart_for_check
+from deepchecks.utils.plot import create_colorbar_barchart_for_check, colors
 from deepchecks.utils.typing import Hashable
-
 
 __all__ = ['SingleFeatureContributionTrainTest']
 
@@ -80,26 +81,67 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         s_pps_test = df_pps_test.set_index('x', drop=True)['ppscore']
         s_difference = s_pps_train - s_pps_test
 
-        def plot():
-            # For display shows only positive differences
-            s_difference_to_display = s_difference.apply(lambda x: 0 if x < 0 else x)
-            s_difference_to_display = s_difference_to_display.sort_values(ascending=False).head(self.n_show_top)
-            # Create graph:
-            create_colorbar_barchart_for_check(x=s_difference_to_display.index, y=s_difference_to_display.values,
-                                               ylabel='PPS Difference')
+        s_difference_to_display = np.abs(s_difference).apply(lambda x: 0 if x < 0 else x)
+        s_difference_to_display = s_difference_to_display.sort_values(ascending=False).head(self.n_show_top)
 
-        text = ['The PPS represents the ability of a feature to single-handedly predict another feature or label.',
-                'A high PPS (close to 1) can mean that this feature\'s success in predicting the label is actually due '
-                'to data',
-                'leakage - meaning that the feature holds information that is based on the label to begin with.',
-                '',
-                'When we compare train PPS to test PPS, A high difference can strongly indicate leakage, as a '
-                'feature',
-                'that was powerful in train but not in test can be explained by leakage in train that is not '
-                'relevant to a new dataset.']
+        s_pps_train_to_display = s_pps_train[s_difference_to_display.index]
+        s_pps_test_to_display = s_pps_test[s_difference_to_display.index]
 
-        return CheckResult(value=s_difference.to_dict(), display=[plot, *text],
-                           header='Single Feature Contribution Train-Test')
+        fig = go.Figure()
+        fig.add_trace(go.Bar(x=s_pps_train_to_display.index,
+                             y=s_pps_train_to_display,
+                             name='Train',
+                             marker_color=colors['Train'], text=s_pps_train_to_display.round(2), textposition='outside'
+                             ))
+        fig.add_trace(go.Bar(x=s_pps_test_to_display.index,
+                             y=s_pps_test_to_display,
+                             name='Test',
+                             marker_color=colors['Test'], text=s_pps_test_to_display.round(2), textposition='outside'
+                             ))
+        fig.add_trace(go.Scatter(x=s_difference_to_display.index,
+                                 y=s_difference_to_display,
+                                 name='Train-Test Difference',
+                                 marker=dict(symbol='circle', size=15),
+                                 line=dict(color='#aa57b5', width=5)
+                                 ))
+
+        fig.update_layout(
+            title='PPS Per Column',
+            xaxis_title='Column',
+            yaxis_title='PPS (Predictive Power Score)',
+            yaxis_range=[0, 1],
+            legend=dict(x=1.0, y=1.0),
+            barmode='group',
+            width=800, height=500
+        )
+
+        pps_url = 'https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598'
+        pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
+
+        text = [
+            f'The PPS ({pps_html_url}) represents the ability of a feature to single-handedly predict another feature'
+            ' or label.',
+            '',
+            '<u>In the graph above</u>, we should suspect we have problems in our data if:',
+            ''
+            '1. <b>Train dataset PPS values are high:</b>',
+            'Can indicate that this feature\'s success in predicting the label is actually due to data leakage, ',
+            '   meaning that the feature holds information that is based on the label to begin with.',
+            '2. <b>Large difference between train and test PPS</b> (train PPS is larger):',
+            '   An even more powerful indication of data leakage, as a feature that was powerful in train but not in '
+            'test ',
+            '   can be explained by leakage in train that is not relevant to a new dataset.',
+            '3. <b>Large difference between test and train PPS</b> (test PPS is larger):',
+            '   An anomalous value, could indicate  drift in test dataset that caused a coincidental correlation to '
+            'the target label.'
+    ]
+
+
+
+        ret_value = {'train': s_pps_train.to_dict(), 'test': s_pps_test.to_dict(),
+                     'train-test difference': s_difference.to_dict()}
+
+        return CheckResult(value=ret_value, display=[fig, *text], header='Single Feature Contribution Train-Test')
 
     def add_condition_feature_pps_difference_not_greater_than(self: FC, threshold: float = 0.2) -> FC:
         """Add new condition.
@@ -110,10 +152,11 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         Args:
             threshold: train test ps difference upper bound
         """
-        def condition(value: t.Dict[Hashable, float]) -> ConditionResult:
+
+        def condition(value: t.Dict[Hashable, t.Dict[Hashable, float]]) -> ConditionResult:
             failed_features = [
                 feature_name
-                for feature_name, pps_diff in value.items()
+                for feature_name, pps_diff in value['train-test difference'].items()
                 if pps_diff > threshold
             ]
 
@@ -129,3 +172,33 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         return \
             self.add_condition(f'Train-Test features\' {pps_html_url} (PPS) difference is not greater than {threshold}',
                                condition)
+
+    def add_condition_feature_pps_in_train_not_greater_than(self: FC, threshold: float = 0.2) -> FC:
+        """Add new condition.
+
+        Add condition that will check that train dataset feature pps is not greater than X.
+
+        Args:
+            threshold: pps upper bound
+        """
+
+        def condition(value: t.Dict[Hashable, t.Dict[Hashable, float]]) -> ConditionResult:
+            failed_features = [
+                feature_name
+                for feature_name, pps_value in value['train'].items()
+                if pps_value > threshold
+            ]
+
+            if failed_features:
+                message = f'Features in train dataset with PPS above threshold: {", ".join(map(str, failed_features))}'
+                return ConditionResult(False, message)
+            else:
+                return ConditionResult(True)
+
+        pps_url = 'https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598'
+        pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
+
+        return \
+            self.add_condition(f'Train features\' {pps_html_url} (PPS) is not greater than {threshold}',
+                               condition)
+
