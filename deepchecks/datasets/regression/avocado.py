@@ -8,9 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The avocado dataset contains historical data on avocado prices and sales volume in multiple US markets
-    https://www.kaggle.com/neuromusic/avocado-prices.
-"""
+"""The avocado dataset contains historical data on avocado prices and sales volume in multiple US markets."""
 import typing as t
 import pandas as pd
 import joblib
