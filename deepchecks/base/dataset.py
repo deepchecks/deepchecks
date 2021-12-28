@@ -387,7 +387,7 @@ class Dataset:
                          test_size: t.Union[int, float] = 0.25,
                          random_state: int = 42,
                          shuffle: bool = True,
-                         stratify: bool = False) -> t.Tuple[TDataset, TDataset]:
+                         stratify: t.Union[t.List, pd.Series, np.ndarray, bool] = False) -> t.Tuple[TDataset, TDataset]:
         """Split dataset into random train and test datasets.
 
         Args:
@@ -402,18 +402,22 @@ class Dataset:
                 The random state to use for shuffling. (default=42)
             shuffle (bool):
                 Whether or not to shuffle the data before splitting. (default=True)
-            stratify (bool):
-                If True, data is split in a stratified fashion, using the class labels. (default=False)
+            stratify (List, pd.Series, np.ndarray, bool):
+                If True, data is split in a stratified fashion, using the class labels. If array-like, data is split in
+                a stratified fashion, using this as class labels. (default=False)
         Returns:
             (Dataset) Dataset containing train split data.
             (Dataset) Dataset containing test split data.
         """
+        if isinstance(stratify, bool):
+            stratify = self.label_col if stratify else None
+
         train_df, test_df = train_test_split(self._data,
                                              test_size=test_size,
                                              train_size=train_size,
                                              random_state=random_state,
                                              shuffle=shuffle,
-                                             stratify=self.label_col if stratify else None)
+                                             stratify=stratify)
         return self.copy(train_df), self.copy(test_df)
 
     @staticmethod
