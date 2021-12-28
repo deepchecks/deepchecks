@@ -9,11 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing performance report check."""
-from typing import Callable, Dict
+from typing import Callable, Hashable, TypeVar, Dict, cast
 import pandas as pd
 import plotly.express as px
 
 from deepchecks.base.check import ModelComparisonContext
+from deepchecks.errors import DeepchecksValueError
+from deepchecks.utils.strings import format_percent
 from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult, ModelComparisonBaseCheck
 from deepchecks.utils.metrics import get_scorers_list, initialize_multi_scorers, ModelType, task_type_check
 from deepchecks.utils.validation import validate_model
@@ -21,6 +23,8 @@ from deepchecks.utils.validation import validate_model
 
 __all__ = ['PerformanceReport', 'MultiModelPerformanceReport']
 
+
+PR = TypeVar('PR', bound='PerformanceReport')
 
 class PerformanceReport(TrainTestBaseCheck):
     """Summarize given scores on a dataset and model.
@@ -98,7 +102,7 @@ class PerformanceReport(TrainTestBaseCheck):
 
         return CheckResult(results_df, header='Performance Report', display=fig)
 
-    def add_condition_score_not_less_than(self, min_score: float):
+    def add_condition_score_not_less_than(self: PR, min_score: float) -> PR:
         """Add condition - metric scores are not less than given score.
 
         Args:
@@ -114,6 +118,132 @@ class PerformanceReport(TrainTestBaseCheck):
             return ConditionResult(True)
 
         return self.add_condition(name, condition, min_score=min_score)
+  
+    def add_condition_difference_not_greater_than(self: PR, threshold: float) -> PR:
+        """
+        Add new condition.
+
+        Add condition that will check that difference between train dataset scores and test
+        dataset scores is not greater than X.
+
+        Args:
+            threshold: scores difference upper bound
+        """
+        def condition(res: dict) -> ConditionResult:
+            test_scores = res['test']
+            train_scores = res['train']
+            diff = {score_name: score - test_scores[score_name] for score_name, score in train_scores.items()}
+            failed_scores = [k for k, v in diff.items() if v > threshold]
+            if failed_scores:
+                explained_failures = []
+                for score_name in failed_scores:
+                    explained_failures.append(f'{score_name} (train={format_percent(train_scores[score_name])} '
+                                              f'test={format_percent(test_scores[score_name])})')
+                message = f'Found performance degradation in: {", ".join(explained_failures)}'
+                return ConditionResult(False, message)
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'Train-Test scores difference is not greater than {threshold}', condition)
+
+    def add_condition_degradation_ratio_not_greater_than(self: PR, threshold: float = 0.1) -> PR:
+        """
+        Add new condition.
+
+        Add condition that will check that train performance is not degraded by more than given percentage in test.
+
+        Args:
+            threshold: maximum degradation ratio allowed (value between 0 to 1)
+        """
+        def condition(res: dict) -> ConditionResult:
+            test_scores = res['test']
+            train_scores = res['train']
+            # Calculate percentage of change from train to test
+            diff = {score_name: ((score - test_scores[score_name]) / score)
+                    for score_name, score in train_scores.items()}
+            failed_scores = [k for k, v in diff.items() if v > threshold]
+            if failed_scores:
+                explained_failures = []
+                for score_name in failed_scores:
+                    explained_failures.append(f'{score_name} (train={format_percent(train_scores[score_name])} '
+                                              f'test={format_percent(test_scores[score_name])})')
+                message = f'Found performance degradation in: {", ".join(explained_failures)}'
+                return ConditionResult(False, message)
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'Train-Test scores degradation ratio is not greater than {threshold}',
+                                  condition)
+
+
+    def add_condition_ratio_difference_not_greater_than(
+        self: PR,
+        threshold: float = 0.3,
+        score: str = 'F1'
+    ) -> PR:
+        """Add condition.
+
+        Verifying that relative ratio difference
+        between highest-class and lowest-class is not greater than 'threshold'.
+
+        Args:
+            threshold: ratio difference threshold
+            score: limit score for condition
+
+        Returns:
+            Self: instance of 'ClassPerformance' or it subtype
+
+        Raises:
+            DeepchecksValueError:
+                if unknown score function name were passed;
+        """
+        scorers = self.alternative_scorers or self._default_scorers
+        scorers = set(scorers.keys())
+
+        if score not in scorers:
+            raise DeepchecksValueError(f'Data was not calculated using the scoring function: {score}')
+
+        def condition(check_result: Dict[str, Dict[Hashable, float]]) -> ConditionResult:
+            datasets_details = []
+            for dataset in ['Test', 'Train']:
+                data = cast(
+                    Dict[str, Dict[Hashable, float]],
+                    pd.DataFrame.from_dict(check_result).transpose().to_dict()
+                )
+                data = [
+                    classes_values
+                    for score_name, classes_values in data.items()
+                    if score_name == score
+                ]
+
+                if len(data) == 0:
+                    raise DeepchecksValueError(f'Expected that check result will contain next score - {score}')
+
+                classes_values = next(iter(data))
+                getval = lambda it: it[1]
+                lowest_class_name, min_value = min(classes_values.items(), key=getval)
+                highest_class_name, max_value = max(classes_values.items(), key=getval)
+                relative_difference = abs((min_value - max_value) / max_value)
+
+                if relative_difference >= threshold:
+                    details = (
+                        f'Relative ratio difference between highest and lowest in {dataset} dataset'
+                        f'classes is greater than {format_percent(threshold)}. '
+                        f'Score: {score}, lowest class: {lowest_class_name}, highest class: {highest_class_name};'
+                    )
+                    datasets_details.append(details)
+            if datasets_details:
+                return ConditionResult(False, details='\n'.join(datasets_details))
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(
+            name=(
+                f"Relative ratio difference between labels '{score}' score "
+                f"is not greater than {format_percent(threshold)}"
+            ),
+            condition_func=condition
+        )
 
 
 class MultiModelPerformanceReport(ModelComparisonBaseCheck):

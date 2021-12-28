@@ -157,7 +157,7 @@ class ClassPerformance(SingleDatasetBaseCheck):
         scorers = set(scorers.keys())
 
         if score not in scorers:
-            raise DeepchecksValueError(f'Unknown score function  - {score}')
+            raise DeepchecksValueError(f'Data was not calculated using the scoring function: {score}')
 
         def condition(check_result: t.Dict[str, t.Dict[t.Hashable, float]]) -> ConditionResult:
             data = t.cast(
