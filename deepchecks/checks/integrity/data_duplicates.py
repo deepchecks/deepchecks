@@ -14,7 +14,7 @@ from typing import Union, List
 import pandas as pd
 
 from deepchecks import Dataset
-from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
+from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import ensure_dataframe_type
@@ -106,7 +106,8 @@ class DataDuplicates(SingleDatasetBaseCheck):
         """
         def max_ratio_condition(result: float) -> ConditionResult:
             if result > max_ratio:
-                return ConditionResult(False, f'Found {format_percent(result)} duplicate data')
+                return ConditionResult(False, f'Found {format_percent(result)} duplicate data',
+                                       category=ConditionCategory.WARN)
             else:
                 return ConditionResult(True)
 

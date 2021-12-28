@@ -124,7 +124,7 @@ def test_class_performance_with_custom_scorers_that_return_empty_array(
         calling(check.run).with_args(dataset=test, model=model),
         raises(
             DeepchecksValueError,
-            r"Expected scorer to return array of length 3, but got length 0"
+            r"Found 3 classes, but scorer Test3 returned only 0 elements in the score array value"
         )
     )
 

@@ -11,6 +11,8 @@
 """Contains unit tests for the string_length_out_of_bounds check."""
 import numpy as np
 import pandas as pd
+
+from deepchecks import ConditionCategory
 from deepchecks.base import Dataset
 
 from deepchecks.checks import StringLengthOutOfBounds
@@ -173,7 +175,8 @@ def test_condition_ratio_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                details='Found columns with greater than 0.10% outliers: col1',
-                               name='Ratio of outliers not greater than 0.10% string length outliers for all columns')
+                               name='Ratio of outliers not greater than 0.10% string length outliers for all columns',
+                               category=ConditionCategory.WARN)
     ))
 
 

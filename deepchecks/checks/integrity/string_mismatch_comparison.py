@@ -118,18 +118,18 @@ class StringMismatchComparison(TrainTestBaseCheck):
                                                variants_only_in_dataset, percent_variants_only_in_dataset[1],
                                                variants_only_in_baseline, percent_variants_in_baseline[1]])
                     result_dict[column_name][baseform] = {
-                        'commons': common_variants, 'variants_only_in_tested': variants_only_in_dataset,
-                        'variants_only_in_baseline': variants_only_in_baseline,
-                        'percent_variants_only_in_tested': percent_variants_only_in_dataset[0],
-                        'percent_variants_in_baseline': percent_variants_in_baseline[0]
+                        'commons': common_variants, 'variants_only_in_test': variants_only_in_dataset,
+                        'variants_only_in_train': variants_only_in_baseline,
+                        'percent_variants_only_in_test': percent_variants_only_in_dataset[0],
+                        'percent_variants_in_train': percent_variants_in_baseline[0]
                     }
 
         # Create result dataframe
         if display_mismatches:
             df_graph = pd.DataFrame(display_mismatches,
-                                    columns=['Column name', 'Base form', 'Common variants', 'Variants only in dataset',
+                                    columns=['Column name', 'Base form', 'Common variants', 'Variants only in test',
                                              '% Unique variants out of all dataset samples (count)',
-                                             'Variants only in baseline',
+                                             'Variants only in train',
                                              '% Unique variants out of all baseline samples (count)'])
             df_graph = df_graph.set_index(['Column name', 'Base form'])
 
@@ -169,7 +169,7 @@ def _condition_percent_limit(result, ratio: float):
     for col, baseforms in result.items():
         sum_percent = 0
         for info in baseforms.values():
-            sum_percent += info['percent_variants_only_in_tested']
+            sum_percent += info['percent_variants_only_in_test']
         if sum_percent > ratio:
             not_passing_columns[col] = format_percent(sum_percent)
 

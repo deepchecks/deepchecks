@@ -11,14 +11,14 @@
 """Utils module containing utilities for checks working with metrics."""
 import typing as t
 import enum
-from functools import partial
 from numbers import Number
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import get_scorer, make_scorer, accuracy_score, precision_score, recall_score, \
-    mean_squared_error, f1_score
+
+from sklearn.metrics import get_scorer, make_scorer, f1_score, precision_score, recall_score
 from sklearn.base import ClassifierMixin, RegressorMixin
+
 
 from deepchecks import base  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks import errors
@@ -28,13 +28,13 @@ from deepchecks.utils import validation
 __all__ = [
     'ModelType',
     'task_type_check',
-    'get_scorers_dict',
+    'get_scorers_list',
     'initialize_single_scorer',
     'DEFAULT_SCORERS_DICT',
     'DEFAULT_SINGLE_SCORER',
     'MULTICLASS_SCORERS_NON_AVERAGE',
     'get_scores_ratio',
-    'initialize_user_scorers',
+    'initialize_multi_scorers',
     'get_scorer_single'
 ]
 
@@ -50,16 +50,16 @@ class ModelType(enum.Enum):
 
 
 DEFAULT_BINARY_SCORERS = {
-    'Accuracy': make_scorer(accuracy_score),
-    'Precision': make_scorer(precision_score, zero_division=0),
-    'Recall': make_scorer(recall_score, zero_division=0)
+    'Accuracy': 'accuracy',
+    'Precision': 'precision',
+    'Recall': 'recall'
 }
 
 
 DEFAULT_MULTICLASS_SCORERS = {
-    'Accuracy': make_scorer(accuracy_score),
-    'Precision - Macro Average': make_scorer(precision_score, average='macro', zero_division=0),
-    'Recall - Macro Average': make_scorer(recall_score, average='macro', zero_division=0)
+    'Accuracy': 'accuracy',
+    'Precision - Macro Average': 'precision_macro',
+    'Recall - Macro Average': 'recall_macro'
 }
 
 MULTICLASS_SCORERS_NON_AVERAGE = {
@@ -70,8 +70,8 @@ MULTICLASS_SCORERS_NON_AVERAGE = {
 
 
 DEFAULT_REGRESSION_SCORERS = {
-    'RMSE': make_scorer(mean_squared_error, squared=False, greater_is_better=False),
-    'MSE': make_scorer(mean_squared_error, greater_is_better=False),
+    'RMSE': 'neg_root_mean_squared_error',
+    'MAE': 'neg_mean_absolute_error'
 }
 
 
@@ -87,6 +87,79 @@ DEFAULT_SCORERS_DICT = {
     ModelType.MULTICLASS: DEFAULT_MULTICLASS_SCORERS,
     ModelType.REGRESSION: DEFAULT_REGRESSION_SCORERS
 }
+
+
+class DeepcheckScorer:
+    """Encapsulate scorer function with extra methods.
+
+    Scorer functions are functions used to compute various performance metrics, using the model and data as inputs,
+    rather than the labels and predictions. Scorers are callables with the signature scorer(model, features, y_true).
+    Additional data on scorer functions can be found at https://scikit-learn.org/stable/modules/model_evaluation.html.
+
+    Args:
+        scorer (t.Union[str, t.Callable]): sklearn scorer name or callable
+        name (str): scorer name
+    """
+
+    def __init__(self, scorer: t.Union[str, t.Callable], name: str):
+        self.name = name
+        if isinstance(scorer, str):
+            self.scorer: t.Callable = get_scorer(scorer)
+            self.sklearn_scorer_name = scorer
+        elif callable(scorer):
+            self.scorer: t.Callable = scorer
+            self.sklearn_scorer_name = None
+        else:
+            scorer_type = type(scorer).__name__
+            if name:
+                message = f'Scorer {name} value should be either a callable or string but got: {scorer_type}'
+            else:
+                message = f'Scorer should be should be either a callable or string but got: {scorer_type}'
+            raise errors.DeepchecksValueError(message)
+
+    @classmethod
+    def filter_nulls(cls, dataset: 'base.Dataset'):
+        valid_idx = dataset.label_col.notna()
+        return dataset.data[valid_idx]
+
+    def _run_score(self, model, dataframe, dataset):
+        return self.scorer(model, dataframe[dataset.features], dataframe[dataset.label_name])
+
+    def __call__(self, model, dataset: 'base.Dataset'):
+        df = self.filter_nulls(dataset)
+        return self._run_score(model, df, dataset)
+
+    def validate_fitting(self, model, dataset: 'base.Dataset', should_return_array: bool):
+        """Validate given scorer for the model and dataset."""
+        df = self.filter_nulls(dataset)
+        if should_return_array:
+            # In order for multiclass scorer to return array in right length need to pass him samples from all labels
+            single_label_data = df.groupby(dataset.label_name).head(1)
+            result = self._run_score(model, single_label_data, dataset)
+            if not isinstance(result, np.ndarray):
+                raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return np.ndarray '
+                                                  f'but got: {type(result).__name__}')
+            expected_types = t.cast(
+                str,
+                np.typecodes['AllInteger'] + np.typecodes['AllFloat']  # type: ignore
+            )
+            kind = result.dtype.kind
+            if kind not in expected_types:
+                raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return np.ndarray of number kind '
+                                                  f'but got: {kind}')
+            # Validate returns value for each class
+            if len(result) != len(single_label_data):
+                raise errors.DeepchecksValueError(f'Found {len(single_label_data)} classes, but scorer {self.name} '
+                                                  f'returned only {len(result)} elements in the score array value')
+
+        else:
+            result = self._run_score(model, df.head(2), dataset)
+            if not isinstance(result, Number):
+                raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return number '
+                                                  f'but got: {type(result).__name__}')
+
+    def is_negative_scorer(self):
+        return self.sklearn_scorer_name is not None and self.sklearn_scorer_name.startswith('neg_')
 
 
 def task_type_check(
@@ -109,6 +182,11 @@ def task_type_check(
         if is_string_column(dataset.label_col):
             raise errors.DeepchecksValueError(
                 'Model was identified as a regression model, but label column was found to contain strings.'
+            )
+        elif isinstance(model, ClassifierMixin):
+            raise errors.DeepchecksValueError(
+                'Model is a sklearn classification model (a subclass of ClassifierMixin), but lacks the '
+                'predict_proba method. Please train the model with probability=True, or skip / ignore this check.'
             )
         else:
             return ModelType.REGRESSION
@@ -146,18 +224,12 @@ def task_type_validation(
         )
 
 
-def calculate_scorer_with_nulls(model, dataset: 'base.Dataset', scorer: t.Callable) -> float:
-    label = dataset.label_col
-    valid_idx = label.notna()
-    return scorer(model, dataset.features_columns[valid_idx], label[valid_idx])
-
-
-def get_scorers_dict(
+def get_scorers_list(
     model,
     dataset: 'base.Dataset',
     alternative_scorers: t.Dict[str, t.Callable] = None,
     multiclass_avg: bool = True
-) -> t.Dict[str, t.Callable]:
+) -> t.List[DeepcheckScorer]:
     """Return list of scorer objects to use in a score-dependant check.
 
     If no alternative_scorers is supplied, then a default list of scorers is used per task type, as it is inferred
@@ -174,97 +246,62 @@ def get_scorers_dict(
     """
     # Check for model type
     model_type = task_type_check(model, dataset)
+    multiclass_array = model_type == ModelType.MULTICLASS and multiclass_avg is False
 
     if alternative_scorers:
         scorers = alternative_scorers
     else:
-        if model_type == ModelType.MULTICLASS and multiclass_avg is False:
-            scorers = MULTICLASS_SCORERS_NON_AVERAGE
+        if multiclass_array:
+            default_scorers = MULTICLASS_SCORERS_NON_AVERAGE
         else:
-            scorers = DEFAULT_SCORERS_DICT[model_type]
+            default_scorers = DEFAULT_SCORERS_DICT[model_type]
+        # Transform dict of scorers to deepchecks' scorers
+        scorers = initialize_multi_scorers(default_scorers)
 
-    for name, scorer in scorers.items():
-        should_return_array = model_type == ModelType.MULTICLASS and multiclass_avg is False
-        validate_scorer(scorer, model, dataset, should_return_array, name)
+    for s in scorers:
+        s.validate_fitting(model, dataset, multiclass_array)
 
-    # Transform scorers into calculate_without_nulls
-    return {k: partial(calculate_scorer_with_nulls, scorer=v) for k, v in scorers.items()}
+    return scorers
 
 
-def get_scorer_single(model, dataset: 'base.Dataset', alternative_scorer: t.Tuple[str, t.Callable] = None,
+def get_scorer_single(model, dataset: 'base.Dataset', alternative_scorer: t.Optional[DeepcheckScorer] = None,
                       multiclass_avg: bool = True):
     """Return single score to use in check, and validate scorer fit the model and dataset."""
     model_type = task_type_check(model, dataset)
     multiclass_array = model_type == ModelType.MULTICLASS and multiclass_avg is False
 
-    if alternative_scorer is not None:
-        scorer_name = alternative_scorer[0]
-        scorer_func = alternative_scorer[1]
-    else:
+    if alternative_scorer is None:
         if multiclass_array:
             scorer_name = 'F1'
             scorer_func = MULTICLASS_SCORERS_NON_AVERAGE[scorer_name]
         else:
             scorer_name = DEFAULT_SINGLE_SCORER[model_type]
             scorer_func = DEFAULT_SCORERS_DICT[model_type][scorer_name]
+        alternative_scorer = DeepcheckScorer(scorer_func, scorer_name)
 
-    validate_scorer(scorer_func, model, dataset, multiclass_array, scorer_name)
-    # Transform scorer into calculate without nulls
-    return scorer_name, partial(calculate_scorer_with_nulls, scorer=scorer_func)
+    alternative_scorer.validate_fitting(model, dataset, multiclass_array)
+    return alternative_scorer
 
 
 def initialize_single_scorer(scorer: t.Optional[t.Union[str, t.Callable]], scorer_name=None) \
-        -> t.Optional[t.Tuple[str, t.Callable]]:
+        -> t.Optional[DeepcheckScorer]:
     """If string, get scorer from sklearn. If none, return none."""
     if scorer is None:
         return None
 
     scorer_name = scorer_name or (scorer if isinstance(scorer, str) else 'User Scorer')
-    if isinstance(scorer, str):
-        return scorer_name, get_scorer(scorer)
-    elif callable(scorer):
-        return scorer_name, scorer
-    else:
-        scorer_type = type(scorer).__name__
-        if scorer_name:
-            message = f'Scorer {scorer_name} value should be either a callable or string but got: {scorer_type}'
-        else:
-            message = f'Scorer should be should be either a callable or string but got: {scorer_type}'
-        raise errors.DeepchecksValueError(message)
+    return DeepcheckScorer(scorer, scorer_name)
 
 
-def validate_scorer(scorer: t.Callable, model, dataset, should_return_array: bool, scorer_name: str):
-    """Validate given scorer for the model and dataset."""
-    label = dataset.label_col
-    valid_idx = label.notna()
-    result = scorer(model, dataset.features_columns[valid_idx].head(2), label[valid_idx].head(2))
-    if should_return_array:
-        if not isinstance(result, np.ndarray):
-            raise errors.DeepchecksValueError(f'Expected scorer {scorer_name} to return np.ndarray '
-                                              f'but got: {type(result).__name__}')
-        expected_types = t.cast(
-            str,
-            np.typecodes['AllInteger'] + np.typecodes['AllFloat']  # type: ignore
-        )
-        kind = result.dtype.kind
-        if kind not in expected_types:
-            raise errors.DeepchecksValueError(f'Expected scorer {scorer_name} to return np.ndarray of number kind '
-                                              f'but got: {kind}')
-    else:
-        if not isinstance(result, Number):
-            raise errors.DeepchecksValueError(f'Expected scorer {scorer_name} to return number '
-                                              f'but got: {type(result).__name__}')
-
-
-def initialize_user_scorers(alternative_scorers: t.Optional[t.Mapping[str, t.Callable]]) -> \
-        t.Optional[t.Dict[str, t.Callable]]:
+def initialize_multi_scorers(alternative_scorers: t.Optional[t.Mapping[str, t.Callable]]) -> \
+        t.Optional[t.List[DeepcheckScorer]]:
     """Initialize user scorers and return all of them as callable."""
     if alternative_scorers is None:
         return None
     elif len(alternative_scorers) == 0:
         raise errors.DeepchecksValueError('Scorers dictionary can\'t be empty')
     else:
-        return dict([initialize_single_scorer(v, scorer_name=k) for k, v in alternative_scorers.items()])
+        return [DeepcheckScorer(scorer, name) for name, scorer in alternative_scorers.items()]
 
 
 def get_scores_ratio(train_score: float, test_score: float, max_ratio=np.Inf) -> float:

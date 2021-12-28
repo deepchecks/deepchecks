@@ -175,6 +175,25 @@ def test_no_dates_from_val_before_train():
     assert_that(check_obj.run(train_ds, val_ds).value, equal_to(0))
 
 
+def test_no_dates_from_val_before_train_date_in_index():
+    train_ds = Dataset(pd.DataFrame(np.ones((7, 1)), columns=['col1'], index=[
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 5, 0, 0),
+        datetime(2021, 10, 5, 0, 0)
+    ]), set_datetime_from_dataframe_index=True)
+    val_ds = Dataset(pd.DataFrame(np.ones((3, 1)), columns=['col1'], index=[
+        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 6, 0, 0),
+    ]), set_datetime_from_dataframe_index=True)
+    check_obj = DateTrainTestLeakageOverlap()
+    assert_that(check_obj.run(train_ds, val_ds).value, equal_to(0))
+
+
 def test_nan():
     train_ds = dataset_from_dict({'col1': [
         datetime(2021, 10, 3, 0, 0),
@@ -227,6 +246,51 @@ def test_condition_fail_on_overlap():
         datetime(2021, 10, 9, 0, 0),
         datetime(2021, 10, 9, 0, 0)
     ]}, 'col1')
+
+    check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_not_greater_than(0.2)
+
+    # Act
+    result = check.conditions_decision(check.run(train_ds, val_ds))
+
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=False,
+                               name='Date leakage ratio is not greater than 20.00%',
+                               details='Found 27.27% leaked dates')
+    ))
+
+
+def test_condition_fail_on_overlap_date_in_index():
+    # Arrange
+    train_ds = Dataset(pd.DataFrame(np.ones((14, 1)), columns=['col1'], index=[
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 5, 0, 0),
+        datetime(2021, 10, 5, 0, 0)
+    ]), set_datetime_from_dataframe_index=True)
+
+    val_ds = Dataset(pd.DataFrame(np.ones((11, 1)), columns=['col1'], index=[
+        datetime(2021, 9, 4, 0, 0),
+        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 5, 0, 0),
+        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 7, 0, 0),
+        datetime(2021, 10, 7, 0, 0),
+        datetime(2021, 10, 8, 0, 0),
+        datetime(2021, 10, 8, 0, 0),
+        datetime(2021, 10, 9, 0, 0),
+        datetime(2021, 10, 9, 0, 0)
+    ]), set_datetime_from_dataframe_index=True, datetime_name=0)
 
     check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_not_greater_than(0.2)
 
