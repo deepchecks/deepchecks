@@ -8,7 +8,9 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module for working with the avocado dataset."""
+"""The avocado dataset contains historical data on avocado prices and sales volume in multiple US markets
+    https://www.kaggle.com/neuromusic/avocado-prices.
+"""
 import typing as t
 import pandas as pd
 import joblib
@@ -32,30 +34,55 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
     The avocado dataset contains historical data on avocado prices and sales volume in multiple US markets
     https://www.kaggle.com/neuromusic/avocado-prices.
 
-    =================   ==================
-    Samples total       18.2K
-    Dimensionality      14
-    Features            real, string
-    Targets             real 0.44 - 3.25
-    =================   ==================
+    The typical ML task in this dataset is to build a model that predicts the average price of Avocados.
 
-    Dataset Description:
+    Dataset Shape:
+        .. list-table:: Dataset Shape
+           :widths: 50 50
+           :header-rows: 1
 
-    ==============      =============
-    Column name         Column Role
-    Total Volume        Feature
-    4046                Feature
-    4225                Feature
-    4770                Feature
-    Total Bags          Feature
-    Small Bags          Feature
-    Large Bags          Feature
-    XLarge Bags         Feature
-    type                Feature
-    year                Feature
-    region              Feature
-    AveragePrice        Label
-    ==============      =============
+           * - Property
+             - Value
+           * - Samples Total
+             - 18.2K
+           * - Dimensionality
+             - 14
+           * - Features
+             - real, string
+           * - Targets
+             - real 0.44 - 3.25
+
+    Description:
+        .. list-table:: Dataset Description
+           :widths: 50 50
+           :header-rows: 1
+
+           * - Column name
+             - Column Role
+           * - Total Volume
+             - Feature
+           * - 4046
+             - Feature
+           * - 4225
+             - Feature
+           * - 4770
+             - Feature
+           * - Total Bags
+             - Feature
+           * - Small Bags
+             - Feature
+           * - Large Bags
+             - Feature
+           * - XLarge Bags
+             - Feature
+           * - type
+             - Feature
+           * - year
+             - Feature
+           * - region
+             - Feature
+           * - AveragePrice
+             - Label
 
     Args:
         data_format (str, default 'Dataset'):
@@ -70,9 +97,9 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
             Otherwise, returns a single object.
 
     Returns:
-        data (Union[deepchecks.Dataset, pd.DataFrame]) the data object, corresponding to the data_format attribute.
+        data (Union[deepchecks.Dataset, pd.DataFrame]): the data object, corresponding to the data_format attribute.
 
-        (train_data, test_data) (Tuple[Union[deepchecks.Dataset, pd.DataFrame], Union[deepchecks.Dataset, pd.DataFrame])
+        (train_data, test_data) (Tuple[Union[deepchecks.Dataset, pd.DataFrame],Union[deepchecks.Dataset, pd.DataFrame]):
            tuple if as_train_test = True. Tuple of two objects represents the dataset splitted to train and test sets.
     """
     if not as_train_test:
