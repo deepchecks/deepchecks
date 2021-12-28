@@ -89,10 +89,15 @@ class DataDuplicates(SingleDatasetBaseCheck):
             most_duplicates = duplicates_counted[duplicates_counted['Number of Duplicates'] > 1]. \
                 nlargest(self.n_to_show, ['Number of Duplicates'])
 
-            most_duplicates = most_duplicates.set_index('Number of Duplicates')
+            most_duplicates['Index'] = \
+                most_duplicates.reset_index(drop=True).index
+
+            most_duplicates = most_duplicates.set_index(['Index', 'Number of Duplicates'])
 
             text = f'{format_percent(percent_duplicate)} of data samples are duplicates'
-            display = [text, most_duplicates]
+            explanation = 'Each row in the table shows an example of duplicate data and the number of times it appears.'
+            display = [text, explanation, most_duplicates]
+
         else:
             display = None
 
