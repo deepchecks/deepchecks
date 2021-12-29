@@ -13,6 +13,7 @@
 <p align="center">
    <img src="docs/images/deepchecks-banner.png">
 </p>
+
 ![pyVersions](https://img.shields.io/pypi/pyversions/deepchecks)
 ![pkgVersion](https://img.shields.io/pypi/v/deepchecks)
 ![build](https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg)
