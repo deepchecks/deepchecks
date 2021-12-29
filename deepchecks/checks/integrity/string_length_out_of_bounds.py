@@ -57,6 +57,8 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         num_percentiles: int = 1000,
         inner_quantile_range: int = 94,
         outlier_factor: int = 4,
+        minimum_length_difference: int = 5,
+        minimum_length_ratio_difference: int = 0.5,
         n_top_columns: int = 10
     ):
         super().__init__()
@@ -66,6 +68,8 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         self.inner_quantile_range = inner_quantile_range
         self.outlier_factor = outlier_factor
         self.n_top_columns = n_top_columns
+        self.minimum_length_difference = minimum_length_difference
+        self.minimum_length_ratio_difference = minimum_length_ratio_difference
 
     def run(self, dataset, model=None) -> CheckResult:
         """Run check.
@@ -112,27 +116,37 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                     [x for x in quantile_list if all((not _in_range(x, a, b)) for a, b in outlier_sections)]
                 non_outlier_section = (min(quantiles_not_in_section), max(quantiles_not_in_section))
 
+                non_outlier_lower_limit = percentile_histogram[non_outlier_section[0]]
+                non_outlier_upper_limit = percentile_histogram[non_outlier_section[1]]
+
                 # add to result
                 for outlier_section in outlier_sections:
-                    n_outlier_samples = reduce(lambda value, x, ph=percentile_histogram, os=outlier_section:
-                                               value + _in_range(x, ph[os[0]], ph[os[1]]),
+                    lower_range, upper_range = self._filter_outlier_section(percentile_histogram[outlier_section[0]],
+                                                                            percentile_histogram[outlier_section[1]],
+                                                                            non_outlier_lower_limit,
+                                                                            non_outlier_upper_limit)
+                    if lower_range > upper_range:
+                        continue
+
+                    n_outlier_samples = reduce(lambda value, x, lr=lower_range, ur=upper_range:
+                                               value + _in_range(x, lr, ur),
                                                string_length_column, 0)
                     if n_outlier_samples:
                         display_format.append([column_name,
-                                               f'{format_number(percentile_histogram[non_outlier_section[0]])} -'
-                                               f' {format_number(percentile_histogram[non_outlier_section[1]])}',
-                                               f'{format_number(percentile_histogram[outlier_section[0]])} -'
-                                               f' {format_number(percentile_histogram[outlier_section[1]])}',
+                                               f'{format_number(non_outlier_lower_limit)} -'
+                                               f' {format_number(non_outlier_upper_limit)}',
+                                               f'{format_number(lower_range)} -'
+                                               f' {format_number(upper_range)}',
                                                f'{n_outlier_samples}'
                                                ])
                         results[column_name]['normal_range'] = {
-                                'min': percentile_histogram[non_outlier_section[0]],
-                                'max': percentile_histogram[non_outlier_section[1]]
+                                'min': non_outlier_lower_limit,
+                                'max': non_outlier_upper_limit
                             }
                         results[column_name]['n_samples'] = column.size
                         results[column_name]['outliers'].append({
-                            'range': {'min': percentile_histogram[outlier_section[0]],
-                                      'max': percentile_histogram[outlier_section[1]]
+                            'range': {'min': lower_range,
+                                      'max': upper_range
                                       },
                             'n_samples': n_outlier_samples
                         })
@@ -152,6 +166,27 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         display = df_graph if len(df_graph) > 0 else None
 
         return CheckResult(results, display=display)
+
+    def _filter_outlier_section(self, lower_range, upper_range, non_outlier_lower_range, non_outlier_upper_range):
+        lower_range_distance = lower_range - non_outlier_upper_range
+        higher_range_distance = non_outlier_lower_range - upper_range
+
+        non_outlier_range_average = (non_outlier_upper_range + non_outlier_lower_range) / 2
+
+        minimum_difference = max(self.minimum_length_difference,
+                                 self.minimum_length_ratio_difference * non_outlier_range_average)
+        print(minimum_difference)
+        if lower_range_distance > 0:
+            print(f'lower {lower_range_distance}')
+            if lower_range_distance < minimum_difference:
+                lower_range += minimum_difference - lower_range_distance
+        elif higher_range_distance > 0:
+            print(f'upper {higher_range_distance}')
+            if higher_range_distance < minimum_difference:
+                print(minimum_difference - higher_range_distance)
+                upper_range -= minimum_difference - higher_range_distance
+
+        return lower_range, upper_range
 
     def add_condition_number_of_outliers_not_greater_than(self, max_outliers: int = 0):
         """Add condition - require column not to have more than given number of string length outliers.
