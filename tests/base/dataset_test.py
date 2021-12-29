@@ -743,3 +743,30 @@ def test_train_test_split_changed(iris):
     # Assert
     assert_that(train_ds.n_samples, 15)
     assert_that(test_ds.n_samples, 10)
+
+
+def test_inferred_label_type_cat(diabetes_df):
+    # Arrange
+    label = diabetes_df['target']
+    data = diabetes_df.drop('target', axis=1)
+    dataset = Dataset(data, label, label_name='actual')
+    # Assert
+    assert_that(dataset.label_type, is_('regression label'))
+
+
+def test_inferred_label_type_reg(iris):
+    # Arrange
+    label = iris['target']
+    data = iris.drop('target', axis=1)
+    dataset = Dataset(data, label, label_name='actual')
+    # Assert
+    assert_that(dataset.label_type, is_('classification label'))
+
+
+def test_set_label_type(iris):
+    # Arrange
+    label = iris['target']
+    data = iris.drop('target', axis=1)
+    dataset = Dataset(data, label, label_name='actual', label_type='regression label')
+    # Assert
+    assert_that(dataset.label_type, is_('regression label'))

@@ -81,9 +81,9 @@ class Dataset:
         max_float_categories (int, default 5):
             The maximum number of categories in a float column in order for it to be inferred as a
             categorical feature.
-        problem_type (str, default None):
-            Used to assume problem type if not found on model. Values ('binary', 'multilabel', 'regression')
-            If None then problem type is inferred from label is_categorical logic.
+        label_type (str, default None):
+            Used to assume target model type if not found on model. Values ('classification label', 'regression label')
+            If None then label type is inferred from label using is_categorical logic.
     """
 
     _features: t.List[Hashable]
@@ -97,7 +97,7 @@ class Dataset:
     _data: pd.DataFrame
     _max_categorical_ratio: float
     _max_categories: int
-    _problem_type: str
+    _label_type: str
 
     def __init__(
             self,
@@ -115,7 +115,7 @@ class Dataset:
             max_categorical_ratio: float = 0.01,
             max_categories: int = 30,
             max_float_categories: int = 5,
-            problem_type: str = None
+            label_type: str = None
     ):
 
         self._data = df.copy()
@@ -250,12 +250,12 @@ class Dataset:
             else:
                 self._data[self._datetime_name] = pd.to_datetime(self._data[self._datetime_name], **self._datetime_args)
 
-        if problem_type:
-            self._problem_type = problem_type
+        if label_type:
+            self._label_type = label_type
         else:
-            self._problem_type = self._infer_problem_type(
+            self._label_type = self._infer_label_type(
                 self.label_col,
-                max_categorical_ratio=max_categorical_ratio,
+                max_categorical_ratio=0.05,
                 max_categories=max_categories,
                 max_float_categories=max_float_categories
             )
@@ -399,9 +399,9 @@ class Dataset:
         return self.n_samples
 
     @property
-    def problem_type(self):
+    def label_type(self):
         self.validate_label()
-        return self._problem_type
+        return self._label_type
 
     def train_test_split(self,
                          train_size: t.Union[int, float, None] = None,
@@ -442,35 +442,18 @@ class Dataset:
         return self.copy(train_df), self.copy(test_df)
 
     @staticmethod
-    def _infer_problem_type(
+    def _infer_label_type(
             label_col: pd.Series,
             max_categorical_ratio: float,
             max_categories: int,
             max_float_categories: int
     ):
-        n_unique = label_col.nunique(dropna=True)
-        n_samples = len(label_col.dropna())
-
         if not is_numeric_dtype(label_col):
-            if n_unique <= 2:
-                return 'binary'
-            else:
-                return 'multiclass'
-        elif is_float_dtype(label_col):
-            if n_unique <= max_float_categories:
-                if n_unique <= 2:
-                    return 'binary'
-                else:
-                    return 'multiclass'
-            else:
-                return 'regression'
-        elif n_unique <= max_categories and n_unique / n_samples < max_categorical_ratio:
-            if n_unique <= 2:
-                return 'binary'
-            else:
-                return 'multiclass'
+            return 'classification label'
+        elif is_categorical(label_col, max_categorical_ratio, max_categories, max_float_categories):
+            return 'classification label'
         else:
-            return 'regression'
+            return 'regression label'
 
     @staticmethod
     def _infer_categorical_features(
