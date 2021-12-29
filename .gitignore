@@ -19,7 +19,6 @@ history/
 
 test/AutogluonModels
 test/.agModels
-datasets/
 
 
 # Byte-compiled / optimized / DLL files
