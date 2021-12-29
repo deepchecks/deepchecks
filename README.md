@@ -13,6 +13,10 @@
 <p align="center">
    <img src="docs/images/deepchecks-banner.png">
 </p>
+![pyVersions](https://img.shields.io/pypi/pyversions/deepchecks)
+![pkgVersion](https://img.shields.io/pypi/v/deepchecks)
+![build](https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg)
+[![Documentation Status](https://readthedocs.org/projects/deepchecks/badge/?version=latest)](https://docs.deepchecks.com/en/latest/?badge=latest)
 
 <p align="center">
   | &emsp;
@@ -27,11 +31,6 @@
 </p>
 
 # Deepchecks - Test Suites for ML Models and Data
-
-![pyVersions](https://img.shields.io/pypi/pyversions/deepchecks)
-![pkgVersion](https://img.shields.io/pypi/v/deepchecks)
-![build](https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg)
-[![Documentation Status](https://readthedocs.org/projects/deepchecks/badge/?version=latest)](https://docs.deepchecks.com/en/latest/?badge=latest)
 
 Validate your machine learning models and data, during the research and development phase. 
 
