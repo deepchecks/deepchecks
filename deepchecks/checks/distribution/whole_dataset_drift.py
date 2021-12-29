@@ -17,7 +17,7 @@ import pandas as pd
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.checks.distribution.plot import feature_distribution_traces, drift_score_bar_traces
-from deepchecks.utils.features import calculate_feature_importance
+from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.utils.typing import Hashable
 
@@ -136,30 +136,40 @@ class WholeDatasetDrift(TrainTestBaseCheck):
 
         # calculate feature importance of domain_classifier, containing the information which features separate
         # the dataset best.
-        fi_ser = calculate_feature_importance(domain_classifier, domain_test_dataset, force_permutation=True,
-                                              permutation_wkargs={'n_repeats': 10, 'random_state': self.random_state}
-                                              ).sort_values(ascending=False)
+        fi = calculate_feature_importance_or_none(
+            domain_classifier,
+            domain_test_dataset,
+            force_permutation=True,
+            permutation_kwargs={'n_repeats': 10, 'random_state': self.random_state}
+        )
+
+        fi = fi.sort_values(ascending=False) if fi is not None else None
 
         values_dict = {
             'domain_classifier_auc': roc_auc_score(y_test, domain_classifier.predict_proba(x_test)[:, 1]),
-            'domain_classifier_feature_importance': fi_ser.to_dict(),
+            'domain_classifier_feature_importance': fi.to_dict() if fi is not None else {},
         }
 
-        headnote = """<span>
-                    The shown features are the features that are most important for the domain classifier - the
-                    domain_classifier trained to distinguish between the train and test datasets.<br> The percents of
-                    explained dataset difference are the calculated feature importance values for the feature.
-                </span><br><br>"""
+        headnote = """
+        <span>
+        The shown features are the features that are most important for the domain classifier - the
+        domain_classifier trained to distinguish between the train and test datasets.<br> The percents of
+        explained dataset difference are the calculated feature importance values for the feature.
+        </span><br><br>
+        """
 
-        top_fi = fi_ser.head(self.n_top_features)
-        top_fi = top_fi.loc[top_fi > self.min_feature_importance]
+        if fi is not None:
+            top_fi = fi.head(self.n_top_features)
+            top_fi = top_fi.loc[top_fi > self.min_feature_importance]
+        else:
+            top_fi = None
 
-        if len(top_fi):
+        if top_fi is not None and len(top_fi):
             score = self.auc_to_drift_score(values_dict['domain_classifier_auc'])
 
             displays = ([headnote] + [self._build_drift_plot(score)] +
                         ['<h5>Main features contributing to drift</h5>'] +
-                        [self._display_dist(train_sample_df[feature], test_sample_df[feature], fi_ser)
+                        [self._display_dist(train_sample_df[feature], test_sample_df[feature], top_fi)
                          for feature in top_fi.index]) if len(top_fi) else None
         else:
             displays = None

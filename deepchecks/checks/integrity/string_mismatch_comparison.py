@@ -16,7 +16,7 @@ import pandas as pd
 
 from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
+from deepchecks.utils.features import calculate_feature_importance_or_none, column_importance_sorter_df
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.strings import (
@@ -74,7 +74,7 @@ class StringMismatchComparison(TrainTestBaseCheck):
         Returns:
             CheckResult: with value of type dict that contains detected different variants of string
         """
-        feature_importances = calculate_feature_importance_or_null(test_dataset, model)
+        feature_importances = calculate_feature_importance_or_none(model, test_dataset)
         return self._string_mismatch_comparison(train_dataset, test_dataset, feature_importances)
 
     def _string_mismatch_comparison(self, train_dataset: Union[pd.DataFrame, Dataset],
