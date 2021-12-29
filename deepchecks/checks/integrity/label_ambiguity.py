@@ -59,9 +59,8 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
         """
         dataset: Dataset = Dataset.validate_dataset(dataset)
         dataset = dataset.select(self.columns, self.ignore_columns)
-        dataset.validate_label()
 
-        if (model and model.is_regression()) or (dataset.problem_type == 'regression'):
+        if (model and model.is_regression()) or (dataset.label_type == 'regression label'):
             raise DeepchecksValueError('Task type cannot be regression')
 
         label_col = dataset.label_name
