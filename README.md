@@ -20,7 +20,7 @@
   &emsp; | &emsp; 
   <a href="https://docs.deepchecks.com">Documentation</a>
   &emsp; | &emsp; 
-  <a href="https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg">Join&nbps;Slack</a>
+  <a href="https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg">Join&nbsp;Slack</a>
   &emsp; | &emsp;  
   <a href="https://twitter.com/deepchecks">Twitter</a>
   &emsp; |
