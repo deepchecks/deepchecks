@@ -13,6 +13,17 @@
 <p align="center">
    <img src="docs/images/deepchecks-banner.png">
 </p>
+
+<p align="center">
+  <a href="https://docs.deepchecks.com">Documentation</a>
+  |
+  <a href="https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg">Join Slack</a>
+  | 
+  <a href="https://deepchecks.com/blog/">Blog</a>
+  | 
+  <a href="https://twitter.com/deepchecks">Twitter</a>
+</p>
+
 # Deepchecks - Test Suites for ML Models and Data
 
 ![pyVersions](https://img.shields.io/pypi/pyversions/deepchecks)
@@ -20,10 +31,9 @@
 ![build](https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/deepchecks/badge/?version=latest)](https://docs.deepchecks.com/en/latest/?badge=latest)
 
-Deepchecks is a Python package for validating your machine learning models and data,
-during the research and development phase. 
+Validate your machine learning models and data, during the research and development phase. 
 
-With only one line of code you find data integrity problems, distribution mismatches,
+With only one line of code you can discover data integrity problems, distribution mismatches,
 and efficiently evaluate your models to find potential vulnerabilities.
 
 ## Installation
