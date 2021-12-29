@@ -28,9 +28,10 @@ pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
 
 class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
     """
-    Return the difference in PPS (Predictive Power Score) of all features between train and test datasets.
+    Return the Predictive Power Score of all features, in order to estimate each feature's ability to predict the label.
 
     The PPS represents the ability of a feature to single-handedly predict another feature or label.
+    In this check, we specifically use it to assess the ability of each feature to predict the label.
     A high PPS (close to 1) can mean that this feature's success in predicting the label is actually due to data
     leakage - meaning that the feature holds information that is based on the label to begin with.
 
@@ -119,8 +120,7 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         )
 
         text = [
-            f'The PPS ({pps_html_url}) represents the ability of a feature to single-handedly predict another feature'
-            ' or label.',
+            f'The PPS ({pps_html_url}) is used to estimate the ability of a feature to predict the label by itself.'
             '',
             '<u>In the graph above</u>, we should suspect we have problems in our data if:',
             ''
