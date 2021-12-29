@@ -14,7 +14,7 @@
    <img src="docs/images/deepchecks-banner.png">
 </p>
 
-<p align="center">
+<p align="center" style="padding-left:40pt;padding-right:40pt">
   <a href="https://docs.deepchecks.com">Documentation</a>
   |
   <a href="https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg">Join Slack</a>
