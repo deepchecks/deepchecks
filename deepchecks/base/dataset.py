@@ -16,7 +16,7 @@ import logging
 
 import numpy as np
 import pandas as pd
-from pandas.core.dtypes.common import is_float_dtype, is_numeric_dtype
+from pandas.core.dtypes.common import is_numeric_dtype
 from sklearn.model_selection import train_test_split
 
 from deepchecks.utils.dataframes import select_from_dataframe
