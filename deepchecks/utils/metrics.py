@@ -50,35 +50,35 @@ class ModelType(enum.Enum):
 
 
 DEFAULT_BINARY_SCORERS = {
-    'Accuracy': 'accuracy',
-    'Precision': 'precision',
-    'Recall': 'recall'
+    'Accuracy - Default': 'accuracy',
+    'Precision - Default': 'precision',
+    'Recall - Default': 'recall'
 }
 
 
 DEFAULT_MULTICLASS_SCORERS = {
-    'Accuracy': 'accuracy',
-    'Precision - Macro Average': 'precision_macro',
-    'Recall - Macro Average': 'recall_macro'
+    'Accuracy - Default': 'accuracy',
+    'Precision - Macro Average - Default': 'precision_macro',
+    'Recall - Macro Average - Default': 'recall_macro'
 }
 
 MULTICLASS_SCORERS_NON_AVERAGE = {
-    'F1': make_scorer(f1_score, average=None),
-    'Precision': make_scorer(precision_score, average=None),
-    'Recall': make_scorer(recall_score, average=None)
+    'F1 - Default': make_scorer(f1_score, average=None),
+    'Precision - Default': make_scorer(precision_score, average=None),
+    'Recall - Default': make_scorer(recall_score, average=None)
 }
 
 
 DEFAULT_REGRESSION_SCORERS = {
-    'RMSE': 'neg_root_mean_squared_error',
-    'MAE': 'neg_mean_absolute_error'
+    'RMSE - Default': 'neg_root_mean_squared_error',
+    'MAE - Default': 'neg_mean_absolute_error'
 }
 
 
 DEFAULT_SINGLE_SCORER = {
-    ModelType.BINARY: 'Accuracy',
-    ModelType.MULTICLASS: 'Accuracy',
-    ModelType.REGRESSION: 'RMSE'
+    ModelType.BINARY: 'Accuracy - Default',
+    ModelType.MULTICLASS: 'Accuracy - Default',
+    ModelType.REGRESSION: 'RMSE - Default'
 }
 
 

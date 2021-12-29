@@ -14,7 +14,7 @@ import plotly.graph_objects as go
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.checks.distribution.trust_score import TrustScore
-from deepchecks.checks.distribution.preprocessing import preprocess_dataset_to_scaled_numerics
+from deepchecks.checks.distribution.preprocessing import ScaledNumerics
 from deepchecks.checks.distribution.plot import get_density
 from deepchecks.utils.metrics import task_type_check, ModelType
 from deepchecks.utils.strings import format_percent
@@ -102,12 +102,9 @@ class TrustScoreComparison(TrainTestBaseCheck):
         features_list = train_dataset.features
         label_name = train_dataset.label_name
 
-        x_train, x_test = preprocess_dataset_to_scaled_numerics(
-            baseline_features=train_data_sample[features_list],
-            test_features=test_data_sample[features_list],
-            categorical_columns=test_dataset.cat_features,
-            max_num_categories=self.max_number_categories
-        )
+        sn = ScaledNumerics(train_data_sample[features_list], test_dataset.cat_features, self.max_number_categories)
+        x_train = sn.transform(train_data_sample[features_list])
+        x_test = sn.transform(test_data_sample[features_list])
 
         # Trust Score model expects labels to be consecutive integers from 0 to n-1, so we transform our label to
         # this format.

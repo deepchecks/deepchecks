@@ -74,8 +74,8 @@ def test_no_diff(iris_split_dataset_and_model):
     # Assert
     train = result.value['train']
     test = result.value['test']
-    expected = {'Accuracy': close_to(0.96, 0.01), 'Precision - Macro Average': close_to(0.96, 0.01),
-                'Recall - Macro Average': close_to(0.96, 0.01)}
+    expected = {'Accuracy - Default': close_to(0.96, 0.01), 'Precision - Macro Average - Default': close_to(0.96, 0.01),
+                'Recall - Macro Average - Default': close_to(0.96, 0.01)}
     assert_that(train, has_entries(expected))
     assert_that(test, has_entries(expected))
 
@@ -91,10 +91,12 @@ def test_with_diff(iris_split_dataset_and_model):
     # Assert
     train = result.value['train']
     test = result.value['test']
-    expected_train = {'Accuracy': close_to(0.96, 0.01), 'Precision - Macro Average': close_to(0.96, 0.01),
-                      'Recall - Macro Average': close_to(0.96, 0.01)}
-    expected_test = {'Accuracy': close_to(0.92, 0.01), 'Precision - Macro Average': close_to(0.92, 0.01),
-                     'Recall - Macro Average': close_to(0.92, 0.01)}
+    expected_train = {'Accuracy - Default': close_to(0.96, 0.01),
+                      'Precision - Macro Average - Default': close_to(0.96, 0.01),
+                      'Recall - Macro Average - Default': close_to(0.96, 0.01)}
+    expected_test = {'Accuracy - Default': close_to(0.92, 0.01),
+                     'Precision - Macro Average - Default': close_to(0.92, 0.01),
+                     'Recall - Macro Average - Default': close_to(0.92, 0.01)}
     assert_that(train, has_entries(expected_train))
     assert_that(test, has_entries(expected_test))
 
