@@ -16,11 +16,11 @@
 
 <p align="center">
   <a href="https://docs.deepchecks.com">Documentation</a>
-  &emsp; &emsp; | &emsp; &emsp; 
+  &emsp; | &emsp; 
   <a href="https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg">Join Slack</a>
-  &emsp; &emsp; | &emsp; &emsp; 
+  &emsp; | &emsp; 
   <a href="https://deepchecks.com/blog/">Blog</a>
-  &emsp; &emsp; | &emsp; &emsp;  
+  &emsp; | &emsp;  
   <a href="https://twitter.com/deepchecks">Twitter</a>
 </p>
 
