@@ -32,7 +32,7 @@ def test_label_ambiguity():
     result = check.run(ds)
     # Assert
     assert_that(result.value, equal_to(1))
-    assert_that(result.display[0], has_length(2))
+    assert_that(result.display[1], has_length(2))
 
 
 def test_label_ambiguity_empty():
@@ -66,7 +66,7 @@ def test_label_ambiguity_mixed():
     result = check.run(ds)
     # Assert
     assert_that(result.value, close_to(0.5, 0.01))
-    assert_that(result.display[0], has_length(1))
+    assert_that(result.display[1], has_length(1))
 
 
 def test_label_ambiguity_condition():
