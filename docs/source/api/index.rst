@@ -13,6 +13,7 @@ Here you can see the api reference.
     checks/index
     suites/index
     utils/index
+    datasets/index
 
 .. currentmodule:: deepchecks
 
@@ -22,5 +23,5 @@ Here you can see the api reference.
     checks
     suites
     utils
-
+    datasets
 
