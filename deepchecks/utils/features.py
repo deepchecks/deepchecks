@@ -37,7 +37,7 @@ __all__ = [
 ]
 
 
-_NUMBER_OF_FEATURES_LIMIT: int = 100
+_NUMBER_OF_FEATURES_LIMIT: int = 200
 
 
 def set_number_of_features_limit(limit: int):
