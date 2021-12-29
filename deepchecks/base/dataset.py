@@ -400,6 +400,11 @@ class Dataset:
 
     @property
     def label_type(self):
+        """
+
+        Returns:
+            Label type
+        """
         self.validate_label()
         return self._label_type
 
