@@ -19,8 +19,8 @@
 ![build](https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/deepchecks/badge/?version=latest)](https://docs.deepchecks.com/en/latest/?badge=latest)
 
-<p align="center">
-  | &emsp;
+<p align="left">
+  &emsp;
   <a href="https://deepchecks.com/blog/">Blog</a>
   &emsp; | &emsp; 
   <a href="https://docs.deepchecks.com">Documentation</a>
@@ -28,7 +28,7 @@
   <a href="https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg">Join&nbsp;Slack</a>
   &emsp; | &emsp;  
   <a href="https://twitter.com/deepchecks">Twitter</a>
-  &emsp; |
+  &emsp;
 </p>
 
 # Deepchecks - Test Suites for ML Models and Data
