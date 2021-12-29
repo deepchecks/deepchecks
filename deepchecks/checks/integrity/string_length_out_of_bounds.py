@@ -19,7 +19,7 @@ from pandas import DataFrame, Series
 from scipy import stats
 
 from deepchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ConditionResult, ConditionCategory
-from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
+from deepchecks.utils.features import calculate_feature_importance_or_none, column_importance_sorter_df
 from deepchecks.utils.strings import is_string_column, format_number, format_columns_for_condition, format_percent
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.validation import ensure_dataframe_type
@@ -73,7 +73,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         Args:
             dataset (DataFrame): A dataset or pd.FataFrame object.
         """
-        feature_importances = calculate_feature_importance_or_null(dataset, model)
+        feature_importances = calculate_feature_importance_or_none(model, dataset)
         return self._string_length_out_of_bounds(dataset, feature_importances)
 
     def _string_length_out_of_bounds(self, dataset: Union[pd.DataFrame, Dataset],

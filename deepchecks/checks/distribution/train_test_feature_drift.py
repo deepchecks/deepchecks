@@ -11,14 +11,14 @@
 """Module contains Train Test Drift check."""
 
 from collections import OrderedDict
-from typing import Union, Tuple, List, Dict, Callable
+from typing import Union, Tuple, List, Dict, Callable, Optional
 
 import pandas as pd
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.checks.distribution.plot import drift_score_bar_traces, feature_distribution_traces
 from deepchecks.checks.distribution.dist_utils import preprocess_for_psi, earth_movers_distance, psi
-from deepchecks.utils.features import calculate_feature_importance_or_null
+from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 import plotly.graph_objects as go
@@ -92,10 +92,15 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         Raises:
             DeepchecksValueError: If the object is not a Dataset or DataFrame instance
         """
-        feature_importances = calculate_feature_importance_or_null(train_dataset, model)
+        feature_importances = calculate_feature_importance_or_none(model, train_dataset)
         return self._calc_drift(train_dataset, test_dataset, feature_importances)
 
-    def _calc_drift(self, train_dataset: Dataset, test_dataset: Dataset, feature_importances: pd.Series) -> CheckResult:
+    def _calc_drift(
+        self,
+        train_dataset: Dataset,
+        test_dataset: Dataset,
+        feature_importances: Optional[pd.Series] = None
+    ) -> CheckResult:
         """
         Calculate drift for all columns.
 

@@ -88,7 +88,7 @@ class UnusedFeatures(TrainTestBaseCheck):
         validate_model(dataset, model)
 
         feature_importance = calculate_feature_importance(model, dataset,
-                                                          permutation_wkargs={'random_state': self.random_state})
+                                                          permutation_kwargs={'random_state': self.random_state})
 
         # Calculate normalized variance per feature based on PCA decomposition
         pre_pca_transformer = naive_encoder(dataset)
