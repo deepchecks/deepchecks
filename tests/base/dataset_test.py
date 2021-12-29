@@ -751,7 +751,7 @@ def test_inferred_label_type_cat(diabetes_df):
     data = diabetes_df.drop('target', axis=1)
     dataset = Dataset(data, label, label_name='actual')
     # Assert
-    assert_that(dataset.label_type, is_('regression label'))
+    assert_that(dataset.label_type, is_('regression_label'))
 
 
 def test_inferred_label_type_reg(iris):
@@ -760,13 +760,13 @@ def test_inferred_label_type_reg(iris):
     data = iris.drop('target', axis=1)
     dataset = Dataset(data, label, label_name='actual')
     # Assert
-    assert_that(dataset.label_type, is_('classification label'))
+    assert_that(dataset.label_type, is_('classification_label'))
 
 
 def test_set_label_type(iris):
     # Arrange
     label = iris['target']
     data = iris.drop('target', axis=1)
-    dataset = Dataset(data, label, label_name='actual', label_type='regression label')
+    dataset = Dataset(data, label, label_name='actual', label_type='regression_label')
     # Assert
-    assert_that(dataset.label_type, is_('regression label'))
+    assert_that(dataset.label_type, is_('regression_label'))
