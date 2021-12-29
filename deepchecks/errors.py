@@ -11,7 +11,7 @@
 """Module with all deepchecks error types."""
 
 
-__all__ = ['DeepchecksValueError', 'DeepchecksNotSupportedError']
+__all__ = ['DeepchecksValueError', 'DeepchecksNotSupportedError', 'NumberOfFeaturesLimitError']
 
 
 class DeepchecksBaseError(Exception):
@@ -30,5 +30,11 @@ class DeepchecksValueError(DeepchecksBaseError):
 
 class DeepchecksNotSupportedError(DeepchecksBaseError):
     """Exception class that represent unsupported action in Deepchecks."""
+
+    pass
+
+
+class NumberOfFeaturesLimitError(DeepchecksBaseError):
+    """Represents a situation when a dataset contains to much features to be used for calculation."""
 
     pass
