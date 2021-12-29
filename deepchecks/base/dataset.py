@@ -82,7 +82,7 @@ class Dataset:
             The maximum number of categories in a float column in order for it to be inferred as a
             categorical feature.
         label_type (str, default None):
-            Used to assume target model type if not found on model. Values ('classification label', 'regression label')
+            Used to assume target model type if not found on model. Values ('classification_label', 'regression_label')
             If None then label type is inferred from label using is_categorical logic.
     """
 
@@ -449,11 +449,11 @@ class Dataset:
             max_float_categories: int
     ):
         if not is_numeric_dtype(label_col):
-            return 'classification label'
+            return 'classification_label'
         elif is_categorical(label_col, max_categorical_ratio, max_categories, max_float_categories):
-            return 'classification label'
+            return 'classification_label'
         else:
-            return 'regression label'
+            return 'regression_label'
 
     @staticmethod
     def _infer_categorical_features(
