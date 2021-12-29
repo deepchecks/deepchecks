@@ -17,7 +17,7 @@ from pandas.api.types import infer_dtype
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
+from deepchecks.utils.features import calculate_feature_importance_or_none, column_importance_sorter_df
 from deepchecks.utils.strings import string_baseform, format_percent, format_columns_for_condition
 from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
@@ -62,7 +62,7 @@ class SpecialCharacters(SingleDatasetBaseCheck):
         Returns:
           (CheckResult): DataFrame with ('invalids') for any column with special_characters chars.
         """
-        feature_importances = calculate_feature_importance_or_null(dataset, model)
+        feature_importances = calculate_feature_importance_or_none(model, dataset)
         return self._special_characters(dataset, feature_importances)
 
     def _special_characters(self, dataset: Union[pd.DataFrame, Dataset],
