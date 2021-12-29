@@ -17,14 +17,45 @@
 ![build](https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/deepchecks/badge/?version=latest)](https://docs.deepchecks.com/en/latest/?badge=latest)
 
-Deepchecks is a Python package for comprehensively validating your machine learning
-models and data with minimal effort.
-This includes checks related to various types of issues, such as model performance,
-data integrity, distribution mismatches, and more.
+Deepchecks is a Python package for validating your machine learning models and data,
+during the research and development phase. 
 
-<p align="center">
-   <img src="docs/images/diagram.svg">
-</p>
+With only one line of code you find data integrity problems, distribution mismatches,
+and efficiently evaluate your models to find potential vulnerabilities.
+
+## Installation
+
+### Using pip
+```bash
+pip install deepchecks #--upgrade --user
+```
+### Using conda
+```bash
+conda install deepchecks
+```
+
+### From source
+To clone the repository and do
+an [editable install](https://pip.pypa.io/en/stable/cli/pip_install/#editable-installs),
+run: 
+```bash
+git clone https://github.com/deepchecks/deepchecks.git
+cd deepchecks
+pip install -e .
+```
+## Are You Ready  to Start Checking?
+
+For the full value from Deepchecks' checking suites, we recommend working with:
+
+-   A model compatible with scikit-learn API that you wish to validate (e.g. RandomForest, XGBoost)
+    
+-   The model's training data with labels
+    
+-   Test data (on which the model wasn’t trained) with labels  
+
+Of course, in various valiadation phases (e.g. when validating a dataset's integrity,
+or examining distributions between a train-test split), not all of the above are required.
+Accordingly, many of the checks and some of the suites need only a subset of the above to run.
 
 ## Key Concepts
 
@@ -55,41 +86,9 @@ The Suite enables displaying a concluding report for all of the Checks that ran.
 your own custom suite. The existing suites include default conditions added for most of the checks.
 You can edit the preconfigured suites or build a suite of your own with a collection of checks and optional conditions.
 
-## Installation
-
-### Using pip
-```bash
-pip install deepchecks #--user
-```
-
-### From source
-First clone the repository and then install the package from inside the repository's directory:
-```bash
-git clone https://github.com/deepchecks/deepchecks.git
-cd deepchecks
-# for installing stable tag version and not the latest commit to main
-git checkout tags/<version>
-```
-and then either:
-```bash
-pip install .
-```
-or
-```bash
-python setup.py install
-```
-
-## Are You Ready  to Start Checking?
-
-For the full value from Deepchecks' checking suites, we recommend working with:
-
--   A model compatible with scikit-learn API that you wish to validate (e.g. RandomForest, XGBoost)
-    
--   The model's training data with labels
-    
--   Test data (on which the model wasn’t trained) with labels  
-
-However, many of the checks and some of the suites need only a subset of the above to run.
+<p align="center">
+   <img src="docs/images/diagram.svg">
+</p>
 
 ## Usage Examples
 
@@ -97,80 +96,48 @@ However, many of the checks and some of the suites need only a subset of the abo
 For running a specific check on your pandas DataFrame, all you need to do is:
 
 ```python
-from deepchecks.checks import RareFormatDetection
+from deepchecks.checks import TrainTestFeatureDrift
 import pandas as pd
 
-df_to_check = pd.read_csv('data_to_validate.csv')
+train_df = pd.read_csv('train_data.csv')
+train_df = pd.read_csv('test_data.csv')
 # Initialize and run desired check
-RareFormatDetection().run(df_to_check)
+TrainTestFeatureDrift().run(train_data, test_data)
 ```
-Which might product output of the type:
-><h4>Rare Format Detection</h4>
-> <p>Check whether columns have common formats (e.g. 'XX-XX-XXXX' for dates) and detects values that don't match.</p>
-> <p><b>&#x2713;</b> Nothing found</p>
-
-If all was fine, or alternatively something like:
-><h4>Rare Format Detection</h4>
-><p>Check whether columns have common formats (e.g. 'XX-XX-XXXX' for dates) and detects values that don't match.</p>
->
->
-> Column date:
-> <table border="1" class="dataframe" style="text-align: left;">
->   <thead>
->     <tr>
->       <th class="blank level0" >&nbsp;</th>
->       <th class="col_heading level0 col0" >digits and letters format (case sensitive)</th>
->     </tr>
->   </thead>
->   <tbody>
->     <tr>
->       <th id="T_ae5e3_level0_row0" class="row_heading level0 row0" >ratio of rare samples</th>
->       <td id="T_ae5e3_row0_col0" class="data row0 col0" >1.50% (3)</td>
->     </tr>
->     <tr>
->       <th id="T_ae5e3_level0_row1" class="row_heading level0 row1" >common formats</th>
->       <td id="T_ae5e3_row1_col0" class="data row1 col0" >['2020-00-00']</td>
->     </tr>
->     <tr>
->       <th id="T_ae5e3_level0_row2" class="row_heading level0 row2" >examples for values in common formats</th>
->       <td id="T_ae5e3_row2_col0" class="data row2 col0" >['2021-11-07']</td>
->     </tr>
->     <tr>
->       <th id="T_ae5e3_level0_row3" class="row_heading level0 row3" >values in rare formats</th>
->       <td id="T_ae5e3_row3_col0" class="data row3 col0" >['2021-Nov-04', '2021-Nov-05', '2021-Nov-06']</td>
->     </tr>
->   </tbody> </table>
-
-If mismatches were detected.
+Which will product output of the type:
+><h4>Train Test Drift</h4>
+> <p>The Drift score is a measure for the difference between two distributions,
+> in this check - the test and train distributions. <br>
+> The check shows the drift score and distributions for the features,
+> sorted by feature importance and showing only the top 5 features, according to feature importance.
+> If available, the plot titles also show the feature importance (FI) rank.</p>
+> <p align="left">
+>   <img src="docs/images/train-test-drift-output.png">
+> </p>
 
 ### Running a Suite
 Let's take the "iris" dataset as an example:
 ```python
-import pandas as pd
 from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
-```
-```python
 iris_df = load_iris(return_X_y=False, as_frame=True)['frame']
-label_col = 'target'
-df_train, df_test = train_test_split(iris_df, stratify=iris_df[label_col], random_state=0)
 ```
 To run an existing suite all you need to do is import the suite and run it -
 
 ```python
-from deepchecks.suites import train_test_validation
-suite = train_test_validation()
-suite.run(train_dataset=df_train, test_dataset=df_test)
+from deepchecks.suites import single_dataset_integrity
+suite = single_dataset_integrity()
+suite.run(iris_df)
 ```
 Which will result in printing the summary of the check conditions and then the visual outputs of all of the checks that
 are in that suite.
 
-### Example Notebooks
-For usage examples, check out: 
-- [**Quickstart Notebook**](examples/howto-guides/quickstart_in_5_minutes.ipynb) - for running your first suite with a few lines of code.
-- [**Example Checks Output Notebooks**](examples/checks) - to see all of the existing checks and their usage examples.
+For a full suite demonstration, check out the [**Quickstart Notebook**](https://docs.deepchecks.com/en/stable/examples/howto-guides/quickstart_in_5_minutes.html).
 
-## Communication
+### Documentation
+- HTML documentation (stable release): <https://docs.deepchecks.com/>
+- HTML documentation (latest release): <https://docs.deepchecks.com/en/latest>
+
+## Community
 - Join our [Slack Community](https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg) to connect with the maintainers and follow users and interesting discussions
 - Post a [Github Issue](https://github.com/deepchecks/deepchecks/issues) to suggest improvements, open an issue, or share feedback.
 
