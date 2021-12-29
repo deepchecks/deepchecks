@@ -15,8 +15,4 @@ Prebuilt Suites
     :recursive:
     :toctree: generated
 
-    distribution_suite
-    integrity_suite
-    methodology_suite
-    overall_suite
-    performance_suite
+    default_suites
