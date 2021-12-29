@@ -9,11 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains columns_info check."""
+import typing as t
 import pandas as pd
 from deepchecks import CheckResult
 from deepchecks.base import Dataset
 from deepchecks.base.check import SingleDatasetBaseCheck
-from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_dict
+from deepchecks.utils.features import calculate_feature_importance_or_none, column_importance_sorter_dict
 
 
 __all__ = ['ColumnsInfo']
@@ -31,21 +32,25 @@ class ColumnsInfo(SingleDatasetBaseCheck):
         super().__init__()
         self.n_top_columns = n_top_columns
 
-    def run(self, dataset: Dataset, model=None) -> CheckResult:
+    def run(
+      self,
+      dataset: t.Union[Dataset, pd.DataFrame],
+      model=None
+    ) -> CheckResult:
         """Run check.
 
         Args:
-          dataset (Dataset): any dataset.
+          dataset (Union[Dataset, pandas.DataFrame]): any dataset.
 
         Returns:
           CheckResult: value is dictionary of a column and its role and logical type.
           display a table of the dictionary.
         """
-        feature_importances = calculate_feature_importance_or_null(dataset, model)
+        dataset = Dataset.validate_dataset_or_dataframe(dataset)
+        feature_importances = calculate_feature_importance_or_none(model, dataset)
         return self._columns_info(dataset, feature_importances)
 
     def _columns_info(self, dataset: Dataset, feature_importances: pd.Series = None):
-        dataset = Dataset.validate_dataset_or_dataframe(dataset)
         value = dataset.columns_info
         value = column_importance_sorter_dict(value, dataset, feature_importances, self.n_top_columns)
         df = pd.DataFrame.from_dict(value, orient='index', columns=['role'])
