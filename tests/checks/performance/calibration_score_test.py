@@ -49,3 +49,31 @@ def test_model_info_object(iris_labeled_dataset, iris_adaboost):
         1: close_to(0.002, 0.05),
         2: close_to(0.28, 0.05)
     }))
+
+
+def test_model_info_object(iris_labeled_dataset, iris_adaboost):
+    # Arrange
+    check = CalibrationScore()
+    # Act X
+    result = check.run(iris_labeled_dataset, iris_adaboost).value
+    # Assert
+    assert len(result) == 3  # iris has 3 targets
+
+    assert_that(result, has_entries({
+        0: close_to(0.99, 0.05),
+        1: close_to(0.002, 0.05),
+        2: close_to(0.28, 0.05)
+    }))
+
+
+def test_binary_model_info_object(iris_dataset_single_class_labeled, iris_random_forest_single_class):
+    # Arrange
+    check = CalibrationScore()
+    # Act X
+    result = check.run(iris_dataset_single_class_labeled, iris_random_forest_single_class).value
+    # Assert
+    assert len(result) == 1  # iris has 3 targets
+
+    assert_that(result, has_entries({
+        0: close_to(0.0002, 0.0005)
+    }))

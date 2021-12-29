@@ -10,12 +10,12 @@
 #
 """Module of trust score comparison check."""
 import numpy as np
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.checks.distribution.trust_score import TrustScore
 from deepchecks.checks.distribution.preprocessing import preprocess_dataset_to_scaled_numerics
-from deepchecks.checks.distribution.plot import plot_density
+from deepchecks.checks.distribution.plot import get_density
 from deepchecks.utils.metrics import task_type_check, ModelType
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
@@ -145,32 +145,6 @@ class TrustScoreComparison(TrainTestBaseCheck):
         top_k = test_data_sample.head(self.n_to_show)
         bottom_k = test_data_sample.tail(self.n_to_show)
 
-        def display_plot(percent_to_cut=self.percent_top_scores_to_hide):
-            _, axes = plt.subplots(1, 1, figsize=(7, 4))
-
-            def filter_quantile(data):
-                return data[data < np.quantile(data, 1 - percent_to_cut)]
-
-            test_trust_scores_cut = filter_quantile(test_trust_scores)
-            train_trust_scores_cut = filter_quantile(train_trust_scores)
-            x_range = [min(*test_trust_scores_cut, *train_trust_scores_cut),
-                       max(*test_trust_scores_cut, *train_trust_scores_cut)]
-            xs = np.linspace(x_range[0], x_range[1], 40)
-            plot_density(train_trust_scores_cut, xs, colors['Train'])
-            plot_density(test_trust_scores_cut, xs, colors['Test'])
-            # Set x axis
-            axes.set_xlim(x_range)
-            plt.xlabel('Trust score')
-            # Set y axis
-            axes.set_ylim(bottom=0)
-            plt.ylabel('Probability Density')
-            # Set labels
-
-            labels = list(colors.keys())
-            handles = [plt.Rectangle((0, 0), 1, 1, color=colors[label]) for label in labels]
-            plt.legend(handles, labels)
-            plt.title('Trust Score Distribution')
-
         headnote = """<span>
         Trust score measures the agreement between the classifier and a modified nearest-neighbor
         classifier on the testing example. Higher values represent samples that are "close" to training examples with
@@ -183,7 +157,9 @@ class TrustScoreComparison(TrainTestBaseCheck):
             model performance on similar data. If it is skewed to the right, it indicates an underlying problem with the
             creation of the test dataset (test confidence isn't expected to be higher than train's).
             </i></span>"""
-        display = [headnote, display_plot, footnote, '<h5>Worst Trust Score Samples</h5>', bottom_k,
+        display = [headnote, _display_plot(train_trust_scores, test_trust_scores, self.percent_top_scores_to_hide),
+                   footnote,
+                   '<h5>Worst Trust Score Samples</h5>', bottom_k,
                    '<h5>Top Trust Score Samples</h5>', top_k]
 
         result = {'test': np.mean(test_trust_scores), 'train': np.mean(train_trust_scores)}
@@ -240,3 +216,41 @@ def _validate_parameters(k_filter, alpha, max_number_categories, min_test_sample
     if not _is_float_0_to_1(percent_top_scores_to_hide):
         raise DeepchecksValueError(f'percent_top_scores_to_hide must be float between 0 to 1 but got: '
                                    f'{percent_top_scores_to_hide}')
+
+
+def _display_plot(train_trust_scores, test_trust_scores, percent_to_cut):
+    """Display a distribution comparison plot for the given columns."""
+
+    def filter_quantile(data):
+        return data[data < np.quantile(data, 1 - percent_to_cut)]
+
+    test_trust_scores_cut = filter_quantile(test_trust_scores)
+    train_trust_scores_cut = filter_quantile(train_trust_scores)
+    x_range = [min(*test_trust_scores_cut, *train_trust_scores_cut),
+               max(*test_trust_scores_cut, *train_trust_scores_cut)]
+    xs = np.linspace(x_range[0], x_range[1], 40)
+
+    traces = [go.Scatter(x=xs, y=get_density(train_trust_scores_cut, xs), fill='tozeroy', name='Train Dataset',
+                         line_color=colors['Train']),
+              go.Scatter(x=xs, y=get_density(test_trust_scores_cut, xs), fill='tozeroy', name='Test Dataset',
+                         line_color=colors['Test'])]
+
+    figure = go.Figure(layout=go.Layout(
+        title='Trust Score Distribution',
+        xaxis=dict(fixedrange=True,
+                   range=x_range,
+                   title='Trust Score'),
+        yaxis=dict(title='Probability Density'),
+        legend=dict(
+            title='Dataset',
+            yanchor='top',
+            y=0.9,
+            xanchor='left',
+            x=0.85),
+        width=700,
+        height=400
+    ))
+
+    figure.add_traces(traces)
+
+    return figure
