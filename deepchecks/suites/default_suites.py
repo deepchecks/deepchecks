@@ -53,7 +53,7 @@ def train_test_leakage() -> Suite:
         DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_not_greater_than(),
         DateTrainTestLeakageOverlap().add_condition_leakage_ratio_not_greater_than(),
         SingleFeatureContributionTrainTest().add_condition_feature_pps_difference_not_greater_than()
-            .add_condition_feature_pps_in_train_not_greater_than(),
+        .add_condition_feature_pps_in_train_not_greater_than(),
         TrainTestSamplesMix().add_condition_duplicates_ratio_not_greater_than(),
         IdentifierLeakage().add_condition_pps_not_greater_than(),
         IndexTrainTestLeakage().add_condition_ratio_not_greater_than()

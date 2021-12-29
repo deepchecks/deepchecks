@@ -15,12 +15,15 @@ import plotly.graph_objects as go
 
 import deepchecks.ppscore as pps
 from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
-from deepchecks.utils.plot import create_colorbar_barchart_for_check, colors
+from deepchecks.utils.plot import colors
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['SingleFeatureContributionTrainTest']
 
 FC = t.TypeVar('FC', bound='SingleFeatureContributionTrainTest')
+
+pps_url = 'https://tinyurl.com/2p8rd3jy'
+pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
 
 
 class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
@@ -115,9 +118,6 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
             width=800, height=500
         )
 
-        pps_url = 'https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598'
-        pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
-
         text = [
             f'The PPS ({pps_html_url}) represents the ability of a feature to single-handedly predict another feature'
             ' or label.',
@@ -134,9 +134,7 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
             '3. <b>Large difference between test and train PPS</b> (test PPS is larger):',
             '   An anomalous value, could indicate  drift in test dataset that caused a coincidental correlation to '
             'the target label.'
-    ]
-
-
+        ]
 
         ret_value = {'train': s_pps_train.to_dict(), 'test': s_pps_test.to_dict(),
                      'train-test difference': s_difference.to_dict()}
@@ -166,14 +164,11 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
             else:
                 return ConditionResult(True)
 
-        pps_url = 'https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598'
-        pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
-
         return \
             self.add_condition(f'Train-Test features\' {pps_html_url} (PPS) difference is not greater than {threshold}',
                                condition)
 
-    def add_condition_feature_pps_in_train_not_greater_than(self: FC, threshold: float = 0.2) -> FC:
+    def add_condition_feature_pps_in_train_not_greater_than(self: FC, threshold: float = 0.7) -> FC:
         """Add new condition.
 
         Add condition that will check that train dataset feature pps is not greater than X.
@@ -195,10 +190,6 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
             else:
                 return ConditionResult(True)
 
-        pps_url = 'https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598'
-        pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
-
         return \
             self.add_condition(f'Train features\' {pps_html_url} (PPS) is not greater than {threshold}',
                                condition)
-
