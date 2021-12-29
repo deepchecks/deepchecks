@@ -164,12 +164,12 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         else:
             top_fi = None
 
-        if top_fi and len(top_fi):
+        if top_fi is not None and len(top_fi):
             score = self.auc_to_drift_score(values_dict['domain_classifier_auc'])
 
             displays = ([headnote] + [self._build_drift_plot(score)] +
                         ['<h5>Main features contributing to drift</h5>'] +
-                        [self._display_dist(train_sample_df[feature], test_sample_df[feature], fi_ser)
+                        [self._display_dist(train_sample_df[feature], test_sample_df[feature], top_fi)
                          for feature in top_fi.index]) if len(top_fi) else None
         else:
             displays = None
