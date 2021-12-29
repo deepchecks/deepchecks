@@ -103,15 +103,15 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
                              ))
         fig.add_trace(go.Scatter(x=s_difference_to_display.index,
                                  y=s_difference_to_display,
-                                 name='Train-Test Difference',
+                                 name='Train-Test Difference (abs)',
                                  marker=dict(symbol='circle', size=15),
                                  line=dict(color='#aa57b5', width=5)
                                  ))
 
         fig.update_layout(
-            title='PPS Per Column',
+            title='Predictive Power Score (PPS) Per Feature',
             xaxis_title='Column',
-            yaxis_title='PPS (Predictive Power Score)',
+            yaxis_title='Predictive Power Score (PPS)',
             yaxis_range=[0, 1.05],
             legend=dict(x=1.0, y=1.0),
             barmode='group',
@@ -124,7 +124,7 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
             '',
             '<u>In the graph above</u>, we should suspect we have problems in our data if:',
             ''
-            '1. <b>Train dataset PPS values are high:</b>',
+            '1. <b>Train dataset PPS values are high</b>:',
             'Can indicate that this feature\'s success in predicting the label is actually due to data leakage, ',
             '   meaning that the feature holds information that is based on the label to begin with.',
             '2. <b>Large difference between train and test PPS</b> (train PPS is larger):',
