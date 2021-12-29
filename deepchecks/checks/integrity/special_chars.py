@@ -15,7 +15,7 @@ import pandas as pd
 from pandas.api.types import infer_dtype
 
 from deepchecks import Dataset
-from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
+from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import calculate_feature_importance_or_none, column_importance_sorter_df
 from deepchecks.utils.strings import string_baseform, format_percent, format_columns_for_condition
@@ -122,7 +122,8 @@ class SpecialCharacters(SingleDatasetBaseCheck):
                         not_passed.append(column_name)
 
             if not_passed:
-                return ConditionResult(False, f'Found columns over threshold ratio: {not_passed}')
+                return ConditionResult(False, f'Found columns over threshold ratio: {not_passed}',
+                                       category=ConditionCategory.WARN)
             return ConditionResult(True)
 
         return self.add_condition(name, condition)

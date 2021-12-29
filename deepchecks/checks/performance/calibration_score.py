@@ -49,15 +49,15 @@ class CalibrationScore(SingleDatasetBaseCheck):
         y_pred = model.predict_proba(ds_x)
 
         briers_scores = {}
-        unique_labels = dataset.label_col.unique()
+        unique_labels = model.classes_
 
         if len(unique_labels) == 2:
             briers_scores[0] = brier_score_loss(ds_y, y_pred[:, 1])
         else:
-            for n_class in unique_labels:
+            for n_class, class_name in enumerate(unique_labels):
                 prob_pos = y_pred[:, n_class]
-                clf_score = brier_score_loss(ds_y == n_class, prob_pos, pos_label=n_class)
-                briers_scores[n_class] = clf_score
+                clf_score = brier_score_loss(ds_y == class_name, prob_pos, pos_label=class_name)
+                briers_scores[class_name] = clf_score
 
         fig = go.Figure()
 
@@ -78,17 +78,17 @@ class CalibrationScore(SingleDatasetBaseCheck):
                 name=f'(brier:{briers_scores[0]:9.4f})',
             ))
         else:
-            for n_class in unique_labels:
+            for n_class, class_name in enumerate(unique_labels):
                 prob_pos = y_pred[:, n_class]
 
                 fraction_of_positives, mean_predicted_value = \
-                    calibration_curve(ds_y == n_class, prob_pos, n_bins=10)
+                    calibration_curve(ds_y == class_name, prob_pos, n_bins=10)
 
                 fig.add_trace(go.Scatter(
                     x=mean_predicted_value,
                     y=fraction_of_positives,
                     mode='lines+markers',
-                    name=f'{n_class} (brier:{briers_scores[n_class]:9.4f})',
+                    name=f'{class_name} (brier:{briers_scores[class_name]:9.4f})',
                 ))
 
         fig.update_layout(title_text='Calibration plots  (reliability curve)',

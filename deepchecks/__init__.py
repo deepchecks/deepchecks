@@ -10,6 +10,7 @@
 #
 """Top module for deepchecks library."""
 import matplotlib
+import plotly.io as pio
 from .utils.ipython import is_notebook
 from .base import (
     Dataset,
@@ -29,7 +30,6 @@ from .base import (
     ModelComparisonSuite,
 )
 
-
 __all__ = [
     'Dataset',
     'BaseCheck',
@@ -48,8 +48,15 @@ __all__ = [
     'ModelComparisonSuite',
 ]
 
-
 # Matplotlib has multiple backends. If we are in a context that does not support GUI (For example, during unit tests)
 # we can't use a GUI backend. Thus we must use a non-GUI backend.
 if not is_notebook():
     matplotlib.use('Agg')
+
+# We can't rely on that the user will have an active internet connection, thus we change the default backend to
+# "notebook" If plotly detects the 'notebook-connected' backend.
+# for more info, see: https://plotly.com/python/renderers/
+pio_backends = pio.renderers.default.split('+')
+if 'notebook_connected' in pio_backends:
+    pio_backends[pio_backends.index('notebook_connected')] = 'notebook'
+    pio.renderers.default = '+'.join(pio_backends)

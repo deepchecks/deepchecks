@@ -13,17 +13,17 @@
 from collections import OrderedDict
 from typing import Union, Tuple, List, Dict, Callable, Optional
 
-import numpy as np
 import pandas as pd
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.checks.distribution.plot import plot_density
-from deepchecks.checks.distribution.dist_utils import preprocess_for_psi, earth_movers_distance, psi, drift_score_bar
+from deepchecks.checks.distribution.plot import drift_score_bar_traces, feature_distribution_traces
+from deepchecks.checks.distribution.dist_utils import preprocess_for_psi, earth_movers_distance, psi
 from deepchecks.utils.features import calculate_feature_importance_or_none
-from deepchecks.utils.plot import colors
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
 
 __all__ = ['TrainTestFeatureDrift']
 
@@ -187,54 +187,66 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
             plot_title = column_name
 
         if column_type == 'numerical':
+            scorer_name = "Earth Mover's Distance"
             score = earth_movers_distance(dist1=train_column.astype('float'), dist2=test_column.astype('float'))
+            bar_stop = max(0.4, score + 0.1)
 
-            def plot_numerical():
+            score_bar = drift_score_bar_traces(score)
 
-                x_range = (min(train_column.min(), test_column.min()), max(train_column.max(), test_column.max()))
-                xs = np.linspace(x_range[0], x_range[1], 40)
-                fig, axs = plt.subplots(3, figsize=(8, 4.5), gridspec_kw={'height_ratios': [1, 7, 0.2]})
-                fig.suptitle(plot_title, horizontalalignment='left', fontweight='bold', x=0.05)
-                drift_score_bar(axs[0], score, 'Earth Movers Distance')
-                plt.sca(axs[1])
-                pdf1 = plot_density(train_column, xs, colors['Train'])
-                pdf2 = plot_density(test_column, xs, colors['Test'])
-                plt.gca().set_ylim(bottom=0, top=max(max(pdf1), max(pdf2)) * 1.1)
-                axs[1].set_xlabel(column_name)
-                axs[1].set_ylabel('Probability Density')
-                axs[1].legend(['Train dataset', 'Test Dataset'])
-                axs[1].set_title('Distribution')
-                fig.tight_layout(pad=1.0)
-                axs[2].axhline(y=0.5, color='k', linestyle='-', linewidth=0.5)
-                axs[2].axis('off')
-
-            return score, "Earth Mover's Distance", plot_numerical
+            traces, xaxis_layout, yaxis_layout = feature_distribution_traces(train_column,
+                                                                             test_dist)
 
         elif column_type == 'categorical':
-
-            expected_percents, actual_percents, categories_list = \
+            scorer_name = 'PSI'
+            expected_percents, actual_percents, _ = \
                 preprocess_for_psi(dist1=train_dist, dist2=test_dist, max_num_categories=self.max_num_categories)
             score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
+            bar_stop = max(0.4, score + 0.1)
 
-            def plot_categorical():
+            score_bar = drift_score_bar_traces(score)
 
-                cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
-                                      index=categories_list)
+            traces, xaxis_layout, yaxis_layout = feature_distribution_traces(train_dist,
+                                                                             test_dist,
+                                                                             is_categorical=True,
+                                                                             max_num_categories=self.max_num_categories)
 
-                fig, axs = plt.subplots(3, figsize=(8, 4.5), gridspec_kw={'height_ratios': [1, 7, 0.2]})
-                fig.suptitle(plot_title, horizontalalignment='left', fontweight='bold', x=0.05)
-                drift_score_bar(axs[0], score, 'PSI')
-                cat_df.plot.bar(ax=axs[1], color=(colors['Train'], colors['Test']))
-                axs[1].set_ylabel('Percentage')
-                axs[1].legend()
-                axs[1].set_title('Distribution')
-                plt.sca(axs[1])
-                plt.xticks(rotation=30)
-                fig.tight_layout(pad=1.0)
-                axs[2].axhline(y=0.5, color='k', linestyle='-', linewidth=0.5)
-                axs[2].axis('off')
+        fig = make_subplots(rows=2, cols=1, vertical_spacing=0.4, shared_yaxes=False, shared_xaxes=False,
+                            row_heights=[0.1, 0.9],
+                            subplot_titles=['Drift Score - ' + scorer_name, plot_title])
 
-            return score, 'PSI', plot_categorical
+        fig.add_traces(score_bar, rows=[1] * len(score_bar), cols=[1] * len(score_bar))
+        fig.add_traces(traces, rows=[2] * len(traces), cols=[1] * len(traces))
+
+        shared_layout = go.Layout(
+            xaxis=dict(
+                showgrid=False,
+                gridcolor='black',
+                linecolor='black',
+                range=[0, bar_stop],
+                dtick=0.05,
+                title='drift score'
+            ),
+            yaxis=dict(
+                showgrid=False,
+                showline=False,
+                showticklabels=False,
+                zeroline=False,
+            ),
+            xaxis2=xaxis_layout,
+            yaxis2=yaxis_layout,
+            legend=dict(
+                title='Dataset',
+                yanchor='top',
+                y=0.7,
+                xanchor='left',
+                x=0.85),
+            width=700,
+            height=400
+        )
+
+        fig.update_layout(shared_layout)
+
+        return score, scorer_name, fig
 
     def add_condition_drift_score_not_greater_than(self, max_allowed_psi_score: float = 0.2,
                                                    max_allowed_earth_movers_score: float = 0.1,

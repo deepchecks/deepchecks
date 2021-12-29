@@ -154,10 +154,10 @@ class DominantFrequencyChange(TrainTestBaseCheck):
                     count_ref = top_ref[value]
                     count_test = top_test.get(value, 0)
                     p_dict[column] = {'Value': value,
-                                      'Reference data %': count_ref / baseline_len * 100,
-                                      'Tested data %': count_test / test_len * 100,
-                                      'Reference data #': count_ref,
-                                      'Tested data #': count_test,
+                                      'Train data %': count_ref / baseline_len * 100,
+                                      'Test data %': count_test / test_len * 100,
+                                      'Train data #': count_ref,
+                                      'Test data #': count_test,
                                       'P value': p_val}
             elif len(top_test) == 1 or top_test.iloc[0] > top_test.iloc[1] * self.dominance_ratio:
                 value = top_test.index[0]
@@ -166,10 +166,10 @@ class DominantFrequencyChange(TrainTestBaseCheck):
                     count_test = top_test[value]
                     count_ref = top_ref.get(value, 0)
                     p_dict[column] = {'Value': value,
-                                      'Reference data %': count_ref / baseline_len * 100,
-                                      'Tested data %': count_test / test_len * 100,
-                                      'Reference data #': count_ref,
-                                      'Tested data #': count_test,
+                                      'Train data %': count_ref / baseline_len * 100,
+                                      'Test data %': count_test / test_len * 100,
+                                      'Train data #': count_ref,
+                                      'Test data #': count_test,
                                       'P value': p_val}
 
         if len(p_dict):
@@ -224,7 +224,7 @@ class DominantFrequencyChange(TrainTestBaseCheck):
         def condition(result: Dict) -> ConditionResult:
             failed_columns = []
             for column, values in result.items():
-                diff = values['Tested data %'] - values['Reference data %']
+                diff = values['Test data %'] - values['Train data %']
                 if diff > percent_change_threshold:
                     failed_columns.append(column)
             if failed_columns:

@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains checks of model performance metrics."""
-from .performance_report import PerformanceReport
+from .performance_report import PerformanceReport, MultiModelPerformanceReport
 from .confusion_matrix_report import ConfusionMatrixReport
 from .roc_report import RocReport
 from .simple_model_comparison import SimpleModelComparison
@@ -30,4 +30,5 @@ __all__ = [
     'RegressionSystematicError',
     'RegressionErrorDistribution',
     'ClassPerformance',
+    'MultiModelPerformanceReport'
 ]

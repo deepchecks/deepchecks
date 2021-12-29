@@ -18,7 +18,7 @@ import pandas as pd
 from pandas import DataFrame, Series
 from scipy import stats
 
-from deepchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ConditionResult
+from deepchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ConditionResult, ConditionCategory
 from deepchecks.utils.features import calculate_feature_importance_or_none, column_importance_sorter_df
 from deepchecks.utils.strings import is_string_column, format_number, format_columns_for_condition, format_percent
 from deepchecks.utils.dataframes import select_from_dataframe
@@ -202,7 +202,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                 not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
                                        f'Found columns with greater than {format_percent(max_ratio)} outliers: '
-                                       f'{not_passing_str}')
+                                       f'{not_passing_str}', category=ConditionCategory.WARN)
             else:
                 return ConditionResult(True)
 

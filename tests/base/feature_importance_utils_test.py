@@ -12,12 +12,13 @@
 import pandas as pd
 from hamcrest import equal_to, assert_that, calling, raises, close_to, not_none, none
 from sklearn.ensemble import AdaBoostClassifier
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.neural_network import MLPClassifier
 
 from deepchecks.utils.features import calculate_feature_importance, calculate_feature_importance_or_none, \
     column_importance_sorter_df, column_importance_sorter_dict
 from deepchecks.errors import DeepchecksValueError
+from deepchecks.base import Dataset
 
 
 def test_adaboost(iris_split_dataset_and_model):
@@ -40,6 +41,20 @@ def test_linear_regression(diabetes):
     clf.fit(ds.features_columns, ds.label_col)
     feature_importances = calculate_feature_importance(clf, ds)
     assert_that(feature_importances.max(), close_to(0.225374532399, 0.0000000001))
+    assert_that(feature_importances.sum(), close_to(1, 0.000001))
+
+
+def test_logistic_regression():
+    train_df = pd.DataFrame([[23, True], [19, False], [15, False], [5, True]], columns=['age', 'smoking'],
+                            index=[0, 1, 2, 3])
+    train_y = pd.Series([1, 1, 0, 0])
+
+    logreg = LogisticRegression()
+    logreg.fit(train_df, train_y)
+
+    ds_train = Dataset(df=train_df, label=train_y)
+
+    feature_importances = calculate_feature_importance(logreg, ds_train)
     assert_that(feature_importances.sum(), close_to(1, 0.000001))
 
 

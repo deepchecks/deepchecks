@@ -18,7 +18,7 @@ from sklearn.utils.multiclass import unique_labels as get_unique_labels
 
 from deepchecks import SingleDatasetBaseCheck, Dataset, CheckResult, ConditionResult
 from deepchecks.utils.metrics import task_type_validation, ModelType, MULTICLASS_SCORERS_NON_AVERAGE, \
-    get_scorers_dict, initialize_user_scorers
+    get_scorers_list, initialize_multi_scorers
 from deepchecks.utils.strings import format_percent
 from deepchecks.errors import DeepchecksValueError
 
@@ -57,7 +57,7 @@ class ClassPerformance(SingleDatasetBaseCheck):
         alternative_scorers: t.Optional[t.Mapping[str, AlternativeScorer]] = None
     ):
         super().__init__()
-        self.alternative_scorers = initialize_user_scorers(alternative_scorers)
+        self.alternative_scorers = initialize_multi_scorers(alternative_scorers)
 
     def run(
         self,
@@ -96,16 +96,16 @@ class ClassPerformance(SingleDatasetBaseCheck):
         task_type_validation(model, dataset, expected_model_types)
 
         unique_labels = get_unique_labels(dataset.label_col)
-        scorers = get_scorers_dict(model, dataset, self.alternative_scorers, multiclass_avg=False)
+        scorers = get_scorers_list(model, dataset, self.alternative_scorers, multiclass_avg=False)
 
         scorer_results = (
-            (scorer_name, scorer_func(model, dataset))
-            for scorer_name, scorer_func in scorers.items()
+            (scorer.name, scorer(model, dataset))
+            for scorer in scorers
         )
 
         df = pd.DataFrame.from_dict({
             scorer_name: dict(zip(unique_labels, score))
-            for scorer_name, score in self._validate_results(scorer_results, len(unique_labels))
+            for scorer_name, score in scorer_results
         })
 
         def display():
@@ -131,18 +131,6 @@ class ClassPerformance(SingleDatasetBaseCheck):
     @property
     def _default_scorers(self) -> t.Dict[str, t.Callable[..., np.ndarray]]:
         return MULTICLASS_SCORERS_NON_AVERAGE
-
-    def _validate_results(
-        self,
-        results: t.Iterable[t.Tuple[str, object]],
-        number_of_classes: int
-    ) -> t.Iterator[t.Tuple[str, np.ndarray]]:
-        for scorer_name, score in results:
-            score_length = len(score)
-            if score_length != number_of_classes:
-                raise DeepchecksValueError(f'Expected scorer to return array of length {number_of_classes}, but got '
-                                           f'length {score_length}')
-            yield scorer_name, score
 
     def add_condition_ratio_difference_not_greater_than(
         self: CP,

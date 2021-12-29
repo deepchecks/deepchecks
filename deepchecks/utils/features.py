@@ -175,7 +175,7 @@ def _built_in_importance(
         return pd.Series(normalized_feature_importance_values, index=features)
 
     if hasattr(model, 'coef_'):  # Linear models
-        coef = np.abs(model.coef_)
+        coef = np.abs(model.coef_.flatten())
         coef = coef / coef.sum()
         return pd.Series(coef, index=features)
 

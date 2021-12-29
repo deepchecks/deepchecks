@@ -16,6 +16,7 @@ import logging
 
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import is_categorical, infer_categorical_features
@@ -381,6 +382,44 @@ class Dataset:
         """Return number of samples in the member dataframe."""
         return self.n_samples
 
+    def train_test_split(self,
+                         train_size: t.Union[int, float, None] = None,
+                         test_size: t.Union[int, float] = 0.25,
+                         random_state: int = 42,
+                         shuffle: bool = True,
+                         stratify: t.Union[t.List, pd.Series, np.ndarray, bool] = False) -> t.Tuple[TDataset, TDataset]:
+        """Split dataset into random train and test datasets.
+
+        Args:
+            train_size (float or int):
+                If float, should be between 0.0 and 1.0 and represent the proportion of the dataset to include in
+                the train split. If int, represents the absolute number of train samples. If None, the value is
+                automatically set to the complement of the test size.(default = None)
+            test_size (float or int):
+                If float, should be between 0.0 and 1.0 and represent the proportion of the dataset to include in the
+                test split. If int, represents the absolute number of test samples. (default = 0.25)
+            random_state (int):
+                The random state to use for shuffling. (default=42)
+            shuffle (bool):
+                Whether or not to shuffle the data before splitting. (default=True)
+            stratify (List, pd.Series, np.ndarray, bool):
+                If True, data is split in a stratified fashion, using the class labels. If array-like, data is split in
+                a stratified fashion, using this as class labels. (default=False)
+        Returns:
+            (Dataset) Dataset containing train split data.
+            (Dataset) Dataset containing test split data.
+        """
+        if isinstance(stratify, bool):
+            stratify = self.label_col if stratify else None
+
+        train_df, test_df = train_test_split(self._data,
+                                             test_size=test_size,
+                                             train_size=train_size,
+                                             random_state=random_state,
+                                             shuffle=shuffle,
+                                             stratify=stratify)
+        return self.copy(train_df), self.copy(test_df)
+
     @staticmethod
     def _infer_categorical_features(
             df: pd.DataFrame,
@@ -613,7 +652,7 @@ class Dataset:
             DeepchecksValueError if dataset does not have a datetime column
 
         """
-        if self.datetime_name is None:
+        if self.datetime_col is None:
             raise DeepchecksValueError('Check requires dataset to have a datetime column')
 
     def validate_index(self):
@@ -627,7 +666,7 @@ class Dataset:
             DeepchecksValueError if dataset does not have an index
 
         """
-        if self.index_name is None:
+        if self.index_col is None:
             raise DeepchecksValueError('Check requires dataset to have an index column')
 
     def select(
