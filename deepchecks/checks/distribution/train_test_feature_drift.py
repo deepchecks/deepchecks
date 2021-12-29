@@ -105,8 +105,8 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         Calculate drift for all columns.
 
         Args:
-            train_dataset (Dataset): The training dataset object. Must contain a label column.
-            test_dataset (Dataset): The test dataset object. Must contain a label column.
+            train_dataset (Dataset): The training dataset object.
+            test_dataset (Dataset): The test dataset object.
 
         Returns:
             CheckResult:
