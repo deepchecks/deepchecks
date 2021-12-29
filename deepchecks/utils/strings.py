@@ -33,6 +33,7 @@ __all__ = [
     'is_string_column',
     'format_percent',
     'format_number',
+    'format_list',
     'format_columns_for_condition',
     'get_random_string'
 ]
@@ -246,6 +247,29 @@ def format_number(x, floating_point: int = 2) -> str:
     else:
         ret_x = round(x, floating_point)
         return add_commas(ret_x).rstrip('0')
+
+
+def format_list(l: t.List[Hashable], max_elements_to_show: int = 10, max_string_length: int = 40) -> str:
+    """Format columns properties for display in condition name.
+
+    Args:
+        l (List): list to print.
+        max_elements_to_show (int): max elemnts to print before terminating.
+        max_string_length (int): max string length before terminating.
+
+    Return:
+        String of beautified list
+    """
+    string_list = [str(i) for i in l[:max_elements_to_show]]
+    output = ', '.join(string_list)
+
+    if len(output) > max_string_length:
+        return output[:max_string_length] + '...'
+
+    if len(l) > max_elements_to_show:
+        return output + ', ...'
+
+    return output
 
 
 def format_columns_for_condition(
