@@ -46,16 +46,16 @@ class CalibrationScore(SingleDatasetBaseCheck):
 
         ds_x = dataset.features_columns
         ds_y = dataset.label_col
+        # Expect predict_proba to return in order of the sorted classes.
         y_pred = model.predict_proba(ds_x)
 
         briers_scores = {}
-        unique_labels = model.classes_
 
-        if len(unique_labels) == 2:
+        if len(dataset.classes) == 2:
             briers_scores[0] = brier_score_loss(ds_y, y_pred[:, 1])
         else:
-            for n_class, class_name in enumerate(unique_labels):
-                prob_pos = y_pred[:, n_class]
+            for class_index, class_name in enumerate(dataset.classes):
+                prob_pos = y_pred[:, class_index]
                 clf_score = brier_score_loss(ds_y == class_name, prob_pos, pos_label=class_name)
                 briers_scores[class_name] = clf_score
 
@@ -68,7 +68,7 @@ class CalibrationScore(SingleDatasetBaseCheck):
                     name='Perfectly calibrated',
                 ))
 
-        if len(unique_labels) == 2:
+        if len(dataset.classes) == 2:
             fraction_of_positives, mean_predicted_value = calibration_curve(ds_y, y_pred[:, 1], n_bins=10)
 
             fig.add_trace(go.Scatter(
@@ -78,8 +78,8 @@ class CalibrationScore(SingleDatasetBaseCheck):
                 name=f'(brier:{briers_scores[0]:9.4f})',
             ))
         else:
-            for n_class, class_name in enumerate(unique_labels):
-                prob_pos = y_pred[:, n_class]
+            for class_index, class_name in enumerate(dataset.classes):
+                prob_pos = y_pred[:, class_index]
 
                 fraction_of_positives, mean_predicted_value = \
                     calibration_curve(ds_y == class_name, prob_pos, n_bins=10)
