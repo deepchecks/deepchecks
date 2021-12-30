@@ -10,6 +10,8 @@
 #
 """The regression_error_distribution check module."""
 import plotly.express as px
+import plotly.figure_factory as ff
+import plotly.graph_objects as go
 import pandas as pd
 from scipy.stats import kurtosis
 from sklearn.base import BaseEstimator
@@ -23,15 +25,22 @@ __all__ = ['RegressionErrorDistribution']
 
 
 class RegressionErrorDistribution(SingleDatasetBaseCheck):
-    """Check regresstion error distribution.
+    """Check regression error distribution.
+
+    The check shows the distribution of the regression error, and enables to set conditions on the distribution
+    kurtosis. Kurtosis is a measure of the shape of the distribution, helping us understand if the distribution
+    is significantly "wider" from the normal distribution, which may imply a certain cause of error deforming the
+    normal shape.
 
     Args:
-        n_top_samples (int): amount of samples to show which are of Largest under / over estimation errors.
+        n_top_samples (int): amount of samples to show which have the largest under / over estimation errors.
+        n_bins (int): number of bins to use for the histogram.
     """
 
-    def __init__(self, n_top_samples: int = 3):
+    def __init__(self, n_top_samples: int = 3, n_bins: int = 40):
         super().__init__()
         self.n_top_samples = n_top_samples
+        self.n_bins = n_bins
 
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run check.
@@ -43,7 +52,7 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         Returns:
            CheckResult:
                 - value is the kurtosis value (Fisher’s definition (normal ==> 0.0)).
-                - display is histogram of error distirbution and the largest prediction errors.
+                - display is histogram of error distribution and the largest prediction errors.
 
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance with a label
@@ -75,7 +84,7 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         display = [
             px.histogram(
                 x=diff.values,
-                nbins=40,
+                nbins=self.n_bins,
                 title='Histogram of prediction errors',
                 labels={'x': f'{dataset.label_name} prediction error', 'y': 'Count'},
                 width=700, height=500

@@ -35,7 +35,8 @@ __all__ = [
     'MULTICLASS_SCORERS_NON_AVERAGE',
     'get_scores_ratio',
     'initialize_multi_scorers',
-    'get_scorer_single'
+    'get_scorer_single',
+    'task_type_validation'
 ]
 
 from deepchecks.utils.strings import is_string_column
