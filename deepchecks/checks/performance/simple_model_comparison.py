@@ -98,12 +98,12 @@ class SimpleModelComparison(TrainTestBaseCheck):
                 for scorer in scorers:
                     score_result = scorer(model_instance, test_dataset)
                     # Multiclass scorers return numpy array of result per class
-                    for class_i, value in enumerate(score_result):
+                    for class_i, class_score in enumerate(score_result):
                         if scorer.is_negative_scorer():
-                            display_value = -value
+                            display_value = -class_score
                         else:
-                            display_value = value
-                        results.append([model_name, model_type, value, display_value, scorer.name, class_i])
+                            display_value = class_score
+                        results.append([model_name, model_type, class_score, display_value, scorer.name, class_i])
             # Figure
             results_df = pd.DataFrame(results, columns=['Model', 'Type', 'Value', 'DisplayVal', 'Metric', 'Class'])
             fig = px.bar(results_df, x=['Class', 'Model'], y='DisplayVal', color='Model', barmode='group',
