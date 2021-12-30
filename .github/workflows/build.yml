@@ -44,7 +44,7 @@ jobs:
         python-version: "3.9"
     - name: Set Up Env
       run: make env
-    - uses: paambaati/codeclimate-action@v2.2.4
+    - uses: paambaati/codeclimate-action@v3.0.0
       env:
         CC_TEST_REPORTER_ID: 3638c7b5bc7a2ddb3d6d3f874ddeb46db645a91698a4ad6e7c1ff236e62581c9
       with:
