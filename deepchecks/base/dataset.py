@@ -624,7 +624,7 @@ class Dataset:
         return self.data[self._features] if self._features else None
 
     @property
-    @lru_cache
+    @lru_cache(maxsize=128)
     def classes(self) -> t.List[str]:
         """Return the classes from label column in sorted list. if no label column defined, return empty list.
 
