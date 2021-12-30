@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module of preprocessing functions."""
+# pylint: disable=invalid-name
 import numpy as np
 import pandas as pd
 from typing import List
@@ -28,10 +29,8 @@ class ScaledNumerics(TransformerMixin):
     """Preprocess given features to scaled numerics.
 
     Args:
-        baseline_features (DataFrame):
-            Will be used for fit. Expect to get only features
         categorical_columns (List[Hashable]):
-            Indicates names of categorical columns in both DataFrames.
+            Indicates names of categorical columns in features.
         max_num_categories (int):
             Indicates the maximum number of unique categories in a single categorical column
             (rare categories will be changed to a form of "other")
@@ -47,7 +46,7 @@ class ScaledNumerics(TransformerMixin):
         self.cat_columns = categorical_columns
         self.max_num_categories = max_num_categories
 
-    def fit(self, X: pd.DataFrame, **fit_params):
+    def fit(self, X: pd.DataFrame):
         """Fit scaler based on given dataframe."""
         self.not_cat_columns = list(set(X.columns) - set(self.cat_columns))
 
@@ -94,7 +93,7 @@ class ScaledNumerics(TransformerMixin):
 
     def fit_transform(self, X, y=None, **fit_params):
         """Fit scaler based on given dataframe and than transform it."""
-        self.fit(X, **fit_params)
+        self.fit(X)
         return self.transform(X)
 
     @staticmethod
