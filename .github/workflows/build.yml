@@ -33,6 +33,22 @@ jobs:
       run: make env
     - name: Run Tests
       run: make test
+  coverage:
+    runs-on: ubuntu-latest
+    needs: tests
+    name: coverate
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: "3.9"
+    - name: Set Up Env
+      run: make env
+    - uses: paambaati/codeclimate-action@v3.0.0
+      env:
+        CC_TEST_REPORTER_ID: ${{ secrets.CODE_CLIMATE_TEST_RUNNER }}
+      with:
+        coverageCommand: make coverage
 
   tests-windows:
     runs-on: windows-latest
