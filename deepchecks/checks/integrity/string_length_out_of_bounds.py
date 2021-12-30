@@ -19,7 +19,7 @@ from pandas import DataFrame, Series
 from scipy import stats
 
 from deepchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ConditionResult, ConditionCategory
-from deepchecks.utils.features import calculate_feature_importance_or_none, column_importance_sorter_df
+from deepchecks.utils.features import calculate_feature_importance_or_none, column_importance_sorter_df, is_categorical
 from deepchecks.utils.strings import is_string_column, format_number, format_columns_for_condition, format_percent
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.validation import ensure_dataframe_type
@@ -46,6 +46,15 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         outlier_factor (int):
             Strings would be defined as outliers if their length is outlier_factor times more/less
             than the values inside the inner quantile range.
+        min_length_difference (int):
+            The minimum length difference to be considered as outlier.
+        min_length_ratio_difference (float):
+            Used to calculate the minimum length difference to be considered as outlier. (calculated form this times the
+            average of the normal lengths.)
+        min_unique_value_ratio (float):
+            Min
+        min_unique_values (int):
+            Minimum unique values in column to calculate string length outlier
         n_top_columns (int): (optional - used only if model was specified)
           amount of columns to show ordered by feature importance (date, index, label are first)
     """
@@ -57,8 +66,10 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         num_percentiles: int = 1000,
         inner_quantile_range: int = 94,
         outlier_factor: int = 4,
-        minimum_length_difference: int = 5,
-        minimum_length_ratio_difference: int = 0.5,
+        min_length_difference: int = 5,
+        min_length_ratio_difference: int = 0.5,
+        min_unique_value_ratio: float = 0.9,
+        min_unique_values: int = 100,
         n_top_columns: int = 10
     ):
         super().__init__()
@@ -68,8 +79,10 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         self.inner_quantile_range = inner_quantile_range
         self.outlier_factor = outlier_factor
         self.n_top_columns = n_top_columns
-        self.minimum_length_difference = minimum_length_difference
-        self.minimum_length_ratio_difference = minimum_length_ratio_difference
+        self.min_length_difference = min_length_difference
+        self.min_length_ratio_difference = min_length_ratio_difference
+        self.min_unique_value_ratio = min_unique_value_ratio
+        self.min_unique_values = min_unique_values
 
     def run(self, dataset, model=None) -> CheckResult:
         """Run check.
@@ -92,7 +105,9 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         for column_name in df.columns:
             column: Series = df[column_name].dropna()
 
-            if not is_string_column(column):
+            if not is_string_column(column) or is_categorical(column,
+                                                              max_categorical_ratio=self.min_unique_value_ratio,
+                                                              max_categories=self.min_unique_values):
                 continue
 
             string_length_column = column.map(lambda x: len(str(x)), na_action='ignore')
@@ -173,17 +188,13 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
 
         non_outlier_range_average = (non_outlier_upper_range + non_outlier_lower_range) / 2
 
-        minimum_difference = max(self.minimum_length_difference,
-                                 self.minimum_length_ratio_difference * non_outlier_range_average)
-        print(minimum_difference)
+        minimum_difference = max(self.min_length_difference,
+                                 self.min_length_ratio_difference * non_outlier_range_average)
         if lower_range_distance > 0:
-            print(f'lower {lower_range_distance}')
             if lower_range_distance < minimum_difference:
                 lower_range += minimum_difference - lower_range_distance
         elif higher_range_distance > 0:
-            print(f'upper {higher_range_distance}')
             if higher_range_distance < minimum_difference:
-                print(minimum_difference - higher_range_distance)
                 upper_range -= minimum_difference - higher_range_distance
 
         return lower_range, upper_range

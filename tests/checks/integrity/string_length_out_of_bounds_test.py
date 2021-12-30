@@ -28,7 +28,7 @@ def test_no_outliers():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    result = StringLengthOutOfBounds().run(df).value
+    result = StringLengthOutOfBounds(min_unique_values=1).run(df).value
     # Assert
     assert_that(result, has_length(0))
 
@@ -40,7 +40,7 @@ def test_single_outlier():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    result = StringLengthOutOfBounds().run(df).value
+    result = StringLengthOutOfBounds(min_unique_values=1).run(df).value
     # Assert
     assert_that(result, has_length(1))
 
@@ -53,7 +53,7 @@ def test_outlier_multi_column():
             'col2': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    result = StringLengthOutOfBounds().run(df).value
+    result = StringLengthOutOfBounds(min_unique_values=1).run(df).value
     # Assert
     assert_that(result, has_length(1))
 
@@ -66,7 +66,7 @@ def test_outlier_multiple_outliers():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    result = StringLengthOutOfBounds().run(df).value
+    result = StringLengthOutOfBounds(min_unique_values=1).run(df).value
     # Assert
     assert_that(result, has_length(1))
     assert_that(result['col1']['outliers'][0]['n_samples'], 2)
@@ -80,7 +80,7 @@ def test_outlier_multiple_outlier_ranges():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    result = StringLengthOutOfBounds().run(df).value
+    result = StringLengthOutOfBounds(min_unique_values=1).run(df).value
     # Assert
     assert_that(result, has_length(1))
     assert_that(result['col1']['outliers'], has_length(2))
@@ -94,7 +94,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     train.data.loc[0, 'bp'] = 'aaa' * 1000
     train.data.loc[0, 'sex'] = 'aaa' * 1000
     # Arrange
-    check = StringLengthOutOfBounds(n_top_columns=3)
+    check = StringLengthOutOfBounds(min_unique_values=1, n_top_columns=3)
     # Act
     result_ds = check.run(train, clf).display[0]
     # Assert
@@ -114,7 +114,7 @@ def test_nan():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    result = StringLengthOutOfBounds().run(df).value
+    result = StringLengthOutOfBounds(min_unique_values=1).run(df).value
     # Assert
     assert_that(result, has_length(1))
     assert_that(result['col1']['outliers'][0]['n_samples'], 2)
@@ -128,7 +128,7 @@ def test_condition_count_fail():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    check = StringLengthOutOfBounds().add_condition_number_of_outliers_not_greater_than(1)
+    check = StringLengthOutOfBounds(min_unique_values=1).add_condition_number_of_outliers_not_greater_than(1)
 
     # Act
     result = check.conditions_decision(check.run(df))
@@ -148,7 +148,7 @@ def test_condition_count_pass():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    check = StringLengthOutOfBounds().add_condition_number_of_outliers_not_greater_than(10)
+    check = StringLengthOutOfBounds(min_unique_values=1).add_condition_number_of_outliers_not_greater_than(10)
 
     # Act
     result = check.conditions_decision(check.run(df))
@@ -167,7 +167,7 @@ def test_condition_ratio_fail():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    check = StringLengthOutOfBounds().add_condition_ratio_of_outliers_not_greater_than(0.001)
+    check = StringLengthOutOfBounds(min_unique_values=1).add_condition_ratio_of_outliers_not_greater_than(0.001)
 
     # Act
     result = check.conditions_decision(check.run(df))
@@ -188,7 +188,7 @@ def test_condition_ratio_pass():
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
-    check = StringLengthOutOfBounds().add_condition_ratio_of_outliers_not_greater_than(0.1)
+    check = StringLengthOutOfBounds(min_unique_values=1).add_condition_ratio_of_outliers_not_greater_than(0.1)
 
     # Act
     result = check.conditions_decision(check.run(df))
