@@ -92,7 +92,7 @@ def calculate_feature_importance_or_none(
         #     if it was not possible to calculate features importance;
         # NumberOfFeaturesLimitError:
         #     if the number of features limit were exceeded;
-        warn(f'Features importance where not calculated:\n{str(error)}')
+        warn(f'Features importance was not calculated:\n{str(error)}')
 
 
 def calculate_feature_importance(
@@ -159,7 +159,7 @@ def calculate_feature_importance(
         return _calc_importance(model, dataset, **permutation_kwargs).fillna(0)
     else:
         raise errors.DeepchecksValueError(
-            "Were not able to calculate features importance"  # FIXME: better message
+            "Was not able to calculate features importance"  # FIXME: better message
         )
 
 
@@ -195,8 +195,8 @@ def _calc_importance(
         model (Any): A fitted model
         dataset (Dataset): dataset used to fit the model
         n_repeats (int): Number of times to permute a feature
-        mask_high_variance_features (bool): If true, features for whome calculated permuation importance values
-                                            varied gratly would be returned has having 0 feature importance
+        mask_high_variance_features (bool): If true, features for which calculated permutation importance values
+                                            varied greatly would be returned has having 0 feature importance
         random_state (int): Random seed for permutation importance calculation.
         n_samples (int): The number of samples to draw from X to compute feature importance
                         in each repeat (without replacement).
