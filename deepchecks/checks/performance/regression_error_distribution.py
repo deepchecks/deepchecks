@@ -10,8 +10,6 @@
 #
 """The regression_error_distribution check module."""
 import plotly.express as px
-import plotly.figure_factory as ff
-import plotly.graph_objects as go
 import pandas as pd
 from scipy.stats import kurtosis
 from sklearn.base import BaseEstimator
