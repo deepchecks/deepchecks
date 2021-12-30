@@ -166,7 +166,7 @@ def test_condition_ratio_difference_not_greater_than_threshold_that_should_pass(
     assert_that(condition_result, equal_condition_result(  # type: ignore
         is_pass=True,
         name=(
-            "Relative ratio difference between labels 'F1 - Default' score "
+            "Relative ratio difference between labels 'F1 (Default)' score "
             "is not greater than 50.00%"
         ),
         details='',
@@ -189,12 +189,12 @@ def test_condition_ratio_difference_not_greater_than_threshold_that_should_not_p
     # Assert
     detail_pattern = re.compile(
         r'Relative ratio difference between highest and lowest classes is greater than 12\.00%\. '
-        r'Score: F1 - Default, lowest class: \d+, highest class: \d+;'
+        r'Score: F1 \(Default\), lowest class: \d+, highest class: \d+;'
     )
     assert_that(condition_result, equal_condition_result( # type: ignore
         is_pass=False,
         name=(
-            "Relative ratio difference between labels 'F1 - Default' score "
+            "Relative ratio difference between labels 'F1 (Default)' score "
             "is not greater than 12.00%"
         ),
         details=detail_pattern,
@@ -215,9 +215,9 @@ def validate_class_performance_check_result(
 ):
     if value is None:
         default_scores_matcher = has_entries({
-            'F1 - Default': instance_of(float),
-            'Precision - Default': instance_of(float),
-            'Recall - Default': instance_of(float),
+            'F1 (Default)': instance_of(float),
+            'Precision (Default)': instance_of(float),
+            'Recall (Default)': instance_of(float),
         })
 
         value_matcher = all_of(

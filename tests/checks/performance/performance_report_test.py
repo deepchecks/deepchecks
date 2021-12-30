@@ -42,9 +42,9 @@ def test_classification(iris_labeled_dataset, iris_adaboost):
     result = check.run(iris_labeled_dataset, iris_adaboost).value
     # Assert
     assert_that(result, has_entries({
-        'Accuracy - Default': close_to(0.96, 0.01),
-        'Precision - Macro Average - Default': close_to(0.96, 0.01),
-        'Recall - Macro Average - Default': close_to(0.96, 0.01)
+        'Accuracy (Default)': close_to(0.96, 0.01),
+        'Precision - Macro Average (Default)': close_to(0.96, 0.01),
+        'Recall - Macro Average (Default)': close_to(0.96, 0.01)
     }))
 
 
@@ -61,9 +61,9 @@ def test_classification_string_labels(iris_labeled_dataset):
     result = check.run(iris_labeled_dataset, iris_adaboost).value
     # Assert
     assert_that(result, has_entries({
-        'Accuracy - Default': close_to(0.96, 0.01),
-        'Precision - Macro Average - Default': close_to(0.96, 0.01),
-        'Recall - Macro Average - Default': close_to(0.96, 0.01)
+        'Accuracy (Default)': close_to(0.96, 0.01),
+        'Precision - Macro Average (Default)': close_to(0.96, 0.01),
+        'Recall - Macro Average (Default)': close_to(0.96, 0.01)
     }))
 
 
@@ -78,9 +78,9 @@ def test_classification_nan_labels(iris_labeled_dataset, iris_adaboost):
     result = check.run(iris_labeled_dataset, iris_adaboost).value
     # Assert
     assert_that(result, has_entries({
-        'Accuracy - Default': close_to(0.96, 0.01),
-        'Precision - Macro Average - Default': close_to(0.96, 0.01),
-        'Recall - Macro Average - Default': close_to(0.96, 0.01)
+        'Accuracy (Default)': close_to(0.96, 0.01),
+        'Precision - Macro Average (Default)': close_to(0.96, 0.01),
+        'Recall - Macro Average (Default)': close_to(0.96, 0.01)
     }))
 
 
@@ -92,8 +92,8 @@ def test_regression(diabetes, diabetes_model):
     result = check.run(validation, diabetes_model).value
     # Assert
     assert_that(result, has_entries({
-        'RMSE - Default': close_to(-50, 20),
-        'MAE - Default': close_to(-45, 20),
+        'Neg RMSE (Default)': close_to(-50, 20),
+        'Neg MAE (Default)': close_to(-45, 20),
     }))
 
 
@@ -106,7 +106,7 @@ def test_condition_min_score_not_passed(diabetes, diabetes_model):
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details=re.compile('Scores that did not pass threshold: \\{\'RMSE - Default\':'),
+                               details=re.compile('Scores that did not pass threshold: \\{\'Neg RMSE \(Default\)\':'),
                                name='Score is not less than -50')
     ))
 

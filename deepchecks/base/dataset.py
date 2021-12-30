@@ -672,9 +672,6 @@ class Dataset:
         """
         Throws error if dataset does not have a label.
 
-        Args:
-            check_name (str): check name to print in error
-
         Raises:
             DeepchecksValueError if dataset does not have a label
 
@@ -686,9 +683,6 @@ class Dataset:
         """
         Throws error if dataset does not have a features columns.
 
-        Args:
-            check_name (str): check name to print in error
-
         Raises:
             DeepchecksValueError: if dataset does not have features columns.
         """
@@ -698,9 +692,6 @@ class Dataset:
     def validate_date(self):
         """
         Throws error if dataset does not have a datetime column.
-
-        Args:
-            check_name (str): check name to print in error
 
         Raises:
             DeepchecksValueError if dataset does not have a datetime column
@@ -712,9 +703,6 @@ class Dataset:
     def validate_index(self):
         """
         Throws error if dataset does not have an index column / does not use dataframe index as index.
-
-        Args:
-            check_name (str): check name to print in error
 
         Raises:
             DeepchecksValueError if dataset does not have an index
