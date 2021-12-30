@@ -15,7 +15,7 @@ import plotly.express as px
 
 from deepchecks.base.check import ModelComparisonContext
 from deepchecks.errors import DeepchecksValueError
-from deepchecks.utils.strings import format_percent
+from deepchecks.utils.strings import format_percent, format_number
 from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult, ModelComparisonBaseCheck
 from deepchecks.utils.metrics import get_scorers_list, initialize_multi_scorers, ModelType, task_type_check
 from deepchecks.utils.validation import validate_model
@@ -100,7 +100,7 @@ class PerformanceReport(TrainTestBaseCheck):
         fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
 
 
-        return CheckResult(results_df, header='Performance Report', display=fig)
+        return CheckResult(results_df, header='Performance Report', display=[results_df, fig])
 
     def add_condition_score_not_less_than(self: PR, min_score: float) -> PR:
         """Add condition - metric scores are not less than given score.
@@ -197,43 +197,41 @@ class PerformanceReport(TrainTestBaseCheck):
             DeepchecksValueError:
                 if unknown score function name were passed;
         """
-        scorers = self.alternative_scorers or self._default_scorers
-        scorers = set(scorers.keys())
-
-        if score not in scorers:
-            raise DeepchecksValueError(f'Data was not calculated using the scoring function: {score}')
 
         def condition(check_result: Dict[str, Dict[Hashable, float]]) -> ConditionResult:
+            if score not in set(check_result['Metric']):
+                raise DeepchecksValueError(f'Data was not calculated using the scoring function: {score}')
+
             datasets_details = []
             for dataset in ['Test', 'Train']:
-                data = cast(
-                    Dict[str, Dict[Hashable, float]],
-                    pd.DataFrame.from_dict(check_result).transpose().to_dict()
-                )
-                data = [
-                    classes_values
-                    for score_name, classes_values in data.items()
-                    if score_name == score
-                ]
+                data = check_result.loc[check_result['Dataset'] == dataset].loc[check_result['Metric'] == 'F1']
 
                 if len(data) == 0:
                     raise DeepchecksValueError(f'Expected that check result will contain next score - {score}')
 
-                classes_values = next(iter(data))
-                getval = lambda it: it[1]
-                lowest_class_name, min_value = min(classes_values.items(), key=getval)
-                highest_class_name, max_value = max(classes_values.items(), key=getval)
+                print(data)
+                min_value_index = data['Value'].idxmin()
+                min_row = data.loc[min_value_index]
+                min_class_name = min_row['Class']
+                min_value = min_row['Value']
+
+                max_value_index = data['Value'].idxmax()
+                max_row = data.loc[max_value_index]
+                max_class_name = max_row['Class']
+                max_value = max_row['Value']
+
                 relative_difference = abs((min_value - max_value) / max_value)
 
                 if relative_difference >= threshold:
                     details = (
-                        f'Relative ratio difference between highest and lowest in {dataset} dataset'
-                        f'classes is greater than {format_percent(threshold)}. '
-                        f'Score: {score}, lowest class: {lowest_class_name}, highest class: {highest_class_name};'
+                        f'Relative ratio difference between highest and lowest in {dataset} dataset '
+                        f'classes is {format_percent(relative_difference)}, using {score} metric. '
+                        f'Lowest class - {min_class_name}: {format_number(min_value)}; '
+                        f'Highest class - {max_class_name}: {format_number(max_value)}'
                     )
                     datasets_details.append(details)
             if datasets_details:
-                return ConditionResult(False, details='\n'.join(datasets_details))
+                return ConditionResult(False, details='<br>'.join(datasets_details))
             else:
                 return ConditionResult(True)
 
