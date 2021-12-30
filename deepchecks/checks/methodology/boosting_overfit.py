@@ -189,7 +189,9 @@ class BoostingOverfit(TrainTestBaseCheck):
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Test score decline is not greater than {format_percent(threshold)}', condition)
+        name = f'Test score over iterations doesn\'t decline by more than {format_percent(threshold)} ' \
+               f'from maximum score'
+        return self.add_condition(name, condition)
 
 
 def _partial_score(scorer, dataset, model, step):
