@@ -184,7 +184,8 @@ regenerate-examples: $(REQUIREMENTS_LOG)
 
 
 coverage: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
-	$(pythonpath) $(TEST_RUNNER) $(args) $(COVER_ARG) $(TESTDIR) | tee -a $(COVERAGE_LOG)
+	$(COVERAGE) run -m pytest
+	$(COVERAGE) xml
 
 
 # This is Here For Legacy || future use case,
