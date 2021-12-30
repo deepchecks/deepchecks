@@ -24,22 +24,39 @@ from tests.checks.utils import equal_condition_result
 def test_dataset_wrong_input():
     bad_dataset = 'wrong_input'
     # Act & Assert
-    assert_that(calling(PerformanceReport().run).with_args(bad_dataset, None),
+    assert_that(calling(PerformanceReport().run).with_args(bad_dataset, None, None),
                 raises(DeepchecksValueError,
                        'Check requires dataset to be of type Dataset. instead got: str'))
 
 
-def test_dataset_no_label(iris_dataset, iris_adaboost):
+def test_model_wrong_input(iris_labeled_dataset):
+    bad_model = 'wrong_input'
+    # Act & Assert
+    assert_that(calling(PerformanceReport().run).with_args(iris_labeled_dataset, iris_labeled_dataset,
+                                                                    bad_model),
+                raises(DeepchecksValueError,
+                       'Model must inherit from one of supported models: .*'))
+
+
+def test_dataset_no_label(iris_dataset):
     # Assert
-    assert_that(calling(PerformanceReport().run).with_args(iris_dataset, iris_adaboost),
+    assert_that(calling(PerformanceReport().run).with_args(iris_dataset, iris_dataset, None),
                 raises(DeepchecksValueError, 'Check requires dataset to have a label column'))
 
 
-def test_classification(iris_labeled_dataset, iris_adaboost):
+def test_dataset_no_shared_label(iris_labeled_dataset):
+    # Assert
+    iris_dataset_2 = Dataset(iris_labeled_dataset.data, label_name='sepal length (cm)')
+    assert_that(calling(PerformanceReport().run).with_args(iris_labeled_dataset, iris_dataset_2, None),
+                raises(DeepchecksValueError,
+                       'Check requires datasets to share the same label'))
+
+def test_classification(iris_split_dataset_and_model):
     # Arrange
+    train, test, model = iris_split_dataset_and_model
     check = PerformanceReport()
     # Act X
-    result = check.run(iris_labeled_dataset, iris_adaboost).value
+    result = check.run(train, test, model).value
     # Assert
     assert_that(result, has_entries({
         'Accuracy': close_to(0.96, 0.01),
@@ -58,7 +75,7 @@ def test_classification_string_labels(iris_labeled_dataset):
     iris_adaboost = AdaBoostClassifier(random_state=0)
     iris_adaboost.fit(iris_labeled_dataset.features_columns, iris_labeled_dataset.label_col)
     # Act X
-    result = check.run(iris_labeled_dataset, iris_adaboost).value
+    result = check.run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost).value
     # Assert
     assert_that(result, has_entries({
         'Accuracy': close_to(0.96, 0.01),
@@ -75,7 +92,7 @@ def test_classification_nan_labels(iris_labeled_dataset, iris_adaboost):
     iris_labeled_dataset = Dataset(data_with_nan,
                                    label_name=iris_labeled_dataset.label_name)
     # Act X
-    result = check.run(iris_labeled_dataset, iris_adaboost).value
+    result = check.run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost).value
     # Assert
     assert_that(result, has_entries({
         'Accuracy': close_to(0.96, 0.01),
@@ -84,12 +101,12 @@ def test_classification_nan_labels(iris_labeled_dataset, iris_adaboost):
     }))
 
 
-def test_regression(diabetes, diabetes_model):
+def test_regression(diabetes_split_dataset_and_model):
     # Arrange
-    _, validation = diabetes
+    train, test, model = diabetes_split_dataset_and_model
     check = PerformanceReport()
     # Act X
-    result = check.run(validation, diabetes_model).value
+    result = check.run(train, test, model).value
     # Assert
     assert_that(result, has_entries({
         'RMSE': close_to(-50, 20),
@@ -97,28 +114,29 @@ def test_regression(diabetes, diabetes_model):
     }))
 
 
-def test_condition_min_score_not_passed(diabetes, diabetes_model):
+def test_condition_max_score_not_passed(diabetes_split_dataset_and_model):
     # Arrange
-    _, validation = diabetes
-    check = PerformanceReport().add_condition_score_not_less_than(-50)
+    train, test, model = diabetes_split_dataset_and_model
+    check = PerformanceReport().add_condition_score_not_greater_than(50)
     # Act X
-    result: List[ConditionResult] = check.conditions_decision(check.run(validation, diabetes_model))
+    result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details=re.compile('Scores that did not pass threshold: \\{\'RMSE\':'),
-                               name='Score is not less than -50')
+                               details=re.compile('Scores that passed threshold:<br>\\[\\{\'Dataset\': '
+                                                  '\'Test\', \'Metric\': \'RMSE\', \'Value\': '),
+                               name='Scores are not greater than 50')
     ))
 
 
-def test_condition_min_score_passed(diabetes, diabetes_model):
+def test_condition_max_score_passed(diabetes_split_dataset_and_model):
     # Arrange
-    _, validation = diabetes
-    check = PerformanceReport().add_condition_score_not_less_than(-5_000)
+    train, test, model = diabetes_split_dataset_and_model
+    check = PerformanceReport().add_condition_score_not_greater_than(5_000)
     # Act X
-    result: List[ConditionResult] = check.conditions_decision(check.run(validation, diabetes_model))
+    result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Score is not less than -5000')
+                               name='Scores are not greater than 5000')
     ))
