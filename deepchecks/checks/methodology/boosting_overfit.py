@@ -190,7 +190,7 @@ class BoostingOverfit(TrainTestBaseCheck):
                 return ConditionResult(True)
 
         name = f'Test score over iterations doesn\'t decline by more than {format_percent(threshold)} ' \
-               f'from maximum score'
+               f'from the best score'
         return self.add_condition(name, condition)
 
 
