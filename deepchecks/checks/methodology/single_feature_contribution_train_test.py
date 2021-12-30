@@ -110,7 +110,7 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
                                  ))
 
         fig.update_layout(
-            title='Predictive Power Score (PPS) Per Feature',
+            title='Predictive Power Score (PPS) - Can a feature predict the label by itself?',
             xaxis_title='Column',
             yaxis_title='Predictive Power Score (PPS)',
             yaxis_range=[0, 1.05],
