@@ -65,7 +65,7 @@ class PerformanceReport(TrainTestBaseCheck):
         # Get default scorers if no alternative, or validate alternatives
         scorers = get_scorers_list(model, test_dataset, self.alternative_scorers, multiclass_avg=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
-        if task_type == ModelType.MULTICLASS:
+        if task_type in [ModelType.BINARY, ModelType.MULTICLASS]:
             x = ['Class', 'Dataset']
             results = []
             for dataset in datasets.keys():
@@ -75,8 +75,8 @@ class PerformanceReport(TrainTestBaseCheck):
                     for class_i, value in enumerate(score_result):
                         if scorer.is_negative_scorer():
                             value = -value
-                        results.append([dataset, value, scorer.name, class_i])
-            results_df = pd.DataFrame(results, columns=['Dataset', 'Value', 'Metric', 'Class'])
+                        results.append([dataset, class_i,  scorer.name, value])
+            results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value'])
 
         else:
             x = 'Dataset'
@@ -86,9 +86,9 @@ class PerformanceReport(TrainTestBaseCheck):
                     score_result = scorer(model, datasets[dataset])
                     if scorer.is_negative_scorer():
                         score_result = -score_result
-                    results.append([dataset, score_result, scorer.name])
+                    results.append([dataset, scorer.name, score_result])
 
-            results_df = pd.DataFrame(results, columns=['Dataset', 'Value', 'Metric'])
+            results_df = pd.DataFrame(results, columns=['Dataset', 'Metric', 'Value'])
         fig = px.bar(results_df, x=x, y='Value', color='Dataset', barmode='group',
                         facet_col='Metric', facet_col_spacing=0.05)
         if task_type == ModelType.MULTICLASS:
@@ -110,41 +110,14 @@ class PerformanceReport(TrainTestBaseCheck):
         """
         name = f'Score is not less than {min_score}'
 
-        def condition(result, min_score):
-            not_passed = {k: v for k, v in result.items() if v < min_score}
-            if not_passed:
-                details = f'Scores that did not pass threshold: {not_passed}'
+        def condition(check_result: pd.DataFrame):
+            not_passed = check_result.loc[check_result['Value'] < min_score]
+            if len(not_passed):
+                details = f'Scores that did not pass threshold:<br>{not_passed.to_dict("records")}'
                 return ConditionResult(False, details)
             return ConditionResult(True)
 
-        return self.add_condition(name, condition, min_score=min_score)
-  
-    def add_condition_difference_not_greater_than(self: PR, threshold: float) -> PR:
-        """
-        Add new condition.
-
-        Add condition that will check that difference between train dataset scores and test
-        dataset scores is not greater than X.
-
-        Args:
-            threshold: scores difference upper bound
-        """
-        def condition(res: dict) -> ConditionResult:
-            test_scores = res['test']
-            train_scores = res['train']
-            diff = {score_name: score - test_scores[score_name] for score_name, score in train_scores.items()}
-            failed_scores = [k for k, v in diff.items() if v > threshold]
-            if failed_scores:
-                explained_failures = []
-                for score_name in failed_scores:
-                    explained_failures.append(f'{score_name} (train={format_percent(train_scores[score_name])} '
-                                              f'test={format_percent(test_scores[score_name])})')
-                message = f'Found performance degradation in: {", ".join(explained_failures)}'
-                return ConditionResult(False, message)
-            else:
-                return ConditionResult(True)
-
-        return self.add_condition(f'Train-Test scores difference is not greater than {threshold}', condition)
+        return self.add_condition(f'Scores are not less than {min_score}', condition)
 
     def add_condition_degradation_ratio_not_greater_than(self: PR, threshold: float = 0.1) -> PR:
         """
@@ -155,19 +128,44 @@ class PerformanceReport(TrainTestBaseCheck):
         Args:
             threshold: maximum degradation ratio allowed (value between 0 to 1)
         """
-        def condition(res: dict) -> ConditionResult:
-            test_scores = res['test']
-            train_scores = res['train']
-            # Calculate percentage of change from train to test
-            diff = {score_name: ((score - test_scores[score_name]) / score)
-                    for score_name, score in train_scores.items()}
-            failed_scores = [k for k, v in diff.items() if v > threshold]
-            if failed_scores:
-                explained_failures = []
-                for score_name in failed_scores:
-                    explained_failures.append(f'{score_name} (train={format_percent(train_scores[score_name])} '
-                                              f'test={format_percent(test_scores[score_name])})')
-                message = f'Found performance degradation in: {", ".join(explained_failures)}'
+        def condition(check_result: pd.DataFrame) -> ConditionResult:
+            test_scores = check_result.loc[check_result['Dataset'] == 'Test']
+            train_scores = check_result.loc[check_result['Dataset'] == 'Train']
+
+            if check_result.get('Class') is not None:
+                classes = check_result['Class'].unique()
+            else:
+                classes = None
+            explained_failures = []
+            if classes is not None:
+                for class_name in classes:
+                    test_scores_class = test_scores.loc[test_scores['Class'] == class_name]
+                    train_scores_class = train_scores.loc[train_scores['Class'] == class_name]
+                    test_scores_dict = dict(zip(test_scores_class['Metric'], test_scores_class['Value']))
+                    train_scores_dict = dict(zip(train_scores_class['Metric'], train_scores_class['Value']))
+                    # Calculate percentage of change from train to test
+                    diff = {score_name: ((score - test_scores_dict[score_name]) / score)
+                            for score_name, score in train_scores_dict.items()}
+                    failed_scores = [k for k, v in diff.items() if abs(v) > threshold]
+                    if failed_scores:
+                        for score_name in failed_scores:
+                            explained_failures.append(f'{score_name} on class {class_name} \
+                                                    (train={format_number(train_scores_dict[score_name])} '
+                                                    f'test={format_number(test_scores_dict[score_name])})')
+            else:
+                test_scores_dict = dict(zip(test_scores['Metric'], test_scores['Value']))
+                train_scores_dict = dict(zip(train_scores['Metric'], train_scores['Value']))
+                # Calculate percentage of change from train to test
+                diff = {score_name: ((score - test_scores_dict[score_name]) / score)
+                        for score_name, score in train_scores_dict.items()}
+                failed_scores = [k for k, v in diff.items() if abs(v) > threshold]
+                if failed_scores:
+                    for score_name in failed_scores:
+                        explained_failures.append(f'{score_name}: \
+                                                train={format_number(train_scores_dict[score_name])}, '
+                                                f'test={format_number(test_scores_dict[score_name])}')
+            if explained_failures:
+                message = '<br>'.join(explained_failures)
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
@@ -176,7 +174,7 @@ class PerformanceReport(TrainTestBaseCheck):
                                   condition)
 
 
-    def add_condition_ratio_difference_not_greater_than(
+    def add_condition_class_performance_imbalance_ratio_not_greater_than(
         self: PR,
         threshold: float = 0.3,
         score: str = 'F1'
@@ -198,7 +196,7 @@ class PerformanceReport(TrainTestBaseCheck):
                 if unknown score function name were passed;
         """
 
-        def condition(check_result: Dict[str, Dict[Hashable, float]]) -> ConditionResult:
+        def condition(check_result: pd.DataFrame) -> ConditionResult:
             if score not in set(check_result['Metric']):
                 raise DeepchecksValueError(f'Data was not calculated using the scoring function: {score}')
 
@@ -209,7 +207,6 @@ class PerformanceReport(TrainTestBaseCheck):
                 if len(data) == 0:
                     raise DeepchecksValueError(f'Expected that check result will contain next score - {score}')
 
-                print(data)
                 min_value_index = data['Value'].idxmin()
                 min_row = data.loc[min_value_index]
                 min_class_name = min_row['Class']
