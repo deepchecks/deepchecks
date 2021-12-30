@@ -102,8 +102,8 @@ class TrustScoreComparison(TrainTestBaseCheck):
         features_list = train_dataset.features
         label_name = train_dataset.label_name
 
-        sn = ScaledNumerics(train_data_sample[features_list], test_dataset.cat_features, self.max_number_categories)
-        x_train = sn.transform(train_data_sample[features_list])
+        sn = ScaledNumerics(test_dataset.cat_features, self.max_number_categories)
+        x_train = sn.fit_transform(train_data_sample[features_list])
         x_test = sn.transform(test_data_sample[features_list])
 
         # Trust Score model expects labels to be consecutive integers from 0 to n-1, so we transform our label to

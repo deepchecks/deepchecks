@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 from sklearn.dummy import DummyRegressor, DummyClassifier
+from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from deepchecks.checks.distribution.preprocessing import ScaledNumerics
 from deepchecks.utils.strings import format_number
@@ -162,10 +163,6 @@ class SimpleModelComparison(TrainTestBaseCheck):
             return clf
 
         elif self.simple_model_type == 'tree':
-            y_train = train_ds.label_col
-            sn = ScaledNumerics(train_ds.features_columns, train_ds.cat_features, 10)
-            x_train = sn.transform(train_ds.features_columns)
-
             if task_type == ModelType.REGRESSION:
                 clf = DecisionTreeRegressor(
                     max_depth=self.max_depth,
@@ -180,8 +177,10 @@ class SimpleModelComparison(TrainTestBaseCheck):
             else:
                 raise DeepchecksValueError(f'Unknown task type - {task_type}')
 
-            clf.fit(x_train, y_train)
-            return ScaledModel(clf, sn)
+            clf = Pipeline([('scaler', ScaledNumerics(train_ds.cat_features, max_num_categories=10)),
+                            ('tree-model', clf)])
+            clf.fit(train_ds.features_columns, train_ds.label_col)
+            return clf
         else:
             raise DeepchecksValueError(
                 f'Unknown model type - {self.simple_model_type}, expected to be one of '
@@ -252,17 +251,3 @@ class RandomModel:
             proba[x] = 1
             return proba
         return np.apply_along_axis(create_proba, axis=1, arr=predictions)
-
-
-class ScaledModel:
-    """Class used to create a pipeline of scaling features and predict on them."""
-
-    def __init__(self, model, scaler: ScaledNumerics):
-        self.model = model
-        self.scaler = scaler
-
-    def predict(self, a):
-        return self.model.predict(self.scaler.transform(a))
-
-    def predict_proba(self, a):
-        return self.model.predict_proba(self.scaler.transform(a))
