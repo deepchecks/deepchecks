@@ -59,8 +59,6 @@ class ScaledNumerics(TransformerMixin):
         if self.not_cat_columns:
             self.numeric_imputer = SimpleImputer(strategy='mean')
             self.numeric_imputer.fit(X[self.not_cat_columns])
-
-        if self.not_cat_columns:
             self.scaler = MinMaxScaler()
             self.scaler.fit(X[self.not_cat_columns])
 
@@ -74,16 +72,15 @@ class ScaledNumerics(TransformerMixin):
         self.one_hot_encoder.fit(X)
 
     def transform(self, X: pd.DataFrame):
-        """Transform dataframe based on fit defined when class initialized."""
+        """Transform features into scaled numerics."""
         # Impute all-nan cols to all-zero:
         X = X.copy()
         X = X.apply(ScaledNumerics._impute_whole_series_to_zero, axis=0)
 
-        if self.categorical_imputer:
+        if self.cat_columns:
             X[self.cat_columns] = self.categorical_imputer.transform(X[self.cat_columns])
-        if self.numeric_imputer:
+        if self.not_cat_columns:
             X[self.not_cat_columns] = self.numeric_imputer.transform(X[self.not_cat_columns])
-        if self.scaler:
             X[self.not_cat_columns] = self.scaler.transform(X[self.not_cat_columns])
 
         X = self.rare_category_encoder.transform(X)
@@ -92,13 +89,14 @@ class ScaledNumerics(TransformerMixin):
         return X
 
     def fit_transform(self, X, y=None, **fit_params):
-        """Fit scaler based on given dataframe and than transform it."""
+        """Fit scaler based on given dataframe and then transform it."""
         self.fit(X)
         return self.transform(X)
 
     @staticmethod
     def _impute_whole_series_to_zero(s: pd.Series):
-        if s.isna().sum() == s.shape[0]:
+        """If given series contains only nones, return instead series with only zeros."""
+        if s.isna().all():
             return pd.Series(np.zeros(s.shape))
         else:
             return s

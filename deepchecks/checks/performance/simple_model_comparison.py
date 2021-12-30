@@ -92,11 +92,13 @@ class SimpleModelComparison(TrainTestBaseCheck):
             (f'{type(model).__name__} model', 'Origin', model),
             (f'Simple model - {self.simple_model_type}', 'Simple', simple_model)
         ]
+
+        # Multiclass have different return type from the scorer, list of score per class instead of single score
         if task_type == ModelType.MULTICLASS:
             results = []
             for model_name, model_type, model_instance in models:
                 for scorer in scorers:
-                    score_result = scorer(model_instance, test_dataset)
+                    score_result: np.ndarray = scorer(model_instance, test_dataset)
                     # Multiclass scorers return numpy array of result per class
                     for class_i, class_score in enumerate(score_result):
                         if scorer.is_negative_scorer():
@@ -104,27 +106,31 @@ class SimpleModelComparison(TrainTestBaseCheck):
                         else:
                             display_value = class_score
                         results.append([model_name, model_type, class_score, display_value, scorer.name, class_i])
-            # Figure
+
             results_df = pd.DataFrame(results, columns=['Model', 'Type', 'Value', 'DisplayVal', 'Metric', 'Class'])
+
+            # Plot the metrics in a graph, grouping by the model and class
             fig = px.bar(results_df, x=['Class', 'Model'], y='DisplayVal', color='Model', barmode='group',
                          facet_col='Metric', facet_col_spacing=0.05)
             fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60)
             fig.update_yaxes(title=None, matches=None)
             fig.for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
             fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+        # Model is binary or regression
         else:
             results = []
             for model_name, model_type, model_instance in models:
                 for scorer in scorers:
-                    score_result = scorer(model_instance, test_dataset)
+                    score_result: float = scorer(model_instance, test_dataset)
                     if scorer.is_negative_scorer():
                         display_value = -score_result
                     else:
                         display_value = score_result
                     results.append([model_name, model_type, score_result, display_value, scorer.name])
 
-            # Figure
             results_df = pd.DataFrame(results, columns=['Model', 'Type', 'Value', 'DisplayVal', 'Metric'])
+
+            # Plot the metrics in a graph, grouping by the model
             fig = px.bar(results_df, x='Model', y='DisplayVal', color='Model', barmode='group',
                          facet_col='Metric', facet_col_spacing=0.05)
             fig.update_xaxes(title=None)
@@ -135,13 +141,13 @@ class SimpleModelComparison(TrainTestBaseCheck):
         return CheckResult({'scores': results_df, 'type': task_type}, display=fig)
 
     def _create_simple_model(self, train_ds: Dataset, task_type: ModelType):
-        """Find the simple model score for given metric.
+        """Create a simple model of given type (random/constant/tree) to the given dataset.
 
         Args:
-            train_ds (Dataset): The training dataset object. Must contain an index.
+            train_ds (Dataset): The training dataset object.
             task_type (ModelType): the model type.
         Returns:
-            score for simple and given model respectively and the score name in a tuple
+            Classifier object.
 
         Raises:
             NotImplementedError: If the simple_model_type is not supported
@@ -149,19 +155,15 @@ class SimpleModelComparison(TrainTestBaseCheck):
         np.random.seed(self.random_state)
 
         if self.simple_model_type == 'random':
-            return RandomModel(train_ds.label_col)
+            simple_model = RandomModel()
 
         elif self.simple_model_type == 'constant':
             if task_type == ModelType.REGRESSION:
-                clf = DummyRegressor(strategy='mean')
+                simple_model = DummyRegressor(strategy='mean')
             elif task_type in {ModelType.BINARY, ModelType.MULTICLASS}:
-                clf = DummyClassifier(strategy='most_frequent')
+                simple_model = DummyClassifier(strategy='most_frequent')
             else:
                 raise DeepchecksValueError(f'Unknown task type - {task_type}')
-
-            clf.fit(train_ds.features_columns, train_ds.label_col)
-            return clf
-
         elif self.simple_model_type == 'tree':
             if task_type == ModelType.REGRESSION:
                 clf = DecisionTreeRegressor(
@@ -177,16 +179,17 @@ class SimpleModelComparison(TrainTestBaseCheck):
             else:
                 raise DeepchecksValueError(f'Unknown task type - {task_type}')
 
-            clf = Pipeline([('scaler', ScaledNumerics(train_ds.cat_features, max_num_categories=10)),
-                            ('tree-model', clf)])
-            clf.fit(train_ds.features_columns, train_ds.label_col)
-            return clf
+            simple_model = Pipeline([('scaler', ScaledNumerics(train_ds.cat_features, max_num_categories=10)),
+                                     ('tree-model', clf)])
         else:
             raise DeepchecksValueError(
                 f'Unknown model type - {self.simple_model_type}, expected to be one of '
                 f"['random', 'constant', 'tree'] "
                 f"but instead got {self.simple_model_type}"  # pylint: disable=inconsistent-quotes
             )
+
+        simple_model.fit(train_ds.features_columns, train_ds.label_col)
+        return simple_model
 
     def add_condition_ratio_not_less_than(self, min_allowed_ratio: float = 1.1, classes: List[Hashable] = None):
         """Add condition - require min allowed ratio between the given and the simple model.
@@ -234,20 +237,23 @@ class SimpleModelComparison(TrainTestBaseCheck):
 
 
 class RandomModel:
-    """Class used to randomly predict from given series of labels."""
+    """Model used to randomly predict from given series of labels."""
 
-    def __init__(self, labels):
-        self.labels = labels
+    def __init__(self):
+        self.labels = None
 
-    def predict(self, a):
-        return np.random.choice(self.labels, a.shape[0])
+    def fit(self, X, y):  # pylint: disable=unused-argument,invalid-name
+        self.labels = y
 
-    def predict_proba(self, a):
+    def predict(self, X):  # pylint: disable=invalid-name
+        return np.random.choice(self.labels, X.shape[0])
+
+    def predict_proba(self, X):  # pylint: disable=invalid-name
         classes_num = self.labels.unique().shape[0]
-        predictions = self.predict(a)
+        predictions = self.predict(X)
 
-        def create_proba(x):
+        def prediction_to_proba(x):
             proba = np.zeros(classes_num)
             proba[x] = 1
             return proba
-        return np.apply_along_axis(create_proba, axis=1, arr=predictions)
+        return np.apply_along_axis(prediction_to_proba, axis=1, arr=predictions)
