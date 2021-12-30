@@ -68,7 +68,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         outlier_factor: int = 4,
         min_length_difference: int = 5,
         min_length_ratio_difference: int = 0.5,
-        min_unique_value_ratio: float = 0.9,
+        min_unique_value_ratio: float = 0.01,
         min_unique_values: int = 100,
         n_top_columns: int = 10
     ):
