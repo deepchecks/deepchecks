@@ -61,8 +61,8 @@ def test_outlier_multi_column():
 def test_outlier_multiple_outliers():
     # Arrange
     col_data = ['a', 'b'] * 100
-    col_data.append('abcd')
-    col_data.append('abcd')
+    col_data.append('abcdefgh')
+    col_data.append('abcdefgh')
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
@@ -74,9 +74,9 @@ def test_outlier_multiple_outliers():
 
 def test_outlier_multiple_outlier_ranges():
     # Arrange
-    col_data = ['abcd', 'efgh'] * 100
+    col_data = ['abcdefg', 'efghabc'] * 100
     col_data.append('a')
-    col_data.append('abcdbcdbcdb')
+    col_data.append('abcdbcdbcdbabcd')
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
@@ -104,8 +104,8 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
 def test_nan():
     # Arrange
     col_data = ['a', 'b'] * 100
-    col_data.append('abcd')
-    col_data.append('abcd')
+    col_data.append('abcdefg')
+    col_data.append('abcdefg')
     col_data.append(np.nan)
     col_data.append(np.nan)
     col_data.append(np.nan)
@@ -123,8 +123,8 @@ def test_nan():
 def test_condition_count_fail():
     # Arrange
     col_data = ['a', 'b'] * 100
-    col_data.append('abcd')
-    col_data.append('abcd')
+    col_data.append('abcdefg')
+    col_data.append('abcdefg')
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
@@ -143,8 +143,8 @@ def test_condition_count_fail():
 def test_condition_count_pass():
     # Arrange
     col_data = ['a', 'b'] * 100
-    col_data.append('abcd')
-    col_data.append('abcd')
+    col_data.append('abcdefg')
+    col_data.append('abcdefg')
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
@@ -162,8 +162,8 @@ def test_condition_count_pass():
 def test_condition_ratio_fail():
     # Arrange
     col_data = ['a', 'b'] * 100
-    col_data.append('abcd')
-    col_data.append('abcd')
+    col_data.append('abcdefg')
+    col_data.append('abcdefg')
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
@@ -183,8 +183,8 @@ def test_condition_ratio_fail():
 def test_condition_ratio_pass():
     # Arrange
     col_data = ['a', 'b'] * 100
-    col_data.append('abcd')
-    col_data.append('abcd')
+    col_data.append('abcdefg')
+    col_data.append('abcdefg')
     data = {'col1': col_data}
     df = pd.DataFrame(data=data)
     # Act
