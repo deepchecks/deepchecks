@@ -383,7 +383,7 @@ class Dataset:
                    index_name=index, set_index_from_dataframe_index=self._set_index_from_dataframe_index,
                    datetime_name=date, set_datetime_from_dataframe_index=self._set_datetime_from_dataframe_index,
                    convert_datetime=False, max_categorical_ratio=self._max_categorical_ratio,
-                   max_categories=self._max_categories)
+                   max_categories=self._max_categories, label_type=self.label_type)
 
     @property
     def n_samples(self) -> int:
