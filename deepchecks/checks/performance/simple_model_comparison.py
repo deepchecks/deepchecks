@@ -9,18 +9,20 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing simple comparison check."""
-from typing import Callable, Dict, Union
+from typing import Callable, Dict, Hashable, List
 import numpy as np
-import plotly.graph_objects as go
 import pandas as pd
+import plotly.express as px
+from sklearn.dummy import DummyRegressor, DummyClassifier
+from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from deepchecks.checks.distribution.preprocessing import preprocess_dataset_to_scaled_numerics
+from deepchecks.checks.distribution.preprocessing import ScaledNumerics
 from deepchecks.utils.strings import format_number
 
 from deepchecks import CheckResult, Dataset
 from deepchecks.base.check import ConditionResult, TrainTestBaseCheck
-from deepchecks.utils.metrics import DEFAULT_SINGLE_SCORER, task_type_check, \
-    ModelType, get_scores_ratio, get_scorer_single, initialize_single_scorer
+from deepchecks.utils.metrics import task_type_check, ModelType, initialize_multi_scorers, \
+    get_scorers_list, get_scores_ratio, get_scorer_single
 from deepchecks.utils.validation import validate_model
 from deepchecks.errors import DeepchecksValueError
 
@@ -36,10 +38,10 @@ class SimpleModelComparison(TrainTestBaseCheck):
             Type of the simple model ['random', 'constant', 'tree'].
                 + random - select one of the labels by random.
                 + constant - in regression is mean value, in classification the most common value.
-                + tree - runs a simple desion tree.
-        scorer (Union[str, Callable]):
-            Score to show, either function or sklearn scorer name.
-            If is not given a default scorer (per the model type) will be used.
+                + tree - runs a simple decision tree.
+        alternative_scorers (Dict[str, Callable], default None):
+            An optional dictionary of scorer name to scorer functions.
+            If none given, using default scorers
         maximum_ratio (int):
             the ratio can be up to infinity so choose maximum value to limit to.
         max_depth (int):
@@ -48,11 +50,11 @@ class SimpleModelComparison(TrainTestBaseCheck):
             the random state (used only if simple model type is tree or random).
     """
 
-    def __init__(self, simple_model_type: str = 'constant', scorer: Union[str, Callable] = None,
+    def __init__(self, simple_model_type: str = 'constant', alternative_scorers: Dict[str, Callable] = None,
                  maximum_ratio: int = 50, max_depth: int = 3, random_state: int = 42):
         super().__init__()
         self.simple_model_type = simple_model_type
-        self.scorer = initialize_single_scorer(scorer)
+        self.alternative_scorers = initialize_multi_scorers(alternative_scorers)
         self.maximum_ratio = maximum_ratio
         self.max_depth = max_depth
         self.random_state = random_state
@@ -73,46 +75,92 @@ class SimpleModelComparison(TrainTestBaseCheck):
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance.
         """
-        return self._simple_model_comparison(train_dataset, test_dataset, model)
+        Dataset.validate_dataset(train_dataset)
+        Dataset.validate_dataset(test_dataset)
+        train_dataset.validate_label()
+        test_dataset.validate_label()
+        validate_model(test_dataset, model)
 
-    def _find_score(self, train_ds: Dataset, test_ds: Dataset, task_type: ModelType, model):
-        """Find the simple model score for given metric.
+        # If user defined scorers used them, else use a single scorer
+        if self.alternative_scorers:
+            scorers = get_scorers_list(model, train_dataset, self.alternative_scorers, multiclass_avg=False)
+        else:
+            scorers = [get_scorer_single(model, train_dataset, multiclass_avg=False)]
+
+        task_type = task_type_check(model, train_dataset)
+        simple_model = self._create_simple_model(train_dataset, task_type)
+
+        models = [
+            (f'{type(model).__name__} model', 'Origin', model),
+            (f'Simple model - {self.simple_model_type}', 'Simple', simple_model)
+        ]
+
+        # Multiclass have different return type from the scorer, list of score per class instead of single score
+        if task_type == ModelType.MULTICLASS:
+            results = []
+            for model_name, model_type, model_instance in models:
+                for scorer in scorers:
+                    score_result: np.ndarray = scorer(model_instance, test_dataset)
+                    # Multiclass scorers return numpy array of result per class
+                    for class_i, class_score in enumerate(score_result):
+                        # The proba returns in order of the sorted classes.
+                        class_value = train_dataset.classes[class_i]
+                        results.append([model_name, model_type, class_score, scorer.name, class_value])
+
+            results_df = pd.DataFrame(results, columns=['Model', 'Type', 'Value', 'Metric', 'Class'])
+
+            # Plot the metrics in a graph, grouping by the model and class
+            fig = px.bar(results_df, x=['Class', 'Model'], y='Value', color='Model', barmode='group',
+                         facet_col='Metric', facet_col_spacing=0.05)
+            fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60)
+            fig.update_yaxes(title=None, matches=None)
+            fig.for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+            fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+        # Model is binary or regression
+        else:
+            results = []
+            for model_name, model_type, model_instance in models:
+                for scorer in scorers:
+                    score_result: float = scorer(model_instance, test_dataset)
+                    results.append([model_name, model_type, score_result, scorer.name])
+
+            results_df = pd.DataFrame(results, columns=['Model', 'Type', 'Value', 'Metric'])
+
+            # Plot the metrics in a graph, grouping by the model
+            fig = px.bar(results_df, x='Model', y='Value', color='Model', barmode='group',
+                         facet_col='Metric', facet_col_spacing=0.05)
+            fig.update_xaxes(title=None)
+            fig.update_yaxes(title=None, matches=None)
+            fig.for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+            fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+
+        return CheckResult({'scores': results_df, 'type': task_type}, display=fig)
+
+    def _create_simple_model(self, train_ds: Dataset, task_type: ModelType):
+        """Create a simple model of given type (random/constant/tree) to the given dataset.
 
         Args:
-            train_ds (Dataset): The training dataset object. Must contain an index.
-            test_ds (Dataset): The test dataset object. Must contain an index.
+            train_ds (Dataset): The training dataset object.
             task_type (ModelType): the model type.
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
         Returns:
-            score for simple and given model respectively and the score name in a tuple
+            Classifier object.
 
         Raises:
             NotImplementedError: If the simple_model_type is not supported
         """
-        test_df = test_ds.data
         np.random.seed(self.random_state)
 
         if self.simple_model_type == 'random':
-            simple_pred = np.random.choice(train_ds.label_col, test_df.shape[0])
+            simple_model = RandomModel()
 
         elif self.simple_model_type == 'constant':
             if task_type == ModelType.REGRESSION:
-                simple_pred = np.array([np.mean(train_ds.label_col)] * len(test_df))
+                simple_model = DummyRegressor(strategy='mean')
             elif task_type in {ModelType.BINARY, ModelType.MULTICLASS}:
-                counts = train_ds.label_col.mode()
-                simple_pred = np.array([counts.index[0]] * len(test_df))
+                simple_model = DummyClassifier(strategy='most_frequent')
             else:
                 raise DeepchecksValueError(f'Unknown task type - {task_type}')
-
         elif self.simple_model_type == 'tree':
-            y_train = train_ds.label_col
-            x_train, x_test = preprocess_dataset_to_scaled_numerics(
-                baseline_features=train_ds.features_columns,
-                test_features=test_ds.features_columns,
-                categorical_columns=test_ds.cat_features,
-                max_num_categories=10
-            )
-
             if task_type == ModelType.REGRESSION:
                 clf = DecisionTreeRegressor(
                     max_depth=self.max_depth,
@@ -127,9 +175,8 @@ class SimpleModelComparison(TrainTestBaseCheck):
             else:
                 raise DeepchecksValueError(f'Unknown task type - {task_type}')
 
-            clf = clf.fit(x_train, y_train)
-            simple_pred = clf.predict(x_test)
-
+            simple_model = Pipeline([('scaler', ScaledNumerics(train_ds.cat_features, max_num_categories=10)),
+                                     ('tree-model', clf)])
         else:
             raise DeepchecksValueError(
                 f'Unknown model type - {self.simple_model_type}, expected to be one of '
@@ -137,80 +184,76 @@ class SimpleModelComparison(TrainTestBaseCheck):
                 f"but instead got {self.simple_model_type}"  # pylint: disable=inconsistent-quotes
             )
 
-        y_test = test_ds.label_col.values
+        simple_model.fit(train_ds.features_columns, train_ds.label_col)
+        return simple_model
 
-        scorer = get_scorer_single(model, train_ds, self.scorer)
-
-        simple_score = scorer(_DummyModel, Dataset(pd.DataFrame(simple_pred), label=y_test))
-        pred_score = scorer(model, Dataset(test_ds.features_columns, label=y_test, cat_features=test_ds.cat_features))
-
-        return simple_score, pred_score, scorer.name
-
-    def _simple_model_comparison(self, train_dataset: Dataset, test_dataset: Dataset, model):
-        Dataset.validate_dataset(train_dataset)
-        Dataset.validate_dataset(test_dataset)
-        train_dataset.validate_label()
-        test_dataset.validate_label()
-        validate_model(test_dataset, model)
-
-        task_type = task_type_check(model, train_dataset)
-        simple_score, pred_score, score_name = self._find_score(train_dataset, test_dataset, task_type, model)
-
-        if score_name == DEFAULT_SINGLE_SCORER[task_type]:
-            score_name = str(score_name) + ' (Default)'
-
-        ratio = get_scores_ratio(simple_score, pred_score, self.maximum_ratio)
-
-        text = f'The given model performance is {_more_than_prefix_adder(ratio, self.maximum_ratio)} times the ' \
-               f'performance of the simple model, measuring performance using the {score_name} metric.<br>' \
-               f'{type(model).__name__} model prediction has achieved a score of {format_number(pred_score)} ' \
-               f'compared to Simple {self.simple_model_type} prediction ' \
-               f'which achieved a score of {format_number(simple_score)} on tested data.'
-
-        models = [f'Simple model - {self.simple_model_type}', f'{type(model).__name__} model']
-        results = [simple_score, pred_score]
-        fig = go.Figure([go.Bar(x=models, y=results)])
-        fig.update_layout(width=600, height=500)
-        fig.update_yaxes(title=score_name)
-
-        return CheckResult({'given_model_score': pred_score,
-                            'simple_model_score': simple_score,
-                            'ratio': ratio},
-                           display=[text, fig])
-
-    def add_condition_ratio_not_less_than(self, min_allowed_ratio: float = 1.1):
+    def add_condition_ratio_not_less_than(self, min_allowed_ratio: float = 1.1, classes: List[Hashable] = None):
         """Add condition - require min allowed ratio between the given and the simple model.
 
         Args:
             min_allowed_ratio (float): Min allowed ratio between the given and the simple model -
             ratio is given model / simple model (if the scorer returns negative values we divide 1 by it)
+            classes (List[Hashable]): Used in multiclass models to limit condition only to given classes.
         """
-        def condition(result: Dict) -> ConditionResult:
-            ratio = result['ratio']
-            if ratio < min_allowed_ratio:
-                return ConditionResult(False,
-                                       f'The given model performs {_more_than_prefix_adder(ratio, self.maximum_ratio)} '
-                                       'times compared to the simple model using the given scorer')
+        def condition(result: Dict, max_ratio=self.maximum_ratio, class_list=classes) -> ConditionResult:
+            scores_df = result['scores']
+            task_type = result['type']
+            metrics = scores_df['Metric'].unique()
+
+            def get_ratio(df):
+                simple_score = df[df['Type'] == 'Simple']['Value'].iloc[0]
+                origin_score = df[df['Type'] == 'Origin']['Value'].iloc[0]
+                return get_scores_ratio(simple_score, origin_score, max_ratio)
+
+            fails = []
+            if task_type == ModelType.MULTICLASS:
+                if class_list is None:
+                    class_list = scores_df['Class'].unique()
+                for metric in metrics:
+                    failed_classes = []
+                    for clas in class_list:
+                        score_rows = scores_df[(scores_df['Metric'] == metric) & (scores_df['Class'] == clas)]
+                        ratio = get_ratio(score_rows)
+                        if ratio < min_allowed_ratio:
+                            failed_classes.append(str(clas))
+                    if failed_classes:
+                        fails.append(f'"{metric}" - Classes: {", ".join(failed_classes)}')
+            else:
+                for metric in metrics:
+                    score_rows = scores_df[(scores_df['Metric'] == metric)]
+                    ratio = get_ratio(score_rows)
+                    if ratio < min_allowed_ratio:
+                        fails.append(f'"{metric}"')
+
+            if fails:
+                msg = f'Metrics failed: {", ".join(sorted(fails))}'
+                return ConditionResult(False, msg)
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Ratio not less than {format_number(min_allowed_ratio)} '
-                                  'between the given model\'s result and the simple model\'s result',
-                                  condition)
+        return self.add_condition('$$\\frac{\\text{model score}}{\\text{simple model score}} >= '
+                                  f'{format_number(min_allowed_ratio)}$$', condition)
 
 
-class _DummyModel:
-    @staticmethod
-    def predict(a):
-        return a
+class RandomModel:
+    """Model used to randomly predict from given series of labels."""
 
-    @staticmethod
-    def predict_proba(a):
-        return a
+    def __init__(self):
+        self.labels = None
 
+    def fit(self, X, y):  # pylint: disable=unused-argument,invalid-name
+        # The X is not used, but it is needed to be matching to sklearn `fit` signature
+        self.labels = y
 
-def _more_than_prefix_adder(number, max_number):
-    if number < max_number:
-        return format_number(number)
-    else:
-        return 'more than ' + format_number(number)
+    def predict(self, X):  # pylint: disable=invalid-name
+        return np.random.choice(self.labels, X.shape[0])
+
+    def predict_proba(self, X):  # pylint: disable=invalid-name
+        classes = sorted(self.labels.unique().tolist())
+        predictions = self.predict(X)
+
+        def prediction_to_proba(y_pred):
+            proba = np.zeros(len(classes))
+            proba[classes.index(y_pred)] = 1
+            return proba
+        return np.apply_along_axis(prediction_to_proba, axis=1, arr=predictions)

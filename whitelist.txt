@@ -25,4 +25,5 @@ encodings
 plotly
 Multiclass
 numpy
-
+sklearn
+proba

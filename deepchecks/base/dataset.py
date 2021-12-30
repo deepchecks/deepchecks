@@ -13,6 +13,7 @@
 
 import typing as t
 import logging
+from functools import lru_cache
 
 import numpy as np
 import pandas as pd
@@ -623,11 +624,23 @@ class Dataset:
         return self.data[self._features] if self._features else None
 
     @property
+    @lru_cache(maxsize=128)
+    def classes(self) -> t.List[str]:
+        """Return the classes from label column in sorted list. if no label column defined, return empty list.
+
+        Returns:
+            Sorted classes
+        """
+        if self.label_col is not None:
+            return sorted(self.label_col.unique().tolist())
+        return []
+
+    @property
     def columns_info(self) -> t.Dict[Hashable, str]:
         """Return the role and logical type of each column.
 
         Returns:
-           Diractory of a column and its role
+           Directory of a column and its role
         """
         columns = {}
         for column in self.data.columns:
@@ -659,9 +672,6 @@ class Dataset:
         """
         Throws error if dataset does not have a label.
 
-        Args:
-            check_name (str): check name to print in error
-
         Raises:
             DeepchecksValueError if dataset does not have a label
 
@@ -673,9 +683,6 @@ class Dataset:
         """
         Throws error if dataset does not have a features columns.
 
-        Args:
-            check_name (str): check name to print in error
-
         Raises:
             DeepchecksValueError: if dataset does not have features columns.
         """
@@ -685,9 +692,6 @@ class Dataset:
     def validate_date(self):
         """
         Throws error if dataset does not have a datetime column.
-
-        Args:
-            check_name (str): check name to print in error
 
         Raises:
             DeepchecksValueError if dataset does not have a datetime column
@@ -699,9 +703,6 @@ class Dataset:
     def validate_index(self):
         """
         Throws error if dataset does not have an index column / does not use dataframe index as index.
-
-        Args:
-            check_name (str): check name to print in error
 
         Raises:
             DeepchecksValueError if dataset does not have an index
@@ -739,7 +740,6 @@ class Dataset:
 
         Args:
             other: Expected to be Dataset type. dataset to compare features list
-            check_name (str): check name to print in error
 
         Returns:
             List[Hashable] - list of shared features names
@@ -760,7 +760,6 @@ class Dataset:
 
         Args:
             other: Expected to be Dataset type. dataset to compare features list
-            check_name (str): check name to print in error
 
         Returns:
             List[Hashable] - list of shared features names
@@ -785,7 +784,6 @@ class Dataset:
 
         Args:
             other (Dataset): Expected to be Dataset type. dataset to compare
-            check_name (str): check name to print in error
 
         Returns:
             Hashable: name of the label column
@@ -831,7 +829,6 @@ class Dataset:
 
         Args:
             obj: object to validate as dataset
-            check_name (str): check name to print in error
 
         Returns:
             (Dataset): object that is deepchecks dataset

@@ -108,8 +108,6 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
                     score_result = scorer(model, test)
                     # Multiclass scorers return numpy array of result per class
                     for class_i, value in enumerate(score_result):
-                        if scorer.is_negative_scorer():
-                            value = -value
                         results.append([model_name, value, scorer.name, class_i])
             results_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric', 'Class'])
             fig = px.bar(results_df, x=['Class', 'Model'], y='Value', color='Model', barmode='group',
@@ -123,8 +121,6 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
             for _, test, model, model_name in context:
                 for scorer in scorers:
                     score_result = scorer(model, test)
-                    if scorer.is_negative_scorer():
-                        score_result = -score_result
                     results.append([model_name, score_result, scorer.name])
 
             results_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric'])
