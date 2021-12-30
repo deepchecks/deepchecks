@@ -42,7 +42,7 @@ from deepchecks.utils.strings import is_string_column
 
 
 class ModelType(enum.Enum):
-    """Enum containing suppoerted task types."""
+    """Enum containing supported task types."""
 
     REGRESSION = 'regression'
     BINARY = 'binary'
@@ -71,7 +71,8 @@ MULTICLASS_SCORERS_NON_AVERAGE = {
 
 DEFAULT_REGRESSION_SCORERS = {
     'RMSE - Default': 'neg_root_mean_squared_error',
-    'MAE - Default': 'neg_mean_absolute_error'
+    'MAE - Default': 'neg_mean_absolute_error',
+    'R2 - Default': 'r2'
 }
 
 
@@ -171,7 +172,7 @@ def task_type_check(
     """Check task type (regression, binary, multiclass) according to model object and label column.
 
     Args:
-        model (Union[ClassifierMixin, RegressorMixin]): Model object - used to check if has predict_proba()
+        model (Union[ClassifierMixin, RegressorMixin]): Model object - used to check if it has predict_proba()
         dataset (Dataset): dataset - used to count the number of unique labels
 
     Returns:
@@ -210,7 +211,7 @@ def task_type_validation(
     """Validate task type (regression, binary, multiclass) according to model object and label column.
 
     Args:
-        model (Union[ClassifierMixin, RegressorMixin]): Model object - used to check if has predict_proba()
+        model (Union[ClassifierMixin, RegressorMixin]): Model object - used to check if it has predict_proba()
         dataset (Dataset): dataset - used to count the number of unique labels
         expected_types (List[ModelType]): allowed types of model
         check_name (str): check name to print in error
@@ -287,7 +288,7 @@ def get_scorer_single(model, dataset: 'base.Dataset', alternative_scorer: t.Opti
 
 def initialize_single_scorer(scorer: t.Optional[t.Union[str, t.Callable]], scorer_name=None) \
         -> t.Optional[DeepcheckScorer]:
-    """If string, get scorer from sklearn. If none, return none."""
+    """If type is string, get scorer from sklearn. If none, return none."""
     if scorer is None:
         return None
 
