@@ -49,7 +49,7 @@ pip install deepchecks #--upgrade --user
 ```
 ### Using conda
 ```bash
-conda install deepchecks
+conda install -c deepchecks deepchecks
 ```
 
 ### From source
