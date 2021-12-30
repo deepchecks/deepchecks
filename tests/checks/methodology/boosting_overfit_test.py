@@ -129,6 +129,6 @@ def test_condition_score_percentage_decline_not_greater_than_not_pass(diabetes, 
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='Test score over iterations doesn\'t decline by more than 1.00% from maximum score',
+        name='Test score over iterations doesn\'t decline by more than 1.00% from the best score',
         details='Found score decline of: -3.64%'
     ))
