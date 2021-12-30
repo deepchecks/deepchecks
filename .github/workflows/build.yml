@@ -35,7 +35,7 @@ jobs:
       run: make test
   coverage:
     runs-on: ubuntu-latest
-   needs: tests
+    needs: tests
     name: coverate
     steps:
     - uses: actions/checkout@v2
