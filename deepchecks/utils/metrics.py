@@ -81,6 +81,8 @@ DEFAULT_SINGLE_SCORER = {
     ModelType.REGRESSION: 'RMSE - Default'
 }
 
+DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG = 'F1 - Default'
+
 
 DEFAULT_SCORERS_DICT = {
     ModelType.BINARY: DEFAULT_BINARY_SCORERS,
@@ -227,7 +229,7 @@ def task_type_validation(
 def get_scorers_list(
     model,
     dataset: 'base.Dataset',
-    alternative_scorers: t.Dict[str, t.Callable] = None,
+    alternative_scorers: t.List['DeepcheckScorer'] = None,
     multiclass_avg: bool = True
 ) -> t.List[DeepcheckScorer]:
     """Return list of scorer objects to use in a score-dependant check.
@@ -265,14 +267,14 @@ def get_scorers_list(
 
 
 def get_scorer_single(model, dataset: 'base.Dataset', alternative_scorer: t.Optional[DeepcheckScorer] = None,
-                      multiclass_avg: bool = True):
+                      multiclass_avg: bool = True) -> 'DeepcheckScorer':
     """Return single score to use in check, and validate scorer fit the model and dataset."""
     model_type = task_type_check(model, dataset)
     multiclass_array = model_type == ModelType.MULTICLASS and multiclass_avg is False
 
     if alternative_scorer is None:
         if multiclass_array:
-            scorer_name = 'F1'
+            scorer_name = DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG
             scorer_func = MULTICLASS_SCORERS_NON_AVERAGE[scorer_name]
         else:
             scorer_name = DEFAULT_SINGLE_SCORER[model_type]

@@ -23,7 +23,7 @@ from deepchecks.utils.strings import format_number
 from deepchecks import CheckResult, Dataset
 from deepchecks.base.check import ConditionResult, TrainTestBaseCheck
 from deepchecks.utils.metrics import task_type_check, ModelType, initialize_multi_scorers, \
-    get_scorers_list, get_scores_ratio
+    get_scorers_list, get_scores_ratio, get_scorer_single
 from deepchecks.utils.validation import validate_model
 from deepchecks.errors import DeepchecksValueError
 
@@ -82,8 +82,11 @@ class SimpleModelComparison(TrainTestBaseCheck):
         test_dataset.validate_label()
         validate_model(test_dataset, model)
 
-        # Get default scorers if no alternative, or validate alternatives
-        scorers = get_scorers_list(model, train_dataset, self.alternative_scorers, multiclass_avg=False)
+        # If user defined scorers used them, else use a single scorer
+        if self.alternative_scorers:
+            scorers = get_scorers_list(model, train_dataset, self.alternative_scorers, multiclass_avg=False)
+        else:
+            scorers = [get_scorer_single(model, train_dataset, multiclass_avg=False)]
 
         task_type = task_type_check(model, train_dataset)
         simple_model = self._create_simple_model(train_dataset, task_type)
@@ -105,7 +108,9 @@ class SimpleModelComparison(TrainTestBaseCheck):
                             display_value = -class_score
                         else:
                             display_value = class_score
-                        results.append([model_name, model_type, class_score, display_value, scorer.name, class_i])
+                        # The proba returns in order of the sorted classes.
+                        class_value = train_dataset.classes[class_i]
+                        results.append([model_name, model_type, class_score, display_value, scorer.name, class_value])
 
             results_df = pd.DataFrame(results, columns=['Model', 'Type', 'Value', 'DisplayVal', 'Metric', 'Class'])
 
@@ -243,17 +248,18 @@ class RandomModel:
         self.labels = None
 
     def fit(self, X, y):  # pylint: disable=unused-argument,invalid-name
+        # The X is not used, but it is needed to be matching to sklearn `fit` signature
         self.labels = y
 
     def predict(self, X):  # pylint: disable=invalid-name
         return np.random.choice(self.labels, X.shape[0])
 
     def predict_proba(self, X):  # pylint: disable=invalid-name
-        classes_num = self.labels.unique().shape[0]
+        classes = sorted(self.labels.unique().tolist())
         predictions = self.predict(X)
 
-        def prediction_to_proba(x):
-            proba = np.zeros(classes_num)
-            proba[x] = 1
+        def prediction_to_proba(y_pred):
+            proba = np.zeros(len(classes))
+            proba[classes.index(y_pred)] = 1
             return proba
         return np.apply_along_axis(prediction_to_proba, axis=1, arr=predictions)
