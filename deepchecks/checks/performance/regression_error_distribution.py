@@ -64,19 +64,19 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
 
         y_test = dataset.label_col
         y_pred = model.predict(dataset.features_columns)
-        y_pred = pd.Series(y_pred, name='predicted ' + str(dataset.label_name))
+        y_pred = pd.Series(y_pred, name='predicted ' + str(dataset.label_name), index=dataset.label_col.index)
 
         diff = y_test - y_pred
         kurtosis_value = kurtosis(diff)
 
         n_largest_diff = diff.nlargest(self.n_top_samples)
         n_largest_diff.name = str(dataset.label_name) + ' Prediction Difference'
-        n_largest = pd.concat([dataset.data.loc[n_largest_diff.index], y_pred.iloc[n_largest_diff.index],
+        n_largest = pd.concat([dataset.data.loc[n_largest_diff.index], y_pred.loc[n_largest_diff.index],
                                n_largest_diff], axis=1)
 
         n_smallest_diff = diff.nsmallest(self.n_top_samples)
         n_smallest_diff.name = str(dataset.label_name) + ' Prediction Difference'
-        n_smallest = pd.concat([dataset.data.loc[n_smallest_diff.index], y_pred.iloc[n_smallest_diff.index],
+        n_smallest = pd.concat([dataset.data.loc[n_smallest_diff.index], y_pred.loc[n_smallest_diff.index],
                                 n_smallest_diff], axis=1)
 
         display = [
