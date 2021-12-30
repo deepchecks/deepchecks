@@ -115,7 +115,7 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
             fig = px.bar(results_df, x=['Class', 'Model'], y='Value', color='Model', barmode='group',
                          facet_col='Metric', facet_col_spacing=0.05)
             fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60)
-            fig.update_yaxes(title=None, matches=None)
+            fig.update_yaxes(title=None, matches=None, zerolinecolor='#444')
             fig.for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
             fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
         else:
@@ -131,7 +131,7 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
             fig = px.bar(results_df, x='Model', y='Value', color='Model', barmode='group',
                          facet_col='Metric', facet_col_spacing=0.05)
             fig.update_xaxes(title=None)
-            fig.update_yaxes(title=None, matches=None)
+            fig.update_yaxes(title=None, matches=None, zerolinecolor='#444')
             fig.for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
             fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
 
