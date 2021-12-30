@@ -10,7 +10,6 @@
 #
 """The RegressionSystematicError check module."""
 import plotly.graph_objects as go
-import plotly.express as px
 from sklearn.base import BaseEstimator
 from sklearn.metrics import mean_squared_error
 
