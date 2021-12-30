@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module of preprocessing functions."""
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,unused-argument
 import numpy as np
 import pandas as pd
 from typing import List
