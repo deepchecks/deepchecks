@@ -15,7 +15,7 @@ import pandas as pd
 from typing import List
 
 from category_encoders import OneHotEncoder
-from sklearn.base import TransformerMixin
+from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler
 from deepchecks.utils.typing import Hashable
@@ -25,7 +25,7 @@ from deepchecks.checks.distribution.rare_category_encoder import RareCategoryEnc
 __all__ = ['ScaledNumerics']
 
 
-class ScaledNumerics(TransformerMixin):
+class ScaledNumerics(TransformerMixin, BaseEstimator):
     """Preprocess given features to scaled numerics.
 
     Args:
