@@ -100,7 +100,7 @@ class PerformanceReport(TrainTestBaseCheck):
         fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
 
 
-        return CheckResult(results_df, header='Performance Report', display=[results_df, fig])
+        return CheckResult(results_df, header='Performance Report', display=fig)
 
     def add_condition_score_not_less_than(self: PR, min_score: float) -> PR:
         """Add condition - metric scores are not less than given score.
@@ -108,8 +108,6 @@ class PerformanceReport(TrainTestBaseCheck):
         Args:
             min_score (float): Minimal score to pass.
         """
-        name = f'Score is not less than {min_score}'
-
         def condition(check_result: pd.DataFrame):
             not_passed = check_result.loc[check_result['Value'] < min_score]
             if len(not_passed):
@@ -118,6 +116,21 @@ class PerformanceReport(TrainTestBaseCheck):
             return ConditionResult(True)
 
         return self.add_condition(f'Scores are not less than {min_score}', condition)
+
+    def add_condition_score_not_greater_than(self: PR, max_score: float) -> PR:
+        """Add condition - metric scores are not greater than given score.
+
+        Args:
+            max_score (float): Maximal score to pass.
+        """
+        def condition(check_result: pd.DataFrame):
+            not_passed = check_result.loc[check_result['Value'] > max_score]
+            if len(not_passed):
+                details = f'Scores that passed threshold:<br>{not_passed.to_dict("records")}'
+                return ConditionResult(False, details)
+            return ConditionResult(True)
+
+        return self.add_condition(f'Scores are not greater than {max_score}', condition)
 
     def add_condition_degradation_ratio_not_greater_than(self: PR, threshold: float = 0.1) -> PR:
         """
