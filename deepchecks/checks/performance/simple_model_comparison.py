@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing simple comparison check."""
-import itertools
 from typing import Callable, Dict, Hashable, List
 import numpy as np
 import pandas as pd
@@ -104,18 +103,14 @@ class SimpleModelComparison(TrainTestBaseCheck):
                     score_result: np.ndarray = scorer(model_instance, test_dataset)
                     # Multiclass scorers return numpy array of result per class
                     for class_i, class_score in enumerate(score_result):
-                        if scorer.is_negative_scorer():
-                            display_value = -class_score
-                        else:
-                            display_value = class_score
                         # The proba returns in order of the sorted classes.
                         class_value = train_dataset.classes[class_i]
-                        results.append([model_name, model_type, class_score, display_value, scorer.name, class_value])
+                        results.append([model_name, model_type, class_score, scorer.name, class_value])
 
-            results_df = pd.DataFrame(results, columns=['Model', 'Type', 'Value', 'DisplayVal', 'Metric', 'Class'])
+            results_df = pd.DataFrame(results, columns=['Model', 'Type', 'Value', 'Metric', 'Class'])
 
             # Plot the metrics in a graph, grouping by the model and class
-            fig = px.bar(results_df, x=['Class', 'Model'], y='DisplayVal', color='Model', barmode='group',
+            fig = px.bar(results_df, x=['Class', 'Model'], y='Value', color='Model', barmode='group',
                          facet_col='Metric', facet_col_spacing=0.05)
             fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60)
             fig.update_yaxes(title=None, matches=None)
@@ -127,16 +122,12 @@ class SimpleModelComparison(TrainTestBaseCheck):
             for model_name, model_type, model_instance in models:
                 for scorer in scorers:
                     score_result: float = scorer(model_instance, test_dataset)
-                    if scorer.is_negative_scorer():
-                        display_value = -score_result
-                    else:
-                        display_value = score_result
-                    results.append([model_name, model_type, score_result, display_value, scorer.name])
+                    results.append([model_name, model_type, score_result, scorer.name])
 
-            results_df = pd.DataFrame(results, columns=['Model', 'Type', 'Value', 'DisplayVal', 'Metric'])
+            results_df = pd.DataFrame(results, columns=['Model', 'Type', 'Value', 'Metric'])
 
             # Plot the metrics in a graph, grouping by the model
-            fig = px.bar(results_df, x='Model', y='DisplayVal', color='Model', barmode='group',
+            fig = px.bar(results_df, x='Model', y='Value', color='Model', barmode='group',
                          facet_col='Metric', facet_col_spacing=0.05)
             fig.update_xaxes(title=None)
             fig.update_yaxes(title=None, matches=None)
@@ -209,36 +200,39 @@ class SimpleModelComparison(TrainTestBaseCheck):
             task_type = result['type']
             metrics = scores_df['Metric'].unique()
 
-            metrics_dfs = []
+            def get_ratio(df):
+                simple_score = df[df['Type'] == 'Simple']['Value'].iloc[0]
+                origin_score = df[df['Type'] == 'Origin']['Value'].iloc[0]
+                return get_scores_ratio(simple_score, origin_score, max_ratio)
+
+            fails = []
             if task_type == ModelType.MULTICLASS:
                 if class_list is None:
                     class_list = scores_df['Class'].unique()
-                for metric, clas in itertools.product(metrics, class_list):
-                    score_rows = scores_df[(scores_df['Metric'] == metric) & (scores_df['Class'] == clas)]
-                    metrics_dfs.append(score_rows)
+                for metric in metrics:
+                    failed_classes = []
+                    for clas in class_list:
+                        score_rows = scores_df[(scores_df['Metric'] == metric) & (scores_df['Class'] == clas)]
+                        ratio = get_ratio(score_rows)
+                        if ratio < min_allowed_ratio:
+                            failed_classes.append(str(clas))
+                    if failed_classes:
+                        fails.append(f'"{metric}" - Classes: {", ".join(failed_classes)}')
             else:
                 for metric in metrics:
                     score_rows = scores_df[(scores_df['Metric'] == metric)]
-                    metrics_dfs.append(score_rows)
+                    ratio = get_ratio(score_rows)
+                    if ratio < min_allowed_ratio:
+                        fails.append(f'"{metric}"')
 
-            not_passing_metrics = set()
-            for df in metrics_dfs:
-                origin_score = df[df['Type'] == 'Origin']['Value'].iloc[0]
-                simple_score = df[df['Type'] == 'Simple']['Value'].iloc[0]
-                ratio = get_scores_ratio(simple_score, origin_score, max_ratio)
-                if ratio < min_allowed_ratio:
-                    not_passing_metrics.update(df['Metric'].tolist())
-
-            if not_passing_metrics:
-                not_passing_metrics = sorted(not_passing_metrics)
-                msg = f'Metrics with scores ratio lower than threshold: {", ".join(not_passing_metrics)}'
+            if fails:
+                msg = f'Metrics failed: {", ".join(sorted(fails))}'
                 return ConditionResult(False, msg)
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Ratio not less than {format_number(min_allowed_ratio)} '
-                                  'between the given model\'s score and the simple model\'s score',
-                                  condition)
+        return self.add_condition('$$\\frac{\\text{model score}}{\\text{simple model score}} >= '
+                                  f'{format_number(min_allowed_ratio)}$$', condition)
 
 
 class RandomModel:

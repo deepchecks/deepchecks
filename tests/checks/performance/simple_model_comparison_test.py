@@ -101,8 +101,23 @@ def test_condition_ratio_not_less_than_not_passed(diabetes_split_dataset_and_mod
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=False,
-            name='Ratio not less than 1.4 between the given model\'s score and the simple model\'s score',
-            details='Metrics with scores ratio lower than threshold: RMSE - Default')
+            name='$$\\frac{\\text{model score}}{\\text{simple model score}} >= 1.4$$',
+            details='Metrics failed: "Neg RMSE (Default)"')
+    ))
+
+
+def test_condition_failed_for_multiclass(iris_split_dataset_and_model):
+    train_ds, test_ds, clf = iris_split_dataset_and_model
+    # Arrange
+    check = SimpleModelComparison(simple_model_type='constant').add_condition_ratio_not_less_than(2)
+    # Act X
+    result = check.run(train_ds, test_ds, clf)
+    # Assert
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(
+            is_pass=False,
+            name='$$\\frac{\\text{model score}}{\\text{simple model score}} >= 2$$',
+            details='Metrics failed: "F1 (Default)" - Classes: 1')
     ))
 
 
@@ -119,7 +134,7 @@ def test_condition_ratio_not_less_than_passed(diabetes_split_dataset_and_model):
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=True,
-            name='Ratio not less than 1.1 between the given model\'s score and the simple model\'s score'
+            name='$$\\frac{\\text{model score}}{\\text{simple model score}} >= 1.1$$'
         )
     ))
 
