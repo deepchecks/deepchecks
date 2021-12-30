@@ -13,7 +13,7 @@ from .performance_overfit import TrainTestDifferenceOverfit
 from .boosting_overfit import BoostingOverfit
 from .unused_features import UnusedFeatures
 from .single_feature_contribution import SingleFeatureContribution
-from .single_feature_contribution_train_validation import SingleFeatureContributionTrainTest
+from .single_feature_contribution_train_test import SingleFeatureContributionTrainTest
 from .index_leakage import IndexTrainTestLeakage
 from .train_test_samples_mix import TrainTestSamplesMix
 from .date_train_test_leakage_duplicates import DateTrainTestLeakageDuplicates
