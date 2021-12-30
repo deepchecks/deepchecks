@@ -252,13 +252,15 @@ class Dataset:
 
         if label_type:
             self._label_type = label_type
-        else:
+        elif self._label_name:
             self._label_type = self._infer_label_type(
                 self.label_col,
                 max_categorical_ratio=0.05,
                 max_categories=max_categories,
                 max_float_categories=max_float_categories
             )
+        else:
+            self._label_type = None
 
     @classmethod
     def from_numpy(
@@ -400,12 +402,11 @@ class Dataset:
 
     @property
     def label_type(self):
-        """
+        """Return the label type.
 
         Returns:
             Label type
         """
-        self.validate_label()
         return self._label_type
 
     def train_test_split(self,
