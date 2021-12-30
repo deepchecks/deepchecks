@@ -73,6 +73,9 @@ def is_string_column(column: pd.Series) -> bool:
         return False
     except ValueError:
         return True
+    # Non string objects like pd.Timestamp results in TypeError
+    except TypeError:
+        return False
 
 
 def split_camel_case(string: str) -> str:
