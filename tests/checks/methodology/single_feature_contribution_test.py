@@ -19,6 +19,9 @@ from deepchecks.errors import DeepchecksValueError
 
 from tests.checks.utils import equal_condition_result
 
+pps_url = 'https://tinyurl.com/2p8rd3jy'
+pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
+
 
 def util_generate_dataframe_and_expected():
     np.random.seed(42)
@@ -82,15 +85,15 @@ def test_trainval_assert_single_feature_contribution():
     result = SingleFeatureContributionTrainTest().run(train_dataset=Dataset(df, label_name='label'),
                                                       test_dataset=Dataset(df2, label_name='label'))
 
-    assert_that(result.value, has_entries(expected))
+    assert_that(result.value['train-test difference'], has_entries(expected))
 
 
 def test_trainval_show_top_single_feature_contribution():
     df, df2, expected = util_generate_second_similar_dataframe_and_expected()
     result = SingleFeatureContributionTrainTest(n_show_top=3).run(train_dataset=Dataset(df, label_name='label'),
                                                                   test_dataset=Dataset(df2, label_name='label'))
-    assert_that(result.value, has_length(5))
-    assert_that(result.value, has_entries(expected))
+    assert_that(result.value['train-test difference'], has_length(5))
+    assert_that(result.value['train-test difference'], has_entries(expected))
 
 
 def test_trainval_dataset_wrong_input():
@@ -132,9 +135,6 @@ def test_all_features_pps_upper_bound_condition_that_should_not_pass():
     condition_result, *_ = check.conditions_decision(check.run(dataset))
 
     # Assert
-    pps_url = 'https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598'
-    pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
-
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Features\' {pps_html_url} (PPS) is not greater than {condition_value}',
@@ -153,9 +153,6 @@ def test_all_features_pps_upper_bound_condition_that_should_pass():
     condition_result, *_ = check.conditions_decision(check.run(dataset))
 
     # Assert
-    pps_url = 'https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598'
-    pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
-
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
         name=f'Features\' {pps_html_url} (PPS) is not greater than {condition_value}',
@@ -175,9 +172,6 @@ def test_train_test_condition_pps_difference_pass():
     print(result)
 
     # Assert
-    pps_url = 'https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598'
-    pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
-
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
         name=f'Train-Test features\' {pps_html_url} (PPS) difference is not greater than {condition_value}'
@@ -196,12 +190,47 @@ def test_train_test_condition_pps_difference_fail():
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
-    pps_url = 'https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598'
-    pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
-
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Train-Test features\' {pps_html_url} (PPS) difference is not greater than {condition_value}',
         details='Features with PPS difference above threshold: x2'
+    ))
+
+
+def test_train_test_condition_pps_train_pass():
+    # Arrange
+    df, df2, expected = util_generate_second_similar_dataframe_and_expected()
+    condition_value = 0.9
+    check = SingleFeatureContributionTrainTest().add_condition_feature_pps_in_train_not_greater_than(condition_value)
+
+    # Act
+    result = SingleFeatureContributionTrainTest().run(train_dataset=Dataset(df, label_name='label'),
+                                                      test_dataset=Dataset(df2, label_name='label'))
+    condition_result, *_ = check.conditions_decision(result)
+    print(result)
+
+    # Assert
+    assert_that(condition_result, equal_condition_result(
+        is_pass=True,
+        name=f'Train features\' {pps_html_url} (PPS) is not greater than {condition_value}'
+    ))
+
+
+def test_train_test_condition_pps_train_fail():
+    # Arrange
+    df, df2, expected = util_generate_second_similar_dataframe_and_expected()
+    condition_value = 0.6
+    check = SingleFeatureContributionTrainTest().add_condition_feature_pps_in_train_not_greater_than(condition_value)
+
+    # Act
+    result = SingleFeatureContributionTrainTest().run(train_dataset=Dataset(df, label_name='label'),
+                                                      test_dataset=Dataset(df2, label_name='label'))
+    condition_result, *_ = check.conditions_decision(result)
+
+    # Assert
+    assert_that(condition_result, equal_condition_result(
+        is_pass=False,
+        name=f'Train features\' {pps_html_url} (PPS) is not greater than {condition_value}',
+        details='Features in train dataset with PPS above threshold: x2'
     ))
 
