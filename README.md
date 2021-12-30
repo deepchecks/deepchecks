@@ -33,6 +33,8 @@
 [![Documentation Status](https://readthedocs.org/projects/deepchecks/badge/?version=latest)](https://docs.deepchecks.com/en/latest/?badge=latest)
 ![pkgVersion](https://img.shields.io/pypi/v/deepchecks)
 ![pyVersions](https://img.shields.io/pypi/pyversions/deepchecks)
+[![Maintainability](https://api.codeclimate.com/v1/badges/970b11794144139975fa/maintainability)](https://codeclimate.com/github/deepchecks/deepchecks/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/970b11794144139975fa/test_coverage)](https://codeclimate.com/github/deepchecks/deepchecks/test_coverage)
 
 Validate your machine learning models and data, during the research and development phase. 
 
