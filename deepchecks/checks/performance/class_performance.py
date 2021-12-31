@@ -135,7 +135,7 @@ class ClassPerformance(SingleDatasetBaseCheck):
     def add_condition_ratio_difference_not_greater_than(
         self: CP,
         threshold: float = 0.3,
-        score: str = 'F1'
+        score: str = 'F1 (Default)'
     ) -> CP:
         """Add condition.
 
