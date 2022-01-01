@@ -237,9 +237,7 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
             legend=dict(
                 title='Dataset',
                 yanchor='top',
-                y=0.7,
-                xanchor='left',
-                x=0.85),
+                y=0.6),
             width=700,
             height=400
         )
