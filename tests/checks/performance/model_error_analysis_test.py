@@ -18,40 +18,30 @@ from deepchecks.checks.performance.model_error_analysis import ModelErrorAnalysi
 def test_dataset_wrong_input():
     bad_dataset = 'wrong_input'
     # Act & Assert
-    assert_that(calling(ModelErrorAnalysis().run).with_args(bad_dataset, None),
+    assert_that(calling(ModelErrorAnalysis().run).with_args(bad_dataset, bad_dataset, None),
                 raises(DeepchecksValueError,
                        'Check requires dataset to be of type Dataset. instead got: str'))
 
 
 def test_dataset_no_label(iris_dataset, iris_adaboost):
     # Assert
-    assert_that(calling(ModelErrorAnalysis().run).with_args(iris_dataset, iris_adaboost),
+    assert_that(calling(ModelErrorAnalysis().run).with_args(iris_dataset, iris_dataset, iris_adaboost),
                 raises(DeepchecksValueError, 'Check requires dataset to have a label column'))
-
-
-def test_model_error_analysis_classification(iris_labeled_dataset, iris_adaboost):
-    # Assert
-    assert_that(calling(ModelErrorAnalysis().run).with_args(iris_labeled_dataset, iris_adaboost),
-                raises(DeepchecksProcessError,
-                       'Unable to train meaningful error model'))
 
 
 def test_model_error_analysis_regression_not_meaningful(diabetes_split_dataset_and_model):
     # Arrange
-    _, val, model = diabetes_split_dataset_and_model
+    train, val, model = diabetes_split_dataset_and_model
 
     # Assert
-    assert_that(calling(ModelErrorAnalysis().run).with_args(val, model),
+    assert_that(calling(ModelErrorAnalysis().run).with_args(train, val, model),
                 raises(DeepchecksProcessError,
                        'Unable to train meaningful error model'))
 
 
-def test_model_error_analysis_not_meaningful(diabetes_split_dataset_and_model):
-    # Arrange
-    _, val, model = diabetes_split_dataset_and_model
+def test_model_error_analysis_classification(iris_labeled_dataset, iris_adaboost):
+    # Act
+    result = ModelErrorAnalysis().run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost)
 
     # Assert
-    assert_that(calling(ModelErrorAnalysis().run).with_args(val, model),
-                raises(DeepchecksProcessError,
-                       'Unable to train meaningful error model'))
 

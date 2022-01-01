@@ -11,7 +11,8 @@
 """Module with all deepchecks error types."""
 
 
-__all__ = ['DeepchecksValueError', 'DeepchecksNotSupportedError']
+__all__ = ['DeepchecksValueError', 'DeepchecksNotSupportedError', 'DeepchecksProcessError',
+           'NumberOfFeaturesLimitError']
 
 
 class DeepchecksBaseError(Exception):
