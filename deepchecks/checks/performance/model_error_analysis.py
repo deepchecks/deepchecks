@@ -188,8 +188,9 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
                 else:
                     weak_name_feature = None
 
-                color_col = data[feature].apply(
-                    lambda x: weak_name_feature if x in weak_categories else ok_name_feature)
+                replace_dict = {x: weak_name_feature if x in weak_categories else ok_name_feature for x in
+                                error_per_segment_ser.index}
+                color_col = data[feature].replace(replace_dict)
 
                 # Display
                 display.append(px.violin(
@@ -202,7 +203,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
 
                 # Train tree to partition segments according to the model error
                 tree_partitioner = DecisionTreeRegressor(max_depth=1,
-                                                         min_samples_leaf=self.min_segment_size,
+                                                         min_samples_leaf=self.min_segment_size + np.finfo(float).eps,
                                                          random_state=self.random_state).fit(
                     data[[feature]], data[error_col_name])
                 if len(tree_partitioner.tree_.threshold) > 1:
@@ -213,7 +214,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
                                                                           color_col)
                     segment2_text, segment2_details = get_segment_details(model, scorer, test_dataset, data,
                                                                           ~color_col)
-                    color_col = color_col.apply(lambda x: segment1_text if x else segment2_text)
+                    color_col = color_col.replace([True, False], [segment1_text, segment2_text])
                     if segment1_details['score'] >= segment2_details['score']:
                         color_map = {segment1_text: ok_color, segment2_text: weak_color}
                     else:
