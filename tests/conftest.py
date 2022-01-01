@@ -263,7 +263,7 @@ def drifted_data_and_model(drifted_data) -> Tuple[Dataset, Dataset, Pipeline]:
 
 
 @pytest.fixture(scope='session')
-def non_drifted_classification_label(drifted_data) -> Tuple[Dataset, Dataset]:
+def non_drifted_classification_label() -> Tuple[Dataset, Dataset]:
     np.random.seed(42)
 
     train_data = np.concatenate([np.random.randn(1000, 2), np.random.choice(a=[1, 0], p=[0.5, 0.5], size=(1000, 1))],
@@ -282,7 +282,7 @@ def non_drifted_classification_label(drifted_data) -> Tuple[Dataset, Dataset]:
 
 
 @pytest.fixture(scope='session')
-def drifted_classification_label(drifted_data) -> Tuple[Dataset, Dataset]:
+def drifted_classification_label() -> Tuple[Dataset, Dataset]:
     np.random.seed(42)
 
     train_data = np.concatenate([np.random.randn(1000, 2), np.random.choice(a=[1, 0], p=[0.5, 0.5], size=(1000, 1))],
@@ -301,7 +301,7 @@ def drifted_classification_label(drifted_data) -> Tuple[Dataset, Dataset]:
 
 
 @pytest.fixture(scope='session')
-def drifted_regression_label(drifted_data) -> Tuple[Dataset, Dataset]:
+def drifted_regression_label() -> Tuple[Dataset, Dataset]:
     np.random.seed(42)
 
     train_data = np.concatenate([np.random.randn(1000, 2), np.random.randn(1000, 1)], axis=1)
