@@ -260,3 +260,60 @@ def drifted_data_and_model(drifted_data) -> Tuple[Dataset, Dataset, Pipeline]:
     model.fit(train_ds.features_columns, train_ds.label_col)
 
     return train_ds, test_ds, model
+
+
+@pytest.fixture(scope='session')
+def non_drifted_classification_label(drifted_data) -> Tuple[Dataset, Dataset]:
+    np.random.seed(42)
+
+    train_data = np.concatenate([np.random.randn(1000, 2), np.random.choice(a=[1, 0], p=[0.5, 0.5], size=(1000, 1))],
+                                axis=1)
+    # Create test_data with drift in label:
+    test_data = np.concatenate([np.random.randn(1000, 2), np.random.choice(a=[1, 0], p=[0.45, 0.55], size=(1000, 1))],
+                               axis=1)
+
+    df_train = pd.DataFrame(train_data, columns=['col1', 'col2', 'target'])
+    df_test = pd.DataFrame(test_data, columns=['col1', 'col2', 'target'])
+
+    train_ds = Dataset(df_train, label_name='target')
+    test_ds = Dataset(df_test, label_name='target')
+
+    return train_ds, test_ds
+
+
+@pytest.fixture(scope='session')
+def drifted_classification_label(drifted_data) -> Tuple[Dataset, Dataset]:
+    np.random.seed(42)
+
+    train_data = np.concatenate([np.random.randn(1000, 2), np.random.choice(a=[1, 0], p=[0.5, 0.5], size=(1000, 1))],
+                                axis=1)
+    # Create test_data with drift in label:
+    test_data = np.concatenate([np.random.randn(1000, 2), np.random.choice(a=[1, 0], p=[0.25, 0.75], size=(1000, 1))],
+                               axis=1)
+
+    df_train = pd.DataFrame(train_data, columns=['col1', 'col2', 'target'])
+    df_test = pd.DataFrame(test_data, columns=['col1', 'col2', 'target'])
+
+    train_ds = Dataset(df_train, label_name='target')
+    test_ds = Dataset(df_test, label_name='target')
+
+    return train_ds, test_ds
+
+
+@pytest.fixture(scope='session')
+def drifted_regression_label(drifted_data) -> Tuple[Dataset, Dataset]:
+    np.random.seed(42)
+
+    train_data = np.concatenate([np.random.randn(1000, 2), np.random.randn(1000, 1)], axis=1)
+    test_data = np.concatenate([np.random.randn(1000, 2), np.random.randn(1000, 1)], axis=1)
+
+    df_train = pd.DataFrame(train_data, columns=['col1', 'col2', 'target'])
+    df_test = pd.DataFrame(test_data, columns=['col1', 'col2', 'target'])
+    # Create drift in test:
+    df_test['target'] = df_test['target'].astype('float') + abs(np.random.randn(1000)) + np.arange(0, 1, 0.001) * 4
+
+    train_ds = Dataset(df_train, label_name='target')
+    test_ds = Dataset(df_test, label_name='target')
+
+    return train_ds, test_ds
+
