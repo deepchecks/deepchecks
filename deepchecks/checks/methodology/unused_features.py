@@ -213,7 +213,7 @@ def naive_encoder(dataset: Dataset) -> Tuple[TransformerMixin, list]:
         dataset: The dataset to encode.
 
     Returns:
-        A transformer object.
+        A transformer object, a list of columns returned
     """
     numeric_features = [col for col in dataset.features if col not in dataset.cat_features]
 
