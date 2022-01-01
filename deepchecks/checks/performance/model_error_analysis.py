@@ -22,7 +22,7 @@ from sklearn.metrics import r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeRegressor
 
-from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
+from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.errors import DeepchecksProcessError
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.metrics import task_type_check, ModelType, initialize_multi_scorers, get_scorers_list, \
@@ -259,9 +259,9 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
             if fails:
                 msg = f'Segmentation of error by the features: {", ".join(sorted(fails))} resulted in percent change' \
                       f' in {self._scorer_name} larger than {format_percent(max_ratio_change)}.'
-                return ConditionResult(False, msg)
+                return ConditionResult(False, msg, category=ConditionCategory.WARN)
             else:
-                return ConditionResult(True)
+                return ConditionResult(True, category=ConditionCategory.WARN)
 
         return self.add_condition(f'The percent change between the performance of detected segments must'
                                   f' not exceed {format_percent(max_ratio_change)}', condition)
