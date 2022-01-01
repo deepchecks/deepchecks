@@ -60,8 +60,7 @@ def test_condition_fail(iris_labeled_dataset, iris_adaboost):
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=False,
-            name='The percent change between the performance of detected segments must'
-                 ' not exceed 5.00%',
+            name='The percent change between the performance of detected segments must not exceed 5.00%',
             details='Segmentation of error by the features: petal length (cm), petal width (cm) resulted in percent '
                     'change in Accuracy (Default) larger than 5.00%.',
             category=ConditionCategory.WARN

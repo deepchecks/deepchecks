@@ -140,7 +140,8 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
             raise DeepchecksProcessError(f'Unable to train meaningful error model '
                                          f'(r^2 score: {format_number(error_model_score)})')
 
-        error_fi = calculate_feature_importance(error_model, test_dataset)
+        error_fi = calculate_feature_importance(error_model, test_dataset,
+                                                permutation_kwargs={'random_state': self.random_state})
         error_fi.sort_values(ascending=False, inplace=True)
 
         n_samples_display = min(self.n_display_samples, len(test_dataset))
