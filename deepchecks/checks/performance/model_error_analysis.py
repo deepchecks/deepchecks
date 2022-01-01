@@ -174,7 +174,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
                 weak_categories = error_per_segment_ser.index[in_segment_indicis]
                 ok_categories = error_per_segment_ser.index[~in_segment_indicis]
 
-                # Calc score for each group and assign label and color
+                # Calculate score for each group and assign label and color
                 ok_name_feature, segment1_details = get_segment_details(model, scorer, test_dataset, data,
                                                                         data[feature].isin(ok_categories))
 
@@ -233,7 +233,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
 
         headnote = """<span>
             The following graphs show the distribution of error for top features that are most useful for distinguishing
-            high error samples from low error samples. 
+            high error samples from low error samples.
         </span>"""
         display = [headnote] + display if display else None
 
