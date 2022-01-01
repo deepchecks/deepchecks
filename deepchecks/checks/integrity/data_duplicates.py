@@ -55,7 +55,7 @@ class DataDuplicates(SingleDatasetBaseCheck):
         """Run check.
 
         Args:
-            dataset(Dataset): any dataset.
+            dataset (Dataset): any dataset.
 
         Returns:
             (CheckResult): percentage of duplicates and display of the top n_to_show most duplicated.
