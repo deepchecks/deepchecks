@@ -99,8 +99,8 @@ class PerformanceReport(TrainTestBaseCheck):
                 for scorer in scorers:
                     score_result = scorer(model, dataset)
                     # Multiclass scorers return numpy array of result per class
-                    for class_i, value in enumerate(score_result):
-                        results.append([dataset_name, class_i,  scorer.name, value])
+                    for class_score, class_name in zip(score_result, test_dataset.classes):
+                        results.append([dataset_name, class_name,  scorer.name, class_score])
             results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value'])
 
         else:
@@ -284,8 +284,8 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
                 for scorer in scorers:
                     score_result = scorer(model, test)
                     # Multiclass scorers return numpy array of result per class
-                    for class_i, value in enumerate(score_result):
-                        results.append([model_name, value, scorer.name, class_i])
+                    for class_score, class_name in zip(score_result, test.classes):
+                        results.append([model_name, class_score, scorer.name, class_name])
             results_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric', 'Class'])
         else:
             x = 'Model'
