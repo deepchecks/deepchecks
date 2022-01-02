@@ -101,10 +101,8 @@ class SimpleModelComparison(TrainTestBaseCheck):
             for model_name, model_type, model_instance in models:
                 for scorer in scorers:
                     score_result: np.ndarray = scorer(model_instance, test_dataset)
-                    # Multiclass scorers return numpy array of result per class
-                    for class_i, class_score in enumerate(score_result):
-                        # The proba returns in order of the sorted classes.
-                        class_value = train_dataset.classes[class_i]
+                    # Multiclass scorers return numpy array of result per class in order of sorted classes
+                    for class_value, class_score in zip(score_result, test_dataset.classes):
                         results.append([model_name, model_type, class_score, scorer.name, class_value])
 
             results_df = pd.DataFrame(results, columns=['Model', 'Type', 'Value', 'Metric', 'Class'])
