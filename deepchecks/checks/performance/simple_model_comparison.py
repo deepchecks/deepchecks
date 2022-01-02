@@ -56,19 +56,24 @@ class SimpleModelComparison(TrainTestBaseCheck):
     `See scorers documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`_
     A scorer is a function which accepts (model, X, y_true) and returns a float result which is the score.
     For every scorer higher scores are better than lower scores.
-    You can create a scorer out of existing sklearn metrics:
 
-    >>> from sklearn.metrics import roc_auc_score, make_scorer
-    >>> auc_scorer = make_scorer(roc_auc_score)
+    You can create a scorer out of existing sklearn metrics:
+    .. code-block:: python
+        from sklearn.metrics import roc_auc_score, make_scorer
+        auc_scorer = make_scorer(roc_auc_score)
 
     Or you can implement your own:
+    .. code-block:: python
+        from sklearn.metrics import make_scorer
 
-    >>> from sklearn.metrics import make_scorer
-    ... def my_mse(y_true, y_pred):
-    ...   return (y_true - y_pred) ** 2
-    ...
-    ... # Mark greater_is_better=False, since scorers always suppose to return value to maximize.
-    >>> my_mse_scorer = make_scorer(my_mse, greater_is_better=False)
+
+        def my_mse(y_true, y_pred):
+            return (y_true - y_pred) ** 2
+
+
+        # Mark greater_is_better=False, since scorers always suppose to return
+        # value to maximize.
+        my_mse_scorer = make_scorer(my_mse, greater_is_better=False)
     """
 
     def __init__(self, simple_model_type: str = 'constant', alternative_scorers: Dict[str, Callable] = None,
