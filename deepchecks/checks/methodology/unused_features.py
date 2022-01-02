@@ -9,6 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """The UnusedFeatures check module."""
+from typing import Tuple
+
 import plotly.graph_objects as go
 import numpy as np
 import pandas as pd
@@ -41,7 +43,7 @@ class UnusedFeatures(TrainTestBaseCheck):
             each features' feature importance to the mean feature importance. Features with lower importance
             are not shown in the check display.
         feature_variance_threshold (float): A cutoff value for the feature variance, measured by the ratio of
-            each features' feature importance to the mean feature importance. Unused features with lower variance
+            each features' feature variance to the mean feature variance. Unused features with lower variance
             are not shown in the check display.
         n_top_fi_to_show (int): The max number of important features to show in the check display.
         n_top_unused_to_show (int): The max number of unused features to show in the check display, from among
@@ -91,14 +93,14 @@ class UnusedFeatures(TrainTestBaseCheck):
                                                           permutation_kwargs={'random_state': self.random_state})
 
         # Calculate normalized variance per feature based on PCA decomposition
-        pre_pca_transformer = naive_encoder(dataset)
+        pre_pca_transformer, var_col_order = naive_encoder(dataset)
         pca_trans = PCA(n_components=len(dataset.features) // 2, random_state=self.random_state)
         n_samples = min(10000, dataset.n_samples)
         pca_trans.fit(pre_pca_transformer.fit_transform(
             dataset.features_columns.sample(n_samples, random_state=self.random_state)
         ))
 
-        feature_normed_variance = pd.Series(np.abs(pca_trans.components_).sum(axis=0), index=feature_importance.index)
+        feature_normed_variance = pd.Series(np.abs(pca_trans.components_).sum(axis=0), index=var_col_order)
         feature_normed_variance = feature_normed_variance / feature_normed_variance.sum()
 
         feature_df = pd.concat([feature_importance, feature_normed_variance], axis=1)
@@ -201,7 +203,7 @@ class UnusedFeatures(TrainTestBaseCheck):
                                   max_high_variance_unused_features_condition)
 
 
-def naive_encoder(dataset: Dataset) -> TransformerMixin:
+def naive_encoder(dataset: Dataset) -> Tuple[TransformerMixin, list]:
     """Create a naive encoder for categorical and numerical features.
 
     The encoder handles nans for all features and uses label encoder for categorical features. Then, all features are
@@ -211,9 +213,9 @@ def naive_encoder(dataset: Dataset) -> TransformerMixin:
         dataset: The dataset to encode.
 
     Returns:
-        A transformer object.
+        A transformer object, a list of columns returned
     """
-    numeric_features = list(set(dataset.features) - set(dataset.cat_features))
+    numeric_features = [col for col in dataset.features if col not in dataset.cat_features]
 
     return ColumnTransformer(
         transformers=[
@@ -230,4 +232,4 @@ def naive_encoder(dataset: Dataset) -> TransformerMixin:
              ]),
              dataset.cat_features)
         ]
-    )
+    ), numeric_features + dataset.cat_features
