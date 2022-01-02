@@ -109,6 +109,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
             scorer = get_scorers_list(model, train_dataset, self.alternative_scorer, multiclass_avg=True)[0]
         else:
             scorer = get_scorer_single(model, train_dataset, multiclass_avg=True)
+        self._scorer_name = scorer.name
 
         cat_features = train_dataset.cat_features
 
@@ -145,13 +146,11 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         error_fi.sort_values(ascending=False, inplace=True)
 
         n_samples_display = min(self.n_display_samples, len(test_dataset))
-        display_data = test_dataset.data
         error_col_name = 'Deepchecks model error'
         display_error = pd.Series(error_model_predicted, name=error_col_name, index=test_dataset.data.index)
 
         display = []
         value = {}
-        self._scorer_name = scorer.name
         weak_color = '#d74949'
         ok_color = colors['Test']
 
@@ -159,7 +158,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
             if error_fi[feature] < self.min_feature_contribution:
                 break
 
-            data = pd.concat([display_data[feature], display_error], axis=1)
+            data = pd.concat([test_dataset.data[feature], display_error], axis=1)
 
             # Violin plot for categorical features, scatter plot for numerical features
             if feature in cat_features:
@@ -215,6 +214,8 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
                     segment2_text, segment2_details = get_segment_details(model, scorer, test_dataset, data,
                                                                           ~color_col)
                     color_col = color_col.replace([True, False], [segment1_text, segment2_text])
+
+                    # Segment with lower performance is assigned to the weak color
                     if segment1_details['score'] >= segment2_details['score']:
                         color_map = {segment1_text: ok_color, segment2_text: weak_color}
                     else:
@@ -249,7 +250,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         def condition(result: Dict) -> ConditionResult:
             fails = []
             for feature in result.keys():
-                # If only one segment identified
+                # If only one segment identified, skip
                 if len(result[feature]) < 2:
                     continue
                 performance_diff = \
