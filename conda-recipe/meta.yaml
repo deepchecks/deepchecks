@@ -15,35 +15,77 @@ package:
   version: {{ data.get('version') }}
 
 about:
-  home: https://github.com/deepchecks/deepchecks
+  home: "https://github.com/deepchecks/deepchecks"
   license: AGPLv3
   license_file: ../LICENSE
+  summary: "Package for validating your machine learning model and data"
+  doc_url: "https://docs.deepchecks.com"
+  dev_url: "https://github.com/deepchecks/deepchecks"
 source:
   # Relative path to the parent directory.
   path: ..
 
 build:
-  number: 1
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
   noarch: python
 
 requirements:
   host:
+    - category_encoders >=2.3.0
+    - dataclasses >=0.6   # [ py < 37 ]
+    - ipykernel >=4.10.1
+    - ipykernel >=5.3.0   # [ py >= 38 ]
+    - ipython >=5.5.0
+    - ipython >=7.15.0   # [ py >= 38 ]
+    - ipywidgets >=7.5.0
+    - ipywidgets >=7.6.5   # [ py >= 38 ]
+    - matplotlib >=3.3.3
+    - numpy >=1.19
+    - pandas >=1.1.5
+    - pip
+    - plotly >=5.4.0
     - python
-    - setuptools
-  build:
-    - python
+    - scikit-learn >=0.24.2
+    - scipy >=1.5.0
+    - tqdm >=4.62.3
+    - typing_extensions >=3.7.4.3
   run:
+    - category_encoders >=2.3.0
+    - dataclasses >=0.6   # [ py < 37 ]
+    - ipykernel >=4.10.1
+    - ipykernel >=5.3.0   # [ py >= 38 ]
+    - ipython >=5.5.0
+    - ipython >=7.15.0   # [ py >= 38 ]
+    - ipywidgets >=7.5.0
+    - ipywidgets >=7.6.5   # [ py >= 38 ]
+    - matplotlib >=3.3.3
+    - numpy >=1.19
+    - pandas >=1.1.5
+    - plotly >=5.4.0
     - python
-    - pandas
-    - numpy
-    - scikit-learn>=0.24.2
-    - ipython
-    - ipykernel
-    - ipywidgets
-    - tqdm
-    - category_encoders
-    - scipy
-    - typing_extensions
-    - dataclasses
-    - plotly
-    - matplotlib
+    - scikit-learn >=0.24.2
+    - scipy >=1.5.0
+    - tqdm >=4.62.3
+    - typing_extensions >=3.7.4.3
+
+test:
+  imports:
+    - deepchecks
+    - deepchecks.base
+    - deepchecks.checks
+    - deepchecks.checks.distribution
+    - deepchecks.checks.integrity
+    - deepchecks.checks.methodology
+    - deepchecks.checks.overview
+    - deepchecks.checks.performance
+    - deepchecks.datasets
+    - deepchecks.datasets.regression
+    - deepchecks.suites
+    - deepchecks.utils
+    - tests
+    - tests.checks
+    - tests.checks.distribution
+    - tests.suites
+    - tests.utils
+
