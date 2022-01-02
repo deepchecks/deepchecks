@@ -10,23 +10,201 @@
   ~ ----------------------------------------------------------------------------
   ~
 -->
-# Deepchecks - Test Suites for ML Models and Data
+<p align="center">
+  &emsp;
+  <a href="https://deepchecks.com/blog/?utm_source=github.com&utm_medium=referral&utm_campaign=readme">Blog</a>
+  &emsp; | &emsp; 
+  <a href="https://https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme">Documentation</a>
+  &emsp; | &emsp; 
+  <a href="https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg">Join&nbsp;Slack</a>
+  &emsp; | &emsp;  
+  <a href="https://twitter.com/deepchecks">Twitter</a>
+  &emsp;
+</p>
 
-![pyVersions](https://img.shields.io/pypi/pyversions/deepchecks)
-![pkgVersion](https://img.shields.io/pypi/v/deepchecks)
+<p align="center">
+   <img src="docs/images/deepchecks-logo-with-white-wide-back.png">
+</p>
+
+
+# Deepchecks - Test Suites for Validating ML Models and Data
+
 ![build](https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/deepchecks/badge/?version=latest)](https://docs.deepchecks.com/en/latest/?badge=latest)
+![pkgVersion](https://img.shields.io/pypi/v/deepchecks)
+![pyVersions](https://img.shields.io/pypi/pyversions/deepchecks)
+[![Maintainability](https://api.codeclimate.com/v1/badges/970b11794144139975fa/maintainability)](https://codeclimate.com/github/deepchecks/deepchecks/maintainability)
+[![Coverage Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main)](https://coveralls.io/github/deepchecks/deepchecks?branch=main)
 
-Deepchecks is a Python package for comprehensively validating your machine learning
-models and data with minimal effort.
-This includes checks related to various types of issues, such as model performance,
-data integrity, distribution mismatches, and more.
+
+Deepchecks is a Python package for comprehensively validating your machine learning models and data with minimal effort.
+This includes checks related to various types of issues, such as model performance, data integrity, distribution mismatches, and more.
+
+## Installation
+
+### Using pip
+```bash
+pip install deepchecks #--upgrade --user
+```
+### Using conda
+```bash
+conda install -c deepchecks deepchecks
+```
+
+[comment]: <> "### From source
+              To clone the repository and do
+              an [editable install](https://pip.pypa.io/en/stable/cli/pip_install/#editable-installs),
+              run: 
+              ```bash
+              git clone https://github.com/deepchecks/deepchecks.git
+              cd deepchecks
+              pip install -e .
+              ```"
+## What Do You Need in Order to Start Validating?
+
+Depending on your phase and what you wise to validate, you'll need a subset of the following:
+
+-   Raw data (before pre-processing such as OHE, string processing, etc.), with optional labels
+
+-   The model's training data with labels
+    
+-   Test data (which the model isn't exposed to) with labels  
+
+-   A model compatible with scikit-learn API that you wish to validate (e.g. RandomForest, XGBoost)
+
+Deepchecks validation accompanies you from the initial phase when you have only raw data,
+through the data splits, and to the final stage of having a trained model that you wish to evaluate.
+Accordingly, each phase requires different assets for the validation. See more about typical usage scenarios and the built-in
+suites in the [docs](https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme).
+
+## Usage Examples
+
+### Running a Suite
+A [Suite](#suite) runs a collection of [Checks](#check) with optional [Conditions](#condition) added to them.
+
+Let's take the "iris" dataset as an example
+```python
+from sklearn.datasets import load_iris
+iris_df = load_iris(return_X_y=False, as_frame=True)['frame']
+```
+To run an existing suite all you need to do is to import the suite and to run it with the
+required (suite-dependant) input parameters
+
+```python
+from deepchecks.suites import single_dataset_integrity
+suite = single_dataset_integrity()
+suite.run(iris_df)
+```
+Which will result in printing the suite outputs, starting with a summary of the check conditions
+>
+> <h1 id="summary_NKMZO">Single Dataset Integrity Suite</h1>
+> <p>The suite is composed of various checks such as: Mixed Data Types, Is Single Value, String Mismatch, etc...<br>
+>        Each check may contain conditions (which results in 
+>    <span style="color: green;display:inline-block">✓</span> /
+>    <span style="color: red;display:inline-block">✖</span> /
+>    <span style="color: orange;font-weight:bold;display:inline-block">!</span>
+>    ),
+>        as well as other outputs such as plots or tables.<br>
+>        Suites, checks and conditions can all be modified (see tutorial [link]).</p>
+>
+> <hr style="background-color: black;border: 0 none;color: black;height: 1px;">
+>
+> <h2>Conditions Summary</h2>
+>
+> <table id="T_7735f_">
+>  <thead>
+>    <tr>
+>      <th class="col_heading level0 col0">Status</th>
+>      <th class="col_heading level0 col1">Check</th>
+>      <th class="col_heading level0 col2">Condition</th>
+>      <th class="col_heading level0 col3">More Info</th>
+>    </tr>
+>  </thead>
+>  <tbody>
+>    <tr>
+>      <td id="T_7735f_row0_col0" class="data row0 col0"><div style="color: red;text-align: center">✖</div></td>
+>      <td id="T_7735f_row0_col1" class="data row0 col1"><a href="#IsSingleValue_NKMZO">Single Value in Column - Test Dataset</a></td>
+>      <td id="T_7735f_row0_col2" class="data row0 col2">Does not contain only a single value for all columns</td>
+>      <td id="T_7735f_row0_col3" class="data row0 col3">Columns containing a single value: ['target']</td>
+>    </tr>
+>    <tr>
+>      <td id="T_7735f_row1_col0" class="data row1 col0"><div style="color: orange;text-align: center;font-weight:bold">!</div></td>
+>      <td id="T_7735f_row1_col1" class="data row1 col1"><a href="#DataDuplicates_NKMZO">Data Duplicates - Test Dataset</a></td>
+>      <td id="T_7735f_row1_col2" class="data row1 col2">Duplicate data is not greater than 0%</td>
+>      <td id="T_7735f_row1_col3" class="data row1 col3">Found 2.00% duplicate data</td>
+>    </tr>
+>    <tr>
+>     <td id="T_7735f_row2_col0" class="data row2 col0"><div style="color: green;text-align: center">✓</div></td>
+>      <td id="T_7735f_row2_col1" class="data row2 col1">Mixed Nulls - Test Dataset</td>
+>      <td id="T_7735f_row2_col2" class="data row2 col2">Not more than 1 different null types for all columns</td>
+>      <td id="T_7735f_row2_col3" class="data row2 col3"></td>
+>    </tr>
+>    <tr>
+>      <td id="T_7735f_row3_col0" class="data row3 col0"><div style="color: green;text-align: center">✓</div></td>
+>      <td id="T_7735f_row3_col1" class="data row3 col1">Mixed Data Types - Test Dataset</td>
+>      <td id="T_7735f_row3_col2" class="data row3 col2">Rare data types in all columns are either more than 10.00% or less than 1.00% of the data</td>
+>      <td id="T_7735f_row3_col3" class="data row3 col3"></td>
+>    </tr>
+>    <tr>
+>      <td id="T_7735f_row4_col0" class="data row4 col0"><div style="color: green;text-align: center">✓</div></td>
+>      <td id="T_7735f_row4_col1" class="data row4 col1">String Mismatch - Test Dataset</td>
+>      <td id="T_7735f_row4_col2" class="data row4 col2">No string variants for all columns</td>
+>      <td id="T_7735f_row4_col3" class="data row4 col3"></td>
+>    </tr>
+>    <tr>
+>      <td id="T_7735f_row5_col0" class="data row5 col0"><div style="color: green;text-align: center">✓</div></td>
+>      <td id="T_7735f_row5_col1" class="data row5 col1">String Length Out Of Bounds - Test Dataset</td>
+>      <td id="T_7735f_row5_col2" class="data row5 col2">Ratio of outliers not greater than 0% string length outliers for all columns</td>
+>      <td id="T_7735f_row5_col3" class="data row5 col3"></td>
+>    </tr>
+>    <tr>
+>      <td id="T_7735f_row6_col0" class="data row6 col0"><div style="color: green;text-align: center">✓</div></td>
+>      <td id="T_7735f_row6_col1" class="data row6 col1">Special Characters - Test Dataset</td>
+>      <td id="T_7735f_row6_col2" class="data row6 col2">Ratio of entirely special character samples not greater than 0.10% for all columns</td>
+>      <td id="T_7735f_row6_col3" class="data row6 col3"></td>
+>    </tr>
+>  </tbody>
+> </table>
+
+Followed by the visual outputs of all of the checks that are in that suite, that isn't appended here for brevity.
+
+For a full suite demonstration, check out the
+[**Quickstart Notebook**](https://docs.deepchecks.com/en/stable/examples/howto-guides/quickstart_in_5_minutes.html/?utm_source=github.com&utm_medium=referral&utm_campaign=readme)
+and apply it on your own data and models.
+
+
+### Running a Check
+To run a specific single check, all you need to do is import it and
+then to run it with the required (check-dependant) input parameters.
+More details about the existing checks and the parameters they can receive can be found in our
+[API Reference](https://docs.deepchecks.com/en/stable/api/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme)
+
+```python
+from deepchecks.checks import TrainTestFeatureDrift
+import pandas as pd
+
+train_df = pd.read_csv('train_data.csv')
+train_df = pd.read_csv('test_data.csv')
+# Initialize and run desired check
+TrainTestFeatureDrift().run(train_data, test_data)
+```
+Which will product output of the type:
+><h4>Train Test Drift</h4>
+> <p>The Drift score is a measure for the difference between two distributions,
+> in this check - the test and train distributions. <br>
+> The check shows the drift score and distributions for the features,
+> sorted by feature importance and showing only the top 5 features, according to feature importance.
+> If available, the plot titles also show the feature importance (FI) rank.</p>
+> <p align="left">
+>   <img src="docs/images/train-test-drift-output.png">
+> </p>
+
+
+## Key Concepts
 
 <p align="center">
    <img src="docs/images/diagram.svg">
 </p>
-
-## Key Concepts
 
 ### Check
 Each check enables you to inspect a specific aspect of your data and models.
@@ -55,122 +233,11 @@ The Suite enables displaying a concluding report for all of the Checks that ran.
 your own custom suite. The existing suites include default conditions added for most of the checks.
 You can edit the preconfigured suites or build a suite of your own with a collection of checks and optional conditions.
 
-## Installation
+### Documentation
+- [https://docs.deepchecks.com/](https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme) - HTML documentation (stable release)
+- [https://docs.deepchecks.com/en/latest](https://docs.deepchecks.com/en/latest/?utm_source=github.com&utm_medium=referral&utm_campaign=readme) - HTML documentation (latest release)
 
-### Using pip
-```bash
-pip install deepchecks #--user
-```
-
-### From source
-First clone the repository and then install the package from inside the repository's directory:
-```bash
-git clone https://github.com/deepchecks/deepchecks.git
-cd deepchecks
-# for installing stable tag version and not the latest commit to main
-git checkout tags/<version>
-```
-and then either:
-```bash
-pip install .
-```
-or
-```bash
-python setup.py install
-```
-
-## Are You Ready  to Start Checking?
-
-For the full value from Deepchecks' checking suites, we recommend working with:
-
--   A model compatible with scikit-learn API that you wish to validate (e.g. RandomForest, XGBoost)
-    
--   The model's training data with labels
-    
--   Test data (on which the model wasn’t trained) with labels  
-
-However, many of the checks and some of the suites need only a subset of the above to run.
-
-## Usage Examples
-
-### Running a Check
-For running a specific check on your pandas DataFrame, all you need to do is:
-
-```python
-from deepchecks.checks import RareFormatDetection
-import pandas as pd
-
-df_to_check = pd.read_csv('data_to_validate.csv')
-# Initialize and run desired check
-RareFormatDetection().run(df_to_check)
-```
-Which might product output of the type:
-><h4>Rare Format Detection</h4>
-> <p>Check whether columns have common formats (e.g. 'XX-XX-XXXX' for dates) and detects values that don't match.</p>
-> <p><b>&#x2713;</b> Nothing found</p>
-
-If all was fine, or alternatively something like:
-><h4>Rare Format Detection</h4>
-><p>Check whether columns have common formats (e.g. 'XX-XX-XXXX' for dates) and detects values that don't match.</p>
->
->
-> Column date:
-> <table border="1" class="dataframe" style="text-align: left;">
->   <thead>
->     <tr>
->       <th class="blank level0" >&nbsp;</th>
->       <th class="col_heading level0 col0" >digits and letters format (case sensitive)</th>
->     </tr>
->   </thead>
->   <tbody>
->     <tr>
->       <th id="T_ae5e3_level0_row0" class="row_heading level0 row0" >ratio of rare samples</th>
->       <td id="T_ae5e3_row0_col0" class="data row0 col0" >1.50% (3)</td>
->     </tr>
->     <tr>
->       <th id="T_ae5e3_level0_row1" class="row_heading level0 row1" >common formats</th>
->       <td id="T_ae5e3_row1_col0" class="data row1 col0" >['2020-00-00']</td>
->     </tr>
->     <tr>
->       <th id="T_ae5e3_level0_row2" class="row_heading level0 row2" >examples for values in common formats</th>
->       <td id="T_ae5e3_row2_col0" class="data row2 col0" >['2021-11-07']</td>
->     </tr>
->     <tr>
->       <th id="T_ae5e3_level0_row3" class="row_heading level0 row3" >values in rare formats</th>
->       <td id="T_ae5e3_row3_col0" class="data row3 col0" >['2021-Nov-04', '2021-Nov-05', '2021-Nov-06']</td>
->     </tr>
->   </tbody> </table>
-
-If mismatches were detected.
-
-### Running a Suite
-Let's take the "iris" dataset as an example:
-```python
-import pandas as pd
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
-```
-```python
-iris_df = load_iris(return_X_y=False, as_frame=True)['frame']
-label_col = 'target'
-df_train, df_test = train_test_split(iris_df, stratify=iris_df[label_col], random_state=0)
-```
-To run an existing suite all you need to do is import the suite and run it -
-
-```python
-from deepchecks.suites import train_test_validation
-suite = train_test_validation()
-suite.run(train_dataset=df_train, test_dataset=df_test)
-```
-Which will result in printing the summary of the check conditions and then the visual outputs of all of the checks that
-are in that suite.
-
-### Example Notebooks
-For usage examples, check out: 
-- [**Quickstart Notebook**](examples/howto-guides/quickstart_in_5_minutes.ipynb) - for running your first suite with a few lines of code.
-- [**Example Checks Output Notebooks**](examples/checks) - to see all of the existing checks and their usage examples.
-
-## Communication
+## Community
 - Join our [Slack Community](https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg) to connect with the maintainers and follow users and interesting discussions
 - Post a [Github Issue](https://github.com/deepchecks/deepchecks/issues) to suggest improvements, open an issue, or share feedback.
 

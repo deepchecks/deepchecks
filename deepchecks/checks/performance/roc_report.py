@@ -58,25 +58,24 @@ class RocReport(SingleDatasetBaseCheck):
 
         ds_x = dataset.features_columns
         ds_y = dataset.label_col
+        dataset_classes =dataset.classes
         multi_y = (np.array(ds_y)[:, None] == np.unique(ds_y)).astype(int)
-        n_classes = len(dataset.classes)
         y_pred_prob = model.predict_proba(ds_x)
 
         fpr = {}
         tpr = {}
         roc_auc = {}
-        for i in range(n_classes):
+        for i, _ in enumerate(dataset_classes):
             if i in self.excluded_classes:
                 continue
             fpr[i], tpr[i], _ = sklearn.metrics.roc_curve(multi_y[:, i], y_pred_prob[:, i])
             roc_auc[i] = sklearn.metrics.auc(fpr[i], tpr[i])
 
         fig = go.Figure()
-        colors = cycle(['blue', 'red', 'green', 'orange', 'yellow'])
-        for i, class_name, color in zip(range(n_classes), dataset.classes, colors):
+        for i, class_name in enumerate(dataset_classes):
             if i in self.excluded_classes:
                 continue
-            if n_classes == 2:
+            if len(dataset_classes) == 2:
                 fig.add_trace(go.Scatter(
                     x=fpr[i],
                     y=tpr[i],
@@ -100,7 +99,7 @@ class RocReport(SingleDatasetBaseCheck):
                 ))
         fig.update_xaxes(title='False Positive Rate')
         fig.update_yaxes(title='True Positive Rate')
-        if n_classes == 2:
+        if len(dataset_classes) == 2:
             fig.update_layout(title_text='Receiver operating characteristic for binary data',
                               width=900, height=500)
         else:

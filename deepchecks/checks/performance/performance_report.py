@@ -112,12 +112,14 @@ class PerformanceReport(TrainTestBaseCheck):
                     results.append([dataset_name, scorer.name, score_result])
 
             results_df = pd.DataFrame(results, columns=['Dataset', 'Metric', 'Value'])
+
         fig = px.bar(results_df, x=x, y='Value', color='Dataset', barmode='group',
                      facet_col='Metric', facet_col_spacing=0.05)
+
         if task_type == ModelType.MULTICLASS:
-            fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60)
-        else:
-            fig.update_xaxes(title=None)
+            fig.update_xaxes(tickprefix='Class ', tickangle=60)
+
+        fig.update_xaxes(title=None, type='category')
         fig.update_yaxes(title=None, matches=None)
         fig.for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
         fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
