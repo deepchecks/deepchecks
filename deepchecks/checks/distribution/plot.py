@@ -141,7 +141,7 @@ def feature_distribution_traces(train_column,
 
         traces = [train_bar, test_bar]
 
-        xaxis_layout = dict(title='Distribution')
+        xaxis_layout = dict(title='Distribution', type='category')
         yaxis_layout = dict(fixedrange=True,
                             range=(0, 1),
                             title='Percentage')
