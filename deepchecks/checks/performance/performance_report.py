@@ -107,6 +107,7 @@ class PerformanceReport(TrainTestBaseCheck):
         """
         def condition(check_result: pd.DataFrame):
             not_passed = check_result.loc[check_result['Value'] < min_score]
+            not_passed_test = check_result.loc[check_result['Dataset'] == 'Test']
             if len(not_passed):
                 details = f'Scores that did not passed the threshold:<br>{not_passed.to_dict("records")}'
                 return ConditionResult(False, details)
