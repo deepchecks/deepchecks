@@ -26,7 +26,7 @@ if os.path.isfile(requirementPath):
 
 
 def readme():
-    with open('README.md') as f:
+    with open('README.rst') as f:
         return f.read()
 
 
@@ -37,7 +37,7 @@ setup(
     install_requires=install_requires,
     license_files = ('LICENSE', ),
     description = 'Package for validating your machine learning model and data',
-    # long_description=readme(), we should use this after converting the README to rst
+    long_description=readme(),
     author = 'deepchecks',  
     author_email = 'info@deepchecks.com', 
     url = 'https://github.com/deepchecks/deepchecks',
