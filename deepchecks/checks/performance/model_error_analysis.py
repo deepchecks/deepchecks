@@ -55,6 +55,25 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         n_samples (int): number of samples to use for this check. (default: 50000)
         n_display_samples (int): number of samples to display in scatter plot. (default: 5000)
         random_seed (int): random seed for all check internals. (default: 42)
+
+    Notes
+    -----
+    Scorers are a convention of sklearn to evaluate a model.
+    `See scorers documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`_
+    A scorer is a function which accepts (model, X, y_true) and returns a float result which is the score.
+    For every scorer higher scores are better than lower scores.
+    You can create a scorer out of existing sklearn metrics:
+    .. code-block:: python
+        from sklearn.metrics import roc_auc_score, make_scorer
+        auc_scorer = make_scorer(roc_auc_score)
+    Or you can implement your own:
+    .. code-block:: python
+        from sklearn.metrics import make_scorer
+        def my_mse(y_true, y_pred):
+            return (y_true - y_pred) ** 2
+        # Mark greater_is_better=False, since scorers always suppose to return
+        # value to maximize.
+        my_mse_scorer = make_scorer(my_mse, greater_is_better=False)
     """
 
     def __init__(
