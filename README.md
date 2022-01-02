@@ -184,7 +184,7 @@ Which will result in printing the suite outputs, starting with a summary of the 
       <td id="T_7735f_row6_col3" class="data row6 col3"></td>
     </tr>
   </tbody>
-></table>
+> </table>
 
 Followed by the visual outputs of all of the checks that are in that suite, that isn't appended here for brevity.
 
