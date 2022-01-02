@@ -12,6 +12,7 @@
 from itertools import cycle
 from typing import Dict, List
 from matplotlib import pyplot as plt
+import plotly.graph_objects as go
 
 import numpy as np
 import sklearn
@@ -70,32 +71,43 @@ class RocReport(SingleDatasetBaseCheck):
             fpr[i], tpr[i], _ = sklearn.metrics.roc_curve(multi_y[:, i], y_pred_prob[:, i])
             roc_auc[i] = sklearn.metrics.auc(fpr[i], tpr[i])
 
-        def display():
-            plt.cla()
-            plt.clf()
-            colors = cycle(['blue', 'red', 'green', 'orange', 'yellow'])
-            for i, class_name, color in zip(range(n_classes), dataset.classes, colors):
-                if i in self.excluded_classes:
-                    continue
-                if n_classes == 2:
-                    plt.plot(fpr[i], tpr[i], color=color, label=f'auc = {roc_auc[i]:0.2f}')
-                    break
-                else:
-                    plt.plot(fpr[i], tpr[i], color=color,
-                             label=f'Class {class_name} (auc = {roc_auc[i]:0.2f})')
-            plt.plot([0, 1], [0, 1], 'k--')
-            plt.xlim([-0.05, 1.0])
-            plt.ylim([0.0, 1.05])
-            plt.xlabel('False Positive Rate')
-            plt.ylabel('True Positive Rate')
+        fig = go.Figure()
+        colors = cycle(['blue', 'red', 'green', 'orange', 'yellow'])
+        for i, class_name, color in zip(range(n_classes), dataset.classes, colors):
+            if i in self.excluded_classes:
+                continue
             if n_classes == 2:
-                plt.title('Receiver operating characteristic for binary data')
+                fig.add_trace(go.Scatter(
+                    x=fpr[i],
+                    y=tpr[i],
+                    line_width=2,
+                    name=f'auc = {roc_auc[i]:0.2f}',
+                ))
+                break
             else:
-                plt.title('Receiver operating characteristic for multi-class data')
-            plt.title('ROC curves')
-            plt.legend(loc='lower right')
+                fig.add_trace(go.Scatter(
+                    x=fpr[i],
+                    y=tpr[i],
+                    line_width=2,
+                    name=f'Class {class_name} (auc = {roc_auc[i]:0.2f})',
+                ))
+        fig.add_trace(go.Scatter(
+                    x=[0, 1],
+                    y=[0, 1],
+                    line=dict(color="#444"),
+                    line_width=2, line_dash='dash',
+                    showlegend=False
+                ))
+        fig.update_xaxes(title='False Positive Rate')
+        fig.update_yaxes(title='True Positive Rate')
+        if n_classes == 2:
+            fig.update_layout(title_text='Receiver operating characteristic for binary data',
+                              width=900, height=500)
+        else:
+            fig.update_layout(title_text='Receiver operating characteristic for multi-class data',
+                              width=900, height=500)
 
-        return CheckResult(roc_auc, header='ROC Report', display=display)
+        return CheckResult(roc_auc, header='ROC Report', display=fig)
 
     def add_condition_auc_not_less_than(self, min_auc: float = 0.7):
         """Add condition - require min allowed AUC score per class.
