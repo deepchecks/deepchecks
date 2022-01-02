@@ -39,10 +39,3 @@ Documentation Structure
     :maxdepth: 3
 
     api/index
-
-
-Reference Indices
-====================
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

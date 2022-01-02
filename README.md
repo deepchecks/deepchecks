@@ -173,7 +173,10 @@ and apply it on your own data and models.
 
 
 ### Running a Check
-For running a specific check on your pandas DataFrame, all you need to do is:
+To run a specific single check, all you need to do is import it and
+supply it with the relevant arguments for running.
+More details about the existing checks and the parameters they can receive can be found in our
+[API Reference](https://docs.deepchecks.com/en/stable/api/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme)
 
 ```python
 from deepchecks.checks import TrainTestFeatureDrift

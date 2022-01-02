@@ -47,23 +47,17 @@ or, if you already have deepchecks installed and want to update then run
 
     conda update -c deepchecks deepchecks
 
-Installing On Google Colab
----------------------------
-Simply run the following command in the notebook cell:
+Installing On Google Colab or on a Kaggle Kernel
+-------------------------------------------------
+Simply run the following command in a notebook cell:
 
 .. code-block:: bash
 
     !pip install deepchecks
 
-Installing On a Kaggle Kernel
--------------------------------
-Run the following command in the notebook cell:
 
-.. code-block:: bash
 
-    !conda install -c deepchecks deepchecks
-
-Start working with the Package!
+Start Working with the Package!
 =================================
 To get started with deepchecks with 5 lines of code, head to :doc:`examples/howto-guides/quickstart_in_5_minutes`.
 
