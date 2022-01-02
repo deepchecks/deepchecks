@@ -33,5 +33,5 @@ def get_model_of_pipeline(model: Union[Pipeline, BaseEstimator]):
         internal_estimator_list = [x[1] for x in model.steps if isinstance(x[1], BaseEstimator)]
         if internal_estimator_list:
             return internal_estimator_list[-1]
-        raise DeepchecksValueError('Recived a pipeline without an sklearn compatible model')
+        raise DeepchecksValueError('Received a pipeline without an sklearn compatible model')
     return model
