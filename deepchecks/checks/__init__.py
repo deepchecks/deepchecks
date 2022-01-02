@@ -47,6 +47,7 @@ from .overview import (
 from .distribution import (
     TrustScoreComparison,
     TrainTestFeatureDrift,
+    TrainTestLabelDrift,
     WholeDatasetDrift
 )
 
@@ -101,6 +102,7 @@ __all__ = [
     # distribution checks
     'TrustScoreComparison',
     'TrainTestFeatureDrift',
+    'TrainTestLabelDrift',
     'WholeDatasetDrift',
 
     # performance checks

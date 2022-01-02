@@ -24,6 +24,12 @@ if os.path.isfile(requirementPath):
     with open(requirementPath) as f:
         install_requires = f.read().splitlines()
 
+
+def readme():
+    with open('README.md') as f:
+        return f.read()
+
+
 setup(
     name='deepchecks',
     version=VER,
@@ -31,11 +37,13 @@ setup(
     install_requires=install_requires,
     license_files = ('LICENSE', ),
     description = 'Package for validating your machine learning model and data',
+    # long_description=readme(), we should use this after converting the README to rst
     author = 'deepchecks',  
     author_email = 'info@deepchecks.com', 
     url = 'https://github.com/deepchecks/deepchecks',
     download_url = "https://github.com/deepchecks/deepchecks/releases/download/{0}/deepchecks-{0}.tar.gz".format(VER),
-    keywords = ['Software Development', 'Machine Learning'],   
+    keywords = ['Software Development', 'Machine Learning'],
+    include_package_data=True,
     classifiers         = [
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
