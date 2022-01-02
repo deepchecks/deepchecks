@@ -36,6 +36,7 @@ PIP_WIN := python -m pip
 PYTHON := $(BIN)/$(python)
 ANALIZE := $(BIN)/pylint
 COVERAGE := $(BIN)/coverage
+COVERALLS := $(BIN)/coveralls
 FLAKE8 := $(BIN)/flake8
 FLAKE8_RST := $(BIN)/flake8-rst
 TEST_RUNNER := $(BIN)/pytest
@@ -58,7 +59,7 @@ REQUIREMENTS_LOG := .requirements.log
 # Test and Analyize
 ANALIZE_PKGS = pylint pydocstyle flake8 flake8-spellcheck flake8-eradicate flake8-rst
 TEST_CODE := tests/
-TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval
+TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval coveralls
 NOTEBOOK_CHECKS = ./examples/checks
 NOTEBOOK_EXAMPLES = ./examples/howto-guides/*.ipynb
 NOTEBOOK_SANITIZER_FILE= ./examples/.nbval-sanitizer
@@ -185,8 +186,9 @@ regenerate-examples: $(REQUIREMENTS_LOG)
 
 coverage: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 	$(COVERAGE) run -m pytest
-	$(COVERAGE) xml
 
+coveralls: coverage
+	$(COVERALLS) --service=github
 
 # This is Here For Legacy || future use case,
 # our PKGDIR is in its own directory so we dont really need to remove the ENV dir.
