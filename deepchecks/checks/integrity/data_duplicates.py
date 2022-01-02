@@ -11,12 +11,13 @@
 """module contains Data Duplicates check."""
 from typing import Union, List
 
+import numpy as np
 import pandas as pd
 
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.strings import format_percent
+from deepchecks.utils.strings import format_percent, format_list
 from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
@@ -54,7 +55,7 @@ class DataDuplicates(SingleDatasetBaseCheck):
         """Run check.
 
         Args:
-            dataset(Dataset): any dataset.
+            dataset (Dataset): any dataset.
 
         Returns:
             (CheckResult): percentage of duplicates and display of the top n_to_show most duplicated.
@@ -68,6 +69,11 @@ class DataDuplicates(SingleDatasetBaseCheck):
 
         if n_samples == 0:
             raise DeepchecksValueError('Dataset does not contain any data')
+
+        # HACK: pandas have bug with groupby on category dtypes, so until it fixed, change dtypes manually
+        category_columns = df.dtypes[df.dtypes == 'category'].index.tolist()
+        if category_columns:
+            df = df.astype({c: 'object' for c in category_columns})
 
         group_unique_data = df[data_columns].groupby(data_columns, dropna=False).size()
         n_unique = len(group_unique_data)
@@ -89,10 +95,18 @@ class DataDuplicates(SingleDatasetBaseCheck):
             most_duplicates = duplicates_counted[duplicates_counted['Number of Duplicates'] > 1]. \
                 nlargest(self.n_to_show, ['Number of Duplicates'])
 
-            most_duplicates = most_duplicates.set_index('Number of Duplicates')
+            indexes = []
+            for row in most_duplicates.iloc():
+                indexes.append(format_list(df.index[np.all(df == row[data_columns], axis=1)].to_list()))
+
+            most_duplicates['Instances'] = indexes
+
+            most_duplicates = most_duplicates.set_index(['Instances', 'Number of Duplicates'])
 
             text = f'{format_percent(percent_duplicate)} of data samples are duplicates'
-            display = [text, most_duplicates]
+            explanation = 'Each row in the table shows an example of duplicate data and the number of times it appears.'
+            display = [text, explanation, most_duplicates]
+
         else:
             display = None
 

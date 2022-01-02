@@ -14,7 +14,7 @@ import plotly.graph_objects as go
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.checks.distribution.trust_score import TrustScore
-from deepchecks.checks.distribution.preprocessing import preprocess_dataset_to_scaled_numerics
+from deepchecks.checks.distribution.preprocessing import ScaledNumerics
 from deepchecks.checks.distribution.plot import get_density
 from deepchecks.utils.metrics import task_type_check, ModelType
 from deepchecks.utils.strings import format_percent
@@ -50,7 +50,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
 
     def __init__(self, k_filter: int = 10, alpha: float = 0.001,
                  max_number_categories: int = 10, min_test_samples: int = 300, sample_size: int = 10_000,
-                 random_state: int = 42, n_to_show: int = 5, percent_top_scores_to_hide: float = 0.01):
+                 random_state: int = 42, n_to_show: int = 5, percent_top_scores_to_hide: float = 0.05):
         super().__init__()
         _validate_parameters(k_filter, alpha, max_number_categories, min_test_samples, sample_size, n_to_show,
                              percent_top_scores_to_hide)
@@ -102,12 +102,9 @@ class TrustScoreComparison(TrainTestBaseCheck):
         features_list = train_dataset.features
         label_name = train_dataset.label_name
 
-        x_train, x_test = preprocess_dataset_to_scaled_numerics(
-            baseline_features=train_data_sample[features_list],
-            test_features=test_data_sample[features_list],
-            categorical_columns=test_dataset.cat_features,
-            max_num_categories=self.max_number_categories
-        )
+        sn = ScaledNumerics(test_dataset.cat_features, self.max_number_categories)
+        x_train = sn.fit_transform(train_data_sample[features_list])
+        x_test = sn.transform(test_data_sample[features_list])
 
         # Trust Score model expects labels to be consecutive integers from 0 to n-1, so we transform our label to
         # this format.

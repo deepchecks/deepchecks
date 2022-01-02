@@ -11,13 +11,13 @@
 """Predefined suites for various use-cases."""
 from deepchecks.checks import (
     MixedNulls, SpecialCharacters, StringLengthOutOfBounds, StringMismatch, MixedDataTypes,
-    DateTrainTestLeakageDuplicates, SingleFeatureContribution, SingleFeatureContributionTrainTest, TrainTestSamplesMix,
+    DateTrainTestLeakageDuplicates, SingleFeatureContributionTrainTest, TrainTestSamplesMix,
     DateTrainTestLeakageOverlap, IdentifierLeakage, IndexTrainTestLeakage, DominantFrequencyChange,
     CategoryMismatchTrainTest, NewLabelTrainTest, StringMismatchComparison, TrainTestFeatureDrift, WholeDatasetDrift,
-    ConfusionMatrixReport, RocReport, CalibrationScore, TrustScoreComparison, ClassPerformance,
+    ConfusionMatrixReport, RocReport, CalibrationScore, TrustScoreComparison,
     RegressionErrorDistribution, RegressionSystematicError, PerformanceReport, SimpleModelComparison, BoostingOverfit,
-    TrainTestDifferenceOverfit, ModelInfo, ColumnsInfo, DataDuplicates, IsSingleValue, LabelAmbiguity,
-    DatasetsSizeComparison, UnusedFeatures, ModelInferenceTimeCheck
+    ModelInfo, ColumnsInfo, DataDuplicates, IsSingleValue, LabelAmbiguity,
+    DatasetsSizeComparison, UnusedFeatures, ModelInferenceTimeCheck, ModelErrorAnalysis, TrainTestLabelDrift
 )
 from deepchecks import Suite
 
@@ -52,8 +52,8 @@ def train_test_leakage() -> Suite:
         'Train Test Leakage Suite',
         DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_not_greater_than(),
         DateTrainTestLeakageOverlap().add_condition_leakage_ratio_not_greater_than(),
-        SingleFeatureContribution().add_condition_feature_pps_not_greater_than(),
-        SingleFeatureContributionTrainTest().add_condition_feature_pps_difference_not_greater_than(),
+        SingleFeatureContributionTrainTest().add_condition_feature_pps_difference_not_greater_than()
+        .add_condition_feature_pps_in_train_not_greater_than(),
         TrainTestSamplesMix().add_condition_duplicates_ratio_not_greater_than(),
         IdentifierLeakage().add_condition_pps_not_greater_than(),
         IndexTrainTestLeakage().add_condition_ratio_not_greater_than()
@@ -69,10 +69,11 @@ def train_test_validation() -> Suite:
     return Suite(
         'Train Test Validation Suite',
         TrainTestFeatureDrift().add_condition_drift_score_not_greater_than(),
+        TrainTestLabelDrift().add_condition_drift_score_not_greater_than(),
         WholeDatasetDrift().add_condition_overall_drift_value_not_greater_than(),
         DominantFrequencyChange().add_condition_ratio_of_change_not_more_than(),
         CategoryMismatchTrainTest().add_condition_new_category_ratio_not_greater_than(),
-        NewLabelTrainTest().add_condition_new_label_ratio_not_greater_than(),
+        NewLabelTrainTest().add_condition_new_labels_not_greater_than(),
         StringMismatchComparison().add_condition_no_new_variants(),
         DatasetsSizeComparison().add_condition_test_train_size_ratio_not_smaller_than(),
         train_test_leakage()
@@ -86,15 +87,14 @@ def model_evaluation() -> Suite:
     """
     return Suite(
         'Model Evaluation Suite',
-        PerformanceReport(),
         ConfusionMatrixReport(),
-        ClassPerformance().add_condition_ratio_difference_not_greater_than(),
-        TrainTestDifferenceOverfit().add_condition_degradation_ratio_not_greater_than(),
+        PerformanceReport().add_condition_class_performance_imbalance_ratio_not_greater_than(),
+        PerformanceReport().add_condition_train_test_performance_degradation_ratio_not_greater_than(),
         RocReport().add_condition_auc_not_less_than(),
         SimpleModelComparison().add_condition_ratio_not_less_than(),
+        ModelErrorAnalysis().add_condition_segments_performance_relative_difference_not_greater_than(),
         CalibrationScore(),
         TrustScoreComparison().add_condition_mean_score_percent_decline_not_greater_than(),
-        NewLabelTrainTest().add_condition_new_labels_not_greater_than(),
         RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_not_greater_than(),
         RegressionErrorDistribution().add_condition_kurtosis_not_less_than(),
         BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(),

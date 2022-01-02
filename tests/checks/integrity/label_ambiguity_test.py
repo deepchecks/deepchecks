@@ -21,27 +21,29 @@ from tests.checks.utils import equal_condition_result
 def test_label_ambiguity():
     # Arrange
     data = {
-        'col1': [1, 1, 1, 2, 2, 2],
-        'col2': [1, 1, 1, 2, 2, 2],
-        'col3': [1, 1, 1, 2, 2, 2],
-        'label': [1, 1, 2, 2, 3, 4]
+        'col1': [1, 1, 1, 2, 2, 2]*100,
+        'col2': [1, 1, 1, 2, 2, 2]*100,
+        'col3': [1, 1, 1, 2, 2, 2]*100,
+        'label': [1, 1, 2, 2, 3, 4]*100
     }
-    ds = Dataset(pd.DataFrame(data), label_name='label')
+    dataframe = pd.DataFrame(data)
+    dataframe = dataframe.astype({'col1': 'category'})
+    ds = Dataset(dataframe, label_name='label')
     check = LabelAmbiguity()
     # Act
     result = check.run(ds)
     # Assert
     assert_that(result.value, equal_to(1))
-    assert_that(result.display[0], has_length(2))
+    assert_that(result.display[1], has_length(2))
 
 
 def test_label_ambiguity_empty():
     # Arrange
     data = {
-        'col1': [1, 1, 1, 2, 2, 2],
-        'col2': [1, 1, 1, 2, 2, 2],
-        'col3': [1, 1, 1, 2, 2, 2],
-        'label': [1, 1, 1, 1, 1, 1]
+        'col1': [1, 1, 1, 2, 2, 2]*100,
+        'col2': [1, 1, 1, 2, 2, 2]*100,
+        'col3': [1, 1, 1, 2, 2, 2]*100,
+        'label': [1, 1, 1, 1, 1, 1]*100
     }
     ds = Dataset(pd.DataFrame(data), label_name='label')
     check = LabelAmbiguity()
@@ -55,10 +57,10 @@ def test_label_ambiguity_empty():
 def test_label_ambiguity_mixed():
     # Arrange
     data = {
-        'col1': [1, 1, 1, 2, 2, 2],
-        'col2': [1, 1, 1, 2, 2, 2],
-        'col3': [1, 1, 1, 2, 2, 2],
-        'label': [1, 1, 1, 1, 2, 1]
+        'col1': [1, 1, 1, 2, 2, 2]*100,
+        'col2': [1, 1, 1, 2, 2, 2]*100,
+        'col3': [1, 1, 1, 2, 2, 2]*100,
+        'label': [1, 1, 1, 1, 2, 1]*100
     }
     ds = Dataset(pd.DataFrame(data), label_name='label')
     check = LabelAmbiguity()
@@ -66,16 +68,16 @@ def test_label_ambiguity_mixed():
     result = check.run(ds)
     # Assert
     assert_that(result.value, close_to(0.5, 0.01))
-    assert_that(result.display[0], has_length(1))
+    assert_that(result.display[1], has_length(1))
 
 
 def test_label_ambiguity_condition():
     # Arrange
     data = {
-        'col1': [1, 1, 1, 2, 2, 2],
-        'col2': [1, 1, 1, 2, 2, 2],
-        'col3': [1, 1, 1, 2, 2, 2],
-        'label': [1, 1, 1, 1, 2, 1]
+        'col1': [1, 1, 1, 2, 2, 2]*100,
+        'col2': [1, 1, 1, 2, 2, 2]*100,
+        'col3': [1, 1, 1, 2, 2, 2]*100,
+        'label': [1, 1, 1, 1, 2, 1]*100
     }
     ds = Dataset(pd.DataFrame(data), label_name='label')
     check = LabelAmbiguity().add_condition_ambiguous_sample_ratio_not_greater_than()
@@ -95,10 +97,10 @@ def test_label_ambiguity_condition():
 def test_label_ambiguity_condition_pass():
     # Arrange
     data = {
-        'col1': [1, 1, 1, 2, 2, 2],
-        'col2': [1, 1, 1, 2, 2, 2],
-        'col3': [1, 1, 1, 2, 2, 2],
-        'label': [1, 1, 1, 1, 2, 1]
+        'col1': [1, 1, 1, 2, 2, 2]*100,
+        'col2': [1, 1, 1, 2, 2, 2]*100,
+        'col3': [1, 1, 1, 2, 2, 2]*100,
+        'label': [1, 1, 1, 1, 2, 1]*100
     }
     ds = Dataset(pd.DataFrame(data), label_name='label')
     check = LabelAmbiguity().add_condition_ambiguous_sample_ratio_not_greater_than(.7)

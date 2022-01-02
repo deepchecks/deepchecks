@@ -23,15 +23,22 @@ __all__ = ['RegressionErrorDistribution']
 
 
 class RegressionErrorDistribution(SingleDatasetBaseCheck):
-    """Check regresstion error distribution.
+    """Check regression error distribution.
+
+    The check shows the distribution of the regression error, and enables to set conditions on the distribution
+    kurtosis. Kurtosis is a measure of the shape of the distribution, helping us understand if the distribution
+    is significantly "wider" from the normal distribution, which may imply a certain cause of error deforming the
+    normal shape.
 
     Args:
-        n_top_samples (int): amount of samples to show which are of Largest under / over estimation errors.
+        n_top_samples (int): amount of samples to show which have the largest under / over estimation errors.
+        n_bins (int): number of bins to use for the histogram.
     """
 
-    def __init__(self, n_top_samples: int = 3):
+    def __init__(self, n_top_samples: int = 3, n_bins: int = 40):
         super().__init__()
         self.n_top_samples = n_top_samples
+        self.n_bins = n_bins
 
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run check.
@@ -43,7 +50,7 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         Returns:
            CheckResult:
                 - value is the kurtosis value (Fisher’s definition (normal ==> 0.0)).
-                - display is histogram of error distirbution and the largest prediction errors.
+                - display is histogram of error distribution and the largest prediction errors.
 
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance with a label
@@ -57,22 +64,25 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
 
         y_test = dataset.label_col
         y_pred = model.predict(dataset.features_columns)
+        y_pred = pd.Series(y_pred, name='predicted ' + str(dataset.label_name), index=dataset.label_col.index)
 
         diff = y_test - y_pred
         kurtosis_value = kurtosis(diff)
 
         n_largest_diff = diff.nlargest(self.n_top_samples)
-        n_largest_diff.name = n_largest_diff.name + ' Prediction Difference'
-        n_largest = pd.concat([dataset.data.loc[n_largest_diff.index], n_largest_diff], axis=1)
+        n_largest_diff.name = str(dataset.label_name) + ' Prediction Difference'
+        n_largest = pd.concat([dataset.data.loc[n_largest_diff.index], y_pred.loc[n_largest_diff.index],
+                               n_largest_diff], axis=1)
 
         n_smallest_diff = diff.nsmallest(self.n_top_samples)
-        n_smallest_diff.name = n_smallest_diff.name + ' Prediction Difference'
-        n_smallest = pd.concat([dataset.data.loc[n_smallest_diff.index], n_smallest_diff], axis=1)
+        n_smallest_diff.name = str(dataset.label_name) + ' Prediction Difference'
+        n_smallest = pd.concat([dataset.data.loc[n_smallest_diff.index], y_pred.loc[n_smallest_diff.index],
+                                n_smallest_diff], axis=1)
 
         display = [
             px.histogram(
                 x=diff.values,
-                nbins=40,
+                nbins=self.n_bins,
                 title='Histogram of prediction errors',
                 labels={'x': f'{dataset.label_name} prediction error', 'y': 'Count'},
                 width=700, height=500

@@ -37,12 +37,19 @@ def model_type_validation(model: t.Any):
         raise errors.DeepchecksValueError(
             'Model must inherit from one of supported '
             'models: sklearn.base.BaseEstimator or CatBoost, '
-            f'Recived: {model.__class__.__name__}'
+            f'Received: {model.__class__.__name__}'
         )
 
 
-def validate_model(dataset: 'base.Dataset', model: t.Any):
+def validate_model(
+    data: t.Union['base.Dataset', pd.DataFrame],
+    model: t.Any
+):
     """Check model is able to predict on the dataset.
+
+    Args:
+        data (Dataset, pandas.DataFrame):
+        model (BaseEstimator):
 
     Raise:
         DeepchecksValueError: if dataset does not match model
@@ -54,8 +61,13 @@ def validate_model(dataset: 'base.Dataset', model: t.Any):
         'with the same set of features that was used to fit the model. {0}'
     )
 
-    features = dataset.features_columns
-    features_names = set(dataset.features)
+    if isinstance(data, base.Dataset):
+        features = data.features_columns
+        features_names = set(data.features)
+    else:
+        features = data
+        features_names = set(data.columns)
+
     model_features = getattr(model, 'feature_names_in_', None)
 
     if features is None:

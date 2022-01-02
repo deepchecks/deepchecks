@@ -51,5 +51,5 @@ def test_regression(regression_models):
     train, test, model, model2, model3 = regression_models
     # Act
     result = MultiModelPerformanceReport().run(train, test, [model, model2, model3])
-    # Assert - 2 metrics X 3 models
-    assert_that(result.value, has_length(6))
+    # Assert - 3 metrics X 3 models
+    assert_that(result.value, has_length(9))

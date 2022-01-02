@@ -21,12 +21,12 @@ from hamcrest.core.matcher import Matcher
 from hamcrest import assert_that, instance_of, only_contains, any_of
 
 from deepchecks import suites, Dataset, SuiteResult, CheckResult, CheckFailure
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksBaseError
 
 
 @pytest.fixture()
 def iris(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBoostClassifier]:
-    # note: to run classification suite succesfully we need to modify iris dataframe
+    # note: to run classification suite successfully we need to modify iris dataframe
     # according to suite needs
     df = t.cast(pd.DataFrame, iris_clean.frame.copy())
     df['index'] = range(len(df))
@@ -142,7 +142,7 @@ def validate_suite_result(
     assert_that(result, instance_of(SuiteResult))
     assert_that(result.results, instance_of(list))
 
-    exception_matcher = exception_matcher or only_contains(instance_of(DeepchecksValueError))
+    exception_matcher = exception_matcher or only_contains(instance_of(DeepchecksBaseError))
 
     if expected_results == 'only successful':
         assert_that(result.results, only_contains(any_of( # type: ignore

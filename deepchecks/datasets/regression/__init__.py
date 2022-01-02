@@ -8,5 +8,4 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-set -m
-$PYTHON -m pip install --no-deps --ignore-installed .
+"""Module for working with pre-built regression datasets."""

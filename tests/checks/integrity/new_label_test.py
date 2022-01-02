@@ -25,14 +25,16 @@ def test_dataset_wrong_input():
     # Act & Assert
     assert_that(calling(NewLabelTrainTest().run).with_args(x, x),
                 raises(DeepchecksValueError,
-                'dataset must be of type DataFrame or Dataset. instead got: str'))
+                'Check requires dataset to be of type Dataset. instead got: str'))
 
 
 def test_no_new_label():
     train_data = {'col1': [1, 2, 3]}
     test_data = {'col1': [1, 1, 2, 3]}
-    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']), label_name='col1')
-    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']), label_name='col1')
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']),
+                            label_name='col1', label_type="classification_label")
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']),
+                           label_name='col1', label_type="classification_label")
 
     # Arrange
     check = NewLabelTrainTest()
@@ -45,8 +47,10 @@ def test_no_new_label():
 def test_new_label():
     train_data = {'col1': [1, 2, 3]}
     test_data = {'col1': [1, 2, 3, 4]}
-    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']), label_name='col1')
-    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']), label_name='col1')
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']),
+                            label_name='col1', label_type="classification_label")
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']),
+                           label_name='col1', label_type="classification_label")
 
     # Arrange
     check = NewLabelTrainTest()
@@ -62,8 +66,10 @@ def test_new_label():
 def test_missing_label():
     train_data = {'col1': [1, 2, 3, 4]}
     test_data = {'col1': [1, 2, 3]}
-    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']), label_name='col1')
-    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']), label_name='col1')
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']),
+                            label_name='col1', label_type="classification_label")
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']),
+                           label_name='col1', label_type="classification_label")
 
     # Arrange
     check = NewLabelTrainTest()
@@ -76,8 +82,10 @@ def test_missing_label():
 def test_missing_new_label():
     train_data = {'col1': [1, 2, 3, 4]}
     test_data = {'col1': [1, 2, 3, 5]}
-    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']), label_name='col1')
-    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']), label_name='col1')
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']),
+                            label_name='col1', label_type="classification_label")
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']),
+                           label_name='col1', label_type="classification_label")
 
     # Arrange
     check = NewLabelTrainTest()
@@ -93,8 +101,10 @@ def test_missing_new_label():
 def test_multiple_categories():
     train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
     test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
-    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), label_name='col1')
-    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), label_name='col1')
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']),
+                            label_name='col1', label_type="classification_label")
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']),
+                           label_name='col1', label_type="classification_label")
 
     # Arrange
     check = NewLabelTrainTest()
@@ -110,8 +120,10 @@ def test_multiple_categories():
 def test_condition_number_of_new_labels_pass():
     train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
     test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
-    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), label_name='col1')
-    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), label_name='col1')
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']),
+                            label_name='col1', label_type="classification_label")
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']),
+                           label_name='col1', label_type="classification_label")
 
     # Arrange
     check = NewLabelTrainTest().add_condition_new_labels_not_greater_than(3)
@@ -128,8 +140,10 @@ def test_condition_number_of_new_labels_pass():
 def test_condition_number_of_new_labels_fail():
     train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
     test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
-    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), label_name='col1')
-    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), label_name='col1')
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']),
+                            label_name='col1', label_type="classification_label")
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']),
+                           label_name='col1', label_type="classification_label")
 
     # Arrange
     check = NewLabelTrainTest().add_condition_new_labels_not_greater_than(0)
@@ -147,8 +161,10 @@ def test_condition_number_of_new_labels_fail():
 def test_condition_ratio_of_new_label_samples_pass():
     train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
     test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
-    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), label_name='col1')
-    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), label_name='col1')
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']),
+                            label_name='col1', label_type="classification_label")
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']),
+                           label_name='col1', label_type="classification_label")
 
     # Arrange
     check = NewLabelTrainTest().add_condition_new_label_ratio_not_greater_than(0.3)
@@ -165,8 +181,10 @@ def test_condition_ratio_of_new_label_samples_pass():
 def test_condition_ratio_of_new_label_samples_fail():
     train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
     test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
-    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), label_name='col1')
-    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), label_name='col1')
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']),
+                            label_name='col1', label_type="classification_label")
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']),
+                           label_name='col1', label_type="classification_label")
 
     # Arrange
     check = NewLabelTrainTest().add_condition_new_label_ratio_not_greater_than(0.1)
