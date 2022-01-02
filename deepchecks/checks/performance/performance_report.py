@@ -109,7 +109,8 @@ class PerformanceReport(TrainTestBaseCheck):
             not_passed = check_result.loc[check_result['Value'] < min_score]
             not_passed_test = check_result.loc[check_result['Dataset'] == 'Test']
             if len(not_passed):
-                details = f'Scores that did not passed the threshold:<br>{not_passed_test.to_dict("records")}'
+                details = f'Scores that did not passed the threshold:<br>' \
+                          f'{not_passed_test[["Class", "Metric", "Value"]].to_dict("records")}'
                 return ConditionResult(False, details)
             return ConditionResult(True)
 
