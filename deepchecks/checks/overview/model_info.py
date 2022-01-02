@@ -56,4 +56,3 @@ class ModelInfo(ModelOnlyBaseCheck):
         display = [f'Model Type: {model_type}', model_param_df, footnote]
 
         return CheckResult(value, header='Model Info', display=display)
-
