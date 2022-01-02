@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing performance report check."""
-from typing import Callable, Hashable, TypeVar, Dict, cast
+from typing import Callable, TypeVar, Dict
 import pandas as pd
 import plotly.express as px
 
@@ -68,21 +68,21 @@ class PerformanceReport(TrainTestBaseCheck):
         if task_type in [ModelType.BINARY, ModelType.MULTICLASS]:
             x = ['Class', 'Dataset']
             results = []
-            for dataset in datasets.keys():
+            for dataset_name, dataset in datasets.items():
                 for scorer in scorers:
-                    score_result = scorer(model, datasets[dataset])
+                    score_result = scorer(model, dataset)
                     # Multiclass scorers return numpy array of result per class
                     for class_i, value in enumerate(score_result):
-                        results.append([dataset, class_i,  scorer.name, value])
+                        results.append([dataset_name, class_i,  scorer.name, value])
             results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value'])
 
         else:
             x = 'Dataset'
             results = []
-            for dataset in datasets.keys():
+            for dataset_name, dataset in datasets.items():
                 for scorer in scorers:
-                    score_result = scorer(model, datasets[dataset])
-                    results.append([dataset, scorer.name, score_result])
+                    score_result = scorer(model, dataset)
+                    results.append([dataset_name, scorer.name, score_result])
 
             results_df = pd.DataFrame(results, columns=['Dataset', 'Metric', 'Value'])
         fig = px.bar(results_df, x=x, y='Value', color='Dataset', barmode='group',
@@ -230,8 +230,8 @@ class PerformanceReport(TrainTestBaseCheck):
 
         return self.add_condition(
             name=(
-                f"Relative ratio difference between labels '{score}' score "
-                f"is not greater than {format_percent(threshold)}"
+                f'Relative ratio difference between labels \'{score}\' score '
+                f'is not greater than {format_percent(threshold)}'
             ),
             condition_func=condition
         )
