@@ -33,21 +33,42 @@ __all__ = ['SimpleModelComparison']
 class SimpleModelComparison(TrainTestBaseCheck):
     """Compare given model score to simple model score (according to given model type).
 
-    Args:
-        simple_model_type (str):
-            Type of the simple model ['random', 'constant', 'tree'].
-                + random - select one of the labels by random.
-                + constant - in regression is mean value, in classification the most common value.
-                + tree - runs a simple decision tree.
-        alternative_scorers (Dict[str, Callable], default None):
-            An optional dictionary of scorer name to scorer functions.
-            If none given, using default scorers
-        maximum_ratio (int):
-            the ratio can be up to infinity so choose maximum value to limit to.
-        max_depth (int):
-            the max depth of the tree (used only if simple model type is tree).
-        random_state (int):
-            the random state (used only if simple model type is tree or random).
+    Parameters
+    ----------
+    simple_model_type : str
+        Type of the simple model ['random', 'constant', 'tree'].
+            + random - select one of the labels by random.
+            + constant - in regression is mean value, in classification the most common value.
+            + tree - runs a simple decision tree.
+    alternative_scorers : Dict[str, Callable], default None
+        An optional dictionary of scorer title to scorer functions/names. If none given, using default scorers.
+        For description about scorers see Notes below.
+    maximum_ratio : int
+        the ratio can be up to infinity so choose maximum value to limit to.
+    max_depth : int
+        the max depth of the tree (used only if simple model type is tree).
+    random_state : int
+        the random state (used only if simple model type is tree or random).
+
+    Notes
+    -----
+    Scorers are a convention of sklearn to evaluate a model.
+    `See scorers documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`_
+    A scorer is a function which accepts (model, X, y_true) and returns a float result which is the score.
+    For every scorer higher scores are better than lower scores.
+    You can create a scorer out of existing sklearn metrics:
+
+    >>> from sklearn.metrics import roc_auc_score, make_scorer
+    >>> auc_scorer = make_scorer(roc_auc_score)
+
+    Or you can implement your own:
+
+    >>> from sklearn.metrics import make_scorer
+    ... def my_mse(y_true, y_pred):
+    ...   return (y_true - y_pred) ** 2
+    ...
+    ... # Mark greater_is_better=False, since scorers always suppose to return value to maximize.
+    >>> my_mse_scorer = make_scorer(my_mse, greater_is_better=False)
     """
 
     def __init__(self, simple_model_type: str = 'constant', alternative_scorers: Dict[str, Callable] = None,
