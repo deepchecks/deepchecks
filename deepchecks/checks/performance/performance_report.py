@@ -99,7 +99,7 @@ class PerformanceReport(TrainTestBaseCheck):
 
         return CheckResult(results_df, header='Performance Report', display=fig)
 
-    def add_condition_score_not_less_than(self: PR, min_score: float) -> PR:
+    def add_condition_test_performance_not_less_than(self: PR, min_score: float) -> PR:
         """Add condition - metric scores are not less than given score.
 
         Args:
@@ -114,11 +114,9 @@ class PerformanceReport(TrainTestBaseCheck):
 
         return self.add_condition(f'Scores are not less than {min_score}', condition)
 
-    def add_condition_degradation_ratio_not_greater_than(self: PR, threshold: float = 0.1) -> PR:
+    def add_condition_train_test_performance_degradation_ratio_not_greater_than(self: PR, threshold: float = 0.1) -> PR:
         """
-        Add new condition.
-
-        Add condition that will check that train performance is not degraded by more than given percentage in test.
+        Add condition that will check that test performance is not degraded by more than given percentage in train.
 
         Args:
             threshold: maximum degradation ratio allowed (value between 0 to 1)

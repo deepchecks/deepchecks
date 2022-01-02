@@ -89,7 +89,7 @@ def model_evaluation() -> Suite:
         'Model Evaluation Suite',
         ConfusionMatrixReport(),
         PerformanceReport().add_condition_class_performance_imbalance_ratio_not_greater_than(),
-        PerformanceReport().add_condition_degradation_ratio_not_greater_than(),
+        PerformanceReport().add_condition_train_test_performance_degradation_ratio_not_greater_than(),
         RocReport().add_condition_auc_not_less_than(),
         SimpleModelComparison().add_condition_ratio_not_less_than(),
         CalibrationScore(),
