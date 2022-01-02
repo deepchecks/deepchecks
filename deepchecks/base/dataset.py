@@ -374,8 +374,8 @@ class Dataset:
     def copy(self: TDataset, new_data) -> TDataset:
         """Create a copy of this Dataset with new data."""
         # Filter out if columns were dropped
-        features = list(set(self._features).intersection(new_data.columns))
-        cat_features = list(set(self.cat_features).intersection(new_data.columns))
+        features = [feat for feat in self._features if feat in new_data.columns]
+        cat_features = [feat for feat in self.cat_features if feat in new_data.columns]
         label_name = self._label_name if self._label_name in new_data.columns else None
         index = self._index_name if self._index_name in new_data.columns else None
         date = self._datetime_name if self._datetime_name in new_data.columns else None
@@ -387,6 +387,20 @@ class Dataset:
                    datetime_name=date, set_datetime_from_dataframe_index=self._set_datetime_from_dataframe_index,
                    convert_datetime=False, max_categorical_ratio=self._max_categorical_ratio,
                    max_categories=self._max_categories, label_type=self.label_type)
+
+    def sample(self, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None) -> TDataset:
+        """Create a copy of the dataset object, with the internal dataframe being a sample of the original dataframe.
+
+        Args:
+            n_samples (int): Number of samples to draw.
+            replace (bool, default False): Whether to sample with replacement.
+            random_state (int, default None): Random state.
+
+        Returns:
+            Dataset: instance of the Dataset with sampled internal dataframe.
+        """
+        n_samples = min(n_samples, len(self))
+        return self.copy(self._data.sample(n_samples, replace=replace, random_state=random_state))
 
     @property
     def n_samples(self) -> int:

@@ -27,3 +27,4 @@ Multiclass
 numpy
 sklearn
 proba
+r2
