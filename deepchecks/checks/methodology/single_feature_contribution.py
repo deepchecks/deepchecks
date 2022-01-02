@@ -22,6 +22,9 @@ __all__ = ['SingleFeatureContribution']
 
 FC = t.TypeVar('FC', bound='SingleFeatureContribution')
 
+pps_url = 'https://tinyurl.com/2p8rd3jy'
+pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
+
 
 class SingleFeatureContribution(SingleDatasetBaseCheck):
     """Return the PPS (Predictive Power Score) of all features in relation to the label.
@@ -100,8 +103,5 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
-
-        pps_url = 'https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598'
-        pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
 
         return self.add_condition(f'Features\' {pps_html_url} (PPS) is not greater than {threshold}', condition)

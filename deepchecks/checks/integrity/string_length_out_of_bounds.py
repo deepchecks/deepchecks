@@ -19,7 +19,7 @@ from pandas import DataFrame, Series
 from scipy import stats
 
 from deepchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ConditionResult, ConditionCategory
-from deepchecks.utils.features import calculate_feature_importance_or_none, column_importance_sorter_df
+from deepchecks.utils.features import calculate_feature_importance_or_none, column_importance_sorter_df, is_categorical
 from deepchecks.utils.strings import is_string_column, format_number, format_columns_for_condition, format_percent
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.validation import ensure_dataframe_type
@@ -46,6 +46,15 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         outlier_factor (int):
             Strings would be defined as outliers if their length is outlier_factor times more/less
             than the values inside the inner quantile range.
+        min_length_difference (int):
+            The minimum length difference to be considered as outlier.
+        min_length_ratio_difference (float):
+            Used to calculate the minimum length difference to be considered as outlier. (calculated form this times the
+            average of the normal lengths.)
+        min_unique_value_ratio (float):
+            Min
+        min_unique_values (int):
+            Minimum unique values in column to calculate string length outlier
         n_top_columns (int): (optional - used only if model was specified)
           amount of columns to show ordered by feature importance (date, index, label are first)
     """
@@ -57,6 +66,10 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         num_percentiles: int = 1000,
         inner_quantile_range: int = 94,
         outlier_factor: int = 4,
+        min_length_difference: int = 5,
+        min_length_ratio_difference: int = 0.5,
+        min_unique_value_ratio: float = 0.01,
+        min_unique_values: int = 100,
         n_top_columns: int = 10
     ):
         super().__init__()
@@ -66,6 +79,10 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         self.inner_quantile_range = inner_quantile_range
         self.outlier_factor = outlier_factor
         self.n_top_columns = n_top_columns
+        self.min_length_difference = min_length_difference
+        self.min_length_ratio_difference = min_length_ratio_difference
+        self.min_unique_value_ratio = min_unique_value_ratio
+        self.min_unique_values = min_unique_values
 
     def run(self, dataset, model=None) -> CheckResult:
         """Run check.
@@ -88,10 +105,12 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         for column_name in df.columns:
             column: Series = df[column_name].dropna()
 
-            if not is_string_column(column):
+            if not is_string_column(column) or is_categorical(column,
+                                                              max_categorical_ratio=self.min_unique_value_ratio,
+                                                              max_categories=self.min_unique_values):
                 continue
 
-            string_length_column = column.map(lambda x: len(str(x)), na_action='ignore')
+            string_length_column = column.map(lambda x: len(str(x)))
 
             # If not a lot of unique values, calculate the percentiles for existing values.
             if string_length_column.nunique() < self.num_percentiles:
@@ -112,27 +131,37 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                     [x for x in quantile_list if all((not _in_range(x, a, b)) for a, b in outlier_sections)]
                 non_outlier_section = (min(quantiles_not_in_section), max(quantiles_not_in_section))
 
+                non_outlier_lower_limit = percentile_histogram[non_outlier_section[0]]
+                non_outlier_upper_limit = percentile_histogram[non_outlier_section[1]]
+
                 # add to result
                 for outlier_section in outlier_sections:
-                    n_outlier_samples = reduce(lambda value, x, ph=percentile_histogram, os=outlier_section:
-                                               value + _in_range(x, ph[os[0]], ph[os[1]]),
+                    lower_range, upper_range = self._filter_outlier_section(percentile_histogram[outlier_section[0]],
+                                                                            percentile_histogram[outlier_section[1]],
+                                                                            non_outlier_lower_limit,
+                                                                            non_outlier_upper_limit)
+                    if lower_range > upper_range:
+                        continue
+
+                    n_outlier_samples = reduce(lambda value, x, lr=lower_range, ur=upper_range:
+                                               value + _in_range(x, lr, ur),
                                                string_length_column, 0)
                     if n_outlier_samples:
                         display_format.append([column_name,
-                                               f'{format_number(percentile_histogram[non_outlier_section[0]])} -'
-                                               f' {format_number(percentile_histogram[non_outlier_section[1]])}',
-                                               f'{format_number(percentile_histogram[outlier_section[0]])} -'
-                                               f' {format_number(percentile_histogram[outlier_section[1]])}',
+                                               f'{format_number(non_outlier_lower_limit)} -'
+                                               f' {format_number(non_outlier_upper_limit)}',
+                                               f'{format_number(lower_range)} -'
+                                               f' {format_number(upper_range)}',
                                                f'{n_outlier_samples}'
                                                ])
                         results[column_name]['normal_range'] = {
-                                'min': percentile_histogram[non_outlier_section[0]],
-                                'max': percentile_histogram[non_outlier_section[1]]
+                                'min': non_outlier_lower_limit,
+                                'max': non_outlier_upper_limit
                             }
                         results[column_name]['n_samples'] = column.size
                         results[column_name]['outliers'].append({
-                            'range': {'min': percentile_histogram[outlier_section[0]],
-                                      'max': percentile_histogram[outlier_section[1]]
+                            'range': {'min': lower_range,
+                                      'max': upper_range
                                       },
                             'n_samples': n_outlier_samples
                         })
@@ -152,6 +181,23 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         display = df_graph if len(df_graph) > 0 else None
 
         return CheckResult(results, display=display)
+
+    def _filter_outlier_section(self, lower_range, upper_range, non_outlier_lower_range, non_outlier_upper_range):
+        lower_range_distance = lower_range - non_outlier_upper_range
+        higher_range_distance = non_outlier_lower_range - upper_range
+
+        non_outlier_range_average = (non_outlier_upper_range + non_outlier_lower_range) / 2
+
+        minimum_difference = max(self.min_length_difference,
+                                 self.min_length_ratio_difference * non_outlier_range_average)
+        if lower_range_distance > 0:
+            if lower_range_distance < minimum_difference:
+                lower_range += minimum_difference - lower_range_distance
+        elif higher_range_distance > 0:
+            if higher_range_distance < minimum_difference:
+                upper_range -= minimum_difference - higher_range_distance
+
+        return lower_range, upper_range
 
     def add_condition_number_of_outliers_not_greater_than(self, max_outliers: int = 0):
         """Add condition - require column not to have more than given number of string length outliers.

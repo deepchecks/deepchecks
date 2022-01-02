@@ -41,13 +41,11 @@ class ModelInfo(ModelOnlyBaseCheck):
 
         # Create dataframe to show
         model_param_df = pd.DataFrame(model_params.items(), columns=['Parameter', 'Value'])
-        model_param_df['Default'] = model_param_df['Parameter'].map(lambda x: default_params[x])
+        model_param_df['Default'] = model_param_df['Parameter'].map(lambda x: default_params.get(x, ''))
 
         def highlight_not_default(data):
             n = len(data)
-            param = data[0]
-            value = data[1]
-            if value != default_params[param]:
+            if data['Value'] != data['Default']:
                 return n * ['background-color: lightblue']
             else:
                 return n * ['']

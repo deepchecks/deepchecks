@@ -189,3 +189,12 @@ def test_nan():
         'col1': has_length(1),
         'col2': has_length(1)
     }))
+
+
+def test_invalid_column():
+    data = {'col1': [pd.Timestamp(1), pd.Timestamp(2000000), 'Deep', 'deep', 'earth', 'foo', 'bar', 'dog']}
+    df = pd.DataFrame(data=data)
+    # Act
+    result = StringMismatch().run(df).value
+    # Assert
+    assert_that(result, has_length(0))

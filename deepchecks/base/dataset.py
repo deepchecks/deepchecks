@@ -13,9 +13,11 @@
 
 import typing as t
 import logging
+from functools import lru_cache
 
 import numpy as np
 import pandas as pd
+from pandas.core.dtypes.common import is_numeric_dtype
 from sklearn.model_selection import train_test_split
 
 from deepchecks.utils.dataframes import select_from_dataframe
@@ -80,6 +82,9 @@ class Dataset:
         max_float_categories (int, default 5):
             The maximum number of categories in a float column in order for it to be inferred as a
             categorical feature.
+        label_type (str, default None):
+            Used to assume target model type if not found on model. Values ('classification_label', 'regression_label')
+            If None then label type is inferred from label using is_categorical logic.
     """
 
     _features: t.List[Hashable]
@@ -93,6 +98,7 @@ class Dataset:
     _data: pd.DataFrame
     _max_categorical_ratio: float
     _max_categories: int
+    _label_type: str
 
     def __init__(
             self,
@@ -109,7 +115,8 @@ class Dataset:
             datetime_args: t.Optional[t.Dict] = None,
             max_categorical_ratio: float = 0.01,
             max_categories: int = 30,
-            max_float_categories: int = 5
+            max_float_categories: int = 5,
+            label_type: str = None
     ):
 
         self._data = df.copy()
@@ -244,6 +251,18 @@ class Dataset:
             else:
                 self._data[self._datetime_name] = pd.to_datetime(self._data[self._datetime_name], **self._datetime_args)
 
+        if label_type:
+            self._label_type = label_type
+        elif self._label_name:
+            self._label_type = self._infer_label_type(
+                self.label_col,
+                max_categorical_ratio=0.05,
+                max_categories=max_categories,
+                max_float_categories=max_float_categories
+            )
+        else:
+            self._label_type = None
+
     @classmethod
     def from_numpy(
             cls: t.Type[TDataset],
@@ -367,7 +386,7 @@ class Dataset:
                    index_name=index, set_index_from_dataframe_index=self._set_index_from_dataframe_index,
                    datetime_name=date, set_datetime_from_dataframe_index=self._set_datetime_from_dataframe_index,
                    convert_datetime=False, max_categorical_ratio=self._max_categorical_ratio,
-                   max_categories=self._max_categories)
+                   max_categories=self._max_categories, label_type=self.label_type)
 
     @property
     def n_samples(self) -> int:
@@ -381,6 +400,15 @@ class Dataset:
     def __len__(self) -> int:
         """Return number of samples in the member dataframe."""
         return self.n_samples
+
+    @property
+    def label_type(self):
+        """Return the label type.
+
+        Returns:
+            Label type
+        """
+        return self._label_type
 
     def train_test_split(self,
                          train_size: t.Union[int, float, None] = None,
@@ -419,6 +447,20 @@ class Dataset:
                                              shuffle=shuffle,
                                              stratify=stratify)
         return self.copy(train_df), self.copy(test_df)
+
+    @staticmethod
+    def _infer_label_type(
+            label_col: pd.Series,
+            max_categorical_ratio: float,
+            max_categories: int,
+            max_float_categories: int
+    ):
+        if not is_numeric_dtype(label_col):
+            return 'classification_label'
+        elif is_categorical(label_col, max_categorical_ratio, max_categories, max_float_categories):
+            return 'classification_label'
+        else:
+            return 'regression_label'
 
     @staticmethod
     def _infer_categorical_features(
@@ -582,11 +624,23 @@ class Dataset:
         return self.data[self._features] if self._features else None
 
     @property
+    @lru_cache(maxsize=128)
+    def classes(self) -> t.List[str]:
+        """Return the classes from label column in sorted list. if no label column defined, return empty list.
+
+        Returns:
+            Sorted classes
+        """
+        if self.label_col is not None:
+            return sorted(self.label_col.unique().tolist())
+        return []
+
+    @property
     def columns_info(self) -> t.Dict[Hashable, str]:
         """Return the role and logical type of each column.
 
         Returns:
-           Diractory of a column and its role
+           Directory of a column and its role
         """
         columns = {}
         for column in self.data.columns:
@@ -618,9 +672,6 @@ class Dataset:
         """
         Throws error if dataset does not have a label.
 
-        Args:
-            check_name (str): check name to print in error
-
         Raises:
             DeepchecksValueError if dataset does not have a label
 
@@ -632,9 +683,6 @@ class Dataset:
         """
         Throws error if dataset does not have a features columns.
 
-        Args:
-            check_name (str): check name to print in error
-
         Raises:
             DeepchecksValueError: if dataset does not have features columns.
         """
@@ -644,9 +692,6 @@ class Dataset:
     def validate_date(self):
         """
         Throws error if dataset does not have a datetime column.
-
-        Args:
-            check_name (str): check name to print in error
 
         Raises:
             DeepchecksValueError if dataset does not have a datetime column
@@ -658,9 +703,6 @@ class Dataset:
     def validate_index(self):
         """
         Throws error if dataset does not have an index column / does not use dataframe index as index.
-
-        Args:
-            check_name (str): check name to print in error
 
         Raises:
             DeepchecksValueError if dataset does not have an index
@@ -698,7 +740,6 @@ class Dataset:
 
         Args:
             other: Expected to be Dataset type. dataset to compare features list
-            check_name (str): check name to print in error
 
         Returns:
             List[Hashable] - list of shared features names
@@ -719,7 +760,6 @@ class Dataset:
 
         Args:
             other: Expected to be Dataset type. dataset to compare features list
-            check_name (str): check name to print in error
 
         Returns:
             List[Hashable] - list of shared features names
@@ -744,7 +784,6 @@ class Dataset:
 
         Args:
             other (Dataset): Expected to be Dataset type. dataset to compare
-            check_name (str): check name to print in error
 
         Returns:
             Hashable: name of the label column
@@ -790,7 +829,6 @@ class Dataset:
 
         Args:
             obj: object to validate as dataset
-            check_name (str): check name to print in error
 
         Returns:
             (Dataset): object that is deepchecks dataset
