@@ -8,8 +8,8 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module of segment performance check."""
-from typing import Callable, Dict, Tuple
+"""Module of model error analysis check."""
+from typing import Callable, Dict, Tuple, List, Hashable
 
 import numpy as np
 import pandas as pd
@@ -43,7 +43,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
     well enough.
 
     Args:
-        max_features (int): maximal number of features to show. (default: 3)
+        max_features_to_show (int): maximal number of features to show error distribution for. (default: 3)
         min_feature_contribution (float): minimum feature importance of a feature to the error regression model
             in order to show the feature. (default: 0.15)
         min_error_model_score (float): minimum r^2 score of the error regression model for displaying the
@@ -59,30 +59,31 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
 
     def __init__(
             self,
-            max_features: int = 3,
+            max_features_to_show: int = 3,
             min_feature_contribution: float = 0.15,
             min_error_model_score: float = 0.5,
             min_segment_size: float = 0.05,
-            alternative_scorer: Dict[str, Callable] = None,
+            alternative_scorer: Tuple[str, Callable] = None,
             n_samples: int = 50_000,
             n_display_samples: int = 5_000,
             random_seed: int = 42
     ):
         super().__init__()
-        self.max_features = max_features
+        self.max_features_to_show = max_features_to_show
         self.min_feature_contribution = min_feature_contribution
         self.min_error_model_score = min_error_model_score
         self.min_segment_size = min_segment_size
-        if (alternative_scorer is not None) and (len(alternative_scorer) > 1):
-            raise DeepchecksProcessError(
-                'Only one alternative scorer is allowed.'
-            )
-        self.alternative_scorer = initialize_multi_scorers(alternative_scorer)
+        if alternative_scorer is not None:
+            if (len(alternative_scorer) != 2) or not isinstance(alternative_scorer[0], str):
+                raise DeepchecksProcessError(
+                    'alternative_scorer must be a tuple of a single string and a scorer function')
+            else:
+                self.alternative_scorer = initialize_multi_scorers({alternative_scorer[0]: alternative_scorer[1]})
+        else:
+            self.alternative_scorer = None
         self.n_samples = n_samples
         self.n_display_samples = n_display_samples
         self.random_state = random_seed
-
-        self._scorer_name = None
 
     def run(self, train_dataset: Dataset, test_dataset: Dataset, model=None) -> CheckResult:
         """Run check.
@@ -109,7 +110,6 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
             scorer = get_scorers_list(model, train_dataset, self.alternative_scorer, multiclass_avg=True)[0]
         else:
             scorer = get_scorer_single(model, train_dataset, multiclass_avg=True)
-        self._scorer_name = scorer.name
 
         cat_features = train_dataset.cat_features
 
@@ -129,7 +129,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         test_scores = scoring_func(test_dataset)
 
         # Create and fit model to predict the per sample error
-        error_model = create_error_model(train_dataset, random_state=self.random_state)
+        error_model, new_feature_order = create_error_regression_model(train_dataset, random_state=self.random_state)
         error_model.fit(train_dataset.features_columns, y=train_scores)
 
         # Check if fitted model is good enough
@@ -141,8 +141,8 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
             raise DeepchecksProcessError(f'Unable to train meaningful error model '
                                          f'(r^2 score: {format_number(error_model_score)})')
 
-        error_fi = calculate_feature_importance(error_model, test_dataset,
-                                                permutation_kwargs={'random_state': self.random_state})
+        error_fi = calculate_feature_importance(error_model, test_dataset)
+        error_fi.index = new_feature_order
         error_fi.sort_values(ascending=False, inplace=True)
 
         n_samples_display = min(self.n_display_samples, len(test_dataset))
@@ -150,15 +150,18 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         display_error = pd.Series(error_model_predicted, name=error_col_name, index=test_dataset.data.index)
 
         display = []
-        value = {}
+        value = {'scorer_name': scorer.name, 'feature_segments': {}}
         weak_color = '#d74949'
         ok_color = colors['Test']
 
-        for feature in error_fi.keys()[:self.max_features]:
+        for feature in error_fi.keys()[:self.max_features_to_show]:
             if error_fi[feature] < self.min_feature_contribution:
                 break
 
             data = pd.concat([test_dataset.data[feature], display_error], axis=1)
+            value['feature_segments'][feature] = {}
+            segment1_details = {}
+            segment2_details = {}
 
             # Violin plot for categorical features, scatter plot for numerical features
             if feature in cat_features:
@@ -228,7 +231,10 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
                                           labels={error_col_name: 'model error'},
                                           color_discrete_map=color_map))
 
-            value[feature] = {'segment1': segment1_details or None, 'segment2': segment2_details or None}
+            if segment1_details:
+                value['feature_segments'][feature]['segment1'] = segment1_details
+            if segment2_details:
+                value['feature_segments'][feature]['segment2'] = segment2_details
 
             display[-1].update_layout(width=1200, height=400)
 
@@ -240,7 +246,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
 
         return CheckResult(value, display=display)
 
-    def add_condition_segments_ratio_performance_change_not_greater_than(self, max_ratio_change: float = 0.05):
+    def add_condition_segments_performance_relative_difference_not_greater_than(self, max_ratio_change: float = 0.05):
         """Add condition - require that the difference of performance between the segments does not exceed a ratio.
 
         Args:
@@ -249,25 +255,25 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
 
         def condition(result: Dict) -> ConditionResult:
             fails = []
-            for feature in result.keys():
+            feature_res = result['feature_segments']
+            for feature in feature_res.keys():
                 # If only one segment identified, skip
-                if len(result[feature]) < 2:
+                if len(feature_res[feature]) < 2:
                     continue
                 performance_diff = \
-                    abs(result[feature]['segment1']['score'] - result[feature]['segment2']['score']) / \
-                    abs(max(result[feature]['segment1']['score'], result[feature]['segment2']['score']))
+                    abs(feature_res[feature]['segment1']['score'] - feature_res[feature]['segment2']['score']) / \
+                    abs(max(feature_res[feature]['segment1']['score'], feature_res[feature]['segment2']['score']))
                 if performance_diff > max_ratio_change:
                     fails.append(feature)
 
             if fails:
-                msg = f'Segmentation of error by the features: {", ".join(sorted(fails))} resulted in percent change' \
-                      f' in {self._scorer_name} larger than {format_percent(max_ratio_change)}.'
+                msg = f'Change in {result["scorer_name"]} in features: {", ".join(sorted(fails))} exceeds threshold.'
                 return ConditionResult(False, msg, category=ConditionCategory.WARN)
             else:
                 return ConditionResult(True, category=ConditionCategory.WARN)
 
-        return self.add_condition(f'The percent change between the performance of detected segments must'
-                                  f' not exceed {format_percent(max_ratio_change)}', condition)
+        return self.add_condition(f'The performance of the detected segments must'
+                                  f' not differ by more than {format_percent(max_ratio_change)}', condition)
 
 
 def get_segment_details(model, scorer, dataset: Dataset, data: pd.DataFrame,
@@ -296,7 +302,7 @@ def per_sample_mse(y_true, y_pred):
     return (y_true - y_pred) ** 2
 
 
-def create_error_model(dataset: Dataset, random_state=42):
+def create_error_regression_model(dataset: Dataset, random_state=42) -> Tuple[Pipeline, List[Hashable]]:
     cat_features = dataset.cat_features
     numeric_features = [num_feature for num_feature in dataset.features if num_feature not in cat_features]
 
@@ -315,4 +321,4 @@ def create_error_model(dataset: Dataset, random_state=42):
     return Pipeline(steps=[
         ('preprocessing', preprocessor),
         ('model', RandomForestRegressor(max_depth=4, n_jobs=-1, random_state=random_state))
-    ])
+    ]), numeric_features + dataset.cat_features

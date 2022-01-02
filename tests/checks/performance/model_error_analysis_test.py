@@ -47,12 +47,12 @@ def test_model_error_analysis_classification(iris_labeled_dataset, iris_adaboost
     result_value = ModelErrorAnalysis().run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost).value
 
     # Assert
-    assert_that(result_value['petal length (cm)'], has_length(2))
+    assert_that(result_value['feature_segments']['petal length (cm)'], has_length(2))
 
 
 def test_condition_fail(iris_labeled_dataset, iris_adaboost):
     # Act
-    check_result = ModelErrorAnalysis().add_condition_segments_ratio_performance_change_not_greater_than(
+    check_result = ModelErrorAnalysis().add_condition_segments_performance_relative_difference_not_greater_than(
     ).run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost)
     condition_result = check_result.conditions_results
 
@@ -60,9 +60,8 @@ def test_condition_fail(iris_labeled_dataset, iris_adaboost):
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=False,
-            name='The percent change between the performance of detected segments must not exceed 5.00%',
-            details='Segmentation of error by the features: petal length (cm), petal width (cm) resulted in percent '
-                    'change in Accuracy (Default) larger than 5.00%.',
+            name='The performance of the detected segments must not differ by more than 5.00%',
+            details='Change in Accuracy (Default) in features: petal length (cm) exceeds threshold.',
             category=ConditionCategory.WARN
         )
     ))
@@ -70,8 +69,9 @@ def test_condition_fail(iris_labeled_dataset, iris_adaboost):
 
 def test_condition_pass(iris_labeled_dataset, iris_adaboost):
     # Act
-    check_result = ModelErrorAnalysis().add_condition_segments_ratio_performance_change_not_greater_than(2
-                                                                                                         ).run(
+    check_result = ModelErrorAnalysis(
+
+    ).add_condition_segments_performance_relative_difference_not_greater_than(2).run(
         iris_labeled_dataset, iris_labeled_dataset, iris_adaboost)
     condition_result = check_result.conditions_results
 
@@ -79,8 +79,7 @@ def test_condition_pass(iris_labeled_dataset, iris_adaboost):
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=True,
-            name='The percent change between the performance of detected segments must'
-                 ' not exceed 200%',
+            name='The performance of the detected segments must not differ by more than 200%',
             category=ConditionCategory.WARN
         )
     ))

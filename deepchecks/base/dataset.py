@@ -374,8 +374,8 @@ class Dataset:
     def copy(self: TDataset, new_data) -> TDataset:
         """Create a copy of this Dataset with new data."""
         # Filter out if columns were dropped
-        features = list(set(self._features).intersection(new_data.columns))
-        cat_features = list(set(self.cat_features).intersection(new_data.columns))
+        features = [feat for feat in self._features if feat in new_data.columns]
+        cat_features = [feat for feat in self.cat_features if feat in new_data.columns]
         label_name = self._label_name if self._label_name in new_data.columns else None
         index = self._index_name if self._index_name in new_data.columns else None
         date = self._datetime_name if self._datetime_name in new_data.columns else None
