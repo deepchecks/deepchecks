@@ -87,6 +87,8 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
         """
         train_dataset = Dataset.validate_dataset(train_dataset)
         test_dataset = Dataset.validate_dataset(test_dataset)
+        train_dataset.validate_label()
+        test_dataset.validate_label()
 
         drift_score, method, display = self._calc_drift_per_column(
             train_column=train_dataset.label_col,
