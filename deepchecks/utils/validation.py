@@ -37,7 +37,7 @@ def model_type_validation(model: t.Any):
         raise errors.DeepchecksValueError(
             'Model must inherit from one of supported '
             'models: sklearn.base.BaseEstimator or CatBoost, '
-            f'Recived: {model.__class__.__name__}'
+            f'Received: {model.__class__.__name__}'
         )
 
 

@@ -15,7 +15,7 @@ from scipy.stats import gaussian_kde
 import matplotlib.pyplot as plt
 import plotly.graph_objs as go
 
-__all__ = ['plot_density', 'feature_distribution_traces', 'drift_score_bar_traces']
+__all__ = ['plot_density', 'feature_distribution_traces', 'drift_score_bar_traces', 'get_density']
 
 from typing import List, Union, Dict
 
