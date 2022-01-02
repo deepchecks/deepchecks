@@ -59,7 +59,6 @@ class NewLabelTrainTest(TrainTestBaseCheck):
         elif train_dataset.label_type == 'regression_label':
             raise DeepchecksValueError('Task type cannot be regression')
 
-
         label_column = train_dataset.validate_shared_label(test_dataset)
 
         n_test_samples = test_dataset.n_samples
