@@ -111,59 +111,59 @@ Which will result in printing the suite outputs, starting with a summary of the 
 > <h2>Conditions Summary</h2>
 >
 > <table id="T_7735f_">
-  <thead>
-    <tr>
-      <th class="col_heading level0 col0">Status</th>
-      <th class="col_heading level0 col1">Check</th>
-      <th class="col_heading level0 col2">Condition</th>
-      <th class="col_heading level0 col3">More Info</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td id="T_7735f_row0_col0" class="data row0 col0"><div style="color: red;text-align: center">✖</div></td>
-      <td id="T_7735f_row0_col1" class="data row0 col1"><a href="#IsSingleValue_NKMZO">Single Value in Column - Test Dataset</a></td>
-      <td id="T_7735f_row0_col2" class="data row0 col2">Does not contain only a single value for all columns</td>
-      <td id="T_7735f_row0_col3" class="data row0 col3">Columns containing a single value: ['target']</td>
-    </tr>
-    <tr>
-      <td id="T_7735f_row1_col0" class="data row1 col0"><div style="color: orange;text-align: center;font-weight:bold">!</div></td>
-      <td id="T_7735f_row1_col1" class="data row1 col1"><a href="#DataDuplicates_NKMZO">Data Duplicates - Test Dataset</a></td>
-      <td id="T_7735f_row1_col2" class="data row1 col2">Duplicate data is not greater than 0%</td>
-      <td id="T_7735f_row1_col3" class="data row1 col3">Found 2.00% duplicate data</td>
-    </tr>
-    <tr>
-      <td id="T_7735f_row2_col0" class="data row2 col0"><div style="color: green;text-align: center">✓</div></td>
-      <td id="T_7735f_row2_col1" class="data row2 col1">Mixed Nulls - Test Dataset</td>
-      <td id="T_7735f_row2_col2" class="data row2 col2">Not more than 1 different null types for all columns</td>
-      <td id="T_7735f_row2_col3" class="data row2 col3"></td>
-    </tr>
-    <tr>
-      <td id="T_7735f_row3_col0" class="data row3 col0"><div style="color: green;text-align: center">✓</div></td>
-      <td id="T_7735f_row3_col1" class="data row3 col1">Mixed Data Types - Test Dataset</td>
-      <td id="T_7735f_row3_col2" class="data row3 col2">Rare data types in all columns are either more than 10.00% or less than 1.00% of the data</td>
-      <td id="T_7735f_row3_col3" class="data row3 col3"></td>
-    </tr>
-    <tr>
-      <td id="T_7735f_row4_col0" class="data row4 col0"><div style="color: green;text-align: center">✓</div></td>
-      <td id="T_7735f_row4_col1" class="data row4 col1">String Mismatch - Test Dataset</td>
-      <td id="T_7735f_row4_col2" class="data row4 col2">No string variants for all columns</td>
-      <td id="T_7735f_row4_col3" class="data row4 col3"></td>
-    </tr>
-    <tr>
-      <td id="T_7735f_row5_col0" class="data row5 col0"><div style="color: green;text-align: center">✓</div></td>
-      <td id="T_7735f_row5_col1" class="data row5 col1">String Length Out Of Bounds - Test Dataset</td>
-      <td id="T_7735f_row5_col2" class="data row5 col2">Ratio of outliers not greater than 0% string length outliers for all columns</td>
-      <td id="T_7735f_row5_col3" class="data row5 col3"></td>
-    </tr>
-    <tr>
-      <td id="T_7735f_row6_col0" class="data row6 col0"><div style="color: green;text-align: center">✓</div></td>
-      <td id="T_7735f_row6_col1" class="data row6 col1">Special Characters - Test Dataset</td>
-      <td id="T_7735f_row6_col2" class="data row6 col2">Ratio of entirely special character samples not greater than 0.10% for all columns</td>
-      <td id="T_7735f_row6_col3" class="data row6 col3"></td>
-    </tr>
-  </tbody>
-</table>
+>  <thead>
+>    <tr>
+>      <th class="col_heading level0 col0">Status</th>
+>      <th class="col_heading level0 col1">Check</th>
+>      <th class="col_heading level0 col2">Condition</th>
+>      <th class="col_heading level0 col3">More Info</th>
+>    </tr>
+>  </thead>
+>  <tbody>
+>    <tr>
+>      <td id="T_7735f_row0_col0" class="data row0 col0"><div style="color: red;text-align: center">✖</div></td>
+>      <td id="T_7735f_row0_col1" class="data row0 col1"><a href="#IsSingleValue_NKMZO">Single Value in Column - Test Dataset</a></td>
+>      <td id="T_7735f_row0_col2" class="data row0 col2">Does not contain only a single value for all columns</td>
+>      <td id="T_7735f_row0_col3" class="data row0 col3">Columns containing a single value: ['target']</td>
+>    </tr>
+>    <tr>
+>      <td id="T_7735f_row1_col0" class="data row1 col0"><div style="color: orange;text-align: center;font-weight:bold">!</div></td>
+>      <td id="T_7735f_row1_col1" class="data row1 col1"><a href="#DataDuplicates_NKMZO">Data Duplicates - Test Dataset</a></td>
+>      <td id="T_7735f_row1_col2" class="data row1 col2">Duplicate data is not greater than 0%</td>
+>      <td id="T_7735f_row1_col3" class="data row1 col3">Found 2.00% duplicate data</td>
+>    </tr>
+>    <tr>
+>     <td id="T_7735f_row2_col0" class="data row2 col0"><div style="color: green;text-align: center">✓</div></td>
+>      <td id="T_7735f_row2_col1" class="data row2 col1">Mixed Nulls - Test Dataset</td>
+>      <td id="T_7735f_row2_col2" class="data row2 col2">Not more than 1 different null types for all columns</td>
+>      <td id="T_7735f_row2_col3" class="data row2 col3"></td>
+>    </tr>
+>    <tr>
+>      <td id="T_7735f_row3_col0" class="data row3 col0"><div style="color: green;text-align: center">✓</div></td>
+>      <td id="T_7735f_row3_col1" class="data row3 col1">Mixed Data Types - Test Dataset</td>
+>      <td id="T_7735f_row3_col2" class="data row3 col2">Rare data types in all columns are either more than 10.00% or less than 1.00% of the data</td>
+>      <td id="T_7735f_row3_col3" class="data row3 col3"></td>
+>    </tr>
+>    <tr>
+>      <td id="T_7735f_row4_col0" class="data row4 col0"><div style="color: green;text-align: center">✓</div></td>
+>      <td id="T_7735f_row4_col1" class="data row4 col1">String Mismatch - Test Dataset</td>
+>      <td id="T_7735f_row4_col2" class="data row4 col2">No string variants for all columns</td>
+>      <td id="T_7735f_row4_col3" class="data row4 col3"></td>
+>    </tr>
+>    <tr>
+>      <td id="T_7735f_row5_col0" class="data row5 col0"><div style="color: green;text-align: center">✓</div></td>
+>      <td id="T_7735f_row5_col1" class="data row5 col1">String Length Out Of Bounds - Test Dataset</td>
+>      <td id="T_7735f_row5_col2" class="data row5 col2">Ratio of outliers not greater than 0% string length outliers for all columns</td>
+>      <td id="T_7735f_row5_col3" class="data row5 col3"></td>
+>    </tr>
+>    <tr>
+>      <td id="T_7735f_row6_col0" class="data row6 col0"><div style="color: green;text-align: center">✓</div></td>
+>      <td id="T_7735f_row6_col1" class="data row6 col1">Special Characters - Test Dataset</td>
+>      <td id="T_7735f_row6_col2" class="data row6 col2">Ratio of entirely special character samples not greater than 0.10% for all columns</td>
+>      <td id="T_7735f_row6_col3" class="data row6 col3"></td>
+>    </tr>
+>  </tbody>
+> </table>
 
 Followed by the visual outputs of all of the checks that are in that suite, that isn't appended here for brevity.
 
