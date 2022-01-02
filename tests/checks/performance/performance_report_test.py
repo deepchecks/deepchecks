@@ -11,6 +11,8 @@
 """Contains unit tests for the performance report check."""
 import re
 from typing import List
+
+import numpy as np
 from hamcrest import assert_that, calling, raises, close_to, has_entries, has_items
 from sklearn.ensemble import AdaBoostClassifier
 
@@ -58,12 +60,13 @@ def test_classification(iris_split_dataset_and_model):
     # Act X
     result = check.run(train, test, model).value
     # Assert
-    assert_that(result, has_entries({
-        'Accuracy': close_to(0.96, 0.01),
-        'Precision - Macro Average': close_to(0.96, 0.01),
-        'Recall - Macro Average': close_to(0.96, 0.01)
-    }))
-
+    for dataset in ['Test', 'Train']:
+        dataset_col = result.loc[result['Dataset'] == dataset]
+        for class_name in range(3):
+            class_col = dataset_col.loc[dataset_col['Class'] == class_name]
+            for metric in ['F1', 'Precision', 'Recall']:
+                metric_col = class_col.loc[class_col['Metric'] == metric]
+                assert_that(metric_col['Value'] , close_to(1, 0.3))
 
 def test_classification_string_labels(iris_labeled_dataset):
     # Arrange
@@ -77,11 +80,13 @@ def test_classification_string_labels(iris_labeled_dataset):
     # Act X
     result = check.run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost).value
     # Assert
-    assert_that(result, has_entries({
-        'Accuracy': close_to(0.96, 0.01),
-        'Precision - Macro Average': close_to(0.96, 0.01),
-        'Recall - Macro Average': close_to(0.96, 0.01)
-    }))
+    for dataset in ['Test', 'Train']:
+        dataset_col = result.loc[result['Dataset'] == dataset]
+        for class_name in range(3):
+            class_col = dataset_col.loc[dataset_col['Class'] == class_name]
+            for metric in ['F1', 'Precision', 'Recall']:
+                metric_col = class_col.loc[class_col['Metric'] == metric]
+                assert_that(metric_col['Value'] , close_to(1, 0.3))
 
 
 def test_classification_nan_labels(iris_labeled_dataset, iris_adaboost):
@@ -94,11 +99,13 @@ def test_classification_nan_labels(iris_labeled_dataset, iris_adaboost):
     # Act X
     result = check.run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost).value
     # Assert
-    assert_that(result, has_entries({
-        'Accuracy': close_to(0.96, 0.01),
-        'Precision - Macro Average': close_to(0.96, 0.01),
-        'Recall - Macro Average': close_to(0.96, 0.01)
-    }))
+    for dataset in ['Test', 'Train']:
+        dataset_col = result.loc[result['Dataset'] == dataset]
+        for class_name in range(3):
+            class_col = dataset_col.loc[dataset_col['Class'] == class_name]
+            for metric in ['F1', 'Precision', 'Recall']:
+                metric_col = class_col.loc[class_col['Metric'] == metric]
+                assert_that(metric_col['Value'] , close_to(1, 0.3))
 
 
 def test_regression(diabetes_split_dataset_and_model):
@@ -108,10 +115,11 @@ def test_regression(diabetes_split_dataset_and_model):
     # Act X
     result = check.run(train, test, model).value
     # Assert
-    assert_that(result, has_entries({
-        'RMSE': close_to(-50, 20),
-        'MAE': close_to(-45, 20),
-    }))
+    for dataset in ['Test', 'Train']:
+        dataset_col = result.loc[result['Dataset'] == dataset]
+        for metric in ['RMSE', 'MAE']:
+            metric_col = dataset_col.loc[dataset_col['Metric'] == metric]
+            assert_that(metric_col['Value'] , close_to(50, 30))
 
 
 def test_condition_max_score_not_passed(diabetes_split_dataset_and_model):
@@ -123,7 +131,7 @@ def test_condition_max_score_not_passed(diabetes_split_dataset_and_model):
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details=re.compile('Scores that passed threshold:<br>\\[\\{\'Dataset\': '
+                               details=re.compile('Scores that passed the threshold:<br>\\[\\{\'Dataset\': '
                                                   '\'Test\', \'Metric\': \'RMSE\', \'Value\': '),
                                name='Scores are not greater than 50')
     ))
@@ -139,4 +147,32 @@ def test_condition_max_score_passed(diabetes_split_dataset_and_model):
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                name='Scores are not greater than 5000')
+    ))
+
+
+def test_condition_min_score_not_passed(iris_split_dataset_and_model):
+    # Arrange
+    train, test, model = iris_split_dataset_and_model
+    check = PerformanceReport().add_condition_score_not_less_than(1)
+    # Act X
+    result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
+    # Assert
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=False,
+                               details=re.compile('Scores that did not passed the threshold:<br>'
+                                                  '\\[\\{\'Dataset\': \'Train'),
+                               name='Scores are not less than 1')
+    ))
+
+
+def test_condition_min_score_passed(iris_split_dataset_and_model):
+    # Arrange
+    train, test, model = iris_split_dataset_and_model
+    check = PerformanceReport().add_condition_score_not_less_than(0.5)
+    # Act X
+    result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
+    # Assert
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=True,
+                               name='Scores are not less than 0.5')
     ))
