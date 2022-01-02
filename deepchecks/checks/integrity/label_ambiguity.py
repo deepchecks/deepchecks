@@ -66,7 +66,13 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
 
         label_col = dataset.label_name
 
-        group_unique_data = dataset.data.groupby(dataset.features, dropna=False)
+        # HACK: pandas have bug with groupby on category dtypes, so until it fixed, change dtypes manually
+        df = dataset.data
+        category_columns = df.dtypes[df.dtypes == 'category'].index.tolist()
+        if category_columns:
+            df = df.astype({c: 'object' for c in category_columns})
+
+        group_unique_data = df.groupby(dataset.features, dropna=False)
         group_unique_labels = group_unique_data.nunique()[label_col]
 
         num_ambiguous = 0
