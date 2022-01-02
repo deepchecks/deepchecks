@@ -219,8 +219,8 @@ class WholeDatasetDrift(TrainTestBaseCheck):
 
         title = f'Feature: {column_name} - Explains {format_percent(fi_ser.loc[column_name])} of dataset difference'
         traces, xaxis_layout, yaxis_layout = \
-            feature_distribution_traces(train_column,
-                                        test_column,
+            feature_distribution_traces(train_column.dropna(),
+                                        test_column.dropna(),
                                         is_categorical=column_name in self._cat_features,
                                         max_num_categories=self.max_num_categories)
 
