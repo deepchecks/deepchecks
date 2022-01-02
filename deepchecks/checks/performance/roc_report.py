@@ -55,11 +55,10 @@ class RocReport(SingleDatasetBaseCheck):
         dataset.validate_label()
         task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
 
-        label = dataset.label_name
-        ds_x = dataset.data[dataset.features]
-        ds_y = dataset.data[label]
+        ds_x = dataset.features_columns
+        ds_y = dataset.label_col
         multi_y = (np.array(ds_y)[:, None] == np.unique(ds_y)).astype(int)
-        n_classes = ds_y.nunique()
+        n_classes = len(dataset.classes)
         y_pred_prob = model.predict_proba(ds_x)
 
         fpr = {}
@@ -75,7 +74,7 @@ class RocReport(SingleDatasetBaseCheck):
             plt.cla()
             plt.clf()
             colors = cycle(['blue', 'red', 'green', 'orange', 'yellow'])
-            for i, color in zip(range(n_classes), colors):
+            for i, class_name, color in zip(range(n_classes), dataset.classes, colors):
                 if i in self.excluded_classes:
                     continue
                 if n_classes == 2:
@@ -83,7 +82,7 @@ class RocReport(SingleDatasetBaseCheck):
                     break
                 else:
                     plt.plot(fpr[i], tpr[i], color=color,
-                             label=f'ROC curve of class {i} (auc = {roc_auc[i]:0.2f})')
+                             label=f'Class {class_name} (auc = {roc_auc[i]:0.2f})')
             plt.plot([0, 1], [0, 1], 'k--')
             plt.xlim([-0.05, 1.0])
             plt.ylim([0.0, 1.05])
