@@ -23,11 +23,11 @@
 </p>
 
 <p align="center">
-   <img src="docs/images/deepchecks-logo-white-back.png">
+   <img src="docs/images/deepchecks-logo-with-white-wide-back.png">
 </p>
 
 
-# Deepchecks - Test Suites for ML Models and Data
+# Deepchecks - Test Suites for Validating Your ML Models and Data
 
 ![build](https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/deepchecks/badge/?version=latest)](https://docs.deepchecks.com/en/latest/?badge=latest)
@@ -35,10 +35,6 @@
 ![pyVersions](https://img.shields.io/pypi/pyversions/deepchecks)
 [![Maintainability](https://api.codeclimate.com/v1/badges/970b11794144139975fa/maintainability)](https://codeclimate.com/github/deepchecks/deepchecks/maintainability)
 [![Coverage Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main)](https://coveralls.io/github/deepchecks/deepchecks?branch=main)
-
-<p align="center">
-   <img src="docs/images/deepchecks-logo-white-back-wide.png">
-</p>
 
 
 Deepchecks is a Python package for comprehensively validating your machine learning models and data with minimal effort.
@@ -188,7 +184,7 @@ Which will result in printing the suite outputs, starting with a summary of the 
       <td id="T_7735f_row6_col3" class="data row6 col3"></td>
     </tr>
   </tbody>
-</table>
+></table>
 
 Followed by the visual outputs of all of the checks that are in that suite, that isn't appended here for brevity.
 
