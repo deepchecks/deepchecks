@@ -35,8 +35,7 @@ def test_check_suite_instantiation_with_incorrect_args():
     )
 
 
-def test_run_check_suite_with_incorrect_args(diabetes):
-    train_dataset, test_dataset = diabetes
+def test_run_check_suite_with_incorrect_args():
     suite = base.Suite("test suite", SimpleDatasetCheck(), SimpleTwoDatasetsCheck())
     
     # incorrect, at least one dataset (or model) must be provided
