@@ -14,6 +14,7 @@ from sklearn.base import BaseEstimator
 
 from deepchecks import ModelOnlyBaseCheck, CheckResult
 from deepchecks.utils.validation import model_type_validation
+from deepchecks.utils.model import get_model_of_pipeline
 
 
 __all__ = ['ModelInfo']
@@ -31,13 +32,11 @@ class ModelInfo(ModelOnlyBaseCheck):
         Returns:
             CheckResult: value is dictionary in format {type: <model_type>, params: <model_params_dict>}
         """
-        return self._model_info(model)
-
-    def _model_info(self, model: BaseEstimator):
         model_type_validation(model)
-        model_type = type(model).__name__
-        model_params = model.get_params()
-        default_params = type(model)().get_params()
+        estimator = get_model_of_pipeline(model)
+        model_type = type(estimator).__name__
+        model_params = estimator.get_params()
+        default_params = type(estimator)().get_params()
 
         # Create dataframe to show
         model_param_df = pd.DataFrame(model_params.items(), columns=['Parameter', 'Value'])
