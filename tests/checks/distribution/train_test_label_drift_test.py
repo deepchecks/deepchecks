@@ -72,7 +72,7 @@ def test_drift_max_drift_score_condition_fail_psi(drifted_classification_label):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='PSI and Earth Mover\'s Distance cannot be greater than 0.2 or 0.1 respectively',
+        name='PSI and Earth Mover\'s Distance for label drift cannot be greater than 0.2 or 0.1 respectively',
         details='Label has PSI over 0.2 - Drift score is 0.24'
     ))
 
@@ -89,7 +89,7 @@ def test_drift_max_drift_score_condition_fail_emd(drifted_regression_label):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='PSI and Earth Mover\'s Distance cannot be greater than 0.2 or 0.1 respectively',
+        name='PSI and Earth Mover\'s Distance for label drift cannot be greater than 0.2 or 0.1 respectively',
         details='Label has Earth Mover\'s Distance over 0.1 - Drift score is 0.26'
     ))
 
@@ -107,5 +107,5 @@ def test_drift_max_drift_score_condition_pass_threshold(non_drifted_classificati
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        name='PSI and Earth Mover\'s Distance cannot be greater than 1 or 1 respectively'
+        name='PSI and Earth Mover\'s Distance for label drift cannot be greater than 1 or 1 respectively'
     ))
