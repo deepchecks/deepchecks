@@ -26,7 +26,9 @@ def test_label_ambiguity():
         'col3': [1, 1, 1, 2, 2, 2]*100,
         'label': [1, 1, 2, 2, 3, 4]*100
     }
-    ds = Dataset(pd.DataFrame(data), label_name='label')
+    dataframe = pd.DataFrame(data)
+    dataframe = dataframe.astype({'col1': 'category'})
+    ds = Dataset(dataframe, label_name='label')
     check = LabelAmbiguity()
     # Act
     result = check.run(ds)
