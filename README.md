@@ -34,8 +34,7 @@
 ![pkgVersion](https://img.shields.io/pypi/v/deepchecks)
 ![pyVersions](https://img.shields.io/pypi/pyversions/deepchecks)
 [![Maintainability](https://api.codeclimate.com/v1/badges/970b11794144139975fa/maintainability)](https://codeclimate.com/github/deepchecks/deepchecks/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/970b11794144139975fa/test_coverage)](https://codeclimate.com/github/deepchecks/deepchecks/test_coverage)
-
+[![Coverage Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main)](https://coveralls.io/github/deepchecks/deepchecks?branch=main)
 Validate your machine learning models and data, during the research and development phase. 
 
 With only one line of code you can discover data integrity problems, distribution mismatches,
