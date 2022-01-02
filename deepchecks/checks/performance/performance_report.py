@@ -200,9 +200,6 @@ class PerformanceReport(TrainTestBaseCheck):
             for dataset in ['Test', 'Train']:
                 data = check_result.loc[check_result['Dataset'] == dataset].loc[check_result['Metric'] == score]
 
-                if len(data) == 0:
-                    raise DeepchecksValueError(f'Expected that check result will contain next score - {score}')
-
                 min_value_index = data['Value'].idxmin()
                 min_row = data.loc[min_value_index]
                 min_class_name = min_row['Class']
