@@ -17,7 +17,8 @@ from deepchecks.base.check import ModelComparisonContext
 from deepchecks.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult, ModelComparisonBaseCheck
-from deepchecks.utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, get_scorers_list, initialize_multi_scorers, ModelType, task_type_check
+from deepchecks.utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, get_scorers_list, initialize_multi_scorers, \
+                                     ModelType, task_type_check
 from deepchecks.utils.validation import validate_model
 
 
@@ -86,7 +87,7 @@ class PerformanceReport(TrainTestBaseCheck):
 
             results_df = pd.DataFrame(results, columns=['Dataset', 'Metric', 'Value'])
         fig = px.bar(results_df, x=x, y='Value', color='Dataset', barmode='group',
-                        facet_col='Metric', facet_col_spacing=0.05)
+                     facet_col='Metric', facet_col_spacing=0.05)
         if task_type == ModelType.MULTICLASS:
             fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60)
         else:
@@ -94,7 +95,6 @@ class PerformanceReport(TrainTestBaseCheck):
         fig.update_yaxes(title=None, matches=None)
         fig.for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
         fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
-
 
         return CheckResult(results_df, header='Performance Report', display=fig)
 
@@ -112,7 +112,6 @@ class PerformanceReport(TrainTestBaseCheck):
             return ConditionResult(True)
 
         return self.add_condition(f'Scores are not less than {min_score}', condition)
-
 
     def add_condition_degradation_ratio_not_greater_than(self: PR, threshold: float = 0.1) -> PR:
         """
@@ -168,7 +167,6 @@ class PerformanceReport(TrainTestBaseCheck):
         return self.add_condition(f'Train-Test scores degradation ratio is not greater than {threshold}',
                                   condition)
 
-
     def add_condition_class_performance_imbalance_ratio_not_greater_than(
         self: PR,
         threshold: float = 0.3,
@@ -192,6 +190,7 @@ class PerformanceReport(TrainTestBaseCheck):
         """
         if score is None:
             score = next(iter(MULTICLASS_SCORERS_NON_AVERAGE))
+
         def condition(check_result: pd.DataFrame) -> ConditionResult:
             if score not in set(check_result['Metric']):
                 raise DeepchecksValueError(f'Data was not calculated using the scoring function: {score}')
@@ -274,7 +273,7 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
             results_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric'])
 
         fig = px.bar(results_df, x=x, y='Value', color='Model', barmode='group',
-                        facet_col='Metric', facet_col_spacing=0.05)
+                     facet_col='Metric', facet_col_spacing=0.05)
         if context.task_type == ModelType.MULTICLASS:
             fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60)
         else:
