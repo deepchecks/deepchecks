@@ -91,7 +91,7 @@ class CalibrationScore(SingleDatasetBaseCheck):
                     name=f'{class_name} (brier:{briers_scores[class_name]:9.4f})',
                 ))
 
-        fig.update_layout(title_text='Calibration plots  (reliability curve)',
+        fig.update_layout(title_text='Calibration plots (reliability curve)',
                           width=700, height=500)
         fig.update_yaxes(title='Fraction of positives')
         fig.update_xaxes(title='Mean predicted value')

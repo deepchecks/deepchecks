@@ -14,9 +14,9 @@ from deepchecks.checks import (
     DateTrainTestLeakageDuplicates, SingleFeatureContributionTrainTest, TrainTestSamplesMix,
     DateTrainTestLeakageOverlap, IdentifierLeakage, IndexTrainTestLeakage, DominantFrequencyChange,
     CategoryMismatchTrainTest, NewLabelTrainTest, StringMismatchComparison, TrainTestFeatureDrift, WholeDatasetDrift,
-    ConfusionMatrixReport, RocReport, CalibrationScore, TrustScoreComparison, ClassPerformance,
+    ConfusionMatrixReport, RocReport, CalibrationScore, TrustScoreComparison,
     RegressionErrorDistribution, RegressionSystematicError, PerformanceReport, SimpleModelComparison, BoostingOverfit,
-    TrainTestDifferenceOverfit, ModelInfo, ColumnsInfo, DataDuplicates, IsSingleValue, LabelAmbiguity,
+    ModelInfo, ColumnsInfo, DataDuplicates, IsSingleValue, LabelAmbiguity,
     DatasetsSizeComparison, UnusedFeatures, ModelInferenceTimeCheck, ModelErrorAnalysis, TrainTestLabelDrift
 )
 from deepchecks import Suite
@@ -87,10 +87,9 @@ def model_evaluation() -> Suite:
     """
     return Suite(
         'Model Evaluation Suite',
-        PerformanceReport(),
         ConfusionMatrixReport(),
-        ClassPerformance().add_condition_ratio_difference_not_greater_than(),
-        TrainTestDifferenceOverfit().add_condition_degradation_ratio_not_greater_than(),
+        PerformanceReport().add_condition_class_performance_imbalance_ratio_not_greater_than(),
+        PerformanceReport().add_condition_train_test_performance_degradation_ratio_not_greater_than(),
         RocReport().add_condition_auc_not_less_than(),
         SimpleModelComparison().add_condition_ratio_not_less_than(),
         ModelErrorAnalysis().add_condition_segments_performance_relative_difference_not_greater_than(),

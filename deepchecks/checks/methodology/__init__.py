@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains checks for methodological flaws in the model building process."""
-from .performance_overfit import TrainTestDifferenceOverfit
 from .boosting_overfit import BoostingOverfit
 from .unused_features import UnusedFeatures
 from .single_feature_contribution import SingleFeatureContribution
@@ -24,7 +23,6 @@ from .datasets_size_comparison import DatasetsSizeComparison
 
 
 __all__ = [
-    'TrainTestDifferenceOverfit',
     'BoostingOverfit',
     'UnusedFeatures',
     'SingleFeatureContribution',

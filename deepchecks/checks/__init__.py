@@ -25,7 +25,6 @@ from .integrity import (
 )
 
 from .methodology import (
-    TrainTestDifferenceOverfit,
     BoostingOverfit,
     UnusedFeatures,
     SingleFeatureContribution,
@@ -60,7 +59,6 @@ from .performance import (
     SegmentPerformance,
     RegressionSystematicError,
     RegressionErrorDistribution,
-    ClassPerformance,
     MultiModelPerformanceReport,
     ModelErrorAnalysis
 )
@@ -82,7 +80,6 @@ __all__ = [
     'LabelAmbiguity',
 
     # methodology checks
-    'TrainTestDifferenceOverfit',
     'BoostingOverfit',
     'UnusedFeatures',
     'SingleFeatureContribution',
@@ -114,7 +111,6 @@ __all__ = [
     'SegmentPerformance',
     'RegressionSystematicError',
     'RegressionErrorDistribution',
-    'ClassPerformance',
     'MultiModelPerformanceReport',
     'ModelErrorAnalysis'
 ]

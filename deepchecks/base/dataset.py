@@ -646,7 +646,7 @@ class Dataset:
             Sorted classes
         """
         if self.label_col is not None:
-            return sorted(self.label_col.unique().tolist())
+            return sorted(self.label_col.dropna().unique().tolist())
         return []
 
     @property
