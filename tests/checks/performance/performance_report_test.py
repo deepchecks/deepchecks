@@ -13,6 +13,7 @@ import re
 from typing import List
 
 from hamcrest import assert_that, calling, raises, close_to, has_items
+import numpy as np
 from sklearn.ensemble import AdaBoostClassifier
 
 from deepchecks import ConditionResult, Dataset
@@ -82,7 +83,7 @@ def test_classification_string_labels(iris_labeled_dataset):
     # Assert
     for dataset in ['Test', 'Train']:
         dataset_col = result.loc[result['Dataset'] == dataset]
-        for class_name in range(3):
+        for class_name in iris_labeled_dataset.classes:
             class_col = dataset_col.loc[dataset_col['Class'] == class_name]
             for metric in ['F1 (Default)', 'Precision (Default)', 'Recall (Default)']:
                 metric_col = class_col.loc[class_col['Metric'] == metric]
@@ -101,8 +102,11 @@ def test_classification_nan_labels(iris_labeled_dataset, iris_adaboost):
     # Assert
     for dataset in ['Test', 'Train']:
         dataset_col = result.loc[result['Dataset'] == dataset]
-        for class_name in range(3):
-            class_col = dataset_col.loc[dataset_col['Class'] == class_name]
+        for class_name in [float('nan'), 0.0, 1.0]:
+            if np.isnan(class_name):
+                class_col = dataset_col.loc[np.isnan(dataset_col['Class'])]
+            else:
+                class_col = dataset_col.loc[dataset_col['Class'] == class_name]
             for metric in ['F1 (Default)', 'Precision (Default)', 'Recall (Default)']:
                 metric_col = class_col.loc[class_col['Metric'] == metric]
                 assert_that(metric_col['Value'] , close_to(1, 0.3))
