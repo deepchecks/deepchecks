@@ -64,9 +64,9 @@ DEFAULT_MULTICLASS_SCORERS = {
 }
 
 MULTICLASS_SCORERS_NON_AVERAGE = {
-    'F1': make_scorer(f1_score, average=None),
-    'Precision': make_scorer(precision_score, average=None),
-    'Recall': make_scorer(recall_score, average=None)
+    'F1 (Default)': make_scorer(f1_score, average=None),
+    'Precision (Default)': make_scorer(precision_score, average=None),
+    'Recall (Default)': make_scorer(recall_score, average=None)
 }
 
 
