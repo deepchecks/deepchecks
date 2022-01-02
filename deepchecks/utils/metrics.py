@@ -71,8 +71,8 @@ MULTICLASS_SCORERS_NON_AVERAGE = {
 
 
 DEFAULT_REGRESSION_SCORERS = {
-    'RMSE': 'neg_root_mean_squared_error',
-    'MAE': 'neg_mean_absolute_error',
+    'Neg RMSE (Default)': 'neg_root_mean_squared_error',
+    'Neg MAE (Default)': 'neg_mean_absolute_error',
     'R2': 'r2'
 }
 

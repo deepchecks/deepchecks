@@ -17,7 +17,7 @@ from deepchecks.base.check import ModelComparisonContext
 from deepchecks.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult, ModelComparisonBaseCheck
-from deepchecks.utils.metrics import get_scorers_list, initialize_multi_scorers, ModelType, task_type_check
+from deepchecks.utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, get_scorers_list, initialize_multi_scorers, ModelType, task_type_check
 from deepchecks.utils.validation import validate_model
 
 
@@ -73,8 +73,6 @@ class PerformanceReport(TrainTestBaseCheck):
                     score_result = scorer(model, datasets[dataset])
                     # Multiclass scorers return numpy array of result per class
                     for class_i, value in enumerate(score_result):
-                        if scorer.is_negative_scorer():
-                            value = -value
                         results.append([dataset, class_i,  scorer.name, value])
             results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value'])
 
@@ -84,8 +82,6 @@ class PerformanceReport(TrainTestBaseCheck):
             for dataset in datasets.keys():
                 for scorer in scorers:
                     score_result = scorer(model, datasets[dataset])
-                    if scorer.is_negative_scorer():
-                        score_result = -score_result
                     results.append([dataset, scorer.name, score_result])
 
             results_df = pd.DataFrame(results, columns=['Dataset', 'Metric', 'Value'])
@@ -117,20 +113,6 @@ class PerformanceReport(TrainTestBaseCheck):
 
         return self.add_condition(f'Scores are not less than {min_score}', condition)
 
-    def add_condition_score_not_greater_than(self: PR, max_score: float) -> PR:
-        """Add condition - metric scores are not greater than given score.
-
-        Args:
-            max_score (float): Maximal score to pass.
-        """
-        def condition(check_result: pd.DataFrame):
-            not_passed = check_result.loc[check_result['Value'] > max_score]
-            if len(not_passed):
-                details = f'Scores that passed the threshold:<br>{not_passed.to_dict("records")}'
-                return ConditionResult(False, details)
-            return ConditionResult(True)
-
-        return self.add_condition(f'Scores are not greater than {max_score}', condition)
 
     def add_condition_degradation_ratio_not_greater_than(self: PR, threshold: float = 0.1) -> PR:
         """
@@ -162,9 +144,9 @@ class PerformanceReport(TrainTestBaseCheck):
                     failed_scores = [k for k, v in diff.items() if abs(v) > threshold]
                     if failed_scores:
                         for score_name in failed_scores:
-                            explained_failures.append(f'{score_name} on class {class_name} \
-                                                    (train={format_number(train_scores_dict[score_name])} '
-                                                    f'test={format_number(test_scores_dict[score_name])})')
+                            explained_failures.append(f'{score_name} on class {class_name} '
+                                                      f'(train={format_number(train_scores_dict[score_name])} '
+                                                      f'test={format_number(test_scores_dict[score_name])})')
             else:
                 test_scores_dict = dict(zip(test_scores['Metric'], test_scores['Value']))
                 train_scores_dict = dict(zip(train_scores['Metric'], train_scores['Value']))
@@ -174,9 +156,9 @@ class PerformanceReport(TrainTestBaseCheck):
                 failed_scores = [k for k, v in diff.items() if abs(v) > threshold]
                 if failed_scores:
                     for score_name in failed_scores:
-                        explained_failures.append(f'{score_name}: \
-                                                train={format_number(train_scores_dict[score_name])}, '
-                                                f'test={format_number(test_scores_dict[score_name])}')
+                        explained_failures.append(f'{score_name}: '
+                                                  f'train={format_number(train_scores_dict[score_name])}, '
+                                                  f'test={format_number(test_scores_dict[score_name])}')
             if explained_failures:
                 message = '<br>'.join(explained_failures)
                 return ConditionResult(False, message)
@@ -190,7 +172,7 @@ class PerformanceReport(TrainTestBaseCheck):
     def add_condition_class_performance_imbalance_ratio_not_greater_than(
         self: PR,
         threshold: float = 0.3,
-        score: str = 'F1'
+        score: str = None
     ) -> PR:
         """Add condition.
 
@@ -208,14 +190,15 @@ class PerformanceReport(TrainTestBaseCheck):
             DeepchecksValueError:
                 if unknown score function name were passed;
         """
-
+        if score is None:
+            score = next(iter(MULTICLASS_SCORERS_NON_AVERAGE))
         def condition(check_result: pd.DataFrame) -> ConditionResult:
             if score not in set(check_result['Metric']):
                 raise DeepchecksValueError(f'Data was not calculated using the scoring function: {score}')
 
             datasets_details = []
             for dataset in ['Test', 'Train']:
-                data = check_result.loc[check_result['Dataset'] == dataset].loc[check_result['Metric'] == 'F1']
+                data = check_result.loc[check_result['Dataset'] == dataset].loc[check_result['Metric'] == score]
 
                 if len(data) == 0:
                     raise DeepchecksValueError(f'Expected that check result will contain next score - {score}')

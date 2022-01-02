@@ -12,11 +12,11 @@
 import re
 from typing import List
 
-import numpy as np
-from hamcrest import assert_that, calling, raises, close_to, has_entries, has_items
+from hamcrest import assert_that, calling, raises, close_to, has_items
 from sklearn.ensemble import AdaBoostClassifier
 
 from deepchecks import ConditionResult, Dataset
+from deepchecks.base.check import CheckResult
 from deepchecks.checks.performance import PerformanceReport
 from deepchecks.errors import DeepchecksValueError
 
@@ -119,35 +119,7 @@ def test_regression(diabetes_split_dataset_and_model):
         dataset_col = result.loc[result['Dataset'] == dataset]
         for metric in ['Neg RMSE (Default)', 'Neg MAE (Default)']:
             metric_col = dataset_col.loc[dataset_col['Metric'] == metric]
-            assert_that(metric_col['Value'] , close_to(50, 30))
-
-
-def test_condition_max_score_not_passed(diabetes_split_dataset_and_model):
-    # Arrange
-    train, test, model = diabetes_split_dataset_and_model
-    check = PerformanceReport().add_condition_score_not_greater_than(50)
-    # Act X
-    result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
-    # Assert
-    assert_that(result, has_items(
-        equal_condition_result(is_pass=False,
-                               details=re.compile('Scores that passed the threshold:<br>\\[\\{\'Dataset\': '
-                                                  '\'Test\', \'Metric\':'),
-                               name='Scores are not greater than 50')
-    ))
-
-
-def test_condition_max_score_passed(diabetes_split_dataset_and_model):
-    # Arrange
-    train, test, model = diabetes_split_dataset_and_model
-    check = PerformanceReport().add_condition_score_not_greater_than(5_000)
-    # Act X
-    result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
-    # Assert
-    assert_that(result, has_items(
-        equal_condition_result(is_pass=True,
-                               name='Scores are not greater than 5000')
-    ))
+            assert_that(metric_col['Value'] , close_to(-50, 30))
 
 
 def test_condition_min_score_not_passed(iris_split_dataset_and_model):
@@ -159,8 +131,8 @@ def test_condition_min_score_not_passed(iris_split_dataset_and_model):
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details=re.compile('Scores that did not passed the threshold:<br>'
-                                                  '\\[\\{\'Dataset\': \'Train'),
+                               details=re.compile(r'Scores that did not passed the threshold:<br>'
+                                                  r'\[\{\'Dataset\': \'Train'),
                                name='Scores are not less than 1')
     ))
 
@@ -178,20 +150,20 @@ def test_condition_min_score_passed(iris_split_dataset_and_model):
     ))
 
 
-def test_condition_degradation_ratio_not_greater_than_passed(iris_split_dataset_and_model):
+def test_condition_degradation_ratio_not_greater_than_not_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport().add_condition_degradation_ratio_not_greater_than(0.5)
+    check = PerformanceReport().add_condition_degradation_ratio_not_greater_than(0)
     # Act X
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
-        equal_condition_result(is_pass=True,
-                               name='Train-Test scores degradation ratio is not greater than 0.5')
+        equal_condition_result(is_pass=False,
+                               details=re.compile(r'F1 \(Default\) on class 1 \(train=0.94 test=0.88\)'),
+                               name='Train-Test scores degradation ratio is not greater than 0')
     ))
 
-
-def test_condition_degradation_ratio_not_greater_than_not_passed(iris_split_dataset_and_model):
+def test_condition_degradation_ratio_not_greater_than_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
     check = PerformanceReport().add_condition_degradation_ratio_not_greater_than(1)
@@ -199,26 +171,28 @@ def test_condition_degradation_ratio_not_greater_than_not_passed(iris_split_data
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
-        equal_condition_result(is_pass=False,
-                               details=re.compile(''),
+        equal_condition_result(is_pass=True,
                                name='Train-Test scores degradation ratio is not greater than 1')
     ))
 
 
-def test_condition_class_performance_imbalance_ratio_not_greater_than_passed(iris_split_dataset_and_model):
+def test_condition_class_performance_imbalance_ratio_not_greater_than_not_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport().add_condition_class_performance_imbalance_ratio_not_greater_than(0.5)
+    check = PerformanceReport().add_condition_class_performance_imbalance_ratio_not_greater_than(0)
     # Act X
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
-        equal_condition_result(is_pass=True,
-                               name='Scores are not less than 0.5')
+        equal_condition_result(is_pass=False,
+                               details=re.compile('Relative ratio difference between highest and '
+                                                  'lowest in Test dataset classes is 14.29%'),
+                               name='Relative ratio difference between labels \'F1 (Default)\' '
+                                    'score is not greater than 0%')
     ))
 
 
-def test_condition_class_performance_imbalance_ratio_not_greater_than_not_passed(iris_split_dataset_and_model):
+def test_condition_class_performance_imbalance_ratio_not_greater_than_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
     check = PerformanceReport().add_condition_class_performance_imbalance_ratio_not_greater_than(1)
@@ -226,8 +200,7 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than_not_passed
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
     assert_that(result, has_items(
-        equal_condition_result(is_pass=False,
-                               details=re.compile('Scores that did not passed the threshold:<br>'
-                                                  '\\[\\{\'Dataset\': \'Train'),
-                               name='Scores are not less than 1')
+        equal_condition_result(is_pass=True,
+                               name='Relative ratio difference between labels \'F1 (Default)\' '
+                               'score is not greater than 100%')
     ))
