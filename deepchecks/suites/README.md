@@ -10,9 +10,9 @@
   ~ ----------------------------------------------------------------------------
   ~
 -->
-# Check Suites
+# Suites
 
-## Using Existing CheckSuites
+## Using an Existing Suite
 
 ### [List of Prebuilt Suites](./default_suites.py)
 
@@ -24,12 +24,12 @@
   
 
 ### Running a Suite
-to run a suite, first import it
+To run a prebuilt suite, first import it
 
 ```python
 from deepchecks.suites import *
 ```
-Then run it with the required input parameters (datasets and models)
+Then run it with the required (suite-dependant) input parameters
 ```python
 model_evaluation().run(model=my_classification_model, train_dataset=ds_train, test_dataset=ds_test)
 ```

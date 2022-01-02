@@ -3,9 +3,9 @@ When Should You Use Deepchecks
 =================================
 
 Deepchecks has many built-in checks and suites that can be helpful for
-efficiently identify potential problems in our data and models, in various points throughout the research phase.
+efficiently identify potential problems in your data and models, in various points throughout the research phase.
 Of course, every research process has its unique steps and challenges,
-and therefore all checks and suites can easily be adapted and extended, and run seperately or together.
+and therefore all checks and suites can easily be adapted and extended, and run separately or together.
 Alongside that, we have identified that there are several recurring scenarios, that each have their own needs and characteristics.
 Here we explain them shortly and note the specific pre-defined suites that are built (and enhanced on an ongoing basis)
 with the purpose of efficiently giving value and initiating a quick start for each of these validation-requiring scenarios.
@@ -23,7 +23,7 @@ Typical Scenarios
    the information organized together: :ref:`General Overview <when_should_you_use__general_overview>`.
 
 
-Of course, for each of these phases our needs and the availabe assets are different. Let's have a look at them.
+Of course, for each of these phases your needs and the availabe assets are different. Let's have a look at them.
 
 .. _when_should_you_use__new_data:
 
@@ -32,7 +32,7 @@ New Data: Single Dataset Validation
 
 When you start working with a new dataset, you have only a single dataset (no train-test split),
 and you probably don't have a model.
-As part of our EDA you want to ensure our data's integrity, and have it ready for our needs.
+As part of your EDA you want to ensure your data's integrity, and have it ready for your needs.
 For example, you want to know if there are many duplicate samples, problems with string or categorical features,
 significant outliers, inconsistent labels, etc.
 
@@ -42,10 +42,10 @@ For these purposes you can use the ``single_dataset_integrity`` suite.
 
 After Splitting the Data: Train-Test Validation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-When you split our data (for whichever purpose and manner), you have two or more separate datasets, however you might not have a model yet.
-Just before you continue working with our data you want to ensure that the splits are indeed representative as you want them to be.
+When you split your data (for whichever purpose and manner), you have two or more separate datasets, however you might not have a model yet.
+Just before you continue working with your data you want to ensure that the splits are indeed representative as you want them to be.
 For example, you want to verify that the classes are balanced similarly, that there is no significant change in distributions between the features or labels in each of the classes,
-that there is no potential data leakage that may contaminate our model or perceived results, etc.
+that there is no potential data leakage that may contaminate your model or perceived results, etc.
 
 For these purposes you can use the ``train_test_validation`` suite.
 

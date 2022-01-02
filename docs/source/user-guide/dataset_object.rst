@@ -3,7 +3,7 @@
 ====================
 The Dataset Object
 ====================
-The dataset is one of the basic blocks of deepchecks. It is a container for the data and it's relevant metadata, like special column names (label, date, index, etc).
+The dataset is one of the basic blocks of deepchecks. It is a container for the data and its relevant metadata, like special column names (label, date, index, etc).
 Some of the checks allows to use a dataframe directly, but some others requires the metadata in order to run, so they are limited to working only with Datasets.
 
 Class Parameters

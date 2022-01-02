@@ -26,13 +26,13 @@ Documentation Structure
 .. toctree::
     :maxdepth: 2
 
-    examples/index
+    user-guide/index
 
 
 .. toctree::
     :maxdepth: 2
 
-    user-guide/index
+    examples/index
 
 
 .. toctree::
