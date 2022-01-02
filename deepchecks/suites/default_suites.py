@@ -11,7 +11,7 @@
 """Predefined suites for various use-cases."""
 from deepchecks.checks import (
     MixedNulls, SpecialCharacters, StringLengthOutOfBounds, StringMismatch, MixedDataTypes,
-    DateTrainTestLeakageDuplicates, SingleFeatureContribution, SingleFeatureContributionTrainTest, TrainTestSamplesMix,
+    DateTrainTestLeakageDuplicates, SingleFeatureContributionTrainTest, TrainTestSamplesMix,
     DateTrainTestLeakageOverlap, IdentifierLeakage, IndexTrainTestLeakage, DominantFrequencyChange,
     CategoryMismatchTrainTest, NewLabelTrainTest, StringMismatchComparison, TrainTestFeatureDrift, WholeDatasetDrift,
     ConfusionMatrixReport, RocReport, CalibrationScore, TrustScoreComparison, ClassPerformance,
@@ -52,8 +52,8 @@ def train_test_leakage() -> Suite:
         'Train Test Leakage Suite',
         DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_not_greater_than(),
         DateTrainTestLeakageOverlap().add_condition_leakage_ratio_not_greater_than(),
-        SingleFeatureContribution().add_condition_feature_pps_not_greater_than(),
-        SingleFeatureContributionTrainTest().add_condition_feature_pps_difference_not_greater_than(),
+        SingleFeatureContributionTrainTest().add_condition_feature_pps_difference_not_greater_than()
+        .add_condition_feature_pps_in_train_not_greater_than(),
         TrainTestSamplesMix().add_condition_duplicates_ratio_not_greater_than(),
         IdentifierLeakage().add_condition_pps_not_greater_than(),
         IndexTrainTestLeakage().add_condition_ratio_not_greater_than()

@@ -719,3 +719,54 @@ def test_dataset_label_with_name(iris):
     # Assert
     assert_that(dataset.features, equal_to(list(data.columns)))
     assert_that(dataset.data.columns, contains_exactly(*data.columns, 'actual'))
+
+
+def test_train_test_split(iris):
+    # Arrange
+    label = iris['target']
+    data = iris.drop('target', axis=1)
+    dataset = Dataset(data, label, label_name='actual')
+    # Act
+    train_ds, test_ds = dataset.train_test_split()
+    # Assert
+    assert_that(train_ds.n_samples, 150)
+    assert_that(test_ds.n_samples, 50)
+
+
+def test_train_test_split_changed(iris):
+    # Arrange
+    label = iris['target']
+    data = iris.drop('target', axis=1)
+    dataset = Dataset(data, label, label_name='actual')
+    # Act
+    train_ds, test_ds = dataset.train_test_split(train_size=0.2, test_size=0.1)
+    # Assert
+    assert_that(train_ds.n_samples, 15)
+    assert_that(test_ds.n_samples, 10)
+
+
+def test_inferred_label_type_cat(diabetes_df):
+    # Arrange
+    label = diabetes_df['target']
+    data = diabetes_df.drop('target', axis=1)
+    dataset = Dataset(data, label, label_name='actual')
+    # Assert
+    assert_that(dataset.label_type, is_('regression_label'))
+
+
+def test_inferred_label_type_reg(iris):
+    # Arrange
+    label = iris['target']
+    data = iris.drop('target', axis=1)
+    dataset = Dataset(data, label, label_name='actual')
+    # Assert
+    assert_that(dataset.label_type, is_('classification_label'))
+
+
+def test_set_label_type(iris):
+    # Arrange
+    label = iris['target']
+    data = iris.drop('target', axis=1)
+    dataset = Dataset(data, label, label_name='actual', label_type='regression_label')
+    # Assert
+    assert_that(dataset.label_type, is_('regression_label'))

@@ -18,7 +18,7 @@ import pandas as pd
 from deepchecks import Dataset, CheckResult
 from deepchecks.base.check import SingleDatasetBaseCheck, ConditionResult
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
+from deepchecks.utils.features import calculate_feature_importance_or_none, column_importance_sorter_df
 from deepchecks.utils.strings import string_baseform, format_percent, format_columns_for_condition
 from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
@@ -72,7 +72,7 @@ class MixedNulls(SingleDatasetBaseCheck):
             (CheckResult): DataFrame with columns ('Column Name', 'Value', 'Count', 'Percentage') for any column which
             have more than 1 null values.
         """
-        feature_importances = calculate_feature_importance_or_null(dataset, model)
+        feature_importances = calculate_feature_importance_or_none(model, dataset)
         return self._mixed_nulls(dataset, feature_importances)
 
     def _validate_null_string_list(self, nsl, check_nan: bool) -> set:

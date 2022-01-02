@@ -15,6 +15,7 @@ import pandas as pd
 
 from deepchecks import Dataset, ConditionResult
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck
+from deepchecks.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
@@ -58,7 +59,10 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
         """
         dataset: Dataset = Dataset.validate_dataset(dataset)
         dataset = dataset.select(self.columns, self.ignore_columns)
-        dataset.validate_label()
+
+        if (model and hasattr(model, 'is_regression') and model.is_regression()) or \
+                (dataset.label_type == 'regression_label'):
+            raise DeepchecksValueError('Task type cannot be regression')
 
         label_col = dataset.label_name
 
@@ -66,7 +70,8 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
         group_unique_labels = group_unique_data.nunique()[label_col]
 
         num_ambiguous = 0
-        display = pd.DataFrame(columns=[dataset.label_name, *dataset.features])
+        ambiguous_label_name = 'Observed Labels'
+        display = pd.DataFrame(columns=[ambiguous_label_name, *dataset.features])
 
         for num_labels, group_data in sorted(zip(group_unique_labels, group_unique_data),
                                              key=lambda x: x[0], reverse=True):
@@ -75,15 +80,18 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
 
             group_df = group_data[1]
             sample_values = dict(group_df[dataset.features].iloc[0])
-            labels = list(group_df[label_col].unique())
+            labels = tuple(group_df[label_col].unique())
             n_data_sample = group_df.shape[0]
             num_ambiguous += n_data_sample
 
-            display = display.append({label_col: labels, **sample_values}, ignore_index=True)
+            display = display.append({ambiguous_label_name: labels, **sample_values}, ignore_index=True)
 
-        display.set_index(label_col)
+        display = display.set_index(ambiguous_label_name)
 
-        display = None if display.empty else display.head(self.n_to_show)
+        explanation = ('Each row in the table shows an example of a data sample '
+                       'and the it\'s observed labels as a found in the dataset.')
+
+        display = None if display.empty else [explanation, display.head(self.n_to_show)]
 
         percent_ambiguous = num_ambiguous/dataset.n_samples
 

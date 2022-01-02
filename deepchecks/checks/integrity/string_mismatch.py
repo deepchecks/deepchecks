@@ -23,7 +23,7 @@ from deepchecks import (
     ConditionCategory
 )
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import calculate_feature_importance_or_null, column_importance_sorter_df
+from deepchecks.utils.features import calculate_feature_importance_or_none, column_importance_sorter_df
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.strings import (
@@ -66,7 +66,7 @@ class StringMismatch(SingleDatasetBaseCheck):
         Args:
             dataset (DataFrame): A dataset or pd.FataFrame object.
         """
-        feature_importances = calculate_feature_importance_or_null(dataset, model)
+        feature_importances = calculate_feature_importance_or_none(model, dataset)
         return self._string_mismatch(dataset, feature_importances)
 
     def _string_mismatch(self, dataset: Union[pd.DataFrame, Dataset],

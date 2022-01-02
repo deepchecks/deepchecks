@@ -35,14 +35,15 @@ __all__ = [
     'MULTICLASS_SCORERS_NON_AVERAGE',
     'get_scores_ratio',
     'initialize_multi_scorers',
-    'get_scorer_single'
+    'get_scorer_single',
+    'task_type_validation'
 ]
 
 from deepchecks.utils.strings import is_string_column
 
 
 class ModelType(enum.Enum):
-    """Enum containing suppoerted task types."""
+    """Enum containing supported task types."""
 
     REGRESSION = 'regression'
     BINARY = 'binary'
@@ -50,16 +51,16 @@ class ModelType(enum.Enum):
 
 
 DEFAULT_BINARY_SCORERS = {
-    'Accuracy': 'accuracy',
-    'Precision': 'precision',
-    'Recall': 'recall'
+    'Accuracy (Default)': 'accuracy',
+    'Precision (Default)': 'precision',
+    'Recall (Default)': 'recall'
 }
 
 
 DEFAULT_MULTICLASS_SCORERS = {
-    'Accuracy': 'accuracy',
-    'Precision - Macro Average': 'precision_macro',
-    'Recall - Macro Average': 'recall_macro'
+    'Accuracy (Default)': 'accuracy',
+    'Precision - Macro Average (Default)': 'precision_macro',
+    'Recall - Macro Average (Default)': 'recall_macro'
 }
 
 MULTICLASS_SCORERS_NON_AVERAGE = {
@@ -71,15 +72,18 @@ MULTICLASS_SCORERS_NON_AVERAGE = {
 
 DEFAULT_REGRESSION_SCORERS = {
     'RMSE': 'neg_root_mean_squared_error',
-    'MAE': 'neg_mean_absolute_error'
+    'MAE': 'neg_mean_absolute_error',
+    'R2': 'r2'
 }
 
 
 DEFAULT_SINGLE_SCORER = {
-    ModelType.BINARY: 'Accuracy',
-    ModelType.MULTICLASS: 'Accuracy',
-    ModelType.REGRESSION: 'RMSE'
+    ModelType.BINARY: 'Accuracy (Default)',
+    ModelType.MULTICLASS: 'Accuracy (Default)',
+    ModelType.REGRESSION: 'RMSE (Default)'
 }
+
+DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG = 'F1 (Default)'
 
 
 DEFAULT_SCORERS_DICT = {
@@ -169,7 +173,7 @@ def task_type_check(
     """Check task type (regression, binary, multiclass) according to model object and label column.
 
     Args:
-        model (Union[ClassifierMixin, RegressorMixin]): Model object - used to check if has predict_proba()
+        model (Union[ClassifierMixin, RegressorMixin]): Model object - used to check if it has predict_proba()
         dataset (Dataset): dataset - used to count the number of unique labels
 
     Returns:
@@ -182,6 +186,11 @@ def task_type_check(
         if is_string_column(dataset.label_col):
             raise errors.DeepchecksValueError(
                 'Model was identified as a regression model, but label column was found to contain strings.'
+            )
+        elif isinstance(model, ClassifierMixin):
+            raise errors.DeepchecksValueError(
+                'Model is a sklearn classification model (a subclass of ClassifierMixin), but lacks the '
+                'predict_proba method. Please train the model with probability=True, or skip / ignore this check.'
             )
         else:
             return ModelType.REGRESSION
@@ -203,7 +212,7 @@ def task_type_validation(
     """Validate task type (regression, binary, multiclass) according to model object and label column.
 
     Args:
-        model (Union[ClassifierMixin, RegressorMixin]): Model object - used to check if has predict_proba()
+        model (Union[ClassifierMixin, RegressorMixin]): Model object - used to check if it has predict_proba()
         dataset (Dataset): dataset - used to count the number of unique labels
         expected_types (List[ModelType]): allowed types of model
         check_name (str): check name to print in error
@@ -222,7 +231,7 @@ def task_type_validation(
 def get_scorers_list(
     model,
     dataset: 'base.Dataset',
-    alternative_scorers: t.Dict[str, t.Callable] = None,
+    alternative_scorers: t.List['DeepcheckScorer'] = None,
     multiclass_avg: bool = True
 ) -> t.List[DeepcheckScorer]:
     """Return list of scorer objects to use in a score-dependant check.
@@ -260,14 +269,14 @@ def get_scorers_list(
 
 
 def get_scorer_single(model, dataset: 'base.Dataset', alternative_scorer: t.Optional[DeepcheckScorer] = None,
-                      multiclass_avg: bool = True):
+                      multiclass_avg: bool = True) -> 'DeepcheckScorer':
     """Return single score to use in check, and validate scorer fit the model and dataset."""
     model_type = task_type_check(model, dataset)
     multiclass_array = model_type == ModelType.MULTICLASS and multiclass_avg is False
 
     if alternative_scorer is None:
         if multiclass_array:
-            scorer_name = 'F1'
+            scorer_name = DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG
             scorer_func = MULTICLASS_SCORERS_NON_AVERAGE[scorer_name]
         else:
             scorer_name = DEFAULT_SINGLE_SCORER[model_type]
@@ -280,7 +289,7 @@ def get_scorer_single(model, dataset: 'base.Dataset', alternative_scorer: t.Opti
 
 def initialize_single_scorer(scorer: t.Optional[t.Union[str, t.Callable]], scorer_name=None) \
         -> t.Optional[DeepcheckScorer]:
-    """If string, get scorer from sklearn. If none, return none."""
+    """If type is string, get scorer from sklearn. If none, return none."""
     if scorer is None:
         return None
 
