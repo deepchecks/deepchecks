@@ -108,7 +108,6 @@ class SimpleModelComparison(TrainTestBaseCheck):
             results_df = pd.DataFrame(results, columns=['Model', 'Type', 'Value', 'Metric', 'Class'])
 
             # Plot the metrics in a graph, grouping by the model and class
-            print(results_df)
             fig = px.bar(results_df, x=['Class', 'Model'], y='Value', color='Model', barmode='group',
                          facet_col='Metric', facet_col_spacing=0.05)
             fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60, type='category')
