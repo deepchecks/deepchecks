@@ -12,9 +12,9 @@
 -->
 <p align="center">
   &emsp;
-  <a href="https://deepchecks.com/blog/">Blog</a>
+  <a href="https://deepchecks.com/blog/?utm_source=github.com&utm_medium=referral&utm_campaign=readme">Blog</a>
   &emsp; | &emsp; 
-  <a href="https://docs.deepchecks.com">Documentation</a>
+  <a href="https://https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme">Documentation</a>
   &emsp; | &emsp; 
   <a href="https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg">Join&nbsp;Slack</a>
   &emsp; | &emsp;  
@@ -23,7 +23,7 @@
 </p>
 
 <p align="center">
-   <img src="docs/images/deepchecks-banner.png">
+   <img src="docs/images/deepchecks-logo-white-back.png">
 </p>
 
 
@@ -36,11 +36,13 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/970b11794144139975fa/maintainability)](https://codeclimate.com/github/deepchecks/deepchecks/maintainability)
 [![Coverage Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main)](https://coveralls.io/github/deepchecks/deepchecks?branch=main)
 
+<p align="center">
+   <img src="docs/images/deepchecks-logo-white-back-wide.png">
+</p>
 
-Validate your machine learning models and data, during the research and development phase. 
 
-With only one line of code you can discover data integrity problems, distribution mismatches,
-and efficiently evaluate your models to find potential vulnerabilities.
+Deepchecks is a Python package for comprehensively validating your machine learning models and data with minimal effort.
+This includes checks related to various types of issues, such as model performance, data integrity, distribution mismatches, and more.
 
 ## Installation
 
@@ -53,61 +55,31 @@ pip install deepchecks #--upgrade --user
 conda install -c deepchecks deepchecks
 ```
 
-### From source
-To clone the repository and do
-an [editable install](https://pip.pypa.io/en/stable/cli/pip_install/#editable-installs),
-run: 
-```bash
-git clone https://github.com/deepchecks/deepchecks.git
-cd deepchecks
-pip install -e .
-```
-## Are You Ready  to Start Checking?
+[comment]: <> "### From source
+              To clone the repository and do
+              an [editable install](https://pip.pypa.io/en/stable/cli/pip_install/#editable-installs),
+              run: 
+              ```bash
+              git clone https://github.com/deepchecks/deepchecks.git
+              cd deepchecks
+              pip install -e .
+              ```"
+## What Do You Need in Order to Start Validating?
 
-For the full value from Deepchecks' checking suites, we recommend working with:
+Depending on your phase and what you wise to validate, you'll need a subset of the following:
 
--   A model compatible with scikit-learn API that you wish to validate (e.g. RandomForest, XGBoost)
-    
+-   Raw data (before pre-processing such as OHE, string processing, etc.), with optional labels
+
 -   The model's training data with labels
     
--   Test data (on which the model wasn’t trained) with labels  
+-   Test data (which the model isn't exposed to) with labels  
 
-Of course, in various valiadation phases (e.g. when validating a dataset's integrity,
-or examining distributions between a train-test split), not all of the above are required.
-Accordingly, many of the checks and some of the suites need only a subset of the above to run.
+-   A model compatible with scikit-learn API that you wish to validate (e.g. RandomForest, XGBoost)
 
-## Key Concepts
-
-<p align="center">
-   <img src="docs/images/diagram.svg">
-</p>
-
-### Check
-Each check enables you to inspect a specific aspect of your data and models.
-They are the basic building block of the deepchecks package, covering all kinds of common issues,
-such as: PerformanceOverfit, DataSampleLeakage, SingleFeatureContribution,
-DataDuplicates, and [many more checks](examples/checks).
-Each check can have two types of results:
-1. A visual result meant for display (e.g. a figure or a table).
-2. A return value that can be used for validating the expected check results
-   (validations are typically done by adding a "condition" to the check, as explained below).
-
-### Condition
-A condition is a function that can be added to a Check, which returns a pass &#x2713;, fail &#x2716;
-or warning &#x0021; result, intended for validating the Check's return value. An example for adding a condition would be:
-```python
-from deepchecks.checks import BoostingOverfit
-BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(threshold=0.05)
-```
-which will fail if there is a difference of more than 5% between the best score achieved on the test set during
-the boosting iterations and the score achieved in the last iteration (the model's "original" score on the test set).
-
-### Suite
-An ordered collection of checks, that can have conditions added to them.
-The Suite enables displaying a concluding report for all of the Checks that ran.
-[Here](deepchecks/suites) you can find the [predefined existing suites](deepchecks/suites) and a code example demonstrating how to build
-your own custom suite. The existing suites include default conditions added for most of the checks.
-You can edit the preconfigured suites or build a suite of your own with a collection of checks and optional conditions.
+Deepchecks validation accompanies you from the initial phase when you have only raw data,
+through the data splits, and to the final stage of having a trained model that you wish to evaluate.
+Accordingly, each phase requires different assets for the validation. See more about typical usage scenarios and the built-in
+suites in the [docs](https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme).
 
 ## Usage Examples
 
@@ -221,12 +193,46 @@ Which will result in printing the suite outputs, starting with a summary of the 
 Followed by the visual outputs of all of the checks that are in that suite, that isn't appended here for brevity.
 
 For a full suite demonstration, check out the
-[**Quickstart Notebook**](https://docs.deepchecks.com/en/stable/examples/howto-guides/quickstart_in_5_minutes.html)
+[**Quickstart Notebook**](https://docs.deepchecks.com/en/stable/examples/howto-guides/quickstart_in_5_minutes.html/?utm_source=github.com&utm_medium=referral&utm_campaign=readme)
 and apply it on your own data and models.
 
+
+## Key Concepts
+
+<p align="center">
+   <img src="docs/images/diagram.svg">
+</p>
+
+### Check
+Each check enables you to inspect a specific aspect of your data and models.
+They are the basic building block of the deepchecks package, covering all kinds of common issues,
+such as: PerformanceOverfit, DataSampleLeakage, SingleFeatureContribution,
+DataDuplicates, and [many more checks](examples/checks).
+Each check can have two types of results:
+1. A visual result meant for display (e.g. a figure or a table).
+2. A return value that can be used for validating the expected check results
+   (validations are typically done by adding a "condition" to the check, as explained below).
+
+### Condition
+A condition is a function that can be added to a Check, which returns a pass &#x2713;, fail &#x2716;
+or warning &#x0021; result, intended for validating the Check's return value. An example for adding a condition would be:
+```python
+from deepchecks.checks import BoostingOverfit
+BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(threshold=0.05)
+```
+which will fail if there is a difference of more than 5% between the best score achieved on the test set during
+the boosting iterations and the score achieved in the last iteration (the model's "original" score on the test set).
+
+### Suite
+An ordered collection of checks, that can have conditions added to them.
+The Suite enables displaying a concluding report for all of the Checks that ran.
+[Here](deepchecks/suites) you can find the [predefined existing suites](deepchecks/suites) and a code example demonstrating how to build
+your own custom suite. The existing suites include default conditions added for most of the checks.
+You can edit the preconfigured suites or build a suite of your own with a collection of checks and optional conditions.
+
 ### Documentation
-- <https://docs.deepchecks.com/> - HTML documentation (stable release)
-- <https://docs.deepchecks.com/en/latest> - HTML documentation (latest release)
+- [https://docs.deepchecks.com/](https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme) - HTML documentation (stable release)
+- [https://docs.deepchecks.com/en/latest](https://docs.deepchecks.com/en/latest/?utm_source=github.com&utm_medium=referral&utm_campaign=readme) - HTML documentation (latest release)
 
 ## Community
 - Join our [Slack Community](https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg) to connect with the maintainers and follow users and interesting discussions
