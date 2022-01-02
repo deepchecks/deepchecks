@@ -10,6 +10,9 @@
 #
 """Tests for Model Info."""
 from hamcrest import assert_that, has_entries, calling, raises
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+
 from deepchecks.checks.overview.model_info import ModelInfo
 from deepchecks.errors import DeepchecksValueError
 
@@ -34,6 +37,16 @@ def test_model_info_object(iris_adaboost):
     mi = ModelInfo()
     # Act
     result = mi.run(iris_adaboost)
+    # Assert
+    assert_model_result(result)
+
+
+def test_model_info_pipeline(iris_adaboost):
+    # Arrange
+    simple_pipeline = Pipeline([('nan_handling', SimpleImputer(strategy='most_frequent')),
+                                ('adaboost', iris_adaboost)])
+    # Act
+    result = ModelInfo().run(simple_pipeline)
     # Assert
     assert_model_result(result)
 
