@@ -23,7 +23,7 @@ source:
   path: ..
 
 build:
-  number: 0
+  number: 1
   noarch: python
 
 requirements:
@@ -36,7 +36,7 @@ requirements:
     - python
     - pandas
     - numpy
-    - scikit-learn
+    - scikit-learn>=0.24.2
     - ipython
     - ipykernel
     - ipywidgets
