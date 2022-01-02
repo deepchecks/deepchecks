@@ -16,6 +16,7 @@ import pandas as pd
 from deepchecks import Dataset, ConditionResult
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck
 from deepchecks.errors import DeepchecksValueError
+from deepchecks.utils.metrics import task_type_validation, ModelType
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
@@ -52,21 +53,29 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
         """Run check.
 
         Args:
-          dataset(Dataset): any dataset.
+            dataset(Dataset): any dataset.
+            model (any): used to check task type (default: None)
 
         Returns:
-          (CheckResult): percentage of ambiguous samples and display of the top n_to_show most ambiguous.
+            (CheckResult): percentage of ambiguous samples and display of the top n_to_show most ambiguous.
         """
         dataset: Dataset = Dataset.validate_dataset(dataset)
         dataset = dataset.select(self.columns, self.ignore_columns)
 
-        if (model and hasattr(model, 'is_regression') and model.is_regression()) or \
-                (dataset.label_type == 'regression_label'):
+        if model:
+            task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
+        elif dataset.label_type == 'regression_label':
             raise DeepchecksValueError('Task type cannot be regression')
 
         label_col = dataset.label_name
 
-        group_unique_data = dataset.data.groupby(dataset.features, dropna=False)
+        # HACK: pandas have bug with groupby on category dtypes, so until it fixed, change dtypes manually
+        df = dataset.data
+        category_columns = df.dtypes[df.dtypes == 'category'].index.tolist()
+        if category_columns:
+            df = df.astype({c: 'object' for c in category_columns})
+
+        group_unique_data = df.groupby(dataset.features, dropna=False)
         group_unique_labels = group_unique_data.nunique()[label_col]
 
         num_ambiguous = 0

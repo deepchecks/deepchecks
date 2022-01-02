@@ -17,6 +17,7 @@ from .calibration_score import CalibrationScore
 from .segment_performance import SegmentPerformance
 from .regression_systematic_error import RegressionSystematicError
 from .regression_error_distribution import RegressionErrorDistribution
+from .model_error_analysis import ModelErrorAnalysis
 
 
 __all__ = [
@@ -28,5 +29,6 @@ __all__ = [
     'SegmentPerformance',
     'RegressionSystematicError',
     'RegressionErrorDistribution',
-    'MultiModelPerformanceReport'
+    'MultiModelPerformanceReport',
+    'ModelErrorAnalysis'
 ]

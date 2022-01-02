@@ -28,6 +28,20 @@ def test_data_duplicates():
     assert_that(check_obj.run(duplicate_data).value, close_to(0.40, 0.01))
 
 
+def test_data_duplicates_categorical_dtypes():
+    """We used to have a bug when using groupby on category dtypes, this test ensures it doesn't return """
+    data = {
+        'a': np.random.randint(0, 1000, 300000),
+        'b': np.random.randint(0, 1000, 300000),
+        'c': np.random.randint(0, 1000, 300000),
+        'd': np.random.randint(0, 1000, 300000),
+        'e': np.random.randint(0, 1000, 300000)
+    }
+    duplicate_data = pd.DataFrame(data).astype('category')
+    check_obj = DataDuplicates()
+    assert_that(check_obj.run(duplicate_data).value, close_to(0.0, 0.001))
+
+
 def test_data_duplicates_columns():
     duplicate_data = pd.DataFrame({'col1': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
                                    'col2': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],

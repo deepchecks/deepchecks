@@ -17,7 +17,7 @@ from deepchecks.checks import (
     ConfusionMatrixReport, RocReport, CalibrationScore, TrustScoreComparison,
     RegressionErrorDistribution, RegressionSystematicError, PerformanceReport, SimpleModelComparison, BoostingOverfit,
     ModelInfo, ColumnsInfo, DataDuplicates, IsSingleValue, LabelAmbiguity,
-    DatasetsSizeComparison, UnusedFeatures, ModelInferenceTimeCheck, TrainTestLabelDrift
+    DatasetsSizeComparison, UnusedFeatures, ModelInferenceTimeCheck, ModelErrorAnalysis, TrainTestLabelDrift
 )
 from deepchecks import Suite
 
@@ -73,7 +73,7 @@ def train_test_validation() -> Suite:
         WholeDatasetDrift().add_condition_overall_drift_value_not_greater_than(),
         DominantFrequencyChange().add_condition_ratio_of_change_not_more_than(),
         CategoryMismatchTrainTest().add_condition_new_category_ratio_not_greater_than(),
-        NewLabelTrainTest().add_condition_new_label_ratio_not_greater_than(),
+        NewLabelTrainTest().add_condition_new_labels_not_greater_than(),
         StringMismatchComparison().add_condition_no_new_variants(),
         DatasetsSizeComparison().add_condition_test_train_size_ratio_not_smaller_than(),
         train_test_leakage()
@@ -92,9 +92,9 @@ def model_evaluation() -> Suite:
         PerformanceReport().add_condition_train_test_performance_degradation_ratio_not_greater_than(),
         RocReport().add_condition_auc_not_less_than(),
         SimpleModelComparison().add_condition_ratio_not_less_than(),
+        ModelErrorAnalysis().add_condition_segments_performance_relative_difference_not_greater_than(),
         CalibrationScore(),
         TrustScoreComparison().add_condition_mean_score_percent_decline_not_greater_than(),
-        NewLabelTrainTest().add_condition_new_labels_not_greater_than(),
         RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_not_greater_than(),
         RegressionErrorDistribution().add_condition_kurtosis_not_less_than(),
         BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(),

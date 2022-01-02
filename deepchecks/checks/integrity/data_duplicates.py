@@ -70,6 +70,11 @@ class DataDuplicates(SingleDatasetBaseCheck):
         if n_samples == 0:
             raise DeepchecksValueError('Dataset does not contain any data')
 
+        # HACK: pandas have bug with groupby on category dtypes, so until it fixed, change dtypes manually
+        category_columns = df.dtypes[df.dtypes == 'category'].index.tolist()
+        if category_columns:
+            df = df.astype({c: 'object' for c in category_columns})
+
         group_unique_data = df[data_columns].groupby(data_columns, dropna=False).size()
         n_unique = len(group_unique_data)
 
