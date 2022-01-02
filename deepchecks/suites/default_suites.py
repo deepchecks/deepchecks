@@ -17,7 +17,7 @@ from deepchecks.checks import (
     ConfusionMatrixReport, RocReport, CalibrationScore, TrustScoreComparison, ClassPerformance,
     RegressionErrorDistribution, RegressionSystematicError, PerformanceReport, SimpleModelComparison, BoostingOverfit,
     TrainTestDifferenceOverfit, ModelInfo, ColumnsInfo, DataDuplicates, IsSingleValue, LabelAmbiguity,
-    DatasetsSizeComparison, UnusedFeatures, ModelInferenceTimeCheck
+    DatasetsSizeComparison, UnusedFeatures, ModelInferenceTimeCheck, TrainTestLabelDrift
 )
 from deepchecks import Suite
 
@@ -69,6 +69,7 @@ def train_test_validation() -> Suite:
     return Suite(
         'Train Test Validation Suite',
         TrainTestFeatureDrift().add_condition_drift_score_not_greater_than(),
+        TrainTestLabelDrift().add_condition_drift_score_not_greater_than(),
         WholeDatasetDrift().add_condition_overall_drift_value_not_greater_than(),
         DominantFrequencyChange().add_condition_ratio_of_change_not_more_than(),
         CategoryMismatchTrainTest().add_condition_new_category_ratio_not_greater_than(),
