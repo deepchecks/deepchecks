@@ -44,11 +44,12 @@ jobs:
         python-version: "3.9"
     - name: Set Up Env
       run: make env
-    - uses: paambaati/codeclimate-action@v3.0.0
+    - name: Run Coverage
+      run: make coverage
+    - name: Upload coverage to coveralls.io
+      run: coveralls --service=github
       env:
-        CC_TEST_REPORTER_ID: ${{ secrets.CODE_CLIMATE_TEST_RUNNER }}
-      with:
-        coverageCommand: make coverage
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   tests-windows:
     runs-on: windows-latest

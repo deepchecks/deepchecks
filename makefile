@@ -58,7 +58,7 @@ REQUIREMENTS_LOG := .requirements.log
 # Test and Analyize
 ANALIZE_PKGS = pylint pydocstyle flake8 flake8-spellcheck flake8-eradicate flake8-rst
 TEST_CODE := tests/
-TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval
+TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval coveralls
 NOTEBOOK_CHECKS = ./examples/checks
 NOTEBOOK_EXAMPLES = ./examples/howto-guides/*.ipynb
 NOTEBOOK_SANITIZER_FILE= ./examples/.nbval-sanitizer
@@ -185,7 +185,6 @@ regenerate-examples: $(REQUIREMENTS_LOG)
 
 coverage: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 	$(COVERAGE) run -m pytest
-	$(COVERAGE) xml
 
 
 # This is Here For Legacy || future use case,
