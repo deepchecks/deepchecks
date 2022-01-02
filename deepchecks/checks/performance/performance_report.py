@@ -92,7 +92,7 @@ class PerformanceReport(TrainTestBaseCheck):
         # Get default scorers if no alternative, or validate alternatives
         scorers = get_scorers_list(model, test_dataset, self.alternative_scorers, multiclass_avg=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
-        if task_type in [ModelType.BINARY, ModelType.MULTICLASS]:
+        if task_type == ModelType.MULTICLASS:
             x = ['Class', 'Dataset']
             results = []
             for dataset_name, dataset in datasets.items():

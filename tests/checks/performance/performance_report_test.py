@@ -104,10 +104,7 @@ def test_classification_nan_labels(iris_labeled_dataset, iris_adaboost):
     for dataset in ['Test', 'Train']:
         dataset_col = result.loc[result['Dataset'] == dataset]
         for class_name in iris_labeled_dataset.classes:
-            if np.isnan(class_name):
-                class_col = dataset_col.loc[np.isnan(dataset_col['Class'])]
-            else:
-                class_col = dataset_col.loc[dataset_col['Class'] == class_name]
+            class_col = dataset_col.loc[dataset_col['Class'] == class_name]
             for metric in ['F1 (Default)', 'Precision (Default)', 'Recall (Default)']:
                 metric_col = class_col.loc[class_col['Metric'] == metric]
                 assert_that(metric_col['Value'] , close_to(1, 0.3))
