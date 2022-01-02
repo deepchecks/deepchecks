@@ -27,6 +27,7 @@ __all__ = ['PerformanceReport', 'MultiModelPerformanceReport']
 
 PR = TypeVar('PR', bound='PerformanceReport')
 
+
 class PerformanceReport(TrainTestBaseCheck):
     """Summarize given scores on a dataset and model.
 
