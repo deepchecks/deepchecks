@@ -100,9 +100,10 @@ def test_classification_nan_labels(iris_labeled_dataset, iris_adaboost):
     # Act X
     result = check.run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost).value
     # Assert
+    print(result)
     for dataset in ['Test', 'Train']:
         dataset_col = result.loc[result['Dataset'] == dataset]
-        for class_name in [float('nan'), 0.0, 1.0]:
+        for class_name in iris_labeled_dataset.classes:
             if np.isnan(class_name):
                 class_col = dataset_col.loc[np.isnan(dataset_col['Class'])]
             else:
