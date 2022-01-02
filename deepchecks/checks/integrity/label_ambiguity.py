@@ -53,10 +53,11 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
         """Run check.
 
         Args:
-          dataset(Dataset): any dataset.
+            dataset(Dataset): any dataset.
+            model (any): used to check task type (default: None)
 
         Returns:
-          (CheckResult): percentage of ambiguous samples and display of the top n_to_show most ambiguous.
+            (CheckResult): percentage of ambiguous samples and display of the top n_to_show most ambiguous.
         """
         dataset: Dataset = Dataset.validate_dataset(dataset)
         dataset = dataset.select(self.columns, self.ignore_columns)
