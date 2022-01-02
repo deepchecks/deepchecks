@@ -36,6 +36,7 @@ PIP_WIN := python -m pip
 PYTHON := $(BIN)/$(python)
 ANALIZE := $(BIN)/pylint
 COVERAGE := $(BIN)/coverage
+COVERALLS := $(BIN)/coveralls
 FLAKE8 := $(BIN)/flake8
 FLAKE8_RST := $(BIN)/flake8-rst
 TEST_RUNNER := $(BIN)/pytest
@@ -186,6 +187,8 @@ regenerate-examples: $(REQUIREMENTS_LOG)
 coverage: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 	$(COVERAGE) run -m pytest
 
+coveralls: coverage
+	$(COVERALLS) --service=github
 
 # This is Here For Legacy || future use case,
 # our PKGDIR is in its own directory so we dont really need to remove the ENV dir.
