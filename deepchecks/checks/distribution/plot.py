@@ -116,9 +116,6 @@ def feature_distribution_traces(train_column,
         Dict: layout of x axis
         Dicst: layout of y axis
     """
-    train_column = train_column.dropna()
-    test_column = test_column.dropna()
-
     if is_categorical:
         expected_percents, actual_percents, categories_list = \
             preprocess_for_psi(dist1=train_column, dist2=test_column, max_num_categories=max_num_categories)

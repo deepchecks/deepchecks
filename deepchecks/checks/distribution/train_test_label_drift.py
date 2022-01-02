@@ -142,7 +142,7 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
 
             score_bar = drift_score_bar_traces(score)
 
-            traces, xaxis_layout, yaxis_layout = feature_distribution_traces(train_column,
+            traces, xaxis_layout, yaxis_layout = feature_distribution_traces(train_dist,
                                                                              test_dist)
 
         elif column_type == 'categorical':
