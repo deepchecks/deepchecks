@@ -102,15 +102,16 @@ class SimpleModelComparison(TrainTestBaseCheck):
                 for scorer in scorers:
                     score_result: np.ndarray = scorer(model_instance, test_dataset)
                     # Multiclass scorers return numpy array of result per class in order of sorted classes
-                    for class_value, class_score in zip(score_result, test_dataset.classes):
+                    for class_score, class_value in zip(score_result, test_dataset.classes):
                         results.append([model_name, model_type, class_score, scorer.name, class_value])
 
             results_df = pd.DataFrame(results, columns=['Model', 'Type', 'Value', 'Metric', 'Class'])
 
             # Plot the metrics in a graph, grouping by the model and class
+            print(results_df)
             fig = px.bar(results_df, x=['Class', 'Model'], y='Value', color='Model', barmode='group',
                          facet_col='Metric', facet_col_spacing=0.05)
-            fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60)
+            fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60, type='category')
             fig.update_yaxes(title=None, matches=None)
             fig.for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
             fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
