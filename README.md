@@ -27,7 +27,7 @@
 </p>
 
 
-# Deepchecks - Test Suites for Validating Your ML Models and Data
+# Deepchecks - Test Suites for Validating ML Models and Data
 
 ![build](https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/deepchecks/badge/?version=latest)](https://docs.deepchecks.com/en/latest/?badge=latest)
@@ -79,30 +79,9 @@ suites in the [docs](https://docs.deepchecks.com/?utm_source=github.com&utm_medi
 
 ## Usage Examples
 
-### Running a Check
-For running a specific check on your pandas DataFrame, all you need to do is:
-
-```python
-from deepchecks.checks import TrainTestFeatureDrift
-import pandas as pd
-
-train_df = pd.read_csv('train_data.csv')
-train_df = pd.read_csv('test_data.csv')
-# Initialize and run desired check
-TrainTestFeatureDrift().run(train_data, test_data)
-```
-Which will product output of the type:
-><h4>Train Test Drift</h4>
-> <p>The Drift score is a measure for the difference between two distributions,
-> in this check - the test and train distributions. <br>
-> The check shows the drift score and distributions for the features,
-> sorted by feature importance and showing only the top 5 features, according to feature importance.
-> If available, the plot titles also show the feature importance (FI) rank.</p>
-> <p align="left">
->   <img src="docs/images/train-test-drift-output.png">
-> </p>
-
 ### Running a Suite
+A [Suite](#suite) runs a collection of [Checks](#check) with optional [Conditions](#condition) added to them.
+
 Let's take the "iris" dataset as an example
 ```python
 from sklearn.datasets import load_iris
@@ -184,13 +163,37 @@ Which will result in printing the suite outputs, starting with a summary of the 
       <td id="T_7735f_row6_col3" class="data row6 col3"></td>
     </tr>
   </tbody>
-> </table>
+</table>
 
 Followed by the visual outputs of all of the checks that are in that suite, that isn't appended here for brevity.
 
 For a full suite demonstration, check out the
 [**Quickstart Notebook**](https://docs.deepchecks.com/en/stable/examples/howto-guides/quickstart_in_5_minutes.html/?utm_source=github.com&utm_medium=referral&utm_campaign=readme)
 and apply it on your own data and models.
+
+
+### Running a Check
+For running a specific check on your pandas DataFrame, all you need to do is:
+
+```python
+from deepchecks.checks import TrainTestFeatureDrift
+import pandas as pd
+
+train_df = pd.read_csv('train_data.csv')
+train_df = pd.read_csv('test_data.csv')
+# Initialize and run desired check
+TrainTestFeatureDrift().run(train_data, test_data)
+```
+Which will product output of the type:
+><h4>Train Test Drift</h4>
+> <p>The Drift score is a measure for the difference between two distributions,
+> in this check - the test and train distributions. <br>
+> The check shows the drift score and distributions for the features,
+> sorted by feature importance and showing only the top 5 features, according to feature importance.
+> If available, the plot titles also show the feature importance (FI) rank.</p>
+> <p align="left">
+>   <img src="docs/images/train-test-drift-output.png">
+> </p>
 
 
 ## Key Concepts
