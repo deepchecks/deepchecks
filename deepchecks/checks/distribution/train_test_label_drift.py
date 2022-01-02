@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains Train Test Drift check."""
+"""Module contains Train Test label Drift check."""
 
 from typing import Tuple, Dict, Callable
 
