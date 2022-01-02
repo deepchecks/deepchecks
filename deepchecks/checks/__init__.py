@@ -61,7 +61,8 @@ from .performance import (
     RegressionSystematicError,
     RegressionErrorDistribution,
     ClassPerformance,
-    MultiModelPerformanceReport
+    MultiModelPerformanceReport,
+    ModelErrorAnalysis
 )
 
 
@@ -114,5 +115,6 @@ __all__ = [
     'RegressionSystematicError',
     'RegressionErrorDistribution',
     'ClassPerformance',
-    'MultiModelPerformanceReport'
+    'MultiModelPerformanceReport',
+    'ModelErrorAnalysis'
 ]

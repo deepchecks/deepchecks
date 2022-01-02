@@ -13,6 +13,8 @@ from typing import Dict
 
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, TrainTestBaseCheck, ConditionResult
+from deepchecks.errors import DeepchecksValueError
+from deepchecks.utils.metrics import task_type_validation, ModelType
 from deepchecks.utils.strings import format_percent
 
 import pandas as pd
@@ -32,7 +34,7 @@ class NewLabelTrainTest(TrainTestBaseCheck):
         Args:
             train_dataset (Dataset): The training dataset object.
             test_dataset (Dataset): The test dataset object.
-            model: any = None - not used in the check
+            model (any): used to check task type (default: None)
 
         Returns:
             CheckResult: value is a dictionary that shows label column with new labels
@@ -42,14 +44,20 @@ class NewLabelTrainTest(TrainTestBaseCheck):
             DeepchecksValueError: If the datasets are not a Dataset instance or do not contain label column
         """
         return self._new_label_train_test(train_dataset=train_dataset,
-                                          test_dataset=test_dataset)
+                                          test_dataset=test_dataset,
+                                          model=model)
 
-    def _new_label_train_test(self, train_dataset: Dataset, test_dataset: Dataset):
-        test_dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
-        train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
+    def _new_label_train_test(self, train_dataset: Dataset, test_dataset: Dataset, model: any = None):
+        test_dataset = Dataset.validate_dataset(test_dataset)
+        train_dataset = Dataset.validate_dataset(train_dataset)
         test_dataset.validate_label()
         train_dataset.validate_label()
         test_dataset.validate_shared_label(train_dataset)
+
+        if model:
+            task_type_validation(model, train_dataset, [ModelType.MULTICLASS, ModelType.BINARY])
+        elif train_dataset.label_type == 'regression_label':
+            raise DeepchecksValueError('Task type cannot be regression')
 
         label_column = train_dataset.validate_shared_label(test_dataset)
 
