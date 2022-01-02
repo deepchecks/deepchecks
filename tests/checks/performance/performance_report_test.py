@@ -132,7 +132,7 @@ def test_condition_min_score_not_passed(iris_split_dataset_and_model):
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                details=re.compile(r'Scores that did not passed the threshold:<br>'
-                                                  r'\[\{\'Dataset\': \'Train'),
+                                                  r'\[\{\'Dataset\': \'Test'),
                                name='Scores are not less than 1')
     ))
 
