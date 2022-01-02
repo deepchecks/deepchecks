@@ -130,7 +130,7 @@ def test_check_suite_instantiation_by_extending_another_check_suite():
             "inner1",
             builtin_checks.MixedNulls(),
             base.Suite("inner2", builtin_checks.MixedDataTypes()),
-            builtin_checks.TrainTestDifferenceOverfit()
+            builtin_checks.PerformanceReport()
         )
     )
 
@@ -144,5 +144,5 @@ def test_check_suite_instantiation_by_extending_another_check_suite():
         builtin_checks.IsSingleValue,
         builtin_checks.MixedNulls,
         builtin_checks.MixedDataTypes,
-        builtin_checks.TrainTestDifferenceOverfit
+        builtin_checks.PerformanceReport
     ]

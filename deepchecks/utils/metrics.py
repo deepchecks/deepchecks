@@ -73,14 +73,14 @@ MULTICLASS_SCORERS_NON_AVERAGE = {
 DEFAULT_REGRESSION_SCORERS = {
     'Neg RMSE (Default)': 'neg_root_mean_squared_error',
     'Neg MAE (Default)': 'neg_mean_absolute_error',
-    'R2': 'r2'
+    'R2 (Default)': 'r2'
 }
 
 
 DEFAULT_SINGLE_SCORER = {
     ModelType.BINARY: 'Accuracy (Default)',
     ModelType.MULTICLASS: 'Accuracy (Default)',
-    ModelType.REGRESSION: 'RMSE (Default)'
+    ModelType.REGRESSION: 'Neg RMSE (Default)'
 }
 
 DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG = 'F1 (Default)'
