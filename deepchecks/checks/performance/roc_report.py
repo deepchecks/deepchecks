@@ -9,14 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """The roc_report check module."""
-from itertools import cycle
 from typing import Dict, List
-from matplotlib import pyplot as plt
-import plotly.graph_objects as go
 
+import plotly.graph_objects as go
 import numpy as np
 import sklearn
 from sklearn.base import BaseEstimator
+
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck
 from deepchecks.base.check import ConditionResult
 from deepchecks.utils.metrics import ModelType, task_type_validation
