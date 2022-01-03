@@ -15,7 +15,7 @@ from collections import OrderedDict
 from typing import Union, List, Optional, Tuple, Any, Container, Mapping
 
 from deepchecks.base.display_suite import display_suite_result, ProgressBar
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.base import Dataset
 from deepchecks.base.check import (CheckResult, TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck,
                                    CheckFailure, ModelComparisonBaseCheck, ModelComparisonContext)
@@ -163,6 +163,8 @@ class Suite(BaseSuite):
                         check_result = check.run(train_dataset=train_dataset, test_dataset=test_dataset,
                                                  model=model)
                         results.append(check_result)
+                    else:
+                        results.append(Suite._get_unsupported_failure(check))
                 elif isinstance(check, SingleDatasetBaseCheck):
                     if train_dataset is not None:
                         check_result = check.run(dataset=train_dataset, model=model)
@@ -172,10 +174,14 @@ class Suite(BaseSuite):
                         check_result = check.run(dataset=test_dataset, model=model)
                         check_result.header = f'{check_result.get_header()} - Test Dataset'
                         results.append(check_result)
+                    if train_dataset is None and test_dataset is None:
+                        results.append(Suite._get_unsupported_failure(check))
                 elif isinstance(check, ModelOnlyBaseCheck):
                     if model is not None:
                         check_result = check.run(model=model)
                         results.append(check_result)
+                    else:
+                        results.append(Suite._get_unsupported_failure(check))
                 else:
                     raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
             except Exception as exp:
@@ -184,6 +190,11 @@ class Suite(BaseSuite):
 
         progress_bar.close()
         return SuiteResult(self.name, results)
+
+    @classmethod
+    def _get_unsupported_failure(cls, check):
+        msg = 'Check is not supported for parameters given to suite'
+        return CheckFailure(check.__class__, DeepchecksNotSupportedError(msg))
 
 
 class ModelComparisonSuite(BaseSuite):
