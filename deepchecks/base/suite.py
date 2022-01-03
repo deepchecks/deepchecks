@@ -167,8 +167,8 @@ class Suite(BaseSuite):
                         results.append(Suite._get_unsupported_failure(check))
                 elif isinstance(check, SingleDatasetBaseCheck):
                     if train_dataset is not None:
-                        # In case of train & test, doesn't want to fail test if train fails. so have to explicitly
-                        # wrap it
+                        # In case of train & test, doesn't want to skip test if train fails. so have to explicitly
+                        # wrap it in try/except
                         try:
                             check_result = check.run(dataset=train_dataset, model=model)
                             check_result.header = f'{check_result.get_header()} - Train Dataset'
