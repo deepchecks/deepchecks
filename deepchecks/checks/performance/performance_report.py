@@ -159,7 +159,7 @@ class PerformanceReport(TrainTestBaseCheck):
                     return 0
                 return threshold + 1
             return (score_1 - score_2) / score_1
-            
+
         def condition(check_result: pd.DataFrame) -> ConditionResult:
             test_scores = check_result.loc[check_result['Dataset'] == 'Test']
             train_scores = check_result.loc[check_result['Dataset'] == 'Train']
