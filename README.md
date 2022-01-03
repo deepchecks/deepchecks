@@ -88,7 +88,7 @@ from sklearn.datasets import load_iris
 iris_df = load_iris(return_X_y=False, as_frame=True)['frame']
 ```
 To run an existing suite all you need to do is to import the suite and to run it with the
-required (suite-dependant) input parameters
+required (suite-dependent) input parameters
 
 ```python
 from deepchecks.suites import single_dataset_integrity
@@ -175,7 +175,7 @@ and apply it on your own data and models.
 
 ### Running a Check
 To run a specific single check, all you need to do is import it and
-then to run it with the required (check-dependant) input parameters.
+then to run it with the required (check-dependent) input parameters.
 More details about the existing checks and the parameters they can receive can be found in our
 [API Reference](https://docs.deepchecks.com/en/stable/api/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme)
 
