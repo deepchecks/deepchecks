@@ -137,7 +137,7 @@ class DeepcheckScorer:
         """Validate given scorer for the model and dataset."""
         df = self.filter_nulls(dataset)
         if should_return_array:
-            # In order for multiclass scorer to return array in right length need to pass him samples from all labels
+            # In order for scorer to return array in right length need to pass him samples from all labels
             single_label_data = df.groupby(dataset.label_name).head(1)
             result = self._run_score(model, single_label_data, dataset)
             if not isinstance(result, np.ndarray):
@@ -157,7 +157,9 @@ class DeepcheckScorer:
                                                   f'returned only {len(result)} elements in the score array value')
 
         else:
-            result = self._run_score(model, df.head(2), dataset)
+            # In order for scorer to return array in right length need to pass him samples from all labels
+            single_label_data = df.groupby(dataset.label_name).head(1)
+            result = self._run_score(model, single_label_data, dataset)
             if not isinstance(result, Number):
                 raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return number '
                                                   f'but got: {type(result).__name__}')
