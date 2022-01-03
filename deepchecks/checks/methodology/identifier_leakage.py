@@ -16,10 +16,9 @@ import pandas as pd
 import deepchecks.ppscore as pps
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
-from deepchecks.utils.plot import create_colorbar_barchart_for_check
 from deepchecks.utils.strings import format_percent
 from deepchecks.errors import DeepchecksValueError
-
+import plotly.express as px
 
 __all__ = ['IdentifierLeakage']
 
@@ -67,18 +66,38 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
         df_pps = df_pps.set_index('x', drop=True)
         s_ppscore = df_pps['ppscore']
 
-        def plot():
-            # Create graph:
-            create_colorbar_barchart_for_check(x=s_ppscore.index, y=s_ppscore.values,
-                                               ylabel='predictive power score (PPS)',
-                                               xlabel='Identifiers', color_map='gist_heat_r', color_shift_midpoint=0.1,
-                                               color_label='PPS', check_name=self.__class__.__name__)
+        xaxis_layout = dict(title='Identifiers', type='category')
+        yaxis_layout = dict(fixedrange=True,
+                            range=(0, 1),
+                            title='predictive power score (PPS)')
+
+        red_heavy_colorscale = [
+            [0, 'rgb(255, 255, 255)'],  # jan
+            [0.1, 'rgb(255,155,100)'],
+            [0.2, 'rgb(255, 50, 50)'],
+            [0.3, 'rgb(200, 0, 0)'],
+            [1, 'rgb(55, 0, 0)']
+        ]
+
+        figure = px.bar(s_ppscore, x=s_ppscore.index, y='ppscore', color='ppscore',
+                        color_continuous_scale=red_heavy_colorscale)
+        figure.update_layout(width=700, height=400)
+        figure.update_layout(
+            dict(
+                xaxis=xaxis_layout,
+                yaxis=yaxis_layout,
+                coloraxis=dict(
+                    cmin=0,
+                    cmax=1
+                )
+            )
+        )
 
         text = ['The PPS represents the ability of a feature to single-handedly predict another feature or label.',
                 'For Identifier columns (Index/Date) PPS should be nearly 0, otherwise date and index have some '
                 'predictive effect on the label.']
 
-        return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text])
+        return CheckResult(value=s_ppscore.to_dict(), display=[figure, *text])
 
     def add_condition_pps_not_greater_than(self, max_pps: float = 0):
         """Add condition - require columns not to have a greater pps than given max.
