@@ -10,14 +10,13 @@
 #
 """Contains unit tests for the Dataset class."""
 import typing as t
-from unittest import TestCase
 
 import numpy as np
 import pandas as pd
 from sklearn.datasets import load_iris
 from hamcrest import (
     assert_that, instance_of, equal_to, is_,
-    calling, raises, not_none, has_property, all_of, contains_exactly
+    calling, raises, not_none, has_property, all_of, contains_exactly, has_item
 )
 
 from deepchecks import Dataset
@@ -770,3 +769,37 @@ def test_set_label_type(iris):
     dataset = Dataset(data, label, label_type='regression_label')
     # Assert
     assert_that(dataset.label_type, is_('regression_label'))
+
+
+def test_label_series_name_already_exists(iris):
+    # Arrange
+    label = iris['target']
+    data = iris.drop('target', axis=1)
+    label = label.rename(iris.columns[0])
+
+    # Act & Assert
+    assert_that(calling(Dataset).with_args(data, label=label),
+                raises(DeepchecksValueError, 'Data has column with name "sepal length (cm)", use pandas rename to '
+                                             'change label name or remove the column from the dataframe'))
+
+
+def test_label_series_without_name_default_name_exists(iris):
+    # Arrange
+    label = pd.Series([0] * len(iris))
+
+    # Act & Assert
+    assert_that(iris.columns, has_item('target'))
+    assert_that(calling(Dataset).with_args(iris, label=label),
+                raises(DeepchecksValueError, 'Can\'t set default label name "target" since it already exists in the '
+                                             'dataframe. use pandas name parameter to give the label a unique name'))
+
+
+def test_label_is_numpy_array(iris):
+    # Arrange
+    label = np.array([0] * len(iris))
+    data = iris.drop('target', axis=1)
+    # Act
+    dataset = Dataset(data, label)
+    # Assert
+    assert_that(dataset.features, equal_to(list(data.columns)))
+    assert_that(dataset.data.columns, contains_exactly(*data.columns, 'target'))
