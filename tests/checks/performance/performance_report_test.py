@@ -85,7 +85,7 @@ def test_classification_binary(iris_dataset_single_class_labeled):
     # Assert
     for dataset in ['Test', 'Train']:
         dataset_col = result.loc[result['Dataset'] == dataset]
-        for metric in ['Accuracy (Default)', 'Precision (Default)', 'Recall (Default)']:
+        for metric in dataset_col['Metric'].unique():
             metric_col = dataset_col.loc[dataset_col['Metric'] == metric]
             assert_that(metric_col['Value'], close_to(1, 0.3))
 

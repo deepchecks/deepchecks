@@ -157,7 +157,7 @@ class DeepcheckScorer:
                                                   f'returned only {len(result)} elements in the score array value')
 
         else:
-            # In order for scorer to return array in right length need to pass him samples from all labels
+            # In order for scorer to run, it must have at least one sample of each label.
             single_label_data = df.groupby(dataset.label_name).head(1)
             result = self._run_score(model, single_label_data, dataset)
             if not isinstance(result, Number):
