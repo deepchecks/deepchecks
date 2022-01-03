@@ -10,12 +10,11 @@
 #
 """Common utilities for distribution checks."""
 
-from typing import Tuple, List, Union, Hashable, Callable
+from typing import Tuple, Union, Hashable, Callable
 
 from scipy.stats import wasserstein_distance
 import numpy as np
 import pandas as pd
-from collections import Counter
 
 from sklearn.impute import SimpleImputer
 
@@ -28,7 +27,8 @@ from deepchecks.checks.distribution.preprocessing import preprocess_2_cat_cols_t
 PSI_MIN_PERCENTAGE = 0.01
 
 
-__all__ = ['PandasSimpleImputer', 'preprocess_2_cat_cols_to_same_bins', 'psi', 'earth_movers_distance', 'calc_drift_and_plot']
+__all__ = ['PandasSimpleImputer', 'preprocess_2_cat_cols_to_same_bins', 'psi', 'earth_movers_distance',
+           'calc_drift_and_plot']
 
 
 class PandasSimpleImputer(SimpleImputer):
@@ -179,4 +179,3 @@ def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, plot_ti
     fig.update_layout(shared_layout)
 
     return score, scorer_name, fig
-

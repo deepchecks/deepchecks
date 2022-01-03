@@ -118,7 +118,8 @@ def feature_distribution_traces(train_column,
     """
     if is_categorical:
         expected_percents, actual_percents, categories_list = \
-            preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column, max_num_categories=max_num_categories)
+            preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column,
+                                               max_num_categories=max_num_categories)
         cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
                               index=categories_list)
         train_bar = go.Bar(
