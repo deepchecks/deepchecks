@@ -10,7 +10,8 @@
 #
 """Test feature importance utils"""
 import pandas as pd
-from hamcrest import equal_to, assert_that, calling, raises, close_to, not_none, none
+import pytest
+from hamcrest import equal_to, assert_that, calling, raises, close_to, not_none, none, has_length
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.neural_network import MLPClassifier
@@ -110,3 +111,12 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     sorted_df = column_importance_sorter_df(columns_info_df, train, feature_importances, num_values)
 
     assert_that(list(sorted_df.index), equal_to(feature_importances_sorted))
+
+
+def test_no_warning_on_none_model(iris_dataset):
+    # Act
+    with pytest.warns(None) as warn_record:
+        fi = calculate_feature_importance_or_none(None, iris_dataset)
+    # Assert
+    assert_that(fi, none())
+    assert_that(warn_record, has_length(0))
