@@ -92,7 +92,7 @@ class RocReport(SingleDatasetBaseCheck):
         fig.add_trace(go.Scatter(
                     x=[0, 1],
                     y=[0, 1],
-                    line=dict(color="#444"),
+                    line=dict(color='#444'),
                     line_width=2, line_dash='dash',
                     showlegend=False
                 ))
