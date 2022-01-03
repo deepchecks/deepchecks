@@ -57,7 +57,7 @@ class RocReport(SingleDatasetBaseCheck):
 
         ds_x = dataset.features_columns
         ds_y = dataset.label_col
-        dataset_classes =dataset.classes
+        dataset_classes = dataset.classes
         multi_y = (np.array(ds_y)[:, None] == np.unique(ds_y)).astype(int)
         y_pred_prob = model.predict_proba(ds_x)
 
