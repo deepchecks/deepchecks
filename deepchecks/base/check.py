@@ -14,6 +14,7 @@ import abc
 import enum
 import inspect
 import re
+import traceback
 from collections import OrderedDict
 from functools import wraps
 from typing import Any, Callable, List, Union, Dict, cast, Mapping
@@ -498,6 +499,13 @@ class ModelComparisonBaseCheck(BaseCheck):
 class CheckFailure:
     """Class which holds a run exception of a check."""
 
-    def __init__(self, check: Any, exception: Exception):
+    def __init__(self, check: BaseCheck, exception: Exception):
         self.check = check
         self.exception = exception
+        self.header = check.name()
+
+    def __repr__(self):
+        """Return string representation."""
+        tb_str = traceback.format_exception(etype=type(self.exception), value=self.exception,
+                                            tb=self.exception.__traceback__)
+        return ''.join(tb_str)
