@@ -11,18 +11,15 @@
 """Module contains Train Test Drift check."""
 
 from collections import OrderedDict
-from typing import Union, Tuple, List, Dict, Callable, Optional
+from typing import Union, List, Dict, Optional
 
 import pandas as pd
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.checks.distribution.plot import drift_score_bar_traces, feature_distribution_traces
-from deepchecks.checks.distribution.dist_utils import preprocess_for_psi, earth_movers_distance, psi
+from deepchecks.checks.distribution.dist_utils import calc_drift_and_plot
 from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 
 __all__ = ['TrainTestFeatureDrift']
@@ -125,12 +122,19 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
         for column in features:
-            value, method, display = self._calc_drift_per_column(
+            if feature_importances is not None:
+                fi_rank_series = feature_importances.rank(method='first', ascending=False)
+                fi_rank = fi_rank_series[column]
+                plot_title = f'{column} (#{int(fi_rank)} in FI)'
+            else:
+                plot_title = column
+
+            value, method, display = calc_drift_and_plot(
                 train_column=train_dataset.data[column],
                 test_column=test_dataset.data[column],
-                column_name=column,
+                plot_title=plot_title,
                 column_type='categorical' if column in cat_features else 'numerical',
-                feature_importances=feature_importances
+                max_num_categories=self.max_num_categories
             )
             values_dict[column] = {
                 'Drift score': value,
@@ -157,94 +161,6 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         displays = [headnote] + [displays_dict[col] for col in columns_order]
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Drift')
-
-    def _calc_drift_per_column(self, train_column: pd.Series, test_column: pd.Series, column_name: Hashable,
-                               column_type: str, feature_importances: pd.Series = None
-                               ) -> Tuple[float, str, Callable]:
-        """
-        Calculate drift score per column.
-
-        Args:
-            train_column: column from train dataset
-            test_column: same column from test dataset
-            column_name: name of column
-            column_type: type of column (either "numerical" or "categorical")
-            feature_importances: feature importances series
-
-        Returns:
-            score: drift score of the difference between the two columns' distributions (Earth movers distance for
-            numerical, PSI for categorical)
-            display: graph comparing the two distributions (density for numerical, stack bar for categorical)
-        """
-        train_dist = train_column.dropna().values.reshape(-1)
-        test_dist = test_column.dropna().values.reshape(-1)
-
-        if feature_importances is not None:
-            fi_rank_series = feature_importances.rank(method='first', ascending=False)
-            fi_rank = fi_rank_series[column_name]
-            plot_title = f'{column_name} (#{int(fi_rank)} in FI)'
-        else:
-            plot_title = column_name
-
-        if column_type == 'numerical':
-            scorer_name = "Earth Mover's Distance"
-            score = earth_movers_distance(dist1=train_column.astype('float'), dist2=test_column.astype('float'))
-            bar_stop = max(0.4, score + 0.1)
-
-            score_bar = drift_score_bar_traces(score)
-
-            traces, xaxis_layout, yaxis_layout = feature_distribution_traces(train_dist,
-                                                                             test_dist)
-
-        elif column_type == 'categorical':
-            scorer_name = 'PSI'
-            expected_percents, actual_percents, _ = \
-                preprocess_for_psi(dist1=train_dist, dist2=test_dist, max_num_categories=self.max_num_categories)
-            score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
-            bar_stop = max(0.4, score + 0.1)
-
-            score_bar = drift_score_bar_traces(score)
-
-            traces, xaxis_layout, yaxis_layout = feature_distribution_traces(train_dist,
-                                                                             test_dist,
-                                                                             is_categorical=True,
-                                                                             max_num_categories=self.max_num_categories)
-
-        fig = make_subplots(rows=2, cols=1, vertical_spacing=0.4, shared_yaxes=False, shared_xaxes=False,
-                            row_heights=[0.1, 0.9],
-                            subplot_titles=['Drift Score - ' + scorer_name, plot_title])
-
-        fig.add_traces(score_bar, rows=[1] * len(score_bar), cols=[1] * len(score_bar))
-        fig.add_traces(traces, rows=[2] * len(traces), cols=[1] * len(traces))
-
-        shared_layout = go.Layout(
-            xaxis=dict(
-                showgrid=False,
-                gridcolor='black',
-                linecolor='black',
-                range=[0, bar_stop],
-                dtick=0.05,
-                title='drift score'
-            ),
-            yaxis=dict(
-                showgrid=False,
-                showline=False,
-                showticklabels=False,
-                zeroline=False,
-            ),
-            xaxis2=xaxis_layout,
-            yaxis2=yaxis_layout,
-            legend=dict(
-                title='Dataset',
-                yanchor='top',
-                y=0.6),
-            width=700,
-            height=400
-        )
-
-        fig.update_layout(shared_layout)
-
-        return score, scorer_name, fig
 
     def add_condition_drift_score_not_greater_than(self, max_allowed_psi_score: float = 0.2,
                                                    max_allowed_earth_movers_score: float = 0.1,
