@@ -779,8 +779,8 @@ def test_label_series_name_already_exists(iris):
 
     # Act & Assert
     assert_that(calling(Dataset).with_args(data, label=label),
-                raises(DeepchecksValueError, 'Data has column with name "sepal length (cm)", use pandas rename to '
-                                             'change label name or remove the column from the dataframe'))
+                raises(DeepchecksValueError, r'Data has column with name "sepal length \(cm\)", use pandas rename to '
+                                             r'change label name or remove the column from the dataframe'))
 
 
 def test_label_series_without_name_default_name_exists(iris):
@@ -790,8 +790,8 @@ def test_label_series_without_name_default_name_exists(iris):
     # Act & Assert
     assert_that(iris.columns, has_item('target'))
     assert_that(calling(Dataset).with_args(iris, label=label),
-                raises(DeepchecksValueError, 'Can\'t set default label name "target" since it already exists in the '
-                                             'dataframe. use pandas name parameter to give the label a unique name'))
+                raises(DeepchecksValueError, r'Can\'t set default label name "target" since it already exists in the '
+                                             r'dataframe\. use pandas name parameter to give the label a unique name'))
 
 
 def test_label_is_numpy_array(iris):
