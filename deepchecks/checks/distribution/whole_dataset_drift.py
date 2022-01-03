@@ -132,7 +132,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
 
         y_test.name = 'belongs_to_test'
         domain_test_dataset = Dataset(pd.concat([x_test.reset_index(drop=True), y_test.reset_index(drop=True)], axis=1),
-                                      cat_features=cat_features, label_name='belongs_to_test')
+                                      cat_features=cat_features, label='belongs_to_test')
 
         # calculate feature importance of domain_classifier, containing the information which features separate
         # the dataset best.

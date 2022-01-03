@@ -40,7 +40,7 @@ def test_multiclass_model(iris_split_dataset_and_model):
     _, test, clf = iris_split_dataset_and_model
     assert_that(calling(RegressionSystematicError().run).with_args(test, clf),
                 raises(DeepchecksValueError, r'Expected model to be a type from'
-                                           r' \[\'regression\'\], but received model of type: multiclass'))
+                                             r' \[\'regression\'\], but received model of type: multiclass'))
 
 
 def test_regression_error(diabetes_split_dataset_and_model):
@@ -57,7 +57,7 @@ def test_regression_error(diabetes_split_dataset_and_model):
 def test_condition_error_ratio_not_greater_than_not_passed(diabetes_split_dataset_and_model):
     # Arrange
     _, test, clf = diabetes_split_dataset_and_model
-    test = Dataset(test.data.copy(), label_name='target')
+    test = Dataset(test.data.copy(), label='target')
     test._data[test.label_name] = 300
 
     check = RegressionSystematicError().add_condition_systematic_error_ratio_to_rmse_not_greater_than()
@@ -84,6 +84,7 @@ def test_condition_error_ratio_not_greater_than_passed(diabetes_split_dataset_an
         equal_condition_result(is_pass=True,
                                name='Bias ratio is not greater than 0.01')
     )) 
+
 
 def test_condition_error_ratio_not_greater_than_not_passed_0_max(diabetes_split_dataset_and_model):
     _, test, clf = diabetes_split_dataset_and_model

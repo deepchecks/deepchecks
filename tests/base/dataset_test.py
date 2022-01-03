@@ -216,7 +216,7 @@ def test_dataset_infer_cat_features_max_categorical_ratio(diabetes_df):
 
 def test_dataset_label_name(iris):
     args = {'df': iris,
-            'label_name': 'target'}
+            'label': 'target'}
     dataset = Dataset(**args)
     assert_dataset(dataset, args)
 
@@ -228,14 +228,14 @@ def test_dataset_label_name_in_features(iris):
                          'petal length (cm)',
                          'petal width (cm)',
                          'target'],
-            'label_name': 'target'}
+            'label': 'target'}
     assert_that(calling(Dataset).with_args(**args),
                 raises(DeepchecksValueError, 'label column target can not be a feature column'))
 
 
 def test_dataset_bad_label_name(iris):
     args = {'df': iris,
-            'label_name': 'shmabel'}
+            'label': 'shmabel'}
     assert_that(calling(Dataset).with_args(**args),
                 raises(DeepchecksValueError, 'label column shmabel not found in dataset columns'))
 
@@ -425,7 +425,7 @@ def test_dataset_no_index_col(iris):
 
 
 def test_dataset_validate_label(iris):
-    dataset = Dataset(iris, label_name='target')
+    dataset = Dataset(iris, label='target')
     dataset.validate_label()
 
 
@@ -682,7 +682,7 @@ def test_dataset_initialization_with_integer_columns():
     dataset = Dataset(
         df=df,
         features=[0, 1, 2],
-        label_name=3,
+        label=3,
         cat_features=[0],
     )
 
@@ -712,10 +712,10 @@ def test_dataset_label_without_name(iris):
 
 def test_dataset_label_with_name(iris):
     # Arrange
-    label = iris['target']
+    label = iris['target'].rename('actual')
     data = iris.drop('target', axis=1)
     # Act
-    dataset = Dataset(data, label, label_name='actual')
+    dataset = Dataset(data, label)
     # Assert
     assert_that(dataset.features, equal_to(list(data.columns)))
     assert_that(dataset.data.columns, contains_exactly(*data.columns, 'actual'))
@@ -723,9 +723,9 @@ def test_dataset_label_with_name(iris):
 
 def test_train_test_split(iris):
     # Arrange
-    label = iris['target']
+    label = iris['target'].rename('actual')
     data = iris.drop('target', axis=1)
-    dataset = Dataset(data, label, label_name='actual')
+    dataset = Dataset(data, label)
     # Act
     train_ds, test_ds = dataset.train_test_split()
     # Assert
@@ -735,9 +735,9 @@ def test_train_test_split(iris):
 
 def test_train_test_split_changed(iris):
     # Arrange
-    label = iris['target']
+    label = iris['target'].rename('actual')
     data = iris.drop('target', axis=1)
-    dataset = Dataset(data, label, label_name='actual')
+    dataset = Dataset(data, label)
     # Act
     train_ds, test_ds = dataset.train_test_split(train_size=0.2, test_size=0.1)
     # Assert
@@ -747,26 +747,26 @@ def test_train_test_split_changed(iris):
 
 def test_inferred_label_type_cat(diabetes_df):
     # Arrange
-    label = diabetes_df['target']
+    label = diabetes_df['target'].rename('actual')
     data = diabetes_df.drop('target', axis=1)
-    dataset = Dataset(data, label, label_name='actual')
+    dataset = Dataset(data, label)
     # Assert
     assert_that(dataset.label_type, is_('regression_label'))
 
 
 def test_inferred_label_type_reg(iris):
     # Arrange
-    label = iris['target']
+    label = iris['target'].rename('actual')
     data = iris.drop('target', axis=1)
-    dataset = Dataset(data, label, label_name='actual')
+    dataset = Dataset(data, label)
     # Assert
     assert_that(dataset.label_type, is_('classification_label'))
 
 
 def test_set_label_type(iris):
     # Arrange
-    label = iris['target']
+    label = iris['target'].rename('actual')
     data = iris.drop('target', axis=1)
-    dataset = Dataset(data, label, label_name='actual', label_type='regression_label')
+    dataset = Dataset(data, label, label_type='regression_label')
     # Assert
     assert_that(dataset.label_type, is_('regression_label'))

@@ -123,7 +123,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         dataset = pd.read_csv(_FULL_DATA_URL)
 
         if data_format == 'Dataset':
-            dataset = Dataset(dataset, label_name='AveragePrice', cat_features=_CAT_FEATURES, datetime_name='Date')
+            dataset = Dataset(dataset, label='AveragePrice', cat_features=_CAT_FEATURES, datetime_name='Date')
 
         return dataset
     else:
@@ -131,8 +131,8 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         test = pd.read_csv(_TEST_DATA_URL)
 
         if data_format == 'Dataset':
-            train = Dataset(train, label_name='AveragePrice', cat_features=_CAT_FEATURES, datetime_name='Date')
-            test = Dataset(test, label_name='AveragePrice', cat_features=_CAT_FEATURES, datetime_name='Date')
+            train = Dataset(train, label='AveragePrice', cat_features=_CAT_FEATURES, datetime_name='Date')
+            test = Dataset(test, label='AveragePrice', cat_features=_CAT_FEATURES, datetime_name='Date')
 
         return train, test
 
