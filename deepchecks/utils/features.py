@@ -79,6 +79,8 @@ def calculate_feature_importance_or_none(
             or None if the input is incorrect
     """
     try:
+        if model is None:
+            return None
         # calculate feature importance if dataset has label and the model is fitted on it
         return calculate_feature_importance(
             model=model,
