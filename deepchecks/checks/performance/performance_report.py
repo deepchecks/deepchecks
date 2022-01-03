@@ -151,7 +151,7 @@ class PerformanceReport(TrainTestBaseCheck):
         """Add condition that will check that test performance is not degraded by more than given percentage in train.
 
         Args:
-            threshold: maximum degradation ratio allowed (value between 0 to 1)
+            threshold: maximum degradation ratio allowed (value between 0 and 1)
         """
         def condition(check_result: pd.DataFrame) -> ConditionResult:
             test_scores = check_result.loc[check_result['Dataset'] == 'Test']
