@@ -1,20 +1,8 @@
-<!--
-  ~ ----------------------------------------------------------------------------
-  ~ Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
-  ~
-  ~ This file is part of Deepchecks.
-  ~ Deepchecks is distributed under the terms of the GNU Affero General
-  ~ Public License (version 3 or later).
-  ~ You should have received a copy of the GNU Affero General Public License
-  ~ along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
-  ~ ----------------------------------------------------------------------------
-  ~
--->
 ---
 name: Bug report
 about: Create a report to help us improve
-title: "[BUG] "
-labels: ''
+title: "[BUG]:"
+labels: bug
 assignees: ''
 
 ---
@@ -35,10 +23,16 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Environment (please complete the following information):**
- - OS: 
- - Python Version
- - Deepchecks Version
+**Desktop (please complete the following information):**
+ - OS: [e.g. iOS]
+ - Browser [e.g. chrome, safari]
+ - Version [e.g. 22]
+
+**Smartphone (please complete the following information):**
+ - Device: [e.g. iPhone6]
+ - OS: [e.g. iOS8.1]
+ - Browser [e.g. stock browser, safari]
+ - Version [e.g. 22]
 
 **Additional context**
 Add any other context about the problem here.
