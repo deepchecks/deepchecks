@@ -232,8 +232,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
                 title='Dataset',
                 yanchor='top',
                 y=0.9,
-                xanchor='left',
-                x=0.85),
+                xanchor='left'),
             width=700,
             height=300
         ))
