@@ -58,12 +58,16 @@ class SimpleModelComparison(TrainTestBaseCheck):
     For every scorer higher scores are better than lower scores.
 
     You can create a scorer out of existing sklearn metrics:
+
     .. code-block:: python
+
         from sklearn.metrics import roc_auc_score, make_scorer
         auc_scorer = make_scorer(roc_auc_score)
 
     Or you can implement your own:
+
     .. code-block:: python
+
         from sklearn.metrics import make_scorer
 
 
