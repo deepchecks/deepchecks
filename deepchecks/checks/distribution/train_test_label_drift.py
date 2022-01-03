@@ -230,3 +230,4 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
         return self.add_condition(f'PSI and Earth Mover\'s Distance for label drift cannot be greater than '
                                   f'{max_allowed_psi_score} or {max_allowed_earth_movers_score} respectively',
                                   condition)
+
