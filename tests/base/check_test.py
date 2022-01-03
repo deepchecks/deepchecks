@@ -105,10 +105,14 @@ def test_remove_condition_index_error():
 
 
 def test_condition_decision():
+    def raise_(ex):  # just to test error in condition
+        raise ex
+
     # Arrange
-    check = (DummyCheck().add_condition('condition A', lambda r: True)
-             .add_condition('condition B', lambda r: ConditionResult(False, 'some result'))
-             .add_condition('condition C', lambda r: ConditionResult(False, 'my actual', ConditionCategory.WARN)))
+    check = (DummyCheck().add_condition('condition A', lambda _: True)
+             .add_condition('condition B', lambda _: ConditionResult(False, 'some result'))
+             .add_condition('condition C', lambda _: ConditionResult(False, 'my actual', ConditionCategory.WARN))
+             .add_condition('condition F', lambda _: raise_(Exception('fail'))))
 
     decisions = check.conditions_decision(CheckResult(1))
 
@@ -131,6 +135,12 @@ def test_condition_decision():
             has_property('is_pass', equal_to(False)),
             has_property('category', ConditionCategory.WARN),
             has_property('details', 'my actual')
+        ),
+        all_of(
+            has_property('name', 'condition F'),
+            has_property('is_pass', equal_to(False)),
+            has_property('category', ConditionCategory.WARN),
+            has_property('details', 'Exception in condition: Exception: fail')
         )
     ))
 

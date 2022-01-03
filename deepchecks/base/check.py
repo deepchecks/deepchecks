@@ -303,7 +303,11 @@ class BaseCheck(metaclass=abc.ABCMeta):
         results = []
         condition: Condition
         for condition in self._conditions.values():
-            output = condition.function(result.value, **condition.params)
+            try:
+                output = condition.function(result.value, **condition.params)
+            except Exception as e:
+                msg = f'Exception in condition: {e.__class__.__name__}: {str(e)}'
+                output = ConditionResult(False, msg, ConditionCategory.WARN)
             if isinstance(output, bool):
                 output = ConditionResult(output)
             elif not isinstance(output, ConditionResult):
