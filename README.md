@@ -14,7 +14,7 @@
   &emsp;
   <a href="https://deepchecks.com/blog/?utm_source=github.com&utm_medium=referral&utm_campaign=readme">Blog</a>
   &emsp; | &emsp; 
-  <a href="https://https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme">Documentation</a>
+  <a href="https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme">Documentation</a>
   &emsp; | &emsp; 
   <a href="https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg">Join&nbsp;Slack</a>
   &emsp; | &emsp;  
@@ -169,7 +169,7 @@ Which will result in printing the suite outputs, starting with a summary of the 
 Followed by the visual outputs of all of the checks that are in that suite, that isn't appended here for brevity.
 
 For a full suite demonstration, check out the
-[**Quickstart Notebook**](https://docs.deepchecks.com/en/stable/examples/howto-guides/quickstart_in_5_minutes.html/?utm_source=github.com&utm_medium=referral&utm_campaign=readme)
+[**Quickstart Notebook**](https://docs.deepchecks.com/en/stable/examples/howto-guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme)
 and apply it on your own data and models.
 
 
