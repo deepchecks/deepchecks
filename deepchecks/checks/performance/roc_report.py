@@ -64,15 +64,15 @@ class RocReport(SingleDatasetBaseCheck):
         fpr = {}
         tpr = {}
         roc_auc = {}
-        for i, _ in enumerate(dataset_classes):
-            if i in self.excluded_classes:
+        for i, class_name in enumerate(dataset_classes):
+            if class_name in self.excluded_classes:
                 continue
             fpr[i], tpr[i], _ = sklearn.metrics.roc_curve(multi_y[:, i], y_pred_prob[:, i])
             roc_auc[i] = sklearn.metrics.auc(fpr[i], tpr[i])
 
         fig = go.Figure()
         for i, class_name in enumerate(dataset_classes):
-            if i in self.excluded_classes:
+            if class_name in self.excluded_classes:
                 continue
             if len(dataset_classes) == 2:
                 fig.add_trace(go.Scatter(
