@@ -44,7 +44,12 @@ class Dataset:
         df (pandas.DataFrame):
             A pandas DataFrame containing data relevant for the training or validating of a ML models.
         label (t.Union[Hashable, pd.Series, pd.DataFrame, np.ndarray])
-            label column provided as name in the dataframe or label object which will be concatenated to the dataframe
+            label column provided either as a string with the name of an existing column in the DataFrame or a label
+            object including the label data (pandas Series/DataFrame or a numpy array) that will be concatenated to the
+            data in the DataFrame. in case of label data the following logic is applied to set the label name:
+                - Series: takes the series name or 'target' if name is empty
+                - DataFrame: expect single column in the dataframe and use its name
+                - numpy: use 'target'
         features (Optional[Sequence[Hashable]]):
             List of names for the feature columns in the DataFrame.
         cat_features (Optional[Sequence[Hashable]]):
@@ -117,41 +122,46 @@ class Dataset:
         self._data = df.copy()
 
         # Validations
-        if label is None:
-            label_name = None
-        else:
-            if isinstance(label, (pd.Series, pd.DataFrame, np.ndarray)):
-                # Validate label shape
-                if label.shape[0] != self._data.shape[0]:
-                    raise DeepchecksValueError('Number of samples of label and data must be equal')
-                if len(label.shape) > 1 and label.shape[1] != 1:
-                    raise DeepchecksValueError('Label must be a column vector')
+        label_name = None
+        if isinstance(label, (pd.Series, pd.DataFrame, np.ndarray)):
+            # Validate label shape
+            if label.shape[0] != self._data.shape[0]:
+                raise DeepchecksValueError('Number of samples of label and data must be equal')
+            if len(label.shape) > 1 and label.shape[1] != 1:
+                raise DeepchecksValueError('Label must be a column vector')
 
-                # Get label name
-                if isinstance(label, (pd.Series, pd.DataFrame)) and label.name is not None:
-                    label_name = label.name
-                    if label_name in self._data.columns:
-                        raise DeepchecksValueError(f'Data has column with name "{label_name}", use pandas rename to'
-                                                   f' change label name or remove the column from the dataframe')
-                else:
-                    label_name = 'target'
-                    if label_name in self._data.columns:
-                        raise DeepchecksValueError('Can\'t set default label name "target" since it already exists in '
-                                                   'the dataframe. use pandas name parameter to give the label a '
-                                                   'unique name')
+            # Get label name
+            if isinstance(label, pd.Series) and label.name is not None:
+                label_name = label.name
+                if label_name in self._data.columns:
+                    raise DeepchecksValueError(f'Data has column with name "{label_name}", use pandas rename to'
+                                               f' change label name or remove the column from the dataframe')
+            elif isinstance(label, pd.DataFrame):
+                label_name = label.columns[0]
+                if label_name in self._data.columns:
+                    raise DeepchecksValueError(f'Data has column with name "{label_name}", change label column '
+                                               f'or remove the column from the dataframe')
 
-                # If passed label is a pandas object, check that indexes match, else set column as is
-                if isinstance(label, (pd.Series, pd.DataFrame)):
-                    pd.testing.assert_index_equal(self._data.index, label.index)
-                    self._data[label_name] = label
-                else:
-                    self._data[label_name] = np.array(label).reshape(-1, 1)
-            elif isinstance(label, Hashable):
-                label_name = label
-                if label_name not in self._data.columns:
-                    raise DeepchecksValueError(f'label column {label_name} not found in dataset columns')
+            # If no label found to set, then set default name
+            if label_name is None:
+                label_name = 'target'
+                if label_name in self._data.columns:
+                    raise DeepchecksValueError('Can\'t set default label name "target" since it already exists in '
+                                               'the dataframe. use pandas name parameter to give the label a '
+                                               'unique name')
+
+            # If passed label is a pandas object, check that indexes match, else set column as is
+            if isinstance(label, (pd.Series, pd.DataFrame)):
+                pd.testing.assert_index_equal(self._data.index, label.index)
+                self._data[label_name] = label
             else:
-                raise DeepchecksValueError(f'Unsupported type for label: {type(label).__name__}')
+                self._data[label_name] = np.array(label).reshape(-1, 1)
+        elif isinstance(label, Hashable):
+            label_name = label
+            if label_name not in self._data.columns:
+                raise DeepchecksValueError(f'label column {label_name} not found in dataset columns')
+        else:
+            raise DeepchecksValueError(f'Unsupported type for label: {type(label).__name__}')
 
         # Assert that the requested index can be found
         if not set_index_from_dataframe_index:
