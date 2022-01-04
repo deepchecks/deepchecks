@@ -9,22 +9,30 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing simple comparison check."""
-from typing import Callable, Dict, Hashable, List
+from typing import Callable, Dict, Hashable, List, cast
+
 import numpy as np
 import pandas as pd
 import plotly.express as px
+from sklearn.base import BaseEstimator
 from sklearn.dummy import DummyRegressor, DummyClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from deepchecks.checks.distribution.preprocessing import ScaledNumerics
-from deepchecks.utils.strings import format_number
 
 from deepchecks import CheckResult, Dataset
 from deepchecks.base.check import ConditionResult, TrainTestBaseCheck
-from deepchecks.utils.metrics import task_type_check, ModelType, initialize_multi_scorers, \
-    get_scorers_list, get_scores_ratio, get_scorer_single
+from deepchecks.checks.distribution.preprocessing import ScaledNumerics
+from deepchecks.utils.strings import format_number
 from deepchecks.utils.validation import validate_model
 from deepchecks.errors import DeepchecksValueError
+from deepchecks.utils.metrics import (
+    task_type_check,
+    ModelType,
+    initialize_multi_scorers,
+    get_scorers_list,
+    get_scores_ratio,
+    get_scorer_single
+)
 
 
 __all__ = ['SimpleModelComparison']
@@ -89,7 +97,12 @@ class SimpleModelComparison(TrainTestBaseCheck):
         self.max_depth = max_depth
         self.random_state = random_state
 
-    def run(self, train_dataset, test_dataset, model) -> CheckResult:
+    def run(
+        self,
+        train_dataset: Dataset,
+        test_dataset: Dataset,
+        model: BaseEstimator
+    ) -> CheckResult:
         """Run check.
 
         Args:
@@ -117,6 +130,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
         else:
             scorers = [get_scorer_single(model, train_dataset, multiclass_avg=False)]
 
+        label = cast(pd.Series, test_dataset.label_col)
         task_type = task_type_check(model, train_dataset)
         simple_model = self._create_simple_model(train_dataset, task_type)
 
@@ -127,40 +141,64 @@ class SimpleModelComparison(TrainTestBaseCheck):
 
         # Multiclass have different return type from the scorer, list of score per class instead of single score
         if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
-            results = []
-            for model_name, model_type, model_instance in models:
-                for scorer in scorers:
-                    score_result: np.ndarray = scorer(model_instance, test_dataset)
-                    # Multiclass scorers return numpy array of result per class in order of sorted classes
-                    for class_score, class_value in zip(score_result, test_dataset.classes):
-                        results.append([model_name, model_type, class_score, scorer.name, class_value])
-
-            results_df = pd.DataFrame(results, columns=['Model', 'Type', 'Value', 'Metric', 'Class'])
+            n_samples = label.groupby(label).count()
+            results_df = pd.DataFrame(
+                [
+                    [model_name, model_type, class_score, scorer.name, class_value, n_samples[class_value]]
+                    for model_name, model_type, model_instance in models
+                    for scorer in scorers  # scorer returns numpy array with item per class
+                    for class_score, class_value in zip(scorer(model_instance, test_dataset), test_dataset.classes)
+                ],
+                columns=['Model', 'Type', 'Value', 'Metric', 'Class', 'Number of samples']
+            )
 
             # Plot the metrics in a graph, grouping by the model and class
-            fig = px.bar(results_df, x=['Class', 'Model'], y='Value', color='Model', barmode='group',
-                         facet_col='Metric', facet_col_spacing=0.05)
-            fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60, type='category')
-            fig.update_yaxes(title=None, matches=None)
-            fig.for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-            fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
-        # Model is binary or regression
-        else:
-            results = []
-            for model_name, model_type, model_instance in models:
-                for scorer in scorers:
-                    score_result: float = scorer(model_instance, test_dataset)
-                    results.append([model_name, model_type, score_result, scorer.name])
+            fig = (
+                px.bar(
+                    results_df,
+                    x=['Class', 'Model'],
+                    y='Value',
+                    color='Model',
+                    barmode='group',
+                    facet_col='Metric',
+                    facet_col_spacing=0.05,
+                    hover_data=['Number of samples'])
+                .update_xaxes(title=None, tickprefix='Class ', tickangle=60, type='category')
+                .update_yaxes(title=None, matches=None)
+                .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+                .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+            )
 
-            results_df = pd.DataFrame(results, columns=['Model', 'Type', 'Value', 'Metric'])
+        else:
+            results_df = pd.DataFrame(
+                [
+                    [model_name,
+                     model_type,
+                     scorer(model_instance, test_dataset),
+                     scorer.name,
+                     label.count()]
+                    for model_name, model_type, model_instance in models
+                    for scorer in scorers
+                ],
+                columns=['Model', 'Type', 'Value', 'Metric', 'Number of samples']
+            )
 
             # Plot the metrics in a graph, grouping by the model
-            fig = px.bar(results_df, x='Model', y='Value', color='Model', barmode='group',
-                         facet_col='Metric', facet_col_spacing=0.05)
-            fig.update_xaxes(title=None)
-            fig.update_yaxes(title=None, matches=None)
-            fig.for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-            fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+            fig = (
+                px.bar(
+                    results_df,
+                    x='Model',
+                    y='Value',
+                    color='Model',
+                    barmode='group',
+                    facet_col='Metric',
+                    facet_col_spacing=0.05,
+                    hover_data=['Number of samples'])
+                .update_xaxes(title=None)
+                .update_yaxes(title=None, matches=None)
+                .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+                .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+            )
 
         return CheckResult({'scores': results_df, 'type': task_type}, display=fig)
 
