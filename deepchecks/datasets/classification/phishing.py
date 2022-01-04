@@ -168,14 +168,14 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         return dataset
     else:
         raise NotImplementedError('as_train_test=True is not implemented yet, please load the full dataset.')
-        train = pd.read_csv(_TRAIN_DATA_URL)
-        test = pd.read_csv(_TEST_DATA_URL)
+        # train = pd.read_csv(_TRAIN_DATA_URL)
+        # test = pd.read_csv(_TEST_DATA_URL)
+        #
+        # if data_format == 'Dataset':
+        #     train = Dataset(train, label='target', cat_features=_CAT_FEATURES, datetime_name='scrape_date')
+        #     test = Dataset(test, label='target', cat_features=_CAT_FEATURES, datetime_name='scrape_date')
 
-        if data_format == 'Dataset':
-            train = Dataset(train, label='target', cat_features=_CAT_FEATURES, datetime_name='scrape_date')
-            test = Dataset(test, label='target', cat_features=_CAT_FEATURES, datetime_name='scrape_date')
-
-        return train, test
+        # return train, test
 
 
 def load_fitted_model():
@@ -186,7 +186,7 @@ def load_fitted_model():
 
     """
     raise NotImplementedError('Model is not implemented yet')
-    with urlopen(_MODEL_URL) as f:
-        model = joblib.load(f)
-
-    return model
+    # with urlopen(_MODEL_URL) as f:
+    #     model = joblib.load(f)
+    #
+    # return model
