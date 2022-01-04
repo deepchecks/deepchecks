@@ -10,7 +10,7 @@
 #
 """The date_leakage check module."""
 from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
-from deepchecks.utils.strings import format_percent
+from deepchecks.utils.strings import format_percent, format_datetime
 
 
 __all__ = ['DateTrainTestLeakageOverlap']
@@ -52,7 +52,7 @@ class DateTrainTestLeakageOverlap(TrainTestBaseCheck):
         if dates_leaked > 0:
             leakage_ratio = dates_leaked / test_dataset.n_samples
             display = f'{format_percent(leakage_ratio)} of test data dates '\
-                      f'before last training data date ({max_train_date})'
+                      f'before last training data date ({format_datetime(max_train_date)})'
             return_value = leakage_ratio
         else:
             display = None

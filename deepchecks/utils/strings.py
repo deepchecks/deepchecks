@@ -10,9 +10,10 @@
 #
 """String functions."""
 import random
-from string import ascii_uppercase, digits
 import typing as t
 import re
+from datetime import datetime
+from string import ascii_uppercase, digits
 from collections import defaultdict
 from decimal import Decimal
 from copy import copy
@@ -35,7 +36,8 @@ __all__ = [
     'format_number',
     'format_list',
     'format_columns_for_condition',
-    'get_random_string'
+    'get_random_string',
+    'format_datetime'
 ]
 
 
@@ -297,3 +299,27 @@ def format_columns_for_condition(
         return f'all columns ignoring: {",".join(map(str, ignore_columns))}'
     else:
         return 'all columns'
+
+
+def format_datetime(
+    value,
+    datetime_format: str = '%Y/%m/%d %H:%M:%S.%f %Z%z'  # # 1992/02/13 13:23:00 UTC+0000
+) -> str:
+    """Format datetime object or timestamp value.
+
+    Args:
+        value (Union[datetime, int, float]): datetime (timestamp) to format
+        format (str): format to use
+
+    Returns:
+        str: string representation of the provided value
+
+    Raises:
+        ValueError: if unexpected value type was passed to the function
+    """
+    if isinstance(value, datetime):
+        return value.strftime(datetime_format)
+    elif isinstance(value, (int, float)):
+        return datetime.fromtimestamp(value).strftime(datetime_format)
+    else:
+        raise ValueError(f'Unsupported value type - {type(value).__name__}')
