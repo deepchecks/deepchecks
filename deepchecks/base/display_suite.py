@@ -16,6 +16,7 @@ import sys
 import tqdm
 import pandas as pd
 from IPython.core.display import display_html
+from IPython import get_ipython
 
 from deepchecks import errors
 from deepchecks.utils.ipython import is_widgets_enabled
@@ -64,8 +65,10 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     if len(results) == 0:
         display_html(f"""<h1>{suite_name}</h1><p>Suite is empty.</p>""", raw=True)
         return
-
-    unique_id = get_random_string()
+    if 'google.colab' in str(get_ipython()):
+        unique_id = ''
+    else:
+        unique_id = get_random_string()
     checks_with_conditions = []
     display_table: List[CheckResult] = []
     others_table = []
