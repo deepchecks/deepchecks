@@ -11,18 +11,18 @@
 """Contains unit tests for the performance report check."""
 import re
 from typing import List
-
-from hamcrest import assert_that, calling, raises, close_to, has_items
 import numpy as np
+
+from hamcrest import assert_that, calling, raises, close_to, has_items, instance_of
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
 from deepchecks import ConditionResult, Dataset
-from deepchecks.base.check import CheckResult
 from deepchecks.checks.performance import PerformanceReport
 from deepchecks.errors import DeepchecksValueError
 
 from tests.checks.utils import equal_condition_result
+from deepchecks.utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, DEFAULT_REGRESSION_SCORERS
 
 
 def test_dataset_wrong_input():
@@ -55,6 +55,17 @@ def test_dataset_no_shared_label(iris_labeled_dataset):
                 raises(DeepchecksValueError,
                        'Check requires datasets to share the same label'))
 
+
+def assert_classification_result(result, dataset: Dataset):
+    for dataset_name in ['Test', 'Train']:
+        dataset_df = result.loc[result['Dataset'] == dataset_name]
+        for class_name in dataset.classes:
+            class_df = dataset_df.loc[dataset_df['Class'] == class_name]
+            for metric in MULTICLASS_SCORERS_NON_AVERAGE.keys():
+                metric_row = class_df.loc[class_df['Metric'] == metric]
+                assert_that(metric_row['Value'].iloc[0], close_to(1, 0.3))
+
+
 def test_classification(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
@@ -62,13 +73,7 @@ def test_classification(iris_split_dataset_and_model):
     # Act X
     result = check.run(train, test, model).value
     # Assert
-    for dataset in ['Test', 'Train']:
-        dataset_col = result.loc[result['Dataset'] == dataset]
-        for class_name in range(3):
-            class_col = dataset_col.loc[dataset_col['Class'] == class_name]
-            for metric in ['F1 (Default)', 'Precision (Default)', 'Recall (Default)']:
-                metric_col = class_col.loc[class_col['Metric'] == metric]
-                assert_that(metric_col['Value'] , close_to(1, 0.3))
+    assert_classification_result(result, test)
 
 
 def test_classification_binary(iris_dataset_single_class_labeled):
@@ -83,11 +88,7 @@ def test_classification_binary(iris_dataset_single_class_labeled):
     # Act X
     result = check.run(train_ds, test_ds, clf).value
     # Assert
-    for dataset in ['Test', 'Train']:
-        dataset_col = result.loc[result['Dataset'] == dataset]
-        for metric in dataset_col['Metric'].unique():
-            metric_col = dataset_col.loc[dataset_col['Metric'] == metric]
-            assert_that(metric_col['Value'], close_to(1, 0.3))
+    assert_classification_result(result, test_ds)
 
 
 def test_classification_string_labels(iris_labeled_dataset):
@@ -102,13 +103,7 @@ def test_classification_string_labels(iris_labeled_dataset):
     # Act X
     result = check.run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost).value
     # Assert
-    for dataset in ['Test', 'Train']:
-        dataset_col = result.loc[result['Dataset'] == dataset]
-        for class_name in iris_labeled_dataset.classes:
-            class_col = dataset_col.loc[dataset_col['Class'] == class_name]
-            for metric in ['F1 (Default)', 'Precision (Default)', 'Recall (Default)']:
-                metric_col = class_col.loc[class_col['Metric'] == metric]
-                assert_that(metric_col['Value'] , close_to(1, 0.3))
+    assert_classification_result(result, iris_labeled_dataset)
 
 
 def test_classification_nan_labels(iris_labeled_dataset, iris_adaboost):
@@ -121,13 +116,7 @@ def test_classification_nan_labels(iris_labeled_dataset, iris_adaboost):
     # Act X
     result = check.run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost).value
     # Assert
-    for dataset in ['Test', 'Train']:
-        dataset_col = result.loc[result['Dataset'] == dataset]
-        for class_name in iris_labeled_dataset.classes:
-            class_col = dataset_col.loc[dataset_col['Class'] == class_name]
-            for metric in ['F1 (Default)', 'Precision (Default)', 'Recall (Default)']:
-                metric_col = class_col.loc[class_col['Metric'] == metric]
-                assert_that(metric_col['Value'] , close_to(1, 0.3))
+    assert_classification_result(result, iris_labeled_dataset)
 
 
 def test_regression(diabetes_split_dataset_and_model):
@@ -139,9 +128,9 @@ def test_regression(diabetes_split_dataset_and_model):
     # Assert
     for dataset in ['Test', 'Train']:
         dataset_col = result.loc[result['Dataset'] == dataset]
-        for metric in ['Neg RMSE (Default)', 'Neg MAE (Default)']:
+        for metric in DEFAULT_REGRESSION_SCORERS.keys():
             metric_col = dataset_col.loc[dataset_col['Metric'] == metric]
-            assert_that(metric_col['Value'] , close_to(-50, 30))
+            assert_that(metric_col['Value'].iloc[0], instance_of(float))
 
 
 def test_condition_min_score_not_passed(iris_split_dataset_and_model):
