@@ -9,17 +9,22 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing performance report check."""
-from typing import Callable, TypeVar, Dict
+from typing import Callable, TypeVar, Dict, cast
 import pandas as pd
 import plotly.express as px
 
+from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult, ModelComparisonBaseCheck
 from deepchecks.base.check import ModelComparisonContext
 from deepchecks.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
-from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult, ModelComparisonBaseCheck
-from deepchecks.utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, get_scorers_list, initialize_multi_scorers, \
-                                     ModelType, task_type_check
 from deepchecks.utils.validation import validate_model
+from deepchecks.utils.metrics import (
+    MULTICLASS_SCORERS_NON_AVERAGE,
+    get_scorers_list,
+    initialize_multi_scorers,
+    ModelType,
+    task_type_check
+)
 
 
 __all__ = ['PerformanceReport', 'MultiModelPerformanceReport']
@@ -92,43 +97,63 @@ class PerformanceReport(TrainTestBaseCheck):
         validate_model(test_dataset, model)
 
         task_type = task_type_check(model, train_dataset)
+        clasess = test_dataset.classes
 
         # Get default scorers if no alternative, or validate alternatives
         scorers = get_scorers_list(model, test_dataset, self.alternative_scorers, multiclass_avg=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
+
         if task_type == ModelType.MULTICLASS:
-            x = ['Class', 'Dataset']
+            plot_x_axis = ['Class', 'Dataset']
             results = []
+
             for dataset_name, dataset in datasets.items():
-                for scorer in scorers:
-                    score_result = scorer(model, dataset)
-                    # Multiclass scorers return numpy array of result per class
-                    for class_score, class_name in zip(score_result, test_dataset.classes):
-                        results.append([dataset_name, class_name,  scorer.name, class_score])
-            results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value'])
+                label = cast(pd.Series, dataset.label_col)
+                n_samples = label.groupby(label).count()
+                results.extend(
+                    [dataset_name, class_name, scorer.name, class_score, n_samples[class_name]]
+                    for scorer in scorers
+                    # scorer returns numpy array of results with item per class
+                    for class_score, class_name in zip(scorer(model, dataset), clasess)
+                )
+
+            results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples'])
 
         else:
-            x = 'Dataset'
-            results = []
-            for dataset_name, dataset in datasets.items():
-                for scorer in scorers:
-                    score_result = scorer(model, dataset)
-                    results.append([dataset_name, scorer.name, score_result])
+            plot_x_axis = 'Dataset'
+            results = [
+                [dataset_name, scorer.name, scorer(model, dataset), cast(pd.Series, dataset.label_col).count()]
+                for dataset_name, dataset in datasets.items()
+                for scorer in scorers
+            ]
+            results_df = pd.DataFrame(results, columns=['Dataset', 'Metric', 'Value', 'Number of samples'])
 
-            results_df = pd.DataFrame(results, columns=['Dataset', 'Metric', 'Value'])
-
-        fig = px.bar(results_df, x=x, y='Value', color='Dataset', barmode='group',
-                     facet_col='Metric', facet_col_spacing=0.05)
+        fig = px.bar(
+            results_df,
+            x=plot_x_axis,
+            y='Value',
+            color='Dataset',
+            barmode='group',
+            facet_col='Metric',
+            facet_col_spacing=0.05,
+            hover_data=['Number of samples']
+        )
 
         if task_type == ModelType.MULTICLASS:
             fig.update_xaxes(tickprefix='Class ', tickangle=60)
 
-        fig.update_xaxes(title=None, type='category')
-        fig.update_yaxes(title=None, matches=None)
-        fig.for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-        fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+        fig = (
+            fig.update_xaxes(title=None, type='category')
+            .update_yaxes(title=None, matches=None)
+            .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+            .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+        )
 
-        return CheckResult(results_df, header='Performance Report', display=fig)
+        return CheckResult(
+            results_df,
+            header='Performance Report',
+            display=fig
+        )
 
     def add_condition_test_performance_not_less_than(self: PR, min_score: float) -> PR:
         """Add condition - metric scores are not less than given score.
@@ -284,33 +309,50 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
         scorers = get_scorers_list(first_model, first_test_ds, self.alternative_scorers, multiclass_avg=False)
 
         if context.task_type == ModelType.MULTICLASS:
-            x = ['Class', 'Model']
+            plot_x_axis = ['Class', 'Model']
             results = []
-            for _, test, model, model_name in context:
-                for scorer in scorers:
-                    score_result = scorer(model, test)
-                    # Multiclass scorers return numpy array of result per class
-                    for class_score, class_name in zip(score_result, test.classes):
-                        results.append([model_name, class_score, scorer.name, class_name])
-            results_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric', 'Class'])
+
+            for _, test_dataset, model, model_name in context:
+                label = cast(pd.Series, test_dataset.label_col)
+                n_samples = label.groupby(label).count()
+                results.extend(
+                    [model_name, class_score, scorer.name, class_name, n_samples[class_name]]
+                    for scorer in scorers
+                    # scorer returns numpy array of results with item per class
+                    for class_score, class_name in zip(scorer(model, test_dataset), test_dataset.classes)
+                )
+
+            results_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric', 'Class', 'Number of samples'])
+
         else:
-            x = 'Model'
-            results = []
-            for _, test, model, model_name in context:
-                for scorer in scorers:
-                    score_result = scorer(model, test)
-                    results.append([model_name, score_result, scorer.name])
+            plot_x_axis = 'Model'
+            results = [
+                [model_name, scorer(model, test_dataset), scorer.name, cast(pd.Series, test_dataset.label_col).count()]
+                for _, test_dataset, model, model_name in context
+                for scorer in scorers
+            ]
+            results_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric', 'Number of samples'])
 
-            results_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric'])
+        fig = px.bar(
+            results_df,
+            x=plot_x_axis,
+            y='Value',
+            color='Model',
+            barmode='group',
+            facet_col='Metric',
+            facet_col_spacing=0.05,
+            hover_data=['Number of samples'],
+        )
 
-        fig = px.bar(results_df, x=x, y='Value', color='Model', barmode='group',
-                     facet_col='Metric', facet_col_spacing=0.05)
         if context.task_type == ModelType.MULTICLASS:
             fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60)
         else:
             fig.update_xaxes(title=None)
-        fig.update_yaxes(title=None, matches=None, zerolinecolor='#444')
-        fig.for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-        fig.for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+
+        fig = (
+            fig.update_yaxes(title=None, matches=None, zerolinecolor='#444')
+            .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+            .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+        )
 
         return CheckResult(results_df, display=[fig])
