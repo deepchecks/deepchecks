@@ -158,7 +158,7 @@ class PerformanceReport(TrainTestBaseCheck):
                 if score_2 == 0:
                     return 0
                 return threshold + 1
-            return (score_1 - score_2) / score_1
+            return (score_1 - score_2) / abs(score_1)
 
         def condition(check_result: pd.DataFrame) -> ConditionResult:
             test_scores = check_result.loc[check_result['Dataset'] == 'Test']
@@ -178,7 +178,7 @@ class PerformanceReport(TrainTestBaseCheck):
                     # Calculate percentage of change from train to test
                     diff = {score_name: _ratio_calc(score, test_scores_dict[score_name])
                             for score_name, score in train_scores_dict.items()}
-                    failed_scores = [k for k, v in diff.items() if abs(v) > threshold]
+                    failed_scores = [k for k, v in diff.items() if v > threshold]
                     if failed_scores:
                         for score_name in failed_scores:
                             explained_failures.append(f'{score_name} on class {class_name} '
@@ -190,7 +190,7 @@ class PerformanceReport(TrainTestBaseCheck):
                 # Calculate percentage of change from train to test
                 diff = {score_name: _ratio_calc(score, test_scores_dict[score_name])
                         for score_name, score in train_scores_dict.items()}
-                failed_scores = [k for k, v in diff.items() if abs(v) > threshold]
+                failed_scores = [k for k, v in diff.items() if v > threshold]
                 if failed_scores:
                     for score_name in failed_scores:
                         explained_failures.append(f'{score_name}: '
