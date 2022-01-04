@@ -166,7 +166,7 @@ def test_condition_pass_fail_ignore_column():
 
 def test_fi_n_top(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
-    train = Dataset(train.data.copy(), label_name='target', cat_features=['sex'])
+    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
     train.data.loc[train.data.index % 4 == 1, 'age'] = 'a'
     train.data.loc[train.data.index % 4 == 1, 'bmi'] = 'a'
     train.data.loc[train.data.index % 4 == 1, 'bp'] = 'a'

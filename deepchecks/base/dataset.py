@@ -43,17 +43,18 @@ class Dataset:
     Args:
         df (pandas.DataFrame):
             A pandas DataFrame containing data relevant for the training or validating of a ML models.
-        label (pandas.Series)
-            A pandas series containing data of the labels. Will be joined to the data dataframe with the name
-            given by `label_name` parameter or 'target' by default.
+        label (t.Union[Hashable, pd.Series, pd.DataFrame, np.ndarray])
+            label column provided either as a string with the name of an existing column in the DataFrame or a label
+            object including the label data (pandas Series/DataFrame or a numpy array) that will be concatenated to the
+            data in the DataFrame. in case of label data the following logic is applied to set the label name:
+                - Series: takes the series name or 'target' if name is empty
+                - DataFrame: expect single column in the dataframe and use its name
+                - numpy: use 'target'
         features (Optional[Sequence[Hashable]]):
             List of names for the feature columns in the DataFrame.
         cat_features (Optional[Sequence[Hashable]]):
             List of names for the categorical features in the DataFrame. In order to disable categorical.
             features inference, pass cat_features=[]
-        label_name (Optional[Hashable]):
-            If `label` is given, then this name is used as the column name for the labels.
-            If `label` is none, then looks for this name in the data dataframe.
         index_name (Optional[Hashable]):
             Name of the index column in the dataframe. If set_index_from_dataframe_index is True and index_name
             is not None, index will be created from the dataframe index level with the given name. If index levels
@@ -103,10 +104,9 @@ class Dataset:
     def __init__(
             self,
             df: pd.DataFrame,
-            label: pd.Series = None,
+            label: t.Union[Hashable, pd.Series, pd.DataFrame, np.array] = None,
             features: t.Optional[t.Sequence[Hashable]] = None,
             cat_features: t.Optional[t.Sequence[Hashable]] = None,
-            label_name: t.Optional[Hashable] = None,
             index_name: t.Optional[Hashable] = None,
             set_index_from_dataframe_index: bool = False,
             datetime_name: t.Optional[Hashable] = None,
@@ -122,28 +122,59 @@ class Dataset:
         self._data = df.copy()
 
         # Validations
-        if label is not None:
+        if label is None:
+            label_name = None
+        elif isinstance(label, (pd.Series, pd.DataFrame, np.ndarray)):
+            label_name = None
+            if isinstance(label, pd.Series):
+                # Set label name if exists
+                if label.name is not None:
+                    label_name = label.name
+                    if label_name in self._data.columns:
+                        raise DeepchecksValueError(f'Data has column with name "{label_name}", use pandas rename to'
+                                                   f' change label name or remove the column from the dataframe')
+            elif isinstance(label, pd.DataFrame):
+                # Validate shape
+                if label.shape[1] > 1:
+                    raise DeepchecksValueError('Label must have a single column')
+                # Set label name
+                label_name = label.columns[0]
+                label = label[label_name]
+                if label_name in self._data.columns:
+                    raise DeepchecksValueError(f'Data has column with name "{label_name}", change label column '
+                                               f'or remove the column from the data dataframe')
+            elif isinstance(label, np.ndarray):
+                # Validate label shape
+                if len(label.shape) > 2:
+                    raise DeepchecksValueError('Label must be either column vector or row vector')
+                elif len(label.shape) == 2:
+                    if all(x != 1 for x in label.shape):
+                        raise DeepchecksValueError('Label must be either column vector or row vector')
+                    label = np.squeeze(label)
+
+            # Validate length of label
             if label.shape[0] != self._data.shape[0]:
                 raise DeepchecksValueError('Number of samples of label and data must be equal')
-            if len(label.shape) > 1 and label.shape[1] != 1:
-                raise DeepchecksValueError('Label must be a column vector')
-            # Make tests to prevent overriding user column
+
+            # If no label found to set, then set default name
             if label_name is None:
                 label_name = 'target'
                 if label_name in self._data.columns:
-                    raise DeepchecksValueError(f'Data has column with name "{label_name}", use label_name parameter'
-                                               ' to set column name for label which does\'t exists in the data')
-            else:
-                if label_name in self._data.columns:
-                    raise DeepchecksValueError('Can\'t pass label with label_name that exists in the data. change '
-                                               'the label_name parameter')
-
-            # If passed label is a pandas object, check that indexes match, else set column as is with provided values
-            if isinstance(label, (pd.Series, pd.DataFrame)):
+                    raise DeepchecksValueError('Can\'t set default label name "target" since it already exists in '
+                                               'the dataframe. use pandas name parameter to give the label a '
+                                               'unique name')
+            # Set label data in dataframe
+            if isinstance(label, pd.Series):
                 pd.testing.assert_index_equal(self._data.index, label.index)
                 self._data[label_name] = label
             else:
                 self._data[label_name] = np.array(label).reshape(-1, 1)
+        elif isinstance(label, t.Hashable):
+            label_name = label
+            if label_name not in self._data.columns:
+                raise DeepchecksValueError(f'label column {label_name} not found in dataset columns')
+        else:
+            raise DeepchecksValueError(f'Unsupported type for label: {type(label).__name__}')
 
         # Assert that the requested index can be found
         if not set_index_from_dataframe_index:
@@ -187,9 +218,6 @@ class Dataset:
                     raise DeepchecksValueError(f'When set_index_from_dataframe_index is True index_name can be None,'
                                                f' int or str, but found {type(index_name)}')
             self._datetime_column = self.get_datetime_column_from_index(datetime_name)
-
-        if label_name is not None and label_name not in self._data.columns:
-            raise DeepchecksValueError(f'label column {label_name} not found in dataset columns')
 
         if features:
             difference = set(features) - set(self._data.columns)
@@ -268,6 +296,7 @@ class Dataset:
             cls: t.Type[TDataset],
             *args: np.ndarray,
             columns: t.Sequence[Hashable] = None,
+            label_name: t.Hashable = None,
             **kwargs
     ) -> TDataset:
         """Create Dataset instance from numpy arrays.
@@ -359,6 +388,8 @@ class Dataset:
                 )
 
             labels_array = pd.Series(labels_array)
+            if label_name:
+                labels_array = labels_array.rename(label_name)
 
         return cls(
             df=pd.DataFrame(data=columns_array, columns=columns),
@@ -382,7 +413,7 @@ class Dataset:
 
         cls = type(self)
 
-        return cls(new_data, features=features, cat_features=cat_features, label_name=label_name,
+        return cls(new_data, features=features, cat_features=cat_features, label=label_name,
                    index_name=index, set_index_from_dataframe_index=self._set_index_from_dataframe_index,
                    datetime_name=date, set_datetime_from_dataframe_index=self._set_datetime_from_dataframe_index,
                    convert_datetime=False, max_categorical_ratio=self._max_categorical_ratio,

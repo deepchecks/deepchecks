@@ -88,7 +88,7 @@ def test_outlier_multiple_outlier_ranges():
 
 def test_fi_n_top(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
-    train = Dataset(train.data.copy(), label_name='target', cat_features=['sex'])
+    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
     train.data.loc[0, 'age'] = 'aaa' * 1000
     train.data.loc[0, 'bmi'] = 'aaa' * 1000
     train.data.loc[0, 'bp'] = 'aaa' * 1000

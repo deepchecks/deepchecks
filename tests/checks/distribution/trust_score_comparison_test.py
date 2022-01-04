@@ -39,7 +39,7 @@ def test_trust_score_comparison_null_labels(iris_split_dataset_and_model):
     modified_train_data = test.data.copy()
     modified_train_data[train.label_name].iloc[0] = float('nan')
     test = Dataset(modified_train_data,
-                   label_name=test.label_name)
+                   label=test.label_name)
 
     model = AdaBoostClassifier(random_state=0)
     model.fit(train.features_columns, train.label_col)
@@ -60,9 +60,9 @@ def test_trust_score_comparison_non_consecutive_string_labels(iris_split_dataset
     train, test, _ = iris_split_dataset_and_model
     replace_dict = {train.label_name: {0: 'b', 1: 'e', 2: 'a'}}
     train = Dataset(train.data.replace(replace_dict),
-                    label_name=train.label_name)
+                    label=train.label_name)
     test = Dataset(test.data.replace(replace_dict),
-                   label_name=test.label_name)
+                   label=test.label_name)
     model = AdaBoostClassifier(random_state=0)
     model.fit(train.features_columns, train.label_col)
     check = TrustScoreComparison(min_test_samples=50)

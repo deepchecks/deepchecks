@@ -38,8 +38,8 @@ def iris(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBoostClassifier]:
     )
 
     train, test = (
-        Dataset(train, label_name='target', datetime_name='date', index_name='index'),
-        Dataset(test, label_name='target', datetime_name='date', index_name='index')
+        Dataset(train, label='target', datetime_name='date', index_name='index'),
+        Dataset(test, label='target', datetime_name='date', index_name='index')
     )
 
     model = AdaBoostClassifier(random_state=0)
