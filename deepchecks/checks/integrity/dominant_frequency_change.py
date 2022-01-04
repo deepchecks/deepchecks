@@ -181,10 +181,11 @@ class DominantFrequencyChange(TrainTestBaseCheck):
                 feature_importances,
                 self.n_top_columns
             )
+            display=[_N_TOP_MESSEGE % self.n_top_columns, sorted_p_df]
         else:
-            sorted_p_df = None
+            display = None
 
-        return CheckResult(p_dict, display=[_N_TOP_MESSEGE % self.n_top_columns, sorted_p_df])
+        return CheckResult(p_dict, display=display)
 
     def add_condition_p_value_not_less_than(self, p_value_threshold: float = 0.0001):
         """Add condition - require min p value allowed per column.

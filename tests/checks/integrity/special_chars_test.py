@@ -40,7 +40,7 @@ def test_single_column_invalid():
     # Assert
     assert_that(result.value, has_length(1))
     assert_that(result.value['col1'], close_to(0.25, 0.001))
-    assert_that(result.display[0].iloc[0]['Most Common Special-Only Samples'], has_items('#@$%'))
+    assert_that(result.display[1].iloc[0]['Most Common Special-Only Samples'], has_items('#@$%'))
 
 
 def test_single_column_multi_invalid():
@@ -63,7 +63,7 @@ def test_double_column_one_invalid():
     # Assert
     assert_that(result.value, has_length(1))
     assert_that(result.value['col1'], close_to(1, 0.001))
-    assert_that(result.display[0].iloc[0]['Most Common Special-Only Samples'], has_items('!!!', '?!'))
+    assert_that(result.display[1].iloc[0]['Most Common Special-Only Samples'], has_items('!!!', '?!'))
 
 
 def test_double_column_ignored_invalid():
@@ -85,7 +85,7 @@ def test_double_column_specific_invalid():
     # Assert
     assert_that(result.value, has_length(1))
     assert_that(result.value['col1'], close_to(0.333, 0.001))
-    assert_that(result.display[0].iloc[0]['Most Common Special-Only Samples'], has_items('^?!'))
+    assert_that(result.display[1].iloc[0]['Most Common Special-Only Samples'], has_items('^?!'))
 
 
 def test_double_column_specific_and_ignored_invalid():
@@ -108,8 +108,8 @@ def test_double_column_double_invalid():
     assert_that(result.value, has_length(2))
     assert_that(result.value['col1'], close_to(0.25, 0.001))
     assert_that(result.value['col2'], close_to(0.25, 0.001))
-    assert_that(result.display[0].loc['col1']['Most Common Special-Only Samples'], has_items('{}'))
-    assert_that(result.display[0].loc['col2']['Most Common Special-Only Samples'], has_items('&!'))
+    assert_that(result.display[1].loc['col1']['Most Common Special-Only Samples'], has_items('{}'))
+    assert_that(result.display[1].loc['col2']['Most Common Special-Only Samples'], has_items('&!'))
 
 
 def test_fi_n_top(diabetes_split_dataset_and_model):
@@ -122,7 +122,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     # Arrange
     check = SpecialCharacters(n_top_columns=3)
     # Act
-    result_ds = check.run(train, clf).display[0]
+    result_ds = check.run(train, clf).display[1]
     # Assert
     assert_that(result_ds, has_length(3))
 
@@ -135,8 +135,8 @@ def test_nan():
     result = SpecialCharacters().run(dataframe)
     # Assert
     assert_that(result.value, has_length(2))
-    assert_that(result.display[0].loc['col1']['Most Common Special-Only Samples'], has_items('{}'))
-    assert_that(result.display[0].loc['col2']['Most Common Special-Only Samples'], has_items('&!'))
+    assert_that(result.display[1].loc['col1']['Most Common Special-Only Samples'], has_items('{}'))
+    assert_that(result.display[1].loc['col2']['Most Common Special-Only Samples'], has_items('&!'))
 
 
 def test_condition_fail_all(diabetes_split_dataset_and_model):

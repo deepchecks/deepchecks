@@ -105,7 +105,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     check = DominantFrequencyChange(dominance_ratio=0,
                                     ratio_change_thres=-1, n_top_columns=3)
     # Act
-    result_ds = check.run(train, val, clf).display[0]
+    result_ds = check.run(train, val, clf).display[1]
     # Assert
     assert_that(result_ds, has_length(3))
 

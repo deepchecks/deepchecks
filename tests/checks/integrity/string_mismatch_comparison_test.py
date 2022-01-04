@@ -178,7 +178,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     # Act
     result = check.run(test_dataset=train, train_dataset=val, model=clf)
     # Assert - The display table is transposed so check length of columns
-    assert_that(result.display[0].columns, has_length(3))
+    assert_that(result.display[1].columns, has_length(3))
 
 
 def test_nan():
