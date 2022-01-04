@@ -11,8 +11,8 @@
 """The phishing dataset contains a slightly synthetic dataset of urls - some regular and some used for phishing."""
 import typing as t
 import pandas as pd
-import joblib
-from urllib.request import urlopen
+# import joblib
+# from urllib.request import urlopen
 from deepchecks import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
