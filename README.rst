@@ -52,7 +52,7 @@ Using pip
 
 .. code:: bash
 
-   pip install deepchecks  # --upgrade --user | use --user in kaggle 
+   pip install deepchecks -U --user
 
 Using conda
 ~~~~~~~~~~~
