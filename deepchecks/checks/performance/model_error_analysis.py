@@ -206,13 +206,13 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
                 ok_categories = error_per_segment_ser.index[~in_segment_indicis]
 
                 # Calculate score for each group and assign label and color
-                ok_name_feature, segment1_details = get_segment_details(model, scorer, test_dataset, data,
+                ok_name_feature, segment1_details = get_segment_details(model, scorer, test_dataset,
                                                                         data[feature].isin(ok_categories))
 
                 color_map = {ok_name_feature: ok_color}
 
                 if len(weak_categories) >= 1:
-                    weak_name_feature, segment2_details = get_segment_details(model, scorer, test_dataset, data,
+                    weak_name_feature, segment2_details = get_segment_details(model, scorer, test_dataset,
                                                                               data[feature].isin(weak_categories))
 
                     color_map[weak_name_feature] = weak_color
@@ -230,7 +230,10 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
                     color_discrete_map=color_map
                 ))
             else:
-                data = data.sample(n_samples_display, random_state=self.random_state)
+                # sample data for display
+                np.random.seed(self.random_state)
+                sampling_idx = np.random.choice(range(len(data)), size=n_samples_display, replace=False)
+                data = data.iloc[sampling_idx]
 
                 # Train tree to partition segments according to the model error
                 tree_partitioner = DecisionTreeRegressor(max_depth=1,
@@ -241,9 +244,10 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
                     threshold = tree_partitioner.tree_.threshold[0]
                     color_col = data[feature].ge(threshold)
 
-                    segment1_text, segment1_details = get_segment_details(model, scorer, test_dataset, data,
+                    sampled_dataset = test_dataset.copy(test_dataset.data.iloc[sampling_idx])
+                    segment1_text, segment1_details = get_segment_details(model, scorer, sampled_dataset,
                                                                           color_col)
-                    segment2_text, segment2_details = get_segment_details(model, scorer, test_dataset, data,
+                    segment2_text, segment2_details = get_segment_details(model, scorer, sampled_dataset,
                                                                           ~color_col)
                     color_col = color_col.replace([True, False], [segment1_text, segment2_text])
 
@@ -305,18 +309,18 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
                                   f' not differ by more than {format_percent(max_ratio_change)}', condition)
 
 
-def get_segment_details(model, scorer, dataset: Dataset, data: pd.DataFrame,
+def get_segment_details(model, scorer, dataset: Dataset,
                         segment_condition_col: pd.Series) -> Tuple[str, Dict[str, float]]:
     """Return a string with details about the data segment."""
     performance = scorer(
         model,
-        dataset.copy(dataset.data.loc[data.index][segment_condition_col]))
-    n_samples = data[segment_condition_col].shape[0]
+        dataset.copy(dataset.data[segment_condition_col.values]))
+    n_samples = dataset.data[segment_condition_col].shape[0]
     segment_label = \
         f'{scorer.name}: {format_number(performance)}, ' \
-        f'Samples: {n_samples} ({format_percent(n_samples / len(data))})'
+        f'Samples: {n_samples} ({format_percent(n_samples / len(dataset))})'
 
-    segment_details = {'score': performance, 'n_samples': n_samples, 'frac_samples': n_samples / len(data)}
+    segment_details = {'score': performance, 'n_samples': n_samples, 'frac_samples': n_samples / len(dataset)}
 
     return segment_label, segment_details
 
