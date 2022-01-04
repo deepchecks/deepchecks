@@ -34,12 +34,12 @@ __all__ = [
     'column_importance_sorter_df',
     'infer_categorical_features',
     'is_categorical',
-    '_N_TOP_MESSEGE'
+    '_N_TOP_MESSAGE'
 ]
 
 
 _NUMBER_OF_FEATURES_LIMIT: int = 200
-_N_TOP_MESSEGE = '* showing only the top %s columns you can change it using n_top_columns param'
+_N_TOP_MESSAGE = '* showing only the top %s columns you can change it using n_top_columns param'
 
 
 def set_number_of_features_limit(limit: int):

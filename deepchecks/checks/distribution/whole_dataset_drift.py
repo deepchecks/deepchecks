@@ -17,7 +17,7 @@ import pandas as pd
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.checks.distribution.plot import feature_distribution_traces, drift_score_bar_traces
-from deepchecks.utils.features import _N_TOP_MESSEGE, calculate_feature_importance_or_none
+from deepchecks.utils.features import _N_TOP_MESSAGE, calculate_feature_importance_or_none
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.utils.typing import Hashable
 
@@ -169,7 +169,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
 
             displays = [headnote, self._build_drift_plot(score),
                         '<h3>Main features contributing to drift</h3>',
-                        _N_TOP_MESSEGE % self.n_top_columns]
+                        _N_TOP_MESSAGE % self.n_top_columns]
             displays += [self._display_dist(train_sample_df[feature], test_sample_df[feature], top_fi)
                          for feature in top_fi.index]
         else:
