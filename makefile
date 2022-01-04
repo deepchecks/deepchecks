@@ -60,9 +60,9 @@ REQUIREMENTS_LOG := .requirements.log
 ANALIZE_PKGS = pylint pydocstyle flake8 flake8-spellcheck flake8-eradicate flake8-rst
 TEST_CODE := tests/
 TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval coveralls
-NOTEBOOK_CHECKS = ./examples/checks
-NOTEBOOK_EXAMPLES = ./examples/howto-guides/*.ipynb
-NOTEBOOK_SANITIZER_FILE= ./examples/.nbval-sanitizer
+NOTEBOOK_CHECKS = ./docs/source/examples/checks
+NOTEBOOK_EXAMPLES = ./docs/source/examples/guides/*.ipynb
+NOTEBOOK_SANITIZER_FILE= ./docs/source/examples/.nbval-sanitizer
 
 PYLINT_LOG = .pylint.log
 
@@ -311,7 +311,7 @@ download:
 	$(PIP) install $(PROJECT)
 
 jupyter: $(JUPYTER)
-	$(BIN)/jupyter-notebook $(args) --notebook-dir=./examples
+	$(BIN)/jupyter-notebook $(args) --notebook-dir=./docs/source/examples
 
 $(JUPYTER):
 	$(PIP) install jupyter
