@@ -8,28 +8,17 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-""" Deepchecks - Test Suites for Validating ML Models and Data.
+"""
+
+|build| |Documentation Status| |pkgVersion| |pyVersions|
+|Maintainability| |Coverage Status|
+
+.. image:: https://raw.githubusercontent.com/deepchecks/deepchecks/main/docs/images/deepchecks-logo-with-white-wide-back.png
+  :target: https://scikit-learn.org/
 
 Deepchecks is a Python package for comprehensively validating your machine learning models and data with minimal effort.
 This includes checks related to various types of issues, such as model performance, data integrity,
 distribution mismatches, and more.
-
-Installation
-------------
-
-Using pip
-~~~~~~~~~
-
-.. code:: bash
-
-   pip install deepchecks #--upgrade --user
-
-Using conda
-~~~~~~~~~~~
-
-.. code:: bash
-
-   conda install -c deepchecks deepchecks
 
 What Do You Need in Order to Start Validating?
 ----------------------------------------------
@@ -53,6 +42,33 @@ having a trained model that you wish to evaluate. Accordingly, each
 phase requires different assets for the validation. See more about
 typical usage scenarios and the built-in suites in the
 `docs <https://docs.deepchecks.com/?utm_source=pypi.org&utm_medium=referral&utm_campaign=readme>`__.
+
+Installation
+------------
+
+Using pip
+~~~~~~~~~
+
+.. code:: bash
+
+   pip install deepchecks #--upgrade --user
+
+Using conda
+~~~~~~~~~~~
+
+.. code:: bash
+
+   conda install -c deepchecks deepchecks
+
+.. |build| image:: https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg
+.. |Documentation Status| image:: https://readthedocs.org/projects/deepchecks/badge/?version=latest
+   :target: https://docs.deepchecks.com/en/latest/?badge=latest
+.. |pkgVersion| image:: https://img.shields.io/pypi/v/deepchecks
+.. |pyVersions| image:: https://img.shields.io/pypi/pyversions/deepchecks
+.. |Maintainability| image:: https://api.codeclimate.com/v1/badges/970b11794144139975fa/maintainability
+   :target: https://codeclimate.com/github/deepchecks/deepchecks/maintainability
+.. |Coverage Status| image:: https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main
+   :target: https://coveralls.io/github/deepchecks/deepchecks?branch=main
 
 """
 
