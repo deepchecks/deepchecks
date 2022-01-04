@@ -48,6 +48,7 @@ def is_ipython_display() -> bool:
     except Exception:
         return False
 
+
 @lru_cache(maxsize=None)
 def is_widgets_enabled() -> bool:
     """Check if we're running in jupyter and having jupyter widgets extension enabled."""
@@ -64,5 +65,5 @@ def is_widgets_enabled() -> bool:
             found_disabled = any((disabled_regex.match(s) for s in output))
             found_enabled = any((enabled_regex.match(s) for s in output))
             return not found_disabled and found_enabled
-        except: # pylint: disable=bare-except
+        except Exception:  # pylint: disable=broad-except
             return False
