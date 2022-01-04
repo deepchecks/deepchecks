@@ -19,7 +19,7 @@ __all__ = ['plot_density', 'feature_distribution_traces', 'drift_score_bar_trace
 
 from typing import List, Union, Dict
 
-from deepchecks.checks.distribution.dist_utils import preprocess_for_psi
+from deepchecks.checks.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.plot import colors
 
 
@@ -118,7 +118,8 @@ def feature_distribution_traces(train_column,
     """
     if is_categorical:
         expected_percents, actual_percents, categories_list = \
-            preprocess_for_psi(dist1=train_column, dist2=test_column, max_num_categories=max_num_categories)
+            preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column,
+                                               max_num_categories=max_num_categories)
         cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
                               index=categories_list)
         train_bar = go.Bar(
