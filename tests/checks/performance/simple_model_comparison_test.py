@@ -91,7 +91,7 @@ def test_regression_constant(diabetes_split_dataset_and_model):
 def test_condition_ratio_not_less_than_not_passed(diabetes_split_dataset_and_model):
     # Arrange
     train_ds, test_ds, clf = diabetes_split_dataset_and_model
-    check = SimpleModelComparison().add_condition_ratio_not_less_than(min_allowed_ratio=1.4)
+    check = SimpleModelComparison().add_condition_gain_not_less_than(0.4)
 
     # Act
     check_result = check.run(train_ds, test_ds, clf)
@@ -101,7 +101,7 @@ def test_condition_ratio_not_less_than_not_passed(diabetes_split_dataset_and_mod
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=False,
-            name='$$\\frac{\\text{model score}}{\\text{simple model score}} >= 1.4$$',
+            name='Model performance gain over simple model must be at least 40.00%',
             details='Metrics failed: "Neg RMSE (Default)"')
     ))
 

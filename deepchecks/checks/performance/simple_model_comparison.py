@@ -346,10 +346,14 @@ def condition(result: Dict, max_ratio=None, class_list=None, average=False, min_
 def average_scores(scores):
     result = {}
     for metric, classes_scores in scores.items():
-        result[metric] = {'Origin': 0, 'Simple': 0}
+        origin_score = 0
+        simple_score = 0
         for models_scores in classes_scores.values():
-            result[metric]['Origin'] += models_scores['Origin']
-            result[metric]['Simple'] += models_scores['Simple']
+            origin_score += models_scores['Origin']
+            simple_score += models_scores['Simple']
 
-        result[metric] = result[metric] / len(classes_scores)
+        result[metric] = {
+            'Origin': origin_score / len(classes_scores),
+            'Simple': simple_score / len(classes_scores)
+         }
     return result
