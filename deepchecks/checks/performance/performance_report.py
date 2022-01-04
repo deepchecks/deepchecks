@@ -147,7 +147,7 @@ class PerformanceReport(TrainTestBaseCheck):
 
         return self.add_condition(f'Scores are not less than {min_score}', condition)
 
-    def add_condition_train_test_performance_degradation_ratio_not_greater_than(self: PR, threshold: float = 0.1) -> PR:
+    def add_condition_train_test_relative_degradation_not_greater_than(self: PR, threshold: float = 0.1) -> PR:
         """Add condition that will check that test performance is not degraded by more than given percentage in train.
 
         Args:
