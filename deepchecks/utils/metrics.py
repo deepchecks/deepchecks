@@ -252,7 +252,7 @@ def get_scorers_list(
     """
     # Check for model type
     model_type = task_type_check(model, dataset)
-    multiclass_array = model_type == ModelType.MULTICLASS and multiclass_avg is False
+    multiclass_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and multiclass_avg is False
 
     if alternative_scorers:
         scorers = alternative_scorers
@@ -274,7 +274,7 @@ def get_scorer_single(model, dataset: 'base.Dataset', alternative_scorer: t.Opti
                       multiclass_avg: bool = True) -> 'DeepcheckScorer':
     """Return single score to use in check, and validate scorer fit the model and dataset."""
     model_type = task_type_check(model, dataset)
-    multiclass_array = model_type == ModelType.MULTICLASS and multiclass_avg is False
+    multiclass_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and multiclass_avg is False
 
     if alternative_scorer is None:
         if multiclass_array:

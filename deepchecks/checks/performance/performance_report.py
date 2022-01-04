@@ -103,7 +103,7 @@ class PerformanceReport(TrainTestBaseCheck):
         scorers = get_scorers_list(model, test_dataset, self.alternative_scorers, multiclass_avg=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
-        if task_type == ModelType.MULTICLASS:
+        if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
             plot_x_axis = ['Class', 'Dataset']
             results = []
 
@@ -139,7 +139,7 @@ class PerformanceReport(TrainTestBaseCheck):
             hover_data=['Number of samples']
         )
 
-        if task_type == ModelType.MULTICLASS:
+        if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
             fig.update_xaxes(tickprefix='Class ', tickangle=60)
 
         fig = (
@@ -308,7 +308,7 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
         first_test_ds = context.test_datasets[0]
         scorers = get_scorers_list(first_model, first_test_ds, self.alternative_scorers, multiclass_avg=False)
 
-        if context.task_type == ModelType.MULTICLASS:
+        if context.task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
             plot_x_axis = ['Class', 'Model']
             results = []
 
@@ -344,7 +344,7 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
             hover_data=['Number of samples'],
         )
 
-        if context.task_type == ModelType.MULTICLASS:
+        if context.task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
             fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60)
         else:
             fig.update_xaxes(title=None)

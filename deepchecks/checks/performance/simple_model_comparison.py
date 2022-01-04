@@ -126,7 +126,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
         ]
 
         # Multiclass have different return type from the scorer, list of score per class instead of single score
-        if task_type == ModelType.MULTICLASS:
+        if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
             results = []
             for model_name, model_type, model_instance in models:
                 for scorer in scorers:
