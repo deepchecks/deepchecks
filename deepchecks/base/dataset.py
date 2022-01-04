@@ -123,7 +123,7 @@ class Dataset:
 
         # Validations
         label_name = None
-        if label is not None and isinstance(label, Hashable):
+        if label is not None and isinstance(label, t.Hashable):
             label_name = label
             if label_name not in self._data.columns:
                 raise DeepchecksValueError(f'label column {label_name} not found in dataset columns')
