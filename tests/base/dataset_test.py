@@ -796,10 +796,78 @@ def test_label_series_without_name_default_name_exists(iris):
 
 def test_label_is_numpy_array(iris):
     # Arrange
-    label = np.array([0] * len(iris))
+    label = np.ones(len(iris))
     data = iris.drop('target', axis=1)
     # Act
     dataset = Dataset(data, label)
     # Assert
     assert_that(dataset.features, equal_to(list(data.columns)))
     assert_that(dataset.data.columns, contains_exactly(*data.columns, 'target'))
+
+
+def test_label_is_numpy_column(iris):
+    # Arrange
+    label = np.ones((len(iris), 1))
+    data = iris.drop('target', axis=1)
+    # Act
+    dataset = Dataset(data, label)
+    # Assert
+    assert_that(dataset.features, equal_to(list(data.columns)))
+    assert_that(dataset.data.columns, contains_exactly(*data.columns, 'target'))
+
+
+def test_label_is_numpy_row(iris):
+    # Arrange
+    label = np.ones((1, len(iris)))
+    data = iris.drop('target', axis=1)
+    # Act
+    dataset = Dataset(data, label)
+    # Assert
+    assert_that(dataset.features, equal_to(list(data.columns)))
+    assert_that(dataset.data.columns, contains_exactly(*data.columns, 'target'))
+
+
+def test_label_is_dataframe(iris):
+    # Arrange
+    label = pd.DataFrame(data={'actual': [0] * len(iris)})
+    # Act
+    dataset = Dataset(iris, label)
+    # Assert
+    assert_that(dataset.features, equal_to(list(iris.columns)))
+    assert_that(dataset.data.columns, contains_exactly(*iris.columns, 'actual'))
+
+
+def test_label_unsupported_type(iris):
+    # Arrange
+    label = {}
+
+    # Act & Assert
+    assert_that(calling(Dataset).with_args(iris, label=label),
+                raises(DeepchecksValueError, 'Unsupported type for label: dict'))
+
+
+def test_label_dataframe_with_multi_columns(iris):
+    # Arrange
+    label = pd.DataFrame(data={'col1': [0] * len(iris), 'col2': [1] * len(iris)})
+
+    # Act & Assert
+    assert_that(calling(Dataset).with_args(iris, label=label),
+                raises(DeepchecksValueError, 'Label must have a single column'))
+
+
+def test_label_numpy_multi_2d_array(iris):
+    # Arrange
+    label = np.ones((3, len(iris)))
+    iris = iris.drop('target', axis=1)
+    # Act & Assert
+    assert_that(calling(Dataset).with_args(iris, label=label),
+                raises(DeepchecksValueError, 'Label must be either column vector or row vector'))
+
+
+def test_label_numpy_multi_4d_array(iris):
+    # Arrange
+    label = np.ones((1, 1, 1, len(iris)))
+    iris = iris.drop('target', axis=1)
+    # Act & Assert
+    assert_that(calling(Dataset).with_args(iris, label=label),
+                raises(DeepchecksValueError, 'Label must be either column vector or row vector'))
