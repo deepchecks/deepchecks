@@ -39,7 +39,7 @@ __all__ = [
 
 
 _NUMBER_OF_FEATURES_LIMIT: int = 200
-_N_TOP_MESSEGE = '<h5>* showing only the top {} features you can change it using n_top_columns param<h5>',
+_N_TOP_MESSEGE = '* showing only the top %s columns you can change it using n_top_columns param'
 
 def set_number_of_features_limit(limit: int):
     """Set number of features limit to calculate features importance.

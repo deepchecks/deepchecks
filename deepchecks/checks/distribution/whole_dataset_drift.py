@@ -168,10 +168,10 @@ class WholeDatasetDrift(TrainTestBaseCheck):
             score = self.auc_to_drift_score(values_dict['domain_classifier_auc'])
 
             displays = [headnote, self._build_drift_plot(score),
-                        _N_TOP_MESSEGE % self.n_top_columns,
                         '<h3>Main features contributing to drift</h3>',
-                        [self._display_dist(train_sample_df[feature], test_sample_df[feature], top_fi)
-                         for feature in top_fi.index]]
+                        _N_TOP_MESSEGE % self.n_top_columns,
+                        ] + [self._display_dist(train_sample_df[feature], test_sample_df[feature], top_fi)
+                         for feature in top_fi.index]
         else:
             displays = None
 
