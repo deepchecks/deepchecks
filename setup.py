@@ -14,7 +14,7 @@
 |Maintainability| |Coverage Status|
 
 .. image:: https://raw.githubusercontent.com/deepchecks/deepchecks/main/docs/images/deepchecks-logo-with-white-wide-back.png
-  :target: https://scikit-learn.org/
+  :target: https://github.com/deepchecks/deepchecks
 
 Deepchecks is a Python package for comprehensively validating your machine learning models and data with minimal effort.
 This includes checks related to various types of issues, such as model performance, data integrity,
