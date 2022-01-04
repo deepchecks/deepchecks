@@ -169,7 +169,6 @@ class SimpleModelComparison(TrainTestBaseCheck):
                 .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
             )
 
-        # Model is binary or regression
         else:
             results_df = pd.DataFrame(
                 [
