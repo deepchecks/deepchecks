@@ -17,7 +17,7 @@ import pandas as pd
 
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.utils.features import _N_TOP_MESSAGE, calculate_feature_importance_or_none, column_importance_sorter_df
+from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, column_importance_sorter_df
 from deepchecks.utils.strings import format_percent
 from deepchecks.errors import DeepchecksValueError
 
@@ -181,7 +181,7 @@ class DominantFrequencyChange(TrainTestBaseCheck):
                 feature_importances,
                 self.n_top_columns
             )
-            display = [_N_TOP_MESSAGE % self.n_top_columns, sorted_p_df]
+            display = [N_TOP_MESSAGE % self.n_top_columns, sorted_p_df]
         else:
             display = None
 

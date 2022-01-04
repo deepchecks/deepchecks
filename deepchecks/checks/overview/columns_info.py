@@ -14,7 +14,7 @@ import pandas as pd
 from deepchecks import CheckResult
 from deepchecks.base import Dataset
 from deepchecks.base.check import SingleDatasetBaseCheck
-from deepchecks.utils.features import _N_TOP_MESSAGE, calculate_feature_importance_or_none, \
+from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, \
                                       column_importance_sorter_dict
 
 
@@ -57,4 +57,4 @@ class ColumnsInfo(SingleDatasetBaseCheck):
         df = pd.DataFrame.from_dict(value, orient='index', columns=['role'])
         df = df.transpose()
 
-        return CheckResult(value, header='Columns Info', display=[_N_TOP_MESSAGE % self.n_top_columns, df])
+        return CheckResult(value, header='Columns Info', display=[N_TOP_MESSAGE % self.n_top_columns, df])

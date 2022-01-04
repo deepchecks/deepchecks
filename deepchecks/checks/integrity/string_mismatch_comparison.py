@@ -16,7 +16,7 @@ import pandas as pd
 
 from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import _N_TOP_MESSAGE, calculate_feature_importance_or_none, column_importance_sorter_df
+from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, column_importance_sorter_df
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.strings import (
@@ -141,7 +141,7 @@ class StringMismatchComparison(TrainTestBaseCheck):
                 col='Column name'
             )
             # For display transpose the dataframe
-            display = [_N_TOP_MESSAGE % self.n_top_columns, df_graph.T]
+            display = [N_TOP_MESSAGE % self.n_top_columns, df_graph.T]
         else:
             display = None
 
