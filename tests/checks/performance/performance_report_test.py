@@ -142,7 +142,7 @@ def test_condition_min_score_not_passed(iris_split_dataset_and_model):
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details=re.compile(r'Scores that did not passed the threshold:<br>'
+                               details=re.compile(r'Scores that did not pass the threshold:<br>'
                                                   r'\[\{\'Class\':'),
                                name='Scores are not less than 1')
     ))
@@ -170,8 +170,8 @@ def test_condition_degradation_ratio_not_greater_than_not_passed(iris_split_data
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details=re.compile(r'F1 \(Default\) on class 1 \(train=0.94 test=0.88\)'),
-                               name='Train-Test scores degradation ratio is not greater than 0')
+                               details=re.compile(r'F1 \(Default\) for class 1 \(train=0.94 test=0.88\)'),
+                               name='Train-Test scores relative degradation is not greater than 0')
     ))
 
 def test_condition_degradation_ratio_not_greater_than_passed(iris_split_dataset_and_model):
@@ -183,7 +183,7 @@ def test_condition_degradation_ratio_not_greater_than_passed(iris_split_dataset_
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Train-Test scores degradation ratio is not greater than 1')
+                               name='Train-Test scores relative degradation is not greater than 1')
     ))
 
 
