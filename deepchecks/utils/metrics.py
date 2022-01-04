@@ -23,6 +23,8 @@ from sklearn.base import ClassifierMixin, RegressorMixin
 from deepchecks import base  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks import errors
 from deepchecks.utils import validation
+from deepchecks.utils.strings import is_string_column
+from deepchecks.utils.models import PerfectModel
 
 
 __all__ = [
@@ -36,13 +38,13 @@ __all__ = [
     'DEFAULT_BINARY_SCORERS',
     'DEFAULT_MULTICLASS_SCORERS',
     'MULTICLASS_SCORERS_NON_AVERAGE',
+    'DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG',
     'get_scores_ratio',
     'initialize_multi_scorers',
     'get_scorer_single',
-    'task_type_validation'
+    'task_type_validation',
+    'get_gain'
 ]
-
-from deepchecks.utils.strings import is_string_column
 
 
 class ModelType(enum.Enum):
@@ -135,6 +137,16 @@ class DeepcheckScorer:
     def __call__(self, model, dataset: 'base.Dataset'):
         df = self.filter_nulls(dataset)
         return self._run_score(model, df, dataset)
+
+    def score_perfect(self, dataset: 'base.Dataset'):
+        """Calculate the perfect score of the current scorer for given dataset."""
+        df = self.filter_nulls(dataset)
+        perfect_model = PerfectModel()
+        perfect_model.fit(None, dataset.label_col)
+        score = self._run_score(perfect_model, df, dataset)
+        if isinstance(score, np.ndarray):
+            return score[0]
+        return score
 
     def validate_fitting(self, model, dataset: 'base.Dataset', should_return_array: bool):
         """Validate given scorer for the model and dataset."""
@@ -323,3 +335,12 @@ def get_scores_ratio(train_score: float, test_score: float, max_ratio=np.Inf) ->
             ratio = 1 / ratio
         ratio = min(max_ratio, ratio)
         return ratio
+
+
+def get_gain(base_score, score, perfect_score, max_ratio):
+    """Get gain between base score and score compared to the distance from the perfect score"""
+    distance_from_perfect = perfect_score - base_score
+    if distance_from_perfect == 0:
+        return max_ratio
+    ratio = (score - base_score) / distance_from_perfect
+    return min(ratio, max_ratio)

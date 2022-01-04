@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing simple comparison check."""
+from collections import defaultdict
 from typing import Callable, Dict, Hashable, List, cast
 
 import numpy as np
@@ -22,7 +23,7 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from deepchecks import CheckResult, Dataset
 from deepchecks.base.check import ConditionResult, TrainTestBaseCheck
 from deepchecks.checks.distribution.preprocessing import ScaledNumerics
-from deepchecks.utils.strings import format_number
+from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
 from deepchecks.errors import DeepchecksValueError
 from deepchecks.utils.metrics import (
@@ -30,9 +31,10 @@ from deepchecks.utils.metrics import (
     ModelType,
     initialize_multi_scorers,
     get_scorers_list,
-    get_scores_ratio,
-    get_scorer_single
+    get_scorer_single,
+    get_gain
 )
+from deepchecks.utils.models import RandomModel
 
 
 __all__ = ['SimpleModelComparison']
@@ -142,13 +144,27 @@ class SimpleModelComparison(TrainTestBaseCheck):
         # Multiclass have different return type from the scorer, list of score per class instead of single score
         if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
             n_samples = label.groupby(label).count()
+            classes = test_dataset.classes
+
+            results_array = []
+            # Dict in format { Scorer : Dict { Class : Dict { Origin/Simple : score } } }
+            results_dict = {}
+            for scorer in scorers:
+                model_dict = defaultdict(dict)
+                for model_name, model_type, model_instance in models:
+                    for class_score, class_value in zip(scorer(model_instance, test_dataset), classes):
+                        model_dict[class_value][model_type] = class_score
+                        results_array.append([model_name,
+                                              model_type,
+                                              class_score,
+                                              scorer.name,
+                                              class_value,
+                                              n_samples[class_value]
+                                              ])
+                results_dict[scorer.name] = model_dict
+
             results_df = pd.DataFrame(
-                [
-                    [model_name, model_type, class_score, scorer.name, class_value, n_samples[class_value]]
-                    for model_name, model_type, model_instance in models
-                    for scorer in scorers  # scorer returns numpy array with item per class
-                    for class_score, class_value in zip(scorer(model_instance, test_dataset), test_dataset.classes)
-                ],
+                results_array,
                 columns=['Model', 'Type', 'Value', 'Metric', 'Class', 'Number of samples']
             )
 
@@ -170,16 +186,26 @@ class SimpleModelComparison(TrainTestBaseCheck):
             )
 
         else:
+            classes = None
+
+            results_array = []
+            # Dict in format { Scorer : Dict { Origin/Simple : score } }
+            results_dict = {}
+            for scorer in scorers:
+                model_dict = defaultdict(dict)
+                for model_name, model_type, model_instance in models:
+                    score = scorer(model_instance, test_dataset)
+                    model_dict[model_type] = score
+                    results_array.append([model_name,
+                                          model_type,
+                                          score,
+                                          scorer.name,
+                                          label.count()
+                                          ])
+                results_dict[scorer.name] = model_dict
+
             results_df = pd.DataFrame(
-                [
-                    [model_name,
-                     model_type,
-                     scorer(model_instance, test_dataset),
-                     scorer.name,
-                     label.count()]
-                    for model_name, model_type, model_instance in models
-                    for scorer in scorers
-                ],
+                results_array,
                 columns=['Model', 'Type', 'Value', 'Metric', 'Number of samples']
             )
 
@@ -200,7 +226,14 @@ class SimpleModelComparison(TrainTestBaseCheck):
                 .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
             )
 
-        return CheckResult({'scores': results_df, 'type': task_type}, display=fig)
+        # For each scorer calculate perfect score in order to calculate later the ratio in conditions
+        scorers_perfect = {scorer.name: scorer.score_perfect(test_dataset) for scorer in scorers}
+
+        return CheckResult({'scores': results_dict,
+                            'type': task_type,
+                            'scorers_perfect': scorers_perfect,
+                            'classes': classes
+                            }, display=fig)
 
     def _create_simple_model(self, train_ds: Dataset, task_type: ModelType):
         """Create a simple model of given type (random/constant/tree) to the given dataset.
@@ -253,73 +286,70 @@ class SimpleModelComparison(TrainTestBaseCheck):
         simple_model.fit(train_ds.features_columns, train_ds.label_col)
         return simple_model
 
-    def add_condition_ratio_not_less_than(self, min_allowed_ratio: float = 1.1, classes: List[Hashable] = None):
+    def add_condition_gain_not_less_than(self, min_allowed_gain: float = 0.1, classes: List[Hashable] = None):
         """Add condition - require min allowed ratio between the given and the simple model.
 
         Args:
-            min_allowed_ratio (float): Min allowed ratio between the given and the simple model -
+            min_allowed_gain (float): Min allowed ratio between the given and the simple model -
             ratio is given model / simple model (if the scorer returns negative values we divide 1 by it)
             classes (List[Hashable]): Used in multiclass models to limit condition only to given classes.
         """
-        def condition(result: Dict, max_ratio=self.maximum_ratio, class_list=classes) -> ConditionResult:
-            scores_df = result['scores']
-            task_type = result['type']
-            metrics = scores_df['Metric'].unique()
-
-            def get_ratio(df):
-                simple_score = df[df['Type'] == 'Simple']['Value'].iloc[0]
-                origin_score = df[df['Type'] == 'Origin']['Value'].iloc[0]
-                return get_scores_ratio(simple_score, origin_score, max_ratio)
-
-            fails = []
-            if task_type == ModelType.MULTICLASS:
-                if class_list is None:
-                    class_list = scores_df['Class'].unique()
-                for metric in metrics:
-                    failed_classes = []
-                    for clas in class_list:
-                        score_rows = scores_df[(scores_df['Metric'] == metric) & (scores_df['Class'] == clas)]
-                        ratio = get_ratio(score_rows)
-                        if ratio < min_allowed_ratio:
-                            failed_classes.append(str(clas))
-                    if failed_classes:
-                        fails.append(f'"{metric}" - Classes: {", ".join(failed_classes)}')
-            else:
-                for metric in metrics:
-                    score_rows = scores_df[(scores_df['Metric'] == metric)]
-                    ratio = get_ratio(score_rows)
-                    if ratio < min_allowed_ratio:
-                        fails.append(f'"{metric}"')
-
-            if fails:
-                msg = f'Metrics failed: {", ".join(sorted(fails))}'
-                return ConditionResult(False, msg)
-            else:
-                return ConditionResult(True)
-
-        return self.add_condition('$$\\frac{\\text{model score}}{\\text{simple model score}} >= '
-                                  f'{format_number(min_allowed_ratio)}$$', condition)
+        return self.add_condition('Model performance gain over simple model must be at least '
+                                  f'{format_percent(min_allowed_gain)}',
+                                  condition,
+                                  max_ratio=self.maximum_ratio,
+                                  class_list=classes,
+                                  min_allowed_gain=min_allowed_gain,
+                                  average=False)
 
 
-class RandomModel:
-    """Model used to randomly predict from given series of labels."""
+def condition(result: Dict, max_ratio=None, class_list=None, average=False, min_allowed_gain=0) -> ConditionResult:
+    scores = result['scores']
+    task_type = result['type']
+    scorers_perfect = result['scorers_perfect']
 
-    def __init__(self):
-        self.labels = None
+    fails = []
+    if task_type in [ModelType.MULTICLASS, ModelType.BINARY] and not average:
+        for metric, classes_scores in scores.items():
+            failed_classes = []
+            for clas, models_scores in classes_scores.items():
+                # Skip if class is not in class list
+                if class_list is not None and clas not in class_list:
+                    continue
 
-    def fit(self, X, y):  # pylint: disable=unused-argument,invalid-name
-        # The X is not used, but it is needed to be matching to sklearn `fit` signature
-        self.labels = y
+                gain = get_gain(models_scores['Simple'],
+                                models_scores['Origin'],
+                                scorers_perfect[metric],
+                                max_ratio)
+                if gain < min_allowed_gain:
+                    failed_classes.append(str(clas))
+            if failed_classes:
+                fails.append(f'"{metric}" - Classes: {", ".join(failed_classes)}')
+    else:
+        if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
+            scores = average_scores(scores)
+        for metric, models_scores in scores.items():
+            gain = get_gain(models_scores['Simple'],
+                            models_scores['Origin'],
+                            scorers_perfect[metric],
+                            max_ratio)
+            if gain < min_allowed_gain:
+                fails.append(f'"{metric}"')
 
-    def predict(self, X):  # pylint: disable=invalid-name
-        return np.random.choice(self.labels, X.shape[0])
+    if fails:
+        msg = f'Metrics failed: {", ".join(sorted(fails))}'
+        return ConditionResult(False, msg)
+    else:
+        return ConditionResult(True)
 
-    def predict_proba(self, X):  # pylint: disable=invalid-name
-        classes = sorted(self.labels.unique().tolist())
-        predictions = self.predict(X)
 
-        def prediction_to_proba(y_pred):
-            proba = np.zeros(len(classes))
-            proba[classes.index(y_pred)] = 1
-            return proba
-        return np.apply_along_axis(prediction_to_proba, axis=1, arr=predictions)
+def average_scores(scores):
+    result = {}
+    for metric, classes_scores in scores.items():
+        result[metric] = {'Origin': 0, 'Simple': 0}
+        for models_scores in classes_scores.values():
+            result[metric]['Origin'] += models_scores['Origin']
+            result[metric]['Simple'] += models_scores['Simple']
+
+        result[metric] = result[metric] / len(classes_scores)
+    return result
