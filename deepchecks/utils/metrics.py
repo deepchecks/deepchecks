@@ -32,9 +32,6 @@ __all__ = [
     'initialize_single_scorer',
     'DEFAULT_SCORERS_DICT',
     'DEFAULT_SINGLE_SCORER',
-    'DEFAULT_REGRESSION_SCORERS',
-    'DEFAULT_BINARY_SCORERS',
-    'DEFAULT_MULTICLASS_SCORERS',
     'MULTICLASS_SCORERS_NON_AVERAGE',
     'get_scores_ratio',
     'initialize_multi_scorers',
@@ -55,21 +52,21 @@ class ModelType(enum.Enum):
 
 DEFAULT_BINARY_SCORERS = {
     'Accuracy (Default)': 'accuracy',
-    'Precision (Default)': 'precision',
-    'Recall (Default)': 'recall'
+    'Precision (Default)': make_scorer(precision_score, zero_division=0),
+    'Recall (Default)':  make_scorer(recall_score, zero_division=0)
 }
 
 
 DEFAULT_MULTICLASS_SCORERS = {
     'Accuracy (Default)': 'accuracy',
-    'Precision - Macro Average (Default)': 'precision_macro',
-    'Recall - Macro Average (Default)': 'recall_macro'
+    'Precision - Macro Average (Default)': make_scorer(precision_score, average='macro', zero_division=0),
+    'Recall - Macro Average (Default)': make_scorer(recall_score, average='macro', zero_division=0)
 }
 
 MULTICLASS_SCORERS_NON_AVERAGE = {
-    'F1 (Default)': make_scorer(f1_score, average=None),
-    'Precision (Default)': make_scorer(precision_score, average=None),
-    'Recall (Default)': make_scorer(recall_score, average=None)
+    'F1 (Default)': make_scorer(f1_score, average=None, zero_division=0),
+    'Precision (Default)': make_scorer(precision_score, average=None, zero_division=0),
+    'Recall (Default)': make_scorer(recall_score, average=None, zero_division=0)
 }
 
 
