@@ -327,7 +327,7 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
         else:
             plot_x_axis = 'Model'
             results = [
-                [model_name, scorer(model, test_dataset), scorer.name, cast(pd.Series, test_dataset).label_col.count()]
+                [model_name, scorer(model, test_dataset), scorer.name, cast(pd.Series, test_dataset.label_col).count()]
                 for _, test_dataset, model, model_name in context
                 for scorer in scorers
             ]
