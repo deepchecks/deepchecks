@@ -157,8 +157,7 @@ def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, plot_ti
             gridcolor='black',
             linecolor='black',
             range=[0, bar_stop],
-            dtick=0.05,
-           # title='drift score'
+            dtick=0.05
         ),
         yaxis=dict(
             showgrid=False,
