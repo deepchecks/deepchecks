@@ -17,7 +17,7 @@ import pandas as pd
 
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.utils.features import calculate_feature_importance_or_none, column_importance_sorter_df
+from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, column_importance_sorter_df
 from deepchecks.utils.strings import format_percent
 from deepchecks.errors import DeepchecksValueError
 
@@ -181,10 +181,11 @@ class DominantFrequencyChange(TrainTestBaseCheck):
                 feature_importances,
                 self.n_top_columns
             )
+            display = [N_TOP_MESSAGE % self.n_top_columns, sorted_p_df]
         else:
-            sorted_p_df = None
+            display = None
 
-        return CheckResult(p_dict, display=sorted_p_df)
+        return CheckResult(p_dict, display=display)
 
     def add_condition_p_value_not_less_than(self, p_value_threshold: float = 0.0001):
         """Add condition - require min p value allowed per column.

@@ -174,7 +174,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     # Act
     result = check.run(train, clf)
     # Assert
-    assert_that(result.display[0], has_length(3))
+    assert_that(result.display[1], has_length(3))
 
 
 def test_nan():

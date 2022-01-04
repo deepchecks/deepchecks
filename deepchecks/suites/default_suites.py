@@ -88,7 +88,7 @@ def model_evaluation() -> Suite:
     return Suite(
         'Model Evaluation Suite',
         ConfusionMatrixReport(),
-        PerformanceReport().add_condition_train_test_performance_degradation_ratio_not_greater_than(),
+        PerformanceReport().add_condition_train_test_relative_degradation_not_greater_than(),
         RocReport().add_condition_auc_not_less_than(),
         SimpleModelComparison().add_condition_ratio_not_less_than(),
         ModelErrorAnalysis().add_condition_segments_performance_relative_difference_not_greater_than(),

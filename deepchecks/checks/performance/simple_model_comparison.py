@@ -140,9 +140,8 @@ class SimpleModelComparison(TrainTestBaseCheck):
         ]
 
         # Multiclass have different return type from the scorer, list of score per class instead of single score
-        if task_type == ModelType.MULTICLASS:
+        if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
             n_samples = label.groupby(label).count()
-
             results_df = pd.DataFrame(
                 [
                     [model_name, model_type, class_score, scorer.name, class_value, n_samples[class_value]]
