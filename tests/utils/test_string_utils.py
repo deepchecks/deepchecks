@@ -1,7 +1,16 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 from datetime import datetime
 from hamcrest import assert_that, calling, raises, matches_regexp, instance_of
 from deepchecks.utils.strings import format_datetime
-
 
 
 def test_datetime_instance_format():
@@ -47,6 +56,3 @@ def test_format_datetime_with_unsuported_value_type():
         calling(format_datetime).with_args("hello"),
         raises(ValueError, r"Unsupported value type - str")
     )
-
-
-
