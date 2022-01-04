@@ -153,7 +153,7 @@ class PerformanceReport(TrainTestBaseCheck):
         Args:
             threshold: maximum degradation ratio allowed (value between 0 to 1)
         """
-        def _ratio_calc(score_1, score_2):
+        def _ratio_of_change_calc(score_1, score_2):
             if score_1 == 0:
                 if score_2 == 0:
                     return 0
@@ -176,7 +176,7 @@ class PerformanceReport(TrainTestBaseCheck):
                     test_scores_dict = dict(zip(test_scores_class['Metric'], test_scores_class['Value']))
                     train_scores_dict = dict(zip(train_scores_class['Metric'], train_scores_class['Value']))
                     # Calculate percentage of change from train to test
-                    diff = {score_name: _ratio_calc(score, test_scores_dict[score_name])
+                    diff = {score_name: _ratio_of_change_calc(score, test_scores_dict[score_name])
                             for score_name, score in train_scores_dict.items()}
                     failed_scores = [k for k, v in diff.items() if v > threshold]
                     if failed_scores:
@@ -188,7 +188,7 @@ class PerformanceReport(TrainTestBaseCheck):
                 test_scores_dict = dict(zip(test_scores['Metric'], test_scores['Value']))
                 train_scores_dict = dict(zip(train_scores['Metric'], train_scores['Value']))
                 # Calculate percentage of change from train to test
-                diff = {score_name: _ratio_calc(score, test_scores_dict[score_name])
+                diff = {score_name: _ratio_of_change_calc(score, test_scores_dict[score_name])
                         for score_name, score in train_scores_dict.items()}
                 failed_scores = [k for k, v in diff.items() if v > threshold]
                 if failed_scores:
