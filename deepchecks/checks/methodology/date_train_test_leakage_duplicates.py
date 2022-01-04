@@ -12,7 +12,7 @@
 import pandas as pd
 
 from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
-from deepchecks.utils.strings import format_percent
+from deepchecks.utils.strings import format_percent, format_datetime
 
 
 __all__ = ['DateTrainTestLeakageDuplicates']
@@ -56,12 +56,15 @@ class DateTrainTestLeakageDuplicates(TrainTestBaseCheck):
         train_date = train_dataset.datetime_col
         val_date = test_dataset.datetime_col
 
-        date_intersection = set(train_date).intersection(val_date)
+        date_intersection = tuple(set(train_date).intersection(val_date))
+
         if len(date_intersection) > 0:
             leakage_ratio = len(date_intersection) / test_dataset.n_samples
             text = f'{format_percent(leakage_ratio)} of test data dates appear in training data'
-            table = pd.DataFrame([[list(date_intersection)[:self.n_to_show]]],
-                                 index=['Sample of test dates in train:'])
+            table = pd.DataFrame(
+                [[list(format_datetime(it) for it in date_intersection[:self.n_to_show])]],
+                index=['Sample of test dates in train:']
+            )
             display = [text, table]
             return_value = leakage_ratio
         else:
