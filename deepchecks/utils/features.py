@@ -33,11 +33,13 @@ __all__ = [
     'column_importance_sorter_dict',
     'column_importance_sorter_df',
     'infer_categorical_features',
-    'is_categorical'
+    'is_categorical',
+    'N_TOP_MESSAGE'
 ]
 
 
 _NUMBER_OF_FEATURES_LIMIT: int = 200
+N_TOP_MESSAGE = '* showing only the top %s columns, you can change it using n_top_columns param'
 
 
 def set_number_of_features_limit(limit: int):
@@ -297,8 +299,8 @@ def column_importance_sorter_df(
         if col:
             df = df.sort_values(by=[col], key=key, ascending=False)
         df = df.sort_index(key=key, ascending=False)
-        if n_top:
-            return df.head(n_top)
+    if n_top:
+        return df.head(n_top)
     return df
 
 
