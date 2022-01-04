@@ -44,7 +44,7 @@ This includes checks related to various types of issues, such as model performan
 
 ### Using pip
 ```bash
-pip install deepchecks #--upgrade --user
+pip install deepchecks #--upgrade --user | use --user in kaggle 
 ```
 ### Using conda
 ```bash
