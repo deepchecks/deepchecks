@@ -286,24 +286,29 @@ class SimpleModelComparison(TrainTestBaseCheck):
         simple_model.fit(train_ds.features_columns, train_ds.label_col)
         return simple_model
 
-    def add_condition_gain_not_less_than(self, min_allowed_gain: float = 0.1, classes: List[Hashable] = None):
-        """Add condition - require min allowed ratio between the given and the simple model.
+    def add_condition_gain_not_less_than(self,
+                                         min_allowed_gain: float = 0.1,
+                                         classes: List[Hashable] = None,
+                                         average: bool = False):
+        """Add condition - require minimum allowed gain between the model and the simple model.
 
         Args:
-            min_allowed_gain (float): Min allowed ratio between the given and the simple model -
-            ratio is given model / simple model (if the scorer returns negative values we divide 1 by it)
-            classes (List[Hashable]): Used in multiclass models to limit condition only to given classes.
+            min_allowed_gain (float): Minimum allowed gain between the model and the simple model -
+                gain is: difference in performance / (perfect score - simple score)
+            classes (List[Hashable]): Used in classification models to limit condition only to given classes.
+            average (bool): Used in classification models to flag if to run condition on average of classes, or on
+                each class individually
         """
         return self.add_condition('Model performance gain over simple model must be at least '
                                   f'{format_percent(min_allowed_gain)}',
                                   condition,
                                   max_ratio=self.maximum_ratio,
-                                  class_list=classes,
+                                  include_classes=classes,
                                   min_allowed_gain=min_allowed_gain,
-                                  average=False)
+                                  average=average)
 
 
-def condition(result: Dict, max_ratio=None, class_list=None, average=False, min_allowed_gain=0) -> ConditionResult:
+def condition(result: Dict, max_ratio=None, include_classes=None, average=False, min_allowed_gain=0) -> ConditionResult:
     scores = result['scores']
     task_type = result['type']
     scorers_perfect = result['scorers_perfect']
@@ -314,7 +319,7 @@ def condition(result: Dict, max_ratio=None, class_list=None, average=False, min_
             failed_classes = []
             for clas, models_scores in classes_scores.items():
                 # Skip if class is not in class list
-                if class_list is not None and clas not in class_list:
+                if include_classes is not None and clas not in include_classes:
                     continue
 
                 gain = get_gain(models_scores['Simple'],
@@ -327,7 +332,7 @@ def condition(result: Dict, max_ratio=None, class_list=None, average=False, min_
                 fails.append(f'"{metric}" - Classes: {", ".join(failed_classes)}')
     else:
         if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
-            scores = average_scores(scores)
+            scores = average_scores(scores, include_classes)
         for metric, models_scores in scores.items():
             gain = get_gain(models_scores['Simple'],
                             models_scores['Origin'],
@@ -343,14 +348,19 @@ def condition(result: Dict, max_ratio=None, class_list=None, average=False, min_
         return ConditionResult(True)
 
 
-def average_scores(scores):
+def average_scores(scores, include_classes):
     result = {}
     for metric, classes_scores in scores.items():
         origin_score = 0
         simple_score = 0
-        for models_scores in classes_scores.values():
+        total = 0
+        for clas, models_scores in classes_scores.items():
+            # Skip if class is not in class list
+            if include_classes is not None and clas not in include_classes:
+                continue
             origin_score += models_scores['Origin']
             simple_score += models_scores['Simple']
+            total += 1
 
         result[metric] = {
             'Origin': origin_score / len(classes_scores),
