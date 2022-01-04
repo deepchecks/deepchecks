@@ -115,7 +115,7 @@ class SegmentPerformance(SingleDatasetBaseCheck):
                 else:
                     score = scorer(model,
                                    Dataset(feature_2_df, features=dataset.features,
-                                           label_name=dataset.label_name, cat_features=dataset.cat_features))
+                                           label=dataset.label_name, cat_features=dataset.cat_features))
                 scores[i, j] = score
                 counts[i, j] = len(feature_2_df)
 

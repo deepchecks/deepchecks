@@ -10,19 +10,25 @@
 #
 """Common utilities for distribution checks."""
 
-from typing import Tuple, List
+from typing import Tuple, Union, Hashable, Callable
 
 from scipy.stats import wasserstein_distance
 import numpy as np
 import pandas as pd
-from collections import Counter
 
 from sklearn.impute import SimpleImputer
+
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+from deepchecks.checks.distribution.plot import drift_score_bar_traces, feature_distribution_traces
+from deepchecks.checks.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 
 PSI_MIN_PERCENTAGE = 0.01
 
 
-__all__ = ['PandasSimpleImputer', 'preprocess_for_psi', 'psi', 'earth_movers_distance']
+__all__ = ['PandasSimpleImputer', 'preprocess_2_cat_cols_to_same_bins', 'psi', 'earth_movers_distance',
+           'calc_drift_and_plot']
 
 
 class PandasSimpleImputer(SimpleImputer):
@@ -36,49 +42,6 @@ class PandasSimpleImputer(SimpleImputer):
     def transform(self, X):  # pylint: disable=C0103
         """Transform X using the imputer."""
         return pd.DataFrame(super().transform(X), columns=self.columns)  # pylint: disable=C0103
-
-
-def preprocess_for_psi(dist1: np.ndarray, dist2: np.ndarray, max_num_categories) -> Tuple[np.ndarray, np.ndarray, List]:
-    """
-    Preprocess distributions in order to be able to be calculated by PSI.
-
-    Function returns the value counts for each distribution and the categories list. If there are more than
-    max_num_categories, it encodes rare categories into an "OTHER" category. This is done according to the values of
-    dist1, which is treated as the "expected" distribution.
-
-    Function is for categorical data only.
-    Args:
-        dist1: list of values from the first distribution, treated as the expected distribution
-        dist2: list of values from the second distribution, treated as the actual distribution
-        max_num_categories: max number of allowed categories. If there are more, they are binned into an "Other"
-        category. If max_num_categories=None, there is no limit.
-
-    Returns:
-        expected_percents: array of percentages of each value in the expected distribution.
-        actual_percents: array of percentages of each value in the actual distribution.
-        categories_list: list of all categories that the percentages represent.
-
-    """
-    all_categories = list(set(dist1).union(set(dist2)))
-
-    if max_num_categories is not None and len(all_categories) > max_num_categories:
-        dist1_counter = dict(Counter(dist1).most_common(max_num_categories))
-        dist1_counter['Other rare categories'] = len(dist1) - sum(dist1_counter.values())
-        categories_list = list(dist1_counter.keys())
-
-        dist2_counter = Counter(dist2)
-        dist2_counter = {k: dist2_counter[k] for k in categories_list}
-        dist2_counter['Other rare categories'] = len(dist2) - sum(dist2_counter.values())
-
-    else:
-        dist1_counter = Counter(dist1)
-        dist2_counter = Counter(dist2)
-        categories_list = all_categories
-
-    expected_percents = np.array([dist1_counter[k] for k in categories_list]) / len(dist1)
-    actual_percents = np.array([dist2_counter[k] for k in categories_list]) / len(dist2)
-
-    return expected_percents, actual_percents, categories_list
 
 
 def psi(expected_percents: np.ndarray, actual_percents: np.ndarray):
@@ -106,7 +69,7 @@ def psi(expected_percents: np.ndarray, actual_percents: np.ndarray):
     return psi_value
 
 
-def earth_movers_distance(dist1: np.ndarray, dist2: np.ndarray):
+def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]):
     """
     Calculate the Earth Movers Distance (Wasserstein distance).
 
@@ -137,3 +100,81 @@ def earth_movers_distance(dist1: np.ndarray, dist2: np.ndarray):
     dist2 = (dist2 - val_min) / (val_max - val_min)
 
     return wasserstein_distance(dist1, dist2)
+
+
+def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, plot_title: Hashable,
+                        column_type: str, max_num_categories: int = 10) -> Tuple[float, str, Callable]:
+    """
+    Calculate drift score per column.
+
+    Args:
+        train_column: column from train dataset
+        test_column: same column from test dataset
+        plot_title: title of plot
+        column_type: type of column (either "numerical" or "categorical")
+        max_num_categories: Max number of allowed categories. If there are more, they are binned into an "Other"
+                            category.
+
+    Returns:
+        score: drift score of the difference between the two columns' distributions (Earth movers distance for
+        numerical, PSI for categorical)
+        display: graph comparing the two distributions (density for numerical, stack bar for categorical)
+    """
+    train_dist = train_column.dropna().values.reshape(-1)
+    test_dist = test_column.dropna().values.reshape(-1)
+
+    if column_type == 'numerical':
+        scorer_name = "Earth Mover's Distance"
+        score = earth_movers_distance(dist1=train_column.astype('float'), dist2=test_column.astype('float'))
+        bar_stop = max(0.4, score + 0.1)
+
+        score_bar = drift_score_bar_traces(score)
+
+        traces, xaxis_layout, yaxis_layout = feature_distribution_traces(train_dist, test_dist)
+
+    elif column_type == 'categorical':
+        scorer_name = 'PSI'
+        expected_percents, actual_percents, _ = \
+            preprocess_2_cat_cols_to_same_bins(dist1=train_dist, dist2=test_dist, max_num_categories=max_num_categories)
+        score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
+        bar_stop = min(max(0.4, score + 0.1), 1)
+
+        score_bar = drift_score_bar_traces(score)
+
+        traces, xaxis_layout, yaxis_layout = feature_distribution_traces(train_dist, test_dist, is_categorical=True,
+                                                                         max_num_categories=max_num_categories)
+
+    fig = make_subplots(rows=2, cols=1, vertical_spacing=0.4, shared_yaxes=False, shared_xaxes=False,
+                        row_heights=[0.1, 0.9],
+                        subplot_titles=['Drift Score - ' + scorer_name, plot_title])
+
+    fig.add_traces(score_bar, rows=[1] * len(score_bar), cols=[1] * len(score_bar))
+    fig.add_traces(traces, rows=[2] * len(traces), cols=[1] * len(traces))
+
+    shared_layout = go.Layout(
+        xaxis=dict(
+            showgrid=False,
+            gridcolor='black',
+            linecolor='black',
+            range=[0, bar_stop],
+            dtick=0.05
+        ),
+        yaxis=dict(
+            showgrid=False,
+            showline=False,
+            showticklabels=False,
+            zeroline=False,
+        ),
+        xaxis2=xaxis_layout,
+        yaxis2=yaxis_layout,
+        legend=dict(
+            title='Dataset',
+            yanchor='top',
+            y=0.6),
+        width=700,
+        height=400
+    )
+
+    fig.update_layout(shared_layout)
+
+    return score, scorer_name, fig

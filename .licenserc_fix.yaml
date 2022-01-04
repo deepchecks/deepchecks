@@ -26,6 +26,8 @@ header:
     - 'deepchecks/ppscore.py'
     - '.projectignore'
     - 'MANIFEST.in'
+    - '.github/ISSUE_TEMPLATE/'
+    - '.github/pull_request_template.md'
   comment: on-failure
 
 dependency:

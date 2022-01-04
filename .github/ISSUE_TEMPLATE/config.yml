@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Deepchecks Slack Community Group
+    url: https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg
+    about: Please ask and answer questions here.
+  - name: Deepchecks Docs
+    url: https://docs.deepchecks.com/
+    about: Please view the full documentation here.

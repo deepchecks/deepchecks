@@ -13,6 +13,9 @@ typing_extensions>=3.7.4.3
 
 tqdm>=4.62.3
 category-encoders>=2.3.0
+# Category encoder depends on old statsmodels version which raises pandas warning. until dependency in category-encoders
+# is updated, explicitly add it here
+statsmodels>=0.11.0
 scipy>=1.5.0
 dataclasses>=0.6; python_version < '3.7'
 plotly>=5.5.0

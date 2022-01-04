@@ -16,5 +16,6 @@ Classes Summary
     :template: check.rst
 
     train_test_feature_drift.TrainTestFeatureDrift
+    train_test_label_drift.TrainTestLabelDrift
     trust_score_comparison.TrustScoreComparison
     whole_dataset_drift.WholeDatasetDrift

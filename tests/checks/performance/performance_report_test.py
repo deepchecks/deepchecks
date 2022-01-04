@@ -14,7 +14,8 @@ from typing import List
 
 from hamcrest import assert_that, calling, raises, close_to, has_items
 import numpy as np
-from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+from sklearn.model_selection import train_test_split
 
 from deepchecks import ConditionResult, Dataset
 from deepchecks.base.check import CheckResult
@@ -49,7 +50,7 @@ def test_dataset_no_label(iris_dataset):
 
 def test_dataset_no_shared_label(iris_labeled_dataset):
     # Assert
-    iris_dataset_2 = Dataset(iris_labeled_dataset.data, label_name='sepal length (cm)')
+    iris_dataset_2 = Dataset(iris_labeled_dataset.data, label='sepal length (cm)')
     assert_that(calling(PerformanceReport().run).with_args(iris_labeled_dataset, iris_dataset_2, None),
                 raises(DeepchecksValueError,
                        'Check requires datasets to share the same label'))
@@ -69,12 +70,32 @@ def test_classification(iris_split_dataset_and_model):
                 metric_col = class_col.loc[class_col['Metric'] == metric]
                 assert_that(metric_col['Value'] , close_to(1, 0.3))
 
+
+def test_classification_binary(iris_dataset_single_class_labeled):
+    # Arrange
+    train, test = train_test_split(iris_dataset_single_class_labeled.data, test_size=0.33, random_state=42)
+    train_ds = iris_dataset_single_class_labeled.copy(train)
+    test_ds = iris_dataset_single_class_labeled.copy(test)
+    clf = RandomForestClassifier(random_state=0)
+    clf.fit(train_ds.features_columns, train_ds.label_col)
+    check = PerformanceReport()
+
+    # Act X
+    result = check.run(train_ds, test_ds, clf).value
+    # Assert
+    for dataset in ['Test', 'Train']:
+        dataset_col = result.loc[result['Dataset'] == dataset]
+        for metric in dataset_col['Metric'].unique():
+            metric_col = dataset_col.loc[dataset_col['Metric'] == metric]
+            assert_that(metric_col['Value'], close_to(1, 0.3))
+
+
 def test_classification_string_labels(iris_labeled_dataset):
     # Arrange
     check = PerformanceReport()
     replace_dict = {iris_labeled_dataset.label_name: {0: 'b', 1: 'e', 2: 'a'}}
     iris_labeled_dataset = Dataset(iris_labeled_dataset.data.replace(replace_dict),
-                                   label_name=iris_labeled_dataset.label_name)
+                                   label=iris_labeled_dataset.label_name)
 
     iris_adaboost = AdaBoostClassifier(random_state=0)
     iris_adaboost.fit(iris_labeled_dataset.features_columns, iris_labeled_dataset.label_col)
@@ -96,7 +117,7 @@ def test_classification_nan_labels(iris_labeled_dataset, iris_adaboost):
     data_with_nan = iris_labeled_dataset.data.copy()
     data_with_nan[iris_labeled_dataset.label_name].iloc[0] = float('nan')
     iris_labeled_dataset = Dataset(data_with_nan,
-                                   label_name=iris_labeled_dataset.label_name)
+                                   label=iris_labeled_dataset.label_name)
     # Act X
     result = check.run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost).value
     # Assert

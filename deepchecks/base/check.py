@@ -14,6 +14,7 @@ import abc
 import enum
 import inspect
 import re
+import traceback
 from collections import OrderedDict
 from functools import wraps
 from typing import Any, Callable, List, Union, Dict, cast, Mapping
@@ -276,7 +277,7 @@ def wrap_run(func, class_instance):
     def wrapped(*args, **kwargs):
         result = func(*args, **kwargs)
         if not isinstance(result, CheckResult):
-            raise DeepchecksValueError(f'Check {class_instance.name()} expected to return CheckResult bot got: '
+            raise DeepchecksValueError(f'Check {class_instance.name()} expected to return CheckResult but got: '
                                        + type(result).__name__)
         result.check = class_instance
         result.process_conditions()
@@ -302,7 +303,11 @@ class BaseCheck(metaclass=abc.ABCMeta):
         results = []
         condition: Condition
         for condition in self._conditions.values():
-            output = condition.function(result.value, **condition.params)
+            try:
+                output = condition.function(result.value, **condition.params)
+            except Exception as e:
+                msg = f'Exception in condition: {e.__class__.__name__}: {str(e)}'
+                output = ConditionResult(False, msg, ConditionCategory.WARN)
             if isinstance(output, bool):
                 output = ConditionResult(output)
             elif not isinstance(output, ConditionResult):
@@ -498,6 +503,13 @@ class ModelComparisonBaseCheck(BaseCheck):
 class CheckFailure:
     """Class which holds a run exception of a check."""
 
-    def __init__(self, check: Any, exception: Exception):
+    def __init__(self, check: BaseCheck, exception: Exception):
         self.check = check
         self.exception = exception
+        self.header = check.name()
+
+    def __repr__(self):
+        """Return string representation."""
+        tb_str = traceback.format_exception(etype=type(self.exception), value=self.exception,
+                                            tb=self.exception.__traceback__)
+        return ''.join(tb_str)
