@@ -53,7 +53,7 @@ Simply run the following command in a notebook cell:
 
 .. code-block:: bash
 
-    !pip install deepchecks
+    !pip install deepchecks -U --user
 
 
 
