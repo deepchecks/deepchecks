@@ -19,7 +19,7 @@ from pandas import DataFrame, Series
 from scipy import stats
 
 from deepchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ConditionResult, ConditionCategory
-from deepchecks.utils.features import calculate_feature_importance_or_none, column_importance_sorter_df, is_categorical
+from deepchecks.utils.features import _N_TOP_MESSEGE, calculate_feature_importance_or_none, column_importance_sorter_df, is_categorical
 from deepchecks.utils.strings import is_string_column, format_number, format_columns_for_condition, format_percent
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.validation import ensure_dataframe_type
@@ -178,7 +178,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
 
         df_graph = column_importance_sorter_df(df_graph, dataset, feature_importances,
                                                self.n_top_columns, col='Column Name')
-        display = df_graph if len(df_graph) > 0 else None
+        display = [_N_TOP_MESSEGE % self.n_top_columns, df_graph] if len(df_graph) > 0 else None
 
         return CheckResult(results, display=display)
 

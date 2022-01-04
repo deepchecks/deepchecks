@@ -23,7 +23,7 @@ from deepchecks import (
     ConditionCategory
 )
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import calculate_feature_importance_or_none, column_importance_sorter_df
+from deepchecks.utils.features import _N_TOP_MESSEGE, calculate_feature_importance_or_none, column_importance_sorter_df
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.strings import (
@@ -104,7 +104,7 @@ class StringMismatch(SingleDatasetBaseCheck):
             df_graph = df_graph.set_index(['Column Name', 'Base form'])
             df_graph = column_importance_sorter_df(df_graph, original_dataset, feature_importances,
                                                    self.n_top_columns, col='Column Name')
-            display = df_graph
+            display = [_N_TOP_MESSEGE % self.n_top_columns, df_graph]
         else:
             display = None
 

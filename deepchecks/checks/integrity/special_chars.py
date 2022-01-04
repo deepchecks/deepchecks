@@ -17,7 +17,7 @@ from pandas.api.types import infer_dtype
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import calculate_feature_importance_or_none, column_importance_sorter_df
+from deepchecks.utils.features import _N_TOP_MESSEGE, calculate_feature_importance_or_none, column_importance_sorter_df
 from deepchecks.utils.strings import string_baseform, format_percent, format_columns_for_condition
 from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
@@ -100,7 +100,7 @@ class SpecialCharacters(SingleDatasetBaseCheck):
         df_graph = df_graph.set_index(['Column Name'])
         df_graph = column_importance_sorter_df(df_graph, dataset, feature_importances,
                                                self.n_top_columns, col='Column Name')
-        display = df_graph if len(df_graph) > 0 else None
+        display = [_N_TOP_MESSEGE % self.n_top_columns, df_graph] if len(df_graph) > 0 else None
 
         return CheckResult(result, display=display)
 

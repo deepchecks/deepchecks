@@ -17,7 +17,7 @@ import pandas as pd
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.checks.distribution.plot import feature_distribution_traces, drift_score_bar_traces
-from deepchecks.utils.features import calculate_feature_importance_or_none
+from deepchecks.utils.features import _N_TOP_MESSEGE, calculate_feature_importance_or_none
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.utils.typing import Hashable
 
@@ -48,13 +48,13 @@ class WholeDatasetDrift(TrainTestBaseCheck):
     calculated feature importance.
 
     Args:
-        n_top_features (int):
+        n_top_columns (int):
             Amount of columns to show ordered by domain classifier feature importance. This limit is used together
-            (AND) with min_feature_importance, so less than n_top_features features can be displayed.
+            (AND) with min_feature_importance, so less than n_top_columns features can be displayed.
         min_feature_importance (float): Minimum feature importance to show in the check display. Feature importance
             sums to 1, so for example the default value of 0.05 means that all features with importance contributing
             less than 5% to the predictive power of the Domain Classifier won't be displayed. This limit is used
-            together (AND) with n_top_features, so features more important than min_feature_importance can be
+            together (AND) with n_top_columns, so features more important than min_feature_importance can be
             hidden.
         max_num_categories (int):
             Only for categorical columns. Max number of categories to display in distributio plots. If there are
@@ -71,7 +71,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
 
     def __init__(
             self,
-            n_top_features: int = 3,
+            n_top_columns: int = 3,
             min_feature_importance: float = 0.05,
             max_num_categories: int = 10,
             sample_size: int = 10000,
@@ -81,7 +81,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         super().__init__()
 
         self._cat_features = None
-        self.n_top_features = n_top_features
+        self.n_top_columns = n_top_columns
         self.min_feature_importance = min_feature_importance
         self.max_num_categories = max_num_categories
         self.sample_size = sample_size
@@ -159,7 +159,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         """
 
         if fi is not None:
-            top_fi = fi.head(self.n_top_features)
+            top_fi = fi.head(self.n_top_columns)
             top_fi = top_fi.loc[top_fi > self.min_feature_importance]
         else:
             top_fi = None
@@ -167,10 +167,11 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         if top_fi is not None and len(top_fi):
             score = self.auc_to_drift_score(values_dict['domain_classifier_auc'])
 
-            displays = ([headnote] + [self._build_drift_plot(score)] +
-                        ['<h5>Main features contributing to drift</h5>'] +
+            displays = [headnote, self._build_drift_plot(score),
+                        _N_TOP_MESSEGE % self.n_top_columns,
+                        '<h3>Main features contributing to drift</h3>',
                         [self._display_dist(train_sample_df[feature], test_sample_df[feature], top_fi)
-                         for feature in top_fi.index]) if len(top_fi) else None
+                         for feature in top_fi.index]]
         else:
             displays = None
 
