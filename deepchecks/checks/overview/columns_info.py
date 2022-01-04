@@ -14,7 +14,8 @@ import pandas as pd
 from deepchecks import CheckResult
 from deepchecks.base import Dataset
 from deepchecks.base.check import SingleDatasetBaseCheck
-from deepchecks.utils.features import _N_TOP_MESSEGE, calculate_feature_importance_or_none, column_importance_sorter_dict
+from deepchecks.utils.features import _N_TOP_MESSEGE, calculate_feature_importance_or_none, \
+                                      column_importance_sorter_dict
 
 
 __all__ = ['ColumnsInfo']

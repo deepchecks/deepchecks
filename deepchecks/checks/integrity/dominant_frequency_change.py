@@ -181,7 +181,7 @@ class DominantFrequencyChange(TrainTestBaseCheck):
                 feature_importances,
                 self.n_top_columns
             )
-            display=[_N_TOP_MESSEGE % self.n_top_columns, sorted_p_df]
+            display = [_N_TOP_MESSEGE % self.n_top_columns, sorted_p_df]
         else:
             display = None
 
