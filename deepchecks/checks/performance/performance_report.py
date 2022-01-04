@@ -172,12 +172,19 @@ class PerformanceReport(TrainTestBaseCheck):
 
         return self.add_condition(f'Scores are not less than {min_score}', condition)
 
-    def add_condition_train_test_performance_degradation_ratio_not_greater_than(self: PR, threshold: float = 0.1) -> PR:
+    def add_condition_train_test_relative_degradation_not_greater_than(self: PR, threshold: float = 0.1) -> PR:
         """Add condition that will check that test performance is not degraded by more than given percentage in train.
 
         Args:
             threshold: maximum degradation ratio allowed (value between 0 and 1)
         """
+        def _ratio_of_change_calc(score_1, score_2):
+            if score_1 == 0:
+                if score_2 == 0:
+                    return 0
+                return threshold + 1
+            return (score_1 - score_2) / abs(score_1)
+
         def condition(check_result: pd.DataFrame) -> ConditionResult:
             test_scores = check_result.loc[check_result['Dataset'] == 'Test']
             train_scores = check_result.loc[check_result['Dataset'] == 'Train']
@@ -194,9 +201,9 @@ class PerformanceReport(TrainTestBaseCheck):
                     test_scores_dict = dict(zip(test_scores_class['Metric'], test_scores_class['Value']))
                     train_scores_dict = dict(zip(train_scores_class['Metric'], train_scores_class['Value']))
                     # Calculate percentage of change from train to test
-                    diff = {score_name: ((score - test_scores_dict[score_name]) / score)
+                    diff = {score_name: _ratio_of_change_calc(score, test_scores_dict[score_name])
                             for score_name, score in train_scores_dict.items()}
-                    failed_scores = [k for k, v in diff.items() if abs(v) > threshold]
+                    failed_scores = [k for k, v in diff.items() if v > threshold]
                     if failed_scores:
                         for score_name in failed_scores:
                             explained_failures.append(f'{score_name} on class {class_name} '
@@ -206,9 +213,9 @@ class PerformanceReport(TrainTestBaseCheck):
                 test_scores_dict = dict(zip(test_scores['Metric'], test_scores['Value']))
                 train_scores_dict = dict(zip(train_scores['Metric'], train_scores['Value']))
                 # Calculate percentage of change from train to test
-                diff = {score_name: ((score - test_scores_dict[score_name]) / score)
+                diff = {score_name: _ratio_of_change_calc(score, test_scores_dict[score_name])
                         for score_name, score in train_scores_dict.items()}
-                failed_scores = [k for k, v in diff.items() if abs(v) > threshold]
+                failed_scores = [k for k, v in diff.items() if v > threshold]
                 if failed_scores:
                     for score_name in failed_scores:
                         explained_failures.append(f'{score_name}: '

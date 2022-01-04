@@ -175,7 +175,7 @@ def test_condition_min_score_passed(iris_split_dataset_and_model):
 def test_condition_degradation_ratio_not_greater_than_not_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport().add_condition_train_test_performance_degradation_ratio_not_greater_than(0)
+    check = PerformanceReport().add_condition_train_test_relative_degradation_not_greater_than(0)
     # Act X
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
@@ -188,7 +188,7 @@ def test_condition_degradation_ratio_not_greater_than_not_passed(iris_split_data
 def test_condition_degradation_ratio_not_greater_than_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = PerformanceReport().add_condition_train_test_performance_degradation_ratio_not_greater_than(1)
+    check = PerformanceReport().add_condition_train_test_relative_degradation_not_greater_than(1)
     # Act X
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
