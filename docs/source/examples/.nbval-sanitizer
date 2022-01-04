@@ -28,111 +28,111 @@ replace: 0.00 seconds
 
 [special_chars] #Special Chars Are intepented incorrectly when using nbval regex
 regex: [\$\?\!\|\%]
-replace: 
+replace:
 
 
 # Output is lower case letters, so we need to change every uppercase letter to its lower case sub.
 # this is a bug with nbval package, TODO: remove when a fix is presented.
-[upper_letterA] 
+[upper_letterA]
 regex: A
 replace: a
 
-[upper_letterB] 
+[upper_letterB]
 regex: B
 replace: b
 
-[upper_letterC] 
+[upper_letterC]
 regex: C
 replace: c
 
-[upper_letterD] 
+[upper_letterD]
 regex: D
 replace: d
 
-[upper_letterE] 
+[upper_letterE]
 regex: E
 replace: e
 
-[upper_letterF] 
+[upper_letterF]
 regex: F
 replace: f
 
-[upper_letterG] 
+[upper_letterG]
 regex: G
 replace: g
 
-[upper_letterH] 
+[upper_letterH]
 regex: H
 replace: h
 
-[upper_letterI] 
+[upper_letterI]
 regex: I
 replace: i
 
-[upper_letterJ] 
+[upper_letterJ]
 regex: J
 replace: j
 
-[upper_letterK] 
+[upper_letterK]
 regex: K
 replace: k
 
-[upper_letterL] 
+[upper_letterL]
 regex: L
 replace: l
 
-[upper_letterM] 
+[upper_letterM]
 regex: M
 replace: m
 
-[upper_letterN] 
+[upper_letterN]
 regex: N
 replace: n
 
-[upper_letterO] 
+[upper_letterO]
 regex: O
 replace: o
 
-[upper_letterP] 
+[upper_letterP]
 regex: P
 replace: p
 
-[upper_letterQ] 
+[upper_letterQ]
 regex: Q
 replace: q
 
-[upper_letterR] 
+[upper_letterR]
 regex: R
 replace: r
 
-[upper_letterS] 
+[upper_letterS]
 regex: S
 replace: s
 
-[upper_letterT] 
+[upper_letterT]
 regex: T
 replace: t
 
-[upper_letterU] 
+[upper_letterU]
 regex: U
 replace: u
 
-[upper_letterV] 
+[upper_letterV]
 regex: V
 replace: v
 
-[upper_letterW] 
+[upper_letterW]
 regex: W
 replace: w
 
-[upper_letterX] 
+[upper_letterX]
 regex: X
 replace: x
 
-[upper_letterY] 
+[upper_letterY]
 regex: Y
 replace: y
 
-[upper_letterZ] 
+[upper_letterZ]
 regex: Z
 replace: z

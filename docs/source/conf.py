@@ -75,7 +75,6 @@ extensions = [
     'sphinx_copybutton',
     'sphinx.ext.githubpages',
     'sphinx_search.extension',
-    'nbsphinx_link',
 ]
 
 # If true, the reST sources are included in the HTML build as _sources/name. The default is True.
@@ -398,13 +397,13 @@ def generate_binder_url(notebook_path: str) -> str:
         user=GIT['user'],
         repo=GIT['repo'],
         branch=GIT['release'],
-        filepath=notebook_path
+        filepath=f"docs/source/${notebook_path}"
     )
 
 
 @functools.lru_cache(maxsize=None)
 def get_example_notebooks() -> t.Tuple[pathlib.Path, ...]:
-    examples_folder = PROJECT_DIR / "examples"
+    examples_folder = PROJECT_DIR / "docs/source/examples"
 
     if not examples_folder.exists() or not examples_folder.is_dir():
         raise RuntimeError("Did not find the folder with the example notebooks.")
@@ -424,7 +423,7 @@ def is_example_notebook(filepath: str) -> bool:
 
 
 def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
-    if not filepath.startswith("examples/checks/"):
+    if not filepath.startswith("docs/source/examples/checks/"):
         return
 
     notebook_name = snake_case_to_camel_case(
