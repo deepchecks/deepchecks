@@ -10,14 +10,13 @@
 #
 """Contains unit tests for the Dataset class."""
 import typing as t
-from unittest import TestCase
 
 import numpy as np
 import pandas as pd
 from sklearn.datasets import load_iris
 from hamcrest import (
     assert_that, instance_of, equal_to, is_,
-    calling, raises, not_none, has_property, all_of, contains_exactly
+    calling, raises, not_none, has_property, all_of, contains_exactly, has_item
 )
 
 from deepchecks import Dataset
@@ -216,7 +215,7 @@ def test_dataset_infer_cat_features_max_categorical_ratio(diabetes_df):
 
 def test_dataset_label_name(iris):
     args = {'df': iris,
-            'label_name': 'target'}
+            'label': 'target'}
     dataset = Dataset(**args)
     assert_dataset(dataset, args)
 
@@ -228,14 +227,14 @@ def test_dataset_label_name_in_features(iris):
                          'petal length (cm)',
                          'petal width (cm)',
                          'target'],
-            'label_name': 'target'}
+            'label': 'target'}
     assert_that(calling(Dataset).with_args(**args),
                 raises(DeepchecksValueError, 'label column target can not be a feature column'))
 
 
 def test_dataset_bad_label_name(iris):
     args = {'df': iris,
-            'label_name': 'shmabel'}
+            'label': 'shmabel'}
     assert_that(calling(Dataset).with_args(**args),
                 raises(DeepchecksValueError, 'label column shmabel not found in dataset columns'))
 
@@ -425,7 +424,7 @@ def test_dataset_no_index_col(iris):
 
 
 def test_dataset_validate_label(iris):
-    dataset = Dataset(iris, label_name='target')
+    dataset = Dataset(iris, label='target')
     dataset.validate_label()
 
 
@@ -682,7 +681,7 @@ def test_dataset_initialization_with_integer_columns():
     dataset = Dataset(
         df=df,
         features=[0, 1, 2],
-        label_name=3,
+        label=3,
         cat_features=[0],
     )
 
@@ -712,10 +711,10 @@ def test_dataset_label_without_name(iris):
 
 def test_dataset_label_with_name(iris):
     # Arrange
-    label = iris['target']
+    label = iris['target'].rename('actual')
     data = iris.drop('target', axis=1)
     # Act
-    dataset = Dataset(data, label, label_name='actual')
+    dataset = Dataset(data, label)
     # Assert
     assert_that(dataset.features, equal_to(list(data.columns)))
     assert_that(dataset.data.columns, contains_exactly(*data.columns, 'actual'))
@@ -723,9 +722,9 @@ def test_dataset_label_with_name(iris):
 
 def test_train_test_split(iris):
     # Arrange
-    label = iris['target']
+    label = iris['target'].rename('actual')
     data = iris.drop('target', axis=1)
-    dataset = Dataset(data, label, label_name='actual')
+    dataset = Dataset(data, label)
     # Act
     train_ds, test_ds = dataset.train_test_split()
     # Assert
@@ -735,9 +734,9 @@ def test_train_test_split(iris):
 
 def test_train_test_split_changed(iris):
     # Arrange
-    label = iris['target']
+    label = iris['target'].rename('actual')
     data = iris.drop('target', axis=1)
-    dataset = Dataset(data, label, label_name='actual')
+    dataset = Dataset(data, label)
     # Act
     train_ds, test_ds = dataset.train_test_split(train_size=0.2, test_size=0.1)
     # Assert
@@ -747,26 +746,128 @@ def test_train_test_split_changed(iris):
 
 def test_inferred_label_type_cat(diabetes_df):
     # Arrange
-    label = diabetes_df['target']
+    label = diabetes_df['target'].rename('actual')
     data = diabetes_df.drop('target', axis=1)
-    dataset = Dataset(data, label, label_name='actual')
+    dataset = Dataset(data, label)
     # Assert
     assert_that(dataset.label_type, is_('regression_label'))
 
 
 def test_inferred_label_type_reg(iris):
     # Arrange
-    label = iris['target']
+    label = iris['target'].rename('actual')
     data = iris.drop('target', axis=1)
-    dataset = Dataset(data, label, label_name='actual')
+    dataset = Dataset(data, label)
     # Assert
     assert_that(dataset.label_type, is_('classification_label'))
 
 
 def test_set_label_type(iris):
     # Arrange
-    label = iris['target']
+    label = iris['target'].rename('actual')
     data = iris.drop('target', axis=1)
-    dataset = Dataset(data, label, label_name='actual', label_type='regression_label')
+    dataset = Dataset(data, label, label_type='regression_label')
     # Assert
     assert_that(dataset.label_type, is_('regression_label'))
+
+
+def test_label_series_name_already_exists(iris):
+    # Arrange
+    label = iris['target']
+    data = iris.drop('target', axis=1)
+    label = label.rename(iris.columns[0])
+
+    # Act & Assert
+    assert_that(calling(Dataset).with_args(data, label=label),
+                raises(DeepchecksValueError, r'Data has column with name "sepal length \(cm\)", use pandas rename to '
+                                             r'change label name or remove the column from the dataframe'))
+
+
+def test_label_series_without_name_default_name_exists(iris):
+    # Arrange
+    label = pd.Series([0] * len(iris))
+
+    # Act & Assert
+    assert_that(iris.columns, has_item('target'))
+    assert_that(calling(Dataset).with_args(iris, label=label),
+                raises(DeepchecksValueError, r'Can\'t set default label name "target" since it already exists in the '
+                                             r'dataframe\. use pandas name parameter to give the label a unique name'))
+
+
+def test_label_is_numpy_array(iris):
+    # Arrange
+    label = np.ones(len(iris))
+    data = iris.drop('target', axis=1)
+    # Act
+    dataset = Dataset(data, label)
+    # Assert
+    assert_that(dataset.features, equal_to(list(data.columns)))
+    assert_that(dataset.data.columns, contains_exactly(*data.columns, 'target'))
+
+
+def test_label_is_numpy_column(iris):
+    # Arrange
+    label = np.ones((len(iris), 1))
+    data = iris.drop('target', axis=1)
+    # Act
+    dataset = Dataset(data, label)
+    # Assert
+    assert_that(dataset.features, equal_to(list(data.columns)))
+    assert_that(dataset.data.columns, contains_exactly(*data.columns, 'target'))
+
+
+def test_label_is_numpy_row(iris):
+    # Arrange
+    label = np.ones((1, len(iris)))
+    data = iris.drop('target', axis=1)
+    # Act
+    dataset = Dataset(data, label)
+    # Assert
+    assert_that(dataset.features, equal_to(list(data.columns)))
+    assert_that(dataset.data.columns, contains_exactly(*data.columns, 'target'))
+
+
+def test_label_is_dataframe(iris):
+    # Arrange
+    label = pd.DataFrame(data={'actual': [0] * len(iris)})
+    # Act
+    dataset = Dataset(iris, label)
+    # Assert
+    assert_that(dataset.features, equal_to(list(iris.columns)))
+    assert_that(dataset.data.columns, contains_exactly(*iris.columns, 'actual'))
+
+
+def test_label_unsupported_type(iris):
+    # Arrange
+    label = {}
+
+    # Act & Assert
+    assert_that(calling(Dataset).with_args(iris, label=label),
+                raises(DeepchecksValueError, 'Unsupported type for label: dict'))
+
+
+def test_label_dataframe_with_multi_columns(iris):
+    # Arrange
+    label = pd.DataFrame(data={'col1': [0] * len(iris), 'col2': [1] * len(iris)})
+
+    # Act & Assert
+    assert_that(calling(Dataset).with_args(iris, label=label),
+                raises(DeepchecksValueError, 'Label must have a single column'))
+
+
+def test_label_numpy_multi_2d_array(iris):
+    # Arrange
+    label = np.ones((3, len(iris)))
+    iris = iris.drop('target', axis=1)
+    # Act & Assert
+    assert_that(calling(Dataset).with_args(iris, label=label),
+                raises(DeepchecksValueError, 'Label must be either column vector or row vector'))
+
+
+def test_label_numpy_multi_4d_array(iris):
+    # Arrange
+    label = np.ones((1, 1, 1, len(iris)))
+    iris = iris.drop('target', axis=1)
+    # Act & Assert
+    assert_that(calling(Dataset).with_args(iris, label=label),
+                raises(DeepchecksValueError, 'Label must be either column vector or row vector'))
