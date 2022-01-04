@@ -137,7 +137,7 @@ def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, plot_ti
         expected_percents, actual_percents, _ = \
             preprocess_2_cat_cols_to_same_bins(dist1=train_dist, dist2=test_dist, max_num_categories=max_num_categories)
         score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
-        bar_stop = max(0.4, score + 0.1)
+        bar_stop = min(max(0.4, score + 0.1), 1)
 
         score_bar = drift_score_bar_traces(score)
 
@@ -157,8 +157,7 @@ def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, plot_ti
             gridcolor='black',
             linecolor='black',
             range=[0, bar_stop],
-            dtick=0.05,
-            title='drift score'
+            dtick=0.05
         ),
         yaxis=dict(
             showgrid=False,

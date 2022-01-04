@@ -277,7 +277,7 @@ def wrap_run(func, class_instance):
     def wrapped(*args, **kwargs):
         result = func(*args, **kwargs)
         if not isinstance(result, CheckResult):
-            raise DeepchecksValueError(f'Check {class_instance.name()} expected to return CheckResult bot got: '
+            raise DeepchecksValueError(f'Check {class_instance.name()} expected to return CheckResult but got: '
                                        + type(result).__name__)
         result.check = class_instance
         result.process_conditions()

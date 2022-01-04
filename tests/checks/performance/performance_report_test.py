@@ -50,7 +50,7 @@ def test_dataset_no_label(iris_dataset):
 
 def test_dataset_no_shared_label(iris_labeled_dataset):
     # Assert
-    iris_dataset_2 = Dataset(iris_labeled_dataset.data, label_name='sepal length (cm)')
+    iris_dataset_2 = Dataset(iris_labeled_dataset.data, label='sepal length (cm)')
     assert_that(calling(PerformanceReport().run).with_args(iris_labeled_dataset, iris_dataset_2, None),
                 raises(DeepchecksValueError,
                        'Check requires datasets to share the same label'))
@@ -95,7 +95,7 @@ def test_classification_string_labels(iris_labeled_dataset):
     check = PerformanceReport()
     replace_dict = {iris_labeled_dataset.label_name: {0: 'b', 1: 'e', 2: 'a'}}
     iris_labeled_dataset = Dataset(iris_labeled_dataset.data.replace(replace_dict),
-                                   label_name=iris_labeled_dataset.label_name)
+                                   label=iris_labeled_dataset.label_name)
 
     iris_adaboost = AdaBoostClassifier(random_state=0)
     iris_adaboost.fit(iris_labeled_dataset.features_columns, iris_labeled_dataset.label_col)
@@ -117,7 +117,7 @@ def test_classification_nan_labels(iris_labeled_dataset, iris_adaboost):
     data_with_nan = iris_labeled_dataset.data.copy()
     data_with_nan[iris_labeled_dataset.label_name].iloc[0] = float('nan')
     iris_labeled_dataset = Dataset(data_with_nan,
-                                   label_name=iris_labeled_dataset.label_name)
+                                   label=iris_labeled_dataset.label_name)
     # Act X
     result = check.run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost).value
     # Assert

@@ -18,6 +18,7 @@ import pandas as pd
 from IPython.core.display import display_html
 
 from deepchecks import errors
+from deepchecks.utils.ipython import is_widgets_enabled
 from deepchecks.utils.strings import get_random_string
 from deepchecks.base.check import CheckResult, CheckFailure
 from deepchecks.base.display_pandas import dataframe_to_html, display_conditions_table
@@ -31,8 +32,13 @@ class ProgressBar:
 
     def __init__(self, name, length):
         """Initialize progress bar."""
-        self.pbar = tqdm.tqdm(total=length, desc=name, unit='Check', leave=False, file=sys.stdout,
-                              bar_format=f'{{l_bar}}{{bar:{length}}}{{r_bar}}')
+        shared_args = {'total': length, 'desc': name, 'unit': ' Check', 'leave': False, 'file': sys.stdout}
+        if is_widgets_enabled():
+            self.pbar = tqdm.tqdm_notebook(**shared_args, colour='#9d60fb')
+        else:
+            # Normal tqdm with colour in notebooks produce bug that the cleanup doesn't remove all characters. so
+            # until bug fixed, doesn't add the colour to regular tqdm
+            self.pbar = tqdm.tqdm(**shared_args, bar_format=f'{{l_bar}}{{bar:{length}}}{{r_bar}}')
 
     def set_text(self, text):
         """Set current running check."""

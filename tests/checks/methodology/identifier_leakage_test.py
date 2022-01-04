@@ -30,7 +30,7 @@ def util_generate_dataframe_and_expected():
 
 def test_assert_identifier_leakage():
     df, expected = util_generate_dataframe_and_expected()
-    result = IdentifierLeakage().run(dataset=Dataset(df, label_name='label', datetime_name='x2', index_name='x3'))
+    result = IdentifierLeakage().run(dataset=Dataset(df, label='label', datetime_name='x2', index_name='x3'))
     print(result.value)
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
@@ -54,7 +54,7 @@ def test_dataset_no_label():
 
 def test_dataset_only_label():
     df, _ = util_generate_dataframe_and_expected()
-    df = Dataset(df, label_name='label')
+    df = Dataset(df, label='label')
     assert_that(
         calling(IdentifierLeakage().run).with_args(dataset=df),
         raises(DeepchecksValueError, 'Dataset needs to have a date or index column'))
@@ -63,7 +63,7 @@ def test_dataset_only_label():
 def test_assert_identifier_leakage_class():
     df, expected = util_generate_dataframe_and_expected()
     identifier_leakage_check = IdentifierLeakage()
-    result = identifier_leakage_check.run(dataset=Dataset(df, label_name='label', datetime_name='x2', index_name='x3'))
+    result = identifier_leakage_check.run(dataset=Dataset(df, label='label', datetime_name='x2', index_name='x3'))
     print(result.value)
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
@@ -77,7 +77,7 @@ def test_nan():
                                      'x3':[np.nan],
                                      'label':[0]}))
 
-    result = IdentifierLeakage().run(dataset=Dataset(nan_df, label_name='label', datetime_name='x2', index_name='x3'))
+    result = IdentifierLeakage().run(dataset=Dataset(nan_df, label='label', datetime_name='x2', index_name='x3'))
     for key, value in result.value.items():
         assert_that(key, is_in(expected.keys()))
         assert_that(value, close_to(expected[key], 0.1))
@@ -89,7 +89,7 @@ def test_condition_pps_pass():
     check = IdentifierLeakage().add_condition_pps_not_greater_than(0.5)
 
     # Act
-    result = check.conditions_decision(check.run(Dataset(df, label_name='label', datetime_name='x2', index_name='x3')))
+    result = check.conditions_decision(check.run(Dataset(df, label='label', datetime_name='x2', index_name='x3')))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
@@ -103,7 +103,7 @@ def test_condition_pps_fail():
     check = IdentifierLeakage().add_condition_pps_not_greater_than(0.2)
 
     # Act
-    result = check.conditions_decision(check.run(Dataset(df, label_name='label', datetime_name='x2', index_name='x3')))
+    result = check.conditions_decision(check.run(Dataset(df, label='label', datetime_name='x2', index_name='x3')))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,

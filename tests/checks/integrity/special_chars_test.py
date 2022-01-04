@@ -114,7 +114,7 @@ def test_double_column_double_invalid():
 
 def test_fi_n_top(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
-    train = Dataset(train.data.copy(), label_name='target', cat_features=['sex'])
+    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
     train.data.loc[train.data.index % 3 == 2, 'age'] = '&!'
     train.data.loc[train.data.index % 3 == 2, 'bmi'] = '&!'
     train.data.loc[train.data.index % 3 == 2, 'bp'] = '&!'
@@ -141,7 +141,7 @@ def test_nan():
 
 def test_condition_fail_all(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
-    train = Dataset(train.data.copy(), label_name='target', cat_features=['sex'])
+    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
     train.data.loc[train.data.index % 3 == 2, 'age'] = '&!'
     train.data.loc[train.data.index % 3 == 2, 'bmi'] = '&!'
     train.data.loc[train.data.index % 3 == 2, 'bp'] = '&!'
@@ -161,7 +161,7 @@ def test_condition_fail_all(diabetes_split_dataset_and_model):
 
 def test_condition_fail_some(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
-    train = Dataset(train.data.copy(), label_name='target', cat_features=['sex'])
+    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
     train.data.loc[train.data.index % 7 == 2, 'age'] = '&!'
     train.data.loc[train.data.index % 3 == 2, 'bmi'] = '&!'
     train.data.loc[train.data.index % 7 == 2, 'bp'] = '&!'
@@ -181,7 +181,7 @@ def test_condition_fail_some(diabetes_split_dataset_and_model):
 
 def test_condition_pass(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
-    train = Dataset(train.data.copy(), label_name='target', cat_features=['sex'])
+    train = Dataset(train.data.copy(), label='target', cat_features=['sex'])
 
     # Arrange
     check = SpecialCharacters(n_top_columns=3).add_condition_ratio_of_special_characters_not_grater_than()

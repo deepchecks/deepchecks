@@ -107,14 +107,13 @@ def feature_distribution_traces(train_column,
     Args:
         train_column (): Train data used to trace distribution.
         test_column (): Test data used to trace distribution.
-        plot_title (str): Name of the plot.
         is_categorical (bool): State if column is categorical (default: False).
         max_num_categories (int): Maximum number of categories to show in plot (default: 10).
 
     Returns:
         List[Union[go.Bar, go.Scatter]]: list of plotly traces.
         Dict: layout of x axis
-        Dicst: layout of y axis
+        Dict: layout of y axis
     """
     if is_categorical:
         expected_percents, actual_percents, categories_list = \
@@ -142,7 +141,7 @@ def feature_distribution_traces(train_column,
 
         traces = [train_bar, test_bar]
 
-        xaxis_layout = dict(title='Distribution', type='category')
+        xaxis_layout = dict(type='category')
         yaxis_layout = dict(fixedrange=True,
                             range=(0, 1),
                             title='Percentage')
