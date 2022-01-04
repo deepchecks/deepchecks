@@ -14,8 +14,6 @@ from typing import Union
 from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator
 
-from deepchecks.errors import DeepchecksValueError
-
 
 __all__ = ['get_model_of_pipeline']
 
@@ -29,9 +27,6 @@ def get_model_of_pipeline(model: Union[Pipeline, BaseEstimator]):
         the inner BaseEstimator of the Pipeline or itself
     """
     if isinstance(model, Pipeline):
-        # get feature importance from last model in pipeline
-        internal_estimator_list = [x[1] for x in model.steps if isinstance(x[1], BaseEstimator)]
-        if internal_estimator_list:
-            return internal_estimator_list[-1]
-        raise DeepchecksValueError('Received a pipeline without an sklearn compatible model')
+        # get model type from last step in pipeline
+        return model.steps[-1][1]
     return model

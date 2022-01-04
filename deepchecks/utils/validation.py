@@ -16,6 +16,7 @@ import sklearn
 
 from deepchecks import base  # pylint: disable=unused-import, is used in type annotations
 from deepchecks import errors
+from deepchecks.utils.model import get_model_of_pipeline
 from deepchecks.utils.typing import Hashable
 
 
@@ -30,6 +31,8 @@ def model_type_validation(model: t.Any):
     """
     supported_by_class_name = ('CatBoostClassifier', 'CatBoostRegressor')
     supported_by_class_instance = (sklearn.base.BaseEstimator,)
+    model = get_model_of_pipeline(model)
+
     if (
         not isinstance(model, supported_by_class_instance)
         and model.__class__.__name__ not in supported_by_class_name
