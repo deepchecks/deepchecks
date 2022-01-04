@@ -171,7 +171,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
                         '<h3>Main features contributing to drift</h3>',
                         _N_TOP_MESSEGE % self.n_top_columns]
             displays += [self._display_dist(train_sample_df[feature], test_sample_df[feature], top_fi)
-                        for feature in top_fi.index]
+                         for feature in top_fi.index]
         else:
             displays = None
 
