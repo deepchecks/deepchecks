@@ -25,7 +25,7 @@ Common information used in Machine Learning that is aggregated in the Dataset:
     Name of the date column. The date the sample was acquired (Useful for TimeSeries problems). This column is standardized using `pd.Timestamp`.
 
 All these and more can be defined and accessed on the Dataset Object.
-This allows the user the flexibility to define these column names whichever they seam fit,
+This allows the user the flexibility to define these column names whichever they seem fit,
 and allows use of the these tags to standardize development around this data.
 
 
