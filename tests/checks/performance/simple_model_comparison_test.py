@@ -34,7 +34,7 @@ def test_classification_random(iris_split_dataset_and_model):
     # Act X
     result = check.run(train_ds, test_ds, clf).value
     # Assert
-    assert_classification(result)
+    assert_classification(result, [0, 1, 2])
 
 
 def test_classification_constant(iris_split_dataset_and_model):
@@ -44,7 +44,17 @@ def test_classification_constant(iris_split_dataset_and_model):
     # Act X
     result = check.run(train_ds, test_ds, clf).value
     # Assert
-    assert_classification(result)
+    assert_classification(result, [0, 1, 2])
+
+
+def test_classification_binary_string_labels(iris_binary_string_split_dataset_and_model):
+    # Arrange
+    train_ds, test_ds, clf = iris_binary_string_split_dataset_and_model
+    check = SimpleModelComparison()
+    # Act X
+    result = check.run(train_ds, test_ds, clf).value
+    # Assert
+    assert_classification(result, ['a', 'b'])
 
 
 def test_classification_random_custom_metric(iris_split_dataset_and_model):
@@ -55,7 +65,7 @@ def test_classification_random_custom_metric(iris_split_dataset_and_model):
     # Act X
     result = check.run(train_ds, test_ds, clf).value
     # Assert
-    assert_classification(result, ['recall'])
+    assert_classification(result, [0, 1, 2], ['recall'])
 
 
 def test_regression_random(diabetes_split_dataset_and_model):
@@ -146,7 +156,7 @@ def test_classification_tree(iris_split_dataset_and_model):
     # Act X
     result = check.run(train_ds, test_ds, clf).value
     # Assert
-    assert_classification(result)
+    assert_classification(result, [0, 1, 2])
 
 
 def test_classification_tree_custom_metric(iris_split_dataset_and_model):
@@ -158,7 +168,7 @@ def test_classification_tree_custom_metric(iris_split_dataset_and_model):
     # Act X
     result = check.run(train_ds, test_ds, clf).value
     # Assert
-    assert_classification(result, ['recall', 'f1'])
+    assert_classification(result, [0, 1, 2], ['recall', 'f1'])
 
 
 def test_regression_constant(diabetes_split_dataset_and_model):
@@ -210,11 +220,11 @@ def assert_regression(result):
     assert_that(result['classes'], is_(None))
 
 
-def assert_classification(result, metrics=None):
+def assert_classification(result, classes, metrics=None):
     metrics = metrics or [DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG]
     class_matchers = {clas: has_entries({'Origin': close_to(1, 1), 'Simple': close_to(1, 1)})
                       for clas in result['classes']}
     matchers = {metric: has_entries(class_matchers) for metric in metrics}
     assert_that(result['scores'], has_entries(matchers))
     assert_that(result['scorers_perfect'], has_entries({metric: is_(1) for metric in metrics}))
-    assert_that(result['classes'], contains_exactly(0, 1, 2))
+    assert_that(result['classes'], classes)

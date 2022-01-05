@@ -53,8 +53,8 @@ class SimpleModelComparison(TrainTestBaseCheck):
     alternative_scorers : Dict[str, Callable], default None
         An optional dictionary of scorer title to scorer functions/names. If none given, using default scorers.
         For description about scorers see Notes below.
-    maximum_ratio : int
-        the ratio can be up to infinity so choose maximum value to limit to.
+    max_gain : float
+        the maximum value for the gain value, limits from both sides [-max_gain, max_gain]
     max_depth : int
         the max depth of the tree (used only if simple model type is tree).
     random_state : int
@@ -91,11 +91,11 @@ class SimpleModelComparison(TrainTestBaseCheck):
     """
 
     def __init__(self, simple_model_type: str = 'constant', alternative_scorers: Dict[str, Callable] = None,
-                 maximum_ratio: int = 50, max_depth: int = 3, random_state: int = 42):
+                 max_gain: float = 50, max_depth: int = 3, random_state: int = 42):
         super().__init__()
         self.simple_model_type = simple_model_type
         self.alternative_scorers = initialize_multi_scorers(alternative_scorers)
-        self.maximum_ratio = maximum_ratio
+        self.max_gain = max_gain
         self.max_depth = max_depth
         self.random_state = random_state
 
@@ -302,13 +302,13 @@ class SimpleModelComparison(TrainTestBaseCheck):
         return self.add_condition('Model performance gain over simple model must be at least '
                                   f'{format_percent(min_allowed_gain)}',
                                   condition,
-                                  max_ratio=self.maximum_ratio,
                                   include_classes=classes,
                                   min_allowed_gain=min_allowed_gain,
+                                  max_gain=self.max_gain,
                                   average=average)
 
 
-def condition(result: Dict, max_ratio=None, include_classes=None, average=False, min_allowed_gain=0) -> ConditionResult:
+def condition(result: Dict, include_classes=None, average=False, max_gain=None, min_allowed_gain=0) -> ConditionResult:
     scores = result['scores']
     task_type = result['type']
     scorers_perfect = result['scorers_perfect']
@@ -325,7 +325,7 @@ def condition(result: Dict, max_ratio=None, include_classes=None, average=False,
                 gain = get_gain(models_scores['Simple'],
                                 models_scores['Origin'],
                                 scorers_perfect[metric],
-                                max_ratio)
+                                max_gain)
                 if gain < min_allowed_gain:
                     failed_classes.append(str(clas))
             if failed_classes:
@@ -337,7 +337,7 @@ def condition(result: Dict, max_ratio=None, include_classes=None, average=False,
             gain = get_gain(models_scores['Simple'],
                             models_scores['Origin'],
                             scorers_perfect[metric],
-                            max_ratio)
+                            max_gain)
             if gain < min_allowed_gain:
                 fails.append(f'"{metric}"')
 

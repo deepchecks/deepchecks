@@ -173,6 +173,20 @@ def iris_split_dataset_and_model_rf(iris) -> Tuple[Dataset, Dataset, RandomFores
     return train_ds, val_ds, clf
 
 
+@pytest.fixture
+def iris_binary_string_split_dataset_and_model(iris) -> Tuple[Dataset, Dataset, DecisionTreeClassifier]:
+    """Return Iris train and val datasets and trained AdaBoostClassifier model."""
+    iris = iris.copy()
+    iris[iris['target'] != 2]['target'] = 'a'
+    iris[iris['target'] == 2]['target'] = 'b'
+    train, test = train_test_split(iris, test_size=0.33, random_state=42)
+    train_ds = Dataset(train, label='target')
+    val_ds = Dataset(test, label='target')
+    clf = DecisionTreeClassifier(random_state=0)
+    clf.fit(train_ds.features_columns, train_ds.label_col)
+    return train_ds, val_ds, clf
+
+
 # NaN dataframes:
 @pytest.fixture(scope='session')
 def df_with_nan_row():

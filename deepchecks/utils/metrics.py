@@ -337,10 +337,14 @@ def get_scores_ratio(train_score: float, test_score: float, max_ratio=np.Inf) ->
         return ratio
 
 
-def get_gain(base_score, score, perfect_score, max_ratio):
+def get_gain(base_score, score, perfect_score, max_gain):
     """Get gain between base score and score compared to the distance from the perfect score."""
     distance_from_perfect = perfect_score - base_score
     if distance_from_perfect == 0:
-        return max_ratio
+        return -max_gain
     ratio = (score - base_score) / distance_from_perfect
-    return min(ratio, max_ratio)
+    if ratio < -max_gain:
+        return -max_gain
+    if ratio > max_gain:
+        return max_gain
+    return ratio

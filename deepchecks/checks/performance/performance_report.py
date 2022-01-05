@@ -165,7 +165,7 @@ class PerformanceReport(TrainTestBaseCheck):
             not_passed = check_result.loc[check_result['Value'] < min_score]
             not_passed_test = check_result.loc[check_result['Dataset'] == 'Test']
             if len(not_passed):
-                details = f'Scores that did not passed the threshold:<br>' \
+                details = f'Scores that did not pass the threshold:<br>' \
                           f'{not_passed_test[["Class", "Metric", "Value"]].to_dict("records")}'
                 return ConditionResult(False, details)
             return ConditionResult(True)
@@ -206,7 +206,7 @@ class PerformanceReport(TrainTestBaseCheck):
                     failed_scores = [k for k, v in diff.items() if v > threshold]
                     if failed_scores:
                         for score_name in failed_scores:
-                            explained_failures.append(f'{score_name} on class {class_name} '
+                            explained_failures.append(f'{score_name} for class {class_name} '
                                                       f'(train={format_number(train_scores_dict[score_name])} '
                                                       f'test={format_number(test_scores_dict[score_name])})')
             else:
@@ -227,7 +227,7 @@ class PerformanceReport(TrainTestBaseCheck):
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Train-Test scores degradation ratio is not greater than {threshold}',
+        return self.add_condition(f'Train-Test scores relative degradation is not greater than {threshold}',
                                   condition)
 
     def add_condition_class_performance_imbalance_ratio_not_greater_than(
