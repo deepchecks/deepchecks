@@ -80,7 +80,6 @@ def test_binary_model_info_object(iris_dataset_single_class_labeled, iris_random
 def test_binary_string_model_info_object(iris_binary_string_split_dataset_and_model):
     # Arrange
     _, test_ds, clf = iris_binary_string_split_dataset_and_model
-    print(test_ds.data)
     check = CalibrationScore()
     # Act X
     result = check.run(test_ds, clf).value

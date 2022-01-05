@@ -179,7 +179,6 @@ def iris_binary_string_split_dataset_and_model(iris) -> Tuple[Dataset, Dataset, 
     iris = iris.copy()
     iris.loc[iris['target'] != 2, 'target'] = 'a'
     iris.loc[iris['target'] == 2, 'target'] = 'b'
-    print(iris)
     train, test = train_test_split(iris, test_size=0.33, random_state=42)
     train_ds = Dataset(train, label='target')
     val_ds = Dataset(test, label='target')
