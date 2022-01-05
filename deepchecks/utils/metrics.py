@@ -11,6 +11,7 @@
 """Utils module containing utilities for checks working with metrics."""
 import typing as t
 import enum
+import warnings
 from numbers import Number
 
 import numpy as np
@@ -144,7 +145,11 @@ class DeepcheckScorer:
         perfect_model.fit(None, dataset.label_col)
         score = self._run_score(perfect_model, df, dataset)
         if isinstance(score, np.ndarray):
-            return score[0]
+            # We expect the perfect score to be equal for all the classes, so takes the first one
+            first_score = score[0]
+            if any(score != first_score):
+                warnings.warn(f'Scorer {self.name} return different perfect score for differect classes')
+            return first_score
         return score
 
     def validate_fitting(self, model, dataset: 'base.Dataset', should_return_array: bool):

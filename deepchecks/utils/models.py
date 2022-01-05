@@ -21,7 +21,7 @@ def create_proba_result(predictions, classes):
         proba[classes.index(y_pred)] = 1
         return proba
 
-    return np.apply_along_axis(prediction_to_proba, axis=1, arr=predictions)
+    return np.apply_along_axis(prediction_to_proba, axis=1, arr=predictions.reshape(-1, 1))
 
 
 class PerfectModel:
@@ -37,7 +37,7 @@ class PerfectModel:
 
     def predict(self, X):  # pylint: disable=unused-argument,invalid-name
         """Predict on given X."""
-        return self.labels
+        return self.labels[X.index].to_numpy()
 
     def predict_proba(self, X):  # pylint: disable=invalid-name
         """Predict proba for given X."""
