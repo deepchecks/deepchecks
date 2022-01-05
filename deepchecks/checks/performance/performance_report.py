@@ -97,21 +97,21 @@ class PerformanceReport(TrainTestBaseCheck):
         validate_model(test_dataset, model)
 
         task_type = task_type_check(model, train_dataset)
-        clasess = test_dataset.classes
+        clasess = train_dataset.classes
 
         # Get default scorers if no alternative, or validate alternatives
         scorers = get_scorers_list(model, test_dataset, self.alternative_scorers, multiclass_avg=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
         if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
-            plot_x_axis = ['Class', 'Dataset']
+            plot_x_axis = 'Class'
             results = []
 
             for dataset_name, dataset in datasets.items():
                 label = cast(pd.Series, dataset.label_col)
                 n_samples = label.groupby(label).count()
                 results.extend(
-                    [dataset_name, class_name, scorer.name, class_score, n_samples[class_name]]
+                    [dataset_name, 'Class %s' % class_name, scorer.name, class_score, n_samples[class_name]]
                     for scorer in scorers
                     # scorer returns numpy array of results with item per class
                     for class_score, class_name in zip(scorer(model, dataset), clasess)
@@ -128,7 +128,7 @@ class PerformanceReport(TrainTestBaseCheck):
             ]
             results_df = pd.DataFrame(results, columns=['Dataset', 'Metric', 'Value', 'Number of samples'])
 
-        fig = px.bar(
+        fig = px.histogram(
             results_df,
             x=plot_x_axis,
             y='Value',
@@ -138,9 +138,6 @@ class PerformanceReport(TrainTestBaseCheck):
             facet_col_spacing=0.05,
             hover_data=['Number of samples']
         )
-
-        if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
-            fig.update_xaxes(tickprefix='Class ', tickangle=60)
 
         fig = (
             fig.update_xaxes(title=None, type='category')
@@ -323,7 +320,7 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
                 label = cast(pd.Series, test_dataset.label_col)
                 n_samples = label.groupby(label).count()
                 results.extend(
-                    [model_name, class_score, scorer.name, class_name, n_samples[class_name]]
+                    [model_name, class_score, scorer.name, 'Class %s' % class_name, n_samples[class_name]]
                     for scorer in scorers
                     # scorer returns numpy array of results with item per class
                     for class_score, class_name in zip(scorer(model, test_dataset), test_dataset.classes)
@@ -340,7 +337,7 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
             ]
             results_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric', 'Number of samples'])
 
-        fig = px.bar(
+        fig = px.histogram(
             results_df,
             x=plot_x_axis,
             y='Value',
@@ -351,13 +348,10 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
             hover_data=['Number of samples'],
         )
 
-        if context.task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
-            fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60)
-        else:
-            fig.update_xaxes(title=None)
+        fig.update_xaxes(title=None)
 
         fig = (
-            fig.update_yaxes(title=None, matches=None, zerolinecolor='#444')
+            fig.update_yaxes(title=None, matches=None)
             .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
             .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
         )
