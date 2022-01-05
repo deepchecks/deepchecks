@@ -151,9 +151,10 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
             def scoring_func(dataset: Dataset):
                 return per_sample_mse(dataset.label_col, model.predict(dataset.features_columns))
         else:
+            le = preprocessing.LabelEncoder()
+            le.fit(train_dataset.classes)
             def scoring_func(dataset: Dataset):
-                le = preprocessing.LabelEncoder()
-                encoded_label = le.fit_transform(dataset.label_col)
+                encoded_label = le.transform(dataset.label_col)
                 return per_sample_binary_cross_entropy(encoded_label,
                                                        model.predict_proba(dataset.features_columns))
 
