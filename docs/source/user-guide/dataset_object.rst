@@ -16,7 +16,8 @@ Common information used in Machine Learning that is aggregated in the Dataset:
     If not defined, columns that are not defined as label, date, or index are considered as features.
  - cat_features
     List of column names. A subset of the features. Categorical features normally require some preprocessing before being passed to the model.
-    If not specified, the categorical features are inferred automatically from the data itself. (More info in :ref:`Inferring Features And Categorical Features`)
+    If not specified, the categorical features are inferred automatically from the data itself.
+    (`Inferring Features And Categorical Features`_ )
  - label
     Either name of a column, or `pd.Series`. The classes of the classification problem or values of a regression problem.
  - index_name
