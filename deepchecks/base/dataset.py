@@ -246,12 +246,6 @@ class Dataset:
         if self._label_name in self.features:
             raise DeepchecksValueError(f'label column {self._label_name} can not be a feature column')
 
-        if self._label_name:
-            try:
-                self.check_compatible_labels()
-            except DeepchecksValueError as e:
-                logger.warning(str(e))
-
         if self._datetime_name in self.features:
             raise DeepchecksValueError(f'datetime column {self._datetime_name} can not be a feature column')
 
@@ -712,12 +706,6 @@ class Dataset:
                 value = 'other'
             columns[column] = value
         return columns
-
-    def check_compatible_labels(self):
-        """Check if label column is supported by deepchecks."""
-        labels = self.label_col
-        if labels is None:
-            return
 
     # Validations:
 
