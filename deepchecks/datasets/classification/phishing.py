@@ -167,8 +167,8 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
 
         return dataset
     else:
-        train = pd.read_csv(_TRAIN_DATA_URL)
-        test = pd.read_csv(_TEST_DATA_URL)
+        train = pd.read_csv(_TRAIN_DATA_URL, index_col=0)
+        test = pd.read_csv(_TEST_DATA_URL, index_col=0)
 
         if data_format == 'Dataset':
             train = Dataset(train, label='target', cat_features=_CAT_FEATURES, datetime_name='scrape_date')
