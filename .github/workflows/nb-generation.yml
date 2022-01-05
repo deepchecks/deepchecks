@@ -32,7 +32,7 @@ jobs:
         uses: peter-evans/create-pull-request@v3
         with:
           add-paths: |
-            examples/*
+            docs/source/examples/*
           token: ${{ secrets.CI_GH_TOKEN }}
           commit-message: '[Automatic] Examples Update'
           delete-branch: true

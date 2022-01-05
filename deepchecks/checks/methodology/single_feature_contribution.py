@@ -82,7 +82,10 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
                 ' actually due to data',
                 'leakage - meaning that the feature holds information that is based on the label to begin with.']
 
-        return CheckResult(value=s_ppscore.to_dict(), display=[plot, *text], header='Single Feature Contribution')
+        # display only if not all scores are 0
+        display = [plot, *text] if s_ppscore.sum() else None
+
+        return CheckResult(value=s_ppscore.to_dict(), display=display, header='Single Feature Contribution')
 
     def add_condition_feature_pps_not_greater_than(self: FC, threshold: float = 0.8) -> FC:
         """

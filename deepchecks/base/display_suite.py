@@ -14,6 +14,7 @@ from typing import List, Union
 # pylint: disable=protected-access
 import sys
 import tqdm
+from tqdm.notebook import tqdm as tqdm_notebook
 import pandas as pd
 from IPython.core.display import display_html
 from IPython import get_ipython
@@ -35,7 +36,7 @@ class ProgressBar:
         """Initialize progress bar."""
         shared_args = {'total': length, 'desc': name, 'unit': ' Check', 'leave': False, 'file': sys.stdout}
         if is_widgets_enabled():
-            self.pbar = tqdm.tqdm_notebook(**shared_args, colour='#9d60fb')
+            self.pbar = tqdm_notebook(**shared_args, colour='#9d60fb')
         else:
             # Normal tqdm with colour in notebooks produce bug that the cleanup doesn't remove all characters. so
             # until bug fixed, doesn't add the colour to regular tqdm
@@ -109,14 +110,20 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         else f"The suite is composed of the following checks: {', '.join(check_names)}."
     )
 
+    suite_creation_example_link = 'https://docs.deepchecks.com/en/stable/examples/guides/create_a_custom_suite.html'
+
     display_html(
         f"""
         <h1 id="summary_{unique_id}">{suite_name}</h1>
-        <p>{prologue}<br>
-        Each check may contain conditions (which results in {icons}),
-        as well as other outputs such as plots or tables.<br>
-        Suites, checks and conditions can all be modified (see tutorial [link]).</p>
-        {bold_hr}<h2>Conditions Summary</h2>
+        <p>
+            {prologue}<br>
+            Each check may contain conditions (which will result in pass / fail / warning, represented by {icons})
+            as well as other outputs such as plots or tables.<br>
+            Suites, checks and conditions can all be modified (see the
+            <a href={suite_creation_example_link}>Create a Custom Suite</a> tutorial).
+        </p>
+        {bold_hr}
+        <h2>Conditions Summary</h2>
         """,
         raw=True
     )

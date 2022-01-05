@@ -59,7 +59,7 @@ Simply run the following command in a notebook cell:
 
 Start Working with the Package!
 =================================
-To get started with deepchecks with 5 lines of code, head to :doc:`examples/howto-guides/quickstart_in_5_minutes`.
+To get started with deepchecks with 5 lines of code, head to :doc:`/examples/guides/quickstart_in_5_minutes`.
 
 For additional usage examples and for understanding the best practices of how to use the package, stay tuned for our additional
 guides that will be added here with our official launch!

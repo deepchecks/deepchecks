@@ -20,7 +20,7 @@ Classes Summary
     is_single_value.IsSingleValue
     label_ambiguity.LabelAmbiguity
     mixed_nulls.MixedNulls
-    mixed_types.MixedDataTypes
+    mixed_data_types.MixedDataTypes
     new_category.CategoryMismatchTrainTest
     new_label.NewLabelTrainTest
     special_chars.SpecialCharacters
