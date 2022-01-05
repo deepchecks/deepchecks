@@ -13,14 +13,15 @@
      ~
    -->
 
+======
 Suites
 ======
 
 Using an Existing Suite
------------------------
+=========================
 
-`List of Prebuilt Suites <./default_suites.py>`__
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+List of Prebuilt Suites
+---------------------------
 
 -  single_dataset_integrity - Runs a set of checks that are meant to
    detect integrity issues within a single dataset.
@@ -35,7 +36,7 @@ Using an Existing Suite
    checks.
 
 Running a Suite
-~~~~~~~~~~~~~~~
+----------------
 
 To run a prebuilt suite, first import it
 
@@ -50,7 +51,7 @@ Then run it with the required (suite-dependant) input parameters
    model_evaluation().run(model=my_classification_model, train_dataset=ds_train, test_dataset=ds_test)
 
 Creating Your Custom Suite
---------------------------
+============================
 
 Import Suite and Checks from deepchecks
 
