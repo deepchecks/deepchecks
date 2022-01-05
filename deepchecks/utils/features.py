@@ -24,7 +24,7 @@ from sklearn.pipeline import Pipeline
 from deepchecks import base
 from deepchecks import errors
 from deepchecks.utils import validation
-from deepchecks.utils.metrics import task_type_check, get_scorer_single
+from deepchecks.utils.metrics import get_scorer_single
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.model import get_model_of_pipeline
 
@@ -191,7 +191,7 @@ def _built_in_importance(
 def _calc_importance(
     model: t.Any,
     dataset: 'base.Dataset',
-    n_repeats: int = 30,
+    n_repeats: int = 1,
     mask_high_variance_features: bool = False,
     random_state: int = 42,
     n_samples: int = 10000,
