@@ -71,7 +71,7 @@ Try it Out!
 ============
 
 Head over to the `Quickstart Notebook <https://docs.deepchecks.com/en/stable/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
-and choose the |binder badge image| or |colab badge image| to have it up and running, and to then apply it on your own data and models.
+and choose the  |binder badge image|  or the  |colab badge image|  to have it up and running, and to then apply it on your own data and models.
 
 
 Usage Examples
@@ -86,6 +86,8 @@ To see it in action, we recommend `trying it out <#try-it-out>`__.
 
 To run an existing suite all you need to do is to import the suite and run 
 it with the required (suite-dependent) input parameters.
+The list of all built-in suites can be found `here <deepchecks/suites>`__.
+
 Let's take the "iris" dataset as an example
 
 .. code:: python
@@ -94,10 +96,7 @@ Let's take the "iris" dataset as an example
    iris_df = load_iris(return_X_y=False, as_frame=True)['frame']
 
 and run the `single_dataset_integrity` suite, which requires only a single `Dataset <https://docs.deepchecks.com/en/stable/user-guide/dataset_boject.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=running_a_suite>`__
-and can run also directly on a `pd.DataFrame`.
-The list of all built-in suites can be found `here <deepchecks/suites>`__.
-
-Running
+and can run also directly on a `pd.DataFrame`, like in the following example.
 
 .. code:: python
 
@@ -105,7 +104,7 @@ Running
    suite = single_dataset_integrity()
    suite.run(iris_df)
 
-will result in printing the suite outputs, starting with a summary
+Will result in printing the suite's output, that starts with a summary
 of the check conditions
 
    .. raw:: html
@@ -208,7 +207,7 @@ can be found in our `API Reference <https://docs.deepchecks.com/en/stable/api/in
    # Initialize and run desired check
    TrainTestFeatureDrift().run(train_data, test_data)
 
-Which will produce output of the type:
+Will produce output of the type:
 
    .. raw:: html
 
