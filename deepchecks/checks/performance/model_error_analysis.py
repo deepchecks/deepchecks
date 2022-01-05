@@ -21,6 +21,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.metrics import r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeRegressor
+from sklearn import preprocessing
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.errors import DeepchecksProcessError
@@ -147,11 +148,15 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
 
         # Create scoring function, used to calculate the per sample model error
         if task_type == ModelType.REGRESSION:
-            def scoring_func(dataset):
+            def scoring_func(dataset: Dataset):
                 return per_sample_mse(dataset.label_col, model.predict(dataset.features_columns))
         else:
-            def scoring_func(dataset):
-                return per_sample_binary_cross_entropy(dataset.label_col,
+            le = preprocessing.LabelEncoder()
+            le.fit(train_dataset.classes)
+
+            def scoring_func(dataset: Dataset):
+                encoded_label = le.transform(dataset.label_col)
+                return per_sample_binary_cross_entropy(encoded_label,
                                                        model.predict_proba(dataset.features_columns))
 
         train_scores = scoring_func(train_dataset)
