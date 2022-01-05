@@ -65,15 +65,27 @@ def test_model_info_object(iris_labeled_dataset, iris_adaboost):
         2: close_to(0.28, 0.05)
     }))
 
-
 def test_binary_model_info_object(iris_dataset_single_class_labeled, iris_random_forest_single_class):
     # Arrange
     check = CalibrationScore()
     # Act X
     result = check.run(iris_dataset_single_class_labeled, iris_random_forest_single_class).value
     # Assert
-    assert len(result) == 1  # iris has 3 targets
+    assert len(result) == 1
 
     assert_that(result, has_entries({
         0: close_to(0.0002, 0.0005)
+    }))
+
+def test_binary_string_model_info_object(iris_binary_string_split_dataset_and_model):
+    # Arrange
+    _, test_ds, clf = iris_binary_string_split_dataset_and_model
+    check = CalibrationScore()
+    # Act X
+    result = check.run(test_ds, clf).value
+    # Assert
+    assert len(result) == 1
+
+    assert_that(result, has_entries({
+        0: close_to(0.04, 0.001)
     }))

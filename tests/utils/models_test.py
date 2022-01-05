@@ -9,13 +9,13 @@ def test_random_model():
     # Arrange
     model = RandomModel()
     y = pd.Series([1, 2, 1, 2, 3])
-    X = np.ones(5)
+    x = np.ones(5)
     model.fit([], y)
     # Act
     np.random.seed(42)
-    p = model.predict(X)
+    p = model.predict(x)
     np.random.seed(42)
-    proba = model.predict_proba(X)
+    proba = model.predict_proba(x)
     # Assert
     assert_that(p.tolist(), contains_exactly(2, 3, 1, 3, 3))
     expected_proba = np.array([[0, 1, 0],

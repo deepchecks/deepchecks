@@ -52,7 +52,7 @@ class CalibrationScore(SingleDatasetBaseCheck):
         briers_scores = {}
 
         if len(dataset.classes) == 2:
-            briers_scores[0] = brier_score_loss(ds_y, y_pred[:, 1])
+            briers_scores[0] = brier_score_loss(ds_y, y_pred[:, 1], pos_label=dataset.classes[1])
         else:
             for class_index, class_name in enumerate(dataset.classes):
                 prob_pos = y_pred[:, class_index]
