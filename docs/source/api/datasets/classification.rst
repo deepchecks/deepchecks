@@ -1,5 +1,5 @@
 Classification Datasets
-===================
+=======================
 
 .. py:module:: deepchecks.datasets.classification
 

@@ -19,7 +19,6 @@ Use Cases
 .. toctree::
     :maxdepth: 3
     :titlesonly:
-    :caption: Use Cases
     :glob:
 
     use-cases/phishing_urls
