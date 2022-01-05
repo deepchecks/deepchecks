@@ -324,6 +324,10 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
                 if include_classes is not None and clas not in include_classes:
                     continue
 
+                # If origin model is perfect, skip the gain calculation
+                if models_scores['Origin'] == scorers_perfect[metric]:
+                    continue
+
                 gain = get_gain(models_scores['Simple'],
                                 models_scores['Origin'],
                                 scorers_perfect[metric],
@@ -336,6 +340,9 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
         if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
             scores = average_scores(scores, include_classes)
         for metric, models_scores in scores.items():
+            # If origin model is perfect, skip the gain calculation
+            if models_scores['Origin'] == scorers_perfect[metric]:
+                continue
             gain = get_gain(models_scores['Simple'],
                             models_scores['Origin'],
                             scorers_perfect[metric],
