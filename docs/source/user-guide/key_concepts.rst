@@ -9,7 +9,7 @@ Check
 
 Each check enables you to inspect a specific aspect of your data and models.
 They are the basic building block of the deepchecks package, covering all kinds of common issues,
-such as: PerformanceOverfit, DataSampleLeakage, SingleFeatureContribution, DataDuplicates, and :ref:`many more checks <examples/checks>`.
+such as: PerformanceOverfit, DataSampleLeakage, SingleFeatureContribution, DataDuplicates, and :ref:`many more checks <examples-check-demonstrations>`.
 Each check can have two types of results:
 
 #. A visual result meant for display (e.g. a figure or a table).

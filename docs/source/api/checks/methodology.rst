@@ -22,8 +22,7 @@ Classes Summary
     identifier_leakage.IdentifierLeakage
     index_leakage.IndexTrainTestLeakage
     model_inference_time.ModelInferenceTimeCheck
-    performance_overfit.TrainTestDifferenceOverfit
     single_feature_contribution.SingleFeatureContribution
-    single_feature_contribution_train_validation.SingleFeatureContributionTrainTest
+    single_feature_contribution_train_test.SingleFeatureContributionTrainTest
     train_test_samples_mix.TrainTestSamplesMix
     unused_features.UnusedFeatures
