@@ -4,6 +4,7 @@
 The Dataset Object
 ====================
 
+
 A Quick Introduction
 ====================
 
@@ -11,15 +12,15 @@ The Dataset Object is a simple and robust Object to store tabular data and metad
 
 Common information used in Machine Learning that is aggregated in the Dataset:
  - features
-    Sometimes called `X`, this is the features that are passed to the model.
- - categorical features
-    A subset of the features. These features normally require some preprocessing before being passed to the model.
+    List of column names. This is the features that are passed to the model. If not defined, columns not defined as something else is considered a feature.
+ - cat_features
+    List of column names. A subset of the features. Categorical features normally require some preprocessing before being passed to the model.
  - label
-    Sometimes called `y`, the classes of the classification problem or values of a regression problem.
- - index
-    The index of the data samples.
- - date
-    A column containing the date the sample was acquired (Useful for TimeSeries problems).
+   Either name of a column, or `pd.Series`. The classes of the classification problem or values of a regression problem.
+ - index_name
+    Name of the index column. This can be useful to track indexes duplicate etc. Like the other arguments, this is not manditory.
+ - date_name
+    Name of the date column. The date the sample was acquired (Useful for TimeSeries problems). This column is standardized using `pd.Timestamp`.
 
 All these and more can be defined and accessed on the Dataset Object.
 This allows the user the flexibility to define these column names whichever they seam fit,
@@ -32,49 +33,24 @@ The Basics
 Lets start with building a simple pd.DataFrame that we might already know as a popular data structure to store data.
 But we also have other metadata that we have other use for, and not only as features for the model.
 
-.. code-block:: python
-
-    d = {"id": [1,2,3,4],
-         "feature1": [0.1,0.3,0.2,0.6],
-         "feature2": [4,5,6,7],
-         "cat_feature": [0,0,0,1],
-         "class": [1,2,1,2]}
-    df = pd.DataFrame(d)
-
-    dataset = Dataset(df, label="class", index_name="id", cat_features=["category"])
+    >>> d = {"id": [1,2,3,4],
+    ...      "feature1": [0.1,0.3,0.2,0.6],
+    ...      "feature2": [4,5,6,7],
+    ...      "cat_feature": [0,0,0,1],
+    ...      "class": [1,2,1,2]}
+    ... df = pd.DataFrame(d)
+    ... dataset = Dataset(df, label="class", index_name="id", cat_features=["category"])
 
 Now we have built a Dataset that we can easily pull features and labels from:
 
-.. code-block:: python
-
-    dataset.features
-
-output:
-
-::
-
+    >>> dataset.features
     ['feature1', 'feature2', 'category']
-
-.. code-block:: python
-
-    dataset.label_name
-
-output:
-
-::
-
+    >>> dataset.label_name
     ['class']
 
 We can also get pd.DataFrames from columns that interest us e.g.:
 
-.. code-block:: python
-
-    dataset.features_columns
-
-output:
-
-::
-
+    >>> dataset.features_columns
         feature1	feature2	category
     0	0.1	        4	        0
     1	0.3	        5	        0
@@ -87,20 +63,12 @@ of tracking externally what is a feature column and what isn't one.
 We can see the same thing happening here with the label_column. Instead of tracking an X DataFrame and a y DataSeries,
 we have it all in one single object:
 
-.. code-block:: python
-
-    dataset.label_col
-
-output:
-
-::
-
+    >>> dataset.label_col
         class
     0	1
     1	2
     2	1
     3	2
-
 
 
 now instead of needing keeping track fo the label column, we can track it within the the Dataset Object.
@@ -129,43 +97,35 @@ Create Dataset From a Numpy Arrays
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 A Dataset can be created using a 2D numpy array for features and 1D numpy array for the labels. The features array is mandatory, and the labels array is optional.
 
-.. code-block:: python
-
-    features = np.array([[0.25, 0.3, 0.3], [0.14, 0.75, 0.3], [0.23, 0.39, 0.1]])
-    labels = np.array([0.1, 0.1, 0.7])
-    dataset_with_labels = Dataset.from_numpy(features, labels)
-    dataset_without_labels = Dataset.from_numpy(features)
+    >>> features = np.array([[0.25, 0.3, 0.3], [0.14, 0.75, 0.3], [0.23, 0.39, 0.1]])
+    >>> labels = np.array([0.1, 0.1, 0.7])
+    >>> dataset_with_labels = Dataset.from_numpy(features, labels)
+    >>> dataset_without_labels = Dataset.from_numpy(features)
 
 Also, it's possible to assign names to the features and label:
 
-.. code-block:: python
-
-    Dataset.from_numpy(
-        features, labels,
-        feature_names=['feat1', 'feat2', 'feat3',],
-        label_name='target'
-    )
+    >>> Dataset.from_numpy(
+    ...     features, labels,
+    ...     feature_names=['feat1', 'feat2', 'feat3',],
+    ...     label_name='target'
+    ... )
 
 All the rest of the Dataset's properties can be passed also as a regular keyword arguments:
 
-.. code-block:: python
-
-    Dataset.from_numpy(
-        features, labels,
-        feature_names=['feat1', 'feat2', 'feat3',],
-        label_name='target',
-        max_float_categories=10
-    )
+    >>> Dataset.from_numpy(
+    ...     features, labels,
+    ...     feature_names=['feat1', 'feat2', 'feat3',],
+    ...     label_name='target',
+    ...     max_float_categories=10
+    ... )
 
 
 Train Test Split
 ~~~~~~~~~~~~~~~~
 
-The same Function we all know and love, but saves a step:
+Similar to `sklearn.model_selection.train_test_split` but also copies the metadata to each instance of the split.
 
-.. code-block:: python
-
-    train_dataset, test_dataset = dataset.train_test_split()
+    >>> train_dataset, test_dataset = dataset.train_test_split()
 
 
 Link To API Referance
