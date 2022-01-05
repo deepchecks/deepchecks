@@ -99,12 +99,12 @@ class Dataset:
     _data: pd.DataFrame
     _max_categorical_ratio: float
     _max_categories: int
-    _label_type: str
+    _label_type: t.Optional[str]
 
     def __init__(
             self,
             df: pd.DataFrame,
-            label: t.Union[Hashable, pd.Series, pd.DataFrame, np.array] = None,
+            label: t.Union[Hashable, pd.Series, pd.DataFrame, np.ndarray] = None,
             features: t.Optional[t.Sequence[Hashable]] = None,
             cat_features: t.Optional[t.Sequence[Hashable]] = None,
             index_name: t.Optional[Hashable] = None,
@@ -169,7 +169,7 @@ class Dataset:
                 self._data[label_name] = label
             else:
                 self._data[label_name] = np.array(label).reshape(-1, 1)
-        elif isinstance(label, t.Hashable):
+        elif isinstance(label, Hashable):
             label_name = label
             if label_name not in self._data.columns:
                 raise DeepchecksValueError(f'label column {label_name} not found in dataset columns')
@@ -402,8 +402,15 @@ class Dataset:
         """Return the data of dataset."""
         return self._data
 
-    def copy(self: TDataset, new_data) -> TDataset:
-        """Create a copy of this Dataset with new data."""
+    def copy(self: TDataset, new_data: pd.DataFrame) -> TDataset:
+        """Create a copy of this Dataset with new data.
+
+        Args:
+            new_data (DataFrame): new data from which new dataset will be created
+
+        Returns:
+            Dataset: new dataset instance
+        """
         # Filter out if columns were dropped
         features = [feat for feat in self._features if feat in new_data.columns]
         cat_features = [feat for feat in self.cat_features if feat in new_data.columns]
@@ -419,7 +426,7 @@ class Dataset:
                    convert_datetime=False, max_categorical_ratio=self._max_categorical_ratio,
                    max_categories=self._max_categories, label_type=self.label_type)
 
-    def sample(self, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None) -> TDataset:
+    def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None) -> TDataset:
         """Create a copy of the dataset object, with the internal dataframe being a sample of the original dataframe.
 
         Args:
@@ -447,7 +454,7 @@ class Dataset:
         return self.n_samples
 
     @property
-    def label_type(self):
+    def label_type(self) -> t.Optional[str]:
         """Return the label type.
 
         Returns:
@@ -455,12 +462,13 @@ class Dataset:
         """
         return self._label_type
 
-    def train_test_split(self,
+    def train_test_split(self: TDataset,
                          train_size: t.Union[int, float, None] = None,
                          test_size: t.Union[int, float] = 0.25,
                          random_state: int = 42,
                          shuffle: bool = True,
-                         stratify: t.Union[t.List, pd.Series, np.ndarray, bool] = False) -> t.Tuple[TDataset, TDataset]:
+                         stratify: t.Union[t.List, pd.Series, np.ndarray, bool] = False
+                        ) -> t.Tuple[TDataset, TDataset]:
         """Split dataset into random train and test datasets.
 
         Args:
@@ -648,7 +656,7 @@ class Dataset:
         Returns:
            List of feature names.
         """
-        return self._features
+        return list(self._features)
 
     @property
     def cat_features(self) -> t.List[Hashable]:
@@ -657,7 +665,7 @@ class Dataset:
         Returns:
            List of categorical feature names.
         """
-        return self._cat_features
+        return list(self._cat_features)
 
     @property
     def features_columns(self) -> t.Optional[pd.DataFrame]:
@@ -670,15 +678,15 @@ class Dataset:
 
     @property
     @lru_cache(maxsize=128)
-    def classes(self) -> t.List[str]:
+    def classes(self) -> t.Tuple[str, ...]:
         """Return the classes from label column in sorted list. if no label column defined, return empty list.
 
         Returns:
             Sorted classes
         """
         if self.label_col is not None:
-            return sorted(self.label_col.dropna().unique().tolist())
-        return []
+            return tuple(sorted(self.label_col.dropna().unique().tolist()))
+        return tuple()
 
     @property
     def columns_info(self) -> t.Dict[Hashable, str]:
@@ -795,7 +803,7 @@ class Dataset:
         """
         Dataset.validate_dataset(other)
         if sorted(self.features) == sorted(other.features):
-            return self.features
+            return list(self.features)
         else:
             raise DeepchecksValueError('Check requires datasets to share the same features')
 
@@ -814,7 +822,7 @@ class Dataset:
         """
         Dataset.validate_dataset(other)
         if sorted(self.cat_features) == sorted(other.cat_features):
-            return self.cat_features
+            return list(self.cat_features)
         else:
             raise DeepchecksValueError('Check requires datasets to share '
                                        'the same categorical features. Possible reason is that some columns were'
@@ -838,8 +846,8 @@ class Dataset:
         """
         Dataset.validate_dataset(other)
         if (
-                self.label_name is not None and other.label_name is not None
-                and self.label_name == other.label_name
+            self.label_name is not None and other.label_name is not None
+            and self.label_name == other.label_name
         ):
             return t.cast(Hashable, self.label_name)
         else:
