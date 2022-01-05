@@ -77,7 +77,7 @@ optional `Conditions <#condition>`__ added to them.
 Try it Out!
 ~~~~~~~~~~~~
 For a full suite demonstration, check out the `Quickstart
-Notebook <https://docs.deepchecks.com/en/stable/docs/source/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme>`__
+Notebook <https://docs.deepchecks.com/en/stable/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme>`__
 and apply it on your own data and models. You can launch it directly on google colab or on binder from within the documentation.
 
 Quick Code Example
