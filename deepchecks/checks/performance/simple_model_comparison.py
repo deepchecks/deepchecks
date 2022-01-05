@@ -147,7 +147,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
                     [model_name, model_type, class_score, scorer.name, class_value, n_samples[class_value]]
                     for model_name, model_type, model_instance in models
                     for scorer in scorers  # scorer returns numpy array with item per class
-                    for class_score, class_value in zip(scorer(model_instance, test_dataset), test_dataset.classes)
+                    for class_score, class_value in zip(scorer(model_instance, test_dataset), train_dataset.classes)
                 ],
                 columns=['Model', 'Type', 'Value', 'Metric', 'Class', 'Number of samples']
             )
