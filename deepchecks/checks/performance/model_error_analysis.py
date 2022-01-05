@@ -146,7 +146,6 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         train_dataset = train_dataset.sample(self.n_samples, random_state=self.random_state)
         test_dataset = test_dataset.sample(self.n_samples, random_state=self.random_state)
 
-        
         # Create scoring function, used to calculate the per sample model error
         if task_type == ModelType.REGRESSION:
             def scoring_func(dataset: Dataset):
