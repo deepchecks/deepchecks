@@ -153,6 +153,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         else:
             le = preprocessing.LabelEncoder()
             le.fit(train_dataset.classes)
+
             def scoring_func(dataset: Dataset):
                 encoded_label = le.transform(dataset.label_col)
                 return per_sample_binary_cross_entropy(encoded_label,
