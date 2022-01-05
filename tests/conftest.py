@@ -177,8 +177,8 @@ def iris_split_dataset_and_model_rf(iris) -> Tuple[Dataset, Dataset, RandomFores
 def iris_binary_string_split_dataset_and_model(iris) -> Tuple[Dataset, Dataset, DecisionTreeClassifier]:
     """Return Iris train and val datasets and trained AdaBoostClassifier model."""
     iris = iris.copy()
-    iris[iris['target'] != 2]['target'] = 'a'
-    iris[iris['target'] == 2]['target'] = 'b'
+    iris.loc[iris['target'] != 2, 'target'] = 'a'
+    iris.loc[iris['target'] == 2, 'target'] = 'b'
     train, test = train_test_split(iris, test_size=0.33, random_state=42)
     train_ds = Dataset(train, label='target')
     val_ds = Dataset(test, label='target')

@@ -131,6 +131,41 @@ def test_condition_failed_for_multiclass(iris_split_dataset_and_model):
     ))
 
 
+def test_condition_pass_for_multiclass_avg(iris_split_dataset_and_model):
+    train_ds, test_ds, clf = iris_split_dataset_and_model
+    # Arrange
+    check = SimpleModelComparison(simple_model_type='constant').add_condition_gain_not_less_than(0.43, average=True)
+    # Act X
+    result = check.run(train_ds, test_ds, clf)
+    # Assert
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(
+            is_pass=True,
+            name='Model performance gain over simple model must be at least 43.00%')
+    ))
+
+
+def test_condition_pass_for_multiclass_avg_with_classes(iris_split_dataset_and_model):
+    train_ds, test_ds, clf = iris_split_dataset_and_model
+    # Arrange
+    check = SimpleModelComparison(simple_model_type='constant').add_condition_gain_not_less_than(1, average=False)\
+        .add_condition_gain_not_less_than(1, average=True, classes=[0])
+    # Act X
+    result = check.run(train_ds, test_ds, clf)
+    # Assert
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(
+            is_pass=False,
+            name='Model performance gain over simple model must be at least 100%',
+            details='Metrics failed: "F1 (Default)" - Classes: 1, 2'
+        ),
+        equal_condition_result(
+            is_pass=True,
+            name='Model performance gain over simple model must be at least 100% for classes [0]',
+        )
+    ))
+
+
 def test_condition_ratio_not_less_than_passed(diabetes_split_dataset_and_model):
     # Arrange
     train_ds, test_ds, clf = diabetes_split_dataset_and_model

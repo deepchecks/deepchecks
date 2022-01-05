@@ -39,7 +39,6 @@ __all__ = [
     'DEFAULT_MULTICLASS_SCORERS',
     'MULTICLASS_SCORERS_NON_AVERAGE',
     'DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG',
-    'get_scores_ratio',
     'initialize_multi_scorers',
     'get_scorer_single',
     'task_type_validation',
@@ -323,18 +322,6 @@ def initialize_multi_scorers(alternative_scorers: t.Optional[t.Mapping[str, t.Ca
         raise errors.DeepchecksValueError('Scorers dictionary can\'t be empty')
     else:
         return [DeepcheckScorer(scorer, name) for name, scorer in alternative_scorers.items()]
-
-
-def get_scores_ratio(train_score: float, test_score: float, max_ratio=np.Inf) -> float:
-    """Return the ratio of test metric compared to train metric."""
-    if train_score == 0:
-        return max_ratio
-    else:
-        ratio = test_score / train_score
-        if train_score < 0 and test_score < 0:
-            ratio = 1 / ratio
-        ratio = min(max_ratio, ratio)
-        return ratio
 
 
 def get_gain(base_score, score, perfect_score, max_gain):

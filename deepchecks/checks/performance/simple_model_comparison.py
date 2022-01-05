@@ -299,8 +299,10 @@ class SimpleModelComparison(TrainTestBaseCheck):
             average (bool): Used in classification models to flag if to run condition on average of classes, or on
                 each class individually
         """
-        return self.add_condition('Model performance gain over simple model must be at least '
-                                  f'{format_percent(min_allowed_gain)}',
+        name = f'Model performance gain over simple model must be at least {format_percent(min_allowed_gain)}'
+        if classes:
+            name = name + f' for classes {str(classes)}'
+        return self.add_condition(name,
                                   condition,
                                   include_classes=classes,
                                   min_allowed_gain=min_allowed_gain,
@@ -363,7 +365,7 @@ def average_scores(scores, include_classes):
             total += 1
 
         result[metric] = {
-            'Origin': origin_score / len(classes_scores),
-            'Simple': simple_score / len(classes_scores)
+            'Origin': origin_score / total,
+            'Simple': simple_score / total
          }
     return result
