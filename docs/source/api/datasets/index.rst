@@ -10,9 +10,11 @@ Datasets
 .. autosummary::
 
     regression
+    classification
 
 .. toctree::
     :caption: Datasets
     :hidden:
 
     regression
+    classification
