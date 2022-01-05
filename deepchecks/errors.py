@@ -45,3 +45,9 @@ class NumberOfFeaturesLimitError(DeepchecksBaseError):
     """Represents a situation when a dataset contains to much features to be used for calculation."""
 
     pass
+
+
+class DeepchecksTimeoutError(DeepchecksBaseError):
+    """Represents a situation when a computation takes too long and is interrupted."""
+
+    pass
