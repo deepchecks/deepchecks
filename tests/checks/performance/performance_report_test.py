@@ -170,7 +170,7 @@ def test_condition_degradation_ratio_not_greater_than_not_passed(iris_split_data
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details=re.compile(r'F1 \(Default\) for class 1 \(train=0.94 test=0.88\)'),
+                               details=re.compile(r'F1 for class 1 \(train=0.94 test=0.88\)'),
                                name='Train-Test scores relative degradation is not greater than 0')
     ))
 
@@ -198,7 +198,7 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than_not_passed
         equal_condition_result(is_pass=False,
                                details=re.compile('Relative ratio difference between highest and '
                                                   'lowest in Test dataset classes is 14.29%'),
-                               name='Relative ratio difference between labels \'F1 (Default)\' '
+                               name='Relative ratio difference between labels \'F1\' '
                                     'score is not greater than 0%')
     ))
 
@@ -212,6 +212,6 @@ def test_condition_class_performance_imbalance_ratio_not_greater_than_passed(iri
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Relative ratio difference between labels \'F1 (Default)\' '
+                               name='Relative ratio difference between labels \'F1\' '
                                'score is not greater than 100%')
     ))

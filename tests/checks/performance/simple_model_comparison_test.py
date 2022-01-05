@@ -102,7 +102,7 @@ def test_condition_ratio_not_less_than_not_passed(diabetes_split_dataset_and_mod
         equal_condition_result(
             is_pass=False,
             name='$$\\frac{\\text{model score}}{\\text{simple model score}} >= 1.4$$',
-            details='Metrics failed: "Neg RMSE (Default)"')
+            details='Metrics failed: "Neg RMSE"')
     ))
 
 
@@ -117,7 +117,7 @@ def test_condition_failed_for_multiclass(iris_split_dataset_and_model):
         equal_condition_result(
             is_pass=False,
             name='$$\\frac{\\text{model score}}{\\text{simple model score}} >= 2$$',
-            details='Metrics failed: "F1 (Default)" - Classes: 1')
+            details='Metrics failed: "F1" - Classes: 1')
     ))
 
 
