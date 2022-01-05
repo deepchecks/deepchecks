@@ -1,8 +1,8 @@
 Examples
 ========
 
-Guides
-~~~~~~
+How-to Guides
+~~~~~~~~~~~~~
 
 .. toctree::
     :maxdepth: 3
@@ -13,6 +13,15 @@ Guides
     guides/create_a_custom_suite
     guides/add_a_custom_check
     guides/configure_check_conditions
+
+Use Cases
+~~~~~~~~~
+.. toctree::
+    :maxdepth: 3
+    :titlesonly:
+    :glob:
+
+    use-cases/phishing_urls
 
 .. _examples-check-demonstrations:
 
