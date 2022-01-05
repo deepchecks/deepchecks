@@ -111,7 +111,7 @@ class PerformanceReport(TrainTestBaseCheck):
                 label = cast(pd.Series, dataset.label_col)
                 n_samples = label.groupby(label).count()
                 results.extend(
-                    [dataset_name, 'Class %s' % class_name, scorer.name, class_score, n_samples[class_name]]
+                    [dataset_name, f'Class {class_name}', scorer.name, class_score, n_samples[class_name]]
                     for scorer in scorers
                     # scorer returns numpy array of results with item per class
                     for class_score, class_name in zip(scorer(model, dataset), clasess)
@@ -320,7 +320,7 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
                 label = cast(pd.Series, test_dataset.label_col)
                 n_samples = label.groupby(label).count()
                 results.extend(
-                    [model_name, class_score, scorer.name, 'Class %s' % class_name, n_samples[class_name]]
+                    [model_name, class_score, scorer.name, f'Class {class_name}' , n_samples[class_name]]
                     for scorer in scorers
                     # scorer returns numpy array of results with item per class
                     for class_score, class_name in zip(scorer(model, test_dataset), test_dataset.classes)
