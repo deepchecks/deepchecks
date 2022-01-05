@@ -12,11 +12,13 @@ The Dataset Object is a simple and robust Object to store tabular data and metad
 
 Common information used in Machine Learning that is aggregated in the Dataset:
  - features
-    List of column names. This is the features that are passed to the model. If not defined, columns not defined as something else is considered a feature.
+    List of column names. This parameter specifies the features the model is trained on.
+    If not defined, columns that are not defined as label, date, or index are considered as features.
  - cat_features
     List of column names. A subset of the features. Categorical features normally require some preprocessing before being passed to the model.
+    If not specified, the categorical features are inferred automatically from the data itself. (More info in :ref:`Inferring Features And Categorical Features`)
  - label
-   Either name of a column, or `pd.Series`. The classes of the classification problem or values of a regression problem.
+    Either name of a column, or `pd.Series`. The classes of the classification problem or values of a regression problem.
  - index_name
     Name of the index column. This can be useful to track indexes duplicate etc. Like the other arguments, this is not manditory.
  - date_name
@@ -73,11 +75,6 @@ we have it all in one single object:
 
 now instead of needing keeping track fo the label column, we can track it within the the Dataset Object.
 
-
- - Explain Cat Features and that we will talk about them later
- - Show some functionality that is intuitive and saves time (e.g. `train_test_split`)
-
-
 Inferring Features And Categorical Features
 ===========================================
 Dataset defines which columns of the data are features and of them which are categorical features.
@@ -123,77 +120,24 @@ All the rest of the Dataset's properties can be passed also as a regular keyword
 Train Test Split
 ~~~~~~~~~~~~~~~~
 
-Similar to `sklearn.model_selection.train_test_split` but also copies the metadata to each instance of the split.
+Using the `sklearn.model_selection.train_test_split <https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html>`_ but also copies the metadata to each instance of the split.
 
     >>> train_dataset, test_dataset = dataset.train_test_split()
 
 
-Link To API Referance
-=====================
+Copy
+~~~~
+
+Copy allows copying of metadata on a new dataframe. This can be used on data that already is passed the train test split.
+
+    >>> test_dataset = train_dataset.copy(test_df)
 
 
-===============
-Old Dataset Doc
-===============
+Full API Reference
+==================
 
+.. currentmodule:: deepchecks.base.dataset
 
-Class Parameters
-===================
-All of the parameters are optional.
+.. autosummary::
 
-.. list-table::
-    :widths: 20 20 50 10
-    :header-rows: 1
-
-    * - Name
-      - Type
-      - Description
-      - Default
-    * - label
-      - pandas.Series or Hashable
-      - Data of labels as separate series from the data or name of label column in the data
-      - None
-    * - features
-      - List[Hashable]
-      - Names of the features in the data
-      - None
-    * - cat_features
-      - List[Hashable]
-      - Names of the categorical features in the data. Must be subset of `features`
-      - None
-    * - use_index
-      - bool
-      - If data is dataframe, whether to use the dataframe index as index column for index related checks
-      - False
-    * - index_name
-      - Hashable
-      - Name of index column in the data
-      - None
-    * - date_name
-      - Hashable
-      - Name of date column in the data
-      - None
-    * - date_unit_type
-      - str
-      - Unit to convert date column if it's numeric. using `pandas.Timestamp <https://pandas.pydata.org/docs/reference/api/pandas.Timestamp.html>`__ to convert
-      - None
-    * - max_categorical_ratio
-      - float
-      - Used to infer which columns are categorical (if `cat_features` isn't explicitly passed).
-        Set maximum ratio of unique values in a column in order for it to be categorical.
-        The higher the value, the chance of column inferred as categorical is higher
-      - 0.01
-    * - max_categories
-      - int
-      - Used to infer which columns are categorical (if `cat_features` isn't explicitly passed).
-        Set maximum number of unique values in a column in order for it to be categorical.
-        The higher the value, the chance of column inferred as categorical is higher
-      - 30
-    * - max_float_categories
-      - int
-      - Same as `max_categories` but for columns of type float
-      - 5
-    * - convert_date
-      - bool
-      - Whether to convert date column if it's numeric to date
-      - True
+    Dataset
