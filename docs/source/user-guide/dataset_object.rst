@@ -3,8 +3,129 @@
 ====================
 The Dataset Object
 ====================
-The dataset is one of the basic blocks of deepchecks. It is a container for the data and its relevant metadata, like special column names (label, date, index, etc).
-Some of the checks allows to use a dataframe directly, but some others requires the metadata in order to run, so they are limited to working only with Datasets.
+The Dataset Object is a simple and robust Object to store tabular data and metadata relevant to Machine Learning.
+
+Getting Started With Datasets
+=============================
+
+Lets start with building a simple pd.DataFrame that we might already know as a popular data structure to store data
+
+.. code-block:: python
+
+    d = {"colum1": [1,2,3,4], "column2": [4,5,6,7]}
+    df = pd.DataFrame(d)
+
+Now let's continue to build the *simplest* Dataset object from said dataframe
+
+.. code-block:: python
+
+    dataset = Dataset(df)
+
+.. note::
+    You might get warning about assumed categorical features, don't worry, we will explain this a bit later down this page
+
+Well that was easy! But what does this give us? In short it wraps the DataFrame and adds metadata that is common for ML tasks
+For example, if not specified otherwise, all columns identified as features, and we can pull the names of the features and a dataframe containing only the features:
+
+.. code-block:: python
+
+    dataset.features
+
+output:
+
+::
+
+    ['colum1', 'column2']
+
+
+.. code-block:: python
+
+    dataset.features_columns
+
+output:
+
+::
+
+        colum1	column2
+    0	1	4
+    1	2	5
+    2	3	6
+    3	4	7
+
+Now that we understand some of the basics, lets build a dataset, but this time lets add metadata that will help us develop models faster:
+
+.. code-block:: python
+
+    d = {"colum1": [1,2,3,4], "column2": [4,5,6,7], "class": [1,2,1,2]}
+    df = pd.DataFrame(d)
+
+    dataset = Dataset(df, label="class")
+
+Now we have built a Dataset that we can earily pull features and labels from:
+
+.. code-block:: python
+
+    dataset.features
+
+output:
+
+::
+
+    ['colum1', 'column2']
+
+.. code-block:: python
+
+    dataset.label_name
+
+output:
+
+::
+
+    ['class']
+
+
+.. code-block:: python
+
+    dataset.features_columns
+
+output:
+
+::
+
+        colum1	column2
+    0	1	4
+    1	2	5
+    2	3	6
+    3	4	7
+
+Now we can see that it is missing the label column from the features_columns.
+
+.. code-block:: python
+
+    dataset.label_col
+
+output:
+
+::
+
+        class
+    0	1
+    1	2
+    2	1
+    3	2
+
+now instead of needing keeping track fo the label column, we can track it within the the Dataset Object.
+
+
+ - Explain Cat Features and that we will talk about them later
+ - Show some functionality that is intuitive and saves time (e.g. `train_test_split`)
+
+
+
+===============
+Old Dataset Doc
+===============
+
 
 Class Parameters
 ===================
@@ -19,8 +140,8 @@ All of the parameters are optional.
       - Description
       - Default
     * - label
-      - pandas.Series
-      - Data of labels as separate series from the data
+      - pandas.Series or Hashable
+      - Data of labels as separate series from the data or name of label column in the data
       - None
     * - features
       - List[Hashable]
@@ -29,10 +150,6 @@ All of the parameters are optional.
     * - cat_features
       - List[Hashable]
       - Names of the categorical features in the data. Must be subset of `features`
-      - None
-    * - label_name
-      - Hashable
-      - Name of label column in the data
       - None
     * - use_index
       - bool
