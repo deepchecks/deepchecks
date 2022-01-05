@@ -66,6 +66,14 @@ Using conda
 
    conda install -c deepchecks deepchecks
 
+
+Try it Out!
+============
+
+Head over to the `Quickstart Notebook <https://docs.deepchecks.com/en/stable/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
+and choose the |binder badge image| or |colab badge image| to have it up and running, and to then apply it on your own data and models.
+
+
 Usage Examples
 ===============
 
@@ -74,15 +82,10 @@ Running a Suite
 A `Suite <#suite>`__ runs a collection of `Checks <#check>`__ with
 optional `Conditions <#condition>`__ added to them.
 
-Try it Out!
-~~~~~~~~~~~~
-For a full suite demonstration, check out the `Quickstart
-Notebook <https://docs.deepchecks.com/en/stable/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme>`__
-and apply it on your own data and models. You can launch it directly on google colab or on binder from within the documentation.
+To see it in action, we recommend `trying it out <#try-it-out>`__.
 
-Quick Code Example
-~~~~~~~~~~~~~~~~~~~~
-
+To run an existing suite all you need to do is to import the suite and run 
+it with the required (suite-dependent) input parameters.
 Let's take the "iris" dataset as an example
 
 .. code:: python
@@ -90,8 +93,11 @@ Let's take the "iris" dataset as an example
    from sklearn.datasets import load_iris
    iris_df = load_iris(return_X_y=False, as_frame=True)['frame']
 
-To run an existing suite all you need to do is to import the suite and
-to run it with the required (suite-dependent) input parameters
+and run the `single_dataset_integrity` suite, which requires only a single `Dataset <https://docs.deepchecks.com/en/stable/user-guide/dataset_boject.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=running_a_suite>`__
+and can run also directly on a `pd.DataFrame`.
+The list of all built-in suites can be found `here <deepchecks/suites>`__.
+
+Running
 
 .. code:: python
 
@@ -99,7 +105,7 @@ to run it with the required (suite-dependent) input parameters
    suite = single_dataset_integrity()
    suite.run(iris_df)
 
-Which will result in printing the suite outputs, starting with a summary
+will result in printing the suite outputs, starting with a summary
 of the check conditions
 
    .. raw:: html
@@ -181,7 +187,8 @@ of the check conditions
       </table>
 
 Followed by the visual outputs of all of the checks that are in that
-suite, that isn't appended here for brevity.
+suite, that isn't appended here for brevity. In the following section 
+you can see an example of how the output of a single check may look.
 
 Running a Check
 ----------------
@@ -316,6 +323,7 @@ Community
    Issue <https://github.com/deepchecks/deepchecks/issues>`__ to suggest
    improvements, open an issue, or share feedback.
 
+
 .. |build| image:: https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg
 .. |Documentation Status| image:: https://readthedocs.org/projects/deepchecks/badge/?version=latest
    :target: https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=badge
@@ -325,3 +333,8 @@ Community
    :target: https://codeclimate.com/github/deepchecks/deepchecks/maintainability
 .. |Coverage Status| image:: https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main
    :target: https://coveralls.io/github/deepchecks/deepchecks?branch=main
+
+.. |binder badge image| image:: /docs/source/_static/binder-badge.svg
+   :target: https://docs.deepchecks.com/en/stable/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out_binder
+.. |colab badge image| image:: /docs/source/_static/colab-badge.svg
+   :target: https://docs.deepchecks.com/en/stable/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out_colab
