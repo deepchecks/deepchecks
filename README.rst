@@ -18,11 +18,11 @@
 
    <p align="center">
      &emsp;
-     <a href="https://deepchecks.com/blog/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=top_links">Blog</a>
+     <a href="https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg">Join&nbsp;Slack</a>
      &emsp; | &emsp; 
      <a href="https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=top_links">Documentation</a>
      &emsp; | &emsp; 
-     <a href="https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg">Join&nbsp;Slack</a>
+     <a href="https://deepchecks.com/blog/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=top_links">Blog</a>
      &emsp; | &emsp;  
      <a href="https://twitter.com/deepchecks">Twitter</a>
      &emsp;
@@ -261,12 +261,12 @@ Suite
 
 An ordered collection of checks, that can have conditions added to them.
 The Suite enables displaying a concluding report for all of the Checks
-that ran. `Here <deepchecks/suites>`__ you can find the `predefined
-existing suites <deepchecks/suites>`__ and a code example demonstrating
-how to build your own custom suite. The existing suites include default
-conditions added for most of the checks. You can edit the preconfigured
-suites or build a suite of your own with a collection of checks and
-optional conditions.
+that ran. See the list of `predefined existing suites <deepchecks/suites>`__
+to learn more about the suites you can work with directly and also to
+see a code example demonstrating how to build your own custom suite.
+The existing suites include default conditions added for most of the checks.
+You can edit the preconfigured suites or build a suite of your own with a collection
+of checks and optional conditions.
 
 .. raw:: html
 
