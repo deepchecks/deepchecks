@@ -70,7 +70,7 @@ def test_condition_fail(iris_labeled_dataset, iris_adaboost):
         equal_condition_result(
             is_pass=False,
             name='The performance of the detected segments must not differ by more than 5.00%',
-            details='Change in Accuracy (Default) in features: petal length (cm) exceeds threshold.',
+            details='Change in Accuracy in features: petal length (cm) exceeds threshold.',
             category=ConditionCategory.WARN
         )
     ))

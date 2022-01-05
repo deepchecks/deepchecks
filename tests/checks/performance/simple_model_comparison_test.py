@@ -112,7 +112,7 @@ def test_condition_ratio_not_less_than_not_passed(diabetes_split_dataset_and_mod
         equal_condition_result(
             is_pass=False,
             name='Model performance gain over simple model must be at least 40.00%',
-            details='Metrics failed: "Neg RMSE (Default)"')
+            details='Metrics failed: "Neg RMSE"')
     ))
 
 
@@ -127,7 +127,7 @@ def test_condition_failed_for_multiclass(iris_split_dataset_and_model):
         equal_condition_result(
             is_pass=False,
             name='Model performance gain over simple model must be at least 80.00%',
-            details='Metrics failed: "F1 (Default)" - Classes: 1')
+            details='Metrics failed: "F1" - Classes: 1')
     ))
 
 
@@ -157,7 +157,7 @@ def test_condition_pass_for_multiclass_avg_with_classes(iris_split_dataset_and_m
         equal_condition_result(
             is_pass=False,
             name='Model performance gain over simple model must be at least 100%',
-            details='Metrics failed: "F1 (Default)" - Classes: 1, 2'
+            details='Metrics failed: "F1" - Classes: 1, 2'
         ),
         equal_condition_result(
             is_pass=True,

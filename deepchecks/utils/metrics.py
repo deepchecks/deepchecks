@@ -56,39 +56,39 @@ class ModelType(enum.Enum):
 
 
 DEFAULT_BINARY_SCORERS = {
-    'Accuracy (Default)': 'accuracy',
-    'Precision (Default)': make_scorer(precision_score, zero_division=0),
-    'Recall (Default)':  make_scorer(recall_score, zero_division=0)
+    'Accuracy': 'accuracy',
+    'Precision': make_scorer(precision_score, zero_division=0),
+    'Recall':  make_scorer(recall_score, zero_division=0)
 }
 
 
 DEFAULT_MULTICLASS_SCORERS = {
-    'Accuracy (Default)': 'accuracy',
-    'Precision - Macro Average (Default)': make_scorer(precision_score, average='macro', zero_division=0),
-    'Recall - Macro Average (Default)': make_scorer(recall_score, average='macro', zero_division=0)
+    'Accuracy': 'accuracy',
+    'Precision - Macro Average': make_scorer(precision_score, average='macro', zero_division=0),
+    'Recall - Macro Average': make_scorer(recall_score, average='macro', zero_division=0)
 }
 
 MULTICLASS_SCORERS_NON_AVERAGE = {
-    'F1 (Default)': make_scorer(f1_score, average=None, zero_division=0),
-    'Precision (Default)': make_scorer(precision_score, average=None, zero_division=0),
-    'Recall (Default)': make_scorer(recall_score, average=None, zero_division=0)
+    'F1': make_scorer(f1_score, average=None, zero_division=0),
+    'Precision': make_scorer(precision_score, average=None, zero_division=0),
+    'Recall': make_scorer(recall_score, average=None, zero_division=0)
 }
 
 
 DEFAULT_REGRESSION_SCORERS = {
-    'Neg RMSE (Default)': 'neg_root_mean_squared_error',
-    'Neg MAE (Default)': 'neg_mean_absolute_error',
-    'R2 (Default)': 'r2'
+    'Neg RMSE': 'neg_root_mean_squared_error',
+    'Neg MAE': 'neg_mean_absolute_error',
+    'R2': 'r2'
 }
 
 
 DEFAULT_SINGLE_SCORER = {
-    ModelType.BINARY: 'Accuracy (Default)',
-    ModelType.MULTICLASS: 'Accuracy (Default)',
-    ModelType.REGRESSION: 'Neg RMSE (Default)'
+    ModelType.BINARY: 'Accuracy',
+    ModelType.MULTICLASS: 'Accuracy',
+    ModelType.REGRESSION: 'Neg RMSE'
 }
 
-DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG = 'F1 (Default)'
+DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG = 'F1'
 
 
 DEFAULT_SCORERS_DICT = {
