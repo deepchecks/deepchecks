@@ -9,21 +9,14 @@ A Quick Introduction
 ====================
 
 The Dataset Object is a simple and robust Object to store tabular data and metadata relevant to Machine Learning.
+It allows deepchecks to understand the context of the data with minimal hassle for the user.
 
-Common information used in Machine Learning that is aggregated in the Dataset:
- - features
-    List of column names. This parameter specifies the features the model is trained on.
-    If not defined, columns that are not defined as label, date, or index are considered as features.
- - cat_features
-    List of column names. A subset of the features. Categorical features normally require some preprocessing before being passed to the model.
-    If not specified, the categorical features are inferred automatically from the data itself.
-    (`Inferring Features And Categorical Features`_ )
- - label
-    Either name of a column, or `pd.Series`. The classes of the classification problem or values of a regression problem.
- - index_name
-    Name of the index column. This can be useful to track indexes duplicate etc. Like the other arguments, this is not manditory.
- - date_name
-    Name of the date column. The date the sample was acquired (Useful for TimeSeries problems). This column is standardized using `pd.Timestamp`.
+Common information used in Machine Learning that are aggregated in the Dataset:
+ - **cat_features** - Categorical features normally require some preprocessing before being passed to the model. If not specified, the categorical features are inferred automatically from the data itself. (`Inferring Features And Categorical Features`_ )
+ - **label** - The classes of the classification problem or values of a regression problem.
+ - **index_name** - This can be useful to track indexes duplicate etc. Like the other arguments, this is not mandatory.
+ - **date_name** - The date the sample was acquired (Useful for TimeSeries problems). This column is standardized using `pd.Timestamp`.
+ - **features** - Specifies the columns used by model for training. Used for defining only a subset of the columns in the data as features. If not defined, all columns that aren't explicitly specified as `label`, `date`, or `index` are considered as features.
 
 All these and more can be defined and accessed on the Dataset Object.
 This allows the user the flexibility to define these column names whichever they seem fit,
