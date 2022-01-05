@@ -12,37 +12,14 @@
 import numpy as np
 import pandas as pd
 from scipy.stats import gaussian_kde
-import matplotlib.pyplot as plt
 import plotly.graph_objs as go
 
-__all__ = ['plot_density', 'feature_distribution_traces', 'drift_score_bar_traces', 'get_density']
+__all__ = ['feature_distribution_traces', 'drift_score_bar_traces', 'get_density']
 
 from typing import List, Union, Dict
 
 from deepchecks.checks.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.plot import colors
-
-
-def plot_density(data, xs, color='b', alpha: float = 0.7, **kwargs) -> np.ndarray:
-    """Plot a KDE density plot of the data. Adding labels and other plotting attributes is left to ths user.
-
-    Args:
-        data (): The data used to compute the pdf function.
-        xs (iterable): List of x values to plot the computed pdf for.
-        color (): Color of the filled graph.
-        alpha (float): Transparency of the filled graph.
-
-    Returns:
-        np.array: The computed pdf values at the points xs.
-    """
-    density = gaussian_kde(data)
-    density.covariance_factor = lambda: .25
-    # pylint: disable=protected-access
-    density._compute_covariance()
-    plt.fill_between(xs, density(xs), color=color, alpha=alpha, **kwargs)
-    plt.gca().set_ylim(bottom=0)
-
-    return density(xs)
 
 
 def get_density(data, xs) -> np.ndarray:
