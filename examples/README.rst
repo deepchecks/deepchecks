@@ -17,7 +17,7 @@ by clicking on the badges that each notebook has on the top right side:
 
    <p align="center">
       <a href="https://docs.deepchecks.com/en/stable/examples/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=examples_folder_image">
-      <img src="docs/images/notebook-example-launch-badges.png">
+      <img src="/docs/images/notebook-example-launch-badges.png">
       </a>
    </p>
 
