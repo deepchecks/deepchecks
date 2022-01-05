@@ -376,7 +376,7 @@ def generate_colab_url(notebook_path: str) -> str:
         user=GIT['user'],
         repo=GIT['repo'],
         branch=GIT['release'],
-        notebook_path=notebook_path
+        notebook_path=f"docs/source/{notebook_path}"
     )
 
 
@@ -397,7 +397,7 @@ def generate_binder_url(notebook_path: str) -> str:
         user=GIT['user'],
         repo=GIT['repo'],
         branch=GIT['release'],
-        filepath=f"docs/source/${notebook_path}"
+        filepath=f"docs/source/{notebook_path}"
     )
 
 

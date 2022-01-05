@@ -1,11 +1,12 @@
 Examples
 ========
 
+Guides
+~~~~~~
 
 .. toctree::
     :maxdepth: 3
     :titlesonly:
-    :caption: Guides
     :glob:
 
     guides/quickstart_in_5_minutes
@@ -13,10 +14,12 @@ Examples
     guides/add_a_custom_check
     guides/configure_check_conditions
 
+.. _examples-check-demonstrations:
 
+Check Demonstrations
+~~~~~~~~~~~~~~~~~~~~
 .. toctree::
     :maxdepth: 2
-    :caption: Check Demonstrations
     :titlesonly:
 
     checks/distribution/index
