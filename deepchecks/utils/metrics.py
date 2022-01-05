@@ -11,6 +11,7 @@
 """Utils module containing utilities for checks working with metrics."""
 import typing as t
 import enum
+import warnings
 from numbers import Number
 
 import numpy as np
@@ -23,6 +24,8 @@ from sklearn.base import ClassifierMixin, RegressorMixin
 from deepchecks import base  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks import errors
 from deepchecks.utils import validation
+from deepchecks.utils.strings import is_string_column
+from deepchecks.utils.models import PerfectModel
 
 
 __all__ = [
@@ -36,13 +39,12 @@ __all__ = [
     'DEFAULT_BINARY_SCORERS',
     'DEFAULT_MULTICLASS_SCORERS',
     'MULTICLASS_SCORERS_NON_AVERAGE',
-    'get_scores_ratio',
+    'DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG',
     'initialize_multi_scorers',
     'get_scorer_single',
-    'task_type_validation'
+    'task_type_validation',
+    'get_gain'
 ]
-
-from deepchecks.utils.strings import is_string_column
 
 
 class ModelType(enum.Enum):
@@ -135,6 +137,20 @@ class DeepcheckScorer:
     def __call__(self, model, dataset: 'base.Dataset'):
         df = self.filter_nulls(dataset)
         return self._run_score(model, df, dataset)
+
+    def score_perfect(self, dataset: 'base.Dataset'):
+        """Calculate the perfect score of the current scorer for given dataset."""
+        df = self.filter_nulls(dataset)
+        perfect_model = PerfectModel()
+        perfect_model.fit(None, dataset.label_col)
+        score = self._run_score(perfect_model, df, dataset)
+        if isinstance(score, np.ndarray):
+            # We expect the perfect score to be equal for all the classes, so takes the first one
+            first_score = score[0]
+            if any(score != first_score):
+                warnings.warn(f'Scorer {self.name} return different perfect score for differect classes')
+            return first_score
+        return score
 
     def validate_fitting(self, model, dataset: 'base.Dataset', should_return_array: bool):
         """Validate given scorer for the model and dataset."""
@@ -313,13 +329,19 @@ def initialize_multi_scorers(alternative_scorers: t.Optional[t.Mapping[str, t.Ca
         return [DeepcheckScorer(scorer, name) for name, scorer in alternative_scorers.items()]
 
 
-def get_scores_ratio(train_score: float, test_score: float, max_ratio=np.Inf) -> float:
-    """Return the ratio of test metric compared to train metric."""
-    if train_score == 0:
-        return max_ratio
-    else:
-        ratio = test_score / train_score
-        if train_score < 0 and test_score < 0:
-            ratio = 1 / ratio
-        ratio = min(max_ratio, ratio)
-        return ratio
+def get_gain(base_score, score, perfect_score, max_gain):
+    """Get gain between base score and score compared to the distance from the perfect score."""
+    distance_from_perfect = perfect_score - base_score
+    scores_diff = score - base_score
+    if distance_from_perfect == 0:
+        # If both base score and score are perfect, return 0 gain
+        if scores_diff == 0:
+            return 0
+        # else base_score is better than score, return -max_gain
+        return -max_gain
+    ratio = scores_diff / distance_from_perfect
+    if ratio < -max_gain:
+        return -max_gain
+    if ratio > max_gain:
+        return max_gain
+    return ratio
