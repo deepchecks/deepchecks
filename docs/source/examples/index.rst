@@ -15,6 +15,15 @@ Examples
 
 
 .. toctree::
+    :maxdepth: 3
+    :titlesonly:
+    :caption: Use Cases
+    :glob:
+
+    use-cases/phishing_urls
+
+
+.. toctree::
     :maxdepth: 2
     :caption: Check Demonstrations
     :titlesonly:
