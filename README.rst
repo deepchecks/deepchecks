@@ -13,28 +13,33 @@
      ~
    -->
 
+
 .. raw:: html
 
    <p align="center">
      &emsp;
-     <a href="https://deepchecks.com/blog/?utm_source=github.com&utm_medium=referral&utm_campaign=readme">Blog</a>
+     <a href="https://deepchecks.com/blog/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=top_links">Blog</a>
      &emsp; | &emsp; 
-     <a href="https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme">Documentation</a>
+     <a href="https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=top_links">Documentation</a>
      &emsp; | &emsp; 
      <a href="https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg">Join&nbsp;Slack</a>
      &emsp; | &emsp;  
      <a href="https://twitter.com/deepchecks">Twitter</a>
      &emsp;
    </p>
-
+   
 .. raw:: html
 
    <p align="center">
+      <a href="https://deepchecks.com/blog/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=logo">
       <img src="docs/images/deepchecks-logo-with-white-wide-back.png">
+      </a>
    </p>
 
-Deepchecks - Test Suites for Validating ML Models and Data
-==========================================================
+
+============================================
+Test Suites for Validating ML Models & Data
+============================================
 
 |build| |Documentation Status| |pkgVersion| |pyVersions|
 |Maintainability| |Coverage Status|
@@ -45,53 +50,38 @@ checks related to various types of issues, such as model performance,
 data integrity, distribution mismatches, and more.
 
 Installation
-------------
+=============
 
 Using pip
-~~~~~~~~~
+----------
 
 .. code:: bash
 
    pip install deepchecks -U --user
 
 Using conda
-~~~~~~~~~~~
+------------
 
 .. code:: bash
 
    conda install -c deepchecks deepchecks
 
-What Do You Need in Order to Start Validating?
-----------------------------------------------
-
-Depending on your phase and what you wise to validate, you'll need a
-subset of the following:
-
--  Raw data (before pre-processing such as OHE, string processing,
-   etc.), with optional labels
-
--  The model's training data with labels
-
--  Test data (which the model isn't exposed to) with labels
-
--  A model compatible with scikit-learn API that you wish to validate
-   (e.g. RandomForest, XGBoost)
-
-Deepchecks validation accompanies you from the initial phase when you
-have only raw data, through the data splits, and to the final stage of
-having a trained model that you wish to evaluate. Accordingly, each
-phase requires different assets for the validation. See more about
-typical usage scenarios and the built-in suites in the
-`docs <https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme>`__.
-
 Usage Examples
---------------
+===============
 
 Running a Suite
-~~~~~~~~~~~~~~~
-
+----------------
 A `Suite <#suite>`__ runs a collection of `Checks <#check>`__ with
 optional `Conditions <#condition>`__ added to them.
+
+Try it Out!
+~~~~~~~~~~~~
+For a full suite demonstration, check out the `Quickstart
+Notebook <https://docs.deepchecks.com/en/stable/docs/source/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme>`__
+and apply it on your own data and models. You can launch it directly on google colab or on binder from within the documentation.
+
+Quick Code Example
+~~~~~~~~~~~~~~~~~~~~
 
 Let's take the "iris" dataset as an example
 
@@ -116,13 +106,14 @@ of the check conditions
 
       <h1 id="summary_NKMZO">Single Dataset Integrity Suite</h1>
       <p>The suite is composed of various checks such as: Mixed Data Types, Is Single Value, String Mismatch, etc...<br>
-             Each check may contain conditions (which results in 
+             Each check may contain conditions (which will result in pass / fail / warning, represented by 
          <span style="color: green;display:inline-block">✓</span> /
          <span style="color: red;display:inline-block">✖</span> /
          <span style="color: orange;font-weight:bold;display:inline-block">!</span>
          ),
              as well as other outputs such as plots or tables.<br>
-             Suites, checks and conditions can all be modified (see tutorial [link]).</p>
+             Suites, checks and conditions can all be modified (see the 
+             <a href='https://docs.deepchecks.com/en/stable/examples/guides/create_a_custom_suite.html'>Create a Custom Suite</a> tutorial).</p>
 
    .. raw:: html
 
@@ -146,13 +137,13 @@ of the check conditions
        <tbody>
          <tr>
            <td id="T_7735f_row0_col0" class="data row0 col0"><div style="color: red;text-align: center">✖</div></td>
-           <td id="T_7735f_row0_col1" class="data row0 col1"><a href="#IsSingleValue_NKMZO">Single Value in Column - Test Dataset</a></td>
+           <td id="T_7735f_row0_col1" class="data row0 col1">Single Value in Column - Test Dataset</td>
            <td id="T_7735f_row0_col2" class="data row0 col2">Does not contain only a single value for all columns</td>
            <td id="T_7735f_row0_col3" class="data row0 col3">Columns containing a single value: ['target']</td>
          </tr>
          <tr>
            <td id="T_7735f_row1_col0" class="data row1 col0"><div style="color: orange;text-align: center;font-weight:bold">!</div></td>
-           <td id="T_7735f_row1_col1" class="data row1 col1"><a href="#DataDuplicates_NKMZO">Data Duplicates - Test Dataset</a></td>
+           <td id="T_7735f_row1_col1" class="data row1 col1">Data Duplicates - Test Dataset</td>
            <td id="T_7735f_row1_col2" class="data row1 col2">Duplicate data is not greater than 0%</td>
            <td id="T_7735f_row1_col3" class="data row1 col3">Found 2.00% duplicate data</td>
          </tr>
@@ -192,18 +183,13 @@ of the check conditions
 Followed by the visual outputs of all of the checks that are in that
 suite, that isn't appended here for brevity.
 
-For a full suite demonstration, check out the `Quickstart
-Notebook <https://docs.deepchecks.com/en/stable/docs/source/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme>`__
-and apply it on your own data and models.
-
 Running a Check
-~~~~~~~~~~~~~~~
+----------------
 
 To run a specific single check, all you need to do is import it and then
 to run it with the required (check-dependent) input parameters. More
 details about the existing checks and the parameters they can receive
-can be found in our `API
-Reference <https://docs.deepchecks.com/en/stable/api/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme>`__
+can be found in our `API Reference <https://docs.deepchecks.com/en/stable/api/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=running_a_check>`__.
 
 .. code:: python
 
@@ -215,7 +201,7 @@ Reference <https://docs.deepchecks.com/en/stable/api/index.html?utm_source=githu
    # Initialize and run desired check
    TrainTestFeatureDrift().run(train_data, test_data)
 
-Which will product output of the type:
+Which will produce output of the type:
 
    .. raw:: html
 
@@ -230,22 +216,22 @@ Which will product output of the type:
       </p>
 
 Key Concepts
-------------
-
-.. raw:: html
-
-   <p align="center">
-      <img src="docs/images/diagram.svg">
-   </p>
+==============
 
 Check
-~~~~~
+------
 
 Each check enables you to inspect a specific aspect of your data and
 models. They are the basic building block of the deepchecks package,
-covering all kinds of common issues, such as: PerformanceOverfit,
-DataSampleLeakage, SingleFeatureContribution, DataDuplicates, and `many
-more checks <examples/checks>`__. Each check can have two types of
+covering all kinds of common issues, such as:
+
+- Model Error Analysis
+- Label Ambiguity
+- Data Sample Leakage
+and `many more checks <https://docs.deepchecks.com/en/stable/api/checks/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=key_concepts__check>`__.
+
+
+Each check can have two types of
 results:
 
 1. A visual result meant for display (e.g. a figure or a table).
@@ -254,7 +240,7 @@ results:
    the check, as explained below).
 
 Condition
-~~~~~~~~~
+---------
 
 A condition is a function that can be added to a Check, which returns a
 pass ✓, fail ✖ or warning ! result, intended for validating the Check's
@@ -265,13 +251,13 @@ return value. An example for adding a condition would be:
    from deepchecks.checks import BoostingOverfit
    BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(threshold=0.05)
 
-which will fail if there is a difference of more than 5% between the
-best score achieved on the test set during the boosting iterations and
-the score achieved in the last iteration (the model's "original" score
+which will return a check failure when running it if there is a difference of
+more than 5% between the best score achieved on the test set during the boosting
+iterations and the score achieved in the last iteration (the model's "original" score
 on the test set).
 
 Suite
-~~~~~
+------
 
 An ordered collection of checks, that can have conditions added to them.
 The Suite enables displaying a concluding report for all of the Checks
@@ -282,16 +268,45 @@ conditions added for most of the checks. You can edit the preconfigured
 suites or build a suite of your own with a collection of checks and
 optional conditions.
 
-Documentation
-~~~~~~~~~~~~~
+.. raw:: html
 
--  `https://docs.deepchecks.com/ <https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme>`__
+   <p align="center">
+      <img src="docs/images/diagram.svg">
+   </p>
+   
+What Do You Need in Order to Start Validating?
+----------------------------------------------
+
+Depending on your phase and what you wish to validate, you'll need a
+subset of the following:
+
+-  Raw data (before pre-processing such as OHE, string processing,
+   etc.), with optional labels
+
+-  The model's training data with labels
+
+-  Test data (which the model isn't exposed to) with labels
+
+-  A model compatible with scikit-learn API that you wish to validate
+   (e.g. RandomForest, XGBoost)
+
+Deepchecks validation accompanies you from the initial phase when you
+have only raw data, through the data splits, and to the final stage of
+having a trained model that you wish to evaluate. Accordingly, each
+phase requires different assets for the validation. See more about
+typical usage scenarios and the built-in suites in the
+`docs <https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utme_content=what_do_you_need_in_order_to_start_validating>`__.
+
+Documentation
+--------------
+
+-  `https://docs.deepchecks.com/ <https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation>`__
    - HTML documentation (stable release)
--  `https://docs.deepchecks.com/en/latest <https://docs.deepchecks.com/en/latest/?utm_source=github.com&utm_medium=referral&utm_campaign=readme>`__
+-  `https://docs.deepchecks.com/en/latest <https://docs.deepchecks.com/en/latest/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation>`__
    - HTML documentation (latest release)
 
 Community
----------
+==========
 
 -  Join our `Slack
    Community <https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg>`__
@@ -303,7 +318,7 @@ Community
 
 .. |build| image:: https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg
 .. |Documentation Status| image:: https://readthedocs.org/projects/deepchecks/badge/?version=latest
-   :target: https://docs.deepchecks.com/en/latest/?badge=latest
+   :target: https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=badge
 .. |pkgVersion| image:: https://img.shields.io/pypi/v/deepchecks
 .. |pyVersions| image:: https://img.shields.io/pypi/pyversions/deepchecks
 .. |Maintainability| image:: https://api.codeclimate.com/v1/badges/970b11794144139975fa/maintainability
