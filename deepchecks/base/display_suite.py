@@ -109,14 +109,20 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         else f"The suite is composed of the following checks: {', '.join(check_names)}."
     )
 
+    suite_creation_example_link = 'https://docs.deepchecks.com/en/stable/examples/guides/create_a_custom_suite.html'
+
     display_html(
         f"""
         <h1 id="summary_{unique_id}">{suite_name}</h1>
-        <p>{prologue}<br>
-        Each check may contain conditions (which results in {icons}),
-        as well as other outputs such as plots or tables.<br>
-        Suites, checks and conditions can all be modified (see tutorial [link]).</p>
-        {bold_hr}<h2>Conditions Summary</h2>
+        <p>
+            {prologue}<br>
+            Each check may contain conditions (which will result in pass / fail / warning, represented by {icons})
+            as well as other outputs such as plots or tables.<br>
+            Suites, checks and conditions can all be modified (see
+            <a href={suite_creation_example_link}>Create a custom suite</a> tutorial).
+        </p>
+        {bold_hr}
+        <h2>Conditions Summary</h2>
         """,
         raw=True
     )
