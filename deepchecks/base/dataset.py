@@ -468,7 +468,7 @@ class Dataset:
                          random_state: int = 42,
                          shuffle: bool = True,
                          stratify: t.Union[t.List, pd.Series, np.ndarray, bool] = False
-                        ) -> t.Tuple[TDataset, TDataset]:
+                         ) -> t.Tuple[TDataset, TDataset]:
         """Split dataset into random train and test datasets.
 
         Args:
