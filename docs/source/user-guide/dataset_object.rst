@@ -4,29 +4,29 @@
 The Dataset Object
 ====================
 
-Why Do We Need Another Data Store Object?
-=========================================
+A Quick Introduction
+====================
 
 The Dataset Object is a simple and robust Object to store tabular data and metadata relevant to Machine Learning.
 
-Example of metadata that is common
+Common information used in Machine Learning that is aggregated in the Dataset:
+ - features
+    Sometimes called `X`, this is the features that are passed to the model.
+ - categorical features
+    A subset of the features. These features normally require some preprocessing before being passed to the model.
  - label
-    Sometimes called `y`, can be the classes of the classification problem or values of a regression problem.
+    Sometimes called `y`, the classes of the classification problem or values of a regression problem.
  - index
     The index of the data samples.
  - date
     A column containing the date the sample was acquired (Useful for TimeSeries problems).
- - features
-    Sometimes called `X`, this is similar to regular uses of the pd.DataFrame.
- - categorical features
-    A subset of the features that are either identified or defined as categorical.
 
-This object is one of the basic building blocks fo deepchecks.
-It allows us to standardize the tagging of important columns,
-allowing users to define their data however they want and only to tag important columns.
+All these and more can be defined and accessed on the Dataset Object.
+This allows the user the flexibility to define these column names whichever they seam fit,
+and allows use of the these tags to standardize development around this data.
 
 
-Quick Into
+The Basics
 ==========
 
 Lets start with building a simple pd.DataFrame that we might already know as a popular data structure to store data.
@@ -166,6 +166,10 @@ The same Function we all know and love, but saves a step:
 .. code-block:: python
 
     train_dataset, test_dataset = dataset.train_test_split()
+
+
+Link To API Referance
+=====================
 
 
 ===============
