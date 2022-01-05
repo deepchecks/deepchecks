@@ -11,16 +11,16 @@
 """The phishing dataset contains a slightly synthetic dataset of urls - some regular and some used for phishing."""
 import typing as t
 import pandas as pd
-# import joblib
-# from urllib.request import urlopen
+import joblib
+from urllib.request import urlopen
 from deepchecks import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
 
-_MODEL_URL = None
+_MODEL_URL = 'https://figshare.com/ndownloader/files/32594447'
 _FULL_DATA_URL = 'https://figshare.com/ndownloader/files/32553581'
-_TRAIN_DATA_URL = None
-_TEST_DATA_URL = None
+_TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/32593298'
+_TEST_DATA_URL = 'https://figshare.com/ndownloader/files/32593373'
 _target = 'target'
 _CAT_FEATURES = ['ext']
 
@@ -167,15 +167,14 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
 
         return dataset
     else:
-        raise NotImplementedError('as_train_test=True is not implemented yet, please load the full dataset.')
-        # train = pd.read_csv(_TRAIN_DATA_URL)
-        # test = pd.read_csv(_TEST_DATA_URL)
-        #
-        # if data_format == 'Dataset':
-        #     train = Dataset(train, label='target', cat_features=_CAT_FEATURES, datetime_name='scrape_date')
-        #     test = Dataset(test, label='target', cat_features=_CAT_FEATURES, datetime_name='scrape_date')
+        train = pd.read_csv(_TRAIN_DATA_URL)
+        test = pd.read_csv(_TEST_DATA_URL)
 
-        # return train, test
+        if data_format == 'Dataset':
+            train = Dataset(train, label='target', cat_features=_CAT_FEATURES, datetime_name='scrape_date')
+            test = Dataset(test, label='target', cat_features=_CAT_FEATURES, datetime_name='scrape_date')
+
+        return train, test
 
 
 def load_fitted_model():
@@ -185,8 +184,7 @@ def load_fitted_model():
         model (Joblib model) the model/pipeline that was trained on the phishing dataset.
 
     """
-    raise NotImplementedError('Model is not implemented yet')
-    # with urlopen(_MODEL_URL) as f:
-    #     model = joblib.load(f)
-    #
-    # return model
+    with urlopen(_MODEL_URL) as f:
+        model = joblib.load(f)
+
+    return model
