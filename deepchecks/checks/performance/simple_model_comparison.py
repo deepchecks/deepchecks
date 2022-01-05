@@ -170,7 +170,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
 
             # Plot the metrics in a graph, grouping by the model and class
             fig = (
-                px.bar(
+                px.histogram(
                     results_df,
                     x=['Class', 'Model'],
                     y='Value',
@@ -211,7 +211,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
 
             # Plot the metrics in a graph, grouping by the model
             fig = (
-                px.bar(
+                px.histogram(
                     results_df,
                     x='Model',
                     y='Value',
