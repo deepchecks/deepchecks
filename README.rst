@@ -300,7 +300,7 @@ of checks and optional conditions.
 .. raw:: html
 
    <p align="center">
-      <img src="/images/diagram.svg">
+      <img src="/docs/images/diagram.svg">
    </p>
 
 
