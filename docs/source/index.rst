@@ -22,10 +22,11 @@ Head over to our :doc:`/examples/guides/quickstart_in_5_minutes` tutorial,
 and click on  |binder badge|  or on  |colab badge|  to launch it and see it in action,
 or see our :doc:`/getting-started/index` to install it locally and continue from there.
 
+.. note:: The package is suited for running in a jupyter environment.
+          HTML and pdf reports for graphs may be added in the near future.
 
 When Should You Use Deepchecks?
 ================================
-
 
 While you're in the research phase, and want to validate your data, find potential methodological 
 problems, and/or validate your model and evaluate it.
