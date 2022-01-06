@@ -8,11 +8,10 @@ various validation needs such as verifying your data's integrity, inspecting its
 validating data splits, evaluating your model and comparing between different models.
 
 
-.. comment_this_out
-   .. image:: /_static/deepchecks-logo-with-white-wide-back.png
-      :target: https://deepchecks.com/?utm_source=docs.deepchecks.com&utm_medium=referral&utm_campaign=welcome
-      :alt: Deepchecks Logo
-      :align: center
+.. image:: /_static/deepchecks-logo-with-white-wide-back.png
+   :target: https://deepchecks.com/?utm_source=docs.deepchecks.com&utm_medium=referral&utm_campaign=welcome
+   :alt: Deepchecks Logo
+   :align: center
 
 
 
@@ -36,7 +35,7 @@ See the :doc:`Section in the User Guide </user-guide/when_should_you_use>` for a
 Example - Validating a Model that Classifies Malicious URLs
 ----------------------------------------------------------------
 The :doc:`following use case </examples/use-cases/phishing_urls>` demonstrates how deepchecks can be used throughout the 
-research phase for model and data validation, enabling you to efficiently catch issues at different phases.
+research phase for model and daketa validation, enabling you to efficiently catch issues at different phases.
 
 
 How Does it Work?
