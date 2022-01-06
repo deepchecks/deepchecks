@@ -7,13 +7,13 @@ and data, and it enables doing so with minimal effort. Deepchecks accompanies yo
 various validation needs such as verifying your data's integrity, inspecting its distributions,
 validating data splits, evaluating your model and comparing between different models.
 
-.. raw:: html
 
-   <p align="center">
-      <a href="https://deepchecks.com/?utm_source=docs.deepchecks.com&utm_medium=referral&utm_campaign=welcome">
-      <img src="/_static/deepchecks-logo-with-white-wide-back.png">
-      </a>
-   </p>
+.. comment_this_out
+   .. figure:: _static/deepchecks-logo-with-white-wide-back.png
+      :target: https://deepchecks.com/?utm_source=docs.deepchecks.com&utm_medium=referral&utm_campaign=welcome
+      :alt: Deepchecks Logo
+      :align: center
+
 
 
 Get Started
@@ -34,8 +34,8 @@ See the :doc:`Section in the User Guide </user-guide/when_should_you_use>` for a
 
 
 Example Use Case
--------------------------
-The :doc:`following use case </examples/use-cases/phising_urls>` demonstrates how deepchecks can be used throughout the 
+-----------------------
+The :doc:`following use case </examples/use-cases/phishing_urls>` demonstrates how deepchecks can be used throughout the 
 research phase for model and data validation, enabling you to efficiently catch issues at different phases.
 
 

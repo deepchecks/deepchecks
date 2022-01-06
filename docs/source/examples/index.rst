@@ -28,7 +28,7 @@ Use Cases
 - :doc:`use-cases/phishing_urls`
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 4
     :titlesonly:
     :caption: Use Cases
     :hidden:
