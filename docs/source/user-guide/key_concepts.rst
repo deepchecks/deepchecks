@@ -13,7 +13,7 @@ covering all kinds of common issues, such as:
 
 - :doc:`/examples/checks/performance/model_error_analysis`
 - :doc:`/examples/checks/integrity/label_ambiguity`
-- :doc:`/examples/checks/methodology/data_sample_leakage`
+- :doc:`/examples/checks/methodology/date_train_test_leakage_overlap`
 
 Each check can have two types of results:
 

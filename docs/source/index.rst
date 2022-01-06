@@ -9,7 +9,7 @@ validating data splits, evaluating your model and comparing between different mo
 
 
 .. comment_this_out
-   .. figure:: _static/deepchecks-logo-with-white-wide-back.png
+   .. image:: /_static/deepchecks-logo-with-white-wide-back.png
       :target: https://deepchecks.com/?utm_source=docs.deepchecks.com&utm_medium=referral&utm_campaign=welcome
       :alt: Deepchecks Logo
       :align: center
@@ -33,8 +33,8 @@ problems, and/or validate your model and evaluate it.
 See the :doc:`Section in the User Guide </user-guide/when_should_you_use>` for an elaborate explanation of the typical scenarios.
 
 
-Example Use Case
------------------------
+Example - Validating a Model that Classifies Malicious URLs
+----------------------------------------------------------------
 The :doc:`following use case </examples/use-cases/phishing_urls>` demonstrates how deepchecks can be used throughout the 
 research phase for model and data validation, enabling you to efficiently catch issues at different phases.
 
