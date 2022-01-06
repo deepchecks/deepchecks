@@ -70,7 +70,9 @@ Using conda
 Try it Out!
 ============
 
-Head over to the `Quickstart Notebook <https://docs.deepchecks.com/en/stable/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
+Head over to the `Quickstart Notebook <https://docs.deepchecks.com/en/stable/
+examples/guides/quickstart_in_5_minutes.html?
+utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
 and choose the  |binder badge image|  or the  |colab badge image|  to have it up and running, and to then apply it on your own data and models.
 
 
@@ -79,14 +81,14 @@ Usage Examples
 
 Running a Suite
 ----------------
-A `Suite <#suite>`__ runs a collection of `Checks <#check>`__ with
-optional `Conditions <#condition>`__ added to them.
+A `Suite <#suite>`_ runs a collection of `Checks <#check>`_ with
+optional `Conditions <#condition>`_ added to them.
 
-To see it in action, we recommend `trying it out <#try-it-out>`__.
+To see it in action, we recommend `trying it out <#try-it-out>`_.
 
 To run an existing suite all you need to do is to import the suite and run 
 it with the required (suite-dependent) input parameters.
-The list of all built-in suites can be found `here <deepchecks/suites>`__.
+The list of all built-in suites can be found `here <deepchecks/suites>`_.
 
 Let's take the "iris" dataset as an example
 
@@ -95,8 +97,14 @@ Let's take the "iris" dataset as an example
    from sklearn.datasets import load_iris
    iris_df = load_iris(return_X_y=False, as_frame=True)['frame']
 
-and run the `single_dataset_integrity` suite, which requires only a single `Dataset <https://docs.deepchecks.com/en/stable/user-guide/dataset_boject.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=running_a_suite>`__
+and run the `single_dataset_integrity` suite, which requires only a single `Dataset`_
 and can run also directly on a `pd.DataFrame`, like in the following example.
+
+.. _Dataset:
+   https://docs.deepchecks.com/en/stable/
+   user-guide/dataset_object.html
+   ?utm_source=github.com&utm_medium=referral&
+   utm_campaign=readme&utm_content=running_a_suite
 
 .. code:: python
 
@@ -195,7 +203,13 @@ Running a Check
 To run a specific single check, all you need to do is import it and then
 to run it with the required (check-dependent) input parameters. More
 details about the existing checks and the parameters they can receive
-can be found in our `API Reference <https://docs.deepchecks.com/en/stable/api/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=running_a_check>`__.
+can be found in our `API Reference`_.
+
+.. _API Reference:
+   https://docs.deepchecks.com/en/stable/
+   api/index.html?
+   utm_source=github.com&utm_medium=referral&
+   utm_campaign=readme&utm_content=running_a_check
 
 .. code:: python
 
@@ -234,8 +248,13 @@ covering all kinds of common issues, such as:
 - Model Error Analysis
 - Label Ambiguity
 - Data Sample Leakage
-and `many more checks <https://docs.deepchecks.com/en/stable/api/checks/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=key_concepts__check>`__.
+and `many more checks`_.
 
+.. _many more checks:
+   https://docs.deepchecks.com/en/stable/
+   api/checks/index.html
+   ?utm_source=github.com&utm_medium=referral&
+   utm_campaign=readme&utm_content=key_concepts__check
 
 Each check can have two types of
 results:
@@ -267,12 +286,14 @@ Suite
 
 An ordered collection of checks, that can have conditions added to them.
 The Suite enables displaying a concluding report for all of the Checks
-that ran. See the list of `predefined existing suites <deepchecks/suites>`__
+that ran. See the list of `predefined existing suites`_
 to learn more about the suites you can work with directly and also to
 see a code example demonstrating how to build your own custom suite.
 The existing suites include default conditions added for most of the checks.
 You can edit the preconfigured suites or build a suite of your own with a collection
 of checks and optional conditions.
+
+.. _predefined existing suites: deepchecks/suites
 
 .. raw:: html
 
