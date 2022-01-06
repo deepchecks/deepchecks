@@ -126,7 +126,8 @@ of the check conditions
          ),
              as well as other outputs such as plots or tables.<br>
              Suites, checks and conditions can all be modified (see the 
-             <a href='https://docs.deepchecks.com/en/stable/examples/guides/create_a_custom_suite.html'>Create a Custom Suite</a> tutorial).</p>
+             <a href='https://docs.deepchecks.com/en/stable/examples/guides/create_a_custom_suite.html
+             ?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=suite_output_link'>Create a Custom Suite</a> tutorial).</p>
 
    .. raw:: html
 
