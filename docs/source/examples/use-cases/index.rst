@@ -2,7 +2,7 @@ Use Cases
 ==============
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 4
     :titlesonly:
 
     phishing_urls

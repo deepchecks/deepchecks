@@ -50,9 +50,10 @@ except Exception as error:
 #
 nitpicky = True
 
-# Path to logo
+# Path to logo and favicon
 #
 html_logo = "./_static/deepchecks_logo.svg"
+html_favicon = "./_static/favicons/favicon.ico"
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom

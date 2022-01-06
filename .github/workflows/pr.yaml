@@ -20,11 +20,11 @@ jobs:
     steps:
       - uses: mheap/github-action-required-labels@v1
         with:
-          mode: exactly
+          mode: minimum
           count: 1
-          labels: "kind/feature, kind/fix, kind/tests, breaking-backwards-compitabillity, chore/ci, chore/documentation"
+          labels: "feature, bugfix, tests, ci, documentation"
       - uses: mheap/github-action-required-labels@v1
         with:
           mode: exactly
           count: 0
-          labels: 'help wanted, wontfix, question, good first issue, invalid, duplicate'
+          labels: 'help wanted, wontfix, question, good first issue, invalid, duplicate, do not merge'
