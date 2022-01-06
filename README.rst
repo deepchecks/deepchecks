@@ -295,10 +295,12 @@ of checks and optional conditions.
 
 .. _predefined existing suites: deepchecks/suites
 
+.. include:: 
+
 .. raw:: html
 
    <p align="center">
-      <img src="docs/images/diagram.svg">
+      <img src="/_static/diagram.svg">
    </p>
    
 What Do You Need in Order to Start Validating?
@@ -320,8 +322,9 @@ subset of the following:
 Deepchecks validation accompanies you from the initial phase when you
 have only raw data, through the data splits, and to the final stage of
 having a trained model that you wish to evaluate. Accordingly, each
-phase requires different assets for the validation. See more about
-typical usage scenarios and the built-in suites in the
+phase requires different assets for the validation.
+
+See more about typical usage scenarios and the built-in suites in the
 `docs <https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utme_content=what_do_you_need_in_order_to_start_validating>`__.
 
 Documentation
