@@ -1,22 +1,14 @@
 ================
-Getting Started
-================
-
-Welcome to Deepchecks!
-
-To get started and easily validate your data and models, make sure to
-install the deepchecks python package.
-
 Installation
-==============
-
-Local Installation
----------------------
+================
 
 Deepchecks requires Python 3 and can be installed using pip or conda, depending on the package manager you're working with for most of your packages.
 
+Local Installation
+====================
+
 Using Pip
-~~~~~~~~~~
+-----------
 As a best practice we recommend working on a `virtual environment <https://docs.python.org/3/library/venv.html>`__. 
 
 The deepchecks package can be installed from `PyPi <https://pypi.org/project/deepchecks/>`__ using the following command:
@@ -26,12 +18,16 @@ The deepchecks package can be installed from `PyPi <https://pypi.org/project/dee
     pip install deepchecks --upgrade
 
 .. note::
-    Deepchecks is in alpha development, which means that new versions are released on a weekly basis and new features are frequently added. If you experience any unexpected behavior from deepchecks, the first step to troubleshoot is to upgrade to the latest version.
+    Deepchecks is in alpha development, which means that new versions are released on a weekly basis and new features are frequently added.
+    If you experience any unexpected behavior from deepchecks, the first step to troubleshoot is to upgrade to the latest version.
      
 
 Using Conda
-~~~~~~~~~~~~~
-As a best practice we recommend `creating a conda environment <https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-with-commands>`__.
+------------
+As a best practice we recommend `creating a conda environment`_.
+
+.. _creating a conda environment:
+   https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-with-commands
 
 To install the deepchecks package from the conda package manager run
 
@@ -46,8 +42,9 @@ or, if you already have deepchecks installed and want to update then run
     conda update -c deepchecks deepchecks
 
 Installing On Google Colab or on a Kaggle Kernel
--------------------------------------------------
-Simply run the following command in a notebook cell:
+==================================================
+
+Simply run the following command in a notebook cell
 
 .. code-block:: bash
 
@@ -55,10 +52,6 @@ Simply run the following command in a notebook cell:
 
 
 
-Start Working with the Package!
+Start Working with the Package
 =================================
-To get started with deepchecks with 5 lines of code, head to :doc:`/examples/guides/quickstart_in_5_minutes`,
-and launch 
-
-For additional usage examples and for understanding the best practices of how to use the package, stay tuned,
-as this package is in active development!
+Now it's time to :doc:`get started </index>` with deepchecks!

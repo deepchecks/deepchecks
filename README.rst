@@ -31,7 +31,7 @@
 .. raw:: html
 
    <p align="center">
-      <a href="https://deepchecks.com/blog/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=logo">
+      <a href="https://deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=logo">
       <img src="docs/images/deepchecks-logo-with-white-wide-back.png">
       </a>
    </p>
@@ -72,7 +72,7 @@ Try it Out!
 
 Head over to the `Quickstart Notebook <https://docs.deepchecks.com/en/stable/
 examples/guides/quickstart_in_5_minutes.html?
-utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
+utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
 and choose the  |binder badge image|  or the  |colab badge image|  to have it up and running, and to then apply it on your own data and models.
 
 

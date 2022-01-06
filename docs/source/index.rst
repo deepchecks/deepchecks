@@ -7,6 +7,16 @@ and data, and it enables doing so with minimal effort. Deepchecks accompanies yo
 various validation needs such as verifying your data's integrity, inspecting its distributions,
 validating data splits, evaluating your model and comparing between different models.
 
+.. raw:: html
+
+   <p align="center">
+      <a href="https://deepchecks.com/?utm_source=docs.deepchecks.com&utm_medium=referral&utm_campaign=welcome">
+      <img src="docs/images/deepchecks-logo-with-white-wide-back.png">
+      </a>
+   </p>
+
+
+
 Get Started
 ============
 
@@ -29,9 +39,11 @@ See
 
 .. note::
     Welcome! In addition to perusing the documentation, please feel free to
-    to ask questions on our `Community Slack <https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg>`__,
-    or to post a issue or start a discussion on `Github <https://github.com/deepchecks/deepchecks/>`__.
+    to ask questions on our `Slack Community <https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg>`_,
+    or to post a issue or start a discussion on `Github <https://github.com/deepchecks/deepchecks/>`_.
 
+For additional usage examples and for understanding the best practices of how to use the package, stay tuned,
+as this package is in active development!
 
 See More
 =========
