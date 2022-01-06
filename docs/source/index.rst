@@ -2,7 +2,7 @@
 Welcome to Deepchecks!
 =======================
 
-Deepchecks is the leading tool for validating you machine learning models
+Deepchecks is the leading tool for validating your machine learning models
 and data, and it enables doing so with minimal effort. Deepchecks accompanies you through
 various validation needs such as verifying your data's integrity, inspecting its distributions,
 validating data splits, evaluating your model and comparing between different models.
@@ -11,10 +11,9 @@ validating data splits, evaluating your model and comparing between different mo
 
    <p align="center">
       <a href="https://deepchecks.com/?utm_source=docs.deepchecks.com&utm_medium=referral&utm_campaign=welcome">
-      <img src="docs/images/deepchecks-logo-with-white-wide-back.png">
+      <img src="/_static/deepchecks-logo-with-white-wide-back.png">
       </a>
    </p>
-
 
 
 Get Started
@@ -29,11 +28,35 @@ When Should You Use Deepchecks?
 ================================
 
 
+While you're in the research phase, and want to validate your data, find potential methodological 
+problems, and/or validate your model and evaluate it.
+See the :doc:`Section in the User Guide <user-guide/when_should_you_use>` for an elaborate explanation of the typical scenarios.
+
+
+Real Life Usage Example
+---------------------------
+The :doc:`following use case</examples/guides/phising_urls>`demonstrates how deepchecks can be used throughout the 
+research phase for model and data validation, enabling you to efficiently catch issues at different phases.
+
+
 How Does it Work?
 ===================
 
-See
+Suites are composed of checks. Each check contains outputs to display in a notebook and/or conditions with a pass/fail/warning output.
+For more information head over to our :doc:`/user-guide/key_concepts` in the User Guide.
 
+What Do You Need in Order to Start?
+=====================================
+
+Depending on your phase and what you wish to validate, you'll need a
+subset of the following:
+
+-  Raw data (before pre-processing such as OHE, string processing,
+   etc.), with optional labels
+-  The model's training data with labels
+-  Test data (which the model isn't exposed to) with labels
+-  A model compatible with scikit-learn API that you wish to validate
+   (e.g. RandomForest, XGBoost)
 
 
 
