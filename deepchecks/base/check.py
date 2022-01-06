@@ -503,10 +503,10 @@ class ModelComparisonBaseCheck(BaseCheck):
 class CheckFailure:
     """Class which holds a run exception of a check."""
 
-    def __init__(self, check: BaseCheck, exception: Exception):
+    def __init__(self, check: BaseCheck, exception: Exception, header_suffix: str = ''):
         self.check = check
         self.exception = exception
-        self.header = check.name()
+        self.header = check.name() + header_suffix
 
     def __repr__(self):
         """Return string representation."""
