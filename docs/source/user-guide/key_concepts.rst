@@ -11,9 +11,9 @@ Each check enables you to inspect a specific aspect of your data and
 models. They are the basic building block of the deepchecks package,
 covering all kinds of common issues, such as:
 
-- Model Error Analysis
-- Label Ambiguity
-- Data Sample Leakage
+- doc:`/examples/checks/model_error_analysis`
+- doc:`/examples/checks/label_ambiguity`
+- doc:`/examples/checks/data_sample_leakage`
 
 Each check can have two types of results:
 
@@ -25,9 +25,9 @@ Each check can have two types of results:
 See Also
 ---------
 
-- :ref:`Check Demonstrations <examples.check_demonstrations>` - example notebooks demonstrating all of the checks implemented in the package.
+- :doc:`Check Demonstrations </examples/checks/index>` - example notebooks demonstrating all of the checks implemented in the package.
 - :doc:`Checks API Reference </api/checks/index>` - where all the check parameters and implemented conditions can be found.
-- :doc:`/examples/add_a_custom_check` - for a tutorial of how to implement your own check
+- :doc:`/examples/guides/add_a_custom_check` - for a tutorial of how to implement your own check
 
 
 Condition
@@ -44,13 +44,13 @@ An example for adding a condition would be:
 
 Most checks come with pre-implemented conditions that can be added to the check, and their parameters can be tuned.
 Different conditions can be concatenated on the same check. Evaluation of these conditions will happen separately for each condition.
-Each condition has `ConditionCategory` type, which indicates whether an unmet condition will be classified as `FAIL`(✖) or as `WARN` (!).
+Each condition has a ``ConditionCategory`` type, which indicates whether an unmet condition will be classified or as ``FAIL`` (✖) or as ``WARN`` (!).
 
 
 See Also
 ---------
 
-- :doc:`/examples/configure_check_conditions` - for a tutorial demonstrating how to modify a checks' conditions
+- :doc:`/examples/guides/configure_check_conditions` - for a tutorial demonstrating how to modify a checks' conditions
 - :doc:`Check Base Classes API Reference </api/base/generated/deepchecks.base.check>` - where all of the check and condition related base objects can be found. 
 
 
@@ -69,8 +69,8 @@ See Also
 ---------
 
 - `List of Existing Suites`_ - to learn more about the suites you can work with directly
-- :doc:`/examples/create_a_custom_suite` - for a demonstration about creating your own suite
+- :doc:`/examples/guides/create_a_custom_suite` - for a demonstration about creating your own suite
 
 
-.. _List of Existing Suites: deepchecks/suites
+.. _List of Existing Suites: https://github.com/deepchecks/deepchecks/tree/main/deepchecks/suites
 

@@ -30,12 +30,12 @@ When Should You Use Deepchecks?
 
 While you're in the research phase, and want to validate your data, find potential methodological 
 problems, and/or validate your model and evaluate it.
-See the :doc:`Section in the User Guide <user-guide/when_should_you_use>` for an elaborate explanation of the typical scenarios.
+See the :doc:`Section in the User Guide </user-guide/when_should_you_use>` for an elaborate explanation of the typical scenarios.
 
 
-Real Life Usage Example
----------------------------
-The :doc:`following use case</examples/guides/phising_urls>`demonstrates how deepchecks can be used throughout the 
+Example Use Case
+-------------------------
+The :doc:`following use case </examples/use-cases/phising_urls>` demonstrates how deepchecks can be used throughout the 
 research phase for model and data validation, enabling you to efficiently catch issues at different phases.
 
 
@@ -59,17 +59,13 @@ subset of the following:
    (e.g. RandomForest, XGBoost)
 
 
-
-.. note::
-    Welcome! In addition to perusing the documentation, please feel free to
-    to ask questions on our `Slack Community <https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg>`_,
-    or to post a issue or start a discussion on `Github <https://github.com/deepchecks/deepchecks/>`_.
-
-For additional usage examples and for understanding the best practices of how to use the package, stay tuned,
-as this package is in active development!
-
 See More
 =========
+
+.. note::
+    In addition to perusing the documentation, please feel free to
+    to ask questions on our `Slack Community <https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg>`_,
+    or to post a issue or start a discussion on `Github <https://github.com/deepchecks/deepchecks/>`_.
 
 .. toctree::
     :maxdepth: 2
@@ -94,6 +90,9 @@ See More
 
     api/index
 
+
+For additional usage examples and for understanding the best practices of how to use the package, stay tuned,
+as this package is in active development!
 
 .. |binder badge| image:: /_static/binder-badge.svg
    :target: :doc:`/examples/guides/quickstart_in_5_minutes`

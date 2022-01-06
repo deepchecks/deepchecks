@@ -28,14 +28,13 @@ Use Cases
 - :doc:`use-cases/phishing_urls`
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
     :titlesonly:
     :caption: Use Cases
     :hidden:
 
     use-cases/phishing_urls
 
-.. _examples.check_demonstrations:
 
 Check Demonstrations
 ~~~~~~~~~~~~~~~~~~~~
@@ -47,14 +46,10 @@ Check Demonstrations
 - :doc:`checks/performance/index`
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
     :titlesonly:
     :hidden:
     :caption: Check Demonstrations
 
-    checks/distribution/index
-    checks/integrity/index
-    checks/methodology/index
-    checks/overview/index
-    checks/performance/index
+    checks/index
     
