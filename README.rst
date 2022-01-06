@@ -299,10 +299,12 @@ of checks and optional conditions.
 
 .. raw:: html
 
+<!--
    <p align="center">
       <img src="/_static/diagram.svg">
    </p>
-   
+-->
+
 What Do You Need in Order to Start Validating?
 ----------------------------------------------
 
