@@ -110,7 +110,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         else f"The suite is composed of the following checks: {', '.join(check_names)}."
     )
 
-    suite_creation_example_link = 'https://docs.deepchecks.com/en/stable/examples/guides/create_a_custom_suite.html'
+    suite_creation_example_link = 'https://docs.deepchecks.com/en/stable/examples/guides/create_a_custom_suite.html?utm_source=suite_output&utm_medium=referral&utm_campaign=display_link'
 
     display_html(
         f"""
