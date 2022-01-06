@@ -84,7 +84,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
                 others_table.append([result.get_header(), 'Nothing found', 2])
         elif isinstance(result, CheckFailure):
             msg = result.exception.__class__.__name__ + ': ' + str(result.exception)
-            name = result.check.name()
+            name = result.header
             others_table.append([name, msg, 1])
         else:
             # Should never reach here!
