@@ -94,7 +94,7 @@ For additional usage examples and for understanding the best practices of how to
 as this package is in active development!
 
 .. |binder badge| image:: /_static/binder-badge.svg
-   :target: :doc:`/examples/guides/quickstart_in_5_minutes`
+   :target: /examples/guides/quickstart_in_5_minutes.html
 
 .. |colab badge| image:: /_static/colab-badge.svg
-   :target: :doc:`/examples/guides/quickstart_in_5_minutes`
+   :target: /examples/guides/quickstart_in_5_minutes.html
