@@ -74,6 +74,6 @@ See Also
 
 .. _List of Existing Suites: https://github.com/deepchecks/deepchecks/tree/main/deepchecks/suites
 
-.. image:: ../_static/diagram.svg
+.. image:: /_static/diagram.svg
    :alt: Deepchecks Diagram
    :align: center
