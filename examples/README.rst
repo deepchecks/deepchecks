@@ -26,9 +26,9 @@ Download from Git
 
 Notice that viewing the notebooks within git **will not parse the graph outputs**.
 Having said that, if you still want to access the raw examples notebooks directly, you can head to the
-`examples folder <docs/source/examples>`__. 
+`examples folder </docs/source/examples>`__. 
 
 .. note::
 
-	In order to see the graphs when running a notebook locally, you need to `define it as **Trusted** <https://stackoverflow.com/questions/44943646/jupyter-notebook-not-trusted>`__
+	In order to see the graphs when running a notebook locally, you need to define it as `Trusted <https://stackoverflow.com/questions/44943646/jupyter-notebook-not-trusted>`__.
 
