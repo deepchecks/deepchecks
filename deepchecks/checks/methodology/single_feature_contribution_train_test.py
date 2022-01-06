@@ -139,7 +139,10 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         ret_value = {'train': s_pps_train.to_dict(), 'test': s_pps_test.to_dict(),
                      'train-test difference': s_difference.to_dict()}
 
-        return CheckResult(value=ret_value, display=[fig, *text], header='Single Feature Contribution Train-Test')
+        # display only if not all scores are 0
+        display = [fig, *text] if s_pps_train.sum() or s_pps_test.sum() else None
+
+        return CheckResult(value=ret_value, display=display, header='Single Feature Contribution Train-Test')
 
     def add_condition_feature_pps_difference_not_greater_than(self: FC, threshold: float = 0.2) -> FC:
         """Add new condition.

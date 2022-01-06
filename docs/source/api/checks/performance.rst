@@ -16,9 +16,10 @@ Classes Summary
     :template: check.rst
 
     calibration_score.CalibrationScore
-    class_performance.ClassPerformance
     confusion_matrix_report.ConfusionMatrixReport
+    model_error_analysis.ModelErrorAnalysis
     performance_report.PerformanceReport
+    performance_report.MultiModelPerformanceReport
     regression_error_distribution.RegressionErrorDistribution
     regression_systematic_error.RegressionSystematicError
     roc_report.RocReport

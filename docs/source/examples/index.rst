@@ -1,22 +1,34 @@
 Examples
 ========
 
+How-to Guides
+~~~~~~~~~~~~~
 
 .. toctree::
     :maxdepth: 3
     :titlesonly:
-    :caption: How-to Guides
     :glob:
 
-    howto-guides/quickstart_in_5_minutes
-    howto-guides/create_a_custom_suite
-    howto-guides/add_a_custom_check
-    howto-guides/configure_check_conditions
+    guides/quickstart_in_5_minutes
+    guides/create_a_custom_suite
+    guides/add_a_custom_check
+    guides/configure_check_conditions
 
+Use Cases
+~~~~~~~~~
+.. toctree::
+    :maxdepth: 3
+    :titlesonly:
+    :glob:
 
+    use-cases/phishing_urls
+
+.. _examples-check-demonstrations:
+
+Check Demonstrations
+~~~~~~~~~~~~~~~~~~~~
 .. toctree::
     :maxdepth: 2
-    :caption: Check Demonstrations
     :titlesonly:
 
     checks/distribution/index

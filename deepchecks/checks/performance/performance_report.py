@@ -97,14 +97,14 @@ class PerformanceReport(TrainTestBaseCheck):
         validate_model(test_dataset, model)
 
         task_type = task_type_check(model, train_dataset)
-        clasess = test_dataset.classes
+        clasess = train_dataset.classes
 
         # Get default scorers if no alternative, or validate alternatives
         scorers = get_scorers_list(model, test_dataset, self.alternative_scorers, multiclass_avg=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
         if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
-            plot_x_axis = ['Class', 'Dataset']
+            plot_x_axis = 'Class'
             results = []
 
             for dataset_name, dataset in datasets.items():
@@ -128,7 +128,7 @@ class PerformanceReport(TrainTestBaseCheck):
             ]
             results_df = pd.DataFrame(results, columns=['Dataset', 'Metric', 'Value', 'Number of samples'])
 
-        fig = px.bar(
+        fig = px.histogram(
             results_df,
             x=plot_x_axis,
             y='Value',
@@ -165,7 +165,7 @@ class PerformanceReport(TrainTestBaseCheck):
             not_passed = check_result.loc[check_result['Value'] < min_score]
             not_passed_test = check_result.loc[check_result['Dataset'] == 'Test']
             if len(not_passed):
-                details = f'Scores that did not passed the threshold:<br>' \
+                details = f'Scores that did not pass the threshold:<br>' \
                           f'{not_passed_test[["Class", "Metric", "Value"]].to_dict("records")}'
                 return ConditionResult(False, details)
             return ConditionResult(True)
@@ -206,7 +206,7 @@ class PerformanceReport(TrainTestBaseCheck):
                     failed_scores = [k for k, v in diff.items() if v > threshold]
                     if failed_scores:
                         for score_name in failed_scores:
-                            explained_failures.append(f'{score_name} on class {class_name} '
+                            explained_failures.append(f'{score_name} for class {class_name} '
                                                       f'(train={format_number(train_scores_dict[score_name])} '
                                                       f'test={format_number(test_scores_dict[score_name])})')
             else:
@@ -227,7 +227,7 @@ class PerformanceReport(TrainTestBaseCheck):
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Train-Test scores degradation ratio is not greater than {threshold}',
+        return self.add_condition(f'Train-Test scores relative degradation is not greater than {threshold}',
                                   condition)
 
     def add_condition_class_performance_imbalance_ratio_not_greater_than(
@@ -340,7 +340,7 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
             ]
             results_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric', 'Number of samples'])
 
-        fig = px.bar(
+        fig = px.histogram(
             results_df,
             x=plot_x_axis,
             y='Value',
@@ -357,7 +357,7 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
             fig.update_xaxes(title=None)
 
         fig = (
-            fig.update_yaxes(title=None, matches=None, zerolinecolor='#444')
+            fig.update_yaxes(title=None, matches=None)
             .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
             .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
         )

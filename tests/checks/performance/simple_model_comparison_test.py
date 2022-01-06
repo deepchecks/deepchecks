@@ -12,11 +12,11 @@
 from sklearn.metrics import make_scorer, recall_score, f1_score
 
 from deepchecks.checks.performance import SimpleModelComparison
-from deepchecks.utils.strings import format_number
 from deepchecks.errors import DeepchecksValueError
+from deepchecks.utils.metrics import DEFAULT_SINGLE_SCORER, ModelType, DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG
 from tests.checks.utils import equal_condition_result
 
-from hamcrest import assert_that, calling, raises, close_to, has_items, has_length
+from hamcrest import assert_that, calling, raises, close_to, has_items, has_entries, has_entry, is_, contains_exactly
 
 
 def test_dataset_wrong_input():
@@ -33,8 +33,8 @@ def test_classification_random(iris_split_dataset_and_model):
     check = SimpleModelComparison(simple_model_type='random')
     # Act X
     result = check.run(train_ds, test_ds, clf).value
-    # Assert - 3 classes X 1 metrics X 2 models
-    assert_that(result['scores'], has_length(6))
+    # Assert
+    assert_classification(result, [0, 1, 2])
 
 
 def test_classification_constant(iris_split_dataset_and_model):
@@ -43,8 +43,18 @@ def test_classification_constant(iris_split_dataset_and_model):
     check = SimpleModelComparison(simple_model_type='constant')
     # Act X
     result = check.run(train_ds, test_ds, clf).value
-    # Assert - 3 classes X 1 metrics X 2 models
-    assert_that(result['scores'], has_length(6))
+    # Assert
+    assert_classification(result, [0, 1, 2])
+
+
+def test_classification_binary_string_labels(iris_binary_string_split_dataset_and_model):
+    # Arrange
+    train_ds, test_ds, clf = iris_binary_string_split_dataset_and_model
+    check = SimpleModelComparison()
+    # Act X
+    result = check.run(train_ds, test_ds, clf).value
+    # Assert
+    assert_classification(result, ['a', 'b'])
 
 
 def test_classification_random_custom_metric(iris_split_dataset_and_model):
@@ -54,8 +64,8 @@ def test_classification_random_custom_metric(iris_split_dataset_and_model):
                                   alternative_scorers={'recall': make_scorer(recall_score, average=None)})
     # Act X
     result = check.run(train_ds, test_ds, clf).value
-    # Assert - 3 classes X 1 metrics X 2 models
-    assert_that(result['scores'], has_length(6))
+    # Assert
+    assert_classification(result, [0, 1, 2], ['recall'])
 
 
 def test_regression_random(diabetes_split_dataset_and_model):
@@ -64,8 +74,8 @@ def test_regression_random(diabetes_split_dataset_and_model):
     check = SimpleModelComparison(simple_model_type='random')
     # Act X
     result = check.run(train_ds, test_ds, clf).value
-    # Assert - 1 metrics X 2 models
-    assert_that(result['scores'], has_length(2))
+    # Assert
+    assert_regression(result)
 
 
 def test_regression_random_state(diabetes_split_dataset_and_model):
@@ -74,8 +84,8 @@ def test_regression_random_state(diabetes_split_dataset_and_model):
     check = SimpleModelComparison(simple_model_type='random', random_state=0)
     # Act X
     result = check.run(train_ds, test_ds, clf).value
-    # Assert - 1 metrics X 2 models
-    assert_that(result['scores'], has_length(2))
+    # Assert
+    assert_regression(result)
 
 
 def test_regression_constant(diabetes_split_dataset_and_model):
@@ -84,14 +94,14 @@ def test_regression_constant(diabetes_split_dataset_and_model):
     check = SimpleModelComparison(simple_model_type='constant')
     # Act X
     result = check.run(train_ds, test_ds, clf).value
-    # Assert - 1 metrics X 2 models
-    assert_that(result['scores'], has_length(2))
+    # Assert
+    assert_regression(result)
 
 
 def test_condition_ratio_not_less_than_not_passed(diabetes_split_dataset_and_model):
     # Arrange
     train_ds, test_ds, clf = diabetes_split_dataset_and_model
-    check = SimpleModelComparison().add_condition_ratio_not_less_than(min_allowed_ratio=1.4)
+    check = SimpleModelComparison().add_condition_gain_not_less_than(0.4)
 
     # Act
     check_result = check.run(train_ds, test_ds, clf)
@@ -101,30 +111,65 @@ def test_condition_ratio_not_less_than_not_passed(diabetes_split_dataset_and_mod
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=False,
-            name='$$\\frac{\\text{model score}}{\\text{simple model score}} >= 1.4$$',
-            details='Metrics failed: "Neg RMSE (Default)"')
+            name='Model performance gain over simple model must be at least 40.00%',
+            details='Metrics failed: "Neg RMSE"')
     ))
 
 
 def test_condition_failed_for_multiclass(iris_split_dataset_and_model):
     train_ds, test_ds, clf = iris_split_dataset_and_model
     # Arrange
-    check = SimpleModelComparison(simple_model_type='constant').add_condition_ratio_not_less_than(2)
+    check = SimpleModelComparison(simple_model_type='constant').add_condition_gain_not_less_than(0.8)
     # Act X
     result = check.run(train_ds, test_ds, clf)
     # Assert
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=False,
-            name='$$\\frac{\\text{model score}}{\\text{simple model score}} >= 2$$',
-            details='Metrics failed: "F1 (Default)" - Classes: 1')
+            name='Model performance gain over simple model must be at least 80.00%',
+            details='Metrics failed: "F1" - Classes: 1')
+    ))
+
+
+def test_condition_pass_for_multiclass_avg(iris_split_dataset_and_model):
+    train_ds, test_ds, clf = iris_split_dataset_and_model
+    # Arrange
+    check = SimpleModelComparison(simple_model_type='constant').add_condition_gain_not_less_than(0.43, average=True)
+    # Act X
+    result = check.run(train_ds, test_ds, clf)
+    # Assert
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(
+            is_pass=True,
+            name='Model performance gain over simple model must be at least 43.00%')
+    ))
+
+
+def test_condition_pass_for_multiclass_avg_with_classes(iris_split_dataset_and_model):
+    train_ds, test_ds, clf = iris_split_dataset_and_model
+    # Arrange
+    check = SimpleModelComparison(simple_model_type='constant').add_condition_gain_not_less_than(1, average=False)\
+        .add_condition_gain_not_less_than(1, average=True, classes=[0])
+    # Act X
+    result = check.run(train_ds, test_ds, clf)
+    # Assert
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(
+            is_pass=False,
+            name='Model performance gain over simple model must be at least 100%',
+            details='Metrics failed: "F1" - Classes: 1, 2'
+        ),
+        equal_condition_result(
+            is_pass=True,
+            name='Model performance gain over simple model must be at least 100% for classes [0]',
+        )
     ))
 
 
 def test_condition_ratio_not_less_than_passed(diabetes_split_dataset_and_model):
     # Arrange
     train_ds, test_ds, clf = diabetes_split_dataset_and_model
-    check = SimpleModelComparison(simple_model_type='random').add_condition_ratio_not_less_than(min_allowed_ratio=1.1)
+    check = SimpleModelComparison(simple_model_type='random').add_condition_gain_not_less_than()
 
     # Act
     check_result = check.run(train_ds, test_ds, clf)
@@ -134,7 +179,7 @@ def test_condition_ratio_not_less_than_passed(diabetes_split_dataset_and_model):
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=True,
-            name='$$\\frac{\\text{model score}}{\\text{simple model score}} >= 1.1$$'
+            name='Model performance gain over simple model must be at least 10.00%'
         )
     ))
 
@@ -145,8 +190,8 @@ def test_classification_tree(iris_split_dataset_and_model):
     check = SimpleModelComparison(simple_model_type='tree')
     # Act X
     result = check.run(train_ds, test_ds, clf).value
-    # Assert - 3 classes X 1 metrics X 2 models
-    assert_that(result['scores'], has_length(6))
+    # Assert
+    assert_classification(result, [0, 1, 2])
 
 
 def test_classification_tree_custom_metric(iris_split_dataset_and_model):
@@ -157,8 +202,8 @@ def test_classification_tree_custom_metric(iris_split_dataset_and_model):
                                                        'f1': make_scorer(f1_score, average=None)})
     # Act X
     result = check.run(train_ds, test_ds, clf).value
-    # Assert - 3 classes X 2 metrics X 2 models
-    assert_that(result['scores'], has_length(12))
+    # Assert
+    assert_classification(result, [0, 1, 2], ['recall', 'f1'])
 
 
 def test_regression_constant(diabetes_split_dataset_and_model):
@@ -167,8 +212,8 @@ def test_regression_constant(diabetes_split_dataset_and_model):
     check = SimpleModelComparison(simple_model_type='constant')
     # Act X
     result = check.run(train_ds, test_ds, clf).value
-    # Assert - 1 metrics X 2 models
-    assert_that(result['scores'], has_length(2))
+    # Assert
+    assert_regression(result)
 
 
 def test_regression_tree(diabetes_split_dataset_and_model):
@@ -177,8 +222,8 @@ def test_regression_tree(diabetes_split_dataset_and_model):
     check = SimpleModelComparison(simple_model_type='tree')
     # Act X
     result = check.run(train_ds, test_ds, clf).value
-    # Assert - 1 metrics X 2 models
-    assert_that(result['scores'], has_length(2))
+    # Assert
+    assert_regression(result)
 
 
 def test_regression_tree_random_state(diabetes_split_dataset_and_model):
@@ -187,8 +232,8 @@ def test_regression_tree_random_state(diabetes_split_dataset_and_model):
     check = SimpleModelComparison(simple_model_type='tree', random_state=55)
     # Act X
     result = check.run(train_ds, test_ds, clf).value
-    # Assert - 1 metrics X 2 models
-    assert_that(result['scores'], has_length(2))
+    # Assert
+    assert_regression(result)
 
 
 def test_regression_tree_max_depth(diabetes_split_dataset_and_model):
@@ -197,5 +242,24 @@ def test_regression_tree_max_depth(diabetes_split_dataset_and_model):
     check = SimpleModelComparison(simple_model_type='tree', max_depth=5)
     # Act X
     result = check.run(train_ds, test_ds, clf).value
-    # Assert - 1 metrics X 2 models
-    assert_that(result['scores'], has_length(2))
+    # Assert
+    assert_regression(result)
+
+
+def assert_regression(result):
+    metric = DEFAULT_SINGLE_SCORER[ModelType.REGRESSION]
+    assert_that(result['scores'], has_entry(metric, has_entries({
+        'Origin': close_to(-100, 100), 'Simple': close_to(-100, 100)
+    })))
+    assert_that(result['scorers_perfect'], has_entry(metric, is_(0)))
+    assert_that(result['classes'], is_(None))
+
+
+def assert_classification(result, classes, metrics=None):
+    metrics = metrics or [DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG]
+    class_matchers = {clas: has_entries({'Origin': close_to(1, 1), 'Simple': close_to(1, 1)})
+                      for clas in result['classes']}
+    matchers = {metric: has_entries(class_matchers) for metric in metrics}
+    assert_that(result['scores'], has_entries(matchers))
+    assert_that(result['scorers_perfect'], has_entries({metric: is_(1) for metric in metrics}))
+    assert_that(result['classes'], classes)

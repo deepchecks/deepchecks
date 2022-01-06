@@ -80,6 +80,26 @@ def assert_dataset(dataset: Dataset, args):
                 is_(True)
             )
 
+def test_that_mutable_properties_modification_does_not_affect_dataset_state(iris):
+    dataset = Dataset(
+        df=iris,
+        features=[
+            'sepal length (cm)',
+            'sepal width (cm)',
+            'petal length (cm)',
+            'petal width (cm)'
+        ]
+    )
+    
+    features = dataset.features
+    cat_features = dataset.cat_features
+
+    features.append("New value")
+    cat_features.append("New value")
+
+    assert_that("New value" not in dataset.features)
+    assert_that("New value" not in dataset.cat_features)
+
 
 def test_dataset_empty_df(empty_df):
     args = {'df': empty_df}

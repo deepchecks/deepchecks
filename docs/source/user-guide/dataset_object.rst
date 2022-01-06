@@ -18,7 +18,7 @@ The Dataset's common metadata properties:
  - **date_name** - A date column representing the sample. (Useful for TimeSeries problems).
  - **features** - Specifies the columns used by model for training. Used for defining only a subset of the columns in the data as features. If not defined, all columns that aren't explicitly specified as `label`, `date`, or `index` are considered as features.
 
-All these and more can be defined and accessed on the :doc:`Dataset Object <api/base/generated/deepchecks.base.dataset.Dataset>`.
+All these and more can be defined and accessed on the :doc:`Dataset Object </api/base/generated/deepchecks.base.dataset.Dataset>`.
 This allows the user the flexibility to define these column names whichever they seem fit,
 and allows use of the these tags to standardize development around this data.
 

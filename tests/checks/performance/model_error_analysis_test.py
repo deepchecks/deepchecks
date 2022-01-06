@@ -50,6 +50,15 @@ def test_model_error_analysis_classification(iris_labeled_dataset, iris_adaboost
     assert_that(result_value['feature_segments']['petal length (cm)'], has_length(2))
 
 
+def test_binary_string_model_info_object(iris_binary_string_split_dataset_and_model):
+    # Arrange
+    train_ds, test_ds, clf = iris_binary_string_split_dataset_and_model
+    check = ModelErrorAnalysis()
+    # Act X
+    result_value = check.run(train_ds, test_ds, clf).value
+    # Assert
+    assert_that(result_value['feature_segments']['petal length (cm)'], has_length(2))
+
 def test_condition_fail(iris_labeled_dataset, iris_adaboost):
     # Act
     check_result = ModelErrorAnalysis().add_condition_segments_performance_relative_difference_not_greater_than(
@@ -61,7 +70,7 @@ def test_condition_fail(iris_labeled_dataset, iris_adaboost):
         equal_condition_result(
             is_pass=False,
             name='The performance of the detected segments must not differ by more than 5.00%',
-            details='Change in Accuracy (Default) in features: petal length (cm) exceeds threshold.',
+            details='Change in Accuracy in features: petal length (cm) exceeds threshold.',
             category=ConditionCategory.WARN
         )
     ))
