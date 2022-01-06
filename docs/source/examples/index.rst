@@ -48,12 +48,12 @@ Check Demonstrations
 .. toctree::
     :maxdepth: 3
     :titlesonly:
-    :hidden:
     :caption: Check Demonstrations
+    :hidden:
 
-    checks/distribution
-    checks/integrity
-    checks/methodology
-    checks/performance
-    checks/overview
+    checks/distribution/index
+    checks/integrity/index
+    checks/methodology/index
+    checks/performance/index
+    checks/overview/index
     
