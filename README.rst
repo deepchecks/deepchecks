@@ -217,7 +217,7 @@ can be found in our `API Reference`_.
    import pandas as pd
 
    train_df = pd.read_csv('train_data.csv')
-   train_df = pd.read_csv('test_data.csv')
+   test_df = pd.read_csv('test_data.csv')
    # Initialize and run desired check
    TrainTestFeatureDrift().run(train_data, test_data)
 
