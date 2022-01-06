@@ -1,21 +1,40 @@
-=====================================
+=======================
 Welcome to Deepchecks!
-=====================================
-Deepchecks is the leading tool for validation you machine learning models
-and data and enables doing so with minimal effort. Deepchecks accompanies you through
-various validation needs such as verifying your data's integrity, inspecting its distributions,
-validating data aplits, evaluating your model and comparing between different models.
+=======================
 
-Head over to the :doc:`getting-started/index` guide to get it up and running.
+Deepchecks is the leading tool for validating you machine learning models
+and data, and it enables doing so with minimal effort. Deepchecks accompanies you through
+various validation needs such as verifying your data's integrity, inspecting its distributions,
+validating data splits, evaluating your model and comparing between different models.
+
+Get Started
+============
+
+Head over to our :doc:`/examples/guides/quickstart_in_5_minutes` tutorial,
+and click on  |binder badge|  or on  |colab badge|  to launch it and see it in action,
+or see our :doc:`/getting-started/index` to install it locally and continue from there.
+
+
+When Should You Use Deepchecks?
+================================
+
+
+How Does it Work?
+===================
+
+See
+
+
 
 
 .. note::
     Welcome! In addition to perusing the documentation, please feel free to
-    to ask questions on our `Slack channel <https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg>`__, or to post a issue or start a discussion on `Github <https://github.com/deepchecks/deepchecks/>`__.
+    to ask questions on our `Community Slack <https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg>`__,
+    or to post a issue or start a discussion on `Github <https://github.com/deepchecks/deepchecks/>`__.
 
 
-Documentation Structure
-=========================
+See More
+=========
 
 .. toctree::
     :maxdepth: 2
@@ -39,3 +58,10 @@ Documentation Structure
     :maxdepth: 3
 
     api/index
+
+
+.. |binder badge| image:: /_static/binder-badge.svg
+   :target: :doc:`/examples/guides/quickstart_in_5_minutes`
+
+.. |colab badge| image:: /_static/colab-badge.svg
+   :target: :doc:`/examples/guides/quickstart_in_5_minutes`
