@@ -173,11 +173,14 @@ class Suite(BaseSuite):
                             check_result = check.run(dataset=train_dataset, model=model)
                             check_result.header = f'{check_result.get_header()} - Train Dataset'
                         except Exception as exp:
-                            check_result = CheckFailure(check.__class__, exp)
+                            check_result = CheckFailure(check.__class__, exp, '- Train Dataset')
                         results.append(check_result)
                     if test_dataset is not None:
-                        check_result = check.run(dataset=test_dataset, model=model)
-                        check_result.header = f'{check_result.get_header()} - Test Dataset'
+                        try:
+                            check_result = check.run(dataset=test_dataset, model=model)
+                            check_result.header = f'{check_result.get_header()} - Test Dataset'
+                        except Exception as exp:
+                            check_result = CheckFailure(check.__class__, exp, '- Test Dataset')
                         results.append(check_result)
                     if train_dataset is None and test_dataset is None:
                         results.append(Suite._get_unsupported_failure(check))
