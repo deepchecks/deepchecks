@@ -301,7 +301,7 @@ of checks and optional conditions.
 
 <!--
    <p align="center">
-      <img src="/_static/diagram.svg">
+      <img src="/images/diagram.svg">
    </p>
 -->
 
