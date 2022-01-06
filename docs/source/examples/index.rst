@@ -42,8 +42,8 @@ Check Demonstrations
 - :doc:`checks/distribution/index`
 - :doc:`checks/integrity/index`
 - :doc:`checks/methodology/index`
-- :doc:`checks/overview/index`
 - :doc:`checks/performance/index`
+- :doc:`checks/overview/index`
 
 .. toctree::
     :maxdepth: 3
@@ -51,5 +51,9 @@ Check Demonstrations
     :hidden:
     :caption: Check Demonstrations
 
-    checks/index
+    checks/distribution
+    checks/integrity
+    checks/methodology
+    checks/performance
+    checks/overview
     
