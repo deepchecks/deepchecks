@@ -8,7 +8,7 @@ various validation needs such as verifying your data's integrity, inspecting its
 validating data splits, evaluating your model and comparing between different models.
 
 
-.. image:: docs/images/deepchecks-logo-with-white-wide-back.pn
+.. image:: docs/images/deepchecks-logo-with-white-wide-back.png
    :target: https://deepchecks.com/?utm_source=docs.deepchecks.com&utm_medium=referral&utm_campaign=welcome
    :alt: Deepchecks Logo
    :align: center
