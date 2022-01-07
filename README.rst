@@ -310,7 +310,7 @@ What Do You Need in Order to Start Validating?
 Environment
 ~~~~~~~~~~~~
 
-- deepchecks package installed
+- The deepchecks package installed
 
 - JupyterLab or Jupyter Notebook
 
