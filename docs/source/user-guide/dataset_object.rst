@@ -15,7 +15,7 @@ Class Properties
 The common properties are:
 
 - **label** - The target values that the model is trying to predict.
-- **cat_features** - List of features that should be treated as categorical. If not specified explicitly, they will be `inferred automatically <dataset_object__inferring_categorical_features>`_.
+- **cat_features** - List of features that should be treated as categorical. If not specified explicitly, they will be :ref:`inferred automatically <dataset_object__inferring_categorical_features>`.
 - **index_name** - If the dataset has a meaningful unique index, defining it as such will enable more validations to run.
 - **date_name** - A date column representing the sample.
 - **features** - Specifies the columns used by model for training.
