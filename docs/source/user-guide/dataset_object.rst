@@ -155,10 +155,13 @@ will run on the columns to determine which are classified as categorical:
 #. If the ``pd.dtypes`` of any of the existing columns is ``category`` then all of the columns that are of type ``category`` 
    will be  considered categorical (and only them).
 
-#. Otherwise, a heuristic is used for deducting type. Each column for which at least one of the following conditions is met is considered categorical:
+#. Otherwise, a heuristic is used for deducting the type. Each column for which at least one of the following conditions is met is considered categorical:
 
-   - If (`number of unique values in column` <= `max_float_categories`) **AND** (`column type` is `float`)
-   
-   - If (`number of unique values in column` <= ``max_categories`)  **AND** ((the ratio between the `number of unique values` and the `number of samples`) < `max_categorical_ratio`)
+   - If (`number of unique values in column` <= `max_float_categories`) 
+     **AND** (`column type` is `float`)
+
+   - If (`number of unique values in column` <= ``max_categories`)  
+     **AND** ((the ratio between the `number of unique values` and the `number of samples`) < `max_categorical_ratio`)
   
-Check the API Reference for :doc:`infer_categorical_features </api/utils/generated/deepchecks.utils.features.infer_categorical_features>` for more details.
+Check the API Reference for :doc:`infer_categorical_features </api/utils/generated/deepchecks.utils.features.infer_categorical_features>` 
+for more details.
