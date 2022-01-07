@@ -3,126 +3,165 @@
 ====================
 The Dataset Object
 ====================
-The dataset is one of the basic blocks of deepchecks. It is a container for the data and its relevant metadata, like special column names (label, date, index, etc).
-Some of the checks allows to use a dataframe directly, but some others requires the metadata in order to run, so they are limited to working only with Datasets.
 
-Class Parameters
-===================
-All of the parameters are optional.
+The ``Dataset`` is a container for the data and the relevant ML metadata such as special column roles (e.g. label, index, categorical columns).
+It enables to take into account the relevant context during validation,
+and to save it in a convenient manner, and is a basic building block in deepchecks.
 
-.. list-table::
-    :widths: 20 20 50 10
-    :header-rows: 1
 
-    * - Name
-      - Type
-      - Description
-      - Default
-    * - label
-      - pandas.Series
-      - Data of labels as separate series from the data
-      - None
-    * - features
-      - List[Hashable]
-      - Names of the features in the data
-      - None
-    * - cat_features
-      - List[Hashable]
-      - Names of the categorical features in the data. Must be subset of `features`
-      - None
-    * - label_name
-      - Hashable
-      - Name of label column in the data
-      - None
-    * - use_index
-      - bool
-      - If data is dataframe, whether to use the dataframe index as index column for index related checks
-      - False
-    * - index_name
-      - Hashable
-      - Name of index column in the data
-      - None
-    * - date_name
-      - Hashable
-      - Name of date column in the data
-      - None
-    * - date_unit_type
-      - str
-      - Unit to convert date column if it's numeric. using `pandas.Timestamp <https://pandas.pydata.org/docs/reference/api/pandas.Timestamp.html>`__ to convert
-      - None
-    * - max_categorical_ratio
-      - float
-      - Used to infer which columns are categorical (if `cat_features` isn't explicitly passed).
-        Set maximum ratio of unique values in a column in order for it to be categorical.
-        The higher the value, the chance of column inferred as categorical is higher
-      - 0.01
-    * - max_categories
-      - int
-      - Used to infer which columns are categorical (if `cat_features` isn't explicitly passed).
-        Set maximum number of unique values in a column in order for it to be categorical.
-        The higher the value, the chance of column inferred as categorical is higher
-      - 30
-    * - max_float_categories
-      - int
-      - Same as `max_categories` but for columns of type float
-      - 5
-    * - convert_date
-      - bool
-      - Whether to convert date column if it's numeric to date
-      - True
+Class Properties
+==================
 
-Inferring Features And Categorical Features
-================================================
-Dataset defines which columns of the data are features and of them which are categorical features.
-For features, if parameter `features` not passed explicitly, all will be considered features apart from the label, index and date.
-For categorical features, if parameter `cat_features` not passed explicitly, the following logic runs on every column to determine
-whether the column is categorical or not:
+The common properties are:
 
-* if columns is float type:
-    * number of unique < `max_float_categories`
-* else:
-    *  number of unique < `max_categories` AND (number of unique / number of samples) < `max_categorical_ratio`
+- **label** - The target values that the model is trying to predict.
+- **cat_features** - List of features that should be treated as categorical. If not specified explicitly, they will be :ref:`inferred automatically <dataset_object__inferring_categorical_features>`.
+- **index_name** - If the dataset has a meaningful unique index, defining it as such will enable more validations to run.
+- **date_name** - A date column representing the sample.
+- **features** - Specifies the columns used by model for training.
+  Used for defining only a subset of the columns in the data as features. If not supplied then
+  all of the columns that aren't explicitly specified as ``label``, ``date``, or ``index`` are considered to be features.
+
+The Dataset's metadata properties are all optional. Check out the API Reference for more details.
+
+Dataset API Reference
+--------------------------
+
+.. currentmodule:: deepchecks.base.dataset
+
+.. autosummary::
+
+    Dataset
+
 
 Creating a Dataset
-======================
+=======================
 
-From a DataFrame
-~~~~~~~~~~~~~~~~
-The default dataset constructor is expecting to get a dataframe. the rest of the properties
-are optional, but if your data have date/index/label you would want to define them.
+From a Pandas DataFrame
+--------------------------
 
-.. code-block:: python
+The default ``Dataset`` constructor expects to get a ``pd.DataFrame``
+The rest of the properties are optional, but if your data has ``date``/``index``/``label``
+columns you would want to define them for more possible validation checks.
 
-    Dataset(my_dataframe, features=['feat1', 'feat2', 'feat3'], label='target', index='id', date='timestamp')
+>>> d = {"id": [1,2,3,4],
+...      "feature1": [0.1,0.3,0.2,0.6],
+...      "feature2": [4,5,6,7],
+...      "categorical_feature": [0,0,0,1],
+...      "class": [1,2,1,2]}
+... df = pd.DataFrame(d)
+... ds = Dataset(df, label="class", index_name="id", cat_features=["categorical_feature"])
+
 
 From Numpy Arrays
-~~~~~~~~~~~~~~~~~~~
-A Dataset can be created using a 2D numpy array for features and 1D numpy array for the labels. The features array is mandatory, and the labels array is optional.
+---------------------
 
-.. code-block:: python
+A Dataset can be created using a 2D numpy array for features and 1D numpy array for the labels.
+The features array is mandatory, and the labels array is optional.
 
-    features = np.array([[0.25, 0.3, 0.3], [0.14, 0.75, 0.3], [0.23, 0.39, 0.1]])
-    labels = np.array([0.1, 0.1, 0.7])
-    dataset_with_labels = Dataset.from_numpy(features, labels)
-    dataset_without_labels = Dataset.from_numpy(features)
+>>> features = np.array([[0.25, 0.3, 0.3], [0.14, 0.75, 0.3], [0.23, 0.39, 0.1]])
+>>> labels = np.array([0.1, 0.1, 0.7])
+>>> ds_with_labels = Dataset.from_numpy(features, labels)
+>>> ds_without_labels = Dataset.from_numpy(features)
 
 Also, it's possible to assign names to the features and label:
 
-.. code-block:: python
+>>> Dataset.from_numpy(
+...     features, labels,
+...     columns=['feat1', 'feat2', 'feat3'],
+...     label_name='target'
+... )
 
-    Dataset.from_numpy(
-        features, labels,
-        feature_names=['feat1', 'feat2', 'feat3',],
-        label_name='target'
-    )
+All the rest of the Dataset's properties can be passed also as regular keyword arguments:
 
-All the rest of the Dataset's properties can be passed also as a regular keyword arguments:
+>>> Dataset.from_numpy(
+...     features, labels,
+...     columns=['feat1', 'feat2', 'feat3'],
+...     label_name='target',
+...     max_float_categories=10
+... )
 
-.. code-block:: python
+Useful Functions
+===================
 
-    Dataset.from_numpy(
-        features, labels,
-        feature_names=['feat1', 'feat2', 'feat3',],
-        label_name='target',
-        max_float_categories=10
-    )
+Train Test Split
+--------------------
+
+Uses internally `sklearn.model_selection.train_test_split <https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html>`_
+(so the same arguments can be passed) and also copies the metadata to each instance of the split and returns two ``Datasets``.
+
+>>> train_ds, test_ds = ds.train_test_split(stratify=True)
+
+
+Copy
+------
+
+Copy enables to copy the metadata from an existing ``Dataset`` instance, for creating a new ``Dataset`` from a new ``pd.DataFrame``'s data.
+This can be useful for implementing data splits independentaly or for comparing datasets, when receiving new data (of the same known format of existing data).
+
+>>> new_ds = ds.copy(new_df)
+
+
+Working with Class Parameters
+---------------------------------
+
+We can work directly with the ``Dataset`` object, to inspect its defined features and label:
+
+>>> ds.features
+['feature1', 'feature2', 'category']
+>>> ds.label_name
+['class']
+
+Get its internal ``pd.DataFrame``:
+
+>>> ds.data
+    feature1    feature2    categorical_feature class    
+0   0.1         4           0                   1
+1   0.3         5           0                   2
+2   0.2         6           0                   1
+3   0.6         7           1                   2
+
+
+Or extract directly only the feature columns or only the label column from within it:
+
+>>> ds.features_columns
+    feature1	feature2	categorical_feature
+0	0.1	        4	        0
+1	0.3	        5	        0
+2	0.2	        6	        0
+3	0.6	        7	        1
+
+>>> ds.label_col
+    class
+0   1
+1   2
+2   1
+3   2
+
+
+.. _dataset_object__inferring_categorical_features:
+
+Inferring Categorical Features
+==================================
+
+.. warning::
+    It is highly recommended to explicitly state the categorical features or define their column type to be ``category``.
+    Otherwise, the inherent limitations of the automatic, and may cause inconsistencies (misdetection, different detection between
+    train and test, etc.), and required tuning and adaptions.
+
+If the parameter ``cat_features`` was not passed explicitly, the following inference logic 
+will run on the columns to determine which are classified as categorical:
+
+#. If the ``pd.dtypes`` of any of the existing columns is ``category`` then all of the columns that are of type ``category`` 
+   will be  considered categorical (and only them).
+
+#. Otherwise, a heuristic is used for deducting the type. Each column for which at least one of the following conditions is met is considered categorical:
+
+   - If (`number of unique values in column` <= `max_float_categories`) 
+     **AND** (`column type` is `float`)
+
+   - If (`number of unique values in column` <= ``max_categories`)  
+     **AND** ((the ratio between the `number of unique values` and the `number of samples`) < `max_categorical_ratio`)
+  
+Check the API Reference for :doc:`infer_categorical_features </api/utils/generated/deepchecks.utils.features.infer_categorical_features>` 
+for more details.
