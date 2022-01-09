@@ -142,7 +142,7 @@ class DeepcheckScorer:
         """Calculate the perfect score of the current scorer for given dataset."""
         df = self.filter_nulls(dataset)
         perfect_model = PerfectModel()
-        perfect_model.fit(None, dataset.label_col)
+        perfect_model.fit(None, df[dataset.label_name])
         score = self._run_score(perfect_model, df, dataset)
         if isinstance(score, np.ndarray):
             # We expect the perfect score to be equal for all the classes, so takes the first one
