@@ -895,6 +895,7 @@ def test_label_numpy_multi_4d_array(iris):
 
 def test_sample_with_nan_labels(iris):
     # Arrange
+    iris = iris.copy()
     iris.loc[iris['target'] != 2, 'target'] = None
     dataset = Dataset(iris, label='target')
     # Act
@@ -905,6 +906,7 @@ def test_sample_with_nan_labels(iris):
 
 def test_sample_drop_nan_labels(iris):
     # Arrange
+    iris = iris.copy()
     iris.loc[iris['target'] != 2, 'target'] = None
     dataset = Dataset(iris, label='target')
     # Act
