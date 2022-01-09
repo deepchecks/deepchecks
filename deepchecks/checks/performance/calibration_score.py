@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """The calibration score check module."""
+import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.calibration import calibration_curve
 from sklearn.metrics import brier_score_loss
