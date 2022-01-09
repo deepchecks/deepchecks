@@ -421,14 +421,14 @@ class Dataset:
                    max_categories=self._max_categories, label_type=self.label_type)
 
     def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None,
-               drop_na_label: bool = True) -> TDataset:
+               drop_na_label: bool = False) -> TDataset:
         """Create a copy of the dataset object, with the internal dataframe being a sample of the original dataframe.
 
         Args:
             n_samples (int): Number of samples to draw.
             replace (bool, default False): Whether to sample with replacement.
             random_state (int, default None): Random state.
-            drop_na_label (bool, default True): Whether to take sample only from rows with exiting label.
+            drop_na_label (bool, default False): Whether to take sample only from rows with exiting label.
         Returns:
             Dataset: instance of the Dataset with sampled internal dataframe.
         """
