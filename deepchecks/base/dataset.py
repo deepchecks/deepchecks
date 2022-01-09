@@ -420,19 +420,25 @@ class Dataset:
                    convert_datetime=False, max_categorical_ratio=self._max_categorical_ratio,
                    max_categories=self._max_categories, label_type=self.label_type)
 
-    def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None) -> TDataset:
+    def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None,
+               drop_na_label: bool = True) -> TDataset:
         """Create a copy of the dataset object, with the internal dataframe being a sample of the original dataframe.
 
         Args:
             n_samples (int): Number of samples to draw.
             replace (bool, default False): Whether to sample with replacement.
             random_state (int, default None): Random state.
-
+            drop_na_label (bool, default True): Whether to take sample only from rows with exiting label.
         Returns:
             Dataset: instance of the Dataset with sampled internal dataframe.
         """
-        n_samples = min(n_samples, len(self))
-        return self.copy(self._data.sample(n_samples, replace=replace, random_state=random_state))
+        if drop_na_label and self.label_name:
+            valid_idx = self.label_col.notna()
+            data_to_sample = self.data[valid_idx]
+        else:
+            data_to_sample = self.data
+        n_samples = min(n_samples, len(data_to_sample))
+        return self.copy(data_to_sample.sample(n_samples, replace=replace, random_state=random_state))
 
     @property
     def n_samples(self) -> int:
