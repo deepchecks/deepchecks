@@ -145,8 +145,11 @@ class WholeDatasetDrift(TrainTestBaseCheck):
 
         fi = fi.sort_values(ascending=False) if fi is not None else None
 
+        domain_classifier_auc = roc_auc_score(y_test, domain_classifier.predict_proba(x_test)[:, 1])
+
         values_dict = {
-            'domain_classifier_auc': roc_auc_score(y_test, domain_classifier.predict_proba(x_test)[:, 1]),
+            'domain_classifier_auc': domain_classifier_auc,
+            'domain_classifier_drift_score': self.auc_to_drift_score(domain_classifier_auc),
             'domain_classifier_feature_importance': fi.to_dict() if fi is not None else {},
         }
 
@@ -165,7 +168,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
             top_fi = None
 
         if top_fi is not None and len(top_fi):
-            score = self.auc_to_drift_score(values_dict['domain_classifier_auc'])
+            score = values_dict['domain_classifier_drift_score']
 
             displays = [headnote, self._build_drift_plot(score),
                         '<h3>Main features contributing to drift</h3>',
@@ -275,7 +278,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         """
 
         def condition(result: dict):
-            drift_score = self.auc_to_drift_score(result['domain_classifier_auc'])
+            drift_score = result['domain_classifier_drift_score']
             if drift_score > max_drift_value:
                 message = f'Found drift value of: {format_number(drift_score)}, corresponding to a domain classifier ' \
                           f'AUC of: {format_number(result["domain_classifier_auc"])}'
