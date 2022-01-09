@@ -143,8 +143,8 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
 
         cat_features = train_dataset.cat_features
 
-        train_dataset = train_dataset.sample(self.n_samples, random_state=self.random_state)
-        test_dataset = test_dataset.sample(self.n_samples, random_state=self.random_state)
+        train_dataset = train_dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
+        test_dataset = test_dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
 
         # Create scoring function, used to calculate the per sample model error
         if task_type == ModelType.REGRESSION:
