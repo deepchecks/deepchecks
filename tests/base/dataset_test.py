@@ -16,7 +16,7 @@ import pandas as pd
 from sklearn.datasets import load_iris
 from hamcrest import (
     assert_that, instance_of, equal_to, is_,
-    calling, raises, not_none, has_property, all_of, contains_exactly, has_item
+    calling, raises, not_none, has_property, all_of, contains_exactly, has_item, has_length
 )
 
 from deepchecks import Dataset
@@ -891,3 +891,23 @@ def test_label_numpy_multi_4d_array(iris):
     # Act & Assert
     assert_that(calling(Dataset).with_args(iris, label=label),
                 raises(DeepchecksValueError, 'Label must be either column vector or row vector'))
+
+
+def test_sample_with_nan_labels(iris):
+    # Arrange
+    iris.loc[iris['target'] != 2, 'target'] = None
+    dataset = Dataset(iris, label='target')
+    # Act
+    sample = dataset.sample(10000)
+    # Assert
+    assert_that(sample, has_length(150))
+
+
+def test_sample_drop_nan_labels(iris):
+    # Arrange
+    iris.loc[iris['target'] != 2, 'target'] = None
+    dataset = Dataset(iris, label='target')
+    # Act
+    sample = dataset.sample(10000, drop_na_label=True)
+    # Assert
+    assert_that(sample, has_length(50))
