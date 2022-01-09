@@ -28,7 +28,7 @@ __all__ = ['RocReport']
 class RocReport(SingleDatasetBaseCheck):
     """Calculate the ROC curve for each class.
 
-    For each class plots the ROC curve and calculate AUC score, and optimal threshold cutoff point.
+    For each class plots the ROC curve, calculate AUC score and displays the optimal threshold cutoff point.
 
     Args:
         excluded_classes (List): List of classes to exclude from the condition.
