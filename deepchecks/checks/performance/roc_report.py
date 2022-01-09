@@ -63,11 +63,12 @@ class RocReport(SingleDatasetBaseCheck):
 
         fpr = {}
         tpr = {}
+        thresholds = {}
         roc_auc = {}
         for i, class_name in enumerate(dataset_classes):
             if class_name in self.excluded_classes:
                 continue
-            fpr[i], tpr[i], _ = sklearn.metrics.roc_curve(multi_y[:, i], y_pred_prob[:, i])
+            fpr[i], tpr[i], thresholds[i] = sklearn.metrics.roc_curve(multi_y[:, i], y_pred_prob[:, i])
             roc_auc[i] = sklearn.metrics.auc(fpr[i], tpr[i])
 
         fig = go.Figure()
@@ -81,6 +82,7 @@ class RocReport(SingleDatasetBaseCheck):
                     line_width=2,
                     name=f'auc = {roc_auc[i]:0.2f}',
                 ))
+                fig.add_trace(get_cutoff_figure(tpr[i], fpr[i], thresholds[i]))
                 break
             else:
                 fig.add_trace(go.Scatter(
@@ -89,6 +91,7 @@ class RocReport(SingleDatasetBaseCheck):
                     line_width=2,
                     name=f'Class {class_name} (auc = {roc_auc[i]:0.2f})',
                 ))
+                fig.add_trace(get_cutoff_figure(tpr[i], fpr[i], thresholds[i], class_name))
         fig.add_trace(go.Scatter(
                     x=[0, 1],
                     y=[0, 1],
@@ -132,3 +135,42 @@ class RocReport(SingleDatasetBaseCheck):
             suffix = ''
         return self.add_condition(f'Not less than {min_auc} AUC score for all the classes{suffix}',
                                   condition)
+
+
+def get_cutoff_figure(tpr, fpr, thresholds, class_name=None):
+    hovertemplate = 'TPR: %{y:.2%}<br>FPR: %{x:.2%}<br>Youden\'s Index: %{text:.3}'
+    if class_name:
+        hovertemplate += f'<br>Class: {class_name}'
+    index = sensitivity_specifity_cutoff(tpr, fpr)
+    return go.Scatter(x=[fpr[index]], y=[tpr[index]], mode='markers', marker_size=15,
+                      text=[thresholds[index]], hovertemplate=hovertemplate, showlegend=False)
+
+
+def sensitivity_specifity_cutoff(tpr, fpr):
+    """Find index of optimal cutoff point on curve
+
+    Cut-off is determied using Youden's index defined as sensitivity + specificity - 1.
+
+    Parameters
+    ----------
+
+    tpr : array, shape = [n_roc_points]
+        True positive rate per threshold
+    fpr : array, shape = [n_roc_points]
+        False positive rate per threshold
+
+    References
+    ----------
+
+    Ewald, B. (2006). Post hoc choice of cut points introduced bias to diagnostic research.
+    Journal of clinical epidemiology, 59(8), 798-801.
+
+    Steyerberg, E.W., Van Calster, B., & Pencina, M.J. (2011). Performance measures for
+    prediction models and markers: evaluation of predictions and classifications.
+    Revista Espanola de Cardiologia (English Edition), 64(9), 788-794.
+
+    Jiménez-Valverde, A., & Lobo, J.M. (2007). Threshold criteria for conversion of probability
+    of species presence to either–or presence–absence. Acta oecologica, 31(3), 361-369.
+    """
+    return np.argmax(tpr - fpr)
+
