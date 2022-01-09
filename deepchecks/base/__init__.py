@@ -18,18 +18,21 @@ from .check import (
     SingleDatasetBaseCheck,
     TrainTestBaseCheck,
     ModelOnlyBaseCheck,
-    ModelComparisonBaseCheck,
     CheckResult,
     CheckFailure,
-    Condition,
-    ConditionResult,
-    ConditionCategory
+    ModelComparisonBaseCheck,
+    ModelComparisonContext
 )
 from .suite import (
     BaseSuite,
     Suite,
     SuiteResult,
     ModelComparisonSuite
+)
+from .condition import (
+    Condition,
+    ConditionResult,
+    ConditionCategory
 )
 
 
@@ -40,6 +43,7 @@ __all__ = [
     'TrainTestBaseCheck',
     'ModelOnlyBaseCheck',
     'ModelComparisonBaseCheck',
+    'ModelComparisonContext',
     'CheckResult',
     'CheckFailure',
     'Condition',

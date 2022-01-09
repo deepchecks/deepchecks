@@ -23,7 +23,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.tree import DecisionTreeClassifier
 
-from deepchecks import Dataset
+from deepchecks.base.dataset import Dataset
 
 
 @pytest.fixture(scope='session')

@@ -16,9 +16,8 @@ from typing import Union, List, Optional, Tuple, Any, Container, Mapping
 
 from deepchecks.base.display_suite import display_suite_result, ProgressBar
 from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
-from deepchecks.base import Dataset
-from deepchecks.base.check import (CheckResult, TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck,
-                                   CheckFailure, ModelComparisonBaseCheck, ModelComparisonContext)
+from deepchecks.base import (CheckResult, TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck,
+                             CheckFailure, Dataset, ModelComparisonBaseCheck, ModelComparisonContext)
 
 from deepchecks.utils.ipython import is_ipython_display
 
