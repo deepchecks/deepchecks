@@ -18,6 +18,10 @@ import plotly.graph_objects as go
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
 from deepchecks.utils.metrics import ModelType, task_type_validation
 
+# import warnings
+
+# warnings.simplefilter(action='ignore', category=FutureWarning)
+
 __all__ = ['CalibrationScore']
 
 
@@ -55,10 +59,8 @@ class CalibrationScore(SingleDatasetBaseCheck):
             briers_scores[0] = brier_score_loss(ds_y, y_pred[:, 1], pos_label=dataset.classes[1])
         else:
             for class_index, class_name in enumerate(dataset.classes):
-                y_true = ds_y == class_name
-                y_true = np.multiply(y_true, 1)
                 prob_pos = y_pred[:, class_index]
-                clf_score = brier_score_loss(y_true, prob_pos, pos_label=class_name)
+                clf_score = brier_score_loss(ds_y == class_name, prob_pos)
                 briers_scores[class_name] = clf_score
 
         fig = go.Figure()
