@@ -22,7 +22,7 @@ jobs:
         with:
           mode: minimum
           count: 1
-          labels: "feature, bugfix, tests, ci, documentation"
+          labels: "feature, bugfix, tests, ci, documentation, refactoring"
       - uses: mheap/github-action-required-labels@v1
         with:
           mode: exactly
