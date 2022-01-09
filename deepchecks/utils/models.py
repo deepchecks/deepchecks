@@ -37,7 +37,7 @@ class PerfectModel:
 
     def predict(self, X):  # pylint: disable=unused-argument,invalid-name
         """Predict on given X."""
-        return self.labels[X.index].to_numpy()
+        return self.labels.to_numpy()
 
     def predict_proba(self, X):  # pylint: disable=invalid-name
         """Predict proba for given X."""

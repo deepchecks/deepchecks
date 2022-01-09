@@ -15,3 +15,4 @@ Classes Summary
     :toctree: generated
 
     phishing
+    iris
