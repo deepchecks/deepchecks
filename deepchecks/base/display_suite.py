@@ -22,7 +22,7 @@ from IPython import get_ipython
 from deepchecks import errors
 from deepchecks.utils.ipython import is_widgets_enabled
 from deepchecks.utils.strings import get_random_string
-from deepchecks.base import CheckResult, CheckFailure
+from deepchecks.base.check import CheckResult, CheckFailure
 from deepchecks.base.display_pandas import dataframe_to_html, display_conditions_table
 
 
