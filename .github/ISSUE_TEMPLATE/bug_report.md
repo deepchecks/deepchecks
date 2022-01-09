@@ -25,8 +25,8 @@ If applicable, add screenshots to help explain your problem.
 
 **Environment (please complete the following information):**
  - OS: 
- - Python Version
- - Deepchecks Version
+ - Python Version:
+ - Deepchecks Version:
 
 **Additional context**
 Add any other context about the problem here.
