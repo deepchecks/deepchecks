@@ -35,22 +35,6 @@ def test_regresion_model(diabetes_split_dataset_and_model):
                 raises(DeepchecksValueError, r'Expected model to be a type from'
                                            r' \[\'multiclass\', \'binary\'\], but received model of type: regression'))
 
-
-def test_model_info_object(iris_labeled_dataset, iris_adaboost):
-    # Arrange
-    check = CalibrationScore()
-    # Act X
-    result = check.run(iris_labeled_dataset, iris_adaboost).value
-    # Assert
-    assert len(result) == 3  # iris has 3 targets
-
-    assert_that(result, has_entries({
-        0: close_to(0.99, 0.05),
-        1: close_to(0.002, 0.05),
-        2: close_to(0.28, 0.05)
-    }))
-
-
 def test_model_info_object(iris_labeled_dataset, iris_adaboost):
     # Arrange
     check = CalibrationScore()
