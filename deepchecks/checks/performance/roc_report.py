@@ -26,7 +26,9 @@ __all__ = ['RocReport']
 
 
 class RocReport(SingleDatasetBaseCheck):
-    """Calculate the AUC (Area Under Curve) for each class.
+    """Calculate the ROC curve for each class.
+
+    For each class plots the ROC curve and calculate AUC score, and optimal threshold cutoff point.
 
     Args:
         excluded_classes (List): List of classes to exclude from the condition.
@@ -90,8 +92,7 @@ class RocReport(SingleDatasetBaseCheck):
                     x=fpr[class_name],
                     y=tpr[class_name],
                     line_width=2,
-                    name=f'Class {class_name} (auc = {roc_auc[class_name]:0.2f})',
-                    color=class_name
+                    name=f'Class {class_name} (auc = {roc_auc[class_name]:0.2f})'
                 ))
                 fig.add_trace(get_cutoff_figure(tpr[class_name], fpr[class_name], thresholds[class_name], class_name))
         fig.add_trace(go.Scatter(
@@ -111,7 +112,7 @@ class RocReport(SingleDatasetBaseCheck):
                               width=900, height=500)
 
         footnote = """<span style="font-size:0.8em"><i>
-        The marked points are the optimal threshold cut-off points. They are determined using Youden's index defined 
+        The marked points are the optimal threshold cut-off points. They are determined using Youden's index defined
         as sensitivity + specificity - 1
         </i></span>"""
 
