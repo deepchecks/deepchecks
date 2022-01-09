@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
-from hamcrest import assert_that, calling, raises, has_items
+from hamcrest import assert_that, calling, raises, has_items, has_entries, has_length, close_to
 
 from deepchecks.base import Dataset
 from deepchecks.checks.performance import RocReport
@@ -41,6 +41,16 @@ def test_regresion_model(diabetes_split_dataset_and_model):
     assert_that(calling(RocReport().run).with_args(train, clf),
                 raises(DeepchecksValueError, r'Expected model to be a type from'
                                            r' \[\'multiclass\', \'binary\'\], but received model of type: regression'))
+
+
+def test_binary_classification(iris_binary_string_split_dataset_and_model):
+    # Arrange
+    train, _, clf = iris_binary_string_split_dataset_and_model
+    # Act
+    result = RocReport().run(train, clf).value
+    # Assert
+    assert_that(result, has_length(2))
+    assert_that(result, has_entries(a=close_to(0.9, 0.1), b=close_to(0.9, 0.1)))
 
 
 def test_model_info_object(iris_labeled_dataset, iris_adaboost):
