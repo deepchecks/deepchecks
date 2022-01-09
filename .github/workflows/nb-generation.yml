@@ -39,5 +39,5 @@ jobs:
           branch: examples-update
           title: '[Automatic PR] Notebooks Updates'
           labels: |
-            chore/ci
+            ci
           draft: false

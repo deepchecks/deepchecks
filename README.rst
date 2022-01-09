@@ -307,6 +307,16 @@ of checks and optional conditions.
 What Do You Need in Order to Start Validating?
 ----------------------------------------------
 
+Environment
+~~~~~~~~~~~~
+
+- The deepchecks package installed
+
+- JupyterLab or Jupyter Notebook
+
+Data / Model 
+~~~~~~~~~~~~
+
 Depending on your phase and what you wish to validate, you'll need a
 subset of the following:
 
@@ -327,6 +337,7 @@ phase requires different assets for the validation.
 
 See more about typical usage scenarios and the built-in suites in the
 `docs <https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utme_content=what_do_you_need_in_order_to_start_validating>`__.
+
 
 Documentation
 --------------
