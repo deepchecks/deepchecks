@@ -138,22 +138,21 @@ class RocReport(SingleDatasetBaseCheck):
 
 
 def get_cutoff_figure(tpr, fpr, thresholds, class_name=None):
-    hovertemplate = 'TPR: %{y:.2%}<br>FPR: %{x:.2%}<br>Youden\'s Index: %{text:.3}'
+    index = sensitivity_specifity_cutoff(tpr, fpr)
+    hovertemplate = 'TPR: %{y:.2%}<br>FPR: %{x:.2%}' + f'<br>Youden\'s Index: {thresholds[index]:.3}'
     if class_name:
         hovertemplate += f'<br>Class: {class_name}'
-    index = sensitivity_specifity_cutoff(tpr, fpr)
     return go.Scatter(x=[fpr[index]], y=[tpr[index]], mode='markers', marker_size=15,
-                      text=[thresholds[index]], hovertemplate=hovertemplate, showlegend=False)
+                      hovertemplate=hovertemplate, showlegend=False)
 
 
 def sensitivity_specifity_cutoff(tpr, fpr):
-    """Find index of optimal cutoff point on curve
+    """Find index of optimal cutoff point on curve.
 
-    Cut-off is determied using Youden's index defined as sensitivity + specificity - 1.
+    Cut-off is determined using Youden's index defined as sensitivity + specificity - 1.
 
     Parameters
     ----------
-
     tpr : array, shape = [n_roc_points]
         True positive rate per threshold
     fpr : array, shape = [n_roc_points]
@@ -161,7 +160,6 @@ def sensitivity_specifity_cutoff(tpr, fpr):
 
     References
     ----------
-
     Ewald, B. (2006). Post hoc choice of cut points introduced bias to diagnostic research.
     Journal of clinical epidemiology, 59(8), 798-801.
 
@@ -173,4 +171,3 @@ def sensitivity_specifity_cutoff(tpr, fpr):
     of species presence to either–or presence–absence. Acta oecologica, 31(3), 361-369.
     """
     return np.argmax(tpr - fpr)
-
