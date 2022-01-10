@@ -51,9 +51,15 @@ class CheckResult:
     The class stores the results and display of the check. Evaluating the result in an IPython console / notebook
     will show the result display output.
 
-    Attributes:
-        value (Any): Value calculated by check. Can be used to decide if decidable check passed.
-        display (Dict): Dictionary with formatters for display. possible formatters are: 'text/html', 'image/png'
+    Parameters
+    ----------
+    value: any
+        Value calculated by check. Can be used to decide if decidable check passed.
+    header: str
+        Header to be displayed in python notebook.
+        (Default value = None)
+    display: List
+         Objects to be displayed (dataframe or function or html)
     """
 
     value: Any
@@ -63,15 +69,6 @@ class CheckResult:
     check: 'BaseCheck'
 
     def __init__(self, value, header: str = None, display: Any = None):
-        """Init check result.
-
-        Args:
-            value (Any): Value calculated by check. Can be used to decide if decidable check passed.
-            header (str): Header to be displayed in python notebook.
-            check (Class): The check class which created this result. Used to extract the summary to be
-                displayed in notebook.
-            display (List): Objects to be displayed (dataframe or function or html)
-        """
         self.value = value
         self.header = header
         self.conditions_results = []
@@ -155,8 +152,11 @@ class CheckResult:
             - if check result do not have assigned conditions, return 3
             - if all conditions passed, return 4 ;
 
-        Returns:
-            int: priority of the cehck result.
+        Returns
+        -------
+        int
+            priority of the cehck result.
+
         """
         if not self.have_conditions:
             return 3
@@ -225,11 +225,15 @@ class BaseCheck(metaclass=abc.ABCMeta):
     def add_condition(self, name: str, condition_func: Callable[[Any], Union[ConditionResult, bool]], **params):
         """Add new condition function to the check.
 
-        Args:
-            name (str): Name of the condition. should explain the condition action and parameters
-            condition_func (Callable[[Any], Union[List[ConditionResult], bool]]): Function which gets the value of the
-                check and returns object of List[ConditionResult] or boolean.
-            params: Additional parameters to pass when calling the condition function.
+        Parameters
+        ----------
+        name: str :
+            Name of the condition. should explain the condition action and parameters
+        condition_func: Callable[[Any], Union[ConditionResult, bool]]
+            Function which gets the value of the
+            check and returns object of List[ConditionResult] or boolean.
+        **params: any
+            Additional parameters to pass when calling the condition function.
         """
         cond = Condition(name, condition_func, params)
         self._conditions[self._conditions_index] = cond
@@ -273,8 +277,10 @@ class BaseCheck(metaclass=abc.ABCMeta):
     def remove_condition(self, index: int):
         """Remove given condition by index.
 
-        Args:
-            index (int): index of condtion to remove
+        Parameters
+        ----------
+        index : int
+            index of condtion to remove
         """
         if index not in self._conditions:
             raise DeepchecksValueError(f'Index {index} of conditions does not exists')

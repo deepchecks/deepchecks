@@ -78,8 +78,10 @@ class ConditionResult:
     def set_name(self, name: str):
         """Set name to be displayed in table.
 
-        Args:
-            name (str): Description of the condition to be displayed.
+        Parameters
+        ----------
+        name : str
+            Description of the condition to be displayed.
         """
         self.name = name
 
@@ -90,8 +92,10 @@ class ConditionResult:
         This value is primarily used to determine the order in which
         conditions should be displayed.
 
-        Returns:
-            int: condition priority value;
+        Returns
+        -------
+        int
+            condition priority value;
         """
         if self.is_pass is True:
             return 3

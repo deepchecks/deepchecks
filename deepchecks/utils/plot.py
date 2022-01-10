@@ -88,7 +88,7 @@ def shifted_color_map(cmap, start=0, midpoint=0.5, stop=1.0, name: str = 'shifte
     """Offset the "center" of a colormap.
 
     Parameters
-    -----
+    ----------
       cmap : The matplotlib colormap to be altered
       start : Offset from lowest point in the colormap's range.
           Defaults to 0.0 (no lower offset). Should be between

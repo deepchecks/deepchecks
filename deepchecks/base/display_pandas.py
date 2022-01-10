@@ -25,8 +25,10 @@ __all__ = ['display_dataframe', 'dataframe_to_html', 'display_conditions_table']
 def display_dataframe(df: Union[pd.DataFrame, Styler]):
     """Display in IPython given dataframe.
 
-    Args:
-        df (Union[pd.DataFrame, Styler]): Dataframe to display
+    Parameters
+    ----------
+    df : Union[pd.DataFrame, Styler]
+        Dataframe to display
     """
     display_html(dataframe_to_html(df), raw=True)
 
@@ -34,8 +36,10 @@ def display_dataframe(df: Union[pd.DataFrame, Styler]):
 def dataframe_to_html(df: Union[pd.DataFrame, Styler]):
     """Convert dataframe to html.
 
-    Args:
-        df (Union[pd.DataFrame, Styler]): Dataframe to convert to html
+    Parameters
+    ----------
+    df : Union[pd.DataFrame, Styler]
+        Dataframe to convert to html
     """
     try:
         if isinstance(df, pd.DataFrame):
@@ -60,10 +64,13 @@ def display_conditions_table(check_results: Union['check.CheckResult', List['che
                              unique_id=None):
     """Display the conditions table as DataFrame.
 
-    Args:
-        check_results (Union['CheckResult', List['CheckResult']]): check results to show conditions of.
-        unique_id (str): the unique id to append for the check names to create links
-                              (won't create links if None/empty).
+    Parameters
+    ----------
+    check_results : Union['CheckResult', List['CheckResult']]
+        check results to show conditions of.
+    unique_id : str
+        the unique id to append for the check names to create links
+        (won't create links if None/empty). (Default value = None)
     """
     if not isinstance(check_results, List):
         show_check_column = False

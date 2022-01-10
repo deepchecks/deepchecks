@@ -40,52 +40,60 @@ class Dataset:
     The Dataset class is containing additional data and methods intended for easily accessing
     metadata relevant for the training or validating of an ML models.
 
-    Args:
-        df (pandas.DataFrame):
+    Parameters
+    ----------
+        df: pandas.DataFrame
             A pandas DataFrame containing data relevant for the training or validating of a ML models.
-        label (t.Union[Hashable, pd.Series, pd.DataFrame, np.ndarray])
+        label: t.Union[Hashable, pd.Series, pd.DataFrame, np.ndarray]
             label column provided either as a string with the name of an existing column in the DataFrame or a label
             object including the label data (pandas Series/DataFrame or a numpy array) that will be concatenated to the
             data in the DataFrame. in case of label data the following logic is applied to set the label name:
                 - Series: takes the series name or 'target' if name is empty
                 - DataFrame: expect single column in the dataframe and use its name
                 - numpy: use 'target'
-        features (Optional[Sequence[Hashable]]):
+        features: Optional[Sequence[Hashable]]
             List of names for the feature columns in the DataFrame.
-        cat_features (Optional[Sequence[Hashable]]):
+        cat_features: Optional[Sequence[Hashable]]
             List of names for the categorical features in the DataFrame. In order to disable categorical.
             features inference, pass cat_features=[]
-        index_name (Optional[Hashable]):
+        index_name: Optional[Hashable]
             Name of the index column in the dataframe. If set_index_from_dataframe_index is True and index_name
             is not None, index will be created from the dataframe index level with the given name. If index levels
             have no names, an int must be used to select the appropriate level by order.
-        set_index_from_dataframe_index (bool, default False):
+        set_index_from_dataframe_index: bool
             If set to true, index will be created from the dataframe index instead of dataframe columns (default).
             If index_name is None, first level of the index will be used in case of a multilevel index.
-        datetime_name (Optional[Hashable]):
+            (Default value = False)
+        datetime_name: Optional[Hashable])
             Name of the datetime column in the dataframe. If set_datetime_from_dataframe_index is True and datetime_name
             is not None, date will be created from the dataframe index level with the given name. If index levels
             have no names, an int must be used to select the appropriate level by order.
-        set_datetime_from_dataframe_index (bool, default False):
+        set_datetime_from_dataframe_index: bool
             If set to true, date will be created from the dataframe index instead of dataframe columns (default).
             If datetime_name is None, first level of the index will be used in case of a multilevel index.
-        convert_datetime (bool, default True):
+            (Default value = False)
+        convert_datetime: bool
             If set to true, date will be converted to datetime using pandas.to_datetime.
-        datetime_args (Optional[Dict]):
+            (Default value = True)
+        datetime_args: Optional[Dict]
             pandas.to_datetime args used for conversion of the datetime column.
             (look at https://pandas.pydata.org/docs/reference/api/pandas.to_datetime.html for more documentation)
-        max_categorical_ratio (float, default 0.01):
+        max_categorical_ratio: float
             The max ratio of unique values in a column in order for it to be inferred as a
             categorical feature.
-        max_categories (int, default 30):
+            (Default value = 0.01)
+        max_categories: int
             The maximum number of categories in a column in order for it to be inferred as a categorical
             feature.
-        max_float_categories (int, default 5):
+            (Default value = 30)
+        max_float_categories: int
             The maximum number of categories in a float column in order for it to be inferred as a
             categorical feature.
-        label_type (str, default None):
+            (Default value = 5)
+        label_type: str
             Used to assume target model type if not found on model. Values ('classification_label', 'regression_label')
             If None then label type is inferred from label using is_categorical logic.
+            (Default value = None)
     """
 
     _features: t.List[Hashable]
@@ -295,22 +303,28 @@ class Dataset:
     ) -> TDataset:
         """Create Dataset instance from numpy arrays.
 
-        Args:
-            *args: (np.ndarray):
+        Parameters
+        ----------
+            *args: np.ndarray
                 Numpy array of data columns, and second optional numpy array of labels.
-            columns (Sequence[Hashable], default None):
+            columns: Sequence[Hashable]
                 names for the columns. If none provided, the names that will be automatically
                 assigned to the columns will be: 1 - n (where n - number of columns)
-            label_name (Hashable, default None):
+                (Default value = None)
+            label_name: Hashable
                 labels column name. If none is provided, the name 'target' will be used.
+                (Default value = None)
             **kwargs:
                 additional arguments that will be passed to the main Dataset constructor.
 
-        Returns:
-            Dataset: instance of the Dataset
+        Returns
+        -------
+            Dataset
+                instance of the Dataset
 
-        Raises:
-            DeepchecksValueError:
+        Raises
+        ------
+            DeepchecksValueError
                 if receives zero or more than two numpy arrays;
                 if columns (args[0]) is not two dimensional numpy array;
                 if labels (args[1]) is not one dimensional numpy array;
@@ -399,11 +413,15 @@ class Dataset:
     def copy(self: TDataset, new_data: pd.DataFrame) -> TDataset:
         """Create a copy of this Dataset with new data.
 
-        Args:
-            new_data (DataFrame): new data from which new dataset will be created
+        Parameters
+        ----------
+            new_data: DataFrame
+                new data from which new dataset will be created
 
-        Returns:
-            Dataset: new dataset instance
+        Returns
+        -------
+            Dataset
+                new dataset instance
         """
         # Filter out if columns were dropped
         features = [feat for feat in self._features if feat in new_data.columns]
@@ -424,13 +442,23 @@ class Dataset:
                drop_na_label: bool = False) -> TDataset:
         """Create a copy of the dataset object, with the internal dataframe being a sample of the original dataframe.
 
-        Args:
-            n_samples (int): Number of samples to draw.
-            replace (bool, default False): Whether to sample with replacement.
-            random_state (int, default None): Random state.
-            drop_na_label (bool, default False): Whether to take sample only from rows with exiting label.
-        Returns:
-            Dataset: instance of the Dataset with sampled internal dataframe.
+        Parameters
+        ----------
+            n_samples: int
+                Number of samples to draw.
+            replace: bool
+                Whether to sample with replacement.
+                (Default value = False)
+            random_state: int
+                Random state.
+                (Default value = None)
+            drop_na_label: bool
+                Whether to take sample only from rows with exiting label.
+                (Default value = False)
+        Returns
+        -------
+            Dataset
+                instance of the Dataset with sampled internal dataframe.
         """
         if drop_na_label and self.label_name:
             valid_idx = self.label_col.notna()
@@ -444,7 +472,8 @@ class Dataset:
     def n_samples(self) -> int:
         """Return number of samples in dataframe.
 
-        Returns:
+        Returns
+        -------
            Number of samples in dataframe
         """
         return self.data.shape[0]
@@ -457,7 +486,8 @@ class Dataset:
     def label_type(self) -> t.Optional[str]:
         """Return the label type.
 
-        Returns:
+        Returns
+        -------
             Label type
         """
         return self._label_type
@@ -471,24 +501,26 @@ class Dataset:
                          ) -> t.Tuple[TDataset, TDataset]:
         """Split dataset into random train and test datasets.
 
-        Args:
-            train_size (float or int):
+        Parameters
+        ----------
+            train_size: Union[int, float, None]
                 If float, should be between 0.0 and 1.0 and represent the proportion of the dataset to include in
                 the train split. If int, represents the absolute number of train samples. If None, the value is
-                automatically set to the complement of the test size.(default = None)
-            test_size (float or int):
+                automatically set to the complement of the test size.(Default value = None)
+            test_size: Union[int, float, None]
                 If float, should be between 0.0 and 1.0 and represent the proportion of the dataset to include in the
-                test split. If int, represents the absolute number of test samples. (default = 0.25)
-            random_state (int):
-                The random state to use for shuffling. (default=42)
-            shuffle (bool):
-                Whether or not to shuffle the data before splitting. (default=True)
-            stratify (List, pd.Series, np.ndarray, bool):
+                test split. If int, represents the absolute number of test samples. (Default value = 0.25)
+            random_state: int
+                The random state to use for shuffling. (Default value = 42)
+            shuffle: bool
+                Whether or not to shuffle the data before splitting. (Default value = True)
+            stratify: Union[t.List, pd.Series, np.ndarray, bool]
                 If True, data is split in a stratified fashion, using the class labels. If array-like, data is split in
-                a stratified fashion, using this as class labels. (default=False)
-        Returns:
-            (Dataset) Dataset containing train split data.
-            (Dataset) Dataset containing test split data.
+                a stratified fashion, using this as class labels. (Default value = False)
+        Returns
+        -------
+            Tuple[Dataset, Dataset]
+                Tuple containing train and test split data
         """
         if isinstance(stratify, bool):
             stratify = self.label_col if stratify else None
@@ -525,7 +557,8 @@ class Dataset:
     ) -> t.List[Hashable]:
         """Infers which features are categorical by checking types and number of unique values.
 
-        Returns:
+        Returns
+        -------
            Out of the list of feature names, returns list of categorical features
         """
         categorical_columns = infer_categorical_features(
@@ -557,10 +590,13 @@ class Dataset:
     def is_categorical(self, col_name: Hashable) -> bool:
         """Check if uniques are few enough to count as categorical.
 
-        Args:
-            col_name (str): The name of the column in the dataframe
+        Parameters
+        ----------
+            col_name: Hashable
+                The name of the column in the dataframe
 
-        Returns:
+        Returns
+        -------
             If is categorical according to input numbers
         """
         return is_categorical(
@@ -574,8 +610,10 @@ class Dataset:
     def index_name(self) -> t.Optional[Hashable]:
         """If index column exists, return its name.
 
-        Returns:
-           (str) index name
+        Returns
+        -------
+        str
+            index name
         """
         return self._index_name
 
@@ -583,7 +621,8 @@ class Dataset:
     def index_col(self) -> t.Optional[pd.Series]:
         """Return index column. Index can be a named column or DataFrame index.
 
-        Returns:
+        Returns
+        -------
            If index column exists, returns a pandas Series of the index column.
         """
         if self._set_index_from_dataframe_index is True:
@@ -602,8 +641,10 @@ class Dataset:
     def datetime_name(self) -> t.Optional[Hashable]:
         """If datetime column exists, return its name.
 
-        Returns:
-           (str) datetime name
+        Returns
+        -------
+        str
+            datetime name
         """
         return self._datetime_name
 
@@ -620,8 +661,10 @@ class Dataset:
     def datetime_col(self) -> t.Optional[pd.Series]:
         """Return datetime column if exists.
 
-        Returns:
-           (Series): Series of the datetime column
+        Returns
+        -------
+        pd.Series
+            Series of the datetime column
         """
         if self._set_datetime_from_dataframe_index is True:
             return self._datetime_column
@@ -635,8 +678,10 @@ class Dataset:
     def label_name(self) -> t.Optional[Hashable]:
         """If label column exists, return its name.
 
-        Returns:
-           (str) Label name
+        Returns
+        -------
+        str
+            Label name
         """
         return self._label_name
 
@@ -644,8 +689,10 @@ class Dataset:
     def label_col(self) -> t.Optional[pd.Series]:
         """Return label column if exists.
 
-        Returns:
-           Label column
+        Returns
+        -------
+        pd.Series
+            Label column
         """
         return self.data[self._label_name] if self._label_name else None
 
@@ -653,7 +700,9 @@ class Dataset:
     def features(self) -> t.List[Hashable]:
         """Return list of feature names.
 
-        Returns:
+        Returns
+        -------
+        Hashable
            List of feature names.
         """
         return list(self._features)
@@ -662,7 +711,9 @@ class Dataset:
     def cat_features(self) -> t.List[Hashable]:
         """Return list of categorical feature names.
 
-        Returns:
+        Returns
+        -------
+        Hashable
            List of categorical feature names.
         """
         return list(self._cat_features)
@@ -671,7 +722,9 @@ class Dataset:
     def features_columns(self) -> t.Optional[pd.DataFrame]:
         """Return features columns if exists.
 
-        Returns:
+        Returns
+        -------
+        pd.Dataframe
            Features columns
         """
         return self.data[self._features] if self._features else None
@@ -681,7 +734,8 @@ class Dataset:
     def classes(self) -> t.Tuple[str, ...]:
         """Return the classes from label column in sorted list. if no label column defined, return empty list.
 
-        Returns:
+        Returns
+        -------
             Sorted classes
         """
         if self.label_col is not None:
@@ -692,7 +746,9 @@ class Dataset:
     def columns_info(self) -> t.Dict[Hashable, str]:
         """Return the role and logical type of each column.
 
-        Returns:
+        Returns
+        -------
+        Dict[Hashable, str]
            Directory of a column and its role
         """
         columns = {}
@@ -719,8 +775,10 @@ class Dataset:
         """
         Throws error if dataset does not have a label.
 
-        Raises:
-            DeepchecksValueError if dataset does not have a label
+        Raises
+        ------
+        DeepchecksValueError
+            if dataset does not have a label
 
         """
         if self.label_name is None:
@@ -730,8 +788,10 @@ class Dataset:
         """
         Throws error if dataset does not have a features columns.
 
-        Raises:
-            DeepchecksValueError: if dataset does not have features columns.
+        Raises
+        ------
+        DeepchecksValueError
+            if dataset does not have features columns.
         """
         if not self._features:
             raise DeepchecksValueError('Check requires dataset to have features columns!')
@@ -740,8 +800,10 @@ class Dataset:
         """
         Throws error if dataset does not have a datetime column.
 
-        Raises:
-            DeepchecksValueError if dataset does not have a datetime column
+        Raises
+        ------
+        DeepchecksValueError
+            if dataset does not have a datetime column
 
         """
         if self.datetime_col is None:
@@ -751,8 +813,10 @@ class Dataset:
         """
         Throws error if dataset does not have an index column / does not use dataframe index as index.
 
-        Raises:
-            DeepchecksValueError if dataset does not have an index
+        Raises
+        ------
+        DeepchecksValueError
+            if dataset does not have an index
 
         """
         if self.index_col is None:
@@ -765,15 +829,22 @@ class Dataset:
     ) -> TDataset:
         """Filter dataset columns by given params.
 
-        Args:
-            columns (Union[Hashable, List[Hashable], None]): Column names to keep.
-            ignore_columns (Union[Hashable, List[Hashable], None]): Column names to drop.
+        Parameters
+        ----------
+            columns: Union[Hashable, List[Hashable], None]
+                Column names to keep.
+            ignore_columns: Union[Hashable, List[Hashable], None]
+                Column names to drop.
 
-        Returns:
-            TDataset: horizontally filtered dataset
+        Returns
+        -------
+            TDataset
+                horizontally filtered dataset
 
-        Raises:
-            DeepchecksValueError: In case one of columns given don't exists raise error
+        Raises
+        ------
+            DeepchecksValueError
+                In case one of columns given don't exists raise error
         """
         new_data = select_from_dataframe(self._data, columns, ignore_columns)
         if new_data.equals(self.data):
@@ -785,14 +856,20 @@ class Dataset:
         """
         Return the list of shared features if both datasets have the same feature column names. Else, raise error.
 
-        Args:
-            other: Expected to be Dataset type. dataset to compare features list
+        Parameters
+        ----------
+            other
+                Expected to be Dataset type. dataset to compare features list
 
-        Returns:
-            List[Hashable] - list of shared features names
+        Returns
+        -------
+            List[Hashable]
+                list of shared features names
 
-        Raises:
-            DeepchecksValueError if datasets don't have the same features
+        Raises
+        ------
+        DeepchecksValueError
+            if datasets don't have the same features
 
         """
         Dataset.validate_dataset(other)
@@ -805,14 +882,20 @@ class Dataset:
         """
         Return list of categorical features if both datasets have the same categorical features. Else, raise error.
 
-        Args:
-            other: Expected to be Dataset type. dataset to compare features list
+        Parameters
+        ----------
+        other
+            Expected to be Dataset type. dataset to compare features list
 
-        Returns:
-            List[Hashable] - list of shared features names
+        Returns
+        -------
+        List[Hashable]
+            list of shared features names
 
-        Raises:
-            DeepchecksValueError if datasets don't have the same features
+        Raises
+        ------
+        DeepchecksValueError
+            if datasets don't have the same features
         """
         Dataset.validate_dataset(other)
         if sorted(self.cat_features) == sorted(other.cat_features):
@@ -829,14 +912,20 @@ class Dataset:
         Return the list of shared features if both datasets have the same
         feature column names, else, raise error.
 
-        Args:
-            other (Dataset): Expected to be Dataset type. dataset to compare
+        Parameters
+        ----------
+        other: Dataset
+            Expected to be Dataset type. dataset to compare
 
-        Returns:
-            Hashable: name of the label column
+        Returns
+        -------
+        Hashable
+            name of the label column
 
-        Raises:
-            DeepchecksValueError if datasets don't have the same label
+        Raises
+        ------
+        DeepchecksValueError
+            if datasets don't have the same label
         """
         Dataset.validate_dataset(other)
         if (
@@ -852,11 +941,20 @@ class Dataset:
         """
         Raise error if object is not pandas DataFrame or deepcheck Dataset and returns the object as deepchecks Dataset.
 
-        Args:
-            obj: object to validate as dataset
+        Parameters
+        ----------
+        obj:
+            object to validate as dataset
 
-        Returns:
-            (Dataset): object converted to deepchecks dataset
+        Returns
+        -------
+        Dataset
+            object converted to deepchecks dataset
+
+        Raises
+        ------
+        DeepchecksValueError
+            if dataset is not in the correct type
         """
         if isinstance(obj, Dataset):
             if len(obj.data) == 0:
@@ -874,11 +972,20 @@ class Dataset:
     def validate_dataset(cls, obj) -> 'Dataset':
         """Throws error if object is not deepchecks Dataset and returns the object if deepchecks Dataset.
 
-        Args:
-            obj: object to validate as dataset
+        Parameters
+        ----------
+        obj
+            object to validate as dataset
 
-        Returns:
-            (Dataset): object that is deepchecks dataset
+        Returns
+        -------
+        Dataset
+            object that is deepchecks dataset
+
+        Raises
+        ------
+        DeepchecksValueError
+            if dataset is not of type Dataset
         """
         if not isinstance(obj, Dataset):
             raise DeepchecksValueError('Check requires dataset to be of type Dataset. instead got: '

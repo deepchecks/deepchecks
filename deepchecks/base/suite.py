@@ -54,9 +54,12 @@ class SuiteResult:
 class BaseSuite:
     """Class for running a set of checks together, and returning a unified pass / no-pass.
 
-    Attributes:
-        checks: A list of checks to run.
-        name: Name of the suite
+    Parameters
+    ----------
+        checks: any
+            A list of checks to run.
+        name: str
+            Name of the suite
     """
 
     @classmethod
@@ -90,8 +93,10 @@ class BaseSuite:
     def add(self, check):
         """Add a check or a suite to current suite.
 
-        Args:
-            check (BaseCheck): A check or suite to add.
+        Parameters
+        ----------
+            check: BaseCheck
+                A check or suite to add.
         """
         if isinstance(check, BaseSuite):
             if check is self:
@@ -110,8 +115,10 @@ class BaseSuite:
     def remove(self, index: int):
         """Remove a check by given index.
 
-        Args:
-            index (int): Index of check to remove.
+        Parameters
+        ----------
+            index: int
+                Index of check to remove.
         """
         if index not in self.checks:
             raise DeepchecksValueError(f'No index {index} in suite')
@@ -135,16 +142,24 @@ class Suite(BaseSuite):
     ) -> SuiteResult:
         """Run all checks.
 
-        Args:
-          train_dataset: Dataset object, representing data an estimator was fitted on
-          test_dataset: Dataset object, representing data an estimator predicts on
-          model: A scikit-learn-compatible fitted estimator instance
+        Parameters
+        ----------
+        train_dataset: Dataset
+            representing data an estimator was fitted on
+        test_dataset: Dataset
+            representing data an estimator predicts on
+        model: any
+            A scikit-learn-compatible fitted estimator instance
+            (Default value = None)
 
-        Returns:
-          List[CheckResult] - All results by all initialized checks
+        Returns
+        -------
+        List[CheckResult] - All results by all initialized checks
 
-        Raises:
-             ValueError if check_datasets_policy is not of allowed types
+        Raises
+        ------
+        ValueError
+            if check_datasets_policy is not of allowed types
         """
         if all(it is None for it in (train_dataset, test_dataset, model)):
             raise DeepchecksValueError('At least one dataset (or model) must be passed to the method!')
@@ -219,16 +234,24 @@ class ModelComparisonSuite(BaseSuite):
             ) -> SuiteResult:
         """Run all checks.
 
-        Args:
-          train_datasets: 1 or more dataset object, representing data an estimator was fitted on
-          test_datasets: 1 or more dataset object, representing data an estimator was fitted on
-          models: 2 or more scikit-learn-compatible fitted estimator instance
+        Parameters
+        ----------
+          train_datasets: Union[Dataset, Container[Dataset]]
+            1 or more dataset object, representing data an estimator was fitted on
+          test_datasets: Union[Dataset, Container[Dataset]]
+            1 or more dataset object, representing data an estimator was fitted on
+          models: Union[Container[Any], Mapping[str, Any]]
+            2 or more scikit-learn-compatible fitted estimator instance
 
-        Returns:
-          List[CheckResult] - All results by all initialized checks
+        Returns
+        -------
+          List[CheckResult]
+            All results by all initialized checks
 
-        Raises:
-             ValueError if check_datasets_policy is not of allowed types
+        Raises
+        ------
+             ValueError
+                if check_datasets_policy is not of allowed types
         """
         context = ModelComparisonContext(train_datasets, test_datasets, models)
 
