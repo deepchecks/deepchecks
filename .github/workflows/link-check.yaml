@@ -1,0 +1,28 @@
+name: Documentation Links Check Action
+
+on: 
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+
+jobs:
+  links-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build docs
+        run: make docs
+      
+      - name: Link Checker
+        uses: lycheeverse/lychee-action@v1.2.0
+        with:
+          args: --verbose -base docs/build/html --exclude-file docs/.lycheeignore --exclude-loopback --exclude-mail --no-progress "docs/build/html/**/*.html"
+          fail: true
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
