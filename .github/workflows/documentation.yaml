@@ -32,11 +32,6 @@ jobs:
       - name: Build docs
         run: make docs
       
-      - name: debug
-        run: |
-          ls -l
-          ls -l docs/build/html
-      
       - name: Link Checker
         uses: lycheeverse/lychee-action@v1.2.0
         with:
