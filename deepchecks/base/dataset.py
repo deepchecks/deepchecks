@@ -772,7 +772,7 @@ class Dataset:
         Returns:
             TDataset: horizontally filtered dataset
 
-        Raise:
+        Raises:
             DeepchecksValueError: In case one of columns given don't exists raise error
         """
         new_data = select_from_dataframe(self._data, columns, ignore_columns)

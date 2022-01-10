@@ -27,15 +27,23 @@ class ConfusionMatrixReport(SingleDatasetBaseCheck):
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run check.
 
-        Args:
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
-            dataset: a Dataset object
+        Parameters
+        ----------
+        model : BaseEstimator
+            A scikit-learn-compatible fitted estimator instance
+        dataset : Dataset
+            a Dataset object
 
-        Returns:
-            CheckResult: value is numpy array of the confusion matrix, displays the confusion matrix
+        Returns
+        -------
+        CheckResult
+            value is numpy array of the confusion matrix, displays the confusion matrix
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance with a label
+        Raises
+        ------
+        DeepchecksValueError
+            If the object is not a Dataset instance with a label
+
         """
         return self._confusion_matrix_report(dataset, model)
 

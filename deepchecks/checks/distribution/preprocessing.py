@@ -30,12 +30,13 @@ __all__ = ['ScaledNumerics', 'preprocess_2_cat_cols_to_same_bins']
 class ScaledNumerics(TransformerMixin, BaseEstimator):
     """Preprocess given features to scaled numerics.
 
-    Args:
-        categorical_columns (List[Hashable]):
-            Indicates names of categorical columns in features.
-        max_num_categories (int):
-            Indicates the maximum number of unique categories in a single categorical column
-            (rare categories will be changed to a form of "other")
+    Parameters
+    ----------
+    categorical_columns : List[Hashable]
+        Indicates names of categorical columns in features.
+    max_num_categories : int
+        Indicates the maximum number of unique categories in a single categorical column
+        (rare categories will be changed to a form of "other")
     """
 
     def __init__(self, categorical_columns: List[Hashable], max_num_categories: int):
@@ -91,7 +92,17 @@ class ScaledNumerics(TransformerMixin, BaseEstimator):
         return X
 
     def fit_transform(self, X, y=None, **fit_params):
-        """Fit scaler based on given dataframe and then transform it."""
+        """Fit scaler based on given dataframe and then transform it.
+
+        Parameters
+        ----------
+        X :
+
+        y :
+             (Default value = None)
+        **fit_params :
+
+        """
         self.fit(X)
         return self.transform(X)
 
@@ -106,24 +117,34 @@ class ScaledNumerics(TransformerMixin, BaseEstimator):
 
 def preprocess_2_cat_cols_to_same_bins(dist1: np.ndarray, dist2: np.ndarray, max_num_categories
                                        ) -> Tuple[np.ndarray, np.ndarray, List]:
-    """
-    Preprocess distributions to the same bins in order to be able to be calculated by PSI.
+    """Preprocess distributions to the same bins in order to be able to be calculated by PSI.
 
     Function returns the value counts for each distribution and the categories list. If there are more than
     max_num_categories, it encodes rare categories into an "OTHER" category. This is done according to the values of
     dist1, which is treated as the "expected" distribution.
 
     Function is for categorical data only.
-    Args:
-        dist1: list of values from the first distribution, treated as the expected distribution
-        dist2: list of values from the second distribution, treated as the actual distribution
-        max_num_categories: max number of allowed categories. If there are more, they are binned into an "Other"
+
+    Parameters
+    ----------
+    dist1: np.ndarray
+        list of values from the first distribution, treated as the expected distribution
+    dist2: np.ndarray
+        list of values from the second distribution, treated as the actual distribution
+    max_num_categories :
+        max number of allowed categories. If there are more, they are binned into an "Other"
         category. If max_num_categories=None, there is no limit.
 
-    Returns:
-        dist1_percents: array of percentages of each value in the first distribution.
-        dist2_percents: array of percentages of each value in the second distribution.
-        categories_list: list of all categories that the percentages represent.
+
+    Returns
+    -------
+    Tuple[np.ndarray, np.ndarray, List]
+        dist1_percents
+            array of percentages of each value in the first distribution.
+        dist2_percents
+            array of percentages of each value in the second distribution.
+        categories_list
+            list of all categories that the percentages represent.
 
     """
     all_categories = list(set(dist1).union(set(dist2)))

@@ -24,9 +24,11 @@ __all__ = ['ColumnsInfo']
 class ColumnsInfo(SingleDatasetBaseCheck):
     """Return the role and logical type of each column.
 
-    Args:
-        n_top_columns (int): (optional - used only if model was specified)
-                             amount of columns to show ordered by feature importance (date, index, label are first)
+    Parameters
+    ----------
+    n_top_columns: int
+        (optional - used only if model was specified)
+        amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
     def __init__(self, n_top_columns: int = 10):
@@ -40,12 +42,17 @@ class ColumnsInfo(SingleDatasetBaseCheck):
     ) -> CheckResult:
         """Run check.
 
-        Args:
-          dataset (Union[Dataset, pandas.DataFrame]): any dataset.
+        Parameters
+        ----------
+        dataset : Union[Dataset, pandas.DataFrame]
+            any dataset.
 
-        Returns:
-          CheckResult: value is dictionary of a column and its role and logical type.
-          display a table of the dictionary.
+        Returns
+        -------
+        CheckResult
+            value is dictionary of a column and its role and logical type.
+            display a table of the dictionary.
+
         """
         dataset = Dataset.validate_dataset_or_dataframe(dataset)
         feature_importances = calculate_feature_importance_or_none(model, dataset)

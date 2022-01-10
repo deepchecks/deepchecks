@@ -26,11 +26,16 @@ class ModelInfo(ModelOnlyBaseCheck):
     def run(self, model: BaseEstimator) -> CheckResult:
         """Run check.
 
-        Args:
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
+        Parameters
+        ----------
+        model : BaseEstimator
+            A scikit-learn-compatible fitted estimator instance
 
-        Returns:
-            CheckResult: value is dictionary in format {type: <model_type>, params: <model_params_dict>}
+        Returns
+        -------
+        CheckResult
+            value is dictionary in format {type: <model_type>, params: <model_params_dict>}
+
         """
         model_type_validation(model)
         estimator = get_model_of_pipeline(model)

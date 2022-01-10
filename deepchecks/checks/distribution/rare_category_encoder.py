@@ -25,11 +25,14 @@ class RareCategoryEncoder:
 
     Note that this encoder assumes data is received as a DataFrame.
 
-    Args:
-        max_num_categories (int): Indicates the maximum number of unique categories in a single categorical column
-                                  (rare categories will be changed to a form of "other")
-        cols (List[str]): Columns to limit the encoder to work on. If non are given will work on all columns given
-                          in `fit`
+    Parameters
+    ----------
+    max_num_categories : int
+        Indicates the maximum number of unique categories in a single categorical column
+        (rare categories will be changed to a form of "other")
+    cols : List[str]
+        Columns to limit the encoder to work on. If non are given will work on all columns given
+        in `fit`
     """
 
     DEFAULT_OTHER_VALUE = 'OTHER_RARE_CATEGORY'
@@ -46,8 +49,10 @@ class RareCategoryEncoder:
     def fit(self, data: pd.DataFrame):
         """Fit the encoder using given dataframe.
 
-        Args:
-            data (DataFrame): data to fit from
+        Parameters
+        ----------
+        data : DataFrame
+            data to fit from
         """
         if self.cols is not None:
             self._col_mapping = data[self.cols].apply(self._fit_for_series, axis=0)
@@ -57,11 +62,17 @@ class RareCategoryEncoder:
     def transform(self, data: pd.DataFrame):
         """Transform given data according to columns processed in `fit`.
 
-        Args:
-            data (DataFrame): data to transform
+        Parameters
+        ----------
+        data : DataFrame
+            data to transform
 
-        Returns:
-            (DataFrame): transformed data
+
+        Returns
+        -------
+        DataFrame
+            transformed data
+
         """
         if self._col_mapping is None:
             raise RuntimeError('Cannot transform without fitting first')
@@ -76,11 +87,17 @@ class RareCategoryEncoder:
     def fit_transform(self, data: pd.DataFrame):
         """Run `fit` and `transform` on given data.
 
-        Args:
-            data (DataFrame): data to fit on and transform
+        Parameters
+        ----------
+        data : pd.DataFrame
+            data to fit on and transform
 
-        Returns:
-            (DataFrame): transformed data
+
+        Returns
+        -------
+        DataFrame
+            transformed data
+
         """
         self.fit(data)
         return self.transform(data)

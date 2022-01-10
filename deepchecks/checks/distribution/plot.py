@@ -25,12 +25,18 @@ from deepchecks.utils.plot import colors
 def get_density(data, xs) -> np.ndarray:
     """Get gaussian kde density to plot.
 
-    Args:
-        data (): The data used to compute the pdf function.
-        xs (iterable): List of x values to plot the computed pdf for.
+    Parameters
+    ----------
+    data :
+        The data used to compute the pdf function.
+    xs : iterable
+        List of x values to plot the computed pdf for.
 
-    Returns:
-        np.array: The computed pdf values at the points xs.
+    Returns
+    -------
+    np.array
+        The computed pdf values at the points xs.
+
     """
     density = gaussian_kde(data)
     density.covariance_factor = lambda: .25
@@ -42,11 +48,16 @@ def get_density(data, xs) -> np.ndarray:
 def drift_score_bar_traces(drift_score: float) -> List[go.Bar]:
     """Create a traffic light bar traces for drift score.
 
-    Args:
-        drift_score (float): Drift score
+    Parameters
+    ----------
+    drift_score : float
+        Drift score
 
-    Returns:
-        List[go.Bar]: list of plotly bar traces.
+    Returns
+    -------
+    List[go.Bar]
+        list of plotly bar traces.
+
     """
     traffic_light_colors = [((0, 0.1), '#01B8AA'),
                             ((0.1, 0.2), '#F2C80F'),
@@ -81,16 +92,30 @@ def feature_distribution_traces(train_column,
                                 max_num_categories: int = 10) -> [List[Union[go.Bar, go.Scatter]], Dict, Dict]:
     """Create traces for comparison between train and test column.
 
-    Args:
-        train_column (): Train data used to trace distribution.
-        test_column (): Test data used to trace distribution.
-        is_categorical (bool): State if column is categorical (default: False).
-        max_num_categories (int): Maximum number of categories to show in plot (default: 10).
+    Parameters
+    ----------
+    train_column :
+        Train data used to trace distribution.
+    test_column :
+        Test data used to trace distribution.
+    is_categorical : bool
+        State if column is categorical (default: False).
+    max_num_categories : int
+        Maximum number of categories to show in plot (default: 10).
+    is_categorical: bool :
+         (Default value = False)
+    max_num_categories: int :
+         (Default value = 10)
 
-    Returns:
-        List[Union[go.Bar, go.Scatter]]: list of plotly traces.
-        Dict: layout of x axis
-        Dict: layout of y axis
+    Returns
+    -------
+    List[Union[go.Bar, go.Scatter]]
+        list of plotly traces.
+    Dict
+        layout of x axis
+    Dict
+        layout of y axis
+
     """
     if is_categorical:
         expected_percents, actual_percents, categories_list = \

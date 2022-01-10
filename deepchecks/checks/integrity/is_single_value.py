@@ -24,13 +24,14 @@ __all__ = ['IsSingleValue']
 class IsSingleValue(SingleDatasetBaseCheck):
     """Check if there are columns which have only a single unique value in all rows.
 
-    Args:
-        columns (Union[Hashable, List[Hashable]]):
-            Columns to check, if none are given checks all
-            columns except ignored ones.
-        ignore_columns (Union[Hashable, List[Hashable]]):
-            Columns to ignore, if none given checks based
-            on columns variable.
+    Parameters
+    ----------
+    columns : Union[Hashable, List[Hashable]]
+        Columns to check, if none are given checks all
+        columns except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]]
+        Columns to ignore, if none given checks based
+        on columns variable.
     """
 
     def __init__(
@@ -43,15 +44,19 @@ class IsSingleValue(SingleDatasetBaseCheck):
         self.ignore_columns = ignore_columns
 
     def run(self, dataset, model=None) -> CheckResult:
-        """
-        Run check.
+        """Run check.
 
-        Args:
-            dataset (Dataset): A Dataset object or a pd.DataFrame
+        Parameters
+        ----------
+        dataset : Dataset
+            A Dataset object or a pd.DataFrame
 
-        Returns:
-            CheckResult: value is a boolean if there was at least one column with only one unique,
+        Returns
+        -------
+        CheckResult
+            value is a boolean if there was at least one column with only one unique,
             display is a series with columns that have only one unique
+
         """
         return self._single_value_check(dataset)
 

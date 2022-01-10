@@ -36,19 +36,30 @@ def create_colorbar_barchart_for_check(
 ):
     """Output a colorbar barchart using matplotlib.
 
-    Args:
-        x (np.array): array containing x axis data.
-        y (np.array): array containing y axis data.
-        ylabel (str): Name of y axis (default='Result')
-        xlabel (str): Name of x axis (default='Features')
-        color_map (str): color_map name. (default='RdYlGn_r')
-                         See https://matplotlib.org/stable/tutorials/colors/colormaps.html for more details
-        start (float): start of y axis ticks (default=0)
-        stop (float): end of y axis ticks (default=1.0)
-        tick_steps (float): step to y axis ticks (default=0.1)
-        color_shift_midpoint (float): midpoint of color map (default=0.5)
-        check_name (str): name of the check that called this function (default='')
-
+    Parameters
+    ----------
+    x : np.array
+        array containing x axis data.
+    y : np.array
+        array containing y axis data.
+    ylabel : str
+        Name of y axis
+        (Default value = 'Result')
+    xlabel : str
+        Name of x axis (Default value='Features')
+    color_map : str
+        color_map name. (Default value='RdYlGn_r')
+        See https://matplotlib.org/stable/tutorials/colors/colormaps.html for more details
+    start : float
+        start of y axis ticks (Default value=0)
+    stop : float
+        end of y axis ticks (Default value=1.0)
+    tick_steps : float
+        step to y axis ticks (Default value=0.1)
+    color_shift_midpoint : float
+        midpoint of color map (Default value=0.5)
+    check_name : str
+        name of the check that called this function (Default value='')
     """
     fig, ax = plt.subplots(figsize=(15, 4))  # pylint: disable=unused-variable
 
@@ -76,7 +87,7 @@ def create_colorbar_barchart_for_check(
 def shifted_color_map(cmap, start=0, midpoint=0.5, stop=1.0, name: str = 'shiftedcmap', transparent_from: float = None):
     """Offset the "center" of a colormap.
 
-    Input
+    Parameters
     -----
       cmap : The matplotlib colormap to be altered
       start : Offset from lowest point in the colormap's range.

@@ -29,15 +29,17 @@ __all__ = ['SpecialCharacters']
 class SpecialCharacters(SingleDatasetBaseCheck):
     """Search in column[s] for values that contains only special characters.
 
-    Args:
-        columns (Union[Hashable, List[Hashable]]):
-            Columns to check, if none are given checks all columns except ignored ones.
-        ignore_columns (Union[Hashable, List[Hashable]]):
-            Columns to ignore, if none given checks based on columns variable.
-        n_most_common (int):
-            Number of most common special-only samples to show in results
-        n_top_columns (int): (optional - used only if model was specified)
-          amount of columns to show ordered by feature importance (date, index, label are first)
+    Parameters
+    ----------
+    columns : Union[Hashable, List[Hashable]]
+        Columns to check, if none are given checks all columns except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]]
+        Columns to ignore, if none given checks based on columns variable.
+    n_most_common : int
+        Number of most common special-only samples to show in results
+    n_top_columns : int
+        (optional - used only if model was specified)
+        amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
     def __init__(
@@ -56,11 +58,15 @@ class SpecialCharacters(SingleDatasetBaseCheck):
     def run(self, dataset, model=None) -> CheckResult:
         """Run check.
 
-        Args:
-          dataset(Dataset):
+        Parameters
+        ----------
+        dataset : Dataset
 
-        Returns:
-          (CheckResult): DataFrame with ('invalids') for any column with special_characters chars.
+        Returns
+        -------
+        CheckResult
+            DataFrame with ('invalids') for any column with special_characters chars.
+
         """
         feature_importances = calculate_feature_importance_or_none(model, dataset)
         return self._special_characters(dataset, feature_importances)
@@ -69,11 +75,20 @@ class SpecialCharacters(SingleDatasetBaseCheck):
                             feature_importances: pd.Series = None) -> CheckResult:
         """Run check.
 
-        Args:
-            dataset (Dataset): a Dataset or DataFrame object.
-        Returns:
-            (CheckResult): DataFrame with columns ('Column Name', '% Invalid Samples', 'Most Common Invalids Samples')
-              for any column that contains invalid chars.
+        Parameters
+        ----------
+        dataset: Union[pd.DataFrame, Dataset]
+            a Dataset or a DataFrame object.
+
+        feature_importances: pd.Series :
+             (Default value = None)
+
+        Returns
+        -------
+        CheckResult
+            DataFrame with columns ('Column Name', '% Invalid Samples', 'Most Common Invalids Samples')
+            for any column that contains invalid chars.
+
         """
         # Validate parameters
         dataset: pd.DataFrame = ensure_dataframe_type(dataset)
@@ -107,8 +122,10 @@ class SpecialCharacters(SingleDatasetBaseCheck):
     def add_condition_ratio_of_special_characters_not_grater_than(self, max_ratio: float = 0.001):
         """Add condition - ratio of entirely special character in column.
 
-        Args:
-            max_ratio(float): Maximum ratio allowed.
+        Parameters
+        ----------
+        max_ratio : float
+            (Default value = 0.001) Maximum ratio allowed.
         """
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
         name = f'Ratio of entirely special character samples not greater '\

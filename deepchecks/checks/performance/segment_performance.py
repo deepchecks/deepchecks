@@ -30,16 +30,17 @@ __all__ = ['SegmentPerformance']
 class SegmentPerformance(SingleDatasetBaseCheck):
     """Display performance score segmented by 2 top (or given) features in a heatmap.
 
-    Args:
-        feature_1 (Hashable):
-            feature to segment by on y-axis.
-        feature_2 (Hashable):
-            feature to segment by on x-axis.
-        scorer (Union[str, Callable]):
-            Score to show, either function or sklearn scorer name.
-            If is not given a default scorer (per the model type) will be used.
-        max_segments (int):
-            maximal number of segments to split the a values into.
+    Parameters
+    ----------
+    feature_1 : Hashable
+        feature to segment by on y-axis.
+    feature_2 : Hashable
+        feature to segment by on x-axis.
+    scorer : Union[str
+        Score to show, either function or sklearn scorer name.
+        If is not given a default scorer (per the model type) will be used.
+    max_segments : int
+        maximal number of segments to split the a values into.
     """
 
     feature_1: Optional[Hashable]
@@ -72,9 +73,12 @@ class SegmentPerformance(SingleDatasetBaseCheck):
     def run(self, dataset: Dataset, model: Any) -> CheckResult:
         """Run check.
 
-        Args:
-            dataset (Dataset): a Dataset object.
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
+        Parameters
+        ----------
+        dataset : Dataset
+            a Dataset object.
+        model : BaseEstimator
+            A scikit-learn-compatible fitted estimator instance.
         """
         # Validations
         Dataset.validate_dataset(dataset)

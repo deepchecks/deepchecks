@@ -26,19 +26,23 @@ def validate_columns_exist(
 ) -> bool:
     """Validate given columns exist in dataframe.
 
-    Args:
-        df (pd.DataFrame):
-            dataframe to inspect
-        columns (Union[Hashable, List[Hashable]]):
-            Column names to check
-        raise_error (bool, default True):
-            whether to raise an error if some column is not present in the dataframe or not
+    Parameters
+    ----------
+    df: pd.DataFrame
+        dataframe to inspect
+    columns: Union[Hashable, List[Hashable]]
+         Column names to check
+    raise_error: bool
+        whether to raise an error if some column is not present in the dataframe or not
+        (Default value = True)
 
-    Raise:
-        DeepchecksValueError:
+    Raises
+    ------
+    DeepchecksValueError:
             If some of the columns do not exist within provided dataframe;
             If receives empty list of 'columns';
             If not all elements within 'columns' list are hashable;
+
     """
     error_message = 'columns - expected to receive not empty list of hashable values!'
     columns = ensure_hashable_or_mutable_sequence(columns, message=error_message)
@@ -67,18 +71,26 @@ def select_from_dataframe(
 ) -> pd.DataFrame:
     """Filter DataFrame columns by given params.
 
-    Args:
-        df (pd.DataFrame)
-        columns (Union[Hashable, List[Hashable], None]): Column names to keep.
-        ignore_columns (Union[Hashable, List[Hashable], None]): Column names to drop.
+    Parameters
+    ----------
+    columns : Union[Hashable, List[Hashable], None]
+        Column names to keep. (Default value = None)
+    ignore_columns : Union[Hashable, List[Hashable], None]
+        Column names to drop.  (Default value = None)
+    df: pd.DataFrame :
+        The dataframe
 
-    Returns:
-        pandas.DataFrame: returns horizontally filtered dataframe
+    Returns
+    -------
+    pandas.DataFrame
+        returns horizontally filtered dataframe
 
-    Raise:
-        DeepchecksValueError:
-            If some of the columns do not exist within provided dataframe;
-            If 'columns' and 'ignore_columns' arguments is 'None';
+    Raises
+    ------
+    DeepchecksValueError
+        If some of the columns do not exist within provided dataframe;
+        If 'columns' and 'ignore_columns' arguments is 'None';
+
     """
     if columns is not None and ignore_columns is not None:
         raise DeepchecksValueError(

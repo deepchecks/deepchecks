@@ -25,9 +25,12 @@ __all__ = ['partition_column', 'DeepchecksFilter']
 class DeepchecksFilter:
     """Contains a filter function which works on a dataframe and a label describing the filter.
 
-    Args:
-        filter_func (Callable): function which receive dataframe and return a filter on it
-        label (str): name of the filter
+    Parameters
+    ----------
+    filter_func : Callable
+        function which receive dataframe and return a filter on it
+    label : str
+        name of the filter
     """
 
     def __init__(self, filter_func: Callable, label: str):
@@ -91,11 +94,17 @@ def partition_column(
     For numerical we split into maximum number of `max_segments` quantiles. if some of the quantiles are duplicates
     then we merge them into the same segment range (so not all ranges necessarily will have same size).
 
-    Args:
-        dataset (Dataset):
-        column_name (Hashable): column to partition.
-        max_segments (int): maximum number of segments to split into.
-        max_cat_proportions (float): (for categorical) ratio to aggregate largest values to show.
+    Parameters
+    ----------
+    dataset : Dataset
+
+    column_name : Hashable
+        column to partition.
+    max_segments : int
+        maximum number of segments to split into.
+    max_cat_proportions : float
+        (for categorical) ratio to aggregate largest values to show.
+         (Default value = 0.9)
     """
     column = dataset.data[column_name]
     if column_name not in dataset.cat_features:

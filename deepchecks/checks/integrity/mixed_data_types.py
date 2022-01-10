@@ -29,15 +29,17 @@ __all__ = ['MixedDataTypes']
 class MixedDataTypes(SingleDatasetBaseCheck):
     """Detect a small amount of a rare data type within a column, such as few string samples in a mostly numeric column.
 
-    Args:
-        columns (Union[Hashable, List[Hashable]]):
-            Columns to check, if none are given checks all columns
-            except ignored ones.
-        ignore_columns (Union[Hashable, List[Hashable]]):
-            Columns to ignore, if none given checks based on columns
-            variable.
-        n_top_columns (int): (optional - used only if model was specified)
-          amount of columns to show ordered by feature importance (date, index, label are first)
+    Parameters
+    ----------
+    columns : Union[Hashable, List[Hashable]]
+        Columns to check, if none are given checks all columns
+        except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]]
+        Columns to ignore, if none given checks based on columns
+        variable.
+    n_top_columns : int
+        (optional - used only if model was specified)
+        amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
     def __init__(
@@ -54,13 +56,19 @@ class MixedDataTypes(SingleDatasetBaseCheck):
     def run(self, dataset, model=None) -> CheckResult:
         """Run check.
 
-        Args:
-          dataset(Dataset): Dataset to be tested.
-          model: Model is ignored for this check.
+        Parameters
+        ----------
+        dataset : Dataset
+            Dataset to be tested.
+        model :
+            Model is ignored for this check. (Default value = None)
 
-        Returns:
-          (CheckResult): DataFrame with rows ('strings', 'numbers') for any column with mixed types.
-          numbers will also include hidden numbers in string representation.
+        Returns
+        -------
+        CheckResult
+            DataFrame with rows ('strings', 'numbers') for any column with mixed types.
+            numbers will also include hidden numbers in string representation.
+
         """
         feature_importances = calculate_feature_importance_or_none(model, dataset)
         return self._mixed_types(dataset, feature_importances)
@@ -68,11 +76,18 @@ class MixedDataTypes(SingleDatasetBaseCheck):
     def _mixed_types(self, dataset: Union[pd.DataFrame, Dataset], feature_importances: pd.Series = None) -> CheckResult:
         """Run check.
 
-        Args:
-            dataset (Dataset): Dataset to be tested.
+        Parameters
+        ----------
+        dataset : Union[pd.DataFrame, Dataset]
+            Dataset to be tested.
+        feature_importances: pd.Series :
+             (Default value = None)
 
-        Returns:
-            (CheckResult): DataFrame with columns('Column Name', 'Percentage') for any column that is not single typed.
+        Returns
+        -------
+        CheckResult
+            DataFrame with columns('Column Name', 'Percentage') for any column that is not single typed.
+
         """
         # Validate parameters
         original_dataset = dataset
@@ -135,9 +150,12 @@ class MixedDataTypes(SingleDatasetBaseCheck):
         between, there is a real chance that the rarer data type may represent a problem to model training and
         inference.
 
-        Args:
-            ratio_range (Tuple[float, float]): The range between which the ratio of rarer data type in the column is
-                considered a problem.
+        Parameters
+        ----------
+        ratio_range : Tuple[float, float]
+            (Default value = (0.01, 0.1)
+            The range between which the ratio of rarer data type in the column is
+            considered a problem.
         """
         def condition(result):
             failing_columns = []

@@ -33,17 +33,26 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
     def run(self, train_dataset: Dataset, test_dataset: Dataset,  model=None) -> CheckResult:
         """Run check.
 
-        Args:
-            train_dataset (Dataset): The training dataset object. Must contain an index.
-            test_dataset (Dataset): The test dataset object. Must contain an index.
-            model (): any = None - not used in the check
+        Parameters
+        ----------
+        train_dataset : Dataset
+            The training dataset object. Must contain an index.
+        test_dataset : Dataset
+            The test dataset object. Must contain an index.
+        model :
+            any = None - not used in the check (Default value = None)
 
-        Returns:
-            CheckResult: value is sample leakage ratio in %,
+        Returns
+        -------
+        CheckResult
+            value is sample leakage ratio in %,
             displays a dataframe that shows the duplicated rows between the datasets
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance
+        Raises
+        ------
+        DeepchecksValueError
+            If the object is not a Dataset instance
+
         """
         return self._data_sample_leakage_report(test_dataset=test_dataset, train_dataset=train_dataset)
 
@@ -96,8 +105,11 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
     def add_condition_duplicates_ratio_not_greater_than(self, max_ratio: float = 0.1):
         """Add condition - require max allowed ratio of test data samples to appear in train data.
 
-        Args:
-            max_ratio (float): Max allowed ratio of test data samples to appear in train data
+        Parameters
+        ----------
+        max_ratio : float
+            Max allowed ratio of test data samples to appear in train data
+            (Default value = 0.1)
         """
         def condition(result: float) -> ConditionResult:
             if result > max_ratio:
@@ -115,12 +127,17 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
 def _get_dup_indexes_map(df: pd.DataFrame, columns: List[Hashable]) -> Dict:
     """Find duplicated indexes in the dataframe.
 
-    Args:
-        df: a Dataframe object of the dataset
-        columns: list of column that duplicates are defined by
+    Parameters
+    ----------
+    df: pd.DataFrame
+        a Dataframe object of the dataset
+    columns: List[Hashable]
+        list of column that duplicates are defined by
 
-    Returns:
+    Returns
+    -------
         dictionary of each of the first indexes and its' duplicated indexes
+
     """
     dup = df[df.duplicated(columns, keep=False)].groupby(columns).groups.values()
     dup_map = {}
@@ -133,12 +150,17 @@ def _get_dup_indexes_map(df: pd.DataFrame, columns: List[Hashable]) -> Dict:
 def _get_dup_txt(i: int, dup_map: Dict) -> str:
     """Return a prettified text for a key in the dict.
 
-    Args:
-        i: the index key
-        dup_map: the dict of the duplicated indexes
+    Parameters
+    ----------
+    i: int
+        the index key
+    dup_map: Dict
+        the dict of the duplicated indexes
 
-    Returns:
+    Returns
+    -------
         prettified text for a key in the dict
+
     """
     val = dup_map.get(i)
     if not val:

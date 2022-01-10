@@ -100,10 +100,14 @@ class BoostingOverfit(TrainTestBaseCheck):
     estimators (number of estimators is monotonic increasing). It plots the given score calculated for each step for
     both the train dataset and the test dataset.
 
-    Args:
-        scorer (Union[Callable, str]): Scorer used to verify the model, either function or sklearn scorer name.
-        scorer_name (str): Name to be displayed in the plot on y-axis. must be used together with 'scorer'
-        num_steps (int): Number of splits of the model iterations to check.
+    Parameters
+    ----------
+    scorer : Union[Callable, str]
+        Scorer used to verify the model, either function or sklearn scorer name.
+    scorer_name : str
+        Name to be displayed in the plot on y-axis. must be used together with 'scorer'
+    num_steps : int
+        Number of splits of the model iterations to check.
     """
 
     def __init__(self, scorer: Union[Callable, str] = None, scorer_name: str = None, num_steps: int = 20):
@@ -114,13 +118,19 @@ class BoostingOverfit(TrainTestBaseCheck):
     def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
         """Run check.
 
-        Args:
-            train_dataset (Dataset):
-            test_dataset (Dataset):
-            model: Boosting model.
+        Parameters
+        ----------
+        train_dataset : Dataset
 
-        Returns:
+        test_dataset : Dataset
+
+        model :
+            Boosting model. (Default value = None)
+
+        Returns
+        -------
             The score value on the test dataset.
+
         """
         return self._boosting_overfit(train_dataset, test_dataset, model=model)
 
@@ -175,8 +185,11 @@ class BoostingOverfit(TrainTestBaseCheck):
         Percent of decline between the maximal score achieved in any boosting iteration and the score achieved in the
         last iteration ("regular" model score) is not above given threshold.
 
-        Args:
-            threshold (float): Maximum percentage decline allowed (value 0 and above)
+        Parameters
+        ----------
+        threshold : float
+            Maximum percentage decline allowed (value 0 and above)
+            (Default value = 0.05)
         """
         def condition(result: dict):
             max_score = max(result['test'])

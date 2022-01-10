@@ -24,14 +24,17 @@ __all__ = ['CategoryMismatchTrainTest']
 class CategoryMismatchTrainTest(TrainTestBaseCheck):
     """Find new categories in the test set.
 
-    Args:
-        columns (Union[Hashable, List[Hashable]]):
-            Columns to check, if none are given checks all columns except ignored ones.
-        ignore_columns (Union[Hashable, List[Hashable]]):
-            Columns to ignore, if none given checks based on columns
-            variable.
-        max_features_to_show (int): maximum features with new categories to show
-        max_new_categories_to_show (int): maximum new categories to show in feature
+    Parameters
+    ----------
+    columns : Union[Hashable, List[Hashable]]
+        Columns to check, if none are given checks all columns except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]]
+        Columns to ignore, if none given checks based on columns
+        variable.
+    max_features_to_show : int
+        maximum features with new categories to show
+    max_new_categories_to_show : int
+        maximum new categories to show in feature
     """
 
     def __init__(
@@ -50,13 +53,21 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
     def run(self, train_dataset: Dataset, test_dataset: Dataset, model=None) -> CheckResult:
         """Run check.
 
-        Args:
-            train_dataset (Dataset): The training dataset object.
-            test_dataset (Dataset): The test dataset object.
-            model: any = None - not used in the check
-        Returns:
-            CheckResult: value is a dictionary that shows columns with new categories
+        Parameters
+        ----------
+        train_dataset : Dataset
+            The training dataset object.
+        test_dataset : Dataset
+            The test dataset object.
+        model :
+             not used in the check (Default value = None).
+
+        Returns
+        -------
+        CheckResult
+            value is a dictionary that shows columns with new categories
             displays a dataframe that shows columns with new categories
+
         """
         return self._new_category_train_test(train_dataset=train_dataset,
                                              test_dataset=test_dataset)
@@ -64,16 +75,23 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
     def _new_category_train_test(self, train_dataset: Dataset, test_dataset: Dataset):
         """Run check.
 
-        Args:
-            train_dataset (Dataset): The training dataset object.
-            test_dataset (Dataset): The test dataset object.
+        Parameters
+        ----------
+        train_dataset : Dataset
+            The training dataset object.
+        test_dataset : Dataset
+            The test dataset object.
 
-        Returns:
-            CheckResult: value is a dictionary that shows columns with new categories
-                         displays a dataframe that shows columns with new categories
+        Returns
+        -------
+        CheckResult
+            value is a dictionary that shows columns with new categories
+            displays a dataframe that shows columns with new categories
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance
+        Raises
+        ------
+        DeepchecksValueError
+            If the object is not a Dataset instance
 
         """
         test_dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
@@ -144,8 +162,10 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
     def add_condition_new_categories_not_greater_than(self, max_new: int = 0):
         """Add condition - require column not to have greater than given number of different new categories.
 
-        Args:
-            max_new (int): Number of different categories value types which is the maximum allowed.
+        Parameters
+        ----------
+        max_new : int
+            (Default value = 0) Number of different categories value types which is the maximum allowed.
         """
         def condition(result: Dict) -> ConditionResult:
             not_passing_columns = []
@@ -169,8 +189,10 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
     def add_condition_new_category_ratio_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require column not to have greater than given number of different new categories.
 
-        Args:
-            max_ratio (int): Number of different categories value types which is the maximum allowed.
+        Parameters
+        ----------
+        max_ratio : int
+            (Default value = 0) Number of different categories value types which is the maximum allowed.
         """
         def new_category_count_condition(result: Dict) -> ConditionResult:
             not_passing_columns = []

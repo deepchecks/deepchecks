@@ -19,8 +19,7 @@ from deepchecks.checks.distribution.dist_utils import calc_drift_and_plot
 
 
 class TrainTestLabelDrift(TrainTestBaseCheck):
-    """
-    Calculate label drift between train dataset and test dataset, using statistical measures.
+    """Calculate label drift between train dataset and test dataset, using statistical measures.
 
     Check calculates a drift score for the label in test dataset, by comparing its distribution to the train
     dataset.
@@ -29,12 +28,12 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
     For categorical columns, we use the Population Stability Index (PSI).
     See https://en.wikipedia.org/wiki/Wasserstein_metric.
 
-
-    Args:
-        max_num_categories (int):
-            Only for categorical columns. Max number of allowed categories. If there are more,
-            they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
-            for both drift calculation and for distribution plots.
+    Parameters
+    ----------
+    max_num_categories : int
+        Only for categorical columns. Max number of allowed categories. If there are more,
+        they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
+        for both drift calculation and for distribution plots.
     """
 
     def __init__(
@@ -47,18 +46,27 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
     def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
         """Run check.
 
-        Args:
-            train_dataset (Dataset): The training dataset object.
-            test_dataset (Dataset): The test dataset object.
-            model: not used in this check.
+        Parameters
+        ----------
+        train_dataset : Dataset
+            The training dataset object.
+        test_dataset : Dataset
+            The test dataset object.
+        model :
+            not used in this check. (Default value = None)
 
-        Returns:
-            CheckResult:
-                value: dictionary of column name to drift score.
-                display: distribution graph for each column, comparing the train and test distributions.
+        Returns
+        -------
+        CheckResult
+            value: dictionary of column name to drift score.
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset or DataFrame instance
+            display: distribution graph for each column, comparing the train and test distributions.
+
+        Raises
+        ------
+        DeepchecksValueError
+            If the object is not a Dataset or DataFrame instance
+
         """
         return self._calc_drift(train_dataset, test_dataset)
 
@@ -67,17 +75,21 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
             train_dataset: Dataset,
             test_dataset: Dataset,
     ) -> CheckResult:
-        """
-        Calculate drift for all columns.
+        """Calculate drift for all columns.
 
-        Args:
-            train_dataset (Dataset): The training dataset object. Must contain a label.
-            test_dataset (Dataset): The test dataset object. Must contain a label.
+        Parameters
+        ----------
+        train_dataset : Dataset
+            The training dataset object. Must contain a label.
+        test_dataset : Dataset
+            The test dataset object. Must contain a label.
 
-        Returns:
-            CheckResult:
-                value: drift score.
-                display: label distribution graph, comparing the train and test distributions.
+        Returns
+        -------
+        CheckResult
+            value: drift score.
+            display: label distribution graph, comparing the train and test distributions.
+
         """
         train_dataset = Dataset.validate_dataset(train_dataset)
         test_dataset = Dataset.validate_dataset(test_dataset)
@@ -104,18 +116,25 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
 
     def add_condition_drift_score_not_greater_than(self, max_allowed_psi_score: float = 0.2,
                                                    max_allowed_earth_movers_score: float = 0.1):
-        """
-        Add condition - require drift score to not be more than a certain threshold.
+        """Add condition - require drift score to not be more than a certain threshold.
 
         The industry standard for PSI limit is above 0.2.
         Earth movers does not have a common industry standard.
 
-        Args:
-            max_allowed_psi_score: the max threshold for the PSI score
-            max_allowed_earth_movers_score: the max threshold for the Earth Mover's Distance score
+        Parameters
+        ----------
+        max_allowed_psi_score: float
+            (Default value = 0.2)
+            the max threshold for the PSI score
+        max_allowed_earth_movers_score: float
+            (Default value = 0.1)
+            the max threshold for the Earth Mover's Distance score
 
-        Returns:
-            ConditionResult: False if any column has passed the max threshold, True otherwise
+        Returns
+        -------
+        ConditionResult
+            False if any column has passed the max threshold, True otherwise
+
         """
 
         def condition(result: Dict) -> ConditionResult:

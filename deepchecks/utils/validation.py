@@ -26,8 +26,11 @@ __all__ = ['model_type_validation', 'ensure_hashable_or_mutable_sequence', 'vali
 def model_type_validation(model: t.Any):
     """Receive any object and check if it's an instance of a model we support.
 
-    Raises:
-        DeepchecksValueError: If the object is not of a supported type
+    Raises
+    ------
+    DeepchecksValueError
+        If the object is not of a supported type
+
     """
     supported_by_class_name = ('CatBoostClassifier', 'CatBoostRegressor')
     supported_by_class_instance = (sklearn.base.BaseEstimator,)
@@ -50,12 +53,17 @@ def validate_model(
 ):
     """Check model is able to predict on the dataset.
 
-    Args:
-        data (Dataset, pandas.DataFrame):
-        model (BaseEstimator):
+    Parameters
+    ----------
+    data : Union[Dataset, pd.DataFrame]
 
-    Raise:
-        DeepchecksValueError: if dataset does not match model
+    model : BaseEstimator
+
+    Raises
+    ------
+    DeepchecksValueError
+        if dataset does not match model
+
     """
     model_type_validation(model)
 
@@ -129,11 +137,15 @@ def ensure_hashable_or_mutable_sequence(
 def ensure_dataframe_type(obj: t.Any) -> pd.DataFrame:
     """Ensure that given object is of type DataFrame or Dataset and return it as DataFrame. else raise error.
 
-    Args:
-        obj: Object to ensure it is DataFrame or Dataset
+    Parameters
+    ----------
+    obj :
+        Object to ensure it is DataFrame or Dataset
 
-    Returns:
-        (pd.DataFrame)
+    Returns
+    -------
+        pd.DataFrame
+
     """
     if isinstance(obj, pd.DataFrame):
         return obj

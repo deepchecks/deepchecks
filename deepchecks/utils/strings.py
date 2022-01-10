@@ -44,10 +44,17 @@ __all__ = [
 def get_random_string(n: int = 5):
     """Return random string at the given size.
 
-    Args:
-        n (int): the size of the string to return.
-    Returns:
-        (str): a random string
+    Parameters
+    ----------
+    n: int :
+        the size of the string to return.
+        (Default value = 5)
+
+    Returns
+    -------
+    str
+        a random string
+
     """
     return ''.join(random.choices(ascii_uppercase + digits, k=n))
 
@@ -55,11 +62,16 @@ def get_random_string(n: int = 5):
 def string_baseform(string: str) -> str:
     """Remove special characters from given string, leaving only a-z, A-Z, 0-9 characters.
 
-    Args:
-        string (str): string to remove special characters from
+    Parameters
+    ----------
+    string : str
+        string to remove special characters from
 
-    Returns:
-        (str): string without special characters
+    Returns
+    -------
+    str
+        string without special characters
+
     """
     if not isinstance(string, str):
         return string
@@ -83,8 +95,10 @@ def is_string_column(column: pd.Series) -> bool:
 def split_camel_case(string: str) -> str:
     """Split string where there are capital letters and enter space instead.
 
-    Args:
-        string (str): string to change
+    Parameters
+    ----------
+    string : str
+        string to change
     """
     return ' '.join(re.findall('[A-Z][^A-Z]*', string))
 
@@ -107,13 +121,19 @@ def str_min_find(s: str, substr_list: t.Iterable[str]) -> t.Tuple[int, str]:
     """
     Find the minimal first occurence of a substring in a string, and return both the index and substring.
 
-    Args:
-        s (str): The string in which we look for substrings
-        substr_list: list of substrings to find
+    Parameters
+    ----------
+    s : str
+        The string in which we look for substrings
+    substr_list : Iterable[str]
+        list of substrings to find
 
-    Returns:
-        min_find (int): index of minimal first occurence of substring
-        min_substr (str): the substring that occures in said index
+    Returns
+    -------
+    min_find : int
+        index of minimal first occurence of substring
+    min_substr : str
+        the substring that occures in said index
 
     """
     min_find = -1
@@ -130,12 +150,17 @@ def split_and_keep(s: str, separators: t.Union[str, t.Iterable[str]]) -> t.List[
     """
     Split string by a another substring into a list. Like str.split(), but keeps the separator occurrences in the list.
 
-    Args:
-        s (str): the string to split
-        separators (str): the substring to split by
+    Parameters
+    ----------
+    s : str
+        the string to split
+    separators : Union[str, Iterable[str]]
+        the substring to split by
 
-    Returns:
-        List[str]: list of substrings, including the separator occurrences in string
+    Returns
+    -------
+    List[str]
+        list of substrings, including the separator occurrences in string
 
     """
     if isinstance(separators, str):
@@ -158,16 +183,22 @@ def split_and_keep(s: str, separators: t.Union[str, t.Iterable[str]]) -> t.List[
 
 
 def split_by_order(s: str, separators: t.Iterable[str], keep: bool = True) -> t.List[str]:
-    """
-    Split string by a a list of substrings, each used once as a separator.
+    """Split string by a a list of substrings, each used once as a separator.
 
-    Args:
-        s (str): the string to split
-        separators (List[str]): list of substrings to split by
-        keep (bool): whether to keep the separators in list as well. Default is True.
+    Parameters
+    ----------
+    s : str
+        the string to split
+    separators : List[str]
+        list of substrings to split by
+    keep : bool
+        whether to keep the separators in list as well. Default is True.
+        (Default value = True)
 
-    Returns:
-        List[str]: list of substrings
+    Returns
+    -------
+    List[str]
+        list of substrings
     """
     split_s = []
     separators = list(copy(separators))
@@ -192,11 +223,17 @@ def split_by_order(s: str, separators: t.Iterable[str], keep: bool = True) -> t.
 def format_percent(ratio: float, floating_point: int = 2) -> str:
     """Format percent for elegant display.
 
-    Args:
-        ratio (float): Ratio to be displayed as percent
-        floating_point (int): Number of floating points to display
+    Parameters
+    ----------
+    ratio : float
+        Ratio to be displayed as percent
+    floating_point : int
+        Number of floating points to display
+         (Default value = 2)
 
-    Returns:
+    Returns
+    -------
+    str
         String of ratio as percent
     """
     result: str
@@ -226,12 +263,19 @@ def format_percent(ratio: float, floating_point: int = 2) -> str:
 def format_number(x, floating_point: int = 2) -> str:
     """Format number for elegant display.
 
-    Args:
-        x (): Number to be displayed
-        floating_point (int): Number of floating points to display
+    Parameters
+    ----------
+    x :
+        Number to be displayed
+    floating_point : int
+        Number of floating points to display
+         (Default value = 2)
 
-    Returns:
+    Returns
+    -------
+    str
         String of beautified number
+
     """
     def add_commas(x):
         return f'{x:,}'  # yes this actually formats the number 1000 to "1,000"
@@ -257,13 +301,22 @@ def format_number(x, floating_point: int = 2) -> str:
 def format_list(l: t.List[Hashable], max_elements_to_show: int = 10, max_string_length: int = 40) -> str:
     """Format columns properties for display in condition name.
 
-    Args:
-        l (List): list to print.
-        max_elements_to_show (int): max elemnts to print before terminating.
-        max_string_length (int): max string length before terminating.
+    Parameters
+    ----------
+    l : List[Hashable]
+        list to print
+    max_elements_to_show : int
+        max elemnts to print before terminating.
+        (Default value = 10)
+    max_string_length : int
+        max string length before terminating.
+        (Default value = 40)
 
-    Return:
+    Returns
+    -------
+    str
         String of beautified list
+
     """
     string_list = [str(i) for i in l[:max_elements_to_show]]
     output = ', '.join(string_list)
@@ -283,13 +336,19 @@ def format_columns_for_condition(
 ) -> str:
     """Format columns properties for display in condition name.
 
-    Args:
-        columns (Union[Hashable, List[Hashable], None]):
-            columns to include into resulting string
-        ignore_columns (Union[Hashable, List[Hashable], None]):
-            columns to not include into resulting string
+    Parameters
+    ----------
+    columns : Union[Hashable, List[Hashable], None]
+        columns to include into resulting string
+        (Default value = None)
+    ignore_columns : Union[Hashable, List[Hashable], None]
+        columns to not include into resulting string
+        (Default value = None)
 
-    Returns: formatted string of columns
+    Returns
+    -------
+    str
+         formatted string of columns
     """
     if columns is not None:
         columns = ensure_hashable_or_mutable_sequence(columns)
@@ -307,15 +366,24 @@ def format_datetime(
 ) -> str:
     """Format datetime object or timestamp value.
 
-    Args:
-        value (Union[datetime, int, float]): datetime (timestamp) to format
-        format (str): format to use
+    Parameters
+    ----------
+    value : Union[datetime, int, float]
+        datetime (timestamp) to format
+        (Default value = '%Y/%m/%d %H:%M:%S.%f %Z%z'  # # 1992/02/13 13:23:00 UTC+0000)
+    format : str
+        format to use
 
-    Returns:
-        str: string representation of the provided value
+    Returns
+    -------
+    str
+        string representation of the provided value
 
-    Raises:
-        ValueError: if unexpected value type was passed to the function
+    Raises
+    ------
+    ValueError
+        if unexpected value type was passed to the function
+
     """
     if isinstance(value, datetime):
         return value.strftime(datetime_format)

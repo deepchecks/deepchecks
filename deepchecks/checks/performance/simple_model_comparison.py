@@ -47,9 +47,9 @@ class SimpleModelComparison(TrainTestBaseCheck):
     ----------
     simple_model_type : str
         Type of the simple model ['random', 'constant', 'tree'].
-            + random - select one of the labels by random.
-            + constant - in regression is mean value, in classification the most common value.
-            + tree - runs a simple decision tree.
+        + random - select one of the labels by random.
+        + constant - in regression is mean value, in classification the most common value.
+        + tree - runs a simple decision tree.
     alternative_scorers : Dict[str, Callable], default None
         An optional dictionary of scorer title to scorer functions/names. If none given, using default scorers.
         For description about scorers see Notes below.
@@ -107,18 +107,27 @@ class SimpleModelComparison(TrainTestBaseCheck):
     ) -> CheckResult:
         """Run check.
 
-        Args:
-            train_dataset (Dataset): The training dataset object. Must contain a label.
-            test_dataset (Dataset): The test dataset object. Must contain a label.
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
+        Parameters
+        ----------
+        train_dataset : Dataset
+            The training dataset object. Must contain a label.
+        test_dataset : Dataset
+            The test dataset object. Must contain a label.
+        model : BaseEstimator
+            A scikit-learn-compatible fitted estimator instance.
 
-        Returns:
-            CheckResult: value is a Dict of: given_model_score, simple_model_score, ratio
-                         ratio is given model / simple model (if the scorer returns negative values we divide 1 by it)
-                         if ratio is infinite max_ratio is returned
+        Returns
+        -------
+        CheckResult
+            value is a Dict of: given_model_score, simple_model_score, ratio
+            ratio is given model / simple model (if the scorer returns negative values we divide 1 by it)
+            if ratio is infinite max_ratio is returned
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance.
+        Raises
+        ------
+        DeepchecksValueError
+            If the object is not a Dataset instance.
+
         """
         Dataset.validate_dataset(train_dataset)
         Dataset.validate_dataset(test_dataset)
@@ -238,14 +247,22 @@ class SimpleModelComparison(TrainTestBaseCheck):
     def _create_simple_model(self, train_ds: Dataset, task_type: ModelType):
         """Create a simple model of given type (random/constant/tree) to the given dataset.
 
-        Args:
-            train_ds (Dataset): The training dataset object.
-            task_type (ModelType): the model type.
-        Returns:
+        Parameters
+        ----------
+        train_ds : Dataset
+            The training dataset object.
+        task_type: ModelType :
+            The model type.
+
+        Returns
+        -------
             Classifier object.
 
-        Raises:
-            NotImplementedError: If the simple_model_type is not supported
+        Raises
+        ------
+        NotImplementedError
+            If the simple_model_type is not supported
+
         """
         np.random.seed(self.random_state)
 
@@ -292,12 +309,19 @@ class SimpleModelComparison(TrainTestBaseCheck):
                                          average: bool = False):
         """Add condition - require minimum allowed gain between the model and the simple model.
 
-        Args:
-            min_allowed_gain (float): Minimum allowed gain between the model and the simple model -
-                gain is: difference in performance / (perfect score - simple score)
-            classes (List[Hashable]): Used in classification models to limit condition only to given classes.
-            average (bool): Used in classification models to flag if to run condition on average of classes, or on
-                each class individually
+        Parameters
+        ----------
+        min_allowed_gain : float
+            Minimum allowed gain between the model and the simple model -
+            gain is: difference in performance / (perfect score - simple score)
+             (Default value = 0.1)
+        classes : List[Hashable]
+            Used in classification models to limit condition only to given classes.
+            (Default value = None)
+        average : bool
+            Used in classification models to flag if to run condition on average of classes, or on
+            each class individually
+            (Default value = False)
         """
         name = f'Model performance gain over simple model must be at least {format_percent(min_allowed_gain)}'
         if classes:

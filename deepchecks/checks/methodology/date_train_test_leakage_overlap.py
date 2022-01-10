@@ -22,18 +22,27 @@ class DateTrainTestLeakageOverlap(TrainTestBaseCheck):
     def run(self, train_dataset: Dataset, test_dataset: Dataset, model=None) -> CheckResult:
         """Run check.
 
-        Arguments:
-            train_dataset (Dataset): The training dataset object. Must contain an date column.
-            test_dataset (Dataset): The test dataset object. Must contain an date column.
-            model: any = None - not used in the check
+        Parameters
+        ----------
+        train_dataset: Dataset
+            The training dataset object. Must contain an date column.
+        test_dataset: Dataset
+            The test dataset object. Must contain an date column.
+        model: any
+            not used in the check.
+            (Default value = None)
 
-        Returns:
-           CheckResult:
-                - value is the ratio of date leakage.
-                - data is html display of the checks' textual result.
+        Returns
+        -------
+        CheckResult
+            value is the ratio of date leakage.
+            data is html display of the checks' textual result.
 
-        Raises:
-            DeepchecksValueError: If one of the datasets is not a Dataset instance with an date
+        Raises
+        ------
+        DeepchecksValueError
+            If one of the datasets is not a Dataset instance with an date
+
         """
         return self._date_train_test_leakage_overlap(train_dataset, test_dataset)
 
@@ -63,8 +72,11 @@ class DateTrainTestLeakageOverlap(TrainTestBaseCheck):
     def add_condition_leakage_ratio_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require leakage ratio to not surpass max_ratio.
 
-        Args:
-            max_ratio (int): Maximum ratio of leakage.
+        Parameters
+        ----------
+        max_ratio : int
+            Maximum ratio of leakage.
+            (Default value = 0)
         """
         def max_ratio_condition(result: float) -> ConditionResult:
             if result > max_ratio:
