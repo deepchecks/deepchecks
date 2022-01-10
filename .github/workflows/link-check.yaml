@@ -44,3 +44,6 @@ jobs:
           fail: true
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      
+      - name: Link Checker Output
+        run: cat /tmp/lychee/out.md
