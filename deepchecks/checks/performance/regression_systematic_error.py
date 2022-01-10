@@ -51,14 +51,19 @@ class RegressionSystematicError(SingleDatasetBaseCheck):
         diff = y_test - y_pred
         diff_mean = diff.mean()
 
-        fig = go.Figure()
-        fig.add_trace(go.Box(
-            x=diff,
-            name='Model prediction error',
-            boxmean=True  # represent mean
-        )).update_layout(
+        fig = (
+            go.Figure()
+            .add_trace(go.Box(
+                x=diff,
+                orientation='h',
+                name='Model prediction error',
+                hoverinfo='x',
+                boxmean=True))
+            .update_layout(
                 title_text='Box plot of the model prediction error',
-                width=800, height=500)
+                width=800,
+                height=500)
+        )
 
         display = [
             'Non-zero mean of the error distribution indicated the presents '
