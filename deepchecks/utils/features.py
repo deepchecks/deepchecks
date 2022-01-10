@@ -45,8 +45,7 @@ N_TOP_MESSAGE = '* showing only the top %s columns, you can change it using n_to
 
 
 def set_feature_importance_timeout(limit: int):
-    """Set max time that permutation importance calculation can take. If it takes more than limit seconds,
-    it will raise DeepchecksTimeoutError.
+    """Set max time that permutation importance calculation can take. Will raise DeepchecksTimeoutError if more.
 
     Args:
         limit (int): time limit value
@@ -56,7 +55,7 @@ def set_feature_importance_timeout(limit: int):
 
 
 def get_feature_importance_timeout() -> int:
-    """Get the max time that prmutaion importance calculation can take."""
+    """Get the max time that permutation importance calculation can take."""
     return _PERMUTATION_IMPORTANCE_TIMEOUT
 
 
