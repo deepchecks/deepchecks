@@ -12,6 +12,7 @@
 import typing as t
 import pandas as pd
 import joblib
+import sklearn
 from urllib.request import urlopen
 from deepchecks import Dataset
 
@@ -188,3 +189,47 @@ def load_fitted_model():
         model = joblib.load(f)
 
     return model
+
+
+class UrlDatasetProcessor:
+    """A custom processing pipeline for the phishing URLs dataset."""
+
+    def _cols_to_scale(self, df: pd.DataFrame) -> t.List[object]:
+        return [
+            i
+            for i, x in df.dtypes.items()
+            if pd.api.types.is_numeric_dtype(x) and i != 'target'
+        ]
+
+    def _shared_preprocess(self, df: pd.DataFrame) -> pd.DataFrame:
+        df = df.copy()
+        df['scrape_date'] = pd.to_datetime(
+            df['scrape_date'], format='%Y-%m-%d')
+        df = df.set_index(keys='scrape_date', drop=True)
+        df = df.drop(['month', 'has_ip', 'urlIsLive'], axis=1)
+        df = pd.get_dummies(df, columns=['ext'])
+        return df
+
+    def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Fit this preprossor on the input dataframe and transform it."""
+        df = self._shared_preprocess(df)
+        self.scaler = sklearn.preprocessing.StandardScaler()
+        self.scale_cols = self._cols_to_scale(df)
+        df[self.scale_cols] = self.scaler.fit_transform(df[self.scale_cols])
+        return df
+
+    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Transform the input dataframe using this fitted preprossor."""
+        df = self._shared_preprocess(df)
+        try:
+            df[self.scale_cols] = self.scaler.transform(df[self.scale_cols])
+            return df
+        except AttributeError as e:
+            raise Exception(
+                'UrlDatasetProcessor is unfitted! Call fit_transform() first!'
+            ) from e
+
+
+def get_url_preprocessor():
+    """Return a data processor object for the phishing URL dataset."""
+    return UrlDatasetProcessor()
