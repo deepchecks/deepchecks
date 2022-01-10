@@ -133,4 +133,4 @@ def test_permutation_importance_with_nan_labels(iris_split_dataset_and_model):
                                                        force_permutation=True)
 
     # Assert
-    assert_that(feature_importances.sum(), equal_to(1))
+    assert_that(feature_importances.sum(), close_to(1, 0.0001))
