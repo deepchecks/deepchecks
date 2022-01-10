@@ -212,7 +212,7 @@ def _calc_importance(
     """
     dataset.validate_label()
 
-    dataset_sample = dataset.sample(n_samples, drop_na_label=True)
+    dataset_sample = dataset.sample(n_samples, drop_na_label=True, random_state=random_state)
 
     # Test score time on the dataset sample
     scorer = get_scorer_single(model, dataset)
