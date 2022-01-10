@@ -120,3 +120,17 @@ def test_no_warning_on_none_model(iris_dataset):
     # Assert
     assert_that(fi, none())
     assert_that(warn_record, has_length(0))
+
+
+def test_permutation_importance_with_nan_labels(iris_split_dataset_and_model):
+    # Arrange
+    train_ds, _, adaboost = iris_split_dataset_and_model
+    train_data = train_ds.data.copy()
+    train_data.loc[train_data['target'] != 2, 'target'] = None
+
+    # Act
+    feature_importances = calculate_feature_importance(adaboost, Dataset(train_data, label='target'),
+                                                       force_permutation=True)
+
+    # Assert
+    assert_that(feature_importances.sum(), equal_to(1))
