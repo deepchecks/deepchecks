@@ -73,7 +73,7 @@ jobs:
           tar -xvzf lychee-v0.8.2-x86_64-unknown-linux-gnu.tar.gz
 
           ./lychee \
-            README.rst FAQ.rst \
+            README.rst FAQ.rst "./docs/build/html/**/*.html" \
             --format markdown \
             --output .lychee.output \
             --exclude-loopback \
