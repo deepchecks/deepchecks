@@ -194,7 +194,7 @@ def _calc_importance(
     n_repeats: int = 30,
     mask_high_variance_features: bool = False,
     random_state: int = 42,
-    n_samples: int = 10000,
+    n_samples: int = 10_000,
 ) -> pd.Series:
     """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal.
 
@@ -212,13 +212,12 @@ def _calc_importance(
     """
     dataset.validate_label()
 
-    n_samples = min(n_samples, dataset.n_samples)
-    dataset_sample_idx = dataset.label_col.sample(n_samples, random_state=random_state).index
+    dataset_sample = dataset.sample(n_samples, drop_na_label=True, random_state=random_state)
 
-    scorer = get_scorer_single(model, dataset, multiclass_avg=False)
-
+    # Test score time on the dataset sample
+    scorer = get_scorer_single(model, dataset)
     start_time = time.time()
-    scorer(model, dataset)
+    scorer(model, dataset_sample)
     calc_time = time.time() - start_time
 
     if calc_time * n_repeats * len(dataset.features) > _PERMUTATION_IMPORTANCE_TIMEOUT:
@@ -227,8 +226,8 @@ def _calc_importance(
 
     r = permutation_importance(
         model,
-        dataset.features_columns.loc[dataset_sample_idx, :],
-        dataset.label_col.loc[dataset_sample_idx],
+        dataset_sample.features_columns,
+        dataset_sample.label_col,
         n_repeats=n_repeats,
         random_state=random_state,
         n_jobs=-1
