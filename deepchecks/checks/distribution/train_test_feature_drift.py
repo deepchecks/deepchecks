@@ -11,7 +11,7 @@
 """Module contains Train Test Drift check."""
 
 from collections import OrderedDict
-from typing import Union, List, Dict, Optional, Hashable
+from typing import Union, List, Dict, Optional
 
 import pandas as pd
 
@@ -19,6 +19,7 @@ from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.errors import DeepchecksValueError
+from deepchecks.utils.typing import Hashable
 
 
 __all__ = ['TrainTestFeatureDrift']
