@@ -12,3 +12,6 @@
 ^https://github\.com/d3/.*$
 ^https://github\.com/mikolalysenko/.*$
 ^https://github\.com/mapbox/.*$
+
+# other
+^https://www\.linkedin\.com/in/rohith-ramakrishnan-54094a1a0.*$
