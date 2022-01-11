@@ -20,9 +20,8 @@ from sklearn.dummy import DummyRegressor, DummyClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
-from deepchecks import CheckResult, Dataset
-from deepchecks.base.check import ConditionResult, TrainTestBaseCheck
-from deepchecks.checks.distribution.preprocessing import ScaledNumerics
+from deepchecks import CheckResult, Dataset, ConditionResult, TrainTestBaseCheck
+from deepchecks.utils.distribution.preprocessing import ScaledNumerics
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
 from deepchecks.errors import DeepchecksValueError
