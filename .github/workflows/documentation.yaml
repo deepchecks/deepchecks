@@ -87,7 +87,6 @@ jobs:
             --exclude-loopback \
             --exclude-mail \
             --no-progress \
-            --verbose \
             --exclude-file docs/.lycheeignore
           
           exit_code=$?
