@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 name: Documentation
 
 on: 
@@ -35,10 +45,10 @@ jobs:
       - name: Link Checker
         uses: lycheeverse/lychee-action@v1.2.0
         with:
-          args: --verbose --base docs/build/html --exclude-file docs/.lycheeignore --exclude-loopback --exclude-mail --no-progress docs/build/html/**/*.html README.rst FAQ.rst
+          args: --verbose --base docs/build/html -o .lychee.out.md --exclude-file docs/.lycheeignore --exclude-loopback --exclude-mail --no-progress docs/build/html/**/*.html README.rst FAQ.rst
           fail: true
         env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Link Checker Output
-        run: cat /tmp/lychee/out.md
+        run: cat .lychee.out.md
