@@ -218,7 +218,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
             max_outliers (int): Number of string length outliers which is the maximum allowed.
         """
         def compare_outlier_count(result: Dict) -> ConditionResult:
-            not_passing_columns = []
+            not_passing_columns = {}
             for column_name in result.keys():
                 column = result[column_name]
                 total_outliers = 0
@@ -226,12 +226,11 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                     total_outliers += outlier['n_samples']
 
                 if total_outliers > max_outliers:
-                    not_passing_columns.append(column_name)
+                    not_passing_columns[column_name] = total_outliers
             if not_passing_columns:
-                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
-                                       f'Found columns with greater than {max_outliers} outliers: '
-                                       f'{not_passing_str}')
+                                       f'Found columns with exceeding number of outliers: '
+                                       f'{not_passing_columns}')
             else:
                 return ConditionResult(True)
 
@@ -247,20 +246,20 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
             max_ratio (int): Maximum allowed string length outliers ratio.
         """
         def compare_outlier_ratio(result: Dict):
-            not_passing_columns = []
+            not_passing_columns = {}
             for column_name in result.keys():
                 column = result[column_name]
                 total_outliers = 0
                 for outlier in column['outliers']:
                     total_outliers += outlier['n_samples']
 
-                if total_outliers/column['n_samples'] > max_ratio:
-                    not_passing_columns.append(column_name)
+                ratio = total_outliers / column['n_samples']
+                if ratio > max_ratio:
+                    not_passing_columns[column_name] = format_percent(ratio)
             if not_passing_columns:
-                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
-                                       f'Found columns with greater than {format_percent(max_ratio)} outliers: '
-                                       f'{not_passing_str}', category=ConditionCategory.WARN)
+                                       f'Found columns with exceeding outliers ratio: '
+                                       f'{not_passing_columns}', category=ConditionCategory.WARN)
             else:
                 return ConditionResult(True)
 

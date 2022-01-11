@@ -209,9 +209,10 @@ def test_condition_count_fail():
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
 
     assert_that(result, has_items(
-        equal_condition_result(is_pass=False,
-                               details='Found columns with more than 10.00% new category samples: col1',
-                               name='Ratio of samples with a new category is not greater than 10.00% for all columns')
+        equal_condition_result(
+            is_pass=False,
+            details='Found columns with exceeding ratio of new category samples: {\'col1\': \'25.00%\'}',
+            name='Ratio of samples with a new category is not greater than 10.00% for all columns')
     ))
 
 

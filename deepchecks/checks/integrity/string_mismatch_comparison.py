@@ -174,7 +174,7 @@ def _condition_percent_limit(result, ratio: float):
             not_passing_columns[col] = format_percent(sum_percent)
 
     if not_passing_columns:
-        details = f'Found columns with variants over ratio: {not_passing_columns}'
+        details = f'Found columns with exceeding ratio of variants: {not_passing_columns}'
         return ConditionResult(False, details)
     return ConditionResult(True)
 

@@ -141,7 +141,7 @@ def test_condition_pass_fail_single_column():
                                name='Rare data types in columns: [\'col1\'] are either more than 40.00% or less '
                                     'than 1.00% of the data',
                                details='Found columns with non-negligible quantities of samples with a different '
-                                       'data type from the majority of samples: col1',
+                                       'data type from the majority of samples: [\'col1\']',
                                category=ConditionCategory.WARN)
     ))
 
@@ -159,7 +159,7 @@ def test_condition_pass_fail_ignore_column():
                                name='Rare data types in all columns ignoring: [\'col2\'] are either more than 40.00% or'
                                     ' less than 1.00% of the data',
                                details='Found columns with non-negligible quantities of samples with a different '
-                                       'data type from the majority of samples: col1',
+                                       'data type from the majority of samples: [\'col1\']',
                                category=ConditionCategory.WARN)
     ))
 

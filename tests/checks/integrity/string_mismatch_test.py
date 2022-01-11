@@ -77,10 +77,11 @@ def test_condition_no_more_than_fail():
     result = check.conditions_decision(check.run(df))
     # Assert
     assert_that(result, has_items(
-        equal_condition_result(is_pass=False,
-                               name='Not more than 2 string variants for all columns',
-                               details='Found columns with variants: {\'col1\': [\'deep\']}',
-                               category=ConditionCategory.WARN)
+        equal_condition_result(
+            is_pass=False,
+            name='Not more than 2 string variants for all columns',
+            details='Found columns with exceeding amount of variants: {\'col1\': [\'deep\']}',
+            category=ConditionCategory.WARN)
     ))
 
 
@@ -107,10 +108,11 @@ def test_condition_no_variants_fail():
     result = check.conditions_decision(check.run(df))
     # Assert
     assert_that(result, has_items(
-        equal_condition_result(is_pass=False,
-                               name='No string variants for all columns',
-                               details='Found columns with variants: {\'col1\': [\'deep\', \'foo\']}',
-                               category=ConditionCategory.WARN)
+        equal_condition_result(
+            is_pass=False,
+            name='No string variants for all columns',
+            details='Found columns with exceeding amount of variants: {\'col1\': [\'deep\', \'foo\']}',
+            category=ConditionCategory.WARN)
     ))
 
 

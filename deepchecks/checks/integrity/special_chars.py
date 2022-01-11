@@ -115,14 +115,14 @@ class SpecialCharacters(SingleDatasetBaseCheck):
                f'than {format_percent(max_ratio)} for {column_names}'
 
         def condition(result):
-            not_passed = []
+            not_passed = {}
             if result:
-                for column_name in result.keys():
-                    if result[column_name] > max_ratio:
-                        not_passed.append(column_name)
+                for column_name, ratio in result.items():
+                    if ratio > max_ratio:
+                        not_passed[column_name] = format_percent(ratio)
 
             if not_passed:
-                return ConditionResult(False, f'Found columns over threshold ratio: {not_passed}',
+                return ConditionResult(False, f'Found columns exceeding ratio: {not_passed}',
                                        category=ConditionCategory.WARN)
             return ConditionResult(True)
 

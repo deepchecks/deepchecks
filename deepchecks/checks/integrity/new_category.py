@@ -173,17 +173,16 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
             max_ratio (int): Number of different categories value types which is the maximum allowed.
         """
         def new_category_count_condition(result: Dict) -> ConditionResult:
-            not_passing_columns = []
+            not_passing_columns = {}
             for column_name in result.keys():
                 column = result[column_name]
                 n_new_samples = column['n_new'] / column['n_total_samples']
                 if n_new_samples > max_ratio:
-                    not_passing_columns.append(column_name)
+                    not_passing_columns[column_name] = format_percent(n_new_samples)
             if not_passing_columns:
-                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
-                                       f'Found columns with more than {format_percent(max_ratio)} new category samples:'
-                                       f' {not_passing_str}')
+                                       f'Found columns with exceeding ratio of new category samples: '
+                                       f'{not_passing_columns}')
             else:
                 return ConditionResult(True)
 

@@ -108,7 +108,7 @@ def test_condition_no_new_variants_fail():
     assert_that(result, equal_condition_result(
         is_pass=False,
         name='No new variants allowed in test data for all columns',
-        details='Found columns with variants over ratio: {\'col1\': \'14.29%\'}'
+        details='Found columns with exceeding ratio of variants: {\'col1\': \'14.29%\'}'
     ))
 
 
@@ -143,7 +143,7 @@ def test_condition_percent_new_variants_fail():
     assert_that(result, equal_condition_result(
         is_pass=False,
         name='Not more than 10.00% new variants in test data for all columns',
-        details='Found columns with variants over ratio: {\'col1\': \'25.00%\'}'
+        details='Found columns with exceeding ratio of variants: {\'col1\': \'25.00%\'}'
     ))
 
 
