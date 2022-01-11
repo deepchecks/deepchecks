@@ -102,7 +102,8 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
 
         def condition(check_result: dict) -> ConditionResult:
             if check_result['Train'] < check_result['Test']:
-                return ConditionResult(False, 'Train dataset is smaller than test dataset')
+                diff = check_result['Test'] - check_result['Train']
+                return ConditionResult(False, f'Train dataset is smaller than test dataset by {diff}')
             else:
                 return ConditionResult(True)
 

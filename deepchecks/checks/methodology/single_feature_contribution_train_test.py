@@ -17,6 +17,7 @@ import deepchecks.ppscore as pps
 from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.plot import colors
 from deepchecks.utils.typing import Hashable
+from deepchecks.utils.strings import format_number
 
 __all__ = ['SingleFeatureContributionTrainTest']
 
@@ -155,21 +156,20 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         """
 
         def condition(value: t.Dict[Hashable, t.Dict[Hashable, float]]) -> ConditionResult:
-            failed_features = [
-                feature_name
+            failed_features = {
+                feature_name: format_number(pps_diff)
                 for feature_name, pps_diff in value['train-test difference'].items()
                 if pps_diff > threshold
-            ]
+            }
 
             if failed_features:
-                message = f'Features with PPS difference above threshold: {", ".join(map(str, failed_features))}'
+                message = f'Features with exceeding PPS difference: {failed_features}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
 
-        return \
-            self.add_condition(f'Train-Test features\' {pps_html_url} (PPS) difference is not greater than {threshold}',
-                               condition)
+        return self.add_condition(f'Train-Test features\' {pps_html_url} (PPS) difference is not greater than '
+                                  f'{format_number(threshold)}', condition)
 
     def add_condition_feature_pps_in_train_not_greater_than(self: FC, threshold: float = 0.7) -> FC:
         """Add new condition.
@@ -181,18 +181,18 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         """
 
         def condition(value: t.Dict[Hashable, t.Dict[Hashable, float]]) -> ConditionResult:
-            failed_features = [
-                feature_name
+            failed_features = {
+                feature_name: format_number(pps_value)
                 for feature_name, pps_value in value['train'].items()
                 if pps_value > threshold
-            ]
+            }
 
             if failed_features:
-                message = f'Features in train dataset with PPS above threshold: {", ".join(map(str, failed_features))}'
+                message = f'Features in train dataset with exceeding PPS: {failed_features}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
 
         return \
-            self.add_condition(f'Train features\' {pps_html_url} (PPS) is not greater than {threshold}',
+            self.add_condition(f'Train features\' {pps_html_url} (PPS) is not greater than {format_number(threshold)}',
                                condition)

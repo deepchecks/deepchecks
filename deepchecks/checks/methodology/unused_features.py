@@ -190,10 +190,11 @@ class UnusedFeatures(TrainTestBaseCheck):
             max_high_variance_unused_features (int): Maximum allowed number of high variance unused features.
         """
         def max_high_variance_unused_features_condition(result: dict) -> ConditionResult:
-            if len(result['unused features']['high variance']) > max_high_variance_unused_features:
+            high_var_features = result['unused features']['high variance']
+            if len(high_var_features) > max_high_variance_unused_features:
                 return ConditionResult(
                     False,
-                    f'Found {result["unused features"]["high variance"]} unused high variance features',
+                    f'Found exceeding number of unused high variance features: {high_var_features}',
                     category=ConditionCategory.WARN)
             else:
                 return ConditionResult(True)

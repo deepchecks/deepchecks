@@ -72,10 +72,10 @@ def test_assert_identifier_leakage_class():
 
 def test_nan():
     df, expected = util_generate_dataframe_and_expected()
-    nan_df = df.append(pd.DataFrame({'x1':[np.nan],
-                                     'x2':[np.nan],
-                                     'x3':[np.nan],
-                                     'label':[0]}))
+    nan_df = df.append(pd.DataFrame({'x1': [np.nan],
+                                     'x2': [np.nan],
+                                     'x3': [np.nan],
+                                     'label': [0]}))
 
     result = IdentifierLeakage().run(dataset=Dataset(nan_df, label='label', datetime_name='x2', index_name='x3'))
     for key, value in result.value.items():
@@ -93,7 +93,7 @@ def test_condition_pps_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Identifier columns do not have a greater pps than 50.00%')
+                               name='Identifier columns PPS is not greater than 0.5')
     ))
 
 
@@ -107,6 +107,6 @@ def test_condition_pps_fail():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found columns with greater pps than 20.00%: x2',
-                               name='Identifier columns do not have a greater pps than 20.00%')
+                               details='Found columns with exceeding PPS: {\'x2\': \'0.42\'}',
+                               name='Identifier columns PPS is not greater than 0.2')
     ))
