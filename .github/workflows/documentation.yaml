@@ -76,13 +76,18 @@ jobs:
           
           tar -xvzf lychee-v0.8.2-x86_64-unknown-linux-gnu.tar.gz
 
+          echo "$GITHUB_TOKEN"
+
           ./lychee \
             README.rst FAQ.rst "./docs/build/html/**/*.html" \
+            --base ./docs/build/html \
+            --accept=200,403,429 \
             --format markdown \
             --output .lychee.output \
             --exclude-loopback \
             --exclude-mail \
             --no-progress \
+            --verbose \
             --exclude-file docs/.lycheeignore
           
           exit_code=$?

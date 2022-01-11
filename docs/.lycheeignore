@@ -2,10 +2,9 @@
 ^.*_static/.*pathto\('_static/.*$
 
 # links within plotly js scripts
-^https://a\.tile\.openstreetmap\.org.*$
-^https://b\.tile\.openstreetmap\.org.*$
-^https://api\.mapbox\.cn/.*$
-^https://stamen-tiles\.a\.ssl\.fastly\.net.*$
+^https://.*\.tile\.openstreetmap\.org.*$
+^https://api\.mapbox.*$
+^https://stamen-tiles.*$
 ^https://events\.mapbox\.cn/events/v2.*$
 ^https://events\.mapbox\.(cn|com)/events/v2.*$
 ^https://cartodb-basemaps-c\.global\.ssl\.fastly\.net.*$
