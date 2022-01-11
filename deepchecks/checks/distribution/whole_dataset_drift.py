@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.checks.distribution.plot import feature_distribution_traces, drift_score_bar_traces
+from deepchecks.utils.distribution.plot import feature_distribution_traces, drift_score_bar_traces
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.utils.typing import Hashable

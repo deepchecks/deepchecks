@@ -15,7 +15,7 @@ from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 
 __all__ = ['TrainTestLabelDrift']
 
-from deepchecks.checks.distribution.dist_utils import calc_drift_and_plot
+from deepchecks.utils.distribution.drift import calc_drift_and_plot
 
 
 class TrainTestLabelDrift(TrainTestBaseCheck):
