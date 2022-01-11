@@ -41,14 +41,47 @@ jobs:
 
       - name: Build docs
         run: make docs
-      
+
+      # NOTE: 
+      #   I was not able to make lycheeverse/lychee-action@v1.2.0 to work, 
+      #   my main problem was that glob patterns (e.g. "./docs/build/html/**/*.html") did not work
+      #   I decided to overcome this with help of a custom script (take a look at the job step below)
+      #
+      # - name: Link Checker
+      #   uses: lycheeverse/lychee-action@v1.2.0
+      #   with:
+      #     args: --exclude-file docs/.lycheeignore --verbose --exclude-loopback --exclude-mail --no-progress ./docs/build/html/**/*.html
+      #     fail: true
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
       - name: Link Checker
-        uses: lycheeverse/lychee-action@v1.2.0
-        with:
-          args: --verbose --base docs/build/html --exclude-file docs/.lycheeignore --exclude-loopback --exclude-mail --no-progress docs/build/html/**/*.html README.rst FAQ.rst
-          fail: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Link Checker Output
-        run: cat .lychee.out.md
+        run: |
+          curl \
+            -L --output lychee-v0.8.2-x86_64-unknown-linux-gnu.tar.gz \
+            https://github.com/lycheeverse/lychee/releases/download/v0.8.2/lychee-v0.8.2-x86_64-unknown-linux-gnu.tar.gz
+          
+          tar -xvzf lychee-v0.8.2-x86_64-unknown-linux-gnu.tar.gz
+
+          ./lychee \
+            README.rst FAQ.rst "./docs/build/html/**/*.html" \
+            --format markdown \
+            --output .lychee.output \
+            --github-token ${GITHUB_TOKEN} \
+            --verbose \
+            --exclude-loopback \
+            --exclude-mail \
+            --no-progress \
+            --exclude-file docs/.lycheeignore
+          
+          exit_code=$?
+          
+          echo
+          echo "===== Lychee Output Report ====="
+          cat .lychee.output
+          echo
+          
+          exit ${exit_code}
+
