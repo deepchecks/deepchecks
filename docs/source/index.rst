@@ -36,7 +36,7 @@ See the :doc:`When Should You Use Section in the User Guide </user-guide/when_sh
 Example - Validating a Model that Classifies Malicious URLs
 ----------------------------------------------------------------
 The :doc:`following use case </examples/use-cases/phishing_urls>` demonstrates how deepchecks can be used throughout the 
-research phase for model and daketa validation, enabling you to efficiently catch issues at different phases.
+research phase for model and data validation, enabling you to efficiently catch issues at different phases.
 
 
 How Does it Work?
