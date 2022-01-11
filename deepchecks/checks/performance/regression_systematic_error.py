@@ -79,12 +79,12 @@ class RegressionSystematicError(SingleDatasetBaseCheck):
         Args:
             max_ratio (float): Maximum ratio
         """
-        def max_bias_condition(result: float) -> ConditionResult:
+        def max_bias_condition(result: dict) -> ConditionResult:
             rmse = result['rmse']
             mean_error = result['mean_error']
-            if abs(mean_error) > max_ratio * rmse:
-                return ConditionResult(False,
-                                       f'mean error: {format_number(mean_error, 5)}, RMSE: {format_number(rmse)}')
+            ratio = abs(mean_error) / rmse
+            if ratio > max_ratio:
+                return ConditionResult(False, f'Found exceeding bias ratio: {format_number(ratio)}')
             else:
                 return ConditionResult(True)
 

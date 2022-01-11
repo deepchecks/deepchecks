@@ -165,7 +165,7 @@ class PerformanceReport(TrainTestBaseCheck):
             not_passed = check_result.loc[check_result['Value'] < min_score]
             not_passed_test = check_result.loc[check_result['Dataset'] == 'Test']
             if len(not_passed):
-                details = f'Scores that did not pass the threshold:<br>' \
+                details = f'Found metrics with subceeding scores:\n' \
                           f'{not_passed_test[["Class", "Metric", "Value"]].to_dict("records")}'
                 return ConditionResult(False, details)
             return ConditionResult(True)
@@ -222,7 +222,7 @@ class PerformanceReport(TrainTestBaseCheck):
                                                   f'train={format_number(train_scores_dict[score_name])}, '
                                                   f'test={format_number(test_scores_dict[score_name])}')
             if explained_failures:
-                message = '<br>'.join(explained_failures)
+                message = '\n'.join(explained_failures)
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
@@ -283,7 +283,7 @@ class PerformanceReport(TrainTestBaseCheck):
                     )
                     datasets_details.append(details)
             if datasets_details:
-                return ConditionResult(False, details='<br>'.join(datasets_details))
+                return ConditionResult(False, details='\n'.join(datasets_details))
             else:
                 return ConditionResult(True)
 

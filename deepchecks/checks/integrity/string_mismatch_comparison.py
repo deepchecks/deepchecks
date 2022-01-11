@@ -153,14 +153,14 @@ class StringMismatchComparison(TrainTestBaseCheck):
         name = f'No new variants allowed in test data for {column_names}'
         return self.add_condition(name, _condition_percent_limit, ratio=0)
 
-    def add_condition_ratio_new_variants_not_more_than(self, ratio: float):
+    def add_condition_ratio_new_variants_not_greater_than(self, ratio: float):
         """Add condition - no new variants allowed above given percentage in test data.
 
         Args:
             ratio (float): Max percentage of new variants in test data allowed.
         """
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        name = f'Not more than {format_percent(ratio)} new variants in test data for {column_names}'
+        name = f'Ratio of new variants in test data is not greater than {format_percent(ratio)} for {column_names}'
         return self.add_condition(name, _condition_percent_limit, ratio=ratio)
 
 

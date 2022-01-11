@@ -14,9 +14,8 @@ from typing import Union, Dict
 import pandas as pd
 
 import deepchecks.ppscore as pps
-from deepchecks import Dataset
-from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
-from deepchecks.utils.strings import format_percent, format_number
+from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck, ConditionResult
+from deepchecks.utils.strings import format_number
 from deepchecks.errors import DeepchecksValueError
 import plotly.express as px
 

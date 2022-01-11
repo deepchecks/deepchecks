@@ -292,26 +292,27 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         """
 
         def condition(result: Dict) -> ConditionResult:
-            fails = []
+            fails = {}
             feature_res = result['feature_segments']
             for feature in feature_res.keys():
                 # If only one segment identified, skip
                 if len(feature_res[feature]) < 2:
                     continue
-                performance_diff = \
-                    abs(feature_res[feature]['segment1']['score'] - feature_res[feature]['segment2']['score']) / \
-                    abs(max(feature_res[feature]['segment1']['score'], feature_res[feature]['segment2']['score']))
+                performance_diff = (
+                    abs(feature_res[feature]['segment1']['score'] - feature_res[feature]['segment2']['score']) /
+                    abs(max(feature_res[feature]['segment1']['score'], feature_res[feature]['segment2']['score'])))
                 if performance_diff > max_ratio_change:
-                    fails.append(feature)
+                    fails[feature] = format_percent(performance_diff)
 
             if fails:
-                msg = f'Change in {result["scorer_name"]} in features: {", ".join(sorted(fails))} exceeds threshold.'
+                sorted_fails = dict(sorted(fails.items(), key=lambda item: item[1]))
+                msg = f'Found exceeding change in {result["scorer_name"]} in features: {sorted_fails}'
                 return ConditionResult(False, msg, category=ConditionCategory.WARN)
             else:
                 return ConditionResult(True, category=ConditionCategory.WARN)
 
-        return self.add_condition(f'The performance of the detected segments must'
-                                  f' not differ by more than {format_percent(max_ratio_change)}', condition)
+        return self.add_condition(f'The performance difference of the detected segments must'
+                                  f' not be greater than {format_percent(max_ratio_change)}', condition)
 
 
 def get_segment_details(model, scorer, dataset: Dataset,

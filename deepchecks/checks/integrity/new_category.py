@@ -148,17 +148,16 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
             max_new (int): Number of different categories value types which is the maximum allowed.
         """
         def condition(result: Dict) -> ConditionResult:
-            not_passing_columns = []
+            not_passing_columns = {}
             for column_name in result.keys():
                 column = result[column_name]
                 num_categories = len(column['new_categories'])
                 if num_categories > max_new:
-                    not_passing_columns.append(column_name)
+                    not_passing_columns[column_name] = num_categories
             if not_passing_columns:
-                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
-                                       f'Found columns with more than {max_new} new categories: '
-                                       f'{not_passing_str}')
+                                       f'Found columns with exceeding number of new categories: '
+                                       f'{not_passing_columns}')
             else:
                 return ConditionResult(True)
 

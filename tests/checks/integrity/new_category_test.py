@@ -171,7 +171,7 @@ def test_condition_categories_fail():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found columns with more than 0 new categories: col1',
+                               details='Found columns with exceeding number of new categories: {\'col1\': 1}',
                                name='Number of new category values is not greater than 0 for all columns')
     ))
 

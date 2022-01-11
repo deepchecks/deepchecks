@@ -126,7 +126,7 @@ class StringMismatch(SingleDatasetBaseCheck):
         name = f'No string variants for {column_names}'
         return self.add_condition(name, _condition_variants_number, num_max_variants=0)
 
-    def add_condition_ratio_variants_not_more_than(self, max_ratio: float = 0.01):
+    def add_condition_ratio_variants_not_greater_than(self, max_ratio: float = 0.01):
         """Add condition - percentage of variants in data is not allowed above given threshold.
 
         Args:
@@ -142,12 +142,12 @@ class StringMismatch(SingleDatasetBaseCheck):
                     not_passing_columns[col] = format_percent(variants_percent_sum)
 
             if not_passing_columns:
-                details = f'Found columns with variants ratio: {not_passing_columns}'
+                details = f'Found columns with exceeding variants ratio: {not_passing_columns}'
                 return ConditionResult(False, details)
             return ConditionResult(True)
 
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        name = f'Not more than {format_percent(max_ratio)} variants for {column_names}'
+        name = f'Ratio of variants is not greater than {format_percent(max_ratio)} for {column_names}'
         return self.add_condition(name, condition, max_ratio=max_ratio)
 
 

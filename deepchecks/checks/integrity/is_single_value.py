@@ -83,7 +83,7 @@ class IsSingleValue(SingleDatasetBaseCheck):
 
         def condition(result):
             if result:
-                return ConditionResult(False, f'Columns containing a single value: {result}')
+                return ConditionResult(False, f'Found columns with a single value: {result}')
             return ConditionResult(True)
 
         return self.add_condition(name, condition)

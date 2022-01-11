@@ -138,7 +138,7 @@ def test_condition_ratio_not_less_than_not_passed(iris_clean):
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='P value is not less than 0.0001',
-                               details='Found columns with low p-value: {\'sepal width (cm)\': \'7.63E-20\', '
+                               details='Found columns with subceeding p-value: {\'sepal width (cm)\': \'7.63E-20\', '
                                        '\'petal length (cm)\': \'2.26E-11\'}'
     )))
 
@@ -172,7 +172,7 @@ def test_condition_ratio_of_change_not_greater_than_not_passed(iris_split_datase
     assert_that(result, equal_condition_result(
             is_pass=False,
             name='Change in ratio of dominant value in data is not greater than 5.00%',
-            details='Found columns with high difference in dominant value %: {\'sepal width (cm)\': \'8.00%\'}'
+            details='Found columns with exceeding difference in dominant value %: {\'sepal width (cm)\': \'8.00%\'}'
     ))
 
 
