@@ -1,5 +1,6 @@
 ^https://www\.googletagmanager\.com/gtm\.js\?id=$
 ^.*_static/.*pathto\('_static/.*$
+^.*split\(n\.wrapSplitCharacter\).*$
 
 # links within plotly js scripts
 ^https://.*\.tile\.openstreetmap\.org.*$
