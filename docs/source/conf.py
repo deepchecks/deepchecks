@@ -69,7 +69,7 @@ extensions = [
     'sphinx_gallery.load_style',
     #
 
-    'sphinx.ext.napoleon',
+    'numpydoc',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.linkcode',
