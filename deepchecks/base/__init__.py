@@ -52,5 +52,5 @@ __all__ = [
     'BaseSuite',
     'Suite',
     'SuiteResult',
-    'ModelComparisonSuite',
+    'ModelComparisonSuite'
 ]

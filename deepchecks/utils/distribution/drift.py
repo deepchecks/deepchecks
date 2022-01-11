@@ -16,32 +16,16 @@ from scipy.stats import wasserstein_distance
 import numpy as np
 import pandas as pd
 
-from sklearn.impute import SimpleImputer
-
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-from deepchecks.checks.distribution.plot import drift_score_bar_traces, feature_distribution_traces
-from deepchecks.checks.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
+from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
+from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 
 PSI_MIN_PERCENTAGE = 0.01
 
 
-__all__ = ['PandasSimpleImputer', 'preprocess_2_cat_cols_to_same_bins', 'psi', 'earth_movers_distance',
-           'calc_drift_and_plot']
-
-
-class PandasSimpleImputer(SimpleImputer):
-    """A wrapper around `SimpleImputer` to return data frames with columns."""
-
-    def fit(self, X, y=None):  # pylint: disable=C0103
-        """Fit the imputer on X and return self."""
-        self.columns = X.columns  # pylint: disable=C0103
-        return super().fit(X, y)  # pylint: disable=C0103
-
-    def transform(self, X):  # pylint: disable=C0103
-        """Transform X using the imputer."""
-        return pd.DataFrame(super().transform(X), columns=self.columns)  # pylint: disable=C0103
+__all__ = ['calc_drift_and_plot']
 
 
 def psi(expected_percents: np.ndarray, actual_percents: np.ndarray):
