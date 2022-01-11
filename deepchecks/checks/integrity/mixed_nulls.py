@@ -159,17 +159,15 @@ class MixedNulls(SingleDatasetBaseCheck):
             max_allowed_null_types (int): Number of different null value types which is the maximum allowed.
         """
         def condition(result: Dict) -> ConditionResult:
-            not_passing_columns = []
+            not_passing_columns = {}
             for column in result.keys():
                 nulls = result[column]
                 num_nulls = len(nulls)
                 if num_nulls > max_allowed_null_types:
-                    not_passing_columns.append(column)
+                    not_passing_columns[column] = num_nulls
             if not_passing_columns:
-                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
-                                       f'Found columns with more than {max_allowed_null_types} null types: '
-                                       f'{not_passing_str}')
+                                       f'Found columns with exceeding amount of null types: {not_passing_columns}')
             else:
                 return ConditionResult(True)
 

@@ -293,10 +293,10 @@ def format_columns_for_condition(
     """
     if columns is not None:
         columns = ensure_hashable_or_mutable_sequence(columns)
-        return f'columns: {",".join(map(str, columns))}'
+        return f'columns: {columns}'
     elif ignore_columns is not None:
         ignore_columns = ensure_hashable_or_mutable_sequence(ignore_columns)
-        return f'all columns ignoring: {",".join(map(str, ignore_columns))}'
+        return f'all columns ignoring: {ignore_columns}'
     else:
         return 'all columns'
 

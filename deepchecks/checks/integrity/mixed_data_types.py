@@ -147,7 +147,7 @@ class MixedDataTypes(SingleDatasetBaseCheck):
                     failing_columns.append(col)
             if failing_columns:
                 details = f'Found columns with non-negligible quantities of samples with a different data type from ' \
-                          f'the majority of samples: {", ".join(map(str, failing_columns))}'
+                          f'the majority of samples: {failing_columns}'
                 return ConditionResult(False, details, category=ConditionCategory.WARN)
             return ConditionResult(True)
 

@@ -18,7 +18,7 @@ import pandas as pd
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, column_importance_sorter_df
-from deepchecks.utils.strings import format_percent
+from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.errors import DeepchecksValueError
 
 
@@ -154,8 +154,8 @@ class DominantFrequencyChange(TrainTestBaseCheck):
                     count_ref = top_ref[value]
                     count_test = top_test.get(value, 0)
                     p_dict[column] = {'Value': value,
-                                      'Train data %': count_ref / baseline_len * 100,
-                                      'Test data %': count_test / test_len * 100,
+                                      'Train data %': count_ref / baseline_len,
+                                      'Test data %': count_test / test_len,
                                       'Train data #': count_ref,
                                       'Test data #': count_test,
                                       'P value': p_val}
@@ -166,8 +166,8 @@ class DominantFrequencyChange(TrainTestBaseCheck):
                     count_test = top_test[value]
                     count_ref = top_ref.get(value, 0)
                     p_dict[column] = {'Value': value,
-                                      'Train data %': count_ref / baseline_len * 100,
-                                      'Test data %': count_test / test_len * 100,
+                                      'Train data %': count_ref / baseline_len,
+                                      'Test data %': count_test / test_len,
                                       'Train data #': count_ref,
                                       'Test data #': count_test,
                                       'P value': p_val}
@@ -197,21 +197,21 @@ class DominantFrequencyChange(TrainTestBaseCheck):
         """
 
         def condition(result: Dict) -> ConditionResult:
-            failed_columns = []
+            failed_columns = {}
             for column, values in result.items():
                 p_val = values['P value']
                 if p_val < p_value_threshold:
-                    failed_columns.append(column)
+                    failed_columns[column] = format_number(p_val)
             if failed_columns:
                 return ConditionResult(False,
                                        f'Found columns with low p-value: {failed_columns}')
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'P value not less than {p_value_threshold}',
+        return self.add_condition(f'P value is not less than {p_value_threshold}',
                                   condition)
 
-    def add_condition_ratio_of_change_not_more_than(self, percent_change_threshold: float = 0.25):
+    def add_condition_ratio_of_change_not_greater_than(self, percent_change_threshold: float = 0.25):
         """Add condition - require change in the ratio of the dominant value to be below the threshold.
 
         Args:
@@ -223,17 +223,17 @@ class DominantFrequencyChange(TrainTestBaseCheck):
                                        f' found {percent_change_threshold}')
 
         def condition(result: Dict) -> ConditionResult:
-            failed_columns = []
+            failed_columns = {}
             for column, values in result.items():
                 diff = values['Test data %'] - values['Train data %']
                 if diff > percent_change_threshold:
-                    failed_columns.append(column)
+                    failed_columns[column] = format_percent(diff, 2)
             if failed_columns:
                 return ConditionResult(False,
-                                       f'Found columns with high change in dominant value: {failed_columns}')
+                                       f'Found columns with high difference in dominant value %: {failed_columns}')
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Change in ratio of dominant value in data not more'
+        return self.add_condition(f'Change in ratio of dominant value in data is not greater'
                                   f' than {format_percent(percent_change_threshold)}',
                                   condition)
