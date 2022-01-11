@@ -52,6 +52,10 @@ jobs:
       #
       #   I decided to overcome this with help of a custom script (take a look at the job step below)
       #
+      #   Also, please take a look at this two related issues in the lychee-action repo
+      #   - https://github.com/lycheeverse/lychee-action/issues/68
+      #   - https://github.com/lycheeverse/lychee-action/issues/67
+      #
       # - name: Link Checker
       #   uses: lycheeverse/lychee-action@v1.2.0
       #   with:
@@ -62,7 +66,7 @@ jobs:
         
       - name: Link Checker
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         run: |
           set -uxo pipefail
           
