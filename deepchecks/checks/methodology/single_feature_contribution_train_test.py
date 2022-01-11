@@ -65,7 +65,7 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         test_dataset: Dataset :
             Thte test dataset
         model :
-             (Default value = None)
+              (Default value = None)
 
         Returns
         -------
@@ -171,7 +171,7 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         ----------
         threshold: float
             train test ps difference upper bound
-            (Default value = 0.2)
+             (Default value = 0.2)
         """
 
         def condition(value: t.Dict[Hashable, t.Dict[Hashable, float]]) -> ConditionResult:
@@ -200,7 +200,7 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         ----------
         threshold: float :
             pps upper bound
-            (Default value = 0.7)
+             (Default value = 0.7)
         """
 
         def condition(value: t.Dict[Hashable, t.Dict[Hashable, float]]) -> ConditionResult:

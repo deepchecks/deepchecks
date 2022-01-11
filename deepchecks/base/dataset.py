@@ -63,7 +63,7 @@ class Dataset:
         set_index_from_dataframe_index: bool
             If set to true, index will be created from the dataframe index instead of dataframe columns (default).
             If index_name is None, first level of the index will be used in case of a multilevel index.
-            (Default value = False)
+             (Default value = False)
         datetime_name: Optional[Hashable])
             Name of the datetime column in the dataframe. If set_datetime_from_dataframe_index is True and datetime_name
             is not None, date will be created from the dataframe index level with the given name. If index levels
@@ -71,29 +71,29 @@ class Dataset:
         set_datetime_from_dataframe_index: bool
             If set to true, date will be created from the dataframe index instead of dataframe columns (default).
             If datetime_name is None, first level of the index will be used in case of a multilevel index.
-            (Default value = False)
+             (Default value = False)
         convert_datetime: bool
             If set to true, date will be converted to datetime using pandas.to_datetime.
-            (Default value = True)
+             (Default value = True)
         datetime_args: Optional[Dict]
             pandas.to_datetime args used for conversion of the datetime column.
             (look at https://pandas.pydata.org/docs/reference/api/pandas.to_datetime.html for more documentation)
         max_categorical_ratio: float
             The max ratio of unique values in a column in order for it to be inferred as a
             categorical feature.
-            (Default value = 0.01)
+             (Default value = 0.01)
         max_categories: int
             The maximum number of categories in a column in order for it to be inferred as a categorical
             feature.
-            (Default value = 30)
+             (Default value = 30)
         max_float_categories: int
             The maximum number of categories in a float column in order for it to be inferred as a
             categorical feature.
-            (Default value = 5)
+             (Default value = 5)
         label_type: str
             Used to assume target model type if not found on model. Values ('classification_label', 'regression_label')
             If None then label type is inferred from label using is_categorical logic.
-            (Default value = None)
+             (Default value = None)
     """
 
     _features: t.List[Hashable]
@@ -310,10 +310,10 @@ class Dataset:
             columns: Sequence[Hashable]
                 names for the columns. If none provided, the names that will be automatically
                 assigned to the columns will be: 1 - n (where n - number of columns)
-                (Default value = None)
+                 (Default value = None)
             label_name: Hashable
                 labels column name. If none is provided, the name 'target' will be used.
-                (Default value = None)
+                 (Default value = None)
             **kwargs:
                 additional arguments that will be passed to the main Dataset constructor.
 
@@ -448,13 +448,13 @@ class Dataset:
                 Number of samples to draw.
             replace: bool
                 Whether to sample with replacement.
-                (Default value = False)
+                 (Default value = False)
             random_state: int
                 Random state.
-                (Default value = None)
+                 (Default value = None)
             drop_na_label: bool
                 Whether to take sample only from rows with exiting label.
-                (Default value = False)
+                 (Default value = False)
         Returns
         -------
             Dataset
@@ -506,17 +506,17 @@ class Dataset:
             train_size: Union[int, float, None]
                 If float, should be between 0.0 and 1.0 and represent the proportion of the dataset to include in
                 the train split. If int, represents the absolute number of train samples. If None, the value is
-                automatically set to the complement of the test size.(Default value = None)
+                automatically set to the complement of the test size. (Default value = None)
             test_size: Union[int, float, None]
                 If float, should be between 0.0 and 1.0 and represent the proportion of the dataset to include in the
-                test split. If int, represents the absolute number of test samples. (Default value = 0.25)
+                test split. If int, represents the absolute number of test samples.  (Default value = 0.25)
             random_state: int
-                The random state to use for shuffling. (Default value = 42)
+                The random state to use for shuffling.  (Default value = 42)
             shuffle: bool
-                Whether or not to shuffle the data before splitting. (Default value = True)
+                Whether or not to shuffle the data before splitting.  (Default value = True)
             stratify: Union[t.List, pd.Series, np.ndarray, bool]
                 If True, data is split in a stratified fashion, using the class labels. If array-like, data is split in
-                a stratified fashion, using this as class labels. (Default value = False)
+                a stratified fashion, using this as class labels.  (Default value = False)
         Returns
         -------
             Tuple[Dataset, Dataset]

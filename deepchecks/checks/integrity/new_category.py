@@ -60,7 +60,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
         test_dataset : Dataset
             The test dataset object.
         model :
-             not used in the check (Default value = None).
+             not used in the check  (Default value = None).
 
         Returns
         -------
@@ -165,7 +165,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
         Parameters
         ----------
         max_new : int
-            (Default value = 0) Number of different categories value types which is the maximum allowed.
+             (Default value = 0) Number of different categories value types which is the maximum allowed.
         """
         def condition(result: Dict) -> ConditionResult:
             not_passing_columns = []
@@ -192,7 +192,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
         Parameters
         ----------
         max_ratio : int
-            (Default value = 0) Number of different categories value types which is the maximum allowed.
+             (Default value = 0) Number of different categories value types which is the maximum allowed.
         """
         def new_category_count_condition(result: Dict) -> ConditionResult:
             not_passing_columns = []

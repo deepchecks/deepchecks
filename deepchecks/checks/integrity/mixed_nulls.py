@@ -174,7 +174,7 @@ class MixedNulls(SingleDatasetBaseCheck):
         Parameters
         ----------
         max_allowed_null_types : int
-            (Default value = 1)
+             (Default value = 1)
             Number of different null value types which is the maximum allowed.
         """
         def condition(result: Dict) -> ConditionResult:

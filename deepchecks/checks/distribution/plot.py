@@ -103,9 +103,9 @@ def feature_distribution_traces(train_column,
     max_num_categories : int
         Maximum number of categories to show in plot (default: 10).
     is_categorical: bool :
-         (Default value = False)
+          (Default value = False)
     max_num_categories: int :
-         (Default value = 10)
+          (Default value = 10)
 
     Returns
     -------

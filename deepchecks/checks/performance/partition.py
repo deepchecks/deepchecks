@@ -104,7 +104,7 @@ def partition_column(
         maximum number of segments to split into.
     max_cat_proportions : float
         (for categorical) ratio to aggregate largest values to show.
-         (Default value = 0.9)
+          (Default value = 0.9)
     """
     column = dataset.data[column_name]
     if column_name not in dataset.cat_features:

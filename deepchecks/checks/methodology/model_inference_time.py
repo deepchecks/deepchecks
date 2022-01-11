@@ -102,7 +102,7 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
         ----------
         value :
             condition threshold
-            (Default value = 0.001)
+             (Default value = 0.001)
         """
         def condition(avarage_time: float) -> ConditionResult:
             if avarage_time >= value:

@@ -48,7 +48,7 @@ def get_random_string(n: int = 5):
     ----------
     n: int :
         the size of the string to return.
-        (Default value = 5)
+         (Default value = 5)
 
     Returns
     -------
@@ -193,7 +193,7 @@ def split_by_order(s: str, separators: t.Iterable[str], keep: bool = True) -> t.
         list of substrings to split by
     keep : bool
         whether to keep the separators in list as well. Default is True.
-        (Default value = True)
+         (Default value = True)
 
     Returns
     -------
@@ -229,7 +229,7 @@ def format_percent(ratio: float, floating_point: int = 2) -> str:
         Ratio to be displayed as percent
     floating_point : int
         Number of floating points to display
-         (Default value = 2)
+          (Default value = 2)
 
     Returns
     -------
@@ -269,7 +269,7 @@ def format_number(x, floating_point: int = 2) -> str:
         Number to be displayed
     floating_point : int
         Number of floating points to display
-         (Default value = 2)
+          (Default value = 2)
 
     Returns
     -------
@@ -307,10 +307,10 @@ def format_list(l: t.List[Hashable], max_elements_to_show: int = 10, max_string_
         list to print
     max_elements_to_show : int
         max elemnts to print before terminating.
-        (Default value = 10)
+         (Default value = 10)
     max_string_length : int
         max string length before terminating.
-        (Default value = 40)
+         (Default value = 40)
 
     Returns
     -------
@@ -340,10 +340,10 @@ def format_columns_for_condition(
     ----------
     columns : Union[Hashable, List[Hashable], None]
         columns to include into resulting string
-        (Default value = None)
+         (Default value = None)
     ignore_columns : Union[Hashable, List[Hashable], None]
         columns to not include into resulting string
-        (Default value = None)
+         (Default value = None)
 
     Returns
     -------
@@ -370,7 +370,7 @@ def format_datetime(
     ----------
     value : Union[datetime, int, float]
         datetime (timestamp) to format
-        (Default value = '%Y/%m/%d %H:%M:%S.%f %Z%z'  # # 1992/02/13 13:23:00 UTC+0000)
+         (Default value = '%Y/%m/%d %H:%M:%S.%f %Z%z'  # # 1992/02/13 13:23:00 UTC+0000)
     format : str
         format to use
 

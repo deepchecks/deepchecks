@@ -70,7 +70,7 @@ def display_conditions_table(check_results: Union['check.CheckResult', List['che
         check results to show conditions of.
     unique_id : str
         the unique id to append for the check names to create links
-        (won't create links if None/empty). (Default value = None)
+        (won't create links if None/empty).  (Default value = None)
     """
     if not isinstance(check_results, List):
         show_check_column = False

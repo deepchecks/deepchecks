@@ -40,7 +40,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
     ppscore_params : dict
         dictionary of additional parameters for the ppscore.predictors function
     n_show_top: int
-        Number of top feature importance to show (Default value = 5).
+        Number of top feature importance to show  (Default value = 5).
 
     """
 
@@ -57,7 +57,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         dataset: Dataset
             The dataset object
         model: any
-            (Default value = None)
+             (Default value = None)
 
         Returns
         -------
@@ -105,7 +105,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         Parameters
         ----------
         threshold: float
-            pps upper bound (Default value = 0.8)
+            pps upper bound  (Default value = 0.8)
         """
         def condition(value: t.Dict[Hashable, float]) -> ConditionResult:
             failed_features = [

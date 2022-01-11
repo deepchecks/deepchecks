@@ -19,3 +19,4 @@ Classes Summary
     check
     dataset
     suite
+    condition

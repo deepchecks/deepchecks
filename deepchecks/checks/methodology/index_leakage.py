@@ -42,7 +42,7 @@ class IndexTrainTestLeakage(TrainTestBaseCheck):
         test_dataset: Dataset
             The test dataset object. Must contain an index.
         model: any
-            not used in this check. (Default value = None)
+            not used in this check.  (Default value = None)
 
         Returns
         -------
@@ -87,7 +87,7 @@ class IndexTrainTestLeakage(TrainTestBaseCheck):
         ----------
         max_ratio : float
             Maximum ratio of index leakage.
-            (Default value = 0)
+             (Default value = 0)
         """
         def max_ratio_condition(result: float) -> ConditionResult:
             if result > max_ratio:

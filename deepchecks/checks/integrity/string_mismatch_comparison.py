@@ -75,7 +75,7 @@ class StringMismatchComparison(TrainTestBaseCheck):
         test_dataset : Dataset
             The test dataset object.
         model :
-            Not used in this check. (Default value = None)
+            Not used in this check.  (Default value = None)
 
         Returns
         -------

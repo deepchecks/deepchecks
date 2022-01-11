@@ -107,7 +107,7 @@ class NewLabelTrainTest(TrainTestBaseCheck):
         Parameters
         ----------
         max_new : int
-            (Default value = 0) Number of different new labels value types which is the maximum allowed.
+             (Default value = 0) Number of different new labels value types which is the maximum allowed.
         """
         def condition(result: Dict) -> ConditionResult:
             if result:
@@ -127,7 +127,7 @@ class NewLabelTrainTest(TrainTestBaseCheck):
         Parameters
         ----------
         max_ratio : int
-            (Default value = 0) Ratio of new label samples to total samples which is the maximum allowed.
+             (Default value = 0) Ratio of new label samples to total samples which is the maximum allowed.
         """
         def new_category_count_condition(result: Dict) -> ConditionResult:
             if result:

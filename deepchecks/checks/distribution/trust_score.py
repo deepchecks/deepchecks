@@ -193,10 +193,10 @@ class TrustScore:
         Y : np.ndarray
             Either prediction probabilities for each class or the predicted class.
         k : int
-            (Default value = 2)
+             (Default value = 2)
             Number of nearest neighbors used for distance calculation.
         dist_type : str
-            (Default value = 'point')
+             (Default value = 'point')
             Use either the distance to the k-nearest point (dist_type = 'point') or the average
             distance from the first to the k-nearest point in the data (dist_type = 'mean').
 

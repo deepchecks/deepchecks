@@ -89,13 +89,13 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         Represent the format of the returned value. Can be 'Dataset'|'Dataframe'
         'Dataset' will return the data as a Dataset object
         'Dataframe' will return the data as a pandas Dataframe object
-        (Default value = 'Dataset')
+         (Default value = 'Dataset')
     as_train_test : bool
         If True, the returned data is splitted into train and test exactly like the toy model
         was trained. The first return value is the train data and the second is the test data.
         In order to get this model, call the load_fitted_model() function.
         Otherwise, returns a single object.
-        (Default value = True)
+         (Default value = True)
 
     Returns
     -------
@@ -128,7 +128,8 @@ def load_fitted_model():
 
     Returns
     -------
-        model (Joblib model) the model/pipeline that was trained on the iris dataset.
+        model:
+            the model/pipeline that was trained on the iris dataset.
 
     """
     with urlopen(_MODEL_URL) as f:

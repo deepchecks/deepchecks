@@ -34,7 +34,7 @@ def validate_columns_exist(
          Column names to check
     raise_error: bool
         whether to raise an error if some column is not present in the dataframe or not
-        (Default value = True)
+         (Default value = True)
 
     Raises
     ------
@@ -74,9 +74,9 @@ def select_from_dataframe(
     Parameters
     ----------
     columns : Union[Hashable, List[Hashable], None]
-        Column names to keep. (Default value = None)
+        Column names to keep.  (Default value = None)
     ignore_columns : Union[Hashable, List[Hashable], None]
-        Column names to drop.  (Default value = None)
+        Column names to drop.   (Default value = None)
     df: pd.DataFrame :
         The dataframe
 

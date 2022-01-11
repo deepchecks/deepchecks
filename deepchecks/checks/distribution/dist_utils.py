@@ -124,7 +124,7 @@ def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, plot_ti
     column_type: str
         type of column (either "numerical" or "categorical")
     max_num_categories: int
-        (Default value = 10)
+         (Default value = 10)
         Max number of allowed categories. If there are more, they are binned into an "Other"
         category.
 

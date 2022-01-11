@@ -125,7 +125,7 @@ class BoostingOverfit(TrainTestBaseCheck):
         test_dataset : Dataset
 
         model :
-            Boosting model. (Default value = None)
+            Boosting model.  (Default value = None)
 
         Returns
         -------
@@ -189,7 +189,7 @@ class BoostingOverfit(TrainTestBaseCheck):
         ----------
         threshold : float
             Maximum percentage decline allowed (value 0 and above)
-            (Default value = 0.05)
+             (Default value = 0.05)
         """
         def condition(result: dict):
             max_score = max(result['test'])

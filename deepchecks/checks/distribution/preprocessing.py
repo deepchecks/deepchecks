@@ -99,7 +99,7 @@ class ScaledNumerics(TransformerMixin, BaseEstimator):
         X :
 
         y :
-             (Default value = None)
+              (Default value = None)
         **fit_params :
 
         """

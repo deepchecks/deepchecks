@@ -150,7 +150,7 @@ class Suite(BaseSuite):
             representing data an estimator predicts on
         model: any
             A scikit-learn-compatible fitted estimator instance
-            (Default value = None)
+             (Default value = None)
 
         Returns
         -------

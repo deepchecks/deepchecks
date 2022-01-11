@@ -53,7 +53,7 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
         test_dataset : Dataset
             The test dataset object.
         model :
-            not used in this check. (Default value = None)
+            not used in this check.  (Default value = None)
 
         Returns
         -------
@@ -124,10 +124,10 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
         Parameters
         ----------
         max_allowed_psi_score: float
-            (Default value = 0.2)
+             (Default value = 0.2)
             the max threshold for the PSI score
         max_allowed_earth_movers_score: float
-            (Default value = 0.1)
+             (Default value = 0.1)
             the max threshold for the Earth Mover's Distance score
 
         Returns

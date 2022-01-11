@@ -74,12 +74,12 @@ class UnusedFeatures(TrainTestBaseCheck):
         train_dataset : Dataset
             The training dataset object. Must contain a label column. If test_dataset is not
             supplied this dataset will be used.
-            (Default value = None)
+             (Default value = None)
         test_dataset : Dataset
             The test dataset object. Must contain a label column. Will be used if supplied.
-            (Default value = None)
+             (Default value = None)
         model :
-            A scikit-learn-compatible fitted estimator instance. (Default value = None)
+            A scikit-learn-compatible fitted estimator instance.  (Default value = None)
 
         Returns
         -------
@@ -205,7 +205,7 @@ class UnusedFeatures(TrainTestBaseCheck):
         Parameters
         ----------
         max_high_variance_unused_features: int
-            Maximum allowed number of high variance unused features. (Default value = 5)
+            Maximum allowed number of high variance unused features.  (Default value = 5)
         """
         def max_high_variance_unused_features_condition(result: dict) -> ConditionResult:
             if len(result['unused features']['high variance']) > max_high_variance_unused_features:

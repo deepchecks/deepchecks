@@ -31,10 +31,10 @@ class DominantFrequencyChange(TrainTestBaseCheck):
     Parameters
     ----------
     dominance_ratio : float
-        (Default value = 2)
+         (Default value = 2)
         Next most abundant value has to be THIS times less than the first (0-inf).
     ratio_change_thres : float
-        (Default value = 1.5)
+         (Default value = 1.5)
         The dominant frequency has to change by at least this ratio (0-inf).
     n_top_columns : int
         (optional - used only if model was specified)
@@ -63,7 +63,7 @@ class DominantFrequencyChange(TrainTestBaseCheck):
         test_dataset : Union[Dataset, pd.DataFrame]
             The test dataset object. Must contain an index.
         model :
-             (Default value = None)
+              (Default value = None)
 
         Returns
         -------
@@ -221,7 +221,7 @@ class DominantFrequencyChange(TrainTestBaseCheck):
         Parameters
         ----------
         p_value_threshold : float
-            (Default value = 0.0001)
+             (Default value = 0.0001)
             Minimal p-value to pass the statistical test determining
             if the value abundance has changed significantly (0-1).
         """
@@ -247,7 +247,7 @@ class DominantFrequencyChange(TrainTestBaseCheck):
         Parameters
         ----------
         percent_change_threshold : float
-            (Default value = 0.25)
+             (Default value = 0.25)
             The maximal change in the ratio out of data between training data and
             test data that the dominant value is allowed to change
         """

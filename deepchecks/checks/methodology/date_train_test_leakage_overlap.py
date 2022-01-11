@@ -30,7 +30,7 @@ class DateTrainTestLeakageOverlap(TrainTestBaseCheck):
             The test dataset object. Must contain an date column.
         model: any
             not used in the check.
-            (Default value = None)
+             (Default value = None)
 
         Returns
         -------
@@ -76,7 +76,7 @@ class DateTrainTestLeakageOverlap(TrainTestBaseCheck):
         ----------
         max_ratio : int
             Maximum ratio of leakage.
-            (Default value = 0)
+             (Default value = 0)
         """
         def max_ratio_condition(result: float) -> ConditionResult:
             if result > max_ratio:

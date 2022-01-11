@@ -81,7 +81,7 @@ class SpecialCharacters(SingleDatasetBaseCheck):
             a Dataset or a DataFrame object.
 
         feature_importances: pd.Series :
-             (Default value = None)
+              (Default value = None)
 
         Returns
         -------
@@ -125,7 +125,7 @@ class SpecialCharacters(SingleDatasetBaseCheck):
         Parameters
         ----------
         max_ratio : float
-            (Default value = 0.001) Maximum ratio allowed.
+             (Default value = 0.001) Maximum ratio allowed.
         """
         column_names = format_columns_for_condition(self.columns, self.ignore_columns)
         name = f'Ratio of entirely special character samples not greater '\

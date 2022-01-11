@@ -78,10 +78,10 @@ def calculate_feature_importance_or_none(
         dataset used to fit the model
     force_permutation : bool
         force permutation importance calculation
-        (Default value = False)
+         (Default value = False)
     permutation_kwargs : Optional[Dict[str, Any]
         kwargs for permutation importance calculation
-        (Default value = None)
+         (Default value = None)
 
     Returns
     -------
@@ -125,10 +125,10 @@ def calculate_feature_importance(
         dataset used to fit the model
     force_permutation : bool
         force permutation importance calculation
-        (Default value = False)
+         (Default value = False)
     permutation_kwargs : Optional[Dict[str, Any]
         kwargs for permutation importance calculation
-        (Default value = None)
+         (Default value = None)
 
     Returns
     -------
@@ -220,17 +220,17 @@ def _calc_importance(
         dataset used to fit the model
     n_repeats : int
         Number of times to permute a feature
-        (Default value = 30)
+         (Default value = 30)
     mask_high_variance_features : bool
         If true, features for which calculated permutation importance values
         varied greatly would be returned has having 0 feature importance
-        (Default value = False)
+         (Default value = False)
     random_state : int
         Random seed for permutation importance calculation.
-        (Default value = 42)
+         (Default value = 42)
     n_samples : int
         The number of samples to draw from X to compute feature importance
-        (Default value = 10000)
+         (Default value = 10000)
 
     Returns
     -------
@@ -300,11 +300,11 @@ def column_importance_sorter_dict(
         dataset used to fit the model
     feature_importances: t.Optional[pd.Series]
         feature importance normalized to 0-1 indexed by feature names
-         (Default value = None)
+          (Default value = None)
     n_top: int
         amount of columns to show ordered by feature importance (date, index, label are first);
         is used only if model was specified
-         (Default value = 10)
+          (Default value = 10)
 
     Returns
     -------
@@ -347,10 +347,10 @@ def column_importance_sorter_df(
         feature importance normalized to 0-1 indexed by feature names
     n_top: int
         amount of columns to show ordered by feature importance (date, index, label are first)
-         (Default value = 10)
+          (Default value = 10)
     col: t.Optional[Hashable]
         name of column to sort the dataframe by
-         (Default value = None)
+          (Default value = None)
 
     Returns
     -------

@@ -285,7 +285,7 @@ def get_scorers_list(
         alternative_scorers: Dict[str, Callable]
             Optional dictionary of sklearn scorers to use instead of default list
         multiclass_avg: bool
-            (Default value = True)
+             (Default value = True)
 
     Returns
     -------

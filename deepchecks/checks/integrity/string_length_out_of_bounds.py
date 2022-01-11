@@ -210,7 +210,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         Parameters
         ----------
         max_outliers : int
-            (Default value = 0) Number of string length outliers which is the maximum allowed.
+             (Default value = 0) Number of string length outliers which is the maximum allowed.
         """
         def compare_outlier_count(result: Dict) -> ConditionResult:
             not_passing_columns = []
@@ -241,7 +241,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         Parameters
         ----------
         max_ratio : int
-            (Default value = 0) Maximum allowed string length outliers ratio.
+             (Default value = 0) Maximum allowed string length outliers ratio.
         """
         def compare_outlier_ratio(result: Dict):
             not_passing_columns = []
@@ -276,9 +276,9 @@ def outlier_on_percentile_histogram(percentile_histogram: Dict[float, float], iq
     percentile_histogram : Dict[float, float]
         histogram to search for outliers in shape [0.0-100.0]->[float]
     iqr_percent : float
-        I(Default value = 85) nterquartile range upper percentage, start searching for outliers outside IQR.
+        I (Default value = 85) nterquartile range upper percentage, start searching for outliers outside IQR.
     outlier_factor : float
-        (Default value = 5) a factor to consider outlier.
+         (Default value = 5) a factor to consider outlier.
 
     Returns
     -------

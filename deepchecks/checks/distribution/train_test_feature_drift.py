@@ -83,7 +83,7 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         test_dataset : Dataset
             The test dataset object.
         model :
-            A scikit-learn-compatible fitted estimator instance (Default value = None)
+            A scikit-learn-compatible fitted estimator instance  (Default value = None)
 
         Returns
         -------
@@ -116,7 +116,7 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         test_dataset : Dataset
             The test dataset object.
         feature_importances: Optional[pd.Series] :
-             (Default value = None)
+              (Default value = None)
 
         Returns
         -------
@@ -188,13 +188,13 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         Parameters
         ----------
         max_allowed_psi_score: float
-            (Default value = 0.2)
+             (Default value = 0.2)
             the max threshold for the PSI score
         max_allowed_earth_movers_score: float
-            (Default value = 0.1)
+             (Default value = 0.1)
             the max threshold for the Earth Mover's Distance score
         number_of_top_features_to_consider: int
-            (Default value = 5)
+             (Default value = 5)
             the number of top features for which exceed the threshold will fail the
             condition.
 

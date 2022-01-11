@@ -84,7 +84,7 @@ class RegressionSystematicError(SingleDatasetBaseCheck):
         ----------
         max_ratio : float
             Maximum ratio
-             (Default value = 0.01)
+              (Default value = 0.01)
         """
         def max_bias_condition(result: float) -> ConditionResult:
             rmse = result['rmse']

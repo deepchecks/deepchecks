@@ -34,11 +34,14 @@ class DataDuplicates(SingleDatasetBaseCheck):
     columns : Union[Hashable, Iterable[Hashable], None]
         List of columns to check, if none given checks
         all columns Except ignored ones.
+         (Default value = None)
     ignore_columns : Union[Hashable, Iterable[Hashable], None]
         List of columns to ignore, if none given checks
         based on columns variable.
+         (Default value = None)
     n_to_show : int
         number of most common duplicated samples to show.
+         (Default value = 5)
     """
 
     def __init__(
@@ -124,7 +127,7 @@ class DataDuplicates(SingleDatasetBaseCheck):
         Parameters
         ----------
         max_ratio : float
-            (Default value = 0)
+             (Default value = 0)
             Maximum ratio of duplicates.
         """
         def max_ratio_condition(result: float) -> ConditionResult:

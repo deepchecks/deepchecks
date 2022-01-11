@@ -136,7 +136,7 @@ class RocReport(SingleDatasetBaseCheck):
         ----------
         min_auc : float
             Max allowed AUC score per class.
-             (Default value = 0.7)
+              (Default value = 0.7)
 
         """
         def condition(result: Dict) -> ConditionResult:

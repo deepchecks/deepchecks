@@ -119,7 +119,7 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
         Parameters
         ----------
         max_ratio : float
-            Maximum ratio of samples with multiple labels. (Default value = 0)
+            Maximum ratio of samples with multiple labels.  (Default value = 0)
         """
         def max_ratio_condition(result: float) -> ConditionResult:
             if result > max_ratio:

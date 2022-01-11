@@ -46,25 +46,31 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
     Parameters
     ----------
         max_features_to_show: int
-            maximal number of features to show error distribution for. (Default value = 3)
+            maximal number of features to show error distribution for.
+             (Default value = 3)
         min_feature_contribution: float
             minimum feature importance of a feature to the error regression model
-            in order to show the feature. (Default value = 0.15)
-        min_error_model_score: float:
+            in order to show the feature.
+             (Default value = 0.15)
+        min_error_model_score: float
             minimum r^2 score of the error regression model for displaying the check.
-            (Default value = 0.5)
-        min_segment_size: float minimal fraction of data that can comprise a weak segment.
-            (Default value = 0.1)
+             (Default value = 0.5)
+        min_segment_size: float
+            minimal fraction of data that can comprise a weak segment.
+             (Default value = 0.1)
         alternative_scorer: Dict[str, Callable]
             An optional dictionary of scorer name to scorer function. Only a single entry is allowed in this check.
             If none given, using default scorer.
-            (Default value = None)
+             (Default value = None)
         n_samples: int
-            number of samples to use for this check. (Default value = 50000)
+            number of samples to use for this check.
+             (Default value = 50000)
         n_display_samples: int
-            number of samples to display in scatter plot. (Default value = 5000)
+            number of samples to display in scatter plot.
+             (Default value = 5000)
         random_seed: int
-            random seed for all check internals. Default value = 42)
+            random seed for all check internals.
+             (Default value = 42)
 
     Notes
     -----
@@ -134,7 +140,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         test_dataset : Dataset
             The test dataset object. Must contain a label.
         model : BaseEstimator
-            A scikit-learn-compatible fitted estimator instance. (Default value = None)
+            A scikit-learn-compatible fitted estimator instance.  (Default value = None)
         """
         # Validations
         Dataset.validate_dataset(train_dataset)
@@ -304,7 +310,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         ----------
         max_ratio_change : float
             maximal ratio of change between the two segments' performance.
-            (Default value = 0.05)
+             (Default value = 0.05)
         """
 
         def condition(result: Dict) -> ConditionResult:

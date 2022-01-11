@@ -53,11 +53,11 @@ class CheckResult:
 
     Parameters
     ----------
-    value: any
+    value
         Value calculated by check. Can be used to decide if decidable check passed.
     header: str
         Header to be displayed in python notebook.
-        (Default value = None)
+         (Default value = None)
     display: List
          Objects to be displayed (dataframe or function or html)
     """
@@ -227,12 +227,12 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
         Parameters
         ----------
-        name: str :
+        name: str
             Name of the condition. should explain the condition action and parameters
         condition_func: Callable[[Any], Union[ConditionResult, bool]]
             Function which gets the value of the
             check and returns object of List[ConditionResult] or boolean.
-        **params: any
+        **params
             Additional parameters to pass when calling the condition function.
         """
         cond = Condition(name, condition_func, params)

@@ -34,10 +34,10 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
     ----------
     n_top_samples : int
         amount of samples to show which have the largest under / over estimation errors.
-        (Default value = 3)
+         (Default value = 3)
     n_bins : int
         number of bins to use for the histogram.
-        (Default value = 40)
+         (Default value = 40)
     """
 
     def __init__(self, n_top_samples: int = 3, n_bins: int = 40):
@@ -112,7 +112,7 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         ----------
         min_kurtosis : float
             Minimal kurtosis.
-            (Default value = -0.1)
+             (Default value = -0.1)
         """
         def min_kurtosis_condition(result: float) -> ConditionResult:
             if result < min_kurtosis:

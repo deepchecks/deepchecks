@@ -138,7 +138,7 @@ class StringMismatch(SingleDatasetBaseCheck):
         Parameters
         ----------
         max_ratio : float
-            (Default value = 0.01) Maximum percent of variants allowed in data.
+             (Default value = 0.01) Maximum percent of variants allowed in data.
         """
         def condition(result, max_ratio: float):
             not_passing_columns = {}

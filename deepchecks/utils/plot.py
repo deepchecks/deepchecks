@@ -44,7 +44,7 @@ def create_colorbar_barchart_for_check(
         array containing y axis data.
     ylabel : str
         Name of y axis
-        (Default value = 'Result')
+         (Default value = 'Result')
     xlabel : str
         Name of x axis (Default value='Features')
     color_map : str

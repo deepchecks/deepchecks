@@ -34,7 +34,7 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
             test dataset
         model : object
             a scikit-learn-compatible fitted estimator instance
-            (Default value = None)
+             (Default value = None)
 
         Returns
         -------
@@ -66,7 +66,7 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
         ----------
         value : int
             minimal allowed test dataset size.
-            (Default value = 100)
+             (Default value = 100)
 
         Returns
         -------
@@ -92,7 +92,7 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
         ----------
         ratio: float
             minimal allowed test-train ratio.
-             (Default value = 0.01)
+              (Default value = 0.01)
 
         Returns
         -------

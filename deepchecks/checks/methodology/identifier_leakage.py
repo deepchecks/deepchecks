@@ -118,7 +118,7 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
         ----------
         max_pps : int
             Maximum allowed string length outliers ratio.
-            (Default value = 0)
+             (Default value = 0)
         """
         def compare_pps(result: Dict):
             not_passing_columns = []

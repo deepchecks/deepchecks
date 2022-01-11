@@ -50,9 +50,10 @@ class SimpleModelComparison(TrainTestBaseCheck):
         + random - select one of the labels by random.
         + constant - in regression is mean value, in classification the most common value.
         + tree - runs a simple decision tree.
-    alternative_scorers : Dict[str, Callable], default None
+    alternative_scorers : Dict[str, Callable]
         An optional dictionary of scorer title to scorer functions/names. If none given, using default scorers.
         For description about scorers see Notes below.
+         (Default value = None)
     max_gain : float
         the maximum value for the gain value, limits from both sides [-max_gain, max_gain]
     max_depth : int
@@ -314,14 +315,14 @@ class SimpleModelComparison(TrainTestBaseCheck):
         min_allowed_gain : float
             Minimum allowed gain between the model and the simple model -
             gain is: difference in performance / (perfect score - simple score)
-             (Default value = 0.1)
+              (Default value = 0.1)
         classes : List[Hashable]
             Used in classification models to limit condition only to given classes.
-            (Default value = None)
+             (Default value = None)
         average : bool
             Used in classification models to flag if to run condition on average of classes, or on
             each class individually
-            (Default value = False)
+             (Default value = False)
         """
         name = f'Model performance gain over simple model must be at least {format_percent(min_allowed_gain)}'
         if classes:

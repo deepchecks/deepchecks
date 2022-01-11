@@ -38,10 +38,10 @@ class PerformanceReport(TrainTestBaseCheck):
 
     Parameters
     ----------
-        alternative_scorers Dict[str, Callable]:
-            An optional dictionary of scorer name to scorer functions.
-            If none given, using default scorers.
-            (Default value = None)
+    alternative_scorers: Dict[str, Callable]
+        An optional dictionary of scorer name to scorer functions.
+        If none given, using default scorers.
+         (Default value = None)
 
     Notes
     -----
@@ -87,7 +87,7 @@ class PerformanceReport(TrainTestBaseCheck):
         test_dataset: Dataset
             a test dataset object
         model : BaseEstimator
-            A scikit-learn-compatible fitted estimator instance (Default value = None)
+            A scikit-learn-compatible fitted estimator instance  (Default value = None)
 
         Returns
         -------
@@ -191,7 +191,7 @@ class PerformanceReport(TrainTestBaseCheck):
         ----------
         threshold :
             maximum degradation ratio allowed (value between 0 and 1)
-             (Default value = 0.1)
+              (Default value = 0.1)
         """
         def _ratio_of_change_calc(score_1, score_2):
             if score_1 == 0:
@@ -259,15 +259,10 @@ class PerformanceReport(TrainTestBaseCheck):
         ----------
         threshold :
             ratio difference threshold
-            (Default value = 0.3)
+             (Default value = 0.3)
         score :
             limit score for condition
-            (Default value = None)
-
-        Returns
-        -------
-        Self
-            instance of 'ClassPerformance' or it subtype
+             (Default value = None)
 
         Raises
         ------
@@ -328,7 +323,7 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
     alternative_scorers : Dict[str, Callable]
         An optional dictionary of scorer name to scorer functions.
         If none given, using default scorers
-        (Default value = None)
+         (Default value = None)
     """
 
     def __init__(self, alternative_scorers: Dict[str, Callable] = None):

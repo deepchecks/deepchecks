@@ -61,7 +61,7 @@ class MixedDataTypes(SingleDatasetBaseCheck):
         dataset : Dataset
             Dataset to be tested.
         model :
-            Model is ignored for this check. (Default value = None)
+            Model is ignored for this check.  (Default value = None)
 
         Returns
         -------
@@ -81,7 +81,7 @@ class MixedDataTypes(SingleDatasetBaseCheck):
         dataset : Union[pd.DataFrame, Dataset]
             Dataset to be tested.
         feature_importances: pd.Series :
-             (Default value = None)
+              (Default value = None)
 
         Returns
         -------
@@ -153,7 +153,7 @@ class MixedDataTypes(SingleDatasetBaseCheck):
         Parameters
         ----------
         ratio_range : Tuple[float, float]
-            (Default value = (0.01, 0.1)
+             (Default value = (0.01, 0.1)
             The range between which the ratio of rarer data type in the column is
             considered a problem.
         """

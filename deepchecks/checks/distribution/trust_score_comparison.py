@@ -81,7 +81,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
         test_dataset : Dataset
             Dataset to check for trust score
         model :
-            Model used to predict on the validation dataset (Default value = None)
+            Model used to predict on the validation dataset  (Default value = None)
         """
         # tested dataset can be also dataframe
         test_dataset: Dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
@@ -183,7 +183,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
         Parameters
         ----------
         threshold : float
-            (Default value = 0.2)
+             (Default value = 0.2)
             Maximum percentage decline allowed (value 0 and above)
         """
         def condition(result: dict):

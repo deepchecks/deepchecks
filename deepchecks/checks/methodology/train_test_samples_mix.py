@@ -40,7 +40,7 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
         test_dataset : Dataset
             The test dataset object. Must contain an index.
         model :
-            any = None - not used in the check (Default value = None)
+            any = None - not used in the check  (Default value = None)
 
         Returns
         -------
@@ -109,7 +109,7 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
         ----------
         max_ratio : float
             Max allowed ratio of test data samples to appear in train data
-            (Default value = 0.1)
+             (Default value = 0.1)
         """
         def condition(result: float) -> ConditionResult:
             if result > max_ratio:

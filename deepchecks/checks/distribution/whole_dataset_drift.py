@@ -98,7 +98,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         test_dataset : Dataset
             The test dataset object.
         model :
-            not used in this check. (Default value = None)
+            not used in this check.  (Default value = None)
 
         Returns
         -------
@@ -284,7 +284,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         Parameters
         ----------
         max_drift_value : float
-            (Default value = 0.25)
+             (Default value = 0.25)
             Maximal drift value allowed (value 0 and above)
         """
 
