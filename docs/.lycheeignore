@@ -1,4 +1,5 @@
 ^https://www\.googletagmanager\.com/gtm\.js\?id=$
+^.*_static/.*pathto\('_static/.*$
 
 # links within plotly js scripts
 ^https://a\.tile\.openstreetmap\.org.*$

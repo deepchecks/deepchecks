@@ -43,8 +43,13 @@ jobs:
         run: make docs
 
       # NOTE: 
-      #   I was not able to make lycheeverse/lychee-action@v1.2.0 to work, 
-      #   my main problem was that glob patterns (e.g. "./docs/build/html/**/*.html") did not work
+      #   I was not able to make "lycheeverse/lychee-action@v1.2.0" work, 
+      #   My main problem was that the glob patterns (e.g. "./docs/build/html/**/*.html") did not work.
+      #
+      #   In order to use the glob pattern properly we need to surround it with double quotes (") but 
+      #   when we do this, some part of the logic that handles the 'with.args' key, additionally wraps 
+      #   it into ordinary quotes ('), as a result lychee binary is executed as - lychee '"glob/**/*.pattern"'
+      #
       #   I decided to overcome this with help of a custom script (take a look at the job step below)
       #
       # - name: Link Checker
@@ -59,6 +64,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -uxo pipefail
+          
           curl \
             -L --output lychee-v0.8.2-x86_64-unknown-linux-gnu.tar.gz \
             https://github.com/lycheeverse/lychee/releases/download/v0.8.2/lychee-v0.8.2-x86_64-unknown-linux-gnu.tar.gz
@@ -66,11 +73,9 @@ jobs:
           tar -xvzf lychee-v0.8.2-x86_64-unknown-linux-gnu.tar.gz
 
           ./lychee \
-            README.rst FAQ.rst "./docs/build/html/**/*.html" \
+            README.rst FAQ.rst \
             --format markdown \
             --output .lychee.output \
-            --github-token ${GITHUB_TOKEN} \
-            --verbose \
             --exclude-loopback \
             --exclude-mail \
             --no-progress \
@@ -82,6 +87,6 @@ jobs:
           echo "===== Lychee Output Report ====="
           cat .lychee.output
           echo
-          
+
           exit ${exit_code}
 
