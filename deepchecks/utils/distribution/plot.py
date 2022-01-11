@@ -18,7 +18,7 @@ __all__ = ['feature_distribution_traces', 'drift_score_bar_traces', 'get_density
 
 from typing import List, Union, Dict
 
-from deepchecks.checks.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
+from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.plot import colors
 
 
