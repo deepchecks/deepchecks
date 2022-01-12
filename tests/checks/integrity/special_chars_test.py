@@ -153,8 +153,9 @@ def test_condition_fail_all(diabetes_split_dataset_and_model):
     # Assert
     assert_that(results, has_items(equal_condition_result(
         is_pass=False,
-        name='Ratio of entirely special character samples not greater than 0.10% for all columns',
-        details='Found columns over threshold ratio: [\'age\', \'sex\', \'bmi\', \'bp\']',
+        name='Ratio of entirely special character samples not greater than 0.10%',
+        details='Found columns with ratio above threshold: {\'age\': \'34.12%\', \'sex\': \'34.12%\', '
+                '\'bmi\': \'34.12%\', \'bp\': \'34.12%\'}',
         category=ConditionCategory.WARN
     )))
 
@@ -173,8 +174,8 @@ def test_condition_fail_some(diabetes_split_dataset_and_model):
     # Assert
     assert_that(results, has_items(equal_condition_result(
         is_pass=False,
-        name='Ratio of entirely special character samples not greater than 30.00% for all columns',
-        details='Found columns over threshold ratio: [\'sex\', \'bmi\']',
+        name='Ratio of entirely special character samples not greater than 30.00%',
+        details='Found columns with ratio above threshold: {\'sex\': \'34.12%\', \'bmi\': \'34.12%\'}',
         category=ConditionCategory.WARN
     )))
 
@@ -190,5 +191,5 @@ def test_condition_pass(diabetes_split_dataset_and_model):
     # Assert
     assert_that(results, has_items(equal_condition_result(
         is_pass=True,
-        name='Ratio of entirely special character samples not greater than 0.10% for all columns',
+        name='Ratio of entirely special character samples not greater than 0.10%',
     )))
