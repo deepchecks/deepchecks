@@ -30,18 +30,19 @@ from deepchecks.base.display_pandas import dataframe_to_html, display_conditions
 __all__ = ['display_suite_result', 'ProgressBar']
 
 def _get_check_widget(check_res: CheckResult, unique_id: str) -> widgets.HTML:
-    return check_res.get_check_html(False, unique_id, True)
-    check_widg = widgets.HTML(check_res.get_check_html(False, unique_id, True))
-    return check_widg
+    return check_res.display_check(False, unique_id, True)
+
+def _add_widget_classes(widget: widgets.Widget):
+    widget.add_class('rendered_html')
+    widget.add_class('jp-RenderedHTMLCommon')
+    widget.add_class('jp-RenderedHTML') 
+    widget.add_class('jp-OutputArea-output') 
 
 def _create_table_widget(df_html: str) -> widgets.HTML:
     table_box = widgets.VBox()
     df_widg = widgets.HTML(df_html)
     table_box.children = [df_widg]
-    table_box.add_class('rendered_html')
-    table_box.add_class('jp-RenderedHTMLCommon')
-    table_box.add_class('jp-RenderedHTML') 
-    table_box.add_class('jp-OutputArea-output') 
+    _add_widget_classes(table_box)
     return table_box
 
 class ProgressBar:
@@ -89,11 +90,9 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     if is_widgets:
         tab = widgets.Tab()
         condition_tab = widgets.VBox()
-        condition_tab.add_class('rendered_html')
-        condition_tab.add_class('jp-RenderedHTMLCommon')
-        condition_tab.add_class('jp-RenderedHTML') 
-        condition_tab.add_class('jp-OutputArea-output')
+        _add_widget_classes(condition_tab)
         checks_wo_tab = widgets.VBox()
+        _add_widget_classes(checks_wo_tab)
         others_tab = widgets.VBox()
         tab.children = [condition_tab, checks_wo_tab, others_tab]
         tab.set_title(0, 'Checks With Conditions')
@@ -181,13 +180,13 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         else:
             display_html(not_found_text, raw=True)
 
-    outputs_h2 = f'{bold_hr}<h2>Additional Outputs</h2>'
+    outputs_h2 = f'{bold_hr}<h2>Check With Conditions Output</h2>'
     if is_widgets:
         condition_tab_children.append(widgets.HTML(outputs_h2))
     else:
         display_html(outputs_h2, raw=True)
-    if display_table:
-        for i, r in enumerate(display_table):
+    if checks_wo_conditions:
+        for i, r in enumerate(checks_wo_conditions):
             if is_widgets:
                 condition_tab_children.append(_get_check_widget(r, unique_id))
             else:
@@ -206,6 +205,33 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
 
     if is_widgets:
         condition_tab.children = condition_tab_children
+    
+    checks_wo_tab_children = []
+    outputs_h2 = f'{bold_hr}<h2>Check Without Conditions Output</h2>'
+    if is_widgets:
+        checks_wo_tab_children.append(widgets.HTML(outputs_h2))
+    else:
+        display_html(outputs_h2, raw=True)
+    if display_table:
+        for i, r in enumerate(display_table):
+            if is_widgets:
+                checks_wo_tab_children.append(_get_check_widget(r, unique_id))
+            else:
+                r.show(show_conditions=False, unique_id=unique_id)
+            if i < len(display_table) - 1:
+                if is_widgets:
+                    checks_wo_tab_children.append(widgets.HTML(light_hr))
+                else:
+                    display_html(light_hr, raw=True)
+    else:
+        no_output_text = '<p>No outputs to show.</p>'
+        if is_widgets:
+            checks_wo_tab_children.append(widgets.HTML(no_output_text))
+        else:
+            display_html(no_output_text, raw=True)
+
+    if is_widgets:
+        checks_wo_tab.children = checks_wo_tab_children
 
     if others_table:
         others_table = pd.DataFrame(data=others_table, columns=['Check', 'Reason', 'sort'])

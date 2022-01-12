@@ -86,7 +86,7 @@ class CheckResult:
             if not isinstance(item, (str, pd.DataFrame, Styler, Callable, BaseFigure)):
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
-    def get_check_html(self, show_conditions=True, unique_id=None, as_widget=False):
+    def display_check(self, show_conditions=True, unique_id=None, as_widget=False):
         if as_widget:
             box = widgets.VBox()
             box_children = []
@@ -114,9 +114,10 @@ class CheckResult:
                 if as_widget:
                     box_children.append(widgets.HTML(check_html))
                     box_children.append(go.FigureWidget(data=item))
-                    check_html = ''
                 else:
-                    check_html += item.to_html()
+                    display_html(check_html, raw=True)
+                    item.show()
+                check_html = ''
             else:
                 raise Exception(f'Unable to display item of type: {type(item)}')
         if not self.display:
@@ -127,15 +128,13 @@ class CheckResult:
             box_children.append(widgets.HTML(check_html))
             box.children = box_children
             return box
-        return check_html
+        display_html(check_html, raw=True)
 
     def _ipython_display_(self, show_conditions=True, unique_id=None, as_widget=False):
-        check_html = self.get_check_html(show_conditions=show_conditions,
+        check_html = self.display_check(show_conditions=show_conditions,
                                          unique_id=unique_id, as_widget=as_widget)
         if as_widget:
             display(check_html)
-        else:
-            display_html(check_html, raw=True)
 
     def __repr__(self):
         """Return default __repr__ function uses value."""
