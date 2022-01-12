@@ -40,24 +40,23 @@ __all__ = [
 ]
 
 
-_NUMBER_OF_FEATURES_LIMIT: int = 200
 _PERMUTATION_IMPORTANCE_TIMEOUT: int = 120  # seconds
 N_TOP_MESSAGE = '* showing only the top %s columns, you can change it using n_top_columns param'
 
 
-def set_number_of_features_limit(limit: int):
-    """Set number of features limit to calculate features importance.
+def set_feature_importance_timeout(limit: int):
+    """Set max time that permutation importance calculation can take. Will raise DeepchecksTimeoutError if more.
 
     Args:
-        limit (int): limit value
+        limit (int): time limit value
     """
-    global _NUMBER_OF_FEATURES_LIMIT
-    _NUMBER_OF_FEATURES_LIMIT = limit
+    global _PERMUTATION_IMPORTANCE_TIMEOUT
+    _PERMUTATION_IMPORTANCE_TIMEOUT = limit
 
 
-def get_number_of_features_limit() -> int:
-    """Get number of features limit to calculate features importance."""
-    return _NUMBER_OF_FEATURES_LIMIT
+def get_feature_importance_timeout() -> int:
+    """Get the max time that permutation importance calculation can take."""
+    return _PERMUTATION_IMPORTANCE_TIMEOUT
 
 
 def calculate_feature_importance_or_none(
@@ -139,12 +138,6 @@ def calculate_feature_importance(
     validation.validate_model(dataset, model)
 
     if isinstance(dataset, base.Dataset) and force_permutation is True:
-        if len(dataset.features) > _NUMBER_OF_FEATURES_LIMIT:
-            raise errors.NumberOfFeaturesLimitError(
-                f"Dataset contains more than {_NUMBER_OF_FEATURES_LIMIT} of features, "
-                "therefore features importance is not calculated. If you want to "
-                "change this behaviour please use :function:`deepchecks.utils.features.set_number_of_features_limit`"
-            )
         return _calc_importance(model, dataset, **permutation_kwargs).fillna(0)
 
     feature_importances = _built_in_importance(model, dataset)
@@ -220,9 +213,11 @@ def _calc_importance(
     scorer(model, dataset_sample)
     calc_time = time.time() - start_time
 
-    if calc_time * n_repeats * len(dataset.features) > _PERMUTATION_IMPORTANCE_TIMEOUT:
+    permutation_importance_timeout = get_feature_importance_timeout()
+
+    if calc_time * n_repeats * len(dataset.features) > permutation_importance_timeout:
         raise errors.DeepchecksTimeoutError('Permutation importance calculation was not projected to finish in'
-                                            f' {_PERMUTATION_IMPORTANCE_TIMEOUT} seconds.')
+                                            f' {permutation_importance_timeout} seconds.')
 
     r = permutation_importance(
         model,
