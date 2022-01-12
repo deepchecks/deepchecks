@@ -12,7 +12,7 @@
 import pandas as pd
 
 from deepchecks import Dataset
-from deepchecks.checks.performance.partition import partition_column
+from deepchecks.utils.performance.partition import partition_column
 import hamcrest as h
 
 

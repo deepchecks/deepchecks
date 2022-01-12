@@ -62,8 +62,8 @@ def test_leakage(iris_clean):
     row = result['petal length (cm)']
     # Assert
     assert_that(row['Value'], equal_to(5.1))
-    assert_that(row['Train data %'], close_to(5.7, 0.05))
-    assert_that(row['Test data %'], close_to(55.5, 0.06))
+    assert_that(row['Train data %'], close_to(0.057, 0.001))
+    assert_that(row['Test data %'], close_to(0.555, 0.001))
     assert_that(row['Train data #'], equal_to(6))
     assert_that(row['Test data #'], equal_to(25))
     assert_that(row['P value'], close_to(0, 0.00001))
@@ -109,6 +109,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     # Assert
     assert_that(result_ds, has_length(3))
 
+
 def test_condition_ratio_not_less_than_not_passed(iris_clean):
     # Arrange
     x = iris_clean.data
@@ -136,10 +137,10 @@ def test_condition_ratio_not_less_than_not_passed(iris_clean):
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='P value not less than 0.0001',
-                               details='Found columns with low p-value: '
-                                       '[\'sepal width (cm)\', \'petal length (cm)\']')
-    ))
+                               name='P value is not less than 0.0001',
+                               details='Found columns with p-value below threshold: '
+                                       '{\'sepal width (cm)\': \'7.63E-20\', \'petal length (cm)\': \'2.26E-11\'}'
+    )))
 
 
 def test_condition_ratio_not_less_than_passed(iris_split_dataset_and_model):
@@ -154,15 +155,15 @@ def test_condition_ratio_not_less_than_passed(iris_split_dataset_and_model):
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='P value not less than 0.0001')
+                               name='P value is not less than 0.0001')
     ))
 
 
-def test_condition_ratio_of_change_not_more_than_not_passed(iris_split_dataset_and_model):
+def test_condition_ratio_of_change_not_greater_than_not_passed(iris_split_dataset_and_model):
     # Arrange
     train_ds, val_ds, _ = iris_split_dataset_and_model
 
-    check = DominantFrequencyChange().add_condition_ratio_of_change_not_more_than()
+    check = DominantFrequencyChange().add_condition_ratio_of_change_not_greater_than(0.05)
 
     # Act
     result, *_ = check.conditions_decision(check.run(train_dataset=val_ds, test_dataset=train_ds))
@@ -170,16 +171,17 @@ def test_condition_ratio_of_change_not_more_than_not_passed(iris_split_dataset_a
     # Assert
     assert_that(result, equal_condition_result(
             is_pass=False,
-            name='Change in ratio of dominant value in data not more than 25.00%',
-            details='Found columns with high change in dominant value: [\'sepal width (cm)\']'
+            name='Change in ratio of dominant value in data is not greater than 5.00%',
+            details='Found columns with % difference in dominant value above threshold: '
+                    '{\'sepal width (cm)\': \'8.00%\'}'
     ))
 
 
-def test_condition_ratio_of_change_not_more_than_passed(iris_split_dataset_and_model):
+def test_condition_ratio_of_change_not_greater_than_passed(iris_split_dataset_and_model):
     # Arrange
     train_ds, _, _ = iris_split_dataset_and_model
 
-    check = DominantFrequencyChange().add_condition_ratio_of_change_not_more_than()
+    check = DominantFrequencyChange().add_condition_ratio_of_change_not_greater_than()
 
     # Act
     result = check.conditions_decision(check.run(train_ds, train_ds))
@@ -187,5 +189,5 @@ def test_condition_ratio_of_change_not_more_than_passed(iris_split_dataset_and_m
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Change in ratio of dominant value in data not more than 25.00%')
+                               name='Change in ratio of dominant value in data is not greater than 25.00%')
     ))
