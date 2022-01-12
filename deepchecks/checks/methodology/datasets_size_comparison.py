@@ -12,6 +12,7 @@
 import typing as t
 import pandas as pd
 from deepchecks import Dataset, CheckResult, ConditionResult, TrainTestBaseCheck
+from deepchecks.utils.validation import ensure_dataframe_type
 
 
 __all__ = ['DatasetsSizeComparison']
@@ -41,9 +42,9 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
                 if not dataset instances were provided;
                 if datasets are empty;
         """
-        Dataset.validate_dataset(train_dataset)
-        Dataset.validate_dataset(test_dataset)
-        sizes = {'Train': train_dataset.n_samples, 'Test': test_dataset.n_samples}
+        train_dataset = ensure_dataframe_type(train_dataset)
+        test_dataset = ensure_dataframe_type(test_dataset)
+        sizes = {'Train': len(train_dataset), 'Test': len(test_dataset)}
         display = pd.DataFrame(sizes, index=['Size'])
         return CheckResult(
             value=sizes,
@@ -61,7 +62,7 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
         """
         def condition(check_result: dict) -> ConditionResult:
             return (
-                ConditionResult(False, f'Test dataset is {check_result["Test"]}')
+                ConditionResult(False, f'Test dataset size is {check_result["Test"]}')
                 if check_result['Test'] <= value
                 else ConditionResult(True)
             )

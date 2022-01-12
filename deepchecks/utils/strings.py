@@ -22,7 +22,6 @@ import pandas as pd
 from pandas.core.dtypes.common import is_numeric_dtype
 
 from deepchecks.utils.typing import Hashable
-from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 
 
 __all__ = [
@@ -35,7 +34,6 @@ __all__ = [
     'format_percent',
     'format_number',
     'format_list',
-    'format_columns_for_condition',
     'get_random_string',
     'format_datetime'
 ]
@@ -275,30 +273,6 @@ def format_list(l: t.List[Hashable], max_elements_to_show: int = 10, max_string_
         return output + ', ...'
 
     return output
-
-
-def format_columns_for_condition(
-    columns: t.Union[Hashable, t.List[Hashable], None] = None,
-    ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None
-) -> str:
-    """Format columns properties for display in condition name.
-
-    Args:
-        columns (Union[Hashable, List[Hashable], None]):
-            columns to include into resulting string
-        ignore_columns (Union[Hashable, List[Hashable], None]):
-            columns to not include into resulting string
-
-    Returns: formatted string of columns
-    """
-    if columns is not None:
-        columns = ensure_hashable_or_mutable_sequence(columns)
-        return f'columns: {columns}'
-    elif ignore_columns is not None:
-        ignore_columns = ensure_hashable_or_mutable_sequence(ignore_columns)
-        return f'all columns ignoring: {ignore_columns}'
-    else:
-        return 'all columns'
 
 
 def format_datetime(
