@@ -11,7 +11,7 @@
 import numpy as np
 import pandas as pd
 
-from deepchecks.utils.models import RandomModel, PerfectModel
+from deepchecks.utils.simple_models import RandomModel, PerfectModel
 from hamcrest import assert_that, contains_exactly, is_
 
 
