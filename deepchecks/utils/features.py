@@ -208,7 +208,8 @@ def _calc_importance(
     dataset_sample = dataset.sample(n_samples, drop_na_label=True, random_state=random_state)
 
     # Test score time on the dataset sample
-    scorer = get_scorer_single(model, dataset)
+    scorer = get_scorer_single(model,
+                               dataset)
     start_time = time.time()
     scorer(model, dataset_sample)
     calc_time = time.time() - start_time
@@ -219,13 +220,22 @@ def _calc_importance(
         raise errors.DeepchecksTimeoutError('Permutation importance calculation was not projected to finish in'
                                             f' {permutation_importance_timeout} seconds.')
 
+    if hasattr(model, 'score'):
+        if hasattr(model, 'fit'):
+            scoring = None
+        else:
+            scoring = model.score
+    else:
+        scoring = scorer.scorer
+
     r = permutation_importance(
         model,
         dataset_sample.features_columns,
         dataset_sample.label_col,
         n_repeats=n_repeats,
         random_state=random_state,
-        n_jobs=-1
+        n_jobs=-1,
+        scoring=scoring
     )
 
     significance_mask = (
