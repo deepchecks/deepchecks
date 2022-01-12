@@ -107,6 +107,6 @@ def test_condition_pps_fail():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found columns with exceeding PPS: {\'x2\': \'0.42\'}',
+                               details='Found columns with PPS above threshold: {\'x2\': \'0.42\'}',
                                name='Identifier columns PPS is not greater than 0.2')
     ))

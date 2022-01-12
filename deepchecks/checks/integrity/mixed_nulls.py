@@ -167,7 +167,8 @@ class MixedNulls(SingleDatasetBaseCheck):
                     not_passing_columns[column] = num_nulls
             if not_passing_columns:
                 return ConditionResult(False,
-                                       f'Found columns with exceeding amount of null types: {not_passing_columns}')
+                                       'Found columns with amount of null types above threshold: '
+                                       f'{not_passing_columns}')
             else:
                 return ConditionResult(True)
 

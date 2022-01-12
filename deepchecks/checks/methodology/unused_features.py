@@ -194,7 +194,7 @@ class UnusedFeatures(TrainTestBaseCheck):
             if len(high_var_features) > max_high_variance_unused_features:
                 return ConditionResult(
                     False,
-                    f'Found exceeding number of unused high variance features: {high_var_features}',
+                    f'Found number of unused high variance features above threshold: {high_var_features}',
                     category=ConditionCategory.WARN)
             else:
                 return ConditionResult(True)

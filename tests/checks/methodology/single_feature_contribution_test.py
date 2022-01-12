@@ -138,7 +138,7 @@ def test_all_features_pps_upper_bound_condition_that_should_not_pass():
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Features\' {pps_html_url} (PPS) is not greater than {condition_value}',
-        details='Features with exceeding PPS: {\'x2\': \'0.84\', \'x4\': \'0.53\', \'x5\': \'0.42\'}'
+        details='Features with PPS above threshold: {\'x2\': \'0.84\', \'x4\': \'0.53\', \'x5\': \'0.42\'}'
     ))
 
 
@@ -193,7 +193,7 @@ def test_train_test_condition_pps_difference_fail():
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Train-Test features\' {pps_html_url} (PPS) difference is not greater than {condition_value}',
-        details='Features with exceeding PPS difference: {\'x2\': \'0.31\'}'
+        details='Features with PPS difference above threshold: {\'x2\': \'0.31\'}'
     ))
 
 
@@ -231,6 +231,6 @@ def test_train_test_condition_pps_train_fail():
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Train features\' {pps_html_url} (PPS) is not greater than {condition_value}',
-        details='Features in train dataset with exceeding PPS: {\'x2\': \'0.84\'}'
+        details='Features in train dataset with PPS above threshold: {\'x2\': \'0.84\'}'
     ))
 

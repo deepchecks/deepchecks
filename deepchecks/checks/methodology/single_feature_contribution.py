@@ -103,7 +103,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
             }
 
             if failed_features:
-                message = f'Features with exceeding PPS: {failed_features}'
+                message = f'Features with PPS above threshold: {failed_features}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)

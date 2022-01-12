@@ -350,7 +350,7 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
                 fails[metric] = format_percent(gain)
 
     if fails:
-        msg = f'Found metrics with subceeding gain: {fails}'
+        msg = f'Found metrics with gain below threshold: {fails}'
         return ConditionResult(False, msg)
     else:
         return ConditionResult(True)

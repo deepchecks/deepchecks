@@ -142,7 +142,7 @@ def test_condition_min_score_not_passed(iris_split_dataset_and_model):
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details=re.compile(r'Found metrics with subceeding scores:\n'),
+                               details=re.compile(r'Found metrics with scores below threshold:\n'),
                                name='Scores are not less than 1')
     ))
 

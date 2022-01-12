@@ -194,6 +194,6 @@ def test_condition_ratio_of_new_label_samples_fail():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found new labels in test data: [5]\nmaking 25.00% of it samples.',
+                               details='Found new labels in test data: [5]\nmaking 25.00% of samples.',
                                name='Ratio of samples with new label is not greater than 10.00%')
     ))

@@ -204,7 +204,7 @@ class DominantFrequencyChange(TrainTestBaseCheck):
                     failed_columns[column] = format_number(p_val)
             if failed_columns:
                 return ConditionResult(False,
-                                       f'Found columns with subceeding p-value: {failed_columns}')
+                                       f'Found columns with p-value below threshold: {failed_columns}')
             else:
                 return ConditionResult(True)
 
@@ -230,7 +230,8 @@ class DominantFrequencyChange(TrainTestBaseCheck):
                     failed_columns[column] = format_percent(diff, 2)
             if failed_columns:
                 return ConditionResult(False,
-                                       f'Found columns with exceeding difference in dominant value %: {failed_columns}')
+                                       'Found columns with % difference in dominant value above threshold: '
+                                       f'{failed_columns}')
             else:
                 return ConditionResult(True)
 

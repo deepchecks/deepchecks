@@ -94,8 +94,8 @@ def test_drift_max_drift_score_condition_fail(drifted_data_and_model):
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name='PSI <= 0.2 and Earth Mover\'s Distance <= 0.1',
-        details='Found categorical columns with exceeding PSI: {\'categorical_with_drift\': \'0.22\'}\n'
-                'Found numeric columns with exceeding Earth Mover\'s Distance: {\'numeric_with_drift\': \'0.25\'}'
+        details='Found categorical columns with PSI above threshold: {\'categorical_with_drift\': \'0.22\'}\n'
+                'Found numeric columns with Earth Mover\'s Distance above threshold: {\'numeric_with_drift\': \'0.25\'}'
     ))
 
 

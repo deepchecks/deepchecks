@@ -200,9 +200,9 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
                                            and column in columns_to_consider}
             return_str = ''
             if not_passing_categorical_columns:
-                return_str += f'Found categorical columns with exceeding PSI: {not_passing_categorical_columns}\n'
+                return_str += f'Found categorical columns with PSI above threshold: {not_passing_categorical_columns}\n'
             if not_passing_numeric_columns:
-                return_str += f'Found numeric columns with exceeding Earth Mover\'s Distance: ' \
+                return_str += f'Found numeric columns with Earth Mover\'s Distance above threshold: ' \
                               f'{not_passing_numeric_columns}'
 
             if return_str:

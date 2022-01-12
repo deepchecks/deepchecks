@@ -123,7 +123,7 @@ class NewLabelTrainTest(TrainTestBaseCheck):
                 if new_label_ratio > max_ratio:
                     return ConditionResult(False,
                                            f'Found new labels in test data: {new_labels}\n'
-                                           f'making {format_percent(new_label_ratio)} of it samples.')
+                                           f'making {format_percent(new_label_ratio)} of samples.')
             return ConditionResult(True)
 
         return self.add_condition(

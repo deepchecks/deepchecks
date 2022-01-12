@@ -156,7 +156,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
                     not_passing_columns[column_name] = num_categories
             if not_passing_columns:
                 return ConditionResult(False,
-                                       f'Found columns with exceeding number of new categories: '
+                                       f'Found columns with number of new categories above threshold: '
                                        f'{not_passing_columns}')
             else:
                 return ConditionResult(True)
@@ -179,7 +179,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
                     not_passing_columns[column_name] = format_percent(n_new_samples)
             if not_passing_columns:
                 return ConditionResult(False,
-                                       f'Found columns with exceeding ratio of new category samples: '
+                                       f'Found columns with ratio of new category samples above threshold: '
                                        f'{not_passing_columns}')
             else:
                 return ConditionResult(True)

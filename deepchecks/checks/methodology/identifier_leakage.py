@@ -115,8 +115,7 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
                     not_passing_columns[column_name] = format_number(score)
             if not_passing_columns:
                 return ConditionResult(False,
-                                       f'Found columns with exceeding PPS: '
-                                       f'{not_passing_columns}')
+                                       f'Found columns with PPS above threshold: {not_passing_columns}')
             else:
                 return ConditionResult(True)
 

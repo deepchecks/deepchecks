@@ -133,7 +133,7 @@ class RocReport(SingleDatasetBaseCheck):
                     failed_classes[class_name] = format_number(score)
             if failed_classes:
                 return ConditionResult(False,
-                                       f'Found classes with subceeding AUC: {failed_classes}')
+                                       f'Found classes with AUC below threshold: {failed_classes}')
             else:
                 return ConditionResult(True)
 

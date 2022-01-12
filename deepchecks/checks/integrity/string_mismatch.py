@@ -139,7 +139,7 @@ class StringMismatch(SingleDatasetBaseCheck):
                     not_passing_columns[col] = format_percent(variants_percent_sum)
 
             if not_passing_columns:
-                details = f'Found columns with exceeding variants ratio: {not_passing_columns}'
+                details = f'Found columns with variants ratio above threshold: {not_passing_columns}'
                 return ConditionResult(False, details)
             return ConditionResult(True)
 
@@ -156,6 +156,6 @@ def _condition_variants_number(result, num_max_variants: int, max_cols_to_show: 
                     not_passing_variants[col].append(base_form)
     if not_passing_variants:
         variants_to_show = dict(itertools.islice(not_passing_variants.items(), max_cols_to_show))
-        details = f'Found columns with exceeding amount of variants: {variants_to_show}'
+        details = f'Found columns with amount of variants above threshold: {variants_to_show}'
         return ConditionResult(False, details, ConditionCategory.WARN)
     return ConditionResult(True)

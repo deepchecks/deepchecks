@@ -154,8 +154,8 @@ def test_condition_fail_all(diabetes_split_dataset_and_model):
     assert_that(results, has_items(equal_condition_result(
         is_pass=False,
         name='Ratio of entirely special character samples not greater than 0.10%',
-        details='Found columns exceeding ratio: {\'age\': \'34.12%\', \'sex\': \'34.12%\', \'bmi\': \'34.12%\', \'bp\':'
-                ' \'34.12%\'}',
+        details='Found columns with ratio above threshold: {\'age\': \'34.12%\', \'sex\': \'34.12%\', '
+                '\'bmi\': \'34.12%\', \'bp\': \'34.12%\'}',
         category=ConditionCategory.WARN
     )))
 
@@ -175,7 +175,7 @@ def test_condition_fail_some(diabetes_split_dataset_and_model):
     assert_that(results, has_items(equal_condition_result(
         is_pass=False,
         name='Ratio of entirely special character samples not greater than 30.00%',
-        details='Found columns exceeding ratio: {\'sex\': \'34.12%\', \'bmi\': \'34.12%\'}',
+        details='Found columns with ratio above threshold: {\'sex\': \'34.12%\', \'bmi\': \'34.12%\'}',
         category=ConditionCategory.WARN
     )))
 

@@ -84,7 +84,7 @@ class RegressionSystematicError(SingleDatasetBaseCheck):
             mean_error = result['mean_error']
             ratio = abs(mean_error) / rmse
             if ratio > max_ratio:
-                return ConditionResult(False, f'Found exceeding bias ratio: {format_number(ratio)}')
+                return ConditionResult(False, f'Found bias ratio above threshold: {format_number(ratio)}')
             else:
                 return ConditionResult(True)
 

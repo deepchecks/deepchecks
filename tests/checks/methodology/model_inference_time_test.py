@@ -83,7 +83,7 @@ def test_model_inference_time_check_with_condition_that_should_not_pass(
         'greater than 1e-08'
     )
     details_pattern = re.compile(
-        fr'Found exceeding average inference time \(in seconds\): {SCIENTIFIC_NOTATION_REGEXP.pattern}'
+        fr'Found average inference time \(in seconds\) above threshold: {SCIENTIFIC_NOTATION_REGEXP.pattern}'
     )
     assert_that(condition_result, equal_condition_result( # type: ignore
         is_pass=False,

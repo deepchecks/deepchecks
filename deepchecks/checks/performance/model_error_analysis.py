@@ -306,7 +306,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
 
             if fails:
                 sorted_fails = dict(sorted(fails.items(), key=lambda item: item[1]))
-                msg = f'Found exceeding change in {result["scorer_name"]} in features: {sorted_fails}'
+                msg = f'Found change in {result["scorer_name"]} in features above threshold: {sorted_fails}'
                 return ConditionResult(False, msg, category=ConditionCategory.WARN)
             else:
                 return ConditionResult(True, category=ConditionCategory.WARN)

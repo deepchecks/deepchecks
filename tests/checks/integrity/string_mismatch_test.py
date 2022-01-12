@@ -80,7 +80,7 @@ def test_condition_no_more_than_fail():
         equal_condition_result(
             is_pass=False,
             name='Not more than 2 string variants',
-            details='Found columns with exceeding amount of variants: {\'col1\': [\'deep\']}',
+            details='Found columns with amount of variants above threshold: {\'col1\': [\'deep\']}',
             category=ConditionCategory.WARN)
     ))
 
@@ -111,7 +111,7 @@ def test_condition_no_variants_fail():
         equal_condition_result(
             is_pass=False,
             name='No string variants',
-            details='Found columns with exceeding amount of variants: {\'col1\': [\'deep\', \'foo\']}',
+            details='Found columns with amount of variants above threshold: {\'col1\': [\'deep\', \'foo\']}',
             category=ConditionCategory.WARN)
     ))
 
@@ -141,7 +141,7 @@ def test_condition_percent_variants_no_more_than_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Ratio of variants is not greater than 10.00%',
-                               details='Found columns with exceeding variants ratio: {\'col1\': \'75.00%\'}')
+                               details='Found columns with variants ratio above threshold: {\'col1\': \'75.00%\'}')
     ))
 
 

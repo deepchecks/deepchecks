@@ -229,7 +229,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                     not_passing_columns[column_name] = total_outliers
             if not_passing_columns:
                 return ConditionResult(False,
-                                       f'Found columns with exceeding number of outliers: '
+                                       f'Found columns with number of outliers above threshold: '
                                        f'{not_passing_columns}')
             else:
                 return ConditionResult(True)
@@ -257,7 +257,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                     not_passing_columns[column_name] = format_percent(ratio)
             if not_passing_columns:
                 return ConditionResult(False,
-                                       f'Found columns with exceeding outliers ratio: '
+                                       f'Found columns with outliers ratio above threshold: '
                                        f'{not_passing_columns}', category=ConditionCategory.WARN)
             else:
                 return ConditionResult(True)

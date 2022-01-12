@@ -83,7 +83,7 @@ def test_condition_ratio_more_than_not_passed(iris_clean):
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='AUC score for all the classes is not less than 0.8',
-                               details='Found classes with subceeding AUC: {1: \'0.71\'}')
+                               details='Found classes with AUC below threshold: {1: \'0.71\'}')
     ))
 
 

@@ -163,7 +163,7 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
             }
 
             if failed_features:
-                message = f'Features with exceeding PPS difference: {failed_features}'
+                message = f'Features with PPS difference above threshold: {failed_features}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)
@@ -188,7 +188,7 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
             }
 
             if failed_features:
-                message = f'Features in train dataset with exceeding PPS: {failed_features}'
+                message = f'Features in train dataset with PPS above threshold: {failed_features}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)

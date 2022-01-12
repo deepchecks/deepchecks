@@ -171,7 +171,7 @@ def test_condition_categories_fail():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found columns with exceeding number of new categories: {\'col1\': 1}',
+                               details='Found columns with number of new categories above threshold: {\'col1\': 1}',
                                name='Number of new category values is not greater than 0')
     ))
 
@@ -211,7 +211,7 @@ def test_condition_count_fail():
     assert_that(result, has_items(
         equal_condition_result(
             is_pass=False,
-            details='Found columns with exceeding ratio of new category samples: {\'col1\': \'25.00%\'}',
+            details='Found columns with ratio of new category samples above threshold: {\'col1\': \'25.00%\'}',
             name='Ratio of samples with a new category is not greater than 10.00%')
     ))
 

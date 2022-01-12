@@ -96,7 +96,7 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
         def condition(avarage_time: float) -> ConditionResult:
             if avarage_time >= value:
                 return ConditionResult(False, details=(
-                    'Found exceeding average inference time (in seconds): '
+                    'Found average inference time (in seconds) above threshold: '
                     f'{format_number(avarage_time, floating_point=8)}'
                 ))
             else:

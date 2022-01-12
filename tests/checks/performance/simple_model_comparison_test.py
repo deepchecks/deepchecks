@@ -112,7 +112,7 @@ def test_condition_ratio_not_less_than_not_passed(diabetes_split_dataset_and_mod
         equal_condition_result(
             is_pass=False,
             name='Model performance gain over simple model is not less than 40.00%',
-            details='Found metrics with subceeding gain: {\'Neg RMSE\': \'24.32%\'}')
+            details='Found metrics with gain below threshold: {\'Neg RMSE\': \'24.32%\'}')
     ))
 
 
@@ -127,7 +127,7 @@ def test_condition_failed_for_multiclass(iris_split_dataset_and_model):
         equal_condition_result(
             is_pass=False,
             name='Model performance gain over simple model is not less than 80.00%',
-            details='Found metrics with subceeding gain: {\'F1\': {1: \'78.15%\'}}')
+            details='Found metrics with gain below threshold: {\'F1\': {1: \'78.15%\'}}')
     ))
 
 
@@ -157,7 +157,7 @@ def test_condition_pass_for_multiclass_avg_with_classes(iris_split_dataset_and_m
         equal_condition_result(
             is_pass=False,
             name='Model performance gain over simple model is not less than 100%',
-            details='Found metrics with subceeding gain: {\'F1\': {1: \'78.15%\', 2: \'85.71%\'}}'
+            details='Found metrics with gain below threshold: {\'F1\': {1: \'78.15%\', 2: \'85.71%\'}}'
         ),
         equal_condition_result(
             is_pass=True,
