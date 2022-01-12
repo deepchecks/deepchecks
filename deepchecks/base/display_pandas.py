@@ -92,4 +92,4 @@ def display_conditions_table(check_results: Union['check.CheckResult', List['che
     conditions_table.drop('sort', axis=1, inplace=True)
     if show_check_column is False:
         conditions_table.drop('Check', axis=1, inplace=True)
-    display_dataframe(conditions_table.style.hide_index())
+    return dataframe_to_html(conditions_table.style.hide_index())

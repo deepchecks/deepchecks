@@ -25,7 +25,7 @@ from plotly.basedatatypes import BaseFigure
 
 from deepchecks.base.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.base.dataset import Dataset
-from deepchecks.base.display_pandas import display_conditions_table, display_dataframe
+from deepchecks.base.display_pandas import dataframe_to_html, display_conditions_table, display_dataframe
 from deepchecks.utils.strings import split_camel_case
 from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.utils.ipython import is_ipython_display
@@ -85,40 +85,40 @@ class CheckResult:
             if not isinstance(item, (str, pd.DataFrame, Styler, Callable, BaseFigure)):
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
-    def _ipython_display_(self, show_conditions=True, unique_id=None):
+    def get_check_html(self, show_conditions=True, unique_id=None):
+        check_html = ''
         if unique_id:
             check_id = f'{self.check.__class__.__name__}_{unique_id}'
-            display_html(f'<h4 id="{check_id}">{self.get_header()}</h4>', raw=True)
+            check_html += f'<h4 id="{check_id}">{self.get_header()}</h4>'
         else:
-            display_html(f'<h4>{self.get_header()}</h4>', raw=True)
+            check_html += f'<h4>{self.get_header()}</h4>'
         if hasattr(self.check.__class__, '__doc__'):
             docs = self.check.__class__.__doc__ or ''
             # Take first non-whitespace line.
             summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
-            display_html(f'<p>{summary}</p>', raw=True)
+            check_html += f'<p>{summary}</p>'
         if self.conditions_results and show_conditions:
-            display_html('<h5>Conditions Summary</h5>', raw=True)
-            display_conditions_table(self, unique_id)
-            display_html('<h5>Additional Outputs</h5>', raw=True)
+            check_html += '<h5>Conditions Summary</h5>'
+            check_html += display_conditions_table(self, unique_id)
+            check_html += '<h5>Additional Outputs</h5>'
         for item in self.display:
             if isinstance(item, (pd.DataFrame, Styler)):
-                display_dataframe(item)
+                check_html += dataframe_to_html(item)
             elif isinstance(item, str):
-                display_html(item, raw=True)
+                check_html += item
             elif isinstance(item, BaseFigure):
-                item.show()
-            elif callable(item):
-                try:
-                    item()
-                    plt.show()
-                except Exception as exc:
-                    display_html(f'Error in display {str(exc)}', raw=True)
+                check_html += item.to_html()
             else:
                 raise Exception(f'Unable to display item of type: {type(item)}')
         if not self.display:
-            display_html('<p><b>&#x2713;</b> Nothing found</p>', raw=True)
+            check_html += '<p><b>&#x2713;</b> Nothing found</p>'
         if unique_id:
-            display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
+            check_html += f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>'
+        return check_html
+
+    def _ipython_display_(self, show_conditions=True, unique_id=None):
+        check_html = self.get_check_html(show_conditions=show_conditions, unique_id=unique_id)
+        display_html(check_html, raw=True)
 
     def __repr__(self):
         """Return default __repr__ function uses value."""
