@@ -136,7 +136,7 @@ def test_condition_count_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                details='Found columns with exceeding number of outliers: {\'col1\': 2}',
-                               name='Number of outliers not greater than 1 string length outliers for all columns')
+                               name='Number of outliers not greater than 1 string length outliers')
     ))
 
 
@@ -155,7 +155,7 @@ def test_condition_count_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Number of outliers not greater than 10 string length outliers for all columns')
+                               name='Number of outliers not greater than 10 string length outliers')
     ))
 
 
@@ -175,7 +175,7 @@ def test_condition_ratio_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                details='Found columns with exceeding outliers ratio: {\'col1\': \'0.99%\'}',
-                               name='Ratio of outliers not greater than 0.10% string length outliers for all columns',
+                               name='Ratio of outliers not greater than 0.10% string length outliers',
                                category=ConditionCategory.WARN)
     ))
 
@@ -195,5 +195,5 @@ def test_condition_ratio_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Ratio of outliers not greater than 10.00% string length outliers for all columns')
+                               name='Ratio of outliers not greater than 10.00% string length outliers')
     ))

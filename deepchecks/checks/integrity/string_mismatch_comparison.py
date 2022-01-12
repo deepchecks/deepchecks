@@ -21,7 +21,6 @@ from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.strings import (
     get_base_form_to_variants_dict,
-    format_columns_for_condition,
     is_string_column,
     format_percent,
 )
@@ -149,8 +148,7 @@ class StringMismatchComparison(TrainTestBaseCheck):
 
     def add_condition_no_new_variants(self):
         """Add condition - no new variants allowed in test data."""
-        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        name = f'No new variants allowed in test data for {column_names}'
+        name = 'No new variants allowed in test data'
         return self.add_condition(name, _condition_percent_limit, ratio=0)
 
     def add_condition_ratio_new_variants_not_greater_than(self, ratio: float):
@@ -159,8 +157,7 @@ class StringMismatchComparison(TrainTestBaseCheck):
         Args:
             ratio (float): Max percentage of new variants in test data allowed.
         """
-        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        name = f'Ratio of new variants in test data is not greater than {format_percent(ratio)} for {column_names}'
+        name = f'Ratio of new variants in test data is not greater than {format_percent(ratio)}'
         return self.add_condition(name, _condition_percent_limit, ratio=ratio)
 
 

@@ -20,7 +20,7 @@ from scipy import stats
 from deepchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ConditionResult, ConditionCategory
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, \
                                       column_importance_sorter_df, is_categorical
-from deepchecks.utils.strings import is_string_column, format_number, format_columns_for_condition, format_percent
+from deepchecks.utils.strings import is_string_column, format_number, format_percent
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
@@ -234,9 +234,8 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
             else:
                 return ConditionResult(True)
 
-        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
         return self.add_condition(
-            f'Number of outliers not greater than {max_outliers} string length outliers for {column_names}',
+            f'Number of outliers not greater than {max_outliers} string length outliers',
             compare_outlier_count)
 
     def add_condition_ratio_of_outliers_not_greater_than(self, max_ratio: float = 0):
@@ -263,9 +262,8 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
             else:
                 return ConditionResult(True)
 
-        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
         return self.add_condition(
-            f'Ratio of outliers not greater than {format_percent(max_ratio)} string length outliers for {column_names}',
+            f'Ratio of outliers not greater than {format_percent(max_ratio)} string length outliers',
             compare_outlier_ratio)
 
 

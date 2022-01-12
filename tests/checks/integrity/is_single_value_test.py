@@ -145,7 +145,7 @@ def test_condition_fail():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                details='Found columns with a single value: [\'a\', \'bbb\']',
-                               name='Does not contain only a single value for all columns')))
+                               name='Does not contain only a single value')))
 
 
 def test_condition_pass():
@@ -159,4 +159,4 @@ def test_condition_pass():
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Does not contain only a single value for all columns')))
+                               name='Does not contain only a single value')))

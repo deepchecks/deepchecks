@@ -18,7 +18,7 @@ from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, column_importance_sorter_df
-from deepchecks.utils.strings import is_string_column, format_percent, format_columns_for_condition
+from deepchecks.utils.strings import is_string_column, format_percent
 from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
 
@@ -151,7 +151,6 @@ class MixedDataTypes(SingleDatasetBaseCheck):
                 return ConditionResult(False, details, category=ConditionCategory.WARN)
             return ConditionResult(True)
 
-        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        name = f'Rare data types in {column_names} are either more than {format_percent(ratio_range[1])} or less ' \
+        name = f'Rare data types in column are either more than {format_percent(ratio_range[1])} or less ' \
                f'than {format_percent(ratio_range[0])} of the data'
         return self.add_condition(name, condition)

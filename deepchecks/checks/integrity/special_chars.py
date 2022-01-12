@@ -14,11 +14,10 @@ from typing import Union, List
 import pandas as pd
 from pandas.api.types import infer_dtype
 
-from deepchecks import Dataset
-from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
+from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, column_importance_sorter_df
-from deepchecks.utils.strings import string_baseform, format_percent, format_columns_for_condition
+from deepchecks.utils.strings import string_baseform, format_percent
 from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
 
@@ -110,9 +109,8 @@ class SpecialCharacters(SingleDatasetBaseCheck):
         Args:
             max_ratio(float): Maximum ratio allowed.
         """
-        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
         name = f'Ratio of entirely special character samples not greater '\
-               f'than {format_percent(max_ratio)} for {column_names}'
+               f'than {format_percent(max_ratio)}'
 
         def condition(result):
             not_passed = {}

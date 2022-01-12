@@ -19,7 +19,7 @@ from deepchecks import Dataset, CheckResult
 from deepchecks.base.check import SingleDatasetBaseCheck, ConditionResult
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, column_importance_sorter_df
-from deepchecks.utils.strings import string_baseform, format_percent, format_columns_for_condition
+from deepchecks.utils.strings import string_baseform, format_percent
 from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
@@ -171,6 +171,5 @@ class MixedNulls(SingleDatasetBaseCheck):
             else:
                 return ConditionResult(True)
 
-        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        return self.add_condition(f'Not more than {max_allowed_null_types} different null types for {column_names}',
+        return self.add_condition(f'Not more than {max_allowed_null_types} different null types',
                                   condition)

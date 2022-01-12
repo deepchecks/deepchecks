@@ -29,8 +29,7 @@ from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.strings import (
     get_base_form_to_variants_dict,
     is_string_column,
-    format_percent,
-    format_columns_for_condition
+    format_percent
 )
 
 
@@ -116,14 +115,12 @@ class StringMismatch(SingleDatasetBaseCheck):
         Args:
             num_max_variants (int): Maximum number of variants allowed.
         """
-        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        name = f'Not more than {num_max_variants} string variants for {column_names}'
+        name = f'Not more than {num_max_variants} string variants'
         return self.add_condition(name, _condition_variants_number, num_max_variants=num_max_variants)
 
     def add_condition_no_variants(self):
         """Add condition - no variants are allowed."""
-        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        name = f'No string variants for {column_names}'
+        name = 'No string variants'
         return self.add_condition(name, _condition_variants_number, num_max_variants=0)
 
     def add_condition_ratio_variants_not_greater_than(self, max_ratio: float = 0.01):
@@ -146,8 +143,7 @@ class StringMismatch(SingleDatasetBaseCheck):
                 return ConditionResult(False, details)
             return ConditionResult(True)
 
-        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        name = f'Ratio of variants is not greater than {format_percent(max_ratio)} for {column_names}'
+        name = f'Ratio of variants is not greater than {format_percent(max_ratio)}'
         return self.add_condition(name, condition, max_ratio=max_ratio)
 
 

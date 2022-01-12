@@ -14,7 +14,7 @@ import pandas as pd
 
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.utils.strings import format_percent, format_columns_for_condition
+from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
 
@@ -161,8 +161,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
             else:
                 return ConditionResult(True)
 
-        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        return self.add_condition(f'Number of new category values is not greater than {max_new} for {column_names}',
+        return self.add_condition(f'Number of new category values is not greater than {max_new}',
                                   condition)
 
     def add_condition_new_category_ratio_not_greater_than(self, max_ratio: float = 0):
@@ -185,7 +184,6 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
             else:
                 return ConditionResult(True)
 
-        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
         return self.add_condition(
-            f'Ratio of samples with a new category is not greater than {format_percent(max_ratio)} for {column_names}',
+            f'Ratio of samples with a new category is not greater than {format_percent(max_ratio)}',
             new_category_count_condition)
