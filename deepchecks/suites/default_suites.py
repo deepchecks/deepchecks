@@ -71,7 +71,7 @@ def train_test_validation() -> Suite:
         TrainTestFeatureDrift().add_condition_drift_score_not_greater_than(),
         TrainTestLabelDrift().add_condition_drift_score_not_greater_than(),
         WholeDatasetDrift().add_condition_overall_drift_value_not_greater_than(),
-        DominantFrequencyChange().add_condition_ratio_of_change_not_more_than(),
+        DominantFrequencyChange().add_condition_ratio_of_change_not_greater_than(),
         CategoryMismatchTrainTest().add_condition_new_category_ratio_not_greater_than(),
         NewLabelTrainTest().add_condition_new_labels_not_greater_than(),
         StringMismatchComparison().add_condition_no_new_variants(),
