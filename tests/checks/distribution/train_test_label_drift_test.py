@@ -90,7 +90,7 @@ def test_drift_max_drift_score_condition_fail_emd(drifted_regression_label):
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name='PSI <= 0.2 and Earth Mover\'s Distance <= 0.1 for label drift',
-        details='Found label Earth Mover\'s Distance above threshold: 0.26'
+        details='Label\'s Earth Mover\'s Distance above threshold: 0.26'
     ))
 
 
