@@ -128,7 +128,7 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
                 return_str = f'Found label PSI above threshold: {drift_score:.2f}'
                 return ConditionResult(False, return_str)
             elif method == "Earth Mover's Distance" and has_failed:
-                return_str = f'Found label Earth Mover\'s Distance above threshold: {drift_score:.2f}'
+                return_str = f'Label's Earth Mover\'s Distance above threshold: {drift_score:.2f}'
                 return ConditionResult(False, return_str)
 
             return ConditionResult(True)
