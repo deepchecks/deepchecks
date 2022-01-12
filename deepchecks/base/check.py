@@ -18,8 +18,9 @@ from collections import OrderedDict
 from functools import wraps
 from typing import Any, Callable, List, Union, Dict, Mapping
 import pandas as pd
-from IPython.core.display import display_html
-from matplotlib import pyplot as plt
+from IPython.core.display import display, display_html
+import ipywidgets as widgets
+import plotly.graph_objects as go
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
@@ -85,7 +86,10 @@ class CheckResult:
             if not isinstance(item, (str, pd.DataFrame, Styler, Callable, BaseFigure)):
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
-    def get_check_html(self, show_conditions=True, unique_id=None):
+    def get_check_html(self, show_conditions=True, unique_id=None, as_widget=False):
+        if as_widget:
+            box = widgets.VBox()
+            box_children = []
         check_html = ''
         if unique_id:
             check_id = f'{self.check.__class__.__name__}_{unique_id}'
@@ -107,18 +111,31 @@ class CheckResult:
             elif isinstance(item, str):
                 check_html += item
             elif isinstance(item, BaseFigure):
-                check_html += item.to_html()
+                if as_widget:
+                    box_children.append(widgets.HTML(check_html))
+                    box_children.append(go.FigureWidget(data=item))
+                    check_html = ''
+                else:
+                    check_html += item.to_html()
             else:
                 raise Exception(f'Unable to display item of type: {type(item)}')
         if not self.display:
             check_html += '<p><b>&#x2713;</b> Nothing found</p>'
         if unique_id:
             check_html += f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>'
+        if as_widget:
+            box_children.append(widgets.HTML(check_html))
+            box.children = box_children
+            return box
         return check_html
 
-    def _ipython_display_(self, show_conditions=True, unique_id=None):
-        check_html = self.get_check_html(show_conditions=show_conditions, unique_id=unique_id)
-        display_html(check_html, raw=True)
+    def _ipython_display_(self, show_conditions=True, unique_id=None, as_widget=False):
+        check_html = self.get_check_html(show_conditions=show_conditions,
+                                         unique_id=unique_id, as_widget=as_widget)
+        if as_widget:
+            display(check_html)
+        else:
+            display_html(check_html, raw=True)
 
     def __repr__(self):
         """Return default __repr__ function uses value."""

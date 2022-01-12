@@ -30,7 +30,8 @@ from deepchecks.base.display_pandas import dataframe_to_html, display_conditions
 __all__ = ['display_suite_result', 'ProgressBar']
 
 def _get_check_widget(check_res: CheckResult, unique_id: str) -> widgets.HTML:
-    check_widg = widgets.HTML(check_res.get_check_html(False, unique_id))
+    return check_res.get_check_html(False, unique_id, True)
+    check_widg = widgets.HTML(check_res.get_check_html(False, unique_id, True))
     return check_widg
 
 def _create_table_widget(df_html: str) -> widgets.HTML:
