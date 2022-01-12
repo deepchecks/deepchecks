@@ -213,9 +213,11 @@ def _calc_importance(
     scorer(model, dataset_sample)
     calc_time = time.time() - start_time
 
-    if calc_time * n_repeats * len(dataset.features) > _PERMUTATION_IMPORTANCE_TIMEOUT:
+    permutation_importance_timeout = get_feature_importance_timeout()
+
+    if calc_time * n_repeats * len(dataset.features) > permutation_importance_timeout:
         raise errors.DeepchecksTimeoutError('Permutation importance calculation was not projected to finish in'
-                                            f' {_PERMUTATION_IMPORTANCE_TIMEOUT} seconds.')
+                                            f' {permutation_importance_timeout} seconds.')
 
     r = permutation_importance(
         model,
