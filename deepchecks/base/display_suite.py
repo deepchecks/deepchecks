@@ -95,9 +95,9 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         _add_widget_classes(checks_wo_tab)
         others_tab = widgets.VBox()
         tab.children = [condition_tab, checks_wo_tab, others_tab]
-        tab.set_title(0, 'Checks With Conditions')
-        tab.set_title(1, 'Checks Without Conditions')
-        tab.set_title(2, 'Checks Without Output')
+        tab.set_title(0, 'Checks w/ Conditions')
+        tab.set_title(1, 'Checks w/o Conditions')
+        tab.set_title(2, 'Checks w/o Output')
     checks_with_conditions = []
     checks_wo_conditions = []
     display_table: List[CheckResult] = []
@@ -185,8 +185,8 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         condition_tab_children.append(widgets.HTML(outputs_h2))
     else:
         display_html(outputs_h2, raw=True)
-    if checks_wo_conditions:
-        for i, r in enumerate(checks_wo_conditions):
+    if display_table:
+        for i, r in enumerate(display_table):
             if is_widgets:
                 condition_tab_children.append(_get_check_widget(r, unique_id))
             else:
@@ -212,8 +212,8 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         checks_wo_tab_children.append(widgets.HTML(outputs_h2))
     else:
         display_html(outputs_h2, raw=True)
-    if display_table:
-        for i, r in enumerate(display_table):
+    if checks_wo_conditions:
+        for i, r in enumerate(checks_wo_conditions):
             if is_widgets:
                 checks_wo_tab_children.append(_get_check_widget(r, unique_id))
             else:
