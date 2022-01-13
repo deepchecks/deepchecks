@@ -18,12 +18,14 @@ from deepchecks import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
 
-_MODEL_URL = 'https://figshare.com/ndownloader/files/32594447'
-_FULL_DATA_URL = 'https://figshare.com/ndownloader/files/32553581'
-_TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/32593298'
-_TEST_DATA_URL = 'https://figshare.com/ndownloader/files/32593373'
+_MODEL_URL = 'https://ndownloader.figshare.com/files/33080447'
+_FULL_DATA_URL = 'https://figshare.com/ndownloader/files/33079757'
+_TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/33079781'
+_TEST_DATA_URL = 'https://ndownloader.figshare.com/files/33079787'
 _target = 'target'
 _CAT_FEATURES = ['ext']
+_NON_FEATURES = ['month', 'has_ip', 'urlIsLive']
+_DATE_COL = 'scrape_date'
 
 
 def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
@@ -206,7 +208,7 @@ class UrlDatasetProcessor:
         df['scrape_date'] = pd.to_datetime(
             df['scrape_date'], format='%Y-%m-%d')
         df = df.set_index(keys='scrape_date', drop=True)
-        df = df.drop(['month', 'has_ip', 'urlIsLive'], axis=1)
+        df = df.drop(_NON_FEATURES, axis=1)
         df = pd.get_dummies(df, columns=['ext'])
         return df
 
