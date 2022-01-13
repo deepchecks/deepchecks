@@ -29,16 +29,16 @@ from deepchecks.base.display_pandas import dataframe_to_html, display_conditions
 
 __all__ = ['display_suite_result', 'ProgressBar']
 
-def _get_check_widget(check_res: CheckResult, unique_id: str) -> widgets.HTML:
+def _get_check_widget(check_res: CheckResult, unique_id: str) -> widgets.VBox:
     return check_res.display_check(False, unique_id, True)
 
-def _add_widget_classes(widget: widgets.Widget):
+def _add_widget_classes(widget: widgets.HTML):
     widget.add_class('rendered_html')
     widget.add_class('jp-RenderedHTMLCommon')
     widget.add_class('jp-RenderedHTML') 
     widget.add_class('jp-OutputArea-output') 
 
-def _create_table_widget(df_html: str) -> widgets.HTML:
+def _create_table_widget(df_html: str) -> widgets.VBox:
     table_box = widgets.VBox()
     df_widg = widgets.HTML(df_html)
     table_box.children = [df_widg]

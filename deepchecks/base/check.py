@@ -86,7 +86,19 @@ class CheckResult:
             if not isinstance(item, (str, pd.DataFrame, Styler, Callable, BaseFigure)):
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
-    def display_check(self, show_conditions=True, unique_id=None, as_widget=False):
+    def display_check(self, show_conditions: bool = True, unique_id: str = None, as_widget: bool = False):
+        """Display the check result or return the display as widget.
+
+        Args:
+            show_conditions (bool):
+                Boolean that controls if to show conditions or not.
+            unique_id (str):
+                The unique id given by the suite that displays the check.
+            as_widget (bool):
+                Boolean that controls if to display the check regulary or if to return a widget.
+        Returns:
+            Widget representation of the display if as_widget is True.
+        """
         if as_widget:
             box = widgets.VBox()
             box_children = []
@@ -131,10 +143,10 @@ class CheckResult:
         display_html(check_html, raw=True)
 
     def _ipython_display_(self, show_conditions=True, unique_id=None, as_widget=False):
-        check_html = self.display_check(show_conditions=show_conditions,
+        check_widget = self.display_check(show_conditions=show_conditions,
                                          unique_id=unique_id, as_widget=as_widget)
         if as_widget:
-            display(check_html)
+            display(check_widget)
 
     def __repr__(self):
         """Return default __repr__ function uses value."""
