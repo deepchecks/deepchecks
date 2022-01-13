@@ -47,11 +47,11 @@ def dataframe_to_html(df: Union[pd.DataFrame, Styler]):
             warnings.simplefilter(action='ignore', category=FutureWarning)
             df_styler.set_precision(2)
 
-        # Align everything to the left
-        df_styler.set_table_styles([dict(selector='table,thead,tbody,th,td', props=[('text-align', 'left')])])
-        # Define how to handle white space characters (like \n)
-        # https://developer.mozilla.org/en-US/docs/Web/CSS/white-space#values
-        df_styler.set_properties(**{'white-space': 'pre-wrap'})
+        table_css_props = [
+            ('text-align', 'left'),  # Align everything to the left
+            ('white-space', 'pre-wrap')  # Define how to handle white space characters (like \n)
+        ]
+        df_styler.set_table_styles([dict(selector='table,thead,tbody,th,td', props=table_css_props)])
         return df_styler.render()
     # Because of MLC-154. Dataframe with Multi-index or non unique indices does not have a style
     # attribute, hence we need to display as a regular pd html format.

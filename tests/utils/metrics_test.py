@@ -43,8 +43,8 @@ def test_task_type_check_regression(diabetes, diabetes_model):
 
 def test_task_type_not_sklearn_regression(diabetes):
     class RegressionModel:
-        def predict(self, X):
-            return [0] * len(X)
+        def predict(self, x):
+            return [0] * len(x)
 
     train_ds, _, = diabetes
 
@@ -55,24 +55,24 @@ def test_task_type_not_sklearn_regression(diabetes):
 
 def test_task_type_not_sklearn_binary(iris_dataset_single_class):
     class ClassificationModel:
-        def predict(self, X):
-            return [0] * len(X)
+        def predict(self, x):
+            return [0] * len(x)
 
-        def predict_proba(self, X):
-            return [[1, 0]] * len(X)
+        def predict_proba(self, x):
+            return [[1, 0]] * len(x)
 
     res = task_type_check(ClassificationModel(), iris_dataset_single_class)
 
     assert_that(res, equal_to(ModelType.BINARY))
 
 
-def test_task_type_not_sklearn_binary(iris_labeled_dataset):
+def test_task_type_not_sklearn_multiclass(iris_labeled_dataset):
     class ClassificationModel:
-        def predict(self, X):
-            return [0] * len(X)
+        def predict(self, x):
+            return [0] * len(x)
 
-        def predict_proba(self, X):
-            return [[1, 0]] * len(X)
+        def predict_proba(self, x):
+            return [[1, 0]] * len(x)
 
     res = task_type_check(ClassificationModel(), iris_labeled_dataset)
 

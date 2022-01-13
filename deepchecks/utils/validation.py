@@ -15,7 +15,6 @@ import pandas as pd
 
 from deepchecks import base  # pylint: disable=unused-import, is used in type annotations
 from deepchecks import errors
-from deepchecks.utils.model import get_model_of_pipeline
 from deepchecks.utils.typing import Hashable, BasicModel
 
 __all__ = ['model_type_validation', 'ensure_hashable_or_mutable_sequence', 'validate_model', 'ensure_dataframe_type']
