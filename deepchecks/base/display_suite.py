@@ -95,9 +95,10 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         _add_widget_classes(checks_wo_tab)
         others_tab = widgets.VBox()
         tab.children = [condition_tab, checks_wo_tab, others_tab]
-        tab.set_title(0, 'Checks w/ Conditions')
-        tab.set_title(1, 'Checks w/o Conditions')
-        tab.set_title(2, 'Checks w/o Output')
+        tab.set_title(0, 'Checks With Conditions')
+        tab.set_title(1, 'Checks Without Conditions')
+        tab.set_title(2, 'Checks Without Output')
+        display_html('<style>.jupyter-widgets.widget-tab > .p-TabBar .p-TabBar-tab {flex: 0 1 auto}</style>')
     checks_with_conditions = []
     checks_wo_conditions = []
     display_table: List[CheckResult] = []
