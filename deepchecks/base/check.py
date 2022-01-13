@@ -16,7 +16,7 @@ import traceback
 from collections import OrderedDict
 from functools import wraps
 from typing import Any, Callable, List, Union, Dict, Mapping
-ד
+
 from matplotlib import pyplot as plt
 import pandas as pd
 from IPython.core.display import display_html
