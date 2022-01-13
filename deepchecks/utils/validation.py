@@ -27,8 +27,6 @@ def model_type_validation(model: t.Any):
     Raises:
         DeepchecksValueError: If the object is not of a supported type
     """
-    model = get_model_of_pipeline(model)
-
     if not isinstance(model, BasicModel):
         raise errors.DeepchecksValueError(
             'Model must inherit from one of supported '

@@ -50,12 +50,8 @@ class BasicModel(Protocol):
 
 
 @runtime_checkable
-class ClassificationModel(Protocol):
+class ClassificationModel(BasicModel, Protocol):
     """Traits of a classification model that are used by deepchecks."""
-
-    def predict(self, X) -> List[Hashable]:
-        """Predict on given X."""
-        ...
 
     def predict_proba(self, X) -> List[Hashable]:
         """Predict probabilities on given X."""

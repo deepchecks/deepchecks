@@ -16,9 +16,8 @@ from numbers import Number
 
 import numpy as np
 import pandas as pd
-
 from sklearn.metrics import get_scorer, make_scorer, f1_score, precision_score, recall_score
-from sklearn.base import ClassifierMixin, RegressorMixin
+from sklearn.base import ClassifierMixin, RegressorMixin, BaseEstimator
 
 
 from deepchecks import base  # pylint: disable=unused-import; it is used for type annotations
@@ -26,6 +25,7 @@ from deepchecks import errors
 from deepchecks.utils import validation
 from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.simple_models import PerfectModel
+from deepchecks.utils.typing import BasicModel, ClassificationModel
 
 
 __all__ = [
@@ -45,8 +45,6 @@ __all__ = [
     'task_type_validation',
     'get_gain'
 ]
-
-from deepchecks.utils.typing import BasicModel, ClassificationModel
 
 
 class ModelType(enum.Enum):
@@ -190,13 +188,13 @@ class DeepcheckScorer:
 
 
 def task_type_check(
-    model: t.Union[BasicModel],
+    model: BasicModel,
     dataset: 'base.Dataset'
 ) -> ModelType:
     """Check task type (regression, binary, multiclass) according to model object and label column.
 
     Args:
-        model (Union[ClassifierMixin, RegressorMixin]): Model object - used to check if it has predict_proba()
+        model (BasicModel): Model object - used to check if it has predict_proba()
         dataset (Dataset): dataset - used to count the number of unique labels
 
     Returns:
@@ -205,7 +203,7 @@ def task_type_check(
     validation.model_type_validation(model)
     dataset.validate_label()
 
-    if isinstance(model, BasicModel):
+    if isinstance(model, BaseEstimator):
         if not hasattr(model, 'predict_proba'):
             if is_string_column(dataset.label_col):
                 raise errors.DeepchecksValueError(
