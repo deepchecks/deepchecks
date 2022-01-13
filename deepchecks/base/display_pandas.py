@@ -64,11 +64,11 @@ def get_conditions_table_display(check_results: Union['check.CheckResult', List[
         check_results (Union['CheckResult', List['CheckResult']]): check results to show conditions of.
         unique_id (str): the unique id to append for the check names to create links
                               (won't create links if None/empty).
+        max_info_len (int): max length of the additional info.
     Returns:
         str:
             html representation of the condition table.
     """
-    print(unique_id)
     if not isinstance(check_results, List):
         show_check_column = False
         check_results = [check_results]
