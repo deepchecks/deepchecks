@@ -4,6 +4,12 @@ import types
 import pathlib
 
 
+CURRENT_DIR = pathlib.Path(__file__).parent
+PROJECT_DIR = CURRENT_DIR.parent.parent
+
+sys.path.insert(0, str(PROJECT_DIR.absolute())) # in case if project were not installed 
+
+
 INDEX_FILE_TEMPLATE = """
 
 Checks
@@ -123,7 +129,7 @@ def generate(
         print("!! Step 2. Writting Output !!")
         
         if output_dir is None:
-            output_dir = pathlib.Path(__file__).parent / "api" / "checks"
+            output_dir = CURRENT_DIR / "api" / "checks"
 
         if not output_dir.exists():
             raise RuntimeError(f"Output dir does not exist. {output_dir.absolute()}")
@@ -140,7 +146,7 @@ if __name__ == "__main__":
     _, cmd, *_ = sys.argv
 
     if cmd == "generate-checks-api":
-        # writes rst files into __file__/api/checks
+        # writes rst files into CURRENT_DIR/api/checks
         generate()
     
     elif cmd == "dry-generate-checks-api":
