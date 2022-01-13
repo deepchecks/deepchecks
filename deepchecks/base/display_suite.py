@@ -32,7 +32,7 @@ __all__ = ['display_suite_result', 'ProgressBar']
 
 
 def _get_check_widget(check_res: CheckResult, unique_id: str) -> widgets.VBox:
-    return check_res.display_check(False, unique_id, True)
+    return check_res.display_check(unique_id=unique_id, as_widget=True)
 
 
 def _add_widget_classes(widget: widgets.HTML):
@@ -174,7 +174,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
 
     if checks_with_conditions:
         cond_html_h2 = '<h2>Conditions Summary</h2>'
-        cond_html_table = get_conditions_table_display(checks_with_conditions, unique_id)
+        cond_html_table = get_conditions_table_display(checks_with_conditions, unique_id, 300)
         if is_widgets:
             h2_widget = widgets.HTML(cond_html_h2)
             condition_tab_children = [h2_widget, _create_table_widget(cond_html_table)]

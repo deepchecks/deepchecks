@@ -87,13 +87,11 @@ class CheckResult:
             if not isinstance(item, (str, pd.DataFrame, Styler, Callable, BaseFigure)):
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
-    def display_check(self, show_conditions: bool = True, unique_id: str = None, as_widget: bool = False,
+    def display_check(self, unique_id: str = None, as_widget: bool = False,
                       show_additional_outputs=True):
         """Display the check result or return the display as widget.
 
         Args:
-            show_conditions (bool):
-                Boolean that controls if to show conditions or not.
             unique_id (str):
                 The unique id given by the suite that displays the check.
             as_widget (bool):
@@ -115,7 +113,7 @@ class CheckResult:
         if hasattr(self.check.__class__, '__doc__'):
             summary = get_docs_summary(self.check)
             check_html += f'<p>{summary}</p>'
-        if self.conditions_results and show_conditions:
+        if self.conditions_results:
             check_html += '<h5>Conditions Summary</h5>'
             check_html += get_conditions_table_display(self, unique_id)
             check_html += '<h5>Additional Outputs</h5>'
@@ -160,10 +158,9 @@ class CheckResult:
             return box
         display_html(check_html, raw=True)
 
-    def _ipython_display_(self, show_conditions=True, unique_id=None, as_widget=False,
+    def _ipython_display_(self, unique_id=None, as_widget=False,
                           show_additional_outputs=True):
-        check_widget = self.display_check(show_conditions=show_conditions,
-                                          unique_id=unique_id, as_widget=as_widget,
+        check_widget = self.display_check(unique_id=unique_id, as_widget=as_widget,
                                           show_additional_outputs=show_additional_outputs,)
         if as_widget:
             display_html(check_widget)

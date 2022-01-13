@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Handle displays of pandas objects."""
+from re import U
 from typing import List, Union
 import warnings
 
@@ -16,21 +17,12 @@ from IPython.core.display import display_html
 import pandas as pd
 from pandas.io.formats.style import Styler
 
-from deepchecks.utils.strings import get_docs_summary
+from deepchecks.utils.strings import get_docs_summary, get_ellipsis
 
 from . import check  # pylint: disable=unused-import
 
 
-__all__ = ['display_dataframe', 'dataframe_to_html', 'get_conditions_table_display']
-
-
-def display_dataframe(df: Union[pd.DataFrame, Styler]):
-    """Display in IPython given dataframe.
-
-    Args:
-        df (Union[pd.DataFrame, Styler]): Dataframe to display
-    """
-    display_html(dataframe_to_html(df), raw=True)
+__all__ = ['dataframe_to_html', 'get_conditions_table_display']
 
 
 def dataframe_to_html(df: Union[pd.DataFrame, Styler]):
@@ -65,7 +57,7 @@ def dataframe_to_html(df: Union[pd.DataFrame, Styler]):
 
 
 def get_conditions_table_display(check_results: Union['check.CheckResult', List['check.CheckResult']],
-                                 unique_id=None):
+                                 unique_id=None, max_info_len: int = 3000):
     """Display the conditions table as DataFrame.
 
     Args:
@@ -76,6 +68,7 @@ def get_conditions_table_display(check_results: Union['check.CheckResult', List[
         str:
             html representation of the condition table.
     """
+    print(unique_id)
     if not isinstance(check_results, List):
         show_check_column = False
         check_results = [check_results]
@@ -103,6 +96,7 @@ def get_conditions_table_display(check_results: Union['check.CheckResult', List[
     conditions_table.drop('sort', axis=1, inplace=True)
     if show_check_column is False:
         conditions_table.drop('Check', axis=1, inplace=True)
+    conditions_table['More Info'] = conditions_table['More Info'].map(lambda x: get_ellipsis(x, max_info_len))
     return dataframe_to_html(conditions_table.style.hide_index())
 
 
