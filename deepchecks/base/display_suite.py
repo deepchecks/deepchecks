@@ -197,7 +197,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
             if is_widgets:
                 condition_tab_children.append(_get_check_widget(r, unique_id))
             else:
-                r.show(show_conditions=False, unique_id=unique_id)
+                r.show(unique_id=unique_id)
             if i < len(checks_w_condition_display) - 1:
                 if is_widgets:
                     condition_tab_children.append(widgets.HTML(light_hr))
@@ -228,7 +228,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
             if is_widgets:
                 checks_wo_tab_children.append(_get_check_widget(r, unique_id))
             else:
-                r.show(show_conditions=False, unique_id=unique_id)
+                r.show(unique_id=unique_id)
             if i < len(checks_w_condition_display) - 1:
                 if is_widgets:
                     checks_wo_tab_children.append(widgets.HTML(light_hr))

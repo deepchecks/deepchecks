@@ -214,10 +214,10 @@ class CheckResult:
 
         return 4
 
-    def show(self, show_conditions=True, unique_id=None, show_additional_outputs=True):
+    def show(self, unique_id=None, show_additional_outputs=True):
         """Display check result."""
         if is_ipython_display():
-            self._ipython_display_(show_conditions=show_conditions, unique_id=unique_id,
+            self._ipython_display_(unique_id=unique_id,
                                    show_additional_outputs=show_additional_outputs)
         else:
             print(self)
