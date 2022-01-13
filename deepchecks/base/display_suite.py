@@ -211,9 +211,6 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         else:
             display_html(no_output_text, raw=True)
 
-    if is_widgets:
-        condition_tab.children = condition_tab_children
-
     checks_wo_tab_children = []
     outputs_h2 = f'{bold_hr}<h2>Check Without Conditions Output</h2>'
     if is_widgets:
@@ -241,9 +238,6 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         else:
             display_html(no_output_text, raw=True)
 
-    if is_widgets:
-        checks_wo_tab.children = checks_wo_tab_children
-
     if others_table:
         others_table = pd.DataFrame(data=others_table, columns=['Check', 'Reason', 'sort'])
         others_table.sort_values(by=['sort'], inplace=True)
@@ -255,9 +249,12 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
             others_tab.children = [h2_widget, _create_table_widget(others_df)]
         else:
             display_html(others_h2 + others_df, raw=True)
-    elif is_widgets:
-        others_tab.children = [widgets.HTML(no_output_text)]
+
     if is_widgets:
+        if not others_table:
+            others_tab.children = [widgets.HTML(no_output_text)]
+        condition_tab.children = condition_tab_children
+        checks_wo_tab.children = checks_wo_tab_children
         display(tab)
     else:
         display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
