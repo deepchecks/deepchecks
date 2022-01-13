@@ -41,6 +41,44 @@ def test_task_type_check_regression(diabetes, diabetes_model):
     assert_that(res, equal_to(ModelType.REGRESSION))
 
 
+def test_task_type_not_sklearn_regression(diabetes):
+    class RegressionModel:
+        def predict(self, x):
+            return [0] * len(x)
+
+    train_ds, _, = diabetes
+
+    res = task_type_check(RegressionModel(), train_ds)
+
+    assert_that(res, equal_to(ModelType.REGRESSION))
+
+
+def test_task_type_not_sklearn_binary(iris_dataset_single_class):
+    class ClassificationModel:
+        def predict(self, x):
+            return [0] * len(x)
+
+        def predict_proba(self, x):
+            return [[1, 0]] * len(x)
+
+    res = task_type_check(ClassificationModel(), iris_dataset_single_class)
+
+    assert_that(res, equal_to(ModelType.BINARY))
+
+
+def test_task_type_not_sklearn_multiclass(iris_labeled_dataset):
+    class ClassificationModel:
+        def predict(self, x):
+            return [0] * len(x)
+
+        def predict_proba(self, x):
+            return [[1, 0]] * len(x)
+
+    res = task_type_check(ClassificationModel(), iris_labeled_dataset)
+
+    assert_that(res, equal_to(ModelType.MULTICLASS))
+
+
 def test_task_type_check_class_with_no_proba(iris_dataset_single_class):
 
     clf = SVC().fit(iris_dataset_single_class.features_columns, iris_dataset_single_class.label_col)

@@ -53,6 +53,10 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
             Only for categorical columns. Max number of allowed categories. If there are more,
             they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
             for both drift calculation and for distribution plots.
+        n_samples (int):
+            Number of samples to use for drift computation and plot.
+        random_state (int):
+            Random seed for sampling.
     """
 
     def __init__(
@@ -61,7 +65,9 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_top_columns: int = 5,
         sort_feature_by: str = 'feature importance',
-        max_num_categories: int = 10
+        max_num_categories: int = 10,
+        n_samples: int = 100_000,
+        random_state: int = 42,
     ):
         super().__init__()
         self.columns = columns
@@ -72,6 +78,8 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         else:
             raise DeepchecksValueError('sort_feature_by must be either "feature importance" or "drift score"')
         self.n_top_columns = n_top_columns
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
         """Run check.
@@ -113,8 +121,10 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
         test_dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
 
-        train_dataset = train_dataset.select(self.columns, self.ignore_columns)
-        test_dataset = test_dataset.select(self.columns, self.ignore_columns)
+        train_dataset = train_dataset.select(self.columns, self.ignore_columns
+                                             ).sample(self.n_samples, random_state=self.random_state)
+        test_dataset = test_dataset.select(self.columns, self.ignore_columns
+                                           ).sample(self.n_samples, random_state=self.random_state)
 
         features = train_dataset.validate_shared_features(test_dataset)
         cat_features = train_dataset.validate_shared_categorical_features(test_dataset)

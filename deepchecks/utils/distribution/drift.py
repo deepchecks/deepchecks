@@ -109,7 +109,11 @@ def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, plot_ti
 
     if column_type == 'numerical':
         scorer_name = "Earth Mover's Distance"
-        score = earth_movers_distance(dist1=train_column.astype('float'), dist2=test_column.astype('float'))
+
+        train_dist = train_dist.astype('float')
+        test_dist = test_dist.astype('float')
+
+        score = earth_movers_distance(dist1=train_dist, dist2=test_dist)
         bar_stop = max(0.4, score + 0.1)
 
         score_bar = drift_score_bar_traces(score)
