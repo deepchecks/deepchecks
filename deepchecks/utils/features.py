@@ -24,7 +24,7 @@ from sklearn.pipeline import Pipeline
 from deepchecks import base
 from deepchecks import errors
 from deepchecks.utils import validation
-from deepchecks.utils.metrics import get_scorer_single
+from deepchecks.utils.metrics import get_scorer_single, DeepcheckScorer
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.model import get_model_of_pipeline
 
@@ -188,6 +188,7 @@ def _calc_importance(
     mask_high_variance_features: bool = False,
     random_state: int = 42,
     n_samples: int = 10_000,
+    alternative_scorer: t.Optional[DeepcheckScorer] = None
 ) -> pd.Series:
     """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal.
 
@@ -208,8 +209,7 @@ def _calc_importance(
     dataset_sample = dataset.sample(n_samples, drop_na_label=True, random_state=random_state)
 
     # Test score time on the dataset sample
-    scorer = get_scorer_single(model,
-                               dataset)
+    scorer = get_scorer_single(model, dataset, alternative_scorer=alternative_scorer)
     start_time = time.time()
     scorer(model, dataset_sample)
     calc_time = time.time() - start_time
@@ -220,14 +220,6 @@ def _calc_importance(
         raise errors.DeepchecksTimeoutError('Permutation importance calculation was not projected to finish in'
                                             f' {permutation_importance_timeout} seconds.')
 
-    if hasattr(model, 'score'):
-        if hasattr(model, 'fit'):
-            scoring = None
-        else:
-            scoring = model.score
-    else:
-        scoring = scorer.scorer
-
     r = permutation_importance(
         model,
         dataset_sample.features_columns,
@@ -235,7 +227,7 @@ def _calc_importance(
         n_repeats=n_repeats,
         random_state=random_state,
         n_jobs=-1,
-        scoring=scoring
+        scoring=scorer.scorer
     )
 
     significance_mask = (
