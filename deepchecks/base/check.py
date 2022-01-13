@@ -146,7 +146,7 @@ class CheckResult:
                             plt.show()
                         check_html = ''
                     except Exception as exc:
-                        display_html(f'Error in display {str(exc)}', raw=True)
+                        check_html += f'Error in display {str(exc)}'
                 else:
                     raise Exception(f'Unable to display item of type: {type(item)}')
         if not self.display:
