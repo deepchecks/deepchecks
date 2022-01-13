@@ -84,16 +84,6 @@ def validate_model(
         ))
 
     try:
-        model_features = set(model_features)  # type: ignore
-        if model_features != features_names:
-            raise errors.DeepchecksValueError(error_message.format(
-                'But function received dataset with a different set of features.'
-            ))
-    except (TypeError, ValueError):
-        # in case if 'model.feature_names_in_' was None or not iterable
-        pass
-
-    try:
         model.predict(features.head(1))
     except Exception as exc:
         raise errors.DeepchecksValueError(
