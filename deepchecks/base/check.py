@@ -136,7 +136,16 @@ class CheckResult:
                 elif callable(item):
                     try:
                         item()
-                        plt.show()
+                        if as_widget:
+                            plt_out = widgets.Output()
+                            with plt_out:
+                                plt.show()
+                            box_children.append(widgets.HTML(check_html))
+                            box_children.append(plt_out)
+                        else:
+                            display_html(check_html, raw=True)
+                            plt.show()
+                        check_html = ''
                     except Exception as exc:
                         display_html(f'Error in display {str(exc)}', raw=True)
                 else:
