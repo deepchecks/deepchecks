@@ -122,8 +122,7 @@ def get_result_navigation_display(check_results: Union['check.CheckResult', List
             check_header = check_result.get_header()
             check_id = f'{check_result.check.__class__.__name__}_{unique_id}'
             link = f'<a href=#{check_id}>{check_header}</a>'
-            check = check_result.check
-            summary = get_check_summary(check)
+            summary = get_check_summary(check_result.check)
             table.append([link, summary])
 
     nav_table = pd.DataFrame(data=table,

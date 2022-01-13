@@ -35,8 +35,8 @@ def _get_check_widget(check_res: CheckResult, unique_id: str) -> widgets.VBox:
 def _add_widget_classes(widget: widgets.HTML):
     widget.add_class('rendered_html')
     widget.add_class('jp-RenderedHTMLCommon')
-    widget.add_class('jp-RenderedHTML') 
-    widget.add_class('jp-OutputArea-output') 
+    widget.add_class('jp-RenderedHTML')
+    widget.add_class('jp-OutputArea-output')
 
 def _create_table_widget(df_html: str) -> widgets.VBox:
     table_box = widgets.VBox()
@@ -166,7 +166,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         """,
         raw=True
     )
-    
+
     if checks_with_conditions:
         cond_html_h2 = '<h2>Conditions Summary</h2>'
         cond_html_table = get_conditions_table_display(checks_with_conditions, unique_id)
@@ -178,7 +178,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     else:
         not_found_text = '<p>No conditions defined on checks in the suite.</p>'
         if is_widgets:
-                condition_tab_children = [widgets.HTML(not_found_text)]
+            condition_tab_children = [widgets.HTML(not_found_text)]
         else:
             display_html(not_found_text, raw=True)
 
@@ -207,7 +207,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
 
     if is_widgets:
         condition_tab.children = condition_tab_children
-    
+
     checks_wo_tab_children = []
     outputs_h2 = f'{bold_hr}<h2>Check Without Conditions Output</h2>'
     if is_widgets:

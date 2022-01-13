@@ -12,13 +12,12 @@
 # pylint: disable=broad-except
 import abc
 import inspect
-import re
 import traceback
 from collections import OrderedDict
 from functools import wraps
 from typing import Any, Callable, List, Union, Dict, Mapping
 import pandas as pd
-from IPython.core.display import display, display_html
+from IPython.core.display import display_html
 import ipywidgets as widgets
 import plotly.graph_objects as go
 from pandas.io.formats.style import Styler
@@ -26,7 +25,7 @@ from plotly.basedatatypes import BaseFigure
 
 from deepchecks.base.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.base.dataset import Dataset
-from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table_display, display_dataframe
+from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table_display
 from deepchecks.utils.strings import get_check_summary, split_camel_case
 from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.utils.ipython import is_ipython_display
@@ -63,7 +62,7 @@ class CheckResult:
     conditions_results: List[ConditionResult]
     check: 'BaseCheck'
 
-    def __init__(self, value, header: str = None, check_display: Any = None):
+    def __init__(self, value, header: str = None, display: Any = None):
         """Init check result.
 
         Args:
@@ -78,9 +77,9 @@ class CheckResult:
         self.conditions_results = []
 
         if display is not None and not isinstance(display, List):
-            self.display = [check_display]
+            self.display = [display]
         else:
-            self.display = check_display or []
+            self.display = display or []
 
         for item in self.display:
             if not isinstance(item, (str, pd.DataFrame, Styler, Callable, BaseFigure)):
@@ -144,12 +143,13 @@ class CheckResult:
             return box
         display_html(check_html, raw=True)
 
-    def _ipython_display_(self, show_conditions=True, unique_id=None, as_widget=False, 
+    def _ipython_display_(self, show_conditions=True, unique_id=None, as_widget=False,
                           show_additional_outputs=True):
         check_widget = self.display_check(show_conditions=show_conditions,
-                                         unique_id=unique_id, as_widget=as_widget)
+                                          unique_id=unique_id, as_widget=as_widget,
+                                          show_additional_outputs=show_additional_outputs,)
         if as_widget:
-            display(check_widget)
+            display_html(check_widget)
 
     def __repr__(self):
         """Return default __repr__ function uses value."""
