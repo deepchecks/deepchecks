@@ -218,6 +218,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         if is_widgets and unique_id:
             nav_table = get_result_navigation_display(checks_wo_conditions, unique_id)
             checks_wo_tab_children.append(widgets.HTML(nav_table))
+            checks_wo_tab_children.append(widgets.HTML(light_hr))
         for i, r in enumerate(checks_wo_conditions):
             if is_widgets:
                 checks_wo_tab_children.append(_get_check_widget(r, unique_id))
