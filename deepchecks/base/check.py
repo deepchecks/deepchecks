@@ -63,7 +63,7 @@ class CheckResult:
     conditions_results: List[ConditionResult]
     check: 'BaseCheck'
 
-    def __init__(self, value, header: str = None, display: Any = None):
+    def __init__(self, value, header: str = None, check_display: Any = None):
         """Init check result.
 
         Args:
@@ -78,15 +78,16 @@ class CheckResult:
         self.conditions_results = []
 
         if display is not None and not isinstance(display, List):
-            self.display = [display]
+            self.display = [check_display]
         else:
-            self.display = display or []
+            self.display = check_display or []
 
         for item in self.display:
             if not isinstance(item, (str, pd.DataFrame, Styler, Callable, BaseFigure)):
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
-    def display_check(self, show_conditions: bool = True, unique_id: str = None, as_widget: bool = False):
+    def display_check(self, show_conditions: bool = True, unique_id: str = None, as_widget: bool = False,
+                      show_additional_outputs=True):
         """Display the check result or return the display as widget.
 
         Args:
@@ -96,6 +97,8 @@ class CheckResult:
                 The unique id given by the suite that displays the check.
             as_widget (bool):
                 Boolean that controls if to display the check regulary or if to return a widget.
+            show_additional_outputs (bool):
+                Boolean that controls if to show additional outputs.
         Returns:
             Widget representation of the display if as_widget is True.
         """
@@ -115,21 +118,22 @@ class CheckResult:
             check_html += '<h5>Conditions Summary</h5>'
             check_html += get_conditions_table_display(self, unique_id)
             check_html += '<h5>Additional Outputs</h5>'
-        for item in self.display:
-            if isinstance(item, (pd.DataFrame, Styler)):
-                check_html += dataframe_to_html(item)
-            elif isinstance(item, str):
-                check_html += item
-            elif isinstance(item, BaseFigure):
-                if as_widget:
-                    box_children.append(widgets.HTML(check_html))
-                    box_children.append(go.FigureWidget(data=item))
+        if show_additional_outputs:
+            for item in self.display:
+                if isinstance(item, (pd.DataFrame, Styler)):
+                    check_html += dataframe_to_html(item)
+                elif isinstance(item, str):
+                    check_html += item
+                elif isinstance(item, BaseFigure):
+                    if as_widget:
+                        box_children.append(widgets.HTML(check_html))
+                        box_children.append(go.FigureWidget(data=item))
+                    else:
+                        display_html(check_html, raw=True)
+                        item.show()
+                    check_html = ''
                 else:
-                    display_html(check_html, raw=True)
-                    item.show()
-                check_html = ''
-            else:
-                raise Exception(f'Unable to display item of type: {type(item)}')
+                    raise Exception(f'Unable to display item of type: {type(item)}')
         if not self.display:
             check_html += '<p><b>&#x2713;</b> Nothing found</p>'
         if unique_id:
@@ -140,7 +144,8 @@ class CheckResult:
             return box
         display_html(check_html, raw=True)
 
-    def _ipython_display_(self, show_conditions=True, unique_id=None, as_widget=False):
+    def _ipython_display_(self, show_conditions=True, unique_id=None, as_widget=False, 
+                          show_additional_outputs=True):
         check_widget = self.display_check(show_conditions=show_conditions,
                                          unique_id=unique_id, as_widget=as_widget)
         if as_widget:
