@@ -116,8 +116,8 @@ class CheckResult:
         if self.conditions_results:
             check_html += '<h5>Conditions Summary</h5>'
             check_html += get_conditions_table_display(self, unique_id)
-            check_html += '<h5>Additional Outputs</h5>'
         if show_additional_outputs:
+            check_html += '<h5>Additional Outputs</h5>'
             for item in self.display:
                 if isinstance(item, (pd.DataFrame, Styler)):
                     check_html += dataframe_to_html(item)
