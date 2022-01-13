@@ -12,13 +12,10 @@
 import typing as t
 
 import pandas as pd
-import sklearn
 
 from deepchecks import base  # pylint: disable=unused-import, is used in type annotations
 from deepchecks import errors
-from deepchecks.utils.model import get_model_of_pipeline
-from deepchecks.utils.typing import Hashable
-
+from deepchecks.utils.typing import Hashable, BasicModel
 
 __all__ = ['model_type_validation', 'ensure_hashable_or_mutable_sequence', 'validate_model', 'ensure_dataframe_type']
 
@@ -29,14 +26,7 @@ def model_type_validation(model: t.Any):
     Raises:
         DeepchecksValueError: If the object is not of a supported type
     """
-    supported_by_class_name = ('CatBoostClassifier', 'CatBoostRegressor')
-    supported_by_class_instance = (sklearn.base.BaseEstimator,)
-    model = get_model_of_pipeline(model)
-
-    if (
-        not isinstance(model, supported_by_class_instance)
-        and model.__class__.__name__ not in supported_by_class_name
-    ):
+    if not isinstance(model, BasicModel):
         raise errors.DeepchecksValueError(
             'Model must inherit from one of supported '
             'models: sklearn.base.BaseEstimator or CatBoost, '
