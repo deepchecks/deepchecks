@@ -9,11 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Handle displays of pandas objects."""
-from re import U
 from typing import List, Union
 import warnings
 
-from IPython.core.display import display_html
 import pandas as pd
 from pandas.io.formats.style import Styler
 
