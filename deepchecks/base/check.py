@@ -26,8 +26,8 @@ from plotly.basedatatypes import BaseFigure
 
 from deepchecks.base.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.base.dataset import Dataset
-from deepchecks.base.display_pandas import dataframe_to_html, display_conditions_table, display_dataframe
-from deepchecks.utils.strings import split_camel_case
+from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table_display, display_dataframe
+from deepchecks.utils.strings import get_check_summary, split_camel_case
 from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.utils.ipython import is_ipython_display
 from deepchecks.utils.metrics import task_type_check
@@ -109,13 +109,11 @@ class CheckResult:
         else:
             check_html += f'<h4>{self.get_header()}</h4>'
         if hasattr(self.check.__class__, '__doc__'):
-            docs = self.check.__class__.__doc__ or ''
-            # Take first non-whitespace line.
-            summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
+            summary = get_check_summary(self.check)
             check_html += f'<p>{summary}</p>'
-        if self.conditions_results:
+        if self.conditions_results and show_conditions:
             check_html += '<h5>Conditions Summary</h5>'
-            check_html += display_conditions_table(self, unique_id)
+            check_html += get_conditions_table_display(self, unique_id)
             check_html += '<h5>Additional Outputs</h5>'
         for item in self.display:
             if isinstance(item, (pd.DataFrame, Styler)):

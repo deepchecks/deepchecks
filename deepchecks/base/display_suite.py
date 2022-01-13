@@ -24,7 +24,7 @@ from deepchecks import errors
 from deepchecks.utils.ipython import is_widgets_enabled
 from deepchecks.utils.strings import get_random_string
 from deepchecks.base.check import CheckResult, CheckFailure
-from deepchecks.base.display_pandas import dataframe_to_html, display_conditions_table
+from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table_display, get_result_navigation_display
 
 
 __all__ = ['display_suite_result', 'ProgressBar']
@@ -169,7 +169,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     
     if checks_with_conditions:
         cond_html_h2 = '<h2>Conditions Summary</h2>'
-        cond_html_table = display_conditions_table(checks_with_conditions, unique_id)
+        cond_html_table = get_conditions_table_display(checks_with_conditions, unique_id)
         if is_widgets:
             h2_widget = widgets.HTML(cond_html_h2)
             condition_tab_children = [h2_widget, _create_table_widget(cond_html_table)]
@@ -215,6 +215,9 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     else:
         display_html(outputs_h2, raw=True)
     if checks_wo_conditions:
+        if is_widgets and unique_id:
+            nav_table = get_result_navigation_display(checks_wo_conditions, unique_id)
+            checks_wo_tab_children.append(widgets.HTML(nav_table))
         for i, r in enumerate(checks_wo_conditions):
             if is_widgets:
                 checks_wo_tab_children.append(_get_check_widget(r, unique_id))

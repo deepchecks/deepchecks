@@ -37,9 +37,25 @@ __all__ = [
     'format_list',
     'format_columns_for_condition',
     'get_random_string',
-    'format_datetime'
+    'format_datetime',
+    'get_check_summary'
 ]
 
+
+def get_check_summary(check: 'BaseCheck'):
+    """Return the check summary if available.
+
+    Args:
+        check (BaseCheck): the check.
+    Returns:
+        (str): the check summary.
+    """
+    if hasattr(check.__class__, '__doc__'):
+        docs = check.__class__.__doc__ or ''
+        # Take first non-whitespace line.
+        summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
+        return summary
+    return ''
 
 def get_random_string(n: int = 5):
     """Return random string at the given size.
