@@ -113,7 +113,7 @@ class CheckResult:
             # Take first non-whitespace line.
             summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
             check_html += f'<p>{summary}</p>'
-        if self.conditions_results and show_conditions:
+        if self.conditions_results:
             check_html += '<h5>Conditions Summary</h5>'
             check_html += display_conditions_table(self, unique_id)
             check_html += '<h5>Additional Outputs</h5>'

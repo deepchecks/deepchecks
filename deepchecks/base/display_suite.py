@@ -98,7 +98,8 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         tab.set_title(0, 'Checks With Conditions')
         tab.set_title(1, 'Checks Without Conditions')
         tab.set_title(2, 'Checks Without Output')
-        display_html('<style>.jupyter-widgets.widget-tab > .p-TabBar .p-TabBar-tab {flex: 0 1 auto}</style>')
+        display_html('<style>.jupyter-widgets.widget-tab > .p-TabBar .p-TabBar-tab {flex: 0 1 auto}</style>',
+                     raw=True)
     checks_with_conditions = []
     checks_wo_conditions = []
     display_table: List[CheckResult] = []
@@ -126,7 +127,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
 
     display_table = sorted(display_table, key=lambda it: it.priority)
 
-    light_hr = '<hr style="background-color: #eee;border: 0 none;color: #eee;height: 1px;">'
+    light_hr = '<hr style="background-color: #eee;border: 0 none;color: #eee;height: 4px;">'
     if is_widgets:
         bold_hr = ''
     else:
