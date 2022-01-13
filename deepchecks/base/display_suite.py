@@ -106,8 +106,8 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         display_html('<style>.jupyter-widgets.widget-tab > .p-TabBar .p-TabBar-tab {flex: 0 1 auto}</style>',
                      raw=True)
     checks_with_conditions = []
-    checks_wo_conditions = []
-    display_table: List[CheckResult] = []
+    checks_wo_conditions_display: List[CheckResult] = []
+    checks_w_condition_display: List[CheckResult] = []
     others_table = []
 
     for result in results:
@@ -115,9 +115,9 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
             if result.have_conditions():
                 checks_with_conditions.append(result)
                 if result.have_display():
-                    display_table.append(result)
+                    checks_w_condition_display.append(result)
             elif result.have_display():
-                checks_wo_conditions.append(result)
+                checks_wo_conditions_display.append(result)
             if not result.have_display():
                 others_table.append([result.get_header(), 'Nothing found', 2])
         elif isinstance(result, CheckFailure):
@@ -130,7 +130,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
                 f"Expecting list of 'CheckResult'|'CheckFailure', but got {type(result)}."
             )
 
-    display_table = sorted(display_table, key=lambda it: it.priority)
+    checks_w_condition_display = sorted(checks_w_condition_display, key=lambda it: it.priority)
 
     light_hr = '<hr style="background-color: #eee;border: 0 none;color: #eee;height: 4px;">'
     if is_widgets:
@@ -192,13 +192,13 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         condition_tab_children.append(widgets.HTML(outputs_h2))
     else:
         display_html(outputs_h2, raw=True)
-    if display_table:
-        for i, r in enumerate(display_table):
+    if checks_w_condition_display:
+        for i, r in enumerate(checks_w_condition_display):
             if is_widgets:
                 condition_tab_children.append(_get_check_widget(r, unique_id))
             else:
                 r.show(show_conditions=False, unique_id=unique_id)
-            if i < len(display_table) - 1:
+            if i < len(checks_w_condition_display) - 1:
                 if is_widgets:
                     condition_tab_children.append(widgets.HTML(light_hr))
                 else:
@@ -219,17 +219,17 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         checks_wo_tab_children.append(widgets.HTML(outputs_h2))
     else:
         display_html(outputs_h2, raw=True)
-    if checks_wo_conditions:
+    if checks_wo_conditions_display:
         if is_widgets and unique_id:
-            nav_table = get_result_navigation_display(checks_wo_conditions, unique_id)
+            nav_table = get_result_navigation_display(checks_wo_conditions_display, unique_id)
             checks_wo_tab_children.append(widgets.HTML(nav_table))
             checks_wo_tab_children.append(widgets.HTML(light_hr))
-        for i, r in enumerate(checks_wo_conditions):
+        for i, r in enumerate(checks_wo_conditions_display):
             if is_widgets:
                 checks_wo_tab_children.append(_get_check_widget(r, unique_id))
             else:
                 r.show(show_conditions=False, unique_id=unique_id)
-            if i < len(display_table) - 1:
+            if i < len(checks_w_condition_display) - 1:
                 if is_widgets:
                     checks_wo_tab_children.append(widgets.HTML(light_hr))
                 else:
