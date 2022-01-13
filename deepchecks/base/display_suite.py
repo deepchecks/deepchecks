@@ -187,6 +187,8 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         else:
             display_html(not_found_text, raw=True)
 
+    no_output_text = '<p>No outputs to show.</p>'
+
     outputs_h2 = f'{bold_hr}<h2>Check With Conditions Output</h2>'
     if is_widgets:
         condition_tab_children.append(widgets.HTML(outputs_h2))
@@ -204,7 +206,6 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
                 else:
                     display_html(light_hr, raw=True)
     else:
-        no_output_text = '<p>No outputs to show.</p>'
         if is_widgets:
             condition_tab_children.append(widgets.HTML(no_output_text))
         else:
@@ -235,7 +236,6 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
                 else:
                     display_html(light_hr, raw=True)
     else:
-        no_output_text = '<p>No outputs to show.</p>'
         if is_widgets:
             checks_wo_tab_children.append(widgets.HTML(no_output_text))
         else:
@@ -255,6 +255,8 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
             others_tab.children = [h2_widget, _create_table_widget(others_df)]
         else:
             display_html(others_h2 + others_df, raw=True)
+    elif is_widgets:
+        others_tab.children = [widgets.HTML(no_output_text)]
     if is_widgets:
         display(tab)
     else:
