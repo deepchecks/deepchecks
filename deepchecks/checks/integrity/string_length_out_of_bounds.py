@@ -10,7 +10,6 @@
 #
 """String length outlier check."""
 from collections import defaultdict
-from functools import reduce
 from typing import Union, Dict, Tuple, List
 
 import numpy as np
@@ -21,7 +20,7 @@ from scipy import stats
 from deepchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ConditionResult, ConditionCategory
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, \
                                       column_importance_sorter_df, is_categorical
-from deepchecks.utils.strings import is_string_column, format_number, format_columns_for_condition, format_percent
+from deepchecks.utils.strings import is_string_column, format_number, format_percent
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
@@ -58,6 +57,10 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
             Minimum unique values in column to calculate string length outlier
         n_top_columns (int): (optional - used only if model was specified)
           amount of columns to show ordered by feature importance (date, index, label are first)
+        outlier_length_to_show (int):
+            Maximum length of outlier to show in results. If an outlier is longer it is trimmed and added '...'
+        samples_per_range_to_show (int):
+            Number of outlier samples to show in results per outlier range found.
     """
 
     def __init__(
@@ -71,7 +74,9 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         min_length_ratio_difference: int = 0.5,
         min_unique_value_ratio: float = 0.01,
         min_unique_values: int = 100,
-        n_top_columns: int = 10
+        n_top_columns: int = 10,
+        outlier_length_to_show: int = 50,
+        samples_per_range_to_show: int = 3
     ):
         super().__init__()
         self.columns = columns
@@ -84,6 +89,8 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         self.min_length_ratio_difference = min_length_ratio_difference
         self.min_unique_value_ratio = min_unique_value_ratio
         self.min_unique_values = min_unique_values
+        self.outlier_length_to_show = outlier_length_to_show
+        self.samples_per_range_to_show = samples_per_range_to_show
 
     def run(self, dataset, model=None) -> CheckResult:
         """Run check.
@@ -115,10 +122,9 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
 
             # If not a lot of unique values, calculate the percentiles for existing values.
             if string_length_column.nunique() < self.num_percentiles:
-                string_length_column = string_length_column.to_numpy()
-                string_length_column.sort()
+                string_length_column = string_length_column.sort_values()
                 quantile_list = 100 * stats.rankdata(string_length_column, 'ordinal') / len(string_length_column)
-                percentile_histogram = {quantile_list[i]: string_length_column[i] for i in
+                percentile_histogram = {quantile_list[i]: string_length_column.iloc[i] for i in
                                         range(len(string_length_column))}
             else:
                 quantile_list = list(np.linspace(0.0, 100.0, self.num_percentiles + 1))
@@ -144,16 +150,20 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                     if lower_range > upper_range:
                         continue
 
-                    n_outlier_samples = reduce(lambda value, x, lr=lower_range, ur=upper_range:
-                                               value + _in_range(x, lr, ur),
-                                               string_length_column, 0)
-                    if n_outlier_samples:
+                    outlier_samples = string_length_column[
+                        string_length_column.between(lower_range, upper_range, inclusive='both')]
+
+                    if not outlier_samples.empty:
+                        outlier_examples = column[outlier_samples[:self.samples_per_range_to_show].index]
+                        outlier_examples = [trim(x, self.outlier_length_to_show) for x in outlier_examples]
+
                         display_format.append([column_name,
                                                f'{format_number(non_outlier_lower_limit)} -'
                                                f' {format_number(non_outlier_upper_limit)}',
                                                f'{format_number(lower_range)} -'
                                                f' {format_number(upper_range)}',
-                                               f'{n_outlier_samples}'
+                                               f'{outlier_samples.size}',
+                                               outlier_examples
                                                ])
                         results[column_name]['normal_range'] = {
                                 'min': non_outlier_lower_limit,
@@ -164,7 +174,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                             'range': {'min': lower_range,
                                       'max': upper_range
                                       },
-                            'n_samples': n_outlier_samples
+                            'n_samples': outlier_samples.size
                         })
 
         # Create dataframe to display graph
@@ -172,7 +182,8 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                              columns=['Column Name',
                                       'Range of Detected Normal String Lengths',
                                       'Range of Detected Outlier String Lengths',
-                                      'Number of Outlier Samples'])
+                                      'Number of Outlier Samples',
+                                      'Example Samples'])
         df_graph = df_graph.set_index(['Column Name',
                                        'Range of Detected Normal String Lengths',
                                        'Range of Detected Outlier String Lengths'])
@@ -207,7 +218,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
             max_outliers (int): Number of string length outliers which is the maximum allowed.
         """
         def compare_outlier_count(result: Dict) -> ConditionResult:
-            not_passing_columns = []
+            not_passing_columns = {}
             for column_name in result.keys():
                 column = result[column_name]
                 total_outliers = 0
@@ -215,18 +226,16 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                     total_outliers += outlier['n_samples']
 
                 if total_outliers > max_outliers:
-                    not_passing_columns.append(column_name)
+                    not_passing_columns[column_name] = total_outliers
             if not_passing_columns:
-                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
-                                       f'Found columns with greater than {max_outliers} outliers: '
-                                       f'{not_passing_str}')
+                                       f'Found columns with number of outliers above threshold: '
+                                       f'{not_passing_columns}')
             else:
                 return ConditionResult(True)
 
-        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
         return self.add_condition(
-            f'Number of outliers not greater than {max_outliers} string length outliers for {column_names}',
+            f'Number of outliers not greater than {max_outliers} string length outliers',
             compare_outlier_count)
 
     def add_condition_ratio_of_outliers_not_greater_than(self, max_ratio: float = 0):
@@ -236,26 +245,25 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
             max_ratio (int): Maximum allowed string length outliers ratio.
         """
         def compare_outlier_ratio(result: Dict):
-            not_passing_columns = []
+            not_passing_columns = {}
             for column_name in result.keys():
                 column = result[column_name]
                 total_outliers = 0
                 for outlier in column['outliers']:
                     total_outliers += outlier['n_samples']
 
-                if total_outliers/column['n_samples'] > max_ratio:
-                    not_passing_columns.append(column_name)
+                ratio = total_outliers / column['n_samples']
+                if ratio > max_ratio:
+                    not_passing_columns[column_name] = format_percent(ratio)
             if not_passing_columns:
-                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
-                                       f'Found columns with greater than {format_percent(max_ratio)} outliers: '
-                                       f'{not_passing_str}', category=ConditionCategory.WARN)
+                                       f'Found columns with outliers ratio above threshold: '
+                                       f'{not_passing_columns}', category=ConditionCategory.WARN)
             else:
                 return ConditionResult(True)
 
-        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
         return self.add_condition(
-            f'Ratio of outliers not greater than {format_percent(max_ratio)} string length outliers for {column_names}',
+            f'Ratio of outliers not greater than {format_percent(max_ratio)} string length outliers',
             compare_outlier_ratio)
 
 
@@ -304,3 +312,9 @@ def outlier_on_percentile_histogram(percentile_histogram: Dict[float, float], iq
 
 def _in_range(x, a, b):
     return a <= x <= b
+
+
+def trim(x, max_length):
+    if len(x) <= max_length:
+        return x
+    return x[:max_length] + '...'

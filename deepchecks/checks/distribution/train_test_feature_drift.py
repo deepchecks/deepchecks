@@ -191,26 +191,25 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
                     [col_name for col_name, fi in sorted(result.items(), key=lambda item: item[1]['Drift score'],
                                                          reverse=True)]
             columns_to_consider = columns_to_consider[:number_of_top_features_to_consider]
-            not_passing_categorical_columns = [column for column, d in result.items() if
+            not_passing_categorical_columns = {column: f'{d["Drift score"]:.2}' for column, d in result.items() if
                                                d['Drift score'] > max_allowed_psi_score and d['Method'] == 'PSI'
-                                               and column in columns_to_consider]
-            not_passing_numeric_columns = [column for column, d in result.items() if
+                                               and column in columns_to_consider}
+            not_passing_numeric_columns = {column: f'{d["Drift score"]:.2}' for column, d in result.items() if
                                            d['Drift score'] > max_allowed_earth_movers_score
                                            and d['Method'] == "Earth Mover's Distance"
-                                           and column in columns_to_consider]
+                                           and column in columns_to_consider}
             return_str = ''
             if not_passing_categorical_columns:
-                return_str += f'Found categorical columns with PSI over {max_allowed_psi_score}: ' \
-                              f'{", ".join(map(str, not_passing_categorical_columns))}\n'
+                return_str += f'Found categorical columns with PSI above threshold: {not_passing_categorical_columns}\n'
             if not_passing_numeric_columns:
-                return_str += f'Found numeric columns with Earth Mover\'s Distance over ' \
-                              f'{max_allowed_earth_movers_score}: {", ".join(map(str, not_passing_numeric_columns))}'
+                return_str += f'Found numeric columns with Earth Mover\'s Distance above threshold: ' \
+                              f'{not_passing_numeric_columns}'
 
             if return_str:
                 return ConditionResult(False, return_str)
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'PSI and Earth Mover\'s Distance cannot be greater than {max_allowed_psi_score} and '
-                                  f'{max_allowed_earth_movers_score} respectively',
+        return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
+                                  f'{max_allowed_earth_movers_score}',
                                   condition)
