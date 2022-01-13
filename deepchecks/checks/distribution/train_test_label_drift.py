@@ -125,15 +125,14 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
                          (drift_score > max_allowed_earth_movers_score and method == "Earth Mover's Distance")
 
             if method == 'PSI' and has_failed:
-                return_str = f'Label has PSI over {max_allowed_psi_score} - Drift score is {drift_score:.2f}'
+                return_str = f'Found label PSI above threshold: {drift_score:.2f}'
                 return ConditionResult(False, return_str)
             elif method == "Earth Mover's Distance" and has_failed:
-                return_str = f'Label has Earth Mover\'s Distance over {max_allowed_earth_movers_score} - ' \
-                             f'Drift score is {drift_score:.2f}'
+                return_str = f'Label\'s Earth Mover\'s Distance above threshold: {drift_score:.2f}'
                 return ConditionResult(False, return_str)
 
             return ConditionResult(True)
 
-        return self.add_condition(f'PSI and Earth Mover\'s Distance for label drift cannot be greater than '
-                                  f'{max_allowed_psi_score} or {max_allowed_earth_movers_score} respectively',
+        return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
+                                  f'{max_allowed_earth_movers_score} for label drift',
                                   condition)

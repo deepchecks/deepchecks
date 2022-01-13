@@ -20,7 +20,7 @@ from scipy import stats
 from deepchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ConditionResult, ConditionCategory
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, \
                                       column_importance_sorter_df, is_categorical
-from deepchecks.utils.strings import is_string_column, format_number, format_columns_for_condition, format_percent
+from deepchecks.utils.strings import is_string_column, format_number, format_percent
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
@@ -218,7 +218,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
             max_outliers (int): Number of string length outliers which is the maximum allowed.
         """
         def compare_outlier_count(result: Dict) -> ConditionResult:
-            not_passing_columns = []
+            not_passing_columns = {}
             for column_name in result.keys():
                 column = result[column_name]
                 total_outliers = 0
@@ -226,18 +226,16 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                     total_outliers += outlier['n_samples']
 
                 if total_outliers > max_outliers:
-                    not_passing_columns.append(column_name)
+                    not_passing_columns[column_name] = total_outliers
             if not_passing_columns:
-                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
-                                       f'Found columns with greater than {max_outliers} outliers: '
-                                       f'{not_passing_str}')
+                                       f'Found columns with number of outliers above threshold: '
+                                       f'{not_passing_columns}')
             else:
                 return ConditionResult(True)
 
-        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
         return self.add_condition(
-            f'Number of outliers not greater than {max_outliers} string length outliers for {column_names}',
+            f'Number of outliers not greater than {max_outliers} string length outliers',
             compare_outlier_count)
 
     def add_condition_ratio_of_outliers_not_greater_than(self, max_ratio: float = 0):
@@ -247,26 +245,25 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
             max_ratio (int): Maximum allowed string length outliers ratio.
         """
         def compare_outlier_ratio(result: Dict):
-            not_passing_columns = []
+            not_passing_columns = {}
             for column_name in result.keys():
                 column = result[column_name]
                 total_outliers = 0
                 for outlier in column['outliers']:
                     total_outliers += outlier['n_samples']
 
-                if total_outliers/column['n_samples'] > max_ratio:
-                    not_passing_columns.append(column_name)
+                ratio = total_outliers / column['n_samples']
+                if ratio > max_ratio:
+                    not_passing_columns[column_name] = format_percent(ratio)
             if not_passing_columns:
-                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
-                                       f'Found columns with greater than {format_percent(max_ratio)} outliers: '
-                                       f'{not_passing_str}', category=ConditionCategory.WARN)
+                                       f'Found columns with outliers ratio above threshold: '
+                                       f'{not_passing_columns}', category=ConditionCategory.WARN)
             else:
                 return ConditionResult(True)
 
-        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
         return self.add_condition(
-            f'Ratio of outliers not greater than {format_percent(max_ratio)} string length outliers for {column_names}',
+            f'Ratio of outliers not greater than {format_percent(max_ratio)} string length outliers',
             compare_outlier_ratio)
 
 

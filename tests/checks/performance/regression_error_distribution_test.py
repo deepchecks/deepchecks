@@ -63,8 +63,8 @@ def test_condition_absolute_kurtosis_not_greater_than_not_passed(diabetes_split_
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Kurtosis value not less than -0.1',
-                               details='kurtosis: -0.92572',
+                               name='Kurtosis value is not less than -0.1',
+                               details='Found kurtosis below threshold: -0.92572',
                                category=ConditionCategory.WARN)
     ))
 
@@ -79,7 +79,7 @@ def test_condition_absolute_kurtosis_not_greater_than_passed(diabetes_split_data
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Kurtosis value not less than -0.1')
+                               name='Kurtosis value is not less than -0.1')
     )) 
 
 
@@ -93,7 +93,7 @@ def test_condition_absolute_kurtosis_not_greater_than_not_passed_0_max(diabetes_
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Kurtosis value not less than 1',
-                               details='kurtosis: 0.02867',
+                               name='Kurtosis value is not less than 1',
+                               details='Found kurtosis below threshold: 0.02867',
                                category=ConditionCategory.WARN)
     )) 

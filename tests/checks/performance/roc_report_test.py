@@ -82,8 +82,8 @@ def test_condition_ratio_more_than_not_passed(iris_clean):
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Not less than 0.8 AUC score for all the classes',
-                               details='The scores that are less than the allowed AUC are: [\'class 1: 0.71\']')
+                               name='AUC score for all the classes is not less than 0.8',
+                               details='Found classes with AUC below threshold: {1: \'0.71\'}')
     ))
 
 
@@ -103,7 +103,7 @@ def test_condition_ratio_more_than_passed(iris_clean):
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Not less than 0.7 AUC score for all the classes',)
+                               name='AUC score for all the classes is not less than 0.7')
     )) 
 
     check = RocReport(excluded_classes=[1]).add_condition_auc_not_less_than(min_auc=0.8)
@@ -112,5 +112,5 @@ def test_condition_ratio_more_than_passed(iris_clean):
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Not less than 0.8 AUC score for all the classes except: [1]',)
+                               name='AUC score for all the classes except: [1] is not less than 0.8')
     )) 

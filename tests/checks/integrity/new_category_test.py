@@ -171,8 +171,8 @@ def test_condition_categories_fail():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found columns with more than 0 new categories: col1',
-                               name='Number of new category values is not greater than 0 for all columns')
+                               details='Found columns with number of new categories above threshold: {\'col1\': 1}',
+                               name='Number of new category values is not greater than 0')
     ))
 
 
@@ -191,7 +191,7 @@ def test_condition_categories_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Number of new category values is not greater than 1 for all columns')
+                               name='Number of new category values is not greater than 1')
     ))
 
 
@@ -209,9 +209,10 @@ def test_condition_count_fail():
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
 
     assert_that(result, has_items(
-        equal_condition_result(is_pass=False,
-                               details='Found columns with more than 10.00% new category samples: col1',
-                               name='Ratio of samples with a new category is not greater than 10.00% for all columns')
+        equal_condition_result(
+            is_pass=False,
+            details='Found columns with ratio of new category samples above threshold: {\'col1\': \'25.00%\'}',
+            name='Ratio of samples with a new category is not greater than 10.00%')
     ))
 
 
@@ -230,5 +231,5 @@ def test_condition_count_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Ratio of samples with a new category is not greater than 30.00% for all columns')
+                               name='Ratio of samples with a new category is not greater than 30.00%')
     ))
