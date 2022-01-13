@@ -16,6 +16,8 @@ import traceback
 from collections import OrderedDict
 from functools import wraps
 from typing import Any, Callable, List, Union, Dict, Mapping
+ד
+from matplotlib import pyplot as plt
 import pandas as pd
 from IPython.core.display import display_html
 import ipywidgets as widgets
@@ -131,6 +133,12 @@ class CheckResult:
                         display_html(check_html, raw=True)
                         item.show()
                     check_html = ''
+                elif callable(item):
+                    try:
+                        item()
+                        plt.show()
+                    except Exception as exc:
+                        display_html(f'Error in display {str(exc)}', raw=True)
                 else:
                     raise Exception(f'Unable to display item of type: {type(item)}')
         if not self.display:
