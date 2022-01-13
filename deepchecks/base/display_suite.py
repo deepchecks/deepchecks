@@ -24,13 +24,16 @@ from deepchecks import errors
 from deepchecks.utils.ipython import is_widgets_enabled
 from deepchecks.utils.strings import get_random_string
 from deepchecks.base.check import CheckResult, CheckFailure
-from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table_display, get_result_navigation_display
+from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table_display, \
+                                           get_result_navigation_display
 
 
 __all__ = ['display_suite_result', 'ProgressBar']
 
+
 def _get_check_widget(check_res: CheckResult, unique_id: str) -> widgets.VBox:
     return check_res.display_check(False, unique_id, True)
+
 
 def _add_widget_classes(widget: widgets.HTML):
     widget.add_class('rendered_html')
@@ -38,12 +41,14 @@ def _add_widget_classes(widget: widgets.HTML):
     widget.add_class('jp-RenderedHTML')
     widget.add_class('jp-OutputArea-output')
 
+
 def _create_table_widget(df_html: str) -> widgets.VBox:
     table_box = widgets.VBox()
     df_widg = widgets.HTML(df_html)
     table_box.children = [df_widg]
     _add_widget_classes(table_box)
     return table_box
+
 
 class ProgressBar:
     """Progress bar for display while running suite."""

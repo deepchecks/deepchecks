@@ -16,7 +16,7 @@ from IPython.core.display import display_html
 import pandas as pd
 from pandas.io.formats.style import Styler
 
-from deepchecks.utils.strings import get_check_summary
+from deepchecks.utils.strings import get_docs_summary
 
 from . import check  # pylint: disable=unused-import
 
@@ -65,7 +65,7 @@ def dataframe_to_html(df: Union[pd.DataFrame, Styler]):
 
 
 def get_conditions_table_display(check_results: Union['check.CheckResult', List['check.CheckResult']],
-                             unique_id=None):
+                                 unique_id=None):
     """Display the conditions table as DataFrame.
 
     Args:
@@ -105,6 +105,7 @@ def get_conditions_table_display(check_results: Union['check.CheckResult', List[
         conditions_table.drop('Check', axis=1, inplace=True)
     return dataframe_to_html(conditions_table.style.hide_index())
 
+
 def get_result_navigation_display(check_results: Union['check.CheckResult', List['check.CheckResult']],
                                   unique_id: str):
     """Display the results as a table with links for navigation.
@@ -122,9 +123,9 @@ def get_result_navigation_display(check_results: Union['check.CheckResult', List
             check_header = check_result.get_header()
             check_id = f'{check_result.check.__class__.__name__}_{unique_id}'
             link = f'<a href=#{check_id}>{check_header}</a>'
-            summary = get_check_summary(check_result.check)
+            summary = get_docs_summary(check_result.check)
             table.append([link, summary])
 
     nav_table = pd.DataFrame(data=table,
-                                    columns=['Check', 'Summary'])
+                             columns=['Check', 'Summary'])
     return dataframe_to_html(nav_table.style.hide_index())

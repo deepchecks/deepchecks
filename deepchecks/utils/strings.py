@@ -36,24 +36,25 @@ __all__ = [
     'format_list',
     'get_random_string',
     'format_datetime',
-    'get_check_summary'
+    'get_docs_summary'
 ]
 
 
-def get_check_summary(check: 'BaseCheck'):
-    """Return the check summary if available.
+def get_docs_summary(obj):
+    """Return the docs summary if available.
 
     Args:
-        check (BaseCheck): the check.
+        obj: an object
     Returns:
         (str): the check summary.
     """
-    if hasattr(check.__class__, '__doc__'):
-        docs = check.__class__.__doc__ or ''
+    if hasattr(obj.__class__, '__doc__'):
+        docs = obj.__class__.__doc__ or ''
         # Take first non-whitespace line.
         summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
         return summary
     return ''
+
 
 def get_random_string(n: int = 5):
     """Return random string at the given size.

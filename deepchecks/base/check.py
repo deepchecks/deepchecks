@@ -26,7 +26,7 @@ from plotly.basedatatypes import BaseFigure
 from deepchecks.base.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.base.dataset import Dataset
 from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table_display
-from deepchecks.utils.strings import get_check_summary, split_camel_case
+from deepchecks.utils.strings import get_docs_summary, split_camel_case
 from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.utils.ipython import is_ipython_display
 from deepchecks.utils.metrics import task_type_check
@@ -111,7 +111,7 @@ class CheckResult:
         else:
             check_html += f'<h4>{self.get_header()}</h4>'
         if hasattr(self.check.__class__, '__doc__'):
-            summary = get_check_summary(self.check)
+            summary = get_docs_summary(self.check)
             check_html += f'<p>{summary}</p>'
         if self.conditions_results and show_conditions:
             check_html += '<h5>Conditions Summary</h5>'
