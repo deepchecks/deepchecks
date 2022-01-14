@@ -10,7 +10,6 @@ import sys
 import pathlib
 import functools
 from subprocess import check_output
-from deepchecks.utils.strings import to_snake_case
 
 # -- Path setup --------------------------------------------------------------
 
@@ -18,6 +17,8 @@ CURRENT_DIR = pathlib.Path(__file__).parent
 PROJECT_DIR = CURRENT_DIR.parent.parent
 
 sys.path.insert(0, str(PROJECT_DIR.absolute()))
+
+from deepchecks.utils.strings import to_snake_case
 
 with open(os.path.join(PROJECT_DIR, 'VERSION')) as version_file:
     VERSION = version_file.read().strip()
