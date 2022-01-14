@@ -1,5 +1,5 @@
 Checks
-======
+========
 
 .. py:module:: deepchecks.checks
 
@@ -7,17 +7,11 @@ Checks
 
 .. currentmodule:: deepchecks.checks
 
+.. rubric:: Modules
+
 .. autosummary::
-
-    distribution
-    integrity
-    methodology
-    overview
-    performance
-
-.. toctree::
-    :caption: Checks
-    :hidden:
+    :toctree: generated
+    :template: autosummary/check-module.rst
 
     distribution
     integrity

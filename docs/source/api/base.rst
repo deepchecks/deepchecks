@@ -1,16 +1,13 @@
 Base
-====
+======
 
 .. py:module:: deepchecks.base
 
-Module for base classes.
-
-Import objects to be available in parent deepchecks module.
-
-Classes Summary
-~~~~~~~~~~~~~~~
+.. automodule:: deepchecks.base
 
 .. currentmodule:: deepchecks.base
+
+.. rubric:: Modules
 
 .. autosummary::
     :recursive:

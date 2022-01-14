@@ -1,15 +1,13 @@
 Utils
-=====
+======
 
 .. py:module:: deepchecks.utils
 
 .. automodule:: deepchecks.utils
 
-
 .. currentmodule:: deepchecks.utils
 
-Utils
-~~~~~
+.. rubric:: Modules
 
 .. autosummary::
     :recursive:

@@ -7,14 +7,11 @@ Datasets
 
 .. currentmodule:: deepchecks.datasets
 
+.. rubric:: Modules
+
 .. autosummary::
+    :recursive:
+    :toctree: generated
 
-    regression
     classification
-
-.. toctree::
-    :caption: Datasets
-    :hidden:
-
     regression
-    classification

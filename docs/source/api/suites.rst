@@ -5,11 +5,9 @@ Suites
 
 .. automodule:: deepchecks.suites
 
-
 .. currentmodule:: deepchecks.suites
 
-Prebuilt Suites
-~~~~~~~~~~~~~~~
+.. rubric:: Modules
 
 .. autosummary::
     :recursive:
