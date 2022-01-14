@@ -96,9 +96,6 @@ python_use_unqualified_type_names = True
 
 # -- autosummary settings --------------------------------------------------
 
-autosummary_generate = False
-autosummary_generate_overwrite = False
-
 # A boolean flag indicating whether to document classes and 
 # functions imported in modules. Default is False
 #
