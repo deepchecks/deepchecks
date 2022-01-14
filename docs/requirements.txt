@@ -1,4 +1,4 @@
-sphinx>=1.8.5
+git+https://github.com/sphinx-doc/sphinx.git@4.x#egg=sphinx
 nbsphinx>=0.8.7
 pydata-sphinx-theme>=0.7.2
 sphinx-copybutton>=0.4.0
