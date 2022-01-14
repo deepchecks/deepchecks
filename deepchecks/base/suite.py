@@ -62,6 +62,7 @@ class BaseSuite:
     @classmethod
     @abc.abstractmethod
     def supported_checks(cls) -> Tuple:
+        """Return list of of supported check types."""
         pass
 
     checks: OrderedDict
