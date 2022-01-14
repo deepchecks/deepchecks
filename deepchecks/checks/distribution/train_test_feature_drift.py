@@ -8,7 +8,9 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains Train Test Drift check."""
+"""Module contains Train Test Drift check.
+
+"""
 
 from collections import OrderedDict
 from typing import Union, List, Dict, Optional
@@ -26,37 +28,39 @@ __all__ = ['TrainTestFeatureDrift']
 
 
 class TrainTestFeatureDrift(TrainTestBaseCheck):
-    """
-    Calculate drift between train dataset and test dataset per feature, using statistical measures.
+    """Calculate drift between train dataset and test dataset per feature, using statistical measures.
 
     Check calculates a drift score for each column in test dataset, by comparing its distribution to the train
     dataset.
     For numerical columns, we use the Earth Movers Distance.
     See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf
     For categorical columns, we use the Population Stability Index (PSI).
-    See https://en.wikipedia.org/wiki/Wasserstein_metric.
+    See https://en.wikipedia.org/wiki/Wasserstein_metric. 
 
 
-    Args:
-        columns (Union[Hashable, List[Hashable]]):
-            Columns to check, if none are given checks all
-            columns except ignored ones.
-        ignore_columns (Union[Hashable, List[Hashable]]):
-            Columns to ignore, if none given checks based on
-            columns variable.
-        n_top_columns (int): (optional - used only if model was specified)
-            amount of columns to show ordered by feature importance (date, index, label are first)
-        sort_feature_by (str):
-            Indicates how features will be sorted. Can be either "feature importance"
-            or "drift score"
-        max_num_categories (int):
-            Only for categorical columns. Max number of allowed categories. If there are more,
-            they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
-            for both drift calculation and for distribution plots.
-        n_samples (int):
-            Number of samples to use for drift computation and plot.
-        random_state (int):
-            Random seed for sampling.
+    Parameters
+    ----------
+    columns : Union[Hashable, List[Hashable]]
+        Columns to check, if none are given checks all
+        columns except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]]
+        Columns to ignore, if none given checks based on
+        columns variable.
+    n_top_columns : int 
+        (optional - used only if model was specified)
+        amount of columns to show ordered by feature importance (date, index, label are first)
+    sort_feature_by : str
+        Indicates how features will be sorted. Can be either "feature importance"
+        or "drift score"
+    max_num_categories : int
+        Only for categorical columns. Max number of allowed categories. If there are more,
+        they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
+        for both drift calculation and for distribution plots.
+    n_samples : int
+        Number of samples to use for drift computation and plot.
+    random_state : int
+        Random seed for sampling.
+
     """
 
     def __init__(
@@ -69,6 +73,7 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         n_samples: int = 100_000,
         random_state: int = 42,
     ):
+        
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
@@ -84,18 +89,26 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
     def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
         """Run check.
 
-        Args:
-            train_dataset (Dataset): The training dataset object.
-            test_dataset (Dataset): The test dataset object.
-            model: A scikit-learn-compatible fitted estimator instance
+        Parameters
+        ----------
+        train_dataset : Dataset
+            The training dataset object.
+        test_dataset : Dataset
+            The test dataset object.
+        model :
+            A scikit-learn-compatible fitted estimator instance  (Default value = None)
 
-        Returns:
-            CheckResult:
-                value: dictionary of column name to drift score.
-                display: distribution graph for each column, comparing the train and test distributions.
+        Returns
+        -------
+        CheckResult
+            value: dictionary of column name to drift score.
+            display: distribution graph for each column, comparing the train and test distributions.
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset or DataFrame instance
+        Raises
+        ------
+        DeepchecksValueError
+            If the object is not a Dataset or DataFrame instance.
+
         """
         feature_importances = calculate_feature_importance_or_none(model, train_dataset)
         return self._calc_drift(train_dataset, test_dataset, feature_importances)
@@ -106,17 +119,23 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         test_dataset: Dataset,
         feature_importances: Optional[pd.Series] = None
     ) -> CheckResult:
-        """
-        Calculate drift for all columns.
+        """Calculate drift for all columns.
 
-        Args:
-            train_dataset (Dataset): The training dataset object.
-            test_dataset (Dataset): The test dataset object.
+        Parameters
+        ----------
+        train_dataset : Dataset
+            The training dataset object.
+        test_dataset : Dataset
+            The test dataset object.
+        feature_importances: Optional[pd.Series] :
+              (Default value = None)
 
-        Returns:
-            CheckResult:
-                value: dictionary of column name to drift score.
-                display: distribution graph for each column, comparing the train and test distributions.
+        Returns
+        -------
+        CheckResult
+            value: dictionary of column name to drift score.
+            display: distribution graph for each column, comparing the train and test distributions.
+
         """
         train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
         test_dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
@@ -175,20 +194,29 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
     def add_condition_drift_score_not_greater_than(self, max_allowed_psi_score: float = 0.2,
                                                    max_allowed_earth_movers_score: float = 0.1,
                                                    number_of_top_features_to_consider: int = 5):
-        """
-        Add condition - require drift score to not be more than a certain threshold.
+        """Add condition - require drift score to not be more than a certain threshold.
 
         The industry standard for PSI limit is above 0.2.
         Earth movers does not have a common industry standard.
 
-        Args:
-            max_allowed_psi_score: the max threshold for the PSI score
-            max_allowed_earth_movers_score: the max threshold for the Earth Mover's Distance score
-            number_of_top_features_to_consider: the number of top features for which exceed the threshold will fail the
-                condition.
+        Parameters
+        ----------
+        max_allowed_psi_score: float
+            (Default value = 0.2)
+            the max threshold for the PSI score
+        max_allowed_earth_movers_score: float
+            (Default value = 0.1)
+            the max threshold for the Earth Mover's Distance score
+        number_of_top_features_to_consider: int
+            (Default value = 5)
+            the number of top features for which exceed the threshold will fail the
+            condition.
 
-        Returns:
-            ConditionResult: False if any column has passed the max threshold, True otherwise
+        Returns
+        -------
+        ConditionResult
+            False if any column has passed the max threshold, True otherwise
+
         """
 
         def condition(result: Dict) -> ConditionResult:
