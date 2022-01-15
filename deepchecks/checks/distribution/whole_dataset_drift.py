@@ -50,24 +50,24 @@ class WholeDatasetDrift(TrainTestBaseCheck):
 
     Parameters
     ----------
-    n_top_columns : int
+    n_top_columns : int , default : 3
         Amount of columns to show ordered by domain classifier feature importance. This limit is used together
         (AND) with min_feature_importance, so less than n_top_columns features can be displayed.
-    min_feature_importance : float
+    min_feature_importance : float , default : 0.05
         Minimum feature importance to show in the check display. Feature importance
         sums to 1, so for example the default value of 0.05 means that all features with importance contributing
         less than 5% to the predictive power of the Domain Classifier won't be displayed. This limit is used
         together (AND) with n_top_columns, so features more important than min_feature_importance can be
         hidden.
-    max_num_categories : int
+    max_num_categories : int , default : 10
         Only for categorical columns. Max number of categories to display in distributio plots. If there are
         more, they are binned into an "Other" category in the display. If max_num_categories=None, there is
         no limit.
-    sample_size : int
+    sample_size : int , default : 10_000
         Max number of rows to use from each dataset for the training and evaluation of the domain classifier.
-    random_state : int
+    random_state : int , default : 42
         Random seed for the check.
-    test_size : float
+    test_size : float , default : 0.3
         Fraction of the combined datasets to use for the evaluation of the domain classifier.
 
     """
@@ -100,8 +100,8 @@ class WholeDatasetDrift(TrainTestBaseCheck):
             The training dataset object.
         test_dataset : Dataset
             The test dataset object.
-        model :
-            not used in this check.  (Default value = None)
+        model , default : None
+            not used in this check.
 
         Returns
         -------
@@ -318,8 +318,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
 
         Parameters
         ----------
-        max_drift_value : float
-            (Default value = 0.25)
+        max_drift_value : float , default : 0.25
             Maximal drift value allowed (value 0 and above)
         
         """

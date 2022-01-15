@@ -40,25 +40,24 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
 
     Parameters
     ----------
-    columns : Union[Hashable, List[Hashable]]
+    columns : Union[Hashable, List[Hashable]] , default : None
         Columns to check, if none are given checks all
         columns except ignored ones.
-    ignore_columns : Union[Hashable, List[Hashable]]
+    ignore_columns : Union[Hashable, List[Hashable]] , default : None
         Columns to ignore, if none given checks based on
         columns variable.
-    n_top_columns : int 
-        (optional - used only if model was specified)
+    n_top_columns : int , optional 
         amount of columns to show ordered by feature importance (date, index, label are first)
-    sort_feature_by : str
+    sort_feature_by : str , default : feature importance
         Indicates how features will be sorted. Can be either "feature importance"
         or "drift score"
-    max_num_categories : int
+    max_num_categories : int , default : 10
         Only for categorical columns. Max number of allowed categories. If there are more,
         they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
         for both drift calculation and for distribution plots.
-    n_samples : int
+    n_samples : int , default : 100_000
         Number of samples to use for drift computation and plot.
-    random_state : int
+    random_state : int , default : 42
         Random seed for sampling.
 
     """
@@ -95,7 +94,7 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
             The training dataset object.
         test_dataset : Dataset
             The test dataset object.
-        model :
+        model , default : None
             A scikit-learn-compatible fitted estimator instance  (Default value = None)
 
         Returns
@@ -127,8 +126,7 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
             The training dataset object.
         test_dataset : Dataset
             The test dataset object.
-        feature_importances: Optional[pd.Series] :
-              (Default value = None)
+        feature_importances: Optional[pd.Series] , default : None
 
         Returns
         -------
@@ -201,14 +199,11 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
 
         Parameters
         ----------
-        max_allowed_psi_score: float
-            (Default value = 0.2)
+        max_allowed_psi_score: float , default : 0.2
             the max threshold for the PSI score
-        max_allowed_earth_movers_score: float
-            (Default value = 0.1)
+        max_allowed_earth_movers_score: float , default : 0.1
             the max threshold for the Earth Mover's Distance score
-        number_of_top_features_to_consider: int
-            (Default value = 5)
+        number_of_top_features_to_consider: int , default : 5
             the number of top features for which exceed the threshold will fail the
             condition.
 
