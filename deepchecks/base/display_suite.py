@@ -10,6 +10,8 @@
 #
 """Handle display of suite result."""
 from typing import List, Union
+import itertools
+import os
 
 # pylint: disable=protected-access
 import sys
@@ -19,6 +21,8 @@ import pandas as pd
 from IPython.core.display import display, display_html
 from IPython import get_ipython
 import ipywidgets as widgets
+from ipywidgets import IntSlider
+from ipywidgets.embed import embed_minimal_html
 
 from deepchecks import errors
 from deepchecks.utils.ipython import is_widgets_enabled
@@ -82,12 +86,14 @@ def get_display_exists_icon(exists: bool):
     return '<div style="text-align: center">No</div>'
 
 
-def _display_suite_widgets(unique_id: str,
+def _display_suite_widgets(summary: str,
+                           unique_id: str,
                            checks_with_conditions: List[CheckResult],
                            checks_wo_conditions_display: List[CheckResult],
                            checks_w_condition_display: List[CheckResult],
                            others_table: List[CheckResult],
-                           light_hr: str):  # pragma: no cover
+                           light_hr: str,
+                           as_html: bool):  # pragma: no cover
     """Display results of suite in as Tab widget."""
     tab = widgets.Tab()
     condition_tab = widgets.VBox()
@@ -99,8 +105,6 @@ def _display_suite_widgets(unique_id: str,
     tab.set_title(0, 'Checks With Conditions')
     tab.set_title(1, 'Checks Without Conditions')
     tab.set_title(2, 'Checks Without Output')
-    display_html('<style>.jupyter-widgets.widget-tab > .p-TabBar .p-TabBar-tab {flex: 0 1 auto}</style>',
-                 raw=True)
 
     if checks_with_conditions:
         cond_html_h2 = '<h2>Conditions Summary</h2>'
@@ -150,10 +154,27 @@ def _display_suite_widgets(unique_id: str,
         others_tab.children = [widgets.HTML(no_output_text)]
     condition_tab.children = condition_tab_children
     checks_wo_tab.children = checks_wo_tab_children
-    display(tab)
+
+    tab_css = '<style>.jupyter-widgets.widget-tab > .p-TabBar .p-TabBar-tab {flex: 0 1 auto}</style>'
+    page = widgets.VBox()
+    if as_html:
+        curr_path = os.path.dirname(os.path.abspath(__file__))
+        actualname = "%s.%s" % ('output', 'html')
+        c = itertools.count()
+        next(c)
+        while os.path.exists(actualname):
+            actualname = "%s (%d).%s" % ('output', next(c), 'html')
+        with open(os.path.join(curr_path, 'base.css'), 'r') as css_file:
+            page.children = [widgets.HTML(f'<style>{css_file.read()}</style>'),
+                             widgets.HTML(summary), widgets.HTML(tab_css), tab]
+        embed_minimal_html(actualname, views=[page], title='Suite Output')
+    else:
+        page.children = [widgets.HTML(summary), widgets.HTML(tab_css), tab]
+        display(page)
 
 
-def _display_suite_no_widgets(unique_id: str,
+def _display_suite_no_widgets(summary: str,
+                              unique_id: str,
                               checks_with_conditions: List[CheckResult],
                               checks_wo_conditions_display: List[CheckResult],
                               checks_w_condition_display: List[CheckResult],
@@ -162,7 +183,7 @@ def _display_suite_no_widgets(unique_id: str,
     """Display results of suite in IPython without widgets."""
     bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'
 
-    display_html(bold_hr, raw=True)
+    display_html(bold_hr + summary, raw=True)
 
     if checks_with_conditions:
         cond_html_h2 = '<h2>Conditions Summary</h2>'
@@ -205,7 +226,7 @@ def _display_suite_no_widgets(unique_id: str,
     display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
 
 
-def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]]):  # pragma: no cover
+def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]], as_html = False):  # pragma: no cover
     """Display results of suite in IPython."""
     if len(results) == 0:
         display_html(f"""<h1>{suite_name}</h1><p>Suite is empty.</p>""", raw=True)
@@ -263,8 +284,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     )
 
     # suite summary
-    display_html(
-        f"""
+    summ = f"""
         <h1 id="summary_{unique_id}">{suite_name}</h1>
         <p>
             {prologue}<br>
@@ -273,19 +293,20 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
             Suites, checks and conditions can all be modified (see the
             <a href={suite_creation_example_link}>Create a Custom Suite</a> tutorial).
         </p>
-        """,
-        raw=True
-    )
+        """
 
-    if is_widgets_enabled():
-        _display_suite_widgets(unique_id,
+    if as_html or is_widgets_enabled():
+        _display_suite_widgets(summ,
+                               unique_id,
                                checks_with_conditions,
                                checks_wo_conditions_display,
                                checks_w_condition_display,
                                others_table,
-                               light_hr)
+                               light_hr,
+                               as_html)
     else:
-        _display_suite_no_widgets(unique_id,
+        _display_suite_no_widgets(summ,
+                                  unique_id,
                                   checks_with_conditions,
                                   checks_wo_conditions_display,
                                   checks_w_condition_display,
