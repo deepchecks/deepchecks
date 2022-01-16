@@ -191,7 +191,7 @@ nbsphinx_prolog = r"""
         </span>
     </div>
 
-{% set apipath =  env.config.get_check_example_api_reference(env.docname) %}
+{% set apipath = env.config.get_check_example_api_reference(env.docname) %}
 
 {% if apipath %}
 {{ apipath }}
@@ -386,14 +386,13 @@ def get_report_issue_url(pagename: str) -> str:
     )
 
 
-def generate_colab_url(notebook_path: str) -> str:
+def generate_colab_url(notebook_path: str) -> t.Optional[str]:
     notebook_path = notebook_path.replace(".txt", "")
     notebook_path = notebook_path if notebook_path.endswith(".ipynb") else notebook_path + ".ipynb"
     notebook_name = notebook_path.split("/")[-1]
 
     if not is_example_notebook(notebook_name):
-        return None
-        raise RuntimeError(f"Not a notebook - {notebook_path}")
+        return
 
     template = (
         "https://colab.research.google.com/github/{user}/{repo}/blob/{branch}/{notebook_path}"
@@ -407,14 +406,13 @@ def generate_colab_url(notebook_path: str) -> str:
     )
 
 
-def generate_binder_url(notebook_path: str) -> str:
+def generate_binder_url(notebook_path: str) -> t.Optional[str]:
     notebook_path = notebook_path.replace(".txt", "")
     notebook_path = notebook_path if notebook_path.endswith(".ipynb") else notebook_path + ".ipynb"
     notebook_name = notebook_path.split("/")[-1]
 
     if not is_example_notebook(notebook_name):
-        return None
-        raise RuntimeError(f"Not a notebook - {notebook_path}")
+        return
 
     template = (
         "https://mybinder.org/v2/gh/{user}/{repo}/{branch}?labpath={filepath}"
@@ -435,7 +433,7 @@ def get_example_notebooks() -> t.Tuple[pathlib.Path, ...]:
     if not examples_folder.exists() or not examples_folder.is_dir():
         raise RuntimeError("Did not find the folder with the example notebooks.")
 
-    return tuple(it for it in examples_folder.glob("**/*.ipynb"))
+    return tuple(examples_folder.glob("**/*.ipynb"))
 
 
 @functools.lru_cache(maxsize=None)
@@ -450,7 +448,10 @@ def is_example_notebook(filepath: str) -> bool:
 
 
 def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
-    if not filepath.startswith("docs/source/examples/checks/"):
+    if not (
+        filepath.startswith("docs/source/examples/checks/")
+        or filepath.startswith("examples/checks/")
+    ):
         return
 
     notebook_name = snake_case_to_camel_case(
@@ -466,7 +467,9 @@ def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
     if check_clazz is None or not hasattr(check_clazz, "__module__"):
         return
 
-    apipath = f"/api/checks/generated/{check_clazz.__module__}.{notebook_name}"
+    clazz_module = ".".join(check_clazz.__module__.split(".")[:-1])
+
+    apipath = f"/api/generated/{clazz_module}.{notebook_name}"
     result = f"* :doc:`API Reference - {notebook_name} <{apipath}>`"
     return result
 
