@@ -87,7 +87,7 @@ def _display_suite_widgets(unique_id: str,
                            checks_wo_conditions_display: List[CheckResult],
                            checks_w_condition_display: List[CheckResult],
                            others_table: List[CheckResult],
-                           light_hr: str):
+                           light_hr: str):  # pragma: no cover
     """Display results of suite in as Tab widget."""
     tab = widgets.Tab()
     condition_tab = widgets.VBox()
@@ -158,7 +158,7 @@ def _display_suite_no_widgets(unique_id: str,
                               checks_wo_conditions_display: List[CheckResult],
                               checks_w_condition_display: List[CheckResult],
                               others_table: List[CheckResult],
-                              light_hr: str):
+                              light_hr: str):  # pragma: no cover
     """Display results of suite in IPython without widgets."""
     bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'
 
@@ -205,7 +205,7 @@ def _display_suite_no_widgets(unique_id: str,
     display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
 
 
-def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]]):
+def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]]):  # pragma: no cover
     """Display results of suite in IPython."""
     if len(results) == 0:
         display_html(f"""<h1>{suite_name}</h1><p>Suite is empty.</p>""", raw=True)

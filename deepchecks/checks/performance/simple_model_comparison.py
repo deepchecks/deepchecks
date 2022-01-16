@@ -33,7 +33,7 @@ from deepchecks.utils.metrics import (
     get_scorer_single,
     get_gain
 )
-from deepchecks.utils.models import RandomModel
+from deepchecks.utils.simple_models import RandomModel
 
 
 __all__ = ['SimpleModelComparison']

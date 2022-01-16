@@ -1,19 +1,17 @@
 API Reference
 =============
 
-
 Here you can see the api reference.
-
 
 .. toctree::
     :caption: API Reference
     :hidden:
 
-    base/index
-    checks/index
-    suites/index
-    utils/index
-    datasets/index
+    base
+    checks
+    datasets
+    suites
+    utils
 
 .. currentmodule:: deepchecks
 
@@ -21,7 +19,6 @@ Here you can see the api reference.
 
     base
     checks
+    datasets
     suites
     utils
-    datasets
-

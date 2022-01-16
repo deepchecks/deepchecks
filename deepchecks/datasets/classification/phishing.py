@@ -18,12 +18,14 @@ from deepchecks import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
 
-_MODEL_URL = 'https://figshare.com/ndownloader/files/32594447'
-_FULL_DATA_URL = 'https://figshare.com/ndownloader/files/32553581'
-_TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/32593298'
-_TEST_DATA_URL = 'https://figshare.com/ndownloader/files/32593373'
+_MODEL_URL = 'https://ndownloader.figshare.com/files/33080447'
+_FULL_DATA_URL = 'https://figshare.com/ndownloader/files/33079757'
+_TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/33079781'
+_TEST_DATA_URL = 'https://ndownloader.figshare.com/files/33079787'
 _target = 'target'
 _CAT_FEATURES = ['ext']
+_NON_FEATURES = ['month', 'has_ip', 'urlIsLive']
+_DATE_COL = 'scrape_date'
 
 
 def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
@@ -164,7 +166,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         dataset = pd.read_csv(_FULL_DATA_URL, index_col=0)
 
         if data_format == 'Dataset':
-            dataset = Dataset(dataset, label='target', cat_features=_CAT_FEATURES, datetime_name='scrape_date')
+            dataset = Dataset(dataset, label=_target, cat_features=_CAT_FEATURES, datetime_name=_DATE_COL)
 
         return dataset
     else:
@@ -172,8 +174,8 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         test = pd.read_csv(_TEST_DATA_URL, index_col=0)
 
         if data_format == 'Dataset':
-            train = Dataset(train, label='target', cat_features=_CAT_FEATURES, datetime_name='scrape_date')
-            test = Dataset(test, label='target', cat_features=_CAT_FEATURES, datetime_name='scrape_date')
+            train = Dataset(train, label=_target, cat_features=_CAT_FEATURES, datetime_name=_DATE_COL)
+            test = Dataset(test, label=_target, cat_features=_CAT_FEATURES, datetime_name=_DATE_COL)
 
         return train, test
 
@@ -198,15 +200,15 @@ class UrlDatasetProcessor:
         return [
             i
             for i, x in df.dtypes.items()
-            if pd.api.types.is_numeric_dtype(x) and i != 'target'
+            if pd.api.types.is_numeric_dtype(x) and i != _target
         ]
 
     def _shared_preprocess(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
-        df['scrape_date'] = pd.to_datetime(
-            df['scrape_date'], format='%Y-%m-%d')
-        df = df.set_index(keys='scrape_date', drop=True)
-        df = df.drop(['month', 'has_ip', 'urlIsLive'], axis=1)
+        df[_DATE_COL] = pd.to_datetime(
+            df[_DATE_COL], format='%Y-%m-%d')
+        df = df.set_index(keys=_DATE_COL, drop=True)
+        df = df.drop(_NON_FEATURES, axis=1)
         df = pd.get_dummies(df, columns=['ext'])
         return df
 
