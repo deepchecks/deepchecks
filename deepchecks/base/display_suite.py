@@ -169,8 +169,8 @@ def _display_suite_widgets(summary: str,
         with open(os.path.join(curr_path, 'suite_output.html'), 'r', encoding='utf8') as html_file:
             html_formatted = re.sub('{', '{{', html_file.read())
             html_formatted = re.sub('}', '}}', html_formatted)
-            html_formatted = re.sub('title', '{title}', html_formatted)
-            html_formatted = re.sub('snippet', '{snippet}', html_formatted)
+            html_formatted = re.sub('html_title', '{title}', html_formatted)
+            html_formatted = re.sub('widget_snippet', '{snippet}', html_formatted)
             embed_minimal_html(actualname, views=[page], title='Suite Output', template=html_formatted)
     else:
         display(page)
