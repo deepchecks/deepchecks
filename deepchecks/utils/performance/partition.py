@@ -14,7 +14,7 @@ from typing import List, Callable
 
 import numpy as np
 import pandas as pd
-from deepchecks import Dataset
+from deepchecks.tabular import Dataset
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
 

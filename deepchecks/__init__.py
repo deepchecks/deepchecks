@@ -13,7 +13,6 @@ import matplotlib
 import plotly.io as pio
 from .utils.ipython import is_notebook
 from .base import (
-    Dataset,
     BaseCheck,
     SingleDatasetBaseCheck,
     TrainTestBaseCheck,
@@ -31,7 +30,6 @@ from .base import (
 )
 
 __all__ = [
-    'Dataset',
     'BaseCheck',
     'SingleDatasetBaseCheck',
     'TrainTestBaseCheck',

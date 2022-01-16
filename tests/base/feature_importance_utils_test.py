@@ -19,7 +19,7 @@ from sklearn.neural_network import MLPClassifier
 from deepchecks.utils.features import calculate_feature_importance, calculate_feature_importance_or_none, \
     column_importance_sorter_df, column_importance_sorter_dict
 from deepchecks.errors import DeepchecksValueError
-from deepchecks.base import Dataset
+from deepchecks.tabular import Dataset
 
 
 def test_adaboost(iris_split_dataset_and_model):

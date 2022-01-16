@@ -12,18 +12,18 @@
 import random
 from hamcrest import assert_that, calling, raises, equal_to, is_
 
-from deepchecks import base
-from deepchecks import checks as builtin_checks
+from deepchecks import base, tabular
+from deepchecks.tabular import checks as builtin_checks
 from deepchecks.errors import DeepchecksValueError
 
 
 class SimpleDatasetCheck(base.SingleDatasetBaseCheck):
-    def run(self, dataset: base.Dataset, model: object = None) -> base.CheckResult:
+    def run(self, dataset: tabular.Dataset, model: object = None) -> base.CheckResult:
         return base.CheckResult("Simple Check")
 
 
 class SimpleTwoDatasetsCheck(base.TrainTestBaseCheck):
-    def run(self, first: base.Dataset, second: base.Dataset, model: object = None) -> base.CheckResult:
+    def run(self, first: tabular.Dataset, second: tabular.Dataset, model: object = None) -> base.CheckResult:
         return base.CheckResult("Simple Check")
 
 

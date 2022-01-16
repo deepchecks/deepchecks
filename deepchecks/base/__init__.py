@@ -12,7 +12,6 @@
 
 Import objects to be available in parent deepchecks module.
 """
-from .dataset import Dataset
 from .check import (
     BaseCheck,
     SingleDatasetBaseCheck,
@@ -37,7 +36,6 @@ from .condition import (
 
 
 __all__ = [
-    'Dataset',
     'BaseCheck',
     'SingleDatasetBaseCheck',
     'TrainTestBaseCheck',

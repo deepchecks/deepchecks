@@ -20,7 +20,7 @@ from sklearn.metrics import get_scorer, make_scorer, f1_score, precision_score, 
 from sklearn.base import ClassifierMixin, RegressorMixin, BaseEstimator
 
 
-from deepchecks import base  # pylint: disable=unused-import; it is used for type annotations
+from deepchecks import base, tabular  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks import errors
 from deepchecks.utils import validation
 from deepchecks.utils.strings import is_string_column
@@ -127,18 +127,18 @@ class DeepcheckScorer:
             raise errors.DeepchecksValueError(message)
 
     @classmethod
-    def filter_nulls(cls, dataset: 'base.Dataset'):
+    def filter_nulls(cls, dataset: 'tabular.Dataset'):
         valid_idx = dataset.label_col.notna()
         return dataset.data[valid_idx]
 
     def _run_score(self, model, dataframe, dataset):
         return self.scorer(model, dataframe[dataset.features], dataframe[dataset.label_name])
 
-    def __call__(self, model, dataset: 'base.Dataset'):
+    def __call__(self, model, dataset: 'tabular.Dataset'):
         df = self.filter_nulls(dataset)
         return self._run_score(model, df, dataset)
 
-    def score_perfect(self, dataset: 'base.Dataset'):
+    def score_perfect(self, dataset: 'tabular.Dataset'):
         """Calculate the perfect score of the current scorer for given dataset."""
         df = self.filter_nulls(dataset)
         perfect_model = PerfectModel()
@@ -152,7 +152,7 @@ class DeepcheckScorer:
             return first_score
         return score
 
-    def validate_fitting(self, model, dataset: 'base.Dataset', should_return_array: bool):
+    def validate_fitting(self, model, dataset: 'tabular.Dataset', should_return_array: bool):
         """Validate given scorer for the model and dataset."""
         df = self.filter_nulls(dataset)
         if should_return_array:
@@ -189,7 +189,7 @@ class DeepcheckScorer:
 
 def task_type_check(
     model: BasicModel,
-    dataset: 'base.Dataset'
+    dataset: 'tabular.Dataset'
 ) -> ModelType:
     """Check task type (regression, binary, multiclass) according to model object and label column.
 
@@ -238,7 +238,7 @@ def task_type_check(
 
 def task_type_validation(
     model: t.Union[ClassifierMixin, RegressorMixin],
-    dataset: 'base.Dataset',
+    dataset: 'tabular.Dataset',
     expected_types: t.Sequence[ModelType]
 ):
     """Validate task type (regression, binary, multiclass) according to model object and label column.
@@ -262,7 +262,7 @@ def task_type_validation(
 
 def get_scorers_list(
     model,
-    dataset: 'base.Dataset',
+    dataset: 'tabular.Dataset',
     alternative_scorers: t.List['DeepcheckScorer'] = None,
     multiclass_avg: bool = True
 ) -> t.List[DeepcheckScorer]:
@@ -300,7 +300,7 @@ def get_scorers_list(
     return scorers
 
 
-def get_scorer_single(model, dataset: 'base.Dataset', alternative_scorer: t.Optional[DeepcheckScorer] = None,
+def get_scorer_single(model, dataset: 'tabular.Dataset', alternative_scorer: t.Optional[DeepcheckScorer] = None,
                       multiclass_avg: bool = True) -> 'DeepcheckScorer':
     """Return single score to use in check, and validate scorer fit the model and dataset."""
     model_type = task_type_check(model, dataset)
