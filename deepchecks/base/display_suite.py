@@ -12,9 +12,10 @@
 from typing import List, Union
 import itertools
 import os
+import sys
+import re
 
 # pylint: disable=protected-access
-import sys
 import tqdm
 from tqdm.notebook import tqdm as tqdm_notebook
 import pandas as pd
@@ -156,6 +157,7 @@ def _display_suite_widgets(summary: str,
 
     tab_css = '<style>.jupyter-widgets.widget-tab > .p-TabBar .p-TabBar-tab {flex: 0 1 auto}</style>'
     page = widgets.VBox()
+    page.children = [widgets.HTML(summary), widgets.HTML(tab_css), tab]
     if as_html:
         curr_path = os.path.dirname(os.path.abspath(__file__))
         basename, ext = ('output', 'html')
@@ -164,12 +166,13 @@ def _display_suite_widgets(summary: str,
         next(c)
         while os.path.exists(actualname):
             actualname = f'{basename} ({str(next(c))}).{ext}'
-        with open(os.path.join(curr_path, 'base.css'), 'r', encoding='utf8') as css_file:
-            page.children = [widgets.HTML(f'<style>{css_file.read()}</style>'),
-                             widgets.HTML(summary), widgets.HTML(tab_css), tab]
-        embed_minimal_html(actualname, views=[page], title='Suite Output')
+        with open(os.path.join(curr_path, 'suite_output.html'), 'r', encoding='utf8') as html_file:
+            html_formatted = re.sub('{', '{{', html_file.read())
+            html_formatted = re.sub('}', '}}', html_formatted)
+            html_formatted = re.sub('title', '{title}', html_formatted)
+            html_formatted = re.sub('snippet', '{snippet}', html_formatted)
+            embed_minimal_html(actualname, views=[page], title='Suite Output', template=html_formatted)
     else:
-        page.children = [widgets.HTML(summary), widgets.HTML(tab_css), tab]
         display(page)
 
 
