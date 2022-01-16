@@ -9,8 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 from datetime import datetime
-from hamcrest import assert_that, calling, raises, matches_regexp, instance_of
-from deepchecks.utils.strings import format_datetime
+from hamcrest import assert_that, calling, raises, matches_regexp, instance_of, equal_to
+from deepchecks.utils.strings import format_datetime, get_ellipsis
+
+
+def test_get_ellipsis():
+    result = get_ellipsis('1234', 3)
+    assert_that(result, equal_to('123...'))
+    result = get_ellipsis('1234', 4)
+    assert_that(result, equal_to('1234'))
 
 
 def test_datetime_instance_format():
