@@ -31,6 +31,8 @@ from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_tab
 __all__ = ['display_suite_result', 'ProgressBar']
 
 
+_CONDITIONS_SUMMARY_TITLE = '<h2>Conditions Summary</h2>'
+_NO_CONDITIONS_SUMMARY_TITLE = '<p>No conditions defined on checks in the suite.</p>'
 _NO_OUTPUT_TEXT = '<p>No outputs to show.</p>'
 _CHECKS_WITH_CONDITIONS_TITLE = '<h2>Check With Conditions Output</h2>'
 _CHECKS_WITHOUT_CONDITIONS_TITLE = '<h2>Check Without Conditions Output</h2>'
@@ -109,13 +111,11 @@ def _display_suite_widgets(unique_id: str,
                  raw=True)
 
     if checks_with_conditions:
-        cond_html_h2 = '<h2>Conditions Summary</h2>'
         cond_html_table = get_conditions_table_display(checks_with_conditions, unique_id, 300)
-        h2_widget = widgets.HTML(cond_html_h2)
+        h2_widget = widgets.HTML(_CONDITIONS_SUMMARY_TITLE)
         condition_tab_children = [h2_widget, _create_table_widget(cond_html_table)]
     else:
-        not_found_text = '<p>No conditions defined on checks in the suite.</p>'
-        condition_tab_children = [widgets.HTML(not_found_text)]
+        condition_tab_children = [widgets.HTML(_NO_CONDITIONS_SUMMARY_TITLE)]
 
     condition_tab_children.append(widgets.HTML(_CHECKS_WITH_CONDITIONS_TITLE))
     if checks_w_condition_display:
@@ -166,12 +166,10 @@ def _display_suite_no_widgets(unique_id: str,
     display_html(bold_hr, raw=True)
 
     if checks_with_conditions:
-        cond_html_h2 = '<h2>Conditions Summary</h2>'
         cond_html_table = get_conditions_table_display(checks_with_conditions, unique_id, 300)
-        display_html(cond_html_h2 + cond_html_table, raw=True)
+        display_html(_CONDITIONS_SUMMARY_TITLE + cond_html_table, raw=True)
     else:
-        not_found_text = '<p>No conditions defined on checks in the suite.</p>'
-        display_html(not_found_text, raw=True)
+        display_html(_NO_CONDITIONS_SUMMARY_TITLE, raw=True)
 
     outputs_h2 = f'{bold_hr}{_CHECKS_WITH_CONDITIONS_TITLE}'
     display_html(outputs_h2, raw=True)
