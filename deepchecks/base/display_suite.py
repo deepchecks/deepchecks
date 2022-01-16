@@ -44,7 +44,7 @@ def _get_check_widget(check_res: CheckResult, unique_id: str) -> widgets.VBox:
 
 
 def _add_widget_classes(widget: widgets.HTML):
-    """add classes of regular jupyter output (makes dataframe and links look better)"""
+    """Add classes of regular jupyter output (makes dataframe and links look better)."""
     widget.add_class('rendered_html')
     widget.add_class('jp-RenderedHTMLCommon')
     widget.add_class('jp-RenderedHTML')
