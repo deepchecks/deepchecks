@@ -31,11 +31,17 @@ from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_tab
 __all__ = ['display_suite_result', 'ProgressBar']
 
 
+_NO_OUTPUT_TEXT = '<p>No outputs to show.</p>'
+_CHECKS_WITH_CONDITIONS_TITLE = '<h2>Check With Conditions Output</h2>'
+_CHECKS_WITHOUT_CONDITIONS_TITLE = '<h2>Check Without Conditions Output</h2>'
+_CHECKS_WITHOUT_DISPLAY_TITLE = '<h2>Other Checks That Weren\'t Displayed</h2>'
+
 def _get_check_widget(check_res: CheckResult, unique_id: str) -> widgets.VBox:
     return check_res.display_check(unique_id=unique_id, as_widget=True)
 
 
 def _add_widget_classes(widget: widgets.HTML):
+    """add classes of regular jupyter output (makes dataframe and links look better)"""
     widget.add_class('rendered_html')
     widget.add_class('jp-RenderedHTMLCommon')
     widget.add_class('jp-RenderedHTML')
@@ -111,21 +117,17 @@ def _display_suite_widgets(unique_id: str,
         not_found_text = '<p>No conditions defined on checks in the suite.</p>'
         condition_tab_children = [widgets.HTML(not_found_text)]
 
-    no_output_text = '<p>No outputs to show.</p>'
-
-    outputs_h2 = '<h2>Check With Conditions Output</h2>'
-    condition_tab_children.append(widgets.HTML(outputs_h2))
+    condition_tab_children.append(widgets.HTML(_CHECKS_WITH_CONDITIONS_TITLE))
     if checks_w_condition_display:
         for i, r in enumerate(checks_w_condition_display):
             condition_tab_children.append(_get_check_widget(r, unique_id))
             if i < len(checks_w_condition_display) - 1:
                 condition_tab_children.append(widgets.HTML(light_hr))
     else:
-        condition_tab_children.append(widgets.HTML(no_output_text))
+        condition_tab_children.append(widgets.HTML(_NO_OUTPUT_TEXT))
 
     checks_wo_tab_children = []
-    outputs_h2 = '<h2>Check Without Conditions Output</h2>'
-    checks_wo_tab_children.append(widgets.HTML(outputs_h2))
+    checks_wo_tab_children.append(widgets.HTML(_CHECKS_WITHOUT_CONDITIONS_TITLE))
     if checks_wo_conditions_display:
         if unique_id:
             nav_table = get_result_navigation_display(checks_wo_conditions_display, unique_id)
@@ -136,18 +138,17 @@ def _display_suite_widgets(unique_id: str,
             if i < len(checks_wo_conditions_display) - 1:
                 checks_wo_tab_children.append(widgets.HTML(light_hr))
     else:
-        checks_wo_tab_children.append(widgets.HTML(no_output_text))
+        checks_wo_tab_children.append(widgets.HTML(_NO_OUTPUT_TEXT))
 
     if others_table:
         others_table = pd.DataFrame(data=others_table, columns=['Check', 'Reason', 'sort'])
         others_table.sort_values(by=['sort'], inplace=True)
         others_table.drop('sort', axis=1, inplace=True)
-        others_h2 = '<h2>Other Checks That Weren\'t Displayed</h2>'
         others_df = dataframe_to_html(others_table.style.hide_index())
-        h2_widget = widgets.HTML(others_h2)
+        h2_widget = widgets.HTML(_CHECKS_WITHOUT_DISPLAY_TITLE)
         others_tab.children = [h2_widget, _create_table_widget(others_df)]
     else:
-        others_tab.children = [widgets.HTML(no_output_text)]
+        others_tab.children = [widgets.HTML(_NO_OUTPUT_TEXT)]
     condition_tab.children = condition_tab_children
     checks_wo_tab.children = checks_wo_tab_children
     display(tab)
@@ -172,9 +173,7 @@ def _display_suite_no_widgets(unique_id: str,
         not_found_text = '<p>No conditions defined on checks in the suite.</p>'
         display_html(not_found_text, raw=True)
 
-    no_output_text = '<p>No outputs to show.</p>'
-
-    outputs_h2 = f'{bold_hr}<h2>Check With Conditions Output</h2>'
+    outputs_h2 = f'{bold_hr}{_CHECKS_WITH_CONDITIONS_TITLE}'
     display_html(outputs_h2, raw=True)
     if checks_w_condition_display:
         for i, r in enumerate(checks_w_condition_display):
@@ -182,9 +181,9 @@ def _display_suite_no_widgets(unique_id: str,
             if i < len(checks_w_condition_display) - 1:
                 display_html(light_hr, raw=True)
     else:
-        display_html(no_output_text, raw=True)
+        display_html(_NO_OUTPUT_TEXT, raw=True)
 
-    outputs_h2 = f'{bold_hr}<h2>Check Without Conditions Output</h2>'
+    outputs_h2 = f'{bold_hr}{_CHECKS_WITHOUT_CONDITIONS_TITLE}'
     display_html(outputs_h2, raw=True)
     if checks_wo_conditions_display:
         for i, r in enumerate(checks_wo_conditions_display):
@@ -192,13 +191,13 @@ def _display_suite_no_widgets(unique_id: str,
             if i < len(checks_wo_conditions_display) - 1:
                 display_html(light_hr, raw=True)
     else:
-        display_html(no_output_text, raw=True)
+        display_html(_NO_OUTPUT_TEXT, raw=True)
 
     if others_table:
         others_table = pd.DataFrame(data=others_table, columns=['Check', 'Reason', 'sort'])
         others_table.sort_values(by=['sort'], inplace=True)
         others_table.drop('sort', axis=1, inplace=True)
-        others_h2 = f'{bold_hr}<h2>Other Checks That Weren\'t Displayed</h2>'
+        others_h2 = f'{bold_hr}{_CHECKS_WITHOUT_DISPLAY_TITLE}'
         others_df = dataframe_to_html(others_table.style.hide_index())
         display_html(others_h2 + others_df, raw=True)
 
