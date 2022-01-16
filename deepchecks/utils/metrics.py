@@ -16,16 +16,16 @@ from numbers import Number
 
 import numpy as np
 import pandas as pd
-
 from sklearn.metrics import get_scorer, make_scorer, f1_score, precision_score, recall_score
-from sklearn.base import ClassifierMixin, RegressorMixin
+from sklearn.base import ClassifierMixin, RegressorMixin, BaseEstimator
 
 
 from deepchecks import base  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks import errors
 from deepchecks.utils import validation
 from deepchecks.utils.strings import is_string_column
-from deepchecks.utils.models import PerfectModel
+from deepchecks.utils.simple_models import PerfectModel
+from deepchecks.utils.typing import BasicModel, ClassificationModel
 
 
 __all__ = [
@@ -188,13 +188,13 @@ class DeepcheckScorer:
 
 
 def task_type_check(
-    model: t.Union[ClassifierMixin, RegressorMixin],
+    model: BasicModel,
     dataset: 'base.Dataset'
 ) -> ModelType:
     """Check task type (regression, binary, multiclass) according to model object and label column.
 
     Args:
-        model (Union[ClassifierMixin, RegressorMixin]): Model object - used to check if it has predict_proba()
+        model (BasicModel): Model object - used to check if it has predict_proba()
         dataset (Dataset): dataset - used to count the number of unique labels
 
     Returns:
@@ -203,19 +203,28 @@ def task_type_check(
     validation.model_type_validation(model)
     dataset.validate_label()
 
-    if not hasattr(model, 'predict_proba'):
-        if is_string_column(dataset.label_col):
-            raise errors.DeepchecksValueError(
-                'Model was identified as a regression model, but label column was found to contain strings.'
-            )
-        elif isinstance(model, ClassifierMixin):
-            raise errors.DeepchecksValueError(
-                'Model is a sklearn classification model (a subclass of ClassifierMixin), but lacks the '
-                'predict_proba method. Please train the model with probability=True, or skip / ignore this check.'
-            )
+    if isinstance(model, BaseEstimator):
+        if not hasattr(model, 'predict_proba'):
+            if is_string_column(dataset.label_col):
+                raise errors.DeepchecksValueError(
+                    'Model was identified as a regression model, but label column was found to contain strings.'
+                )
+            elif isinstance(model, ClassifierMixin):
+                raise errors.DeepchecksValueError(
+                    'Model is a sklearn classification model (a subclass of ClassifierMixin), but lacks the '
+                    'predict_proba method. Please train the model with probability=True, or skip / ignore this check.'
+                )
+            else:
+                return ModelType.REGRESSION
         else:
-            return ModelType.REGRESSION
-    else:
+            labels = t.cast(pd.Series, dataset.label_col)
+
+            return (
+                ModelType.MULTICLASS
+                if labels.nunique() > 2
+                else ModelType.BINARY
+            )
+    elif isinstance(model, ClassificationModel):
         labels = t.cast(pd.Series, dataset.label_col)
 
         return (
@@ -223,6 +232,8 @@ def task_type_check(
             if labels.nunique() > 2
             else ModelType.BINARY
         )
+    else:
+        return ModelType.REGRESSION
 
 
 def task_type_validation(
