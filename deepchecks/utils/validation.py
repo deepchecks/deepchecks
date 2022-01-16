@@ -66,12 +66,8 @@ def validate_model(
 
     if isinstance(data, base.Dataset):
         features = data.features_columns
-        features_names = set(data.features)
     else:
         features = data
-        features_names = set(data.columns)
-
-    model_features = getattr(model, 'feature_names_in_', None)
 
     if features is None:
         raise errors.DeepchecksValueError(error_message.format(
