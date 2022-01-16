@@ -74,7 +74,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
             n_top_columns: int = 3,
             min_feature_importance: float = 0.05,
             max_num_categories: int = 10,
-            sample_size: int = 10000,
+            sample_size: int = 10_000,
             random_state: int = 42,
             test_size: float = 0.3
     ):
