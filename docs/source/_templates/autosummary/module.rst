@@ -1,5 +1,8 @@
-{{ name | escape | underline}}
+{% block header %}
+{{ name | escape | underline }}
+{% endblock header %}
 
+{% block content %}
 .. automodule:: {{ fullname }}
 
    {% block attributes %}
@@ -8,11 +11,12 @@
 
    .. autosummary::
       :toctree:
+
    {% for item in attributes %}
       {{ item }}
    {%- endfor %}
    {% endif %}
-   {% endblock %}
+   {% endblock attributes %}
 
    {% block functions %}
    {% if functions %}
@@ -20,11 +24,12 @@
 
    .. autosummary::
       :toctree:
+
    {% for item in functions %}
       {{ item }}
-   {%- endfor %}
+   {% endfor %}
    {% endif %}
-   {% endblock %}
+   {% endblock functions %}
 
    {% block classes %}
    {% if classes %}
@@ -32,11 +37,12 @@
 
    .. autosummary::
       :toctree:
+
    {% for item in classes %}
       {{ item }}
-   {%- endfor %}
+   {% endfor %}
    {% endif %}
-   {% endblock %}
+   {% endblock classes %}
 
    {% block exceptions %}
    {% if exceptions %}
@@ -44,11 +50,12 @@
 
    .. autosummary::
       :toctree:
+
    {% for item in exceptions %}
       {{ item }}
-   {%- endfor %}
+   {% endfor %}
    {% endif %}
-   {% endblock %}
+   {% endblock exceptions %}
 
 {% block modules %}
 {% if modules %}
@@ -56,10 +63,12 @@
 
 .. autosummary::
    :toctree:
-   :template: custom-module-template.rst
    :recursive:
+   
 {% for item in modules %}
    {{ item }}
-{%- endfor %}
+{% endfor %}
 {% endif %}
-{% endblock %}
+{% endblock modules %}
+
+{% endblock content %}

@@ -32,9 +32,9 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
     Check calculates a drift score for each column in test dataset, by comparing its distribution to the train
     dataset.
     For numerical columns, we use the Earth Movers Distance.
-    See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf
+    See https://en.wikipedia.org/wiki/Wasserstein_metric
     For categorical columns, we use the Population Stability Index (PSI).
-    See https://en.wikipedia.org/wiki/Wasserstein_metric.
+    See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf
 
 
     Args:
