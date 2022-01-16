@@ -201,7 +201,7 @@ class Suite(BaseSuite):
 
         progress_bar.close()
         if save_output:
-            display_suite_result(self.name,results, as_html=True)
+            display_suite_result(self.name, results, as_html=True)
         return SuiteResult(self.name, results)
 
     @classmethod
