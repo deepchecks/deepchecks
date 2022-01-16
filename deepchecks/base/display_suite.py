@@ -21,7 +21,6 @@ import pandas as pd
 from IPython.core.display import display, display_html
 from IPython import get_ipython
 import ipywidgets as widgets
-from ipywidgets import IntSlider
 from ipywidgets.embed import embed_minimal_html
 
 from deepchecks import errors
@@ -159,12 +158,13 @@ def _display_suite_widgets(summary: str,
     page = widgets.VBox()
     if as_html:
         curr_path = os.path.dirname(os.path.abspath(__file__))
-        actualname = "%s.%s" % ('output', 'html')
+        basename, ext = ('output', 'html')
+        actualname = f'{basename}.'
         c = itertools.count()
         next(c)
         while os.path.exists(actualname):
-            actualname = "%s (%d).%s" % ('output', next(c), 'html')
-        with open(os.path.join(curr_path, 'base.css'), 'r') as css_file:
+            actualname = f'{basename} ({str(next(c))}).{ext}'
+        with open(os.path.join(curr_path, 'base.css'), 'r', encoding='utf8') as css_file:
             page.children = [widgets.HTML(f'<style>{css_file.read()}</style>'),
                              widgets.HTML(summary), widgets.HTML(tab_css), tab]
         embed_minimal_html(actualname, views=[page], title='Suite Output')
@@ -226,7 +226,8 @@ def _display_suite_no_widgets(summary: str,
     display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
 
 
-def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]], as_html = False):  # pragma: no cover
+def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]],
+                         as_html: bool = False):  # pragma: no cover
     """Display results of suite in IPython."""
     if len(results) == 0:
         display_html(f"""<h1>{suite_name}</h1><p>Suite is empty.</p>""", raw=True)

@@ -12,7 +12,6 @@
 # pylint: disable=broad-except
 import abc
 from collections import OrderedDict
-from re import T
 from typing import Union, List, Optional, Tuple, Any, Container, Mapping
 
 from deepchecks.base.display_suite import display_suite_result, ProgressBar
