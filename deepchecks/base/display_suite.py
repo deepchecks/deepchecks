@@ -38,6 +38,7 @@ _CHECKS_WITH_CONDITIONS_TITLE = '<h2>Check With Conditions Output</h2>'
 _CHECKS_WITHOUT_CONDITIONS_TITLE = '<h2>Check Without Conditions Output</h2>'
 _CHECKS_WITHOUT_DISPLAY_TITLE = '<h2>Other Checks That Weren\'t Displayed</h2>'
 
+
 def _get_check_widget(check_res: CheckResult, unique_id: str) -> widgets.VBox:
     return check_res.display_check(unique_id=unique_id, as_widget=True)
 
