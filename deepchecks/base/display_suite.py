@@ -83,11 +83,11 @@ def get_display_exists_icon(exists: bool):
 
 
 def _display_suite_widgets(unique_id: str,
-                          checks_with_conditions: List[CheckResult],
-                          checks_wo_conditions_display: List[CheckResult],
-                          checks_w_condition_display: List[CheckResult],
-                          others_table: List[CheckResult],
-                          light_hr: str):
+                           checks_with_conditions: List[CheckResult],
+                           checks_wo_conditions_display: List[CheckResult],
+                           checks_w_condition_display: List[CheckResult],
+                           others_table: List[CheckResult],
+                           light_hr: str):
     """Display results of suite in as Tab widget."""
     tab = widgets.Tab()
     condition_tab = widgets.VBox()
@@ -153,13 +153,12 @@ def _display_suite_widgets(unique_id: str,
     display(tab)
 
 
-
 def _display_suite_no_widgets(unique_id: str,
-                          checks_with_conditions: List[CheckResult],
-                          checks_wo_conditions_display: List[CheckResult],
-                          checks_w_condition_display: List[CheckResult],
-                          others_table: List[CheckResult],
-                          light_hr: str):
+                              checks_with_conditions: List[CheckResult],
+                              checks_wo_conditions_display: List[CheckResult],
+                              checks_w_condition_display: List[CheckResult],
+                              others_table: List[CheckResult],
+                              light_hr: str):
     """Display results of suite in IPython without widgets."""
     bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'
 
@@ -204,6 +203,7 @@ def _display_suite_no_widgets(unique_id: str,
         display_html(others_h2 + others_df, raw=True)
 
     display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
+
 
 def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]]):
     """Display results of suite in IPython."""
@@ -279,15 +279,15 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
 
     if is_widgets_enabled():
         _display_suite_widgets(unique_id,
-                                checks_with_conditions,
-                                checks_wo_conditions_display,
-                                checks_w_condition_display,
-                                others_table,
-                                light_hr)
+                               checks_with_conditions,
+                               checks_wo_conditions_display,
+                               checks_w_condition_display,
+                               others_table,
+                               light_hr)
     else:
         _display_suite_no_widgets(unique_id,
-                                checks_with_conditions,
-                                checks_wo_conditions_display,
-                                checks_w_condition_display,
-                                others_table,
-                                light_hr)
+                                  checks_with_conditions,
+                                  checks_wo_conditions_display,
+                                  checks_w_condition_display,
+                                  others_table,
+                                  light_hr)
