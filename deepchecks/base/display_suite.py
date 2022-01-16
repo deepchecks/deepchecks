@@ -91,7 +91,7 @@ def _display_suite_widgets(summary: str,
                            checks_with_conditions: List[CheckResult],
                            checks_wo_conditions_display: List[CheckResult],
                            checks_w_condition_display: List[CheckResult],
-                           others_table: List[CheckResult],
+                           others_table: List,
                            light_hr: str,
                            as_html: bool):  # pragma: no cover
     """Display results of suite in as Tab widget."""
@@ -178,7 +178,7 @@ def _display_suite_no_widgets(summary: str,
                               checks_with_conditions: List[CheckResult],
                               checks_wo_conditions_display: List[CheckResult],
                               checks_w_condition_display: List[CheckResult],
-                              others_table: List[CheckResult],
+                              others_table: List,
                               light_hr: str):  # pragma: no cover
     """Display results of suite in IPython without widgets."""
     bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'
@@ -236,7 +236,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
     else:
         unique_id = get_random_string()
 
-    checks_with_conditions = []
+    checks_with_conditions: List[CheckResult] = []
     checks_wo_conditions_display: List[CheckResult] = []
     checks_w_condition_display: List[CheckResult] = []
     others_table = []
