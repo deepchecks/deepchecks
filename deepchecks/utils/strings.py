@@ -35,7 +35,8 @@ __all__ = [
     'format_number',
     'format_list',
     'get_random_string',
-    'format_datetime'
+    'format_datetime',
+    'to_snake_case'
 ]
 
 
@@ -85,6 +86,18 @@ def split_camel_case(string: str) -> str:
         string (str): string to change
     """
     return ' '.join(re.findall('[A-Z][^A-Z]*', string))
+
+
+def to_snake_case(value: str) -> str:
+    """Transform camel case indentifier into snake case.
+
+    Args:
+        value (str): string to transform
+
+    Returns:
+        str: transformed value
+    """
+    return split_camel_case(value).strip().replace(' ', '_')
 
 
 def get_base_form_to_variants_dict(uniques: t.Iterable[str]) -> t.Dict[str, t.Set[str]]:
