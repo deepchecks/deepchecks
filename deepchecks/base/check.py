@@ -363,7 +363,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
     def _datasets_share_label(cls, datasets: List['Dataset']) -> Hashable:
         """TODO: add coments"""
         if Dataset.datasets_share_label(datasets) is False:
-            raise DatasetValidationError('Check requires datasets to have and to share the same label')
+            raise DatasetValidationError('Check requires Datasets to have and to share the same label')
         return cast(Hashable, datasets[0].label_name)
 
     @classmethod
