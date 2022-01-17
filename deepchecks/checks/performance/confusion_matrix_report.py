@@ -40,13 +40,12 @@ class ConfusionMatrixReport(SingleDatasetBaseCheck):
         return self._confusion_matrix_report(dataset, model)
 
     def _confusion_matrix_report(self, dataset: Dataset, model):
-        Dataset.validate_dataset(dataset)
-        dataset.validate_label()
+        dataset = Dataset.ensure_not_empty_dataset(dataset)
+        ds_y = self._dataset_has_label(dataset)
+        ds_x = self._dataset_has_features(dataset)
+        
         task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
 
-        label = dataset.label_name
-        ds_x = dataset.data[dataset.features]
-        ds_y = dataset.data[label]
         y_pred = model.predict(ds_x)
         confusion_matrix = sklearn.metrics.confusion_matrix(ds_y, y_pred)
 

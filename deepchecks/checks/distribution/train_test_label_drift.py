@@ -79,14 +79,15 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
                 value: drift score.
                 display: label distribution graph, comparing the train and test distributions.
         """
-        train_dataset = Dataset.validate_dataset(train_dataset)
-        test_dataset = Dataset.validate_dataset(test_dataset)
-        train_dataset.validate_label()
-        test_dataset.validate_label()
+        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
+        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
+        
+        train_label = self._dataset_has_label(train_dataset)
+        test_label = self._dataset_has_label(test_dataset)
 
         drift_score, method, display = calc_drift_and_plot(
-            train_column=train_dataset.label_col,
-            test_column=test_dataset.label_col,
+            train_column=train_label,
+            test_column=test_label,
             plot_title=train_dataset.label_name,
             column_type='categorical' if train_dataset.label_type == 'classification_label' else 'numerical',
             max_num_categories=self.max_num_categories

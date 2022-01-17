@@ -12,13 +12,14 @@
 from typing import Union, Dict
 
 import pandas as pd
+import plotly.express as px
 
 import deepchecks.ppscore as pps
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
 from deepchecks.utils.strings import format_percent
-from deepchecks.errors import DeepchecksValueError
-import plotly.express as px
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError
+
 
 __all__ = ['IdentifierLeakage']
 
@@ -52,14 +53,17 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
         return self._identifier_leakage(dataset)
 
     def _identifier_leakage(self, dataset: Union[pd.DataFrame, Dataset], ppscore_params=None) -> CheckResult:
-        Dataset.validate_dataset(dataset)
-        dataset.validate_label()
+        dataset = Dataset.ensure_not_empty_dataset(dataset, cast=True)
+        self._dataset_has_label(dataset)
+        
         ppscore_params = ppscore_params or {}
-
         relevant_columns = list(filter(None, [dataset.datetime_name, dataset.index_name, dataset.label_name]))
 
         if len(relevant_columns) == 1:
-            raise DeepchecksValueError('Dataset needs to have a date or index column.')
+            raise DatasetValidationError(
+                'Datasets without index or date column '
+                'are irrelevant to the current check.'
+            )
 
         df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name, random_seed=42,
                                 **ppscore_params)

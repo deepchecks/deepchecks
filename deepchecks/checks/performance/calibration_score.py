@@ -39,12 +39,12 @@ class CalibrationScore(SingleDatasetBaseCheck):
         return self._calibration_score(dataset, model)
 
     def _calibration_score(self, dataset: Dataset, model):
-        Dataset.validate_dataset(dataset)
-        dataset.validate_label()
+        dataset = Dataset.ensure_not_empty_dataset(dataset)
+        ds_x = self._dataset_has_features(dataset)
+        ds_y = self._dataset_has_label(dataset)
+        
         task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
 
-        ds_x = dataset.features_columns
-        ds_y = dataset.label_col
         # Expect predict_proba to return in order of the sorted classes.
         y_pred = model.predict_proba(ds_x)
 

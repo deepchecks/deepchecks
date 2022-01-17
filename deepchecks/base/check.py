@@ -16,7 +16,8 @@ import re
 import traceback
 from collections import OrderedDict
 from functools import wraps
-from typing import Any, Callable, List, Union, Dict, Mapping
+from typing import Any, Callable, List, Union, Dict, Mapping, cast
+
 import pandas as pd
 from IPython.core.display import display_html
 from matplotlib import pyplot as plt
@@ -27,10 +28,15 @@ from deepchecks.base.condition import Condition, ConditionCategory, ConditionRes
 from deepchecks.base.dataset import Dataset
 from deepchecks.base.display_pandas import display_conditions_table, display_dataframe
 from deepchecks.utils.strings import split_camel_case
-from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
+from deepchecks.utils.typing import Hashable
 from deepchecks.utils.ipython import is_ipython_display
 from deepchecks.utils.metrics import task_type_check
 from deepchecks.utils.validation import validate_model
+from deepchecks.errors import (
+    DeepchecksValueError,
+    DeepchecksNotSupportedError,
+    DatasetValidationError
+)
 
 
 __all__ = [
@@ -153,7 +159,7 @@ class CheckResult:
             - if at least one condition did not pass and is of category 'FAIL', return 1;
             - if at least one condition did not pass and is of category 'WARN', return 2;
             - if check result do not have assigned conditions, return 3
-            - if all conditions passed, return 4 ;
+            - if all conditions passed, return 4;
 
         Returns:
             int: priority of the cehck result.
@@ -285,6 +291,67 @@ class BaseCheck(metaclass=abc.ABCMeta):
         """Name of class in split camel case."""
         return split_camel_case(cls.__name__)
 
+    # NOTE: next set of private functions exists to unify error messages across all checks
+
+    @classmethod
+    def _datasets_share_features(cls, datasets: List[Dataset]) -> List[Hashable]:
+        """TODO: add comments"""
+        if Dataset.datasets_share_features(datasets) is False:
+            raise DatasetValidationError(
+                'Check requires datasets to share the same features'
+            )
+        return datasets[0].features
+
+    @classmethod
+    def _datasets_share_categorical_features(cls, datasets: List['Dataset']) -> List[Hashable]:
+        """TODO: add comments"""
+        if Dataset.datasets_share_categorical_features(datasets) is False:
+            raise DatasetValidationError(
+                'Check requires datasets to share '
+                'the same categorical features. Possible reason is that some columns were'
+                'inferred incorrectly as categorical features. To fix this, manually edit the '
+                'categorical features using Dataset(cat_features=<list_of_features>'
+            )
+        return datasets[0].cat_features
+
+    @classmethod
+    def _datasets_share_label(cls, datasets: List['Dataset']) -> Hashable:
+        """TODO: add coments"""
+        if Dataset.datasets_share_label(datasets) is False:
+            raise DatasetValidationError('Check requires datasets to have and to share the same label')
+        return cast(Hashable, datasets[0].label_name)
+
+    @classmethod
+    def _dataset_has_label(cls, dataset: Dataset) -> pd.Series:
+        """TODO: add comments"""
+        if dataset.label_col is None:
+            raise DatasetValidationError('Datasets without label are irrelevant to the check')
+        return dataset.label_col
+
+    @classmethod
+    def _dataset_has_features(cls, dataset: Dataset) -> pd.DataFrame:
+        """TODO: add comments"""
+        if (
+            dataset.features_columns is None
+            or len(dataset.features_columns.columns) == 0
+        ):
+            raise DatasetValidationError('Datasets without features are irrelevant to the check')
+        return dataset.features_columns
+
+    @classmethod
+    def _dataset_has_date(cls, dataset: Dataset) -> pd.Series:
+        """TODO: add comments"""
+        if dataset.datetime_col is None:
+            raise DatasetValidationError('Datasets without datetime column are irrelevant to the check')
+        return dataset.datetime_col
+
+    @classmethod
+    def _dataset_has_index(cls, dataset: Dataset) -> pd.Series:
+        """TODO: add comments"""
+        if dataset.index_col is None:
+            raise DatasetValidationError('Datasets without index are irrelevant to the check')
+        return dataset.index_col
+
 
 class SingleDatasetBaseCheck(BaseCheck):
     """Parent class for checks that only use one dataset."""
@@ -382,12 +449,12 @@ class ModelComparisonContext:
             train = self.train_datasets[i]
             test = self.test_datasets[i]
             model = self.models[i]
-            Dataset.validate_dataset(train)
-            Dataset.validate_dataset(test)
-            train.validate_label()
-            train.validate_features()
-            train.validate_shared_features(test)
-            train.validate_shared_label(test)
+            train = Dataset.ensure_not_empty_dataset(train)
+            test = Dataset.ensure_not_empty_dataset(test)
+            BaseCheck._dataset_has_label(train)
+            BaseCheck._dataset_has_features(train)
+            BaseCheck._datasets_share_features([train, test])
+            BaseCheck._datasets_share_label([train, test])
             validate_model(train, model)
             curr_task_type = task_type_check(model, train)
             if self.task_type is None:
@@ -416,6 +483,6 @@ class ModelComparisonBaseCheck(BaseCheck):
         return self.run_logic(ModelComparisonContext(train_datasets, test_datasets, models))
 
     @abc.abstractmethod
-    def run_logic(self, context: ModelComparisonContext):
+    def run_logic(self, context: ModelComparisonContext) -> CheckResult:
         """Implement here logic of check."""
         pass

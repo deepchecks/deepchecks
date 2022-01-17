@@ -210,7 +210,8 @@ def _calc_importance(
     Returns:
         pd.Series of feature importance normalized to 0-1 indexed by feature names
     """
-    dataset.validate_label()
+    if dataset.label_col is None:
+        raise errors.DatasetValidationError("Expected dataset with label.")
 
     dataset_sample = dataset.sample(n_samples, drop_na_label=True, random_state=random_state)
 

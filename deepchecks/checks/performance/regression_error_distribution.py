@@ -58,13 +58,13 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         return self._regression_error_distribution(dataset, model)
 
     def _regression_error_distribution(self, dataset: Dataset, model: BaseEstimator):
-        Dataset.validate_dataset(dataset)
-        dataset.validate_label()
+        dataset = Dataset.ensure_not_empty_dataset(dataset)
+        y_test = self._dataset_has_label(dataset)
+        x_test = self._dataset_has_features(dataset)
+        
         task_type_validation(model, dataset, [ModelType.REGRESSION])
-
-        y_test = dataset.label_col
-        y_pred = model.predict(dataset.features_columns)
-        y_pred = pd.Series(y_pred, name='predicted ' + str(dataset.label_name), index=dataset.label_col.index)
+        y_pred = model.predict(x_test)
+        y_pred = pd.Series(y_pred, name='predicted ' + str(dataset.label_name), index=y_test.index)
 
         diff = y_test - y_pred
         kurtosis_value = kurtosis(diff)

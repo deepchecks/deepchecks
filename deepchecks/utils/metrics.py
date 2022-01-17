@@ -201,7 +201,9 @@ def task_type_check(
         TaskType enum corresponding to the model and dataset
     """
     validation.model_type_validation(model)
-    dataset.validate_label()
+    
+    if dataset.label_col is None:
+        raise errors.DatasetValidationError('Expected dataset with label')
 
     if not hasattr(model, 'predict_proba'):
         if is_string_column(dataset.label_col):

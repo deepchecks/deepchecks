@@ -53,12 +53,11 @@ class RocReport(SingleDatasetBaseCheck):
         return self._roc_report(dataset, model)
 
     def _roc_report(self, dataset: Dataset, model):
-        Dataset.validate_dataset(dataset)
-        dataset.validate_label()
+        dataset = Dataset.ensure_not_empty_dataset(dataset)
+        ds_y = self._dataset_has_label(dataset)
+        ds_x = self._dataset_has_features(dataset)
         task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
 
-        ds_x = dataset.features_columns
-        ds_y = dataset.label_col
         dataset_classes = dataset.classes
         multi_y = (np.array(ds_y)[:, None] == np.unique(ds_y)).astype(int)
         y_pred_prob = model.predict_proba(ds_x)

@@ -106,11 +106,11 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         Raises:
             DeepchecksValueError: If the object is not a Dataset or DataFrame instance
         """
-        train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
-        test_dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
+        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset, cast=True)
+        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset, cast=True)
 
-        features = train_dataset.validate_shared_features(test_dataset)
-        cat_features = train_dataset.validate_shared_categorical_features(test_dataset)
+        features = self._datasets_share_features([train_dataset, test_dataset])
+        cat_features = self._datasets_share_categorical_features([train_dataset, test_dataset])
         self._cat_features = cat_features
 
         domain_classifier = self._generate_model(list(set(features) - set(cat_features)), cat_features)

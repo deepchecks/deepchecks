@@ -41,8 +41,8 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
                 if not dataset instances were provided;
                 if datasets are empty;
         """
-        Dataset.validate_dataset(train_dataset)
-        Dataset.validate_dataset(test_dataset)
+        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
+        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
         sizes = {'Train': train_dataset.n_samples, 'Test': test_dataset.n_samples}
         display = pd.DataFrame(sizes, index=['Size'])
         return CheckResult(

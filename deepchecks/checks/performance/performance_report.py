@@ -88,12 +88,10 @@ class PerformanceReport(TrainTestBaseCheck):
         return self._performance_report(train_dataset, test_dataset, model)
 
     def _performance_report(self, train_dataset: Dataset, test_dataset: Dataset, model):
-        Dataset.validate_dataset(train_dataset)
-        Dataset.validate_dataset(test_dataset)
-        train_dataset.validate_label()
-        test_dataset.validate_label()
-        train_dataset.validate_shared_label(test_dataset)
-        train_dataset.validate_shared_features(test_dataset)
+        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
+        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
+        label_name = self._datasets_share_label([train_dataset, train_dataset])
+        features_list = self._datasets_share_features([train_dataset, train_dataset])
         validate_model(test_dataset, model)
 
         task_type = task_type_check(model, train_dataset)
@@ -103,7 +101,7 @@ class PerformanceReport(TrainTestBaseCheck):
         scorers = get_scorers_list(model, test_dataset, self.alternative_scorers, multiclass_avg=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
-        if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
+        if task_type in {ModelType.MULTICLASS, ModelType.BINARY}:
             plot_x_axis = 'Class'
             results = []
 
