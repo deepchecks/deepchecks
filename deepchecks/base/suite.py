@@ -51,7 +51,7 @@ class SuiteResult:
             print(self)
 
     def to_html(self):
-        """save output as html file (output.html)."""
+        """Save output as html file (output.html)."""
         display_suite_result(self.name, self.results, as_html=True)
 
 
