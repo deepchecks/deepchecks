@@ -387,7 +387,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
     def _dataset_has_date(cls, dataset: Dataset) -> pd.Series:
         """TODO: add comments"""
         if dataset.datetime_col is None:
-            raise DatasetValidationError('Datasets without datetime column are irrelevant to the check')
+            raise DatasetValidationError('Check is irrelevant for Datasets without datetime column ')
         return dataset.datetime_col
 
     @classmethod
