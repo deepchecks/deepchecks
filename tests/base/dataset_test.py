@@ -494,61 +494,6 @@ def test_dataset_select_same_table(iris):
     assert_that(filtered, instance_of(Dataset))
 
 
-def test_dataset_validate_shared_features(diabetes):
-    train, val = diabetes
-    assert_that(train.validate_shared_features(val), is_(val.features))
-
-
-def test_dataset_validate_shared_features_fail(diabetes, iris_dataset):
-    train = diabetes[0]
-    assert_that(calling(train.validate_shared_features).with_args(iris_dataset),
-                raises(DeepchecksValueError, 'Check requires datasets to share the same features'))
-
-
-def test_dataset_validate_shared_label(diabetes):
-    train, val = diabetes
-    assert_that(train.validate_shared_label(val), is_(val.label_name))
-
-
-def test_dataset_validate_shared_labels_fail(diabetes, iris_dataset):
-    train = diabetes[0]
-    assert_that(calling(train.validate_shared_label).with_args(iris_dataset),
-                raises(DeepchecksValueError, 'Check requires datasets to share the same label'))
-
-
-# def test_dataset_shared_categorical_features(diabetes_df, iris):
-#     diabetes_dataset = Dataset(diabetes_df)
-#     iris_dataset = Dataset(iris)
-#     assert_that(calling(diabetes_dataset.validate_shared_categorical_features).with_args(iris_dataset),
-#                 raises(DeepchecksValueError, 'Check requires datasets to share'
-#                                              ' the same categorical features'))
-
-
-# def test_validate_dataset_or_dataframe_empty_df(empty_df):
-#     assert_that(calling(Dataset.validate_dataset_or_dataframe).with_args(empty_df),
-#                 raises(DeepchecksValueError, 'dataset cannot be empty'))
-
-
-# def test_validate_dataset_or_dataframe_empty_dataset(empty_df):
-#     assert_that(calling(Dataset.validate_dataset_or_dataframe).with_args(Dataset(empty_df)),
-#                 raises(DeepchecksValueError, 'dataset cannot be empty'))
-
-
-# def test_validate_dataset_or_dataframe(iris):
-#     assert_that(Dataset.validate_dataset_or_dataframe(iris), Dataset(iris))
-
-
-# def test_validate_dataset_empty_df(empty_df):
-#     assert_that(calling(Dataset.validate_dataset).with_args(Dataset(empty_df)),
-#                 raises(DeepchecksValueError, 'Check requires a non-empty dataset'))
-
-
-# def test_validate_dataset_not_dataset():
-#     assert_that(calling(Dataset.validate_dataset).with_args('not_dataset'),
-#                 raises(DeepchecksValueError, 'Check requires dataset to be of type Dataset. instead got:'
-#                                              ' str'))
-
-
 def test_ensure_dataframe_type(iris):
     assert_that(ensure_dataframe_type(iris).equals(iris), is_(True))
 

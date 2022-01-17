@@ -14,7 +14,7 @@ from sklearn.ensemble import AdaBoostClassifier
 
 from deepchecks import CheckResult, Dataset, ConditionCategory
 from deepchecks.checks import TrustScoreComparison
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError, ModelValidationError
 from tests.checks.utils import equal_condition_result
 
 
@@ -123,5 +123,11 @@ def test_regression_model_fail(diabetes_split_dataset_and_model):
     train, test, model = diabetes_split_dataset_and_model
     check = TrustScoreComparison(min_test_samples=50)
 
-    assert_that(calling(check.run).with_args(train, test, model),
-                raises(DeepchecksValueError, 'Check supports only classification'))
+    assert_that(
+        calling(check.run).with_args(train, test, model),
+        raises(
+            ModelValidationError,
+            'Check is relevant only for the classification models, but'
+            'received model of type regression'
+        )
+    )

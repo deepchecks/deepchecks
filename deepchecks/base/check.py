@@ -343,7 +343,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
         """TODO: add comments"""
         if Dataset.datasets_share_features(datasets) is False:
             raise DatasetValidationError(
-                'Check requires datasets to share the same features'
+                'Check requires Datasets to share the same features'
             )
         return datasets[0].features
 
@@ -387,7 +387,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
     def _dataset_has_date(cls, dataset: Dataset) -> pd.Series:
         """TODO: add comments"""
         if dataset.datetime_col is None:
-            raise DatasetValidationError('Check is irrelevant for Datasets without datetime column ')
+            raise DatasetValidationError('Check is irrelevant for Datasets without datetime column')
         return dataset.datetime_col
 
     @classmethod

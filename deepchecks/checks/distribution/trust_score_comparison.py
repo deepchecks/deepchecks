@@ -20,7 +20,7 @@ from deepchecks.utils.metrics import task_type_check, ModelType
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
 from deepchecks.utils.plot import colors
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks.errors import DeepchecksValueError, ModelValidationError
 
 
 __all__ = ['TrustScoreComparison']
@@ -90,9 +90,9 @@ class TrustScoreComparison(TrainTestBaseCheck):
             raise DeepchecksValueError(msg)
         
         if model_type not in {ModelType.BINARY, ModelType.MULTICLASS}:
-            raise DatasetValidationError(
-                'Check is relevant only for the classification models, '
-                f'received model of type {model_type}.'
+            raise ModelValidationError(
+                'Check is relevant only for the classification models, but'
+                f'received model of type {model_type.value.lower()}'
             )
 
         no_null_label_train = train_dataset.data[train_label.notna()]

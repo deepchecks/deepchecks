@@ -31,7 +31,7 @@ def test_dataset_no_label(diabetes_df, diabetes_model):
     # Assert
     assert_that(
         calling(RegressionErrorDistribution().run).with_args(Dataset(diabetes_df), diabetes_model),
-        raises(DatasetValidationError, 'Datasets without label are irrelevant to the check')
+        raises(DatasetValidationError, 'Check is irrelevant for Datasets without label')
     )
 
 

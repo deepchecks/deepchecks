@@ -61,7 +61,7 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
         if len(relevant_columns) == 1:
             raise DatasetValidationError(
                 'Datasets without index or date column '
-                'are irrelevant to the current check.'
+                'are irrelevant to the current check'
             )
 
         df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name, random_seed=42,

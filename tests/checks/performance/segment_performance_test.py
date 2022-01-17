@@ -28,7 +28,7 @@ def test_dataset_no_label(iris_dataset, iris_adaboost):
     # Assert
     assert_that(
         calling(SegmentPerformance().run).with_args(iris_dataset, iris_adaboost),
-        raises(DatasetValidationError, 'Datasets without label are irrelevant to the check')
+        raises(DatasetValidationError, 'Check is irrelevant for Datasets without label')
     )
 
 

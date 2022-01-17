@@ -47,7 +47,7 @@ def test_dataset_no_label(iris_dataset):
     # Assert
     assert_that(
         calling(PerformanceReport().run).with_args(iris_dataset, iris_dataset, None),
-        raises(DatasetValidationError, 'Datasets without label are irrelevant to the check')
+        raises(DatasetValidationError, 'Check requires Datasets to have and to share the same label')
     )
 
 
@@ -56,7 +56,7 @@ def test_dataset_no_shared_label(iris_labeled_dataset):
     iris_dataset_2 = Dataset(iris_labeled_dataset.data, label='sepal length (cm)')
     assert_that(
         calling(PerformanceReport().run).with_args(iris_labeled_dataset, iris_dataset_2, None),
-        raises(DatasetValidationError, 'Datasets without the same label are irrelevant to the check')
+        raises(DatasetValidationError, 'Check requires Datasets to have and to share the same label')
     )
 
 

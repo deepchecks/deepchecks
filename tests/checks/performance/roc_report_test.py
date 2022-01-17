@@ -32,8 +32,10 @@ def test_dataset_wrong_input():
 
 def test_dataset_no_label(iris_dataset, iris_adaboost):
     # Assert
-    assert_that(calling(RocReport().run).with_args(iris_dataset, iris_adaboost),
-                raises(DatasetValidationError, 'Datasets without label are irrelevant to the check'))
+    assert_that(
+        calling(RocReport().run).with_args(iris_dataset, iris_adaboost),
+        raises(DatasetValidationError, 'Check is irrelevant for Datasets without label')
+    )
 
 
 def test_regresion_model(diabetes_split_dataset_and_model):

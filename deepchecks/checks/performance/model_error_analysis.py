@@ -127,8 +127,8 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         train_dataset = Dataset.ensure_not_empty_dataset(train_dataset, cast=True)
         test_dataset = Dataset.ensure_not_empty_dataset(test_dataset, cast=True)
         
-        label_name = self._datasets_share_label([train_dataset, test_dataset])
-        features = self._datasets_share_features([train_dataset, test_dataset])
+        self._datasets_share_label([train_dataset, test_dataset])
+        self._datasets_share_features([train_dataset, test_dataset])
         cat_features = self._datasets_share_categorical_features([train_dataset, test_dataset])
         
         validate_model(train_dataset, model)

@@ -11,21 +11,26 @@
 """Contains unit tests for the calibration_metric check."""
 from hamcrest import assert_that, calling, raises, has_entries, close_to
 from deepchecks.checks.performance import CalibrationScore
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError
 
 
 def test_dataset_wrong_input():
     bad_dataset = 'wrong_input'
     # Act & Assert
-    assert_that(calling(CalibrationScore().run).with_args(bad_dataset, None),
-                raises(DeepchecksValueError,
-                       'Check requires dataset to be of type Dataset. instead got: str'))
+    assert_that(
+        calling(CalibrationScore().run).with_args(bad_dataset, None),
+        raises(
+            DeepchecksValueError,
+            'non-empty Dataset instance was expected, instead got str')
+    )
 
 
 def test_dataset_no_label(iris_dataset, iris_adaboost):
     # Assert
-    assert_that(calling(CalibrationScore().run).with_args(iris_dataset, iris_adaboost),
-                raises(DeepchecksValueError, 'Check requires dataset to have a label column'))
+    assert_that(
+        calling(CalibrationScore().run).with_args(iris_dataset, iris_adaboost),
+        raises(DatasetValidationError, 'Check is irrelevant for Datasets without label')
+    )
 
 
 def test_regresion_model(diabetes_split_dataset_and_model):

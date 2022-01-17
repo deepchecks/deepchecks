@@ -801,9 +801,15 @@ class Dataset:
         else:
             value_type = type(obj).__name__
             if cast:
-                raise DeepchecksValueError(f'cannot cast instance of {value_type} into Dataset object')
+                raise DeepchecksValueError(
+                    'non-empty instance of Dataset or DataFrame '
+                    f'was expected, instead got {value_type}'
+                )
             else:
-                raise DeepchecksValueError(f'non-empty Dataset instance was expected, instead got {value_type}')
+                raise DeepchecksValueError(
+                    'non-empty Dataset instance was expected, '
+                    f'instead got {value_type}'
+                )
     
     @classmethod
     def datasets_share_features(cls, datasets: t.List['Dataset']) -> bool:
