@@ -20,3 +20,7 @@ scipy>=1.4.1
 dataclasses>=0.6; python_version < '3.7'
 plotly>=5.5.0
 matplotlib>=3.2.2
+
+
+# VISION
+pytorch-ignite
