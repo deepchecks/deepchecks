@@ -18,9 +18,9 @@ from functools import wraps
 from typing import Any, Callable, List, Union, Dict, Mapping, cast
 
 import pandas as pd
-from IPython.core.display import display_html
 import ipywidgets as widgets
 import plotly.graph_objects as go
+from IPython.core.display import display_html
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
@@ -363,14 +363,14 @@ class BaseCheck(metaclass=abc.ABCMeta):
     def _datasets_share_label(cls, datasets: List['Dataset']) -> Hashable:
         """TODO: add coments"""
         if Dataset.datasets_share_label(datasets) is False:
-            raise DatasetValidationError('Datasets without the same label are irrelevant to the check')
+            raise DatasetValidationError('Check requires Datasets to have and to share the same label')
         return cast(Hashable, datasets[0].label_name)
 
     @classmethod
     def _dataset_has_label(cls, dataset: Dataset) -> pd.Series:
         """TODO: add comments"""
         if dataset.label_col is None:
-            raise DatasetValidationError('Datasets without label are irrelevant to the check')
+            raise DatasetValidationError('Check is irrelevant for Datasets without label')
         return dataset.label_col
 
     @classmethod
@@ -380,21 +380,21 @@ class BaseCheck(metaclass=abc.ABCMeta):
             dataset.features_columns is None
             or len(dataset.features_columns.columns) == 0
         ):
-            raise DatasetValidationError('Datasets without features are irrelevant to the check')
+            raise DatasetValidationError('Check is irrelevant for Datasets without features')
         return dataset.features_columns
 
     @classmethod
     def _dataset_has_date(cls, dataset: Dataset) -> pd.Series:
         """TODO: add comments"""
         if dataset.datetime_col is None:
-            raise DatasetValidationError('Datasets without datetime column are irrelevant to the check')
+            raise DatasetValidationError('Check is irrelevant for Datasets without datetime column ')
         return dataset.datetime_col
 
     @classmethod
     def _dataset_has_index(cls, dataset: Dataset) -> pd.Series:
         """TODO: add comments"""
         if dataset.index_col is None:
-            raise DatasetValidationError('Datasets without index are irrelevant to the check')
+            raise DatasetValidationError('Check is irrelevant for Datasets without an index')
         return dataset.index_col
 
 
