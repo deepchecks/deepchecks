@@ -159,6 +159,26 @@ class CheckResult:
             return box
         display_html(check_html, raw=True)
 
+    def _display_to_json(self):
+        displays = []
+        for item in self.display:
+            if isinstance(item, (pd.DataFrame, Styler)):
+                displays.append({'dataframe': item.to_json()})
+            elif isinstance(item, str):
+                displays.append({'html': item})
+            elif isinstance(item, BaseFigure):
+                displays.append({'plotly': item.to_json()})
+            elif callable(item):
+                try:
+                    display_html(check_html, raw=True)
+                    item()
+                    plt.show()
+                except Exception as exc:
+                    displays.append({'plt': None})
+            else:
+                raise Exception(f'Unable to create json for item of type: {type(item)}')
+    def to_json(self, with_display: bool = True):
+        value = self.value
     def _ipython_display_(self, unique_id=None, as_widget=False,
                           show_additional_outputs=True):
         check_widget = self.display_check(unique_id=unique_id, as_widget=as_widget,
