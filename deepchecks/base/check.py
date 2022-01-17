@@ -394,7 +394,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
     def _dataset_has_index(cls, dataset: Dataset) -> pd.Series:
         """TODO: add comments"""
         if dataset.index_col is None:
-            raise DatasetValidationError('Datasets without index are irrelevant to the check')
+            raise DatasetValidationError('Check is irrelevant for Datasets without an index')
         return dataset.index_col
 
 
