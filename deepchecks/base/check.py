@@ -380,7 +380,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
             dataset.features_columns is None
             or len(dataset.features_columns.columns) == 0
         ):
-            raise DatasetValidationError('Datasets without features are irrelevant to the check')
+            raise DatasetValidationError('Check is irrelevant for Datasets without features')
         return dataset.features_columns
 
     @classmethod
