@@ -11,13 +11,17 @@
 """Module containing all the base classes for checks."""
 # pylint: disable=broad-except
 import abc
+import base64
 import inspect
+from io import BytesIO
 import traceback
 from collections import OrderedDict
 from functools import wraps
 from typing import Any, Callable, List, Union, Dict, Mapping
+import json
 
 from matplotlib import pyplot as plt
+import matplotlib
 import pandas as pd
 from IPython.core.display import display_html
 import ipywidgets as widgets
@@ -43,6 +47,18 @@ __all__ = [
     'ModelOnlyBaseCheck',
     'CheckFailure',
 ]
+
+def _save_all_open_figures():
+    figs = [plt.figure(n) for n in plt.get_fignums()]
+    images = []
+    for fig in figs:
+        bio = BytesIO()
+        fig.savefig(bio, format='png')
+        encoded = base64.b64encode(bio.getvalue()).decode('utf-8')
+        # keep img tag outer html in its own variable
+        images.append('<img src=\'data:image/png;base64,{}\'>'.format(encoded))
+        fig.clear()
+    return images
 
 
 class CheckResult:
@@ -161,6 +177,7 @@ class CheckResult:
 
     def _display_to_json(self):
         displays = []
+        old_backend = matplotlib.get_backend()
         for item in self.display:
             if isinstance(item, (pd.DataFrame, Styler)):
                 displays.append({'dataframe': item.to_json()})
@@ -169,16 +186,25 @@ class CheckResult:
             elif isinstance(item, BaseFigure):
                 displays.append({'plotly': item.to_json()})
             elif callable(item):
-                try:
-                    display_html(check_html, raw=True)
+                try:   
+                    matplotlib.use('Agg')
                     item()
-                    plt.show()
+                    displays.append({'plt': _save_all_open_figures()})
                 except Exception as exc:
                     displays.append({'plt': None})
             else:
+                matplotlib.use(old_backend)
                 raise Exception(f'Unable to create json for item of type: {type(item)}')
+        matplotlib.use(old_backend)
+        return json.dumps(displays)
+
     def to_json(self, with_display: bool = True):
-        value = self.value
+        result_json = {'value': json.dumps(self.value)}
+        if with_display:
+            display_json = self._display_to_json()
+            result_json['display'] = display_json
+        return json.dumps(result_json)
+
     def _ipython_display_(self, unique_id=None, as_widget=False,
                           show_additional_outputs=True):
         check_widget = self.display_check(unique_id=unique_id, as_widget=as_widget,
