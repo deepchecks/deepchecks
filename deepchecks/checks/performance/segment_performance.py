@@ -15,7 +15,7 @@ import numpy as np
 import plotly.figure_factory as ff
 
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
-from deepchecks.checks.performance.partition import partition_column
+from deepchecks.utils.performance.partition import partition_column
 from deepchecks.utils.metrics import initialize_single_scorer, get_scorer_single
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.features import calculate_feature_importance_or_none

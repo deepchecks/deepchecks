@@ -125,14 +125,14 @@ class RocReport(SingleDatasetBaseCheck):
 
         """
         def condition(result: Dict) -> ConditionResult:
-            failed_classes = []
+            failed_classes = {}
             for item in result.items():
                 class_name, score = item
                 if score < min_auc:
-                    failed_classes.append(f'class {class_name}: {format_number(score)}')
+                    failed_classes[class_name] = format_number(score)
             if failed_classes:
                 return ConditionResult(False,
-                                       f'The scores that are less than the allowed AUC are: {failed_classes}')
+                                       f'Found classes with AUC below threshold: {failed_classes}')
             else:
                 return ConditionResult(True)
 
@@ -140,7 +140,7 @@ class RocReport(SingleDatasetBaseCheck):
             suffix = f' except: {self.excluded_classes}'
         else:
             suffix = ''
-        return self.add_condition(f'Not less than {min_auc} AUC score for all the classes{suffix}',
+        return self.add_condition(f'AUC score for all the classes{suffix} is not less than {min_auc}',
                                   condition)
 
 

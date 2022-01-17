@@ -15,11 +15,10 @@ import pandas as pd
 import plotly.express as px
 
 import deepchecks.ppscore as pps
-from deepchecks import Dataset
-from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult
-from deepchecks.utils.strings import format_percent
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError
-
+from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck, ConditionResult
+from deepchecks.utils.strings import format_number
+from deepchecks.errors import DatasetValidationError
+import plotly.express as px
 
 __all__ = ['IdentifierLeakage']
 
@@ -113,19 +112,17 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
             max_pps (int): Maximum allowed string length outliers ratio.
         """
         def compare_pps(result: Dict):
-            not_passing_columns = []
+            not_passing_columns = {}
             for column_name in result.keys():
                 score = result[column_name]
                 if score > max_pps:
-                    not_passing_columns.append(column_name)
+                    not_passing_columns[column_name] = format_number(score)
             if not_passing_columns:
-                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
-                                       f'Found columns with greater pps than {format_percent(max_pps)}: '
-                                       f'{not_passing_str}')
+                                       f'Found columns with PPS above threshold: {not_passing_columns}')
             else:
                 return ConditionResult(True)
 
         return self.add_condition(
-            f'Identifier columns do not have a greater pps than {format_percent(max_pps)}',
+            f'Identifier columns PPS is not greater than {format_number(max_pps)}',
             compare_pps)

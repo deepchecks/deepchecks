@@ -188,7 +188,7 @@ class BoostingOverfit(TrainTestBaseCheck):
             pct_diff = (max_score - last_score) / abs(max_score)
 
             if pct_diff > threshold:
-                message = f'Found score decline of: -{format_percent(pct_diff)}'
+                message = f'Found score decline above threshold: -{format_percent(pct_diff)}'
                 return ConditionResult(False, message)
             else:
                 return ConditionResult(True)

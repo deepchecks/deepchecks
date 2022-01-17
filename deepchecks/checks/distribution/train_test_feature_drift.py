@@ -32,9 +32,9 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
     Check calculates a drift score for each column in test dataset, by comparing its distribution to the train
     dataset.
     For numerical columns, we use the Earth Movers Distance.
-    See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf
+    See https://en.wikipedia.org/wiki/Wasserstein_metric
     For categorical columns, we use the Population Stability Index (PSI).
-    See https://en.wikipedia.org/wiki/Wasserstein_metric.
+    See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf
 
 
     Args:
@@ -53,6 +53,10 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
             Only for categorical columns. Max number of allowed categories. If there are more,
             they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
             for both drift calculation and for distribution plots.
+        n_samples (int):
+            Number of samples to use for drift computation and plot.
+        random_state (int):
+            Random seed for sampling.
     """
 
     def __init__(
@@ -61,7 +65,9 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_top_columns: int = 5,
         sort_feature_by: str = 'feature importance',
-        max_num_categories: int = 10
+        max_num_categories: int = 10,
+        n_samples: int = 100_000,
+        random_state: int = 42,
     ):
         super().__init__()
         self.columns = columns
@@ -72,6 +78,8 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         else:
             raise DeepchecksValueError('sort_feature_by must be either "feature importance" or "drift score"')
         self.n_top_columns = n_top_columns
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
         """Run check.
@@ -113,8 +121,10 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
         test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
 
-        train_dataset = train_dataset.select(self.columns, self.ignore_columns)
-        test_dataset = test_dataset.select(self.columns, self.ignore_columns)
+        train_dataset = train_dataset.select(self.columns, self.ignore_columns
+                                             ).sample(self.n_samples, random_state=self.random_state)
+        test_dataset = test_dataset.select(self.columns, self.ignore_columns
+                                           ).sample(self.n_samples, random_state=self.random_state)
 
         features = self._datasets_share_features([test_dataset, train_dataset])
         cat_features = self._datasets_share_categorical_features([test_dataset, train_dataset])
@@ -191,26 +201,25 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
                     [col_name for col_name, fi in sorted(result.items(), key=lambda item: item[1]['Drift score'],
                                                          reverse=True)]
             columns_to_consider = columns_to_consider[:number_of_top_features_to_consider]
-            not_passing_categorical_columns = [column for column, d in result.items() if
+            not_passing_categorical_columns = {column: f'{d["Drift score"]:.2}' for column, d in result.items() if
                                                d['Drift score'] > max_allowed_psi_score and d['Method'] == 'PSI'
-                                               and column in columns_to_consider]
-            not_passing_numeric_columns = [column for column, d in result.items() if
+                                               and column in columns_to_consider}
+            not_passing_numeric_columns = {column: f'{d["Drift score"]:.2}' for column, d in result.items() if
                                            d['Drift score'] > max_allowed_earth_movers_score
                                            and d['Method'] == "Earth Mover's Distance"
-                                           and column in columns_to_consider]
+                                           and column in columns_to_consider}
             return_str = ''
             if not_passing_categorical_columns:
-                return_str += f'Found categorical columns with PSI over {max_allowed_psi_score}: ' \
-                              f'{", ".join(map(str, not_passing_categorical_columns))}\n'
+                return_str += f'Found categorical columns with PSI above threshold: {not_passing_categorical_columns}\n'
             if not_passing_numeric_columns:
-                return_str += f'Found numeric columns with Earth Mover\'s Distance over ' \
-                              f'{max_allowed_earth_movers_score}: {", ".join(map(str, not_passing_numeric_columns))}'
+                return_str += f'Found numeric columns with Earth Mover\'s Distance above threshold: ' \
+                              f'{not_passing_numeric_columns}'
 
             if return_str:
                 return ConditionResult(False, return_str)
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'PSI and Earth Mover\'s Distance cannot be greater than {max_allowed_psi_score} and '
-                                  f'{max_allowed_earth_movers_score} respectively',
+        return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
+                                  f'{max_allowed_earth_movers_score}',
                                   condition)

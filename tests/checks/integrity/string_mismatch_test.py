@@ -77,10 +77,11 @@ def test_condition_no_more_than_fail():
     result = check.conditions_decision(check.run(df))
     # Assert
     assert_that(result, has_items(
-        equal_condition_result(is_pass=False,
-                               name='Not more than 2 string variants for all columns',
-                               details='Found columns with variants: {\'col1\': [\'deep\']}',
-                               category=ConditionCategory.WARN)
+        equal_condition_result(
+            is_pass=False,
+            name='Not more than 2 string variants',
+            details='Found columns with amount of variants above threshold: {\'col1\': [\'deep\']}',
+            category=ConditionCategory.WARN)
     ))
 
 
@@ -94,7 +95,7 @@ def test_condition_no_more_than_pass():
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Not more than 4 string variants for all columns')
+                               name='Not more than 4 string variants')
     ))
 
 
@@ -107,10 +108,11 @@ def test_condition_no_variants_fail():
     result = check.conditions_decision(check.run(df))
     # Assert
     assert_that(result, has_items(
-        equal_condition_result(is_pass=False,
-                               name='No string variants for all columns',
-                               details='Found columns with variants: {\'col1\': [\'deep\', \'foo\']}',
-                               category=ConditionCategory.WARN)
+        equal_condition_result(
+            is_pass=False,
+            name='No string variants',
+            details='Found columns with amount of variants above threshold: {\'col1\': [\'deep\', \'foo\']}',
+            category=ConditionCategory.WARN)
     ))
 
 
@@ -124,7 +126,7 @@ def test_condition_no_variants_pass():
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='No string variants for all columns')
+                               name='No string variants')
     ))
 
 
@@ -132,14 +134,14 @@ def test_condition_percent_variants_no_more_than_fail():
     # Arrange
     data = {'col1': ['Deep', 'deep', 'deep!!!', '$deeP$', 'earth', 'foo', 'bar', 'foo?']}
     df = pd.DataFrame(data=data)
-    check = StringMismatch().add_condition_ratio_variants_not_more_than(0.1)
+    check = StringMismatch().add_condition_ratio_variants_not_greater_than(0.1)
     # Act
     result = check.conditions_decision(check.run(df))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Not more than 10.00% variants for all columns',
-                               details='Found columns with variants ratio: {\'col1\': \'75.00%\'}')
+                               name='Ratio of variants is not greater than 10.00%',
+                               details='Found columns with variants ratio above threshold: {\'col1\': \'75.00%\'}')
     ))
 
 
@@ -147,13 +149,13 @@ def test_condition_percent_variants_no_more_than_pass():
     # Arrange
     data = {'col1': ['Deep', 'shallow', 'high!!!', '$deeP$', 'earth', 'foo', 'bar', 'foo?']}
     df = pd.DataFrame(data=data)
-    check = StringMismatch().add_condition_ratio_variants_not_more_than(0.5)
+    check = StringMismatch().add_condition_ratio_variants_not_greater_than(0.5)
     # Act
     result = check.conditions_decision(check.run(df))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Not more than 50.00% variants for all columns')
+                               name='Ratio of variants is not greater than 50.00%')
     ))
 
 

@@ -22,7 +22,6 @@ import pandas as pd
 from pandas.core.dtypes.common import is_numeric_dtype
 
 from deepchecks.utils.typing import Hashable
-from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 
 
 __all__ = [
@@ -35,10 +34,42 @@ __all__ = [
     'format_percent',
     'format_number',
     'format_list',
-    'format_columns_for_condition',
     'get_random_string',
-    'format_datetime'
+    'format_datetime',
+    'get_docs_summary',
+    'get_ellipsis',
+    'to_snake_case'
 ]
+
+
+def get_ellipsis(long_string: str, max_length: int):
+    """Return the long string with ellipsis if above max_length.
+
+    Args:
+        long_string (str): the string
+        max_length (int): the string maximum length
+    Returns:
+        (str): the string with ellipsis.
+    """
+    if len(long_string) <= max_length:
+        return long_string
+    return long_string[:max_length] + '...'
+
+
+def get_docs_summary(obj):
+    """Return the docs summary if available.
+
+    Args:
+        obj: an object
+    Returns:
+        (str): the object summary.
+    """
+    if hasattr(obj.__class__, '__doc__'):
+        docs = obj.__class__.__doc__ or ''
+        # Take first non-whitespace line.
+        summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
+        return summary
+    return ''
 
 
 def get_random_string(n: int = 5):
@@ -87,6 +118,18 @@ def split_camel_case(string: str) -> str:
         string (str): string to change
     """
     return ' '.join(re.findall('[A-Z][^A-Z]*', string))
+
+
+def to_snake_case(value: str) -> str:
+    """Transform camel case indentifier into snake case.
+
+    Args:
+        value (str): string to transform
+
+    Returns:
+        str: transformed value
+    """
+    return split_camel_case(value).strip().replace(' ', '_')
 
 
 def get_base_form_to_variants_dict(uniques: t.Iterable[str]) -> t.Dict[str, t.Set[str]]:
@@ -275,30 +318,6 @@ def format_list(l: t.List[Hashable], max_elements_to_show: int = 10, max_string_
         return output + ', ...'
 
     return output
-
-
-def format_columns_for_condition(
-    columns: t.Union[Hashable, t.List[Hashable], None] = None,
-    ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None
-) -> str:
-    """Format columns properties for display in condition name.
-
-    Args:
-        columns (Union[Hashable, List[Hashable], None]):
-            columns to include into resulting string
-        ignore_columns (Union[Hashable, List[Hashable], None]):
-            columns to not include into resulting string
-
-    Returns: formatted string of columns
-    """
-    if columns is not None:
-        columns = ensure_hashable_or_mutable_sequence(columns)
-        return f'columns: {",".join(map(str, columns))}'
-    elif ignore_columns is not None:
-        ignore_columns = ensure_hashable_or_mutable_sequence(ignore_columns)
-        return f'all columns ignoring: {",".join(map(str, ignore_columns))}'
-    else:
-        return 'all columns'
 
 
 def format_datetime(

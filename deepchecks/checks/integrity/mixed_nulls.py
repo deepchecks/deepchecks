@@ -19,7 +19,7 @@ from deepchecks import Dataset, CheckResult
 from deepchecks.base.check import SingleDatasetBaseCheck, ConditionResult
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, column_importance_sorter_df
-from deepchecks.utils.strings import string_baseform, format_percent, format_columns_for_condition
+from deepchecks.utils.strings import string_baseform, format_percent
 from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
@@ -159,20 +159,18 @@ class MixedNulls(SingleDatasetBaseCheck):
             max_allowed_null_types (int): Number of different null value types which is the maximum allowed.
         """
         def condition(result: Dict) -> ConditionResult:
-            not_passing_columns = []
+            not_passing_columns = {}
             for column in result.keys():
                 nulls = result[column]
                 num_nulls = len(nulls)
                 if num_nulls > max_allowed_null_types:
-                    not_passing_columns.append(column)
+                    not_passing_columns[column] = num_nulls
             if not_passing_columns:
-                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
-                                       f'Found columns with more than {max_allowed_null_types} null types: '
-                                       f'{not_passing_str}')
+                                       'Found columns with amount of null types above threshold: '
+                                       f'{not_passing_columns}')
             else:
                 return ConditionResult(True)
 
-        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        return self.add_condition(f'Not more than {max_allowed_null_types} different null types for {column_names}',
+        return self.add_condition(f'Not more than {max_allowed_null_types} different null types',
                                   condition)

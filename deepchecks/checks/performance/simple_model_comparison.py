@@ -33,7 +33,7 @@ from deepchecks.utils.metrics import (
     get_scorer_single,
     get_gain
 )
-from deepchecks.utils.models import RandomModel
+from deepchecks.utils.simple_models import RandomModel
 
 
 __all__ = ['SimpleModelComparison']
@@ -298,7 +298,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
             average (bool): Used in classification models to flag if to run condition on average of classes, or on
                 each class individually
         """
-        name = f'Model performance gain over simple model must be at least {format_percent(min_allowed_gain)}'
+        name = f'Model performance gain over simple model is not less than {format_percent(min_allowed_gain)}'
         if classes:
             name = name + f' for classes {str(classes)}'
         return self.add_condition(name,
@@ -314,10 +314,10 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
     task_type = result['type']
     scorers_perfect = result['scorers_perfect']
 
-    fails = []
+    fails = {}
     if task_type in [ModelType.MULTICLASS, ModelType.BINARY] and not average:
         for metric, classes_scores in scores.items():
-            failed_classes = []
+            failed_classes = {}
             for clas, models_scores in classes_scores.items():
                 # Skip if class is not in class list
                 if include_classes is not None and clas not in include_classes:
@@ -332,9 +332,9 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
                                 scorers_perfect[metric],
                                 max_gain)
                 if gain < min_allowed_gain:
-                    failed_classes.append(str(clas))
+                    failed_classes[clas] = format_percent(gain)
             if failed_classes:
-                fails.append(f'"{metric}" - Classes: {", ".join(failed_classes)}')
+                fails[metric] = failed_classes
     else:
         if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
             scores = average_scores(scores, include_classes)
@@ -347,10 +347,10 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
                             scorers_perfect[metric],
                             max_gain)
             if gain < min_allowed_gain:
-                fails.append(f'"{metric}"')
+                fails[metric] = format_percent(gain)
 
     if fails:
-        msg = f'Metrics failed: {", ".join(sorted(fails))}'
+        msg = f'Found metrics with gain below threshold: {fails}'
         return ConditionResult(False, msg)
     else:
         return ConditionResult(True)

@@ -118,12 +118,11 @@ class NewLabelTrainTest(TrainTestBaseCheck):
         def new_category_count_condition(result: Dict) -> ConditionResult:
             if result:
                 new_labels = result['new_labels']
-                new_label_ratio = result['n_new_labels_samples']/result['n_samples']
+                new_label_ratio = result['n_new_labels_samples'] / result['n_samples']
                 if new_label_ratio > max_ratio:
-
                     return ConditionResult(False,
-                                           f'Found new labels {new_labels} in test data, '
-                                           f'making {format_percent(new_label_ratio)} of test data.')
+                                           f'Found new labels in test data: {new_labels}\n'
+                                           f'making {format_percent(new_label_ratio)} of samples.')
             return ConditionResult(True)
 
         return self.add_condition(

@@ -14,7 +14,7 @@ import pandas as pd
 
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.utils.strings import format_percent, format_columns_for_condition
+from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
 
@@ -148,22 +148,20 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
             max_new (int): Number of different categories value types which is the maximum allowed.
         """
         def condition(result: Dict) -> ConditionResult:
-            not_passing_columns = []
+            not_passing_columns = {}
             for column_name in result.keys():
                 column = result[column_name]
                 num_categories = len(column['new_categories'])
                 if num_categories > max_new:
-                    not_passing_columns.append(column_name)
+                    not_passing_columns[column_name] = num_categories
             if not_passing_columns:
-                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
-                                       f'Found columns with more than {max_new} new categories: '
-                                       f'{not_passing_str}')
+                                       f'Found columns with number of new categories above threshold: '
+                                       f'{not_passing_columns}')
             else:
                 return ConditionResult(True)
 
-        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
-        return self.add_condition(f'Number of new category values is not greater than {max_new} for {column_names}',
+        return self.add_condition(f'Number of new category values is not greater than {max_new}',
                                   condition)
 
     def add_condition_new_category_ratio_not_greater_than(self, max_ratio: float = 0):
@@ -173,21 +171,19 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
             max_ratio (int): Number of different categories value types which is the maximum allowed.
         """
         def new_category_count_condition(result: Dict) -> ConditionResult:
-            not_passing_columns = []
+            not_passing_columns = {}
             for column_name in result.keys():
                 column = result[column_name]
                 n_new_samples = column['n_new'] / column['n_total_samples']
                 if n_new_samples > max_ratio:
-                    not_passing_columns.append(column_name)
+                    not_passing_columns[column_name] = format_percent(n_new_samples)
             if not_passing_columns:
-                not_passing_str = ', '.join(map(str, not_passing_columns))
                 return ConditionResult(False,
-                                       f'Found columns with more than {format_percent(max_ratio)} new category samples:'
-                                       f' {not_passing_str}')
+                                       f'Found columns with ratio of new category samples above threshold: '
+                                       f'{not_passing_columns}')
             else:
                 return ConditionResult(True)
 
-        column_names = format_columns_for_condition(self.columns, self.ignore_columns)
         return self.add_condition(
-            f'Ratio of samples with a new category is not greater than {format_percent(max_ratio)} for {column_names}',
+            f'Ratio of samples with a new category is not greater than {format_percent(max_ratio)}',
             new_category_count_condition)

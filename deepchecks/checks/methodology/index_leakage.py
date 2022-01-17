@@ -80,5 +80,5 @@ class IndexTrainTestLeakage(TrainTestBaseCheck):
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Index leakage is not greater than {format_percent(max_ratio)}',
+        return self.add_condition(f'Ratio of leaking indices is not greater than {format_percent(max_ratio)}',
                                   max_ratio_condition)

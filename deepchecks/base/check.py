@@ -12,7 +12,6 @@
 # pylint: disable=broad-except
 import abc
 import inspect
-import re
 import traceback
 from collections import OrderedDict
 from functools import wraps
@@ -20,15 +19,16 @@ from typing import Any, Callable, List, Union, Dict, Mapping, cast
 
 import pandas as pd
 from IPython.core.display import display_html
-from matplotlib import pyplot as plt
+import ipywidgets as widgets
+import plotly.graph_objects as go
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
 from deepchecks.base.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.base.dataset import Dataset
-from deepchecks.base.display_pandas import display_conditions_table, display_dataframe
-from deepchecks.utils.strings import split_camel_case
-from deepchecks.utils.typing import Hashable
+from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table_display
+from deepchecks.utils.strings import get_docs_summary, split_camel_case
+from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.utils.ipython import is_ipython_display
 from deepchecks.utils.metrics import task_type_check
 from deepchecks.utils.validation import validate_model
@@ -91,40 +91,84 @@ class CheckResult:
             if not isinstance(item, (str, pd.DataFrame, Styler, Callable, BaseFigure)):
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
-    def _ipython_display_(self, show_conditions=True, unique_id=None):
+    def display_check(self, unique_id: str = None, as_widget: bool = False,
+                      show_additional_outputs=True):  # pragma: no cover
+        """Display the check result or return the display as widget.
+
+        Args:
+            unique_id (str):
+                The unique id given by the suite that displays the check.
+            as_widget (bool):
+                Boolean that controls if to display the check regulary or if to return a widget.
+            show_additional_outputs (bool):
+                Boolean that controls if to show additional outputs.
+        Returns:
+            Widget representation of the display if as_widget is True.
+        """
+        if as_widget:
+            box = widgets.VBox()
+            box_children = []
+        check_html = ''
         if unique_id:
             check_id = f'{self.check.__class__.__name__}_{unique_id}'
-            display_html(f'<h4 id="{check_id}">{self.get_header()}</h4>', raw=True)
+            check_html += f'<h4 id="{check_id}">{self.get_header()}</h4>'
         else:
-            display_html(f'<h4>{self.get_header()}</h4>', raw=True)
+            check_html += f'<h4>{self.get_header()}</h4>'
         if hasattr(self.check.__class__, '__doc__'):
-            docs = self.check.__class__.__doc__ or ''
-            # Take first non-whitespace line.
-            summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
-            display_html(f'<p>{summary}</p>', raw=True)
-        if self.conditions_results and show_conditions:
-            display_html('<h5>Conditions Summary</h5>', raw=True)
-            display_conditions_table(self, unique_id)
-            display_html('<h5>Additional Outputs</h5>', raw=True)
-        for item in self.display:
-            if isinstance(item, (pd.DataFrame, Styler)):
-                display_dataframe(item)
-            elif isinstance(item, str):
-                display_html(item, raw=True)
-            elif isinstance(item, BaseFigure):
-                item.show()
-            elif callable(item):
-                try:
-                    item()
-                    plt.show()
-                except Exception as exc:
-                    display_html(f'Error in display {str(exc)}', raw=True)
-            else:
-                raise Exception(f'Unable to display item of type: {type(item)}')
+            summary = get_docs_summary(self.check)
+            check_html += f'<p>{summary}</p>'
+        if self.conditions_results:
+            check_html += '<h5>Conditions Summary</h5>'
+            check_html += get_conditions_table_display(self, unique_id)
+        if show_additional_outputs:
+            check_html += '<h5>Additional Outputs</h5>'
+            for item in self.display:
+                if isinstance(item, (pd.DataFrame, Styler)):
+                    check_html += dataframe_to_html(item)
+                elif isinstance(item, str):
+                    check_html += item
+                elif isinstance(item, BaseFigure):
+                    if as_widget:
+                        box_children.append(widgets.HTML(check_html))
+                        box_children.append(go.FigureWidget(data=item))
+                    else:
+                        display_html(check_html, raw=True)
+                        item.show()
+                    check_html = ''
+                elif callable(item):
+                    try:
+                        if as_widget:
+                            plt_out = widgets.Output()
+                            with plt_out:
+                                item()
+                                plt.show()
+                            box_children.append(widgets.HTML(check_html))
+                            box_children.append(plt_out)
+                        else:
+                            display_html(check_html, raw=True)
+                            item()
+                            plt.show()
+                        check_html = ''
+                    except Exception as exc:
+                        check_html += f'Error in display {str(exc)}'
+                else:
+                    raise Exception(f'Unable to display item of type: {type(item)}')
         if not self.display:
-            display_html('<p><b>&#x2713;</b> Nothing found</p>', raw=True)
+            check_html += '<p><b>&#x2713;</b> Nothing found</p>'
         if unique_id:
-            display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
+            check_html += f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>'
+        if as_widget:
+            box_children.append(widgets.HTML(check_html))
+            box.children = box_children
+            return box
+        display_html(check_html, raw=True)
+
+    def _ipython_display_(self, unique_id=None, as_widget=False,
+                          show_additional_outputs=True):
+        check_widget = self.display_check(unique_id=unique_id, as_widget=as_widget,
+                                          show_additional_outputs=show_additional_outputs,)
+        if as_widget:
+            display_html(check_widget)
 
     def __repr__(self):
         """Return default __repr__ function uses value."""
@@ -175,10 +219,11 @@ class CheckResult:
 
         return 4
 
-    def show(self, show_conditions=True, unique_id=None):
+    def show(self, unique_id=None, show_additional_outputs=True):
         """Display check result."""
         if is_ipython_display():
-            self._ipython_display_(show_conditions=show_conditions, unique_id=unique_id)
+            self._ipython_display_(unique_id=unique_id,
+                                   show_additional_outputs=show_additional_outputs)
         else:
             print(self)
 

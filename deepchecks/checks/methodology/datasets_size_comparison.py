@@ -12,6 +12,7 @@
 import typing as t
 import pandas as pd
 from deepchecks import Dataset, CheckResult, ConditionResult, TrainTestBaseCheck
+from deepchecks.utils.validation import ensure_dataframe_type
 
 
 __all__ = ['DatasetsSizeComparison']
@@ -43,7 +44,7 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
         """
         train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
         test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
-        sizes = {'Train': train_dataset.n_samples, 'Test': test_dataset.n_samples}
+        sizes = {'Train': len(train_dataset), 'Test': len(test_dataset)}
         display = pd.DataFrame(sizes, index=['Size'])
         return CheckResult(
             value=sizes,
@@ -61,7 +62,7 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
         """
         def condition(check_result: dict) -> ConditionResult:
             return (
-                ConditionResult(False, f'Test dataset is {check_result["Test"]}')
+                ConditionResult(False, f'Test dataset size is {check_result["Test"]}')
                 if check_result['Test'] <= value
                 else ConditionResult(True)
             )
@@ -102,7 +103,8 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
 
         def condition(check_result: dict) -> ConditionResult:
             if check_result['Train'] < check_result['Test']:
-                return ConditionResult(False, 'Train dataset is smaller than test dataset')
+                diff = check_result['Test'] - check_result['Train']
+                return ConditionResult(False, f'Train dataset is smaller than test dataset by {diff}')
             else:
                 return ConditionResult(True)
 
