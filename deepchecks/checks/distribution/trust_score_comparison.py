@@ -27,13 +27,14 @@ __all__ = ['TrustScoreComparison']
 
 
 class TrustScoreComparison(TrainTestBaseCheck):
-    """Compares the model's trust scores of the train dataset with scores of the test dataset.
+    """Compares the model's trust score for the train dataset with scores of the test dataset.
 
     The process is as follows:
-    * Pre-process the train and test data into scaled numerics.
-    * Train a TrustScore (https://arxiv.org/abs/1805.11783) regressor based on train data + label.
-    * Predict on test data using the model.
-    * Use TrustScore to score the prediction of the model.
+
+    #. Pre-process the train and test data into scaled numerics.
+    #. Train a TrustScore (https://arxiv.org/abs/1805.11783) regressor based on train data + label.
+    #. Predict on test data using the model.
+    #. Use TrustScore to score the prediction of the model.
 
     Args:
         k_filter (int): used in TrustScore (Number of neighbors used during either kNN distance or probability
@@ -142,11 +143,14 @@ class TrustScoreComparison(TrainTestBaseCheck):
         top_k = test_data_sample.head(self.n_to_show)
         bottom_k = test_data_sample.tail(self.n_to_show)
 
-        headnote = """<span>
-        Trust score measures the agreement between the classifier and a modified nearest-neighbor
-        classifier on the testing example. Higher values represent samples that are "close" to training examples with
+        headnote = r"""<span>
+        Trust score (https://arxiv.org/abs/1805.11783) roughly measures the following quantity:<br><br>
+        <p>
+        $$Trust Score = \frac{\textrm{Distance from the sample to the nearest training samples belonging to a class different than the predicted one}}{\textrm{Distance from the sample to the nearest training samples belonging to the predicted class}}$$
+        </p>
+        So that higher values represent samples that are "close" to training examples with
         the same label as sample prediction, and lower values represent samples that are "far" from training samples
-        with labels matching their prediction. (arxiv 1805.11783)
+        with labels matching their prediction.
         </span>"""
         footnote = """<span style="font-size:0.8em"><i>
             The test trust score distribution should be quite similar to the train's. If it is skewed to the left, the
