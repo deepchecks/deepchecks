@@ -29,6 +29,9 @@ from .base import (
     ModelComparisonSuite,
 )
 
+from .tabular import base, checks, suites
+from .tabular import Dataset
+
 __all__ = [
     'BaseCheck',
     'SingleDatasetBaseCheck',
@@ -44,6 +47,10 @@ __all__ = [
     'Suite',
     'SuiteResult',
     'ModelComparisonSuite',
+    'base',
+    'checks',
+    'suites',
+    'Dataset'
 ]
 
 # Matplotlib has multiple backends. If we are in a context that does not support GUI (For example, during unit tests)

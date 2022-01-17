@@ -34,6 +34,7 @@ from .condition import (
     ConditionCategory
 )
 
+from ..tabular import Dataset
 
 __all__ = [
     'BaseCheck',
@@ -50,5 +51,6 @@ __all__ = [
     'BaseSuite',
     'Suite',
     'SuiteResult',
-    'ModelComparisonSuite'
+    'ModelComparisonSuite',
+    'Dataset'
 ]
