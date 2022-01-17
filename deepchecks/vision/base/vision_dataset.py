@@ -1,4 +1,7 @@
+from copy import copy
+
 from torch.utils.data import DataLoader
+from torch import cat
 import logging
 
 from deepchecks.errors import DeepchecksValueError
@@ -11,9 +14,22 @@ class VisionDataset:
 
     _data: DataLoader = None
 
-    def __init__(self, data_loader: DataLoader, label_type: str = 'object_detection'):
+    def __init__(self, data_loader: DataLoader, label_type: str = None):
         self._data = data_loader
-        self.label_type = label_type
+        self._label = self.extract_label()
+        if label_type is not None:
+            self.label_type = label_type
+        else:
+            self.label_type = self.infer_label_type()
+
+    def extract_label(self):
+        y = []
+        for i in range(len(self._data)):
+            y.append(next(iter(self._data))[1])
+        return cat(y, 0)
+
+    def infer_label_type(self):
+        return 'classification'
 
     def validate_label(self):
         # Getting first sample of data
@@ -21,11 +37,14 @@ class VisionDataset:
         if len(sample) != 2:
             raise DeepchecksValueError('Check requires dataset to have a label')
 
+    def get_label(self):
+        return copy(self._label)
+
     def get_label_shape(self):
         self.validate_label()
 
         # Assuming the dataset contains a tuple of (features, label)
-        return next(iter(self._data))[1].shape
+        return next(iter(self._data))[1].shape[1:]  # first argument is batch_size
 
     def __iter__(self):
         return iter(self._data)
@@ -49,8 +68,8 @@ class VisionDataset:
         """
         VisionDataset.validate_dataset(other)
 
-        label_shape = self.get_label_shape()[0].shape
-        other_label_shape = other.get_label_shape()[0].shape
+        label_shape = self.get_label_shape()
+        other_label_shape = other.get_label_shape()
 
         if other_label_shape != label_shape:
             raise DeepchecksValueError('Check requires datasets to share the same label shape')

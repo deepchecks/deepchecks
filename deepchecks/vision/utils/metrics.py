@@ -4,6 +4,7 @@ import typing as t
 from ignite.engine import Engine
 from torch import nn
 
+from deepchecks import errors
 from deepchecks.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.vision.utils import validation
 from deepchecks.vision import VisionDataset
@@ -26,7 +27,7 @@ class ModelType(enum.Enum):
 
 def get_default_classification_scorers():
     return {
-        'Accuracy': Accuracy(),
+        # 'Accuracy': Accuracy(),
         'Precision': Precision(),
         'Recall': Recall()
     }
@@ -65,8 +66,9 @@ def task_type_check(
     # Trying to infer the task type from the label shape
     label_shape = dataset.get_label_shape()
 
+    #TODO: Use Dataset.label_type before inferring
     # Means the tensor is an array of scalars
-    if len(label_shape) == 1:
+    if len(label_shape) == 0:
         return ModelType.CLASSIFICATION
 
 
@@ -92,6 +94,8 @@ def get_scorers_list(
     elif model_type == ModelType.SEMANTIC_SEGMENTATION:
         n_classes = len(dataset.get_label_shape()[0])
         scorers = get_default_object_detection_scorers(n_classes)
+    else:
+        raise DeepchecksNotSupportedError(f'No scorers match model_type {model_type}')
 
     return scorers
 

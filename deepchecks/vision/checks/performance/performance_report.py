@@ -24,7 +24,7 @@ from deepchecks.vision.utils.metrics import (
     get_scorers_list,
     # initialize_multi_scorers,
     ModelType,
-    task_type_check
+    task_type_check, calculate_metrics
 )
 
 
@@ -78,7 +78,6 @@ class PerformanceReport(TrainTestBaseCheck):
         self.alternative_scorers = alternative_scorers
         self.label_map = label_map
 
-
     def run(self, train_dataset: VisionDataset, test_dataset: VisionDataset, model=None) -> CheckResult:
         """Run check.
 
@@ -100,36 +99,31 @@ class PerformanceReport(TrainTestBaseCheck):
         model_type_validation(model)
 
         task_type = task_type_check(model, train_dataset)
-        clasess = self.label_map or None
+        # classes = self.label_map or None #TODO
+        classes = list(range(10))
 
         # Get default scorers if no alternative, or validate alternatives
         scorers = get_scorers_list(model, test_dataset, self.alternative_scorers)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
-        if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
+        if task_type == ModelType.CLASSIFICATION:
             plot_x_axis = 'Class'
             results = []
 
             for dataset_name, dataset in datasets.items():
-                label = cast(pd.Series, dataset.label_col)
+                label = pd.Series(dataset.get_label()) #TODO: Remove usage of pandas
                 n_samples = label.groupby(label).count()
                 results.extend(
-                    [dataset_name, class_name, scorer.name, class_score, n_samples[class_name]]
-                    for scorer in scorers
+                    [dataset_name, class_name, name, class_score, n_samples[class_name]]
+                    for name, score in calculate_metrics(scorers.values(), dataset, model).items()
                     # scorer returns numpy array of results with item per class
-                    for class_score, class_name in zip(scorer(model, dataset), clasess)
+                    for class_score, class_name in zip(score, classes)
                 )
 
             results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples'])
 
         else:
-            plot_x_axis = 'Dataset'
-            results = [
-                [dataset_name, scorer.name, scorer(model, dataset), cast(pd.Series, dataset.label_col).count()]
-                for dataset_name, dataset in datasets.items()
-                for scorer in scorers
-            ]
-            results_df = pd.DataFrame(results, columns=['Dataset', 'Metric', 'Value', 'Number of samples'])
+            return NotImplementedError('only works for classification ATM')
 
         fig = px.histogram(
             results_df,
@@ -142,7 +136,7 @@ class PerformanceReport(TrainTestBaseCheck):
             hover_data=['Number of samples']
         )
 
-        if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
+        if task_type == ModelType.CLASSIFICATION:
             fig.update_xaxes(tickprefix='Class ', tickangle=60)
 
         fig = (
