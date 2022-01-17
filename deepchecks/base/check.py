@@ -370,7 +370,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
     def _dataset_has_label(cls, dataset: Dataset) -> pd.Series:
         """TODO: add comments"""
         if dataset.label_col is None:
-            raise DatasetValidationError('Datasets without label are irrelevant to the check')
+            raise DatasetValidationError('Check is irrelevant for Datasets without label')
         return dataset.label_col
 
     @classmethod
