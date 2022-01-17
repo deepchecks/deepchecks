@@ -168,7 +168,7 @@ def _display_suite_widgets(summary: str,
         next(c)
         while os.path.exists(actualname):
             actualname = f'{basename} ({str(next(c))}).{ext}'
-        with open(os.path.join(curr_path, 'suite_output.html'), 'r', encoding='utf8') as html_file:
+        with open(os.path.join(curr_path, 'resources', 'suite_output.html'), 'r', encoding='utf8') as html_file:
             html_formatted = re.sub('{', '{{', html_file.read())
             html_formatted = re.sub('}', '}}', html_formatted)
             html_formatted = re.sub('html_title', '{title}', html_formatted)
