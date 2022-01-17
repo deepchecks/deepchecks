@@ -2,6 +2,7 @@ from torch.utils.data import DataLoader
 import logging
 
 from deepchecks.errors import DeepchecksValueError
+from deepchecks.utils.typing import Hashable
 
 logger = logging.getLogger('deepchecks')
 
@@ -31,3 +32,43 @@ class VisionDataset:
 
     def get_data_loader(self):
         return self._data
+
+    def validate_shared_label(self, other) -> Hashable:
+        """Verify presence of shared labels.
+
+        Validates whether the 2 datasets share the same label shape
+
+        Args:
+            other (Dataset): Expected to be Dataset type. dataset to compare
+
+        Returns:
+            Hashable: name of the label column
+
+        Raises:
+            DeepchecksValueError if datasets don't have the same label
+        """
+        VisionDataset.validate_dataset(other)
+
+        label_shape = self.get_label_shape()[0].shape
+        other_label_shape = other.get_label_shape()[0].shape
+
+        if other_label_shape != label_shape:
+            raise DeepchecksValueError('Check requires datasets to share the same label shape')
+
+    @classmethod
+    def validate_dataset(cls, obj) -> 'VisionDataset':
+        """Throws error if object is not deepchecks Dataset and returns the object if deepchecks Dataset.
+
+        Args:
+            obj: object to validate as dataset
+
+        Returns:
+            (Dataset): object that is deepchecks dataset
+        """
+        if not isinstance(obj, VisionDataset):
+            raise DeepchecksValueError('Check requires dataset to be of type VisionDataset. instead got: '
+                                       f'{type(obj).__name__}')
+        if len(obj._data.dataset) == 0:
+            raise DeepchecksValueError('Check requires a non-empty dataset')
+
+        return obj

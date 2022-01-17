@@ -9,20 +9,20 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing performance report check."""
-from typing import Callable, TypeVar, Dict, cast
+from typing import Callable, TypeVar, Dict, cast, List
 import pandas as pd
 import plotly.express as px
+from ignite.metrics import Metric
 
 from deepchecks import CheckResult, TrainTestBaseCheck, ConditionResult, ModelComparisonBaseCheck
-from deepchecks.tabular import Dataset
 from deepchecks.base.check import ModelComparisonContext
 from deepchecks.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
-from deepchecks.utils.validation import validate_model
-from deepchecks.utils.metrics import (
-    MULTICLASS_SCORERS_NON_AVERAGE,
+from deepchecks.vision import VisionDataset
+from deepchecks.vision.utils.metrics import (
+    # MULTICLASS_SCORERS_NON_AVERAGE,
     get_scorers_list,
-    initialize_multi_scorers,
+    # initialize_multi_scorers,
     ModelType,
     task_type_check
 )
@@ -30,6 +30,7 @@ from deepchecks.utils.metrics import (
 
 __all__ = ['PerformanceReport', 'MultiModelPerformanceReport']
 
+from deepchecks.vision.utils.validation import model_type_validation
 
 PR = TypeVar('PR', bound='PerformanceReport')
 
@@ -72,11 +73,13 @@ class PerformanceReport(TrainTestBaseCheck):
         my_mse_scorer = make_scorer(my_mse, greater_is_better=False)
     """
 
-    def __init__(self, alternative_scorers: Dict[str, Callable] = None):
+    def __init__(self, alternative_scorers: List[Metric] = None, label_map: List = None):
         super().__init__()
-        self.alternative_scorers = initialize_multi_scorers(alternative_scorers)
+        self.alternative_scorers = alternative_scorers
+        self.label_map = label_map
 
-    def run(self, train_dataset: Dataset, test_dataset: Dataset, model=None) -> CheckResult:
+
+    def run(self, train_dataset: VisionDataset, test_dataset: VisionDataset, model=None) -> CheckResult:
         """Run check.
 
         Args:
@@ -88,21 +91,20 @@ class PerformanceReport(TrainTestBaseCheck):
         """
         return self._performance_report(train_dataset, test_dataset, model)
 
-    def _performance_report(self, train_dataset: Dataset, test_dataset: Dataset, model):
-        # Dataset.validate_dataset(train_dataset)
-        # Dataset.validate_dataset(test_dataset)
-        # train_dataset.validate_label()
-        # test_dataset.validate_label()
-        # train_dataset.validate_shared_label(test_dataset)
-        # train_dataset.validate_shared_features(test_dataset)
-        # validate_model(test_dataset, model)
+    def _performance_report(self, train_dataset: VisionDataset, test_dataset: VisionDataset, model):
+        VisionDataset.validate_dataset(train_dataset)
+        VisionDataset.validate_dataset(test_dataset)
+        train_dataset.validate_label()
+        test_dataset.validate_label()
+        train_dataset.validate_shared_label(test_dataset)
+        train_dataset.validate_shared_features(test_dataset)
+        model_type_validation(model)
 
-        # task_type = task_type_check(model, train_dataset)
-        task_type = 'image_classification'
-        clasess = train_dataset.classes
+        task_type = task_type_check(model, train_dataset)
+        clasess = self.label_map or None
 
         # Get default scorers if no alternative, or validate alternatives
-        scorers = get_scorers_list(model, test_dataset, self.alternative_scorers, multiclass_avg=False)
+        scorers = get_scorers_list(model, test_dataset, self.alternative_scorers)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
         if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
