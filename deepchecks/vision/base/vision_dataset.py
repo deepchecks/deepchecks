@@ -25,3 +25,9 @@ class VisionDataset:
 
         # Assuming the dataset contains a tuple of (features, label)
         return next(iter(self._data))[1].shape
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def get_data_loader(self):
+        return self._data
