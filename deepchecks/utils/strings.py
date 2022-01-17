@@ -36,8 +36,40 @@ __all__ = [
     'format_list',
     'get_random_string',
     'format_datetime',
+    'get_docs_summary',
+    'get_ellipsis',
     'to_snake_case'
 ]
+
+
+def get_ellipsis(long_string: str, max_length: int):
+    """Return the long string with ellipsis if above max_length.
+
+    Args:
+        long_string (str): the string
+        max_length (int): the string maximum length
+    Returns:
+        (str): the string with ellipsis.
+    """
+    if len(long_string) <= max_length:
+        return long_string
+    return long_string[:max_length] + '...'
+
+
+def get_docs_summary(obj):
+    """Return the docs summary if available.
+
+    Args:
+        obj: an object
+    Returns:
+        (str): the object summary.
+    """
+    if hasattr(obj.__class__, '__doc__'):
+        docs = obj.__class__.__doc__ or ''
+        # Take first non-whitespace line.
+        summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
+        return summary
+    return ''
 
 
 def get_random_string(n: int = 5):
