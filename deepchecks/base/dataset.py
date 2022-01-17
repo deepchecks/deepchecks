@@ -874,7 +874,6 @@ class Dataset:
         assert len(datasets) > 1
 
         # TODO: should not we also check label dtypes?
-
         label_name = datasets[0].label_name
 
         if label_name is None:

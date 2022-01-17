@@ -14,22 +14,25 @@ from hamcrest import assert_that, calling, raises, has_items, close_to
 from deepchecks import ConditionCategory
 from deepchecks.base import Dataset
 from deepchecks.checks.performance import RegressionErrorDistribution
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError
 from tests.checks.utils import equal_condition_result
 
 
 def test_dataset_wrong_input():
     bad_dataset = 'wrong_input'
     # Act & Assert
-    assert_that(calling(RegressionErrorDistribution().run).with_args(bad_dataset, None),
-                raises(DeepchecksValueError,
-                       'Check requires dataset to be of type Dataset. instead got: str'))
+    assert_that(
+        calling(RegressionErrorDistribution().run).with_args(bad_dataset, None),
+        raises(DeepchecksValueError,'non-empty Dataset instance was expected, instead got str')
+    )
 
 
 def test_dataset_no_label(diabetes_df, diabetes_model):
     # Assert
-    assert_that(calling(RegressionErrorDistribution().run).with_args(Dataset(diabetes_df), diabetes_model),
-                raises(DeepchecksValueError, 'Check requires dataset to have a label column'))
+    assert_that(
+        calling(RegressionErrorDistribution().run).with_args(Dataset(diabetes_df), diabetes_model),
+        raises(DatasetValidationError, 'Datasets without label are irrelevant to the check')
+    )
 
 
 def test_multiclass_model(iris_split_dataset_and_model):
@@ -37,7 +40,7 @@ def test_multiclass_model(iris_split_dataset_and_model):
     _, test, clf = iris_split_dataset_and_model
     assert_that(calling(RegressionErrorDistribution().run).with_args(test, clf),
                 raises(DeepchecksValueError, r'Expected model to be a type from'
-                                           r' \[\'regression\'\], but received model of type: multiclass'))
+                                             r' \[\'regression\'\], but received model of type: multiclass'))
 
 
 def test_regression_error_distribution(diabetes_split_dataset_and_model):

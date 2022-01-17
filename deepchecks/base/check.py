@@ -27,8 +27,8 @@ from plotly.basedatatypes import BaseFigure
 from deepchecks.base.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.base.dataset import Dataset
 from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table_display
+from deepchecks.utils.typing import Hashable
 from deepchecks.utils.strings import get_docs_summary, split_camel_case
-from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.utils.ipython import is_ipython_display
 from deepchecks.utils.metrics import task_type_check
 from deepchecks.utils.validation import validate_model
@@ -363,7 +363,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
     def _datasets_share_label(cls, datasets: List['Dataset']) -> Hashable:
         """TODO: add coments"""
         if Dataset.datasets_share_label(datasets) is False:
-            raise DatasetValidationError('Check requires datasets to have and to share the same label')
+            raise DatasetValidationError('Datasets without the same label are irrelevant to the check')
         return cast(Hashable, datasets[0].label_name)
 
     @classmethod

@@ -90,8 +90,8 @@ class PerformanceReport(TrainTestBaseCheck):
     def _performance_report(self, train_dataset: Dataset, test_dataset: Dataset, model):
         train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
         test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
-        label_name = self._datasets_share_label([train_dataset, train_dataset])
-        features_list = self._datasets_share_features([train_dataset, train_dataset])
+        label_name = self._datasets_share_label([train_dataset, test_dataset])
+        features_list = self._datasets_share_features([train_dataset, test_dataset])
         validate_model(test_dataset, model)
 
         task_type = task_type_check(model, train_dataset)
