@@ -49,6 +49,7 @@ __all__ = [
     'CheckFailure',
 ]
 
+
 def _save_all_open_figures():
     figs = [plt.figure(n) for n in plt.get_fignums()]
     images = []
@@ -60,6 +61,10 @@ def _save_all_open_figures():
         images.append('<img src=\'data:image/png;base64,{}\'>'.format(encoded))
         fig.clear()
     return images
+
+
+_CONDITIONS_HEADER = '<h5>Conditions Summary</h5>'
+_ADDITIONAL_OUTPUTS_HEADER = '<h5>Additional Outputs</h5>'
 
 
 class CheckResult:
@@ -131,10 +136,10 @@ class CheckResult:
             summary = get_docs_summary(self.check)
             check_html += f'<p>{summary}</p>'
         if self.conditions_results:
-            check_html += '<h5>Conditions Summary</h5>'
+            check_html += _CONDITIONS_HEADER
             check_html += get_conditions_table_display(self, unique_id)
         if show_additional_outputs:
-            check_html += '<h5>Additional Outputs</h5>'
+            check_html += _ADDITIONAL_OUTPUTS_HEADER
             for item in self.display:
                 if isinstance(item, (pd.DataFrame, Styler)):
                     check_html += dataframe_to_html(item)
@@ -179,8 +184,12 @@ class CheckResult:
     def _display_to_json(self):
         displays = []
         old_backend = matplotlib.get_backend()
+        displays.append(('header', f'<h4>{self.get_header()}</h4>'))
+        displays.append(('docs_header', f'<p>{get_docs_summary(self.check)}</p>'))
         if self.conditions_results:
+            displays.append(('conditions_header', _CONDITIONS_HEADER))
             displays.append(('conditions', get_conditions_table_display(self)))
+        displays.append(('outputs_header', _ADDITIONAL_OUTPUTS_HEADER))
         for item in self.display:
             if isinstance(item, (pd.DataFrame, Styler)):
                 displays.append(('dataframe', item.to_json()))
@@ -202,8 +211,10 @@ class CheckResult:
         return json.dumps(displays)
 
     def to_json(self, with_display: bool = True):
-        # result_json = {'value': json.dumps(self.value)}
-        result_json = {}
+        if isinstance(self.value, pd.DataFrame):
+            result_json = {'value': self.value.to_json()}
+        else:
+            result_json = {'value': json.dumps(self.value)}
         if with_display:
             display_json = self._display_to_json()
             result_json['display'] = display_json
@@ -213,9 +224,9 @@ class CheckResult:
     def display_from_json(json_data):
         json_data = json.loads(json_data)
         if json_data.get('display') is None:
-            return
+            return   
         for display_type, value in json.loads(json_data['display']):
-            if display_type in ['conditions', 'html', 'plt']:
+            if display_type in ['conditions', 'html', 'plt'] or 'header' in display_type:
                 display_html(value, raw=True)
             elif display_type in ['dataframe']:
                 df: pd.DataFrame = pd.read_json(value)
