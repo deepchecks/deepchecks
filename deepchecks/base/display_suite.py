@@ -178,7 +178,8 @@ def _display_suite_widgets(summary: str,
         display(page)
 
 
-def _display_suite_no_widgets(unique_id: str,
+def _display_suite_no_widgets(summary: str,
+                              unique_id: str,
                               checks_with_conditions: List[CheckResult],
                               checks_wo_conditions_display: List[CheckResult],
                               checks_w_condition_display: List[CheckResult],
@@ -187,7 +188,7 @@ def _display_suite_no_widgets(unique_id: str,
     """Display results of suite in IPython without widgets."""
     bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'
 
-    display_html(bold_hr, raw=True)
+    display_html(bold_hr + summary, raw=True)
 
     if checks_with_conditions:
         cond_html_table = get_conditions_table_display(checks_with_conditions, unique_id, 300)
