@@ -13,7 +13,7 @@
 import abc
 import base64
 import inspect
-from io import BytesIO
+import io
 import traceback
 from collections import OrderedDict
 from functools import wraps
@@ -28,6 +28,7 @@ import ipywidgets as widgets
 import plotly.graph_objects as go
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
+import plotly
 
 from deepchecks.base.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.base.dataset import Dataset
@@ -52,7 +53,7 @@ def _save_all_open_figures():
     figs = [plt.figure(n) for n in plt.get_fignums()]
     images = []
     for fig in figs:
-        bio = BytesIO()
+        bio = io.BytesIO()
         fig.savefig(bio, format='png')
         encoded = base64.b64encode(bio.getvalue()).decode('utf-8')
         # keep img tag outer html in its own variable
@@ -178,20 +179,22 @@ class CheckResult:
     def _display_to_json(self):
         displays = []
         old_backend = matplotlib.get_backend()
+        if self.conditions_results:
+            displays.append(('conditions', get_conditions_table_display(self)))
         for item in self.display:
             if isinstance(item, (pd.DataFrame, Styler)):
-                displays.append({'dataframe': item.to_json()})
+                displays.append(('dataframe', item.to_json()))
             elif isinstance(item, str):
-                displays.append({'html': item})
+                displays.append(('html', item))
             elif isinstance(item, BaseFigure):
-                displays.append({'plotly': item.to_json()})
+                displays.append(('plotly', item.to_json()))
             elif callable(item):
                 try:   
                     matplotlib.use('Agg')
                     item()
-                    displays.append({'plt': _save_all_open_figures()})
-                except Exception as exc:
-                    displays.append({'plt': None})
+                    displays.append(('plt', _save_all_open_figures()))
+                except Exception:
+                    displays.append(('plt', ''))
             else:
                 matplotlib.use(old_backend)
                 raise Exception(f'Unable to create json for item of type: {type(item)}')
@@ -199,11 +202,28 @@ class CheckResult:
         return json.dumps(displays)
 
     def to_json(self, with_display: bool = True):
-        result_json = {'value': json.dumps(self.value)}
+        # result_json = {'value': json.dumps(self.value)}
+        result_json = {}
         if with_display:
             display_json = self._display_to_json()
             result_json['display'] = display_json
         return json.dumps(result_json)
+
+    @staticmethod
+    def display_from_json(json_data):
+        json_data = json.loads(json_data)
+        if json_data.get('display') is None:
+            return
+        for display_type, value in json.loads(json_data['display']):
+            if display_type in ['conditions', 'html', 'plt']:
+                display_html(value, raw=True)
+            elif display_type in ['dataframe']:
+                df: pd.DataFrame = pd.read_json(value)
+                display_html(dataframe_to_html(df), raw=True)
+            elif display_type in ['plotly']:
+                plotly_json = io.StringIO(value)
+                plotly.io.read_json(plotly_json).show()
+
 
     def _ipython_display_(self, unique_id=None, as_widget=False,
                           show_additional_outputs=True):
