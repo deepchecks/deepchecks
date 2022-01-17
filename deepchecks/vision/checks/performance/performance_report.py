@@ -97,7 +97,6 @@ class PerformanceReport(TrainTestBaseCheck):
         train_dataset.validate_label()
         test_dataset.validate_label()
         train_dataset.validate_shared_label(test_dataset)
-        train_dataset.validate_shared_features(test_dataset)
         model_type_validation(model)
 
         task_type = task_type_check(model, train_dataset)
