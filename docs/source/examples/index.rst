@@ -10,7 +10,6 @@ How-to Guides
 - :doc:`guides/configure_check_conditions`
 
 
-
 .. toctree::
     :maxdepth: 3
     :titlesonly:
@@ -21,6 +20,7 @@ How-to Guides
     guides/create_a_custom_suite
     guides/add_a_custom_check
     guides/configure_check_conditions
+
 
 Use Cases
 ~~~~~~~~~

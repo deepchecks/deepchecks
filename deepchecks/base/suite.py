@@ -22,7 +22,7 @@ from deepchecks.base.check import (CheckResult, TrainTestBaseCheck, SingleDatase
 from deepchecks.utils.ipython import is_ipython_display
 
 
-__all__ = ['Suite', 'ModelComparisonSuite', 'SuiteResult']
+__all__ = ['BaseSuite', 'Suite', 'ModelComparisonSuite', 'SuiteResult']
 
 
 class SuiteResult:
@@ -62,6 +62,7 @@ class BaseSuite:
     @classmethod
     @abc.abstractmethod
     def supported_checks(cls) -> Tuple:
+        """Return list of of supported check types."""
         pass
 
     checks: OrderedDict
