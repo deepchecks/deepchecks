@@ -73,3 +73,31 @@ def trained_mnist(simple_nn, mnist_data_loader):
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
     return simple_nn
+
+
+@pytest.fixture(scope='session')
+def ssd_utils():
+    utils = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_ssd_processing_utils', map_location=torch.device('cpu'))
+
+    return utils
+@pytest.fixture(scope='session')
+def trained_ssd_object_detection():
+    ssd_model = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_ssd', map_location=torch.device('cpu'))
+
+    ssd_model.to('cpu')
+    ssd_model.eval()
+
+    return ssd_model
+
+@pytest.fixture(scope='session')
+def obj_detection_images(ssd_utils):
+    uris = [
+        'http://images.cocodataset.org/val2017/000000397133.jpg',
+        'http://images.cocodataset.org/val2017/000000037777.jpg',
+        'http://images.cocodataset.org/val2017/000000252219.jpg'
+    ]
+
+    inputs = [ssd_utils.prepare_input(uri) for uri in uris]
+    tensor = ssd_utils.prepare_tensor(inputs)
+
+    return tensor
