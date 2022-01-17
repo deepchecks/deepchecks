@@ -49,6 +49,10 @@ class SuiteResult:
             self._ipython_display_()
         else:
             print(self)
+    
+    def to_html(self):
+        """save output as html file (output.html)."""
+        display_suite_result(self.name, self.results, as_html=True)
 
 
 class BaseSuite:
@@ -133,7 +137,6 @@ class Suite(BaseSuite):
             train_dataset: Optional[Dataset] = None,
             test_dataset: Optional[Dataset] = None,
             model: object = None,
-            save_output: bool = False
     ) -> SuiteResult:
         """Run all checks.
 
@@ -141,7 +144,6 @@ class Suite(BaseSuite):
           train_dataset: Dataset object, representing data an estimator was fitted on
           test_dataset: Dataset object, representing data an estimator predicts on
           model: A scikit-learn-compatible fitted estimator instance
-          save_output: boolean that determines if to save output as html file (output.html).
 
         Returns:
           List[CheckResult] - All results by all initialized checks
@@ -199,8 +201,6 @@ class Suite(BaseSuite):
             progress_bar.inc_progress()
 
         progress_bar.close()
-        if save_output:
-            display_suite_result(self.name, results, as_html=True)
         return SuiteResult(self.name, results)
 
     @classmethod
