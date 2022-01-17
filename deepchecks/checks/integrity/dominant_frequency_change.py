@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""module contains Dominant Frequency Change check."""
+"""module contains Dominant Frequency Change check.
+
+"""
+
 from typing import Dict, Optional, Union
 
 from scipy.stats import chi2_contingency, fisher_exact
@@ -28,14 +31,16 @@ __all__ = ['DominantFrequencyChange']
 class DominantFrequencyChange(TrainTestBaseCheck):
     """Check if dominant values have increased significantly between test and reference data.
 
-    Args:
-        dominance_ratio (float = 2):
-            Next most abundant value has to be THIS times less than the first (0-inf).
-        ratio_change_thres (float = 1.5):
-            The dominant frequency has to change by at least this ratio (0-inf).
-        n_top_columns (int):
-            (optional - used only if model was specified)
-            amount of columns to show ordered by feature importance (date, index, label are first)
+    Parameters
+    ----------
+    dominance_ratio : float , default : 2
+        Next most abundant value has to be THIS times less than the first (0-inf).
+    ratio_change_thres : float , default : 1.5
+        The dominant frequency has to change by at least this ratio (0-inf).
+    n_top_columns : int , optional
+        used only if model was specified (the default value is 10)
+        amount of columns to show ordered by feature importance (date, index, label are first).
+
     """
 
     def __init__(self, dominance_ratio: float = 2, ratio_change_thres: float = 1.5,
@@ -53,18 +58,25 @@ class DominantFrequencyChange(TrainTestBaseCheck):
     ) -> CheckResult:
         """Run check.
 
-        Args:
-            train_dataset (Union[Dataset, pandas.DataFrame]):
-                The training dataset object. Must contain an index.
-            test_dataset (Union[Dataset, pandas.DataFrame]):
-                The test dataset object. Must contain an index.
+        Parameters
+        ----------
+        train_dataset : Union[Dataset, pd.DataFrame]
+            The training dataset object. Must contain an index.
+        test_dataset : Union[Dataset, pd.DataFrame]
+            The test dataset object. Must contain an index.
+        model , default : None
 
-        Returns:
-            CheckResult: Detects values highly represented in the tested and reference data and checks if their..
+        Returns
+        -------
+        CheckResult
+            Detects values highly represented in the tested and reference data and checks if their..
             relative and absolute percentage have increased significantly and makes a report.
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset or DataFrame instance
+        Raises
+        ------
+        DeepchecksValueError
+            If the object is not a Dataset or DataFrame instance
+
         """
         test_dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
         train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
@@ -80,19 +92,30 @@ class DominantFrequencyChange(TrainTestBaseCheck):
                     test_count: int, ratio_change_thres: float) -> Optional[float]:
         """Find p value for column frequency change between the reference dataset to the test dataset.
 
-        Args:
-            key (str): key of the dominant value.
-            baseline_hist (Dict): The baseline dataset histogram.
-            test_hist (Dict): The test dataset histogram.
-            baseline_count (int): The reference dataset row count.
-            test_count (int): The test dataset row count.
-            ratio_change_thres (float): The dominant frequency has to change by at least this ratio (0-inf).
+        Parameters
+        ----------
+        key : str
+            key of the dominant value.
+        baseline_hist : Dict
+            The baseline dataset histogram.
+        test_hist : Dict
+            The test dataset histogram.
+        baseline_count : int
+            The reference dataset row count.
+        test_count : int
+            The test dataset row count.
+        ratio_change_thres : float
+            The dominant frequency has to change by at least this ratio (0-inf).
 
-        Returns:
-            float: p value for the key.
+        Returns
+        -------
+        float
+            p value for the key.
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset or DataFrame instance
+        Raises
+        ------
+        DeepchecksValueError
+            If the object is not a Dataset or DataFrame instance
 
         """
         contingency_matrix_df = pd.DataFrame(np.zeros((2, 2)), index=['dominant', 'others'], columns=['ref', 'test'])
@@ -127,12 +150,19 @@ class DominantFrequencyChange(TrainTestBaseCheck):
     ):
         """Run the check logic.
 
-        Args:
-            train_dataset (Dataset): The training dataset object. Must contain an index.
-            test_dataset (Dataset): The test dataset object. Must contain an index.
+        Parameters
+        ----------
+        train_dataset : Dataset
+            The training dataset object. Must contain an index.
+        test_dataset : Dataset
+            The test dataset object. Must contain an index.
+        feature_importances : pd.Series , default : None
 
-        Returns:
-            CheckResult: result value is dict that contains the dominant value change for each column.
+        Returns
+        -------
+        CheckResult
+            result value is dict that contains the dominant value change for each column.
+
         """
         columns = train_dataset.features
 
@@ -190,9 +220,11 @@ class DominantFrequencyChange(TrainTestBaseCheck):
     def add_condition_p_value_not_less_than(self, p_value_threshold: float = 0.0001):
         """Add condition - require min p value allowed per column.
 
-        Args:
-            p_value_threshold (float = 0.0001): Minimal p-value to pass the statistical test determining
-              if the value abundance has changed significantly (0-1).
+        Parameters
+        ----------
+        p_value_threshold : float , default : 0.0001
+            Minimal p-value to pass the statistical test determining
+            if the value abundance has changed significantly (0-1).
 
         """
 
@@ -214,9 +246,12 @@ class DominantFrequencyChange(TrainTestBaseCheck):
     def add_condition_ratio_of_change_not_greater_than(self, percent_change_threshold: float = 0.25):
         """Add condition - require change in the ratio of the dominant value to be below the threshold.
 
-        Args:
-            percent_change_threshold (float): The maximal change in the ratio out of data between training data and
-             test data that the dominant value is allowed to change
+        Parameters
+        ----------
+        percent_change_threshold : float , default : 0.25
+            The maximal change in the ratio out of data between training data and
+            test data that the dominant value is allowed to change
+            
         """
         if percent_change_threshold < 0 or percent_change_threshold > 1:
             raise DeepchecksValueError(f'percent_change_threshold should be between 0 and 1,'

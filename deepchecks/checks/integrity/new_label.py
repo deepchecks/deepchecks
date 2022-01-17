@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The data_sample_leakage_report check module."""
+"""The data_sample_leakage_report check module.
+
+"""
+
 from typing import Dict
 
 from deepchecks import Dataset
@@ -26,22 +29,33 @@ __all__ = ['NewLabelTrainTest']
 
 
 class NewLabelTrainTest(TrainTestBaseCheck):
-    """Find new labels in test."""
+    """Find new labels in test.
+    
+    """
 
     def run(self, train_dataset: Dataset, test_dataset: Dataset, model=None) -> CheckResult:
         """Run check.
 
-        Args:
-            train_dataset (Dataset): The training dataset object.
-            test_dataset (Dataset): The test dataset object.
-            model (any): used to check task type (default: None)
+        Parameters
+        ----------
+        train_dataset : Dataset
+            The training dataset object.
+        test_dataset : Dataset
+            The test dataset object.
+        model , default : None
+            used to check task type 
 
-        Returns:
-            CheckResult: value is a dictionary that shows label column with new labels
+        Returns
+        -------
+        CheckResult
+            value is a dictionary that shows label column with new labels
             displays a dataframe that label columns with new labels
 
-        Raises:
-            DeepchecksValueError: If the datasets are not a Dataset instance or do not contain label column
+        Raises
+        ------
+        DeepchecksValueError
+            If the datasets are not a Dataset instance or do not contain label column
+
         """
         return self._new_label_train_test(train_dataset=train_dataset,
                                           test_dataset=test_dataset,
@@ -95,8 +109,11 @@ class NewLabelTrainTest(TrainTestBaseCheck):
     def add_condition_new_labels_not_greater_than(self, max_new: int = 0):
         """Add condition - require label column not to have greater than given number of different new labels.
 
-        Args:
-            max_new (int): Number of different new labels value types which is the maximum allowed.
+        Parameters
+        ----------
+        max_new : int , default : 0
+            Number of different new labels value types which is the maximum allowed.
+
         """
         def condition(result: Dict) -> ConditionResult:
             if result:
@@ -113,8 +130,11 @@ class NewLabelTrainTest(TrainTestBaseCheck):
     def add_condition_new_label_ratio_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require label column not to have greater than given number of ratio new label samples.
 
-        Args:
-            max_ratio (int): Ratio of new label samples to total samples which is the maximum allowed.
+        Parameters
+        ----------
+        max_ratio : float , default : 0
+            Ratio of new label samples to total samples which is the maximum allowed.
+
         """
         def new_category_count_condition(result: Dict) -> ConditionResult:
             if result:

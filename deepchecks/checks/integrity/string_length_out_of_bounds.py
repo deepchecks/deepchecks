@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""String length outlier check."""
+"""String length outlier check.
+
+"""
+
 from collections import defaultdict
 from typing import Union, Dict, Tuple, List
 
@@ -32,35 +35,37 @@ __all__ = ['StringLengthOutOfBounds']
 class StringLengthOutOfBounds(SingleDatasetBaseCheck):
     """Detect strings with length that is much longer/shorter than the identified "normal" string lengths.
 
-    Args:
-        columns (Union[Hashable, List[Hashable]]):
-            Columns to check, if none are given checks all columns except ignored ones.
-        ignore_columns (Union[Hashable, List[Hashable]]):
-            Columns to ignore, if none given checks based on columns variable
-        num_percentiles (int):
-            Number of percentiles values to retrieve for the length of the samples in the string
-            column. Affects the resolution of string lengths that is used to detect outliers.
-        inner_quantile_range(int):
-            The int upper percentile [0-100] defining the inner percentile range.
-            E.g. for 98 the range would be 2%-98%.
-        outlier_factor (int):
-            Strings would be defined as outliers if their length is outlier_factor times more/less
-            than the values inside the inner quantile range.
-        min_length_difference (int):
-            The minimum length difference to be considered as outlier.
-        min_length_ratio_difference (float):
-            Used to calculate the minimum length difference to be considered as outlier. (calculated form this times the
-            average of the normal lengths.)
-        min_unique_value_ratio (float):
-            Min
-        min_unique_values (int):
-            Minimum unique values in column to calculate string length outlier
-        n_top_columns (int): (optional - used only if model was specified)
-          amount of columns to show ordered by feature importance (date, index, label are first)
-        outlier_length_to_show (int):
-            Maximum length of outlier to show in results. If an outlier is longer it is trimmed and added '...'
-        samples_per_range_to_show (int):
-            Number of outlier samples to show in results per outlier range found.
+    Parameters
+    ----------
+    columns :Union[Hashable, List[Hashable]] , default : None
+        Columns to check, if none are given checks all columns except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]] , default : None
+        Columns to ignore, if none given checks based on columns variable
+    num_percentiles : int , default : 1000
+        Number of percentiles values to retrieve for the length of the samples in the string
+        column. Affects the resolution of string lengths that is used to detect outliers.
+    inner_quantile_range : int , default : 94
+        The int upper percentile [0-100] defining the inner percentile range.
+        E.g. for 98 the range would be 2%-98%.
+    outlier_factor : int , default : 4
+        Strings would be defined as outliers if their length is outlier_factor times more/less
+        than the values inside the inner quantile range.
+    min_length_difference : int , default : 5
+        The minimum length difference to be considered as outlier.
+    min_length_ratio_difference : int , default : 0.5
+        Used to calculate the minimum length difference to be considered as outlier. (calculated form this times the
+        average of the normal lengths.)
+    min_unique_value_ratio : float , default : 0.01
+        Min
+    min_unique_values : int , default : 100
+        Minimum unique values in column to calculate string length outlier
+    n_top_columns : int , optional
+        amount of columns to show ordered by feature importance (date, index, label are first)
+    outlier_length_to_show :int , default : 50
+        Maximum length of outlier to show in results. If an outlier is longer it is trimmed and added '...'
+    samples_per_range_to_show : int , default : 3
+        Number of outlier samples to show in results per outlier range found.
+
     """
 
     def __init__(
@@ -95,8 +100,12 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
     def run(self, dataset, model=None) -> CheckResult:
         """Run check.
 
-        Args:
-            dataset (DataFrame): A dataset or pd.FataFrame object.
+        Parameters
+        ----------
+        dataset : DataFrame
+            A dataset or pd.FataFrame object.
+        model , default : None
+
         """
         feature_importances = calculate_feature_importance_or_none(model, dataset)
         return self._string_length_out_of_bounds(dataset, feature_importances)
@@ -214,8 +223,11 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
     def add_condition_number_of_outliers_not_greater_than(self, max_outliers: int = 0):
         """Add condition - require column not to have more than given number of string length outliers.
 
-        Args:
-            max_outliers (int): Number of string length outliers which is the maximum allowed.
+        Parameters
+        ----------
+        max_outliers : int , default : 0
+            Number of string length outliers which is the maximum allowed.
+
         """
         def compare_outlier_count(result: Dict) -> ConditionResult:
             not_passing_columns = {}
@@ -241,8 +253,11 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
     def add_condition_ratio_of_outliers_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require column not to have more than given ratio of string length outliers.
 
-        Args:
-            max_ratio (int): Maximum allowed string length outliers ratio.
+        Parameters
+        ----------
+        max_ratio : float , default : 0
+            Maximum allowed string length outliers ratio.
+
         """
         def compare_outlier_ratio(result: Dict):
             not_passing_columns = {}
@@ -271,13 +286,20 @@ def outlier_on_percentile_histogram(percentile_histogram: Dict[float, float], iq
                                     outlier_factor: float = 5) -> Tuple[Tuple[float, float]]:
     """Get outlier ranges on histogram.
 
-    Args:
-        percentile_histogram (Dict[float, float]): histogram to search for outliers in shape [0.0-100.0]->[float]
-        iqr_percent (float): Interquartile range upper percentage, start searching for outliers outside IQR.
-        outlier_factor (float): a factor to consider outlier.
+    Parameters
+    ----------
+    percentile_histogram : Dict[float, float]
+        histogram to search for outliers in shape [0.0-100.0]->[float]
+    iqr_percent : float , default : 85
+        Interquartile range upper percentage, start searching for outliers outside IQR.
+    outlier_factor : float , default : 5
+        a factor to consider outlier.
 
-    Returns:
-         (Tuple[Tuple[float, float]]): percent ranges in the histogram that are outliers, empty tuple if none is found
+    Returns
+    -------
+    Tuple[Tuple[float, float]]
+        percent ranges in the histogram that are outliers, empty tuple if none is found
+
     """
     if any((k < 0) or k > 100 for k in percentile_histogram.keys()):
         raise ValueError('dict keys must be percentiles between 0 and 100')

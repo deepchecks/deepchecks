@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""String mismatch functions."""
+"""String mismatch functions.
+
+"""
+
 from collections import defaultdict
 from typing import Union, List
 import itertools
@@ -39,13 +42,15 @@ __all__ = ['StringMismatch']
 class StringMismatch(SingleDatasetBaseCheck):
     """Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column.
 
-    Args:
-        columns (Union[Hashable, List[Hashable]]):
-            Columns to check, if none are given checks all columns except ignored ones.
-        ignore_columns (Union[Hashable, List[Hashable]]):
-            Columns to ignore, if none given checks based on columns variable
-        n_top_columns (int): (optional - used only if model was specified)
-          amount of columns to show ordered by feature importance (date, index, label are first)
+    Parameters
+    ----------
+    columns : Union[Hashable, List[Hashable]] , default : None
+        Columns to check, if none are given checks all columns except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]] , default : None
+        Columns to ignore, if none given checks based on columns variable
+    n_top_columns : int , optional
+        amount of columns to show ordered by feature importance (date, index, label are first)
+
     """
 
     def __init__(
@@ -62,8 +67,12 @@ class StringMismatch(SingleDatasetBaseCheck):
     def run(self, dataset, model=None) -> CheckResult:
         """Run check.
 
-        Args:
-            dataset (DataFrame): A dataset or pd.FataFrame object.
+        Parameters
+        ----------
+        dataset : DataFrame
+            A dataset or pd.FataFrame object.
+        model , default : None
+
         """
         feature_importances = calculate_feature_importance_or_none(model, dataset)
         return self._string_mismatch(dataset, feature_importances)
@@ -112,22 +121,30 @@ class StringMismatch(SingleDatasetBaseCheck):
     def add_condition_not_more_variants_than(self, num_max_variants: int):
         """Add condition - no more than given number of variants are allowed (per string baseform).
 
-        Args:
-            num_max_variants (int): Maximum number of variants allowed.
+        Parameters
+        ----------
+        num_max_variants : int
+            Maximum number of variants allowed.
+
         """
         name = f'Not more than {num_max_variants} string variants'
         return self.add_condition(name, _condition_variants_number, num_max_variants=num_max_variants)
 
     def add_condition_no_variants(self):
-        """Add condition - no variants are allowed."""
+        """Add condition - no variants are allowed.
+        
+        """
         name = 'No string variants'
         return self.add_condition(name, _condition_variants_number, num_max_variants=0)
 
     def add_condition_ratio_variants_not_greater_than(self, max_ratio: float = 0.01):
         """Add condition - percentage of variants in data is not allowed above given threshold.
 
-        Args:
-            max_ratio (float): Maximum percent of variants allowed in data.
+        Parameters
+        ----------
+        max_ratio : float , default : 0.01
+            Maximum percent of variants allowed in data.
+
         """
         def condition(result, max_ratio: float):
             not_passing_columns = {}

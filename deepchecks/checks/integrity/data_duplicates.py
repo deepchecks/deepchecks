@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""module contains Data Duplicates check."""
+"""module contains Data Duplicates check.
+
+"""
+
 from typing import Union, List
 
 import numpy as np
@@ -29,15 +32,17 @@ __all__ = ['DataDuplicates']
 class DataDuplicates(SingleDatasetBaseCheck):
     """Search for duplicate data in dataset.
 
-    Args:
-        columns (Hashable, Iterable[Hashable]):
-            List of columns to check, if none given checks
-            all columns Except ignored ones.
-        ignore_columns (Hashable, Iterable[Hashable]):
-            List of columns to ignore, if none given checks
-            based on columns variable.
-        n_to_show (int):
-            number of most common duplicated samples to show.
+    Parameters
+    ----------
+    columns : Union[Hashable, List[Hashable]] , default : None
+        List of columns to check, if none given checks
+        all columns Except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]] , default : None
+        List of columns to ignore, if none given checks
+        based on columns variable.
+    n_to_show : int , default : 5
+        number of most common duplicated samples to show.
+
     """
 
     def __init__(
@@ -54,11 +59,17 @@ class DataDuplicates(SingleDatasetBaseCheck):
     def run(self, dataset: Dataset, model=None) -> CheckResult:
         """Run check.
 
-        Args:
-            dataset (Dataset): any dataset.
+        Parameters
+        ----------
+        dataset : Dataset
+            any dataset.
+        model , default : None
 
-        Returns:
-            (CheckResult): percentage of duplicates and display of the top n_to_show most duplicated.
+        Returns
+        -------
+        CheckResult 
+            percentage of duplicates and display of the top n_to_show most duplicated.
+
         """
         df: pd.DataFrame = ensure_dataframe_type(dataset)
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
@@ -115,8 +126,11 @@ class DataDuplicates(SingleDatasetBaseCheck):
     def add_condition_ratio_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require duplicate ratio to not surpass max_ratio.
 
-        Args:
-            max_ratio (float): Maximum ratio of duplicates.
+        Parameters
+        ----------
+        max_ratio : float , default : 0
+            Maximum ratio of duplicates.
+            
         """
         def max_ratio_condition(result: float) -> ConditionResult:
             if result > max_ratio:

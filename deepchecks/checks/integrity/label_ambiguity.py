@@ -8,7 +8,9 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""module contains Data Duplicates check."""
+"""module contains Data Duplicates check.
+
+"""
 from typing import Union, List
 
 import pandas as pd
@@ -27,15 +29,17 @@ __all__ = ['LabelAmbiguity']
 class LabelAmbiguity(SingleDatasetBaseCheck):
     """Find samples with multiple labels.
 
-    Args:
-        columns (Hashable, List[Hashable]):
-            List of columns to check, if none given checks
-            all columns Except ignored ones.
-        ignore_columns (Hashable, List[Hashable]):
-            List of columns to ignore, if none given checks
-            based on columns variable.
-        n_to_show (int):
-            number of most common ambiguous samples to show.
+     Parameters
+    ----------
+    columns : Union[Hashable, List[Hashable]] , default : None
+        List of columns to check, if none given checks
+        all columns Except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]] , default : None
+        List of columns to ignore, if none given checks
+        based on columns variable.
+    n_to_show : int , default : 5
+        number of most common ambiguous samples to show.
+
     """
 
     def __init__(
@@ -52,12 +56,18 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
     def run(self, dataset: Dataset, model=None) -> CheckResult:
         """Run check.
 
-        Args:
-            dataset(Dataset): any dataset.
-            model (any): used to check task type (default: None)
+        Parameters
+        ----------
+        dataset : Dataset
+            any dataset.
+        model , default : None
+            used to check task type 
 
-        Returns:
-            (CheckResult): percentage of ambiguous samples and display of the top n_to_show most ambiguous.
+        Returns
+        -------
+        CheckResult
+            percentage of ambiguous samples and display of the top n_to_show most ambiguous.
+
         """
         dataset: Dataset = Dataset.validate_dataset(dataset)
         dataset = dataset.select(self.columns, self.ignore_columns)
@@ -109,8 +119,11 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
     def add_condition_ambiguous_sample_ratio_not_greater_than(self, max_ratio=0):
         """Add condition - require samples with multiple labels to not be more than max_ratio.
 
-        Args:
-            max_ratio (float): Maximum ratio of samples with multiple labels.
+        Parameters
+        ----------
+        max_ratio : float , default : 0
+            Maximum ratio of samples with multiple labels. 
+
         """
         def max_ratio_condition(result: float) -> ConditionResult:
             if result > max_ratio:

@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Datasets size comparision check module."""
+"""Datasets size comparision check module.
+
+"""
+
 import typing as t
 import pandas as pd
 from deepchecks import Dataset, CheckResult, ConditionResult, TrainTestBaseCheck
@@ -22,25 +25,35 @@ T = t.TypeVar('T', bound='DatasetsSizeComparison')
 
 
 class DatasetsSizeComparison(TrainTestBaseCheck):
-    """Verify test dataset size comparing it to the train dataset size."""
+    """Verify test dataset size comparing it to the train dataset size.
+    
+    """
 
     def run(self, train_dataset: Dataset, test_dataset: Dataset, model: object = None) -> CheckResult:
         """Run check instance.
 
-        Args:
-            train (Dataset): train dataset
-            test (Dataset): test dataset
-            model (object): a scikit-learn-compatible fitted estimator instance
+        Parameters
+        ----------
+        train_dataset : Dataset 
+            train dataset
+        test_dataset : Dataset
+            test dataset
+        model : object , default : None 
+            a scikit-learn-compatible fitted estimator instance
 
-        Returns:
-            CheckResult: with value of type pandas.DataFrame.
-                Value contains two keys, 'train' - size of the train dataset
-                and 'test' - size of the test dataset.
+        Returns
+        -------
+        CheckResult
+            with value of type pandas.DataFrame.
+            Value contains two keys, 'train' - size of the train dataset
+            and 'test' - size of the test dataset.
 
-        Raises:
-            DeepchecksValueError:
-                if not dataset instances were provided;
-                if datasets are empty;
+        Raises
+        ------
+        DeepchecksValueError
+            if not dataset instances were provided.
+            if datasets are empty.
+
         """
         train_dataset = ensure_dataframe_type(train_dataset)
         test_dataset = ensure_dataframe_type(test_dataset)
@@ -54,11 +67,16 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
     def add_condition_test_size_not_smaller_than(self: T, value: int = 100) -> T:
         """Add condition verifying that size of the test dataset is not smaller than X.
 
-        Args:
-            value (int): minimal allowed test dataset size.
+        Parameters
+        ----------
+        value : int , default : 100 
+            minimal allowed test dataset size.
 
-        Returns:
-            Self: current instance of the DatasetsSizeComparison check.
+        Returns
+        -------
+        Self 
+            current instance of the DatasetsSizeComparison check.
+
         """
         def condition(check_result: dict) -> ConditionResult:
             return (
@@ -75,11 +93,16 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
     def add_condition_test_train_size_ratio_not_smaller_than(self: T, ratio: float = 0.01) -> T:
         """Add condition verifying that test-train size ratio is not smaller than X.
 
-        Args:
-            value (float): minimal allowed test-train ratio.
+        Parameters
+        ----------
+        value : float , default: 0.01 
+            minimal allowed test-train ratio.
 
-        Returns:
-            Self: current instance of the DatasetsSizeComparison check.
+        Returns
+        -------
+        Self
+            current instance of the DatasetsSizeComparison check.
+
         """
 
         def condition(check_result: dict) -> ConditionResult:
@@ -97,8 +120,11 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
     def add_condition_train_dataset_not_smaller_than_test(self: T) -> T:
         """Add condition verifying that train dataset is not smaller than test dataset.
 
-        Returns:
-            Self: current instance of the DatasetsSizeComparison check.
+        Returns
+        -------
+        Self
+            current instance of the DatasetsSizeComparison check.
+            
         """
 
         def condition(check_result: dict) -> ConditionResult:

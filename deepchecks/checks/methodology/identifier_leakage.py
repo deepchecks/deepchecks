@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""module contains Identifier Leakage check."""
+"""module contains Identifier Leakage check.
+
+"""
+
 from typing import Union, Dict
 
 import pandas as pd
@@ -25,8 +28,11 @@ __all__ = ['IdentifierLeakage']
 class IdentifierLeakage(SingleDatasetBaseCheck):
     """Check if identifiers (Index/Date) can be used to predict the label.
 
-    Args:
-        ppscore_params: dictionary containing params to pass to ppscore predictor
+    Parameters
+    ----------
+    ppscore_params , default : None 
+        dictionary containing params to pass to ppscore predictor
+
     """
 
     def __init__(self, ppscore_params=None):
@@ -36,17 +42,24 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
     def run(self, dataset: Dataset, model=None) -> CheckResult:
         """Run check.
 
-        Args:
-          dataset(Dataset): any dataset.
-          model: ignored in check (default: None).
+        Parameters
+        ----------
+        dataset : Dataset 
+            any dataset.
+        model , default : None 
+            ignored in check .
 
-        Returns:
-            (CheckResult):
-                value is a dictionary with PPS per feature column.
-                data is a bar graph of the PPS of each feature.
+        Returns
+        -------
+        CheckResult
+            value is a dictionary with PPS per feature column.
+            data is a bar graph of the PPS of each feature.
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance with a label
+        Raises
+        ------
+        DeepchecksValueError 
+            If the object is not a Dataset instance with a label
+
         """
         return self._identifier_leakage(dataset)
 
@@ -104,8 +117,11 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
     def add_condition_pps_not_greater_than(self, max_pps: float = 0):
         """Add condition - require columns not to have a greater pps than given max.
 
-        Args:
-            max_pps (int): Maximum allowed string length outliers ratio.
+        Parameters
+        ----------
+        max_pps : float , default : 0 
+            Maximum allowed string length outliers ratio.
+            
         """
         def compare_pps(result: Dict):
             not_passing_columns = {}

@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains Mixed Nulls check."""
+"""Module contains Mixed Nulls check.
+
+"""
+
 from collections import defaultdict
 from typing import Union, Dict, List, Iterable
 
@@ -34,17 +37,20 @@ DEFAULT_NULL_VALUES = {'none', 'null', 'nan', 'na', '', '\x00', '\x00\x00'}
 class MixedNulls(SingleDatasetBaseCheck):
     """Search for various types of null values in a string column(s), including string representations of null.
 
-    Args:
-        null_string_list (List[str]):
-            List of strings to be considered alternative null representations
-        check_nan(bool):
-            Whether to add to null list to check also NaN values
-        columns (Union[Hashable, List[Hashable]]):
-            Columns to check, if none are given checks all columns except ignored ones.
-        ignore_columns (Union[Hashable, List[Hashable]]):
-            Columns to ignore, if none given checks based on columns variable
-        n_top_columns (int): (optional - used only if model was specified)
-          amount of columns to show ordered by feature importance (date, index, label are first)
+    Parameters
+    ----------
+    null_string_list : Iterable[str] , default : None
+        List of strings to be considered alternative null representations
+    check_nan : bool , default : True
+        Whether to add to null list to check also NaN values
+    columns : Union[Hashable, List[Hashable]] , default : None
+        Columns to check, if none are given checks all columns except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]] , default : None
+        Columns to ignore, if none given checks based on columns variable
+    n_top_columns : int , optional
+        used only if model was specified (the default value is 10)
+        amount of columns to show ordered by feature importance (date, index, label are first)
+
     """
 
     def __init__(
@@ -65,12 +71,17 @@ class MixedNulls(SingleDatasetBaseCheck):
     def run(self, dataset, model=None) -> CheckResult:
         """Run check.
 
-        Args:
-            dataset (Dataset):
+        Parameters
+        ----------
+        dataset : Dataset
+        model , default : None
 
-        Returns:
-            (CheckResult): DataFrame with columns ('Column Name', 'Value', 'Count', 'Percentage') for any column which
+        Returns
+        -------
+        CheckResult
+            DataFrame with columns ('Column Name', 'Value', 'Count', 'Percentage') for any column which
             have more than 1 null values.
+
         """
         feature_importances = calculate_feature_importance_or_none(model, dataset)
         return self._mixed_nulls(dataset, feature_importances)
@@ -78,12 +89,18 @@ class MixedNulls(SingleDatasetBaseCheck):
     def _validate_null_string_list(self, nsl, check_nan: bool) -> set:
         """Validate the object given is a list of strings. If null is given return default list of null values.
 
-        Args:
-            nsl: Object to validate
-            check_nan (bool): Whether to add to null list to check also NaN values
+        Parameters
+        ----------
+        nsl 
+            Object to validate
+        check_nan : bool
+            Whether to add to null list to check also NaN values
 
-        Returns:
-            (set): Returns list of null values as set object
+        Returns
+        -------
+        set
+            Returns list of null values as set object
+
         """
         result: set
         if nsl:
@@ -105,12 +122,18 @@ class MixedNulls(SingleDatasetBaseCheck):
     def _mixed_nulls(self, dataset: Union[pd.DataFrame, Dataset], feature_importances: pd.Series = None) -> CheckResult:
         """Run check logic.
 
-        Args:
-            dataset (DataFrame): dataset to check
+        Parameters
+        ----------
+        dataset : Union[pd.DataFrame, Dataset]
+            dataset to check
+        feature_importances : pd.Series , default : None
 
         Returns
-            (CheckResult): DataFrame with columns ('Column Name', 'Value', 'Count', 'Fraction of data') for any column
+        -------
+        CheckResult
+            DataFrame with columns ('Column Name', 'Value', 'Count', 'Fraction of data') for any column
             which have more than 1 null values.
+
         """
         # Validate parameters
         original_dataset = dataset
@@ -155,8 +178,11 @@ class MixedNulls(SingleDatasetBaseCheck):
     def add_condition_different_nulls_not_more_than(self, max_allowed_null_types: int = 1):
         """Add condition - require column not to have more than given number of different null values.
 
-        Args:
-            max_allowed_null_types (int): Number of different null value types which is the maximum allowed.
+        Parameters
+        ----------
+        max_allowed_null_types : int , default : 1
+            Number of different null value types which is the maximum allowed.
+            
         """
         def condition(result: Dict) -> ConditionResult:
             not_passing_columns = {}
