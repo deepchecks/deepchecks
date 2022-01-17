@@ -26,6 +26,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
+# If copied, please cite Florian Wetschoreck, Tobias Krabel, & Surya Krishnamurthy. (2020).
+# 8080labs/ppscore: zenodo release (1.2.0). Zenodo. https://doi.org/10.5281/zenodo.4091345
 
 # pylint: skip-file
 
