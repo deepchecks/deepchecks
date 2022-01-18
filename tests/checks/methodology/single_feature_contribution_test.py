@@ -15,12 +15,10 @@ from hamcrest import assert_that, close_to, calling, raises, has_entries, has_le
 
 from deepchecks import Dataset
 from deepchecks.checks.methodology import SingleFeatureContribution, SingleFeatureContributionTrainTest
+from deepchecks.checks.methodology.single_feature_contribution import pps_html_url
 from deepchecks.errors import DeepchecksValueError, DatasetValidationError
 
 from tests.checks.utils import equal_condition_result
-
-pps_url = 'https://tinyurl.com/2p8rd3jy'
-pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
 
 
 def util_generate_dataframe_and_expected():
