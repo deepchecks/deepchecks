@@ -79,18 +79,19 @@ class UnusedFeatures(TrainTestBaseCheck):
                                   not a Dataset instance with a label.
         """
         if test_dataset:
-            dataset = test_dataset
+            dataset = Dataset.ensure_not_empty_dataset(test_dataset)
         elif train_dataset:
-            dataset = train_dataset
+            dataset = Dataset.ensure_not_empty_dataset(train_dataset)
         else:
             raise DeepchecksValueError('Either train_dataset or test_dataset must be supplied')
-        Dataset.validate_dataset(dataset)
-        dataset.validate_label()
-        dataset.validate_label()
+
+        self._dataset_has_label(dataset)
         validate_model(dataset, model)
 
-        feature_importance = calculate_feature_importance(model, dataset,
-                                                          permutation_kwargs={'random_state': self.random_state})
+        feature_importance, _ = calculate_feature_importance(model, dataset,
+                                                             permutation_kwargs={
+                                                                'random_state': self.random_state
+                                                             })
 
         # Calculate normalized variance per feature based on PCA decomposition
         pre_pca_transformer, var_col_order = naive_encoder(dataset)
@@ -174,10 +175,14 @@ class UnusedFeatures(TrainTestBaseCheck):
         return_value = {
             'used features': feature_df.index[:(last_important_feature_index + 1)].values.tolist(),
             'unused features': {
-                'high variance': [] if unviable_feature_df.empty else unviable_feature_df.index[
-                                                                      :last_variable_feature_index].values.tolist(),
-                'low variance': [] if unviable_feature_df.empty else unviable_feature_df.index[
-                                                                     last_variable_feature_index:].values.tolist()
+                'high variance': (
+                    [] if unviable_feature_df.empty
+                    else unviable_feature_df.index[:last_variable_feature_index].values.tolist()
+                ),
+                'low variance': (
+                    [] if unviable_feature_df.empty
+                    else unviable_feature_df.index[last_variable_feature_index:].values.tolist()
+                )
             }}
 
         return CheckResult(return_value, header='Unused Features', display=display_list)

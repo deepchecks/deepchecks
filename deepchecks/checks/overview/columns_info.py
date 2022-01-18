@@ -47,7 +47,7 @@ class ColumnsInfo(SingleDatasetBaseCheck):
           CheckResult: value is dictionary of a column and its role and logical type.
           display a table of the dictionary.
         """
-        dataset = Dataset.validate_dataset_or_dataframe(dataset)
+        dataset = Dataset.ensure_not_empty_dataset(dataset, cast=True)
         feature_importances = calculate_feature_importance_or_none(model, dataset)
         return self._columns_info(dataset, feature_importances)
 

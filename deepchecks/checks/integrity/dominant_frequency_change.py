@@ -66,10 +66,11 @@ class DominantFrequencyChange(TrainTestBaseCheck):
         Raises:
             DeepchecksValueError: If the object is not a Dataset or DataFrame instance
         """
-        test_dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
-        train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
-        test_dataset.validate_shared_features(train_dataset)
+        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset, cast=True)
+        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset, cast=True)
+        self._datasets_share_features([test_dataset, train_dataset])
         feature_importances = calculate_feature_importance_or_none(model, test_dataset)
+
         return self._dominant_frequency_change(
             train_dataset=train_dataset,
             test_dataset=test_dataset,

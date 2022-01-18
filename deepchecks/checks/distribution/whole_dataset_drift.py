@@ -106,11 +106,11 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         Raises:
             DeepchecksValueError: If the object is not a Dataset or DataFrame instance
         """
-        train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
-        test_dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
+        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset, cast=True)
+        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset, cast=True)
 
-        features = train_dataset.validate_shared_features(test_dataset)
-        cat_features = train_dataset.validate_shared_categorical_features(test_dataset)
+        features = self._datasets_share_features([train_dataset, test_dataset])
+        cat_features = self._datasets_share_categorical_features([train_dataset, test_dataset])
         self._cat_features = cat_features
 
         domain_classifier = self._generate_model(list(set(features) - set(cat_features)), cat_features)
@@ -136,11 +136,12 @@ class WholeDatasetDrift(TrainTestBaseCheck):
 
         # calculate feature importance of domain_classifier, containing the information which features separate
         # the dataset best.
-        fi = calculate_feature_importance_or_none(
+        fi, importance_type = calculate_feature_importance_or_none(
             domain_classifier,
             domain_test_dataset,
             force_permutation=True,
-            permutation_kwargs={'n_repeats': 10, 'random_state': self.random_state}
+            permutation_kwargs={'n_repeats': 10, 'random_state': self.random_state},
+            return_calculation_type=True
         )
 
         fi = fi.sort_values(ascending=False) if fi is not None else None
@@ -153,11 +154,11 @@ class WholeDatasetDrift(TrainTestBaseCheck):
             'domain_classifier_feature_importance': fi.to_dict() if fi is not None else {},
         }
 
-        headnote = """
+        headnote = f"""
         <span>
         The shown features are the features that are most important for the domain classifier - the
         domain_classifier trained to distinguish between the train and test datasets.<br> The percents of
-        explained dataset difference are the calculated feature importance values for the feature.
+        explained dataset difference are the importance values for the feature calculated using `{importance_type}`.
         </span><br><br>
         """
 

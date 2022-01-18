@@ -25,9 +25,10 @@ from tests.checks.utils import equal_condition_result
 def test_dataset_wrong_input():
     x = 'wrong_input'
     # Act & Assert
-    assert_that(calling(TrainTestSamplesMix().run).with_args(x, x),
-                raises(DeepchecksValueError,
-                'dataset must be of type DataFrame or Dataset. instead got: str'))
+    assert_that(
+        calling(TrainTestSamplesMix().run).with_args(x, x),
+        raises(DeepchecksValueError,
+               'non-empty instance of Dataset or DataFrame was expected, instead got str'))
 
 
 def test_no_leakage(iris_clean):

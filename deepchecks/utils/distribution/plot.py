@@ -32,6 +32,9 @@ def get_density(data, xs) -> np.ndarray:
     Returns:
         np.array: The computed pdf values at the points xs.
     """
+    # Is only single value adds noise, otherwise there is singular matrix error
+    if len(np.unique(data)) == 1:
+        data = data + np.random.normal(scale=10 * np.finfo(np.float32).eps, size=len(data))
     density = gaussian_kde(data)
     density.covariance_factor = lambda: .25
     # pylint: disable=protected-access
@@ -78,7 +81,8 @@ def drift_score_bar_traces(drift_score: float) -> List[go.Bar]:
 def feature_distribution_traces(train_column,
                                 test_column,
                                 is_categorical: bool = False,
-                                max_num_categories: int = 10) -> [List[Union[go.Bar, go.Scatter]], Dict, Dict]:
+                                max_num_categories: int = 10,
+                                quantile_cut: float = 0.02) -> [List[Union[go.Bar, go.Scatter]], Dict, Dict]:
     """Create traces for comparison between train and test column.
 
     Args:
@@ -86,7 +90,7 @@ def feature_distribution_traces(train_column,
         test_column (): Test data used to trace distribution.
         is_categorical (bool): State if column is categorical (default: False).
         max_num_categories (int): Maximum number of categories to show in plot (default: 10).
-
+        quantile_cut (float): in which quantile to cut the edges of the plot
     Returns:
         List[Union[go.Bar, go.Scatter]]: list of plotly traces.
         Dict: layout of x axis
@@ -125,16 +129,26 @@ def feature_distribution_traces(train_column,
 
     else:
         x_range = (min(train_column.min(), test_column.min()), max(train_column.max(), test_column.max()))
-        xs = np.linspace(x_range[0], x_range[1], 40)
+        x_range_to_show = (
+            min(np.quantile(train_column, quantile_cut), np.quantile(test_column, quantile_cut)),
+            max(np.quantile(train_column, 1 - quantile_cut), np.quantile(test_column, 1 - quantile_cut))
+        )
+        # Heuristically take points on x-axis to show on the plot
+        # The intuition is the graph will look "smooth" wherever we will zoom it
+        xs = sorted(np.concatenate((
+            np.linspace(x_range[0], x_range[1], 50),
+            np.quantile(train_column, q=np.arange(0.02, 1, 0.02)),
+            np.quantile(test_column, q=np.arange(0.02, 1, 0.02))
+        )))
 
         traces = [go.Scatter(x=xs, y=get_density(train_column, xs), fill='tozeroy', name='Train Dataset',
                              line_color=colors['Train']),
                   go.Scatter(x=xs, y=get_density(test_column, xs), fill='tozeroy', name='Test Dataset',
                              line_color=colors['Test'])]
 
-        xaxis_layout = dict(fixedrange=True,
-                            range=x_range,
+        xaxis_layout = dict(fixedrange=False,
+                            range=x_range_to_show,
                             title='Distribution')
-        yaxis_layout = dict(title='Probability Density')
+        yaxis_layout = dict(title='Probability Density', fixedrange=True)
 
     return traces, xaxis_layout, yaxis_layout
