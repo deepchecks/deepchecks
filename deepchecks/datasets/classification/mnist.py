@@ -4,9 +4,15 @@ import torch.optim as optim
 import torch
 import torchvision
 
+
+import pathlib
+current_path = pathlib.Path(__file__).parent.resolve()
+model_path = str(current_path).replace('\\', '/') + '/models/mnist.pth'
+
+
 class MNistNet(nn.Module):
     def __init__(self):
-        super(Net, self).__init__()
+        super(MNistNet, self).__init__()
         self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
         self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
         self.conv2_drop = nn.Dropout2d()
@@ -45,10 +51,7 @@ mnist_test_loader = torch.utils.data.DataLoader(
   batch_size=batch_size_test, shuffle=True)
 
 def load_mnist():
-    
-    
-        
-    model = torch.load('./results/model.pth')
+    model = torch.load(model_path)
     model.eval()
 
     return model
