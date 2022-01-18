@@ -23,8 +23,9 @@ __all__ = ['SingleFeatureContribution']
 
 FC = t.TypeVar('FC', bound='SingleFeatureContribution')
 
-pps_url = 'https://tinyurl.com/2p8rd3jy'
-pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
+pps_url = 'https://docs.deepchecks.com/en/stable/examples/checks/methodology/single_feature_contribution_train_test' \
+          '.html?utm_source=check_output&utm_medium=referral&utm_campaign=display_link'
+pps_html_url = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
 
 class SingleFeatureContribution(SingleDatasetBaseCheck):
