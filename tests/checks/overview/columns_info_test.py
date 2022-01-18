@@ -21,8 +21,13 @@ from deepchecks.errors import DeepchecksValueError
 def test_dataset_wrong_input():
     x = 'wrong_input'
     # Act & Assert
-    assert_that(calling(ColumnsInfo().run).with_args(x),
-                raises(DeepchecksValueError, 'dataset must be of type DataFrame or Dataset. instead got: str'))
+    assert_that(
+        calling(ColumnsInfo().run).with_args(x),
+        raises(
+            DeepchecksValueError, 
+            'non-empty instance of Dataset or DataFrame was expected, instead got str'
+        )
+    )
 
 
 def test_columns_info():

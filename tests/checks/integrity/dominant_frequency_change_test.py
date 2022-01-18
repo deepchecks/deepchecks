@@ -26,9 +26,13 @@ def test_dataset_wrong_input():
     x = 'wrong_input'
     # Act & Assert
     cls = DominantFrequencyChange()
-    assert_that(calling(cls.run).with_args(x, x),
-                raises(DeepchecksValueError,
-                'dataset must be of type DataFrame or Dataset. instead got: str'))
+    assert_that(
+        calling(cls.run).with_args(x, x),
+        raises(
+            DeepchecksValueError,
+            'non-empty instance of Dataset or DataFrame was expected, instead got str'
+        )
+    )
 
 
 def test_no_leakage(iris_split_dataset_and_model):

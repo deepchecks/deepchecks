@@ -19,20 +19,25 @@ from deepchecks.utils.distribution.plot import feature_distribution_traces
 from deepchecks.utils.metrics import task_type_check, ModelType
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError, ModelValidationError, DatasetValidationError
 
 
 __all__ = ['TrustScoreComparison']
 
 
 class TrustScoreComparison(TrainTestBaseCheck):
-    """Compares the model's trust scores of the train dataset with scores of the test dataset.
+    """Compares the model's trust score for the train dataset with scores of the test dataset.
+
+    The Trust Score algorithm and code was published in the paper: "To Trust or not to trust c classifier". See the
+    original paper at arxiv 1805.11783, or see the version of the paper presented at NeurIPS in 2018:
+    https://proceedings.neurips.cc/paper/2018/file/7180cffd6a8e829dacfc2a31b3f72ece-Paper.pdf
 
     The process is as follows:
-    * Pre-process the train and test data into scaled numerics.
-    * Train a TrustScore (https://arxiv.org/abs/1805.11783) regressor based on train data + label.
-    * Predict on test data using the model.
-    * Use TrustScore to score the prediction of the model.
+
+    #. Pre-process the train and test data into scaled numerics.
+    #. Train a TrustScore regressor based on train data + label.
+    #. Predict on test data using the model.
+    #. Use TrustScore to score the prediction of the model.
 
     Args:
         k_filter (int): used in TrustScore (Number of neighbors used during either kNN distance or probability
@@ -71,35 +76,42 @@ class TrustScoreComparison(TrainTestBaseCheck):
             model: Model used to predict on the validation dataset
         """
         # tested dataset can be also dataframe
-        test_dataset: Dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
+        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset, cast=True)
+        test_label = self._dataset_has_label(test_dataset)
         validate_model(test_dataset, model)
         model_type = task_type_check(model, test_dataset)
 
         # Baseline must have label so we must get it as Dataset.
-        Dataset.validate_dataset(train_dataset)
-        train_dataset.validate_label()
-        train_dataset.validate_shared_features(test_dataset)
+        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
+        train_label = self._dataset_has_label(train_dataset)
+
+        features_list = self._datasets_share_features([train_dataset, test_dataset])
+        label_name = self._datasets_share_label([train_dataset, test_dataset])
 
         if test_dataset.n_samples < self.min_test_samples:
-            msg = ('Number of samples in test dataset have not passed the minimum. you can change '
-                   'minimum samples needed to run with parameter "min_test_samples"')
-            raise DeepchecksValueError(msg)
-        if model_type not in [ModelType.BINARY, ModelType.MULTICLASS]:
-            raise DeepchecksValueError('Check supports only classification')
+            raise DatasetValidationError(
+                'Number of samples in test dataset has not passed the minimum. '
+                'You can change the minimum number of samples required for the '
+                'check to run with the parameter "min_test_samples"'
+            )
 
-        no_null_label_train = train_dataset.data[train_dataset.label_col.notna()]
+        if model_type not in {ModelType.BINARY, ModelType.MULTICLASS}:
+            raise ModelValidationError(
+                'Check is relevant only for the classification models, but'
+                f'received model of type {model_type.value.lower()}'
+            )
+
+        no_null_label_train = train_dataset.data[train_label.notna()]
         train_data_sample = no_null_label_train.sample(
             min(self.sample_size, len(no_null_label_train)),
             random_state=self.random_state
         )
 
-        no_null_label_test = test_dataset.data[test_dataset.label_col.notna()]
+        no_null_label_test = test_dataset.data[test_label.notna()]
         test_data_sample = no_null_label_test.sample(
             min(self.sample_size, len(no_null_label_test)),
             random_state=self.random_state
         )
-        features_list = train_dataset.features
-        label_name = train_dataset.label_name
 
         sn = ScaledNumerics(test_dataset.cat_features, self.max_number_categories)
         x_train = sn.fit_transform(train_data_sample[features_list])
@@ -141,12 +153,16 @@ class TrustScoreComparison(TrainTestBaseCheck):
         top_k = test_data_sample.head(self.n_to_show)
         bottom_k = test_data_sample.tail(self.n_to_show)
 
-        headnote = """<span>
-        Trust score measures the agreement between the classifier and a modified nearest-neighbor
-        classifier on the testing example. Higher values represent samples that are "close" to training examples with
-        the same label as sample prediction, and lower values represent samples that are "far" from training samples
-        with labels matching their prediction. (arxiv 1805.11783)
-        </span>"""
+        headnote = r"""<span> Trust score roughly measures the following quantity:<br><br> <p> $$Trust Score = \frac{
+        \textrm{Distance from the sample to the nearest training samples belonging to a class different than the
+        predicted class}}{\textrm{Distance from the sample to the nearest training samples belonging to the predicted
+        class}}$$ </p> So that higher values represent samples that are "close" to training examples with the same
+        label as sample prediction, and lower values represent samples that are "far" from training samples with
+        labels matching their prediction. For more information, please refer to the original paper at <a
+        href="https://arxiv.org/abs/1805.11783"  target="_blank">arxiv 1805.11783</a>, or see the version of the <a
+        href="https://proceedings.neurips.cc/paper/2018/file/7180cffd6a8e829dacfc2a31b3f72ece-Paper.pdf"
+        target="_blank">paper presented at NeurIPS in 2018</a>.</span>"""
+
         footnote = """<span style="font-size:0.8em"><i>
             The test trust score distribution should be quite similar to the train's. If it is skewed to the left, the
             confidence of the model in the test data is lower than the train, indicating a difference that may affect
