@@ -102,7 +102,7 @@ def _display_suite_widgets(summary: str,
                            checks_w_condition_display: List[CheckResult],
                            others_table: List,
                            light_hr: str,
-                           as_html: bool):  # pragma: no cover
+                           html_out):  # pragma: no cover
     """Display results of suite in as Tab widget."""
     tab = widgets.Tab()
     condition_tab = widgets.VBox()
@@ -160,20 +160,25 @@ def _display_suite_widgets(summary: str,
     tab_css = '<style>.jupyter-widgets.widget-tab > .p-TabBar .p-TabBar-tab {flex: 0 1 auto}</style>'
     page = widgets.VBox()
     page.children = [widgets.HTML(summary), widgets.HTML(tab_css), tab]
-    if as_html:
+    if html_out:
+        if isinstance(html_out, str):
+            if '.' in html_out:
+                basename, ext = html_out.rsplit('.', 1)
+            else:
+                basename = html_out
+                ext = 'html'
+            html_out = f'{basename}.'
+            c = itertools.count()
+            next(c)
+            while os.path.exists(html_out):
+                html_out = f'{basename} ({str(next(c))}).{ext}'
         curr_path = os.path.dirname(os.path.abspath(__file__))
-        basename, ext = ('output', 'html')
-        actualname = f'{basename}.'
-        c = itertools.count()
-        next(c)
-        while os.path.exists(actualname):
-            actualname = f'{basename} ({str(next(c))}).{ext}'
         with open(os.path.join(curr_path, 'resources', 'suite_output.html'), 'r', encoding='utf8') as html_file:
             html_formatted = re.sub('{', '{{', html_file.read())
             html_formatted = re.sub('}', '}}', html_formatted)
             html_formatted = re.sub('html_title', '{title}', html_formatted)
             html_formatted = re.sub('widget_snippet', '{snippet}', html_formatted)
-            embed_minimal_html(actualname, views=[page], title='Suite Output', template=html_formatted)
+            embed_minimal_html(html_out, views=[page], title='Suite Output', template=html_formatted)
     else:
         display(page)
 
@@ -228,7 +233,7 @@ def _display_suite_no_widgets(summary: str,
 
 
 def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]],
-                         as_html: bool = False):  # pragma: no cover
+                         html_out= None):  # pragma: no cover
     """Display results of suite in IPython."""
     if len(results) == 0:
         display_html(f"""<h1>{suite_name}</h1><p>Suite is empty.</p>""", raw=True)
@@ -297,7 +302,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         </p>
         """
 
-    if as_html or is_widgets_enabled():
+    if html_out or is_widgets_enabled():
         _display_suite_widgets(summ,
                                unique_id,
                                checks_with_conditions,
@@ -305,7 +310,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
                                checks_w_condition_display,
                                others_table,
                                light_hr,
-                               as_html)
+                               html_out)
     else:
         _display_suite_no_widgets(summ,
                                   unique_id,
