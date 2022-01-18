@@ -1,6 +1,7 @@
 import enum
 import typing as t
 
+import torch
 from ignite.engine import Engine
 from torch import nn
 
@@ -116,4 +117,5 @@ def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn
 
     state = engine.run(dataset.get_data_loader())
 
-    return state.metrics
+    results = {k: v.tolist() for k, v in state.metrics.items()}
+    return results

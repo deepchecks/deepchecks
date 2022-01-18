@@ -103,7 +103,7 @@ class PerformanceReport(TrainTestBaseCheck):
         classes = list(range(10))
 
         # Get default scorers if no alternative, or validate alternatives
-        scorers = get_scorers_list(model, test_dataset, self.alternative_scorers)
+        scorers = get_scorers_list(model, test_dataset, len(classes), self.alternative_scorers)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
         if task_type == ModelType.CLASSIFICATION:

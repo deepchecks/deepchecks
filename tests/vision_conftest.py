@@ -9,7 +9,7 @@ from torchvision.datasets import MNIST
 
 
 @pytest.fixture(scope='session')
-def mnist_data_loader():
+def mnist_data_loader_train():
     mnist_train_dataset = MNIST('./mnist',
                                 download=True,
                                 train=True,
@@ -19,9 +19,25 @@ def mnist_data_loader():
 
 
 @pytest.fixture(scope='session')
-def mnist_dataset(mnist_data_loader):
-    """Return Iris dataset modified to a binary label as Dataset object."""
-    dataset = VisionDataset(mnist_data_loader)
+def mnist_dataset_train(mnist_data_loader_train):
+    """Return MNist dataset as VisionDataset object."""
+    dataset = VisionDataset(mnist_data_loader_train)
+    return dataset
+
+@pytest.fixture(scope='session')
+def mnist_data_loader_test():
+    mnist_train_dataset = MNIST('./mnist',
+                                download=True,
+                                train=False,
+                                transform=ToTensor())
+
+    return DataLoader(mnist_train_dataset, batch_size=1000)
+
+
+@pytest.fixture(scope='session')
+def mnist_dataset_test(mnist_data_loader_test):
+    """Return MNist dataset as VisionDataset object."""
+    dataset = VisionDataset(mnist_data_loader_test)
     return dataset
 
 
@@ -50,13 +66,13 @@ def simple_nn():
 
 
 @pytest.fixture(scope='session')
-def trained_mnist(simple_nn, mnist_data_loader):
+def trained_mnist(simple_nn, mnist_data_loader_train):
     loss_fn = nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(simple_nn.parameters(), lr=1e-3)
-    size = len(mnist_data_loader.dataset)
+    size = len(mnist_data_loader_train.dataset)
     # Training 1 epoch
     simple_nn.train()
-    for batch, (X, y) in enumerate(mnist_data_loader):
+    for batch, (X, y) in enumerate(mnist_data_loader_train):
         X, y = X.to('cpu'), y.to('cpu')
 
         # Compute prediction error

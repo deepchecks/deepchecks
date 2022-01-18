@@ -4,9 +4,9 @@ from deepchecks.errors import DeepchecksValueError
 from deepchecks.vision.utils.metrics import task_type_check, ModelType, get_scorers_list
 
 
-def test_mnist_task_type_classification(trained_mnist, mnist_dataset):
-    res=task_type_check(trained_mnist, mnist_dataset)
-    res = get_scorers_list(trained_mnist, mnist_dataset)
+def test_mnist_task_type_classification(trained_mnist, mnist_dataset_train):
+    res=task_type_check(trained_mnist, mnist_dataset_train)
+    res = get_scorers_list(trained_mnist, mnist_dataset_train)
     assert_that(res, equal_to(ModelType.CLASSIFICATION))
 
 

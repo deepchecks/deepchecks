@@ -31,8 +31,8 @@ class AccuracyPerClass(Metric):
 
     @sync_all_reduce("_num_examples", "_num_correct")
     def compute(self):
-        class_accuracy = [0] * self._num_classes
-        for i, (correct, total) in enumerate(zip(self._num_correct,self._num_examples)):
+        class_accuracy = torch.tensor([0.0] * self._num_classes)
+        for i, (correct, total) in enumerate(zip(self._num_correct, self._num_examples)):
             class_accuracy[i] = correct / total
         #if self._num_examples == 0:
         #    raise NotComputableError('AccuracyPerClass must have at least one example before it can be computed.')
