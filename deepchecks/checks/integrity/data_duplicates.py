@@ -27,7 +27,7 @@ __all__ = ['DataDuplicates']
 
 
 class DataDuplicates(SingleDatasetBaseCheck):
-    """Search for duplicate data in dataset.
+    """Checks for duplicate samples in the dataset.
 
     Args:
         columns (Hashable, Iterable[Hashable]):
