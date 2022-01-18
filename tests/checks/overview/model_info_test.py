@@ -14,7 +14,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 
 from deepchecks.checks.overview.model_info import ModelInfo
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import ModelValidationError
 
 
 def assert_model_result(result):
@@ -53,5 +53,9 @@ def test_model_info_pipeline(iris_adaboost):
 
 def test_model_info_wrong_input():
     # Act
-    assert_that(calling(ModelInfo().run).with_args('some string'),
-                raises(DeepchecksValueError, 'Model must inherit from one of supported models:'))
+    assert_that(
+        calling(ModelInfo().run).with_args('some string'),
+        raises(
+            ModelValidationError, 
+            r'Model must be a structural subtype of the .*')
+    )

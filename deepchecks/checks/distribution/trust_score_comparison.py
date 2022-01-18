@@ -20,7 +20,7 @@ from deepchecks.utils.metrics import task_type_check, ModelType
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
 from deepchecks.utils.plot import colors
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError, ModelValidationError, DatasetValidationError
 
 
 __all__ = ['TrustScoreComparison']
@@ -77,35 +77,42 @@ class TrustScoreComparison(TrainTestBaseCheck):
             model: Model used to predict on the validation dataset
         """
         # tested dataset can be also dataframe
-        test_dataset: Dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
+        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset, cast=True)
+        test_label = self._dataset_has_label(test_dataset)
         validate_model(test_dataset, model)
         model_type = task_type_check(model, test_dataset)
 
         # Baseline must have label so we must get it as Dataset.
-        Dataset.validate_dataset(train_dataset)
-        train_dataset.validate_label()
-        train_dataset.validate_shared_features(test_dataset)
+        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
+        train_label = self._dataset_has_label(train_dataset)
+
+        features_list = self._datasets_share_features([train_dataset, test_dataset])
+        label_name = self._datasets_share_label([train_dataset, test_dataset])
 
         if test_dataset.n_samples < self.min_test_samples:
-            msg = ('Number of samples in test dataset have not passed the minimum. you can change '
-                   'minimum samples needed to run with parameter "min_test_samples"')
-            raise DeepchecksValueError(msg)
-        if model_type not in [ModelType.BINARY, ModelType.MULTICLASS]:
-            raise DeepchecksValueError('Check supports only classification')
+            raise DatasetValidationError(
+                'Number of samples in test dataset has not passed the minimum. '
+                'You can change the minimum number of samples required for the '
+                'check to run with the parameter "min_test_samples"'
+            )
 
-        no_null_label_train = train_dataset.data[train_dataset.label_col.notna()]
+        if model_type not in {ModelType.BINARY, ModelType.MULTICLASS}:
+            raise ModelValidationError(
+                'Check is relevant only for the classification models, but'
+                f'received model of type {model_type.value.lower()}'
+            )
+
+        no_null_label_train = train_dataset.data[train_label.notna()]
         train_data_sample = no_null_label_train.sample(
             min(self.sample_size, len(no_null_label_train)),
             random_state=self.random_state
         )
 
-        no_null_label_test = test_dataset.data[test_dataset.label_col.notna()]
+        no_null_label_test = test_dataset.data[test_label.notna()]
         test_data_sample = no_null_label_test.sample(
             min(self.sample_size, len(no_null_label_test)),
             random_state=self.random_state
         )
-        features_list = train_dataset.features
-        label_name = train_dataset.label_name
 
         sn = ScaledNumerics(test_dataset.cat_features, self.max_number_categories)
         x_train = sn.fit_transform(train_data_sample[features_list])

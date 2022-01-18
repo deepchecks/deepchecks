@@ -17,7 +17,7 @@ from hamcrest import assert_that, close_to, calling, raises, has_items
 
 from deepchecks import Dataset
 from deepchecks.checks.methodology.index_leakage import IndexTrainTestLeakage
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError
 from tests.checks.utils import equal_condition_result
 
 
@@ -51,14 +51,14 @@ def test_dataset_wrong_input():
     x = 'wrong_input'
     assert_that(
         calling(IndexTrainTestLeakage().run).with_args(x, x),
-        raises(DeepchecksValueError, 'Check requires dataset to be of type Dataset. instead got: str'))
+        raises(DeepchecksValueError, 'non-empty Dataset instance was expected, instead got str'))
 
 
 def test_dataset_no_index():
     ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11]})
     assert_that(
         calling(IndexTrainTestLeakage().run).with_args(ds, ds),
-        raises(DeepchecksValueError, 'Check requires dataset to have an index column'))
+        raises(DatasetValidationError, 'Check is irrelevant for Datasets without an index'))
 
 
 def test_nan():

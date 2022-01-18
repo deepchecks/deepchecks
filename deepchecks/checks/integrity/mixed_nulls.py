@@ -114,7 +114,7 @@ class MixedNulls(SingleDatasetBaseCheck):
         """
         # Validate parameters
         original_dataset = dataset
-        dataset: pd.DataFrame = ensure_dataframe_type(dataset)
+        dataset = ensure_dataframe_type(dataset)
         dataset = select_from_dataframe(dataset, self.columns, self.ignore_columns)
         null_string_list: set = self._validate_null_string_list(self.null_string_list, self.check_nan)
 

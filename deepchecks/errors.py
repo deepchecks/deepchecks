@@ -11,8 +11,14 @@
 """Module with all deepchecks error types."""
 
 
-__all__ = ['DeepchecksValueError', 'DeepchecksNotSupportedError', 'DeepchecksProcessError',
-           'NumberOfFeaturesLimitError']
+__all__ = [
+    'DeepchecksValueError',
+    'DeepchecksNotSupportedError',
+    'DeepchecksProcessError',
+    'NumberOfFeaturesLimitError',
+    'DatasetValidationError',
+    'ModelValidationError'
+]
 
 
 class DeepchecksBaseError(Exception):
@@ -49,5 +55,31 @@ class NumberOfFeaturesLimitError(DeepchecksBaseError):
 
 class DeepchecksTimeoutError(DeepchecksBaseError):
     """Represents a situation when a computation takes too long and is interrupted."""
+
+    pass
+
+
+class ValidationError(DeepchecksBaseError):
+    """Represents more specific case of the ValueError (DeepchecksValueError)."""
+
+    pass
+
+
+class DatasetValidationError(DeepchecksBaseError):
+    """Represents unappropriate Dataset instance.
+
+    Should be used in a situation when a routine (like check instance, utility function, etc)
+    expected and received a dataset instance that did not meet routine requirements.
+    """
+
+    pass
+
+
+class ModelValidationError(DeepchecksBaseError):
+    """Represents unappropriate model instance.
+
+    Should be used in a situation when a routine (like check instance, utility function, etc)
+    expected and received a dataset instance that did not meet routine requirements.
+    """
 
     pass

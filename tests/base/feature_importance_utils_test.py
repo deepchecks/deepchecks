@@ -11,15 +11,20 @@
 """Test feature importance utils"""
 import pandas as pd
 import pytest
-from hamcrest import equal_to, assert_that, calling, raises, close_to, not_none, none, has_length, is_
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.neural_network import MLPClassifier
+from hamcrest import (
+    equal_to, assert_that, calling, raises, is_,
+    close_to, not_none, none, has_length, any_of
+)
 
-from deepchecks.utils.features import calculate_feature_importance, calculate_feature_importance_or_none, \
-    column_importance_sorter_df, column_importance_sorter_dict
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import ModelValidationError, DeepchecksValueError
 from deepchecks.base import Dataset
+from deepchecks.utils.features import (
+    calculate_feature_importance, calculate_feature_importance_or_none,
+    column_importance_sorter_df, column_importance_sorter_dict
+)
 
 
 def test_adaboost(iris_split_dataset_and_model):
@@ -32,7 +37,7 @@ def test_adaboost(iris_split_dataset_and_model):
 def test_unfitted(iris_dataset):
     clf = AdaBoostClassifier()
     assert_that(calling(calculate_feature_importance).with_args(clf, iris_dataset),
-                raises(DeepchecksValueError, 'Got error when trying to predict with model on dataset: '
+                raises(ModelValidationError, 'Got error when trying to predict with model on dataset: '
                                              'This AdaBoostClassifier instance is not fitted yet. '
                                              'Call \'fit\' with appropriate arguments before using this estimator.'))
 
@@ -72,17 +77,22 @@ def test_calculate_importance(iris_labeled_dataset):
 
 def test_bad_dataset_model(iris_random_forest, diabetes):
     ds, _ = diabetes
-    error_message = (
-        r'(In order to evaluate model correctness we need not empty dataset with the '
-        r'same set of features that was used to fit the model. But function received '
-        r'dataset with a different set of features.)'
-        # NOTE:
-        # depending on the installed version of the scikit-learn
-        # will be raised DeepchecksValueError with different messages
-        r'|(Got error when trying to predict with model on dataset:(.*))'
+    assert_that(
+        calling(calculate_feature_importance).with_args(iris_random_forest, ds),
+        any_of(
+            # NOTE:
+            # depending on the installed version of the scikit-learn
+            # will be raised DeepchecksValueError or ModelValidationError
+            raises(
+                DeepchecksValueError,
+                r'(In order to evaluate model correctness we need not empty dataset with the '
+                r'same set of features that was used to fit the model. But function received '
+                r'dataset with a different set of features.)'),
+            raises(
+                ModelValidationError,
+                r'Got error when trying to predict with model on dataset:(.*)')
+        )
     )
-    assert_that(calling(calculate_feature_importance).with_args(iris_random_forest, ds),
-                raises(DeepchecksValueError, error_message))
 
 
 def test_calculate_or_null(diabetes_split_dataset_and_model):

@@ -106,12 +106,23 @@ def calculate_feature_importance_or_none(
         )
 
         return (fi, calculation_type) if return_calculation_type else fi
-    except (errors.DeepchecksValueError, errors.NumberOfFeaturesLimitError, errors.DeepchecksTimeoutError) as error:
+    except (
+        errors.DeepchecksValueError,
+        errors.NumberOfFeaturesLimitError,
+        errors.DeepchecksTimeoutError,
+        errors.ModelValidationError,
+        errors.DatasetValidationError
+    ) as error:
         # DeepchecksValueError:
         #     if model validation failed;
         #     if it was not possible to calculate features importance;
         # NumberOfFeaturesLimitError:
         #     if the number of features limit were exceeded;
+        # DatasetValidationError:
+        #     if dataset did not meet requirements
+        # ModelValidationError:
+        #     if wrong type of model was provided;
+        #     if function failed to predict on model;
         warn(f'Features importance was not calculated:\n{str(error)}')
         return (None, None) if return_calculation_type else None
 
@@ -224,7 +235,8 @@ def _calc_importance(
     Returns:
         pd.Series of feature importance normalized to 0-1 indexed by feature names
     """
-    dataset.validate_label()
+    if dataset.label_col is None:
+        raise errors.DatasetValidationError("Expected dataset with label.")
 
     dataset_sample = dataset.sample(n_samples, drop_na_label=True, random_state=random_state)
 

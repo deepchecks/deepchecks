@@ -24,7 +24,7 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn import preprocessing
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult, ConditionCategory
-from deepchecks.errors import DeepchecksProcessError
+from deepchecks.errors import DeepchecksProcessError, DeepchecksValueError
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.metrics import task_type_check, ModelType, initialize_multi_scorers, get_scorers_list, \
     get_scorer_single
@@ -105,7 +105,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         self.min_segment_size = min_segment_size
         if alternative_scorer is not None:
             if (len(alternative_scorer) != 2) or not isinstance(alternative_scorer[0], str):
-                raise DeepchecksProcessError(
+                raise DeepchecksValueError(
                     'alternative_scorer must be a tuple of a single string and a scorer function')
             else:
                 self.alternative_scorer = initialize_multi_scorers({alternative_scorer[0]: alternative_scorer[1]})
@@ -124,15 +124,14 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
         """
         # Validations
-        Dataset.validate_dataset(train_dataset)
-        Dataset.validate_dataset(test_dataset)
-        train_dataset.validate_label()
-        test_dataset.validate_label()
-        train_dataset.validate_shared_label(test_dataset)
-        train_dataset.validate_shared_features(test_dataset)
-        train_dataset.validate_shared_categorical_features(test_dataset)
-        validate_model(train_dataset, model)
+        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset, cast=True)
+        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset, cast=True)
 
+        self._datasets_share_label([train_dataset, test_dataset])
+        self._datasets_share_features([train_dataset, test_dataset])
+        cat_features = self._datasets_share_categorical_features([train_dataset, test_dataset])
+
+        validate_model(train_dataset, model)
         task_type = task_type_check(model, train_dataset)
 
         # If user defined scorers used them, else use a single scorer
@@ -140,8 +139,6 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
             scorer = get_scorers_list(model, train_dataset, self.alternative_scorer, multiclass_avg=True)[0]
         else:
             scorer = get_scorer_single(model, train_dataset, multiclass_avg=True)
-
-        cat_features = train_dataset.cat_features
 
         train_dataset = train_dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
         test_dataset = test_dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
@@ -201,8 +198,13 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
             # Violin plot for categorical features, scatter plot for numerical features
             if feature in cat_features:
                 # find categories with the weakest performance
-                error_per_segment_ser = data.groupby(feature).agg(['mean', 'count']
-                                                                  )[error_col_name].sort_values('mean', ascending=False)
+                error_per_segment_ser = (
+                    data
+                    .groupby(feature)
+                    .agg(['mean', 'count'])[error_col_name]
+                    .sort_values('mean', ascending=False)
+                )
+
                 cum_sum_ratio = error_per_segment_ser['count'].cumsum() / error_per_segment_ser['count'].sum()
 
                 # Partition data into two groups - weak and ok:
@@ -242,10 +244,12 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
                 data = data.iloc[sampling_idx]
 
                 # Train tree to partition segments according to the model error
-                tree_partitioner = DecisionTreeRegressor(max_depth=1,
-                                                         min_samples_leaf=self.min_segment_size + np.finfo(float).eps,
-                                                         random_state=self.random_state).fit(
-                    data[[feature]], data[error_col_name])
+                tree_partitioner = DecisionTreeRegressor(
+                    max_depth=1,
+                    min_samples_leaf=self.min_segment_size + np.finfo(float).eps,
+                    random_state=self.random_state
+                ).fit(data[[feature]], data[error_col_name])
+
                 if len(tree_partitioner.tree_.threshold) > 1:
                     threshold = tree_partitioner.tree_.threshold[0]
                     color_col = data[feature].ge(threshold)
