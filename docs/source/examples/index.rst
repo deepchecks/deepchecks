@@ -10,6 +10,7 @@ How-to Guides
 - :doc:`guides/configure_check_conditions`
 - :doc:`guides/save_suite_result_as_html`
 
+
 .. toctree::
     :maxdepth: 3
     :titlesonly:
