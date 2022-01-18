@@ -187,33 +187,18 @@ class WholeDatasetDrift(TrainTestBaseCheck):
 
     def _build_drift_plot(self, score):
         """Build traffic light drift plot."""
-        stop = max(0.4, score + 0.1)
-
-        drift = drift_score_bar_traces(score)
+        score_bar, x_axis, y_axis = drift_score_bar_traces(score)
+        x_axis['title'] = 'Drift score'
 
         drift_plot = go.Figure(layout=dict(
             title='Drift Score - Whole Dataset Total',
-            xaxis=dict(
-                showgrid=False,
-                gridcolor='black',
-                linecolor='black',
-                range=[0, stop],
-                dtick=0.05,
-                title='drift score'
-            ),
-            yaxis=dict(
-                showgrid=False,
-                showline=False,
-                showticklabels=False,
-                zeroline=False,
-                color='black'
-            ),
+            xaxis=x_axis,
+            yaxis=y_axis,
             width=700,
             height=200
-
         ))
 
-        drift_plot.add_traces(drift)
+        drift_plot.add_traces(score_bar)
 
         return drift_plot
 

@@ -114,9 +114,8 @@ def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, plot_ti
         test_dist = test_dist.astype('float')
 
         score = earth_movers_distance(dist1=train_dist, dist2=test_dist)
-        bar_stop = max(0.4, score + 0.1)
 
-        score_bar = drift_score_bar_traces(score)
+        score_bar, bar_x_axis, bar_y_axis = drift_score_bar_traces(score)
 
         traces, xaxis_layout, yaxis_layout = feature_distribution_traces(train_dist, test_dist)
 
@@ -125,9 +124,8 @@ def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, plot_ti
         expected_percents, actual_percents, _ = \
             preprocess_2_cat_cols_to_same_bins(dist1=train_dist, dist2=test_dist, max_num_categories=max_num_categories)
         score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
-        bar_stop = min(max(0.4, score + 0.1), 1)
 
-        score_bar = drift_score_bar_traces(score)
+        score_bar, bar_x_axis, bar_y_axis = drift_score_bar_traces(score, bar_max=1)
 
         traces, xaxis_layout, yaxis_layout = feature_distribution_traces(train_dist, test_dist, is_categorical=True,
                                                                          max_num_categories=max_num_categories)
@@ -140,19 +138,8 @@ def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, plot_ti
     fig.add_traces(traces, rows=[2] * len(traces), cols=[1] * len(traces))
 
     shared_layout = go.Layout(
-        xaxis=dict(
-            showgrid=False,
-            gridcolor='black',
-            linecolor='black',
-            range=[0, bar_stop],
-            dtick=0.05
-        ),
-        yaxis=dict(
-            showgrid=False,
-            showline=False,
-            showticklabels=False,
-            zeroline=False,
-        ),
+        xaxis=bar_x_axis,
+        yaxis=bar_y_axis,
         xaxis2=xaxis_layout,
         yaxis2=yaxis_layout,
         legend=dict(

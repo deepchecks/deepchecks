@@ -42,12 +42,12 @@ def get_density(data, xs) -> np.ndarray:
     return density(xs)
 
 
-def drift_score_bar_traces(drift_score: float) -> List[go.Bar]:
+def drift_score_bar_traces(drift_score: float, bar_max: float = None) -> List[go.Bar]:
     """Create a traffic light bar traces for drift score.
 
     Args:
         drift_score (float): Drift score
-
+        bar_max (float): Maximum value for the bar
     Returns:
         List[go.Bar]: list of plotly bar traces.
     """
@@ -64,7 +64,8 @@ def drift_score_bar_traces(drift_score: float) -> List[go.Bar]:
             break
 
         bars.append(go.Bar(
-            x=[min(drift_score, range_tuple[1]) - range_tuple[0]], y=['Drift Score'],
+            x=[min(drift_score, range_tuple[1]) - range_tuple[0]],
+            y=['Drift Score'],
             orientation='h',
             marker=dict(
                 color=color,
@@ -75,7 +76,27 @@ def drift_score_bar_traces(drift_score: float) -> List[go.Bar]:
 
         ))
 
-    return bars
+    bar_stop = max(0.4, drift_score + 0.1)
+    if bar_max:
+        bar_stop = min(bar_stop, bar_max)
+    xaxis = dict(
+        showgrid=False,
+        gridcolor='black',
+        linecolor='black',
+        range=[0, bar_stop],
+        dtick=0.05,
+        fixedrange=True
+    )
+    yaxis = dict(
+        showgrid=False,
+        showline=False,
+        showticklabels=False,
+        zeroline=False,
+        color='black',
+        fixedrange=True
+    )
+
+    return bars, xaxis, yaxis
 
 
 def feature_distribution_traces(train_column,
