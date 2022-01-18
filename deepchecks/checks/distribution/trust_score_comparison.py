@@ -15,11 +15,10 @@ import plotly.graph_objects as go
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.distribution.trust_score import TrustScore
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
-from deepchecks.utils.distribution.plot import get_density
+from deepchecks.utils.distribution.plot import feature_distribution_traces
 from deepchecks.utils.metrics import task_type_check, ModelType
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
-from deepchecks.utils.plot import colors
 from deepchecks.errors import DeepchecksValueError, ModelValidationError, DatasetValidationError
 
 
@@ -233,33 +232,15 @@ def _validate_parameters(k_filter, alpha, max_number_categories, min_test_sample
 
 def _display_plot(train_trust_scores, test_trust_scores, percent_to_cut):
     """Display a distribution comparison plot for the given columns."""
-
-    def filter_quantile(data):
-        return data[data < np.quantile(data, 1 - percent_to_cut)]
-
-    test_trust_scores_cut = filter_quantile(test_trust_scores)
-    train_trust_scores_cut = filter_quantile(train_trust_scores)
-    x_range = [min(*test_trust_scores_cut, *train_trust_scores_cut),
-               max(*test_trust_scores_cut, *train_trust_scores_cut)]
-    xs = np.linspace(x_range[0], x_range[1], 40)
-
-    traces = [go.Scatter(x=xs, y=get_density(train_trust_scores_cut, xs), fill='tozeroy', name='Train Dataset',
-                         line_color=colors['Train']),
-              go.Scatter(x=xs, y=get_density(test_trust_scores_cut, xs), fill='tozeroy', name='Test Dataset',
-                         line_color=colors['Test'])]
+    traces, xaxis, yaxis = feature_distribution_traces(train_trust_scores, test_trust_scores,
+                                                       quantile_cut=percent_to_cut)
+    xaxis['title'] = 'Trust Score'
 
     figure = go.Figure(layout=go.Layout(
         title='Trust Score Distribution',
-        xaxis=dict(fixedrange=True,
-                   range=x_range,
-                   title='Trust Score'),
-        yaxis=dict(title='Probability Density'),
-        legend=dict(
-            title='Dataset',
-            yanchor='top',
-            y=0.9,
-            xanchor='left',
-            x=0.85),
+        xaxis=xaxis,
+        yaxis=yaxis,
+        legend=dict(title='Dataset'),
         width=700,
         height=400
     ))
