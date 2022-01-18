@@ -175,9 +175,9 @@ def test_condition_ratio_of_change_not_greater_than_not_passed(iris_split_datase
     # Assert
     assert_that(result, equal_condition_result(
             is_pass=False,
-            name='Change in ratio of dominant value in data is not greater than 5.00%',
+            name='Change in ratio of dominant value in data is not greater than 5%',
             details='Found columns with % difference in dominant value above threshold: '
-                    '{\'sepal width (cm)\': \'8.00%\'}'
+                    '{\'sepal width (cm)\': \'8%\'}'
     ))
 
 
@@ -193,5 +193,5 @@ def test_condition_ratio_of_change_not_greater_than_passed(iris_split_dataset_an
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Change in ratio of dominant value in data is not greater than 25.00%')
+                               name='Change in ratio of dominant value in data is not greater than 25%')
     ))

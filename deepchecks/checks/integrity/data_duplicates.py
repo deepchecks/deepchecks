@@ -26,7 +26,7 @@ __all__ = ['DataDuplicates']
 
 
 class DataDuplicates(SingleDatasetBaseCheck):
-    """Search for duplicate data in dataset.
+    """Checks for duplicate samples in the dataset.
 
     Args:
         columns (Hashable, Iterable[Hashable]):
@@ -102,7 +102,7 @@ class DataDuplicates(SingleDatasetBaseCheck):
 
             most_duplicates = most_duplicates.set_index(['Instances', 'Number of Duplicates'])
 
-            text = f'{format_percent(percent_duplicate)} of data samples are duplicates'
+            text = f'{format_percent(percent_duplicate)} of data samples are duplicates. '
             explanation = 'Each row in the table shows an example of duplicate data and the number of times it appears.'
             display = [text, explanation, most_duplicates]
 

@@ -121,8 +121,8 @@ def test_condition_fail():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found 40.00% duplicate data',
-                               name='Duplicate data ratio is not greater than 10.00%',
+                               details='Found 40% duplicate data',
+                               name='Duplicate data ratio is not greater than 10%',
                                category=ConditionCategory.WARN)))
 
 

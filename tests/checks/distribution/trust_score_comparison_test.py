@@ -88,7 +88,7 @@ def test_condition_mean_score_percent_decline_fail():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='Mean trust score decline is not greater than 10.00%',
+        name='Mean trust score decline is not greater than 10%',
         details='Found decline of: -33.33%',
         category=ConditionCategory.WARN
     ))
@@ -105,7 +105,7 @@ def test_condition_mean_score_percent_decline_pass():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        name='Mean trust score decline is not greater than 40.00%'
+        name='Mean trust score decline is not greater than 40%'
     ))
 
 

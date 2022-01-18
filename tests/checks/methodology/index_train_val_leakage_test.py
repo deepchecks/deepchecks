@@ -78,8 +78,8 @@ def test_condition_leakage_fail():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found 20.00% of index leakage',
-                               name='Ratio of leaking indices is not greater than 19.00%')
+                               details='Found 20% of index leakage',
+                               name='Ratio of leaking indices is not greater than 19%')
     ))
 
 
