@@ -54,7 +54,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
              - 4
            * - Features
              - real
-           * - Classes
+           * - Targets
              - 3
            * - Samples per class
              - 50
