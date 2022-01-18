@@ -23,7 +23,7 @@ and click on  |binder badge|  or on  |colab badge|  to launch it and see it in a
 or see our :doc:`/getting-started/index` to install it locally and continue from there.
 
 .. note:: The package's output is suited for running in a Python environment.
-          This include Jupyter notebooks, PyCharm, VSCode and any other python supported ide.
+          Best viewed in Jupyer Notebooks but can be run in any ide and be saved as HTML.
 
 When Should You Use Deepchecks?
 ================================
