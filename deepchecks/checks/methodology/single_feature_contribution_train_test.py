@@ -71,17 +71,17 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
         label_name = self._datasets_share_label([train_dataset, test_dataset])
         features_names = self._datasets_share_features([train_dataset, test_dataset])
-        
+
         ppscore_params = self.ppscore_params or {}
         relevant_columns = features_names + [label_name]
-        
+
         df_pps_train = pps.predictors(df=train_dataset.data[relevant_columns], y=train_dataset.label_name,
                                       random_seed=42,
                                       **ppscore_params)
         df_pps_test = pps.predictors(df=test_dataset.data[relevant_columns],
                                      y=test_dataset.label_name,
                                      random_seed=42, **ppscore_params)
-        
+
         s_pps_train = df_pps_train.set_index('x', drop=True)['ppscore']
         s_pps_test = df_pps_test.set_index('x', drop=True)['ppscore']
         s_difference = s_pps_train - s_pps_test

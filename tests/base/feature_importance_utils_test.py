@@ -18,7 +18,7 @@ from sklearn.neural_network import MLPClassifier
 
 from deepchecks.utils.features import calculate_feature_importance, calculate_feature_importance_or_none, \
     column_importance_sorter_df, column_importance_sorter_dict
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError, ModelValidationError
 from deepchecks.base import Dataset
 
 
@@ -31,7 +31,7 @@ def test_adaboost(iris_split_dataset_and_model):
 def test_unfitted(iris_dataset):
     clf = AdaBoostClassifier()
     assert_that(calling(calculate_feature_importance).with_args(clf, iris_dataset),
-                raises(DeepchecksValueError, 'Got error when trying to predict with model on dataset: '
+                raises(ModelValidationError, 'Got error when trying to predict with model on dataset: '
                                              'This AdaBoostClassifier instance is not fitted yet. '
                                              'Call \'fit\' with appropriate arguments before using this estimator.'))
 

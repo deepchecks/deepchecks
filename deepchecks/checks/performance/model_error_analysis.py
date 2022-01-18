@@ -126,11 +126,11 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         # Validations
         train_dataset = Dataset.ensure_not_empty_dataset(train_dataset, cast=True)
         test_dataset = Dataset.ensure_not_empty_dataset(test_dataset, cast=True)
-        
+
         self._datasets_share_label([train_dataset, test_dataset])
         self._datasets_share_features([train_dataset, test_dataset])
         cat_features = self._datasets_share_categorical_features([train_dataset, test_dataset])
-        
+
         validate_model(train_dataset, model)
         task_type = task_type_check(model, train_dataset)
 
@@ -203,7 +203,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
                     .agg(['mean', 'count'])[error_col_name]
                     .sort_values('mean', ascending=False)
                 )
-                
+
                 cum_sum_ratio = error_per_segment_ser['count'].cumsum() / error_per_segment_ser['count'].sum()
 
                 # Partition data into two groups - weak and ok:
@@ -248,7 +248,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
                     min_samples_leaf=self.min_segment_size + np.finfo(float).eps,
                     random_state=self.random_state
                 ).fit(data[[feature]], data[error_col_name])
-                
+
                 if len(tree_partitioner.tree_.threshold) > 1:
                     threshold = tree_partitioner.tree_.threshold[0]
                     color_col = data[feature].ge(threshold)

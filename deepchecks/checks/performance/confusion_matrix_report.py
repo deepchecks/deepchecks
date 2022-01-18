@@ -43,7 +43,7 @@ class ConfusionMatrixReport(SingleDatasetBaseCheck):
         dataset = Dataset.ensure_not_empty_dataset(dataset)
         ds_y = self._dataset_has_label(dataset)
         ds_x = self._dataset_has_features(dataset)
-        
+
         task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
 
         y_pred = model.predict(ds_x)

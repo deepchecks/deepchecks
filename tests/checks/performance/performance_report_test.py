@@ -19,7 +19,7 @@ from sklearn.model_selection import train_test_split
 
 from deepchecks import ConditionResult, Dataset
 from deepchecks.checks.performance import PerformanceReport
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError, ModelValidationError
 
 from tests.checks.utils import equal_condition_result
 from deepchecks.utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, DEFAULT_REGRESSION_SCORERS
@@ -39,7 +39,10 @@ def test_model_wrong_input(iris_labeled_dataset):
     # Act & Assert
     assert_that(
         calling(PerformanceReport().run).with_args(iris_labeled_dataset, iris_labeled_dataset,bad_model),
-        raises(DeepchecksValueError, 'Model must inherit from one of supported models: .*')
+        raises(
+            ModelValidationError, 
+            r'Model must be a structural subtype of the '
+            r'`deepchecks.utils.typing.BasicModel` protocol\. *')
     )
 
 

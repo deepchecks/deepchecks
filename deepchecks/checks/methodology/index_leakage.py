@@ -51,7 +51,7 @@ class IndexTrainTestLeakage(TrainTestBaseCheck):
     def _index_train_test_leakage(self, train_dataset: Dataset, test_dataset: Dataset):
         train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
         test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
-        
+
         train_index = self._dataset_has_index(train_dataset)
         val_index = self._dataset_has_index(test_dataset)
 

@@ -15,7 +15,7 @@ import pandas as pd
 
 from deepchecks import Dataset, ConditionResult
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks.errors import DatasetValidationError
 from deepchecks.utils.metrics import task_type_validation, ModelType
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
@@ -64,7 +64,7 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
 
         if model:
             task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
-        
+
         elif dataset.label_type == 'regression_label':
             raise DatasetValidationError(
                 'Check is relevant for the classification taks'

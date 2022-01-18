@@ -50,7 +50,7 @@ class NewLabelTrainTest(TrainTestBaseCheck):
     def _new_label_train_test(self, train_dataset: Dataset, test_dataset: Dataset, model: Any = None):
         test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
         train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
-        
+
         test_label = self._dataset_has_label(test_dataset)
         train_label = self._dataset_has_label(train_dataset)
         label_column = self._datasets_share_label([test_dataset, train_dataset])

@@ -50,9 +50,9 @@ class DateTrainTestLeakageDuplicates(TrainTestBaseCheck):
     def _date_train_test_leakage_duplicates(self, train_dataset: Dataset, test_dataset: Dataset):
         train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
         test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
-        
+
         train_date = self._dataset_has_date(train_dataset)
-        val_date = self._dataset_has_date(train_dataset)
+        val_date = self._dataset_has_date(test_dataset)
 
         date_intersection = tuple(set(train_date).intersection(val_date))
 

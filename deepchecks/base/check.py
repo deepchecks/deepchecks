@@ -20,6 +20,7 @@ from typing import Any, Callable, List, Union, Dict, Mapping, cast
 import pandas as pd
 import ipywidgets as widgets
 import plotly.graph_objects as go
+from matplotlib import pyplot as plt
 from IPython.core.display import display_html
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
@@ -340,16 +341,34 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
     @classmethod
     def _datasets_share_features(cls, datasets: List[Dataset]) -> List[Hashable]:
-        """TODO: add comments"""
+        """Verify that all provided datasets share same features, otherwise raise exception.
+
+        Args:
+            datasets (List[Dataset]): list of datasets to validate
+
+        Returns:
+            List[Hashable]: list of features
+
+        Raises:
+            DatasetValidationError: if datasets do not share same features;
+        """
         if Dataset.datasets_share_features(datasets) is False:
-            raise DatasetValidationError(
-                'Check requires Datasets to share the same features'
-            )
+            raise DatasetValidationError('Check requires Datasets to share the same features')
         return datasets[0].features
 
-    @classmethod
-    def _datasets_share_categorical_features(cls, datasets: List['Dataset']) -> List[Hashable]:
-        """TODO: add comments"""
+    @staticmethod
+    def _datasets_share_categorical_features(datasets: List['Dataset']) -> List[Hashable]:
+        """Verify that all provided datasets share same categorical features, otherwise raise exception.
+
+        Args:
+            datasets (List[Dataset]): list of datasets to validate
+
+        Returns:
+            List[Hashable]: list of categorical features
+
+        Raises:
+            DatasetValidationError: if datasets do not share same categorical features;
+        """
         if Dataset.datasets_share_categorical_features(datasets) is False:
             raise DatasetValidationError(
                 'Check requires datasets to share '
@@ -359,23 +378,53 @@ class BaseCheck(metaclass=abc.ABCMeta):
             )
         return datasets[0].cat_features
 
-    @classmethod
-    def _datasets_share_label(cls, datasets: List['Dataset']) -> Hashable:
-        """TODO: add coments"""
+    @staticmethod
+    def _datasets_share_label(datasets: List['Dataset']) -> Hashable:
+        """Verify that all provided datasets share same label, otherwise raise exception.
+
+        Args:
+            datasets (List[Dataset]): list of datasets to validate
+
+        Returns:
+            Hashable: name of the label column
+
+        Raises:
+            DatasetValidationError: if datasets do not share same label;
+        """
         if Dataset.datasets_share_label(datasets) is False:
             raise DatasetValidationError('Check requires Datasets to have and to share the same label')
         return cast(Hashable, datasets[0].label_name)
 
-    @classmethod
-    def _dataset_has_label(cls, dataset: Dataset) -> pd.Series:
-        """TODO: add comments"""
+    @staticmethod
+    def _dataset_has_label(dataset: Dataset) -> pd.Series:
+        """Verify that provided dataset has label, otherwise raise exception.
+
+        Args:
+            datasets (Dataset): dataset to validate
+
+        Returns:
+            pandas.Series: label column
+
+        Raises:
+            DatasetValidationError: if dataset does not have label;
+        """
         if dataset.label_col is None:
             raise DatasetValidationError('Check is irrelevant for Datasets without label')
         return dataset.label_col
 
-    @classmethod
-    def _dataset_has_features(cls, dataset: Dataset) -> pd.DataFrame:
-        """TODO: add comments"""
+    @staticmethod
+    def _dataset_has_features(dataset: Dataset) -> pd.DataFrame:
+        """Verify that provided dataset has features, otherwise raise exception.
+
+        Args:
+            datasets (Dataset): dataset to validate
+
+        Returns:
+            pandas.DataFrame: features dataframe
+
+        Raises:
+            DatasetValidationError: if dataset does not have features;
+        """
         if (
             dataset.features_columns is None
             or len(dataset.features_columns.columns) == 0
@@ -383,16 +432,36 @@ class BaseCheck(metaclass=abc.ABCMeta):
             raise DatasetValidationError('Check is irrelevant for Datasets without features')
         return dataset.features_columns
 
-    @classmethod
-    def _dataset_has_date(cls, dataset: Dataset) -> pd.Series:
-        """TODO: add comments"""
+    @staticmethod
+    def _dataset_has_date(dataset: Dataset) -> pd.Series:
+        """Verify that provided dataset has date column, otherwise raise exception.
+
+        Args:
+            datasets (Dataset): dataset to validate
+
+        Returns:
+            pandas.Series: date column
+
+        Raises:
+            DatasetValidationError: if dataset does not have date column;
+        """
         if dataset.datetime_col is None:
             raise DatasetValidationError('Check is irrelevant for Datasets without datetime column')
         return dataset.datetime_col
 
-    @classmethod
-    def _dataset_has_index(cls, dataset: Dataset) -> pd.Series:
-        """TODO: add comments"""
+    @staticmethod
+    def _dataset_has_index(dataset: Dataset) -> pd.Series:
+        """Verify that provided dataset has index, otherwise raise exception.
+
+        Args:
+            datasets (Dataset): dataset to validate
+
+        Returns:
+            pandas.Series: dataset index column
+
+        Raises:
+            DatasetValidationError: if dataset does not have index;
+        """
         if dataset.index_col is None:
             raise DatasetValidationError('Check is irrelevant for Datasets without an index')
         return dataset.index_col

@@ -84,7 +84,7 @@ class UnusedFeatures(TrainTestBaseCheck):
             dataset = Dataset.ensure_not_empty_dataset(train_dataset)
         else:
             raise DeepchecksValueError('Either train_dataset or test_dataset must be supplied')
-        
+
         self._dataset_has_label(dataset)
         validate_model(dataset, model)
 
@@ -174,11 +174,11 @@ class UnusedFeatures(TrainTestBaseCheck):
             'used features': feature_df.index[:(last_important_feature_index + 1)].values.tolist(),
             'unused features': {
                 'high variance': (
-                    [] if unviable_feature_df.empty 
+                    [] if unviable_feature_df.empty
                     else unviable_feature_df.index[:last_variable_feature_index].values.tolist()
                 ),
                 'low variance': (
-                    [] if unviable_feature_df.empty 
+                    [] if unviable_feature_df.empty
                     else unviable_feature_df.index[last_variable_feature_index:].values.tolist()
                 )
             }}

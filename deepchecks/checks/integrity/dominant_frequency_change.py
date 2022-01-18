@@ -70,7 +70,7 @@ class DominantFrequencyChange(TrainTestBaseCheck):
         train_dataset = Dataset.ensure_not_empty_dataset(train_dataset, cast=True)
         self._datasets_share_features([test_dataset, train_dataset])
         feature_importances = calculate_feature_importance_or_none(model, test_dataset)
-        
+
         return self._dominant_frequency_change(
             train_dataset=train_dataset,
             test_dataset=test_dataset,

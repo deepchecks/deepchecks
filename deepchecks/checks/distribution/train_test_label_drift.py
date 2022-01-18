@@ -81,7 +81,7 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
         """
         train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
         test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
-        
+
         train_label = self._dataset_has_label(train_dataset)
         test_label = self._dataset_has_label(test_dataset)
 

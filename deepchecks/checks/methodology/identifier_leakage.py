@@ -18,7 +18,7 @@ import deepchecks.ppscore as pps
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck, ConditionResult
 from deepchecks.utils.strings import format_number
 from deepchecks.errors import DatasetValidationError
-import plotly.express as px
+
 
 __all__ = ['IdentifierLeakage']
 
@@ -54,7 +54,7 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
     def _identifier_leakage(self, dataset: Union[pd.DataFrame, Dataset], ppscore_params=None) -> CheckResult:
         dataset = Dataset.ensure_not_empty_dataset(dataset, cast=True)
         self._dataset_has_label(dataset)
-        
+
         ppscore_params = ppscore_params or {}
         relevant_columns = list(filter(None, [dataset.datetime_name, dataset.index_name, dataset.label_name]))
 

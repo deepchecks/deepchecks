@@ -201,7 +201,7 @@ def task_type_check(
         TaskType enum corresponding to the model and dataset
     """
     validation.model_type_validation(model)
-    
+
     if dataset.label_col is None:
         raise errors.DatasetValidationError('Expected dataset with label')
 

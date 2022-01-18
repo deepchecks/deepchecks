@@ -12,7 +12,6 @@
 import typing as t
 import pandas as pd
 from deepchecks import Dataset, CheckResult, ConditionResult, TrainTestBaseCheck
-from deepchecks.utils.validation import ensure_dataframe_type
 
 
 __all__ = ['DatasetsSizeComparison']

@@ -22,7 +22,7 @@ from deepchecks.utils.metrics import initialize_single_scorer, get_scorer_single
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
 from deepchecks.utils.model import get_model_of_pipeline
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError, ModelValidationError
 
 
 __all__ = ['BoostingOverfit']
@@ -61,7 +61,7 @@ class PartialBoostingModel:
         elif self.model_class == 'CatBoostClassifier':
             return self.model.predict_proba(x, ntree_end=self.step)
         else:
-            raise DeepchecksValueError(f'Unsupported model of type: {self.model_class}')
+            raise ModelValidationError(f'Unsupported model of type: {self.model_class}')
 
     def predict(self, x):
         if self.model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
@@ -74,7 +74,7 @@ class PartialBoostingModel:
         elif self.model_class in ['CatBoostClassifier', 'CatBoostRegressor']:
             return self.model.predict(x, ntree_end=self.step)
         else:
-            raise DeepchecksValueError(f'Unsupported model of type: {self.model_class}')
+            raise ModelValidationError(f'Unsupported model of type: {self.model_class}')
 
     @classmethod
     def n_estimators(cls, model):
@@ -90,7 +90,7 @@ class PartialBoostingModel:
         elif model_class in ['CatBoostClassifier', 'CatBoostRegressor']:
             return model.tree_count_
         else:
-            raise DeepchecksValueError(f'Unsupported model of type: {model_class}')
+            raise ModelValidationError(f'Unsupported model of type: {model_class}')
 
 
 class BoostingOverfit(TrainTestBaseCheck):
@@ -128,16 +128,16 @@ class BoostingOverfit(TrainTestBaseCheck):
         # Validate params
         if not isinstance(self.num_steps, int) or self.num_steps < 2:
             raise DeepchecksValueError('num_steps must be an integer larger than 1')
-        
+
         train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
         test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
-        
-        train_label = self._dataset_has_label(train_dataset)
-        test_label = self._dataset_has_label(test_dataset)
-        
+
+        self._dataset_has_label(train_dataset)
+        self._dataset_has_label(test_dataset)
+
         self._datasets_share_features([train_dataset, test_dataset])
         self._datasets_share_label([train_dataset, test_dataset])
-        
+
         validate_model(train_dataset, model)
 
         # Get default scorer

@@ -713,53 +713,6 @@ class Dataset:
             columns[column] = value
         return columns
 
-    # Validations:
-
-    # TODO: fix comments
-
-    # def validate_label(self):
-    #     """
-    #     Throws error if dataset does not have a label.
-
-    #     Raises:
-    #         DeepchecksValueError if dataset does not have a label
-
-    #     """
-    #     if self.label_name is None:
-    #         raise DeepchecksValueError('Check requires dataset to have a label column')
-
-    # def validate_features(self):
-    #     """
-    #     Throws error if dataset does not have a features columns.
-
-    #     Raises:
-    #         DeepchecksValueError: if dataset does not have features columns.
-    #     """
-    #     if not self._features:
-    #         raise DeepchecksValueError('Check requires dataset to have features columns!')
-
-    # def validate_date(self):
-    #     """
-    #     Throws error if dataset does not have a datetime column.
-
-    #     Raises:
-    #         DeepchecksValueError if dataset does not have a datetime column
-
-    #     """
-    #     if self.datetime_col is None:
-    #         raise DeepchecksValueError('Check requires dataset to have a datetime column')
-
-    # def validate_index(self):
-    #     """
-    #     Throws error if dataset does not have an index column / does not use dataframe index as index.
-
-    #     Raises:
-    #         DeepchecksValueError if dataset does not have an index
-
-    #     """
-    #     if self.index_col is None:
-    #         raise DeepchecksValueError('Check requires dataset to have an index column')
-
     def select(
             self: TDataset,
             columns: t.Union[Hashable, t.List[Hashable], None] = None,
@@ -785,19 +738,36 @@ class Dataset:
 
     @classmethod
     def ensure_not_empty_dataset(cls, obj: t.Any, *, cast: bool = False) -> 'Dataset':
-        """TODO: add comments"""
+        """Verify Dataset or transform to Dataset.
+
+        Function verifies that provided value is a non-empty instance of Dataset,
+        otherwise raises an exception, but if the 'cast' flag is set to True it will
+        also try to transform provided value to the Dataset instance.
+
+        Args:
+            obj (Any):
+                value to verify
+            cast (bool, default False):
+                to try to transform the value or not
+
+        Raises:
+            DeepchecksValueError:
+                if the provided value is not a Dataset instance;
+                if the provided value is empty Dataset instance;
+                if the provided value cannot be transformed into Dataset instance;
+        """
         if isinstance(obj, Dataset):
             if len(obj.data) == 0:
                 raise DeepchecksValueError('dataset cannot be empty')
             return obj
-        
+
         elif cast and isinstance(obj, pd.DataFrame):
             if len(obj) == 0:
                 raise DeepchecksValueError('dataframe cannot be empty')
             return Dataset(obj)
-        
+
         # TODO: should we add case for the numpy arrays?
-        
+
         else:
             value_type = type(obj).__name__
             if cast:
@@ -810,11 +780,10 @@ class Dataset:
                     'non-empty Dataset instance was expected, '
                     f'instead got {value_type}'
                 )
-    
+
     @classmethod
     def datasets_share_features(cls, datasets: t.List['Dataset']) -> bool:
-        """
-        Verify that all provided datasets share same features.
+        """Verify that all provided datasets share same features.
 
         Args:
             datasets (List[Dataset]): list of datasets to validate
@@ -824,11 +793,11 @@ class Dataset:
 
         Raises:
             AssertionError:
-                'datasets' parameter is not instance of a list;
-                'datasets' is empty or contains only one dataset;
+                'datasets' parameter is not a list;
+                'datasets' contains less than one dataset;
         """
-        assert isinstance(datasets, list)
-        assert len(datasets) > 1
+        assert isinstance(datasets, list), "'datasets' must be a list"
+        assert len(datasets) > 1, "'datasets' must contains at least two items"
 
         # TODO: should not we also check features dtypes?
 
@@ -839,11 +808,10 @@ class Dataset:
                 return False
 
         return True
-    
+
     @classmethod
     def datasets_share_categorical_features(cls, datasets: t.List['Dataset']) -> bool:
-        """
-        Verify that all provided datasets share same categorical features.
+        """Verify that all provided datasets share same categorical features.
 
         Args:
             datasets (List[Dataset]): list of datasets to validate
@@ -853,148 +821,49 @@ class Dataset:
 
         Raises:
             AssertionError:
-                'datasets' parameter is not instance of a list;
-                'datasets' is empty or contains only one dataset;
+                'datasets' parameter is not a list;
+                'datasets' contains less than one dataset;
         """
-        assert isinstance(datasets, list)
-        assert len(datasets) > 1
+        assert isinstance(datasets, list), "'datasets' must be a list"
+        assert len(datasets) > 1, "'datasets' must contains at least two items"
 
         # TODO: should not we also check features dtypes?
 
         first = set(datasets[0].cat_features)
 
-        if len(first) == 0:
-            return False
-
         for ds in datasets:
             features = set(ds.cat_features)
-            if len(features) == 0 or first != features:
+            if first != features:
                 return False
 
         return True
-    
+
     @classmethod
     def datasets_share_label(cls, datasets: t.List['Dataset']) -> bool:
-        """TODO: add comments"""
-        assert isinstance(datasets, list)
-        assert len(datasets) > 1
+        """Verify that all provided datasets share same label column.
+
+        Args:
+            datasets (List[Dataset]): list of datasets to validate
+
+        Returns:
+            bool: True if all datasets share same categorical features, otherwise False
+
+        Raises:
+            AssertionError:
+                'datasets' parameter is not a list;
+                'datasets' contains less than one dataset;
+        """
+        assert isinstance(datasets, list), "'datasets' must be a list"
+        assert len(datasets) > 1, "'datasets' must contains at least two items"
 
         # TODO: should not we also check label dtypes?
         label_name = datasets[0].label_name
 
         if label_name is None:
             return False
-        
+
         for ds in datasets:
             if ds.label_name != label_name:
                 return False
 
         return True
-
-
-    # def validate_shared_features(self, other) -> t.List[Hashable]:
-    #     """
-    #     Return the list of shared features if both datasets have the same feature column names. Else, raise error.
-
-    #     Args:
-    #         other: Expected to be Dataset type. dataset to compare features list
-
-    #     Returns:
-    #         List[Hashable] - list of shared features names
-
-    #     Raises:
-    #         DeepchecksValueError if datasets don't have the same features
-
-    #     """
-    #     Dataset.validate_dataset(other)
-    #     if sorted(self.features) == sorted(other.features):
-    #         return list(self.features)
-    #     else:
-    #         raise DeepchecksValueError('Check requires datasets to share the same features')
-
-    # def validate_shared_categorical_features(self, other) -> t.List[Hashable]:
-    #     """
-    #     Return list of categorical features if both datasets have the same categorical features. Else, raise error.
-
-    #     Args:
-    #         other: Expected to be Dataset type. dataset to compare features list
-
-    #     Returns:
-    #         List[Hashable] - list of shared features names
-
-    #     Raises:
-    #         DeepchecksValueError if datasets don't have the same features
-    #     """
-    #     Dataset.validate_dataset(other)
-    #     if sorted(self.cat_features) == sorted(other.cat_features):
-    #         return list(self.cat_features)
-    #     else:
-    #         raise DeepchecksValueError('Check requires datasets to share '
-    #                                    'the same categorical features. Possible reason is that some columns were'
-    #                                    'inferred incorrectly as categorical features. To fix this, manually edit the '
-    #                                    'categorical features using Dataset(cat_features=<list_of_features>')
-
-    # def validate_shared_label(self, other) -> Hashable:
-    #     """Verify presence of shared labels.
-
-    #     Return the list of shared features if both datasets have the same
-    #     feature column names, else, raise error.
-
-    #     Args:
-    #         other (Dataset): Expected to be Dataset type. dataset to compare
-
-    #     Returns:
-    #         Hashable: name of the label column
-
-    #     Raises:
-    #         DeepchecksValueError if datasets don't have the same label
-    #     """
-    #     Dataset.validate_dataset(other)
-    #     if (
-    #         self.label_name is not None and other.label_name is not None
-    #         and self.label_name == other.label_name
-    #     ):
-    #         return t.cast(Hashable, self.label_name)
-    #     else:
-    #         raise DeepchecksValueError('Check requires datasets to share the same label')
-
-    # @classmethod
-    # def validate_dataset_or_dataframe(cls, obj) -> 'Dataset':
-    #     """
-    #     Raise error if object is not pandas DataFrame or deepcheck Dataset and returns the object as deepchecks Dataset.
-
-    #     Args:
-    #         obj: object to validate as dataset
-
-    #     Returns:
-    #         (Dataset): object converted to deepchecks dataset
-    #     """
-    #     if isinstance(obj, Dataset):
-    #         if len(obj.data) == 0:
-    #             raise DeepchecksValueError('dataset cannot be empty')
-    #         return obj
-    #     elif isinstance(obj, pd.DataFrame):
-    #         if len(obj) == 0:
-    #             raise DeepchecksValueError('dataset cannot be empty')
-    #         return Dataset(obj)
-    #     else:
-    #         raise DeepchecksValueError('dataset must be of type DataFrame or Dataset. instead got: '
-    #                                    f'{type(obj).__name__}')
-
-    # @classmethod
-    # def validate_dataset(cls, obj) -> 'Dataset':
-    #     """Throws error if object is not deepchecks Dataset and returns the object if deepchecks Dataset.
-
-    #     Args:
-    #         obj: object to validate as dataset
-
-    #     Returns:
-    #         (Dataset): object that is deepchecks dataset
-    #     """
-    #     if not isinstance(obj, Dataset):
-    #         raise DeepchecksValueError('Check requires dataset to be of type Dataset. instead got: '
-    #                                    f'{type(obj).__name__}')
-    #     if len(obj.data) == 0:
-    #         raise DeepchecksValueError('Check requires a non-empty dataset')
-
-    #     return obj

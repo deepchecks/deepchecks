@@ -12,8 +12,8 @@
 
 
 __all__ = [
-    'DeepchecksValueError', 
-    'DeepchecksNotSupportedError', 
+    'DeepchecksValueError',
+    'DeepchecksNotSupportedError',
     'DeepchecksProcessError',
     'NumberOfFeaturesLimitError',
     'DatasetValidationError',
@@ -60,13 +60,15 @@ class DeepchecksTimeoutError(DeepchecksBaseError):
 
 
 class ValidationError(DeepchecksBaseError):
-    """TODO: add comments"""
+    """Represents more specific case of the ValueError (DeepchecksValueError)."""
 
     pass
 
+
 class DatasetValidationError(DeepchecksBaseError):
-    """
-    Represents a situation when a routine (like check instance, utility function, etc) 
+    """Represents unappropriate Dataset instance.
+
+    Should be used in a situation when a routine (like check instance, utility function, etc)
     expected and received a dataset instance that did not meet routine requirements.
     """
 
@@ -74,8 +76,9 @@ class DatasetValidationError(DeepchecksBaseError):
 
 
 class ModelValidationError(DeepchecksBaseError):
-    """
-    Represents a situation when a routine (like check instance, utility function, etc) 
+    """Represents unappropriate model instance.
+
+    Should be used in a situation when a routine (like check instance, utility function, etc)
     expected and received a dataset instance that did not meet routine requirements.
     """
 

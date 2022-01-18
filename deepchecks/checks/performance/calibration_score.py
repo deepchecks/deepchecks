@@ -42,7 +42,7 @@ class CalibrationScore(SingleDatasetBaseCheck):
         dataset = Dataset.ensure_not_empty_dataset(dataset)
         ds_x = self._dataset_has_features(dataset)
         ds_y = self._dataset_has_label(dataset)
-        
+
         task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
 
         # Expect predict_proba to return in order of the sorted classes.

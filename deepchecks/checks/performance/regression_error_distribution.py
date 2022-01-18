@@ -61,7 +61,7 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         dataset = Dataset.ensure_not_empty_dataset(dataset)
         y_test = self._dataset_has_label(dataset)
         x_test = self._dataset_has_features(dataset)
-        
+
         task_type_validation(model, dataset, [ModelType.REGRESSION])
         y_pred = model.predict(x_test)
         y_pred = pd.Series(y_pred, name='predicted ' + str(dataset.label_name), index=y_test.index)

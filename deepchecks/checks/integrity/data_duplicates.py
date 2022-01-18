@@ -12,7 +12,6 @@
 from typing import Union, List
 
 import numpy as np
-import pandas as pd
 
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult, ConditionCategory

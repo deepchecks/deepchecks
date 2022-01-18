@@ -66,12 +66,12 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         dataset = Dataset.ensure_not_empty_dataset(dataset)
         self._dataset_has_label(dataset)
         self._dataset_has_features(dataset)
-        
+
         ppscore_params = self.ppscore_params or {}
         features_list = t.cast(t.List[Hashable], dataset.features)
         label_name = t.cast(Hashable, dataset.label_name)
         relevant_columns = features_list + [label_name]
-        
+
         df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name, random_seed=42,
                                 **ppscore_params)
         df_pps = df_pps.set_index('x', drop=True)

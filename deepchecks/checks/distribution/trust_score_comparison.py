@@ -80,7 +80,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
         # Baseline must have label so we must get it as Dataset.
         train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
         train_label = self._dataset_has_label(train_dataset)
-        
+
         features_list = self._datasets_share_features([train_dataset, test_dataset])
         label_name = self._datasets_share_label([train_dataset, test_dataset])
 
@@ -88,7 +88,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
             msg = ('Number of samples in test dataset have not passed the minimum. you can change '
                    'minimum samples needed to run with parameter "min_test_samples"')
             raise DeepchecksValueError(msg)
-        
+
         if model_type not in {ModelType.BINARY, ModelType.MULTICLASS}:
             raise ModelValidationError(
                 'Check is relevant only for the classification models, but'

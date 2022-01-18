@@ -122,7 +122,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
         train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
         test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
         self._datasets_share_label([train_dataset, test_dataset])
-        
+
         validate_model(test_dataset, model)
 
         # If user defined scorers used them, else use a single scorer
