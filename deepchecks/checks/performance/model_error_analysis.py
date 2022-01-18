@@ -172,7 +172,8 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
             raise DeepchecksProcessError(f'Unable to train meaningful error model '
                                          f'(r^2 score: {format_number(error_model_score)})')
 
-        error_fi = calculate_feature_importance(error_model, test_dataset)
+        error_fi, importance_type = calculate_feature_importance(error_model,
+                                                                 test_dataset)
         error_fi.index = new_feature_order
         error_fi.sort_values(ascending=False, inplace=True)
 
@@ -280,9 +281,9 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
 
             display[-1].update_layout(width=1200, height=400)
 
-        headnote = """<span>
+        headnote = f"""<span>
             The following graphs show the distribution of error for top features that are most useful for distinguishing
-            high error samples from low error samples.
+            high error samples from low error samples. Top features are calculated using `{importance_type}`.
         </span>"""
         display = [headnote] + display if display else None
 
