@@ -147,15 +147,15 @@ class TrustScoreComparison(TrainTestBaseCheck):
         top_k = test_data_sample.head(self.n_to_show)
         bottom_k = test_data_sample.tail(self.n_to_show)
 
-        headnote = r"""<span> Trust score roughly measures the following quantity:<br><br> <p> $$Trust Score = \frac{
-        \textrm{Distance from the sample to the nearest training samples belonging to a class different than the
-        predicted class}}{\textrm{Distance from the sample to the nearest training samples belonging to the predicted
-        class}}$$ </p> So that higher values represent samples that are "close" to training examples with the same
-        label as sample prediction, and lower values represent samples that are "far" from training samples with
-        labels matching their prediction. For more information, please refer to the original paper at <a
-        href="https://arxiv.org/abs/1805.11783">arxiv 1805.11783</a>, or see the version of the <a
-        href="https://proceedings.neurips.cc/paper/2018/file/7180cffd6a8e829dacfc2a31b3f72ece-Paper.pdf">paper
-        presented at NeurIPS in 2018</a>.</span>"""
+        headnote = r"""<span> Trust score roughly measures the following quantity:<br><br> <p> $$Trust Score = \frac{ 
+        \textrm{Distance from the sample to the nearest training samples belonging to a class different than the 
+        predicted class}}{\textrm{Distance from the sample to the nearest training samples belonging to the predicted 
+        class}}$$ </p> So that higher values represent samples that are "close" to training examples with the same 
+        label as sample prediction, and lower values represent samples that are "far" from training samples with 
+        labels matching their prediction. For more information, please refer to the original paper at <a 
+        href="https://arxiv.org/abs/1805.11783"  target="_blank">arxiv 1805.11783</a>, or see the version of the <a 
+        href="https://proceedings.neurips.cc/paper/2018/file/7180cffd6a8e829dacfc2a31b3f72ece-Paper.pdf"
+        target="_blank">paper presented at NeurIPS in 2018</a>.</span>"""
 
         footnote = """<span style="font-size:0.8em"><i>
             The test trust score distribution should be quite similar to the train's. If it is skewed to the left, the
