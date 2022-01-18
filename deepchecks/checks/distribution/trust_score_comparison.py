@@ -147,7 +147,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
         top_k = test_data_sample.head(self.n_to_show)
         bottom_k = test_data_sample.tail(self.n_to_show)
 
-        headnote = r"""<span> Trust score roughly measures the following quantity:<br><br> <p> $$Trust Score = \frac{ 
+        headnote = r"""<span> Trust score roughly measures the following quantity:<br><br> <p> $$Trust Score = \frac{
         \textrm{Distance from the sample to the nearest training samples belonging to a class different than the 
         predicted class}}{\textrm{Distance from the sample to the nearest training samples belonging to the predicted 
         class}}$$ </p> So that higher values represent samples that are "close" to training examples with the same 
