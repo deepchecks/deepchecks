@@ -28,7 +28,7 @@ Example of a simple model:
 Classification
 --------------
 
-For classification models, we require both the  the ``predict`` function and the ``predict_proba`` function.
+For classification models, we require both the  the ``predict`` and the ``predict_proba`` functionד.
 They both should expect an |array-like| of shape ``(n_samples, n_features)``, but ``predict`` is
 is expected to return an `ndarray` of shape ``(n_samples,)``, a vector containing the predicted class label for each sample, and ``predict_proba``
 is expected to return an `ndarray` of shape ``(n_samples,n_classes)``, an array containing the predicted probability of each class per sample.
@@ -36,9 +36,9 @@ is expected to return an `ndarray` of shape ``(n_samples,n_classes)``, an array 
 
 
 >>> class simple_classification_model:
-...     def predict(X: pd.DataFrame) -> pd.Series:
+...     def predict(X: np.ndarray) -> np.ndarray:
 ...         ...
-...     def predict_proba(X: pd.DataFrame) -> pd.Series:
+...     def predict_proba(X: pd.DataFrame) -> np.ndarray:
 ...         ...
 
 
@@ -49,7 +49,8 @@ Feature importance
 -------------------
 
 Deepchecks can calculate feature importance using |permutation importance|.
-But it can support builtin feature importance property: ``feature_importances_`` or ``coef_`` for linear model:
+But it can support builtin feature importance property: ``feature_importances_`` or ``coef_`` for linear model.
+
 
 >>> class simple_importance_model:
 ...     def predict(X: pd.DataFrame) -> pd.Series:
