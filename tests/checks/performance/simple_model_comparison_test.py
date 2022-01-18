@@ -12,11 +12,14 @@
 from sklearn.metrics import make_scorer, recall_score, f1_score
 
 from deepchecks.checks.performance import SimpleModelComparison
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError
 from deepchecks.utils.metrics import DEFAULT_SINGLE_SCORER, ModelType, DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG
 from tests.checks.utils import equal_condition_result
 
-from hamcrest import assert_that, calling, raises, close_to, has_items, has_entries, has_entry, is_, contains_exactly
+from hamcrest import (
+    assert_that, calling, raises, close_to, 
+    has_items, has_entries, has_entry, is_
+)
 
 
 def test_dataset_wrong_input():
@@ -24,7 +27,7 @@ def test_dataset_wrong_input():
     # Act & Assert
     assert_that(calling(SimpleModelComparison().run).with_args(bad_dataset, bad_dataset, None),
                 raises(DeepchecksValueError,
-                       'Check requires dataset to be of type Dataset. instead got: str'))
+                       'non-empty Dataset instance was expected, instead got str'))
 
 
 def test_classification_random(iris_split_dataset_and_model):

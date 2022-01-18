@@ -17,7 +17,7 @@ from numbers import Number
 import numpy as np
 import pandas as pd
 from sklearn.metrics import get_scorer, make_scorer, f1_score, precision_score, recall_score
-from sklearn.base import ClassifierMixin, RegressorMixin, BaseEstimator
+from sklearn.base import ClassifierMixin, BaseEstimator
 
 
 from deepchecks import base  # pylint: disable=unused-import; it is used for type annotations
@@ -42,7 +42,6 @@ __all__ = [
     'DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG',
     'initialize_multi_scorers',
     'get_scorer_single',
-    'task_type_validation',
     'get_gain'
 ]
 
@@ -201,7 +200,9 @@ def task_type_check(
         TaskType enum corresponding to the model and dataset
     """
     validation.model_type_validation(model)
-    dataset.validate_label()
+
+    if dataset.label_col is None:
+        raise errors.DatasetValidationError('Expected dataset with label')
 
     if isinstance(model, BaseEstimator):
         if not hasattr(model, 'predict_proba'):
@@ -234,30 +235,6 @@ def task_type_check(
         )
     else:
         return ModelType.REGRESSION
-
-
-def task_type_validation(
-    model: t.Union[ClassifierMixin, RegressorMixin],
-    dataset: 'base.Dataset',
-    expected_types: t.Sequence[ModelType]
-):
-    """Validate task type (regression, binary, multiclass) according to model object and label column.
-
-    Args:
-        model (Union[ClassifierMixin, RegressorMixin]): Model object - used to check if it has predict_proba()
-        dataset (Dataset): dataset - used to count the number of unique labels
-        expected_types (List[ModelType]): allowed types of model
-        check_name (str): check name to print in error
-
-    Raises:
-            DeepchecksValueError if model type doesn't match one of the expected_types
-    """
-    task_type = task_type_check(model, dataset)
-    if task_type not in expected_types:
-        raise errors.DeepchecksValueError(
-            f'Expected model to be a type from {[e.value for e in expected_types]}, '
-            f'but received model of type: {task_type.value}'
-        )
 
 
 def get_scorers_list(

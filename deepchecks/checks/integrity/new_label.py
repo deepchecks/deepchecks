@@ -9,15 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """The data_sample_leakage_report check module."""
-from typing import Dict
+from typing import Dict, Any
+import pandas as pd
 
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.errors import DeepchecksValueError
-from deepchecks.utils.metrics import task_type_validation, ModelType
+from deepchecks.errors import ModelValidationError
+from deepchecks.utils.metrics import ModelType
 from deepchecks.utils.strings import format_percent
-
-import pandas as pd
 
 pd.options.mode.chained_assignment = None
 
@@ -47,19 +46,18 @@ class NewLabelTrainTest(TrainTestBaseCheck):
                                           test_dataset=test_dataset,
                                           model=model)
 
-    def _new_label_train_test(self, train_dataset: Dataset, test_dataset: Dataset, model: any = None):
-        test_dataset = Dataset.validate_dataset(test_dataset)
-        train_dataset = Dataset.validate_dataset(train_dataset)
-        test_dataset.validate_label()
-        train_dataset.validate_label()
-        test_dataset.validate_shared_label(train_dataset)
+    def _new_label_train_test(self, train_dataset: Dataset, test_dataset: Dataset, model: Any = None):
+        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
+        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
+
+        test_label = self._dataset_has_label(test_dataset)
+        train_label = self._dataset_has_label(train_dataset)
+        label_column = self._datasets_share_label([test_dataset, train_dataset])
 
         if model:
-            task_type_validation(model, train_dataset, [ModelType.MULTICLASS, ModelType.BINARY])
+            self._verify_model_type(model, train_dataset, [ModelType.MULTICLASS, ModelType.BINARY])
         elif train_dataset.label_type == 'regression_label':
-            raise DeepchecksValueError('Task type cannot be regression')
-
-        label_column = train_dataset.validate_shared_label(test_dataset)
+            raise ModelValidationError('Check is irrelevant for for the regression tasks')
 
         n_test_samples = test_dataset.n_samples
 

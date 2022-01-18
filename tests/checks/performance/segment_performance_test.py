@@ -11,22 +11,25 @@
 """Tests for segment performance check."""
 from hamcrest import assert_that, has_entries, close_to, has_property, equal_to, calling, raises
 
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError
 from deepchecks.checks.performance.segment_performance import SegmentPerformance
 
 
 def test_dataset_wrong_input():
     bad_dataset = 'wrong_input'
     # Act & Assert
-    assert_that(calling(SegmentPerformance().run).with_args(bad_dataset, None),
-                raises(DeepchecksValueError,
-                       'Check requires dataset to be of type Dataset. instead got: str'))
+    assert_that(
+        calling(SegmentPerformance().run).with_args(bad_dataset, None),
+        raises(DeepchecksValueError, 'non-empty Dataset instance was expected, instead got str')
+    )
 
 
 def test_dataset_no_label(iris_dataset, iris_adaboost):
     # Assert
-    assert_that(calling(SegmentPerformance().run).with_args(iris_dataset, iris_adaboost),
-                raises(DeepchecksValueError, 'Check requires dataset to have a label column'))
+    assert_that(
+        calling(SegmentPerformance().run).with_args(iris_dataset, iris_adaboost),
+        raises(DatasetValidationError, 'Check is irrelevant for Datasets without label')
+    )
 
 
 def test_segment_performance_diabetes(diabetes_split_dataset_and_model):
