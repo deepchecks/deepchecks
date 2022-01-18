@@ -24,3 +24,4 @@ matplotlib>=3.2.2
 
 # VISION
 pytorch-ignite
+opencv-python
