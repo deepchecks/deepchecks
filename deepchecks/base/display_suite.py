@@ -269,7 +269,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
             Each check may contain conditions (which will result in pass / fail / warning, represented by {icons})
             as well as other outputs such as plots or tables.<br>
             Suites, checks and conditions can all be modified (see the
-            <a href={suite_creation_example_link}>Create a Custom Suite</a> tutorial).
+            <a href={suite_creation_example_link} target="_blank">Create a Custom Suite</a> tutorial).
         </p>
         """,
         raw=True
