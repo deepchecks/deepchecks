@@ -133,7 +133,13 @@ def feature_distribution_traces(train_column,
             min(np.quantile(train_column, quantile_cut), np.quantile(test_column, quantile_cut)),
             max(np.quantile(train_column, 1 - quantile_cut), np.quantile(test_column, 1 - quantile_cut))
         )
-        xs = np.linspace(x_range[0], x_range[1], 40)
+        # Heuristically take points on x-axis to show on the plot
+        # The intuition is the graph will look "smooth" wherever we will zoom it
+        xs = sorted(np.concatenate((
+            np.linspace(x_range[0], x_range[1], 50),
+            np.quantile(train_column, q=np.arange(0.02, 1, 0.02)),
+            np.quantile(test_column, q=np.arange(0.02, 1, 0.02))
+        )))
 
         traces = [go.Scatter(x=xs, y=get_density(train_column, xs), fill='tozeroy', name='Train Dataset',
                              line_color=colors['Train']),
