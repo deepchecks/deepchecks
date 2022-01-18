@@ -64,7 +64,7 @@ def calculate_feature_importance_or_none(
     dataset: t.Union['base.Dataset', pd.DataFrame],
     force_permutation: bool = False,
     permutation_kwargs: t.Optional[t.Dict[str, t.Any]] = None,
-    return_calulation_type: bool = False
+    return_calculation_type: bool = False
 ) -> t.Union[t.Optional[pd.Series], t.Tuple[t.Optional[pd.Series], str]]:
     """Calculate features effect on the label or None if the input is incorrect.
 
@@ -79,6 +79,7 @@ def calculate_feature_importance_or_none(
             kwargs for permutation importance calculation
         return_calculation_type (bool,default False):
             weather or not to return the type of calculation used
+            (types: `permutation_importance`,`feature_importances_`,`coef_`)
 
     Returns:
         Optional[pandas.Series]:
@@ -96,7 +97,7 @@ def calculate_feature_importance_or_none(
             permutation_kwargs=permutation_kwargs,
         )
 
-        return (fi, calculation_type) if return_calulation_type else fi
+        return (fi, calculation_type) if return_calculation_type else fi
     except (errors.DeepchecksValueError, errors.NumberOfFeaturesLimitError, errors.DeepchecksTimeoutError) as error:
         # DeepchecksValueError:
         #     if model validation failed;
@@ -104,7 +105,7 @@ def calculate_feature_importance_or_none(
         # NumberOfFeaturesLimitError:
         #     if the number of features limit were exceeded;
         warn(f'Features importance was not calculated:\n{str(error)}')
-        return (None, None) if return_calulation_type else None
+        return (None, None) if return_calculation_type else None
 
 
 def calculate_feature_importance(
