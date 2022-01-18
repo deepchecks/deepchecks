@@ -23,7 +23,7 @@ and click on  |binder badge|  or on  |colab badge|  to launch it and see it in a
 or see our :doc:`/getting-started/index` to install it locally and continue from there.
 
 .. note:: The package's output is suited for running in any Python environment.
-          Best viewed in Jupyer Notebooks but can be run in any ide and be saved as HTML.
+          The output is best viewed in Jupyter Notebooks (or JupyterLab), but it can also run in any ide and be exported as an HTML report.
 
 When Should You Use Deepchecks?
 ================================

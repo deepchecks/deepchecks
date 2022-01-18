@@ -14,7 +14,7 @@ from sklearn.ensemble import AdaBoostClassifier
 
 from deepchecks import CheckResult, Dataset, ConditionCategory
 from deepchecks.checks import TrustScoreComparison
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import ModelValidationError, DatasetValidationError
 from tests.checks.utils import equal_condition_result
 
 
@@ -114,8 +114,14 @@ def test_sample_size_too_small(iris_split_dataset_and_model):
     train, test, model = iris_split_dataset_and_model
     check = TrustScoreComparison(min_test_samples=500)
 
-    assert_that(calling(check.run).with_args(train, test, model),
-                raises(DeepchecksValueError, 'Number of samples in test dataset have not passed the minimum'))
+    assert_that(
+        calling(check.run).with_args(train, test, model),
+        raises(
+            DatasetValidationError,
+            r'Number of samples in test dataset has not passed the minimum\. '
+            r'You can change the minimum number of samples required for the '
+            r'check to run with the parameter "min_test_samples"')
+    )
 
 
 def test_regression_model_fail(diabetes_split_dataset_and_model):
@@ -123,5 +129,11 @@ def test_regression_model_fail(diabetes_split_dataset_and_model):
     train, test, model = diabetes_split_dataset_and_model
     check = TrustScoreComparison(min_test_samples=50)
 
-    assert_that(calling(check.run).with_args(train, test, model),
-                raises(DeepchecksValueError, 'Check supports only classification'))
+    assert_that(
+        calling(check.run).with_args(train, test, model),
+        raises(
+            ModelValidationError,
+            'Check is relevant only for the classification models, but'
+            'received model of type regression'
+        )
+    )

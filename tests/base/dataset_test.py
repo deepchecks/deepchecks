@@ -10,10 +10,12 @@
 #
 """Contains unit tests for the Dataset class."""
 import typing as t
+import random
 
 import numpy as np
 import pandas as pd
 from sklearn.datasets import load_iris
+from sklearn.datasets import make_classification
 from hamcrest import (
     assert_that, instance_of, equal_to, is_,
     calling, raises, not_none, has_property, all_of, contains_exactly, has_item, has_length
@@ -21,7 +23,7 @@ from hamcrest import (
 
 from deepchecks import Dataset
 from deepchecks.utils.validation import ensure_dataframe_type
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError
 
 
 def assert_dataset(dataset: Dataset, args):
@@ -90,7 +92,7 @@ def test_that_mutable_properties_modification_does_not_affect_dataset_state(iris
             'petal width (cm)'
         ]
     )
-    
+
     features = dataset.features
     cat_features = dataset.cat_features
 
@@ -443,39 +445,6 @@ def test_dataset_no_index_col(iris):
     assert_that(dataset.index_col, is_(None))
 
 
-def test_dataset_validate_label(iris):
-    dataset = Dataset(iris, label='target')
-    dataset.validate_label()
-
-
-def test_dataset_validate_no_label(iris):
-    dataset = Dataset(iris)
-    assert_that(calling(dataset.validate_label),
-                raises(DeepchecksValueError, 'Check requires dataset to have a label column'))
-
-
-def test_dataset_validate_date(iris):
-    dataset = Dataset(iris, datetime_name='target')
-    dataset.validate_date()
-
-
-def test_dataset_validate_no_date(iris):
-    dataset = Dataset(iris)
-    assert_that(calling(dataset.validate_date),
-                raises(DeepchecksValueError, 'Check requires dataset to have a datetime column'))
-
-
-def test_dataset_validate_index(iris):
-    dataset = Dataset(iris, index_name='target')
-    dataset.validate_index()
-
-
-def test_dataset_validate_no_index(iris):
-    dataset = Dataset(iris)
-    assert_that(calling(dataset.validate_index),
-                raises(DeepchecksValueError, 'Check requires dataset to have an index column'))
-
-
 def test_dataset_select_method(iris):
     dataset = Dataset(iris)
     filtered = dataset.select(columns=['target'])
@@ -492,61 +461,6 @@ def test_dataset_select_same_table(iris):
     dataset = Dataset(iris, features=['target'])
     filtered = dataset.select(ignore_columns=['target'])
     assert_that(filtered, instance_of(Dataset))
-
-
-def test_dataset_validate_shared_features(diabetes):
-    train, val = diabetes
-    assert_that(train.validate_shared_features(val), is_(val.features))
-
-
-def test_dataset_validate_shared_features_fail(diabetes, iris_dataset):
-    train = diabetes[0]
-    assert_that(calling(train.validate_shared_features).with_args(iris_dataset),
-                raises(DeepchecksValueError, 'Check requires datasets to share the same features'))
-
-
-def test_dataset_validate_shared_label(diabetes):
-    train, val = diabetes
-    assert_that(train.validate_shared_label(val), is_(val.label_name))
-
-
-def test_dataset_validate_shared_labels_fail(diabetes, iris_dataset):
-    train = diabetes[0]
-    assert_that(calling(train.validate_shared_label).with_args(iris_dataset),
-                raises(DeepchecksValueError, 'Check requires datasets to share the same label'))
-
-
-def test_dataset_shared_categorical_features(diabetes_df, iris):
-    diabetes_dataset = Dataset(diabetes_df)
-    iris_dataset = Dataset(iris)
-    assert_that(calling(diabetes_dataset.validate_shared_categorical_features).with_args(iris_dataset),
-                raises(DeepchecksValueError, 'Check requires datasets to share'
-                                             ' the same categorical features'))
-
-
-def test_validate_dataset_or_dataframe_empty_df(empty_df):
-    assert_that(calling(Dataset.validate_dataset_or_dataframe).with_args(empty_df),
-                raises(DeepchecksValueError, 'dataset cannot be empty'))
-
-
-def test_validate_dataset_or_dataframe_empty_dataset(empty_df):
-    assert_that(calling(Dataset.validate_dataset_or_dataframe).with_args(Dataset(empty_df)),
-                raises(DeepchecksValueError, 'dataset cannot be empty'))
-
-
-def test_validate_dataset_or_dataframe(iris):
-    assert_that(Dataset.validate_dataset_or_dataframe(iris), Dataset(iris))
-
-
-def test_validate_dataset_empty_df(empty_df):
-    assert_that(calling(Dataset.validate_dataset).with_args(Dataset(empty_df)),
-                raises(DeepchecksValueError, 'Check requires a non-empty dataset'))
-
-
-def test_validate_dataset_not_dataset():
-    assert_that(calling(Dataset.validate_dataset).with_args('not_dataset'),
-                raises(DeepchecksValueError, 'Check requires dataset to be of type Dataset. instead got:'
-                                             ' str'))
 
 
 def test_ensure_dataframe_type(iris):
@@ -913,3 +827,230 @@ def test_sample_drop_nan_labels(iris):
     sample = dataset.sample(10000, drop_na_label=True)
     # Assert
     assert_that(sample, has_length(50))
+
+
+def test__ensure_not_empty_dataset(iris: pd.DataFrame):
+    # Arrange
+    ds = Dataset(iris)
+    # Act
+    ds = Dataset.ensure_not_empty_dataset(ds)
+
+
+def test__ensure_not_empty_dataset__with_empty_dataset():
+    # Arrange
+    ds = Dataset(pd.DataFrame())
+    # Assert
+    assert_that(
+        calling(Dataset.ensure_not_empty_dataset).with_args(ds),
+        raises(DatasetValidationError, r'dataset cannot be empty')
+    )
+
+
+def test__ensure_not_empty_dataset__with_dataframe(iris: pd.DataFrame):
+    # Arrange
+    ds = Dataset.ensure_not_empty_dataset(iris, cast=True)
+    # Assert
+    assert_that(ds, instance_of(Dataset))
+    assert_that(ds.features, contains_exactly(*list(iris.columns)))
+    assert_that(ds.label_name, equal_to(None))
+    assert_that(ds.n_samples, equal_to(len(iris)))
+
+
+def test__ensure_not_empty_dataset__with_dataframe_but_without_cast_flag(iris: pd.DataFrame):
+    # Assert
+    assert_that(
+        calling(Dataset.ensure_not_empty_dataset).with_args(iris),
+        raises(DeepchecksValueError, r'non-empty Dataset instance was expected, instead got DataFrame')
+    )
+
+
+def test__ensure_not_empty_dataset__with_empty_dataframe():
+    # Assert
+    assert_that(
+        calling(Dataset.ensure_not_empty_dataset).with_args(pd.DataFrame(), cast=True),
+        raises(DeepchecksValueError, r'dataframe cannot be empty')
+    )
+
+
+def test__datasets_share_features(iris: pd.DataFrame):
+    # Arrange
+    ds = Dataset(iris)
+    # Assert
+    assert_that(
+        Dataset.datasets_share_features([ds, ds]),
+        equal_to(True)
+    )
+
+
+def test__datasets_share_features__with_features_lists_ordered_differently():
+    # Arrange
+    # Features are the same, but their order in the lists is different
+    # that must not have affect on the outcome
+    first_ds = Dataset(random_classification_dataframe(), cat_features=['X0', 'X1', 'X2'])
+    second_ds = Dataset(random_classification_dataframe(), cat_features=['X2', 'X0', 'X1'])
+    # Assert
+    assert_that(
+        Dataset.datasets_share_features([first_ds, second_ds]),
+        equal_to(True)
+    )
+
+
+def test__datasets_share_features__with_wrong_args(iris: pd.DataFrame):
+    # Arrange
+    ds = Dataset(iris, label="target")
+    # Assert
+    assert_that(
+        calling(Dataset.datasets_share_features).with_args([ds]),
+        raises(AssertionError, r"'datasets' must contains at least two items")
+    )
+
+
+def test__datasets_share_features__when_it_must_return_false(
+    iris: pd.DataFrame,
+    diabetes_df: pd.DataFrame
+):
+    # Arrange
+    iris_ds = Dataset(iris)
+    diabetes_ds = Dataset(diabetes_df)
+    # Assert
+    assert_that(
+        Dataset.datasets_share_features([iris_ds, diabetes_ds]),
+        equal_to(False)
+    )
+
+def test__datasets_share_features__with_differently_ordered_datasets_list(
+    iris: pd.DataFrame,
+    diabetes_df: pd.DataFrame
+):
+    # Arrange
+    iris_ds = Dataset(iris)
+    diabetes_ds = Dataset(diabetes_df)
+
+    # Assert
+    # no matter in which order datasets are placed in the list
+    # outcome must be the same
+    assert_that(
+        Dataset.datasets_share_features([iris_ds, diabetes_ds]),
+        equal_to(False)
+    )
+    assert_that(
+        Dataset.datasets_share_features([diabetes_ds, iris_ds]),
+        equal_to(False)
+    )
+
+
+def test__datasets_share_categorical_features(diabetes_df: pd.DataFrame):
+    # Arrange
+    ds = Dataset(diabetes_df, cat_features=['sex'])
+    # Assert
+    assert_that(
+        Dataset.datasets_share_categorical_features([ds, ds]),
+        equal_to(True)
+    )
+
+
+def test__datasets_share_categorical_features__with_features_lists_ordered_differently():
+    # Arrange
+    # Features are the same, but their order in the lists is different
+    # that must not have affect on the outcome
+    first_ds = Dataset(random_classification_dataframe(), cat_features=['X0', 'X1', 'X2'])
+    second_ds = Dataset(random_classification_dataframe(), cat_features=['X2', 'X0', 'X1'])
+    # Assert
+    assert_that(
+        Dataset.datasets_share_categorical_features([first_ds, second_ds]),
+        equal_to(True)
+    )
+
+
+def test__datasets_share_categorical_features__with_wrong_args(diabetes_df: pd.DataFrame):
+    # Arrange
+    ds = Dataset(diabetes_df, cat_features=['sex'])
+    # Assert
+    assert_that(
+        calling(Dataset.datasets_share_categorical_features).with_args([ds]),
+        raises(AssertionError, r"'datasets' must contains at least two items")
+    )
+
+
+def test__datasets_share_categorical_features__when_it_must_return_false():
+    # Arrange
+    first_ds = Dataset(random_classification_dataframe(), cat_features=['X0', 'X1'])
+    second_ds = Dataset(random_classification_dataframe(), cat_features=['X0', 'X2', 'X3'])
+    # Assert
+    assert_that(
+        Dataset.datasets_share_categorical_features([first_ds, second_ds]),
+        equal_to(False)
+    )
+
+
+def test__datasets_share_categorical_features__with_differently_ordered_datasets_list():
+    # Arrange
+    first_ds = Dataset(random_classification_dataframe(), cat_features=['X0', 'X1'])
+    second_ds = Dataset(random_classification_dataframe(), cat_features=['X0', 'X2', 'X3'])
+
+    # Assert
+    # no matter in which order datasets are placed in the list
+    # outcome must be the same
+    assert_that(
+        Dataset.datasets_share_categorical_features([first_ds, second_ds]),
+        equal_to(False)
+    )
+    assert_that(
+        Dataset.datasets_share_categorical_features([first_ds, second_ds]),
+        equal_to(False)
+    )
+
+
+def test__datasets_share_label():
+    ds = Dataset(random_classification_dataframe(), label="target")
+    assert_that(
+        Dataset.datasets_share_label([ds, ds]),
+        equal_to(True)
+    )
+
+
+def test__datasets_share_label__with_wrong_args(iris: pd.DataFrame):
+    # Arrange
+    ds = Dataset(iris, label="target")
+    # Assert
+    assert_that(
+        calling(Dataset.datasets_share_label).with_args([ds]),
+        raises(AssertionError, r"'datasets' must contains at least two items")
+    )
+
+
+def test__datasets_share_label__when_it_must_return_false(iris: pd.DataFrame):
+    # Arrange
+    df = random_classification_dataframe()
+    df.rename(columns={"target": "Y_target"}, inplace=True)
+    ds = Dataset(df, label="Y_target")
+    iris_ds = Dataset(iris, label="target")
+    # Assert
+    assert_that(
+        Dataset.datasets_share_label([ds, iris_ds]),
+        equal_to(False)
+    )
+
+
+def test__datasets_share_label__with_differently_ordered_datasets_list(iris: pd.DataFrame):
+    # Arrange
+    df = random_classification_dataframe()
+    df.rename(columns={"target": "Y_target"}, inplace=True)
+    ds = Dataset(df, label="Y_target")
+    iris_ds = Dataset(iris, label="target")
+    # Assert
+    assert_that(
+        Dataset.datasets_share_label([ds, iris_ds]),
+        equal_to(False)
+    )
+    assert_that(
+        Dataset.datasets_share_label([iris_ds, ds]),
+        equal_to(False)
+    )
+
+
+def random_classification_dataframe(n_samples=100, n_features=5) -> pd.DataFrame:
+    x, y, *_ = make_classification(n_samples=n_samples, n_features=n_features)
+    df = pd.DataFrame(x,columns=[f'X{i}'for i in range(n_features)])
+    df['target'] = y
+    return df
