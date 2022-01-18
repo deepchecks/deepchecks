@@ -15,8 +15,8 @@ from hamcrest import assert_that, close_to, calling, raises, has_entries, has_le
 
 from deepchecks import Dataset
 from deepchecks.checks.methodology import SingleFeatureContribution, SingleFeatureContributionTrainTest
-from deepchecks.errors import DeepchecksValueError
 from deepchecks.checks.methodology.single_feature_contribution import pps_html_url
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError
 
 from tests.checks.utils import equal_condition_result
 
@@ -67,7 +67,7 @@ def test_dataset_wrong_input():
     wrong = 'wrong_input'
     assert_that(
         calling(SingleFeatureContribution().run).with_args(wrong),
-        raises(DeepchecksValueError, 'Check requires dataset to be of type Dataset. instead got: str'))
+        raises(DeepchecksValueError, 'non-empty Dataset instance was expected, instead got str'))
 
 
 def test_dataset_no_label():
@@ -75,7 +75,7 @@ def test_dataset_no_label():
     df = Dataset(df)
     assert_that(
         calling(SingleFeatureContribution().run).with_args(dataset=df),
-        raises(DeepchecksValueError, 'Check requires dataset to have a label column'))
+        raises(DatasetValidationError, 'Check is irrelevant for Datasets without label'))
 
 
 def test_trainval_assert_single_feature_contribution():
@@ -98,28 +98,35 @@ def test_trainval_dataset_wrong_input():
     wrong = 'wrong_input'
     assert_that(
         calling(SingleFeatureContributionTrainTest().run).with_args(wrong, wrong),
-        raises(DeepchecksValueError,
-               'Check requires dataset to be of type Dataset. instead got: str'))
+        raises(
+            DeepchecksValueError,
+            'non-empty Dataset instance was expected, instead got str')
+    )
 
 
 def test_trainval_dataset_no_label():
     df, df2, _ = util_generate_second_similar_dataframe_and_expected()
     assert_that(
-        calling(SingleFeatureContributionTrainTest().run).with_args(train_dataset=Dataset(df),
-                                                                    test_dataset=Dataset(df2)),
-        raises(DeepchecksValueError,
-               'Check requires dataset to have a label column'))
+        calling(SingleFeatureContributionTrainTest().run).with_args(
+            train_dataset=Dataset(df),
+            test_dataset=Dataset(df2)),
+        raises(
+            DatasetValidationError,
+            'Check requires Datasets to have and to share the same label')
+    )
 
 
 def test_trainval_dataset_diff_columns():
     df, df2, _ = util_generate_second_similar_dataframe_and_expected()
     df = df.rename({'x2': 'x6'}, axis=1)
     assert_that(
-        calling(SingleFeatureContributionTrainTest().run)
-            .with_args(train_dataset=Dataset(df, label='label'),
-                       test_dataset=Dataset(df2, label='label')),
-        raises(DeepchecksValueError,
-               'Check requires datasets to share the same features'))
+        calling(SingleFeatureContributionTrainTest().run).with_args(
+            train_dataset=Dataset(df, label='label'),
+            test_dataset=Dataset(df2, label='label')),
+        raises(
+            DatasetValidationError,
+            'Check requires Datasets to share the same features')
+    )
 
 
 def test_all_features_pps_upper_bound_condition_that_should_not_pass():

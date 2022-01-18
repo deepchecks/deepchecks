@@ -12,7 +12,6 @@
 from typing import Union, List
 
 import numpy as np
-import pandas as pd
 
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
@@ -20,7 +19,7 @@ from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_percent, format_list
 from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DatasetValidationError
 
 
 __all__ = ['DataDuplicates']
@@ -60,7 +59,7 @@ class DataDuplicates(SingleDatasetBaseCheck):
         Returns:
             (CheckResult): percentage of duplicates and display of the top n_to_show most duplicated.
         """
-        df: pd.DataFrame = ensure_dataframe_type(dataset)
+        df = ensure_dataframe_type(dataset)
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
 
         data_columns = list(df.columns)
@@ -68,7 +67,7 @@ class DataDuplicates(SingleDatasetBaseCheck):
         n_samples = df.shape[0]
 
         if n_samples == 0:
-            raise DeepchecksValueError('Dataset does not contain any data')
+            raise DatasetValidationError('Dataset does not contain any data')
 
         # HACK: pandas have bug with groupby on category dtypes, so until it fixed, change dtypes manually
         category_columns = df.dtypes[df.dtypes == 'category'].index.tolist()

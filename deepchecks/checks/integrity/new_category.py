@@ -76,11 +76,11 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
             DeepchecksValueError: If the object is not a Dataset instance
 
         """
-        test_dataset = Dataset.validate_dataset_or_dataframe(test_dataset)
-        train_dataset = Dataset.validate_dataset_or_dataframe(train_dataset)
+        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset, cast=True)
+        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset, cast=True)
 
-        features = test_dataset.validate_shared_features(train_dataset)
-        cat_features = train_dataset.validate_shared_categorical_features(test_dataset)
+        features = self._datasets_share_features([train_dataset, test_dataset])
+        cat_features = self._datasets_share_categorical_features([train_dataset, test_dataset])
 
         test_dataset = test_dataset.select(self.columns, self.ignore_columns)
         train_dataset = train_dataset.select(self.columns, self.ignore_columns)

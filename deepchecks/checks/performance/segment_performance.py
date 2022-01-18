@@ -21,7 +21,7 @@ from deepchecks.utils.strings import format_number
 from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.validation import validate_model
 from deepchecks.utils.typing import Hashable
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError
 
 
 __all__ = ['SegmentPerformance']
@@ -77,12 +77,13 @@ class SegmentPerformance(SingleDatasetBaseCheck):
             model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
         """
         # Validations
-        Dataset.validate_dataset(dataset)
-        dataset.validate_label()
+        dataset = Dataset.ensure_not_empty_dataset(dataset)
+        self._dataset_has_label(dataset)
+        self._dataset_has_features(dataset)
         validate_model(dataset, model)
 
         if len(dataset.features) < 2:
-            raise DeepchecksValueError('Dataset must have at least 2 features')
+            raise DatasetValidationError('Dataset must have at least 2 features')
 
         if self.feature_1 is None and self.feature_2 is None:
             feature_importance = calculate_feature_importance_or_none(model=model, dataset=dataset)

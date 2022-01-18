@@ -15,8 +15,8 @@ import pandas as pd
 
 from deepchecks import Dataset, ConditionResult
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck
-from deepchecks.errors import DeepchecksValueError
-from deepchecks.utils.metrics import task_type_validation, ModelType
+from deepchecks.errors import DatasetValidationError
+from deepchecks.utils.metrics import ModelType
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
@@ -59,13 +59,16 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
         Returns:
             (CheckResult): percentage of ambiguous samples and display of the top n_to_show most ambiguous.
         """
-        dataset: Dataset = Dataset.validate_dataset(dataset)
+        dataset = Dataset.ensure_not_empty_dataset(dataset)
         dataset = dataset.select(self.columns, self.ignore_columns)
 
         if model:
-            task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
+            self._verify_model_type(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
+
         elif dataset.label_type == 'regression_label':
-            raise DeepchecksValueError('Task type cannot be regression')
+            raise DatasetValidationError(
+                'Check is relevant for the classification tasks'
+            )
 
         label_col = dataset.label_name
 
@@ -98,7 +101,7 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
         display = display.set_index(ambiguous_label_name)
 
         explanation = ('Each row in the table shows an example of a data sample '
-                       'and the it\'s observed labels as a found in the dataset.')
+                       'and the its observed labels as found in the dataset.')
 
         display = None if display.empty else [explanation, display.head(self.n_to_show)]
 

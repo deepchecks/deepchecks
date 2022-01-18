@@ -15,24 +15,30 @@ import inspect
 import traceback
 from collections import OrderedDict
 from functools import wraps
-from typing import Any, Callable, List, Union, Dict, Mapping
+from typing import Any, Callable, List, Sequence, Union, Dict, Mapping, cast
 
-from matplotlib import pyplot as plt
 import pandas as pd
-from IPython.core.display import display_html
 import ipywidgets as widgets
 import plotly.graph_objects as go
+from matplotlib import pyplot as plt
+from IPython.core.display import display_html
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
 from deepchecks.base.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.base.dataset import Dataset
 from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table_display
+from deepchecks.utils.typing import Hashable, BasicModel
 from deepchecks.utils.strings import get_docs_summary, split_camel_case
-from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.utils.ipython import is_ipython_display
-from deepchecks.utils.metrics import task_type_check
+from deepchecks.utils.metrics import task_type_check, ModelType
 from deepchecks.utils.validation import validate_model
+from deepchecks.errors import (
+    DeepchecksValueError,
+    DeepchecksNotSupportedError,
+    DatasetValidationError,
+    ModelValidationError
+)
 
 
 __all__ = [
@@ -199,7 +205,7 @@ class CheckResult:
             - if at least one condition did not pass and is of category 'FAIL', return 1;
             - if at least one condition did not pass and is of category 'WARN', return 2;
             - if check result do not have assigned conditions, return 3
-            - if all conditions passed, return 4 ;
+            - if all conditions passed, return 4;
 
         Returns:
             int: priority of the cehck result.
@@ -332,6 +338,157 @@ class BaseCheck(metaclass=abc.ABCMeta):
         """Name of class in split camel case."""
         return split_camel_case(cls.__name__)
 
+    # NOTE: next set of private functions exists to unify error messages across all checks
+
+    @classmethod
+    def _datasets_share_features(cls, datasets: List[Dataset]) -> List[Hashable]:
+        """Verify that all provided datasets share same features, otherwise raise an exception.
+
+        Args:
+            datasets (List[Dataset]): list of datasets to validate
+
+        Returns:
+            List[Hashable]: list of features
+
+        Raises:
+            DatasetValidationError: if datasets do not share same features;
+        """
+        if Dataset.datasets_share_features(datasets) is False:
+            raise DatasetValidationError('Check requires Datasets to share the same features')
+        return datasets[0].features
+
+    @staticmethod
+    def _datasets_share_categorical_features(datasets: List['Dataset']) -> List[Hashable]:
+        """Verify that all provided datasets share same categorical features, otherwise raise an exception.
+
+        Args:
+            datasets (List[Dataset]): list of datasets to validate
+
+        Returns:
+            List[Hashable]: list of categorical features
+
+        Raises:
+            DatasetValidationError: if datasets do not share same categorical features;
+        """
+        if Dataset.datasets_share_categorical_features(datasets) is False:
+            raise DatasetValidationError(
+                'Check requires datasets to share '
+                'the same categorical features. Possible reason is that some columns were'
+                'inferred incorrectly as categorical features. To fix this, manually edit the '
+                'categorical features using Dataset(cat_features=<list_of_features>'
+            )
+        return datasets[0].cat_features
+
+    @staticmethod
+    def _datasets_share_label(datasets: List['Dataset']) -> Hashable:
+        """Verify that all provided datasets share same label, otherwise raise an exception.
+
+        Args:
+            datasets (List[Dataset]): list of datasets to validate
+
+        Returns:
+            Hashable: name of the label column
+
+        Raises:
+            DatasetValidationError: if datasets do not share same label;
+        """
+        if Dataset.datasets_share_label(datasets) is False:
+            raise DatasetValidationError('Check requires Datasets to have and to share the same label')
+        return cast(Hashable, datasets[0].label_name)
+
+    @staticmethod
+    def _dataset_has_label(dataset: Dataset) -> pd.Series:
+        """Verify that provided dataset has label, otherwise raise an exception.
+
+        Args:
+            datasets (Dataset): dataset to validate
+
+        Returns:
+            pandas.Series: label column
+
+        Raises:
+            DatasetValidationError: if dataset does not have label;
+        """
+        if dataset.label_col is None:
+            raise DatasetValidationError('Check is irrelevant for Datasets without label')
+        return dataset.label_col
+
+    @staticmethod
+    def _dataset_has_features(dataset: Dataset) -> pd.DataFrame:
+        """Verify that provided dataset has features, otherwise raise an exception.
+
+        Args:
+            datasets (Dataset): dataset to validate
+
+        Returns:
+            pandas.DataFrame: features dataframe
+
+        Raises:
+            DatasetValidationError: if dataset does not have features;
+        """
+        if (
+            dataset.features_columns is None
+            or len(dataset.features_columns.columns) == 0
+        ):
+            raise DatasetValidationError('Check is irrelevant for Datasets without features')
+        return dataset.features_columns
+
+    @staticmethod
+    def _dataset_has_date(dataset: Dataset) -> pd.Series:
+        """Verify that provided dataset has date column, otherwise raise an exception.
+
+        Args:
+            datasets (Dataset): dataset to validate
+
+        Returns:
+            pandas.Series: date column
+
+        Raises:
+            DatasetValidationError: if dataset does not have date column;
+        """
+        if dataset.datetime_col is None:
+            raise DatasetValidationError('Check is irrelevant for Datasets without datetime column')
+        return dataset.datetime_col
+
+    @staticmethod
+    def _dataset_has_index(dataset: Dataset) -> pd.Series:
+        """Verify that provided dataset has index, otherwise raise an exception.
+
+        Args:
+            datasets (Dataset): dataset to validate
+
+        Returns:
+            pandas.Series: dataset index column
+
+        Raises:
+            DatasetValidationError: if dataset does not have index;
+        """
+        if dataset.index_col is None:
+            raise DatasetValidationError('Check is irrelevant for Datasets without an index')
+        return dataset.index_col
+
+    @staticmethod
+    def _verify_model_type(
+        model: BasicModel,
+        dataset: 'Dataset',
+        expected_types: Sequence[ModelType]
+    ) -> ModelType:
+        """Verify that provided model is of an expected type, otherwise raise an exception.
+
+        Returns:
+            ModelType: type of the provided model
+
+        Raises:
+            ModelValidationError: if unexpected model type is provided;
+        """
+        task_type = task_type_check(model, dataset)
+        if task_type not in expected_types:
+            raise ModelValidationError(
+                f'Check is relevant for models of type {[e.value.lower() for e in expected_types]}, '
+                f"but received model of type '{task_type.value.lower()}'"  # pylint: disable=inconsistent-quotes
+            )
+        return task_type
+
 
 class SingleDatasetBaseCheck(BaseCheck):
     """Parent class for checks that only use one dataset."""
@@ -429,12 +586,12 @@ class ModelComparisonContext:
             train = self.train_datasets[i]
             test = self.test_datasets[i]
             model = self.models[i]
-            Dataset.validate_dataset(train)
-            Dataset.validate_dataset(test)
-            train.validate_label()
-            train.validate_features()
-            train.validate_shared_features(test)
-            train.validate_shared_label(test)
+            train = Dataset.ensure_not_empty_dataset(train)
+            test = Dataset.ensure_not_empty_dataset(test)
+            BaseCheck._dataset_has_label(train)
+            BaseCheck._dataset_has_features(train)
+            BaseCheck._datasets_share_features([train, test])
+            BaseCheck._datasets_share_label([train, test])
             validate_model(train, model)
             curr_task_type = task_type_check(model, train)
             if self.task_type is None:
@@ -463,6 +620,6 @@ class ModelComparisonBaseCheck(BaseCheck):
         return self.run_logic(ModelComparisonContext(train_datasets, test_datasets, models))
 
     @abc.abstractmethod
-    def run_logic(self, context: ModelComparisonContext):
+    def run_logic(self, context: ModelComparisonContext) -> CheckResult:
         """Implement here logic of check."""
         pass

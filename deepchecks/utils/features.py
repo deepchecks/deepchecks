@@ -63,8 +63,9 @@ def calculate_feature_importance_or_none(
     model: t.Any,
     dataset: t.Union['base.Dataset', pd.DataFrame],
     force_permutation: bool = False,
-    permutation_kwargs: t.Optional[t.Dict[str, t.Any]] = None
-) -> t.Optional[pd.Series]:
+    permutation_kwargs: t.Optional[t.Dict[str, t.Any]] = None,
+    return_calculation_type: bool = False
+) -> t.Union[t.Optional[pd.Series], t.Tuple[t.Optional[pd.Series], str]]:
     """Calculate features effect on the label or None if the input is incorrect.
 
     Args:
@@ -76,37 +77,62 @@ def calculate_feature_importance_or_none(
             force permutation importance calculation
         permutation_kwargs (Optional[Dict[str, Any]], defaultNone):
             kwargs for permutation importance calculation
+        return_calculation_type (bool,default False):
+            whether or not to return the type of calculation used
 
     Returns:
-        Optional[pandas.Series]:
-            features importance normalized to 0-1 indexed by feature names
-            or None if the input is incorrect
+        t.Union
+            t.Optional[pd.Series]:
+                features importance normalized to 0-1 indexed by feature names
+                or None if the input is incorrect
+
+            t.Tuple:
+                t.Optional[pd.Series]:
+                    features importance normalized to 0-1 indexed by feature names
+                    or None if the input is incorrect
+                str:
+                    type of feature importance calculation used
+                    (types: `permutation_importance`, `feature_importances_`, `coef_`)
     """
     try:
         if model is None:
             return None
         # calculate feature importance if dataset has a label and the model is fitted on it
-        return calculate_feature_importance(
+        fi, calculation_type = calculate_feature_importance(
             model=model,
             dataset=dataset,
             force_permutation=force_permutation,
-            permutation_kwargs=permutation_kwargs
+            permutation_kwargs=permutation_kwargs,
         )
-    except (errors.DeepchecksValueError, errors.NumberOfFeaturesLimitError, errors.DeepchecksTimeoutError) as error:
+
+        return (fi, calculation_type) if return_calculation_type else fi
+    except (
+        errors.DeepchecksValueError,
+        errors.NumberOfFeaturesLimitError,
+        errors.DeepchecksTimeoutError,
+        errors.ModelValidationError,
+        errors.DatasetValidationError
+    ) as error:
         # DeepchecksValueError:
         #     if model validation failed;
         #     if it was not possible to calculate features importance;
         # NumberOfFeaturesLimitError:
         #     if the number of features limit were exceeded;
+        # DatasetValidationError:
+        #     if dataset did not meet requirements
+        # ModelValidationError:
+        #     if wrong type of model was provided;
+        #     if function failed to predict on model;
         warn(f'Features importance was not calculated:\n{str(error)}')
+        return (None, None) if return_calculation_type else None
 
 
 def calculate_feature_importance(
     model: t.Any,
     dataset: t.Union['base.Dataset', pd.DataFrame],
     force_permutation: bool = False,
-    permutation_kwargs: t.Dict[str, t.Any] = None
-) -> pd.Series:
+    permutation_kwargs: t.Dict[str, t.Any] = None,
+) -> t.Tuple[pd.Series, str]:
     """Calculate features effect on the label.
 
     Args:
@@ -121,6 +147,8 @@ def calculate_feature_importance(
 
     Returns:
         pandas.Series: feature importance normalized to 0-1 indexed by feature names
+        str: type of feature importance calculation
+             (types: `permutation_importance`, `feature_importances_`, `coef_`)
 
     Raises:
         NotFittedError:
@@ -138,9 +166,9 @@ def calculate_feature_importance(
     validation.validate_model(dataset, model)
 
     if isinstance(dataset, base.Dataset) and force_permutation is True:
-        return _calc_importance(model, dataset, **permutation_kwargs).fillna(0)
+        return _calc_importance(model, dataset, **permutation_kwargs).fillna(0), 'permutation_importance'
 
-    feature_importances = _built_in_importance(model, dataset)
+    feature_importances, calculation_type = _built_in_importance(model, dataset)
 
     # if _built_in_importance was calculated and returned None,
     # check if pipeline and / or attempt permutation importance
@@ -148,15 +176,16 @@ def calculate_feature_importance(
         internal_estimator = get_model_of_pipeline(model)
         if internal_estimator is not None:
             try:
-                feature_importances = _built_in_importance(internal_estimator, dataset)
+                feature_importances, calculation_type = _built_in_importance(internal_estimator, dataset)
             except ValueError:
                 # in case pipeline had an encoder
                 pass
 
     if feature_importances is not None:
-        return feature_importances.fillna(0)
+        return feature_importances.fillna(0), calculation_type
     elif isinstance(dataset, base.Dataset):
-        return _calc_importance(model, dataset, **permutation_kwargs).fillna(0)
+        return _calc_importance(model, dataset, **permutation_kwargs).fillna(0), 'permutation_importance'
+
     else:
         raise errors.DeepchecksValueError(
             "Was not able to calculate features importance"  # FIXME: better message
@@ -166,18 +195,20 @@ def calculate_feature_importance(
 def _built_in_importance(
     model: t.Any,
     dataset: t.Union['base.Dataset', pd.DataFrame],
-) -> t.Optional[pd.Series]:
+) -> t.Tuple[t.Optional[pd.Series], t.Optional[str]]:
     """Get feature importance member if present in model."""
     features = dataset.features if isinstance(dataset, base.Dataset) else dataset.columns
 
     if hasattr(model, 'feature_importances_'):  # Ensembles
         normalized_feature_importance_values = model.feature_importances_ / model.feature_importances_.sum()
-        return pd.Series(normalized_feature_importance_values, index=features)
+        return pd.Series(normalized_feature_importance_values, index=features), 'feature_importances_'
 
     if hasattr(model, 'coef_'):  # Linear models
         coef = np.abs(model.coef_.flatten())
         coef = coef / coef.sum()
-        return pd.Series(coef, index=features)
+        return pd.Series(coef, index=features), 'coef_'
+
+    return None, None
 
 
 @lru_cache(maxsize=32)
@@ -204,7 +235,8 @@ def _calc_importance(
     Returns:
         pd.Series of feature importance normalized to 0-1 indexed by feature names
     """
-    dataset.validate_label()
+    if dataset.label_col is None:
+        raise errors.DatasetValidationError("Expected dataset with label.")
 
     dataset_sample = dataset.sample(n_samples, drop_na_label=True, random_state=random_state)
 

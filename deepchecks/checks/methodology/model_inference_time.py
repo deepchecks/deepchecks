@@ -13,7 +13,6 @@ import typing as t
 import timeit
 
 import numpy as np
-import pandas as pd
 
 from deepchecks import SingleDatasetBaseCheck, CheckResult, Dataset, ConditionResult
 from deepchecks.utils.validation import validate_model
@@ -62,14 +61,13 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
     def _model_inference_time_check(
         self,
         dataset: Dataset,
-        model: object  # TODO: find more precise type for model
+        model: t.Any
     ) -> CheckResult:
-        Dataset.validate_dataset(dataset)
-        Dataset.validate_features(dataset)
+        dataset = Dataset.ensure_not_empty_dataset(dataset)
+        df = self._dataset_has_features(dataset)
         validate_model(dataset, model)
 
         prediction_method = model.predict  # type: ignore
-        df = t.cast(pd.DataFrame, dataset.features_columns)
 
         number_of_samples = len(df) if len(df) < self.number_of_samples else self.number_of_samples
         df = df.sample(n=number_of_samples, random_state=np.random.randint(number_of_samples))
