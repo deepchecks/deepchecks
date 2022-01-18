@@ -26,7 +26,7 @@ See Also
 ---------
 
 - :doc:`Check Demonstrations </examples/checks/index>` - example notebooks demonstrating all of the checks implemented in the package.
-- :doc:`Checks API Reference </api/checks/index>` - where all the check parameters and implemented conditions can be found.
+- :doc:`Checks API Reference </api/checks>` - where all the check parameters and implemented conditions can be found.
 - :doc:`/examples/guides/add_a_custom_check` - for a tutorial of how to implement your own check
 
 
