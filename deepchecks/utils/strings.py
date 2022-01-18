@@ -35,8 +35,41 @@ __all__ = [
     'format_number',
     'format_list',
     'get_random_string',
-    'format_datetime'
+    'format_datetime',
+    'get_docs_summary',
+    'get_ellipsis',
+    'to_snake_case'
 ]
+
+
+def get_ellipsis(long_string: str, max_length: int):
+    """Return the long string with ellipsis if above max_length.
+
+    Args:
+        long_string (str): the string
+        max_length (int): the string maximum length
+    Returns:
+        (str): the string with ellipsis.
+    """
+    if len(long_string) <= max_length:
+        return long_string
+    return long_string[:max_length] + '...'
+
+
+def get_docs_summary(obj):
+    """Return the docs summary if available.
+
+    Args:
+        obj: an object
+    Returns:
+        (str): the object summary.
+    """
+    if hasattr(obj.__class__, '__doc__'):
+        docs = obj.__class__.__doc__ or ''
+        # Take first non-whitespace line.
+        summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
+        return summary
+    return ''
 
 
 def get_random_string(n: int = 5):
@@ -85,6 +118,18 @@ def split_camel_case(string: str) -> str:
         string (str): string to change
     """
     return ' '.join(re.findall('[A-Z][^A-Z]*', string))
+
+
+def to_snake_case(value: str) -> str:
+    """Transform camel case indentifier into snake case.
+
+    Args:
+        value (str): string to transform
+
+    Returns:
+        str: transformed value
+    """
+    return split_camel_case(value).strip().replace(' ', '_')
 
 
 def get_base_form_to_variants_dict(uniques: t.Iterable[str]) -> t.Dict[str, t.Set[str]]:

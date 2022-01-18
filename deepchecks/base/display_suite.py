@@ -16,17 +16,47 @@ import sys
 import tqdm
 from tqdm.notebook import tqdm as tqdm_notebook
 import pandas as pd
-from IPython.core.display import display_html
+from IPython.core.display import display, display_html
 from IPython import get_ipython
+import ipywidgets as widgets
 
 from deepchecks import errors
 from deepchecks.utils.ipython import is_widgets_enabled
 from deepchecks.utils.strings import get_random_string
 from deepchecks.base.check import CheckResult, CheckFailure
-from deepchecks.base.display_pandas import dataframe_to_html, display_conditions_table
+from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table_display, \
+                                           get_result_navigation_display
 
 
 __all__ = ['display_suite_result', 'ProgressBar']
+
+
+_CONDITIONS_SUMMARY_TITLE = '<h2>Conditions Summary</h2>'
+_NO_CONDITIONS_SUMMARY_TITLE = '<p>No conditions defined on checks in the suite.</p>'
+_NO_OUTPUT_TEXT = '<p>No outputs to show.</p>'
+_CHECKS_WITH_CONDITIONS_TITLE = '<h2>Check With Conditions Output</h2>'
+_CHECKS_WITHOUT_CONDITIONS_TITLE = '<h2>Check Without Conditions Output</h2>'
+_CHECKS_WITHOUT_DISPLAY_TITLE = '<h2>Other Checks That Weren\'t Displayed</h2>'
+
+
+def _get_check_widget(check_res: CheckResult, unique_id: str) -> widgets.VBox:
+    return check_res.display_check(unique_id=unique_id, as_widget=True)
+
+
+def _add_widget_classes(widget: widgets.HTML):
+    """Add classes of regular jupyter output (makes dataframe and links look better)."""
+    widget.add_class('rendered_html')
+    widget.add_class('jp-RenderedHTMLCommon')
+    widget.add_class('jp-RenderedHTML')
+    widget.add_class('jp-OutputArea-output')
+
+
+def _create_table_widget(df_html: str) -> widgets.VBox:
+    table_box = widgets.VBox()
+    df_widg = widgets.HTML(df_html)
+    table_box.children = [df_widg]
+    _add_widget_classes(table_box)
+    return table_box
 
 
 class ProgressBar:
@@ -61,7 +91,119 @@ def get_display_exists_icon(exists: bool):
     return '<div style="text-align: center">No</div>'
 
 
-def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]]):
+def _display_suite_widgets(unique_id: str,
+                           checks_with_conditions: List[CheckResult],
+                           checks_wo_conditions_display: List[CheckResult],
+                           checks_w_condition_display: List[CheckResult],
+                           others_table: List,
+                           light_hr: str):  # pragma: no cover
+    """Display results of suite in as Tab widget."""
+    tab = widgets.Tab()
+    condition_tab = widgets.VBox()
+    _add_widget_classes(condition_tab)
+    checks_wo_tab = widgets.VBox()
+    _add_widget_classes(checks_wo_tab)
+    others_tab = widgets.VBox()
+    tab.children = [condition_tab, checks_wo_tab, others_tab]
+    tab.set_title(0, 'Checks With Conditions')
+    tab.set_title(1, 'Checks Without Conditions')
+    tab.set_title(2, 'Checks Without Output')
+    display_html('<style>.jupyter-widgets.widget-tab > .p-TabBar .p-TabBar-tab {flex: 0 1 auto}</style>',
+                 raw=True)
+
+    if checks_with_conditions:
+        cond_html_table = get_conditions_table_display(checks_with_conditions, unique_id, 300)
+        h2_widget = widgets.HTML(_CONDITIONS_SUMMARY_TITLE)
+        condition_tab_children = [h2_widget, _create_table_widget(cond_html_table)]
+    else:
+        condition_tab_children = [widgets.HTML(_NO_CONDITIONS_SUMMARY_TITLE)]
+
+    condition_tab_children.append(widgets.HTML(_CHECKS_WITH_CONDITIONS_TITLE))
+    if checks_w_condition_display:
+        for i, r in enumerate(checks_w_condition_display):
+            condition_tab_children.append(_get_check_widget(r, unique_id))
+            if i < len(checks_w_condition_display) - 1:
+                condition_tab_children.append(widgets.HTML(light_hr))
+    else:
+        condition_tab_children.append(widgets.HTML(_NO_OUTPUT_TEXT))
+
+    checks_wo_tab_children = []
+    checks_wo_tab_children.append(widgets.HTML(_CHECKS_WITHOUT_CONDITIONS_TITLE))
+    if checks_wo_conditions_display:
+        if unique_id:
+            nav_table = get_result_navigation_display(checks_wo_conditions_display, unique_id)
+            checks_wo_tab_children.append(widgets.HTML(nav_table))
+            checks_wo_tab_children.append(widgets.HTML(light_hr))
+        for i, r in enumerate(checks_wo_conditions_display):
+            checks_wo_tab_children.append(_get_check_widget(r, unique_id))
+            if i < len(checks_wo_conditions_display) - 1:
+                checks_wo_tab_children.append(widgets.HTML(light_hr))
+    else:
+        checks_wo_tab_children.append(widgets.HTML(_NO_OUTPUT_TEXT))
+
+    if others_table:
+        others_table = pd.DataFrame(data=others_table, columns=['Check', 'Reason', 'sort'])
+        others_table.sort_values(by=['sort'], inplace=True)
+        others_table.drop('sort', axis=1, inplace=True)
+        others_df = dataframe_to_html(others_table.style.hide_index())
+        h2_widget = widgets.HTML(_CHECKS_WITHOUT_DISPLAY_TITLE)
+        others_tab.children = [h2_widget, _create_table_widget(others_df)]
+    else:
+        others_tab.children = [widgets.HTML(_NO_OUTPUT_TEXT)]
+    condition_tab.children = condition_tab_children
+    checks_wo_tab.children = checks_wo_tab_children
+    display(tab)
+
+
+def _display_suite_no_widgets(unique_id: str,
+                              checks_with_conditions: List[CheckResult],
+                              checks_wo_conditions_display: List[CheckResult],
+                              checks_w_condition_display: List[CheckResult],
+                              others_table: List,
+                              light_hr: str):  # pragma: no cover
+    """Display results of suite in IPython without widgets."""
+    bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'
+
+    display_html(bold_hr, raw=True)
+
+    if checks_with_conditions:
+        cond_html_table = get_conditions_table_display(checks_with_conditions, unique_id, 300)
+        display_html(_CONDITIONS_SUMMARY_TITLE + cond_html_table, raw=True)
+    else:
+        display_html(_NO_CONDITIONS_SUMMARY_TITLE, raw=True)
+
+    outputs_h2 = f'{bold_hr}{_CHECKS_WITH_CONDITIONS_TITLE}'
+    display_html(outputs_h2, raw=True)
+    if checks_w_condition_display:
+        for i, r in enumerate(checks_w_condition_display):
+            r.show(unique_id=unique_id)
+            if i < len(checks_w_condition_display) - 1:
+                display_html(light_hr, raw=True)
+    else:
+        display_html(_NO_OUTPUT_TEXT, raw=True)
+
+    outputs_h2 = f'{bold_hr}{_CHECKS_WITHOUT_CONDITIONS_TITLE}'
+    display_html(outputs_h2, raw=True)
+    if checks_wo_conditions_display:
+        for i, r in enumerate(checks_wo_conditions_display):
+            r.show(unique_id=unique_id)
+            if i < len(checks_wo_conditions_display) - 1:
+                display_html(light_hr, raw=True)
+    else:
+        display_html(_NO_OUTPUT_TEXT, raw=True)
+
+    if others_table:
+        others_table = pd.DataFrame(data=others_table, columns=['Check', 'Reason', 'sort'])
+        others_table.sort_values(by=['sort'], inplace=True)
+        others_table.drop('sort', axis=1, inplace=True)
+        others_h2 = f'{bold_hr}{_CHECKS_WITHOUT_DISPLAY_TITLE}'
+        others_df = dataframe_to_html(others_table.style.hide_index())
+        display_html(others_h2 + others_df, raw=True)
+
+    display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
+
+
+def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]]):  # pragma: no cover
     """Display results of suite in IPython."""
     if len(results) == 0:
         display_html(f"""<h1>{suite_name}</h1><p>Suite is empty.</p>""", raw=True)
@@ -70,17 +212,21 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         unique_id = ''
     else:
         unique_id = get_random_string()
-    checks_with_conditions = []
-    display_table: List[CheckResult] = []
+
+    checks_with_conditions: List[CheckResult] = []
+    checks_wo_conditions_display: List[CheckResult] = []
+    checks_w_condition_display: List[CheckResult] = []
     others_table = []
 
     for result in results:
         if isinstance(result, CheckResult):
             if result.have_conditions():
                 checks_with_conditions.append(result)
-            if result.have_display():
-                display_table.append(result)
-            else:
+                if result.have_display():
+                    checks_w_condition_display.append(result)
+            elif result.have_display():
+                checks_wo_conditions_display.append(result)
+            if not result.have_display():
                 others_table.append([result.get_header(), 'Nothing found', 2])
         elif isinstance(result, CheckFailure):
             msg = result.exception.__class__.__name__ + ': ' + str(result.exception)
@@ -92,10 +238,9 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
                 f"Expecting list of 'CheckResult'|'CheckFailure', but got {type(result)}."
             )
 
-    display_table = sorted(display_table, key=lambda it: it.priority)
+    checks_w_condition_display = sorted(checks_w_condition_display, key=lambda it: it.priority)
 
-    light_hr = '<hr style="background-color: #eee;border: 0 none;color: #eee;height: 1px;">'
-    bold_hr = '<hr style="background-color: black;border: 0 none;color: black;height: 1px;">'
+    light_hr = '<hr style="background-color: #eee;border: 0 none;color: #eee;height: 4px;">'
 
     icons = """
     <span style="color: green;display:inline-block">\U00002713</span> /
@@ -115,6 +260,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         '?utm_source=suite_output&utm_medium=referral&utm_campaign=display_link'
     )
 
+    # suite summary
     display_html(
         f"""
         <h1 id="summary_{unique_id}">{suite_name}</h1>
@@ -125,34 +271,21 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
             Suites, checks and conditions can all be modified (see the
             <a href={suite_creation_example_link}>Create a Custom Suite</a> tutorial).
         </p>
-        {bold_hr}
-        <h2>Conditions Summary</h2>
         """,
         raw=True
     )
 
-    if checks_with_conditions:
-        display_conditions_table(checks_with_conditions, unique_id)
+    if is_widgets_enabled():
+        _display_suite_widgets(unique_id,
+                               checks_with_conditions,
+                               checks_wo_conditions_display,
+                               checks_w_condition_display,
+                               others_table,
+                               light_hr)
     else:
-        display_html('<p>No conditions defined on checks in the suite.</p>', raw=True)
-
-    display_html(f'{bold_hr}<h2>Additional Outputs</h2>', raw=True)
-    if display_table:
-        for i, r in enumerate(display_table):
-            r.show(show_conditions=False, unique_id=unique_id)
-            if i < len(display_table) - 1:
-                display_html(light_hr, raw=True)
-    else:
-        display_html('<p>No outputs to show.</p>', raw=True)
-
-    if others_table:
-        others_table = pd.DataFrame(data=others_table, columns=['Check', 'Reason', 'sort'])
-        others_table.sort_values(by=['sort'], inplace=True)
-        others_table.drop('sort', axis=1, inplace=True)
-        html = f"""{bold_hr}
-        <h2>Other Checks That Weren't Displayed</h2>
-        {dataframe_to_html(others_table.style.hide_index())}
-        """
-        display_html(html, raw=True)
-
-    display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
+        _display_suite_no_widgets(unique_id,
+                                  checks_with_conditions,
+                                  checks_wo_conditions_display,
+                                  checks_w_condition_display,
+                                  others_table,
+                                  light_hr)
