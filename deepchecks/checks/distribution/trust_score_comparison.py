@@ -149,7 +149,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
 
         headnote = r"""<span> Trust score roughly measures the following quantity:<br><br> <p> $$Trust Score = \frac{
         \textrm{Distance from the sample to the nearest training samples belonging to a class different than the 
-        predicted one}}{\textrm{Distance from the sample to the nearest training samples belonging to the predicted 
+        predicted class}}{\textrm{Distance from the sample to the nearest training samples belonging to the predicted 
         class}}$$ </p> So that higher values represent samples that are "close" to training examples with the same 
         label as sample prediction, and lower values represent samples that are "far" from training samples with 
         labels matching their prediction. For more information, please refer to the original paper at <a 
