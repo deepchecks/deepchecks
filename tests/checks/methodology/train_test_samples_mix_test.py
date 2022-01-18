@@ -109,9 +109,9 @@ def test_condition_ratio_not_greater_than_not_passed(iris_clean):
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Percentage of test data samples that appear in train data '
-                                    'not greater than 9.00%',
+                                    'not greater than 9%',
                                details='Percent of test data samples that appear in train data: '
-                                       '10.00%')
+                                       '10%')
     ))
 
 
@@ -126,5 +126,5 @@ def test_condition_ratio_not_greater_than_passed(diabetes_split_dataset_and_mode
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                name='Percentage of test data samples that appear in train data '
-                                    'not greater than 10.00%')
+                                    'not greater than 10%')
     ))

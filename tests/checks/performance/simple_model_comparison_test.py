@@ -111,7 +111,7 @@ def test_condition_ratio_not_less_than_not_passed(diabetes_split_dataset_and_mod
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=False,
-            name='Model performance gain over simple model is not less than 40.00%',
+            name='Model performance gain over simple model is not less than 40%',
             details='Found metrics with gain below threshold: {\'Neg RMSE\': \'24.32%\'}')
     ))
 
@@ -126,7 +126,7 @@ def test_condition_failed_for_multiclass(iris_split_dataset_and_model):
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=False,
-            name='Model performance gain over simple model is not less than 80.00%',
+            name='Model performance gain over simple model is not less than 80%',
             details='Found metrics with gain below threshold: {\'F1\': {1: \'78.15%\'}}')
     ))
 
@@ -141,7 +141,7 @@ def test_condition_pass_for_multiclass_avg(iris_split_dataset_and_model):
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=True,
-            name='Model performance gain over simple model is not less than 43.00%')
+            name='Model performance gain over simple model is not less than 43%')
     ))
 
 
@@ -179,7 +179,7 @@ def test_condition_ratio_not_less_than_passed(diabetes_split_dataset_and_model):
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=True,
-            name='Model performance gain over simple model is not less than 10.00%'
+            name='Model performance gain over simple model is not less than 10%'
         )
     ))
 

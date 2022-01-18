@@ -254,7 +254,7 @@ def test_condition_fail_on_overlap():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Date leakage ratio is not greater than 20.00%',
+                               name='Date leakage ratio is not greater than 20%',
                                details='Found 27.27% leaked dates')
     ))
 
@@ -299,7 +299,7 @@ def test_condition_fail_on_overlap_date_in_index():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Date leakage ratio is not greater than 20.00%',
+                               name='Date leakage ratio is not greater than 20%',
                                details='Found 27.27% leaked dates')
     ))
 
@@ -384,7 +384,7 @@ def test_condition_fail_on_duplicates():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Date leakage ratio is not greater than 10.00%',
+                               name='Date leakage ratio is not greater than 10%',
                                details='Found 18.18% leaked dates')
     ))
 

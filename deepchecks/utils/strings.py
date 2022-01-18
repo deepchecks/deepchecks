@@ -232,12 +232,18 @@ def split_by_order(s: str, separators: t.Iterable[str], keep: bool = True) -> t.
     return split_s
 
 
-def format_percent(ratio: float, floating_point: int = 2) -> str:
+def truncate_zero_percent(ratio: float, floating_point: int):
+    """Display ratio as percent without trailing zeros."""
+    return f'{ratio * 100:.{floating_point}f}'.rstrip('0').rstrip('.') + '%'
+
+
+def format_percent(ratio: float, floating_point: int = 2, scientific_notation_threshold: int = 4) -> str:
     """Format percent for elegant display.
 
     Args:
         ratio (float): Ratio to be displayed as percent
         floating_point (int): Number of floating points to display
+        scientific_notation_threshold (int): Number after the decimal to consider before switching to scientific notation
 
     Returns:
         String of ratio as percent
@@ -252,16 +258,19 @@ def format_percent(ratio: float, floating_point: int = 2) -> str:
     if int(ratio) == ratio:
         result = f'{int(ratio) * 100}%'
     elif ratio > 1:
-        result = f'{ratio * 100:.{floating_point}f}%'
+        result = truncate_zero_percent(ratio,floating_point)
     elif ratio < 10**(-(2+floating_point)):
-        result = f'{Decimal(ratio * 100):.{floating_point}E}%'
+        if ratio > 10**(-(2+scientific_notation_threshold)):
+            result = truncate_zero_percent(ratio, scientific_notation_threshold)
+        else:
+            result = f'{Decimal(ratio * 100):.{floating_point}E}%'
     elif ratio > (1-10**(-(2+floating_point))):
         if floating_point > 0:
             result = f'99.{"".join(["9"]*floating_point)}%'
         else:
             result = '99%'
     else:
-        result = f'{ratio:.{floating_point}%}'
+        result = truncate_zero_percent(ratio, floating_point)
 
     return prefix + result
 
