@@ -38,7 +38,6 @@ class DominantFrequencyChange(TrainTestBaseCheck):
     ratio_change_thres : float , default : 1.5
         The dominant frequency has to change by at least this ratio (0-inf).
     n_top_columns : int , optional
-        used only if model was specified (the default value is 10)
         amount of columns to show ordered by feature importance (date, index, label are first).
 
     """
@@ -251,7 +250,7 @@ class DominantFrequencyChange(TrainTestBaseCheck):
         percent_change_threshold : float , default : 0.25
             The maximal change in the ratio out of data between training data and
             test data that the dominant value is allowed to change
-            
+
         """
         if percent_change_threshold < 0 or percent_change_threshold > 1:
             raise DeepchecksValueError(f'percent_change_threshold should be between 0 and 1,'

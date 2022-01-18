@@ -48,7 +48,6 @@ class MixedNulls(SingleDatasetBaseCheck):
     ignore_columns : Union[Hashable, List[Hashable]] , default : None
         Columns to ignore, if none given checks based on columns variable
     n_top_columns : int , optional
-        used only if model was specified (the default value is 10)
         amount of columns to show ordered by feature importance (date, index, label are first)
 
     """
@@ -182,7 +181,7 @@ class MixedNulls(SingleDatasetBaseCheck):
         ----------
         max_allowed_null_types : int , default : 1
             Number of different null value types which is the maximum allowed.
-            
+
         """
         def condition(result: Dict) -> ConditionResult:
             not_passing_columns = {}
