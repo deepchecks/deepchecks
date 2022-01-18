@@ -92,12 +92,23 @@ def calculate_feature_importance_or_none(
             force_permutation=force_permutation,
             permutation_kwargs=permutation_kwargs
         )
-    except (errors.DeepchecksValueError, errors.NumberOfFeaturesLimitError, errors.DeepchecksTimeoutError) as error:
+    except (
+        errors.DeepchecksValueError,
+        errors.NumberOfFeaturesLimitError,
+        errors.DeepchecksTimeoutError,
+        errors.ModelValidationError,
+        errors.DatasetValidationError
+    ) as error:
         # DeepchecksValueError:
         #     if model validation failed;
         #     if it was not possible to calculate features importance;
         # NumberOfFeaturesLimitError:
         #     if the number of features limit were exceeded;
+        # DatasetValidationError:
+        #     if dataset did not meet requirements
+        # ModelValidationError:
+        #     if wrong type of model was provided;
+        #     if function failed to predict on model;
         warn(f'Features importance was not calculated:\n{str(error)}')
 
 
