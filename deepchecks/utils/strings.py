@@ -243,7 +243,8 @@ def format_percent(ratio: float, floating_point: int = 2, scientific_notation_th
     Args:
         ratio (float): Ratio to be displayed as percent
         floating_point (int): Number of floating points to display
-        scientific_notation_threshold (int): Number after the decimal to consider before switching to scientific notation
+        scientific_notation_threshold (int): Number of digits after the decimal to consider before
+                                             switching to scientific notation
 
     Returns:
         String of ratio as percent
