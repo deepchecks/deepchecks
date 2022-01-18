@@ -15,7 +15,7 @@ from scipy.stats import kurtosis
 from sklearn.base import BaseEstimator
 
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
-from deepchecks.utils.metrics import ModelType, task_type_validation
+from deepchecks.utils.metrics import ModelType
 from deepchecks.utils.strings import format_number
 
 
@@ -62,7 +62,7 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         y_test = self._dataset_has_label(dataset)
         x_test = self._dataset_has_features(dataset)
 
-        task_type_validation(model, dataset, [ModelType.REGRESSION])
+        self._verify_model_type(model, dataset, [ModelType.REGRESSION])
         y_pred = model.predict(x_test)
         y_pred = pd.Series(y_pred, name='predicted ' + str(dataset.label_name), index=y_test.index)
 

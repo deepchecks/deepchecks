@@ -14,7 +14,7 @@ from sklearn.ensemble import AdaBoostClassifier
 
 from deepchecks import CheckResult, Dataset, ConditionCategory
 from deepchecks.checks import TrustScoreComparison
-from deepchecks.errors import DeepchecksValueError, ModelValidationError
+from deepchecks.errors import ModelValidationError, DatasetValidationError
 from tests.checks.utils import equal_condition_result
 
 
@@ -114,8 +114,12 @@ def test_sample_size_too_small(iris_split_dataset_and_model):
     train, test, model = iris_split_dataset_and_model
     check = TrustScoreComparison(min_test_samples=500)
 
-    assert_that(calling(check.run).with_args(train, test, model),
-                raises(DeepchecksValueError, 'Number of samples in test dataset have not passed the minimum'))
+    assert_that(
+        calling(check.run).with_args(train, test, model),
+        raises(
+            DatasetValidationError,
+            'Number of samples in test dataset have not passed the minimum')
+    )
 
 
 def test_regression_model_fail(diabetes_split_dataset_and_model):

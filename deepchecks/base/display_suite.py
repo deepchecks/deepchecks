@@ -229,7 +229,15 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
             if not result.have_display():
                 others_table.append([result.get_header(), 'Nothing found', 2])
         elif isinstance(result, CheckFailure):
-            msg = result.exception.__class__.__name__ + ': ' + str(result.exception)
+            error_types = (
+                errors.DatasetValidationError,
+                errors.ModelValidationError,
+                errors.DeepchecksProcessError,
+            )
+            if isinstance(result.exception, error_types):
+                msg = str(result.exception)
+            else:
+                msg = result.exception.__class__.__name__ + ': ' + str(result.exception)
             name = result.header
             others_table.append([name, msg, 1])
         else:

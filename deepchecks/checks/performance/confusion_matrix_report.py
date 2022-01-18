@@ -15,7 +15,7 @@ from sklearn.base import BaseEstimator
 import plotly.express as px
 from deepchecks import CheckResult, Dataset
 from deepchecks.base.check import SingleDatasetBaseCheck
-from deepchecks.utils.metrics import ModelType, task_type_validation
+from deepchecks.utils.metrics import ModelType
 
 
 __all__ = ['ConfusionMatrixReport']
@@ -44,7 +44,7 @@ class ConfusionMatrixReport(SingleDatasetBaseCheck):
         ds_y = self._dataset_has_label(dataset)
         ds_x = self._dataset_has_features(dataset)
 
-        task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
+        self._verify_model_type(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
 
         y_pred = model.predict(ds_x)
         confusion_matrix = sklearn.metrics.confusion_matrix(ds_y, y_pred)

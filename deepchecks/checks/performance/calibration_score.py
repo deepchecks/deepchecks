@@ -15,7 +15,7 @@ from sklearn.metrics import brier_score_loss
 import plotly.graph_objects as go
 
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
-from deepchecks.utils.metrics import ModelType, task_type_validation
+from deepchecks.utils.metrics import ModelType
 
 __all__ = ['CalibrationScore']
 
@@ -43,7 +43,7 @@ class CalibrationScore(SingleDatasetBaseCheck):
         ds_x = self._dataset_has_features(dataset)
         ds_y = self._dataset_has_label(dataset)
 
-        task_type_validation(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
+        self._verify_model_type(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
 
         # Expect predict_proba to return in order of the sorted classes.
         y_pred = model.predict_proba(ds_x)

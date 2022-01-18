@@ -14,7 +14,7 @@ from sklearn.base import BaseEstimator
 from sklearn.metrics import mean_squared_error
 
 from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
-from deepchecks.utils.metrics import ModelType, task_type_validation
+from deepchecks.utils.metrics import ModelType
 from deepchecks.utils.strings import format_number
 
 
@@ -43,7 +43,7 @@ class RegressionSystematicError(SingleDatasetBaseCheck):
         dataset = Dataset.ensure_not_empty_dataset(dataset)
         y_test = self._dataset_has_label(dataset)
         x_test = self._dataset_has_features(dataset)
-        task_type_validation(model, dataset, [ModelType.REGRESSION])
+        self._verify_model_type(model, dataset, [ModelType.REGRESSION])
 
         y_pred = model.predict(x_test)
 

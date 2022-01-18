@@ -11,7 +11,7 @@
 """Contains unit tests for the calibration_metric check."""
 from hamcrest import assert_that, calling, raises, has_entries, close_to
 from deepchecks.checks.performance import CalibrationScore
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError, ModelValidationError
 
 
 def test_dataset_wrong_input():
@@ -36,9 +36,14 @@ def test_dataset_no_label(iris_dataset, iris_adaboost):
 def test_regresion_model(diabetes_split_dataset_and_model):
     # Assert
     train, _, clf = diabetes_split_dataset_and_model
-    assert_that(calling(CalibrationScore().run).with_args(train, clf),
-                raises(DeepchecksValueError, r'Expected model to be a type from'
-                                           r' \[\'multiclass\', \'binary\'\], but received model of type: regression'))
+    assert_that(
+        calling(CalibrationScore().run).with_args(train, clf),
+        raises(
+            ModelValidationError,
+            r'Check relevant for models of type \[\'multiclass\', \'binary\'\], '
+            r'but received model of type \'regression\'')
+    )
+
 
 def test_model_info_object(iris_labeled_dataset, iris_adaboost):
     # Arrange

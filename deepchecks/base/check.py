@@ -9,13 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing all the base classes for checks."""
-# pylint: disable=broad-except
+# pylint: disable=broad-except,inconsistent-quotes
 import abc
 import inspect
 import traceback
 from collections import OrderedDict
 from functools import wraps
-from typing import Any, Callable, List, Union, Dict, Mapping, cast
+from typing import Any, Callable, List, Sequence, Union, Dict, Mapping, cast
 
 import pandas as pd
 import ipywidgets as widgets
@@ -28,15 +28,16 @@ from plotly.basedatatypes import BaseFigure
 from deepchecks.base.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.base.dataset import Dataset
 from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table_display
-from deepchecks.utils.typing import Hashable
+from deepchecks.utils.typing import Hashable, BasicModel
 from deepchecks.utils.strings import get_docs_summary, split_camel_case
 from deepchecks.utils.ipython import is_ipython_display
-from deepchecks.utils.metrics import task_type_check
+from deepchecks.utils.metrics import task_type_check, ModelType
 from deepchecks.utils.validation import validate_model
 from deepchecks.errors import (
     DeepchecksValueError,
     DeepchecksNotSupportedError,
-    DatasetValidationError
+    DatasetValidationError,
+    ModelValidationError
 )
 
 
@@ -341,7 +342,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
     @classmethod
     def _datasets_share_features(cls, datasets: List[Dataset]) -> List[Hashable]:
-        """Verify that all provided datasets share same features, otherwise raise exception.
+        """Verify that all provided datasets share same features, otherwise raise an exception.
 
         Args:
             datasets (List[Dataset]): list of datasets to validate
@@ -358,7 +359,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
     @staticmethod
     def _datasets_share_categorical_features(datasets: List['Dataset']) -> List[Hashable]:
-        """Verify that all provided datasets share same categorical features, otherwise raise exception.
+        """Verify that all provided datasets share same categorical features, otherwise raise an exception.
 
         Args:
             datasets (List[Dataset]): list of datasets to validate
@@ -380,7 +381,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
     @staticmethod
     def _datasets_share_label(datasets: List['Dataset']) -> Hashable:
-        """Verify that all provided datasets share same label, otherwise raise exception.
+        """Verify that all provided datasets share same label, otherwise raise an exception.
 
         Args:
             datasets (List[Dataset]): list of datasets to validate
@@ -397,7 +398,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
     @staticmethod
     def _dataset_has_label(dataset: Dataset) -> pd.Series:
-        """Verify that provided dataset has label, otherwise raise exception.
+        """Verify that provided dataset has label, otherwise raise an exception.
 
         Args:
             datasets (Dataset): dataset to validate
@@ -414,7 +415,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
     @staticmethod
     def _dataset_has_features(dataset: Dataset) -> pd.DataFrame:
-        """Verify that provided dataset has features, otherwise raise exception.
+        """Verify that provided dataset has features, otherwise raise an exception.
 
         Args:
             datasets (Dataset): dataset to validate
@@ -434,7 +435,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
     @staticmethod
     def _dataset_has_date(dataset: Dataset) -> pd.Series:
-        """Verify that provided dataset has date column, otherwise raise exception.
+        """Verify that provided dataset has date column, otherwise raise an exception.
 
         Args:
             datasets (Dataset): dataset to validate
@@ -451,7 +452,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
     @staticmethod
     def _dataset_has_index(dataset: Dataset) -> pd.Series:
-        """Verify that provided dataset has index, otherwise raise exception.
+        """Verify that provided dataset has index, otherwise raise an exception.
 
         Args:
             datasets (Dataset): dataset to validate
@@ -465,6 +466,28 @@ class BaseCheck(metaclass=abc.ABCMeta):
         if dataset.index_col is None:
             raise DatasetValidationError('Check is irrelevant for Datasets without an index')
         return dataset.index_col
+
+    @staticmethod
+    def _verify_model_type(
+        model: BasicModel,
+        dataset: 'Dataset',
+        expected_types: Sequence[ModelType]
+    ) -> ModelType:
+        """Verify that provided model is of an expected type, otherwise raise an exception.
+
+        Returns:
+            ModelType: type of the provided model
+
+        Raises:
+            ModelValidationError: if unexpected model type is provided;
+        """
+        task_type = task_type_check(model, dataset)
+        if task_type not in expected_types:
+            raise ModelValidationError(
+                f"Check relevant for models of type {[e.value.lower() for e in expected_types]}, "
+                f"but received model of type '{task_type.value.lower()}'"
+            )
+        return task_type
 
 
 class SingleDatasetBaseCheck(BaseCheck):

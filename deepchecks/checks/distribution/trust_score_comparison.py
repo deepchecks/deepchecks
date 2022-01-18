@@ -20,7 +20,7 @@ from deepchecks.utils.metrics import task_type_check, ModelType
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
 from deepchecks.utils.plot import colors
-from deepchecks.errors import DeepchecksValueError, ModelValidationError
+from deepchecks.errors import DeepchecksValueError, ModelValidationError, DatasetValidationError
 
 
 __all__ = ['TrustScoreComparison']
@@ -87,7 +87,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
         if test_dataset.n_samples < self.min_test_samples:
             msg = ('Number of samples in test dataset have not passed the minimum. you can change '
                    'minimum samples needed to run with parameter "min_test_samples"')
-            raise DeepchecksValueError(msg)
+            raise DatasetValidationError(msg)
 
         if model_type not in {ModelType.BINARY, ModelType.MULTICLASS}:
             raise ModelValidationError(

@@ -24,7 +24,7 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn import preprocessing
 
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult, ConditionCategory
-from deepchecks.errors import DeepchecksProcessError
+from deepchecks.errors import DeepchecksProcessError, DeepchecksValueError
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.metrics import task_type_check, ModelType, initialize_multi_scorers, get_scorers_list, \
     get_scorer_single
@@ -105,7 +105,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         self.min_segment_size = min_segment_size
         if alternative_scorer is not None:
             if (len(alternative_scorer) != 2) or not isinstance(alternative_scorer[0], str):
-                raise DeepchecksProcessError(
+                raise DeepchecksValueError(
                     'alternative_scorer must be a tuple of a single string and a scorer function')
             else:
                 self.alternative_scorer = initialize_multi_scorers({alternative_scorer[0]: alternative_scorer[1]})

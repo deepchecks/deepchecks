@@ -13,7 +13,7 @@ from hamcrest import assert_that, calling, raises, has_items, close_to
 
 from deepchecks.base import Dataset
 from deepchecks.checks.performance import RegressionSystematicError
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError, ModelValidationError
 from tests.checks.utils import equal_condition_result
 
 
@@ -37,9 +37,13 @@ def test_dataset_no_label(diabetes_df, diabetes_model):
 def test_multiclass_model(iris_split_dataset_and_model):
     # Assert
     _, test, clf = iris_split_dataset_and_model
-    assert_that(calling(RegressionSystematicError().run).with_args(test, clf),
-                raises(DeepchecksValueError, r'Expected model to be a type from'
-                                             r' \[\'regression\'\], but received model of type: multiclass'))
+    assert_that(
+        calling(RegressionSystematicError().run).with_args(test, clf),
+        raises(
+            ModelValidationError, 
+            r'Check relevant for models of type '
+            r'\[\'regression\'\], but received model of type \'multiclass\'')
+    )
 
 
 def test_regression_error(diabetes_split_dataset_and_model):
