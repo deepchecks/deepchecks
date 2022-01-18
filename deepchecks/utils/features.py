@@ -78,13 +78,21 @@ def calculate_feature_importance_or_none(
         permutation_kwargs (Optional[Dict[str, Any]], defaultNone):
             kwargs for permutation importance calculation
         return_calculation_type (bool,default False):
-            weather or not to return the type of calculation used
-            (types: `permutation_importance`,`feature_importances_`,`coef_`)
+            whether or not to return the type of calculation used
 
     Returns:
-        Optional[pandas.Series]:
-            features importance normalized to 0-1 indexed by feature names
-            or None if the input is incorrect
+        t.Union
+            t.Optional[pd.Series]:
+                features importance normalized to 0-1 indexed by feature names
+                or None if the input is incorrect
+
+            t.Tuple:
+                t.Optional[pd.Series]:
+                    features importance normalized to 0-1 indexed by feature names
+                    or None if the input is incorrect
+                str:
+                    type of feature importance calculation used
+                    (types: `permutation_importance`, `feature_importances_`, `coef_`)
     """
     try:
         if model is None:
@@ -129,6 +137,7 @@ def calculate_feature_importance(
     Returns:
         pandas.Series: feature importance normalized to 0-1 indexed by feature names
         str: type of feature importance calculation
+             (types: `permutation_importance`, `feature_importances_`, `coef_`)
 
     Raises:
         NotFittedError:
