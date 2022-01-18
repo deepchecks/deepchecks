@@ -15,11 +15,10 @@ import plotly.graph_objects as go
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.distribution.trust_score import TrustScore
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
-from deepchecks.utils.distribution.plot import get_density, feature_distribution_traces
+from deepchecks.utils.distribution.plot import feature_distribution_traces
 from deepchecks.utils.metrics import task_type_check, ModelType
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.validation import validate_model
-from deepchecks.utils.plot import colors
 from deepchecks.errors import DeepchecksValueError
 
 
