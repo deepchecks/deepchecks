@@ -2,7 +2,7 @@ from ignite.metrics import Metric
 from ignite.metrics.metric import sync_all_reduce, reinit__is_reduced
 import torch
 from torch.nn import functional as F
-class AccuracyPerClass(Metric):
+class Accuracy(Metric):
 
     def __init__(self, num_classes, *args, **kwargs):
         self._num_correct = [0] * num_classes
@@ -16,7 +16,7 @@ class AccuracyPerClass(Metric):
         self._num_correct = [0] * self._num_classes
         self._num_examples = [0] * self._num_classes
         self.i = 0
-        super(AccuracyPerClass, self).reset()
+        super(Accuracy, self).reset()
 
 
     @reinit__is_reduced

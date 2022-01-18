@@ -21,6 +21,7 @@ from deepchecks import ConditionResult
 from deepchecks.vision import VisionDataset
 from deepchecks.vision.checks.performance import PerformanceReport
 from deepchecks.errors import DeepchecksValueError
+from deepchecks.vision.utils.metrics import get_default_classification_scorers
 
 from tests.tabular.checks.utils import equal_condition_result
 from deepchecks.utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, DEFAULT_REGRESSION_SCORERS
@@ -63,13 +64,12 @@ from deepchecks.utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, DEFAULT_REG
 def assert_classification_result(result, dataset: VisionDataset):
     for dataset_name in ['Test', 'Train']:
         dataset_df = result.loc[result['Dataset'] == dataset_name]
-        for class_name in dataset.classes:
+        for class_name in dataset.get_samples_per_class().keys():
             class_df = dataset_df.loc[dataset_df['Class'] == class_name]
-            for metric in MULTICLASS_SCORERS_NON_AVERAGE.keys():
+            for metric in get_default_classification_scorers(dataset.get_num_classes()).keys():
                 metric_row = class_df.loc[class_df['Metric'] == metric]
-                assert_that(metric_row['Value'].iloc[0], close_to(1, 0.3))
+                assert_that(metric_row['Value'].iloc[0], close_to(0.5, 0.3))
 
-#
 
 def test_classification(mnist_dataset_train, mnist_dataset_test, trained_mnist):
     # Arrange
@@ -79,9 +79,8 @@ def test_classification(mnist_dataset_train, mnist_dataset_test, trained_mnist):
     # Act X
     result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist).value
     # Assert
-    # assert_classification_result(result, test)
-    assert_that(True)
-#
+    assert_classification_result(result, mnist_dataset_test)
+
 #
 # def test_classification_binary(iris_dataset_single_class_labeled):
 #     # Arrange

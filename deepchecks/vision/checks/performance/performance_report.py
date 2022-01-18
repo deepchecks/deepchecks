@@ -19,13 +19,8 @@ from deepchecks.base.check import ModelComparisonContext
 from deepchecks.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision import VisionDataset
-from deepchecks.vision.utils.metrics import (
-    # MULTICLASS_SCORERS_NON_AVERAGE,
-    get_scorers_list,
-    # initialize_multi_scorers,
-    ModelType,
-    task_type_check, calculate_metrics
-)
+from deepchecks.vision.base.vision_dataset import TaskType
+from deepchecks.vision.utils.metrics import get_scorers_list, task_type_check, calculate_metrics
 
 
 __all__ = ['PerformanceReport', 'MultiModelPerformanceReport']
@@ -99,20 +94,18 @@ class PerformanceReport(TrainTestBaseCheck):
         model_type_validation(model)
 
         task_type = task_type_check(model, train_dataset)
-        # classes = self.label_map or None #TODO
-        classes = list(range(10))
 
         # Get default scorers if no alternative, or validate alternatives
-        scorers = get_scorers_list(model, test_dataset, len(classes), self.alternative_scorers)
+        scorers = get_scorers_list(model, test_dataset, train_dataset.get_num_classes(), self.alternative_scorers)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
-        if task_type == ModelType.CLASSIFICATION:
+        if task_type == TaskType.CLASSIFICATION:
+            classes = train_dataset.get_samples_per_class().keys()
             plot_x_axis = 'Class'
             results = []
 
             for dataset_name, dataset in datasets.items():
-                label = pd.Series(dataset.get_label()) #TODO: Remove usage of pandas
-                n_samples = label.groupby(label).count()
+                n_samples = dataset.get_samples_per_class()
                 results.extend(
                     [dataset_name, class_name, name, class_score, n_samples[class_name]]
                     for name, score in calculate_metrics(scorers.values(), dataset, model).items()
@@ -136,7 +129,7 @@ class PerformanceReport(TrainTestBaseCheck):
             hover_data=['Number of samples']
         )
 
-        if task_type == ModelType.CLASSIFICATION:
+        if task_type == TaskType.CLASSIFICATION:
             fig.update_xaxes(tickprefix='Class ', tickangle=60)
 
         fig = (

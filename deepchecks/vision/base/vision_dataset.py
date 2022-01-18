@@ -1,4 +1,6 @@
 from copy import copy
+from enum import Enum
+from collections import Counter
 
 from torch.utils.data import DataLoader
 from torch import cat
@@ -9,18 +11,48 @@ from deepchecks.utils.typing import Hashable
 
 logger = logging.getLogger('deepchecks')
 
+__all__ = ['TaskType', 'VisionDataset']
+
+
+class TaskType(Enum):
+    """Enum containing supported task types."""
+
+    CLASSIFICATION = 'classification'
+    OBJECT_DETECTION = 'object_detection'
+    SEMANTIC_SEGMENTATION = 'semantic_segmentation'
+
 
 class VisionDataset:
 
     _data: DataLoader = None
 
-    def __init__(self, data_loader: DataLoader, label_type: str = None):
+    def __init__(self, data_loader: DataLoader, num_classes: int = None, label_type: str = None):
         self._data = data_loader
-        self._label = self.extract_label()
         if label_type is not None:
             self.label_type = label_type
         else:
             self.label_type = self.infer_label_type()
+
+        self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
+        self._samples_per_class = None
+
+    def get_num_classes(self):
+        if self._num_classes is None:
+            samples_per_class = self.get_samples_per_class()
+            num_classes = len(samples_per_class.keys())
+            self._num_classes = num_classes
+        return self._num_classes
+
+    def get_samples_per_class(self):
+        if self._samples_per_class is None:
+            if len(self.get_label_shape()) == 0:
+                counter = Counter()
+                for i in range(len(self._data)):
+                    counter.update(next(iter(self._data))[1].tolist())
+                self._samples_per_class = counter
+            else:
+                raise NotImplementedError('Not implemented yet') #TODO
+        return copy(self._samples_per_class)
 
     def extract_label(self):
         y = []
@@ -36,9 +68,6 @@ class VisionDataset:
         sample = self._data.dataset[0]
         if len(sample) != 2:
             raise DeepchecksValueError('Check requires dataset to have a label')
-
-    def get_label(self):
-        return copy(self._label)
 
     def get_label_shape(self):
         self.validate_label()
