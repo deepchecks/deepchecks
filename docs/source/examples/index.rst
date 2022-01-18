@@ -8,7 +8,7 @@ How-to Guides
 - :doc:`guides/create_a_custom_suite`
 - :doc:`guides/add_a_custom_check`
 - :doc:`guides/configure_check_conditions`
-
+- :doc:`guides/save_suite_result_as_html`
 
 .. toctree::
     :maxdepth: 3
@@ -20,6 +20,7 @@ How-to Guides
     guides/create_a_custom_suite
     guides/add_a_custom_check
     guides/configure_check_conditions
+    guides/save_suite_result_as_html
 
 
 Use Cases
