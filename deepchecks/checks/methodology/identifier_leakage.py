@@ -58,7 +58,7 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
         Raises
         ------
         DeepchecksValueError 
-            If the object is not a Dataset instance with a label
+            If the object is not a Dataset instance with a label.
 
         """
         return self._identifier_leakage(dataset)
@@ -121,7 +121,7 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
         ----------
         max_pps : float , default : 0 
             Maximum allowed string length outliers ratio.
-            
+
         """
         def compare_pps(result: Dict):
             not_passing_columns = {}

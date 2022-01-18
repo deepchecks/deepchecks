@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module of model error analysis check."""
+"""Module of model error analysis check.
+
+"""
+
 from typing import Callable, Dict, Tuple, List, Hashable
 
 import numpy as np
@@ -38,24 +41,32 @@ __all__ = ['ModelErrorAnalysis']
 class ModelErrorAnalysis(TrainTestBaseCheck):
     """Find features that best split the data into segments of high and low model error.
 
-    The check trains a regression model to predict the error of the user's model. Then, the features scoring the highest
+    The check trains a regression model to predict the error of th
+    e user's model. Then, the features scoring the highest
     feature importance for the error regression model are selected and the distribution of the error vs the feature
     values is plotted. The check results are shown only if the error regression model manages to predict the error
     well enough.
 
-    Args:
-        max_features_to_show (int): maximal number of features to show error distribution for. (default: 3)
-        min_feature_contribution (float): minimum feature importance of a feature to the error regression model
-            in order to show the feature. (default: 0.15)
-        min_error_model_score (float): minimum r^2 score of the error regression model for displaying the
-            check. (default: 0.5)
-        min_segment_size (float): minimal fraction of data that can comprise a weak segment. (default: 0.1)
-        alternative_scorer (Dict[str, Callable], default None):
-            An optional dictionary of scorer name to scorer function. Only a single entry is allowed in this check.
-            If none given, using default scorer
-        n_samples (int): number of samples to use for this check. (default: 50000)
-        n_display_samples (int): number of samples to display in scatter plot. (default: 5000)
-        random_seed (int): random seed for all check internals. (default: 42)
+    Parameters
+    ----------
+    max_features_to_show : int , default : 3 
+        maximal number of features to show error distribution for. 
+    min_feature_contribution : float , default : 0.15 
+        minimum feature importance of a feature to the error regression model
+        in order to show the feature. 
+    min_error_model_score : float , default : 0.5 
+        minimum r^2 score of the error regression model for displaying the check. 
+    min_segment_size : float , default : 0.05  
+        minimal fraction of data that can comprise a weak segment. 
+    alternative_scorer : Tuple[str, Callable] , default None
+        An optional dictionary of scorer name to scorer function. Only a single entry is allowed in this check.
+        If none given, using default scorer
+    n_samples : int , default : 50_000 
+        number of samples to use for this check. 
+    n_display_samples : int , default : 5_000
+        number of samples to display in scatter plot.
+    random_seed : int, default : 42
+        random seed for all check internals. 
 
     Notes
     -----
@@ -70,7 +81,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
 
         from sklearn.metrics import roc_auc_score, make_scorer
         auc_scorer = make_scorer(roc_auc_score)
-
+                     
     Or you can implement your own:
 
     .. code-block:: python
@@ -85,6 +96,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         # Mark greater_is_better=False, since scorers always suppose to return
         # value to maximize.
         my_mse_scorer = make_scorer(my_mse, greater_is_better=False)
+
     """
 
     def __init__(
@@ -118,10 +130,19 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
     def run(self, train_dataset: Dataset, test_dataset: Dataset, model=None) -> CheckResult:
         """Run check.
 
-        Args:
-            train_dataset (Dataset): The training dataset object. Must contain a label.
-            test_dataset (Dataset): The test dataset object. Must contain a label.
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
+        Parameters
+        ----------
+        train_dataset : Dataset 
+            The training dataset object. Must contain a label.
+        test_dataset : Dataset 
+            The test dataset object. Must contain a label.
+        model , default : None 
+            A scikit-learn-compatible fitted estimator instance.
+
+        Returns
+        -------
+        CheckResult
+
         """
         # Validations
         Dataset.validate_dataset(train_dataset)
@@ -287,8 +308,11 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
     def add_condition_segments_performance_relative_difference_not_greater_than(self, max_ratio_change: float = 0.05):
         """Add condition - require that the difference of performance between the segments does not exceed a ratio.
 
-        Args:
-            max_ratio_change (float): maximal ratio of change between the two segments' performance.
+        Parameters
+        ----------
+        max_ratio_change : float , default : 0.05 
+            maximal ratio of change between the two segments' performance.
+
         """
 
         def condition(result: Dict) -> ConditionResult:
@@ -317,7 +341,9 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
 
 def get_segment_details(model, scorer, dataset: Dataset,
                         segment_condition_col: pd.Series) -> Tuple[str, Dict[str, float]]:
-    """Return a string with details about the data segment."""
+    """Return a string with details about the data segment.
+    
+    """
     performance = scorer(
         model,
         dataset.copy(dataset.data[segment_condition_col.values]))

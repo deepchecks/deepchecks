@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The roc_report check module."""
+"""The roc_report check module.
+
+"""
+
 from typing import Dict, List
 
 import plotly.graph_objects as go
@@ -30,8 +33,11 @@ class RocReport(SingleDatasetBaseCheck):
 
     For each class plots the ROC curve, calculate AUC score and displays the optimal threshold cutoff point.
 
-    Args:
-        excluded_classes (List): List of classes to exclude from the condition.
+    Parameters
+    ----------
+    excluded_classes : List , default : None
+        List of classes to exclude from the condition.
+
     """
 
     def __init__(self, excluded_classes: List = None):
@@ -41,14 +47,23 @@ class RocReport(SingleDatasetBaseCheck):
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run check.
 
-        Args:
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
-            dataset: a Dataset object
-        Returns:
-            CheckResult: value is dictionary of class and it's auc score, displays the roc graph with each class
+        Parameters
+        ----------
+        model : BaseEstimator 
+            A scikit-learn-compatible fitted estimator instance
+        dataset: Dataset 
+            a Dataset object
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance with a label
+        Returns
+        -------
+        CheckResult
+            value is dictionary of class and it's auc score, displays the roc graph with each class
+
+        Raises
+        ------
+        DeepchecksValueError
+            If the object is not a Dataset instance with a label
+
         """
         return self._roc_report(dataset, model)
 
@@ -121,8 +136,10 @@ class RocReport(SingleDatasetBaseCheck):
     def add_condition_auc_not_less_than(self, min_auc: float = 0.7):
         """Add condition - require min allowed AUC score per class.
 
-        Args:
-            min_auc (float): Max allowed AUC score per class.
+        Parameters
+        ----------
+        min_auc : float , default : 0.7 
+            Max allowed AUC score per class.
 
         """
         def condition(result: Dict) -> ConditionResult:
@@ -177,5 +194,6 @@ def sensitivity_specificity_cutoff(tpr, fpr):
 
     Jiménez-Valverde, A., & Lobo, J.M. (2007). Threshold criteria for conversion of probability
     of species presence to either–or presence–absence. Acta oecologica, 31(3), 361-369.
+    
     """
     return np.argmax(tpr - fpr)

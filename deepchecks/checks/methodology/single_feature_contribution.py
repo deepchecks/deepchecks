@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The single_feature_contribution check module."""
+"""The single_feature_contribution check module.
+
+"""
+
 import typing as t
 
 import deepchecks.ppscore as pps
@@ -36,8 +39,13 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
 
     Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
 
-    Args:
-        ppscore_params (dict): dictionary of additional parameters for the ppscore.predictors function
+    Parameters
+    ----------
+    ppscore_params : dict , default : None 
+        dictionary of additional parameters for the ppscore.predictors function
+    n_show_top : int , default : 5
+        Number of features to show, sorted by the magnitude of difference in PPS
+
     """
 
     def __init__(self, ppscore_params=None, n_show_top: int = 5):
@@ -48,17 +56,24 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
     def run(self, dataset: Dataset, model=None) -> CheckResult:
         """Run check.
 
-        Arguments:
-            dataset: Dataset - The dataset object
-            model: any = None - not used in the check
+        Parameters
+        ----------
+        dataset: Dataset 
+            The dataset object
+        model , default : None 
+            not used in the check
 
-        Returns:
-            CheckResult:
-                value is a dictionary with PPS per feature column.
-                data is a bar graph of the PPS of each feature.
+        Returns
+        -------
+        CheckResult
+            value is a dictionary with PPS per feature column.
+            data is a bar graph of the PPS of each feature.
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance with a label
+        Raises
+        ------
+        DeepchecksValueError
+            If the object is not a Dataset instance with a label.
+
         """
         return self._single_feature_contribution(dataset=dataset)
 
@@ -89,11 +104,17 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         return CheckResult(value=s_ppscore.to_dict(), display=display, header='Single Feature Contribution')
 
     def add_condition_feature_pps_not_greater_than(self: FC, threshold: float = 0.8) -> FC:
-        """
-        Add condition that will check that pps of the specified feature(s) is not greater than X.
+        """Add condition that will check that pps of the specified feature(s) is not greater than X.
 
-        Args:
-            threshold: pps upper bound
+        Parameters
+        ----------
+        threshold : float , default : 0.8 
+            pps upper bound
+
+        Returns
+        -------
+        FC
+        
         """
         def condition(value: t.Dict[Hashable, float]) -> ConditionResult:
             failed_features = {

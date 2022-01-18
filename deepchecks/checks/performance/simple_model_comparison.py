@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing simple comparison check."""
+"""Module containing simple comparison check.
+
+"""
+
 from collections import defaultdict
 from typing import Callable, Dict, Hashable, List, cast
 
@@ -44,19 +47,19 @@ class SimpleModelComparison(TrainTestBaseCheck):
 
     Parameters
     ----------
-    simple_model_type : str
+    simple_model_type : str , default : constant
         Type of the simple model ['random', 'constant', 'tree'].
-            + random - select one of the labels by random.
-            + constant - in regression is mean value, in classification the most common value.
-            + tree - runs a simple decision tree.
+        + random - select one of the labels by random.
+        + constant - in regression is mean value, in classification the most common value.
+        + tree - runs a simple decision tree.
     alternative_scorers : Dict[str, Callable], default None
         An optional dictionary of scorer title to scorer functions/names. If none given, using default scorers.
         For description about scorers see Notes below.
-    max_gain : float
+    max_gain : float , default : 50
         the maximum value for the gain value, limits from both sides [-max_gain, max_gain]
-    max_depth : int
+    max_depth : int , default : 3
         the max depth of the tree (used only if simple model type is tree).
-    random_state : int
+    random_state : int , default : 42
         the random state (used only if simple model type is tree or random).
 
     Notes
@@ -87,6 +90,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
         # Mark greater_is_better=False, since scorers always suppose to return
         # value to maximize.
         my_mse_scorer = make_scorer(my_mse, greater_is_better=False)
+
     """
 
     def __init__(self, simple_model_type: str = 'constant', alternative_scorers: Dict[str, Callable] = None,
@@ -106,18 +110,27 @@ class SimpleModelComparison(TrainTestBaseCheck):
     ) -> CheckResult:
         """Run check.
 
-        Args:
-            train_dataset (Dataset): The training dataset object. Must contain a label.
-            test_dataset (Dataset): The test dataset object. Must contain a label.
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
+        Parameters
+        ----------
+        train_dataset : Dataset 
+            The training dataset object. Must contain a label.
+        test_dataset : Dataset 
+            The test dataset object. Must contain a label.
+        model : BaseEstimator
+            A scikit-learn-compatible fitted estimator instance.
 
-        Returns:
-            CheckResult: value is a Dict of: given_model_score, simple_model_score, ratio
-                         ratio is given model / simple model (if the scorer returns negative values we divide 1 by it)
-                         if ratio is infinite max_ratio is returned
+        Returns
+        -------
+        CheckResult
+            value is a Dict of: given_model_score, simple_model_score, ratio
+            ratio is given model / simple model (if the scorer returns negative values we divide 1 by it)
+            if ratio is infinite max_ratio is returned
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance.
+        Raises
+        ------
+        DeepchecksValueError
+            If the object is not a Dataset instance.
+
         """
         Dataset.validate_dataset(train_dataset)
         Dataset.validate_dataset(test_dataset)
@@ -237,14 +250,18 @@ class SimpleModelComparison(TrainTestBaseCheck):
     def _create_simple_model(self, train_ds: Dataset, task_type: ModelType):
         """Create a simple model of given type (random/constant/tree) to the given dataset.
 
-        Args:
-            train_ds (Dataset): The training dataset object.
-            task_type (ModelType): the model type.
-        Returns:
-            Classifier object.
+        Parameters
+        ----------
+        train_ds : Dataset
+            The training dataset object.
+        task_type : ModelType 
+            the model type.
 
-        Raises:
-            NotImplementedError: If the simple_model_type is not supported
+        Raises
+        ------
+        NotImplementedError
+            If the simple_model_type is not supported
+
         """
         np.random.seed(self.random_state)
 
@@ -291,12 +308,17 @@ class SimpleModelComparison(TrainTestBaseCheck):
                                          average: bool = False):
         """Add condition - require minimum allowed gain between the model and the simple model.
 
-        Args:
-            min_allowed_gain (float): Minimum allowed gain between the model and the simple model -
-                gain is: difference in performance / (perfect score - simple score)
-            classes (List[Hashable]): Used in classification models to limit condition only to given classes.
-            average (bool): Used in classification models to flag if to run condition on average of classes, or on
-                each class individually
+        Parameters
+        ----------
+        min_allowed_gain : float , default : 0.1 
+            Minimum allowed gain between the model and the simple model -
+            gain is: difference in performance / (perfect score - simple score)
+        classes : List[Hashable] , default : None 
+            Used in classification models to limit condition only to given classes.
+        average : bool , default : False 
+            Used in classification models to flag if to run condition on average of classes, or on
+            each class individually
+            
         """
         name = f'Model performance gain over simple model is not less than {format_percent(min_allowed_gain)}'
         if classes:

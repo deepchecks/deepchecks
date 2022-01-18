@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The single_feature_contribution check module."""
+"""The single_feature_contribution check module.
+
+"""
+
 import typing as t
 import numpy as np
 import plotly.graph_objects as go
@@ -28,8 +31,7 @@ pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
 
 
 class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
-    """
-    Return the Predictive Power Score of all features, in order to estimate each feature's ability to predict the label.
+    """Return the Predictive Power Score of all features, in order to estimate each feature's ability to predict the label.
 
     The PPS represents the ability of a feature to single-handedly predict another feature or label.
     In this check, we specifically use it to assess the ability of each feature to predict the label.
@@ -42,9 +44,13 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
 
     Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
 
-    Args:
-        ppscore_params (dict): dictionary of additional parameters for the ppscore predictor function
-        n_show_top (int): Number of features to show, sorted by the magnitude of difference in PPS
+    Parameters
+    ----------
+    ppscore_params : dict , default : None 
+        dictionary of additional parameters for the ppscore predictor function
+    n_show_top : int , default : 5  
+        Number of features to show, sorted by the magnitude of difference in PPS
+
     """
 
     def __init__(self, ppscore_params=None, n_show_top: int = 5):
@@ -55,13 +61,23 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
     def run(self, train_dataset: Dataset, test_dataset: Dataset, model=None) -> CheckResult:
         """Run check.
 
-        Returns:
-            CheckResult:
-                value is a dictionary with PPS difference per feature column.
-                data is a bar graph of the PPS of each feature.
+        Parameters
+        ----------
+        train_dataset : Dataset
+        test_dataset : Dataset
+        model , default : None
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance with a label
+        Returns
+        -------
+        CheckResult
+            value is a dictionary with PPS difference per feature column.
+            data is a bar graph of the PPS of each feature.
+
+        Raises
+        ------
+        DeepchecksValueError 
+            If the object is not a Dataset instance with a label.
+
         """
         return self._single_feature_contribution_train_test(train_dataset=train_dataset,
                                                             test_dataset=test_dataset)
@@ -151,8 +167,15 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         Add condition that will check that difference between train
         dataset feature pps and test dataset feature pps is not greater than X.
 
-        Args:
-            threshold: train test ps difference upper bound
+        Parameters
+        ----------
+        threshold : float , default : 0.2 
+            train test ps difference upper bound.
+
+        Returns
+        -------
+        FC
+
         """
 
         def condition(value: t.Dict[Hashable, t.Dict[Hashable, float]]) -> ConditionResult:
@@ -176,8 +199,15 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
 
         Add condition that will check that train dataset feature pps is not greater than X.
 
-        Args:
-            threshold: pps upper bound
+        Parameters
+        ----------
+        threshold : float , default : 0.7 
+            pps upper bound
+        
+        Returns
+        -------
+        FC
+        
         """
 
         def condition(value: t.Dict[Hashable, t.Dict[Hashable, float]]) -> ConditionResult:

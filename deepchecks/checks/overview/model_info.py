@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains model_info check."""
+"""Module contains model_info check.
+
+"""
+
 import pandas as pd
 from sklearn.base import BaseEstimator
 
@@ -21,16 +24,23 @@ __all__ = ['ModelInfo']
 
 
 class ModelInfo(ModelOnlyBaseCheck):
-    """Summarize given model parameters."""
+    """Summarize given model parameters.
+    
+    """
 
     def run(self, model: BaseEstimator) -> CheckResult:
         """Run check.
 
-        Args:
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
+        Parameters
+        ----------
+        model : BaseEstimator 
+            A scikit-learn-compatible fitted estimator instance
 
-        Returns:
-            CheckResult: value is dictionary in format {type: <model_type>, params: <model_params_dict>}
+        Returns
+        -------
+        CheckResult 
+            value is dictionary in format {type: <model_type>, params: <model_params_dict>}
+
         """
         model_type_validation(model)
         estimator = get_model_of_pipeline(model)
