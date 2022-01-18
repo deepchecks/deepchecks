@@ -259,7 +259,7 @@ def format_percent(ratio: float, floating_point: int = 2, scientific_notation_th
     if int(ratio) == ratio:
         result = f'{int(ratio) * 100}%'
     elif ratio > 1:
-        result = truncate_zero_percent(ratio,floating_point)
+        result = truncate_zero_percent(ratio, floating_point)
     elif ratio < 10**(-(2+floating_point)):
         if ratio > 10**(-(2+scientific_notation_threshold)):
             result = truncate_zero_percent(ratio, scientific_notation_threshold)
