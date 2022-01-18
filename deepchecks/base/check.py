@@ -144,7 +144,7 @@ class CheckResult:
                 if isinstance(item, (pd.DataFrame, Styler)):
                     check_html += dataframe_to_html(item)
                 elif isinstance(item, str):
-                    check_html += item
+                    check_html += f'<div>{item}</div>'
                 elif isinstance(item, BaseFigure):
                     if as_widget:
                         box_children.append(widgets.HTML(check_html))
