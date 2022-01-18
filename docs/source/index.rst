@@ -22,8 +22,8 @@ Head over to our :doc:`/examples/guides/quickstart_in_5_minutes` tutorial,
 and click on  |binder badge|  or on  |colab badge|  to launch it and see it in action,
 or see our :doc:`/getting-started/index` to install it locally and continue from there.
 
-.. note:: The package's output is suited for running in a jupyter environment.
-          HTML and PDF reports for the graphs may be added in the near future.
+.. note:: The package's output is suited for running in a Python environment.
+          This include Jupyter notebooks, PyCharm, VSCode and any other python supported ide.
 
 When Should You Use Deepchecks?
 ================================
