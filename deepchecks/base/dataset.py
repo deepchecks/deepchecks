@@ -23,7 +23,7 @@ from sklearn.model_selection import train_test_split
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import is_categorical, infer_categorical_features
 from deepchecks.utils.typing import Hashable
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError
 
 
 __all__ = ['Dataset']
@@ -753,12 +753,13 @@ class Dataset:
         Raises:
             DeepchecksValueError:
                 if the provided value is not a Dataset instance;
-                if the provided value is empty Dataset instance;
                 if the provided value cannot be transformed into Dataset instance;
+            DatasetValidationError:
+                if the provided value is empty Dataset instance;
         """
         if isinstance(obj, Dataset):
             if len(obj.data) == 0:
-                raise DeepchecksValueError('dataset cannot be empty')
+                raise DatasetValidationError('dataset cannot be empty')
             return obj
 
         elif cast and isinstance(obj, pd.DataFrame):
