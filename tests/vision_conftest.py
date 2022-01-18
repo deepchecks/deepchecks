@@ -1,3 +1,5 @@
+import copy
+
 import pytest
 import torch
 from torch import nn
@@ -23,6 +25,7 @@ def mnist_dataset_train(mnist_data_loader_train):
     """Return MNist dataset as VisionDataset object."""
     dataset = VisionDataset(mnist_data_loader_train)
     return dataset
+
 
 @pytest.fixture(scope='session')
 def mnist_data_loader_test():
@@ -67,6 +70,7 @@ def simple_nn():
 
 @pytest.fixture(scope='session')
 def trained_mnist(simple_nn, mnist_data_loader_train):
+    simple_nn = copy.deepcopy(simple_nn)
     loss_fn = nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(simple_nn.parameters(), lr=1e-3)
     size = len(mnist_data_loader_train.dataset)

@@ -10,7 +10,7 @@ def test_mnist_task_type_classification(trained_mnist, mnist_dataset_train):
     assert_that(res, equal_to(ModelType.CLASSIFICATION))
 
 
-def test_ssd_task_type_objdet(trained_yolov5_object_detection, obj_detection_images):
+def test_ssd_task_type_object(trained_yolov5_object_detection, obj_detection_images):
     results = trained_yolov5_object_detection(obj_detection_images)
     # res=task_type_check(trained_ssd_object_detection, obj_detection_images)
 
