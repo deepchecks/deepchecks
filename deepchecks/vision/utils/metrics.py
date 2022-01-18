@@ -10,6 +10,7 @@ from deepchecks.vision.utils import validation
 from deepchecks.vision import VisionDataset
 from deepchecks.utils.typing import BasicModel
 from ignite.metrics import Accuracy, Precision, Recall, IoU, mIoU, Metric, ConfusionMatrix
+from .accuracy_multiclass import AccuracyPerClass
 
 __all__ = [
     'task_type_check',
@@ -25,9 +26,9 @@ class ModelType(enum.Enum):
     SEMANTIC_SEGMENTATION = 'semantic_segmentation'
 
 
-def get_default_classification_scorers():
+def get_default_classification_scorers(n_classes: int):
     return {
-        # 'Accuracy': Accuracy(),
+        'Accuracy': AccuracyPerClass(num_classes=n_classes),
         'Precision': Precision(),
         'Recall': Recall()
     }
@@ -36,14 +37,14 @@ def get_default_classification_scorers():
 def get_default_object_detection_scorers(n_classes: int):
     return {
         'IoU': IoU(ConfusionMatrix(num_classes=n_classes)),
-        'mIoU': mIoU
+        'mIoU': mIoU(ConfusionMatrix(num_classes=n_classes))
 }
 
 
 def get_default_semantic_segmentation_scorers(n_classes: int):
     return {
         'IoU': IoU(ConfusionMatrix(num_classes=n_classes)),
-        'mIoU': mIoU
+        'mIoU': mIoU(ConfusionMatrix(num_classes=n_classes))
 }
 
 
@@ -75,6 +76,7 @@ def task_type_check(
 def get_scorers_list(
     model,
     dataset: VisionDataset,
+    n_classes: int,
     alternative_scorers: t.List[Metric] = None,
     multiclass_avg: bool = True
 ) -> t.List[Metric]:
@@ -87,12 +89,10 @@ def get_scorers_list(
                 raise DeepchecksValueError("alternative_scorers should contain metrics of type ignite.Metric")
         scorers = alternative_scorers
     elif model_type == ModelType.CLASSIFICATION:
-        scorers = get_default_classification_scorers()
+        scorers = get_default_classification_scorers(n_classes)
     elif model_type == ModelType.OBJECT_DETECTION:
-        n_classes = len(dataset.get_label_shape()[0])
         scorers = get_default_object_detection_scorers(n_classes)
     elif model_type == ModelType.SEMANTIC_SEGMENTATION:
-        n_classes = len(dataset.get_label_shape()[0])
         scorers = get_default_object_detection_scorers(n_classes)
     else:
         raise DeepchecksNotSupportedError(f'No scorers match model_type {model_type}')
