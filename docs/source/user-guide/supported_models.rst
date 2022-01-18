@@ -5,7 +5,7 @@ Supported Models
 ====================
 
 Similar to scikit-learn API, a model will be compatible with deepchecks' checks if it implements some minimal functionality.
-Without a compatible model, deepchecks can't run all checks that require predictions, for example all :docs:`performance checks </api/checks/performance>`.
+Without a compatible model, deepchecks can't run all checks that require predictions, for example all :doc:`performance checks </api/checks/performance>`.
 
 Below are the minimal requirements for each task type:
 
