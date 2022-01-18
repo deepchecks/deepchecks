@@ -233,7 +233,7 @@ def _display_suite_no_widgets(summary: str,
 
 
 def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]],
-                         html_out= None):  # pragma: no cover
+                         html_out=None):  # pragma: no cover
     """Display results of suite in IPython."""
     if len(results) == 0:
         display_html(f"""<h1>{suite_name}</h1><p>Suite is empty.</p>""", raw=True)

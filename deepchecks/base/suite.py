@@ -12,7 +12,6 @@
 # pylint: disable=broad-except
 import abc
 from collections import OrderedDict
-import io
 from typing import Union, List, Optional, Tuple, Any, Container, Mapping
 
 from deepchecks.base.display_suite import display_suite_result, ProgressBar
@@ -51,12 +50,13 @@ class SuiteResult:
         else:
             print(self)
 
-    def save_as_html(self, file = None):
+    def save_as_html(self, file=None):
         """Save output as html file.
-        
+
         Args:
            file (filename or file-like object): The file to write the HTML output to.
-                                                If empty writes to output.html"""
+                                                If empty writes to output.html
+        """
         if file is None:
             file = 'output.html'
         display_suite_result(self.name, self.results, html_out=file)
