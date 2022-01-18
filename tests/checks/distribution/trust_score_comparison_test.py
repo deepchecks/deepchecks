@@ -118,7 +118,9 @@ def test_sample_size_too_small(iris_split_dataset_and_model):
         calling(check.run).with_args(train, test, model),
         raises(
             DatasetValidationError,
-            'Number of samples in test dataset have not passed the minimum')
+            r'Number of samples in test dataset has not passed the minimum\. '
+            r'You can change the minimum number of samples required for the '
+            r'check to run with the parameter "min_test_samples"')
     )
 
 

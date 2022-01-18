@@ -484,7 +484,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
         task_type = task_type_check(model, dataset)
         if task_type not in expected_types:
             raise ModelValidationError(
-                f'Check relevant for models of type {[e.value.lower() for e in expected_types]}, '
+                f'Check is relevant for models of type {[e.value.lower() for e in expected_types]}, '
                 f"but received model of type '{task_type.value.lower()}'"  # pylint: disable=inconsistent-quotes
             )
         return task_type

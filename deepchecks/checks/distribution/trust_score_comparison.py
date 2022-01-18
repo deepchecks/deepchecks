@@ -85,9 +85,11 @@ class TrustScoreComparison(TrainTestBaseCheck):
         label_name = self._datasets_share_label([train_dataset, test_dataset])
 
         if test_dataset.n_samples < self.min_test_samples:
-            msg = ('Number of samples in test dataset have not passed the minimum. you can change '
-                   'minimum samples needed to run with parameter "min_test_samples"')
-            raise DatasetValidationError(msg)
+            raise DatasetValidationError(
+                'Number of samples in test dataset has not passed the minimum. '
+                'You can change the minimum number of samples required for the '
+                'check to run with the parameter "min_test_samples"'
+            )
 
         if model_type not in {ModelType.BINARY, ModelType.MULTICLASS}:
             raise ModelValidationError(

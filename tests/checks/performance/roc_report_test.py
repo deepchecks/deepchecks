@@ -45,7 +45,7 @@ def test_regresion_model(diabetes_split_dataset_and_model):
         calling(RocReport().run).with_args(train, clf),
         raises(
             ModelValidationError, 
-            r'Check relevant for models of type '
+            r'Check is relevant for models of type '
             r'\[\'multiclass\', \'binary\'\], but received model of type \'regression\'')
     )
 

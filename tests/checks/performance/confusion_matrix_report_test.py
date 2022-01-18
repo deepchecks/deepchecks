@@ -41,7 +41,7 @@ def test_regresion_model(diabetes_split_dataset_and_model):
         calling(ConfusionMatrixReport().run).with_args(train, clf),
         raises(
             ModelValidationError,
-            r'Check relevant for models of type \[\'multiclass\', \'binary\'\], '
+            r'Check is relevant for models of type \[\'multiclass\', \'binary\'\], '
             r'but received model of type \'regression\'')
     )
 

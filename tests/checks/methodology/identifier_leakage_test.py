@@ -63,7 +63,7 @@ def test_dataset_only_label():
         calling(IdentifierLeakage().run).with_args(dataset=df),
         raises(
             DatasetValidationError, 
-            'Datasets without index or date column are irrelevant to the current check')
+            'Check is irrelevant for Datasets without index or date column')
     )
 
 

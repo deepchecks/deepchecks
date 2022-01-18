@@ -41,7 +41,7 @@ def test_multiclass_model(iris_split_dataset_and_model):
         calling(RegressionSystematicError().run).with_args(test, clf),
         raises(
             ModelValidationError, 
-            r'Check relevant for models of type '
+            r'Check is relevant for models of type '
             r'\[\'regression\'\], but received model of type \'multiclass\'')
     )
 
