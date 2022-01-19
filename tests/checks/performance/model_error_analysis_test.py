@@ -13,7 +13,7 @@ from hamcrest import assert_that, has_entries, close_to, has_property, equal_to,
     has_items
 
 from deepchecks import ConditionCategory
-from deepchecks.errors import DeepchecksValueError, DeepchecksProcessError
+from deepchecks.errors import DeepchecksValueError, DeepchecksProcessError, DatasetValidationError
 from deepchecks.checks.performance.model_error_analysis import ModelErrorAnalysis
 from tests.checks.utils import equal_condition_result
 
@@ -21,15 +21,20 @@ from tests.checks.utils import equal_condition_result
 def test_dataset_wrong_input():
     bad_dataset = 'wrong_input'
     # Act & Assert
-    assert_that(calling(ModelErrorAnalysis().run).with_args(bad_dataset, bad_dataset, None),
-                raises(DeepchecksValueError,
-                       'Check requires dataset to be of type Dataset. instead got: str'))
+    assert_that(
+        calling(ModelErrorAnalysis().run).with_args(bad_dataset, bad_dataset, None),
+        raises(
+            DeepchecksValueError,
+            'non-empty instance of Dataset or DataFrame was expected, instead got str')
+    )
 
 
 def test_dataset_no_label(iris_dataset, iris_adaboost):
     # Assert
-    assert_that(calling(ModelErrorAnalysis().run).with_args(iris_dataset, iris_dataset, iris_adaboost),
-                raises(DeepchecksValueError, 'Check requires dataset to have a label column'))
+    assert_that(
+        calling(ModelErrorAnalysis().run).with_args(iris_dataset, iris_dataset, iris_adaboost),
+        raises(DatasetValidationError, 'Check requires Datasets to have and to share the same label')
+    )
 
 
 def test_model_error_analysis_regression_not_meaningful(diabetes_split_dataset_and_model):
@@ -70,7 +75,7 @@ def test_condition_fail(iris_labeled_dataset, iris_adaboost):
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=False,
-            name='The performance difference of the detected segments must not be greater than 5.00%',
+            name='The performance difference of the detected segments must not be greater than 5%',
             details='Found change in Accuracy in features above threshold: {\'petal length (cm)\': \'10.91%\'}',
             category=ConditionCategory.WARN
         )
@@ -79,11 +84,12 @@ def test_condition_fail(iris_labeled_dataset, iris_adaboost):
 
 def test_condition_pass(iris_labeled_dataset, iris_adaboost):
     # Act
-    check_result = ModelErrorAnalysis(
-
-    ).add_condition_segments_performance_relative_difference_not_greater_than(2).run(
-        iris_labeled_dataset, iris_labeled_dataset, iris_adaboost)
-    condition_result = check_result.conditions_results
+    condition_result = (
+        ModelErrorAnalysis()
+        .add_condition_segments_performance_relative_difference_not_greater_than(2)
+        .run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost)
+        .conditions_results
+    )
 
     # Assert
     assert_that(condition_result, has_items(

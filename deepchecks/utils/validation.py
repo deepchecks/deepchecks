@@ -10,14 +10,19 @@
 #
 """objects validation utilities."""
 import typing as t
-
 import pandas as pd
 
 from deepchecks import base  # pylint: disable=unused-import, is used in type annotations
 from deepchecks import errors
 from deepchecks.utils.typing import Hashable, BasicModel
 
-__all__ = ['model_type_validation', 'ensure_hashable_or_mutable_sequence', 'validate_model', 'ensure_dataframe_type']
+
+__all__ = [
+    'model_type_validation',
+    'ensure_hashable_or_mutable_sequence',
+    'validate_model',
+    'ensure_dataframe_type'
+]
 
 
 def model_type_validation(model: t.Any):
@@ -27,10 +32,10 @@ def model_type_validation(model: t.Any):
         DeepchecksValueError: If the object is not of a supported type
     """
     if not isinstance(model, BasicModel):
-        raise errors.DeepchecksValueError(
-            'Model must inherit from one of supported '
-            'models: sklearn.base.BaseEstimator or CatBoost, '
-            f'Received: {model.__class__.__name__}'
+        raise errors.ModelValidationError(
+            'Model must be a structural subtype of the '
+            '`deepchecks.utils.typing.BasicModel` protocol.'
+            f'(received type: {type(model).__name__}'
         )
 
 
@@ -56,12 +61,8 @@ def validate_model(
 
     if isinstance(data, base.Dataset):
         features = data.features_columns
-        features_names = set(data.features)
     else:
         features = data
-        features_names = set(data.columns)
-
-    model_features = getattr(model, 'feature_names_in_', None)
 
     if features is None:
         raise errors.DeepchecksValueError(error_message.format(
@@ -74,19 +75,9 @@ def validate_model(
         ))
 
     try:
-        model_features = set(model_features)  # type: ignore
-        if model_features != features_names:
-            raise errors.DeepchecksValueError(error_message.format(
-                'But function received dataset with a different set of features.'
-            ))
-    except (TypeError, ValueError):
-        # in case if 'model.feature_names_in_' was None or not iterable
-        pass
-
-    try:
         model.predict(features.head(1))
     except Exception as exc:
-        raise errors.DeepchecksValueError(
+        raise errors.ModelValidationError(
             f'Got error when trying to predict with model on dataset: {str(exc)}'
         )
 

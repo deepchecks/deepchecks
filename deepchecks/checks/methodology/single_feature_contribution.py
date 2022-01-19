@@ -23,8 +23,9 @@ __all__ = ['SingleFeatureContribution']
 
 FC = t.TypeVar('FC', bound='SingleFeatureContribution')
 
-pps_url = 'https://tinyurl.com/2p8rd3jy'
-pps_html_url = f'<a href={pps_url}>Predictive Power Score</a>'
+pps_url = 'https://docs.deepchecks.com/en/stable/examples/checks/methodology/single_feature_contribution_train_test' \
+          '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
+pps_html_url = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
 
 class SingleFeatureContribution(SingleDatasetBaseCheck):
@@ -63,11 +64,15 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         return self._single_feature_contribution(dataset=dataset)
 
     def _single_feature_contribution(self, dataset: Dataset):
-        Dataset.validate_dataset(dataset)
-        dataset.validate_label()
-        ppscore_params = self.ppscore_params or {}
+        dataset = Dataset.ensure_not_empty_dataset(dataset)
+        self._dataset_has_label(dataset)
+        self._dataset_has_features(dataset)
 
-        relevant_columns = dataset.features + [dataset.label_name]
+        ppscore_params = self.ppscore_params or {}
+        features_list = t.cast(t.List[Hashable], dataset.features)
+        label_name = t.cast(Hashable, dataset.label_name)
+        relevant_columns = features_list + [label_name]
+
         df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name, random_seed=42,
                                 **ppscore_params)
         df_pps = df_pps.set_index('x', drop=True)

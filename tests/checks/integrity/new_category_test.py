@@ -11,7 +11,7 @@
 """Contains unit tests for the new_category_train_validation check"""
 
 import pandas as pd
-from hamcrest import assert_that, calling, raises, has_length, close_to, equal_to, has_items
+from hamcrest import assert_that, calling, raises, has_length, equal_to, has_items
 
 from deepchecks.base import Dataset
 from deepchecks.errors import DeepchecksValueError
@@ -24,9 +24,13 @@ def test_dataset_wrong_input():
     x = 'wrong_input'
     # Act & Assert
     check = CategoryMismatchTrainTest()
-    assert_that(calling(check.run).with_args(x, x),
-                raises(DeepchecksValueError,
-                       'dataset must be of type DataFrame or Dataset. instead got: str'))
+    assert_that(
+        calling(check.run).with_args(x, x),
+        raises(
+            DeepchecksValueError,
+            'non-empty instance of Dataset or DataFrame was expected, instead got str'
+        )
+    )
 
 
 def test_no_new_category():
@@ -211,8 +215,8 @@ def test_condition_count_fail():
     assert_that(result, has_items(
         equal_condition_result(
             is_pass=False,
-            details='Found columns with ratio of new category samples above threshold: {\'col1\': \'25.00%\'}',
-            name='Ratio of samples with a new category is not greater than 10.00%')
+            details='Found columns with ratio of new category samples above threshold: {\'col1\': \'25%\'}',
+            name='Ratio of samples with a new category is not greater than 10%')
     ))
 
 
@@ -231,5 +235,5 @@ def test_condition_count_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Ratio of samples with a new category is not greater than 30.00%')
+                               name='Ratio of samples with a new category is not greater than 30%')
     ))

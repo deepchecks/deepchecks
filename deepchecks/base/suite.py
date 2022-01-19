@@ -17,8 +17,8 @@ from typing import Union, List, Optional, Tuple, Any, Container, Mapping
 from deepchecks.base.display_suite import display_suite_result, ProgressBar
 from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.base.dataset import Dataset
-from deepchecks.base.check import (CheckResult, TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck,
-                                   CheckFailure, ModelComparisonBaseCheck, ModelComparisonContext)
+from deepchecks.base.check import CheckResult, TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck, \
+                                  CheckFailure, ModelComparisonBaseCheck, ModelComparisonContext
 from deepchecks.utils.ipython import is_ipython_display
 
 
@@ -49,6 +49,17 @@ class SuiteResult:
             self._ipython_display_()
         else:
             print(self)
+
+    def save_as_html(self, file=None):
+        """Save output as html file.
+
+        Args:
+           file (filename or file-like object): The file to write the HTML output to.
+                                                If None writes to output.html
+        """
+        if file is None:
+            file = 'output.html'
+        display_suite_result(self.name, self.results, html_out=file)
 
 
 class BaseSuite:

@@ -16,7 +16,7 @@ from hamcrest import assert_that, close_to, equal_to, calling, raises, has_items
 
 from deepchecks import ConditionCategory
 from deepchecks.checks.integrity.data_duplicates import DataDuplicates
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError
 from tests.checks.utils import equal_condition_result
 
 
@@ -80,7 +80,7 @@ def test_data_duplicates_empty():
                             'col3': []})
     assert_that(
         calling(DataDuplicates().run).with_args(no_data),
-        raises(DeepchecksValueError, 'Dataset does not contain any data'))
+        raises(DatasetValidationError, 'Dataset does not contain any data'))
 
 
 def test_data_duplicates_ignore_index_column():
@@ -121,8 +121,8 @@ def test_condition_fail():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found 40.00% duplicate data',
-                               name='Duplicate data ratio is not greater than 10.00%',
+                               details='Found 40% duplicate data',
+                               name='Duplicate data ratio is not greater than 10%',
                                category=ConditionCategory.WARN)))
 
 

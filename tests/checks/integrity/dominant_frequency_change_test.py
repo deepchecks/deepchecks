@@ -26,9 +26,13 @@ def test_dataset_wrong_input():
     x = 'wrong_input'
     # Act & Assert
     cls = DominantFrequencyChange()
-    assert_that(calling(cls.run).with_args(x, x),
-                raises(DeepchecksValueError,
-                'dataset must be of type DataFrame or Dataset. instead got: str'))
+    assert_that(
+        calling(cls.run).with_args(x, x),
+        raises(
+            DeepchecksValueError,
+            'non-empty instance of Dataset or DataFrame was expected, instead got str'
+        )
+    )
 
 
 def test_no_leakage(iris_split_dataset_and_model):
@@ -171,9 +175,9 @@ def test_condition_ratio_of_change_not_greater_than_not_passed(iris_split_datase
     # Assert
     assert_that(result, equal_condition_result(
             is_pass=False,
-            name='Change in ratio of dominant value in data is not greater than 5.00%',
+            name='Change in ratio of dominant value in data is not greater than 5%',
             details='Found columns with % difference in dominant value above threshold: '
-                    '{\'sepal width (cm)\': \'8.00%\'}'
+                    '{\'sepal width (cm)\': \'8%\'}'
     ))
 
 
@@ -189,5 +193,5 @@ def test_condition_ratio_of_change_not_greater_than_passed(iris_split_dataset_an
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Change in ratio of dominant value in data is not greater than 25.00%')
+                               name='Change in ratio of dominant value in data is not greater than 25%')
     ))

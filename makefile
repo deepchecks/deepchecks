@@ -175,6 +175,7 @@ $(TEST_RUNNER):
 
 regenerate-examples: $(REQUIREMENTS_LOG)
 	$(PIP) install --no-deps -e .
+	$(JUPYTER) nbextension enable --py widgetsnbextension
 	for path in $(NOTEBOOK_EXAMPLES) ; do \
 	  $(JUPYTER) nbconvert --to notebook --inplace --execute $$path ; \
 	done

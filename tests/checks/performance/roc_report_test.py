@@ -17,30 +17,37 @@ from hamcrest import assert_that, calling, raises, has_items, has_entries, has_l
 
 from deepchecks.base import Dataset
 from deepchecks.checks.performance import RocReport
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError, ModelValidationError
 from tests.checks.utils import equal_condition_result
 
 
 def test_dataset_wrong_input():
     bad_dataset = 'wrong_input'
     # Act & Assert
-    assert_that(calling(RocReport().run).with_args(bad_dataset, None),
-                raises(DeepchecksValueError,
-                       'Check requires dataset to be of type Dataset. instead got: str'))
+    assert_that(
+        calling(RocReport().run).with_args(bad_dataset, None),
+        raises(DeepchecksValueError, 'non-empty Dataset instance was expected, instead got str')
+    )
 
 
 def test_dataset_no_label(iris_dataset, iris_adaboost):
     # Assert
-    assert_that(calling(RocReport().run).with_args(iris_dataset, iris_adaboost),
-                raises(DeepchecksValueError, 'Check requires dataset to have a label column'))
+    assert_that(
+        calling(RocReport().run).with_args(iris_dataset, iris_adaboost),
+        raises(DatasetValidationError, 'Check is irrelevant for Datasets without label')
+    )
 
 
 def test_regresion_model(diabetes_split_dataset_and_model):
     # Assert
     train, _, clf = diabetes_split_dataset_and_model
-    assert_that(calling(RocReport().run).with_args(train, clf),
-                raises(DeepchecksValueError, r'Expected model to be a type from'
-                                           r' \[\'multiclass\', \'binary\'\], but received model of type: regression'))
+    assert_that(
+        calling(RocReport().run).with_args(train, clf),
+        raises(
+            ModelValidationError, 
+            r'Check is relevant for models of type '
+            r'\[\'multiclass\', \'binary\'\], but received model of type \'regression\'')
+    )
 
 
 def test_binary_classification(iris_binary_string_split_dataset_and_model):

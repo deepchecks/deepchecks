@@ -12,11 +12,14 @@
 from sklearn.metrics import make_scorer, recall_score, f1_score
 
 from deepchecks.checks.performance import SimpleModelComparison
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError
 from deepchecks.utils.metrics import DEFAULT_SINGLE_SCORER, ModelType, DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG
 from tests.checks.utils import equal_condition_result
 
-from hamcrest import assert_that, calling, raises, close_to, has_items, has_entries, has_entry, is_, contains_exactly
+from hamcrest import (
+    assert_that, calling, raises, close_to, 
+    has_items, has_entries, has_entry, is_
+)
 
 
 def test_dataset_wrong_input():
@@ -24,7 +27,7 @@ def test_dataset_wrong_input():
     # Act & Assert
     assert_that(calling(SimpleModelComparison().run).with_args(bad_dataset, bad_dataset, None),
                 raises(DeepchecksValueError,
-                       'Check requires dataset to be of type Dataset. instead got: str'))
+                       'non-empty Dataset instance was expected, instead got str'))
 
 
 def test_classification_random(iris_split_dataset_and_model):
@@ -111,7 +114,7 @@ def test_condition_ratio_not_less_than_not_passed(diabetes_split_dataset_and_mod
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=False,
-            name='Model performance gain over simple model is not less than 40.00%',
+            name='Model performance gain over simple model is not less than 40%',
             details='Found metrics with gain below threshold: {\'Neg RMSE\': \'24.32%\'}')
     ))
 
@@ -126,7 +129,7 @@ def test_condition_failed_for_multiclass(iris_split_dataset_and_model):
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=False,
-            name='Model performance gain over simple model is not less than 80.00%',
+            name='Model performance gain over simple model is not less than 80%',
             details='Found metrics with gain below threshold: {\'F1\': {1: \'78.15%\'}}')
     ))
 
@@ -141,7 +144,7 @@ def test_condition_pass_for_multiclass_avg(iris_split_dataset_and_model):
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=True,
-            name='Model performance gain over simple model is not less than 43.00%')
+            name='Model performance gain over simple model is not less than 43%')
     ))
 
 
@@ -179,7 +182,7 @@ def test_condition_ratio_not_less_than_passed(diabetes_split_dataset_and_model):
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=True,
-            name='Model performance gain over simple model is not less than 10.00%'
+            name='Model performance gain over simple model is not less than 10%'
         )
     ))
 
