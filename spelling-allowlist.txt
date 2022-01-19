@@ -31,3 +31,4 @@ dtypes
 groupby
 r2
 tqdm
+nan
