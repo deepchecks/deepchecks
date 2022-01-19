@@ -16,3 +16,4 @@
 
 # other
 ^https://www\.linkedin\.com/in/rohith-ramakrishnan-54094a1a0.*$
+^.*examples/guides/\\.*$
