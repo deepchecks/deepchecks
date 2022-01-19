@@ -62,6 +62,7 @@ TEST_CODE := tests/
 TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval coveralls
 NOTEBOOK_CHECKS = ./docs/source/examples/checks
 NOTEBOOK_EXAMPLES = ./docs/source/examples/guides/*.ipynb
+NOTEBOOK_USECASES = ./docs/source/examples/use-cases/*.ipynb
 NOTEBOOK_SANITIZER_FILE= ./docs/source/examples/.nbval-sanitizer
 
 PYLINT_LOG = .pylint.log
@@ -167,6 +168,8 @@ notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 	$(PIP) install --no-deps -e .
 # Making sure the examples are running, without validating their outputs.
 	$(JUPYTER) nbconvert --execute $(NOTEBOOK_EXAMPLES) --to notebook --stdout > /dev/null
+	$(JUPYTER) nbconvert --execute $(NOTEBOOK_USECASES) --to notebook --stdout > /dev/null
+
 # For now, because of plotly - disabling the nbval and just validate that the notebooks are running
 	$(JUPYTER) nbconvert --execute $(NOTEBOOK_CHECKS)/**/*.ipynb --to notebook --stdout > /dev/null
 #	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_CHECKS) --sanitize-with $(NOTEBOOK_SANITIZER_FILE)
@@ -177,6 +180,9 @@ regenerate-examples: $(REQUIREMENTS_LOG)
 	$(PIP) install --no-deps -e .
 	$(JUPYTER) nbextension enable --py widgetsnbextension
 	for path in $(NOTEBOOK_EXAMPLES) ; do \
+	  $(JUPYTER) nbconvert --to notebook --inplace --execute $$path ; \
+	done
+	for path in $(NOTEBOOK_USECASES) ; do \
 	  $(JUPYTER) nbconvert --to notebook --inplace --execute $$path ; \
 	done
 	for path in $(NOTEBOOK_CHECKS)/**/*.ipynb ; do \

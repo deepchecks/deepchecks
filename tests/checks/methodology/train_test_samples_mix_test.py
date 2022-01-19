@@ -14,7 +14,7 @@ Contains unit tests for the data_sample_leakage_report check
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from hamcrest import assert_that, calling, raises, equal_to, has_items
+from hamcrest import assert_that, calling, raises, equal_to, has_items, has_entry
 
 from deepchecks.base import Dataset
 from deepchecks.errors import DeepchecksValueError
@@ -49,7 +49,8 @@ def test_no_leakage(iris_clean):
     # Act X
     result = check.run(test_dataset=test_dataset, train_dataset=train_dataset).value
     # Assert
-    assert_that(result, equal_to(0))
+    assert_that(result, has_entry('ratio', 0))
+
 
 def test_leakage(iris_clean):
     x = iris_clean.data
@@ -70,7 +71,7 @@ def test_leakage(iris_clean):
     # Act X
     result = check.run(test_dataset=test_dataset, train_dataset=train_dataset).value
     # Assert
-    assert_that(result, equal_to(0.1))
+    assert_that(result, has_entry('ratio', 0.1))
 
 
 def test_nan():
@@ -83,7 +84,7 @@ def test_nan():
     # Act X
     result = check.run(test_dataset=test_dataset, train_dataset=train_dataset).value
     # Assert
-    assert_that(result, equal_to(0.5))
+    assert_that(result, has_entry('ratio', 0.5))
 
 
 def test_condition_ratio_not_greater_than_not_passed(iris_clean):
