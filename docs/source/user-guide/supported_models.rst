@@ -7,9 +7,10 @@ Supported Models
 Many checks require passing a model object. These include all model-evaluation related checks,
 and in general any check that requires the model's predictions for its analysis.
 
-In order to be compatible with deepchecks, the model object should adhere to one requirement:
+.. Note::
+    In order to be compatible with deepchecks, the model object should adhere to one requirement:
 
-- It has to have a a method enabling **prediction**
+    - It has to have a a method enabling **prediction**
 
 More specifically, the model should have a ``predict`` method for regression tasks, 
 and for classification tasks also a ``predict_proba`` method, 
