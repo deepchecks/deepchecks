@@ -13,6 +13,12 @@ import typing as t
 import pandas as pd
 import joblib
 import sklearn
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from category_encoders import OneHotEncoder
 from urllib.request import urlopen
 from deepchecks import Dataset
 
@@ -22,9 +28,13 @@ _MODEL_URL = 'https://ndownloader.figshare.com/files/33080447'
 _FULL_DATA_URL = 'https://figshare.com/ndownloader/files/33079757'
 _TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/33079781'
 _TEST_DATA_URL = 'https://ndownloader.figshare.com/files/33079787'
+_MODEL_VERSION = '1.0.1'
 _target = 'target'
 _CAT_FEATURES = ['ext']
 _NON_FEATURES = ['month', 'has_ip', 'urlIsLive']
+_NUM_FEATURES = ['urlLength', 'numDigits', 'numParams', 'num_%20', 'num_@', 'entropy', 'hasHttp', 'hasHttps', 'dsr',
+                 'dse', 'bodyLength', 'numTitles', 'numImages', 'numLinks', 'specialChars', 'scriptLength', 'sbr',
+                 'bscr', 'sscr']
 _DATE_COL = 'scrape_date'
 
 
@@ -187,8 +197,13 @@ def load_fitted_model():
         model (Joblib model) the model/pipeline that was trained on the phishing dataset.
 
     """
-    with urlopen(_MODEL_URL) as f:
-        model = joblib.load(f)
+    if sklearn.__version__ == _MODEL_VERSION:
+        with urlopen(_MODEL_URL) as f:
+            model = joblib.load(f)
+    else:
+        model = _build_model()
+        train, _ = load_data()
+        model.fit(train.features_columns, train.label_col)
 
     return model
 
@@ -235,3 +250,18 @@ class UrlDatasetProcessor:
 def get_url_preprocessor():
     """Return a data processor object for the phishing URL dataset."""
     return UrlDatasetProcessor()
+
+
+def _build_model():
+    return Pipeline(steps=[
+        ('preprocessing',
+         ColumnTransformer(transformers=[('num', SimpleImputer(),
+                                          _NUM_FEATURES),
+                                         ('cat',
+                                          Pipeline(steps=[('imputer',
+                                                           SimpleImputer(strategy='most_frequent')),
+                                                          ('encoder',
+                                                           OneHotEncoder())]),
+                                          _CAT_FEATURES)])),
+        ('model',
+         RandomForestClassifier(criterion='entropy', n_estimators=40))])

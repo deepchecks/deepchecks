@@ -11,7 +11,8 @@
 """The data set contains features for binary prediction of breast cancer."""
 import typing as t
 from urllib.request import urlopen
-
+import sklearn
+from sklearn.ensemble import AdaBoostClassifier
 import joblib
 import pandas as pd
 
@@ -23,6 +24,7 @@ _MODEL_URL = 'https://ndownloader.figshare.com/files/33325673'
 _FULL_DATA_URL = 'https://ndownloader.figshare.com/files/33325472'
 _TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/33325556'
 _TEST_DATA_URL = 'https://ndownloader.figshare.com/files/33325559'
+_MODEL_VERSION = '1.0.1'
 _target = 'target'
 _CAT_FEATURES = []
 
@@ -242,7 +244,11 @@ def load_fitted_model():
         model (Joblib model) the model/pipeline that was trained on the iris dataset.
 
     """
-    with urlopen(_MODEL_URL) as f:
-        model = joblib.load(f)
-
+    if sklearn.__version__ == _MODEL_VERSION:
+        with urlopen(_MODEL_URL) as f:
+            model = joblib.load(f)
+    else:
+        model = AdaBoostClassifier()
+        train, _ = load_data()
+        model.fit(train.features_columns, train.label_col)
     return model

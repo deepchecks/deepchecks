@@ -11,6 +11,8 @@
 """The data set contains 3 classes of 50 instances each, where each class refers to a type of iris plant."""
 import typing as t
 import pandas as pd
+import sklearn
+from sklearn.ensemble import RandomForestClassifier
 import joblib
 from urllib.request import urlopen
 from deepchecks import Dataset
@@ -21,6 +23,7 @@ _MODEL_URL = 'https://figshare.com/ndownloader/files/32653100'
 _FULL_DATA_URL = 'https://figshare.com/ndownloader/files/32652977'
 _TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/32653172'
 _TEST_DATA_URL = 'https://figshare.com/ndownloader/files/32653130'
+_MODEL_VERSION = '1.0.1'
 _target = 'target'
 _CAT_FEATURES = []
 
@@ -126,7 +129,15 @@ def load_fitted_model():
         model (Joblib model) the model/pipeline that was trained on the iris dataset.
 
     """
-    with urlopen(_MODEL_URL) as f:
-        model = joblib.load(f)
-
+    if sklearn.__version__ == '1.0.1':
+        with urlopen(_MODEL_URL) as f:
+            model = joblib.load(f)
+    else:
+        model = _build_model()
+        train, _ = load_data()
+        model.fit(train.features_columns, train.label_col)
     return model
+
+
+def _build_model():
+    return  RandomForestClassifier()
