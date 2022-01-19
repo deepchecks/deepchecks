@@ -31,17 +31,13 @@ from deepchecks.utils.typing import BasicModel, ClassificationModel
 __all__ = [
     'ModelType',
     'task_type_check',
-    'get_scorers_list',
-    'initialize_single_scorer',
     'DEFAULT_SCORERS_DICT',
-    'DEFAULT_SINGLE_SCORER',
     'DEFAULT_REGRESSION_SCORERS',
     'DEFAULT_BINARY_SCORERS',
     'DEFAULT_MULTICLASS_SCORERS',
     'MULTICLASS_SCORERS_NON_AVERAGE',
-    'DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG',
-    'initialize_multi_scorers',
-    'get_scorer_single',
+    'get_scorers_or_default',
+    'get_single_scorer_or_default',
     'get_gain'
 ]
 
@@ -79,15 +75,6 @@ DEFAULT_REGRESSION_SCORERS = {
     'Neg MAE': 'neg_mean_absolute_error',
     'R2': 'r2'
 }
-
-
-DEFAULT_SINGLE_SCORER = {
-    ModelType.BINARY: 'Accuracy',
-    ModelType.MULTICLASS: 'Accuracy',
-    ModelType.REGRESSION: 'Neg RMSE'
-}
-
-DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG = 'F1'
 
 
 DEFAULT_SCORERS_DICT = {
@@ -237,71 +224,53 @@ def task_type_check(
         return ModelType.REGRESSION
 
 
-def get_scorers_list(
-    model,
-    dataset: 'base.Dataset',
-    alternative_scorers: t.List['DeepcheckScorer'] = None,
-    multiclass_avg: bool = True
-) -> t.List[DeepcheckScorer]:
-    """Return list of scorer objects to use in a score-dependant check.
-
-    If no alternative_scorers is supplied, then a default list of scorers is used per task type, as it is inferred
-    from the dataset and model. If a list is supplied, then the scorer functions are checked and used instead.
-
-    Args:
-        model (BaseEstimator): Model object for which the scores would be calculated
-        dataset (Dataset): Dataset object on which the scores would be calculated
-        alternative_scorers (Dict[str, Callable]): Optional dictionary of sklearn scorers to use instead of default list
-        multiclass_avg
-
-    Returns:
-        Dictionary containing names of scorer functions.
-    """
-    # Check for model type
-    model_type = task_type_check(model, dataset)
-    multiclass_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and multiclass_avg is False
-
+def get_scorers_or_default(model_type,
+                           model,
+                           dataset,
+                           alternative_scorers: t.Optional[t.Mapping[str, t.Callable]],
+                           multiclass_avg: bool = True):
+    return_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and multiclass_avg is False
     if alternative_scorers:
         scorers = alternative_scorers
     else:
-        if multiclass_array:
-            default_scorers = MULTICLASS_SCORERS_NON_AVERAGE
+        if return_array:
+            scorers = MULTICLASS_SCORERS_NON_AVERAGE
         else:
-            default_scorers = DEFAULT_SCORERS_DICT[model_type]
-        # Transform dict of scorers to deepchecks' scorers
-        scorers = initialize_multi_scorers(default_scorers)
-
-    for s in scorers:
-        s.validate_fitting(model, dataset, multiclass_array)
-
-    return scorers
+            scorers = DEFAULT_SCORERS_DICT[model_type]
+    # Transform dict of scorers to deepchecks' scorers
+    deepchecks_scorers = initialize_multi_scorers(scorers)
+    for s in deepchecks_scorers:
+        s.validate_fitting(model, dataset, return_array)
+    return deepchecks_scorers
 
 
-def get_scorer_single(model, dataset: 'base.Dataset', alternative_scorer: t.Optional[DeepcheckScorer] = None,
-                      multiclass_avg: bool = True) -> 'DeepcheckScorer':
+def get_single_scorer_or_default(model_type,
+                                 model,
+                                 dataset: 'base.Dataset',
+                                 alternative_scorer: t.Union[str, t.Callable] = None,
+                                 multiclass_avg: bool = True) -> 'DeepcheckScorer':
     """Return single score to use in check, and validate scorer fit the model and dataset."""
-    model_type = task_type_check(model, dataset)
-    multiclass_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and multiclass_avg is False
+    return_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and multiclass_avg is False
 
-    if alternative_scorer is None:
-        if multiclass_array:
-            scorer_name = DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG
+    if alternative_scorer:
+        scorer_name = None
+        scorer_func = alternative_scorer
+    else:
+        if return_array:
+            scorer_name = next(iter(MULTICLASS_SCORERS_NON_AVERAGE))
             scorer_func = MULTICLASS_SCORERS_NON_AVERAGE[scorer_name]
         else:
-            scorer_name = DEFAULT_SINGLE_SCORER[model_type]
+            scorer_name = next(iter(DEFAULT_SCORERS_DICT[model_type]))
             scorer_func = DEFAULT_SCORERS_DICT[model_type][scorer_name]
-        alternative_scorer = DeepcheckScorer(scorer_func, scorer_name)
 
-    alternative_scorer.validate_fitting(model, dataset, multiclass_array)
-    return alternative_scorer
+    scorer = initialize_single_scorer(scorer_func, scorer_name)
+    scorer.validate_fitting(model, dataset, return_array)
+    return scorer
 
 
 def initialize_single_scorer(scorer: t.Optional[t.Union[str, t.Callable]], scorer_name=None) \
         -> t.Optional[DeepcheckScorer]:
-    """If type is string, get scorer from sklearn. If none, return none."""
-    if scorer is None:
-        return None
-
+    """If type is string, get scorer from sklearn."""
     scorer_name = scorer_name or (scorer if isinstance(scorer, str) else 'User Scorer')
     return DeepcheckScorer(scorer, scorer_name)
 
@@ -309,12 +278,7 @@ def initialize_single_scorer(scorer: t.Optional[t.Union[str, t.Callable]], score
 def initialize_multi_scorers(alternative_scorers: t.Optional[t.Mapping[str, t.Callable]]) -> \
         t.Optional[t.List[DeepcheckScorer]]:
     """Initialize user scorers and return all of them as callable."""
-    if alternative_scorers is None:
-        return None
-    elif len(alternative_scorers) == 0:
-        raise errors.DeepchecksValueError('Scorers dictionary can\'t be empty')
-    else:
-        return [DeepcheckScorer(scorer, name) for name, scorer in alternative_scorers.items()]
+    return [DeepcheckScorer(scorer, name) for name, scorer in alternative_scorers.items()]
 
 
 def get_gain(base_score, score, perfect_score, max_gain):

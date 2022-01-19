@@ -783,7 +783,7 @@ class Dataset:
                 )
 
     @classmethod
-    def datasets_share_features(cls, datasets: t.List['Dataset']) -> bool:
+    def datasets_share_features(cls, *datasets: t.List['Dataset']) -> bool:
         """Verify that all provided datasets share same features.
 
         Args:
@@ -804,14 +804,14 @@ class Dataset:
 
         features_names = set(datasets[0].features)
 
-        for ds in datasets:
+        for ds in datasets[1:]:
             if features_names != set(ds.features):
                 return False
 
         return True
 
     @classmethod
-    def datasets_share_categorical_features(cls, datasets: t.List['Dataset']) -> bool:
+    def datasets_share_categorical_features(cls, *datasets: t.List['Dataset']) -> bool:
         """Verify that all provided datasets share same categorical features.
 
         Args:
@@ -832,7 +832,7 @@ class Dataset:
 
         first = set(datasets[0].cat_features)
 
-        for ds in datasets:
+        for ds in datasets[1:]:
             features = set(ds.cat_features)
             if first != features:
                 return False
@@ -840,7 +840,7 @@ class Dataset:
         return True
 
     @classmethod
-    def datasets_share_label(cls, datasets: t.List['Dataset']) -> bool:
+    def datasets_share_label(cls, *datasets: t.List['Dataset']) -> bool:
         """Verify that all provided datasets share same label column.
 
         Args:
@@ -860,11 +860,34 @@ class Dataset:
         # TODO: should not we also check label dtypes?
         label_name = datasets[0].label_name
 
-        if label_name is None:
-            return False
-
-        for ds in datasets:
+        for ds in datasets[1:]:
             if ds.label_name != label_name:
+                return False
+
+        return True
+
+    @classmethod
+    def datasets_share_index(cls, *datasets: t.List['Dataset']) -> bool:
+        """Verify that all provided datasets share same index column.
+
+        Args:
+            datasets (List[Dataset]): list of datasets to validate
+
+        Returns:
+            bool: True if all datasets share same index column, otherwise False
+
+        Raises:
+            AssertionError:
+                'datasets' parameter is not a list;
+                'datasets' contains less than one dataset;
+        """
+        assert isinstance(datasets, list), "'datasets' must be a list"
+        assert len(datasets) > 1, "'datasets' must contains at least two items"
+
+        index_name = datasets[0].index_name
+
+        for ds in datasets[1:]:
+            if ds.index_name != index_name:
                 return False
 
         return True
