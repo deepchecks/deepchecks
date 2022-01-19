@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing all the base classes for checks."""
+"""Module containing all the base classes for checks.
+
+"""
+
 # pylint: disable=broad-except
 import enum
 from typing import Callable, Dict, cast
@@ -24,7 +27,15 @@ __all__ = [
 
 
 class Condition:
-    """Contain condition attributes."""
+    """Contain condition attributes.
+
+    Parameters
+    ----------
+    name : str
+    function : Callable
+    params : Dict
+    
+    """
 
     name: str
     function: Callable
@@ -41,21 +52,36 @@ class Condition:
         self.params = params
 
     def __call__(self, *args, **kwargs) -> 'ConditionResult':
-        """Run this condition."""
+        """Run this condition.
+        
+        """
         result = cast(ConditionResult, self.function(*args, **kwargs))
         result.set_name(self.name)
         return result
 
 
 class ConditionCategory(enum.Enum):
-    """Condition result category. indicates whether the result should fail the suite."""
+    """Condition result category. indicates whether the result should fail the suite.
+    
+    """
 
     FAIL = 'FAIL'
     WARN = 'WARN'
 
 
 class ConditionResult:
-    """Contain result of a condition function."""
+    """Contain result of a condition function.
+
+    Parameters
+    ----------
+    is_pass : bool
+        Whether the condition functions passed the given value or not.
+    details : str 
+        What actually happened in the condition.
+    category : ConditionCategory , default : ConditionCategory.FAIL
+        The category to which the condition result belongs.
+
+    """
 
     is_pass: bool
     category: ConditionCategory
@@ -64,13 +90,6 @@ class ConditionResult:
 
     def __init__(self, is_pass: bool, details: str = '',
                  category: ConditionCategory = ConditionCategory.FAIL):
-        """Initialize condition result.
-
-        Args:
-            is_pass (bool): Whether the condition functions passed the given value or not.
-            details (str): What actually happened in the condition.
-            category (ConditionCategory): The category to which the condition result belongs.
-        """
         self.is_pass = is_pass
         self.details = details
         self.category = category
@@ -78,8 +97,11 @@ class ConditionResult:
     def set_name(self, name: str):
         """Set name to be displayed in table.
 
-        Args:
-            name (str): Description of the condition to be displayed.
+        Parameters
+        ----------
+        name : str 
+            Description of the condition to be displayed.
+
         """
         self.name = name
 
@@ -90,8 +112,11 @@ class ConditionResult:
         This value is primarily used to determine the order in which
         conditions should be displayed.
 
-        Returns:
-            int: condition priority value;
+        Returns
+        -------
+        int 
+            condition priority value.
+
         """
         if self.is_pass is True:
             return 3
@@ -101,7 +126,9 @@ class ConditionResult:
             return 2
 
     def get_icon(self):
-        """Return icon of the result to display."""
+        """Return icon of the result to display.
+        
+        """
         if self.is_pass:
             return '<div style="color: green;text-align: center">\U00002713</div>'
         elif self.category == ConditionCategory.FAIL:
@@ -110,5 +137,7 @@ class ConditionResult:
             return '<div style="color: orange;text-align: center;font-weight:bold">\U00000021</div>'
 
     def __repr__(self):
-        """Return string representation for printing."""
+        """Return string representation for printing.
+        
+        """
         return str(vars(self))

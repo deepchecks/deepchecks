@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Handle display of suite result."""
+"""Handle display of suite result.
+
+"""
+
 from typing import List, Union
 
 # pylint: disable=protected-access
@@ -30,10 +33,19 @@ __all__ = ['display_suite_result', 'ProgressBar']
 
 
 class ProgressBar:
-    """Progress bar for display while running suite."""
+    """Progress bar for display while running suite.
+    
+    Parameters
+    ----------
+    name
+    length
+    
+    """
 
     def __init__(self, name, length):
-        """Initialize progress bar."""
+        """Initialize progress bar.
+        
+        """
         shared_args = {'total': length, 'desc': name, 'unit': ' Check', 'leave': False, 'file': sys.stdout}
         if is_widgets_enabled():
             self.pbar = tqdm_notebook(**shared_args, colour='#9d60fb')
@@ -43,26 +55,50 @@ class ProgressBar:
             self.pbar = tqdm.tqdm(**shared_args, bar_format=f'{{l_bar}}{{bar:{length}}}{{r_bar}}')
 
     def set_text(self, text):
-        """Set current running check."""
+        """Set current running check.
+        
+        Parameters
+        ----------
+        text
+        
+        """
         self.pbar.set_postfix(Check=text)
 
     def close(self):
-        """Close the progress bar."""
+        """Close the progress bar.
+        
+        """
         self.pbar.close()
 
     def inc_progress(self):
-        """Increase progress bar value by 1."""
+        """Increase progress bar value by 1.
+        
+        """
         self.pbar.update(1)
 
 
 def get_display_exists_icon(exists: bool):
+    """
+
+    Parameters
+    ----------
+    exists: bool
+        
+    """
     if exists:
         return '<div style="text-align: center">Yes</div>'
     return '<div style="text-align: center">No</div>'
 
 
 def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]]):
-    """Display results of suite in IPython."""
+    """Display results of suite in IPython.
+    
+    Parameters
+    ----------
+    suite_name: str 
+    results: List[Union[CheckResult, CheckFailure]]
+    
+    """
     if len(results) == 0:
         display_html(f"""<h1>{suite_name}</h1><p>Suite is empty.</p>""", raw=True)
         return

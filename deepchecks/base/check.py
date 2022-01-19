@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing all the base classes for checks."""
+"""Module containing all the base classes for checks.
+
+"""
+
 # pylint: disable=broad-except
 import abc
 import inspect
@@ -51,9 +54,17 @@ class CheckResult:
     The class stores the results and display of the check. Evaluating the result in an IPython console / notebook
     will show the result display output.
 
-    Attributes:
-        value (Any): Value calculated by check. Can be used to decide if decidable check passed.
-        display (Dict): Dictionary with formatters for display. possible formatters are: 'text/html', 'image/png'
+    Parameters
+    ----------
+    value : Any 
+        Value calculated by check. Can be used to decide if decidable check passed.
+    display : List[Union[Callable, str, pd.DataFrame, Styler]] , default : None
+        Dictionary with formatters for display. possible formatters are: 'text/html', 'image/png'
+    header : str , default : None
+        Header to be displayed in python notebook.
+    conditions_results : List[ConditionResult]
+    check : BaseCheck
+
     """
 
     value: Any
@@ -63,15 +74,7 @@ class CheckResult:
     check: 'BaseCheck'
 
     def __init__(self, value, header: str = None, display: Any = None):
-        """Init check result.
 
-        Args:
-            value (Any): Value calculated by check. Can be used to decide if decidable check passed.
-            header (str): Header to be displayed in python notebook.
-            check (Class): The check class which created this result. Used to extract the summary to be
-                displayed in notebook.
-            display (List): Objects to be displayed (dataframe or function or html)
-        """
         self.value = value
         self.header = header
         self.conditions_results = []
@@ -122,27 +125,45 @@ class CheckResult:
             display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
 
     def __repr__(self):
-        """Return default __repr__ function uses value."""
+        """Return default __repr__ function uses value.
+        
+        """
+
         return f'{self.get_header()}: {self.value}'
 
     def get_header(self):
-        """Return header for display. if header was defined return it, else extract name of check class."""
+        """Return header for display. if header was defined return it, else extract name of check class.
+        
+        """
+
         return self.header or self.check.name()
 
     def process_conditions(self):
-        """Process the conditions results from current result and check."""
+        """Process the conditions results from current result and check.
+                                                          
+        """
+
         self.conditions_results = self.check.conditions_decision(self)
 
     def have_conditions(self) -> bool:
-        """Return if this check have condition results."""
+        """Return if this check have condition results.
+        
+        """
+
         return bool(self.conditions_results)
 
     def have_display(self) -> bool:
-        """Return if this check have dsiplay."""
+        """Return if this check have dsiplay.
+        
+        """
+
         return bool(self.display)
 
     def passed_conditions(self):
-        """Return if this check have not passing condition results."""
+        """Return if this check have not passing condition results.
+        
+        """
+
         return all((r.is_pass for r in self.conditions_results))
 
     @property
@@ -151,10 +172,10 @@ class CheckResult:
 
         This value is primarly used to determine suite output order.
         The logic is next:
-            - if at least one condition did not pass and is of category 'FAIL', return 1;
-            - if at least one condition did not pass and is of category 'WARN', return 2;
-            - if check result do not have assigned conditions, return 3
-            - if all conditions passed, return 4 ;
+            - if at least one condition did not pass and is of category 'FAIL', return 1.
+            - if at least one condition did not pass and is of category 'WARN', return 2.
+            - if check result do not have assigned conditions, return 3.
+            - if all conditions passed, return 4.
 
         Returns:
             int: priority of the cehck result.
@@ -171,7 +192,10 @@ class CheckResult:
         return 4
 
     def show(self, show_conditions=True, unique_id=None, show_additional_outputs=True):
-        """Display check result."""
+        """Display check result.
+        
+        """
+
         if is_ipython_display():
             self._ipython_display_(show_conditions=show_conditions, unique_id=unique_id,
                                    show_additional_outputs=show_additional_outputs)
@@ -180,7 +204,10 @@ class CheckResult:
 
 
 def wrap_run(func, class_instance):
-    """Wrap the run function of checks, and sets the `check` property on the check result."""
+    """Wrap the run function of checks, and sets the `check` property on the check result.
+    
+    """
+     
     @wraps(func)
     def wrapped(*args, **kwargs):
         result = func(*args, **kwargs)
@@ -195,7 +222,9 @@ def wrap_run(func, class_instance):
 
 
 class BaseCheck(metaclass=abc.ABCMeta):
-    """Base class for check."""
+    """Base class for check.
+    
+    """
 
     _conditions: OrderedDict
     _conditions_index: int
@@ -207,7 +236,10 @@ class BaseCheck(metaclass=abc.ABCMeta):
         setattr(self, 'run', wrap_run(getattr(self, 'run'), self))
 
     def conditions_decision(self, result: CheckResult) -> List[ConditionResult]:
-        """Run conditions on given result."""
+        """Run conditions on given result.
+        
+        """
+
         results = []
         condition: Condition
         for condition in self._conditions.values():
@@ -227,11 +259,15 @@ class BaseCheck(metaclass=abc.ABCMeta):
     def add_condition(self, name: str, condition_func: Callable[[Any], Union[ConditionResult, bool]], **params):
         """Add new condition function to the check.
 
-        Args:
-            name (str): Name of the condition. should explain the condition action and parameters
-            condition_func (Callable[[Any], Union[List[ConditionResult], bool]]): Function which gets the value of the
-                check and returns object of List[ConditionResult] or boolean.
-            params: Additional parameters to pass when calling the condition function.
+        Parameters
+        ----------
+        name : str 
+            Name of the condition. should explain the condition action and parameters
+        condition_func : Callable[[Any], Union[List[ConditionResult], bool]] 
+            Function which gets the value of the check and returns object of List[ConditionResult] or boolean.
+        params : dict
+            Additional parameters to pass when calling the condition function.
+
         """
         cond = Condition(name, condition_func, params)
         self._conditions[self._conditions_index] = cond
@@ -241,8 +277,12 @@ class BaseCheck(metaclass=abc.ABCMeta):
     def __repr__(self, tabs=0, prefix=''):
         """Representation of check as string.
 
-        Args:
-            tabs (int): number of tabs to shift by the output
+        Parameters
+        ----------
+        tabs : int , default : 0 
+            number of tabs to shift by the output
+        prefix 
+
         """
         tab_chr = '\t'
         params = self.params()
@@ -261,22 +301,35 @@ class BaseCheck(metaclass=abc.ABCMeta):
             return check_str
 
     def params(self) -> Dict:
-        """Return parameters to show when printing the check."""
+        """Return parameters to show when printing the check.
+        
+        Returns
+        -------
+        Dict
+
+        """
+
         init_params = inspect.signature(self.__init__).parameters
 
         return {k: v for k, v in vars(self).items()
                 if k in init_params and v != init_params[k].default}
 
     def clean_conditions(self):
-        """Remove all conditions from this check instance."""
+        """Remove all conditions from this check instance.
+        
+        """
+
         self._conditions.clear()
         self._conditions_index = 0
 
     def remove_condition(self, index: int):
         """Remove given condition by index.
 
-        Args:
-            index (int): index of condtion to remove
+        Parameters
+        ----------
+        index : int 
+            index of condtion to remove
+
         """
         if index not in self._conditions:
             raise DeepchecksValueError(f'Index {index} of conditions does not exists')
@@ -284,16 +337,34 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
     @classmethod
     def name(cls):
-        """Name of class in split camel case."""
+        """Name of class in split camel case.
+        
+
+        """
+
         return split_camel_case(cls.__name__)
 
 
 class SingleDatasetBaseCheck(BaseCheck):
-    """Parent class for checks that only use one dataset."""
+    """Parent class for checks that only use one dataset.
+    
+    """
 
     @abc.abstractmethod
     def run(self, dataset, model=None) -> CheckResult:
-        """Define run signature."""
+        """Define run signature.
+
+        Parameters
+        ----------
+        dataset
+        model , default : None
+
+        Returns
+        -------
+        CheckResult
+
+        """
+
         pass
 
 
@@ -301,25 +372,60 @@ class TrainTestBaseCheck(BaseCheck):
     """Parent class for checks that compare two datasets.
 
     The class checks train dataset and test dataset for model training and test.
+
     """
 
     @abc.abstractmethod
     def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
-        """Define run signature."""
+        """Define run signature.
+
+        Parameters
+        ----------
+        train_dataset
+        test_dataset
+        model , default : None
+
+        Returns
+        -------
+        CheckResult
+        
+        """
+
         pass
 
 
 class ModelOnlyBaseCheck(BaseCheck):
-    """Parent class for checks that only use a model and no datasets."""
+    """Parent class for checks that only use a model and no datasets.
+    
+    """
 
     @abc.abstractmethod
     def run(self, model) -> CheckResult:
-        """Define run signature."""
+        """Define run signature.
+
+        Parameters
+        ----------
+        model
+
+        Returns
+        -------
+        CheckResult
+        
+        """
+
         pass
 
 
 class CheckFailure:
-    """Class which holds a run exception of a check."""
+    """Class which holds a run exception of a check.
+
+    Parameters
+    ----------
+    check : BaseCheck
+    exception : Exception
+    header_suffix : str , default ``
+    
+    """
 
     def __init__(self, check: BaseCheck, exception: Exception, header_suffix: str = ''):
         self.check = check
@@ -327,21 +433,35 @@ class CheckFailure:
         self.header = check.name() + header_suffix
 
     def __repr__(self):
-        """Return string representation."""
+        """Return string representation.
+        
+        """
+
         tb_str = traceback.format_exception(etype=type(self.exception), value=self.exception,
                                             tb=self.exception.__traceback__)
         return ''.join(tb_str)
 
 
 class ModelComparisonContext:
-    """Contain processed input for model comparison checks."""
+    """Contain processed input for model comparison checks.
+    
+    Parameters
+    ----------
+    train_datasets : Union[Dataset, List[Dataset]]
+    test_datasets : Union[Dataset, List[Dataset]]
+    models : Union[List[Any], Mapping[str, Any]]
+
+    """
 
     def __init__(self,
                  train_datasets: Union[Dataset, List[Dataset]],
                  test_datasets: Union[Dataset, List[Dataset]],
                  models: Union[List[Any], Mapping[str, Any]]
                  ):
-        """Preprocess the parameters."""
+        """Preprocess the parameters.
+        
+        """
+
         # Validations
         if isinstance(train_datasets, Dataset) and isinstance(test_datasets, List):
             raise DeepchecksNotSupportedError('Single train dataset with multiple test datasets is not supported.')
@@ -398,26 +518,55 @@ class ModelComparisonContext:
                 raise DeepchecksNotSupportedError('Got models of different task types')
 
     def __len__(self):
-        """Return number of models."""
+        """Return number of models.
+        
+        """
+
         return len(self.models)
 
     def __iter__(self):
-        """Return iterator over context objects."""
+        """Return iterator over context objects.
+        
+        """
+
         return zip(self.train_datasets, self.test_datasets, self.models, self.model_names)
 
 
 class ModelComparisonBaseCheck(BaseCheck):
-    """Parent class for check that compares between two or more models."""
+    """Parent class for check that compares between two or more models.
+    
+
+    """
 
     def run(self,
             train_datasets: Union[Dataset, List[Dataset]],
             test_datasets: Union[Dataset, List[Dataset]],
             models: Union[List[Any], Mapping[str, Any]]
             ) -> CheckResult:
-        """Initialize context and pass to check logic."""
+        """Initialize context and pass to check logic.
+
+        Parameters
+        ----------
+        train_datasets : Union[Dataset, List[Dataset]]
+        test_datasets : Union[Dataset, List[Dataset]]
+        models : Union[List[Any], Mapping[str, Any]]
+
+        Returns
+        -------
+        CheckResult
+        
+        """
+
         return self.run_logic(ModelComparisonContext(train_datasets, test_datasets, models))
 
     @abc.abstractmethod
     def run_logic(self, context: ModelComparisonContext):
-        """Implement here logic of check."""
+        """Implement here logic of check.
+
+        Parameters
+        ----------
+        context: ModelComparisonContext
+        
+        """
+
         pass

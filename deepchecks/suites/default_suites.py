@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Predefined suites for various use-cases."""
+"""Predefined suites for various use-cases.
+
+"""
+
 from deepchecks.checks import (
     MixedNulls, SpecialCharacters, StringLengthOutOfBounds, StringMismatch, MixedDataTypes,
     DateTrainTestLeakageDuplicates, SingleFeatureContributionTrainTest, TrainTestSamplesMix,
@@ -29,6 +32,11 @@ def single_dataset_integrity() -> Suite:
     """Create 'Single Dataset Integrity Suite'.
 
     The suite runs a set of checks that are meant to detect integrity issues within a single dataset.
+
+    Returns
+    -------
+    Suite
+
     """
     return Suite(
         'Single Dataset Integrity Suite',
@@ -47,6 +55,11 @@ def train_test_leakage() -> Suite:
     """Create 'Train Test Leakage Suite'.
 
     The suite runs a set of checks that are meant to detect data leakage from the training dataset to the test dataset.
+
+    Returns
+    -------
+    Suite
+
     """
     return Suite(
         'Train Test Leakage Suite',
@@ -65,6 +78,11 @@ def train_test_validation() -> Suite:
 
     The suite runs a set of checks that are meant to validate correctness of train-test split, including
     integrity, drift and leakage.
+
+    Returns
+    -------
+    Suite
+    
     """
     return Suite(
         'Train Test Validation Suite',
@@ -84,6 +102,11 @@ def model_evaluation() -> Suite:
     """Create 'Model Evaluation Suite'.
 
     The suite runs a set of checks that are meant to test model performance and overfit.
+
+    Returns
+    -------
+    Suite
+    
     """
     return Suite(
         'Model Evaluation Suite',
@@ -106,6 +129,11 @@ def full_suite() -> Suite:
     """Create 'Full Suite'.
 
     The suite runs all deepchecks' checks.
+
+    Returns
+    -------
+    Suite
+    
     """
     return Suite(
         'Full Suite',

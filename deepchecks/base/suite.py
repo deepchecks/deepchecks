@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing the Suite object, used for running a set of checks together."""
+"""Module containing the Suite object, used for running a set of checks together.
+
+"""
+
 # pylint: disable=broad-except
 import abc
 from collections import OrderedDict
@@ -26,25 +29,41 @@ __all__ = ['Suite', 'ModelComparisonSuite', 'SuiteResult']
 
 
 class SuiteResult:
-    """Contain the results of a suite run."""
+    """Contain the results of a suite run.
+    
+    Parameters
+    ----------
+    name: str
+    results: List[Union[CheckResult, CheckFailure]]
+    
+    """
 
     name: str
     results: List[Union[CheckResult, CheckFailure]]
 
     def __init__(self, name: str, results):
-        """Initialize suite result."""
+        """Initialize suite result.
+        
+        """
+
         self.name = name
         self.results = results
 
     def __repr__(self):
-        """Return default __repr__ function uses value."""
+        """Return default __repr__ function uses value.
+        
+        """
+
         return self.name
 
     def _ipython_display_(self):
         display_suite_result(self.name, self.results)
 
     def show(self):
-        """Display suite result."""
+        """Display suite result.
+        
+        """
+
         if is_ipython_display():
             self._ipython_display_()
         else:
@@ -54,9 +73,13 @@ class SuiteResult:
 class BaseSuite:
     """Class for running a set of checks together, and returning a unified pass / no-pass.
 
-    Attributes:
-        checks: A list of checks to run.
-        name: Name of the suite
+    Parameters
+    ----------
+    checks: OrderedDict 
+        A list of checks to run.
+    name: str 
+        Name of the suite
+
     """
 
     @classmethod
@@ -76,13 +99,17 @@ class BaseSuite:
             self.add(check)
 
     def __repr__(self, tabs=0):
-        """Representation of suite as string."""
+        """Representation of suite as string.
+        
+        """
         tabs_str = '\t' * tabs
         checks_str = ''.join([f'\n{c.__repr__(tabs + 1, str(n) + ": ")}' for n, c in self.checks.items()])
         return f'{tabs_str}{self.name}: [{checks_str}\n{tabs_str}]'
 
     def __getitem__(self, index):
-        """Access check inside the suite by name."""
+        """Access check inside the suite by name.
+        
+        """
         if index not in self.checks:
             raise DeepchecksValueError(f'No index {index} in suite')
         return self.checks[index]
@@ -90,8 +117,11 @@ class BaseSuite:
     def add(self, check):
         """Add a check or a suite to current suite.
 
-        Args:
-            check (BaseCheck): A check or suite to add.
+        Parameters
+        ----------
+        check : BaseCheck 
+            A check or suite to add.
+
         """
         if isinstance(check, BaseSuite):
             if check is self:
@@ -110,8 +140,11 @@ class BaseSuite:
     def remove(self, index: int):
         """Remove a check by given index.
 
-        Args:
-            index (int): Index of check to remove.
+        Parameters
+        ----------
+        index : int 
+            Index of check to remove.
+
         """
         if index not in self.checks:
             raise DeepchecksValueError(f'No index {index} in suite')
@@ -120,11 +153,19 @@ class BaseSuite:
 
 
 class Suite(BaseSuite):
-    """Suite to run checks of types: TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck."""
+    """Suite to run checks of types: TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck.
+    
+    """
 
     @classmethod
     def supported_checks(cls) -> Tuple:
-        """Return tuple of supported check types of this suite."""
+        """Return tuple of supported check types of this suite.
+        
+        Returns
+        -------
+        Tuple
+
+        """
         return TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck
 
     def run(
@@ -135,16 +176,25 @@ class Suite(BaseSuite):
     ) -> SuiteResult:
         """Run all checks.
 
-        Args:
-          train_dataset: Dataset object, representing data an estimator was fitted on
-          test_dataset: Dataset object, representing data an estimator predicts on
-          model: A scikit-learn-compatible fitted estimator instance
+        Parameters
+        ----------
+        train_dataset: Optional[Dataset] , default None 
+            object, representing data an estimator was fitted on
+        test_dataset : Optional[Dataset] , default None 
+            object, representing data an estimator predicts on
+        model : object , default None 
+            A scikit-learn-compatible fitted estimator instance
 
-        Returns:
-          List[CheckResult] - All results by all initialized checks
+        Returns
+        -------
+        SuiteResult 
+            All results by all initialized checks
 
-        Raises:
-             ValueError if check_datasets_policy is not of allowed types
+        Raises
+        ------
+        ValueError 
+            if check_datasets_policy is not of allowed types.
+
         """
         if all(it is None for it in (train_dataset, test_dataset, model)):
             raise DeepchecksValueError('At least one dataset (or model) must be passed to the method!')
@@ -205,11 +255,15 @@ class Suite(BaseSuite):
 
 
 class ModelComparisonSuite(BaseSuite):
-    """Suite to run checks of types: CompareModelsBaseCheck."""
+    """Suite to run checks of types: CompareModelsBaseCheck.
+    
+    """
 
     @classmethod
     def supported_checks(cls) -> Tuple:
-        """Return tuple of supported check types of this suite."""
+        """Return tuple of supported check types of this suite.
+        
+        """
         return tuple([ModelComparisonBaseCheck])
 
     def run(self,
@@ -219,16 +273,25 @@ class ModelComparisonSuite(BaseSuite):
             ) -> SuiteResult:
         """Run all checks.
 
-        Args:
-          train_datasets: 1 or more dataset object, representing data an estimator was fitted on
-          test_datasets: 1 or more dataset object, representing data an estimator was fitted on
-          models: 2 or more scikit-learn-compatible fitted estimator instance
+        Parameters
+        ----------
+        train_datasets : Union[Dataset, Container[Dataset]] 
+            representing data an estimator was fitted on
+        test_datasets: Union[Dataset, Container[Dataset]] 
+            representing data an estimator was fitted on
+        models : Union[Container[Any], Mapping[str, Any]] 
+            2 or more scikit-learn-compatible fitted estimator instance
 
-        Returns:
-          List[CheckResult] - All results by all initialized checks
+        Returns
+        -------
+        SuiteResult 
+            All results by all initialized checks
 
-        Raises:
-             ValueError if check_datasets_policy is not of allowed types
+        Raises
+        ------
+        ValueError 
+            if check_datasets_policy is not of allowed types
+            
         """
         context = ModelComparisonContext(train_datasets, test_datasets, models)
 

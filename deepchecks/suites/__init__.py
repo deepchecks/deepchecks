@@ -8,7 +8,9 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains all prebuilt suites."""
+"""Module contains all prebuilt suites.
+
+"""
 from .default_suites import single_dataset_integrity, train_test_leakage, train_test_validation, \
     model_evaluation, full_suite
 
