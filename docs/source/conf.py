@@ -67,6 +67,7 @@ extensions = [
     'sphinx_copybutton',
     'sphinx.ext.githubpages',
     'sphinx_search.extension',
+    'sphinx.ext.autosectionlabel',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -493,3 +494,8 @@ def setup(app):
     app.config.generate_binder_url = generate_binder_url
     app.config.generate_colab_url = generate_colab_url
     app.config.get_check_example_api_reference = get_check_example_api_reference
+
+    return {
+        "parallel_read_safe": True,
+        "parallel_write_safe": True,
+    }
