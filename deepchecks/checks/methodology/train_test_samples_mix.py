@@ -52,8 +52,12 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
 
         columns = features + [label_name]
 
-        train_uniques = _create_unique_frame(train_dataset.data, columns, text_prefix='Train indices: ')
-        test_uniques = _create_unique_frame(test_dataset.data, columns, text_prefix='Test indices: ')
+        # in python 3.6 there is problem with comparing numpy nans, so replace with pandas.NA
+        train_df = train_dataset.data.copy().fillna(value=pd.NA)
+        test_df = test_dataset.data.copy().fillna(value=pd.NA)
+
+        train_uniques = _create_unique_frame(train_df, columns, text_prefix='Train indices: ')
+        test_uniques = _create_unique_frame(test_df, columns, text_prefix='Test indices: ')
 
         duplicates_df, test_dup_count = _create_train_test_joined_duplicate_frame(train_uniques, test_uniques, columns)
 
