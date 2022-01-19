@@ -28,7 +28,7 @@ from deepchecks import errors
 from deepchecks.utils.ipython import is_widgets_enabled
 from deepchecks.utils.strings import get_random_string
 from deepchecks.base.check import CheckResult, CheckFailure
-from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table_display, \
+from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table, \
                                            get_result_navigation_display
 
 
@@ -116,7 +116,7 @@ def _display_suite_widgets(summary: str,
     tab.set_title(2, 'Checks Without Output')
 
     if checks_with_conditions:
-        cond_html_table = get_conditions_table_display(checks_with_conditions, unique_id, 300)
+        cond_html_table = dataframe_to_html(get_conditions_table(checks_with_conditions, unique_id, 300))
         h2_widget = widgets.HTML(_CONDITIONS_SUMMARY_TITLE)
         condition_tab_children = [h2_widget, _create_table_widget(cond_html_table)]
     else:
@@ -196,7 +196,7 @@ def _display_suite_no_widgets(summary: str,
     display_html(bold_hr + summary, raw=True)
 
     if checks_with_conditions:
-        cond_html_table = get_conditions_table_display(checks_with_conditions, unique_id, 300)
+        cond_html_table = dataframe_to_html(get_conditions_table(checks_with_conditions, unique_id, 300))
         display_html(_CONDITIONS_SUMMARY_TITLE + cond_html_table, raw=True)
     else:
         display_html(_NO_CONDITIONS_SUMMARY_TITLE, raw=True)
