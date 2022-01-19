@@ -22,7 +22,7 @@ How-to Guides
     guides/add_a_custom_check
     guides/configure_check_conditions
     guides/save_suite_result_as_html
-    guides/serialize_deserialize_output
+    guides/export_outputs_to_json
 
 Use Cases
 ~~~~~~~~~
