@@ -61,12 +61,8 @@ def validate_model(
 
     if isinstance(data, base.Dataset):
         features = data.features_columns
-        features_names = set(data.features)
     else:
         features = data
-        features_names = set(data.columns)
-
-    model_features = getattr(model, 'feature_names_in_', None)
 
     if features is None:
         raise errors.DeepchecksValueError(error_message.format(
@@ -77,16 +73,6 @@ def validate_model(
         raise errors.DeepchecksValueError(error_message.format(
             'But function received empty dataset.'
         ))
-
-    try:
-        model_features = set(model_features)  # type: ignore
-        if model_features != features_names:
-            raise errors.DeepchecksValueError(error_message.format(
-                'But function received dataset with a different set of features.'
-            ))
-    except (TypeError, ValueError):
-        # in case if 'model.feature_names_in_' was None or not iterable
-        pass
 
     try:
         model.predict(features.head(1))
