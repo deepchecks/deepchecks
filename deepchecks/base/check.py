@@ -256,6 +256,8 @@ class CheckResult:
                 plotly.io.read_json(plotly_json).show()
             elif display_type == 'plt':
                 display_html(f'<img src=\'data:image/png;base64,{value}\'>', raw=True)
+            else:
+                raise ValueError(f'Unexpected type of display received: {display_type}')
 
     def _ipython_display_(self, unique_id=None, as_widget=False,
                           show_additional_outputs=True):
