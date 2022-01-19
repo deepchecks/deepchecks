@@ -20,9 +20,11 @@ from functools import wraps
 from typing import Any, Callable, List, Sequence, Union, Dict, Mapping, cast
 import json
 
+import jsonpickle
 from matplotlib import pyplot as plt
 import matplotlib
 import pandas as pd
+import numpy as np
 import ipywidgets as widgets
 import plotly.graph_objects as go
 from IPython.core.display import display_html
@@ -194,11 +196,16 @@ class CheckResult:
         displays.append(('docs_header', f'<p>{get_docs_summary(self.check)}</p>'))
         if self.conditions_results:
             displays.append(('conditions_header', _CONDITIONS_HEADER))
-            displays.append(('conditions', get_conditions_table(self)))
+            cond_df = get_conditions_table(self)
+            if isinstance(cond_df, Styler):
+                cond_df = cond_df.data
+            displays.append(('conditions', cond_df.to_json(orient='records')))
         displays.append(('outputs_header', _ADDITIONAL_OUTPUTS_HEADER))
-        for item in self.display:
-            if isinstance(item, (pd.DataFrame, Styler)):
-                displays.append(('dataframe', item.to_json()))
+        for item in self.display:   
+            if isinstance(item, Styler):
+                displays.append(('dataframe', item.data.to_json(orient='records')))
+            elif isinstance(item, pd.DataFrame):
+                displays.append(('dataframe', item.to_json(orient='records')))
             elif isinstance(item, str):
                 displays.append(('html', item))
             elif isinstance(item, BaseFigure):
@@ -220,10 +227,13 @@ class CheckResult:
         check_name = self.check.name()
         parameters = self.check.params()
         result_json = {'name': check_name, 'parameters': parameters}
+        
         if isinstance(self.value, pd.DataFrame):
             result_json['value'] = self.value.to_json()
+        elif isinstance(self.value, np.ndarray):
+            result_json['value'] = json.dumps(self.value.tolist())
         else:
-            result_json['value'] = json.dumps(self.value)
+            result_json['value'] = jsonpickle.dumps(self.value)
         if with_display:
             display_json = self._display_to_json()
             result_json['display'] = display_json
@@ -233,14 +243,17 @@ class CheckResult:
     def display_from_json(json_data):
         json_data = json.loads(json_data)
         if json_data.get('display') is None:
-            return   
-        for display_type, value in json.loads(json_data['display']):
+            return
+        display = json_data['display']
+        if isinstance(display, str):
+            display = json.loads(display)
+        for display_type, value in display:
             if display_type in ['html', 'plt'] or 'header' in display_type:
                 display_html(value, raw=True)
             elif display_type in ['conditions', 'dataframe']:
-                df: pd.DataFrame = pd.read_json(value)
+                df: pd.DataFrame = pd.read_json(value, orient='records')
                 display_html(dataframe_to_html(df), raw=True)
-            elif display_type == ['plotly']:
+            elif display_type == 'plotly':
                 plotly_json = io.StringIO(value)
                 plotly.io.read_json(plotly_json).show()
 
@@ -607,6 +620,12 @@ class CheckFailure:
         self.check = check
         self.exception = exception
         self.header = check.name() + header_suffix
+
+    def to_json(self):
+        check_name = self.check.name()
+        parameters = self.check.params()
+        result_json = {'name': check_name, 'parameters': parameters, 'display': [('str', str(self.exception))]}
+        return json.dumps(result_json)
 
     def __repr__(self):
         """Return string representation."""

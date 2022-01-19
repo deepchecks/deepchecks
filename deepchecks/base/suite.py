@@ -11,6 +11,7 @@
 """Module containing the Suite object, used for running a set of checks together."""
 # pylint: disable=broad-except
 import abc
+import json
 from collections import OrderedDict
 from typing import Union, List, Optional, Tuple, Any, Container, Mapping
 
@@ -60,6 +61,25 @@ class SuiteResult:
         if file is None:
             file = 'output.html'
         display_suite_result(self.name, self.results, html_out=file)
+
+    def to_json(self):
+        json_results = []
+        for res in self.results:
+            res_j = res.to_json()
+            if not res_j:
+                print('(***********)')
+                print(res_j)
+                print(res)
+            json_results.append(res_j)
+        return json.dumps(json_results)
+    
+    @staticmethod
+    def display_from_json(json_results):
+        for json_res in json.loads(json_results):
+            if not json_res:
+                print('waaa')
+            CheckResult.display_from_json(json_res)
+
 
 
 class BaseSuite:
@@ -184,14 +204,14 @@ class Suite(BaseSuite):
                             check_result = check.run(dataset=train_dataset, model=model)
                             check_result.header = f'{check_result.get_header()} - Train Dataset'
                         except Exception as exp:
-                            check_result = CheckFailure(check.__class__, exp, ' - Train Dataset')
+                            check_result = CheckFailure(check, exp, ' - Train Dataset')
                         results.append(check_result)
                     if test_dataset is not None:
                         try:
                             check_result = check.run(dataset=test_dataset, model=model)
                             check_result.header = f'{check_result.get_header()} - Test Dataset'
                         except Exception as exp:
-                            check_result = CheckFailure(check.__class__, exp, ' - Test Dataset')
+                            check_result = CheckFailure(check, exp, ' - Test Dataset')
                         results.append(check_result)
                     if train_dataset is None and test_dataset is None:
                         results.append(Suite._get_unsupported_failure(check))
@@ -204,7 +224,7 @@ class Suite(BaseSuite):
                 else:
                     raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
             except Exception as exp:
-                results.append(CheckFailure(check.__class__, exp))
+                results.append(CheckFailure(check, exp))
             progress_bar.inc_progress()
 
         progress_bar.close()
@@ -213,7 +233,7 @@ class Suite(BaseSuite):
     @classmethod
     def _get_unsupported_failure(cls, check):
         msg = 'Check is not supported for parameters given to suite'
-        return CheckFailure(check.__class__, DeepchecksNotSupportedError(msg))
+        return CheckFailure(check, DeepchecksNotSupportedError(msg))
 
 
 class ModelComparisonSuite(BaseSuite):
@@ -254,7 +274,7 @@ class ModelComparisonSuite(BaseSuite):
                 check_result = check.run_logic(context)
                 results.append(check_result)
             except Exception as exp:
-                results.append(CheckFailure(check.__class__, exp))
+                results.append(CheckFailure(check, exp))
             progress_bar.inc_progress()
 
         progress_bar.close()
