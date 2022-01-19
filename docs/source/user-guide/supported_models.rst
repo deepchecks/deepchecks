@@ -4,8 +4,8 @@
 Supported Models
 ====================
 
-Similar to scikit-learn API, a model will be compatible with deepchecks' checks if it implements some minimal functionality of ``predict`` and if it's classification ``predict_proba``.
-Without a compatible model, deepchecks can't run all checks that require predictions, for example all :doc:`performance checks </api/generated/deepchecks.checks.performance>`.
+Similar to scikit-learn API, a model will be compatible with deepchecks' checks if it implements the minimal functionality of ``predict`` and if it's classification ``predict_proba``.
+Without a compatible model, deepchecks can't run checks that require predictions, for example all :doc:`performance checks </api/generated/deepchecks.checks.performance>`.
 
 Below are the minimal requirements for each task type:
 
@@ -29,7 +29,7 @@ Classification
 --------------
 
 For classification models, we require both the  the ``predict`` and the ``predict_proba`` functionד.
-They both should expect an |array-like| of shape ``(n_samples, n_features)``, but ``predict`` is
+They both should expect an |array-like| of shape ``(n_samples, n_features)``, but ``predict``
 is expected to return an `ndarray` of shape ``(n_samples,)``, a vector containing the predicted class label for each sample, and ``predict_proba``
 is expected to return an `ndarray` of shape ``(n_samples,n_classes)``, an array containing the predicted probability of each class per sample.
 
@@ -38,7 +38,7 @@ is expected to return an `ndarray` of shape ``(n_samples,n_classes)``, an array 
 >>> class simple_classification_model:
 ...     def predict(X: np.ndarray) -> np.ndarray:
 ...         ...
-...     def predict_proba(X: pd.DataFrame) -> np.ndarray:
+...     def predict_proba(X: np.ndarray) -> np.ndarray:
 ...         ...
 
 
