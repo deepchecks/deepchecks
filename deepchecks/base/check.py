@@ -213,6 +213,16 @@ class CheckResult:
         return displays
 
     def to_json(self, with_display: bool = True):
+        """Return check result as json.
+
+        Args:
+            with_display (bool): controls if to serialize display or not
+        
+        Returns:
+            json in the format:
+            {'name': .., 'params': .., 'header': ..,
+             'summary': .., 'conditions_table': .., 'value', 'display': ..}
+        """
         check_name = self.check.name()
         parameters = self.check.params()
         result_json = {'name': check_name, 'params': parameters, 'header': self.header,
@@ -622,11 +632,20 @@ class CheckFailure:
         self.exception = exception
         self.header = check.name() + header_suffix
 
-    def to_json(self):
-        """Return the check failure as a json."""
+    def to_json(self, with_display: bool = True):
+        """Return check failure as json.
+
+        Args:
+            with_display (bool): controls if to serialize display or not
+        
+        Returns:
+            {'name': .., 'params': .., 'header': .., 'display': ..}
+        """
         check_name = self.check.name()
         parameters = self.check.params()
-        result_json = {'name': check_name, 'parameters': parameters, 'display': [('str', str(self.exception))]}
+        result_json = {'name': check_name, 'params': parameters, 'header': self.header}
+        if with_display:
+            result_json['display'] = [('str', str(self.exception))]
         return jsonpickle.dumps(result_json)
 
     def __repr__(self):
