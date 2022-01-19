@@ -55,8 +55,7 @@ subset of the following:
    etc.), with optional labels
 -  The model's training data with labels
 -  Test data (which the model isn't exposed to) with labels
--  A model compatible with scikit-learn API that you wish to validate
-   (e.g. RandomForest, XGBoost)
+-  A :doc:`supported model </user-guide/supported_models>` that you wish to validate (any model compatible with the scikit-learn api, e.g. RandomForest, XGBoost)
 
 
 See More
