@@ -164,6 +164,7 @@ def load_fitted_model():
 
 
 def _build_model():
+    """Build the model to fit."""
     return Pipeline(steps=[
         ('preprocessor',
          ColumnTransformer(transformers=[('num',

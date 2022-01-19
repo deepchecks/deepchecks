@@ -248,7 +248,12 @@ def load_fitted_model():
         with urlopen(_MODEL_URL) as f:
             model = joblib.load(f)
     else:
-        model = AdaBoostClassifier()
+        model = _build_model()
         train, _ = load_data()
         model.fit(train.features_columns, train.label_col)
     return model
+
+
+def _build_model():
+    """Build the model to fit."""
+    return AdaBoostClassifier()

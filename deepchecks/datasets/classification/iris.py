@@ -140,4 +140,5 @@ def load_fitted_model():
 
 
 def _build_model():
-    return  RandomForestClassifier()
+    """Build the model to fit."""
+    return RandomForestClassifier()

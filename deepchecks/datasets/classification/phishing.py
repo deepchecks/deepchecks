@@ -17,7 +17,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
 from category_encoders import OneHotEncoder
 from urllib.request import urlopen
 from deepchecks import Dataset
@@ -204,7 +203,6 @@ def load_fitted_model():
         model = _build_model()
         train, _ = load_data()
         model.fit(train.features_columns, train.label_col)
-
     return model
 
 
@@ -253,6 +251,7 @@ def get_url_preprocessor():
 
 
 def _build_model():
+    """Build the model to fit."""
     return Pipeline(steps=[
         ('preprocessing',
          ColumnTransformer(transformers=[('num', SimpleImputer(),
