@@ -52,7 +52,7 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
 
         columns = features + [label_name]
 
-        # in python 3.6 there is problem with comparing numpy nan, so replace with placeholder
+        # For pandas.groupby in python 3.6, there is problem with comparing numpy nan, so replace with placeholder
         na_filler = '__deepchecks_na_filler__'
         train_df = train_dataset.data.fillna(value=na_filler)
         test_df = test_dataset.data.fillna(value=na_filler)
@@ -62,7 +62,7 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
 
         duplicates_df, test_dup_count = _create_train_test_joined_duplicate_frame(train_uniques, test_uniques, columns)
 
-        # Replace fillter back to none
+        # Replace filler back to none
         duplicates_df = duplicates_df.applymap(lambda x: None if x == na_filler else x)
         dup_ratio = test_dup_count / test_dataset.n_samples
         user_msg = f'{format_percent(dup_ratio)} ({test_dup_count} / {test_dataset.n_samples}) \
