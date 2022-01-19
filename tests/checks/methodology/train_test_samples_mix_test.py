@@ -25,9 +25,10 @@ from tests.checks.utils import equal_condition_result
 def test_dataset_wrong_input():
     x = 'wrong_input'
     # Act & Assert
-    assert_that(calling(TrainTestSamplesMix().run).with_args(x, x),
-                raises(DeepchecksValueError,
-                'dataset must be of type DataFrame or Dataset. instead got: str'))
+    assert_that(
+        calling(TrainTestSamplesMix().run).with_args(x, x),
+        raises(DeepchecksValueError,
+               'non-empty instance of Dataset or DataFrame was expected, instead got str'))
 
 
 def test_no_leakage(iris_clean):
@@ -109,9 +110,9 @@ def test_condition_ratio_not_greater_than_not_passed(iris_clean):
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Percentage of test data samples that appear in train data '
-                                    'not greater than 9.00%',
+                                    'not greater than 9%',
                                details='Percent of test data samples that appear in train data: '
-                                       '10.00%')
+                                       '10%')
     ))
 
 
@@ -126,5 +127,5 @@ def test_condition_ratio_not_greater_than_passed(diabetes_split_dataset_and_mode
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                name='Percentage of test data samples that appear in train data '
-                                    'not greater than 10.00%')
+                                    'not greater than 10%')
     ))

@@ -20,7 +20,7 @@ from hamcrest import assert_that, close_to, calling, raises, equal_to, has_items
 
 from deepchecks import Dataset
 from deepchecks.checks.methodology import DateTrainTestLeakageOverlap, DateTrainTestLeakageDuplicates
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError
 from tests.checks.utils import equal_condition_result
 
 
@@ -105,20 +105,20 @@ def test_dataset_wrong_input():
     x = 'wrong_input'
     assert_that(
         calling(DateTrainTestLeakageDuplicates().run).with_args(x, x),
-        raises(DeepchecksValueError, 'Check requires dataset to be of type Dataset. instead got: str'))
+        raises(DeepchecksValueError, 'non-empty Dataset instance was expected, instead got str'))
     assert_that(
         calling(DateTrainTestLeakageOverlap().run).with_args(x, x),
-        raises(DeepchecksValueError, 'Check requires dataset to be of type Dataset. instead got: str'))
+        raises(DeepchecksValueError, 'non-empty Dataset instance was expected, instead got str'))
 
 
 def test_dataset_no_index():
     ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11]})
     assert_that(
         calling(DateTrainTestLeakageDuplicates().run).with_args(ds, ds),
-        raises(DeepchecksValueError, 'Check requires dataset to have a datetime column'))
+        raises(DatasetValidationError, 'Check is irrelevant for Datasets without datetime column'))
     assert_that(
         calling(DateTrainTestLeakageOverlap().run).with_args(ds, ds),
-        raises(DeepchecksValueError, 'Check requires dataset to have a datetime column'))
+        raises(DatasetValidationError, 'Check is irrelevant for Datasets without datetime column'))
 
 
 def test_dates_from_val_before_train():
@@ -254,7 +254,7 @@ def test_condition_fail_on_overlap():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Date leakage ratio is not greater than 20.00%',
+                               name='Date leakage ratio is not greater than 20%',
                                details='Found 27.27% leaked dates')
     ))
 
@@ -299,7 +299,7 @@ def test_condition_fail_on_overlap_date_in_index():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Date leakage ratio is not greater than 20.00%',
+                               name='Date leakage ratio is not greater than 20%',
                                details='Found 27.27% leaked dates')
     ))
 
@@ -384,7 +384,7 @@ def test_condition_fail_on_duplicates():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Date leakage ratio is not greater than 10.00%',
+                               name='Date leakage ratio is not greater than 10%',
                                details='Found 18.18% leaked dates')
     ))
 

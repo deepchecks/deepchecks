@@ -123,8 +123,8 @@ def test_condition_pass_all_columns():
     result = check.conditions_decision(check.run(dataframe))
     # Assert
     assert_that(result, has_items(
-        equal_condition_result(is_pass=True, name='Rare data types in column are either more than 10.00% or less '
-                                                  'than 1.00% of the data')
+        equal_condition_result(is_pass=True, name='Rare data types in column are either more than 10% or less '
+                                                  'than 1% of the data')
     ))
 
 
@@ -138,8 +138,8 @@ def test_condition_pass_fail_single_column():
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Rare data types in column are either more than 40.00% or less '
-                                    'than 1.00% of the data',
+                               name='Rare data types in column are either more than 40% or less '
+                                    'than 1% of the data',
                                details='Found columns with non-negligible quantities of samples with a different '
                                        'data type from the majority of samples: [\'col1\']',
                                category=ConditionCategory.WARN)
@@ -156,8 +156,8 @@ def test_condition_pass_fail_ignore_column():
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Rare data types in column are either more than 40.00% or'
-                                    ' less than 1.00% of the data',
+                               name='Rare data types in column are either more than 40% or'
+                                    ' less than 1% of the data',
                                details='Found columns with non-negligible quantities of samples with a different '
                                        'data type from the majority of samples: [\'col1\']',
                                category=ConditionCategory.WARN)

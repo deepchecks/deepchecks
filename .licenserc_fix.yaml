@@ -28,6 +28,7 @@ header:
     - 'MANIFEST.in'
     - '.github/ISSUE_TEMPLATE/'
     - '.github/pull_request_template.md'
+    - 'deepchecks/base/resources'
   comment: on-failure
 
 dependency:

@@ -14,7 +14,7 @@ import pandas as pd
 from hamcrest import assert_that, calling, raises, equal_to, has_items
 
 from deepchecks.base import Dataset
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError
 from deepchecks.checks.integrity import NewLabelTrainTest
 
 from tests.checks.utils import equal_condition_result
@@ -23,9 +23,13 @@ from tests.checks.utils import equal_condition_result
 def test_dataset_wrong_input():
     x = 'wrong_input'
     # Act & Assert
-    assert_that(calling(NewLabelTrainTest().run).with_args(x, x),
-                raises(DeepchecksValueError,
-                'Check requires dataset to be of type Dataset. instead got: str'))
+    assert_that(
+        calling(NewLabelTrainTest().run).with_args(x, x),
+        raises(
+            DeepchecksValueError, 
+            'non-empty Dataset instance was expected, instead got str'
+        )
+    )
 
 
 def test_no_new_label():
@@ -174,7 +178,7 @@ def test_condition_ratio_of_new_label_samples_pass():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               name='Ratio of samples with new label is not greater than 30.00%')
+                               name='Ratio of samples with new label is not greater than 30%')
     ))
 
 
@@ -194,6 +198,6 @@ def test_condition_ratio_of_new_label_samples_fail():
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found new labels in test data: [5]\nmaking 25.00% of samples.',
-                               name='Ratio of samples with new label is not greater than 10.00%')
+                               details='Found new labels in test data: [5]\nmaking 25% of samples.',
+                               name='Ratio of samples with new label is not greater than 10%')
     ))
