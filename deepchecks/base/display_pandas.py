@@ -20,7 +20,7 @@ from deepchecks.utils.strings import get_docs_summary, get_ellipsis
 from . import check  # pylint: disable=unused-import
 
 
-__all__ = ['dataframe_to_html', 'get_conditions_table_display']
+__all__ = ['dataframe_to_html', 'get_conditions_table']
 
 
 def dataframe_to_html(df: Union[pd.DataFrame, Styler]):
@@ -54,9 +54,9 @@ def dataframe_to_html(df: Union[pd.DataFrame, Styler]):
         return df.to_html()
 
 
-def get_conditions_table_display(check_results: Union['check.CheckResult', List['check.CheckResult']],
-                                 unique_id=None, max_info_len: int = 3000):
-    """Display the conditions table as DataFrame.
+def get_conditions_table(check_results: Union['check.CheckResult', List['check.CheckResult']],
+                         unique_id=None, max_info_len: int = 3000):
+    """Return the conditions table as DataFrame.
 
     Args:
         check_results (Union['CheckResult', List['CheckResult']]): check results to show conditions of.
@@ -64,8 +64,8 @@ def get_conditions_table_display(check_results: Union['check.CheckResult', List[
                               (won't create links if None/empty).
         max_info_len (int): max length of the additional info.
     Returns:
-        str:
-            html representation of the condition table.
+        pd.Dataframe:
+            the condition table.
     """
     if not isinstance(check_results, List):
         show_check_column = False
@@ -95,7 +95,7 @@ def get_conditions_table_display(check_results: Union['check.CheckResult', List[
     if show_check_column is False:
         conditions_table.drop('Check', axis=1, inplace=True)
     conditions_table['More Info'] = conditions_table['More Info'].map(lambda x: get_ellipsis(x, max_info_len))
-    return dataframe_to_html(conditions_table.style.hide_index())
+    return conditions_table.style.hide_index()
 
 
 def get_result_navigation_display(check_results: Union['check.CheckResult', List['check.CheckResult']],
