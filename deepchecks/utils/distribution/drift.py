@@ -21,7 +21,7 @@ from plotly.subplots import make_subplots
 
 from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
-from errors import DeepchecksValueError
+from deepchecks.errors import DeepchecksValueError
 
 PSI_MIN_PERCENTAGE = 0.01
 
