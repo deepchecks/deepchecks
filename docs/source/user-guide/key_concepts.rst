@@ -51,7 +51,7 @@ See Also
 ---------
 
 - :doc:`/examples/guides/configure_check_conditions` - for a tutorial demonstrating how to modify a checks' conditions
-- :doc:`Check Base Classes API Reference </api/base/generated/deepchecks.base.check>` - where all of the check and condition related base objects can be found. 
+- :doc:`Check Base Classes API Reference </api/generated/deepchecks.base.check>` - where all of the check and condition related base objects can be found.
 
 
 Suite
