@@ -5,7 +5,7 @@ Key Concepts
 A Suite runs a collection of Checks with optional Conditions added to them.
 
 Check
-========
+^^^^^
 
 Each check enables you to inspect a specific aspect of your data and
 models. They are the basic building block of the deepchecks package,
@@ -22,16 +22,17 @@ Each check can have two types of results:
    results (validations are typically done by adding a "Condition" to
    the check, as explained below).
 
+
 See Also
 ---------
 
-- :doc:`Check Demonstrations </examples/checks/index>` - example notebooks demonstrating all of the checks implemented in the package.
+- :ref:`Check Demonstrations` - example notebooks demonstrating all of the checks implemented in the package.
 - :doc:`Checks API Reference </api/checks>` - where all the check parameters and implemented conditions can be found.
 - :doc:`/examples/guides/add_a_custom_check` - for a tutorial of how to implement your own check
 
 
 Condition
-==========
+^^^^^^^^^
 
 A condition is a function that can be added to a Check, which returns
 a pass ✓, fail ✖ or warning ! result, intended for validating the Check's return value.
@@ -51,11 +52,11 @@ See Also
 ---------
 
 - :doc:`/examples/guides/configure_check_conditions` - for a tutorial demonstrating how to modify a checks' conditions
-- :doc:`Check Base Classes API Reference </api/base/generated/deepchecks.base.check>` - where all of the check and condition related base objects can be found. 
+- :doc:`Check Base Classes API Reference </api/generated/deepchecks.base.check>` - where all of the check and condition related base objects can be found.
 
 
 Suite
-========
+^^^^^
 
 An ordered collection of checks, that can have conditions added to them.
 The Suite enables displaying a concluding report for all of the Checks

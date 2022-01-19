@@ -160,8 +160,8 @@ will run on the columns to determine which are classified as categorical:
    - If (`number of unique values in column` <= `max_float_categories`) 
      **AND** (`column type` is `float`)
 
-   - If (`number of unique values in column` <= ``max_categories`)  
+   - If (`number of unique values in column` <= `max_categories`)  
      **AND** ((the ratio between the `number of unique values` and the `number of samples`) < `max_categorical_ratio`)
   
-Check the API Reference for :doc:`infer_categorical_features </api/utils/generated/deepchecks.utils.features.infer_categorical_features>` 
+Check the API Reference for :doc:`infer_categorical_features </api/generated/deepchecks.utils.features.infer_categorical_features>`
 for more details.
