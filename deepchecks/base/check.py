@@ -225,7 +225,8 @@ class CheckResult:
         """
         check_name = self.check.name()
         parameters = self.check.params()
-        result_json = {'name': check_name, 'params': parameters, 'header': self.header,
+        header = self.get_header()
+        result_json = {'name': check_name, 'params': parameters, 'header': header,
                        'summary': get_docs_summary(self.check)}
         if self.conditions_results:
             cond_df = get_conditions_table(self)
