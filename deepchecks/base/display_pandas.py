@@ -55,7 +55,7 @@ def dataframe_to_html(df: Union[pd.DataFrame, Styler]):
 
 
 def get_conditions_table(check_results: Union['check.CheckResult', List['check.CheckResult']],
-                                 unique_id=None, max_info_len: int = 3000):
+                         unique_id=None, max_info_len: int = 3000):
     """Return the conditions table as DataFrame.
 
     Args:
