@@ -20,7 +20,7 @@ from deepchecks.utils.strings import get_docs_summary, get_ellipsis
 from . import check  # pylint: disable=unused-import
 
 
-__all__ = ['dataframe_to_html', 'get_conditions_table_display']
+__all__ = ['dataframe_to_html', 'get_conditions_table']
 
 
 def dataframe_to_html(df: Union[pd.DataFrame, Styler]):

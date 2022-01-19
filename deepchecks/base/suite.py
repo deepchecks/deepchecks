@@ -69,7 +69,6 @@ class SuiteResult:
         return json_results
 
 
-
 class BaseSuite:
     """Class for running a set of checks together, and returning a unified pass / no-pass.
 

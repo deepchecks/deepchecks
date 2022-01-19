@@ -64,8 +64,7 @@ def _save_all_open_figures():
         bio = io.BytesIO()
         fig.savefig(bio, format='png')
         encoded = base64.b64encode(bio.getvalue()).decode('utf-8')
-        # keep img tag outer html in its own variable
-        images.append('<img src=\'data:image/png;base64,{}\'>'.format(encoded))
+        images.append(encoded)
         fig.clear()
     return images
 
@@ -200,7 +199,7 @@ class CheckResult:
                 cond_df = cond_df.data
             displays.append(('conditions', cond_df.to_json(orient='records')))
         displays.append(('outputs_header', _ADDITIONAL_OUTPUTS_HEADER))
-        for item in self.display:   
+        for item in self.display:
             if isinstance(item, Styler):
                 displays.append(('dataframe', item.data.to_json(orient='records')))
             elif isinstance(item, pd.DataFrame):
@@ -210,7 +209,7 @@ class CheckResult:
             elif isinstance(item, BaseFigure):
                 displays.append(('plotly', item.to_json()))
             elif callable(item):
-                try:   
+                try:
                     matplotlib.use('Agg')
                     item()
                     displays.append(('plt', _save_all_open_figures()))
@@ -226,7 +225,7 @@ class CheckResult:
         check_name = self.check.name()
         parameters = self.check.params()
         result_json = {'name': check_name, 'params': parameters}
-        
+
         if isinstance(self.value, pd.DataFrame):
             result_json['value'] = self.value.to_json()
         elif isinstance(self.value, np.ndarray):
@@ -244,7 +243,7 @@ class CheckResult:
         if json_data.get('display') is None:
             return
         for display_type, value in json_data['display']:
-            if display_type in ['html', 'plt'] or 'header' in display_type:
+            if display_type == 'html' or 'header' in display_type:
                 display_html(value, raw=True)
             elif display_type in ['conditions', 'dataframe']:
                 df: pd.DataFrame = pd.read_json(value, orient='records')
@@ -252,7 +251,8 @@ class CheckResult:
             elif display_type == 'plotly':
                 plotly_json = io.StringIO(value)
                 plotly.io.read_json(plotly_json).show()
-
+            elif display_type == 'plt':
+                display_html(f'<img src=\'data:image/png;base64,{value}\'>', raw=True)
 
     def _ipython_display_(self, unique_id=None, as_widget=False,
                           show_additional_outputs=True):
