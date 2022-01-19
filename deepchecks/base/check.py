@@ -217,7 +217,7 @@ class CheckResult:
 
         Args:
             with_display (bool): controls if to serialize display or not
-        
+
         Returns:
             json in the format:
             {'name': .., 'params': .., 'header': ..,
@@ -243,6 +243,7 @@ class CheckResult:
 
     @staticmethod
     def display_from_json(json_data):
+        """Display the check result from a json received from a to_json."""
         json_data = jsonpickle.loads(json_data)
         if json_data.get('display') is None:
             return
@@ -637,7 +638,7 @@ class CheckFailure:
 
         Args:
             with_display (bool): controls if to serialize display or not
-        
+
         Returns:
             {'name': .., 'params': .., 'header': .., 'display': ..}
         """
