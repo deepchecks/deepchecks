@@ -21,6 +21,7 @@ from plotly.subplots import make_subplots
 
 from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
+from deepchecks.errors import DeepchecksValueError
 
 PSI_MIN_PERCENTAGE = 0.01
 
@@ -114,47 +115,35 @@ def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, plot_ti
         test_dist = test_dist.astype('float')
 
         score = earth_movers_distance(dist1=train_dist, dist2=test_dist)
-        bar_stop = max(0.4, score + 0.1)
 
-        score_bar = drift_score_bar_traces(score)
-
-        traces, xaxis_layout, yaxis_layout = feature_distribution_traces(train_dist, test_dist)
+        bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score)
+        dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist)
 
     elif column_type == 'categorical':
         scorer_name = 'PSI'
         expected_percents, actual_percents, _ = \
             preprocess_2_cat_cols_to_same_bins(dist1=train_dist, dist2=test_dist, max_num_categories=max_num_categories)
         score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
-        bar_stop = min(max(0.4, score + 0.1), 1)
 
-        score_bar = drift_score_bar_traces(score)
-
-        traces, xaxis_layout, yaxis_layout = feature_distribution_traces(train_dist, test_dist, is_categorical=True,
-                                                                         max_num_categories=max_num_categories)
+        bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score, bar_max=1)
+        dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(train_dist, test_dist, is_categorical=True,
+                                                                            max_num_categories=max_num_categories)
+    else:
+        # Should never reach here
+        raise DeepchecksValueError(f'Unsupported column type for drift: {column_type}')
 
     fig = make_subplots(rows=2, cols=1, vertical_spacing=0.4, shared_yaxes=False, shared_xaxes=False,
                         row_heights=[0.1, 0.9],
                         subplot_titles=['Drift Score - ' + scorer_name, plot_title])
 
-    fig.add_traces(score_bar, rows=[1] * len(score_bar), cols=[1] * len(score_bar))
-    fig.add_traces(traces, rows=[2] * len(traces), cols=[1] * len(traces))
+    fig.add_traces(bar_traces, rows=[1] * len(bar_traces), cols=[1] * len(bar_traces))
+    fig.add_traces(dist_traces, rows=[2] * len(dist_traces), cols=[1] * len(dist_traces))
 
     shared_layout = go.Layout(
-        xaxis=dict(
-            showgrid=False,
-            gridcolor='black',
-            linecolor='black',
-            range=[0, bar_stop],
-            dtick=0.05
-        ),
-        yaxis=dict(
-            showgrid=False,
-            showline=False,
-            showticklabels=False,
-            zeroline=False,
-        ),
-        xaxis2=xaxis_layout,
-        yaxis2=yaxis_layout,
+        xaxis=bar_x_axis,
+        yaxis=bar_y_axis,
+        xaxis2=dist_x_axis,
+        yaxis2=dist_y_axis,
         legend=dict(
             title='Dataset',
             yanchor='top',
