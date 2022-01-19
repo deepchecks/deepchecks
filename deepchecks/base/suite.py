@@ -68,14 +68,14 @@ class SuiteResult:
 
         Args:
             with_display (bool): controls if to serialize display of checks or not
-        
+
         Returns:
             {'name': .., 'results': ..}
         """
         json_results = []
         for res in self.results:
             json_results.append(res.to_json(with_display=with_display))
-        
+
         return jsonpickle.dumps({'name': self.name, 'results': json_results})
 
 
