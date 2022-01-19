@@ -11,7 +11,6 @@
 """Module containing the Suite object, used for running a set of checks together."""
 # pylint: disable=broad-except
 import abc
-import json
 from collections import OrderedDict
 from typing import Union, List, Optional, Tuple, Any, Container, Mapping
 
@@ -62,16 +61,12 @@ class SuiteResult:
             file = 'output.html'
         display_suite_result(self.name, self.results, html_out=file)
 
-    def to_json(self):
+    def get_result_json_list(self):
+        """Return all the results as a json in a list."""
         json_results = []
         for res in self.results:
             json_results.append(res.to_json())
-        return json.dumps(json_results)
-    
-    @staticmethod
-    def display_from_json(json_results):
-        for json_res in json.loads(json_results):
-            CheckResult.display_from_json(json_res)
+        return json_results
 
 
 

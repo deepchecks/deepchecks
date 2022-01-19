@@ -18,7 +18,6 @@ import traceback
 from collections import OrderedDict
 from functools import wraps
 from typing import Any, Callable, List, Sequence, Union, Dict, Mapping, cast
-import json
 
 import jsonpickle
 from matplotlib import pyplot as plt
@@ -226,7 +225,7 @@ class CheckResult:
     def to_json(self, with_display: bool = True):
         check_name = self.check.name()
         parameters = self.check.params()
-        result_json = {'name': check_name, 'parameters': parameters}
+        result_json = {'name': check_name, 'params': parameters}
         
         if isinstance(self.value, pd.DataFrame):
             result_json['value'] = self.value.to_json()
@@ -619,10 +618,11 @@ class CheckFailure:
         self.header = check.name() + header_suffix
 
     def to_json(self):
+        """Return the check failure as a json."""
         check_name = self.check.name()
         parameters = self.check.params()
         result_json = {'name': check_name, 'parameters': parameters, 'display': [('str', str(self.exception))]}
-        return json.dumps(result_json)
+        return jsonpickle.dumps(result_json)
 
     def __repr__(self):
         """Return string representation."""
