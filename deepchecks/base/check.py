@@ -217,7 +217,7 @@ class CheckResult:
 
         Args:
             with_display (bool): controls if to serialize display or not
-        
+
         Returns:
             json in the format:
             {'name': .., 'params': .., 'header': ..,
@@ -225,8 +225,9 @@ class CheckResult:
         """
         check_name = self.check.name()
         parameters = self.check.params()
-        result_json = {'name': check_name, 'params': parameters, 'header': self.header,
-                      'summary': get_docs_summary(self.check)}
+        header = self.get_header()
+        result_json = {'name': check_name, 'params': parameters, 'header': header,
+                       'summary': get_docs_summary(self.check)}
         if self.conditions_results:
             cond_df = get_conditions_table(self)
             result_json['conditions_table'] = cond_df.data.to_json(orient='records')
@@ -243,6 +244,7 @@ class CheckResult:
 
     @staticmethod
     def display_from_json(json_data):
+        """Display the check result from a json received from a to_json."""
         json_data = jsonpickle.loads(json_data)
         if json_data.get('display') is None:
             return
@@ -637,7 +639,7 @@ class CheckFailure:
 
         Args:
             with_display (bool): controls if to serialize display or not
-        
+
         Returns:
             {'name': .., 'params': .., 'header': .., 'display': ..}
         """
