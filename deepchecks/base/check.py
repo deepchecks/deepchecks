@@ -32,7 +32,7 @@ import plotly
 
 from deepchecks.base.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.base.dataset import Dataset
-from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table_display
+from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table
 from deepchecks.utils.strings import get_docs_summary, split_camel_case
 from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.utils.ipython import is_ipython_display
@@ -137,7 +137,7 @@ class CheckResult:
             check_html += f'<p>{summary}</p>'
         if self.conditions_results:
             check_html += _CONDITIONS_HEADER
-            check_html += get_conditions_table_display(self, unique_id)
+            check_html += dataframe_to_html(get_conditions_table(self, unique_id))
         if show_additional_outputs:
             check_html += _ADDITIONAL_OUTPUTS_HEADER
             for item in self.display:
@@ -188,7 +188,7 @@ class CheckResult:
         displays.append(('docs_header', f'<p>{get_docs_summary(self.check)}</p>'))
         if self.conditions_results:
             displays.append(('conditions_header', _CONDITIONS_HEADER))
-            displays.append(('conditions', get_conditions_table_display(self)))
+            displays.append(('conditions', get_conditions_table(self)))
         displays.append(('outputs_header', _ADDITIONAL_OUTPUTS_HEADER))
         for item in self.display:
             if isinstance(item, (pd.DataFrame, Styler)):
@@ -211,10 +211,13 @@ class CheckResult:
         return json.dumps(displays)
 
     def to_json(self, with_display: bool = True):
+        check_name = self.check.name()
+        parameters = self.check.params()
+        result_json = {'name': check_name, 'parameters': parameters}
         if isinstance(self.value, pd.DataFrame):
-            result_json = {'value': self.value.to_json()}
+            result_json['value'] = self.value.to_json()
         else:
-            result_json = {'value': json.dumps(self.value)}
+            result_json['value'] = json.dumps(self.value)
         if with_display:
             display_json = self._display_to_json()
             result_json['display'] = display_json
@@ -226,12 +229,12 @@ class CheckResult:
         if json_data.get('display') is None:
             return   
         for display_type, value in json.loads(json_data['display']):
-            if display_type in ['conditions', 'html', 'plt'] or 'header' in display_type:
+            if display_type in ['html', 'plt'] or 'header' in display_type:
                 display_html(value, raw=True)
-            elif display_type in ['dataframe']:
+            elif display_type in ['conditions', 'dataframe']:
                 df: pd.DataFrame = pd.read_json(value)
                 display_html(dataframe_to_html(df), raw=True)
-            elif display_type in ['plotly']:
+            elif display_type == ['plotly']:
                 plotly_json = io.StringIO(value)
                 plotly.io.read_json(plotly_json).show()
 
