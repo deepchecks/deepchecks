@@ -13,14 +13,14 @@ import jsonpickle
 from hamcrest import assert_that, equal_to
 
 from deepchecks.suites import full_suite
-from deepchecks.checks import ColumnsInfo, PerformanceReport
+from deepchecks.checks import ColumnsInfo
 
 
 def test_check_full_suite_not_failing(iris_split_dataset_and_model):
     train, test, model = iris_split_dataset_and_model
     suite_res = full_suite().run(train, test, model)
-    json_list = suite_res.get_result_json_list()
-    assert isinstance(json_list, list)
+    json_list = suite_res.to_json()
+    assert isinstance(json_list, str)
 
 def test_check_metadata(iris_dataset):
     check_res = ColumnsInfo(n_top_columns = 4).run(iris_dataset)

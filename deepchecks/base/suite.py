@@ -14,6 +14,8 @@ import abc
 from collections import OrderedDict
 from typing import Union, List, Optional, Tuple, Any, Container, Mapping
 
+import jsonpickle
+
 from deepchecks.base.display_suite import display_suite_result, ProgressBar
 from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.base.dataset import Dataset
@@ -61,12 +63,20 @@ class SuiteResult:
             file = 'output.html'
         display_suite_result(self.name, self.results, html_out=file)
 
-    def get_result_json_list(self):
-        """Return all the results as a json in a list."""
+    def to_json(self, with_display: bool = True):
+        """Return check result as json.
+
+        Args:
+            with_display (bool): controls if to serialize display of checks or not
+        
+        Returns:
+            {'name': .., 'results': ..}
+        """
         json_results = []
         for res in self.results:
-            json_results.append(res.to_json())
-        return json_results
+            json_results.append(res.to_json(with_display=with_display))
+        
+        return jsonpickle.dumps({'name': self.name, 'results': json_results})
 
 
 class BaseSuite:
