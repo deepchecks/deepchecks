@@ -52,7 +52,7 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
 
         columns = features + [label_name]
 
-        # in python 3.6 there is problem with comparing numpy nans, so replace with pandas.NA
+        # in python 3.6 there is problem with comparing numpy nan, so replace with pandas.NA
         train_df = train_dataset.data.copy().fillna(value=pd.NA)
         test_df = test_dataset.data.copy().fillna(value=pd.NA)
 
