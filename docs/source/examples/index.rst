@@ -9,7 +9,7 @@ How-to Guides
 - :doc:`guides/add_a_custom_check`
 - :doc:`guides/configure_check_conditions`
 - :doc:`guides/save_suite_result_as_html`
-- :doc:`guides/serialize_deserialize_output`
+- :doc:`guides/export_outputs_to_json`
 
 .. toctree::
     :maxdepth: 3
