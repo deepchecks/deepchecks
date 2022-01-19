@@ -216,7 +216,7 @@ class CheckResult:
         check_name = self.check.name()
         parameters = self.check.params()
         result_json = {'name': check_name, 'params': parameters, 'header': self.header,
-                      'summary': get_docs_summary(self.check)}
+                       'summary': get_docs_summary(self.check)}
         if self.conditions_results:
             cond_df = get_conditions_table(self)
             result_json['conditions_table'] = cond_df.data.to_json(orient='records')
