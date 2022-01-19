@@ -65,19 +65,12 @@ class SuiteResult:
     def to_json(self):
         json_results = []
         for res in self.results:
-            res_j = res.to_json()
-            if not res_j:
-                print('(***********)')
-                print(res_j)
-                print(res)
-            json_results.append(res_j)
+            json_results.append(res.to_json())
         return json.dumps(json_results)
     
     @staticmethod
     def display_from_json(json_results):
         for json_res in json.loads(json_results):
-            if not json_res:
-                print('waaa')
             CheckResult.display_from_json(json_res)
 
 
