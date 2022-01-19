@@ -190,15 +190,6 @@ class CheckResult:
     def _display_to_json(self):
         displays = []
         old_backend = matplotlib.get_backend()
-        displays.append(('header', f'<h4>{self.get_header()}</h4>'))
-        displays.append(('docs_header', f'<p>{get_docs_summary(self.check)}</p>'))
-        if self.conditions_results:
-            displays.append(('conditions_header', _CONDITIONS_HEADER))
-            cond_df = get_conditions_table(self)
-            if isinstance(cond_df, Styler):
-                cond_df = cond_df.data
-            displays.append(('conditions', cond_df.to_json(orient='records')))
-        displays.append(('outputs_header', _ADDITIONAL_OUTPUTS_HEADER))
         for item in self.display:
             if isinstance(item, Styler):
                 displays.append(('dataframe', item.data.to_json(orient='records')))
@@ -224,8 +215,11 @@ class CheckResult:
     def to_json(self, with_display: bool = True):
         check_name = self.check.name()
         parameters = self.check.params()
-        result_json = {'name': check_name, 'params': parameters}
-
+        result_json = {'name': check_name, 'params': parameters, 'header': self.header,
+                      'summary': get_docs_summary(self.check)}
+        if self.conditions_results:
+            cond_df = get_conditions_table(self)
+            result_json['conditions_table'] = cond_df.data.to_json(orient='records')
         if isinstance(self.value, pd.DataFrame):
             result_json['value'] = self.value.to_json()
         elif isinstance(self.value, np.ndarray):
@@ -242,8 +236,17 @@ class CheckResult:
         json_data = jsonpickle.loads(json_data)
         if json_data.get('display') is None:
             return
+        header = json_data['header']
+        summary = json_data['summary']
+        display_html(f'<h4>{header}</h4>', raw=True)
+        display_html(f'<p>{summary}</p>', raw=True)
+        if json_data.get('conditions_table'):
+            display_html(_CONDITIONS_HEADER, raw=True)
+            conditions_table = pd.read_json(json_data['conditions_table'], orient='records')
+            display_html(dataframe_to_html(conditions_table.style.hide_index()), raw=True)
+        display_html(_ADDITIONAL_OUTPUTS_HEADER, raw=True)
         for display_type, value in json_data['display']:
-            if display_type == 'html' or 'header' in display_type:
+            if display_type == 'html':
                 display_html(value, raw=True)
             elif display_type in ['conditions', 'dataframe']:
                 df: pd.DataFrame = pd.read_json(value, orient='records')
