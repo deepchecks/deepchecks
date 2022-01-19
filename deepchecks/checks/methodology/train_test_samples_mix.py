@@ -53,8 +53,8 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
         columns = features + [label_name]
 
         # in python 3.6 there is problem with comparing numpy nan, so replace with pandas.NA
-        train_df = train_dataset.data.copy().fillna(value=pd.NA)
-        test_df = test_dataset.data.copy().fillna(value=pd.NA)
+        train_df = train_dataset.data.fillna(value='testtttt')
+        test_df = test_dataset.data.fillna(value='testtttt')
 
         train_uniques = _create_unique_frame(train_df, columns, text_prefix='Train indices: ')
         test_uniques = _create_unique_frame(test_df, columns, text_prefix='Test indices: ')
