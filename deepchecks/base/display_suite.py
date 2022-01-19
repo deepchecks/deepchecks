@@ -167,7 +167,7 @@ def _display_suite_widgets(summary: str,
             else:
                 basename = html_out
                 ext = 'html'
-            html_out = f'{basename}.'
+            html_out = f'{basename}.{ext}'
             c = itertools.count()
             next(c)
             while os.path.exists(html_out):
