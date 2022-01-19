@@ -221,7 +221,7 @@ class CheckResult:
                 matplotlib.use(old_backend)
                 raise Exception(f'Unable to create json for item of type: {type(item)}')
         matplotlib.use(old_backend)
-        return json.dumps(displays)
+        return displays
 
     def to_json(self, with_display: bool = True):
         check_name = self.check.name()
@@ -231,23 +231,20 @@ class CheckResult:
         if isinstance(self.value, pd.DataFrame):
             result_json['value'] = self.value.to_json()
         elif isinstance(self.value, np.ndarray):
-            result_json['value'] = json.dumps(self.value.tolist())
+            result_json['value'] = self.value.tolist()
         else:
-            result_json['value'] = jsonpickle.dumps(self.value)
+            result_json['value'] = self.value
         if with_display:
             display_json = self._display_to_json()
             result_json['display'] = display_json
-        return json.dumps(result_json)
+        return jsonpickle.dumps(result_json)
 
     @staticmethod
     def display_from_json(json_data):
-        json_data = json.loads(json_data)
+        json_data = jsonpickle.loads(json_data)
         if json_data.get('display') is None:
             return
-        display = json_data['display']
-        if isinstance(display, str):
-            display = json.loads(display)
-        for display_type, value in display:
+        for display_type, value in json_data['display']:
             if display_type in ['html', 'plt'] or 'header' in display_type:
                 display_html(value, raw=True)
             elif display_type in ['conditions', 'dataframe']:
