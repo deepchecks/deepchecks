@@ -11,6 +11,8 @@
 """Module contains Train Test label Drift check."""
 
 from typing import Dict
+
+from base.check_context import CheckRunContext
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 
 __all__ = ['TrainTestLabelDrift']
@@ -44,51 +46,26 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
         super().__init__()
         self.max_num_categories = max_num_categories
 
-    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
-        """Run check.
-
-        Args:
-            train_dataset (Dataset): The training dataset object.
-            test_dataset (Dataset): The test dataset object.
-            model: not used in this check.
-
-        Returns:
-            CheckResult:
-                value: dictionary of column name to drift score.
-                display: distribution graph for each column, comparing the train and test distributions.
-
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset or DataFrame instance
-        """
-        return self._calc_drift(train_dataset, test_dataset)
-
-    def _calc_drift(
-            self,
-            train_dataset: Dataset,
-            test_dataset: Dataset,
-    ) -> CheckResult:
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
         """
         Calculate drift for all columns.
 
         Args:
-            train_dataset (Dataset): The training dataset object. Must contain a label.
-            test_dataset (Dataset): The test dataset object. Must contain a label.
+            context (CheckRunContext)
 
         Returns:
             CheckResult:
                 value: drift score.
                 display: label distribution graph, comparing the train and test distributions.
         """
-        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
-        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
-
-        train_label = self._dataset_has_label(train_dataset)
-        test_label = self._dataset_has_label(test_dataset)
+        train_dataset = context.train
+        test_dataset = context.test
+        label_name = context.label_name
 
         drift_score, method, display = calc_drift_and_plot(
-            train_column=train_label,
-            test_column=test_label,
-            plot_title=train_dataset.label_name,
+            train_column=train_dataset.data[label_name],
+            test_column=test_dataset.data[label_name],
+            plot_title=label_name,
             column_type='categorical' if train_dataset.label_type == 'classification_label' else 'numerical',
             max_num_categories=self.max_num_categories
         )

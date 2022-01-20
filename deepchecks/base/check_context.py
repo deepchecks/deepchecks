@@ -1,29 +1,32 @@
-import abc
-from typing import Callable, Union, Mapping, Sequence
+from typing import Callable, Union, Mapping, Sequence, Dict, List, Optional
 
 import pandas as pd
 
-from deepchecks import BaseCheck, CheckResult, Dataset
+from deepchecks import Dataset
 from deepchecks.utils.validation import validate_model
-from errors import DatasetValidationError, ModelValidationError
-from utils.metrics import ModelType, task_type_check, get_scorers_or_default, get_single_scorer_or_default
+from deepchecks.errors import DatasetValidationError, ModelValidationError
+from deepchecks.utils.metrics import ModelType, task_type_check, get_scorers_or_default, get_single_scorer_or_default
+from deepchecks.utils.typing import Hashable, BasicModel
+from utils.features import calculate_feature_importance_or_none
 
 
 class CheckRunContext:
 
     def __init__(self,
-                 train=None,
-                 test=None,
-                 model=None,
-                 feature_importance_mode: str = 'model',
+                 train: Dataset = None,
+                 test: Dataset = None,
+                 model: BasicModel = None,
+                 features_importance: Dict[Hashable, float] = None,
+                 feature_importance_force_permutation: bool = False,
+                 feature_importance_timeout: int = None,
                  scorers: Mapping[str, Union[str, Callable]] = None,
                  non_avg_scorers: Mapping[str, Union[str, Callable]] = None
                  ):
         # Validations
-        if train and isinstance(train, pd.DataFrame):
-            train = Dataset(train, cat_features=[])
-        if test and isinstance(test, pd.DataFrame):
-            test = Dataset(test, cat_features=[])
+        if train:
+            train = Dataset.ensure_not_empty_dataset(train, cast=True)
+        if test:
+            test = Dataset.ensure_not_empty_dataset(test, cast=True)
         # If both datasets, validate they fit each other
         if train and test:
             if not Dataset.datasets_share_label(train, test):
@@ -39,15 +42,22 @@ class CheckRunContext:
                 )
             if not Dataset.datasets_share_index(train, test):
                 raise DatasetValidationError('train and test requires to share the same index column')
-
+            if not Dataset.datasets_share_date(train, test):
+                raise DatasetValidationError('train and test requires to share the same date column')
+        if test and not train:
+            raise DatasetValidationError('Can\'t initialize context with only test. if you have single dataset, '
+                                         'initialize it as train')
         if train and model:
             validate_model(train, model)
 
         self._train = train
         self._test = test
         self._model = model
-        self._feature_importance_mode = feature_importance_mode
-        self._features_importance = None
+        self._feature_importance_force_permutation = feature_importance_force_permutation
+        self._features_importance = features_importance
+        self._feature_importance_timeout = feature_importance_timeout
+        self._calculated_importance = False
+        self._importance_type = None
         self._task_type = None
         self._user_scorers = scorers
         self._user_non_avg_scorers = non_avg_scorers
@@ -56,69 +66,80 @@ class CheckRunContext:
     # Validations note: We know train & test fit each other so all validations can be run only on train
 
     @property
-    def train(self):
+    def train(self) -> Dataset:
         if self._train is None:
             raise DatasetValidationError('Check is irrelevant for Datasets without train dataset')
         return self._train
 
     @property
-    def test(self):
+    def test(self) -> Dataset:
         if self._test is None:
             raise DatasetValidationError('Check is irrelevant for Datasets without test dataset')
         return self._test
 
     @property
-    def model(self):
+    def model(self) -> BasicModel:
         if self._model is None:
             raise DatasetValidationError('Check is irrelevant for Datasets without model')
 
     @property
-    def label_name(self):
+    def label_name(self) -> str:
         if self.train.label_name is None:
             raise DatasetValidationError('Check is irrelevant for Datasets without label')
         return self.train.label_name
 
     @property
-    def features(self):
-        if not self.train.features_columns:
+    def features(self) -> List[Hashable]:
+        """Return list of feature names."""
+        if not self.train.features:
             raise DatasetValidationError('Check is irrelevant for Datasets without features')
         return self.train.features
 
     @property
-    def date_name(self):
-        if self.train.datetime_name is None:
-            raise DatasetValidationError('Check is irrelevant for Datasets without datetime column')
-        return self.train.datetime_name
+    def cat_features(self) -> List[Hashable]:
+        if not self.train.cat_features:
+            raise DatasetValidationError('Check is irrelevant for Datasets without categorical features')
+        return self.train.cat_features
 
     @property
-    def index(self):
-        if self.train.index_name is None:
-            raise DatasetValidationError('Check is irrelevant for Datasets without an index')
-        return self.train.index_name
-
-    @property
-    def task_type(self):
+    def task_type(self) -> ModelType:
         if self._task_type is None:
             self._task_type = task_type_check(self.model, self.train)
         return self._task_type
 
     @property
-    def features_importance(self):
-        if self._features_importance is None:
-            if self._feature_importance_mode == 'model':
-                self._features_importance = 0  # TODO get feature importance from model
-            elif self._feature_importance_mode == 'permutation':
-                self._features_importance = 0  # TODO get feature importance permutation
-            else:
-                raise DatasetValidationError(f'Unsupported feature importance mode: {self._feature_importance_mode}')
+    def features_importance(self) -> Optional[pd.Series]:
+        if not self._calculated_importance:
+            permutation_kwargs = {}
+            if self._feature_importance_timeout:
+                permutation_kwargs['timeout'] = self._feature_importance_timeout
+            importance, importance_type = calculate_feature_importance_or_none(
+                self.model, self.train, self._feature_importance_force_permutation, permutation_kwargs
+            )
+            self._features_importance = importance
+            self._importance_type = importance_type
+            self._calculated_importance = True
+
         return self._features_importance
 
-    def assert_task_type(self, expected_types: Sequence[ModelType]):
+    @property
+    def features_importance_type(self) -> str:
+        return self._importance_type
+
+    def assert_task_type(self, *expected_types: ModelType):
         if self.task_type not in expected_types:
             raise ModelValidationError(
                 f'Check is relevant for models of type {[e.value.lower() for e in expected_types]}, '
                 f"but received model of type '{self.task_type.value.lower()}'"  # pylint: disable=inconsistent-quotes
             )
+
+    def assert_datetime_exists(self):
+        if not self.train.datetime_exist():
+            raise DatasetValidationError('Check is irrelevant for Datasets without datetime column')
+
+    def assert_index_exists(self):
+        if not self.train.datetime_exist():
+            raise DatasetValidationError('Check is irrelevant for Datasets without index column')
 
     def get_scorers(self, alternative_scorers: Mapping[str, Callable] = None, multiclass_non_avg=False):
         if multiclass_non_avg:
@@ -138,44 +159,3 @@ class CheckRunContext:
             else:
                 scorer = None
         return get_single_scorer_or_default(self.task_type, self.model, self.train, scorer, multiclass_non_avg)
-
-
-class SingleDatasetBaseCheck(BaseCheck):
-    """Parent class for checks that only use one dataset."""
-
-    def run(self, dataset, model=None) -> CheckResult:
-        # By default, we initialize a single dataset as the "train"
-        c = CheckRunContext(dataset, model=model)
-        return self.run_logic(c)
-
-    @abc.abstractmethod
-    def run_logic(self, context: CheckRunContext, dataset: str = 'train'):
-        pass
-
-
-class TrainTestBaseCheck(BaseCheck):
-    """Parent class for checks that compare two datasets.
-
-    The class checks train dataset and test dataset for model training and test.
-    """
-
-    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
-        c = CheckRunContext(train_dataset, test_dataset, model=model)
-        return self.run_logic(c)
-
-    @abc.abstractmethod
-    def run_logic(self, context: CheckRunContext):
-        pass
-
-
-class ModelOnlyBaseCheck(BaseCheck):
-    """Parent class for checks that only use a model and no datasets."""
-
-    def run(self, model) -> CheckResult:
-        """Define run signature."""
-        c = CheckRunContext(model=model)
-        return self.run_logic(c)
-
-    @abc.abstractmethod
-    def run_logic(self, context: CheckRunContext):
-        pass

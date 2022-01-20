@@ -25,9 +25,7 @@ from deepchecks.utils.features import is_categorical, infer_categorical_features
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError, DatasetValidationError
 
-
 __all__ = ['Dataset']
-
 
 logger = logging.getLogger('deepchecks.dataset')
 
@@ -219,7 +217,7 @@ class Dataset:
                                                f' int or str, but found {type(index_name)}')
             self._datetime_column = self.get_datetime_column_from_index(datetime_name)
 
-        if features:
+        if features is not None:
             difference = set(features) - set(self._data.columns)
             if len(difference) > 0:
                 raise DeepchecksValueError('Features must be names of columns in dataframe. '
@@ -593,10 +591,15 @@ class Dataset:
             elif isinstance(self._index_name, (str, int)):
                 return pd.Series(self.data.index.get_level_values(self._index_name), name=self.data.index.name,
                                  index=self.data.index)
+            else:
+                raise DeepchecksValueError(f'Don\'t know to handle index_name of type {type(self._index_name)}')
         elif self._index_name is not None:
             return self.data[self._index_name]
         else:  # No meaningful index to use: Index column not configured, and _set_index_from_dataframe_index is False
             return
+
+    def index_exist(self) -> bool:
+        return self._set_index_from_dataframe_index or self._index_name
 
     @property
     def datetime_name(self) -> t.Optional[Hashable]:
@@ -631,6 +634,9 @@ class Dataset:
             # is False
             return
 
+    def datetime_exist(self):
+        return self._set_datetime_from_dataframe_index or self._datetime_name
+
     @property
     def label_name(self) -> t.Optional[Hashable]:
         """If label column exists, return its name.
@@ -639,15 +645,6 @@ class Dataset:
            (str) Label name
         """
         return self._label_name
-
-    @property
-    def label_col(self) -> t.Optional[pd.Series]:
-        """Return label column if exists.
-
-        Returns:
-           Label column
-        """
-        return self.data[self._label_name] if self._label_name else None
 
     @property
     def features(self) -> t.List[Hashable]:
@@ -668,15 +665,6 @@ class Dataset:
         return list(self._cat_features)
 
     @property
-    def features_columns(self) -> t.Optional[pd.DataFrame]:
-        """Return features columns if exists.
-
-        Returns:
-           Features columns
-        """
-        return self.data[self._features] if self._features else None
-
-    @property
     @lru_cache(maxsize=128)
     def classes(self) -> t.Tuple[str, ...]:
         """Return the classes from label column in sorted list. if no label column defined, return empty list.
@@ -684,8 +672,8 @@ class Dataset:
         Returns:
             Sorted classes
         """
-        if self.label_col is not None:
-            return tuple(sorted(self.label_col.dropna().unique().tolist()))
+        if self.label_name is not None:
+            return tuple(sorted(self.data[self.label_name].dropna().unique().tolist()))
         return tuple()
 
     @property
@@ -737,7 +725,7 @@ class Dataset:
             return self.copy(new_data)
 
     @classmethod
-    def ensure_not_empty_dataset(cls, obj: t.Any, *, cast: bool = False) -> 'Dataset':
+    def ensure_not_empty_dataset(cls, obj: t.Any) -> 'Dataset':
         """Verify Dataset or transform to Dataset.
 
         Function verifies that provided value is a non-empty instance of Dataset,
@@ -761,29 +749,13 @@ class Dataset:
             if len(obj.data) == 0:
                 raise DatasetValidationError('dataset cannot be empty')
             return obj
-
-        elif cast and isinstance(obj, pd.DataFrame):
-            if len(obj) == 0:
-                raise DeepchecksValueError('dataframe cannot be empty')
-            return Dataset(obj)
-
-        # TODO: should we add case for the numpy arrays?
-
         else:
-            value_type = type(obj).__name__
-            if cast:
-                raise DeepchecksValueError(
-                    'non-empty instance of Dataset or DataFrame '
-                    f'was expected, instead got {value_type}'
-                )
-            else:
-                raise DeepchecksValueError(
-                    'non-empty Dataset instance was expected, '
-                    f'instead got {value_type}'
-                )
+            raise DeepchecksValueError(
+                f'expected type \'Dataset\', got instead {type(obj)}'
+            )
 
     @classmethod
-    def datasets_share_features(cls, *datasets: t.List['Dataset']) -> bool:
+    def datasets_share_features(cls, *datasets: 'Dataset') -> bool:
         """Verify that all provided datasets share same features.
 
         Args:
@@ -811,7 +783,7 @@ class Dataset:
         return True
 
     @classmethod
-    def datasets_share_categorical_features(cls, *datasets: t.List['Dataset']) -> bool:
+    def datasets_share_categorical_features(cls, *datasets: 'Dataset') -> bool:
         """Verify that all provided datasets share same categorical features.
 
         Args:
@@ -840,7 +812,7 @@ class Dataset:
         return True
 
     @classmethod
-    def datasets_share_label(cls, *datasets: t.List['Dataset']) -> bool:
+    def datasets_share_label(cls, *datasets: 'Dataset') -> bool:
         """Verify that all provided datasets share same label column.
 
         Args:
@@ -867,7 +839,7 @@ class Dataset:
         return True
 
     @classmethod
-    def datasets_share_index(cls, *datasets: t.List['Dataset']) -> bool:
+    def datasets_share_index(cls, *datasets: 'Dataset') -> bool:
         """Verify that all provided datasets share same index column.
 
         Args:
@@ -884,10 +856,38 @@ class Dataset:
         assert isinstance(datasets, list), "'datasets' must be a list"
         assert len(datasets) > 1, "'datasets' must contains at least two items"
 
-        index_name = datasets[0].index_name
+        first_ds = datasets[0]
 
         for ds in datasets[1:]:
-            if ds.index_name != index_name:
+            if (ds._index_name != first_ds._index_name or
+                    ds._set_index_from_dataframe_index != first_ds._set_index_from_dataframe_index):
+                return False
+
+        return True
+
+    @classmethod
+    def datasets_share_date(cls, *datasets: 'Dataset') -> bool:
+        """Verify that all provided datasets share same date column.
+
+        Args:
+            datasets (List[Dataset]): list of datasets to validate
+
+        Returns:
+            bool: True if all datasets share same date column, otherwise False
+
+        Raises:
+            AssertionError:
+                'datasets' parameter is not a list;
+                'datasets' contains less than one dataset;
+        """
+        assert isinstance(datasets, list), "'datasets' must be a list"
+        assert len(datasets) > 1, "'datasets' must contains at least two items"
+
+        first_ds = datasets[0]
+
+        for ds in datasets[1:]:
+            if (ds._datetime_name != first_ds._datetime_name or
+                    ds._set_datetime_from_dataframe_index != first_ds._set_datetime_from_dataframe_index):
                 return False
 
         return True

@@ -12,6 +12,7 @@
 import numpy as np
 import plotly.graph_objects as go
 
+from base.check_context import CheckRunContext
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.distribution.trust_score import TrustScore
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
@@ -67,26 +68,18 @@ class TrustScoreComparison(TrainTestBaseCheck):
         self.n_to_show = n_to_show
         self.percent_top_scores_to_hide = percent_top_scores_to_hide
 
-    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
 
         Args:
-            train_dataset (Dataset): Dataset to use for TrustScore regressor
-            test_dataset (Dataset): Dataset to check for trust score
-            model: Model used to predict on the validation dataset
+            context (CheckRunContext)
         """
-        # tested dataset can be also dataframe
-        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset, cast=True)
-        test_label = self._dataset_has_label(test_dataset)
-        validate_model(test_dataset, model)
-        model_type = task_type_check(model, test_dataset)
-
-        # Baseline must have label so we must get it as Dataset.
-        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
-        train_label = self._dataset_has_label(train_dataset)
-
-        features_list = self._datasets_share_features([train_dataset, test_dataset])
-        label_name = self._datasets_share_label([train_dataset, test_dataset])
+        test_dataset = context.test
+        label_name = context.label_name
+        train_dataset = context.train
+        model = context.model
+        features_list = context.features
+        context.assert_task_type(ModelType.BINARY, ModelType.MULTICLASS)
 
         if test_dataset.n_samples < self.min_test_samples:
             raise DatasetValidationError(
@@ -95,19 +88,13 @@ class TrustScoreComparison(TrainTestBaseCheck):
                 'check to run with the parameter "min_test_samples"'
             )
 
-        if model_type not in {ModelType.BINARY, ModelType.MULTICLASS}:
-            raise ModelValidationError(
-                'Check is relevant only for the classification models, but'
-                f'received model of type {model_type.value.lower()}'
-            )
-
-        no_null_label_train = train_dataset.data[train_label.notna()]
+        no_null_label_train = train_dataset.data[train_dataset.data[label_name].notna()]
         train_data_sample = no_null_label_train.sample(
             min(self.sample_size, len(no_null_label_train)),
             random_state=self.random_state
         )
 
-        no_null_label_test = test_dataset.data[test_label.notna()]
+        no_null_label_test = test_dataset.data[test_dataset.data[label_name].notna()]
         test_data_sample = no_null_label_test.sample(
             min(self.sample_size, len(no_null_label_test)),
             random_state=self.random_state

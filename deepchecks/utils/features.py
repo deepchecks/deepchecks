@@ -24,7 +24,7 @@ from sklearn.pipeline import Pipeline
 from deepchecks import base
 from deepchecks import errors
 from deepchecks.utils import validation
-from deepchecks.utils.metrics import get_scorer_single, DeepcheckScorer
+from deepchecks.utils.metrics import DeepcheckScorer, get_single_scorer_or_default
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.model import get_model_of_pipeline
 
@@ -44,28 +44,12 @@ _PERMUTATION_IMPORTANCE_TIMEOUT: int = 120  # seconds
 N_TOP_MESSAGE = '* showing only the top %s columns, you can change it using n_top_columns param'
 
 
-def set_feature_importance_timeout(limit: int):
-    """Set max time that permutation importance calculation can take. Will raise DeepchecksTimeoutError if more.
-
-    Args:
-        limit (int): time limit value
-    """
-    global _PERMUTATION_IMPORTANCE_TIMEOUT
-    _PERMUTATION_IMPORTANCE_TIMEOUT = limit
-
-
-def get_feature_importance_timeout() -> int:
-    """Get the max time that permutation importance calculation can take."""
-    return _PERMUTATION_IMPORTANCE_TIMEOUT
-
-
 def calculate_feature_importance_or_none(
     model: t.Any,
     dataset: t.Union['base.Dataset', pd.DataFrame],
     force_permutation: bool = False,
     permutation_kwargs: t.Optional[t.Dict[str, t.Any]] = None,
-    return_calculation_type: bool = False
-) -> t.Union[t.Optional[pd.Series], t.Tuple[t.Optional[pd.Series], str]]:
+) -> t.Tuple[t.Optional[pd.Series], t.Optional[str]]:
     """Calculate features effect on the label or None if the input is incorrect.
 
     Args:
@@ -75,10 +59,10 @@ def calculate_feature_importance_or_none(
             dataset used to fit the model
         force_permutation (bool, default False):
             force permutation importance calculation
+        timeout (int):
+            timeout in seconds for the feature importance calculation
         permutation_kwargs (Optional[Dict[str, Any]], defaultNone):
             kwargs for permutation importance calculation
-        return_calculation_type (bool,default False):
-            whether or not to return the type of calculation used
 
     Returns:
         t.Union
@@ -105,7 +89,7 @@ def calculate_feature_importance_or_none(
             permutation_kwargs=permutation_kwargs,
         )
 
-        return (fi, calculation_type) if return_calculation_type else fi
+        return fi, calculation_type
     except (
         errors.DeepchecksValueError,
         errors.NumberOfFeaturesLimitError,
@@ -124,7 +108,7 @@ def calculate_feature_importance_or_none(
         #     if wrong type of model was provided;
         #     if function failed to predict on model;
         warn(f'Features importance was not calculated:\n{str(error)}')
-        return (None, None) if return_calculation_type else None
+        return None, None
 
 
 def calculate_feature_importance(
@@ -166,26 +150,16 @@ def calculate_feature_importance(
     validation.validate_model(dataset, model)
 
     if isinstance(dataset, base.Dataset) and force_permutation is True:
-        return _calc_importance(model, dataset, **permutation_kwargs).fillna(0), 'permutation_importance'
+        return _calc_permutation_importance(model, dataset, **permutation_kwargs).fillna(0), 'permutation_importance'
 
-    feature_importances, calculation_type = _built_in_importance(model, dataset)
+    # Get the actual model in case of pipeline
+    internal_estimator = get_model_of_pipeline(model)
+    features_importance, calculation_type = _built_in_importance(internal_estimator, dataset)
 
-    # if _built_in_importance was calculated and returned None,
-    # check if pipeline and / or attempt permutation importance
-    if feature_importances is None and isinstance(model, Pipeline):
-        internal_estimator = get_model_of_pipeline(model)
-        if internal_estimator is not None:
-            try:
-                feature_importances, calculation_type = _built_in_importance(internal_estimator, dataset)
-            except ValueError:
-                # in case pipeline had an encoder
-                pass
-
-    if feature_importances is not None:
-        return feature_importances.fillna(0), calculation_type
+    if features_importance is not None:
+        return features_importance.fillna(0), calculation_type
     elif isinstance(dataset, base.Dataset):
-        return _calc_importance(model, dataset, **permutation_kwargs).fillna(0), 'permutation_importance'
-
+        return _calc_permutation_importance(model, dataset, **permutation_kwargs).fillna(0), 'permutation_importance'
     else:
         raise errors.DeepchecksValueError(
             "Was not able to calculate features importance"  # FIXME: better message
@@ -199,27 +173,32 @@ def _built_in_importance(
     """Get feature importance member if present in model."""
     features = dataset.features if isinstance(dataset, base.Dataset) else dataset.columns
 
-    if hasattr(model, 'feature_importances_'):  # Ensembles
-        normalized_feature_importance_values = model.feature_importances_ / model.feature_importances_.sum()
-        return pd.Series(normalized_feature_importance_values, index=features), 'feature_importances_'
+    try:
+        if hasattr(model, 'feature_importances_'):  # Ensembles
+            normalized_feature_importance_values = model.feature_importances_ / model.feature_importances_.sum()
+            return pd.Series(normalized_feature_importance_values, index=features), 'feature_importances_'
 
-    if hasattr(model, 'coef_'):  # Linear models
-        coef = np.abs(model.coef_.flatten())
-        coef = coef / coef.sum()
-        return pd.Series(coef, index=features), 'coef_'
+        if hasattr(model, 'coef_'):  # Linear models
+            coef = np.abs(model.coef_.flatten())
+            coef = coef / coef.sum()
+            return pd.Series(coef, index=features), 'coef_'
+    except ValueError:
+        # in case pipeline had an encoder
+        pass
 
     return None, None
 
 
 @lru_cache(maxsize=32)
-def _calc_importance(
+def _calc_permutation_importance(
     model: t.Any,
     dataset: 'base.Dataset',
     n_repeats: int = 30,
     mask_high_variance_features: bool = False,
     random_state: int = 42,
     n_samples: int = 10_000,
-    alternative_scorer: t.Optional[DeepcheckScorer] = None
+    alternative_scorer: t.Optional[DeepcheckScorer] = None,
+    timeout: int = _PERMUTATION_IMPORTANCE_TIMEOUT
 ) -> pd.Series:
     """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal.
 
@@ -241,16 +220,14 @@ def _calc_importance(
     dataset_sample = dataset.sample(n_samples, drop_na_label=True, random_state=random_state)
 
     # Test score time on the dataset sample
-    scorer = get_scorer_single(model, dataset, alternative_scorer=alternative_scorer)
+    scorer = get_single_scorer_or_default(model, dataset, alternative_scorer=alternative_scorer)
     start_time = time.time()
     scorer(model, dataset_sample)
     calc_time = time.time() - start_time
 
-    permutation_importance_timeout = get_feature_importance_timeout()
-
-    if calc_time * n_repeats * len(dataset.features) > permutation_importance_timeout:
+    if calc_time * n_repeats * len(dataset.features) > timeout:
         raise errors.DeepchecksTimeoutError('Permutation importance calculation was not projected to finish in'
-                                            f' {permutation_importance_timeout} seconds.')
+                                            f' {timeout} seconds.')
 
     r = permutation_importance(
         model,

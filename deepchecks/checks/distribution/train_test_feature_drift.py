@@ -11,13 +11,11 @@
 """Module contains Train Test Drift check."""
 
 from collections import OrderedDict
-from typing import Union, List, Dict, Optional
+from typing import Union, List, Dict
 
-import pandas as pd
-
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
-from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.errors import DeepchecksValueError
 from deepchecks.utils.typing import Hashable
 
@@ -81,13 +79,12 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         self.n_samples = n_samples
         self.random_state = random_state
 
-    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
-        """Run check.
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
+        """Calculate drift for all columns.
+.
 
         Args:
-            train_dataset (Dataset): The training dataset object.
-            test_dataset (Dataset): The test dataset object.
-            model: A scikit-learn-compatible fitted estimator instance
+            context (CheckRunContext)
 
         Returns:
             CheckResult:
@@ -97,43 +94,24 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         Raises:
             DeepchecksValueError: If the object is not a Dataset or DataFrame instance
         """
-        feature_importances = calculate_feature_importance_or_none(model, train_dataset)
-        return self._calc_drift(train_dataset, test_dataset, feature_importances)
+        train_dataset: Dataset = context.train
+        test_dataset: Dataset = context.test
+        features_importance = context.features_importance
+        features = context.features
+        cat_features = context.cat_features
 
-    def _calc_drift(
-        self,
-        train_dataset: Dataset,
-        test_dataset: Dataset,
-        feature_importances: Optional[pd.Series] = None
-    ) -> CheckResult:
-        """
-        Calculate drift for all columns.
-
-        Args:
-            train_dataset (Dataset): The training dataset object.
-            test_dataset (Dataset): The test dataset object.
-
-        Returns:
-            CheckResult:
-                value: dictionary of column name to drift score.
-                display: distribution graph for each column, comparing the train and test distributions.
-        """
-        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
-        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
-
-        train_dataset = train_dataset.select(self.columns, self.ignore_columns
-                                             ).sample(self.n_samples, random_state=self.random_state)
-        test_dataset = test_dataset.select(self.columns, self.ignore_columns
-                                           ).sample(self.n_samples, random_state=self.random_state)
-
-        features = self._datasets_share_features([test_dataset, train_dataset])
-        cat_features = self._datasets_share_categorical_features([test_dataset, train_dataset])
+        train_dataset = train_dataset.select(
+                self.columns, self.ignore_columns
+            ).sample(self.n_samples, random_state=self.random_state)
+        test_dataset = test_dataset.select(
+                self.columns, self.ignore_columns
+            ).sample(self.n_samples, random_state=self.random_state)
 
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
         for column in features:
-            if feature_importances is not None:
-                fi_rank_series = feature_importances.rank(method='first', ascending=False)
+            if features_importance is not None:
+                fi_rank_series = features_importance.rank(method='first', ascending=False)
                 fi_rank = fi_rank_series[column]
                 plot_title = f'{column} (#{int(fi_rank)} in FI)'
             else:
@@ -149,17 +127,17 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
             values_dict[column] = {
                 'Drift score': value,
                 'Method': method,
-                'Importance': feature_importances[column] if feature_importances is not None else None
+                'Importance': features_importance[column] if features_importance is not None else None
             }
             displays_dict[column] = display
 
-        if self.sort_feature_by == 'feature importance' and feature_importances is not None:
-            columns_order = feature_importances.sort_values(ascending=False).head(self.n_top_columns).index
+        if self.sort_feature_by == 'feature importance' and features_importance is not None:
+            columns_order = features_importance.sort_values(ascending=False).head(self.n_top_columns).index
         else:
             columns_order = sorted(features, key=lambda col: values_dict[col]['Drift score'], reverse=True
                                    )[:self.n_top_columns]
 
-        sorted_by = self.sort_feature_by if feature_importances is not None else 'drift score'
+        sorted_by = self.sort_feature_by if features_importance is not None else 'drift score'
 
         headnote = f"""<span>
             The Drift score is a measure for the difference between two distributions, in this check - the test

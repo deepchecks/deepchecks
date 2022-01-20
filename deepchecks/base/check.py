@@ -25,6 +25,7 @@ from IPython.core.display import display_html
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 
+from base.check_context import CheckRunContext
 from deepchecks.base.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.base.dataset import Dataset
 from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table_display
@@ -342,9 +343,13 @@ class BaseCheck(metaclass=abc.ABCMeta):
 class SingleDatasetBaseCheck(BaseCheck):
     """Parent class for checks that only use one dataset."""
 
-    @abc.abstractmethod
     def run(self, dataset, model=None) -> CheckResult:
-        """Define run signature."""
+        # By default, we initialize a single dataset as the "train"
+        c = CheckRunContext(dataset, model=model)
+        return self.run_logic(c)
+
+    @abc.abstractmethod
+    def run_logic(self, context: CheckRunContext, dataset: str = 'train'):
         pass
 
 
@@ -354,18 +359,25 @@ class TrainTestBaseCheck(BaseCheck):
     The class checks train dataset and test dataset for model training and test.
     """
 
-    @abc.abstractmethod
     def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
-        """Define run signature."""
+        c = CheckRunContext(train_dataset, test_dataset, model=model)
+        return self.run_logic(c)
+
+    @abc.abstractmethod
+    def run_logic(self, context: CheckRunContext):
         pass
 
 
 class ModelOnlyBaseCheck(BaseCheck):
     """Parent class for checks that only use a model and no datasets."""
 
-    @abc.abstractmethod
     def run(self, model) -> CheckResult:
         """Define run signature."""
+        c = CheckRunContext(model=model)
+        return self.run_logic(c)
+
+    @abc.abstractmethod
+    def run_logic(self, context: CheckRunContext):
         pass
 
 

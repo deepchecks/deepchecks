@@ -224,10 +224,10 @@ def task_type_check(
         return ModelType.REGRESSION
 
 
-def get_scorers_or_default(model_type,
-                           model,
+def get_scorers_or_default(model,
                            dataset,
-                           alternative_scorers: t.Optional[t.Mapping[str, t.Callable]],
+                           model_type=None,
+                           alternative_scorers: t.Optional[t.Mapping[str, t.Callable]] = None,
                            multiclass_avg: bool = True):
     return_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and multiclass_avg is False
     if alternative_scorers:
@@ -244,12 +244,14 @@ def get_scorers_or_default(model_type,
     return deepchecks_scorers
 
 
-def get_single_scorer_or_default(model_type,
-                                 model,
+def get_single_scorer_or_default(model,
                                  dataset: 'base.Dataset',
+                                 model_type=None,
                                  alternative_scorer: t.Union[str, t.Callable] = None,
                                  multiclass_avg: bool = True) -> 'DeepcheckScorer':
     """Return single score to use in check, and validate scorer fit the model and dataset."""
+    if model_type is None:
+        model_type = task_type_check(model, dataset)
     return_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and multiclass_avg is False
 
     if alternative_scorer:
