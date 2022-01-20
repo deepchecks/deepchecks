@@ -310,7 +310,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         </p>
         """
 
-    if html_out or (is_widgets_enabled() and os.get('KAGGLE_KERNEL_RUN_TYPE') is not None):
+    if html_out or is_widgets_enabled():
         _display_suite_widgets(summ,
                                unique_id,
                                checks_with_conditions,
