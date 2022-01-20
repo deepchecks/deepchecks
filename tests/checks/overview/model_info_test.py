@@ -57,5 +57,5 @@ def test_model_info_wrong_input():
         calling(ModelInfo().run).with_args('some string'),
         raises(
             ModelValidationError, 
-            r'Model must be a structural subtype of the .*')
+            r'Model supplied does not meets the minimal interface requirements. For more info read the docs about .*')
     )
