@@ -305,7 +305,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
             {prologue}<br>
             Each check may contain conditions (which will result in pass / fail / warning, represented by {icons})
             as well as other outputs such as plots or tables.<br>
-            Suites, checks and conditions can all be modified. Read more about 
+            Suites, checks and conditions can all be modified. Read more about
             <a href={suite_creation_example_link} target="_blank">custom suites</a>.
         </p>
         """
