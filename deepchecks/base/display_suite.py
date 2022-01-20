@@ -295,7 +295,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
 
     suite_creation_example_link = (
         'https://docs.deepchecks.com/en/stable/examples/guides/create_a_custom_suite.html'
-        '?utm_source=suite_output&utm_medium=referral&utm_campaign=display_link'
+        '?utm_source=display_output&utm_medium=referral&utm_campaign=suite_link'
     )
 
     # suite summary
