@@ -8,4 +8,6 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module for working with pre-built regression datasets."""
+"""Module for working with pre-built regression datasets.
+
+"""

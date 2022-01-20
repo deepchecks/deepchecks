@@ -8,7 +8,9 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The avocado dataset contains historical data on avocado prices and sales volume in multiple US markets."""
+"""The avocado dataset contains historical data on avocado prices and sales volume in multiple US markets.
+
+"""
 import typing as t
 import pandas as pd
 import joblib
@@ -101,23 +103,27 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
              - Label
              - The average price of a single avocado
 
-    Args:
-        data_format (str, default 'Dataset'):
-            Represent the format of the returned value. Can be 'Dataset'|'Dataframe'
-            'Dataset' will return the data as a Dataset object
-            'Dataframe' will return the data as a pandas Dataframe object
+    Parameters
+    ----------
+    data_format : str , default : Dataset
+        Represent the format of the returned value. Can be 'Dataset'|'Dataframe'
+        'Dataset' will return the data as a Dataset object
+        'Dataframe' will return the data as a pandas Dataframe object
 
-        as_train_test (bool, default False):
-            If True, the returned data is splitted into train and test exactly like the toy model
-            was trained. The first return value is the train data and the second is the test data.
-            In order to get this model, call the load_fitted_model() function.
-            Otherwise, returns a single object.
+    as_train_test : bool , default : True
+        If True, the returned data is splitted into train and test exactly like the toy model
+        was trained. The first return value is the train data and the second is the test data.
+        In order to get this model, call the load_fitted_model() function.
+        Otherwise, returns a single object.
 
-    Returns:
-        data (Union[deepchecks.Dataset, pd.DataFrame]): the data object, corresponding to the data_format attribute.
+    Returns
+    -------
+    dataset : Union[deepchecks.Dataset, pd.DataFrame] 
+        the data object, corresponding to the data_format attribute.
 
-        (train_data, test_data) (Tuple[Union[deepchecks.Dataset, pd.DataFrame],Union[deepchecks.Dataset, pd.DataFrame]):
-           tuple if as_train_test = True. Tuple of two objects represents the dataset splitted to train and test sets.
+    train_data, test_data : Tuple[Union[deepchecks.Dataset, pd.DataFrame],Union[deepchecks.Dataset, pd.DataFrame]
+        tuple if as_train_test = True. Tuple of two objects represents the dataset splitted to train and test sets.
+
     """
     if not as_train_test:
         dataset = pd.read_csv(_FULL_DATA_URL)
@@ -140,8 +146,10 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
 def load_fitted_model():
     """Load and return a fitted regression model to predict the AveragePrice in the avocado dataset.
 
-    Returns:
-        model (Joblib model) the model/pipeline that was trained on the Avocado dataset.
+    Returns
+    -------
+    model : Joblib 
+        the model/pipeline that was trained on the Avocado dataset.
 
     """
     with urlopen(_MODEL_URL) as f:

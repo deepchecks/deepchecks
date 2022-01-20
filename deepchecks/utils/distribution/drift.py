@@ -8,7 +8,9 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Common utilities for distribution checks."""
+"""Common utilities for distribution checks.
+
+"""
 
 from typing import Tuple, Union, Hashable, Callable
 
@@ -29,17 +31,21 @@ __all__ = ['calc_drift_and_plot']
 
 
 def psi(expected_percents: np.ndarray, actual_percents: np.ndarray):
-    """
-    Calculate the PSI (Population Stability Index).
+    """Calculate the PSI (Population Stability Index).
 
     See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf
 
-    Args:
-        expected_percents: array of percentages of each value in the expected distribution.
-        actual_percents: array of percentages of each value in the actual distribution.
+    Parameters
+    ----------
+    expected_percents: np.ndarray 
+        array of percentages of each value in the expected distribution.
+    actual_percents: : np.ndarray
+        array of percentages of each value in the actual distribution.
 
-    Returns:
-        psi: The PSI score
+    Returns
+    -------
+    psi
+        The PSI score
 
     """
     psi_value = 0
@@ -54,18 +60,22 @@ def psi(expected_percents: np.ndarray, actual_percents: np.ndarray):
 
 
 def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]):
-    """
-    Calculate the Earth Movers Distance (Wasserstein distance).
+    """Calculate the Earth Movers Distance (Wasserstein distance).
 
     See https://en.wikipedia.org/wiki/Wasserstein_metric
 
     Function is for numerical data only.
 
-    Args:
-        dist1: array of numberical values.
-        dist2: array of numberical values to compare dist1 to.
+    Parameters
+    ----------
+    dist1 : Union[np.ndarray, pd.Series]
+        array of numberical values.
+    dist2 : Union[np.ndarray, pd.Series]
+        array of numberical values to compare dist1 to.
 
-    Returns:
+    Returns
+    -------
+    Any
         the Wasserstein distance between the two distributions.
 
     """
@@ -88,21 +98,28 @@ def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.n
 
 def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, plot_title: Hashable,
                         column_type: str, max_num_categories: int = 10) -> Tuple[float, str, Callable]:
-    """
-    Calculate drift score per column.
+    """Calculate drift score per column.
 
-    Args:
-        train_column: column from train dataset
-        test_column: same column from test dataset
-        plot_title: title of plot
-        column_type: type of column (either "numerical" or "categorical")
-        max_num_categories: Max number of allowed categories. If there are more, they are binned into an "Other"
-                            category.
+    Parameters
+    ----------
+    train_column : pd.Series 
+        column from train dataset
+    test_column : pd.Series
+        same column from test dataset
+    plot_title : Hashable 
+        title of plot
+    column_type : str
+        type of column (either "numerical" or "categorical")
+    max_num_categories : int , default : 10 
+        Max number of allowed categories. If there are more, they are binned into an "Other" category.
 
-    Returns:
-        score: drift score of the difference between the two columns' distributions (Earth movers distance for
+    Returns
+    -------
+    Tuple[float, str, Callable]
+        drift score of the difference between the two columns' distributions (Earth movers distance for
         numerical, PSI for categorical)
-        display: graph comparing the two distributions (density for numerical, stack bar for categorical)
+        graph comparing the two distributions (density for numerical, stack bar for categorical)
+
     """
     train_dist = train_column.dropna().values.reshape(-1)
     test_dist = test_column.dropna().values.reshape(-1)
