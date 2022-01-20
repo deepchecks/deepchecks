@@ -11,6 +11,13 @@
 """The avocado dataset contains historical data on avocado prices and sales volume in multiple US markets."""
 import typing as t
 import pandas as pd
+import sklearn
+from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from category_encoders import OneHotEncoder
 import joblib
 from urllib.request import urlopen
 from deepchecks import Dataset
@@ -21,8 +28,10 @@ _MODEL_URL = 'https://figshare.com/ndownloader/files/32393723'
 _FULL_DATA_URL = 'https://figshare.com/ndownloader/files/32393729'
 _TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/32393732'
 _TEST_DATA_URL = 'https://figshare.com/ndownloader/files/32393726'
+_MODEL_VERSION = '1.0.1'
 _target = 'AveragePrice'
 _CAT_FEATURES = ['region', 'type']
+_NUM_FEATURES = ['Total Volume', '4046', '4225', 'Total Bags', 'Small Bags', 'Large Bags', 'XLarge Bags']
 
 
 def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
@@ -144,7 +153,27 @@ def load_fitted_model():
         model (Joblib model) the model/pipeline that was trained on the Avocado dataset.
 
     """
-    with urlopen(_MODEL_URL) as f:
-        model = joblib.load(f)
-
+    if sklearn.__version__ == _MODEL_VERSION:
+        with urlopen(_MODEL_URL) as f:
+            model = joblib.load(f)
+    else:
+        model = _build_model()
+        train, _ = load_data()
+        model.fit(train.features_columns, train.label_col)
     return model
+
+
+def _build_model():
+    """Build the model to fit."""
+    return Pipeline(steps=[
+        ('preprocessor',
+         ColumnTransformer(transformers=[('num',
+                                          Pipeline(steps=[('imputer',
+                                                           SimpleImputer(strategy='median')),
+                                                          ('scaler',
+                                                           StandardScaler())]),
+                                          _NUM_FEATURES),
+                                         ('cat', OneHotEncoder(),
+                                          _CAT_FEATURES)])),
+        ('classifier', RandomForestRegressor())
+    ])
