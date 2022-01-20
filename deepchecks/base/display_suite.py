@@ -310,6 +310,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
         </p>
         """
 
+    # can't display plotly widgets in kaggle notebooks
     if html_out or (is_widgets_enabled() and os.environ.get('KAGGLE_KERNEL_RUN_TYPE') is None):
         _display_suite_widgets(summ,
                                unique_id,
