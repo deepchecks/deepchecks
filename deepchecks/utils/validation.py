@@ -26,7 +26,7 @@ __all__ = [
 
 supported_models_link = ('https://docs.deepchecks.com/en/stable/user-guide/supported_models.html'
                          '?utm_source=display_output&utm_medium=referral&utm_campaign=exception_link')
-supported_models_html = f'<a href="{supported_models_link}" target="_blank">Supported Models</a>'
+supported_models_html = f'<a href="{supported_models_link}" target="_blank">Read more about Supported Models</a>'
 
 
 def model_type_validation(model: t.Any):
@@ -37,8 +37,7 @@ def model_type_validation(model: t.Any):
     """
     if not isinstance(model, BasicModel):
         raise errors.ModelValidationError(
-            'Model supplied does not meets the minimal interface requirements. For more info read the docs about '
-            f'{supported_models_html}'
+            f'Model supplied does not meets the minimal interface requirements. {supported_models_html}'
         )
 
 
