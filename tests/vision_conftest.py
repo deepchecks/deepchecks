@@ -10,6 +10,7 @@ from deepchecks.vision import VisionDataset
 from torch.utils.data import DataLoader
 from torchvision.datasets import MNIST
 
+from deepchecks.vision.datasets.detection.coco import get_trained_yolov5_object_detection
 
 
 @pytest.fixture(scope='session')
@@ -99,12 +100,11 @@ def trained_mnist(simple_nn, mnist_data_loader_train):
 
     return simple_nn
 
+
 @pytest.fixture(scope='session')
 def trained_yolov5_object_detection():
-    model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
-    model.eval()
+    return get_trained_yolov5_object_detection()
 
-    return model
 
 @pytest.fixture(scope='session')
 def obj_detection_images():

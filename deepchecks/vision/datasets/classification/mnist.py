@@ -1,3 +1,5 @@
+import os.path
+
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -30,25 +32,27 @@ class MNistNet(nn.Module):
 
 batch_size_train = 64
 batch_size_test = 1000
-    
-mnist_data = torchvision.datasets.MNIST('./mnist', download=True)
+
+mnist_data_path = os.path.join(current_path, '../../../datasets/classification/mnist')
+
+mnist_data = torchvision.datasets.MNIST(mnist_data_path, download=True)
 mnist_train_loader = torch.utils.data.DataLoader(
-  torchvision.datasets.MNIST('./mnist', train=True, download=True,
+  torchvision.datasets.MNIST(mnist_data_path, train=True, download=True,
                              transform=torchvision.transforms.Compose([
                                torchvision.transforms.ToTensor(),
                                torchvision.transforms.Normalize(
                                  (0.1307,), (0.3081,))
                              ])),
-  batch_size=batch_size_train, shuffle=True)
+  batch_size=batch_size_train, shuffle=True, pin_memory=True)
 
 mnist_test_loader = torch.utils.data.DataLoader(
-  torchvision.datasets.MNIST('./mnist', train=False, download=True,
+  torchvision.datasets.MNIST(mnist_data_path, train=False, download=True,
                              transform=torchvision.transforms.Compose([
                                torchvision.transforms.ToTensor(),
                                torchvision.transforms.Normalize(
                                  (0.1307,), (0.3081,))
                              ])),
-  batch_size=batch_size_test, shuffle=True)
+  batch_size=batch_size_test, shuffle=True, pin_memory=True)
 
 def load_mnist():
     model = torch.load(model_path)
