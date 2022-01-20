@@ -192,7 +192,8 @@ class Suite(BaseSuite):
                                                  model=model)
                         results.append(check_result)
                     else:
-                        results.append(Suite._get_unsupported_failure(check))
+                        msg = 'Check is irrelevant if not supplied both train and test datasets'
+                        results.append(Suite._get_unsupported_failure(check, msg))
                 elif isinstance(check, SingleDatasetBaseCheck):
                     if train_dataset is not None:
                         # In case of train & test, doesn't want to skip test if train fails. so have to explicitly
@@ -211,13 +212,15 @@ class Suite(BaseSuite):
                             check_result = CheckFailure(check, exp, ' - Test Dataset')
                         results.append(check_result)
                     if train_dataset is None and test_dataset is None:
-                        results.append(Suite._get_unsupported_failure(check))
+                        msg = 'Check is irrelevant if dataset is not supplied'
+                        results.append(Suite._get_unsupported_failure(check, msg))
                 elif isinstance(check, ModelOnlyBaseCheck):
                     if model is not None:
                         check_result = check.run(model=model)
                         results.append(check_result)
                     else:
-                        results.append(Suite._get_unsupported_failure(check))
+                        msg = 'Check is irrelevant if model is not supplied'
+                        results.append(Suite._get_unsupported_failure(check, msg))
                 else:
                     raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
             except Exception as exp:
@@ -228,8 +231,7 @@ class Suite(BaseSuite):
         return SuiteResult(self.name, results)
 
     @classmethod
-    def _get_unsupported_failure(cls, check):
-        msg = 'Check is not supported for parameters given to suite'
+    def _get_unsupported_failure(cls, check, msg):
         return CheckFailure(check, DeepchecksNotSupportedError(msg))
 
 
