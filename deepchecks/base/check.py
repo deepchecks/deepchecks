@@ -11,24 +11,30 @@
 """Module containing all the base classes for checks."""
 # pylint: disable=broad-except
 import abc
+import base64
 import inspect
+import io
 import traceback
 from collections import OrderedDict
 from functools import wraps
 from typing import Any, Callable, List, Sequence, Union, Dict, Mapping, cast
 
+import jsonpickle
+from matplotlib import pyplot as plt
+import matplotlib
 import pandas as pd
+import numpy as np
 import ipywidgets as widgets
 import plotly.graph_objects as go
-from matplotlib import pyplot as plt
 from IPython.core.display import display_html
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
+import plotly
 
 from base.check_context import CheckRunContext
 from deepchecks.base.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.base.dataset import Dataset
-from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table_display
+from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table
 from deepchecks.utils.typing import Hashable, BasicModel
 from deepchecks.utils.strings import get_docs_summary, split_camel_case
 from deepchecks.utils.ipython import is_ipython_display
@@ -50,6 +56,22 @@ __all__ = [
     'ModelOnlyBaseCheck',
     'CheckFailure',
 ]
+
+
+def _save_all_open_figures():
+    figs = [plt.figure(n) for n in plt.get_fignums()]
+    images = []
+    for fig in figs:
+        bio = io.BytesIO()
+        fig.savefig(bio, format='png')
+        encoded = base64.b64encode(bio.getvalue()).decode('utf-8')
+        images.append(encoded)
+        fig.clear()
+    return images
+
+
+_CONDITIONS_HEADER = '<h5>Conditions Summary</h5>'
+_ADDITIONAL_OUTPUTS_HEADER = '<h5>Additional Outputs</h5>'
 
 
 class CheckResult:
@@ -121,10 +143,10 @@ class CheckResult:
             summary = get_docs_summary(self.check)
             check_html += f'<p>{summary}</p>'
         if self.conditions_results:
-            check_html += '<h5>Conditions Summary</h5>'
-            check_html += get_conditions_table_display(self, unique_id)
+            check_html += _CONDITIONS_HEADER
+            check_html += dataframe_to_html(get_conditions_table(self, unique_id))
         if show_additional_outputs:
-            check_html += '<h5>Additional Outputs</h5>'
+            check_html += _ADDITIONAL_OUTPUTS_HEADER
             for item in self.display:
                 if isinstance(item, (pd.DataFrame, Styler)):
                     check_html += dataframe_to_html(item)
@@ -165,6 +187,90 @@ class CheckResult:
             box.children = box_children
             return box
         display_html(check_html, raw=True)
+
+    def _display_to_json(self):
+        displays = []
+        old_backend = matplotlib.get_backend()
+        for item in self.display:
+            if isinstance(item, Styler):
+                displays.append(('dataframe', item.data.to_json(orient='records')))
+            elif isinstance(item, pd.DataFrame):
+                displays.append(('dataframe', item.to_json(orient='records')))
+            elif isinstance(item, str):
+                displays.append(('html', item))
+            elif isinstance(item, BaseFigure):
+                displays.append(('plotly', item.to_json()))
+            elif callable(item):
+                try:
+                    matplotlib.use('Agg')
+                    item()
+                    displays.append(('plt', _save_all_open_figures()))
+                except Exception:
+                    displays.append(('plt', ''))
+            else:
+                matplotlib.use(old_backend)
+                raise Exception(f'Unable to create json for item of type: {type(item)}')
+        matplotlib.use(old_backend)
+        return displays
+
+    def to_json(self, with_display: bool = True):
+        """Return check result as json.
+
+        Args:
+            with_display (bool): controls if to serialize display or not
+
+        Returns:
+            json in the format:
+            {'name': .., 'params': .., 'header': ..,
+             'summary': .., 'conditions_table': .., 'value', 'display': ..}
+        """
+        check_name = self.check.name()
+        parameters = self.check.params()
+        header = self.get_header()
+        result_json = {'name': check_name, 'params': parameters, 'header': header,
+                       'summary': get_docs_summary(self.check)}
+        if self.conditions_results:
+            cond_df = get_conditions_table(self)
+            result_json['conditions_table'] = cond_df.data.to_json(orient='records')
+        if isinstance(self.value, pd.DataFrame):
+            result_json['value'] = self.value.to_json()
+        elif isinstance(self.value, np.ndarray):
+            result_json['value'] = self.value.tolist()
+        else:
+            result_json['value'] = self.value
+        if with_display:
+            display_json = self._display_to_json()
+            result_json['display'] = display_json
+        return jsonpickle.dumps(result_json)
+
+    @staticmethod
+    def display_from_json(json_data):
+        """Display the check result from a json received from a to_json."""
+        json_data = jsonpickle.loads(json_data)
+        if json_data.get('display') is None:
+            return
+        header = json_data['header']
+        summary = json_data['summary']
+        display_html(f'<h4>{header}</h4>', raw=True)
+        display_html(f'<p>{summary}</p>', raw=True)
+        if json_data.get('conditions_table'):
+            display_html(_CONDITIONS_HEADER, raw=True)
+            conditions_table = pd.read_json(json_data['conditions_table'], orient='records')
+            display_html(dataframe_to_html(conditions_table.style.hide_index()), raw=True)
+        display_html(_ADDITIONAL_OUTPUTS_HEADER, raw=True)
+        for display_type, value in json_data['display']:
+            if display_type == 'html':
+                display_html(value, raw=True)
+            elif display_type in ['conditions', 'dataframe']:
+                df: pd.DataFrame = pd.read_json(value, orient='records')
+                display_html(dataframe_to_html(df), raw=True)
+            elif display_type == 'plotly':
+                plotly_json = io.StringIO(value)
+                plotly.io.read_json(plotly_json).show()
+            elif display_type == 'plt':
+                display_html(f'<img src=\'data:image/png;base64,{value}\'>', raw=True)
+            else:
+                raise ValueError(f'Unexpected type of display received: {display_type}')
 
     def _ipython_display_(self, unique_id=None, as_widget=False,
                           show_additional_outputs=True):
@@ -388,6 +494,22 @@ class CheckFailure:
         self.check = check
         self.exception = exception
         self.header = check.name() + header_suffix
+
+    def to_json(self, with_display: bool = True):
+        """Return check failure as json.
+
+        Args:
+            with_display (bool): controls if to serialize display or not
+
+        Returns:
+            {'name': .., 'params': .., 'header': .., 'display': ..}
+        """
+        check_name = self.check.name()
+        parameters = self.check.params()
+        result_json = {'name': check_name, 'params': parameters, 'header': self.header}
+        if with_display:
+            result_json['display'] = [('str', str(self.exception))]
+        return jsonpickle.dumps(result_json)
 
     def __repr__(self):
         """Return string representation."""
