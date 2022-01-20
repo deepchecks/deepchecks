@@ -25,7 +25,8 @@ FC = t.TypeVar('FC', bound='SingleFeatureContributionTrainTest')
 
 pps_url = 'https://docs.deepchecks.com/en/stable/examples/checks/methodology/single_feature_contribution_train_test' \
           '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
-pps_html_url = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
+pps_html_for_check = f'<a href={pps_url} target="_blank">Read more about Predictive Power Score</a>'
+pps_html_for_condition = f'<a href={pps_url} target="_blank">PPS</a>'
 
 
 class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
@@ -122,7 +123,8 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         )
 
         text = [
-            f'The PPS ({pps_html_url}) is used to estimate the ability of a feature to predict the label by itself.'
+            'The Predictive Power Score (PPS) is used to estimate the ability of a feature to predict the '
+            f'label by itself. ({pps_html_for_check})'
             '',
             '<u>In the graph above</u>, we should suspect we have problems in our data if:',
             ''
@@ -194,6 +196,5 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
             else:
                 return ConditionResult(True)
 
-        return \
-            self.add_condition(f'Train features\' {pps_html_url} (PPS) is not greater than {format_number(threshold)}',
-                               condition)
+        return self.add_condition(f'Train features\' {pps_html_for_condition} is not greater than '
+                                  f'{format_number(threshold)}', condition)
