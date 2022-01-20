@@ -65,6 +65,8 @@ def task_type_check(
     # Means the tensor is an array of scalars
     if len(label_shape) == 0:
         return TaskType.CLASSIFICATION
+    else:
+        return TaskType.OBJECT_DETECTION
 
 
 def get_scorers_list(

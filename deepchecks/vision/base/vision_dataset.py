@@ -81,7 +81,7 @@ class VisionDataset:
     def get_data_loader(self):
         return self._data
 
-    def validate_shared_label(self, other) -> Hashable:
+    def validate_shared_label(self, other):
         """Verify presence of shared labels.
 
         Validates whether the 2 datasets share the same label shape
