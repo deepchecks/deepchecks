@@ -24,6 +24,10 @@ __all__ = [
     'ensure_dataframe_type'
 ]
 
+supported_models_link = ('https://docs.deepchecks.com/en/stable/user-guide/supported_models.html'
+                         '?utm_source=display_output&utm_medium=referral&utm_campaign=exception_link')
+supported_models_html = f'<a href="{supported_models_link}" target="_blank">supported model types</a>'
+
 
 def model_type_validation(model: t.Any):
     """Receive any object and check if it's an instance of a model we support.
@@ -33,9 +37,7 @@ def model_type_validation(model: t.Any):
     """
     if not isinstance(model, BasicModel):
         raise errors.ModelValidationError(
-            'Model must be a structural subtype of the '
-            '`deepchecks.utils.typing.BasicModel` protocol.'
-            f'(received type: {type(model).__name__}'
+            f'Model supplied does not meets the minimal interface requirements. Read more about {supported_models_html}'
         )
 
 
