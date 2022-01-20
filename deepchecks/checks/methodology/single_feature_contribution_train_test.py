@@ -25,8 +25,7 @@ FC = t.TypeVar('FC', bound='SingleFeatureContributionTrainTest')
 
 pps_url = 'https://docs.deepchecks.com/en/stable/examples/checks/methodology/single_feature_contribution_train_test' \
           '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
-pps_html_for_check = f'<a href={pps_url} target="_blank">Read more about Predictive Power Score</a>'
-pps_html_for_condition = f'<a href={pps_url} target="_blank">PPS</a>'
+pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
 
 class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
@@ -124,7 +123,7 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
 
         text = [
             'The Predictive Power Score (PPS) is used to estimate the ability of a feature to predict the '
-            f'label by itself. ({pps_html_for_check})'
+            f'label by itself. (Read more about {pps_html})'
             '',
             '<u>In the graph above</u>, we should suspect we have problems in our data if:',
             ''
@@ -171,7 +170,7 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Train-Test features\' {pps_html_url} (PPS) difference is not greater than '
+        return self.add_condition(f'Train-Test features\' Predictive Power Score difference is not greater than '
                                   f'{format_number(threshold)}', condition)
 
     def add_condition_feature_pps_in_train_not_greater_than(self: FC, threshold: float = 0.7) -> FC:
@@ -196,5 +195,5 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Train features\' {pps_html_for_condition} is not greater than '
+        return self.add_condition(f'Train features\' Predictive Power Score is not greater than '
                                   f'{format_number(threshold)}', condition)

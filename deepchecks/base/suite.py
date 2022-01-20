@@ -192,7 +192,7 @@ class Suite(BaseSuite):
                                                  model=model)
                         results.append(check_result)
                     else:
-                        msg = 'Check is irrelevant if not supplied both train and test datasets'
+                        msg = 'Check is irrelevant if not supplied with both train and test datasets'
                         results.append(Suite._get_unsupported_failure(check, msg))
                 elif isinstance(check, SingleDatasetBaseCheck):
                     if train_dataset is not None:

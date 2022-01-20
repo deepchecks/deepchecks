@@ -25,8 +25,7 @@ FC = t.TypeVar('FC', bound='SingleFeatureContribution')
 
 pps_url = 'https://docs.deepchecks.com/en/stable/examples/checks/methodology/single_feature_contribution_train_test' \
           '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
-pps_html_for_check = f'<a href={pps_url} target="_blank">Read more about Predictive Power Score</a>'
-pps_html_for_condition = f'<a href={pps_url} target="_blank">PPS</a>'
+pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
 
 class SingleFeatureContribution(SingleDatasetBaseCheck):
@@ -86,7 +85,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
 
         text = [
             'The Predictive Power Score (PPS) is used to estimate the ability of a feature to predict the '
-            f'label by itself. ({pps_html_for_check})'
+            f'label by itself. (Read more about {pps_html})'
             'A high PPS (close to 1) can mean that this feature\'s success in predicting the label is'
             ' actually due to data leakage - meaning that the feature holds information that is based on the label '
             'to begin with.']
@@ -116,5 +115,5 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Features\' {pps_html_for_condition} is not greater than {format_number(threshold)}',
+        return self.add_condition(f'Features\' Predictive Power Score is not greater than {format_number(threshold)}',
                                   condition)
