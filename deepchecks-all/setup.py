@@ -31,6 +31,12 @@ setup_utils = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(setup_utils)
 ###########################
 
+# TODO: after we move all stuf from '/deepchecks/' to the appropriate 
+# submodules then we should move this file to the project root dir
+
+# NOTE: 'deepchecks-all' name has special meaning and is handled by the 
+# setup-utils differently then other submodules
+
 setuptools.setup(
-    **setup_utils.get_setup_kwargs(submodule="vision")
+    **setup_utils.get_setup_kwargs(submodule="deepchecks-all")
 )

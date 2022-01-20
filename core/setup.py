@@ -12,15 +12,16 @@
 
 ###########################
 # This code block is a HACK (!), but is necessary to avoid code duplication. Do NOT alter these lines.
+import os
 import pathlib
 import setuptools
 import importlib.util
 
-CURRENT_MODULE = pathlib.Path(__file__)
+CURRENT_MODULE = pathlib.Path(__file__).absolute()
 SETUP_UTILS_MODULE = CURRENT_MODULE.parent.parent / "setup_utils.py"
 
 spec = importlib.util.spec_from_file_location(
-    "deepchecks_setup_utis", 
+    "deepchecks_setup_utils", 
     SETUP_UTILS_MODULE.absolute()
 )
 

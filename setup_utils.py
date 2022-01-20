@@ -15,7 +15,6 @@ import pathlib
 import setuptools
 from functools import lru_cache
 
-
 DEEPCHECKS = "deepchecks"
 SUPPORTED_PYTHON_VERSIONS = '>=3.6, <=3.10'
 
@@ -130,14 +129,28 @@ def verify_submodule_existence(submodule: str) -> pathlib.Path:
    
    return submodule_path
 
-
+t.NewType
 def get_setup_kwargs(submodule: str, **kwargs) -> t.Dict[str, t.Any]:
-   sumbodule_path = verify_submodule_existence(submodule)
    version = get_version_string()
    description, long_description = get_description()
-   requirements = read_requirements_file(sumbodule_path / "requirements.txt")
-   create_version_file(sumbodule_path / "src" / DEEPCHECKS / submodule)
-   copy_license_file(sumbodule_path)
+   
+   if submodule == "deepchecks-all":
+      sumbodule_path = DEEPCHECKS_DIR / "deepchecks-all"
+      requirements = []
+      extras_requirements = {
+         "core": "deepchecks.core=={version}",
+         "tabular": "deepchecks.tabular=={version}",
+         "vision": "deepchecks.vision=={version}",
+      }
+      copy_license_file(sumbodule_path)
+      name = DEEPCHECKS
+   else:
+      sumbodule_path = verify_submodule_existence(submodule)
+      requirements = read_requirements_file(sumbodule_path / "requirements.txt")
+      extras_requirements = {}
+      create_version_file(sumbodule_path / "src" / DEEPCHECKS / submodule)
+      copy_license_file(sumbodule_path)
+      name = f"{DEEPCHECKS}.{submodule}"
 
    download_url = (
       "https://github.com/deepchecks/deepchecks/"
@@ -146,10 +159,10 @@ def get_setup_kwargs(submodule: str, **kwargs) -> t.Dict[str, t.Any]:
 
    setup_kwargs = dict(
       # general info
-      name = f"{DEEPCHECKS}-{submodule}",
+      name = name,
       version = version,
-      author = 'deepchecks',  
-      author_email = 'info@deepchecks.com', 
+      author = 'deepchecks',
+      author_email = 'info@deepchecks.com',
       project_urls={
          'Documentation': 'https://docs.deepchecks.com',
          'Bug Reports': 'https://github.com/deepchecks/deepchecks',
@@ -183,6 +196,7 @@ def get_setup_kwargs(submodule: str, **kwargs) -> t.Dict[str, t.Any]:
       # namespace_packages = [DEEPCHECKS],
       include_package_data = True,
       install_requires = requirements,
+      extras_require = extras_requirements,
       python_requires = SUPPORTED_PYTHON_VERSIONS,
    )
 

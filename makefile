@@ -247,21 +247,79 @@ clean-dist:
 clean-docs: $(DOCS) env  $(SPHINX_BUILD)
 	@cd $(DOCS) && make clean SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS)
 
+
 ### Release ######################################################
-.PHONY: authors register dist upload .git-no-changes release
+
+.PHONY: authors dist dist-package upload test-upload upload-package test-upload-package \
+		release test-release release-package test-release-package .git-no-changes
+
+
+$(TWINE): $(PIP)
+	$(PIP) install twine
+
 
 authors:
 	echo "Authors\n=======\n\nA huge thanks to all of our contributors:\n\n" > AUTHORS.md
 	git log --raw | grep "^Author: " | cut -d ' ' -f2- | cut -d '<' -f1 | sed 's/^/- /' | sort | uniq >> AUTHORS.md
 
+
 dist: test
 	$(PYTHON) setup.py sdist
 	$(PYTHON) setup.py bdist_wheel
 
+
+dist-package:
+	cd ./core \
+		&& echo "+++ Building Core Submodule (path: $$(pwd)) +++" \
+		&& $(PYTHON) setup.py sdist \
+		&& $(PYTHON) setup.py bdist_wheel
+	cd ./tabular \
+		&& echo "+++ Building Tabular Submodule (path: $$(pwd)) +++" \
+		&& $(PYTHON) setup.py sdist \
+		&& $(PYTHON) setup.py bdist_wheel
+	cd ./vision \
+		&& echo "+++ Building Vision Submodule (path: $$(pwd)) +++" \
+		&& $(PYTHON) setup.py sdist \
+		&& $(PYTHON) setup.py bdist_wheel
+	cd ./deepchecks-all \
+		&& echo "+++ Building Main Distribution Package (path: $$(pwd)) +++" \
+		&& $(PYTHON) setup.py sdist \
+		&& $(PYTHON) setup.py bdist_wheel
+
+
 # upload expects to get all twine args as environment,
 # refer to https://twine.readthedocs.io/en/latest/ for more information
+#
 upload: $(TWINE)
 	$(TWINE) upload dist/*
+
+
+upload-package: $(TWINE)
+	cd ./core && $(TWINE) upload dist/*
+	cd ./tabular && $(TWINE) upload dist/*
+	cd ./vision && $(TWINE) upload dist/*
+	cd ./deepchecks-all && $(TWINE) upload dist/*
+
+
+# TestPyPI – a separate instance of the Python Package Index that allows us 
+# to try distribution tools and processes without affecting the real index.
+#
+test-upload: $(TWINE)
+	$(TWINE) upload --repository-url https://test.pypi.org/legacy/ dist/*
+
+
+test-upload-package: $(TWINE)
+	cd ./core && $(TWINE) upload --repository-url https://test.pypi.org/legacy/ dist/*
+	cd ./tabular && $(TWINE) upload --repository-url https://test.pypi.org/legacy/ dist/*
+	cd ./vision && $(TWINE) upload --repository-url https://test.pypi.org/legacy/ dist/*
+	cd ./deepchecks-all && $(TWINE) upload --repository-url https://test.pypi.org/legacy/ dist/*
+	
+
+release: dist upload
+test-release: dist test-upload
+
+release-package: dist-package upload-package
+test-release-package: dist-package test-upload-package
 
 
 .git-no-changes:
@@ -273,12 +331,6 @@ upload: $(TWINE)
 		echo Commit your changes and try again.;  \
 		exit -1;                                  \
 	fi;
-
-release: dist upload
-
-
-$(TWINE): $(PIP)
-	$(PIP) install twine
 
 
 ### Documentation
