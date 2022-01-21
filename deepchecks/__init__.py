@@ -8,7 +8,9 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Top module for deepchecks library."""
+"""Top module for deepchecks library.
+
+"""
 import matplotlib
 import plotly.io as pio
 from .utils.ipython import is_notebook
@@ -29,7 +31,7 @@ from .base import (
     SuiteResult,
     ModelComparisonSuite,
 )
-
+ 
 __all__ = [
     'Dataset',
     'BaseCheck',

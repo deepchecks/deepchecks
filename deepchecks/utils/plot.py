@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Utils module containing utilities for plotting."""
+"""Utils module containing utilities for plotting.
+
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.cm import ScalarMappable
@@ -36,18 +39,29 @@ def create_colorbar_barchart_for_check(
 ):
     """Output a colorbar barchart using matplotlib.
 
-    Args:
-        x (np.array): array containing x axis data.
-        y (np.array): array containing y axis data.
-        ylabel (str): Name of y axis (default='Result')
-        xlabel (str): Name of x axis (default='Features')
-        color_map (str): color_map name. (default='RdYlGn_r')
-                         See https://matplotlib.org/stable/tutorials/colors/colormaps.html for more details
-        start (float): start of y axis ticks (default=0)
-        stop (float): end of y axis ticks (default=1.0)
-        tick_steps (float): step to y axis ticks (default=0.1)
-        color_shift_midpoint (float): midpoint of color map (default=0.5)
-        check_name (str): name of the check that called this function (default='')
+    Parameters
+    ----------
+    x: np.ndarray 
+        array containing x axis data.
+    y: np.ndarray 
+        array containing y axis data.
+    ylabel: str , default : Result 
+        Name of y axis
+    xlabel : str , default : Features  
+        Name of x axis 
+    color_map : str , default : RdYlGn_r 
+        color_map name. 
+        See https://matplotlib.org/stable/tutorials/colors/colormaps.html for more details
+    start : float , default : 0 
+        start of y axis ticks 
+    stop : float , default : 1.0 
+        end of y axis ticks 
+    tick_steps : float , default : 0.1 
+        step to y axis ticks 
+    color_shift_midpoint : float , default : 0.5 
+        midpoint of color map 
+    check_name : str 
+        name of the check that called this function 
 
     """
     fig, ax = plt.subplots(figsize=(15, 4))  # pylint: disable=unused-variable
@@ -76,22 +90,27 @@ def create_colorbar_barchart_for_check(
 def shifted_color_map(cmap, start=0, midpoint=0.5, stop=1.0, name: str = 'shiftedcmap', transparent_from: float = None):
     """Offset the "center" of a colormap.
 
-    Input
-    -----
-      cmap : The matplotlib colormap to be altered
-      start : Offset from lowest point in the colormap's range.
-          Defaults to 0.0 (no lower offset). Should be between
-          0.0 and 1.0.
-      midpoint : The new center of the colormap. Defaults to
-          0.5 (no shift). Should be between 0.0 and 1.0. In
-          general, this should be  1 - vmax/(vmax + abs(vmin))
-          For example if your data range from -15.0 to +5.0 and
-          you want the center of the colormap at 0.0, `midpoint`
-          should be set to  1 - 5/(5 + 15)) or 0.75
-      stop : Offset from highest point in the colormap's range.
-          Defaults to 1.0 (no upper offset). Should be between
-          0.0 and 1.0.
-      transparent_from: The point between start and stop where the colors will start being transparent.
+    Parameters
+    ----------
+    cmap 
+        The matplotlib colormap to be altered
+    start , default : 0 
+        Offset from lowest point in the colormap's range.
+        Should be between0.0 and 1.0.
+    midpoint , default : 0.5 
+        The new center of the colormap. Defaults to
+        0.5 (no shift). Should be between 0.0 and 1.0. In
+        general, this should be  1 - vmax/(vmax + abs(vmin))
+        For example if your data range from -15.0 to +5.0 and
+        you want the center of the colormap at 0.0, `midpoint`
+        should be set to  1 - 5/(5 + 15)) or 0.75
+    stop , default : 1.0 
+        Offset from highest point in the colormap's range.
+        Should be between0.0 and 1.0.
+    name: str , default : shiftedcmap
+    transparent_from : float , default : None 
+        The point between start and stop where the colors will start being transparent.
+        
     """
     if transparent_from is None:
         transparent_from = stop

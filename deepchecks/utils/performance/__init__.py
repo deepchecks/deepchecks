@@ -8,4 +8,6 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Package for utilities routines used in performance checks."""
+"""Package for utilities routines used in performance checks.
+
+"""

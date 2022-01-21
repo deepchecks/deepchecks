@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""objects validation utilities."""
+"""objects validation utilities.
+
+"""
+
 import typing as t
 
 import pandas as pd
@@ -19,12 +22,19 @@ from deepchecks.utils.typing import Hashable, BasicModel
 
 __all__ = ['model_type_validation', 'ensure_hashable_or_mutable_sequence', 'validate_model', 'ensure_dataframe_type']
 
-
+                                                                                     
 def model_type_validation(model: t.Any):
     """Receive any object and check if it's an instance of a model we support.
+    
+    Parameters
+    ----------
+    model: t.Any
 
-    Raises:
-        DeepchecksValueError: If the object is not of a supported type
+    Raises
+    ------
+    DeepchecksValueError
+        If the object is not of a supported type
+
     """
     if not isinstance(model, BasicModel):
         raise errors.DeepchecksValueError(
@@ -40,12 +50,16 @@ def validate_model(
 ):
     """Check model is able to predict on the dataset.
 
-    Args:
-        data (Dataset, pandas.DataFrame):
-        model (BaseEstimator):
+    Parameters
+    ----------
+    data : t.Union['base.Dataset', pd.DataFrame]
+    model : t.Any
 
-    Raise:
-        DeepchecksValueError: if dataset does not match model
+    Raises
+    ------
+    DeepchecksValueError
+        if dataset does not match model.
+
     """
     model_type_validation(model)
 
@@ -100,7 +114,10 @@ def ensure_hashable_or_mutable_sequence(
         'Provided value is neither hashable nor mutable '
         'sequence of hashable items. Got {type}')
 ) -> t.List[T]:
-    """Validate that provided value is either hashable or mutable sequence of hashable values."""
+    """Validate that provided value is either hashable or mutable sequence of hashable values.
+    
+    """
+
     if isinstance(value, Hashable):
         return [value]
 
@@ -119,11 +136,15 @@ def ensure_hashable_or_mutable_sequence(
 def ensure_dataframe_type(obj: t.Any) -> pd.DataFrame:
     """Ensure that given object is of type DataFrame or Dataset and return it as DataFrame. else raise error.
 
-    Args:
-        obj: Object to ensure it is DataFrame or Dataset
+    Parameters
+    ----------
+    obj : t.Any 
+        Object to ensure it is DataFrame or Dataset
 
-    Returns:
-        (pd.DataFrame)
+    Returns
+    -------
+    pd.DataFrame
+    
     """
     if isinstance(obj, pd.DataFrame):
         return obj

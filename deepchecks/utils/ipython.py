@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Utils module containing useful global functions."""
+"""Utils module containing useful global functions.
+
+"""
+
 import re
 import subprocess
 import sys
@@ -25,8 +28,11 @@ __all__ = ['is_notebook', 'is_ipython_display', 'is_widgets_enabled']
 def is_notebook() -> bool:
     """Check if we're in an interactive context (Notebook, GUI support) or terminal-based.
 
-    Returns:
+    Returns
+    -------
+    bool
         True if we are in a notebook context, False otherwise
+
     """
     try:
         shell = get_ipython()
@@ -37,7 +43,9 @@ def is_notebook() -> bool:
 
 @lru_cache(maxsize=None)
 def is_ipython_display() -> bool:
-    """Check whether we have IPython display module in current environment."""
+    """Check whether we have IPython display module in current environment.
+    
+    """
     module = 'IPython.display'
     if module in sys.modules:
         return True
@@ -51,7 +59,9 @@ def is_ipython_display() -> bool:
 
 @lru_cache(maxsize=None)
 def is_widgets_enabled() -> bool:
-    """Check if we're running in jupyter and having jupyter widgets extension enabled."""
+    """Check if we're running in jupyter and having jupyter widgets extension enabled.
+    
+    """
     if not is_notebook():
         return False
     else:

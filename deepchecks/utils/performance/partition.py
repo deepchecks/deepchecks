@@ -8,7 +8,9 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module of functions to partition columns into segments."""
+"""Module of functions to partition columns into segments.
+
+"""
 from copy import deepcopy
 from typing import List, Callable
 
@@ -25,9 +27,13 @@ __all__ = ['partition_column', 'DeepchecksFilter']
 class DeepchecksFilter:
     """Contains a filter function which works on a dataframe and a label describing the filter.
 
-    Args:
-        filter_func (Callable): function which receive dataframe and return a filter on it
-        label (str): name of the filter
+    Parameters
+    ----------
+    filter_func : Callable
+        function which receive dataframe and return a filter on it
+    label : str
+        name of the filter
+
     """
 
     def __init__(self, filter_func: Callable, label: str):
@@ -35,7 +41,9 @@ class DeepchecksFilter:
         self.label = label
 
     def filter(self, dataframe):
-        """Run the filter on given dataframe."""
+        """Run the filter on given dataframe.
+        
+        """
         return dataframe.loc[self.filter_func(dataframe)]
 
 
@@ -45,6 +53,16 @@ def numeric_segmentation_edges(column: pd.Series, max_segments: int) -> List[Dee
     Tries to create `max_segments + 1` values (since segment is a range, so 2 values needed to create segment) but in
     case some quantiles have the same value they will be filtered, and the result will have less than max_segments + 1
     values.
+
+    Parameters
+    ----------
+    column : pd.Series
+    max_segments : int
+
+    Returns
+    -------
+    List[DeepchecksFilter]
+
     """
     percentile_values = np.array([min(column), max(column)])
     attempt_max_segments = max_segments
@@ -67,6 +85,13 @@ def largest_category_index_up_to_ratio(histogram, max_segments, max_cat_proporti
 
     First check how many of the biggest categories needed in order to occupy `max_cat_proportions`% of the data. If
     the number is less than max_segments than return it, else return max_segments or number of unique values.
+
+    Parameters
+    ----------
+    histogram
+    max_segments
+    max_cat_proportions
+
     """
     total_values = sum(histogram.values)
     first_less_then_max_cat_proportions_idx = np.argwhere(
@@ -91,11 +116,20 @@ def partition_column(
     For numerical we split into maximum number of `max_segments` quantiles. if some of the quantiles are duplicates
     then we merge them into the same segment range (so not all ranges necessarily will have same size).
 
-    Args:
-        dataset (Dataset):
-        column_name (Hashable): column to partition.
-        max_segments (int): maximum number of segments to split into.
-        max_cat_proportions (float): (for categorical) ratio to aggregate largest values to show.
+    Parameters
+    ----------
+    dataset : Dataset
+    column_name : Hashable
+        column to partition.
+    max_segments : int
+        maximum number of segments to split into.
+    max_cat_proportions : float , default : 0.9
+        (for categorical) ratio to aggregate largest values to show.
+
+    Returns
+    -------
+    List[DeepchecksFilter]
+
     """
     column = dataset.data[column_name]
     if column_name not in dataset.cat_features:

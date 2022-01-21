@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Utils module containing utilities for checks working with metrics."""
+"""Utils module containing utilities for checks working with metrics.
+
+"""
+
 import typing as t
 import enum
 import warnings
@@ -48,7 +51,9 @@ __all__ = [
 
 
 class ModelType(enum.Enum):
-    """Enum containing supported task types."""
+    """Enum containing supported task types.
+    
+    """
 
     REGRESSION = 'regression'
     BINARY = 'binary'
@@ -105,9 +110,13 @@ class DeepcheckScorer:
     rather than the labels and predictions. Scorers are callables with the signature scorer(model, features, y_true).
     Additional data on scorer functions can be found at https://scikit-learn.org/stable/modules/model_evaluation.html.
 
-    Args:
-        scorer (t.Union[str, t.Callable]): sklearn scorer name or callable
-        name (str): scorer name
+    Parameters
+    ----------
+    scorer : t.Union[str, t.Callable] 
+        sklearn scorer name or callable
+    name : str 
+        scorer name
+
     """
 
     def __init__(self, scorer: t.Union[str, t.Callable], name: str):
@@ -139,7 +148,10 @@ class DeepcheckScorer:
         return self._run_score(model, df, dataset)
 
     def score_perfect(self, dataset: 'base.Dataset'):
-        """Calculate the perfect score of the current scorer for given dataset."""
+        """Calculate the perfect score of the current scorer for given dataset.
+        
+        """
+
         df = self.filter_nulls(dataset)
         perfect_model = PerfectModel()
         perfect_model.fit(None, df[dataset.label_name])
@@ -153,7 +165,16 @@ class DeepcheckScorer:
         return score
 
     def validate_fitting(self, model, dataset: 'base.Dataset', should_return_array: bool):
-        """Validate given scorer for the model and dataset."""
+        """Validate given scorer for the model and dataset.
+
+        Parameters
+        ----------
+        model
+        dataset: base.Dataset 
+        should_return_array : bool
+        
+        """
+
         df = self.filter_nulls(dataset)
         if should_return_array:
             # In order for scorer to return array in right length need to pass him samples from all labels
@@ -193,12 +214,18 @@ def task_type_check(
 ) -> ModelType:
     """Check task type (regression, binary, multiclass) according to model object and label column.
 
-    Args:
-        model (BasicModel): Model object - used to check if it has predict_proba()
-        dataset (Dataset): dataset - used to count the number of unique labels
+    Parameters
+    ----------
+    model : BasicModel 
+        Model object - used to check if it has predict_proba()
+    dataset : base.Dataset 
+        dataset - used to count the number of unique labels
 
-    Returns:
+    Returns
+    -------
+    ModelType
         TaskType enum corresponding to the model and dataset
+
     """
     validation.model_type_validation(model)
     dataset.validate_label()
@@ -243,14 +270,19 @@ def task_type_validation(
 ):
     """Validate task type (regression, binary, multiclass) according to model object and label column.
 
-    Args:
-        model (Union[ClassifierMixin, RegressorMixin]): Model object - used to check if it has predict_proba()
-        dataset (Dataset): dataset - used to count the number of unique labels
-        expected_types (List[ModelType]): allowed types of model
-        check_name (str): check name to print in error
+    Parameters
+    ----------
+    model : t.Union[ClassifierMixin, RegressorMixin] 
+        Model object - used to check if it has predict_proba()
+    dataset : base.Dataset 
+        dataset - used to count the number of unique labels
+    expected_types : t.Sequence[ModelType] 
+        allowed types of model
 
-    Raises:
-            DeepchecksValueError if model type doesn't match one of the expected_types
+    Raises
+    ------
+        DeepchecksValueError if model type doesn't match one of the expected_types
+
     """
     task_type = task_type_check(model, dataset)
     if task_type not in expected_types:
@@ -271,14 +303,21 @@ def get_scorers_list(
     If no alternative_scorers is supplied, then a default list of scorers is used per task type, as it is inferred
     from the dataset and model. If a list is supplied, then the scorer functions are checked and used instead.
 
-    Args:
-        model (BaseEstimator): Model object for which the scores would be calculated
-        dataset (Dataset): Dataset object on which the scores would be calculated
-        alternative_scorers (Dict[str, Callable]): Optional dictionary of sklearn scorers to use instead of default list
-        multiclass_avg
+    Parameters
+    ----------
+    model : BaseEstimator 
+        Model object for which the scores would be calculated
+    dataset : base.Dataset 
+        Dataset object on which the scores would be calculated
+    alternative_scorers : t.List['DeepcheckScorer'] , default : None 
+        Optional dictionary of sklearn scorers to use instead of default list
+    multiclass_avg : bool , default : True
 
-    Returns:
+    Returns
+    -------
+    t.List[DeepcheckScorer]
         Dictionary containing names of scorer functions.
+
     """
     # Check for model type
     model_type = task_type_check(model, dataset)
@@ -302,7 +341,9 @@ def get_scorers_list(
 
 def get_scorer_single(model, dataset: 'base.Dataset', alternative_scorer: t.Optional[DeepcheckScorer] = None,
                       multiclass_avg: bool = True) -> 'DeepcheckScorer':
-    """Return single score to use in check, and validate scorer fit the model and dataset."""
+    """Return single score to use in check, and validate scorer fit the model and dataset.
+    
+    """
     model_type = task_type_check(model, dataset)
     multiclass_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and multiclass_avg is False
 
@@ -321,7 +362,9 @@ def get_scorer_single(model, dataset: 'base.Dataset', alternative_scorer: t.Opti
 
 def initialize_single_scorer(scorer: t.Optional[t.Union[str, t.Callable]], scorer_name=None) \
         -> t.Optional[DeepcheckScorer]:
-    """If type is string, get scorer from sklearn. If none, return none."""
+    """If type is string, get scorer from sklearn. If none, return none.
+    
+    """
     if scorer is None:
         return None
 
@@ -331,7 +374,9 @@ def initialize_single_scorer(scorer: t.Optional[t.Union[str, t.Callable]], score
 
 def initialize_multi_scorers(alternative_scorers: t.Optional[t.Mapping[str, t.Callable]]) -> \
         t.Optional[t.List[DeepcheckScorer]]:
-    """Initialize user scorers and return all of them as callable."""
+    """Initialize user scorers and return all of them as callable.
+    
+    """
     if alternative_scorers is None:
         return None
     elif len(alternative_scorers) == 0:
@@ -341,7 +386,9 @@ def initialize_multi_scorers(alternative_scorers: t.Optional[t.Mapping[str, t.Ca
 
 
 def get_gain(base_score, score, perfect_score, max_gain):
-    """Get gain between base score and score compared to the distance from the perfect score."""
+    """Get gain between base score and score compared to the distance from the perfect score.
+    
+    """
     distance_from_perfect = perfect_score - base_score
     scores_diff = score - base_score
     if distance_from_perfect == 0:

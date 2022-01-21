@@ -8,7 +8,9 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Contains simple models used in checks."""
+"""Contains simple models used in checks.
+
+"""
 import numpy as np
 
 
@@ -25,44 +27,60 @@ def create_proba_result(predictions, classes):
 
 
 class PerfectModel:
-    """Model used to perfectly predict from given series of labels."""
+    """Model used to perfectly predict from given series of labels.
+    
+    """
 
     def __init__(self):
         self.labels = None
 
     def fit(self, X, y):  # pylint: disable=unused-argument,invalid-name
-        """Fit model."""
+        """Fit model.
+        
+        """
         # The X is not used, but it is needed to be matching to sklearn `fit` signature
         self.labels = y
 
     def predict(self, X):  # pylint: disable=unused-argument,invalid-name
-        """Predict on given X."""
+        """Predict on given X.
+        
+        """
         return self.labels.to_numpy()
 
     def predict_proba(self, X):  # pylint: disable=invalid-name
-        """Predict proba for given X."""
+        """Predict proba for given X.
+        
+        """
         classes = sorted(self.labels.unique().tolist())
         predictions = self.predict(X)
         return create_proba_result(predictions, classes)
 
 
 class RandomModel:
-    """Model used to randomly predict from given series of labels."""
+    """Model used to randomly predict from given series of labels.
+    
+    """
 
     def __init__(self):
         self.labels = None
 
     def fit(self, X, y):  # pylint: disable=unused-argument,invalid-name
-        """Fit model."""
+        """Fit model.
+        
+        """
         # The X is not used, but it is needed to be matching to sklearn `fit` signature
         self.labels = y
 
     def predict(self, X):  # pylint: disable=invalid-name
-        """Predict on given X."""
+        """Predict on given X.
+        
+        """
         return np.random.choice(self.labels, X.shape[0])
 
     def predict_proba(self, X):  # pylint: disable=invalid-name
-        """Predict proba for given X."""
+        """Predict proba for given X.
+                                                                                            
+        """
         classes = sorted(self.labels.unique().tolist())
         predictions = self.predict(X)
         return create_proba_result(predictions, classes)

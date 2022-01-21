@@ -8,7 +8,9 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Type definitions."""
+"""Type definitions.
+
+"""
 # pylint: disable=invalid-hash-returned,invalid-name
 from typing_extensions import Protocol, runtime_checkable
 from typing import List
@@ -19,7 +21,9 @@ __all__ = ['Hashable', 'BasicModel', 'ClassificationModel']
 
 @runtime_checkable
 class Hashable(Protocol):
-    """Trait for any hashable type that also defines comparison operators."""
+    """Trait for any hashable type that also defines comparison operators.
+    
+    """
 
     def __hash__(self) -> int:  # noqa: D105
         ...
@@ -42,17 +46,25 @@ class Hashable(Protocol):
 
 @runtime_checkable
 class BasicModel(Protocol):
-    """Traits of a model that are necessary for deepchecks."""
+    """Traits of a model that are necessary for deepchecks.
+    
+    """
 
     def predict(self, X) -> List[Hashable]:
-        """Predict on given X."""
+        """Predict on given X.
+        
+        """
         ...
 
 
 @runtime_checkable
 class ClassificationModel(BasicModel, Protocol):
-    """Traits of a classification model that are used by deepchecks."""
+    """Traits of a classification model that are used by deepchecks.
+    
+    """
 
     def predict_proba(self, X) -> List[Hashable]:
-        """Predict probabilities on given X."""
+        """Predict probabilities on given X.
+        
+        """
         ...

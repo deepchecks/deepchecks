@@ -1,4 +1,6 @@
-"""PPS (Predictive Power Score) module."""
+"""PPS (Predictive Power Score) module.
+
+"""
 
 # Copied from https://github.com/8080labs/ppscore, version 1.2.0
 #
@@ -55,7 +57,9 @@ TO_BE_CALCULATED = -1
 def _calculate_model_cv_score_(
         df, target, feature, task, cross_validation, random_seed, **kwargs
 ):
-    """Calculate the mean model score based on cross-validation."""
+    """Calculate the mean model score based on cross-validation.
+    
+    """
     # Sources about the used methods:
     # https://scikit-learn.org/stable/modules/tree.html
     # https://scikit-learn.org/stable/modules/cross_validation.html
@@ -100,7 +104,9 @@ def _calculate_model_cv_score_(
 
 
 def _normalized_mae_score(model_mae, naive_mae):
-    """Normalize the model MAE score, given the baseline score."""
+    """Normalize the model MAE score, given the baseline score.
+    
+    """
     # # Value range of MAE is [0, infinity), 0 is best
     # 10, 5 ==> 0 because worse than naive
     # 10, 20 ==> 0.5
@@ -112,7 +118,9 @@ def _normalized_mae_score(model_mae, naive_mae):
 
 
 def _mae_normalizer(df, y, model_score, **kwargs):
-    """In case of MAE, calculates the baseline score for y and derives the PPS."""
+    """In case of MAE, calculates the baseline score for y and derives the PPS.
+    
+    """
     df["naive"] = df[y].median()
     baseline_score = mean_absolute_error(df[y], df["naive"])  # true, pred
 
@@ -121,7 +129,9 @@ def _mae_normalizer(df, y, model_score, **kwargs):
 
 
 def _normalized_f1_score(model_f1, baseline_f1):
-    """Normalize the model F1 score, given the baseline score."""
+    """Normalize the model F1 score, given the baseline score.
+    
+    """
     # # F1 ranges from 0 to 1
     # # 1 is best
     # 0.5, 0.7 ==> 0 because model is worse than naive baseline
@@ -136,7 +146,9 @@ def _normalized_f1_score(model_f1, baseline_f1):
 
 
 def _f1_normalizer(df, y, model_score, random_seed):
-    """In case of F1, calculates the baseline score for y and derives the PPS."""
+    """In case of F1, calculates the baseline score for y and derives the PPS.
+    
+    """
     label_encoder = preprocessing.LabelEncoder()
     df["truth"] = label_encoder.fit_transform(df[y])
     df["most_common_value"] = df["truth"].value_counts().index[0]
@@ -229,7 +241,9 @@ INVALID_CALCULATIONS = [
 
 
 def _dtype_represents_categories(series) -> bool:
-    """Determine if the dtype of the series represents categorical values."""
+    """Determine if the dtype of the series represents categorical values.
+    
+    """
     return (
             is_bool_dtype(series)
             or is_object_dtype(series)
@@ -239,7 +253,9 @@ def _dtype_represents_categories(series) -> bool:
 
 
 def _determine_case_and_prepare_df(df, x, y, sample=5_000, random_seed=123):
-    """Return str with the name of the determined case based on the columns x and y."""
+    """Return str with the name of the determined case based on the columns x and y.
+    
+    """
     if x == y:
         return df, "predict_itself"
 
@@ -290,7 +306,9 @@ def _determine_case_and_prepare_df(df, x, y, sample=5_000, random_seed=123):
 
 
 def _feature_is_id(df, x):
-    """Return Boolean if the feature column x is an ID."""
+    """Return Boolean if the feature column x is an ID.
+    
+    """
     if not _dtype_represents_categories(df[x]):
         return False
 
@@ -299,8 +317,7 @@ def _feature_is_id(df, x):
 
 
 def _maybe_sample(df, sample, random_seed=None):
-    """
-    Maybe samples the rows of the given df to have at most `sample` rows.
+    """Maybe samples the rows of the given df to have at most `sample` rows.
 
     If sample is `None` or falsy, there will be no sampling.
     If the df has fewer rows than the sample, there will be no sampling.
@@ -309,9 +326,9 @@ def _maybe_sample(df, sample, random_seed=None):
     ----------
     df : pandas.DataFrame
         Dataframe that might be sampled
-    sample : int or `None`
+    sample : int 
         Number of rows to be sampled
-    random_seed : int or `None`
+    random_seed : int , default : None
         Random seed that is forwarded to pandas.DataFrame.sample as `random_state`
 
     Returns
@@ -383,8 +400,7 @@ def score(
         invalid_score=0,
         catch_errors=True,
 ):
-    """
-    Calculate the Predictive Power Score (PPS) for "x predicts y".
+    """Calculate the Predictive Power Score (PPS) for "x predicts y".
 
     The score always ranges from 0 to 1 and is data-type agnostic.
 
@@ -401,21 +417,22 @@ def score(
         Name of the column x which acts as the feature
     y : str
         Name of the column y which acts as the target
-    sample : int or `None`
+    task
+    sample : int 
         Number of rows for sampling. The sampling decreases the calculation time of the PPS.
         If `None` there will be no sampling.
-    cross_validation : int
+    cross_validation : int , default : 4
         Number of iterations during cross-validation. This has the following implications:
         For example, if the number is 4, then it is possible to detect patterns when there are at least 4 times the same
          observation. If the limit is increased, the required minimum observations also increase. This is important,
          because this is the limit when sklearn will throw an error and the PPS cannot be calculated
-    random_seed : int or `None`
+    random_seed : int , default : 123
         Random seed for the parts of the calculation that require random numbers, e.g. shuffling or sampling.
         If the value is set, the results will be reproducible. If the value is `None` a new random number is drawn at
         the start of each calculation.
-    invalid_score : any
+    invalid_score : any , default : 0
         The score that is returned when a calculation is invalid, e.g. because the data type was not supported.
-    catch_errors : bool
+    catch_errors : bool , default : True
         If `True` all errors will be catched and reported as `unknown_error` which ensures convenience. If `False`
         errors will be raised. This is helpful for inspecting and debugging errors.
 
@@ -424,6 +441,7 @@ def score(
     Dict
         A dict that contains multiple fields about the resulting PPS.
         The dict enables introspection into the calculations that have been performed under the hood
+
     """
     if not isinstance(df, pd.DataFrame):
         raise TypeError(
@@ -516,6 +534,7 @@ def _format_list_of_dicts(scores, output, sorted):
     - maybe sort by ppscore
     - maybe return pandas.Dataframe
     - output can be one of ["df", "list"]
+
     """
     if sorted:
         scores.sort(key=lambda item: item["ppscore"], reverse=True)
@@ -550,19 +569,20 @@ def predictors(df, y, output="df", sorted=True, **kwargs):
         The dataframe that contains the data
     y : str
         Name of the column y which acts as the target
-    output: str - potential values: "df", "list"
+    output: str , default : df
         Control the type of the output. Either return a pandas.DataFrame (df) or a list with the score dicts
-    sorted: bool
+    sorted: bool , default : True
         Whether or not to sort the output dataframe/list by the ppscore
-    kwargs:
+    kwargs : Dict
         Other key-word arguments that shall be forwarded to the pps.score method,
         e.g. `sample, `cross_validation, `random_seed, `invalid_score`, `catch_errors`
 
     Returns
     -------
-    pandas.DataFrame or list of Dict
+    pandas.DataFrame 
         Either returns a tidy dataframe or a list of all the PPS dicts. This can be influenced
         by the output argument
+
     """
     if not isinstance(df, pd.DataFrame):
         raise TypeError(
@@ -591,24 +611,26 @@ def predictors(df, y, output="df", sorted=True, **kwargs):
 
 
 def matrix(df, output="df", sorted=False, **kwargs):
-    """
-    Calculate the Predictive Power Score (PPS) matrix for all columns in the dataframe.
+    """Calculate the Predictive Power Score (PPS) matrix for all columns in the dataframe.
 
-    Args:
-        df : pandas.DataFrame
-            The dataframe that contains the data
-        output: str - potential values: "df", "list"
-            Control the type of the output. Either return a pandas.DataFrame (df) or a list with the score dicts
-        sorted: bool
-            Whether or not to sort the output dataframe/list by the ppscore
-        kwargs:
-            Other key-word arguments that shall be forwarded to the pps.score method,
-            e.g. `sample, `cross_validation, `random_seed, `invalid_score`, `catch_errors`
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The dataframe that contains the data
+    output: str , default : df
+        Control the type of the output. Either return a pandas.DataFrame (df) or a list with the score dicts
+    sorted: bool , default : False
+        Whether or not to sort the output dataframe/list by the ppscore
+    kwargs : Dict
+        Other key-word arguments that shall be forwarded to the pps.score method,
+        e.g. `sample, `cross_validation, `random_seed, `invalid_score`, `catch_errors`
 
-    Returns:
-        pandas.DataFrame or list of Dict
-            Either returns a tidy dataframe or a list of all the PPS dicts. This can be influenced
-            by the output argument
+    Returns
+    -------
+    pandas.DataFrame 
+        Either returns a tidy dataframe or a list of all the PPS dicts. This can be influenced
+        by the output argument
+        
     """
     if not isinstance(df, pd.DataFrame):
         raise TypeError(
