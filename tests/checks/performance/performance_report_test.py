@@ -41,8 +41,7 @@ def test_model_wrong_input(iris_labeled_dataset):
         calling(PerformanceReport().run).with_args(iris_labeled_dataset, iris_labeled_dataset,bad_model),
         raises(
             ModelValidationError, 
-            r'Model must be a structural subtype of the '
-            r'`deepchecks.utils.typing.BasicModel` protocol\. *')
+            r'Model supplied does not meets the minimal interface requirements. Read more about .*')
     )
 
 

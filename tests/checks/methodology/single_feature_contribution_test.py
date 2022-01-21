@@ -15,7 +15,6 @@ from hamcrest import assert_that, close_to, calling, raises, has_entries, has_le
 
 from deepchecks import Dataset
 from deepchecks.checks.methodology import SingleFeatureContribution, SingleFeatureContributionTrainTest
-from deepchecks.checks.methodology.single_feature_contribution import pps_html_url
 from deepchecks.errors import DeepchecksValueError, DatasetValidationError
 
 from tests.checks.utils import equal_condition_result
@@ -142,7 +141,7 @@ def test_all_features_pps_upper_bound_condition_that_should_not_pass():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name=f'Features\' {pps_html_url} (PPS) is not greater than {condition_value}',
+        name=f'Features\' Predictive Power Score is not greater than {condition_value}',
         details='Features with PPS above threshold: {\'x2\': \'0.84\', \'x4\': \'0.53\', \'x5\': \'0.42\'}'
     ))
 
@@ -160,7 +159,7 @@ def test_all_features_pps_upper_bound_condition_that_should_pass():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        name=f'Features\' {pps_html_url} (PPS) is not greater than {condition_value}',
+        name=f'Features\' Predictive Power Score is not greater than {condition_value}',
     ))
 
 
@@ -179,7 +178,7 @@ def test_train_test_condition_pps_difference_pass():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        name=f'Train-Test features\' {pps_html_url} (PPS) difference is not greater than {condition_value}'
+        name=f'Train-Test features\' Predictive Power Score difference is not greater than {condition_value}'
     ))
 
 
@@ -197,7 +196,7 @@ def test_train_test_condition_pps_difference_fail():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name=f'Train-Test features\' {pps_html_url} (PPS) difference is not greater than {condition_value}',
+        name=f'Train-Test features\' Predictive Power Score difference is not greater than {condition_value}',
         details='Features with PPS difference above threshold: {\'x2\': \'0.31\'}'
     ))
 
@@ -217,7 +216,7 @@ def test_train_test_condition_pps_train_pass():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        name=f'Train features\' {pps_html_url} (PPS) is not greater than {condition_value}'
+        name=f'Train features\' Predictive Power Score is not greater than {condition_value}'
     ))
 
 
@@ -235,7 +234,7 @@ def test_train_test_condition_pps_train_fail():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name=f'Train features\' {pps_html_url} (PPS) is not greater than {condition_value}',
+        name=f'Train features\' Predictive Power Score is not greater than {condition_value}',
         details='Features in train dataset with PPS above threshold: {\'x2\': \'0.84\'}'
     ))
 

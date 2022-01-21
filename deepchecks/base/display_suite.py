@@ -28,7 +28,7 @@ from deepchecks import errors
 from deepchecks.utils.ipython import is_widgets_enabled
 from deepchecks.utils.strings import get_random_string
 from deepchecks.base.check import CheckResult, CheckFailure
-from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table_display, \
+from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table, \
                                            get_result_navigation_display
 
 
@@ -116,7 +116,7 @@ def _display_suite_widgets(summary: str,
     tab.set_title(2, 'Checks Without Output')
 
     if checks_with_conditions:
-        cond_html_table = get_conditions_table_display(checks_with_conditions, unique_id, 300)
+        cond_html_table = dataframe_to_html(get_conditions_table(checks_with_conditions, unique_id, 300))
         h2_widget = widgets.HTML(_CONDITIONS_SUMMARY_TITLE)
         condition_tab_children = [h2_widget, _create_table_widget(cond_html_table)]
     else:
@@ -196,7 +196,7 @@ def _display_suite_no_widgets(summary: str,
     display_html(bold_hr + summary, raw=True)
 
     if checks_with_conditions:
-        cond_html_table = get_conditions_table_display(checks_with_conditions, unique_id, 300)
+        cond_html_table = dataframe_to_html(get_conditions_table(checks_with_conditions, unique_id, 300))
         display_html(_CONDITIONS_SUMMARY_TITLE + cond_html_table, raw=True)
     else:
         display_html(_NO_CONDITIONS_SUMMARY_TITLE, raw=True)
@@ -295,7 +295,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
 
     suite_creation_example_link = (
         'https://docs.deepchecks.com/en/stable/examples/guides/create_a_custom_suite.html'
-        '?utm_source=suite_output&utm_medium=referral&utm_campaign=display_link'
+        '?utm_source=display_output&utm_medium=referral&utm_campaign=suite_link'
     )
 
     # suite summary
@@ -305,12 +305,13 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
             {prologue}<br>
             Each check may contain conditions (which will result in pass / fail / warning, represented by {icons})
             as well as other outputs such as plots or tables.<br>
-            Suites, checks and conditions can all be modified (see the
-            <a href={suite_creation_example_link} target="_blank">Create a Custom Suite</a> tutorial).
+            Suites, checks and conditions can all be modified. Read more about
+            <a href={suite_creation_example_link} target="_blank">custom suites</a>.
         </p>
         """
 
-    if html_out or is_widgets_enabled():
+    # can't display plotly widgets in kaggle notebooks
+    if html_out or (is_widgets_enabled() and os.environ.get('KAGGLE_KERNEL_RUN_TYPE') is None):
         _display_suite_widgets(summ,
                                unique_id,
                                checks_with_conditions,
