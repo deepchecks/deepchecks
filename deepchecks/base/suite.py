@@ -46,6 +46,7 @@ class SuiteResult:
         return self.name
 
     def _ipython_display_(self):
+        # google colab has no support for widgets but good support for viewing html pages in the output
         if 'google.colab' in str(get_ipython()):
             html_out = io.StringIO()
             display_suite_result(self.name, self.results, html_out=html_out)
