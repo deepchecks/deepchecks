@@ -13,6 +13,7 @@ from hamcrest import assert_that, calling, raises, matches_regexp, instance_of, 
 
 from checks import ModelInfo
 from deepchecks.utils.strings import format_datetime, get_ellipsis, _generate_check_docs_link_html
+import deepchecks
 
 
 def test_get_ellipsis():
@@ -70,10 +71,11 @@ def test_format_datetime_with_unsuported_value_type():
 def test_generate_check_docs_link_html():
     # Arrange - init some arbitrary check
     check = ModelInfo()
+    version = deepchecks.__version__
     # Act
     html = _generate_check_docs_link_html(check)
     # Assert
-    assert_that(html, equal_to(' <a href="https://docs.deepchecks.com/en/0.3.1/examples/overview/model_info.html?'
+    assert_that(html, equal_to(f' <a href="https://docs.deepchecks.com/en/{version}/examples/overview/model_info.html?'
                                'utm_source=display_output&utm_medium=referral&utm_campaign=check_link" '
                                'target="_blank">Read More...</a>'))
 
