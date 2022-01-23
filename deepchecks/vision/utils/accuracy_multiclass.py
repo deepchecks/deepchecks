@@ -2,6 +2,8 @@ from ignite.metrics import Metric
 from ignite.metrics.metric import sync_all_reduce, reinit__is_reduced
 import torch
 from torch.nn import functional as F
+
+
 class Accuracy(Metric):
 
     def __init__(self, num_classes, *args, **kwargs):

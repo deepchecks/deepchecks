@@ -70,7 +70,7 @@ class CocoDataset(VisionDataset):
         return len(self.images)
 
 
-def get_coco_dataloader():
+def get_coco_dataloader(batch_size: int = 64, num_workers: int = 0, shuffle: bool = False) -> DataLoader:
     data_url = 'https://ultralytics.com/assets/coco128.zip'
     download_and_extract_archive(data_url, './', './coco128')
     dataset = CocoDataset(os.path.join('coco128', 'coco128'), 'train2017')
@@ -79,7 +79,7 @@ def get_coco_dataloader():
         imgs, labels = zip(*batch)
         return list(imgs), list(labels)
 
-    dataloader = DataLoader(dataset, batch_size=64, shuffle=True,
-                            collate_fn=batch_collate)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,
+                            num_workers=num_workers, collate_fn=batch_collate)
 
     return dataloader
