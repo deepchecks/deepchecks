@@ -75,7 +75,8 @@ def get_docs_summary(obj):
         module_path = obj.__class__.__module__
         # Transform into html path, dropping the first item which is 'deepchecks'
         check_html_path = '/'.join(module_path.split('.')[1:])
-        version = deepchecks.__version__
+        # In case couldn't load version direct user to stable
+        version = deepchecks.__version__ or 'stable'
         html_template = ('https://docs.deepchecks.com/en/{}/examples/{}.html?utm_source=display_output'
                          '&utm_medium=referral&utm_campaign=check_link')
         summary += f' <a href="{html_template.format(version, check_html_path)}" target="_blank">Read More...</a>'

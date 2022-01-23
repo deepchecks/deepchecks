@@ -11,7 +11,7 @@
 """Top module for deepchecks library."""
 import matplotlib
 import plotly.io as pio
-from pkg_resources import get_distribution
+from pkg_resources import get_distribution, DistributionNotFound
 from .utils.ipython import is_notebook
 from .base import (
     Dataset,
@@ -64,4 +64,8 @@ if 'notebook_connected' in pio_backends:
 
 
 # Set version info
-__version__ = get_distribution('deepchecks').version
+try:
+    __version__ = get_distribution('deepchecks').version
+except DistributionNotFound:
+    # If distribution can't be found, leave version empty
+    __version__ = ''
