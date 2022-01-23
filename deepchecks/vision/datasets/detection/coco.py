@@ -83,3 +83,17 @@ def get_coco_dataloader(batch_size: int = 64, num_workers: int = 0, shuffle: boo
                             num_workers=num_workers, collate_fn=batch_collate)
 
     return dataloader
+
+
+def yolo_wrapper(predictions: 'ultralytics.models.common.Detections') -> List[torch.Tensor]:
+    """Convert from yolo Detections object to List (per image) of Tensors of the shape [N, 6] with each row being:
+        [x, y, w, h, confidence, class] for each bbox in the image.
+    """
+    return_list = []
+    for single_image_tensor in predictions.pred:  # yolo Detections objects have List[torch.Tensor] xyxy output in .pred
+        pred_modified = torch.clone(single_image_tensor)
+        pred_modified[:, 2] = pred_modified[:, 2] - pred_modified[:, 0]  # w = x_right - x_left
+        pred_modified[:, 3] = pred_modified[:, 3] - pred_modified[:, 1]  # h = y_bottom - y_top
+
+        return_list.append(pred_modified)
+    return return_list
