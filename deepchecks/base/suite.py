@@ -14,8 +14,8 @@ import abc
 import io
 from collections import OrderedDict
 from typing import Union, List, Optional, Tuple, Any, Container, Mapping
-from IPython.core.display import display_html
 
+from IPython.core.display import display_html
 from IPython.core.getipython import get_ipython
 import jsonpickle
 
