@@ -11,9 +11,12 @@
 """Module containing the Suite object, used for running a set of checks together."""
 # pylint: disable=broad-except
 import abc
+import io
 from collections import OrderedDict
 from typing import Union, List, Optional, Tuple, Any, Container, Mapping
+from IPython.core.display import display_html
 
+from IPython.core.getipython import get_ipython
 import jsonpickle
 
 from deepchecks.base.display_suite import display_suite_result, ProgressBar
@@ -43,6 +46,10 @@ class SuiteResult:
         return self.name
 
     def _ipython_display_(self):
+        if 'google.colab' in str(get_ipython()):
+            html_out = io.StringIO()
+            display_suite_result(self.name, self.results, html_out=html_out)
+            display_html(html_out, raw=True)
         display_suite_result(self.name, self.results)
 
     def show(self):
