@@ -7,7 +7,6 @@ from typing import List, Any, Tuple, Optional, Callable
 import numpy as np
 import torch
 from PIL import Image
-from numpy import genfromtxt
 from torch.utils.data import DataLoader
 from torchvision.datasets import VisionDataset
 from torchvision.datasets.utils import download_and_extract_archive
@@ -76,7 +75,11 @@ def get_coco_dataloader():
     download_and_extract_archive(data_url, './', './coco128')
     dataset = CocoDataset(os.path.join('coco128', 'coco128'), 'train2017')
 
+    def batch_collate(batch):
+        imgs, labels = zip(*batch)
+        return list(imgs), list(labels)
+
     dataloader = DataLoader(dataset, batch_size=64, shuffle=True,
-                            collate_fn=lambda batch: tuple(zip(*batch)))
+                            collate_fn=batch_collate)
 
     return dataloader
