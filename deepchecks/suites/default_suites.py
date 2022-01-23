@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Predefined suites for various use-cases."""
+"""Functions for creating default suites for various use-cases.
+
+Each function returns a new suite initialized with checks and default conditions. The suite is editable, it's possible
+to edit the checks and conditions inside it."""
 from deepchecks.checks import (
     MixedNulls, SpecialCharacters, StringLengthOutOfBounds, StringMismatch, MixedDataTypes,
     DateTrainTestLeakageDuplicates, SingleFeatureContributionTrainTest, TrainTestSamplesMix,
@@ -26,10 +29,7 @@ __all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validat
 
 
 def single_dataset_integrity() -> Suite:
-    """Create 'Single Dataset Integrity Suite'.
-
-    The suite runs a set of checks that are meant to detect integrity issues within a single dataset.
-    """
+    """Create a suite that is meant to detect integrity issues within a single dataset."""
     return Suite(
         'Single Dataset Integrity Suite',
         IsSingleValue().add_condition_not_single_value(),
@@ -44,10 +44,7 @@ def single_dataset_integrity() -> Suite:
 
 
 def train_test_leakage() -> Suite:
-    """Create 'Train Test Leakage Suite'.
-
-    The suite runs a set of checks that are meant to detect data leakage from the training dataset to the test dataset.
-    """
+    """Create a suite that is meant to detect data leakage between the training dataset and the test dataset."""
     return Suite(
         'Train Test Leakage Suite',
         DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_not_greater_than(),
@@ -61,10 +58,9 @@ def train_test_leakage() -> Suite:
 
 
 def train_test_validation() -> Suite:
-    """Create 'Train Test Validation Suite'.
+    """Create a suite that is meant to validate correctness of train-test split.
 
-    The suite runs a set of checks that are meant to validate correctness of train-test split, including
-    integrity, drift and leakage.
+    The suite includes also drift and leakage.
     """
     return Suite(
         'Train Test Validation Suite',
@@ -81,10 +77,7 @@ def train_test_validation() -> Suite:
 
 
 def model_evaluation() -> Suite:
-    """Create 'Model Evaluation Suite'.
-
-    The suite runs a set of checks that are meant to test model performance and overfit.
-    """
+    """Create a suite that is meant to test model performance and overfit."""
     return Suite(
         'Model Evaluation Suite',
         ConfusionMatrixReport(),
@@ -103,10 +96,7 @@ def model_evaluation() -> Suite:
 
 
 def full_suite() -> Suite:
-    """Create 'Full Suite'.
-
-    The suite runs all deepchecks' checks.
-    """
+    """Create a suite with all deepchecks' checks."""
     return Suite(
         'Full Suite',
         ModelInfo(),
