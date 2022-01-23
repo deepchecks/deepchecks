@@ -229,7 +229,8 @@ def _display_suite_no_widgets(summary: str,
         others_df = dataframe_to_html(others_table.style.hide_index())
         display_html(others_h2 + others_df, raw=True)
 
-    display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
+    if unique_id:
+        display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
 
 
 def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]],
