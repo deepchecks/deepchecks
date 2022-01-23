@@ -21,6 +21,7 @@ from copy import copy
 import pandas as pd
 from pandas.core.dtypes.common import is_numeric_dtype
 
+import deepchecks
 from deepchecks.utils.typing import Hashable
 
 
@@ -64,12 +65,21 @@ def get_docs_summary(obj):
     Returns:
         (str): the object summary.
     """
+    summary = ''
     if hasattr(obj.__class__, '__doc__'):
         docs = obj.__class__.__doc__ or ''
         # Take first non-whitespace line.
         summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
-        return summary
-    return ''
+    if isinstance(obj, deepchecks.BaseCheck):
+        # Get the python path of the check
+        module_path = obj.__class__.__module__
+        # Transform into html path, dropping the first item which is 'deepchecks'
+        check_html_path = '/'.join(module_path.split('.')[1:])
+        version = deepchecks.__version__
+        html_template = ('https://docs.deepchecks.com/en/{}/examples/{}.html?utm_source=display_output'
+                         '&utm_medium=referral&utm_campaign=check_link')
+        summary += f' <a href="{html_template.format(version, check_html_path)}" target="_blank">Read More...</a>'
+    return summary
 
 
 def get_random_string(n: int = 5):
