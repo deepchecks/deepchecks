@@ -11,7 +11,8 @@
 """Functions for creating default suites for various use-cases.
 
 Each function returns a new suite initialized with checks and default conditions. The suite is editable, it's possible
-to edit the checks and conditions inside it."""
+to edit the checks and conditions inside it.
+"""
 from deepchecks.checks import (
     MixedNulls, SpecialCharacters, StringLengthOutOfBounds, StringMismatch, MixedDataTypes,
     DateTrainTestLeakageDuplicates, SingleFeatureContributionTrainTest, TrainTestSamplesMix,
