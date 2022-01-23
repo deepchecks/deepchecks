@@ -49,7 +49,7 @@ class SuiteResult:
         if 'google.colab' in str(get_ipython()):
             html_out = io.StringIO()
             display_suite_result(self.name, self.results, html_out=html_out)
-            display_html(html_out, raw=True)
+            display_html(html_out.getvalue(), raw=True)
         else:
             display_suite_result(self.name, self.results)
 
