@@ -71,7 +71,7 @@ def test_format_datetime_with_unsuported_value_type():
 def test_generate_check_docs_link_html():
     # Arrange - init some arbitrary check
     check = ModelInfo()
-    version = deepchecks.__version__
+    version = deepchecks.__version__ or 'stable'
     # Act
     html = _generate_check_docs_link_html(check)
     # Assert
