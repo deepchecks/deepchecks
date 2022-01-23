@@ -51,8 +51,8 @@ class CocoDataset(VisionDataset):
         else:  # missing
             labels = np.zeros((0, 5), dtype=np.float32)
 
-        boxes = []
-        classes = []
+        # Transform x,y,w,h in yolo format (x, y are of the image center, and coordinates are normalized) to standard
+        # x,y,w,h format, where x,y are of the top left corner of the bounding box and coordinates are absolute.
         for i in range(len(labels)):
             x, y, w, h = labels[i, 1:]
             labels[i, 1:] = np.array([
