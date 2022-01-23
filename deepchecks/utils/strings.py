@@ -70,17 +70,24 @@ def get_docs_summary(obj):
         docs = obj.__class__.__doc__ or ''
         # Take first non-whitespace line.
         summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
-    if isinstance(obj, deepchecks.BaseCheck):
+
+    summary += _generate_check_docs_link_html(obj)
+    return summary
+
+
+def _generate_check_docs_link_html(check):
+    """Create from check object a link to its example page in the docs."""
+    if isinstance(check, deepchecks.BaseCheck):
         # Get the python path of the check
-        module_path = obj.__class__.__module__
+        module_path = check.__class__.__module__
         # Transform into html path, dropping the first item which is 'deepchecks'
         check_html_path = '/'.join(module_path.split('.')[1:])
         # In case couldn't load version direct user to stable
         version = deepchecks.__version__ or 'stable'
         html_template = ('https://docs.deepchecks.com/en/{}/examples/{}.html?utm_source=display_output'
                          '&utm_medium=referral&utm_campaign=check_link')
-        summary += f' <a href="{html_template.format(version, check_html_path)}" target="_blank">Read More...</a>'
-    return summary
+        return f' <a href="{html_template.format(version, check_html_path)}" target="_blank">Read More...</a>'
+    return ''
 
 
 def get_random_string(n: int = 5):
