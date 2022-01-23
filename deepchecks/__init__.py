@@ -11,6 +11,7 @@
 """Top module for deepchecks library."""
 import matplotlib
 import plotly.io as pio
+from pkg_resources import get_distribution
 from .utils.ipython import is_notebook
 from .base import (
     Dataset,
@@ -60,3 +61,7 @@ pio_backends = pio.renderers.default.split('+')
 if 'notebook_connected' in pio_backends:
     pio_backends[pio_backends.index('notebook_connected')] = 'notebook'
     pio.renderers.default = '+'.join(pio_backends)
+
+
+# Set version info
+__version__ = get_distribution('deepchecks').version
