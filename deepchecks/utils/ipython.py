@@ -25,7 +25,9 @@ __all__ = ['is_notebook', 'is_ipython_display', 'is_widgets_enabled']
 def is_notebook() -> bool:
     """Check if we're in an interactive context (Notebook, GUI support) or terminal-based.
 
-    Returns:
+    Returns
+    -------
+    bool
         True if we are in a notebook context, False otherwise
     """
     try:

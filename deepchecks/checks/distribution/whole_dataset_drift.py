@@ -15,6 +15,7 @@ import warnings
 import numpy as np
 import pandas as pd
 
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.distribution.plot import feature_distribution_traces, drift_score_bar_traces
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none
@@ -47,25 +48,27 @@ class WholeDatasetDrift(TrainTestBaseCheck):
     the change in distribution between train and test for the top features according to the
     calculated feature importance.
 
-    Args:
-        n_top_columns (int):
-            Amount of columns to show ordered by domain classifier feature importance. This limit is used together
-            (AND) with min_feature_importance, so less than n_top_columns features can be displayed.
-        min_feature_importance (float): Minimum feature importance to show in the check display. Feature importance
-            sums to 1, so for example the default value of 0.05 means that all features with importance contributing
-            less than 5% to the predictive power of the Domain Classifier won't be displayed. This limit is used
-            together (AND) with n_top_columns, so features more important than min_feature_importance can be
-            hidden.
-        max_num_categories (int):
-            Only for categorical columns. Max number of categories to display in distributio plots. If there are
-            more, they are binned into an "Other" category in the display. If max_num_categories=None, there is
-            no limit.
-        sample_size (int):
-            Max number of rows to use from each dataset for the training and evaluation of the domain classifier.
-        random_state (int):
-            Random seed for the check.
-        test_size (float):
-            Fraction of the combined datasets to use for the evaluation of the domain classifier.
+    Parameters
+    ----------
+    n_top_columns : int , default: 3
+        Amount of columns to show ordered by domain classifier feature importance. This limit is used together
+        (AND) with min_feature_importance, so less than n_top_columns features can be displayed.
+    min_feature_importance : float , default: 0.05
+        Minimum feature importance to show in the check display. Feature importance
+        sums to 1, so for example the default value of 0.05 means that all features with importance contributing
+        less than 5% to the predictive power of the Domain Classifier won't be displayed. This limit is used
+        together (AND) with n_top_columns, so features more important than min_feature_importance can be
+        hidden.
+    max_num_categories : int , default: 10
+        Only for categorical columns. Max number of categories to display in distributio plots. If there are
+        more, they are binned into an "Other" category in the display. If max_num_categories=None, there is
+        no limit.
+    sample_size : int , default: 10_000
+        Max number of rows to use from each dataset for the training and evaluation of the domain classifier.
+    random_state : int , default: 42
+        Random seed for the check.
+    test_size : float , default: 0.3
+        Fraction of the combined datasets to use for the evaluation of the domain classifier.
 
     """
 
@@ -80,7 +83,6 @@ class WholeDatasetDrift(TrainTestBaseCheck):
     ):
         super().__init__()
 
-        self._cat_features = None
         self.n_top_columns = n_top_columns
         self.min_feature_importance = min_feature_importance
         self.max_num_categories = max_num_categories
@@ -88,36 +90,31 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         self.random_state = random_state
         self.test_size = test_size
 
-    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
 
-        Args:
-            train_dataset (Dataset): The training dataset object.
-            test_dataset (Dataset): The test dataset object.
-            model: not used in this check.
-
-        Returns:
-            CheckResult:
-                value: dictionary containing the domain classifier auc and a dict of column name to its feature
-                       importance as calculated for the domain classifier model.
-                display: distribution graph for each column for the columns most explaining the dataset difference,
-                         comparing the train and test distributions.
-
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset or DataFrame instance
+        Returns
+        -------
+        CheckResult
+            value: dictionary containing the domain classifier auc and a dict of column name to its feature
+            importance as calculated for the domain classifier model.
+            display: distribution graph for each column for the columns most explaining the dataset difference,
+            comparing the train and test distributions.
+        Raises
+        ------
+        DeepchecksValueError
+            If the object is not a Dataset or DataFrame instance
         """
-        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset, cast=True)
-        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset, cast=True)
-
-        features = self._datasets_share_features([train_dataset, test_dataset])
-        cat_features = self._datasets_share_categorical_features([train_dataset, test_dataset])
-        self._cat_features = cat_features
+        train_dataset = context.train
+        test_dataset = context.test
+        features = context.features
+        cat_features = context.cat_features
 
         domain_classifier = self._generate_model(list(set(features) - set(cat_features)), cat_features)
 
         sample_size = min(self.sample_size, train_dataset.n_samples, test_dataset.n_samples)
-        train_sample_df = train_dataset.features_columns.sample(sample_size, random_state=self.random_state)
-        test_sample_df = test_dataset.features_columns.sample(sample_size, random_state=self.random_state)
+        train_sample_df = train_dataset.data[features].sample(sample_size, random_state=self.random_state)
+        test_sample_df = test_dataset.data[features].sample(sample_size, random_state=self.random_state)
 
         # create new dataset, with label denoting whether sample belongs to test dataset
         domain_class_df = pd.concat([train_sample_df, test_sample_df])
@@ -140,8 +137,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
             domain_classifier,
             domain_test_dataset,
             force_permutation=True,
-            permutation_kwargs={'n_repeats': 10, 'random_state': self.random_state},
-            return_calculation_type=True
+            permutation_kwargs={'n_repeats': 10, 'random_state': self.random_state}
         )
 
         fi = fi.sort_values(ascending=False) if fi is not None else None
@@ -174,7 +170,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
             displays = [headnote, self._build_drift_plot(score),
                         '<h3>Main features contributing to drift</h3>',
                         N_TOP_MESSAGE % self.n_top_columns]
-            displays += [self._display_dist(train_sample_df[feature], test_sample_df[feature], top_fi)
+            displays += [self._display_dist(train_sample_df[feature], test_sample_df[feature], top_fi, cat_features)
                          for feature in top_fi.index]
         else:
             displays = None
@@ -183,7 +179,13 @@ class WholeDatasetDrift(TrainTestBaseCheck):
 
     @staticmethod
     def auc_to_drift_score(auc: float) -> float:
-        """Calculate the drift score, which is 2*auc - 1, with auc being the auc of the Domain Classifier."""
+        """Calculate the drift score, which is 2*auc - 1, with auc being the auc of the Domain Classifier.
+
+        Parameters
+        ----------
+        auc : float
+            auc of the Domain Classifier
+        """
         return max(2 * auc - 1, 0)
 
     def _build_drift_plot(self, score):
@@ -202,7 +204,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         drift_plot.add_traces(bar_traces)
         return drift_plot
 
-    def _display_dist(self, train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Series):
+    def _display_dist(self, train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Series, cat_features):
         """Display a distribution comparison plot for the given columns."""
         column_name = train_column.name
 
@@ -210,7 +212,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         traces, xaxis_layout, yaxis_layout = \
             feature_distribution_traces(train_column.dropna(),
                                         test_column.dropna(),
-                                        is_categorical=column_name in self._cat_features,
+                                        is_categorical=column_name in cat_features,
                                         max_num_categories=self.max_num_categories)
 
         figure = go.Figure(layout=go.Layout(
@@ -258,8 +260,10 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         than the specified value. This value is used as it scales the AUC value to the range [0, 1], where 0 indicates
         a random model (and no drift) and 1 indicates a perfect model (and completely distinguishable datasets).
 
-        Args:
-            max_drift_value (float): Maximal drift value allowed (value 0 and above)
+        Parameters
+        ----------
+        max_drift_value : float , default: 0.25
+            Maximal drift value allowed (value 0 and above)
         """
 
         def condition(result: dict):

@@ -14,11 +14,11 @@ from typing import Union, List
 import pandas as pd
 from pandas.api.types import infer_dtype
 
-from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
+from deepchecks.base.check_context import CheckRunContext
+from deepchecks import CheckResult, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, column_importance_sorter_df
+from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import string_baseform, format_percent
-from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
 
 
@@ -28,15 +28,16 @@ __all__ = ['SpecialCharacters']
 class SpecialCharacters(SingleDatasetBaseCheck):
     """Search in column[s] for values that contains only special characters.
 
-    Args:
-        columns (Union[Hashable, List[Hashable]]):
-            Columns to check, if none are given checks all columns except ignored ones.
-        ignore_columns (Union[Hashable, List[Hashable]]):
-            Columns to ignore, if none given checks based on columns variable.
-        n_most_common (int):
-            Number of most common special-only samples to show in results
-        n_top_columns (int): (optional - used only if model was specified)
-          amount of columns to show ordered by feature importance (date, index, label are first)
+    Parameters
+    ----------
+    columns : Union[Hashable, List[Hashable]] , default: None
+        Columns to check, if none are given checks all columns except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
+        Columns to ignore, if none given checks based on columns variable.
+    n_most_common : int , default: 2
+        Number of most common special-only samples to show in results
+    n_top_columns : int , optional
+        amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
     def __init__(
@@ -52,38 +53,27 @@ class SpecialCharacters(SingleDatasetBaseCheck):
         self.n_most_common = n_most_common
         self.n_top_columns = n_top_columns
 
-    def run(self, dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
-        Args:
-          dataset(Dataset):
-
-        Returns:
-          (CheckResult): DataFrame with ('invalids') for any column with special_characters chars.
+        Returns
+        -------
+        CheckResult
+            DataFrame with ('invalids') for any column with special_characters chars.
         """
-        feature_importances = calculate_feature_importance_or_none(model, dataset)
-        return self._special_characters(dataset, feature_importances)
+        if dataset_type == 'train':
+            dataset = context.train
+        else:
+            dataset = context.test
 
-    def _special_characters(self, dataset: Union[pd.DataFrame, Dataset],
-                            feature_importances: pd.Series = None) -> CheckResult:
-        """Run check.
-
-        Args:
-            dataset (Dataset): a Dataset or DataFrame object.
-        Returns:
-            (CheckResult): DataFrame with columns ('Column Name', '% Invalid Samples', 'Most Common Invalids Samples')
-              for any column that contains invalid chars.
-        """
-        # Validate parameters
-        dataset: pd.DataFrame = ensure_dataframe_type(dataset)
-        dataset = select_from_dataframe(dataset, self.columns, self.ignore_columns)
+        df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
 
         # Result value: { Column Name: {invalid: pct}}
         display_array = []
         result = {}
 
-        for column_name in dataset.columns:
-            column_data = dataset[column_name]
+        for column_name in df.columns:
+            column_data = df[column_name]
             # Get dict of samples to count
             special_samples = _get_special_samples(column_data)
             if special_samples:
@@ -97,7 +87,7 @@ class SpecialCharacters(SingleDatasetBaseCheck):
         df_graph = pd.DataFrame(display_array,
                                 columns=['Column Name', '% Special-Only Samples', 'Most Common Special-Only Samples'])
         df_graph = df_graph.set_index(['Column Name'])
-        df_graph = column_importance_sorter_df(df_graph, dataset, feature_importances,
+        df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
                                                self.n_top_columns, col='Column Name')
         display = [N_TOP_MESSAGE % self.n_top_columns, df_graph] if len(df_graph) > 0 else None
 
@@ -106,8 +96,10 @@ class SpecialCharacters(SingleDatasetBaseCheck):
     def add_condition_ratio_of_special_characters_not_grater_than(self, max_ratio: float = 0.001):
         """Add condition - ratio of entirely special character in column.
 
-        Args:
-            max_ratio(float): Maximum ratio allowed.
+        Parameters
+        ----------
+        max_ratio : float , default: 0.001
+            Maximum ratio allowed.
         """
         name = f'Ratio of entirely special character samples not greater '\
                f'than {format_percent(max_ratio)}'

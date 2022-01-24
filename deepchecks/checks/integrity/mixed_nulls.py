@@ -15,12 +15,13 @@ from typing import Union, Dict, List, Iterable
 import numpy as np
 import pandas as pd
 
-from deepchecks import Dataset, CheckResult
+from deepchecks.base.check_context import CheckRunContext
+from deepchecks import CheckResult
 from deepchecks.base.check import SingleDatasetBaseCheck, ConditionResult
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, column_importance_sorter_df
+from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import string_baseform, format_percent
-from deepchecks.utils.validation import ensure_dataframe_type
+
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 
@@ -34,17 +35,18 @@ DEFAULT_NULL_VALUES = {'none', 'null', 'nan', 'na', '', '\x00', '\x00\x00'}
 class MixedNulls(SingleDatasetBaseCheck):
     """Search for various types of null values in a string column(s), including string representations of null.
 
-    Args:
-        null_string_list (List[str]):
-            List of strings to be considered alternative null representations
-        check_nan(bool):
-            Whether to add to null list to check also NaN values
-        columns (Union[Hashable, List[Hashable]]):
-            Columns to check, if none are given checks all columns except ignored ones.
-        ignore_columns (Union[Hashable, List[Hashable]]):
-            Columns to ignore, if none given checks based on columns variable
-        n_top_columns (int): (optional - used only if model was specified)
-          amount of columns to show ordered by feature importance (date, index, label are first)
+    Parameters
+    ----------
+    null_string_list : Iterable[str] , default: None
+        List of strings to be considered alternative null representations
+    check_nan : bool , default: True
+        Whether to add to null list to check also NaN values
+    columns : Union[Hashable, List[Hashable]] , default: None
+        Columns to check, if none are given checks all columns except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
+        Columns to ignore, if none given checks based on columns variable
+    n_top_columns : int , optional
+        amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
     def __init__(
@@ -62,68 +64,30 @@ class MixedNulls(SingleDatasetBaseCheck):
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
 
-    def run(self, dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
-        Args:
-            dataset (Dataset):
-
-        Returns:
-            (CheckResult): DataFrame with columns ('Column Name', 'Value', 'Count', 'Percentage') for any column which
+        Returns
+        -------
+        CheckResult
+            DataFrame with columns ('Column Name', 'Value', 'Count', 'Percentage') for any column which
             have more than 1 null values.
         """
-        feature_importances = calculate_feature_importance_or_none(model, dataset)
-        return self._mixed_nulls(dataset, feature_importances)
-
-    def _validate_null_string_list(self, nsl, check_nan: bool) -> set:
-        """Validate the object given is a list of strings. If null is given return default list of null values.
-
-        Args:
-            nsl: Object to validate
-            check_nan (bool): Whether to add to null list to check also NaN values
-
-        Returns:
-            (set): Returns list of null values as set object
-        """
-        result: set
-        if nsl:
-            if not isinstance(nsl, Iterable):
-                raise DeepchecksValueError('null_string_list must be an iterable')
-            if len(nsl) == 0:
-                raise DeepchecksValueError("null_string_list can't be empty list")
-            if any((not isinstance(string, str) for string in nsl)):
-                raise DeepchecksValueError("null_string_list must contain only items of type 'str'")
-            result = set(nsl)
+        if dataset_type == 'train':
+            dataset = context.train
         else:
-            # Default values
-            result = set(DEFAULT_NULL_VALUES)
-        if check_nan is None or check_nan is True:
-            result.add(np.NaN)
+            dataset = context.test
+        df = dataset.data
 
-        return result
-
-    def _mixed_nulls(self, dataset: Union[pd.DataFrame, Dataset], feature_importances: pd.Series = None) -> CheckResult:
-        """Run check logic.
-
-        Args:
-            dataset (DataFrame): dataset to check
-
-        Returns
-            (CheckResult): DataFrame with columns ('Column Name', 'Value', 'Count', 'Fraction of data') for any column
-            which have more than 1 null values.
-        """
-        # Validate parameters
-        original_dataset = dataset
-        dataset = ensure_dataframe_type(dataset)
-        dataset = select_from_dataframe(dataset, self.columns, self.ignore_columns)
+        df = select_from_dataframe(df, self.columns, self.ignore_columns)
         null_string_list: set = self._validate_null_string_list(self.null_string_list, self.check_nan)
 
         # Result value
         display_array = []
         result_dict = defaultdict(dict)
 
-        for column_name in list(dataset.columns):
-            column_data = dataset[column_name]
+        for column_name in list(df.columns):
+            column_data = df[column_name]
             # TODO: Modify this once Dataset type casting mechanism is done
             if column_data.dtype != pd.StringDtype:
                 continue
@@ -144,7 +108,7 @@ class MixedNulls(SingleDatasetBaseCheck):
         if display_array:
             df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percent of data'])
             df_graph = df_graph.set_index(['Column Name', 'Value'])
-            df_graph = column_importance_sorter_df(df_graph, original_dataset, feature_importances,
+            df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
                                                    self.n_top_columns, col='Column Name')
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
         else:
@@ -152,11 +116,44 @@ class MixedNulls(SingleDatasetBaseCheck):
 
         return CheckResult(result_dict, display=display)
 
+    def _validate_null_string_list(self, nsl, check_nan: bool) -> set:
+        """Validate the object given is a list of strings. If null is given return default list of null values.
+
+        Parameters
+        ----------
+        nsl
+            Object to validate
+        check_nan : bool
+            Whether to add to null list to check also NaN values
+        Returns
+        -------
+        set
+            Returns list of null values as set object
+        """
+        result: set
+        if nsl:
+            if not isinstance(nsl, Iterable):
+                raise DeepchecksValueError('null_string_list must be an iterable')
+            if len(nsl) == 0:
+                raise DeepchecksValueError("null_string_list can't be empty list")
+            if any((not isinstance(string, str) for string in nsl)):
+                raise DeepchecksValueError("null_string_list must contain only items of type 'str'")
+            result = set(nsl)
+        else:
+            # Default values
+            result = set(DEFAULT_NULL_VALUES)
+        if check_nan is None or check_nan is True:
+            result.add(np.NaN)
+
+        return result
+
     def add_condition_different_nulls_not_more_than(self, max_allowed_null_types: int = 1):
         """Add condition - require column not to have more than given number of different null values.
 
-        Args:
-            max_allowed_null_types (int): Number of different null value types which is the maximum allowed.
+        Parameters
+        ----------
+        max_allowed_null_types : int , default: 1
+            Number of different null value types which is the maximum allowed.
         """
         def condition(result: Dict) -> ConditionResult:
             not_passing_columns = {}
