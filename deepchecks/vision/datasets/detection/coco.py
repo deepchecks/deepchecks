@@ -71,8 +71,9 @@ class CocoDataset(VisionDataset):
 
 
 def get_coco_dataloader(batch_size: int = 64, num_workers: int = 0, shuffle: bool = False) -> DataLoader:
-    data_url = 'https://ultralytics.com/assets/coco128.zip'
-    download_and_extract_archive(data_url, './', './coco128')
+    if not os.path.exists(os.path.join(os.getcwd(), 'coco128', 'coco128')):
+        data_url = 'https://ultralytics.com/assets/coco128.zip'
+        download_and_extract_archive(data_url, './', './coco128')
     dataset = CocoDataset(os.path.join('coco128', 'coco128'), 'train2017')
 
     def batch_collate(batch):

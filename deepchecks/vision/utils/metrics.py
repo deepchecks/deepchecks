@@ -96,7 +96,7 @@ def get_scorers_list(
     return scorers
 
 
-def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn.Module):
+def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn.Module, prediction_extract = None):
 
     def process_function(_, batch):
         X = batch[0]
@@ -106,11 +106,16 @@ def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn
 
         return predictions, Y
 
-    engine = Engine(process_function)
+    if prediction_extract:
+        preprocess_func = prediction_extract
+    else:
+        preprocess_func = process_function
+
+    engine = Engine(preprocess_func)
     for metric in metrics:
         metric.attach(engine, type(metric).__name__)
 
     state = engine.run(dataset.get_data_loader())
 
-    results = {k: v.tolist() for k, v in state.metrics.items()}
-    return results
+    #results = {k: v.tolist() for k, v in state.metrics.items()}
+    return state.metrics
