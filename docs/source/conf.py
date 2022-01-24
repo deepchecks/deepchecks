@@ -61,7 +61,7 @@ extensions = [
     'sphinx_gallery.load_style',
     #
 
-    'sphinx.ext.napoleon',
+    'numpydoc',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.linkcode',
@@ -165,19 +165,6 @@ autodoc_typehints = 'signature'
 #
 autodoc_typehints_format = 'short'
 
-
-# -- Napoleon settings --------------------------------------------------
-
-napoleon_google_docstring = True
-napoleon_numpy_docstring = True
-napoleon_include_private_with_doc = False
-napoleon_include_special_with_doc = True
-napoleon_use_admonition_for_examples = False
-napoleon_use_admonition_for_notes = False
-napoleon_use_admonition_for_references = False
-napoleon_use_ivar = False
-napoleon_use_param = True
-napoleon_use_rtype = True
 
 # True to convert the type definitions in the docstrings as references. Defaults to False.
 #
