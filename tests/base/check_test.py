@@ -24,7 +24,7 @@ class DummyCheck(BaseCheck):
         self.param1 = param1
         self.param2 = param2
 
-    def run(self):
+    def run_logic(self, context):
         pass
 
 

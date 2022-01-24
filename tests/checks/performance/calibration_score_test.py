@@ -10,8 +10,11 @@
 #
 """Contains unit tests for the calibration_metric check."""
 from hamcrest import assert_that, calling, raises, has_entries, close_to
+
+from deepchecks import Dataset
 from deepchecks.checks.performance import CalibrationScore
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError, ModelValidationError
+from deepchecks.errors import DeepchecksValueError, ModelValidationError, \
+    DeepchecksNotSupportedError
 
 
 def test_dataset_wrong_input():
@@ -21,15 +24,18 @@ def test_dataset_wrong_input():
         calling(CalibrationScore().run).with_args(bad_dataset, None),
         raises(
             DeepchecksValueError,
-            'non-empty Dataset instance was expected, instead got str')
+            'non-empty instance of Dataset or DataFrame was expected, instead got str')
     )
 
 
-def test_dataset_no_label(iris_dataset, iris_adaboost):
+def test_dataset_no_label(iris, iris_adaboost):
+    # Arrange
+    iris = iris.drop('target', axis=1)
+    ds = Dataset(iris)
     # Assert
     assert_that(
-        calling(CalibrationScore().run).with_args(iris_dataset, iris_adaboost),
-        raises(DatasetValidationError, 'Check is irrelevant for Datasets without label')
+        calling(CalibrationScore().run).with_args(ds, iris_adaboost),
+        raises(DeepchecksNotSupportedError, 'Check is irrelevant for Datasets without label')
     )
 
 
@@ -59,6 +65,7 @@ def test_model_info_object(iris_labeled_dataset, iris_adaboost):
         2: close_to(0.026, 0.001)
     }))
 
+
 def test_binary_model_info_object(iris_dataset_single_class_labeled, iris_random_forest_single_class):
     # Arrange
     check = CalibrationScore()
@@ -70,6 +77,7 @@ def test_binary_model_info_object(iris_dataset_single_class_labeled, iris_random
     assert_that(result, has_entries({
         0: close_to(0.0002, 0.0005)
     }))
+
 
 def test_binary_string_model_info_object(iris_binary_string_split_dataset_and_model):
     # Arrange

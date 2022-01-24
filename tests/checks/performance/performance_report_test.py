@@ -19,7 +19,8 @@ from sklearn.model_selection import train_test_split
 
 from deepchecks import ConditionResult, Dataset
 from deepchecks.checks.performance import PerformanceReport
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError, ModelValidationError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError, ModelValidationError, \
+    DeepchecksNotSupportedError
 
 from tests.checks.utils import equal_condition_result
 from deepchecks.utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, DEFAULT_REGRESSION_SCORERS
@@ -30,7 +31,7 @@ def test_dataset_wrong_input():
     # Act & Assert
     assert_that(
         calling(PerformanceReport().run).with_args(bad_dataset, None, None),
-        raises(DeepchecksValueError, 'non-empty Dataset instance was expected, instead got str')
+        raises(DeepchecksValueError, 'non-empty instance of Dataset or DataFrame was expected, instead got str')
     )
 
 
@@ -49,7 +50,7 @@ def test_dataset_no_label(iris_dataset):
     # Assert
     assert_that(
         calling(PerformanceReport().run).with_args(iris_dataset, iris_dataset, None),
-        raises(DatasetValidationError, 'Check requires Datasets to have and to share the same label')
+        raises(DeepchecksNotSupportedError, 'Check is irrelevant for Datasets without label')
     )
 
 
@@ -58,7 +59,7 @@ def test_dataset_no_shared_label(iris_labeled_dataset):
     iris_dataset_2 = Dataset(iris_labeled_dataset.data, label='sepal length (cm)')
     assert_that(
         calling(PerformanceReport().run).with_args(iris_labeled_dataset, iris_dataset_2, None),
-        raises(DatasetValidationError, 'Check requires Datasets to have and to share the same label')
+        raises(DatasetValidationError, 'train and test requires to have and to share the same label')
     )
 
 
@@ -88,7 +89,7 @@ def test_classification_binary(iris_dataset_single_class_labeled):
     train_ds = iris_dataset_single_class_labeled.copy(train)
     test_ds = iris_dataset_single_class_labeled.copy(test)
     clf = RandomForestClassifier(random_state=0)
-    clf.fit(train_ds.features_columns, train_ds.label_col)
+    clf.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
     check = PerformanceReport()
 
     # Act X
@@ -105,7 +106,8 @@ def test_classification_string_labels(iris_labeled_dataset):
                                    label=iris_labeled_dataset.label_name)
 
     iris_adaboost = AdaBoostClassifier(random_state=0)
-    iris_adaboost.fit(iris_labeled_dataset.features_columns, iris_labeled_dataset.label_col)
+    iris_adaboost.fit(iris_labeled_dataset.data[iris_labeled_dataset.features],
+                      iris_labeled_dataset.data[iris_labeled_dataset.label_name])
     # Act X
     result = check.run(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost).value
     # Assert

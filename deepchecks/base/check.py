@@ -17,7 +17,7 @@ import io
 import traceback
 from collections import OrderedDict
 from functools import wraps
-from typing import Any, Callable, List, Sequence, Union, Dict, Mapping, cast
+from typing import Any, Callable, List, Union, Dict, Mapping
 
 import jsonpickle
 from matplotlib import pyplot as plt
@@ -31,20 +31,13 @@ from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 import plotly
 
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks.base.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.base.dataset import Dataset
 from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table
-from deepchecks.utils.typing import Hashable, BasicModel
 from deepchecks.utils.strings import get_docs_summary, split_camel_case
 from deepchecks.utils.ipython import is_ipython_display
-from deepchecks.utils.metrics import task_type_check, ModelType
-from deepchecks.utils.validation import validate_model
-from deepchecks.errors import (
-    DeepchecksValueError,
-    DeepchecksNotSupportedError,
-    DatasetValidationError,
-    ModelValidationError
-)
+from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 
 
 __all__ = [
@@ -54,6 +47,10 @@ __all__ = [
     'TrainTestBaseCheck',
     'ModelOnlyBaseCheck',
     'CheckFailure',
+    'ConditionResult',
+    'ModelComparisonContext',
+    'ModelComparisonBaseCheck',
+    'ConditionCategory'
 ]
 
 
@@ -81,9 +78,14 @@ class CheckResult:
     The class stores the results and display of the check. Evaluating the result in an IPython console / notebook
     will show the result display output.
 
-    Attributes:
-        value (Any): Value calculated by check. Can be used to decide if decidable check passed.
-        display (Dict): Dictionary with formatters for display. possible formatters are: 'text/html', 'image/png'
+    Parameters
+    ----------
+    value : Any
+        Value calculated by check. Can be used to decide if decidable check passed.
+    display : List[Union[Callable, str, pd.DataFrame, Styler]] , default: None
+        Dictionary with formatters for display. possible formatters are: 'text/html', 'image/png'
+    header : str , default: None
+        Header to be displayed in python notebook.
     """
 
     value: Any
@@ -93,15 +95,6 @@ class CheckResult:
     check: 'BaseCheck'
 
     def __init__(self, value, header: str = None, display: Any = None):
-        """Init check result.
-
-        Args:
-            value (Any): Value calculated by check. Can be used to decide if decidable check passed.
-            header (str): Header to be displayed in python notebook.
-            check (Class): The check class which created this result. Used to extract the summary to be
-                displayed in notebook.
-            display (List): Objects to be displayed (dataframe or function or html)
-        """
         self.value = value
         self.header = header
         self.conditions_results = []
@@ -119,14 +112,17 @@ class CheckResult:
                       show_additional_outputs=True):  # pragma: no cover
         """Display the check result or return the display as widget.
 
-        Args:
-            unique_id (str):
-                The unique id given by the suite that displays the check.
-            as_widget (bool):
-                Boolean that controls if to display the check regulary or if to return a widget.
-            show_additional_outputs (bool):
-                Boolean that controls if to show additional outputs.
-        Returns:
+        Parameters
+        ----------
+        unique_id : str
+            The unique id given by the suite that displays the check.
+        as_widget : bool
+            Boolean that controls if to display the check regulary or if to return a widget.
+        show_additional_outputs : bool
+            Boolean that controls if to show additional outputs.
+        Returns
+        -------
+        Widget
             Widget representation of the display if as_widget is True.
         """
         if as_widget:
@@ -215,11 +211,14 @@ class CheckResult:
     def to_json(self, with_display: bool = True):
         """Return check result as json.
 
-        Args:
-            with_display (bool): controls if to serialize display or not
+        Parameters
+        ----------
+        with_display : bool
+            controls if to serialize display or not
 
-        Returns:
-            json in the format:
+        Returns
+        --------
+        str
             {'name': .., 'params': .., 'header': ..,
              'summary': .., 'conditions_table': .., 'value', 'display': ..}
         """
@@ -308,13 +307,16 @@ class CheckResult:
 
         This value is primarly used to determine suite output order.
         The logic is next:
-            - if at least one condition did not pass and is of category 'FAIL', return 1;
-            - if at least one condition did not pass and is of category 'WARN', return 2;
-            - if check result do not have assigned conditions, return 3
-            - if all conditions passed, return 4;
 
-        Returns:
-            int: priority of the cehck result.
+        * if at least one condition did not pass and is of category 'FAIL', return 1.
+        * if at least one condition did not pass and is of category 'WARN', return 2.
+        * if check result do not have assigned conditions, return 3.
+        * if all conditions passed, return 4.
+
+        Returns
+        -------
+        int
+            priority of the check result.
         """
         if not self.have_conditions:
             return 3
@@ -360,8 +362,8 @@ class BaseCheck(metaclass=abc.ABCMeta):
     def __init__(self):
         self._conditions = OrderedDict()
         self._conditions_index = 0
-        # Replace the run function with wrapped run function
-        setattr(self, 'run', wrap_run(getattr(self, 'run'), self))
+        # Replace the run_logic function with wrapped run function
+        setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
 
     def conditions_decision(self, result: CheckResult) -> List[ConditionResult]:
         """Run conditions on given result."""
@@ -384,11 +386,15 @@ class BaseCheck(metaclass=abc.ABCMeta):
     def add_condition(self, name: str, condition_func: Callable[[Any], Union[ConditionResult, bool]], **params):
         """Add new condition function to the check.
 
-        Args:
-            name (str): Name of the condition. should explain the condition action and parameters
-            condition_func (Callable[[Any], Union[List[ConditionResult], bool]]): Function which gets the value of the
-                check and returns object of List[ConditionResult] or boolean.
-            params: Additional parameters to pass when calling the condition function.
+        Parameters
+        ----------
+        name : str
+            Name of the condition. should explain the condition action and parameters
+        condition_func : Callable[[Any], Union[List[ConditionResult], bool]]
+            Function which gets the value of the check and returns object of List[ConditionResult] or boolean.
+        params : dict
+            Additional parameters to pass when calling the condition function.
+
         """
         cond = Condition(name, condition_func, params)
         self._conditions[self._conditions_index] = cond
@@ -398,8 +404,12 @@ class BaseCheck(metaclass=abc.ABCMeta):
     def __repr__(self, tabs=0, prefix=''):
         """Representation of check as string.
 
-        Args:
-            tabs (int): number of tabs to shift by the output
+        Parameters
+        ----------
+        tabs : int , default: 0
+            number of tabs to shift by the output
+        prefix
+
         """
         tab_chr = '\t'
         params = self.params()
@@ -432,8 +442,11 @@ class BaseCheck(metaclass=abc.ABCMeta):
     def remove_condition(self, index: int):
         """Remove given condition by index.
 
-        Args:
-            index (int): index of condtion to remove
+        Parameters
+        ----------
+        index : int
+            index of condtion to remove
+
         """
         if index not in self._conditions:
             raise DeepchecksValueError(f'Index {index} of conditions does not exists')
@@ -444,164 +457,19 @@ class BaseCheck(metaclass=abc.ABCMeta):
         """Name of class in split camel case."""
         return split_camel_case(cls.__name__)
 
-    # NOTE: next set of private functions exists to unify error messages across all checks
-
-    @classmethod
-    def _datasets_share_features(cls, datasets: List[Dataset]) -> List[Hashable]:
-        """Verify that all provided datasets share same features, otherwise raise an exception.
-
-        Args:
-            datasets (List[Dataset]): list of datasets to validate
-
-        Returns:
-            List[Hashable]: list of features
-
-        Raises:
-            DatasetValidationError: if datasets do not share same features;
-        """
-        if Dataset.datasets_share_features(datasets) is False:
-            raise DatasetValidationError('Check requires Datasets to share the same features')
-        return datasets[0].features
-
-    @staticmethod
-    def _datasets_share_categorical_features(datasets: List['Dataset']) -> List[Hashable]:
-        """Verify that all provided datasets share same categorical features, otherwise raise an exception.
-
-        Args:
-            datasets (List[Dataset]): list of datasets to validate
-
-        Returns:
-            List[Hashable]: list of categorical features
-
-        Raises:
-            DatasetValidationError: if datasets do not share same categorical features;
-        """
-        if Dataset.datasets_share_categorical_features(datasets) is False:
-            raise DatasetValidationError(
-                'Check requires datasets to share '
-                'the same categorical features. Possible reason is that some columns were'
-                'inferred incorrectly as categorical features. To fix this, manually edit the '
-                'categorical features using Dataset(cat_features=<list_of_features>'
-            )
-        return datasets[0].cat_features
-
-    @staticmethod
-    def _datasets_share_label(datasets: List['Dataset']) -> Hashable:
-        """Verify that all provided datasets share same label, otherwise raise an exception.
-
-        Args:
-            datasets (List[Dataset]): list of datasets to validate
-
-        Returns:
-            Hashable: name of the label column
-
-        Raises:
-            DatasetValidationError: if datasets do not share same label;
-        """
-        if Dataset.datasets_share_label(datasets) is False:
-            raise DatasetValidationError('Check requires Datasets to have and to share the same label')
-        return cast(Hashable, datasets[0].label_name)
-
-    @staticmethod
-    def _dataset_has_label(dataset: Dataset) -> pd.Series:
-        """Verify that provided dataset has label, otherwise raise an exception.
-
-        Args:
-            datasets (Dataset): dataset to validate
-
-        Returns:
-            pandas.Series: label column
-
-        Raises:
-            DatasetValidationError: if dataset does not have label;
-        """
-        if dataset.label_col is None:
-            raise DatasetValidationError('Check is irrelevant for Datasets without label')
-        return dataset.label_col
-
-    @staticmethod
-    def _dataset_has_features(dataset: Dataset) -> pd.DataFrame:
-        """Verify that provided dataset has features, otherwise raise an exception.
-
-        Args:
-            datasets (Dataset): dataset to validate
-
-        Returns:
-            pandas.DataFrame: features dataframe
-
-        Raises:
-            DatasetValidationError: if dataset does not have features;
-        """
-        if (
-            dataset.features_columns is None
-            or len(dataset.features_columns.columns) == 0
-        ):
-            raise DatasetValidationError('Check is irrelevant for Datasets without features')
-        return dataset.features_columns
-
-    @staticmethod
-    def _dataset_has_date(dataset: Dataset) -> pd.Series:
-        """Verify that provided dataset has date column, otherwise raise an exception.
-
-        Args:
-            datasets (Dataset): dataset to validate
-
-        Returns:
-            pandas.Series: date column
-
-        Raises:
-            DatasetValidationError: if dataset does not have date column;
-        """
-        if dataset.datetime_col is None:
-            raise DatasetValidationError('Check is irrelevant for Datasets without datetime column')
-        return dataset.datetime_col
-
-    @staticmethod
-    def _dataset_has_index(dataset: Dataset) -> pd.Series:
-        """Verify that provided dataset has index, otherwise raise an exception.
-
-        Args:
-            datasets (Dataset): dataset to validate
-
-        Returns:
-            pandas.Series: dataset index column
-
-        Raises:
-            DatasetValidationError: if dataset does not have index;
-        """
-        if dataset.index_col is None:
-            raise DatasetValidationError('Check is irrelevant for Datasets without an index')
-        return dataset.index_col
-
-    @staticmethod
-    def _verify_model_type(
-        model: BasicModel,
-        dataset: 'Dataset',
-        expected_types: Sequence[ModelType]
-    ) -> ModelType:
-        """Verify that provided model is of an expected type, otherwise raise an exception.
-
-        Returns:
-            ModelType: type of the provided model
-
-        Raises:
-            ModelValidationError: if unexpected model type is provided;
-        """
-        task_type = task_type_check(model, dataset)
-        if task_type not in expected_types:
-            raise ModelValidationError(
-                f'Check is relevant for models of type {[e.value.lower() for e in expected_types]}, '
-                f"but received model of type '{task_type.value.lower()}'"  # pylint: disable=inconsistent-quotes
-            )
-        return task_type
-
 
 class SingleDatasetBaseCheck(BaseCheck):
     """Parent class for checks that only use one dataset."""
 
-    @abc.abstractmethod
     def run(self, dataset, model=None) -> CheckResult:
-        """Define run signature."""
+        """Run check."""
+        # By default, we initialize a single dataset as the "train"
+        c = CheckRunContext(dataset, model=model)
+        return self.run_logic(c)
+
+    @abc.abstractmethod
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
+        """Run check."""
         pass
 
 
@@ -611,23 +479,41 @@ class TrainTestBaseCheck(BaseCheck):
     The class checks train dataset and test dataset for model training and test.
     """
 
-    @abc.abstractmethod
     def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
-        """Define run signature."""
+        """Run check."""
+        c = CheckRunContext(train_dataset, test_dataset, model=model)
+        return self.run_logic(c)
+
+    @abc.abstractmethod
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
+        """Run check."""
         pass
 
 
 class ModelOnlyBaseCheck(BaseCheck):
     """Parent class for checks that only use a model and no datasets."""
 
-    @abc.abstractmethod
     def run(self, model) -> CheckResult:
-        """Define run signature."""
+        """Run check."""
+        c = CheckRunContext(model=model)
+        return self.run_logic(c)
+
+    @abc.abstractmethod
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
+        """Run check."""
         pass
 
 
 class CheckFailure:
-    """Class which holds a run exception of a check."""
+    """Class which holds a run exception of a check.
+
+    Parameters
+    ----------
+    check : BaseCheck
+    exception : Exception
+    header_suffix : str , default ``
+
+    """
 
     def __init__(self, check: BaseCheck, exception: Exception, header_suffix: str = ''):
         self.check = check
@@ -637,10 +523,14 @@ class CheckFailure:
     def to_json(self, with_display: bool = True):
         """Return check failure as json.
 
-        Args:
-            with_display (bool): controls if to serialize display or not
+        Parameters
+        ----------
+        with_display : bool
+            controls if to serialize display or not
 
-        Returns:
+        Returns
+        -------
+        dict
             {'name': .., 'params': .., 'header': .., 'display': ..}
         """
         check_name = self.check.name()
@@ -697,37 +587,32 @@ class ModelComparisonContext:
         if len(test_datasets) != len(models):
             raise DeepchecksValueError('number of test_datasets must equal to number of models')
 
-        self.train_datasets = train_datasets
-        self.test_datasets = test_datasets
-        self.model_names = list(models.keys())
-        self.models = list(models.values())
-
         # Additional validations
         self.task_type = None
+        self.contexts = []
         for i in range(len(models)):
-            train = self.train_datasets[i]
-            test = self.test_datasets[i]
-            model = self.models[i]
-            train = Dataset.ensure_not_empty_dataset(train)
-            test = Dataset.ensure_not_empty_dataset(test)
-            BaseCheck._dataset_has_label(train)
-            BaseCheck._dataset_has_features(train)
-            BaseCheck._datasets_share_features([train, test])
-            BaseCheck._datasets_share_label([train, test])
-            validate_model(train, model)
-            curr_task_type = task_type_check(model, train)
+            train = train_datasets[i]
+            test = test_datasets[i]
+            model = list(models.values())[i]
+            name = list(models.keys())[i]
+            context = CheckRunContext(train, test, model, model_name=name)
             if self.task_type is None:
-                self.task_type = curr_task_type
-            elif curr_task_type != self.task_type:
+                self.task_type = context.task_type
+            elif self.task_type != context.task_type:
                 raise DeepchecksNotSupportedError('Got models of different task types')
+            self.contexts.append(context)
 
     def __len__(self):
-        """Return number of models."""
-        return len(self.models)
+        """Return number of contexts."""
+        return len(self.contexts)
 
     def __iter__(self):
         """Return iterator over context objects."""
-        return zip(self.train_datasets, self.test_datasets, self.models, self.model_names)
+        return iter(self.contexts)
+
+    def __getitem__(self, item):
+        """Return given context by index."""
+        return self.contexts[item]
 
 
 class ModelComparisonBaseCheck(BaseCheck):
@@ -742,6 +627,6 @@ class ModelComparisonBaseCheck(BaseCheck):
         return self.run_logic(ModelComparisonContext(train_datasets, test_datasets, models))
 
     @abc.abstractmethod
-    def run_logic(self, context: ModelComparisonContext) -> CheckResult:
+    def run_logic(self, multi_context: ModelComparisonContext) -> CheckResult:
         """Implement here logic of check."""
         pass

@@ -15,7 +15,7 @@ from hamcrest import assert_that, is_in, close_to, calling, raises, has_items
 
 from deepchecks import Dataset
 from deepchecks.checks.methodology.identifier_leakage import IdentifierLeakage
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError, DeepchecksNotSupportedError
 
 from tests.checks.utils import equal_condition_result
 
@@ -52,7 +52,7 @@ def test_dataset_no_label():
     df = Dataset(df)
     assert_that(
         calling(IdentifierLeakage().run).with_args(dataset=df),
-        raises(DatasetValidationError, 'Check is irrelevant for Datasets without label')
+        raises(DeepchecksNotSupportedError, 'Check is irrelevant for Datasets without label')
     )
 
 

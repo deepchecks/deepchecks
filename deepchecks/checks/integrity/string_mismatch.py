@@ -15,17 +15,16 @@ import itertools
 
 import pandas as pd
 
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks import (
     CheckResult,
     SingleDatasetBaseCheck,
-    Dataset,
     ConditionResult,
     ConditionCategory
 )
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, column_importance_sorter_df
+from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.typing import Hashable
-from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.strings import (
     get_base_form_to_variants_dict,
     is_string_column,
@@ -39,13 +38,14 @@ __all__ = ['StringMismatch']
 class StringMismatch(SingleDatasetBaseCheck):
     """Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column.
 
-    Args:
-        columns (Union[Hashable, List[Hashable]]):
-            Columns to check, if none are given checks all columns except ignored ones.
-        ignore_columns (Union[Hashable, List[Hashable]]):
-            Columns to ignore, if none given checks based on columns variable
-        n_top_columns (int): (optional - used only if model was specified)
-          amount of columns to show ordered by feature importance (date, index, label are first)
+    Parameters
+    ----------
+    columns : Union[Hashable, List[Hashable]] , default: None
+        Columns to check, if none are given checks all columns except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
+        Columns to ignore, if none given checks based on columns variable
+    n_top_columns : int , optional
+        amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
     def __init__(
@@ -59,27 +59,20 @@ class StringMismatch(SingleDatasetBaseCheck):
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
 
-    def run(self, dataset, model=None) -> CheckResult:
-        """Run check.
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
+        """Run check."""
+        if dataset_type == 'train':
+            dataset = context.train
+        else:
+            dataset = context.test
 
-        Args:
-            dataset (DataFrame): A dataset or pd.FataFrame object.
-        """
-        feature_importances = calculate_feature_importance_or_none(model, dataset)
-        return self._string_mismatch(dataset, feature_importances)
-
-    def _string_mismatch(self, dataset: Union[pd.DataFrame, Dataset],
-                         feature_importances: pd.Series = None) -> CheckResult:
-        # Validate parameters
-        original_dataset = dataset
-        dataset: pd.DataFrame = ensure_dataframe_type(dataset)
-        dataset = select_from_dataframe(dataset, self.columns, self.ignore_columns)
+        df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
 
         results = []
         result_dict = defaultdict(dict)
 
-        for column_name in dataset.columns:
-            column: pd.Series = dataset[column_name]
+        for column_name in df.columns:
+            column: pd.Series = df[column_name]
             if not is_string_column(column):
                 continue
 
@@ -101,7 +94,7 @@ class StringMismatch(SingleDatasetBaseCheck):
         if results:
             df_graph = pd.DataFrame(results, columns=['Column Name', 'Base form', 'Value', 'Count', '% In data'])
             df_graph = df_graph.set_index(['Column Name', 'Base form'])
-            df_graph = column_importance_sorter_df(df_graph, original_dataset, feature_importances,
+            df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
                                                    self.n_top_columns, col='Column Name')
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
         else:
@@ -112,8 +105,10 @@ class StringMismatch(SingleDatasetBaseCheck):
     def add_condition_not_more_variants_than(self, num_max_variants: int):
         """Add condition - no more than given number of variants are allowed (per string baseform).
 
-        Args:
-            num_max_variants (int): Maximum number of variants allowed.
+        Parameters
+        ----------
+        num_max_variants : int
+            Maximum number of variants allowed.
         """
         name = f'Not more than {num_max_variants} string variants'
         return self.add_condition(name, _condition_variants_number, num_max_variants=num_max_variants)
@@ -126,8 +121,10 @@ class StringMismatch(SingleDatasetBaseCheck):
     def add_condition_ratio_variants_not_greater_than(self, max_ratio: float = 0.01):
         """Add condition - percentage of variants in data is not allowed above given threshold.
 
-        Args:
-            max_ratio (float): Maximum percent of variants allowed in data.
+        Parameters
+        ----------
+        max_ratio : float , default: 0.01
+            Maximum percent of variants allowed in data.
         """
         def condition(result, max_ratio: float):
             not_passing_columns = {}

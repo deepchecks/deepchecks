@@ -9,13 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains columns_info check."""
-import typing as t
 import pandas as pd
+
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks import CheckResult
-from deepchecks.base import Dataset
 from deepchecks.base.check import SingleDatasetBaseCheck
-from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, \
-                                      column_importance_sorter_dict
+from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_dict
 
 
 __all__ = ['ColumnsInfo']
@@ -24,36 +23,32 @@ __all__ = ['ColumnsInfo']
 class ColumnsInfo(SingleDatasetBaseCheck):
     """Return the role and logical type of each column.
 
-    Args:
-        n_top_columns (int): (optional - used only if model was specified)
-                             amount of columns to show ordered by feature importance (date, index, label are first)
+    Parameters
+    ----------
+    n_top_columns : int , optional
+        amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
     def __init__(self, n_top_columns: int = 10):
         super().__init__()
         self.n_top_columns = n_top_columns
 
-    def run(
-      self,
-      dataset: t.Union[Dataset, pd.DataFrame],
-      model=None
-    ) -> CheckResult:
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
-        Args:
-          dataset (Union[Dataset, pandas.DataFrame]): any dataset.
-
-        Returns:
-          CheckResult: value is dictionary of a column and its role and logical type.
-          display a table of the dictionary.
+        Returns
+        -------
+        CheckResult
+            value is dictionary of a column and its role and logical type.
+            display a table of the dictionary.
         """
-        dataset = Dataset.ensure_not_empty_dataset(dataset, cast=True)
-        feature_importances = calculate_feature_importance_or_none(model, dataset)
-        return self._columns_info(dataset, feature_importances)
+        if dataset_type == 'train':
+            dataset = context.train
+        else:
+            dataset = context.test
 
-    def _columns_info(self, dataset: Dataset, feature_importances: pd.Series = None):
         value = dataset.columns_info
-        value = column_importance_sorter_dict(value, dataset, feature_importances, self.n_top_columns)
+        value = column_importance_sorter_dict(value, dataset, context.features_importance, self.n_top_columns)
         df = pd.DataFrame.from_dict(value, orient='index', columns=['role'])
         df = df.transpose()
 

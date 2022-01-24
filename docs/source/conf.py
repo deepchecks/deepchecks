@@ -11,6 +11,7 @@ import pathlib
 import functools
 from subprocess import check_output
 
+
 # -- Path setup --------------------------------------------------------------
 
 CURRENT_DIR = pathlib.Path(__file__).parent
@@ -60,7 +61,7 @@ extensions = [
     'sphinx_gallery.load_style',
     #
 
-    'sphinx.ext.napoleon',
+    'numpydoc',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.linkcode',
@@ -73,6 +74,21 @@ extensions = [
 # Add any paths that contain templates here, relative to this directory.
 #
 templates_path = ['_templates']
+
+# A list of warning types to suppress arbitrary warning messages.
+# List of all possible types: https://www.sphinx-doc.org/en/master/usage/configuration.html?highlight=suppress_warnings#confval-suppress_warnings
+#
+suppress_warnings = [
+    # to ignore messages like:
+    # <module-file-path>.py:docstring of <routine-name>:: WARNING: py:class reference target not found: package.foo.Bar
+    #
+    "ref.class",
+    "ref.exc",
+    # to ignore messages like:
+    # WARNING: duplicate label <string>, other instance in <doc-path>.rst
+    #
+    "autosectionlabel.*"
+]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -98,17 +114,27 @@ python_use_unqualified_type_names = True
 
 # -- autosummary settings --------------------------------------------------
 
-# A boolean flag indicating whether to document classes and 
+# Boolean indicating whether to scan all found documents for autosummary directives,
+# and to generate stub pages for each. It is enabled by default.
+#
+# autosummary_generate = False
+
+# If true, autosummary overwrites existing files by generated stub pages.
+# Defaults to true (enabled).
+#
+# autosummary_generate_overwrite = False
+
+# A boolean flag indicating whether to document classes and
 # functions imported in modules. Default is False
 #
 autosummary_imported_members = True
 
-# If False and a module has the __all__ attribute set, autosummary 
+# If False and a module has the __all__ attribute set, autosummary
 # documents every member listed in __all__ and no others. Default is True
 #
 autosummary_ignore_module_all = False
 
-# A dictionary of values to pass into the template engine’s context 
+# A dictionary of values to pass into the template engine’s context
 # for autosummary stubs files.
 #
 autosummary_context = {'to_snake_case': to_snake_case}
@@ -132,19 +158,17 @@ autodoc_class_signature = 'separated'
 #
 autodoc_typehints = 'signature'
 
+# This value controls the format of typehints.
+# The setting takes the following values:
+#   + 'fully-qualified' – Show the module name and its name of typehints
+#   + 'short' – Suppress the leading module names of the typehints (default in version 5.0)
+#
+autodoc_typehints_format = 'short'
 
-# -- Napoleon settings --------------------------------------------------
 
-napoleon_google_docstring = True
-napoleon_numpy_docstring = True
-napoleon_include_private_with_doc = False
-napoleon_include_special_with_doc = True
-napoleon_use_admonition_for_examples = False
-napoleon_use_admonition_for_notes = False
-napoleon_use_admonition_for_references = False
-napoleon_use_ivar = False
-napoleon_use_param = True
-napoleon_use_rtype = True
+# True to convert the type definitions in the docstrings as references. Defaults to False.
+#
+napoleon_preprocess_types = False
 
 
 # -- nbsphinx extension settings --------------------------------------------------

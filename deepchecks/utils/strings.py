@@ -21,6 +21,7 @@ from copy import copy
 import pandas as pd
 from pandas.core.dtypes.common import is_numeric_dtype
 
+import deepchecks
 from deepchecks.utils.typing import Hashable
 
 
@@ -45,11 +46,17 @@ __all__ = [
 def get_ellipsis(long_string: str, max_length: int):
     """Return the long string with ellipsis if above max_length.
 
-    Args:
-        long_string (str): the string
-        max_length (int): the string maximum length
-    Returns:
-        (str): the string with ellipsis.
+    Parameters
+    ----------
+    long_string : str
+        the string
+    max_length : int
+        the string maximum length
+
+    Returns
+    -------
+    str
+        the string with ellipsis.
     """
     if len(long_string) <= max_length:
         return long_string
@@ -59,26 +66,52 @@ def get_ellipsis(long_string: str, max_length: int):
 def get_docs_summary(obj):
     """Return the docs summary if available.
 
-    Args:
-        obj: an object
-    Returns:
-        (str): the object summary.
+    Parameters
+    ----------
+    obj
+        an object
+    Returns
+    -------
+    str
+        the object summary.
     """
+    summary = ''
     if hasattr(obj.__class__, '__doc__'):
         docs = obj.__class__.__doc__ or ''
         # Take first non-whitespace line.
         summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
-        return summary
+
+    summary += _generate_check_docs_link_html(obj)
+    return summary
+
+
+def _generate_check_docs_link_html(check):
+    """Create from check object a link to its example page in the docs."""
+    if isinstance(check, deepchecks.BaseCheck):
+        # Get the python path of the check
+        module_path = check.__class__.__module__
+        # Transform into html path, dropping the first item which is 'deepchecks'
+        check_html_path = '/'.join(module_path.split('.')[1:])
+        # In case couldn't load version direct user to stable
+        version = deepchecks.__version__ or 'stable'
+        html_template = ('https://docs.deepchecks.com/en/{}/examples/{}.html?utm_source=display_output'
+                         '&utm_medium=referral&utm_campaign=check_link')
+        return f' <a href="{html_template.format(version, check_html_path)}" target="_blank">Read More...</a>'
     return ''
 
 
 def get_random_string(n: int = 5):
     """Return random string at the given size.
 
-    Args:
-        n (int): the size of the string to return.
-    Returns:
-        (str): a random string
+    Parameters
+    ----------
+    n : int , default: 5
+        the size of the string to return.
+
+    Returns
+    -------
+    str
+        a random string
     """
     return ''.join(random.choices(ascii_uppercase + digits, k=n))
 
@@ -86,11 +119,14 @@ def get_random_string(n: int = 5):
 def string_baseform(string: str) -> str:
     """Remove special characters from given string, leaving only a-z, A-Z, 0-9 characters.
 
-    Args:
-        string (str): string to remove special characters from
-
-    Returns:
-        (str): string without special characters
+    Parameters
+    ----------
+    string : str
+        string to remove special characters from
+    Returns
+    -------
+    str
+        string without special characters
     """
     if not isinstance(string, str):
         return string
@@ -114,8 +150,10 @@ def is_string_column(column: pd.Series) -> bool:
 def split_camel_case(string: str) -> str:
     """Split string where there are capital letters and enter space instead.
 
-    Args:
-        string (str): string to change
+    Parameters
+    ----------
+    string : str
+        string to change
     """
     return ' '.join(re.findall('[A-Z][^A-Z]*', string))
 
@@ -123,11 +161,15 @@ def split_camel_case(string: str) -> str:
 def to_snake_case(value: str) -> str:
     """Transform camel case indentifier into snake case.
 
-    Args:
-        value (str): string to transform
+    Parameters
+    ----------
+    value : str
+        string to transform
 
-    Returns:
-        str: transformed value
+    Returns
+    -------
+    str
+        transformed value
     """
     return split_camel_case(value).strip().replace(' ', '_')
 
@@ -150,13 +192,18 @@ def str_min_find(s: str, substr_list: t.Iterable[str]) -> t.Tuple[int, str]:
     """
     Find the minimal first occurence of a substring in a string, and return both the index and substring.
 
-    Args:
-        s (str): The string in which we look for substrings
-        substr_list: list of substrings to find
-
-    Returns:
-        min_find (int): index of minimal first occurence of substring
-        min_substr (str): the substring that occures in said index
+    Parameters
+    ----------
+    s : str
+        The string in which we look for substrings
+    substr_list : t.Iterable[str]
+        list of substrings to find
+    Returns
+    -------
+    min_find : int
+        index of minimal first occurence of substring
+    min_substr : str
+        the substring that occures in said index
 
     """
     min_find = -1
@@ -173,12 +220,16 @@ def split_and_keep(s: str, separators: t.Union[str, t.Iterable[str]]) -> t.List[
     """
     Split string by a another substring into a list. Like str.split(), but keeps the separator occurrences in the list.
 
-    Args:
-        s (str): the string to split
-        separators (str): the substring to split by
-
-    Returns:
-        List[str]: list of substrings, including the separator occurrences in string
+    Parameters
+    ----------
+    s : str
+        the string to split
+    separators : t.Union[str, t.Iterable[str]]
+        the substring to split by
+    Returns
+    -------
+    t.List[str]
+        list of substrings, including the separator occurrences in string
 
     """
     if isinstance(separators, str):
@@ -204,13 +255,18 @@ def split_by_order(s: str, separators: t.Iterable[str], keep: bool = True) -> t.
     """
     Split string by a a list of substrings, each used once as a separator.
 
-    Args:
-        s (str): the string to split
-        separators (List[str]): list of substrings to split by
-        keep (bool): whether to keep the separators in list as well. Default is True.
-
-    Returns:
-        List[str]: list of substrings
+    Parameters
+    ----------
+    s : str
+        the string to split
+    separators : t.Iterable[str]
+        list of substrings to split by
+    keep : bool , default: True
+        whether to keep the separators in list as well. Default is True.
+    Returns
+    -------
+    t.List[str]
+        list of substrings
     """
     split_s = []
     separators = list(copy(separators))
@@ -240,13 +296,15 @@ def truncate_zero_percent(ratio: float, floating_point: int):
 def format_percent(ratio: float, floating_point: int = 2, scientific_notation_threshold: int = 4) -> str:
     """Format percent for elegant display.
 
-    Args:
-        ratio (float): Ratio to be displayed as percent
-        floating_point (int): Number of floating points to display
-        scientific_notation_threshold (int): Number of digits after the decimal to consider before
-                                             switching to scientific notation
-
-    Returns:
+    Parameters
+    ----------
+    ratio : float
+        Ratio to be displayed as percent
+    floating_point : int , default: 2
+        Number of floating points to display
+    Returns
+    -------
+    str
         String of ratio as percent
     """
     result: str
@@ -279,11 +337,15 @@ def format_percent(ratio: float, floating_point: int = 2, scientific_notation_th
 def format_number(x, floating_point: int = 2) -> str:
     """Format number for elegant display.
 
-    Args:
-        x (): Number to be displayed
-        floating_point (int): Number of floating points to display
-
-    Returns:
+    Parameters
+    ----------
+    x
+        Number to be displayed
+    floating_point : int , default: 2
+        Number of floating points to display
+    Returns
+    -------
+    str
         String of beautified number
     """
     def add_commas(x):
@@ -310,12 +372,17 @@ def format_number(x, floating_point: int = 2) -> str:
 def format_list(l: t.List[Hashable], max_elements_to_show: int = 10, max_string_length: int = 40) -> str:
     """Format columns properties for display in condition name.
 
-    Args:
-        l (List): list to print.
-        max_elements_to_show (int): max elemnts to print before terminating.
-        max_string_length (int): max string length before terminating.
-
-    Return:
+    Parameters
+    ----------
+    l : List
+        list to print.
+    max_elements_to_show : int , default: 10
+        max elements to print before terminating.
+    max_string_length : int , default: 40
+        max string length before terminating.
+    Returns
+    -------
+    str
         String of beautified list
     """
     string_list = [str(i) for i in l[:max_elements_to_show]]
@@ -336,15 +403,20 @@ def format_datetime(
 ) -> str:
     """Format datetime object or timestamp value.
 
-    Args:
-        value (Union[datetime, int, float]): datetime (timestamp) to format
-        format (str): format to use
-
-    Returns:
-        str: string representation of the provided value
-
-    Raises:
-        ValueError: if unexpected value type was passed to the function
+    Parameters
+    ----------
+    value : Union[datetime, int, float]
+        datetime (timestamp) to format
+    datetime_format : str , default: %Y/%m/%d %H:%M:%S.%f %Z%z
+        format to use
+    Returns
+    -------
+    str
+        string representation of the provided value
+    Raises
+    ------
+    ValueError
+        if unexpected value type was passed to the function
     """
     if isinstance(value, datetime):
         return value.strftime(datetime_format)

@@ -14,7 +14,8 @@ import numpy as np
 import plotly.graph_objects as go
 
 import deepchecks.ppscore as pps
-from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
+from deepchecks.base.check_context import CheckRunContext
+from deepchecks import CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.plot import colors
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.strings import format_number
@@ -43,45 +44,46 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
 
     Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
 
-    Args:
-        ppscore_params (dict): dictionary of additional parameters for the ppscore predictor function
-        n_show_top (int): Number of features to show, sorted by the magnitude of difference in PPS
+    Parameters
+    ----------
+    ppscore_params : dict , default: None
+        dictionary of additional parameters for the ppscore predictor function
+    n_show_top : int , default: 5
+        Number of features to show, sorted by the magnitude of difference in PPS
     """
 
     def __init__(self, ppscore_params=None, n_show_top: int = 5):
         super().__init__()
-        self.ppscore_params = ppscore_params
+        self.ppscore_params = ppscore_params or {}
         self.n_show_top = n_show_top
 
-    def run(self, train_dataset: Dataset, test_dataset: Dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
 
-        Returns:
-            CheckResult:
-                value is a dictionary with PPS difference per feature column.
-                data is a bar graph of the PPS of each feature.
+        Returns
+        -------
+        CheckResult
+            value is a dictionary with PPS difference per feature column.
+            data is a bar graph of the PPS of each feature.
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance with a label
+        Raises
+        ------
+        DeepchecksValueError
+            If the object is not a Dataset instance with a label.
         """
-        return self._single_feature_contribution_train_test(train_dataset=train_dataset,
-                                                            test_dataset=test_dataset)
+        train_dataset = context.train
+        test_dataset = context.test
+        label_name = context.label_name
+        features_names = context.features
 
-    def _single_feature_contribution_train_test(self, train_dataset: Dataset, test_dataset: Dataset):
-        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
-        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
-        label_name = self._datasets_share_label([train_dataset, test_dataset])
-        features_names = self._datasets_share_features([train_dataset, test_dataset])
-
-        ppscore_params = self.ppscore_params or {}
         relevant_columns = features_names + [label_name]
 
-        df_pps_train = pps.predictors(df=train_dataset.data[relevant_columns], y=train_dataset.label_name,
+        df_pps_train = pps.predictors(df=train_dataset.data[relevant_columns], y=label_name,
                                       random_seed=42,
-                                      **ppscore_params)
+                                      **self.ppscore_params)
         df_pps_test = pps.predictors(df=test_dataset.data[relevant_columns],
-                                     y=test_dataset.label_name,
-                                     random_seed=42, **ppscore_params)
+                                     y=label_name,
+                                     random_seed=42, **self.ppscore_params)
 
         s_pps_train = df_pps_train.set_index('x', drop=True)['ppscore']
         s_pps_test = df_pps_test.set_index('x', drop=True)['ppscore']
@@ -153,8 +155,10 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         Add condition that will check that difference between train
         dataset feature pps and test dataset feature pps is not greater than X.
 
-        Args:
-            threshold: train test ps difference upper bound
+        Parameters
+        ----------
+        threshold : float , default: 0.2
+            train test ps difference upper bound.
         """
 
         def condition(value: t.Dict[Hashable, t.Dict[Hashable, float]]) -> ConditionResult:
@@ -178,8 +182,14 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
 
         Add condition that will check that train dataset feature pps is not greater than X.
 
-        Args:
-            threshold: pps upper bound
+        Parameters
+        ----------
+        threshold : float , default: 0.7
+            pps upper bound
+
+        Returns
+        -------
+        FC
         """
 
         def condition(value: t.Dict[Hashable, t.Dict[Hashable, float]]) -> ConditionResult:

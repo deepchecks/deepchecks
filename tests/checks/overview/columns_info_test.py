@@ -45,16 +45,14 @@ def test_columns_info():
     result_ds, result_df = check.run(dataset).value, check.run(df).value
     # Assert
     expected_res_ds = {'index': 'index', 'date': 'date', 'a': 'categorical feature',
-                    'b': 'numerical feature', 'c': 'other', 'label': 'label'}
+                       'b': 'numerical feature', 'c': 'other', 'label': 'label'}
     assert_that(result_ds, equal_to(expected_res_ds))
 
-    # in df all columns are features
-    expected_res_df = expected_res_ds
-    expected_res_df['index'] = 'numerical feature'
-    expected_res_df['date'] = 'numerical feature'
-    expected_res_df['label'] = 'categorical feature'
-    expected_res_df['c'] = 'numerical feature'
+    # in df all columns are other
+    expected_res_df = {'index': 'other', 'date': 'other', 'a': 'other',
+                       'b': 'other', 'c': 'other', 'label': 'other'}
     assert_that(result_df, equal_to(expected_res_df))
+
 
 def test_fi_n_top(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
