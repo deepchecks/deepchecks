@@ -33,7 +33,7 @@ class CocoDataset(VisionDataset):
         super(CocoDataset, self).__init__(root, transforms, transform, target_transform)
         images_dir = Path(root) / 'images' / name
         labels_dir = Path(root) / 'labels' / name
-        self.images = [n for n in images_dir.iterdir()]
+        self.images = [n for n in images_dir.iterdir() if n.name.endswith('.jpg')]
         self.labels = []
         for image in self.images:
             base, _ = os.path.splitext(os.path.basename(image))
