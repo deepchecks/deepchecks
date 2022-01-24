@@ -61,7 +61,7 @@ class CheckRunContext:
         if test and not train:
             raise DatasetValidationError('Can\'t initialize context with only test. if you have single dataset, '
                                          'initialize it as train')
-        if model:
+        if model is not None:
             # Here validate only type of model, later validating it can predict on the data if needed
             model_type_validation(model)
 
