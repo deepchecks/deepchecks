@@ -106,7 +106,6 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
                 self.columns, self.ignore_columns
             ).sample(self.n_samples, random_state=self.random_state)
 
-
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
         for column in features:
