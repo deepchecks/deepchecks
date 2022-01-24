@@ -75,7 +75,6 @@ class PerformanceReport(TrainTestBaseCheck):
     def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
 
-
         Returns:
             CheckResult: value is dictionary in format 'score-name': score-value
         """

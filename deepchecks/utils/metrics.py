@@ -114,6 +114,7 @@ class DeepcheckScorer:
 
     @classmethod
     def filter_nulls(cls, dataset: 'base.Dataset'):
+        """Return data of dataset without null labels."""
         valid_idx = dataset.data[dataset.label_name].notna()
         return dataset.data[valid_idx]
 
@@ -121,6 +122,7 @@ class DeepcheckScorer:
         return self.scorer(model, dataframe[dataset.features], dataframe[dataset.label_name])
 
     def __call__(self, model, dataset: 'base.Dataset'):
+        """Run score with labels null filtering."""
         df = self.filter_nulls(dataset)
         return self._run_score(model, df, dataset)
 
@@ -170,6 +172,7 @@ class DeepcheckScorer:
                                                   f'but got: {type(result).__name__}')
 
     def is_negative_scorer(self):
+        """If initialized as sklearn scorer name, return whether it's negative scorer."""
         return self.sklearn_scorer_name is not None and self.sklearn_scorer_name.startswith('neg_')
 
 
@@ -220,6 +223,7 @@ def task_type_check(
 
 
 def get_default_scorers(model_type, multiclass_avg: bool = True):
+    """Get default scorers based on model type."""
     return_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and multiclass_avg is False
 
     if return_array:

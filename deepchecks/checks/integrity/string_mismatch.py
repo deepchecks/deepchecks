@@ -59,8 +59,7 @@ class StringMismatch(SingleDatasetBaseCheck):
         self.n_top_columns = n_top_columns
 
     def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
-        """Run check.
-        """
+        """Run check."""
         if dataset_type == 'train':
             dataset = context.train
         else:

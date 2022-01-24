@@ -599,6 +599,7 @@ class Dataset:
             return
 
     def index_exist(self) -> bool:
+        """Return whether index defined."""
         return self._set_index_from_dataframe_index or self._index_name
 
     @property
@@ -635,6 +636,7 @@ class Dataset:
             return
 
     def datetime_exist(self):
+        """Return whether datetime defined."""
         return self._set_datetime_from_dataframe_index or self._datetime_name
 
     @property

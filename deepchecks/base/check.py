@@ -446,12 +446,14 @@ class SingleDatasetBaseCheck(BaseCheck):
     """Parent class for checks that only use one dataset."""
 
     def run(self, dataset, model=None) -> CheckResult:
+        """Run check."""
         # By default, we initialize a single dataset as the "train"
         c = CheckRunContext(dataset, model=model)
         return self.run_logic(c)
 
     @abc.abstractmethod
     def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
+        """Run check."""
         pass
 
 
@@ -462,11 +464,13 @@ class TrainTestBaseCheck(BaseCheck):
     """
 
     def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
+        """Run check."""
         c = CheckRunContext(train_dataset, test_dataset, model=model)
         return self.run_logic(c)
 
     @abc.abstractmethod
     def run_logic(self, context: CheckRunContext) -> CheckResult:
+        """Run check."""
         pass
 
 
@@ -474,12 +478,13 @@ class ModelOnlyBaseCheck(BaseCheck):
     """Parent class for checks that only use a model and no datasets."""
 
     def run(self, model) -> CheckResult:
-        """Define run signature."""
+        """Run check."""
         c = CheckRunContext(model=model)
         return self.run_logic(c)
 
     @abc.abstractmethod
     def run_logic(self, context: CheckRunContext) -> CheckResult:
+        """Run check."""
         pass
 
 
@@ -578,6 +583,7 @@ class ModelComparisonContext:
         return iter(self.contexts)
 
     def __getitem__(self, item):
+        """Return given context by index."""
         return self.contexts[item]
 
 

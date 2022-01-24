@@ -108,8 +108,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         self.random_state = random_seed
 
     def run_logic(self, context: CheckRunContext) -> CheckResult:
-        """Run check.
-        """
+        """Run check."""
         train_dataset = context.train
         test_dataset = context.test
         task_type = context.task_type

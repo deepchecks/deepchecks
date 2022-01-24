@@ -81,7 +81,6 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
 
     def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Calculate drift for all columns.
-.
 
         Args:
             context (CheckRunContext)
