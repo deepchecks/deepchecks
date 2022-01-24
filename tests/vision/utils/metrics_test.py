@@ -1,6 +1,7 @@
 from hamcrest import equal_to, assert_that, calling, raises
 
 from deepchecks.errors import DeepchecksValueError
+from deepchecks.vision.datasets.detection.coco import yolo_wrapper
 from deepchecks.vision.utils.metrics import task_type_check, TaskType, get_scorers_list
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.utils.metrics import calculate_metrics
@@ -24,12 +25,6 @@ def test_iou():
     dl = coco.get_coco_dataloader()
     model = coco.get_trained_yolov5_object_detection()
 
-    def process_function(_, batch):
-        X = batch[0]
-        Y = batch[1]
-
-        predictions = model.forward(X).xywh
-
-        return predictions, Y
-    res = calculate_metrics([DetectionPrecisionRecall()], VisionDataset(dl), model, prediction_extract=process_function)
-    res
+    res = calculate_metrics([DetectionPrecisionRecall()], VisionDataset(dl), model,
+                            prediction_extract=yolo_wrapper)
+    print(res)

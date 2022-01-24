@@ -96,7 +96,20 @@ def get_scorers_list(
     return scorers
 
 
-def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn.Module, prediction_extract = None):
+def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn.Module,
+                      prediction_extract: t.Callable = None) -> t.Dict[str, float]:
+    """Calculate a list of ignite metrics on a given model and dataset.
+
+    Args:
+        metrics: (List[Metric]) List of metrics to calculate
+        dataset (VisionDataset): dataset object to calculate metrics on
+        model (nn.Module): Model object
+        prediction_extract: (Callable) Function to convert the model output to the appropriate format for the label type
+
+    Returns:
+        Dict of metrics with the name as key and the value as value
+
+    """
 
     def process_function(_, batch):
         X = batch[0]
@@ -104,14 +117,12 @@ def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn
 
         predictions = model.forward(X)
 
+        if prediction_extract:
+            predictions = prediction_extract(predictions)
+
         return predictions, Y
 
-    if prediction_extract:
-        preprocess_func = prediction_extract
-    else:
-        preprocess_func = process_function
-
-    engine = Engine(preprocess_func)
+    engine = Engine(process_function)
     for metric in metrics:
         metric.attach(engine, type(metric).__name__)
 
