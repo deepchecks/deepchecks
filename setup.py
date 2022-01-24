@@ -74,7 +74,6 @@ Using conda
 
 import setuptools
 from setuptools import setup
-from distutils.util import convert_path
 import os
 
 main_ns = {}
@@ -88,9 +87,6 @@ install_requires = []
 if os.path.isfile(requirementPath):
     with open(requirementPath) as f:
         install_requires = f.read().splitlines()
-
-
-
 
 setup(
     name='deepchecks',
