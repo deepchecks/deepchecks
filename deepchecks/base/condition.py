@@ -71,7 +71,7 @@ class ConditionResult:
         Whether the condition functions passed the given value or not.
     details : str
         What actually happened in the condition.
-    category : ConditionCategory , default : ConditionCategory.FAIL
+    category : ConditionCategory , default: ConditionCategory.FAIL
         The category to which the condition result belongs.
 
     """

@@ -85,9 +85,9 @@ class CheckResult:
     ----------
     value : Any
         Value calculated by check. Can be used to decide if decidable check passed.
-    display : List[Union[Callable, str, pd.DataFrame, Styler]] , default : None
+    display : List[Union[Callable, str, pd.DataFrame, Styler]] , default: None
         Dictionary with formatters for display. possible formatters are: 'text/html', 'image/png'
-    header : str , default : None
+    header : str , default: None
         Header to be displayed in python notebook.
     """
 
@@ -409,7 +409,7 @@ class BaseCheck(metaclass=abc.ABCMeta):
 
         Parameters
         ----------
-        tabs : int , default : 0
+        tabs : int , default: 0
             number of tabs to shift by the output
         prefix
 
