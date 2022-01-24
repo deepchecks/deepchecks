@@ -104,9 +104,12 @@ class DeepcheckScorer:
     rather than the labels and predictions. Scorers are callables with the signature scorer(model, features, y_true).
     Additional data on scorer functions can be found at https://scikit-learn.org/stable/modules/model_evaluation.html.
 
-    Args:
-        scorer (t.Union[str, t.Callable]): sklearn scorer name or callable
-        name (str): scorer name
+    Parameters
+    ----------
+    scorer : t.Union[str, t.Callable]
+        sklearn scorer name or callable
+    name : str
+        scorer name
     """
 
     def __init__(self, scorer: t.Union[str, t.Callable], name: str):
@@ -192,11 +195,16 @@ def task_type_check(
 ) -> ModelType:
     """Check task type (regression, binary, multiclass) according to model object and label column.
 
-    Args:
-        model (BasicModel): Model object - used to check if it has predict_proba()
-        dataset (Dataset): dataset - used to count the number of unique labels
+    Parameters
+    ----------
+    model : BasicModel
+        Model object - used to check if it has predict_proba()
+    dataset : base.Dataset
+        dataset - used to count the number of unique labels
 
-    Returns:
+    Returns
+    -------
+    ModelType
         TaskType enum corresponding to the model and dataset
     """
     validation.model_type_validation(model)
@@ -248,13 +256,19 @@ def get_scorers_list(
     If no alternative_scorers is supplied, then a default list of scorers is used per task type, as it is inferred
     from the dataset and model. If a list is supplied, then the scorer functions are checked and used instead.
 
-    Args:
-        model (BaseEstimator): Model object for which the scores would be calculated
-        dataset (Dataset): Dataset object on which the scores would be calculated
-        alternative_scorers (Dict[str, Callable]): Optional dictionary of sklearn scorers to use instead of default list
-        multiclass_avg
+    Parameters
+    ----------
+    model : BaseEstimator
+        Model object for which the scores would be calculated
+    dataset : base.Dataset
+        Dataset object on which the scores would be calculated
+    alternative_scorers : t.List['DeepcheckScorer'] , default: None
+        Optional dictionary of sklearn scorers to use instead of default list
+    multiclass_avg : bool , default: True
 
-    Returns:
+    Returns
+    -------
+    t.List[DeepcheckScorer]
         Dictionary containing names of scorer functions.
     """
     # Check for model type

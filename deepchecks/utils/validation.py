@@ -32,8 +32,13 @@ supported_models_html = f'<a href="{supported_models_link}" target="_blank">supp
 def model_type_validation(model: t.Any):
     """Receive any object and check if it's an instance of a model we support.
 
-    Raises:
-        DeepchecksValueError: If the object is not of a supported type
+    Parameters
+    ----------
+    model: t.Any
+    Raises
+    ------
+    DeepchecksValueError
+        If the object is not of a supported type
     """
     if not isinstance(model, BasicModel):
         raise errors.ModelValidationError(
@@ -47,12 +52,14 @@ def validate_model(
 ):
     """Check model is able to predict on the dataset.
 
-    Args:
-        data (Dataset, pandas.DataFrame):
-        model (BaseEstimator):
-
-    Raise:
-        DeepchecksValueError: if dataset does not match model
+    Parameters
+    ----------
+    data : t.Union['base.Dataset', pd.DataFrame]
+    model : t.Any
+    Raises
+    ------
+    DeepchecksValueError
+        if dataset does not match model.
     """
     model_type_validation(model)
 
@@ -112,11 +119,13 @@ def ensure_hashable_or_mutable_sequence(
 def ensure_dataframe_type(obj: t.Any) -> pd.DataFrame:
     """Ensure that given object is of type DataFrame or Dataset and return it as DataFrame. else raise error.
 
-    Args:
-        obj: Object to ensure it is DataFrame or Dataset
-
-    Returns:
-        (pd.DataFrame)
+    Parameters
+    ----------
+    obj : t.Any
+        Object to ensure it is DataFrame or Dataset
+    Returns
+    -------
+    pd.DataFrame
     """
     if isinstance(obj, pd.DataFrame):
         return obj
