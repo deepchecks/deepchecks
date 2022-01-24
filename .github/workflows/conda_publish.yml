@@ -11,8 +11,9 @@
 name: publish_conda
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
   conda-publish:
@@ -30,5 +31,3 @@ jobs:
       with:
         subDir: 'conda-recipe'
         AnacondaToken: ${{ secrets.ANACONDA_TOKEN }}
-
-        #de-a1b2e610-0f68-4990-8993-022b9c1797cc
