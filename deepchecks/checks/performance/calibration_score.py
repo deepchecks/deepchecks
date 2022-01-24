@@ -99,7 +99,7 @@ class CalibrationScore(SingleDatasetBaseCheck):
                            'probabilistic predictions of a binary classifier are calibrated. It plots the true ' \
                            'frequency of the positive label against its predicted probability, for binned predictions.'
         brier_text = 'The Brier score metric may be used to assess how well a classifier is calibrated. For more ' \
-                     'info, please visit <a href="https://en.wikipedia.org/wiki/Brier_score" ' \
+                     'info, please visit <a href="https://en.wikipedia.org/wiki/Brier_score">' \
                      'https://en.wikipedia.org/wiki/Brier_score</a>'
         return CheckResult(briers_scores, header='Calibration Metric',
                            display=[calibration_text, fig, brier_text])
