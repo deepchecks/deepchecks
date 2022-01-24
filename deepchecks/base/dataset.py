@@ -843,7 +843,6 @@ class Dataset:
             'datasets' parameter is not a list;
             'datasets' contains less than one dataset;
         """
-        assert isinstance(datasets, tuple), "'datasets' must be a list"
         assert len(datasets) > 1, "'datasets' must contains at least two items"
 
         # TODO: should not we also check features dtypes?
@@ -876,7 +875,6 @@ class Dataset:
             'datasets' parameter is not a list;
             'datasets' contains less than one dataset;
         """
-        assert isinstance(datasets, tuple), "'datasets' must be a list"
         assert len(datasets) > 1, "'datasets' must contains at least two items"
 
         # TODO: should not we also check features dtypes?
@@ -910,7 +908,6 @@ class Dataset:
             'datasets' parameter is not a list;
             'datasets' contains less than one dataset;
         """
-        assert isinstance(datasets, tuple), "'datasets' must be a tuple"
         assert len(datasets) > 1, "'datasets' must contains at least two items"
 
         # TODO: should not we also check label dtypes?
@@ -937,7 +934,6 @@ class Dataset:
                 'datasets' parameter is not a list;
                 'datasets' contains less than one dataset;
         """
-        assert isinstance(datasets, tuple), "'datasets' must be a list"
         assert len(datasets) > 1, "'datasets' must contains at least two items"
 
         first_ds = datasets[0]
@@ -964,7 +960,6 @@ class Dataset:
                 'datasets' parameter is not a list;
                 'datasets' contains less than one dataset;
         """
-        assert isinstance(datasets, tuple), "'datasets' must be a list"
         assert len(datasets) > 1, "'datasets' must contains at least two items"
 
         first_ds = datasets[0]
