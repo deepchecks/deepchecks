@@ -24,7 +24,15 @@ __all__ = [
 
 
 class Condition:
-    """Contain condition attributes."""
+    """Contain condition attributes.
+
+    Parameters
+    ----------
+    name : str
+    function : Callable
+    params : Dict
+
+    """
 
     name: str
     function: Callable
@@ -55,7 +63,18 @@ class ConditionCategory(enum.Enum):
 
 
 class ConditionResult:
-    """Contain result of a condition function."""
+    """Contain result of a condition function.
+
+    Parameters
+    ----------
+    is_pass : bool
+        Whether the condition functions passed the given value or not.
+    details : str
+        What actually happened in the condition.
+    category : ConditionCategory , default : ConditionCategory.FAIL
+        The category to which the condition result belongs.
+
+    """
 
     is_pass: bool
     category: ConditionCategory
@@ -64,13 +83,6 @@ class ConditionResult:
 
     def __init__(self, is_pass: bool, details: str = '',
                  category: ConditionCategory = ConditionCategory.FAIL):
-        """Initialize condition result.
-
-        Args:
-            is_pass (bool): Whether the condition functions passed the given value or not.
-            details (str): What actually happened in the condition.
-            category (ConditionCategory): The category to which the condition result belongs.
-        """
         self.is_pass = is_pass
         self.details = details
         self.category = category
@@ -78,8 +90,10 @@ class ConditionResult:
     def set_name(self, name: str):
         """Set name to be displayed in table.
 
-        Args:
-            name (str): Description of the condition to be displayed.
+        Parameters
+        ----------
+        name : str
+            Description of the condition to be displayed.
         """
         self.name = name
 
@@ -90,8 +104,10 @@ class ConditionResult:
         This value is primarily used to determine the order in which
         conditions should be displayed.
 
-        Returns:
-            int: condition priority value;
+        Returns
+        -------
+        int
+            condition priority value.
         """
         if self.is_pass is True:
             return 3
