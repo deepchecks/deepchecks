@@ -39,8 +39,13 @@ __all__ = [
     'format_datetime',
     'get_docs_summary',
     'get_ellipsis',
-    'to_snake_case'
+    'to_snake_case',
+    'truncate_long_string'
 ]
+
+
+def truncate_long_string(long_string: str, max_length: int) -> str:
+    return get_ellipsis(long_string, max_length)
 
 
 def get_ellipsis(long_string: str, max_length: int):
@@ -52,6 +57,7 @@ def get_ellipsis(long_string: str, max_length: int):
     Returns:
         (str): the string with ellipsis.
     """
+    # TODO: mark as deprecated or remove
     if len(long_string) <= max_length:
         return long_string
     return long_string[:max_length] + '...'
