@@ -25,15 +25,26 @@ from deepchecks.utils.features import calculate_feature_importance_or_none
 class CheckRunContext:
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
 
-    Args:
-      train: Dataset or DataFrame object, representing data an estimator was fitted on
-      test: Dataset or DataFrame object, representing data an estimator predicts on
-      model: A scikit-learn-compatible fitted estimator instance
-      features_importance: pass manual features importance
-      feature_importance_force_permutation: force calculation of permutation features importance
-      feature_importance_timeout: timeout in second for the permutation features importance calculation
-      scorers: dict of scorers names to scorer sklearn_name/function
-      non_avg_scorers: dict of scorers for multiclass without averaging of the classes
+    Parameters
+    ----------
+    train : Union[Dataset, pd.DataFrame] , default: None
+        Dataset or DataFrame object, representing data an estimator was fitted on
+    test : Union[Dataset, pd.DataFrame] , default: None
+        Dataset or DataFrame object, representing data an estimator predicts on
+    model : BasicModel , default: None
+        A scikit-learn-compatible fitted estimator instance
+    model_name: str , default: ''
+        The name of the model
+    features_importance: pd.Series , default: None
+        pass manual features importance
+    feature_importance_force_permutation : bool , default: False
+        force calculation of permutation features importance
+    feature_importance_timeout : int , default: None
+        timeout in second for the permutation features importance calculation
+    scorers : Mapping[str, Union[str, Callable]] , default: None
+        dict of scorers names to scorer sklearn_name/function
+    non_avg_scorers : Mapping[str, Union[str, Callable]] , default: None
+        dict of scorers for multiclass without averaging of the classes
     """
 
     def __init__(self,

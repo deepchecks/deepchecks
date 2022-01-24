@@ -241,8 +241,10 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
 def load_fitted_model():
     """Load and return a fitted classification model to predict the flower type in the iris dataset.
 
-    Returns:
-        model (Joblib model) the model/pipeline that was trained on the iris dataset.
+    Returns
+    -------
+    model : Joblib
+        The model/pipeline that was trained on the iris dataset.
 
     """
     if sklearn.__version__ == _MODEL_VERSION:

@@ -923,16 +923,21 @@ class Dataset:
     def datasets_share_index(cls, *datasets: 'Dataset') -> bool:
         """Verify that all provided datasets share same index column.
 
-        Args:
-            datasets (List[Dataset]): list of datasets to validate
+        Parameters
+        ----------
+        datasets : List[Dataset]
+            list of datasets to validate
 
-        Returns:
-            bool: True if all datasets share same index column, otherwise False
+        Returns
+        -------
+        bool
+            True if all datasets share same index column, otherwise False
 
-        Raises:
-            AssertionError:
-                'datasets' parameter is not a list;
-                'datasets' contains less than one dataset;
+        Raises
+        ------
+        AssertionError
+            'datasets' parameter is not a list;
+            'datasets' contains less than one dataset;
         """
         assert len(datasets) > 1, "'datasets' must contains at least two items"
 
@@ -949,16 +954,21 @@ class Dataset:
     def datasets_share_date(cls, *datasets: 'Dataset') -> bool:
         """Verify that all provided datasets share same date column.
 
-        Args:
-            datasets (List[Dataset]): list of datasets to validate
+        Parameters
+        ----------
+        datasets : List[Dataset]
+            list of datasets to validate
 
-        Returns:
-            bool: True if all datasets share same date column, otherwise False
+        Returns
+        -------
+        bool
+            True if all datasets share same date column, otherwise False
 
-        Raises:
-            AssertionError:
-                'datasets' parameter is not a list;
-                'datasets' contains less than one dataset;
+        Raises
+        ------
+        AssertionError
+            'datasets' parameter is not a list;
+            'datasets' contains less than one dataset;
         """
         assert len(datasets) > 1, "'datasets' must contains at least two items"
 

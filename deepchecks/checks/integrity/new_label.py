@@ -28,8 +28,10 @@ class NewLabelTrainTest(TrainTestBaseCheck):
     def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
 
-        Returns:
-            CheckResult: value is a dictionary that shows label column with new labels
+        Returns
+        -------
+        CheckResult
+            value is a dictionary that shows label column with new labels
             displays a dataframe that label columns with new labels
         Raises
         ------
