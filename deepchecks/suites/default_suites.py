@@ -17,7 +17,7 @@ from deepchecks.checks import (
     ConfusionMatrixReport, RocReport, CalibrationScore, TrustScoreComparison,
     RegressionErrorDistribution, RegressionSystematicError, PerformanceReport, SimpleModelComparison, BoostingOverfit,
     ModelInfo, ColumnsInfo, DataDuplicates, IsSingleValue, LabelAmbiguity,
-    DatasetsSizeComparison, UnusedFeatures, ModelInferenceTimeCheck, ModelErrorAnalysis, TrainTestLabelDrift
+    DatasetsSizeComparison, UnusedFeatures, ModelInferenceTime, ModelErrorAnalysis, TrainTestLabelDrift
 )
 from deepchecks import Suite
 
@@ -98,7 +98,7 @@ def model_evaluation() -> Suite:
         RegressionErrorDistribution().add_condition_kurtosis_not_less_than(),
         BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(),
         UnusedFeatures().add_condition_number_of_high_variance_unused_features_not_greater_than(),
-        ModelInferenceTimeCheck().add_condition_inference_time_is_not_greater_than()
+        ModelInferenceTime().add_condition_inference_time_is_not_greater_than()
     )
 
 

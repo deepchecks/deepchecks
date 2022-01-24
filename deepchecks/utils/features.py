@@ -146,9 +146,10 @@ def calculate_feature_importance(
             kwargs for permutation importance calculation
 
     Returns:
-        pandas.Series: feature importance normalized to 0-1 indexed by feature names
-        str: type of feature importance calculation
-             (types: `permutation_importance`, `feature_importances_`, `coef_`)
+        Tuple[Series, str]:
+            first item - feature importance normalized to 0-1 indexed by feature names,
+            second item - type of feature importance calculation (types: `permutation_importance`,
+            `feature_importances_`, `coef_`)
 
     Raises:
         NotFittedError:

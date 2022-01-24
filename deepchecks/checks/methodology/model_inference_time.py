@@ -20,13 +20,13 @@ from deepchecks.utils.strings import format_number
 from deepchecks.errors import DeepchecksValueError
 
 
-__all__ = ['ModelInferenceTimeCheck']
+__all__ = ['ModelInferenceTime']
 
 
-MI = t.TypeVar('MI', bound='ModelInferenceTimeCheck')
+MI = t.TypeVar('MI', bound='ModelInferenceTime')
 
 
-class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
+class ModelInferenceTime(SingleDatasetBaseCheck):
     """Measure model average inference time (in seconds) per sample.
 
     Args:

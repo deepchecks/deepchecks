@@ -308,10 +308,11 @@ class CheckResult:
 
         This value is primarly used to determine suite output order.
         The logic is next:
-            - if at least one condition did not pass and is of category 'FAIL', return 1;
-            - if at least one condition did not pass and is of category 'WARN', return 2;
-            - if check result do not have assigned conditions, return 3
-            - if all conditions passed, return 4;
+
+        * if at least one condition did not pass and is of category 'FAIL', return 1;
+        * if at least one condition did not pass and is of category 'WARN', return 2;
+        * if check result do not have assigned conditions, return 3;
+        * if all conditions passed, return 4;
 
         Returns:
             int: priority of the cehck result.
