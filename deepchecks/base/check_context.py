@@ -43,8 +43,8 @@ class CheckRunContext:
         timeout in second for the permutation features importance calculation
     scorers : Mapping[str, Union[str, Callable]] , default: None
         dict of scorers names to scorer sklearn_name/function
-    non_avg_scorers : Mapping[str, Union[str, Callable]] , default: None
-        dict of scorers for multiclass without averaging of the classes
+    scorers_per_class : Mapping[str, Union[str, Callable]] , default: None
+        dict of scorers for classification without averaging of the classes
     """
 
     def __init__(self,
@@ -56,7 +56,7 @@ class CheckRunContext:
                  feature_importance_force_permutation: bool = False,
                  feature_importance_timeout: int = None,
                  scorers: Mapping[str, Union[str, Callable]] = None,
-                 non_avg_scorers: Mapping[str, Union[str, Callable]] = None
+                 scorers_per_class: Mapping[str, Union[str, Callable]] = None
                  ):
         # Validations
         if train is None and test is None and model is None:
@@ -100,7 +100,7 @@ class CheckRunContext:
         self._validated_model = False
         self._task_type = None
         self._user_scorers = scorers
-        self._user_non_avg_scorers = non_avg_scorers
+        self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
 
     # Properties
@@ -244,22 +244,22 @@ class CheckRunContext:
                 self.train.label_type == 'classification_label'):
             raise ModelValidationError('Check is irrelevant for classification tasks')
 
-    def get_scorers(self, alternative_scorers: Mapping[str, Union[str, Callable]] = None, multiclass_avg=True):
+    def get_scorers(self, alternative_scorers: Mapping[str, Union[str, Callable]] = None, class_avg=True):
         """Return initialized & validated scorers in a given priority.
 
         If receive `alternative_scorers` return them,
         Else if user defined global scorers return them,
         Else return default scorers.
         """
-        if multiclass_avg:
+        if class_avg:
             user_scorers = self._user_scorers
         else:
-            user_scorers = self._user_non_avg_scorers
+            user_scorers = self._user_scorers_per_class
 
-        scorers = alternative_scorers or user_scorers or get_default_scorers(self.task_type, multiclass_avg)
-        return init_validate_scorers(scorers, self.model, self.train, multiclass_avg, self.task_type)
+        scorers = alternative_scorers or user_scorers or get_default_scorers(self.task_type, class_avg)
+        return init_validate_scorers(scorers, self.model, self.train, class_avg, self.task_type)
 
-    def get_single_scorer(self, alternative_scorers: Mapping[str, Union[str, Callable]] = None, multiclass_avg=True):
+    def get_single_scorer(self, alternative_scorers: Mapping[str, Union[str, Callable]] = None, class_avg=True):
         """Return initialized & validated single scorer in a given priority.
 
         If receive `alternative_scorers` use them,
@@ -267,13 +267,13 @@ class CheckRunContext:
         Else use default scorers.
         Returns the first scorer in the scorers dict.
         """
-        if multiclass_avg:
+        if class_avg:
             user_scorers = self._user_scorers
         else:
-            user_scorers = self._user_non_avg_scorers
+            user_scorers = self._user_scorers_per_class
 
-        scorers = alternative_scorers or user_scorers or get_default_scorers(self.task_type, multiclass_avg)
+        scorers = alternative_scorers or user_scorers or get_default_scorers(self.task_type, class_avg)
         # The single scorer is the first one in the dict
         scorer_name = next(iter(scorers))
         single_scorer_dict = {scorer_name: scorers[scorer_name]}
-        return init_validate_scorers(single_scorer_dict, self.model, self.train, multiclass_avg, self.task_type)[0]
+        return init_validate_scorers(single_scorer_dict, self.model, self.train, class_avg, self.task_type)[0]

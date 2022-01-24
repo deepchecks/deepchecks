@@ -27,6 +27,7 @@ from deepchecks.base.dataset import Dataset
 from deepchecks.base.check import CheckResult, TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck, \
                                   CheckFailure, ModelComparisonBaseCheck, ModelComparisonContext
 from deepchecks.utils.ipython import is_ipython_display
+from deepchecks.utils.typing import BasicModel
 
 
 __all__ = ['BaseSuite', 'Suite', 'ModelComparisonSuite', 'SuiteResult']
@@ -189,22 +190,22 @@ class Suite(BaseSuite):
             self,
             train_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
             test_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
-            model: object = None,
+            model: BasicModel = None,
             features_importance: pd.Series = None,
             feature_importance_force_permutation: bool = False,
             feature_importance_timeout: int = None,
             scorers: Mapping[str, Union[str, Callable]] = None,
-            non_avg_scorers: Mapping[str, Union[str, Callable]] = None
+            scorers_per_class: Mapping[str, Union[str, Callable]] = None
     ) -> SuiteResult:
         """Run all checks.
 
         Parameters
         ----------
-        train_dataset: Optional[Dataset] , default None
+        train_dataset: Optional[Union[Dataset, pd.DataFrame]] , default None
             object, representing data an estimator was fitted on
-        test_dataset : Optional[Dataset] , default None
+        test_dataset : Optional[Union[Dataset, pd.DataFrame]] , default None
             object, representing data an estimator predicts on
-        model : object , default None
+        model : BasicModel , default None
             A scikit-learn-compatible fitted estimator instance
         features_importance : pd.Series , default None
             pass manual features importance
@@ -214,8 +215,8 @@ class Suite(BaseSuite):
             timeout in second for the permutation features importance calculation
         scorers : Mapping[str, Union[str, Callable]] , default None
             dict of scorers names to scorer sklearn_name/function
-        non_avg_scorers : Mapping[str, Union[str, Callable]], default None
-            dict of scorers for multiclass without averaging of the classes
+        scorers_per_class : Mapping[str, Union[str, Callable]], default None
+            dict of scorers for classification without averaging of the classes
 
         Returns
         -------
@@ -227,7 +228,7 @@ class Suite(BaseSuite):
                                   feature_importance_force_permutation=feature_importance_force_permutation,
                                   feature_importance_timeout=feature_importance_timeout,
                                   scorers=scorers,
-                                  non_avg_scorers=non_avg_scorers)
+                                  scorers_per_class=scorers_per_class)
         # Create progress bar
         progress_bar = ProgressBar(self.name, len(self.checks))
 

@@ -230,17 +230,17 @@ def task_type_check(
         return ModelType.REGRESSION
 
 
-def get_default_scorers(model_type, multiclass_avg: bool = True):
+def get_default_scorers(model_type, class_avg: bool = True):
     """Get default scorers based on model type.
 
     Parameters
     ----------
     model_type : ModelType
         model type to return scorers for
-    multiclass_avg : bool, default True
+    class_avg : bool, default True
         for classification whether to return scorers of average score or per class
     """
-    return_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and multiclass_avg is False
+    return_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and class_avg is False
 
     if return_array:
         return MULTICLASS_SCORERS_NON_AVERAGE
@@ -249,13 +249,27 @@ def get_default_scorers(model_type, multiclass_avg: bool = True):
         return DEFAULT_SCORERS_DICT[model_type]
 
 
-def init_validate_scorers(scorers: t.Mapping[str, t.Callable],
-                          model,
+def init_validate_scorers(scorers: t.Mapping[str, t.Union[str, t.Callable]],
+                          model: BasicModel,
                           dataset: 'base.Dataset',
-                          multiclass_avg: bool = True,
+                          class_avg: bool = True,
                           model_type=None) -> t.List[DeepcheckScorer]:
-    """Initialize scorers and return all of them as deepchecks scorers."""
-    return_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and multiclass_avg is False
+    """Initialize scorers and return all of them as deepchecks scorers.
+
+    Parameters
+    ----------
+    scorers : Mapping[str, Union[str, Callable]]
+        dict of scorers names to scorer sklearn_name/function
+    model : BasicModel
+        used to validate the scorers, and calculate mode_type if None.
+    dataset : Dataset
+        used to validate the scorers, and calculate mode_type if None.
+    class_avg : bool , default True
+        for classification whether to return scorers of average score or per class
+    model_type : ModelType , default None
+        model type to return scorers for
+    """
+    return_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and class_avg is False
     scorers = [DeepcheckScorer(scorer, name) for name, scorer in scorers.items()]
     for s in scorers:
         s.validate_fitting(model, dataset, return_array)
