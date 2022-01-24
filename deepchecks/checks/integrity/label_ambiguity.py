@@ -29,13 +29,13 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
 
     Parameters
     ----------
-    columns : Union[Hashable, List[Hashable]] , default : None
+    columns : Union[Hashable, List[Hashable]] , default: None
         List of columns to check, if none given checks
         all columns Except ignored ones.
-    ignore_columns : Union[Hashable, List[Hashable]] , default : None
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
         List of columns to ignore, if none given checks
         based on columns variable.
-    n_to_show : int , default : 5
+    n_to_show : int , default: 5
         number of most common ambiguous samples to show.
     """
 
@@ -57,7 +57,7 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
         ----------
         dataset : Dataset
             any dataset.
-        model : any , default : None
+        model : any , default: None
             used to check task type
         Returns
         -------
@@ -119,7 +119,7 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
 
         Parameters
         ----------
-        max_ratio : float , default : 0
+        max_ratio : float , default: 0
             Maximum ratio of samples with multiple labels.
         """
         def max_ratio_condition(result: float) -> ConditionResult:

@@ -29,10 +29,11 @@ MI = t.TypeVar('MI', bound='ModelInferenceTime')
 class ModelInferenceTime(SingleDatasetBaseCheck):
     """Measure model average inference time (in seconds) per sample.
 
-    Args:
-        number_of_samples (int):
-            number of samples to use for inference, but if actual
-            dataset is smaller then all samples will be used
+    Parameters
+    ----------
+    number_of_samples : int , default: 1000
+        number of samples to use for inference, but if actual
+        dataset is smaller then all samples will be used
     """
 
     def __init__(self, number_of_samples: int = 1000):
@@ -44,17 +45,21 @@ class ModelInferenceTime(SingleDatasetBaseCheck):
     def run(self, dataset: Dataset, model: object) -> CheckResult:
         """Run check.
 
-        Args:
-            dataset (Dataset): samples that will be used to measure inference time
-            model (BaseEstimator): a model to measure inference time
-
-        Returns:
-            CheckResult:
-                value is of the type 'float'
-
-        Raises:
-            DeepchecksValueError: If the 'test_dataset' is not a 'Dataset' instance with a label or
-                if 'model' is not a scikit-learn-compatible fitted estimator instance
+        Parameters
+        ----------
+        dataset : Dataset
+            samples that will be used to measure inference time.
+        model : object
+            a model to measure inference time.
+        Returns
+        -------
+        CheckResult
+            value is of the type 'float' .
+        Raises
+        ------
+        DeepchecksValueError
+            If the 'test_dataset' is not a 'Dataset' instance with a label or
+            if 'model' is not a scikit-learn-compatible fitted estimator instance.
         """
         return self._model_inference_time_check(dataset, model)
 
@@ -88,8 +93,13 @@ class ModelInferenceTime(SingleDatasetBaseCheck):
     def add_condition_inference_time_is_not_greater_than(self: MI, value: float = 0.001) -> MI:
         """Add condition - checking that the average model inference time (in seconds) per sample is not greater than X.
 
-        Args:
-            value: condition threshold
+        Parameters
+        ----------
+        value : float , default: 0.001
+            condition threshold.
+        Returns
+        -------
+        MI
         """
         def condition(avarage_time: float) -> ConditionResult:
             if avarage_time >= value:

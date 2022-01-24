@@ -41,24 +41,24 @@ class TrustScoreComparison(TrainTestBaseCheck):
 
     Parameters
     ----------
-    k_filter : int , default : 10
+    k_filter : int , default: 10
         used in TrustScore (Number of neighbors used during either kNN distance or probability
         filtering)
-    alpha : float , default : 0.001
+    alpha : float , default: 0.001
         used in TrustScore (Fraction of instances to filter out to reduce impact of outliers)
-    max_number_categories : int , default : 10
+    max_number_categories : int , default: 10
         Indicates the maximum number of unique categories in a single categorical
         column (rare categories will be changed to a form of "other")
-    min_test_samples : int , default : 300
+    min_test_samples : int , default: 300
         Minimal number of samples in train data to be able to run this check
-    sample_size : int , default : 10_000
+    sample_size : int , default: 10_000
         Number of samples to use for the check for train and test. if dataset contains less than
         sample_size than all the dataset will be used.
-    random_state : int , default : 42
+    random_state : int , default: 42
         The random state to use for sampling.
-    n_to_show : int , default : 5
+    n_to_show : int , default: 5
         Number of samples to show of worst and best trust score.
-    percent_top_scores_to_hide : float  , default : 0.05
+    percent_top_scores_to_hide : float  , default: 0.05
     """
 
     def __init__(self, k_filter: int = 10, alpha: float = 0.001,
@@ -85,7 +85,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
             Dataset to use for TrustScore regressor
         test_dataset : Dataset
             Dataset to check for trust score
-        model : any , default : None
+        model : any , default: None
             Model used to predict on the validation dataset
         """
         # tested dataset can be also dataframe
@@ -198,7 +198,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
 
         Parameters
         ----------
-        threshold : float ,  default : 0.2
+        threshold : float ,  default: 0.2
             Maximum percentage decline allowed (value 0 and above)
         """
         def condition(result: dict):

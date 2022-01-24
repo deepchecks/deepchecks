@@ -36,7 +36,7 @@ class NewLabelTrainTest(TrainTestBaseCheck):
             The training dataset object.
         test_dataset : Dataset
             The test dataset object.
-        model : any, default : None
+        model : any, default: None
             used to check task type
         Returns
         -------
@@ -101,7 +101,7 @@ class NewLabelTrainTest(TrainTestBaseCheck):
 
         Parameters
         ----------
-        max_new : int , default : 0
+        max_new : int , default: 0
             Number of different new labels value types which is the maximum allowed.
         """
         def condition(result: Dict) -> ConditionResult:
@@ -121,7 +121,7 @@ class NewLabelTrainTest(TrainTestBaseCheck):
 
         Parameters
         ----------
-        max_ratio : float , default : 0
+        max_ratio : float , default: 0
             Ratio of new label samples to total samples which is the maximum allowed.
         """
         def new_category_count_condition(result: Dict) -> ConditionResult:

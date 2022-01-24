@@ -25,10 +25,10 @@ class IsSingleValue(SingleDatasetBaseCheck):
 
     Parameters
     ----------
-    columns : Union[Hashable, List[Hashable]] , default : None
+    columns : Union[Hashable, List[Hashable]] , default: None
         Columns to check, if none are given checks all
         columns except ignored ones.
-    ignore_columns : Union[Hashable, List[Hashable]] , default : None
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
         Columns to ignore, if none given checks based
         on columns variable.
     """
@@ -50,7 +50,7 @@ class IsSingleValue(SingleDatasetBaseCheck):
         ----------
         dataset : Dataset
             A Dataset object or a pd.DataFrame
-        model : any, default : None
+        model : any, default: None
         Returns
         -------
         CheckResult

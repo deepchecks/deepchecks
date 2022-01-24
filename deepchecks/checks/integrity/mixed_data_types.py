@@ -31,10 +31,10 @@ class MixedDataTypes(SingleDatasetBaseCheck):
 
     Parameters
     ----------
-    columns : Union[Hashable, List[Hashable]] , default : None
+    columns : Union[Hashable, List[Hashable]] , default: None
         Columns to check, if none are given checks all columns
         except ignored ones.
-    ignore_columns : Union[Hashable, List[Hashable]] , default : None
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
         Columns to ignore, if none given checks based on columns
         variable.
     n_top_columns : int , optional
@@ -59,7 +59,7 @@ class MixedDataTypes(SingleDatasetBaseCheck):
         ----------
         dataset : Dataset
             Dataset to be tested.
-        model : any, default : None
+        model : any, default: None
             Model is ignored for this check.
         Returns
         -------
@@ -77,7 +77,7 @@ class MixedDataTypes(SingleDatasetBaseCheck):
         ----------
         dataset : Union[pd.DataFrame, Dataset]
             Dataset to be tested.
-        feature_importances: pd.Series , default : None
+        feature_importances: pd.Series , default: None
         Returns
         -------
         CheckResult
@@ -146,7 +146,7 @@ class MixedDataTypes(SingleDatasetBaseCheck):
 
         Parameters
         ----------
-        ratio_range : Tuple[float, float] , default : (0.01 , 0.1)
+        ratio_range : Tuple[float, float] , default: (0.01 , 0.1)
             The range between which the ratio of rarer data type in the column is
             considered a problem.
         """

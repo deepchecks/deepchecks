@@ -26,13 +26,13 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
 
     Parameters
     ----------
-    columns : Union[Hashable, List[Hashable]] , default : None
+    columns : Union[Hashable, List[Hashable]] , default: None
         Columns to check, if none are given checks all columns except ignored ones.
-    ignore_columns : Union[Hashable, List[Hashable]] , default : None
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
         Columns to ignore, if none given checks based on columns variable.
-    max_features_to_show : int , default : 5
+    max_features_to_show : int , default: 5
         maximum features with new categories to show
-    max_new_categories_to_show : int , default : 5
+    max_new_categories_to_show : int , default: 5
         maximum new categories to show in feature
     """
 
@@ -58,7 +58,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
             The training dataset object.
         test_dataset : Dataset
             The test dataset object.
-        model : any, default : None
+        model : any, default: None
              not used in the check.
         Returns
         -------
@@ -159,7 +159,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
 
         Parameters
         ----------
-        max_new : int , default : 0
+        max_new : int , default: 0
             Number of different categories value types which is the maximum allowed.
         """
         def condition(result: Dict) -> ConditionResult:
@@ -184,7 +184,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
 
         Parameters
         ----------
-        max_ratio : float , default : 0
+        max_ratio : float , default: 0
             Number of different categories value types which is the maximum allowed.
         """
         def new_category_count_condition(result: Dict) -> ConditionResult:

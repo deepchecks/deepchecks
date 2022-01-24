@@ -36,13 +36,13 @@ class MixedNulls(SingleDatasetBaseCheck):
 
     Parameters
     ----------
-    null_string_list : Iterable[str] , default : None
+    null_string_list : Iterable[str] , default: None
         List of strings to be considered alternative null representations
-    check_nan : bool , default : True
+    check_nan : bool , default: True
         Whether to add to null list to check also NaN values
-    columns : Union[Hashable, List[Hashable]] , default : None
+    columns : Union[Hashable, List[Hashable]] , default: None
         Columns to check, if none are given checks all columns except ignored ones.
-    ignore_columns : Union[Hashable, List[Hashable]] , default : None
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
         Columns to ignore, if none given checks based on columns variable
     n_top_columns : int , optional
         amount of columns to show ordered by feature importance (date, index, label are first)
@@ -69,7 +69,7 @@ class MixedNulls(SingleDatasetBaseCheck):
         Parameters
         ----------
         dataset : Dataset
-        model : any , default : None
+        model : any , default: None
 
         Returns
         -------
@@ -118,7 +118,7 @@ class MixedNulls(SingleDatasetBaseCheck):
         ----------
         dataset : Union[pd.DataFrame, Dataset]
             dataset to check
-        feature_importances : pd.Series , default : None
+        feature_importances : pd.Series , default: None
         Returns
         -------
         CheckResult
@@ -170,7 +170,7 @@ class MixedNulls(SingleDatasetBaseCheck):
 
         Parameters
         ----------
-        max_allowed_null_types : int , default : 1
+        max_allowed_null_types : int , default: 1
             Number of different null value types which is the maximum allowed.
         """
         def condition(result: Dict) -> ConditionResult:

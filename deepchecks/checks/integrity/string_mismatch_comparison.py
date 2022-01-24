@@ -44,9 +44,9 @@ class StringMismatchComparison(TrainTestBaseCheck):
 
     Parameters
     ----------
-    columns : Union[Hashable, List[Hashable]] , default : None
+    columns : Union[Hashable, List[Hashable]] , default: None
         Columns to check, if none are given checks all columns except ignored ones.
-    ignore_columns : Union[Hashable, List[Hashable]] , default : None
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
         Columns to ignore, if none given checks based on columns variable
     n_top_columns : int , optional
         amount of columns to show ordered by feature importance (date, index, label are first)
@@ -72,7 +72,7 @@ class StringMismatchComparison(TrainTestBaseCheck):
             The training dataset object.
         test_dataset : Dataset
             The test dataset object.
-        model : any, default : None
+        model : any, default: None
             Not used in this check.
         Returns
         -------

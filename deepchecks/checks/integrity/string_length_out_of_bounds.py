@@ -34,33 +34,33 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
 
     Parameters
     ----------
-    columns :Union[Hashable, List[Hashable]] , default : None
+    columns :Union[Hashable, List[Hashable]] , default: None
         Columns to check, if none are given checks all columns except ignored ones.
-    ignore_columns : Union[Hashable, List[Hashable]] , default : None
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
         Columns to ignore, if none given checks based on columns variable
-    num_percentiles : int , default : 1000
+    num_percentiles : int , default: 1000
         Number of percentiles values to retrieve for the length of the samples in the string
         column. Affects the resolution of string lengths that is used to detect outliers.
-    inner_quantile_range : int , default : 94
+    inner_quantile_range : int , default: 94
         The int upper percentile [0-100] defining the inner percentile range.
         E.g. for 98 the range would be 2%-98%.
-    outlier_factor : int , default : 4
+    outlier_factor : int , default: 4
         Strings would be defined as outliers if their length is outlier_factor times more/less
         than the values inside the inner quantile range.
-    min_length_difference : int , default : 5
+    min_length_difference : int , default: 5
         The minimum length difference to be considered as outlier.
-    min_length_ratio_difference : int , default : 0.5
+    min_length_ratio_difference : int , default: 0.5
         Used to calculate the minimum length difference to be considered as outlier. (calculated form this times the
         average of the normal lengths.)
-    min_unique_value_ratio : float , default : 0.01
+    min_unique_value_ratio : float , default: 0.01
         Min
-    min_unique_values : int , default : 100
+    min_unique_values : int , default: 100
         Minimum unique values in column to calculate string length outlier
     n_top_columns : int , optional
         amount of columns to show ordered by feature importance (date, index, label are first)
-    outlier_length_to_show :int , default : 50
+    outlier_length_to_show :int , default: 50
         Maximum length of outlier to show in results. If an outlier is longer it is trimmed and added '...'
-    samples_per_range_to_show : int , default : 3
+    samples_per_range_to_show : int , default: 3
         Number of outlier samples to show in results per outlier range found.
     """
 
@@ -219,7 +219,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
 
         Parameters
         ----------
-        max_outliers : int , default : 0
+        max_outliers : int , default: 0
             Number of string length outliers which is the maximum allowed.
         """
         def compare_outlier_count(result: Dict) -> ConditionResult:
@@ -248,7 +248,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
 
         Parameters
         ----------
-        max_ratio : float , default : 0
+        max_ratio : float , default: 0
             Maximum allowed string length outliers ratio.
         """
         def compare_outlier_ratio(result: Dict):
@@ -282,9 +282,9 @@ def outlier_on_percentile_histogram(percentile_histogram: Dict[float, float], iq
     ----------
     percentile_histogram : Dict[float, float]
         histogram to search for outliers in shape [0.0-100.0]->[float]
-    iqr_percent : float , default : 85
+    iqr_percent : float , default: 85
         Interquartile range upper percentage, start searching for outliers outside IQR.
-    outlier_factor : float , default : 5
+    outlier_factor : float , default: 5
         a factor to consider outlier.
     Returns
     -------

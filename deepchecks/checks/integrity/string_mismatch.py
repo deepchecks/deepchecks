@@ -41,9 +41,9 @@ class StringMismatch(SingleDatasetBaseCheck):
 
     Parameters
     ----------
-    columns : Union[Hashable, List[Hashable]] , default : None
+    columns : Union[Hashable, List[Hashable]] , default: None
         Columns to check, if none are given checks all columns except ignored ones.
-    ignore_columns : Union[Hashable, List[Hashable]] , default : None
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
         Columns to ignore, if none given checks based on columns variable
     n_top_columns : int , optional
         amount of columns to show ordered by feature importance (date, index, label are first)
@@ -133,7 +133,7 @@ class StringMismatch(SingleDatasetBaseCheck):
 
         Parameters
         ----------
-        max_ratio : float , default : 0.01
+        max_ratio : float , default: 0.01
             Maximum percent of variants allowed in data.
         """
         def condition(result, max_ratio: float):

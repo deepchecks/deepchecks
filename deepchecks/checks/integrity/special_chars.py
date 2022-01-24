@@ -30,11 +30,11 @@ class SpecialCharacters(SingleDatasetBaseCheck):
 
     Parameters
     ----------
-    columns : Union[Hashable, List[Hashable]] , default : None
+    columns : Union[Hashable, List[Hashable]] , default: None
         Columns to check, if none are given checks all columns except ignored ones.
-    ignore_columns : Union[Hashable, List[Hashable]] , default : None
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
         Columns to ignore, if none given checks based on columns variable.
-    n_most_common : int , default : 2
+    n_most_common : int , default: 2
         Number of most common special-only samples to show in results
     n_top_columns : int , optional
         amount of columns to show ordered by feature importance (date, index, label are first)
@@ -59,7 +59,7 @@ class SpecialCharacters(SingleDatasetBaseCheck):
         Parameters
         ----------
         dataset : Dataset
-        model : any, default : None
+        model : any, default: None
 
         Returns
         -------
@@ -77,7 +77,7 @@ class SpecialCharacters(SingleDatasetBaseCheck):
         ----------
         dataset: Union[pd.DataFrame, Dataset]
             a Dataset or a DataFrame object.
-        feature_importances: pd.Series , default : None
+        feature_importances: pd.Series , default: None
 
         Returns
         -------
@@ -119,7 +119,7 @@ class SpecialCharacters(SingleDatasetBaseCheck):
 
         Parameters
         ----------
-        max_ratio : float , default : 0.001
+        max_ratio : float , default: 0.001
             Maximum ratio allowed.
         """
         name = f'Ratio of entirely special character samples not greater '\

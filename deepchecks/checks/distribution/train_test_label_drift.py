@@ -32,7 +32,7 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
 
     Parameters
     ----------
-    max_num_categories : int , default : 10
+    max_num_categories : int , default: 10
         Only for categorical columns. Max number of allowed categories. If there are more,
         they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
         for both drift calculation and for distribution plots.
@@ -54,7 +54,7 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
             The training dataset object.
         test_dataset : Dataset
             The test dataset object.
-        model , default : None
+        model , default: None
             not used in this check.
         Returns
         -------
@@ -122,9 +122,9 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
 
         Parameters
         ----------
-        max_allowed_psi_score: float , default : 0.2
+        max_allowed_psi_score: float , default: 0.2
             the max threshold for the PSI score
-        max_allowed_earth_movers_score: float ,  default : 0.1
+        max_allowed_earth_movers_score: float ,  default: 0.1
             the max threshold for the Earth Mover's Distance score
         Returns
         -------

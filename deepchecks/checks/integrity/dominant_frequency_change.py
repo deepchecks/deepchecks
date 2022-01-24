@@ -30,9 +30,9 @@ class DominantFrequencyChange(TrainTestBaseCheck):
 
     Parameters
     ----------
-    dominance_ratio : float , default : 2
+    dominance_ratio : float , default: 2
         Next most abundant value has to be THIS times less than the first (0-inf).
-    ratio_change_thres : float , default : 1.5
+    ratio_change_thres : float , default: 1.5
         The dominant frequency has to change by at least this ratio (0-inf).
     n_top_columns : int , optional
         amount of columns to show ordered by feature importance (date, index, label are first).
@@ -59,7 +59,7 @@ class DominantFrequencyChange(TrainTestBaseCheck):
             The training dataset object. Must contain an index.
         test_dataset : Union[Dataset, pd.DataFrame]
             The test dataset object. Must contain an index.
-        model : any , default : None
+        model : any , default: None
         Returns
         -------
         CheckResult
@@ -147,7 +147,7 @@ class DominantFrequencyChange(TrainTestBaseCheck):
             The training dataset object. Must contain an index.
         test_dataset : Dataset
             The test dataset object. Must contain an index.
-        feature_importances : pd.Series , default : None
+        feature_importances : pd.Series , default: None
         Returns
         -------
         CheckResult
@@ -211,7 +211,7 @@ class DominantFrequencyChange(TrainTestBaseCheck):
 
         Parameters
         ----------
-        p_value_threshold : float , default : 0.0001
+        p_value_threshold : float , default: 0.0001
             Minimal p-value to pass the statistical test determining
             if the value abundance has changed significantly (0-1).
 
@@ -237,7 +237,7 @@ class DominantFrequencyChange(TrainTestBaseCheck):
 
         Parameters
         ----------
-        percent_change_threshold : float , default : 0.25
+        percent_change_threshold : float , default: 0.25
             The maximal change in the ratio out of data between training data and
             test data that the dominant value is allowed to change
         """
