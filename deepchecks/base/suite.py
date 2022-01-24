@@ -33,7 +33,13 @@ __all__ = ['BaseSuite', 'Suite', 'ModelComparisonSuite', 'SuiteResult']
 
 
 class SuiteResult:
-    """Contain the results of a suite run."""
+    """Contain the results of a suite run.
+
+    Parameters
+    ----------
+    name: str
+    results: List[Union[CheckResult, CheckFailure]]
+    """
 
     name: str
     results: List[Union[CheckResult, CheckFailure]]
@@ -66,9 +72,10 @@ class SuiteResult:
     def save_as_html(self, file=None):
         """Save output as html file.
 
-        Args:
-           file (filename or file-like object): The file to write the HTML output to.
-                                                If None writes to output.html
+        Parameters
+        ----------
+        file : filename or file-like object
+            The file to write the HTML output to. If None writes to output.html
         """
         if file is None:
             file = 'output.html'
@@ -77,10 +84,14 @@ class SuiteResult:
     def to_json(self, with_display: bool = True):
         """Return check result as json.
 
-        Args:
-            with_display (bool): controls if to serialize display of checks or not
+        Parameters
+        ----------
+        with_display : bool
+            controls if to serialize display of checks or not
 
-        Returns:
+        Returns
+        -------
+        dict
             {'name': .., 'results': ..}
         """
         json_results = []
@@ -93,9 +104,12 @@ class SuiteResult:
 class BaseSuite:
     """Class for running a set of checks together, and returning a unified pass / no-pass.
 
-    Attributes:
-        checks: A list of checks to run.
-        name: Name of the suite
+    Parameters
+    ----------
+    checks: OrderedDict
+        A list of checks to run.
+    name: str
+        Name of the suite
     """
 
     @classmethod
@@ -130,8 +144,10 @@ class BaseSuite:
     def add(self, check):
         """Add a check or a suite to current suite.
 
-        Args:
-            check (BaseCheck): A check or suite to add.
+        Parameters
+        ----------
+        check : BaseCheck
+            A check or suite to add.
         """
         if isinstance(check, BaseSuite):
             if check is self:
@@ -150,8 +166,10 @@ class BaseSuite:
     def remove(self, index: int):
         """Remove a check by given index.
 
-        Args:
-            index (int): Index of check to remove.
+        Parameters
+        ----------
+        index : int
+            Index of check to remove.
         """
         if index not in self.checks:
             raise DeepchecksValueError(f'No index {index} in suite')
@@ -180,20 +198,29 @@ class Suite(BaseSuite):
     ) -> SuiteResult:
         """Run all checks.
 
-        Args:
-          train_dataset: Dataset or DataFrame object, representing data an estimator was fitted on
-          test_dataset: Dataset or DataFrame object, representing data an estimator predicts on
-          model: A scikit-learn-compatible fitted estimator instance
-          features_importance: pass manual features importance
-          feature_importance_force_permutation: force calculation of permutation features importance.
-          feature_importance_timeout: timeout in second for the permutation features importance calculation.
-          scorers: dict of scorers names to scorer sklearn_name/function
-          non_avg_scorers: dict of scorers for multiclass without averaging of the classes.
-        Returns:
-          List[CheckResult] - All results by all initialized checks
+        Parameters
+        ----------
+        train_dataset: Optional[Dataset] , default None
+            object, representing data an estimator was fitted on
+        test_dataset : Optional[Dataset] , default None
+            object, representing data an estimator predicts on
+        model : object , default None
+            A scikit-learn-compatible fitted estimator instance
+        features_importance : pd.Series , default None
+            pass manual features importance
+        feature_importance_force_permutation : bool , default None
+            force calculation of permutation features importance
+        feature_importance_timeout : int , default None
+            timeout in second for the permutation features importance calculation
+        scorers : Mapping[str, Union[str, Callable]] , default None
+            dict of scorers names to scorer sklearn_name/function
+        non_avg_scorers : Mapping[str, Union[str, Callable]], default None
+            dict of scorers for multiclass without averaging of the classes
 
-        Raises:
-             ValueError if check_datasets_policy is not of allowed types
+        Returns
+        -------
+        SuiteResult
+            All results by all initialized checks
         """
         context = CheckRunContext(train_dataset, test_dataset, model,
                                   features_importance=features_importance,
@@ -276,16 +303,22 @@ class ModelComparisonSuite(BaseSuite):
             ) -> SuiteResult:
         """Run all checks.
 
-        Args:
-          train_datasets: 1 or more dataset object, representing data an estimator was fitted on
-          test_datasets: 1 or more dataset object, representing data an estimator was fitted on
-          models: 2 or more scikit-learn-compatible fitted estimator instance
-
-        Returns:
-          List[CheckResult] - All results by all initialized checks
-
-        Raises:
-             ValueError if check_datasets_policy is not of allowed types
+        Parameters
+        ----------
+        train_datasets : Union[Dataset, Container[Dataset]]
+            representing data an estimator was fitted on
+        test_datasets: Union[Dataset, Container[Dataset]]
+            representing data an estimator was fitted on
+        models : Union[Container[Any], Mapping[str, Any]]
+            2 or more scikit-learn-compatible fitted estimator instance
+        Returns
+        -------
+        SuiteResult
+            All results by all initialized checks
+        Raises
+        ------
+        ValueError
+            if check_datasets_policy is not of allowed types
         """
         context = ModelComparisonContext(train_datasets, test_datasets, models)
 

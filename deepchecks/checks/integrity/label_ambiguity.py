@@ -25,15 +25,16 @@ __all__ = ['LabelAmbiguity']
 class LabelAmbiguity(SingleDatasetBaseCheck):
     """Find samples with multiple labels.
 
-    Args:
-        columns (Hashable, List[Hashable]):
-            List of columns to check, if none given checks
-            all columns Except ignored ones.
-        ignore_columns (Hashable, List[Hashable]):
-            List of columns to ignore, if none given checks
-            based on columns variable.
-        n_to_show (int):
-            number of most common ambiguous samples to show.
+    Parameters
+    ----------
+    columns : Union[Hashable, List[Hashable]] , default: None
+        List of columns to check, if none given checks
+        all columns Except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
+        List of columns to ignore, if none given checks
+        based on columns variable.
+    n_to_show : int , default: 5
+        number of most common ambiguous samples to show.
     """
 
     def __init__(
@@ -50,8 +51,10 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
     def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
-        Returns:
-            (CheckResult): percentage of ambiguous samples and display of the top n_to_show most ambiguous.
+        Returns
+        -------
+        CheckResult
+            percentage of ambiguous samples and display of the top n_to_show most ambiguous.
         """
         if dataset_type == 'train':
             dataset = context.train
@@ -104,8 +107,10 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
     def add_condition_ambiguous_sample_ratio_not_greater_than(self, max_ratio=0):
         """Add condition - require samples with multiple labels to not be more than max_ratio.
 
-        Args:
-            max_ratio (float): Maximum ratio of samples with multiple labels.
+        Parameters
+        ----------
+        max_ratio : float , default: 0
+            Maximum ratio of samples with multiple labels.
         """
 
         def max_ratio_condition(result: float) -> ConditionResult:

@@ -26,8 +26,10 @@ __all__ = ['IdentifierLeakage']
 class IdentifierLeakage(SingleDatasetBaseCheck):
     """Check if identifiers (Index/Date) can be used to predict the label.
 
-    Args:
-        ppscore_params: dictionary containing params to pass to ppscore predictor
+    Parameters
+    ----------
+    ppscore_params : any , default: None
+        dictionary containing params to pass to ppscore predictor
     """
 
     def __init__(self, ppscore_params=None):
@@ -37,13 +39,15 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
     def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
-        Returns:
-            (CheckResult):
-                value is a dictionary with PPS per feature column.
-                data is a bar graph of the PPS of each feature.
-
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance with a label
+        Returns
+        -------
+        CheckResult
+            value is a dictionary with PPS per feature column.
+            data is a bar graph of the PPS of each feature.
+        Raises
+        ------
+        DeepchecksValueError
+            If the object is not a Dataset instance with a label.
         """
         if dataset_type == 'train':
             dataset = context.train
@@ -103,8 +107,10 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
     def add_condition_pps_not_greater_than(self, max_pps: float = 0):
         """Add condition - require columns not to have a greater pps than given max.
 
-        Args:
-            max_pps (int): Maximum allowed string length outliers ratio.
+        Parameters
+        ----------
+        max_pps : float , default: 0
+            Maximum allowed string length outliers ratio.
         """
         def compare_pps(result: Dict):
             not_passing_columns = {}

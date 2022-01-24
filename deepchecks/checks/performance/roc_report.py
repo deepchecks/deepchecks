@@ -29,8 +29,10 @@ class RocReport(SingleDatasetBaseCheck):
 
     For each class plots the ROC curve, calculate AUC score and displays the optimal threshold cutoff point.
 
-    Args:
-        excluded_classes (List): List of classes to exclude from the condition.
+    Parameters
+    ----------
+    excluded_classes : List , default: None
+        List of classes to exclude from the condition.
     """
 
     def __init__(self, excluded_classes: List = None):
@@ -40,11 +42,15 @@ class RocReport(SingleDatasetBaseCheck):
     def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
-        Returns:
-            CheckResult: value is dictionary of class and it's auc score, displays the roc graph with each class
+        Returns
+        -------
+        CheckResult
+            value is dictionary of a class and its auc score, displays the roc graph with each class
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance with a label
+        Raises
+        ------
+        DeepchecksValueError
+            If the object is not a Dataset instance with a label
         """
         if dataset_type == 'train':
             dataset = context.train
@@ -117,8 +123,10 @@ class RocReport(SingleDatasetBaseCheck):
     def add_condition_auc_not_less_than(self, min_auc: float = 0.7):
         """Add condition - require min allowed AUC score per class.
 
-        Args:
-            min_auc (float): Max allowed AUC score per class.
+        Parameters
+        ----------
+        min_auc : float , default: 0.7
+            Max allowed AUC score per class.
 
         """
         def condition(result: Dict) -> ConditionResult:

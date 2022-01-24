@@ -28,12 +28,15 @@ class CalibrationScore(SingleDatasetBaseCheck):
     def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
-        Returns:
-            CheckResult: value is dictionary of class and it's brier score, displays the calibration curve
+        Returns
+        -------
+        CheckResult
+            value is dictionary of a class and its brier score, displays the calibration curve
             graph with each class
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance with a label
+        Raises
+        ------
+            DeepchecksValueError: If the data is not a Dataset instance with a label.
         """
         if dataset_type == 'train':
             dataset = context.train

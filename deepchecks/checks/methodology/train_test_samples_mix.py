@@ -30,12 +30,16 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
     def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
 
-        Returns:
-            CheckResult: value is sample leakage ratio in %,
+        Returns
+        -------
+        CheckResult
+            value is sample leakage ratio in %,
             displays a dataframe that shows the duplicated rows between the datasets
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance
+        Raises
+        ------
+        DeepchecksValueError
+            If the data is not a Dataset instance
         """
         test_dataset = context.test
         train_dataset = context.train
@@ -66,8 +70,10 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
     def add_condition_duplicates_ratio_not_greater_than(self, max_ratio: float = 0.1):
         """Add condition - require max allowed ratio of test data samples to appear in train data.
 
-        Args:
-            max_ratio (float): Max allowed ratio of test data samples to appear in train data
+        Parameters
+        ----------
+        max_ratio : float , default: 0.1
+            Max allowed ratio of test data samples to appear in train data
         """
         def condition(result: dict) -> ConditionResult:
             ratio = result['ratio']

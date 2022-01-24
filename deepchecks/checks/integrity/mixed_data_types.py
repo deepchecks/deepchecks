@@ -28,15 +28,16 @@ __all__ = ['MixedDataTypes']
 class MixedDataTypes(SingleDatasetBaseCheck):
     """Detect a small amount of a rare data type within a column, such as few string samples in a mostly numeric column.
 
-    Args:
-        columns (Union[Hashable, List[Hashable]]):
-            Columns to check, if none are given checks all columns
-            except ignored ones.
-        ignore_columns (Union[Hashable, List[Hashable]]):
-            Columns to ignore, if none given checks based on columns
-            variable.
-        n_top_columns (int): (optional - used only if model was specified)
-          amount of columns to show ordered by feature importance (date, index, label are first)
+    Parameters
+    ----------
+    columns : Union[Hashable, List[Hashable]] , default: None
+        Columns to check, if none are given checks all columns
+        except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
+        Columns to ignore, if none given checks based on columns
+        variable.
+    n_top_columns : int , optional
+        amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
     def __init__(
@@ -53,9 +54,11 @@ class MixedDataTypes(SingleDatasetBaseCheck):
     def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
-        Returns:
-          (CheckResult): DataFrame with rows ('strings', 'numbers') for any column with mixed types.
-          numbers will also include hidden numbers in string representation.
+        Returns
+        -------
+        CheckResult
+            DataFrame with rows ('strings', 'numbers') for any column with mixed types.
+            numbers will also include hidden numbers in string representation.
         """
         if dataset_type == 'train':
             dataset = context.train
@@ -123,9 +126,11 @@ class MixedDataTypes(SingleDatasetBaseCheck):
         between, there is a real chance that the rarer data type may represent a problem to model training and
         inference.
 
-        Args:
-            ratio_range (Tuple[float, float]): The range between which the ratio of rarer data type in the column is
-                considered a problem.
+        Parameters
+        ----------
+        ratio_range : Tuple[float, float] , default: (0.01 , 0.1)
+            The range between which the ratio of rarer data type in the column is
+            considered a problem.
         """
         def condition(result):
             failing_columns = []

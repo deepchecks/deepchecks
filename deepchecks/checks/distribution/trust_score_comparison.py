@@ -38,17 +38,26 @@ class TrustScoreComparison(TrainTestBaseCheck):
     #. Predict on test data using the model.
     #. Use TrustScore to score the prediction of the model.
 
-    Args:
-        k_filter (int): used in TrustScore (Number of neighbors used during either kNN distance or probability
-                        filtering)
-        alpha (float): used in TrustScore (Fraction of instances to filter out to reduce impact of outliers)
-        max_number_categories (int): Indicates the maximum number of unique categories in a single categorical
-                                     column (rare categories will be changed to a form of "other")
-        min_test_samples (int): Minimal number of samples in train data to be able to run this check
-        sample_size (int): Number of samples to use for the check for train and test. if dataset contains less than
-                           sample_size than all the dataset will be used.
-        random_state (int): The random state to use for sampling.
-        n_to_show (int): Number of samples to show of worst and best trust score.
+    Parameters
+    ----------
+    k_filter : int , default: 10
+        used in TrustScore (Number of neighbors used during either kNN distance or probability
+        filtering)
+    alpha : float , default: 0.001
+        used in TrustScore (Fraction of instances to filter out to reduce impact of outliers)
+    max_number_categories : int , default: 10
+        Indicates the maximum number of unique categories in a single categorical
+        column (rare categories will be changed to a form of "other")
+    min_test_samples : int , default: 300
+        Minimal number of samples in train data to be able to run this check
+    sample_size : int , default: 10_000
+        Number of samples to use for the check for train and test. if dataset contains less than
+        sample_size than all the dataset will be used.
+    random_state : int , default: 42
+        The random state to use for sampling.
+    n_to_show : int , default: 5
+        Number of samples to show of worst and best trust score.
+    percent_top_scores_to_hide : float  , default: 0.05
     """
 
     def __init__(self, k_filter: int = 10, alpha: float = 0.001,
@@ -67,11 +76,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
         self.percent_top_scores_to_hide = percent_top_scores_to_hide
 
     def run_logic(self, context: CheckRunContext) -> CheckResult:
-        """Run check.
-
-        Args:
-            context (CheckRunContext)
-        """
+        """Run check."""
         test_dataset = context.test
         label_name = context.label_name
         train_dataset = context.train
@@ -168,8 +173,10 @@ class TrustScoreComparison(TrainTestBaseCheck):
         Percent of decline between the mean trust score of train and the mean trust score of test is not above
         given threshold.
 
-        Args:
-            threshold (float): Maximum percentage decline allowed (value 0 and above)
+        Parameters
+        ----------
+        threshold : float ,  default: 0.2
+            Maximum percentage decline allowed (value 0 and above)
         """
         def condition(result: dict):
             train_score = result['train']

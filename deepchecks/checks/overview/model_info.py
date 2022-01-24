@@ -25,8 +25,10 @@ class ModelInfo(ModelOnlyBaseCheck):
     def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
 
-        Returns:
-            CheckResult: value is dictionary in format {type: <model_type>, params: <model_params_dict>}
+        Returns
+        -------
+        CheckResult
+            value is dictionary in format {type: <model_type>, params: <model_params_dict>}
         """
         model = context.model
         estimator = get_model_of_pipeline(model)

@@ -23,9 +23,10 @@ __all__ = ['ColumnsInfo']
 class ColumnsInfo(SingleDatasetBaseCheck):
     """Return the role and logical type of each column.
 
-    Args:
-        n_top_columns (int): (optional - used only if model was specified)
-                             amount of columns to show ordered by feature importance (date, index, label are first)
+    Parameters
+    ----------
+    n_top_columns : int , optional
+        amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
     def __init__(self, n_top_columns: int = 10):
@@ -35,9 +36,11 @@ class ColumnsInfo(SingleDatasetBaseCheck):
     def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
-        Returns:
-          CheckResult: value is dictionary of a column and its role and logical type.
-          display a table of the dictionary.
+        Returns
+        -------
+        CheckResult
+            value is dictionary of a column and its role and logical type.
+            display a table of the dictionary.
         """
         if dataset_type == 'train':
             dataset = context.train

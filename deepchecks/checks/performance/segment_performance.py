@@ -28,16 +28,17 @@ __all__ = ['SegmentPerformance']
 class SegmentPerformance(SingleDatasetBaseCheck):
     """Display performance score segmented by 2 top (or given) features in a heatmap.
 
-    Args:
-        feature_1 (Hashable):
-            feature to segment by on y-axis.
-        feature_2 (Hashable):
-            feature to segment by on x-axis.
-        alternative_scorer (Tuple[str, Union[str, Callable]]):
-            Score to show, either function or sklearn scorer name.
-            If is not given a default scorer (per the model type) will be used.
-        max_segments (int):
-            maximal number of segments to split the a values into.
+    Parameters
+    ----------
+    feature_1 : Optional[Hashable] , default: None
+        feature to segment by on y-axis.
+    feature_2 : Optional[Hashable] , default: None
+        feature to segment by on x-axis.
+    alternative_scorer : Tuple[str, Union[str, Callable]] , default: None
+        Score to show, either function or sklearn scorer name.
+        If is not given a default scorer (per the model type) will be used.
+    max_segments : int , default: 10
+        maximal number of segments to split the values into.
     """
 
     feature_1: Optional[Hashable]

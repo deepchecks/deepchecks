@@ -91,9 +91,12 @@ class DeepcheckScorer:
     rather than the labels and predictions. Scorers are callables with the signature scorer(model, features, y_true).
     Additional data on scorer functions can be found at https://scikit-learn.org/stable/modules/model_evaluation.html.
 
-    Args:
-        scorer (t.Union[str, t.Callable]): sklearn scorer name or callable
-        name (str): scorer name
+    Parameters
+    ----------
+    scorer : t.Union[str, t.Callable]
+        sklearn scorer name or callable
+    name : str
+        scorer name
     """
 
     def __init__(self, scorer: t.Union[str, t.Callable], name: str):
@@ -182,11 +185,16 @@ def task_type_check(
 ) -> ModelType:
     """Check task type (regression, binary, multiclass) according to model object and label column.
 
-    Args:
-        model (BasicModel): Model object - used to check if it has predict_proba()
-        dataset (Dataset): dataset - used to count the number of unique labels
+    Parameters
+    ----------
+    model : BasicModel
+        Model object - used to check if it has predict_proba()
+    dataset : base.Dataset
+        dataset - used to count the number of unique labels
 
-    Returns:
+    Returns
+    -------
+    ModelType
         TaskType enum corresponding to the model and dataset
     """
     if dataset.label_name is None:
@@ -223,19 +231,22 @@ def task_type_check(
 
 
 def get_default_scorers(model_type, multiclass_avg: bool = True):
-    """Get default scorers based on model type."""
+    """Get default scorers based on model type.
+
+    Parameters
+    ----------
+    model_type : ModelType
+        model type to return scorers for
+    multiclass_avg : bool, default True
+        for classification whether to return scorers of average score or per class
+    """
     return_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and multiclass_avg is False
 
     if return_array:
         return MULTICLASS_SCORERS_NON_AVERAGE
+
     else:
         return DEFAULT_SCORERS_DICT[model_type]
-
-
-def get_default_single_scorer(model_type, multiclass_avg: bool = True):
-    scorers = get_default_scorers(model_type, multiclass_avg)
-    single = next(iter(scorers))
-    return {single: scorers[single]}
 
 
 def init_validate_scorers(scorers: t.Mapping[str, t.Callable],

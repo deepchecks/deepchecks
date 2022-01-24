@@ -38,8 +38,12 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
 
     Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
 
-    Args:
-        ppscore_params (dict): dictionary of additional parameters for the ppscore.predictors function
+    Parameters
+    ----------
+    ppscore_params : dict , default: None
+        dictionary of additional parameters for the ppscore.predictors function
+    n_show_top : int , default: 5
+        Number of features to show, sorted by the magnitude of difference in PPS
     """
 
     def __init__(self, ppscore_params=None, n_show_top: int = 5):
@@ -50,13 +54,16 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
     def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
-        Returns:
-            CheckResult:
-                value is a dictionary with PPS per feature column.
-                data is a bar graph of the PPS of each feature.
+        Returns
+        -------
+        CheckResult
+            value is a dictionary with PPS per feature column.
+            data is a bar graph of the PPS of each feature.
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance with a label
+        Raises
+        ------
+        DeepchecksValueError
+            If the object is not a Dataset instance with a label.
         """
         if dataset_type == 'train':
             dataset = context.train
@@ -93,8 +100,13 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         """
         Add condition that will check that pps of the specified feature(s) is not greater than X.
 
-        Args:
-            threshold: pps upper bound
+        Parameters
+        ----------
+        threshold : float , default: 0.8
+            pps upper bound
+        Returns
+        -------
+        FC
         """
         def condition(value: t.Dict[Hashable, float]) -> ConditionResult:
             failed_features = {

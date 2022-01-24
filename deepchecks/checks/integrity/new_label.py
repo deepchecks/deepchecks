@@ -31,9 +31,10 @@ class NewLabelTrainTest(TrainTestBaseCheck):
         Returns:
             CheckResult: value is a dictionary that shows label column with new labels
             displays a dataframe that label columns with new labels
-
-        Raises:
-            DeepchecksValueError: If the datasets are not a Dataset instance or do not contain label column
+        Raises
+        ------
+        DeepchecksValueError
+            If the datasets are not a Dataset instance or do not contain label column
         """
         test_dataset = context.test
         train_dataset = context.train
@@ -75,8 +76,10 @@ class NewLabelTrainTest(TrainTestBaseCheck):
     def add_condition_new_labels_not_greater_than(self, max_new: int = 0):
         """Add condition - require label column not to have greater than given number of different new labels.
 
-        Args:
-            max_new (int): Number of different new labels value types which is the maximum allowed.
+        Parameters
+        ----------
+        max_new : int , default: 0
+            Number of different new labels value types which is the maximum allowed.
         """
         def condition(result: Dict) -> ConditionResult:
             if result:
@@ -93,8 +96,10 @@ class NewLabelTrainTest(TrainTestBaseCheck):
     def add_condition_new_label_ratio_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require label column not to have greater than given number of ratio new label samples.
 
-        Args:
-            max_ratio (int): Ratio of new label samples to total samples which is the maximum allowed.
+        Parameters
+        ----------
+        max_ratio : float , default: 0
+            Ratio of new label samples to total samples which is the maximum allowed.
         """
         def new_category_count_condition(result: Dict) -> ConditionResult:
             if result:

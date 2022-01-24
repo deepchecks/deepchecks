@@ -44,9 +44,12 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
 
     Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
 
-    Args:
-        ppscore_params (dict): dictionary of additional parameters for the ppscore predictor function
-        n_show_top (int): Number of features to show, sorted by the magnitude of difference in PPS
+    Parameters
+    ----------
+    ppscore_params : dict , default: None
+        dictionary of additional parameters for the ppscore predictor function
+    n_show_top : int , default: 5
+        Number of features to show, sorted by the magnitude of difference in PPS
     """
 
     def __init__(self, ppscore_params=None, n_show_top: int = 5):
@@ -57,13 +60,16 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
     def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
 
-        Returns:
-            CheckResult:
-                value is a dictionary with PPS difference per feature column.
-                data is a bar graph of the PPS of each feature.
+        Returns
+        -------
+        CheckResult
+            value is a dictionary with PPS difference per feature column.
+            data is a bar graph of the PPS of each feature.
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance with a label
+        Raises
+        ------
+        DeepchecksValueError
+            If the object is not a Dataset instance with a label.
         """
         train_dataset = context.train
         test_dataset = context.test
@@ -149,8 +155,10 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         Add condition that will check that difference between train
         dataset feature pps and test dataset feature pps is not greater than X.
 
-        Args:
-            threshold: train test ps difference upper bound
+        Parameters
+        ----------
+        threshold : float , default: 0.2
+            train test ps difference upper bound.
         """
 
         def condition(value: t.Dict[Hashable, t.Dict[Hashable, float]]) -> ConditionResult:
@@ -174,8 +182,14 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
 
         Add condition that will check that train dataset feature pps is not greater than X.
 
-        Args:
-            threshold: pps upper bound
+        Parameters
+        ----------
+        threshold : float , default: 0.7
+            pps upper bound
+
+        Returns
+        -------
+        FC
         """
 
         def condition(value: t.Dict[Hashable, t.Dict[Hashable, float]]) -> ConditionResult:

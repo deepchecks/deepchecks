@@ -23,8 +23,10 @@ __all__ = ['IndexTrainTestLeakage']
 class IndexTrainTestLeakage(TrainTestBaseCheck):
     """Check if test indexes are present in train data.
 
-    Args:
-        n_index_to_show (int): Number of common indexes to show.
+    Parameters
+    ----------
+    n_index_to_show : int , default: 5
+        Number of common indexes to show.
     """
 
     def __init__(self, n_index_to_show: int = 5):
@@ -34,13 +36,15 @@ class IndexTrainTestLeakage(TrainTestBaseCheck):
     def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
 
-        Returns:
-           CheckResult:
-                - value is the ratio of index leakage.
-                - data is html display of the checks' textual result.
-
-        Raises:
-            DeepchecksValueError: If the if one of the datasets is not a Dataset instance with an index
+        Returns
+        -------
+        CheckResult
+            value is the ratio of index leakage.
+            data is html display of the checks' textual result.
+        Raises
+        ------
+        DeepchecksValueError
+            If one of the datasets is not a Dataset instance with an index
         """
         train_dataset = context.train
         test_dataset = context.test
@@ -65,8 +69,10 @@ class IndexTrainTestLeakage(TrainTestBaseCheck):
     def add_condition_ratio_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require index leakage ratio to not surpass max_ratio.
 
-        Args:
-            max_ratio (float): Maximum ratio of index leakage.
+        Parameters
+        ----------
+        max_ratio : float , default: 0
+            Maximum ratio of index leakage.
         """
         def max_ratio_condition(result: float) -> ConditionResult:
             if result > max_ratio:

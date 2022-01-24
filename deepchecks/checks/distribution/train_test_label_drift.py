@@ -27,16 +27,17 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
     Check calculates a drift score for the label in test dataset, by comparing its distribution to the train
     dataset.
     For numerical columns, we use the Earth Movers Distance.
-    See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf
+    See https://en.wikipedia.org/wiki/Wasserstein_metric
     For categorical columns, we use the Population Stability Index (PSI).
-    See https://en.wikipedia.org/wiki/Wasserstein_metric.
+    See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
 
 
-    Args:
-        max_num_categories (int):
-            Only for categorical columns. Max number of allowed categories. If there are more,
-            they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
-            for both drift calculation and for distribution plots.
+    Parameters
+    ----------
+    max_num_categories : int , default: 10
+        Only for categorical columns. Max number of allowed categories. If there are more,
+        they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
+        for both drift calculation and for distribution plots.
     """
 
     def __init__(
@@ -47,16 +48,13 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
         self.max_num_categories = max_num_categories
 
     def run_logic(self, context: CheckRunContext) -> CheckResult:
-        """
-        Calculate drift for all columns.
+        """Calculate drift for all columns.
 
-        Args:
-            context (CheckRunContext)
-
-        Returns:
-            CheckResult:
-                value: drift score.
-                display: label distribution graph, comparing the train and test distributions.
+        Returns
+        -------
+        CheckResult
+            value: drift score.
+            display: label distribution graph, comparing the train and test distributions.
         """
         train_dataset = context.train
         test_dataset = context.test
@@ -88,12 +86,16 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
         The industry standard for PSI limit is above 0.2.
         Earth movers does not have a common industry standard.
 
-        Args:
-            max_allowed_psi_score: the max threshold for the PSI score
-            max_allowed_earth_movers_score: the max threshold for the Earth Mover's Distance score
-
-        Returns:
-            ConditionResult: False if any column has passed the max threshold, True otherwise
+        Parameters
+        ----------
+        max_allowed_psi_score: float , default: 0.2
+            the max threshold for the PSI score
+        max_allowed_earth_movers_score: float ,  default: 0.1
+            the max threshold for the Earth Mover's Distance score
+        Returns
+        -------
+        ConditionResult
+            False if any column has passed the max threshold, True otherwise
         """
 
         def condition(result: Dict) -> ConditionResult:

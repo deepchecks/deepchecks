@@ -42,13 +42,14 @@ class StringMismatchComparison(TrainTestBaseCheck):
     Here, we have a new variant of the above strings, and would like to be acknowledged, as this is obviously a
     different version of 'St. Ring'.
 
-    Args:
-        columns (Union[Hashable, List[Hashable]]):
-            Columns to check, if none are given checks all columns except ignored ones.
-        ignore_columns (Union[Hashable, List[Hashable]]):
-            Columns to ignore, if none given checks based on columns variable
-        n_top_columns (int): (optional - used only if model was specified)
-            amount of columns to show ordered by feature importance (date, index, label are first)
+    Parameters
+    ----------
+    columns : Union[Hashable, List[Hashable]] , default: None
+        Columns to check, if none are given checks all columns except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
+        Columns to ignore, if none given checks based on columns variable
+    n_top_columns : int , optional
+        amount of columns to show ordered by feature importance (date, index, label are first)
     """
 
     def __init__(
@@ -65,8 +66,10 @@ class StringMismatchComparison(TrainTestBaseCheck):
     def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
 
-        Returns:
-            CheckResult: with value of type dict that contains detected different variants of string
+        Returns
+        -------
+        CheckResult
+            with value of type dict that contains detected different variants of string
         """
         # Validate parameters
         df = context.test.data
@@ -143,8 +146,10 @@ class StringMismatchComparison(TrainTestBaseCheck):
     def add_condition_ratio_new_variants_not_greater_than(self, ratio: float):
         """Add condition - no new variants allowed above given percentage in test data.
 
-        Args:
-            ratio (float): Max percentage of new variants in test data allowed.
+        Parameters
+        ----------
+        ratio : float
+            Max percentage of new variants in test data allowed.
         """
         name = f'Ratio of new variants in test data is not greater than {format_percent(ratio)}'
         return self.add_condition(name, _condition_percent_limit, ratio=ratio)
