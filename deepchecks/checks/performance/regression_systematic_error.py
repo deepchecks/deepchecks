@@ -27,15 +27,23 @@ class RegressionSystematicError(SingleDatasetBaseCheck):
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run check.
 
-        Arguments:
-            dataset (Dataset): A dataset object.
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
-        Returns:
-           CheckResult:
-                - value is a dict with rmse and mean prediction error.
-                - display is box plot of the prediction errorד.
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance with a label
+        Parameters
+        ----------
+        dataset : Dataset
+            A dataset object.
+        model : BaseEstimator
+            A scikit-learn-compatible fitted estimator instance
+
+        Returns
+        -------
+        CheckResult
+            value is a dict with rmse and mean prediction error.
+            display is box plot of the prediction error.
+
+        Raises
+        ------
+        DeepchecksValueError
+            If the object is not a Dataset instance with a label.
         """
         return self._regression_error_distribution(dataset, model)
 
@@ -76,8 +84,10 @@ class RegressionSystematicError(SingleDatasetBaseCheck):
     def add_condition_systematic_error_ratio_to_rmse_not_greater_than(self, max_ratio: float = 0.01):
         """Add condition - require the absolute mean systematic error to be not greater than (max_ratio * RMSE).
 
-        Args:
-            max_ratio (float): Maximum ratio
+        Parameters
+        ----------
+        max_ratio : float , default: 0.01
+            Maximum ratio
         """
         def max_bias_condition(result: dict) -> ConditionResult:
             rmse = result['rmse']

@@ -36,10 +36,11 @@ PR = TypeVar('PR', bound='PerformanceReport')
 class PerformanceReport(TrainTestBaseCheck):
     """Summarize given scores on a dataset and model.
 
-    Args:
-        alternative_scorers (Dict[str, Callable], default None):
-            An optional dictionary of scorer name to scorer functions.
-            If none given, using default scorers
+    Parameters
+    ----------
+    alternative_scorers : Dict[str, Callable], default: None
+        An optional dictionary of scorer name to scorer functions.
+        If none given, using default scorers
 
     Notes
     -----
@@ -78,12 +79,19 @@ class PerformanceReport(TrainTestBaseCheck):
     def run(self, train_dataset: Dataset, test_dataset: Dataset, model=None) -> CheckResult:
         """Run check.
 
-        Args:
-            dataset (Dataset): a Dataset object
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
+        Parameters
+        ----------
+        train_dataset : Dataset
+            a Dataset object
+        test_dataset : Dataset
+            a Dataset object
+        model : any, default: None
+            A scikit-learn-compatible fitted estimator instance
 
-        Returns:
-            CheckResult: value is dictionary in format 'score-name': score-value
+        Returns
+        -------
+        CheckResult
+            value is dictionary in format 'score-name': score-value
         """
         return self._performance_report(train_dataset, test_dataset, model)
 
@@ -157,8 +165,13 @@ class PerformanceReport(TrainTestBaseCheck):
     def add_condition_test_performance_not_less_than(self: PR, min_score: float) -> PR:
         """Add condition - metric scores are not less than given score.
 
-        Args:
-            min_score (float): Minimal score to pass.
+        Parameters
+        ----------
+        min_score : float
+            Minimal score to pass.
+        Returns
+        -------
+        PR
         """
         def condition(check_result: pd.DataFrame):
             not_passed = check_result.loc[check_result['Value'] < min_score]
@@ -174,8 +187,14 @@ class PerformanceReport(TrainTestBaseCheck):
     def add_condition_train_test_relative_degradation_not_greater_than(self: PR, threshold: float = 0.1) -> PR:
         """Add condition that will check that test performance is not degraded by more than given percentage in train.
 
-        Args:
-            threshold: maximum degradation ratio allowed (value between 0 and 1)
+        Parameters
+        ----------
+        threshold : float , default: 0.1
+            maximum degradation ratio allowed (value between 0 and 1)
+
+        Returns
+        -------
+        PR
         """
         def _ratio_of_change_calc(score_1, score_2):
             if score_1 == 0:
@@ -239,16 +258,22 @@ class PerformanceReport(TrainTestBaseCheck):
         Verifying that relative ratio difference
         between highest-class and lowest-class is not greater than 'threshold'.
 
-        Args:
-            threshold: ratio difference threshold
-            score: limit score for condition
+        Parameters
+        ----------
+        threshold : float , default: 0.3
+            ratio difference threshold
+        score : str , default: None
+            limit score for condition
 
-        Returns:
-            Self: instance of 'ClassPerformance' or it subtype
+        Returns
+        -------
+        PR
+            instance of 'ClassPerformance' or it subtype
 
-        Raises:
-            DeepchecksValueError:
-                if unknown score function name were passed;
+        Raises
+        ------
+        DeepchecksValueError
+            if unknown score function name were passed.
         """
         if score is None:
             score = next(iter(MULTICLASS_SCORERS_NON_AVERAGE))
@@ -298,10 +323,11 @@ class PerformanceReport(TrainTestBaseCheck):
 class MultiModelPerformanceReport(ModelComparisonBaseCheck):
     """Summarize performance scores for multiple models on test datasets.
 
-    Args:
-        alternative_scorers (Dict[str, Callable], default None):
-            An optional dictionary of scorer name to scorer functions.
-            If none given, using default scorers
+    Parameters
+    ----------
+    alternative_scorers : Dict[str, Callable] , default: None
+        An optional dictionary of scorer name to scorer functions.
+        If none given, using default scorers
     """
 
     def __init__(self, alternative_scorers: Dict[str, Callable] = None):

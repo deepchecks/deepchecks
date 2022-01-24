@@ -45,7 +45,7 @@ class ColumnsInfo(SingleDatasetBaseCheck):
         ----------
         dataset : t.Union[Dataset, pandas.DataFrame]
             any dataset.
-        model : any , default : None
+        model : any , default: None
 
         Returns
         -------

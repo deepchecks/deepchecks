@@ -30,9 +30,12 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
     is significantly "wider" from the normal distribution, which may imply a certain cause of error deforming the
     normal shape.
 
-    Args:
-        n_top_samples (int): amount of samples to show which have the largest under / over estimation errors.
-        n_bins (int): number of bins to use for the histogram.
+    Parameters
+    ----------
+    n_top_samples : int , default: 3
+        amount of samples to show which have the largest under / over estimation errors.
+    n_bins : int , default: 40
+        number of bins to use for the histogram.
     """
 
     def __init__(self, n_top_samples: int = 3, n_bins: int = 40):
@@ -43,17 +46,21 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
     def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
         """Run check.
 
-        Arguments:
-            dataset (Dataset): A dataset object.
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
-
-        Returns:
-           CheckResult:
-                - value is the kurtosis value (Fisher’s definition (normal ==> 0.0)).
-                - display is histogram of error distribution and the largest prediction errors.
-
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance with a label
+        Parameters
+        ----------
+        dataset : Dataset
+            A dataset object.
+        model : BaseEstimator
+            A scikit-learn-compatible fitted estimator instance
+        Returns
+        -------
+        CheckResult
+            value is the kurtosis value (Fisher’s definition (normal ==> 0.0)).
+            display is histogram of error distribution and the largest prediction errors.
+        Raises
+        ------
+        DeepchecksValueError
+            If the object is not a Dataset instance with a label
         """
         return self._regression_error_distribution(dataset, model)
 
@@ -96,8 +103,10 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
     def add_condition_kurtosis_not_less_than(self, min_kurtosis: float = -0.1):
         """Add condition - require min kurtosis value to be not less than min_kurtosis.
 
-        Args:
-            min_kurtosis (float): Minimal kurtosis.
+        Parameters
+        ----------
+        min_kurtosis : float , default: -0.1
+            Minimal kurtosis.
         """
         def min_kurtosis_condition(result: float) -> ConditionResult:
             if result < min_kurtosis:
