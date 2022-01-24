@@ -25,12 +25,16 @@ from deepchecks.utils.plot import colors
 def get_density(data, xs) -> np.ndarray:
     """Get gaussian kde density to plot.
 
-    Args:
-        data (): The data used to compute the pdf function.
-        xs (iterable): List of x values to plot the computed pdf for.
-
-    Returns:
-        np.array: The computed pdf values at the points xs.
+    Parameters
+    ----------
+    data
+        The data used to compute the pdf function.
+    xs : iterable
+        List of x values to plot the computed pdf for.
+    Returns
+    -------
+    np.array
+        The computed pdf values at the points xs.
     """
     # Is only single value adds noise, otherwise there is singular matrix error
     if len(np.unique(data)) == 1:
@@ -45,11 +49,16 @@ def get_density(data, xs) -> np.ndarray:
 def drift_score_bar_traces(drift_score: float, bar_max: float = None) -> Tuple[List[go.Bar], Dict, Dict]:
     """Create a traffic light bar traces for drift score.
 
-    Args:
-        drift_score (float): Drift score
-        bar_max (float): Maximum value for the bar
-    Returns:
-        List[go.Bar]: list of plotly bar traces.
+    Parameters
+    ----------
+    drift_score : float
+        Drift score
+    bar_max : float , default: None
+        Maximum value for the bar
+    Returns
+    -------
+    Tuple[List[go.Bar], Dict, Dict]
+        list of plotly bar traces.
     """
     traffic_light_colors = [((0, 0.1), '#01B8AA'),
                             ((0.1, 0.2), '#F2C80F'),
@@ -106,16 +115,26 @@ def feature_distribution_traces(train_column,
                                 quantile_cut: float = 0.02) -> Tuple[List[Union[go.Bar, go.Scatter]], Dict, Dict]:
     """Create traces for comparison between train and test column.
 
-    Args:
-        train_column (): Train data used to trace distribution.
-        test_column (): Test data used to trace distribution.
-        is_categorical (bool): State if column is categorical (default: False).
-        max_num_categories (int): Maximum number of categories to show in plot (default: 10).
-        quantile_cut (float): in which quantile to cut the edges of the plot
-    Returns:
-        List[Union[go.Bar, go.Scatter]]: list of plotly traces.
-        Dict: layout of x axis
-        Dict: layout of y axis
+    Parameters
+    ----------
+    train_column
+        Train data used to trace distribution.
+    test_column
+        Test data used to trace distribution.
+    is_categorical : bool , default: False
+        State if column is categorical.
+    max_num_categories : int , default: 10
+        Maximum number of categories to show in plot (default: 10).
+    quantile_cut : float , default: 0.02
+        in which quantile to cut the edges of the plot
+    Returns
+    -------
+    List[Union[go.Bar, go.Scatter]]
+        list of plotly traces.
+    Dict
+        layout of x axis
+    Dict
+        layout of y axis
     """
     if is_categorical:
         expected_percents, actual_percents, categories_list = \
