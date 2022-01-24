@@ -51,14 +51,14 @@ def test_dataset_wrong_input():
     x = 'wrong_input'
     assert_that(
         calling(IndexTrainTestLeakage().run).with_args(x, x),
-        raises(DeepchecksValueError, 'non-empty Dataset instance was expected, instead got str'))
+        raises(DeepchecksValueError, 'non-empty instance of Dataset or DataFrame was expected, instead got str'))
 
 
 def test_dataset_no_index():
     ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11]})
     assert_that(
         calling(IndexTrainTestLeakage().run).with_args(ds, ds),
-        raises(DatasetValidationError, 'Check is irrelevant for Datasets without an index'))
+        raises(DatasetValidationError, 'Check is irrelevant for Datasets without index defined'))
 
 
 def test_nan():

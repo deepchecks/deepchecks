@@ -21,10 +21,8 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import RobustScaler, OrdinalEncoder
 
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult, ConditionCategory
-from deepchecks.utils.features import calculate_feature_importance
-from deepchecks.utils.validation import validate_model
-from deepchecks.errors import DeepchecksValueError
 
 
 __all__ = ['UnusedFeatures']
@@ -38,17 +36,23 @@ class UnusedFeatures(TrainTestBaseCheck):
     by their variance (as calculated by a PCA transformation). High variance unused features may be containing
     information that is ignored by the model.
 
-    Args:
-        feature_importance_threshold (float): A cutoff value for the feature importance, measured by the ratio of
-            each features' feature importance to the mean feature importance. Features with lower importance
-            are not shown in the check display.
-        feature_variance_threshold (float): A cutoff value for the feature variance, measured by the ratio of
-            each features' feature variance to the mean feature variance. Unused features with lower variance
-            are not shown in the check display.
-        n_top_fi_to_show (int): The max number of important features to show in the check display.
-        n_top_unused_to_show (int): The max number of unused features to show in the check display, from among
-            unused features that have higher variance then is defined by feature_variance_threshold.
-        random_state (int): The random state to use for permutation feature importance and PCA.
+    Parameters
+    ----------
+    feature_importance_threshold : float , default: 0.2
+        A cutoff value for the feature importance, measured by the ratio of
+        each features' feature importance to the mean feature importance. Features with lower importance
+        are not shown in the check display.
+    feature_variance_threshold : float , default: 0.4
+        A cutoff value for the feature variance, measured by the ratio of
+        each features' feature variance to the mean feature variance. Unused features with lower variance
+        are not shown in the check display.
+    n_top_fi_to_show : int , default: 5
+        The max number of important features to show in the check display.
+    n_top_unused_to_show : int , default: 15
+        The max number of unused features to show in the check display, from among
+        unused features that have higher variance then is defined by feature_variance_threshold.
+    random_state : int , default: 42
+        The random state to use for permutation feature importance and PCA.
     """
 
     def __init__(self, feature_importance_threshold: float = 0.2, feature_variance_threshold: float = 0.4,
@@ -60,45 +64,34 @@ class UnusedFeatures(TrainTestBaseCheck):
         self.n_top_unused_to_show = n_top_unused_to_show
         self.random_state = random_state
 
-    def run(self, train_dataset: Dataset = None, test_dataset: Dataset = None, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
 
-        Args:
-            train_dataset (Dataset): The training dataset object. Must contain a label column. If test_dataset is not
-                                     supplied this dataset will be used.
-            test_dataset (Dataset): The test dataset object. Must contain a label column. Will be used if supplied.
-            model: A scikit-learn-compatible fitted estimator instance.
-
-        Returns:
-            CheckResult:
-                value is a dataframe with metrics as indexes, and scores per training and test in the columns.
-                display data is a bar graph of the metrics for training and test data.
-
-        Raises:
-            DeepchecksValueError: If neither train_dataset nor test_dataset exist, or either of the dataset objects are
-                                  not a Dataset instance with a label.
+        Returns
+        -------
+        CheckResult
+            value is a dataframe with metrics as indexes, and scores per training and test in the columns.
+            display data is a bar graph of the metrics for training and test data.
+        Raises
+        ------
+        DeepchecksValueError
+            If neither train dataset nor test dataset exist, or either of the dataset objects are
+            not a Dataset instance with a label.
         """
-        if test_dataset:
-            dataset = Dataset.ensure_not_empty_dataset(test_dataset)
-        elif train_dataset:
-            dataset = Dataset.ensure_not_empty_dataset(train_dataset)
+        if context.have_test():
+            dataset = context.test
         else:
-            raise DeepchecksValueError('Either train_dataset or test_dataset must be supplied')
+            dataset = context.train
 
-        self._dataset_has_label(dataset)
-        validate_model(dataset, model)
-
-        feature_importance, _ = calculate_feature_importance(model, dataset,
-                                                             permutation_kwargs={
-                                                                'random_state': self.random_state
-                                                             })
+        feature_importance = context.features_importance
+        features = context.features
 
         # Calculate normalized variance per feature based on PCA decomposition
         pre_pca_transformer, var_col_order = naive_encoder(dataset)
         pca_trans = PCA(n_components=len(dataset.features) // 2, random_state=self.random_state)
         n_samples = min(10000, dataset.n_samples)
         pca_trans.fit(pre_pca_transformer.fit_transform(
-            dataset.features_columns.sample(n_samples, random_state=self.random_state)
+            dataset.data[features].sample(n_samples, random_state=self.random_state)
         ))
 
         feature_normed_variance = pd.Series(np.abs(pca_trans.components_).sum(axis=0), index=var_col_order)
@@ -191,8 +184,10 @@ class UnusedFeatures(TrainTestBaseCheck):
             self, max_high_variance_unused_features: int = 5):
         """Add condition - require number of high variance unused features to be not greater than a given number.
 
-        Args:
-            max_high_variance_unused_features (int): Maximum allowed number of high variance unused features.
+        Parameters
+        ----------
+        max_high_variance_unused_features : int , default: 5
+            Maximum allowed number of high variance unused features.
         """
         def max_high_variance_unused_features_condition(result: dict) -> ConditionResult:
             high_var_features = result['unused features']['high variance']
@@ -215,10 +210,14 @@ def naive_encoder(dataset: Dataset) -> Tuple[TransformerMixin, list]:
     The encoder handles nans for all features and uses label encoder for categorical features. Then, all features are
     scaled using RobustScaler.
 
-    Args:
-        dataset: The dataset to encode.
+    Parameters
+    ----------
+    dataset : Dataset
+        The dataset to encode.
 
-    Returns:
+    Returns
+    -------
+    Tuple[TransformerMixin, list]
         A transformer object, a list of columns returned
     """
     numeric_features = [col for col in dataset.features if col not in dataset.cat_features]

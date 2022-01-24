@@ -43,7 +43,7 @@ def iris(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBoostClassifier]:
     )
 
     model = AdaBoostClassifier(random_state=0)
-    model.fit(train.features_columns, train.label_col)
+    model.fit(train.data[train.features], train.data[train.label_name])
 
     return train, test, model
 
@@ -59,9 +59,7 @@ def test_generic_suite(
     arguments = (
         dict(train_dataset=iris_train, test_dataset=iris_test, model=iris_model),
         dict(train_dataset=iris_train, model=iris_model),
-        dict(test_dataset=iris_test, model=iris_model),
         dict(train_dataset=diabetes_train, model=diabetes_model),
-        dict(test_dataset=diabetes_test, model=diabetes_model),
         dict(
             train_dataset=diabetes_train,
             test_dataset=diabetes_test,

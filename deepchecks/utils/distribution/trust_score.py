@@ -40,17 +40,23 @@ __all__ = ['TrustScore']
 class TrustScore:
     """Calculate trust score.
 
-    Args:
-        k_filter (int): Number of neighbors used during either kNN distance or probability filtering.
-        alpha (float): Fraction of instances to filter out to reduce impact of outliers.
-        filter_type (str): Filter method; either 'distance_knn' or 'probability_knn'
-        leaf_size (int): Number of points at which to switch to brute-force. Affects speed and memory required to
-                         build trees. Memory to store the tree scales with n_samples / leaf_size.
-        metric (str): Distance metric used for the tree. See sklearn's DistanceMetric class for a list of available
-                      metrics.
-        dist_filter_type (str): Use either the distance to the k-nearest point (dist_filter_type = 'point') or
-                                the average distance from the first to the k-nearest point in the data
-                                (dist_filter_type = 'mean').
+    Parameters
+    ----------
+    k_filter : int , default: 10
+        Number of neighbors used during either kNN distance or probability filtering.
+    alpha : float , default: 0.
+        Fraction of instances to filter out to reduce impact of outliers.
+    filter_type : str , default: distance_knn
+        Filter method; either 'distance_knn' or 'probability_knn'
+    leaf_size : int , default: 40
+        Number of points at which to switch to brute-force. Affects speed and memory required to
+        build trees. Memory to store the tree scales with n_samples / leaf_size.
+    metric : str , default: euclidean
+        Distance metric used for the tree. See sklearn's DistanceMetric class for a list of available
+        metrics.
+    dist_filter_type : str , default: point
+        Use either the distance to the k-nearest point (dist_filter_type = 'point') or
+        the average distance from the first to the k-nearest point in the data (dist_filter_type = 'mean').
     """
 
     def __init__(self, k_filter: int = 10, alpha: float = 0., filter_type: str = 'distance_knn',
@@ -70,11 +76,14 @@ class TrustScore:
         Calculate distance to k-nearest point in the data for each instance and remove instances above a cutoff
         distance.
 
-        Args:
-            X (np.ndarray): Data to filter
-
-        Returns:
-            (np.ndarray): Filtered data
+        Parameters
+        ----------
+        X : np.ndarray
+            Data to filter
+        Returns
+        -------
+        np.ndarray
+            Filtered data
         """
         kdtree = KDTree(X, leaf_size=self.leaf_size, metric=self.metric)
         k = min(self.k_filter + 1, len(X))
@@ -90,12 +99,16 @@ class TrustScore:
     def filter_by_probability_knn(self, X: np.ndarray, Y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Filter out instances with high label disagreement amongst its k nearest neighbors.
 
-        Args:
-            X (np.ndarray): Data
-            Y (np.ndarray): Predicted class labels
-
-        Returns:
-            (np.ndarray, np.ndarray): Filtered data and labels.
+        Parameters
+        ----------
+        X : np.ndarray
+            Data
+        Y : np.ndarray
+            Predicted class labels
+        Returns
+        -------
+        Tuple[np.ndarray, np.ndarray]
+            Filtered data and labels.
         """
         if self.k_filter == 1:
             warnings.warn('Number of nearest neighbors used for probability density filtering should '
@@ -115,9 +128,12 @@ class TrustScore:
     def fit(self, X: np.ndarray, Y: np.ndarray) -> None:
         """Build KDTrees for each prediction class.
 
-        Args:
-            X (np.ndarray): Data.
-            Y (np.ndarray): Target labels, either one-hot encoded or the actual class label.
+        Parameters
+        ----------
+        X : np.ndarray
+            Data.
+        Y : np.ndarray
+            Target labels, either one-hot encoded or the actual class label.
         """
         if len(X.shape) > 2:
             warnings.warn(f'Reshaping data from {X.shape} to {X.reshape(X.shape[0], -1).shape} so k-d trees can '
@@ -165,15 +181,21 @@ class TrustScore:
 
         ratio of distance to closest class other than the predicted class to distance to predicted class.
 
-        Args:
-            X (np.ndarray): Instances to calculate trust score for.
-            Y (np.ndarray): Either prediction probabilities for each class or the predicted class.
-            k (int): Number of nearest neighbors used for distance calculation.
-            dist_type (str): Use either the distance to the k-nearest point (dist_type = 'point') or the average
-                             distance from the first to the k-nearest point in the data (dist_type = 'mean').
-
-        Returns:
-            (np.ndarray, np.ndarray): Batch with trust scores and the closest not predicted class.
+        Parameters
+        ----------
+        X : np.ndarray
+            Instances to calculate trust score for.
+        Y : np.ndarray
+            Either prediction probabilities for each class or the predicted class.
+        k : int , default: 2
+            Number of nearest neighbors used for distance calculation.
+        dist_type : str , default: point
+            Use either the distance to the k-nearest point (dist_type = 'point') or the average
+            distance from the first to the k-nearest point in the data (dist_type = 'mean').
+        Returns
+        -------
+        Tuple[np.ndarray, np.ndarray]
+            Batch with trust scores and the closest not predicted class.
         """
         # make sure Y represents predicted classes, not probabilities
         if len(Y.shape) > 1:

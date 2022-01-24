@@ -12,11 +12,11 @@
 import numpy as np
 import pandas as pd
 
-from hamcrest import assert_that, has_length, has_entry, has_property, equal_to, has_items, all_of
-from deepchecks.base import Dataset
+from hamcrest import assert_that, has_length, has_entry, has_items, calling, raises
 
-from deepchecks import Dataset, ConditionCategory
+from deepchecks import Dataset
 from deepchecks.checks.integrity.mixed_nulls import MixedNulls
+from deepchecks.errors import DatasetValidationError
 from tests.checks.utils import equal_condition_result
 
 
@@ -45,9 +45,8 @@ def test_empty_dataframe():
     data = {'col1': []}
     dataframe = pd.DataFrame(data=data)
     # Act
-    result = MixedNulls().run(dataframe)
-    # Assert
-    assert_that(result.value, has_length(0))
+    assert_that(calling(MixedNulls().run).with_args(dataframe),
+                raises(DatasetValidationError, 'dataset cannot be empty'))
 
 
 def test_different_null_types():

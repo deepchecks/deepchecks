@@ -14,11 +14,10 @@ from typing import Dict, List
 import plotly.graph_objects as go
 import numpy as np
 import sklearn
-from sklearn.base import BaseEstimator
 
-from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck
+from deepchecks.base.check_context import CheckRunContext
+from deepchecks import CheckResult, SingleDatasetBaseCheck
 from deepchecks.base.check import ConditionResult
-from deepchecks.utils.metrics import ModelType
 from deepchecks.utils.strings import format_number
 
 
@@ -30,37 +29,41 @@ class RocReport(SingleDatasetBaseCheck):
 
     For each class plots the ROC curve, calculate AUC score and displays the optimal threshold cutoff point.
 
-    Args:
-        excluded_classes (List): List of classes to exclude from the condition.
+    Parameters
+    ----------
+    excluded_classes : List , default: None
+        List of classes to exclude from the condition.
     """
 
     def __init__(self, excluded_classes: List = None):
         super().__init__()
-        self.excluded_classes = excluded_classes if excluded_classes else []
+        self.excluded_classes = excluded_classes or []
 
-    def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
-        Args:
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
-            dataset: a Dataset object
-        Returns:
-            CheckResult: value is dictionary of class and it's auc score, displays the roc graph with each class
+        Returns
+        -------
+        CheckResult
+            value is dictionary of a class and its auc score, displays the roc graph with each class
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance with a label
+        Raises
+        ------
+        DeepchecksValueError
+            If the object is not a Dataset instance with a label
         """
-        return self._roc_report(dataset, model)
+        if dataset_type == 'train':
+            dataset = context.train
+        else:
+            dataset = context.test
 
-    def _roc_report(self, dataset: Dataset, model):
-        dataset = Dataset.ensure_not_empty_dataset(dataset)
-        ds_y = self._dataset_has_label(dataset)
-        ds_x = self._dataset_has_features(dataset)
-        self._verify_model_type(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
+        context.assert_classification_task()
+        ds_y = dataset.data[context.label_name]
+        ds_x = dataset.data[context.features]
+        y_pred_prob = context.model.predict_proba(ds_x)
 
         dataset_classes = dataset.classes
         multi_y = (np.array(ds_y)[:, None] == np.unique(ds_y)).astype(int)
-        y_pred_prob = model.predict_proba(ds_x)
 
         fpr = {}
         tpr = {}
@@ -120,8 +123,10 @@ class RocReport(SingleDatasetBaseCheck):
     def add_condition_auc_not_less_than(self, min_auc: float = 0.7):
         """Add condition - require min allowed AUC score per class.
 
-        Args:
-            min_auc (float): Max allowed AUC score per class.
+        Parameters
+        ----------
+        min_auc : float , default: 0.7
+            Max allowed AUC score per class.
 
         """
         def condition(result: Dict) -> ConditionResult:
