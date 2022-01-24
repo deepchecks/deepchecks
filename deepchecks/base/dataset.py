@@ -43,13 +43,13 @@ class Dataset:
     Args:
         df (pandas.DataFrame):
             A pandas DataFrame containing data relevant for the training or validating of a ML models.
-        label (t.Union[Hashable, pd.Series, pd.DataFrame, np.ndarray])
+        label (Union[Hashable, pd.Series, pd.DataFrame, np.ndarray]):
             label column provided either as a string with the name of an existing column in the DataFrame or a label
             object including the label data (pandas Series/DataFrame or a numpy array) that will be concatenated to the
             data in the DataFrame. in case of label data the following logic is applied to set the label name:
-                - Series: takes the series name or 'target' if name is empty
-                - DataFrame: expect single column in the dataframe and use its name
-                - numpy: use 'target'
+            * Series: takes the series name or 'target' if name is empty
+            * DataFrame: expect single column in the dataframe and use its name
+            * numpy: use 'target'
         features (Optional[Sequence[Hashable]]):
             List of names for the feature columns in the DataFrame.
         cat_features (Optional[Sequence[Hashable]]):

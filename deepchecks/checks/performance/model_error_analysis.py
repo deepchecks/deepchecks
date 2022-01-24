@@ -187,7 +187,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         ok_color = colors['Test']
 
         for feature in error_fi.keys()[:self.max_features_to_show]:
-            if error_fi[feature] < self.min_feature_contribution:
+            if error_fi[feature] < self.min_feature_contribution:  # pylint: disable=unsubscriptable-object
                 break
 
             data = pd.concat([test_dataset.data[feature], display_error], axis=1)

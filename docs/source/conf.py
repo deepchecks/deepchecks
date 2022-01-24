@@ -98,17 +98,27 @@ python_use_unqualified_type_names = True
 
 # -- autosummary settings --------------------------------------------------
 
-# A boolean flag indicating whether to document classes and 
+# Boolean indicating whether to scan all found documents for autosummary directives,
+# and to generate stub pages for each. It is enabled by default.
+#
+# autosummary_generate = False
+
+# If true, autosummary overwrites existing files by generated stub pages.
+# Defaults to true (enabled).
+#
+# autosummary_generate_overwrite = False
+
+# A boolean flag indicating whether to document classes and
 # functions imported in modules. Default is False
 #
 autosummary_imported_members = True
 
-# If False and a module has the __all__ attribute set, autosummary 
+# If False and a module has the __all__ attribute set, autosummary
 # documents every member listed in __all__ and no others. Default is True
 #
 autosummary_ignore_module_all = False
 
-# A dictionary of values to pass into the template engine’s context 
+# A dictionary of values to pass into the template engine’s context
 # for autosummary stubs files.
 #
 autosummary_context = {'to_snake_case': to_snake_case}
@@ -131,6 +141,13 @@ autodoc_class_signature = 'separated'
 #    'both' – Show typehints in the signature and as content of the function or method
 #
 autodoc_typehints = 'signature'
+
+# This value controls the format of typehints.
+# The setting takes the following values:
+#   + 'fully-qualified' – Show the module name and its name of typehints
+#   + 'short' – Suppress the leading module names of the typehints (default in version 5.0)
+#
+autodoc_typehints_format = 'short'
 
 
 # -- Napoleon settings --------------------------------------------------

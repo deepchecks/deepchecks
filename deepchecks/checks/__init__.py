@@ -34,7 +34,7 @@ from .methodology import (
     DateTrainTestLeakageDuplicates,
     DateTrainTestLeakageOverlap,
     IdentifierLeakage,
-    ModelInferenceTimeCheck,
+    ModelInferenceTime,
     DatasetsSizeComparison
 )
 
@@ -89,7 +89,7 @@ __all__ = [
     'DateTrainTestLeakageDuplicates',
     'DateTrainTestLeakageOverlap',
     'IdentifierLeakage',
-    'ModelInferenceTimeCheck',
+    'ModelInferenceTime',
     'DatasetsSizeComparison',
 
     # overview checks
