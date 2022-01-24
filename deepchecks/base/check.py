@@ -116,7 +116,7 @@ class CheckResult:
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
     def display_check(self, unique_id: str = None, as_widget: bool = False,
-                      show_additional_outputs=True):  # pragma: no cover
+                      show_additional_outputs=True):
         """Display the check result or return the display as widget.
 
         Args:
