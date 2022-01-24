@@ -249,7 +249,7 @@ def load_fitted_model():
     else:
         model = _build_model()
         train, _ = load_data()
-        model.fit(train.features_columns, train.label_col)
+        model.fit(train.data[train.features], train.data[train.label_name])
     return model
 
 
