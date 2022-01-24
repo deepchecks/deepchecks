@@ -13,11 +13,10 @@ from typing import Union, List
 
 import numpy as np
 
-from deepchecks import Dataset
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_percent, format_list
-from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DatasetValidationError
 
@@ -28,15 +27,16 @@ __all__ = ['DataDuplicates']
 class DataDuplicates(SingleDatasetBaseCheck):
     """Checks for duplicate samples in the dataset.
 
-    Args:
-        columns (Hashable, Iterable[Hashable]):
-            List of columns to check, if none given checks
-            all columns Except ignored ones.
-        ignore_columns (Hashable, Iterable[Hashable]):
-            List of columns to ignore, if none given checks
-            based on columns variable.
-        n_to_show (int):
-            number of most common duplicated samples to show.
+    Parameters
+    ----------
+    columns : Union[Hashable, List[Hashable]] , default: None
+        List of columns to check, if none given checks
+        all columns Except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
+        List of columns to ignore, if none given checks
+        based on columns variable.
+    n_to_show : int , default: 5
+        number of most common duplicated samples to show.
     """
 
     def __init__(
@@ -50,16 +50,19 @@ class DataDuplicates(SingleDatasetBaseCheck):
         self.ignore_columns = ignore_columns
         self.n_to_show = n_to_show
 
-    def run(self, dataset: Dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train'):
         """Run check.
 
-        Args:
-            dataset (Dataset): any dataset.
-
-        Returns:
-            (CheckResult): percentage of duplicates and display of the top n_to_show most duplicated.
+        Returns
+        -------
+        CheckResult
+            percentage of duplicates and display of the top n_to_show most duplicated.
         """
-        df = ensure_dataframe_type(dataset)
+        if dataset_type == 'train':
+            df = context.train.data
+        else:
+            df = context.test.data
+
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
 
         data_columns = list(df.columns)
@@ -114,8 +117,10 @@ class DataDuplicates(SingleDatasetBaseCheck):
     def add_condition_ratio_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require duplicate ratio to not surpass max_ratio.
 
-        Args:
-            max_ratio (float): Maximum ratio of duplicates.
+        Parameters
+        ----------
+        max_ratio : float , default: 0
+            Maximum ratio of duplicates.
         """
         def max_ratio_condition(result: float) -> ConditionResult:
             if result > max_ratio:

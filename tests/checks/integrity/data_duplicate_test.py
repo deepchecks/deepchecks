@@ -80,7 +80,7 @@ def test_data_duplicates_empty():
                             'col3': []})
     assert_that(
         calling(DataDuplicates().run).with_args(no_data),
-        raises(DatasetValidationError, 'Dataset does not contain any data'))
+        raises(DatasetValidationError, 'dataset cannot be empty'))
 
 
 def test_data_duplicates_ignore_index_column():

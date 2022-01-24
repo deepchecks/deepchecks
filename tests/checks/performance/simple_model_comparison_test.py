@@ -12,8 +12,8 @@
 from sklearn.metrics import make_scorer, recall_score, f1_score
 
 from deepchecks.checks.performance import SimpleModelComparison
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError
-from deepchecks.utils.metrics import DEFAULT_SINGLE_SCORER, ModelType, DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG
+from deepchecks.errors import DeepchecksValueError
+from deepchecks.utils.metrics import ModelType, get_default_scorers
 from tests.checks.utils import equal_condition_result
 
 from hamcrest import (
@@ -27,7 +27,7 @@ def test_dataset_wrong_input():
     # Act & Assert
     assert_that(calling(SimpleModelComparison().run).with_args(bad_dataset, bad_dataset, None),
                 raises(DeepchecksValueError,
-                       'non-empty Dataset instance was expected, instead got str'))
+                       'non-empty instance of Dataset or DataFrame was expected, instead got str'))
 
 
 def test_classification_random(iris_split_dataset_and_model):
@@ -250,7 +250,9 @@ def test_regression_tree_max_depth(diabetes_split_dataset_and_model):
 
 
 def assert_regression(result):
-    metric = DEFAULT_SINGLE_SCORER[ModelType.REGRESSION]
+    default_scorers = get_default_scorers(ModelType.REGRESSION)
+    metric = next(iter(default_scorers))
+
     assert_that(result['scores'], has_entry(metric, has_entries({
         'Origin': close_to(-100, 100), 'Simple': close_to(-100, 100)
     })))
@@ -259,7 +261,9 @@ def assert_regression(result):
 
 
 def assert_classification(result, classes, metrics=None):
-    metrics = metrics or [DEFAULT_SINGLE_SCORER_MULTICLASS_NON_AVG]
+    if not metrics:
+        default_scorers = get_default_scorers(ModelType.MULTICLASS, multiclass_avg=False)
+        metrics = [next(iter(default_scorers))]
     class_matchers = {clas: has_entries({'Origin': close_to(1, 1), 'Simple': close_to(1, 1)})
                       for clas in result['classes']}
     matchers = {metric: has_entries(class_matchers) for metric in metrics}

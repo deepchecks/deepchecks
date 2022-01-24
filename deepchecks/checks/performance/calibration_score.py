@@ -9,13 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """The calibration score check module."""
-from sklearn.base import BaseEstimator
+import typing as t
 from sklearn.calibration import calibration_curve
 from sklearn.metrics import brier_score_loss
 import plotly.graph_objects as go
 
-from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
-from deepchecks.utils.metrics import ModelType
+from deepchecks.base.check_context import CheckRunContext
+from deepchecks import CheckResult, SingleDatasetBaseCheck
+from deepchecks.utils.typing import ClassificationModel
+
 
 __all__ = ['CalibrationScore']
 
@@ -23,27 +25,28 @@ __all__ = ['CalibrationScore']
 class CalibrationScore(SingleDatasetBaseCheck):
     """Calculate the calibration curve with brier score for each class."""
 
-    def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
-        Args:
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
-            dataset: a Dataset object
-        Returns:
-            CheckResult: value is dictionary of class and it's brier score, displays the calibration curve
+        Returns
+        -------
+        CheckResult
+            value is dictionary of a class and its brier score, displays the calibration curve
             graph with each class
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance with a label
+        Raises
+        ------
+            DeepchecksValueError: If the data is not a Dataset instance with a label.
         """
-        return self._calibration_score(dataset, model)
+        if dataset_type == 'train':
+            dataset = context.train
+        else:
+            dataset = context.test
 
-    def _calibration_score(self, dataset: Dataset, model):
-        dataset = Dataset.ensure_not_empty_dataset(dataset)
-        ds_x = self._dataset_has_features(dataset)
-        ds_y = self._dataset_has_label(dataset)
-
-        self._verify_model_type(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
+        context.assert_classification_task()
+        ds_x = dataset.data[context.features]
+        ds_y = dataset.data[context.label_name]
+        model = t.cast(ClassificationModel, context.model)
 
         # Expect predict_proba to return in order of the sorted classes.
         y_pred = model.predict_proba(ds_x)

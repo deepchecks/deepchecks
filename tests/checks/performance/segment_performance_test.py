@@ -11,7 +11,8 @@
 """Tests for segment performance check."""
 from hamcrest import assert_that, has_entries, close_to, has_property, equal_to, calling, raises
 
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks import Dataset
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError, DeepchecksNotSupportedError
 from deepchecks.checks.performance.segment_performance import SegmentPerformance
 
 
@@ -20,15 +21,18 @@ def test_dataset_wrong_input():
     # Act & Assert
     assert_that(
         calling(SegmentPerformance().run).with_args(bad_dataset, None),
-        raises(DeepchecksValueError, 'non-empty Dataset instance was expected, instead got str')
+        raises(DeepchecksValueError, 'non-empty instance of Dataset or DataFrame was expected, instead got str')
     )
 
 
-def test_dataset_no_label(iris_dataset, iris_adaboost):
+def test_dataset_no_label(iris, iris_adaboost):
+    # Arrange
+    iris = iris.drop('target', axis=1)
+    iris_dataset = Dataset(iris)
     # Assert
     assert_that(
         calling(SegmentPerformance().run).with_args(iris_dataset, iris_adaboost),
-        raises(DatasetValidationError, 'Check is irrelevant for Datasets without label')
+        raises(DeepchecksNotSupportedError, 'Check is irrelevant for Datasets without label')
     )
 
 

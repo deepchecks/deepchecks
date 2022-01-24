@@ -81,7 +81,8 @@ def test_task_type_not_sklearn_multiclass(iris_labeled_dataset):
 
 def test_task_type_check_class_with_no_proba(iris_dataset_single_class):
 
-    clf = SVC().fit(iris_dataset_single_class.features_columns, iris_dataset_single_class.label_col)
+    clf = SVC().fit(iris_dataset_single_class.data[iris_dataset_single_class.features],
+                    iris_dataset_single_class.data[iris_dataset_single_class.label_name])
 
     assert_that(calling(task_type_check).with_args(clf, iris_dataset_single_class),
                 raises(DeepchecksValueError,

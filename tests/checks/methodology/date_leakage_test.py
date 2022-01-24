@@ -105,20 +105,20 @@ def test_dataset_wrong_input():
     x = 'wrong_input'
     assert_that(
         calling(DateTrainTestLeakageDuplicates().run).with_args(x, x),
-        raises(DeepchecksValueError, 'non-empty Dataset instance was expected, instead got str'))
+        raises(DeepchecksValueError, 'non-empty instance of Dataset or DataFrame was expected, instead got str'))
     assert_that(
         calling(DateTrainTestLeakageOverlap().run).with_args(x, x),
-        raises(DeepchecksValueError, 'non-empty Dataset instance was expected, instead got str'))
+        raises(DeepchecksValueError, 'non-empty instance of Dataset or DataFrame was expected, instead got str'))
 
 
 def test_dataset_no_index():
     ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11]})
     assert_that(
         calling(DateTrainTestLeakageDuplicates().run).with_args(ds, ds),
-        raises(DatasetValidationError, 'Check is irrelevant for Datasets without datetime column'))
+        raises(DatasetValidationError, 'Check is irrelevant for Datasets without datetime defined'))
     assert_that(
         calling(DateTrainTestLeakageOverlap().run).with_args(ds, ds),
-        raises(DatasetValidationError, 'Check is irrelevant for Datasets without datetime column'))
+        raises(DatasetValidationError, 'Check is irrelevant for Datasets without datetime defined'))
 
 
 def test_dates_from_val_before_train():
@@ -290,7 +290,7 @@ def test_condition_fail_on_overlap_date_in_index():
         datetime(2021, 10, 8, 0, 0),
         datetime(2021, 10, 9, 0, 0),
         datetime(2021, 10, 9, 0, 0)
-    ]), set_datetime_from_dataframe_index=True, datetime_name=0)
+    ]), set_datetime_from_dataframe_index=True)
 
     check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_not_greater_than(0.2)
 

@@ -67,7 +67,8 @@ def diabetes(diabetes_df):
 def diabetes_model(diabetes):
     clf = GradientBoostingRegressor(random_state=0)
     train, _ = diabetes
-    return clf.fit(train.features_columns, train.label_col)
+    clf.fit(train.data[train.features], train.data[train.label_name])
+    return clf
 
 
 @pytest.fixture(scope='session')
@@ -158,7 +159,7 @@ def iris_split_dataset_and_model(iris_clean) -> Tuple[Dataset, Dataset, AdaBoost
     train_ds = Dataset(train, label='target')
     val_ds = Dataset(test, label='target')
     clf = AdaBoostClassifier(random_state=0)
-    clf.fit(train_ds.features_columns, train_ds.label_col)
+    clf.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
     return train_ds, val_ds, clf
 
 
@@ -169,7 +170,7 @@ def iris_split_dataset_and_model_rf(iris) -> Tuple[Dataset, Dataset, RandomFores
     train_ds = Dataset(train, label='target')
     val_ds = Dataset(test, label='target')
     clf = RandomForestClassifier(random_state=0, n_estimators=10, max_depth=2)
-    clf.fit(train_ds.features_columns, train_ds.label_col)
+    clf.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
     return train_ds, val_ds, clf
 
 
@@ -183,7 +184,7 @@ def iris_binary_string_split_dataset_and_model(iris) -> Tuple[Dataset, Dataset, 
     train_ds = Dataset(train, label='target')
     test_ds = Dataset(test, label='target')
     clf = DecisionTreeClassifier(random_state=0)
-    clf.fit(train_ds.features_columns, train_ds.label_col)
+    clf.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
     return train_ds, test_ds, clf
 
 
@@ -271,7 +272,7 @@ def drifted_data_and_model(drifted_data) -> Tuple[Dataset, Dataset, Pipeline]:
         ('model', DecisionTreeClassifier(random_state=0, max_depth=2))]
     )
 
-    model.fit(train_ds.features_columns, train_ds.label_col)
+    model.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
 
     return train_ds, test_ds, model
 

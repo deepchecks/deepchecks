@@ -10,11 +10,10 @@
 #
 """Module contains model_info check."""
 import pandas as pd
-from sklearn.base import BaseEstimator
 
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks import ModelOnlyBaseCheck, CheckResult
 from deepchecks.utils.model import get_model_of_pipeline
-from deepchecks.utils.validation import model_type_validation
 
 
 __all__ = ['ModelInfo']
@@ -23,16 +22,15 @@ __all__ = ['ModelInfo']
 class ModelInfo(ModelOnlyBaseCheck):
     """Summarize given model parameters."""
 
-    def run(self, model: BaseEstimator) -> CheckResult:
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
 
-        Args:
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
-
-        Returns:
-            CheckResult: value is dictionary in format {type: <model_type>, params: <model_params_dict>}
+        Returns
+        -------
+        CheckResult
+            value is dictionary in format {type: <model_type>, params: <model_params_dict>}
         """
-        model_type_validation(model)
+        model = context.model
         estimator = get_model_of_pipeline(model)
         model_type = type(estimator).__name__
         model_params = estimator.get_params()
