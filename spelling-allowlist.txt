@@ -32,3 +32,5 @@ groupby
 r2
 tqdm
 nan
+kaggle
+colab

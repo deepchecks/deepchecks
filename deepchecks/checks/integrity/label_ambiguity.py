@@ -13,13 +13,11 @@ from typing import Union, List
 
 import pandas as pd
 
-from deepchecks import Dataset, ConditionResult
+from deepchecks.base.check_context import CheckRunContext
+from deepchecks import ConditionResult
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck
-from deepchecks.errors import DatasetValidationError
-from deepchecks.utils.metrics import ModelType
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
-
 
 __all__ = ['LabelAmbiguity']
 
@@ -27,48 +25,45 @@ __all__ = ['LabelAmbiguity']
 class LabelAmbiguity(SingleDatasetBaseCheck):
     """Find samples with multiple labels.
 
-    Args:
-        columns (Hashable, List[Hashable]):
-            List of columns to check, if none given checks
-            all columns Except ignored ones.
-        ignore_columns (Hashable, List[Hashable]):
-            List of columns to ignore, if none given checks
-            based on columns variable.
-        n_to_show (int):
-            number of most common ambiguous samples to show.
+    Parameters
+    ----------
+    columns : Union[Hashable, List[Hashable]] , default: None
+        List of columns to check, if none given checks
+        all columns Except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
+        List of columns to ignore, if none given checks
+        based on columns variable.
+    n_to_show : int , default: 5
+        number of most common ambiguous samples to show.
     """
 
     def __init__(
-        self,
-        columns: Union[Hashable, List[Hashable], None] = None,
-        ignore_columns: Union[Hashable, List[Hashable], None] = None,
-        n_to_show: int = 5
+            self,
+            columns: Union[Hashable, List[Hashable], None] = None,
+            ignore_columns: Union[Hashable, List[Hashable], None] = None,
+            n_to_show: int = 5
     ):
         super().__init__()
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_to_show = n_to_show
 
-    def run(self, dataset: Dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
-        Args:
-            dataset(Dataset): any dataset.
-            model (any): used to check task type (default: None)
-
-        Returns:
-            (CheckResult): percentage of ambiguous samples and display of the top n_to_show most ambiguous.
+        Returns
+        -------
+        CheckResult
+            percentage of ambiguous samples and display of the top n_to_show most ambiguous.
         """
-        dataset = Dataset.ensure_not_empty_dataset(dataset)
+        if dataset_type == 'train':
+            dataset = context.train
+        else:
+            dataset = context.test
+
+        context.assert_classification_task()
+
         dataset = dataset.select(self.columns, self.ignore_columns)
-
-        if model:
-            self._verify_model_type(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
-
-        elif dataset.label_type == 'regression_label':
-            raise DatasetValidationError(
-                'Check is relevant for the classification tasks'
-            )
 
         label_col = dataset.label_name
 
@@ -105,16 +100,19 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
 
         display = None if display.empty else [explanation, display.head(self.n_to_show)]
 
-        percent_ambiguous = num_ambiguous/dataset.n_samples
+        percent_ambiguous = num_ambiguous / dataset.n_samples
 
         return CheckResult(value=percent_ambiguous, display=display)
 
     def add_condition_ambiguous_sample_ratio_not_greater_than(self, max_ratio=0):
         """Add condition - require samples with multiple labels to not be more than max_ratio.
 
-        Args:
-            max_ratio (float): Maximum ratio of samples with multiple labels.
+        Parameters
+        ----------
+        max_ratio : float , default: 0
+            Maximum ratio of samples with multiple labels.
         """
+
         def max_ratio_condition(result: float) -> ConditionResult:
             if result > max_ratio:
                 return ConditionResult(False, f'Found ratio of samples with multiple labels above threshold: '

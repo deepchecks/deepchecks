@@ -12,7 +12,8 @@
 import numpy as np
 from hamcrest import assert_that, calling, raises
 from deepchecks.checks.performance import ConfusionMatrixReport
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError, ModelValidationError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError, ModelValidationError, \
+    DeepchecksNotSupportedError
 
 
 def test_dataset_wrong_input():
@@ -22,7 +23,7 @@ def test_dataset_wrong_input():
         calling(ConfusionMatrixReport().run).with_args(bad_dataset, None),
         raises(
             DeepchecksValueError,
-            'non-empty Dataset instance was expected, instead got str')
+            'non-empty instance of Dataset or DataFrame was expected, instead got str')
     )
 
 
@@ -30,7 +31,7 @@ def test_dataset_no_label(iris_dataset, iris_adaboost):
     # Assert
     assert_that(
         calling(ConfusionMatrixReport().run).with_args(iris_dataset, iris_adaboost),
-        raises(DatasetValidationError, 'Check is irrelevant for Datasets without label')
+        raises(DeepchecksNotSupportedError, 'Check is irrelevant for Datasets without label')
     )
 
 

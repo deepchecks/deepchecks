@@ -9,13 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """The data_sample_leakage_report check module."""
-from typing import Dict, Any
+from typing import Dict
 import pandas as pd
 
-from deepchecks import Dataset
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks.base.check import CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.errors import ModelValidationError
-from deepchecks.utils.metrics import ModelType
 from deepchecks.utils.strings import format_percent
 
 pd.options.mode.chained_assignment = None
@@ -27,42 +25,29 @@ __all__ = ['NewLabelTrainTest']
 class NewLabelTrainTest(TrainTestBaseCheck):
     """Find new labels in test."""
 
-    def run(self, train_dataset: Dataset, test_dataset: Dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
 
-        Args:
-            train_dataset (Dataset): The training dataset object.
-            test_dataset (Dataset): The test dataset object.
-            model (any): used to check task type (default: None)
-
-        Returns:
-            CheckResult: value is a dictionary that shows label column with new labels
+        Returns
+        -------
+        CheckResult
+            value is a dictionary that shows label column with new labels
             displays a dataframe that label columns with new labels
-
-        Raises:
-            DeepchecksValueError: If the datasets are not a Dataset instance or do not contain label column
+        Raises
+        ------
+        DeepchecksValueError
+            If the datasets are not a Dataset instance or do not contain label column
         """
-        return self._new_label_train_test(train_dataset=train_dataset,
-                                          test_dataset=test_dataset,
-                                          model=model)
+        test_dataset = context.test
+        train_dataset = context.train
+        label_name = context.label_name
 
-    def _new_label_train_test(self, train_dataset: Dataset, test_dataset: Dataset, model: Any = None):
-        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
-        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
-
-        test_label = self._dataset_has_label(test_dataset)
-        train_label = self._dataset_has_label(train_dataset)
-        label_column = self._datasets_share_label([test_dataset, train_dataset])
-
-        if model:
-            self._verify_model_type(model, train_dataset, [ModelType.MULTICLASS, ModelType.BINARY])
-        elif train_dataset.label_type == 'regression_label':
-            raise ModelValidationError('Check is irrelevant for for the regression tasks')
+        context.assert_classification_task()
 
         n_test_samples = test_dataset.n_samples
 
-        train_label = train_dataset.data[label_column]
-        test_label = test_dataset.data[label_column]
+        train_label = train_dataset.data[label_name]
+        test_label = test_dataset.data[label_name]
 
         unique_training_values = set(train_label.unique())
         unique_test_values = set(test_label.unique())
@@ -72,7 +57,7 @@ class NewLabelTrainTest(TrainTestBaseCheck):
         if new_labels:
             n_new_label = len(test_label[test_label.isin(new_labels)])
 
-            dataframe = pd.DataFrame(data=[[label_column, format_percent(n_new_label / n_test_samples),
+            dataframe = pd.DataFrame(data=[[label_name, format_percent(n_new_label / n_test_samples),
                                             sorted(new_labels)]],
                                      columns=['Label column', 'Percent new labels in sample', 'New labels'])
             dataframe = dataframe.set_index(['Label column'])
@@ -93,8 +78,10 @@ class NewLabelTrainTest(TrainTestBaseCheck):
     def add_condition_new_labels_not_greater_than(self, max_new: int = 0):
         """Add condition - require label column not to have greater than given number of different new labels.
 
-        Args:
-            max_new (int): Number of different new labels value types which is the maximum allowed.
+        Parameters
+        ----------
+        max_new : int , default: 0
+            Number of different new labels value types which is the maximum allowed.
         """
         def condition(result: Dict) -> ConditionResult:
             if result:
@@ -111,8 +98,10 @@ class NewLabelTrainTest(TrainTestBaseCheck):
     def add_condition_new_label_ratio_not_greater_than(self, max_ratio: float = 0):
         """Add condition - require label column not to have greater than given number of ratio new label samples.
 
-        Args:
-            max_ratio (int): Ratio of new label samples to total samples which is the maximum allowed.
+        Parameters
+        ----------
+        max_ratio : float , default: 0
+            Ratio of new label samples to total samples which is the maximum allowed.
         """
         def new_category_count_condition(result: Dict) -> ConditionResult:
             if result:

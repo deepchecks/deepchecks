@@ -30,7 +30,7 @@ def test_boosting_classifier(iris):
     test = Dataset(test, label='target')
 
     clf = GradientBoostingClassifier(random_state=0)
-    clf.fit(train.features_columns, train.label_col)
+    clf.fit(train.data[train.features], train.data[train.label_name])
 
     # Act
     result = BoostingOverfit().run(train, test, clf)
@@ -51,7 +51,7 @@ def test_boosting_model_is_pipeline(iris):
     test = Dataset(test, label='target')
 
     pipe = Pipeline([('scaler', StandardScaler()), ('lr', GradientBoostingClassifier(random_state=0))])
-    pipe.fit(train.features_columns, train.label_col)
+    pipe.fit(train.data[train.features], train.data[train.label_name])
 
     # Act
     result = BoostingOverfit().run(train, test, pipe)
@@ -89,10 +89,10 @@ def test_boosting_classifier_with_metric(iris):
     validation = Dataset(validation_df, label='target')
 
     clf = GradientBoostingClassifier(random_state=0)
-    clf.fit(train.features_columns, train.label_col)
+    clf.fit(train.data[train.features], train.data[train.label_name])
 
     # Act
-    result = BoostingOverfit(scorer='recall_micro').run(train, validation, clf)
+    result = BoostingOverfit(alternative_scorer=('recall', 'recall_micro')).run(train, validation, clf)
 
     # Assert
     train_scores = result.value['train']

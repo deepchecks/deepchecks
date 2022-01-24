@@ -15,8 +15,7 @@ from hamcrest import assert_that, close_to, calling, raises, has_entries, has_le
 
 from deepchecks import Dataset
 from deepchecks.checks.methodology import SingleFeatureContribution, SingleFeatureContributionTrainTest
-from deepchecks.checks.methodology.single_feature_contribution import pps_html_url
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError, DeepchecksNotSupportedError
 
 from tests.checks.utils import equal_condition_result
 
@@ -67,7 +66,7 @@ def test_dataset_wrong_input():
     wrong = 'wrong_input'
     assert_that(
         calling(SingleFeatureContribution().run).with_args(wrong),
-        raises(DeepchecksValueError, 'non-empty Dataset instance was expected, instead got str'))
+        raises(DeepchecksValueError, 'non-empty instance of Dataset or DataFrame was expected, instead got str'))
 
 
 def test_dataset_no_label():
@@ -75,7 +74,7 @@ def test_dataset_no_label():
     df = Dataset(df)
     assert_that(
         calling(SingleFeatureContribution().run).with_args(dataset=df),
-        raises(DatasetValidationError, 'Check is irrelevant for Datasets without label'))
+        raises(DeepchecksNotSupportedError, 'Check is irrelevant for Datasets without label'))
 
 
 def test_trainval_assert_single_feature_contribution():
@@ -100,7 +99,7 @@ def test_trainval_dataset_wrong_input():
         calling(SingleFeatureContributionTrainTest().run).with_args(wrong, wrong),
         raises(
             DeepchecksValueError,
-            'non-empty Dataset instance was expected, instead got str')
+            'non-empty instance of Dataset or DataFrame was expected, instead got str')
     )
 
 
@@ -111,8 +110,8 @@ def test_trainval_dataset_no_label():
             train_dataset=Dataset(df),
             test_dataset=Dataset(df2)),
         raises(
-            DatasetValidationError,
-            'Check requires Datasets to have and to share the same label')
+            DeepchecksNotSupportedError,
+            'Check is irrelevant for Datasets without label')
     )
 
 
@@ -125,7 +124,7 @@ def test_trainval_dataset_diff_columns():
             test_dataset=Dataset(df2, label='label')),
         raises(
             DatasetValidationError,
-            'Check requires Datasets to share the same features')
+            'train and test requires to share the same features columns')
     )
 
 
@@ -142,7 +141,7 @@ def test_all_features_pps_upper_bound_condition_that_should_not_pass():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name=f'Features\' {pps_html_url} (PPS) is not greater than {condition_value}',
+        name=f'Features\' Predictive Power Score is not greater than {condition_value}',
         details='Features with PPS above threshold: {\'x2\': \'0.84\', \'x4\': \'0.53\', \'x5\': \'0.42\'}'
     ))
 
@@ -160,7 +159,7 @@ def test_all_features_pps_upper_bound_condition_that_should_pass():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        name=f'Features\' {pps_html_url} (PPS) is not greater than {condition_value}',
+        name=f'Features\' Predictive Power Score is not greater than {condition_value}',
     ))
 
 
@@ -179,7 +178,7 @@ def test_train_test_condition_pps_difference_pass():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        name=f'Train-Test features\' {pps_html_url} (PPS) difference is not greater than {condition_value}'
+        name=f'Train-Test features\' Predictive Power Score difference is not greater than {condition_value}'
     ))
 
 
@@ -197,7 +196,7 @@ def test_train_test_condition_pps_difference_fail():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name=f'Train-Test features\' {pps_html_url} (PPS) difference is not greater than {condition_value}',
+        name=f'Train-Test features\' Predictive Power Score difference is not greater than {condition_value}',
         details='Features with PPS difference above threshold: {\'x2\': \'0.31\'}'
     ))
 
@@ -217,7 +216,7 @@ def test_train_test_condition_pps_train_pass():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        name=f'Train features\' {pps_html_url} (PPS) is not greater than {condition_value}'
+        name=f'Train features\' Predictive Power Score is not greater than {condition_value}'
     ))
 
 
@@ -235,7 +234,7 @@ def test_train_test_condition_pps_train_fail():
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name=f'Train features\' {pps_html_url} (PPS) is not greater than {condition_value}',
+        name=f'Train features\' Predictive Power Score is not greater than {condition_value}',
         details='Features in train dataset with PPS above threshold: {\'x2\': \'0.84\'}'
     ))
 

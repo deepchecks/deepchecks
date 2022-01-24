@@ -13,7 +13,8 @@ from hamcrest import assert_that, calling, raises, has_items, close_to
 
 from deepchecks.base import Dataset
 from deepchecks.checks.performance import RegressionSystematicError
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError, ModelValidationError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError, ModelValidationError, \
+    DeepchecksNotSupportedError
 from tests.checks.utils import equal_condition_result
 
 
@@ -22,7 +23,7 @@ def test_dataset_wrong_input():
     # Act & Assert
     assert_that(
         calling(RegressionSystematicError().run).with_args(bad_dataset, None),
-        raises(DeepchecksValueError, 'non-empty Dataset instance was expected, instead got str')
+        raises(DeepchecksValueError, 'non-empty instance of Dataset or DataFrame was expected, instead got str')
     )
 
 
@@ -30,7 +31,7 @@ def test_dataset_no_label(diabetes_df, diabetes_model):
     # Assert
     assert_that(
         calling(RegressionSystematicError().run).with_args(Dataset(diabetes_df), diabetes_model),
-        raises(DatasetValidationError, 'Check is irrelevant for Datasets without label')
+        raises(DeepchecksNotSupportedError, 'Check is irrelevant for Datasets without label')
     )
 
 

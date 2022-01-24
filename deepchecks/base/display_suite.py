@@ -64,7 +64,14 @@ def _create_table_widget(df_html: str) -> widgets.VBox:
 
 
 class ProgressBar:
-    """Progress bar for display while running suite."""
+    """Progress bar for display while running suite.
+
+    Parameters
+    ----------
+    name
+    length
+
+    """
 
     def __init__(self, name, length):
         """Initialize progress bar."""
@@ -77,7 +84,12 @@ class ProgressBar:
             self.pbar = tqdm.tqdm(**shared_args, bar_format=f'{{l_bar}}{{bar:{length}}}{{r_bar}}')
 
     def set_text(self, text):
-        """Set current running check."""
+        """Set current running check.
+
+        Parameters
+        ----------
+        text
+        """
         self.pbar.set_postfix(Check=text)
 
     def close(self):
@@ -229,7 +241,8 @@ def _display_suite_no_widgets(summary: str,
         others_df = dataframe_to_html(others_table.style.hide_index())
         display_html(others_h2 + others_df, raw=True)
 
-    display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
+    if unique_id:
+        display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
 
 
 def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]],
@@ -295,7 +308,7 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
 
     suite_creation_example_link = (
         'https://docs.deepchecks.com/en/stable/examples/guides/create_a_custom_suite.html'
-        '?utm_source=suite_output&utm_medium=referral&utm_campaign=display_link'
+        '?utm_source=display_output&utm_medium=referral&utm_campaign=suite_link'
     )
 
     # suite summary
@@ -305,12 +318,13 @@ def display_suite_result(suite_name: str, results: List[Union[CheckResult, Check
             {prologue}<br>
             Each check may contain conditions (which will result in pass / fail / warning, represented by {icons})
             as well as other outputs such as plots or tables.<br>
-            Suites, checks and conditions can all be modified (see the
-            <a href={suite_creation_example_link} target="_blank">Create a Custom Suite</a> tutorial).
+            Suites, checks and conditions can all be modified. Read more about
+            <a href={suite_creation_example_link} target="_blank">custom suites</a>.
         </p>
         """
 
-    if html_out or is_widgets_enabled():
+    # can't display plotly widgets in kaggle notebooks
+    if html_out or (is_widgets_enabled() and os.environ.get('KAGGLE_KERNEL_RUN_TYPE') is None):
         _display_suite_widgets(summ,
                                unique_id,
                                checks_with_conditions,
