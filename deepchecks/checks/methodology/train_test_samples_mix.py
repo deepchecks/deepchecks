@@ -13,7 +13,6 @@ from typing import List
 import pandas as pd
 
 from deepchecks.base.check_context import CheckRunContext
-from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, ConditionResult, TrainTestBaseCheck
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable

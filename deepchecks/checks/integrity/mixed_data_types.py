@@ -15,12 +15,10 @@ import pandas as pd
 import numpy as np
 
 from deepchecks.base.check_context import CheckRunContext
-from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, column_importance_sorter_df
+from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import is_string_column, format_percent
-from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
 
 

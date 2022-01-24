@@ -10,7 +10,7 @@
 #
 """The date_leakage check module."""
 from deepchecks.base.check_context import CheckRunContext
-from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
+from deepchecks import CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.strings import format_percent, format_datetime
 
 
@@ -22,11 +22,6 @@ class DateTrainTestLeakageOverlap(TrainTestBaseCheck):
 
     def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
-
-        Arguments:
-            train_dataset (Dataset): The training dataset object. Must contain an date column.
-            test_dataset (Dataset): The test dataset object. Must contain an date column.
-            model: any = None - not used in the check
 
         Returns:
            CheckResult:

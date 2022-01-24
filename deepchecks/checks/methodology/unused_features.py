@@ -23,9 +23,6 @@ from sklearn.preprocessing import RobustScaler, OrdinalEncoder
 
 from deepchecks.base.check_context import CheckRunContext
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult, ConditionCategory
-from deepchecks.utils.features import calculate_feature_importance
-from deepchecks.utils.validation import validate_model
-from deepchecks.errors import DeepchecksValueError
 
 
 __all__ = ['UnusedFeatures']

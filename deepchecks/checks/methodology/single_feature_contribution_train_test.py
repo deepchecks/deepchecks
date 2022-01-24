@@ -15,7 +15,7 @@ import plotly.graph_objects as go
 
 import deepchecks.ppscore as pps
 from deepchecks.base.check_context import CheckRunContext
-from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
+from deepchecks import CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.plot import colors
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.strings import format_number

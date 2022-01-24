@@ -16,7 +16,7 @@ from deepchecks.base.check_context import CheckRunContext
 from deepchecks.utils.plot import create_colorbar_barchart_for_check
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.strings import format_number
-from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult
+from deepchecks import CheckResult, SingleDatasetBaseCheck, ConditionResult
 
 
 __all__ = ['SingleFeatureContribution']

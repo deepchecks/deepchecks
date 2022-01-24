@@ -12,7 +12,7 @@
 import pandas as pd
 
 from deepchecks.base.check_context import CheckRunContext
-from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
+from deepchecks import CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.strings import format_percent, format_datetime
 
 

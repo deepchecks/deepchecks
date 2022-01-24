@@ -15,8 +15,7 @@ import timeit
 import numpy as np
 
 from deepchecks.base.check_context import CheckRunContext
-from deepchecks import SingleDatasetBaseCheck, CheckResult, Dataset, ConditionResult
-from deepchecks.utils.validation import validate_model
+from deepchecks import SingleDatasetBaseCheck, CheckResult, ConditionResult
 from deepchecks.utils.strings import format_number
 from deepchecks.errors import DeepchecksValueError
 

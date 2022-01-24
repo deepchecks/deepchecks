@@ -12,6 +12,7 @@ from deepchecks.utils.features import calculate_feature_importance_or_none
 
 
 class CheckRunContext:
+    """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly."""
 
     def __init__(self,
                  train: Union[Dataset, pd.DataFrame] = None,
@@ -29,7 +30,7 @@ class CheckRunContext:
             train = Dataset.ensure_not_empty_dataset(train)
         if test is not None:
             test = Dataset.ensure_not_empty_dataset(test)
-        # If both datasets, validate they fit each other
+        # If both dataset, validate they fit each other
         if train and test:
             if not Dataset.datasets_share_label(train, test):
                 raise DatasetValidationError('train and test requires to have and to share the same label')

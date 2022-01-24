@@ -22,7 +22,6 @@ from deepchecks import CheckResult, SingleDatasetBaseCheck, ConditionResult, Con
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df, is_categorical
 from deepchecks.utils.strings import is_string_column, format_number, format_percent
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
 
 

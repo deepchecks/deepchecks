@@ -27,10 +27,9 @@ from deepchecks.base.check_context import CheckRunContext
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.errors import DeepchecksProcessError
 from deepchecks.utils.features import calculate_feature_importance
-from deepchecks.utils.metrics import task_type_check, ModelType
+from deepchecks.utils.metrics import ModelType
 from deepchecks.utils.plot import colors
 from deepchecks.utils.strings import format_number, format_percent
-from deepchecks.utils.validation import validate_model
 
 __all__ = ['ModelErrorAnalysis']
 

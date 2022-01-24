@@ -13,7 +13,6 @@ from typing import Dict
 import pandas as pd
 
 from deepchecks.base.check_context import CheckRunContext
-from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.strings import format_percent
 
@@ -28,11 +27,6 @@ class NewLabelTrainTest(TrainTestBaseCheck):
 
     def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
-
-        Args:
-            train_dataset (Dataset): The training dataset object.
-            test_dataset (Dataset): The test dataset object.
-            model (any): used to check task type (default: None)
 
         Returns:
             CheckResult: value is a dictionary that shows label column with new labels

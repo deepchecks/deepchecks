@@ -18,8 +18,6 @@ from deepchecks.base.check_context import CheckRunContext
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
 from deepchecks.utils.performance.partition import partition_column
 from deepchecks.utils.strings import format_number
-from deepchecks.utils.features import calculate_feature_importance_or_none
-from deepchecks.utils.validation import validate_model
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError, DatasetValidationError
 

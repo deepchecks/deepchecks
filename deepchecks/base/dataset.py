@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """The Dataset module containing the dataset Class and its functions."""
-# pylint: disable=inconsistent-quotes
+# pylint: disable=inconsistent-quotes,protected-access
 
 import typing as t
 import logging

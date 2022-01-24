@@ -15,7 +15,7 @@ import plotly.express as px
 
 import deepchecks.ppscore as pps
 from deepchecks.base.check_context import CheckRunContext
-from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck, ConditionResult
+from deepchecks import CheckResult, SingleDatasetBaseCheck, ConditionResult
 from deepchecks.utils.strings import format_number
 from deepchecks.errors import DatasetValidationError
 
@@ -119,5 +119,4 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
                 return ConditionResult(True)
 
         return self.add_condition(
-            f'Identifier columns PPS is not greater than {format_number(max_pps)}',
-            compare_pps)
+            f'Identifier columns PPS is not greater than {format_number(max_pps)}', compare_pps)

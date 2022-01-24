@@ -22,7 +22,6 @@ from sklearn.base import ClassifierMixin, BaseEstimator
 
 from deepchecks import base  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks import errors
-from deepchecks.utils import validation
 from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.simple_models import PerfectModel
 from deepchecks.utils.typing import BasicModel, ClassificationModel

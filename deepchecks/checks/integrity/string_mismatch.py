@@ -25,7 +25,6 @@ from deepchecks import (
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.typing import Hashable
-from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.strings import (
     get_base_form_to_variants_dict,
     is_string_column,

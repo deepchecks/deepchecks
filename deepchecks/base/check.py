@@ -17,7 +17,7 @@ import io
 import traceback
 from collections import OrderedDict
 from functools import wraps
-from typing import Any, Callable, List, Sequence, Union, Dict, Mapping, cast
+from typing import Any, Callable, List, Union, Dict, Mapping
 
 import jsonpickle
 from matplotlib import pyplot as plt
@@ -37,8 +37,6 @@ from deepchecks.base.dataset import Dataset
 from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table
 from deepchecks.utils.strings import get_docs_summary, split_camel_case
 from deepchecks.utils.ipython import is_ipython_display
-from deepchecks.utils.metrics import task_type_check
-from deepchecks.utils.validation import validate_model
 from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 
 
@@ -51,7 +49,8 @@ __all__ = [
     'CheckFailure',
     'ConditionResult',
     'ModelComparisonContext',
-    'ModelComparisonBaseCheck'
+    'ModelComparisonBaseCheck',
+    'ConditionCategory'
 ]
 
 
@@ -594,6 +593,6 @@ class ModelComparisonBaseCheck(BaseCheck):
         return self.run_logic(ModelComparisonContext(train_datasets, test_datasets, models))
 
     @abc.abstractmethod
-    def run_logic(self, context: ModelComparisonContext) -> CheckResult:
+    def run_logic(self, multi_context: ModelComparisonContext) -> CheckResult:
         """Implement here logic of check."""
         pass

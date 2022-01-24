@@ -17,7 +17,6 @@ from deepchecks import CheckResult, TrainTestBaseCheck, ConditionResult, Conditi
 from deepchecks.utils.distribution.trust_score import TrustScore
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
 from deepchecks.utils.distribution.plot import feature_distribution_traces
-from deepchecks.utils.metrics import ModelType
 from deepchecks.utils.strings import format_percent
 from deepchecks.errors import DeepchecksValueError, DatasetValidationError
 
