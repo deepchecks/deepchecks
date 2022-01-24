@@ -11,6 +11,7 @@ import pathlib
 import functools
 from subprocess import check_output
 
+
 # -- Path setup --------------------------------------------------------------
 
 CURRENT_DIR = pathlib.Path(__file__).parent
@@ -73,6 +74,21 @@ extensions = [
 # Add any paths that contain templates here, relative to this directory.
 #
 templates_path = ['_templates']
+
+# A list of warning types to suppress arbitrary warning messages.
+# List of all possible types: https://www.sphinx-doc.org/en/master/usage/configuration.html?highlight=suppress_warnings#confval-suppress_warnings
+#
+suppress_warnings = [
+    # to ignore messages like:
+    # <module-file-path>.py:docstring of <routine-name>:: WARNING: py:class reference target not found: package.foo.Bar
+    #
+    "ref.class",
+    "ref.exc",
+    # to ignore messages like:
+    # WARNING: duplicate label <string>, other instance in <doc-path>.rst
+    #
+    "autosectionlabel.*"
+]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -162,6 +178,10 @@ napoleon_use_admonition_for_references = False
 napoleon_use_ivar = False
 napoleon_use_param = True
 napoleon_use_rtype = True
+
+# True to convert the type definitions in the docstrings as references. Defaults to False.
+#
+napoleon_preprocess_types = False
 
 
 # -- nbsphinx extension settings --------------------------------------------------
