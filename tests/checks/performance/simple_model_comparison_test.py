@@ -262,7 +262,7 @@ def assert_regression(result):
 
 def assert_classification(result, classes, metrics=None):
     if not metrics:
-        default_scorers = get_default_scorers(ModelType.MULTICLASS, multiclass_avg=False)
+        default_scorers = get_default_scorers(ModelType.MULTICLASS, class_avg=False)
         metrics = [next(iter(default_scorers))]
     class_matchers = {clas: has_entries({'Origin': close_to(1, 1), 'Simple': close_to(1, 1)})
                       for clas in result['classes']}
