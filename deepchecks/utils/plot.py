@@ -76,22 +76,27 @@ def create_colorbar_barchart_for_check(
 def shifted_color_map(cmap, start=0, midpoint=0.5, stop=1.0, name: str = 'shiftedcmap', transparent_from: float = None):
     """Offset the "center" of a colormap.
 
-    Input
-    -----
-      cmap : The matplotlib colormap to be altered
-      start : Offset from lowest point in the colormap's range.
-          Defaults to 0.0 (no lower offset). Should be between
-          0.0 and 1.0.
-      midpoint : The new center of the colormap. Defaults to
-          0.5 (no shift). Should be between 0.0 and 1.0. In
-          general, this should be  1 - vmax/(vmax + abs(vmin))
-          For example if your data range from -15.0 to +5.0 and
-          you want the center of the colormap at 0.0, `midpoint`
-          should be set to  1 - 5/(5 + 15)) or 0.75
-      stop : Offset from highest point in the colormap's range.
-          Defaults to 1.0 (no upper offset). Should be between
-          0.0 and 1.0.
-      transparent_from: The point between start and stop where the colors will start being transparent.
+    Args:
+        cmap:
+            The matplotlib colormap to be altered
+        start (int):
+            Offset from lowest point in the colormap's range.
+            Defaults to 0.0 (no lower offset). Should be between
+            0.0 and 1.0.
+        midpoint (float):
+            The new center of the colormap. Defaults to
+            0.5 (no shift). Should be between 0.0 and 1.0. In
+            general, this should be  1 - vmax/(vmax + abs(vmin))
+            For example if your data range from -15.0 to +5.0 and
+            you want the center of the colormap at 0.0, `midpoint`
+            should be set to  1 - 5/(5 + 15)) or 0.75
+        stop (float):
+            Offset from highest point in the colormap's range.
+            Defaults to 1.0 (no upper offset). Should be between
+            0.0 and 1.0.
+        transparent_from (float):
+            The point between start and stop where the colors will start being transparent.
+
     """
     if transparent_from is None:
         transparent_from = stop

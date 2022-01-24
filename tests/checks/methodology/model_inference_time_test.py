@@ -13,7 +13,7 @@ import re
 from hamcrest import assert_that, instance_of, only_contains, matches_regexp
 
 from deepchecks import Dataset, CheckResult, ConditionCategory
-from deepchecks.checks.methodology import ModelInferenceTimeCheck
+from deepchecks.checks.methodology import ModelInferenceTime
 
 from tests.checks.utils import equal_condition_result, SCIENTIFIC_NOTATION_REGEXP
 
@@ -23,7 +23,7 @@ def test_model_inference_time_check(
 ):
     # Arrange
     _, test, model = iris_split_dataset_and_model
-    check = ModelInferenceTimeCheck()
+    check = ModelInferenceTime()
 
     # Act
     result = check.run(test, model)
@@ -47,7 +47,7 @@ def test_model_inference_time_check_with_condition_that_should_pass(
 ):
     # Arrange
     _, test, model = iris_split_dataset_and_model
-    check = ModelInferenceTimeCheck().add_condition_inference_time_is_not_greater_than(0.1)
+    check = ModelInferenceTime().add_condition_inference_time_is_not_greater_than(0.1)
 
     # Act
     result = check.run(test, model)
@@ -71,7 +71,7 @@ def test_model_inference_time_check_with_condition_that_should_not_pass(
 ):
     # Arrange
     _, test, model = iris_split_dataset_and_model
-    check = ModelInferenceTimeCheck().add_condition_inference_time_is_not_greater_than(0.00000001)
+    check = ModelInferenceTime().add_condition_inference_time_is_not_greater_than(0.00000001)
 
     # Act
     result = check.run(test, model)
