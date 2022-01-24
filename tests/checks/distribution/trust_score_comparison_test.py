@@ -42,7 +42,7 @@ def test_trust_score_comparison_null_labels(iris_split_dataset_and_model):
                    label=test.label_name)
 
     model = AdaBoostClassifier(random_state=0)
-    model.fit(train.features_columns, train.label_col)
+    model.fit(train.data[train.features], train.data[train.label_name])
     check = TrustScoreComparison(min_test_samples=50)
 
     # Act
@@ -64,7 +64,7 @@ def test_trust_score_comparison_non_consecutive_string_labels(iris_split_dataset
     test = Dataset(test.data.replace(replace_dict),
                    label=test.label_name)
     model = AdaBoostClassifier(random_state=0)
-    model.fit(train.features_columns, train.label_col)
+    model.fit(train.data[train.features], train.data[train.label_name])
     check = TrustScoreComparison(min_test_samples=50)
 
     # Act
@@ -133,7 +133,7 @@ def test_regression_model_fail(diabetes_split_dataset_and_model):
         calling(check.run).with_args(train, test, model),
         raises(
             ModelValidationError,
-            'Check is relevant only for the classification models, but'
-            'received model of type regression'
+            r'Check is relevant for models of type \[\'multiclass\', \'binary\'\], '
+            r'but received model of type \'regression\''
         )
     )

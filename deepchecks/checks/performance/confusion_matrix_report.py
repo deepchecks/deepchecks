@@ -10,12 +10,12 @@
 #
 """The confusion_matrix_report check module."""
 import sklearn
-from sklearn.base import BaseEstimator
 
 import plotly.express as px
-from deepchecks import CheckResult, Dataset
+
+from deepchecks.base.check_context import CheckRunContext
+from deepchecks import CheckResult
 from deepchecks.base.check import SingleDatasetBaseCheck
-from deepchecks.utils.metrics import ModelType
 
 
 __all__ = ['ConfusionMatrixReport']
@@ -24,27 +24,28 @@ __all__ = ['ConfusionMatrixReport']
 class ConfusionMatrixReport(SingleDatasetBaseCheck):
     """Calculate the confusion matrix of the model on the given dataset."""
 
-    def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
-        Args:
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
-            dataset: a Dataset object
+        Returns
+        -------
+        CheckResult
+            value is numpy array of the confusion matrix, displays the confusion matrix
 
-        Returns:
-            CheckResult: value is numpy array of the confusion matrix, displays the confusion matrix
-
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance with a label
+        Raises
+        ------
+        DeepchecksValueError
+            If the data is not a Dataset instance with a label
         """
-        return self._confusion_matrix_report(dataset, model)
+        if dataset_type == 'train':
+            dataset = context.train
+        else:
+            dataset = context.test
 
-    def _confusion_matrix_report(self, dataset: Dataset, model):
-        dataset = Dataset.ensure_not_empty_dataset(dataset)
-        ds_y = self._dataset_has_label(dataset)
-        ds_x = self._dataset_has_features(dataset)
-
-        self._verify_model_type(model, dataset, [ModelType.MULTICLASS, ModelType.BINARY])
+        context.assert_classification_task()
+        ds_y = dataset.data[context.label_name]
+        ds_x = dataset.data[context.features]
+        model = context.model
 
         y_pred = model.predict(ds_x)
         confusion_matrix = sklearn.metrics.confusion_matrix(ds_y, y_pred)

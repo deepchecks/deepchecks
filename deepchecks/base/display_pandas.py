@@ -26,11 +26,15 @@ __all__ = ['dataframe_to_html', 'get_conditions_table']
 def dataframe_to_html(df: Union[pd.DataFrame, Styler]):
     """Convert dataframe to html.
 
-    Args:
-        df (Union[pd.DataFrame, Styler]): Dataframe to convert to html
-    Returns:
-        pd.DataFrame:
-            dataframe with styling
+    Parameters
+    ----------
+    df: Union[pd.DataFrame, Styler]
+        Dataframe to convert to html
+
+    Returns
+    -------
+    pd.DataFrame:
+        dataframe with styling
     """
     try:
         if isinstance(df, pd.DataFrame):
@@ -58,14 +62,19 @@ def get_conditions_table(check_results: Union['check.CheckResult', List['check.C
                          unique_id=None, max_info_len: int = 3000):
     """Return the conditions table as DataFrame.
 
-    Args:
-        check_results (Union['CheckResult', List['CheckResult']]): check results to show conditions of.
-        unique_id (str): the unique id to append for the check names to create links
-                              (won't create links if None/empty).
-        max_info_len (int): max length of the additional info.
-    Returns:
-        pd.Dataframe:
-            the condition table.
+    Parameters
+    ----------
+    check_results : Union['CheckResult', List['CheckResult']]
+        check results to show conditions of.
+    unique_id : str
+        the unique id to append for the check names to create links (won't create links if None/empty).
+    max_info_len : int
+        max length of the additional info.
+
+    Returns
+    -------
+    pd.Dataframe:
+        the condition table.
     """
     if not isinstance(check_results, List):
         show_check_column = False
@@ -102,12 +111,16 @@ def get_result_navigation_display(check_results: Union['check.CheckResult', List
                                   unique_id: str):
     """Display the results as a table with links for navigation.
 
-    Args:
-        check_results (Union['CheckResult', List['CheckResult']]): check results to show navigation for.
-        unique_id (str): the unique id to append for the check names to create links.
-    Returns:
-        str:
-            html representation of the navigation table.
+    Parameters
+    ----------
+    check_results : Union['CheckResult', List['CheckResult']]
+        check results to show navigation for.
+    unique_id : str
+        the unique id to append for the check names to create links.
+    Returns
+    -------
+    str
+        html representation of the navigation table.
     """
     table = []
     for check_result in check_results:

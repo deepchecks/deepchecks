@@ -21,9 +21,9 @@ from deepchecks.checks import MultiModelPerformanceReport
 def classification_models(iris_split_dataset_and_model):
     train, test, model = iris_split_dataset_and_model
     model2 = RandomForestClassifier(random_state=0)
-    model2.fit(train.features_columns, train.label_col)
+    model2.fit(train.data[train.features], train.data[train.label_name])
     model3 = DecisionTreeClassifier(random_state=0)
-    model3.fit(train.features_columns, train.label_col)
+    model3.fit(train.data[train.features], train.data[train.label_name])
     return train, test, model, model2, model3
 
 
@@ -31,9 +31,9 @@ def classification_models(iris_split_dataset_and_model):
 def regression_models(diabetes_split_dataset_and_model):
     train, test, model = diabetes_split_dataset_and_model
     model2 = RandomForestRegressor(random_state=0)
-    model2.fit(train.features_columns, train.label_col)
+    model2.fit(train.data[train.features], train.data[train.label_name])
     model3 = DecisionTreeRegressor(random_state=0)
-    model3.fit(train.features_columns, train.label_col)
+    model3.fit(train.data[train.features], train.data[train.label_name])
     return train, test, model, model2, model3
 
 
