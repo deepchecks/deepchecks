@@ -12,6 +12,7 @@
 from typing import List
 import pandas as pd
 
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, ConditionResult, TrainTestBaseCheck
 from deepchecks.utils.strings import format_percent
@@ -27,13 +28,8 @@ __all__ = ['TrainTestSamplesMix']
 class TrainTestSamplesMix(TrainTestBaseCheck):
     """Detect samples in the test data that appear also in training data."""
 
-    def run(self, train_dataset: Dataset, test_dataset: Dataset,  model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
-
-        Args:
-            train_dataset (Dataset): The training dataset object. Must contain an index.
-            test_dataset (Dataset): The test dataset object. Must contain an index.
-            model (): any = None - not used in the check
 
         Returns:
             CheckResult: value is sample leakage ratio in %,
@@ -42,13 +38,10 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance
         """
-        return self._data_sample_leakage_report(test_dataset=test_dataset, train_dataset=train_dataset)
-
-    def _data_sample_leakage_report(self, test_dataset: Dataset, train_dataset: Dataset):
-        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset, cast=True)
-        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset, cast=True)
-        features = self._datasets_share_features([test_dataset, train_dataset])
-        label_name = self._datasets_share_label([test_dataset, train_dataset])
+        test_dataset = context.test
+        train_dataset = context.train
+        features = context.features
+        label_name = context.label_name
 
         columns = features + [label_name]
 

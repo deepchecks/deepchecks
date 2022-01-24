@@ -12,15 +12,14 @@
 import numpy as np
 import plotly.graph_objects as go
 
-from base.check_context import CheckRunContext
-from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult, ConditionCategory
+from deepchecks.base.check_context import CheckRunContext
+from deepchecks import CheckResult, TrainTestBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.distribution.trust_score import TrustScore
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
 from deepchecks.utils.distribution.plot import feature_distribution_traces
-from deepchecks.utils.metrics import task_type_check, ModelType
+from deepchecks.utils.metrics import ModelType
 from deepchecks.utils.strings import format_percent
-from deepchecks.utils.validation import validate_model
-from deepchecks.errors import DeepchecksValueError, ModelValidationError, DatasetValidationError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError
 
 
 __all__ = ['TrustScoreComparison']
@@ -79,7 +78,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
         train_dataset = context.train
         model = context.model
         features_list = context.features
-        context.assert_task_type(ModelType.BINARY, ModelType.MULTICLASS)
+        context.assert_classification_task()
 
         if test_dataset.n_samples < self.min_test_samples:
             raise DatasetValidationError(

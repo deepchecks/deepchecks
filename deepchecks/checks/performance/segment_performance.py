@@ -9,14 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Module of segment performance check."""
-from typing import Callable, Union, Optional, Any, List, cast
+from typing import Callable, Union, Optional, List, cast, Tuple
 
 import numpy as np
 import plotly.figure_factory as ff
 
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck
 from deepchecks.utils.performance.partition import partition_column
-from deepchecks.utils.metrics import initialize_single_scorer, get_scorer_single
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.validation import validate_model
@@ -35,7 +35,7 @@ class SegmentPerformance(SingleDatasetBaseCheck):
             feature to segment by on y-axis.
         feature_2 (Hashable):
             feature to segment by on x-axis.
-        scorer (Union[str, Callable]):
+        alternative_scorer (Tuple[str, Union[str, Callable]]):
             Score to show, either function or sklearn scorer name.
             If is not given a default scorer (per the model type) will be used.
         max_segments (int):
@@ -51,7 +51,7 @@ class SegmentPerformance(SingleDatasetBaseCheck):
         self,
         feature_1: Optional[Hashable] = None,
         feature_2: Optional[Hashable] = None,
-        scorer: Union[str, Callable] = None,
+        alternative_scorer: Tuple[str, Union[str, Callable]] = None,
         max_segments: int = 10
     ):
         super().__init__()
@@ -67,36 +67,32 @@ class SegmentPerformance(SingleDatasetBaseCheck):
             raise DeepchecksValueError('"num_segments" must be positive integer')
 
         self.max_segments = max_segments
-        self.scorer = initialize_single_scorer(scorer)
+        self.user_scorer = dict([alternative_scorer]) if alternative_scorer else None
 
-    def run(self, dataset: Dataset, model: Any) -> CheckResult:
-        """Run check.
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
+        """Run check."""
+        if dataset_type == 'train':
+            dataset = context.train
+        else:
+            dataset = context.test
 
-        Args:
-            dataset (Dataset): a Dataset object.
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
-        """
-        # Validations
-        dataset = Dataset.ensure_not_empty_dataset(dataset)
-        self._dataset_has_label(dataset)
-        self._dataset_has_features(dataset)
-        validate_model(dataset, model)
+        model = context.model
+        features = context.features
+        features_importance = context.features_importance
+        scorer = context.get_single_scorer(self.user_scorer)
 
-        if len(dataset.features) < 2:
+        if len(features) < 2:
             raise DatasetValidationError('Dataset must have at least 2 features')
 
         if self.feature_1 is None and self.feature_2 is None:
-            feature_importance = calculate_feature_importance_or_none(model=model, dataset=dataset)
-            if feature_importance is None:
-                self.feature_1, self.feature_2, *_ = dataset.features
+            if features_importance is None:
+                self.feature_1, self.feature_2, *_ = features
             else:
-                feature_importance.sort_values(ascending=False, inplace=True)
-                self.feature_1, self.feature_2, *_ = cast(List[Hashable], list(feature_importance.keys()))
+                features_importance.sort_values(ascending=False, inplace=True)
+                self.feature_1, self.feature_2, *_ = cast(List[Hashable], list(features_importance.keys()))
 
         elif self.feature_1 is None or self.feature_2 is None:
             raise DeepchecksValueError('Must define both "feature_1" and "feature_2" or none of them')
-
-        scorer = get_scorer_single(model, dataset, self.scorer)
 
         feature_1_filters = partition_column(dataset, self.feature_1, max_segments=self.max_segments)
         feature_2_filters = partition_column(dataset, self.feature_2, max_segments=self.max_segments)

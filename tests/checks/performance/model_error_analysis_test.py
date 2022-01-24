@@ -13,7 +13,8 @@ from hamcrest import assert_that, has_entries, close_to, has_property, equal_to,
     has_items
 
 from deepchecks import ConditionCategory
-from deepchecks.errors import DeepchecksValueError, DeepchecksProcessError, DatasetValidationError
+from deepchecks.errors import DeepchecksValueError, DeepchecksProcessError, DatasetValidationError, \
+    DeepchecksNotSupportedError
 from deepchecks.checks.performance.model_error_analysis import ModelErrorAnalysis
 from tests.checks.utils import equal_condition_result
 
@@ -33,7 +34,7 @@ def test_dataset_no_label(iris_dataset, iris_adaboost):
     # Assert
     assert_that(
         calling(ModelErrorAnalysis().run).with_args(iris_dataset, iris_dataset, iris_adaboost),
-        raises(DatasetValidationError, 'Check requires Datasets to have and to share the same label')
+        raises(DeepchecksNotSupportedError, 'Check is irrelevant for Datasets without label')
     )
 
 

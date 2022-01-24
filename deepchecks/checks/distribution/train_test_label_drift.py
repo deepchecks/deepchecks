@@ -12,8 +12,8 @@
 
 from typing import Dict
 
-from base.check_context import CheckRunContext
-from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
+from deepchecks.base.check_context import CheckRunContext
+from deepchecks import CheckResult, TrainTestBaseCheck, ConditionResult
 
 __all__ = ['TrainTestLabelDrift']
 

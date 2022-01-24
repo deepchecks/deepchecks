@@ -14,6 +14,7 @@ import pandas as pd
 
 import numpy as np
 
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks import Dataset
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.dataframes import select_from_dataframe
@@ -51,40 +52,27 @@ class MixedDataTypes(SingleDatasetBaseCheck):
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
 
-    def run(self, dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
-
-        Args:
-          dataset(Dataset): Dataset to be tested.
-          model: Model is ignored for this check.
 
         Returns:
           (CheckResult): DataFrame with rows ('strings', 'numbers') for any column with mixed types.
           numbers will also include hidden numbers in string representation.
         """
-        feature_importances = calculate_feature_importance_or_none(model, dataset)
-        return self._mixed_types(dataset, feature_importances)
+        if dataset_type == 'train':
+            dataset = context.train
+        else:
+            dataset = context.test
+        features_importance = context.features_importance
 
-    def _mixed_types(self, dataset: Union[pd.DataFrame, Dataset], feature_importances: pd.Series = None) -> CheckResult:
-        """Run check.
-
-        Args:
-            dataset (Dataset): Dataset to be tested.
-
-        Returns:
-            (CheckResult): DataFrame with columns('Column Name', 'Percentage') for any column that is not single typed.
-        """
-        # Validate parameters
-        original_dataset = dataset
-        dataset: pd.DataFrame = ensure_dataframe_type(dataset)
-        dataset = select_from_dataframe(dataset, self.columns, self.ignore_columns)
+        df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
 
         # Result value: { Column Name: {string: pct, numbers: pct}}
         display_dict = {}
         result_dict = {}
 
-        for column_name in dataset.columns:
-            column_data = dataset[column_name].dropna()
+        for column_name in df.columns:
+            column_data = df[column_name].dropna()
             mix = self._get_data_mix(column_data)
             if mix:
                 result_dict[column_name] = mix
@@ -93,7 +81,7 @@ class MixedDataTypes(SingleDatasetBaseCheck):
 
         if display_dict:
             df_graph = pd.DataFrame.from_dict(display_dict)
-            df_graph = column_importance_sorter_df(df_graph.T, original_dataset, feature_importances,
+            df_graph = column_importance_sorter_df(df_graph.T, dataset, features_importance,
                                                    self.n_top_columns).T
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
         else:
@@ -101,12 +89,14 @@ class MixedDataTypes(SingleDatasetBaseCheck):
 
         return CheckResult(result_dict, display=display)
 
-    def _get_data_mix(self, column_data: pd.Series) -> dict:
+    @classmethod
+    def _get_data_mix(cls, column_data: pd.Series) -> dict:
         if is_string_column(column_data):
-            return self._check_mixed_percentage(column_data)
+            return cls._check_mixed_percentage(column_data)
         return {}
 
-    def _check_mixed_percentage(self, column_data: pd.Series) -> dict:
+    @classmethod
+    def _check_mixed_percentage(cls, column_data: pd.Series) -> dict:
         total_rows = column_data.count()
 
         def is_float(x) -> bool:

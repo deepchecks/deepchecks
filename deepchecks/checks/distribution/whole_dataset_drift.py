@@ -15,6 +15,7 @@ import warnings
 import numpy as np
 import pandas as pd
 
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.distribution.plot import feature_distribution_traces, drift_score_bar_traces
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none
@@ -80,7 +81,6 @@ class WholeDatasetDrift(TrainTestBaseCheck):
     ):
         super().__init__()
 
-        self._cat_features = None
         self.n_top_columns = n_top_columns
         self.min_feature_importance = min_feature_importance
         self.max_num_categories = max_num_categories
@@ -88,13 +88,8 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         self.random_state = random_state
         self.test_size = test_size
 
-    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
-
-        Args:
-            train_dataset (Dataset): The training dataset object.
-            test_dataset (Dataset): The test dataset object.
-            model: not used in this check.
 
         Returns:
             CheckResult:
@@ -106,18 +101,16 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         Raises:
             DeepchecksValueError: If the object is not a Dataset or DataFrame instance
         """
-        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset, cast=True)
-        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset, cast=True)
-
-        features = self._datasets_share_features([train_dataset, test_dataset])
-        cat_features = self._datasets_share_categorical_features([train_dataset, test_dataset])
-        self._cat_features = cat_features
+        train_dataset = context.train
+        test_dataset = context.test
+        features = context.features
+        cat_features = context.cat_features
 
         domain_classifier = self._generate_model(list(set(features) - set(cat_features)), cat_features)
 
         sample_size = min(self.sample_size, train_dataset.n_samples, test_dataset.n_samples)
-        train_sample_df = train_dataset.features_columns.sample(sample_size, random_state=self.random_state)
-        test_sample_df = test_dataset.features_columns.sample(sample_size, random_state=self.random_state)
+        train_sample_df = train_dataset.data[features].sample(sample_size, random_state=self.random_state)
+        test_sample_df = test_dataset.data[features].sample(sample_size, random_state=self.random_state)
 
         # create new dataset, with label denoting whether sample belongs to test dataset
         domain_class_df = pd.concat([train_sample_df, test_sample_df])
@@ -173,7 +166,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
             displays = [headnote, self._build_drift_plot(score),
                         '<h3>Main features contributing to drift</h3>',
                         N_TOP_MESSAGE % self.n_top_columns]
-            displays += [self._display_dist(train_sample_df[feature], test_sample_df[feature], top_fi)
+            displays += [self._display_dist(train_sample_df[feature], test_sample_df[feature], top_fi, cat_features)
                          for feature in top_fi.index]
         else:
             displays = None
@@ -201,7 +194,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         drift_plot.add_traces(bar_traces)
         return drift_plot
 
-    def _display_dist(self, train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Series):
+    def _display_dist(self, train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Series, cat_features):
         """Display a distribution comparison plot for the given columns."""
         column_name = train_column.name
 
@@ -209,7 +202,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         traces, xaxis_layout, yaxis_layout = \
             feature_distribution_traces(train_column.dropna(),
                                         test_column.dropna(),
-                                        is_categorical=column_name in self._cat_features,
+                                        is_categorical=column_name in cat_features,
                                         max_num_categories=self.max_num_categories)
 
         figure = go.Figure(layout=go.Layout(

@@ -10,17 +10,16 @@
 #
 """Boosting overfit check module."""
 from copy import deepcopy
-from typing import Callable, Union
+from typing import Callable, Union, Tuple
 
 from sklearn.pipeline import Pipeline
 import plotly.graph_objects as go
 import numpy as np
 
-from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.utils.metrics import initialize_single_scorer, get_scorer_single
+from deepchecks.base.check_context import CheckRunContext
+from deepchecks import CheckResult, TrainTestBaseCheck, ConditionResult
 
 from deepchecks.utils.strings import format_percent
-from deepchecks.utils.validation import validate_model
 from deepchecks.utils.model import get_model_of_pipeline
 from deepchecks.errors import DeepchecksValueError, ModelValidationError
 
@@ -138,42 +137,25 @@ class BoostingOverfit(TrainTestBaseCheck):
         num_steps (int): Number of splits of the model iterations to check.
     """
 
-    def __init__(self, scorer: Union[Callable, str] = None, scorer_name: str = None, num_steps: int = 20):
+    def __init__(self, alternative_scorer: Tuple[str, Union[str, Callable]] = None, num_steps: int = 20):
         super().__init__()
-        self.scorer = initialize_single_scorer(scorer, scorer_name=scorer_name)
+        self.user_scorer = dict([alternative_scorer]) if alternative_scorer else None
         self.num_steps = num_steps
+        if not isinstance(self.num_steps, int) or self.num_steps < 2:
+            raise DeepchecksValueError('num_steps must be an integer larger than 1')
 
-    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
-
-        Args:
-            train_dataset (Dataset):
-            test_dataset (Dataset):
-            model: Boosting model.
 
         Returns:
             The score value on the test dataset.
         """
-        return self._boosting_overfit(train_dataset, test_dataset, model=model)
-
-    def _boosting_overfit(self, train_dataset: Dataset, test_dataset: Dataset, model) -> CheckResult:
-        # Validate params
-        if not isinstance(self.num_steps, int) or self.num_steps < 2:
-            raise DeepchecksValueError('num_steps must be an integer larger than 1')
-
-        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
-        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
-
-        self._dataset_has_label(train_dataset)
-        self._dataset_has_label(test_dataset)
-
-        self._datasets_share_features([train_dataset, test_dataset])
-        self._datasets_share_label([train_dataset, test_dataset])
-
-        validate_model(train_dataset, model)
+        train_dataset = context.train
+        test_dataset = context.test
+        model = context.model
 
         # Get default scorer
-        scorer = get_scorer_single(model, train_dataset, self.scorer)
+        scorer = context.get_single_scorer(self.user_scorer)
 
         # Get number of estimators on model
         num_estimators = PartialBoostingModel.n_estimators(model)

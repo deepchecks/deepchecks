@@ -13,11 +13,10 @@ from typing import Union, List
 
 import numpy as np
 
-from deepchecks import Dataset
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks.base.check import CheckResult, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_percent, format_list
-from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DatasetValidationError
 
@@ -50,16 +49,17 @@ class DataDuplicates(SingleDatasetBaseCheck):
         self.ignore_columns = ignore_columns
         self.n_to_show = n_to_show
 
-    def run(self, dataset: Dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train'):
         """Run check.
-
-        Args:
-            dataset (Dataset): any dataset.
 
         Returns:
             (CheckResult): percentage of duplicates and display of the top n_to_show most duplicated.
         """
-        df = ensure_dataframe_type(dataset)
+        if dataset_type == 'train':
+            df = context.train.data
+        else:
+            df = context.test.data
+
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
 
         data_columns = list(df.columns)

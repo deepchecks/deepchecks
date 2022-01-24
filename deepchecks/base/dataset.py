@@ -275,7 +275,7 @@ class Dataset:
             self._label_type = label_type
         elif self._label_name:
             self._label_type = self._infer_label_type(
-                self.label_col,
+                self.data[self._label_name],
                 max_categorical_ratio=0.05,
                 max_categories=max_categories,
                 max_float_categories=max_float_categories
@@ -431,7 +431,7 @@ class Dataset:
             Dataset: instance of the Dataset with sampled internal dataframe.
         """
         if drop_na_label and self.label_name:
-            valid_idx = self.label_col.notna()
+            valid_idx = self.data[self.label_name].notna()
             data_to_sample = self.data[valid_idx]
         else:
             data_to_sample = self.data
@@ -735,8 +735,6 @@ class Dataset:
         Args:
             obj (Any):
                 value to verify
-            cast (bool, default False):
-                to try to transform the value or not
 
         Raises:
             DeepchecksValueError:
@@ -745,14 +743,15 @@ class Dataset:
             DatasetValidationError:
                 if the provided value is empty Dataset instance;
         """
-        if isinstance(obj, Dataset):
-            if len(obj.data) == 0:
-                raise DatasetValidationError('dataset cannot be empty')
-            return obj
-        else:
+        if isinstance(obj, pd.DataFrame):
+            obj = Dataset(obj, features=[], cat_features=[])
+        elif not isinstance(obj, Dataset):
             raise DeepchecksValueError(
-                f'expected type \'Dataset\', got instead {type(obj)}'
+                f'non-empty instance of Dataset or DataFrame was expected, instead got {type(obj).__name__}'
             )
+        if len(obj.data) == 0:
+            raise DatasetValidationError('dataset cannot be empty')
+        return obj
 
     @classmethod
     def datasets_share_features(cls, *datasets: 'Dataset') -> bool:
@@ -769,7 +768,7 @@ class Dataset:
                 'datasets' parameter is not a list;
                 'datasets' contains less than one dataset;
         """
-        assert isinstance(datasets, list), "'datasets' must be a list"
+        assert isinstance(datasets, tuple), "'datasets' must be a list"
         assert len(datasets) > 1, "'datasets' must contains at least two items"
 
         # TODO: should not we also check features dtypes?
@@ -797,7 +796,7 @@ class Dataset:
                 'datasets' parameter is not a list;
                 'datasets' contains less than one dataset;
         """
-        assert isinstance(datasets, list), "'datasets' must be a list"
+        assert isinstance(datasets, tuple), "'datasets' must be a list"
         assert len(datasets) > 1, "'datasets' must contains at least two items"
 
         # TODO: should not we also check features dtypes?
@@ -826,7 +825,7 @@ class Dataset:
                 'datasets' parameter is not a list;
                 'datasets' contains less than one dataset;
         """
-        assert isinstance(datasets, list), "'datasets' must be a list"
+        assert isinstance(datasets, tuple), "'datasets' must be a tuple"
         assert len(datasets) > 1, "'datasets' must contains at least two items"
 
         # TODO: should not we also check label dtypes?
@@ -853,7 +852,7 @@ class Dataset:
                 'datasets' parameter is not a list;
                 'datasets' contains less than one dataset;
         """
-        assert isinstance(datasets, list), "'datasets' must be a list"
+        assert isinstance(datasets, tuple), "'datasets' must be a list"
         assert len(datasets) > 1, "'datasets' must contains at least two items"
 
         first_ds = datasets[0]
@@ -880,7 +879,7 @@ class Dataset:
                 'datasets' parameter is not a list;
                 'datasets' contains less than one dataset;
         """
-        assert isinstance(datasets, list), "'datasets' must be a list"
+        assert isinstance(datasets, tuple), "'datasets' must be a list"
         assert len(datasets) > 1, "'datasets' must contains at least two items"
 
         first_ds = datasets[0]

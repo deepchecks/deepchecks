@@ -15,7 +15,7 @@ from hamcrest import assert_that, close_to, calling, raises, has_entries, has_le
 
 from deepchecks import Dataset
 from deepchecks.checks.methodology import SingleFeatureContribution, SingleFeatureContributionTrainTest
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError, DeepchecksNotSupportedError
 
 from tests.checks.utils import equal_condition_result
 
@@ -66,7 +66,7 @@ def test_dataset_wrong_input():
     wrong = 'wrong_input'
     assert_that(
         calling(SingleFeatureContribution().run).with_args(wrong),
-        raises(DeepchecksValueError, 'non-empty Dataset instance was expected, instead got str'))
+        raises(DeepchecksValueError, 'non-empty instance of Dataset or DataFrame was expected, instead got str'))
 
 
 def test_dataset_no_label():
@@ -74,7 +74,7 @@ def test_dataset_no_label():
     df = Dataset(df)
     assert_that(
         calling(SingleFeatureContribution().run).with_args(dataset=df),
-        raises(DatasetValidationError, 'Check is irrelevant for Datasets without label'))
+        raises(DeepchecksNotSupportedError, 'Check is irrelevant for Datasets without label'))
 
 
 def test_trainval_assert_single_feature_contribution():
@@ -99,7 +99,7 @@ def test_trainval_dataset_wrong_input():
         calling(SingleFeatureContributionTrainTest().run).with_args(wrong, wrong),
         raises(
             DeepchecksValueError,
-            'non-empty Dataset instance was expected, instead got str')
+            'non-empty instance of Dataset or DataFrame was expected, instead got str')
     )
 
 
@@ -110,8 +110,8 @@ def test_trainval_dataset_no_label():
             train_dataset=Dataset(df),
             test_dataset=Dataset(df2)),
         raises(
-            DatasetValidationError,
-            'Check requires Datasets to have and to share the same label')
+            DeepchecksNotSupportedError,
+            'Check is irrelevant for Datasets without label')
     )
 
 
@@ -124,7 +124,7 @@ def test_trainval_dataset_diff_columns():
             test_dataset=Dataset(df2, label='label')),
         raises(
             DatasetValidationError,
-            'Check requires Datasets to share the same features')
+            'train and test requires to share the same features columns')
     )
 
 

@@ -11,7 +11,9 @@
 """Datasets size comparision check module."""
 import typing as t
 import pandas as pd
-from deepchecks import Dataset, CheckResult, ConditionResult, TrainTestBaseCheck
+
+from deepchecks.base.check_context import CheckRunContext
+from deepchecks import CheckResult, ConditionResult, TrainTestBaseCheck
 
 
 __all__ = ['DatasetsSizeComparison']
@@ -23,13 +25,8 @@ T = t.TypeVar('T', bound='DatasetsSizeComparison')
 class DatasetsSizeComparison(TrainTestBaseCheck):
     """Verify test dataset size comparing it to the train dataset size."""
 
-    def run(self, train_dataset: Dataset, test_dataset: Dataset, model: object = None) -> CheckResult:
-        """Run check instance.
-
-        Args:
-            train (Dataset): train dataset
-            test (Dataset): test dataset
-            model (object): a scikit-learn-compatible fitted estimator instance
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
+        """Run check.
 
         Returns:
             CheckResult: with value of type pandas.DataFrame.
@@ -41,8 +38,8 @@ class DatasetsSizeComparison(TrainTestBaseCheck):
                 if not dataset instances were provided;
                 if datasets are empty;
         """
-        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset, cast=True)
-        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset, cast=True)
+        train_dataset = context.train
+        test_dataset = context.test
         sizes = {'Train': len(train_dataset), 'Test': len(test_dataset)}
         display = pd.DataFrame(sizes, index=['Size'])
         return CheckResult(

@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module of model error analysis check."""
-from typing import Callable, Dict, Tuple, List, Hashable
+from typing import Callable, Dict, Tuple, List, Hashable, Union
 
 import numpy as np
 import pandas as pd
@@ -23,11 +23,11 @@ from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeRegressor
 from sklearn import preprocessing
 
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks import Dataset, CheckResult, TrainTestBaseCheck, ConditionResult, ConditionCategory
-from deepchecks.errors import DeepchecksProcessError, DeepchecksValueError
+from deepchecks.errors import DeepchecksProcessError
 from deepchecks.utils.features import calculate_feature_importance
-from deepchecks.utils.metrics import task_type_check, ModelType, initialize_multi_scorers, get_scorers_list, \
-    get_scorer_single
+from deepchecks.utils.metrics import task_type_check, ModelType
 from deepchecks.utils.plot import colors
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.utils.validation import validate_model
@@ -93,7 +93,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
             min_feature_contribution: float = 0.15,
             min_error_model_score: float = 0.5,
             min_segment_size: float = 0.05,
-            alternative_scorer: Tuple[str, Callable] = None,
+            alternative_scorer: Tuple[str, Union[str, Callable]] = None,
             n_samples: int = 50_000,
             n_display_samples: int = 5_000,
             random_seed: int = 42
@@ -103,42 +103,22 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         self.min_feature_contribution = min_feature_contribution
         self.min_error_model_score = min_error_model_score
         self.min_segment_size = min_segment_size
-        if alternative_scorer is not None:
-            if (len(alternative_scorer) != 2) or not isinstance(alternative_scorer[0], str):
-                raise DeepchecksValueError(
-                    'alternative_scorer must be a tuple of a single string and a scorer function')
-            else:
-                self.alternative_scorer = initialize_multi_scorers({alternative_scorer[0]: alternative_scorer[1]})
-        else:
-            self.alternative_scorer = None
+        self.user_scorer = dict([alternative_scorer]) if alternative_scorer else None
         self.n_samples = n_samples
         self.n_display_samples = n_display_samples
         self.random_state = random_seed
 
-    def run(self, train_dataset: Dataset, test_dataset: Dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
-
-        Args:
-            train_dataset (Dataset): The training dataset object. Must contain a label.
-            test_dataset (Dataset): The test dataset object. Must contain a label.
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
         """
-        # Validations
-        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset, cast=True)
-        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset, cast=True)
-
-        self._datasets_share_label([train_dataset, test_dataset])
-        self._datasets_share_features([train_dataset, test_dataset])
-        cat_features = self._datasets_share_categorical_features([train_dataset, test_dataset])
-
-        validate_model(train_dataset, model)
-        task_type = task_type_check(model, train_dataset)
-
-        # If user defined scorers used them, else use a single scorer
-        if self.alternative_scorer:
-            scorer = get_scorers_list(model, train_dataset, self.alternative_scorer, multiclass_avg=True)[0]
-        else:
-            scorer = get_scorer_single(model, train_dataset, multiclass_avg=True)
+        train_dataset = context.train
+        test_dataset = context.test
+        task_type = context.task_type
+        model = context.model
+        features = context.features
+        cat_features = context.cat_features
+        label_name = context.label_name
+        scorer = context.get_single_scorer(self.user_scorer)
 
         train_dataset = train_dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
         test_dataset = test_dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
@@ -146,25 +126,25 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         # Create scoring function, used to calculate the per sample model error
         if task_type == ModelType.REGRESSION:
             def scoring_func(dataset: Dataset):
-                return per_sample_mse(dataset.label_col, model.predict(dataset.features_columns))
+                return per_sample_mse(dataset.data[label_name], model.predict(dataset.data[features]))
         else:
             le = preprocessing.LabelEncoder()
             le.fit(train_dataset.classes)
 
             def scoring_func(dataset: Dataset):
-                encoded_label = le.transform(dataset.label_col)
+                encoded_label = le.transform(dataset.data[label_name])
                 return per_sample_binary_cross_entropy(encoded_label,
-                                                       model.predict_proba(dataset.features_columns))
+                                                       model.predict_proba(dataset.data[features]))
 
         train_scores = scoring_func(train_dataset)
         test_scores = scoring_func(test_dataset)
 
         # Create and fit model to predict the per sample error
         error_model, new_feature_order = create_error_regression_model(train_dataset, random_state=self.random_state)
-        error_model.fit(train_dataset.features_columns, y=train_scores)
+        error_model.fit(train_dataset.data[features], y=train_scores)
 
         # Check if fitted model is good enough
-        error_model_predicted = error_model.predict(test_dataset.features_columns)
+        error_model_predicted = error_model.predict(test_dataset.data[features])
         error_model_score = r2_score(test_scores, error_model_predicted)
 
         # This check should be ignored if no information gained from the error model (low r2_score)

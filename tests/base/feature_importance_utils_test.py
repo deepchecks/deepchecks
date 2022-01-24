@@ -16,7 +16,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.neural_network import MLPClassifier
 from hamcrest import (
     equal_to, assert_that, calling, raises, is_,
-    close_to, not_none, none, has_length, any_of
+    close_to, not_none, none, has_length, any_of, contains_exactly
 )
 
 from deepchecks.errors import ModelValidationError, DeepchecksValueError
@@ -45,7 +45,7 @@ def test_unfitted(iris_dataset):
 def test_linear_regression(diabetes):
     ds, _ = diabetes
     clf = LinearRegression()
-    clf.fit(ds.features_columns, ds.label_col)
+    clf.fit(ds.data[ds.features], ds.data[ds.label_name])
     feature_importances, fi_type = calculate_feature_importance(clf, ds)
     assert_that(feature_importances.max(), close_to(0.225374532399, 0.0000000001))
     assert_that(feature_importances.sum(), close_to(1, 0.000001))
@@ -69,7 +69,8 @@ def test_logistic_regression():
 
 def test_calculate_importance(iris_labeled_dataset):
     clf = MLPClassifier(hidden_layer_sizes=(10,), random_state=42)
-    clf.fit(iris_labeled_dataset.features_columns, iris_labeled_dataset.label_col)
+    clf.fit(iris_labeled_dataset.data[iris_labeled_dataset.features],
+            iris_labeled_dataset.data[iris_labeled_dataset.label_name])
     feature_importances, fi_type = calculate_feature_importance(clf, iris_labeled_dataset)
     assert_that(feature_importances.sum(), close_to(1, 0.000001))
     assert_that(fi_type, is_('permutation_importance'))
@@ -98,14 +99,14 @@ def test_bad_dataset_model(iris_random_forest, diabetes):
 def test_calculate_or_null(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
     feature_importances = calculate_feature_importance_or_none(clf, train.data)
-    assert_that(feature_importances, none())
+    assert_that(feature_importances, contains_exactly(none(), none()))
 
 
 def test_fi_n_top(diabetes_split_dataset_and_model):
     num_values = 5
     train, _, clf = diabetes_split_dataset_and_model
     columns_info = train.columns_info
-    feature_importances = calculate_feature_importance_or_none(clf, train)
+    feature_importances, _ = calculate_feature_importance_or_none(clf, train)
     assert_that(feature_importances, not_none())
 
     feature_importances_sorted = list(feature_importances.sort_values(ascending=False).keys())

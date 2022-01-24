@@ -12,10 +12,9 @@
 import plotly.express as px
 import pandas as pd
 from scipy.stats import kurtosis
-from sklearn.base import BaseEstimator
 
-from deepchecks import CheckResult, Dataset, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
-from deepchecks.utils.metrics import ModelType
+from deepchecks.base.check_context import CheckRunContext
+from deepchecks import CheckResult, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
 from deepchecks.utils.strings import format_number
 
 
@@ -40,12 +39,8 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         self.n_top_samples = n_top_samples
         self.n_bins = n_bins
 
-    def run(self, dataset: Dataset, model: BaseEstimator) -> CheckResult:
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
-
-        Arguments:
-            dataset (Dataset): A dataset object.
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
 
         Returns:
            CheckResult:
@@ -55,14 +50,16 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance with a label
         """
-        return self._regression_error_distribution(dataset, model)
+        if dataset_type == 'train':
+            dataset = context.train
+        else:
+            dataset = context.test
 
-    def _regression_error_distribution(self, dataset: Dataset, model: BaseEstimator):
-        dataset = Dataset.ensure_not_empty_dataset(dataset)
-        y_test = self._dataset_has_label(dataset)
-        x_test = self._dataset_has_features(dataset)
+        context.assert_regression_task()
+        model = context.model
+        x_test = dataset.data[context.features]
+        y_test = dataset.data[context.label_name]
 
-        self._verify_model_type(model, dataset, [ModelType.REGRESSION])
         y_pred = model.predict(x_test)
         y_pred = pd.Series(y_pred, name='predicted ' + str(dataset.label_name), index=y_test.index)
 

@@ -14,6 +14,7 @@ import numpy as np
 import plotly.graph_objects as go
 
 import deepchecks.ppscore as pps
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.plot import colors
 from deepchecks.utils.typing import Hashable
@@ -50,10 +51,10 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
 
     def __init__(self, ppscore_params=None, n_show_top: int = 5):
         super().__init__()
-        self.ppscore_params = ppscore_params
+        self.ppscore_params = ppscore_params or {}
         self.n_show_top = n_show_top
 
-    def run(self, train_dataset: Dataset, test_dataset: Dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
 
         Returns:
@@ -64,24 +65,19 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance with a label
         """
-        return self._single_feature_contribution_train_test(train_dataset=train_dataset,
-                                                            test_dataset=test_dataset)
+        train_dataset = context.train
+        test_dataset = context.test
+        label_name = context.label_name
+        features_names = context.features
 
-    def _single_feature_contribution_train_test(self, train_dataset: Dataset, test_dataset: Dataset):
-        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
-        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
-        label_name = self._datasets_share_label([train_dataset, test_dataset])
-        features_names = self._datasets_share_features([train_dataset, test_dataset])
-
-        ppscore_params = self.ppscore_params or {}
         relevant_columns = features_names + [label_name]
 
-        df_pps_train = pps.predictors(df=train_dataset.data[relevant_columns], y=train_dataset.label_name,
+        df_pps_train = pps.predictors(df=train_dataset.data[relevant_columns], y=label_name,
                                       random_seed=42,
-                                      **ppscore_params)
+                                      **self.ppscore_params)
         df_pps_test = pps.predictors(df=test_dataset.data[relevant_columns],
-                                     y=test_dataset.label_name,
-                                     random_seed=42, **ppscore_params)
+                                     y=label_name,
+                                     random_seed=42, **self.ppscore_params)
 
         s_pps_train = df_pps_train.set_index('x', drop=True)['ppscore']
         s_pps_test = df_pps_test.set_index('x', drop=True)['ppscore']

@@ -10,29 +10,21 @@
 #
 """Module containing simple comparison check."""
 from collections import defaultdict
-from typing import Callable, Dict, Hashable, List, cast
+from typing import Callable, Dict, Hashable, List
 
 import numpy as np
 import pandas as pd
 import plotly.express as px
-from sklearn.base import BaseEstimator
 from sklearn.dummy import DummyRegressor, DummyClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks import CheckResult, Dataset, ConditionResult, TrainTestBaseCheck
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
 from deepchecks.utils.strings import format_percent
-from deepchecks.utils.validation import validate_model
 from deepchecks.errors import DeepchecksValueError
-from deepchecks.utils.metrics import (
-    task_type_check,
-    ModelType,
-    initialize_multi_scorers,
-    get_scorers_list,
-    get_scorer_single,
-    get_gain
-)
+from deepchecks.utils.metrics import ModelType, get_gain
 from deepchecks.utils.simple_models import RandomModel
 
 
@@ -93,23 +85,13 @@ class SimpleModelComparison(TrainTestBaseCheck):
                  max_gain: float = 50, max_depth: int = 3, random_state: int = 42):
         super().__init__()
         self.simple_model_type = simple_model_type
-        self.alternative_scorers = initialize_multi_scorers(alternative_scorers)
+        self.user_scorers = alternative_scorers
         self.max_gain = max_gain
         self.max_depth = max_depth
         self.random_state = random_state
 
-    def run(
-        self,
-        train_dataset: Dataset,
-        test_dataset: Dataset,
-        model: BaseEstimator
-    ) -> CheckResult:
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
-
-        Args:
-            train_dataset (Dataset): The training dataset object. Must contain a label.
-            test_dataset (Dataset): The test dataset object. Must contain a label.
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance.
 
         Returns:
             CheckResult: value is a Dict of: given_model_score, simple_model_score, ratio
@@ -119,20 +101,18 @@ class SimpleModelComparison(TrainTestBaseCheck):
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance.
         """
-        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
-        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
-        self._datasets_share_label([train_dataset, test_dataset])
-
-        validate_model(test_dataset, model)
+        train_dataset = context.train
+        test_dataset = context.test
+        test_label = test_dataset.data[context.label_name]
+        task_type = context.task_type
+        model = context.model
 
         # If user defined scorers used them, else use a single scorer
-        if self.alternative_scorers:
-            scorers = get_scorers_list(model, train_dataset, self.alternative_scorers, multiclass_avg=False)
+        if self.user_scorers:
+            scorers = context.get_scorers(self.user_scorers, multiclass_avg=False)
         else:
-            scorers = [get_scorer_single(model, train_dataset, multiclass_avg=False)]
+            scorers = [context.get_single_scorer(multiclass_avg=False)]
 
-        label = cast(pd.Series, test_dataset.label_col)
-        task_type = task_type_check(model, train_dataset)
         simple_model = self._create_simple_model(train_dataset, task_type)
 
         models = [
@@ -142,7 +122,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
 
         # Multiclass have different return type from the scorer, list of score per class instead of single score
         if task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
-            n_samples = label.groupby(label).count()
+            n_samples = test_label.groupby(test_label).count()
             classes = train_dataset.classes
 
             results_array = []
@@ -199,7 +179,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
                                           model_type,
                                           score,
                                           scorer.name,
-                                          label.count()
+                                          test_label.count()
                                           ])
                 results_dict[scorer.name] = model_dict
 
@@ -282,7 +262,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
                 f"but instead got {self.simple_model_type}"  # pylint: disable=inconsistent-quotes
             )
 
-        simple_model.fit(train_ds.features_columns, train_ds.label_col)
+        simple_model.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
         return simple_model
 
     def add_condition_gain_not_less_than(self,

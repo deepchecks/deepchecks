@@ -31,21 +31,15 @@ from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 import plotly
 
-from base.check_context import CheckRunContext
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks.base.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.base.dataset import Dataset
 from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table
-from deepchecks.utils.typing import Hashable, BasicModel
 from deepchecks.utils.strings import get_docs_summary, split_camel_case
 from deepchecks.utils.ipython import is_ipython_display
-from deepchecks.utils.metrics import task_type_check, ModelType
+from deepchecks.utils.metrics import task_type_check
 from deepchecks.utils.validation import validate_model
-from deepchecks.errors import (
-    DeepchecksValueError,
-    DeepchecksNotSupportedError,
-    DatasetValidationError,
-    ModelValidationError
-)
+from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 
 
 __all__ = [
@@ -55,6 +49,9 @@ __all__ = [
     'TrainTestBaseCheck',
     'ModelOnlyBaseCheck',
     'CheckFailure',
+    'ConditionResult',
+    'ModelComparisonContext',
+    'ModelComparisonBaseCheck'
 ]
 
 
@@ -455,7 +452,7 @@ class SingleDatasetBaseCheck(BaseCheck):
         return self.run_logic(c)
 
     @abc.abstractmethod
-    def run_logic(self, context: CheckRunContext, dataset: str = 'train'):
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         pass
 
 
@@ -470,7 +467,7 @@ class TrainTestBaseCheck(BaseCheck):
         return self.run_logic(c)
 
     @abc.abstractmethod
-    def run_logic(self, context: CheckRunContext):
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
         pass
 
 
@@ -483,7 +480,7 @@ class ModelOnlyBaseCheck(BaseCheck):
         return self.run_logic(c)
 
     @abc.abstractmethod
-    def run_logic(self, context: CheckRunContext):
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
         pass
 
 
@@ -558,37 +555,31 @@ class ModelComparisonContext:
         if len(test_datasets) != len(models):
             raise DeepchecksValueError('number of test_datasets must equal to number of models')
 
-        self.train_datasets = train_datasets
-        self.test_datasets = test_datasets
-        self.model_names = list(models.keys())
-        self.models = list(models.values())
-
         # Additional validations
         self.task_type = None
+        self.contexts = []
         for i in range(len(models)):
-            train = self.train_datasets[i]
-            test = self.test_datasets[i]
-            model = self.models[i]
-            train = Dataset.ensure_not_empty_dataset(train)
-            test = Dataset.ensure_not_empty_dataset(test)
-            BaseCheck._dataset_has_label(train)
-            BaseCheck._dataset_has_features(train)
-            BaseCheck._datasets_share_features([train, test])
-            BaseCheck._datasets_share_label([train, test])
-            validate_model(train, model)
-            curr_task_type = task_type_check(model, train)
+            train = train_datasets[i]
+            test = test_datasets[i]
+            model = list(models.values())[i]
+            name = list(models.keys())[i]
+            context = CheckRunContext(train, test, model, model_name=name)
             if self.task_type is None:
-                self.task_type = curr_task_type
-            elif curr_task_type != self.task_type:
+                self.task_type = context.task_type
+            elif self.task_type != context.task_type:
                 raise DeepchecksNotSupportedError('Got models of different task types')
+            self.contexts.append(context)
 
     def __len__(self):
-        """Return number of models."""
-        return len(self.models)
+        """Return number of contexts."""
+        return len(self.contexts)
 
     def __iter__(self):
         """Return iterator over context objects."""
-        return zip(self.train_datasets, self.test_datasets, self.models, self.model_names)
+        return iter(self.contexts)
+
+    def __getitem__(self, item):
+        return self.contexts[item]
 
 
 class ModelComparisonBaseCheck(BaseCheck):

@@ -11,6 +11,7 @@
 """The index_leakage check module."""
 import pandas as pd
 
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks import CheckResult, Dataset, TrainTestBaseCheck
 from deepchecks.base.check import ConditionResult
 from deepchecks.utils.strings import format_percent
@@ -30,13 +31,8 @@ class IndexTrainTestLeakage(TrainTestBaseCheck):
         super().__init__()
         self.n_index_to_show = n_index_to_show
 
-    def run(self, train_dataset: Dataset, test_dataset: Dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
-
-        Arguments:
-            train_dataset (Dataset): The training dataset object. Must contain an index.
-            test_dataset (Dataset): The test dataset object. Must contain an index.
-            model: any = None - not used in the check
 
         Returns:
            CheckResult:
@@ -46,14 +42,12 @@ class IndexTrainTestLeakage(TrainTestBaseCheck):
         Raises:
             DeepchecksValueError: If the if one of the datasets is not a Dataset instance with an index
         """
-        return self._index_train_test_leakage(train_dataset, test_dataset)
+        train_dataset = context.train
+        test_dataset = context.test
 
-    def _index_train_test_leakage(self, train_dataset: Dataset, test_dataset: Dataset):
-        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset)
-        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset)
-
-        train_index = self._dataset_has_index(train_dataset)
-        val_index = self._dataset_has_index(test_dataset)
+        context.assert_index_exists()
+        train_index = train_dataset.index_col
+        val_index = test_dataset.index_col
 
         index_intersection = list(set(train_index).intersection(val_index))
         if len(index_intersection) > 0:

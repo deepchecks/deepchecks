@@ -80,6 +80,7 @@ def select_from_dataframe(
             If some of the columns do not exist within provided dataframe;
             If 'columns' and 'ignore_columns' arguments is 'None';
     """
+
     if columns is not None and ignore_columns is not None:
         raise DeepchecksValueError(
             'Cannot receive both parameters "columns" and "ignore", '

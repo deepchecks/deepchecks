@@ -17,9 +17,9 @@ import pandas as pd
 from pandas import DataFrame, Series
 from scipy import stats
 
-from deepchecks import CheckResult, SingleDatasetBaseCheck, Dataset, ConditionResult, ConditionCategory
-from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, \
-                                      column_importance_sorter_df, is_categorical
+from deepchecks.base.check_context import CheckRunContext
+from deepchecks import CheckResult, SingleDatasetBaseCheck, ConditionResult, ConditionCategory
+from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df, is_categorical
 from deepchecks.utils.strings import is_string_column, format_number, format_percent
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.validation import ensure_dataframe_type
@@ -92,20 +92,18 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         self.outlier_length_to_show = outlier_length_to_show
         self.samples_per_range_to_show = samples_per_range_to_show
 
-    def run(self, dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
         Args:
             dataset (DataFrame): A dataset or pd.FataFrame object.
         """
-        feature_importances = calculate_feature_importance_or_none(model, dataset)
-        return self._string_length_out_of_bounds(dataset, feature_importances)
+        if dataset_type == 'train':
+            dataset = context.train
+        else:
+            dataset = context.test
 
-    def _string_length_out_of_bounds(self, dataset: Union[pd.DataFrame, Dataset],
-                                     feature_importances: pd.Series = None) -> CheckResult:
-        # Validate parameters
-        df: pd.DataFrame = ensure_dataframe_type(dataset)
-        df = select_from_dataframe(df, self.columns, self.ignore_columns)
+        df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
 
         display_format = []
         results = defaultdict(lambda: {'outliers': []})
@@ -188,7 +186,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
                                        'Range of Detected Normal String Lengths',
                                        'Range of Detected Outlier String Lengths'])
 
-        df_graph = column_importance_sorter_df(df_graph, dataset, feature_importances,
+        df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
                                                self.n_top_columns, col='Column Name')
         display = [N_TOP_MESSAGE % self.n_top_columns, df_graph] if len(df_graph) > 0 else None
 

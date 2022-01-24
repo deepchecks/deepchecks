@@ -15,12 +15,13 @@ from typing import Union, Dict, List, Iterable
 import numpy as np
 import pandas as pd
 
-from deepchecks import Dataset, CheckResult
+from deepchecks.base.check_context import CheckRunContext
+from deepchecks import CheckResult
 from deepchecks.base.check import SingleDatasetBaseCheck, ConditionResult
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, column_importance_sorter_df
+from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import string_baseform, format_percent
-from deepchecks.utils.validation import ensure_dataframe_type
+
 from deepchecks.utils.typing import Hashable
 from deepchecks.errors import DeepchecksValueError
 
@@ -62,18 +63,55 @@ class MixedNulls(SingleDatasetBaseCheck):
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
 
-    def run(self, dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
-
-        Args:
-            dataset (Dataset):
 
         Returns:
             (CheckResult): DataFrame with columns ('Column Name', 'Value', 'Count', 'Percentage') for any column which
             have more than 1 null values.
         """
-        feature_importances = calculate_feature_importance_or_none(model, dataset)
-        return self._mixed_nulls(dataset, feature_importances)
+        if dataset_type == 'train':
+            dataset = context.train
+        else:
+            dataset = context.test
+        df = dataset.data
+
+        df = select_from_dataframe(df, self.columns, self.ignore_columns)
+        null_string_list: set = self._validate_null_string_list(self.null_string_list, self.check_nan)
+
+        # Result value
+        display_array = []
+        result_dict = defaultdict(dict)
+
+        for column_name in list(df.columns):
+            column_data = df[column_name]
+            # TODO: Modify this once Dataset type casting mechanism is done
+            if column_data.dtype != pd.StringDtype:
+                continue
+            # Get counts of all values in series including NaNs, in sorted order of count
+            column_counts: pd.Series = column_data.value_counts(dropna=False)
+            # Filter out values not in the nulls list
+            null_counts = {value: count for value, count in column_counts.items()
+                           if string_baseform(value) in null_string_list}
+            if len(null_counts) < 2:
+                continue
+            # Save the column info
+            for null_value, count in null_counts.items():
+                percent = count / len(column_data)
+                display_array.append([column_name, null_value, count, format_percent(percent)])
+                result_dict[column_name][null_value] = {'count': count, 'percent': percent}
+
+        # Create dataframe to display table
+        if display_array:
+            df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percent of data'])
+            df_graph = df_graph.set_index(['Column Name', 'Value'])
+            df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
+                                                   self.n_top_columns, col='Column Name')
+            display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
+        else:
+            display = None
+
+        return CheckResult(result_dict, display=display)
 
     def _validate_null_string_list(self, nsl, check_nan: bool) -> set:
         """Validate the object given is a list of strings. If null is given return default list of null values.
@@ -101,56 +139,6 @@ class MixedNulls(SingleDatasetBaseCheck):
             result.add(np.NaN)
 
         return result
-
-    def _mixed_nulls(self, dataset: Union[pd.DataFrame, Dataset], feature_importances: pd.Series = None) -> CheckResult:
-        """Run check logic.
-
-        Args:
-            dataset (DataFrame): dataset to check
-
-        Returns
-            (CheckResult): DataFrame with columns ('Column Name', 'Value', 'Count', 'Fraction of data') for any column
-            which have more than 1 null values.
-        """
-        # Validate parameters
-        original_dataset = dataset
-        dataset = ensure_dataframe_type(dataset)
-        dataset = select_from_dataframe(dataset, self.columns, self.ignore_columns)
-        null_string_list: set = self._validate_null_string_list(self.null_string_list, self.check_nan)
-
-        # Result value
-        display_array = []
-        result_dict = defaultdict(dict)
-
-        for column_name in list(dataset.columns):
-            column_data = dataset[column_name]
-            # TODO: Modify this once Dataset type casting mechanism is done
-            if column_data.dtype != pd.StringDtype:
-                continue
-            # Get counts of all values in series including NaNs, in sorted order of count
-            column_counts: pd.Series = column_data.value_counts(dropna=False)
-            # Filter out values not in the nulls list
-            null_counts = {value: count for value, count in column_counts.items()
-                           if string_baseform(value) in null_string_list}
-            if len(null_counts) < 2:
-                continue
-            # Save the column info
-            for null_value, count in null_counts.items():
-                percent = count / len(column_data)
-                display_array.append([column_name, null_value, count, format_percent(percent)])
-                result_dict[column_name][null_value] = {'count': count, 'percent': percent}
-
-        # Create dataframe to display table
-        if display_array:
-            df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percent of data'])
-            df_graph = df_graph.set_index(['Column Name', 'Value'])
-            df_graph = column_importance_sorter_df(df_graph, original_dataset, feature_importances,
-                                                   self.n_top_columns, col='Column Name')
-            display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
-        else:
-            display = None
-
-        return CheckResult(result_dict, display=display)
 
     def add_condition_different_nulls_not_more_than(self, max_allowed_null_types: int = 1):
         """Add condition - require column not to have more than given number of different null values.

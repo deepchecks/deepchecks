@@ -9,12 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """module contains Identifier Leakage check."""
-from typing import Union, Dict
+from typing import Dict
 
-import pandas as pd
 import plotly.express as px
 
 import deepchecks.ppscore as pps
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks import Dataset, CheckResult, SingleDatasetBaseCheck, ConditionResult
 from deepchecks.utils.strings import format_number
 from deepchecks.errors import DatasetValidationError
@@ -32,14 +32,10 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
 
     def __init__(self, ppscore_params=None):
         super().__init__()
-        self.ppscore_params = ppscore_params
+        self.ppscore_params = ppscore_params or {}
 
-    def run(self, dataset: Dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
-
-        Args:
-          dataset(Dataset): any dataset.
-          model: ignored in check (default: None).
 
         Returns:
             (CheckResult):
@@ -49,13 +45,13 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance with a label
         """
-        return self._identifier_leakage(dataset)
+        if dataset_type == 'train':
+            dataset = context.train
+        else:
+            dataset = context.test
 
-    def _identifier_leakage(self, dataset: Union[pd.DataFrame, Dataset], ppscore_params=None) -> CheckResult:
-        dataset = Dataset.ensure_not_empty_dataset(dataset, cast=True)
-        self._dataset_has_label(dataset)
+        label_name = context.label_name
 
-        ppscore_params = ppscore_params or {}
         relevant_columns = list(filter(None, [dataset.datetime_name, dataset.index_name, dataset.label_name]))
 
         if len(relevant_columns) == 1:
@@ -63,8 +59,8 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
                 'Check is irrelevant for Datasets without index or date column'
             )
 
-        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name, random_seed=42,
-                                **ppscore_params)
+        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=label_name, random_seed=42,
+                                **self.ppscore_params)
         df_pps = df_pps.set_index('x', drop=True)
         s_ppscore = df_pps['ppscore']
 

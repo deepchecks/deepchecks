@@ -15,15 +15,15 @@ import itertools
 
 import pandas as pd
 
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks import (
     CheckResult,
     SingleDatasetBaseCheck,
-    Dataset,
     ConditionResult,
     ConditionCategory
 )
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, column_importance_sorter_df
+from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.strings import (
@@ -59,27 +59,21 @@ class StringMismatch(SingleDatasetBaseCheck):
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
 
-    def run(self, dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
-
-        Args:
-            dataset (DataFrame): A dataset or pd.FataFrame object.
         """
-        feature_importances = calculate_feature_importance_or_none(model, dataset)
-        return self._string_mismatch(dataset, feature_importances)
+        if dataset_type == 'train':
+            dataset = context.train
+        else:
+            dataset = context.test
 
-    def _string_mismatch(self, dataset: Union[pd.DataFrame, Dataset],
-                         feature_importances: pd.Series = None) -> CheckResult:
-        # Validate parameters
-        original_dataset = dataset
-        dataset: pd.DataFrame = ensure_dataframe_type(dataset)
-        dataset = select_from_dataframe(dataset, self.columns, self.ignore_columns)
+        df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
 
         results = []
         result_dict = defaultdict(dict)
 
-        for column_name in dataset.columns:
-            column: pd.Series = dataset[column_name]
+        for column_name in df.columns:
+            column: pd.Series = df[column_name]
             if not is_string_column(column):
                 continue
 
@@ -101,7 +95,7 @@ class StringMismatch(SingleDatasetBaseCheck):
         if results:
             df_graph = pd.DataFrame(results, columns=['Column Name', 'Base form', 'Value', 'Count', '% In data'])
             df_graph = df_graph.set_index(['Column Name', 'Base form'])
-            df_graph = column_importance_sorter_df(df_graph, original_dataset, feature_importances,
+            df_graph = column_importance_sorter_df(df_graph, dataset, context.features_importance,
                                                    self.n_top_columns, col='Column Name')
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
         else:

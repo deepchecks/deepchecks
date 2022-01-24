@@ -12,10 +12,11 @@
 from typing import Union, List, Dict
 import pandas as pd
 
-from deepchecks import Dataset
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks.base.check import CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
+from deepchecks.utils.dataframes import select_from_dataframe
 
 
 __all__ = ['CategoryMismatchTrainTest']
@@ -47,26 +48,8 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
         self.max_features_to_show = max_features_to_show
         self.max_new_categories_to_show = max_new_categories_to_show
 
-    def run(self, train_dataset: Dataset, test_dataset: Dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
-
-        Args:
-            train_dataset (Dataset): The training dataset object.
-            test_dataset (Dataset): The test dataset object.
-            model: any = None - not used in the check
-        Returns:
-            CheckResult: value is a dictionary that shows columns with new categories
-            displays a dataframe that shows columns with new categories
-        """
-        return self._new_category_train_test(train_dataset=train_dataset,
-                                             test_dataset=test_dataset)
-
-    def _new_category_train_test(self, train_dataset: Dataset, test_dataset: Dataset):
-        """Run check.
-
-        Args:
-            train_dataset (Dataset): The training dataset object.
-            test_dataset (Dataset): The test dataset object.
 
         Returns:
             CheckResult: value is a dictionary that shows columns with new categories
@@ -76,24 +59,22 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
             DeepchecksValueError: If the object is not a Dataset instance
 
         """
-        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset, cast=True)
-        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset, cast=True)
+        test_dataset = context.test
+        train_dataset = context.train
+        cat_features = context.cat_features
 
-        features = self._datasets_share_features([train_dataset, test_dataset])
-        cat_features = self._datasets_share_categorical_features([train_dataset, test_dataset])
+        test_df = select_from_dataframe(test_dataset.data, self.columns, self.ignore_columns)
+        train_df = select_from_dataframe(train_dataset.data, self.columns, self.ignore_columns)
 
-        test_dataset = test_dataset.select(self.columns, self.ignore_columns)
-        train_dataset = train_dataset.select(self.columns, self.ignore_columns)
-
-        if set(features).symmetric_difference(set(test_dataset.features)):
-            cat_features = test_dataset.features
+        # After filtering the columns drop cat features that don't exist anymore
+        cat_features = set(cat_features).intersection(set(train_df.columns))
 
         new_categories = []
         n_test_samples = test_dataset.n_samples
 
         for feature in cat_features:
-            train_column = train_dataset.data[feature]
-            test_column = test_dataset.data[feature]
+            train_column = train_df[feature]
+            test_column = test_df[feature]
 
             # np.nan != np.nan, so we remove these values if they exist in training
             if train_column.isna().any():

@@ -12,6 +12,7 @@
 import typing as t
 
 import deepchecks.ppscore as pps
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks.utils.plot import create_colorbar_barchart_for_check
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.strings import format_number
@@ -43,15 +44,11 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
 
     def __init__(self, ppscore_params=None, n_show_top: int = 5):
         super().__init__()
-        self.ppscore_params = ppscore_params
+        self.ppscore_params = ppscore_params or {}
         self.n_show_top = n_show_top
 
-    def run(self, dataset: Dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
-
-        Arguments:
-            dataset: Dataset - The dataset object
-            model: any = None - not used in the check
 
         Returns:
             CheckResult:
@@ -61,20 +58,17 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         Raises:
             DeepchecksValueError: If the object is not a Dataset instance with a label
         """
-        return self._single_feature_contribution(dataset=dataset)
+        if dataset_type == 'train':
+            dataset = context.train
+        else:
+            dataset = context.test
 
-    def _single_feature_contribution(self, dataset: Dataset):
-        dataset = Dataset.ensure_not_empty_dataset(dataset)
-        self._dataset_has_label(dataset)
-        self._dataset_has_features(dataset)
+        label_name = context.label_name
+        features = context.features
 
-        ppscore_params = self.ppscore_params or {}
-        features_list = t.cast(t.List[Hashable], dataset.features)
-        label_name = t.cast(Hashable, dataset.label_name)
-        relevant_columns = features_list + [label_name]
-
-        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name, random_seed=42,
-                                **ppscore_params)
+        relevant_columns = features + [label_name]
+        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=label_name, random_seed=42,
+                                **self.ppscore_params)
         df_pps = df_pps.set_index('x', drop=True)
         s_ppscore = df_pps['ppscore']
 

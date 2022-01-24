@@ -19,12 +19,11 @@ import numpy as np
 import pandas as pd
 from pandas.core.dtypes.common import is_float_dtype
 from sklearn.inspection import permutation_importance
-from sklearn.pipeline import Pipeline
 
 from deepchecks import base
 from deepchecks import errors
 from deepchecks.utils import validation
-from deepchecks.utils.metrics import DeepcheckScorer, get_single_scorer_or_default
+from deepchecks.utils.metrics import DeepcheckScorer, get_default_scorers, task_type_check, init_validate_scorers
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.model import get_model_of_pipeline
 
@@ -214,13 +213,21 @@ def _calc_permutation_importance(
     Returns:
         pd.Series of feature importance normalized to 0-1 indexed by feature names
     """
-    if dataset.label_col is None:
+    if dataset.label_name is None:
         raise errors.DatasetValidationError("Expected dataset with label.")
 
     dataset_sample = dataset.sample(n_samples, drop_na_label=True, random_state=random_state)
 
     # Test score time on the dataset sample
-    scorer = get_single_scorer_or_default(model, dataset, alternative_scorer=alternative_scorer)
+    if alternative_scorer:
+        scorer = alternative_scorer
+    else:
+        task_type = task_type_check(model, dataset)
+        default_scorers = get_default_scorers(task_type)
+        scorer_name = next(iter(default_scorers))
+        single_scorer_dict = {scorer_name: default_scorers[scorer_name]}
+        scorer = init_validate_scorers(single_scorer_dict, model, dataset, model_type=task_type)[0]
+
     start_time = time.time()
     scorer(model, dataset_sample)
     calc_time = time.time() - start_time
@@ -231,8 +238,8 @@ def _calc_permutation_importance(
 
     r = permutation_importance(
         model,
-        dataset_sample.features_columns,
-        dataset_sample.label_col,
+        dataset_sample.data[dataset.features],
+        dataset_sample.data[dataset.label_name],
         n_repeats=n_repeats,
         random_state=random_state,
         n_jobs=-1,
@@ -300,7 +307,7 @@ def column_importance_sorter_df(
     n_top: int = 10,
     col: t.Optional[Hashable] = None
 ) -> pd.DataFrame:
-    """Return the dataframe of of columns sorted and limited by feature importance.
+    """Return the dataframe of columns sorted and limited by feature importance.
 
     Args:
         df (DataFrame): DataFrame to sort

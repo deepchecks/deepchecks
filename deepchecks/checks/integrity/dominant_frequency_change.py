@@ -9,15 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """module contains Dominant Frequency Change check."""
-from typing import Dict, Optional, Union
+from typing import Dict, Optional
 
 from scipy.stats import chi2_contingency, fisher_exact
 import numpy as np
 import pandas as pd
 
-from deepchecks import Dataset
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks.base.check import CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, column_importance_sorter_df
+from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.errors import DeepchecksValueError
 
@@ -45,19 +45,8 @@ class DominantFrequencyChange(TrainTestBaseCheck):
         self.ratio_change_thres = ratio_change_thres
         self.n_top_columns = n_top_columns
 
-    def run(
-        self,
-        train_dataset: Union[Dataset, pd.DataFrame],
-        test_dataset: Union[Dataset, pd.DataFrame],
-        model=None
-    ) -> CheckResult:
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
-
-        Args:
-            train_dataset (Union[Dataset, pandas.DataFrame]):
-                The training dataset object. Must contain an index.
-            test_dataset (Union[Dataset, pandas.DataFrame]):
-                The test dataset object. Must contain an index.
 
         Returns:
             CheckResult: Detects values highly represented in the tested and reference data and checks if their..
@@ -66,16 +55,61 @@ class DominantFrequencyChange(TrainTestBaseCheck):
         Raises:
             DeepchecksValueError: If the object is not a Dataset or DataFrame instance
         """
-        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset, cast=True)
-        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset, cast=True)
-        self._datasets_share_features([test_dataset, train_dataset])
-        feature_importances = calculate_feature_importance_or_none(model, test_dataset)
+        test_dataset = context.test
+        train_dataset = context.train
+        features_importance = context.features_importance
+        features = context.features
 
-        return self._dominant_frequency_change(
-            train_dataset=train_dataset,
-            test_dataset=test_dataset,
-            feature_importances=feature_importances
-        )
+        test_df = test_dataset.data
+        baseline_df = train_dataset.data
+
+        baseline_len = len(baseline_df)
+        test_len = len(test_df)
+        p_dict = {}
+
+        for column in features:
+            top_ref = baseline_df[column].value_counts(dropna=False)
+            top_test = test_df[column].value_counts(dropna=False)
+
+            if len(top_ref) == 1 or top_ref.iloc[0] > top_ref.iloc[1] * self.dominance_ratio:
+                value = top_ref.index[0]
+                p_val = self._find_p_val(value, top_test, top_ref, test_len, baseline_len, self.ratio_change_thres)
+                if p_val:
+                    count_ref = top_ref[value]
+                    count_test = top_test.get(value, 0)
+                    p_dict[column] = {'Value': value,
+                                      'Train data %': count_ref / baseline_len,
+                                      'Test data %': count_test / test_len,
+                                      'Train data #': count_ref,
+                                      'Test data #': count_test,
+                                      'P value': p_val}
+            elif len(top_test) == 1 or top_test.iloc[0] > top_test.iloc[1] * self.dominance_ratio:
+                value = top_test.index[0]
+                p_val = self._find_p_val(value, top_test, top_ref, test_len, baseline_len, self.ratio_change_thres)
+                if p_val:
+                    count_test = top_test[value]
+                    count_ref = top_ref.get(value, 0)
+                    p_dict[column] = {'Value': value,
+                                      'Train data %': count_ref / baseline_len,
+                                      'Test data %': count_test / test_len,
+                                      'Train data #': count_ref,
+                                      'Test data #': count_test,
+                                      'P value': p_val}
+
+        if len(p_dict):
+            sorted_p_df = pd.DataFrame.from_dict(p_dict, orient='index')
+            sorted_p_df.index.name = 'Column'
+            sorted_p_df = column_importance_sorter_df(
+                sorted_p_df,
+                test_dataset,
+                features_importance,
+                self.n_top_columns
+            )
+            display = [N_TOP_MESSAGE % self.n_top_columns, sorted_p_df]
+        else:
+            display = None
+
+        return CheckResult(p_dict, display=display)
 
     def _find_p_val(self, key: str, baseline_hist: Dict, test_hist: Dict, baseline_count: int,
                     test_count: int, ratio_change_thres: float) -> Optional[float]:
@@ -119,74 +153,6 @@ class DominantFrequencyChange(TrainTestBaseCheck):
             _, p_val = fisher_exact(contingency_matrix_df.values)
 
         return p_val
-
-    def _dominant_frequency_change(
-        self,
-        train_dataset: Dataset,
-        test_dataset: Dataset,
-        feature_importances: pd.Series = None
-    ):
-        """Run the check logic.
-
-        Args:
-            train_dataset (Dataset): The training dataset object. Must contain an index.
-            test_dataset (Dataset): The test dataset object. Must contain an index.
-
-        Returns:
-            CheckResult: result value is dict that contains the dominant value change for each column.
-        """
-        columns = train_dataset.features
-
-        test_df = test_dataset.data
-        baseline_df = train_dataset.data
-
-        baseline_len = len(baseline_df)
-        test_len = len(test_df)
-        p_dict = {}
-
-        for column in columns:
-            top_ref = baseline_df[column].value_counts(dropna=False)
-            top_test = test_df[column].value_counts(dropna=False)
-
-            if len(top_ref) == 1 or top_ref.iloc[0] > top_ref.iloc[1] * self.dominance_ratio:
-                value = top_ref.index[0]
-                p_val = self._find_p_val(value, top_test, top_ref, test_len, baseline_len, self.ratio_change_thres)
-                if p_val:
-                    count_ref = top_ref[value]
-                    count_test = top_test.get(value, 0)
-                    p_dict[column] = {'Value': value,
-                                      'Train data %': count_ref / baseline_len,
-                                      'Test data %': count_test / test_len,
-                                      'Train data #': count_ref,
-                                      'Test data #': count_test,
-                                      'P value': p_val}
-            elif len(top_test) == 1 or top_test.iloc[0] > top_test.iloc[1] * self.dominance_ratio:
-                value = top_test.index[0]
-                p_val = self._find_p_val(value, top_test, top_ref, test_len, baseline_len, self.ratio_change_thres)
-                if p_val:
-                    count_test = top_test[value]
-                    count_ref = top_ref.get(value, 0)
-                    p_dict[column] = {'Value': value,
-                                      'Train data %': count_ref / baseline_len,
-                                      'Test data %': count_test / test_len,
-                                      'Train data #': count_ref,
-                                      'Test data #': count_test,
-                                      'P value': p_val}
-
-        if len(p_dict):
-            sorted_p_df = pd.DataFrame.from_dict(p_dict, orient='index')
-            sorted_p_df.index.name = 'Column'
-            sorted_p_df = column_importance_sorter_df(
-                sorted_p_df,
-                test_dataset,
-                feature_importances,
-                self.n_top_columns
-            )
-            display = [N_TOP_MESSAGE % self.n_top_columns, sorted_p_df]
-        else:
-            display = None
-
-        return CheckResult(p_dict, display=display)
 
     def add_condition_p_value_not_less_than(self, p_value_threshold: float = 0.0001):
         """Add condition - require min p value allowed per column.

@@ -54,15 +54,13 @@ def validate_model(
     Raise:
         DeepchecksValueError: if dataset does not match model
     """
-    model_type_validation(model)
-
     error_message = (
         'In order to evaluate model correctness we need not empty dataset '
         'with the same set of features that was used to fit the model. {0}'
     )
 
     if isinstance(data, base.Dataset):
-        features = data.features_columns
+        features = data.data[data.features]
     else:
         features = data
 

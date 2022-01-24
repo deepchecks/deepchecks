@@ -43,7 +43,7 @@ def iris(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBoostClassifier]:
     )
 
     model = AdaBoostClassifier(random_state=0)
-    model.fit(train.features_columns, train.label_col)
+    model.fit(train.data[train.features], train.data[train.label_name])
 
     return train, test, model
 

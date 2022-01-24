@@ -14,11 +14,11 @@ from typing import Union, List
 
 import pandas as pd
 
-from deepchecks import CheckResult, Dataset, TrainTestBaseCheck, ConditionResult
+from deepchecks.base.check_context import CheckRunContext
+from deepchecks import CheckResult, TrainTestBaseCheck, ConditionResult
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none, column_importance_sorter_df
+from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.typing import Hashable
-from deepchecks.utils.validation import ensure_dataframe_type
 from deepchecks.utils.strings import (
     get_base_form_to_variants_dict,
     is_string_column,
@@ -62,27 +62,16 @@ class StringMismatchComparison(TrainTestBaseCheck):
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
 
-    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
-
-        Args:
-            train_dataset (Dataset): The training dataset object.
-            test_dataset (Dataset): The test dataset object.
-            model: Not used in this check.
 
         Returns:
             CheckResult: with value of type dict that contains detected different variants of string
         """
-        feature_importances = calculate_feature_importance_or_none(model, test_dataset)
-        return self._string_mismatch_comparison(train_dataset, test_dataset, feature_importances)
-
-    def _string_mismatch_comparison(self, train_dataset: Union[pd.DataFrame, Dataset],
-                                    test_dataset: Union[pd.DataFrame, Dataset],
-                                    feature_importances: pd.Series = None) -> CheckResult:
         # Validate parameters
-        df = ensure_dataframe_type(test_dataset)
+        df = context.test.data
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
-        baseline_df = ensure_dataframe_type(train_dataset)
+        baseline_df = context.train.data
 
         display_mismatches = []
         result_dict = defaultdict(dict)
@@ -134,8 +123,8 @@ class StringMismatchComparison(TrainTestBaseCheck):
 
             df_graph = column_importance_sorter_df(
                 df_graph,
-                test_dataset if isinstance(test_dataset, Dataset) else Dataset(test_dataset),
-                feature_importances,
+                context.test,
+                context.features_importance,
                 self.n_top_columns,
                 col='Column name'
             )

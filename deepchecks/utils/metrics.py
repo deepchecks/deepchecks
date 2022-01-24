@@ -36,9 +36,10 @@ __all__ = [
     'DEFAULT_BINARY_SCORERS',
     'DEFAULT_MULTICLASS_SCORERS',
     'MULTICLASS_SCORERS_NON_AVERAGE',
-    'get_scorers_or_default',
-    'get_single_scorer_or_default',
-    'get_gain'
+    'DeepcheckScorer',
+    'get_gain',
+    'init_validate_scorers',
+    'get_default_scorers'
 ]
 
 
@@ -114,7 +115,7 @@ class DeepcheckScorer:
 
     @classmethod
     def filter_nulls(cls, dataset: 'base.Dataset'):
-        valid_idx = dataset.label_col.notna()
+        valid_idx = dataset.data[dataset.label_name].notna()
         return dataset.data[valid_idx]
 
     def _run_score(self, model, dataframe, dataset):
@@ -186,14 +187,13 @@ def task_type_check(
     Returns:
         TaskType enum corresponding to the model and dataset
     """
-    validation.model_type_validation(model)
-
-    if dataset.label_col is None:
+    if dataset.label_name is None:
         raise errors.DatasetValidationError('Expected dataset with label')
 
+    label_col = t.cast(pd.Series, dataset.data[dataset.label_name])
     if isinstance(model, BaseEstimator):
         if not hasattr(model, 'predict_proba'):
-            if is_string_column(dataset.label_col):
+            if is_string_column(label_col):
                 raise errors.DeepchecksValueError(
                     'Model was identified as a regression model, but label column was found to contain strings.'
                 )
@@ -205,82 +205,47 @@ def task_type_check(
             else:
                 return ModelType.REGRESSION
         else:
-            labels = t.cast(pd.Series, dataset.label_col)
-
             return (
                 ModelType.MULTICLASS
-                if labels.nunique() > 2
+                if label_col.nunique() > 2
                 else ModelType.BINARY
             )
     elif isinstance(model, ClassificationModel):
-        labels = t.cast(pd.Series, dataset.label_col)
-
         return (
             ModelType.MULTICLASS
-            if labels.nunique() > 2
+            if label_col.nunique() > 2
             else ModelType.BINARY
         )
     else:
         return ModelType.REGRESSION
 
 
-def get_scorers_or_default(model,
-                           dataset,
-                           model_type=None,
-                           alternative_scorers: t.Optional[t.Mapping[str, t.Callable]] = None,
-                           multiclass_avg: bool = True):
+def get_default_scorers(model_type, multiclass_avg: bool = True):
     return_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and multiclass_avg is False
-    if alternative_scorers:
-        scorers = alternative_scorers
+
+    if return_array:
+        return MULTICLASS_SCORERS_NON_AVERAGE
     else:
-        if return_array:
-            scorers = MULTICLASS_SCORERS_NON_AVERAGE
-        else:
-            scorers = DEFAULT_SCORERS_DICT[model_type]
-    # Transform dict of scorers to deepchecks' scorers
-    deepchecks_scorers = initialize_multi_scorers(scorers)
-    for s in deepchecks_scorers:
+        return DEFAULT_SCORERS_DICT[model_type]
+
+
+def get_default_single_scorer(model_type, multiclass_avg: bool = True):
+    scorers = get_default_scorers(model_type, multiclass_avg)
+    single = next(iter(scorers))
+    return {single: scorers[single]}
+
+
+def init_validate_scorers(scorers: t.Mapping[str, t.Callable],
+                          model,
+                          dataset: 'base.Dataset',
+                          multiclass_avg: bool = True,
+                          model_type=None) -> t.List[DeepcheckScorer]:
+    """Initialize scorers and return all of them as deepchecks scorers."""
+    return_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and multiclass_avg is False
+    scorers = [DeepcheckScorer(scorer, name) for name, scorer in scorers.items()]
+    for s in scorers:
         s.validate_fitting(model, dataset, return_array)
-    return deepchecks_scorers
-
-
-def get_single_scorer_or_default(model,
-                                 dataset: 'base.Dataset',
-                                 model_type=None,
-                                 alternative_scorer: t.Union[str, t.Callable] = None,
-                                 multiclass_avg: bool = True) -> 'DeepcheckScorer':
-    """Return single score to use in check, and validate scorer fit the model and dataset."""
-    if model_type is None:
-        model_type = task_type_check(model, dataset)
-    return_array = model_type in [ModelType.MULTICLASS, ModelType.BINARY] and multiclass_avg is False
-
-    if alternative_scorer:
-        scorer_name = None
-        scorer_func = alternative_scorer
-    else:
-        if return_array:
-            scorer_name = next(iter(MULTICLASS_SCORERS_NON_AVERAGE))
-            scorer_func = MULTICLASS_SCORERS_NON_AVERAGE[scorer_name]
-        else:
-            scorer_name = next(iter(DEFAULT_SCORERS_DICT[model_type]))
-            scorer_func = DEFAULT_SCORERS_DICT[model_type][scorer_name]
-
-    scorer = initialize_single_scorer(scorer_func, scorer_name)
-    scorer.validate_fitting(model, dataset, return_array)
-    return scorer
-
-
-def initialize_single_scorer(scorer: t.Optional[t.Union[str, t.Callable]], scorer_name=None) \
-        -> t.Optional[DeepcheckScorer]:
-    """If type is string, get scorer from sklearn."""
-    scorer_name = scorer_name or (scorer if isinstance(scorer, str) else 'User Scorer')
-    return DeepcheckScorer(scorer, scorer_name)
-
-
-def initialize_multi_scorers(alternative_scorers: t.Optional[t.Mapping[str, t.Callable]]) -> \
-        t.Optional[t.List[DeepcheckScorer]]:
-    """Initialize user scorers and return all of them as callable."""
-    return [DeepcheckScorer(scorer, name) for name, scorer in alternative_scorers.items()]
+    return scorers
 
 
 def get_gain(base_score, score, perfect_score, max_gain):

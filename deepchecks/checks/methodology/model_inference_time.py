@@ -14,6 +14,7 @@ import timeit
 
 import numpy as np
 
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks import SingleDatasetBaseCheck, CheckResult, Dataset, ConditionResult
 from deepchecks.utils.validation import validate_model
 from deepchecks.utils.strings import format_number
@@ -41,12 +42,8 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
             raise DeepchecksValueError('number_of_samples cannot be le than 0!')
         super().__init__()
 
-    def run(self, dataset: Dataset, model: object) -> CheckResult:
+    def run_logic(self, context: CheckRunContext, dataset_type: str = 'train') -> CheckResult:
         """Run check.
-
-        Args:
-            dataset (Dataset): samples that will be used to measure inference time
-            model (BaseEstimator): a model to measure inference time
 
         Returns:
             CheckResult:
@@ -56,16 +53,14 @@ class ModelInferenceTimeCheck(SingleDatasetBaseCheck):
             DeepchecksValueError: If the 'test_dataset' is not a 'Dataset' instance with a label or
                 if 'model' is not a scikit-learn-compatible fitted estimator instance
         """
-        return self._model_inference_time_check(dataset, model)
+        if dataset_type == 'train':
+            dataset = context.train
+        else:
+            dataset = context.test
 
-    def _model_inference_time_check(
-        self,
-        dataset: Dataset,
-        model: t.Any
-    ) -> CheckResult:
-        dataset = Dataset.ensure_not_empty_dataset(dataset)
-        df = self._dataset_has_features(dataset)
-        validate_model(dataset, model)
+        features = context.features
+        model = context.model
+        df = dataset.data[features]
 
         prediction_method = model.predict  # type: ignore
 
