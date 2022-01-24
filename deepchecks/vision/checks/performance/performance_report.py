@@ -34,14 +34,14 @@ class PerformanceReport(TrainTestBaseCheck):
     """Summarize given metrics on a dataset and model.
 
     Args:
-        alternative_scorers (List[Metric], default None):
+        alternative_metrics (List[Metric], default None):
             A list of ignite.Metric objects whose score should be used. If None are given, use the default metrics.
     """
 
-    def __init__(self, alternative_scorers: List[Metric] = None, label_map: List = None):
+    def __init__(self, alternative_metrics: List[Metric] = None, prediction_extract: Callable = None):
         super().__init__()
-        self.alternative_scorers = alternative_scorers
-        self.label_map = label_map
+        self.alternative_metrics = alternative_metrics
+        self.prediction_extract = prediction_extract
 
     def run(self, train_dataset: VisionDataset, test_dataset: VisionDataset, model=None) -> CheckResult:
         """Run check.
@@ -67,10 +67,10 @@ class PerformanceReport(TrainTestBaseCheck):
         task_type = task_type_check(model, train_dataset)
 
         # Get default scorers if no alternative, or validate alternatives
-        scorers = get_scorers_list(model, test_dataset, train_dataset.get_num_classes(), self.alternative_scorers)
+        scorers = get_scorers_list(model, test_dataset, train_dataset.get_num_classes(), self.alternative_metrics)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
-        if task_type == TaskType.CLASSIFICATION:
+        if task_type in (TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION):
             classes = train_dataset.get_samples_per_class().keys()
             plot_x_axis = 'Class'
             results = []
@@ -79,12 +79,14 @@ class PerformanceReport(TrainTestBaseCheck):
                 n_samples = dataset.get_samples_per_class()
                 results.extend(
                     [dataset_name, class_name, name, class_score, n_samples[class_name]]
-                    for name, score in calculate_metrics(scorers.values(), dataset, model).items()
+                    for name, score in calculate_metrics(list(scorers.values()), dataset, model,
+                                                         prediction_extract=self.prediction_extract).items()
                     # scorer returns numpy array of results with item per class
                     for class_score, class_name in zip(score, classes)
                 )
 
-            results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples'])
+            results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples']
+                                      ).sort_values(by=['Class'])
 
         else:
             return NotImplementedError('only works for classification ATM')

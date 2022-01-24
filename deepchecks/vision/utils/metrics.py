@@ -17,12 +17,13 @@ __all__ = [
     'task_type_check'
 ]
 
+from .detection_precision_recall import DetectionPrecisionRecall
+
 from ..base.vision_dataset import TaskType
 
 
 def get_default_classification_scorers(n_classes: int):
     return {
-        'Accuracy': Accuracy(num_classes=n_classes),
         'Precision': Precision(),
         'Recall': Recall()
     }
@@ -30,21 +31,20 @@ def get_default_classification_scorers(n_classes: int):
 
 def get_default_object_detection_scorers(n_classes: int):
     return {
-        'IoU': IoU(ConfusionMatrix(num_classes=n_classes)),
-        'mIoU': mIoU(ConfusionMatrix(num_classes=n_classes))
-}
+        'mAP': DetectionPrecisionRecall()
+    }
 
 
 def get_default_semantic_segmentation_scorers(n_classes: int):
     return {
         'IoU': IoU(ConfusionMatrix(num_classes=n_classes)),
         'mIoU': mIoU(ConfusionMatrix(num_classes=n_classes))
-}
+    }
 
 
 def task_type_check(
-    model: nn.Module,
-    dataset: VisionDataset
+        model: nn.Module,
+        dataset: VisionDataset
 ) -> TaskType:
     """Check task type (regression, binary, multiclass) according to model object and label column.
 
@@ -58,24 +58,16 @@ def task_type_check(
     validation.model_type_validation(model)
     dataset.validate_label()
 
-    # Trying to infer the task type from the label shape
-    label_shape = dataset.get_label_shape()
-
-    #TODO: Use Dataset.label_type before inferring
-    # Means the tensor is an array of scalars
-    if len(label_shape) == 0:
-        return TaskType.CLASSIFICATION
-    else:
-        return TaskType.OBJECT_DETECTION
+    return TaskType(dataset.label_type)
 
 
 def get_scorers_list(
-    model,
-    dataset: VisionDataset,
-    n_classes: int,
-    alternative_scorers: t.List[Metric] = None,
-    multiclass_avg: bool = True
-) -> t.List[Metric]:
+        model,
+        dataset: VisionDataset,
+        n_classes: int,
+        alternative_scorers: t.List[Metric] = None,
+        multiclass_avg: bool = True
+) -> t.Dict[str, Metric]:
     task_type = task_type_check(model, dataset)
 
     if alternative_scorers:
@@ -128,5 +120,5 @@ def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn
 
     state = engine.run(dataset.get_data_loader())
 
-    #results = {k: v.tolist() for k, v in state.metrics.items()}
-    return state.metrics
+    results = {k: v.tolist() for k, v in state.metrics.items()}
+    return results

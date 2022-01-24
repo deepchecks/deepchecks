@@ -9,15 +9,16 @@ from .iou_utils import compute_ious
 
 class DetectionPrecisionRecall(Metric):
     """"
-    We are exepcting to recieve the predictions in the following format:
+    We are expecting to receive the predictions in the following format:
     [x, y, w, h, confidence, label]
     """
-    def __init__(self, iou_threshold=0.5, max_dets=None, area_range=None, *args, **kwargs):
+    def __init__(self, iou_threshold=0.5, max_dets=None, area_range=None, return_ap_only: bool = True, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.bb_info = defaultdict(lambda: {"dt": [], "gt": []})
         self.iou_threshold = iou_threshold
         self.max_dets = max_dets
         self.area_range = area_range
+        self.return_ap_only = return_ap_only
         self.i = 0
 
     @reinit__is_reduced
@@ -31,7 +32,7 @@ class DetectionPrecisionRecall(Metric):
     def update(self, output):
         y_pred, y = output
 
-        for dt, gt in zip(y_pred,y):
+        for dt, gt in zip(y_pred, y):
             self._group_detections(dt, gt)
             self.i += 1
 
@@ -69,6 +70,8 @@ class DetectionPrecisionRecall(Metric):
                 "class": class_id,
                 **self._compute_ap_recall(ev["scores"], ev["matched"], ev["NP"])
             }
+        if self.return_ap_only:
+            res = torch.tensor([res[k]['AP'] for k in sorted(res.keys())])
         return res
 
     def _group_detections(self, dt, gt):
