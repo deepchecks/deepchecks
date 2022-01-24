@@ -28,6 +28,7 @@ from .base import (
     Suite,
     SuiteResult,
     ModelComparisonSuite,
+    CheckRunContext
 )
 
 __all__ = [
@@ -46,6 +47,7 @@ __all__ = [
     'Suite',
     'SuiteResult',
     'ModelComparisonSuite',
+    'CheckRunContext'
 ]
 
 # Matplotlib has multiple backends. If we are in a context that does not support GUI (For example, during unit tests)
