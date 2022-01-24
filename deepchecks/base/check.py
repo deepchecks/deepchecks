@@ -358,8 +358,8 @@ class BaseCheck(metaclass=abc.ABCMeta):
     def __init__(self):
         self._conditions = OrderedDict()
         self._conditions_index = 0
-        # Replace the run function with wrapped run function
-        setattr(self, 'run', wrap_run(getattr(self, 'run'), self))
+        # Replace the run_logic function with wrapped run function
+        setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
 
     def conditions_decision(self, result: CheckResult) -> List[ConditionResult]:
         """Run conditions on given result."""

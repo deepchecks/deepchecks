@@ -13,12 +13,14 @@
 import abc
 import io
 from collections import OrderedDict
-from typing import Union, List, Optional, Tuple, Any, Container, Mapping
+from typing import Union, List, Optional, Tuple, Any, Container, Mapping, Callable
 
+import pandas as pd
 from IPython.core.display import display_html
 from IPython.core.getipython import get_ipython
 import jsonpickle
 
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks.base.display_suite import display_suite_result, ProgressBar
 from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.base.dataset import Dataset
@@ -167,26 +169,38 @@ class Suite(BaseSuite):
 
     def run(
             self,
-            train_dataset: Optional[Dataset] = None,
-            test_dataset: Optional[Dataset] = None,
+            train_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
+            test_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
             model: object = None,
+            features_importance: pd.Series = None,
+            feature_importance_force_permutation: bool = False,
+            feature_importance_timeout: int = None,
+            scorers: Mapping[str, Union[str, Callable]] = None,
+            non_avg_scorers: Mapping[str, Union[str, Callable]] = None
     ) -> SuiteResult:
         """Run all checks.
 
         Args:
-          train_dataset: Dataset object, representing data an estimator was fitted on
-          test_dataset: Dataset object, representing data an estimator predicts on
+          train_dataset: Dataset or DataFrame object, representing data an estimator was fitted on
+          test_dataset: Dataset or DataFrame object, representing data an estimator predicts on
           model: A scikit-learn-compatible fitted estimator instance
-
+          features_importance: pass manual features importance
+          feature_importance_force_permutation: force calculation of permutation features importance.
+          feature_importance_timeout: timeout in second for the permutation features importance calculation.
+          scorers: dict of scorers names to scorer sklearn_name/function
+          non_avg_scorers: dict of scorers for multiclass without averaging of the classes.
         Returns:
           List[CheckResult] - All results by all initialized checks
 
         Raises:
              ValueError if check_datasets_policy is not of allowed types
         """
-        if all(it is None for it in (train_dataset, test_dataset, model)):
-            raise DeepchecksValueError('At least one dataset (or model) must be passed to the method!')
-
+        context = CheckRunContext(train_dataset, test_dataset, model,
+                                  features_importance=features_importance,
+                                  feature_importance_force_permutation=feature_importance_force_permutation,
+                                  feature_importance_timeout=feature_importance_timeout,
+                                  scorers=scorers,
+                                  non_avg_scorers=non_avg_scorers)
         # Create progress bar
         progress_bar = ProgressBar(self.name, len(self.checks))
 
@@ -197,8 +211,7 @@ class Suite(BaseSuite):
                 progress_bar.set_text(check.name())
                 if isinstance(check, TrainTestBaseCheck):
                     if train_dataset is not None and test_dataset is not None:
-                        check_result = check.run(train_dataset=train_dataset, test_dataset=test_dataset,
-                                                 model=model)
+                        check_result = check.run_logic(context)
                         results.append(check_result)
                     else:
                         msg = 'Check is irrelevant if not supplied with both train and test datasets'
@@ -208,14 +221,14 @@ class Suite(BaseSuite):
                         # In case of train & test, doesn't want to skip test if train fails. so have to explicitly
                         # wrap it in try/except
                         try:
-                            check_result = check.run(dataset=train_dataset, model=model)
+                            check_result = check.run_logic(context)
                             check_result.header = f'{check_result.get_header()} - Train Dataset'
                         except Exception as exp:
                             check_result = CheckFailure(check, exp, ' - Train Dataset')
                         results.append(check_result)
                     if test_dataset is not None:
                         try:
-                            check_result = check.run(dataset=test_dataset, model=model)
+                            check_result = check.run_logic(context, dataset_type='test')
                             check_result.header = f'{check_result.get_header()} - Test Dataset'
                         except Exception as exp:
                             check_result = CheckFailure(check, exp, ' - Test Dataset')
@@ -225,7 +238,7 @@ class Suite(BaseSuite):
                         results.append(Suite._get_unsupported_failure(check, msg))
                 elif isinstance(check, ModelOnlyBaseCheck):
                     if model is not None:
-                        check_result = check.run(model=model)
+                        check_result = check.run_logic(context)
                         results.append(check_result)
                     else:
                         msg = 'Check is irrelevant if model is not supplied'

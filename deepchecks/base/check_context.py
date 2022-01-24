@@ -9,34 +9,47 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains CheckRunContext."""
-from typing import Callable, Union, Mapping, Dict, List, Optional
+from typing import Callable, Union, Mapping, List, Optional
 
 import pandas as pd
 
 from deepchecks.base import Dataset
 from deepchecks.utils.validation import validate_model, model_type_validation
 from deepchecks.errors import DatasetValidationError, ModelValidationError, \
-    DeepchecksNotSupportedError
+    DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.utils.metrics import ModelType, task_type_check, get_default_scorers, init_validate_scorers
 from deepchecks.utils.typing import Hashable, BasicModel
 from deepchecks.utils.features import calculate_feature_importance_or_none
 
 
 class CheckRunContext:
-    """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly."""
+    """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
+
+    Args:
+      train: Dataset or DataFrame object, representing data an estimator was fitted on
+      test: Dataset or DataFrame object, representing data an estimator predicts on
+      model: A scikit-learn-compatible fitted estimator instance
+      features_importance: pass manual features importance
+      feature_importance_force_permutation: force calculation of permutation features importance
+      feature_importance_timeout: timeout in second for the permutation features importance calculation
+      scorers: dict of scorers names to scorer sklearn_name/function
+      non_avg_scorers: dict of scorers for multiclass without averaging of the classes
+    """
 
     def __init__(self,
                  train: Union[Dataset, pd.DataFrame] = None,
                  test: Union[Dataset, pd.DataFrame] = None,
                  model: BasicModel = None,
                  model_name: str = '',
-                 features_importance: Dict[Hashable, float] = None,
+                 features_importance: pd.Series = None,
                  feature_importance_force_permutation: bool = False,
                  feature_importance_timeout: int = None,
                  scorers: Mapping[str, Union[str, Callable]] = None,
                  non_avg_scorers: Mapping[str, Union[str, Callable]] = None
                  ):
         # Validations
+        if train is None and test is None and model is None:
+            raise DeepchecksValueError('At least one dataset (or model) must be passed to the method!')
         if train is not None:
             train = Dataset.ensure_not_empty_dataset(train)
         if test is not None:
