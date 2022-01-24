@@ -222,14 +222,18 @@ class Suite(BaseSuite):
                         # wrap it in try/except
                         try:
                             check_result = check.run_logic(context)
-                            check_result.header = f'{check_result.get_header()} - Train Dataset'
+                            # In case of single dataset not need to edit the header
+                            if test_dataset is not None:
+                                check_result.header = f'{check_result.get_header()} - Train Dataset'
                         except Exception as exp:
                             check_result = CheckFailure(check, exp, ' - Train Dataset')
                         results.append(check_result)
                     if test_dataset is not None:
                         try:
                             check_result = check.run_logic(context, dataset_type='test')
-                            check_result.header = f'{check_result.get_header()} - Test Dataset'
+                            # In case of single dataset not need to edit the header
+                            if train_dataset is not None:
+                                check_result.header = f'{check_result.get_header()} - Test Dataset'
                         except Exception as exp:
                             check_result = CheckFailure(check, exp, ' - Test Dataset')
                         results.append(check_result)
