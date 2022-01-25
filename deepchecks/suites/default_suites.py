@@ -8,10 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Functions for creating default suites for various use-cases.
+"""Functions for loading the default (built-in) suites for various validation stages.
 
-Each function returns a new suite initialized with checks and default conditions. The suite is editable, it's possible
-to edit the checks and conditions inside it.
+Each function returns a new suite that is initialized with a list of checks and default conditions.
+It is possible to customize these suites by editing the checks and conditions inside it after suite creation.
 """
 from deepchecks.checks import (
     MixedNulls, SpecialCharacters, StringLengthOutOfBounds, StringMismatch, MixedDataTypes,
@@ -59,9 +59,9 @@ def train_test_leakage() -> Suite:
 
 
 def train_test_validation() -> Suite:
-    """Create a suite that is meant to validate correctness of train-test split.
-
-    The suite includes also drift and leakage.
+    """
+    Create a suite that is meant to validate correctness of train-test split, including integrity,
+    distribution and leakage checks.
     """
     return Suite(
         'Train Test Validation Suite',
@@ -97,7 +97,7 @@ def model_evaluation() -> Suite:
 
 
 def full_suite() -> Suite:
-    """Create a suite with all deepchecks' checks."""
+    """Create a suite that includes many of the implemented checks, for a quick overview of your model and data."""
     return Suite(
         'Full Suite',
         ModelInfo(),
