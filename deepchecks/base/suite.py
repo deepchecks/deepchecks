@@ -217,7 +217,9 @@ class Suite(BaseSuite):
             dict of scorers names to scorer sklearn_name/function
         scorers_per_class : Mapping[str, Union[str, Callable]], default None
             dict of scorers for classification without averaging of the classes
-
+            See <a href=
+            "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
+            scikit-learn docs</a>
         Returns
         -------
         SuiteResult
