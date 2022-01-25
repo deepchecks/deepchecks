@@ -59,10 +59,8 @@ def train_test_leakage() -> Suite:
 
 
 def train_test_validation() -> Suite:
-    """
-    Create a suite that is meant to validate correctness of train-test split, including integrity,
-    distribution and leakage checks.
-    """
+    """Create a suite that is meant to validate correctness of train-test split, including integrity, \
+    distribution and leakage checks."""
     return Suite(
         'Train Test Validation Suite',
         TrainTestFeatureDrift().add_condition_drift_score_not_greater_than(),
