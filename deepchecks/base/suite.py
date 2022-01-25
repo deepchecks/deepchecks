@@ -12,8 +12,9 @@
 # pylint: disable=broad-except
 import abc
 import io
-from collections import OrderedDict
-from typing import Union, List, Optional, Tuple, Any, Container, Mapping
+from functools import lru_cache
+from collections import OrderedDict, defaultdict
+from typing import Union, List, Optional, Tuple, Any, Container, Mapping, Dict
 
 from IPython.core.display import display_html
 from IPython.core.getipython import get_ipython
@@ -53,7 +54,45 @@ class SuiteResult:
             display_html(html_out.getvalue(), raw=True)
         else:
             display_suite_result(self.name, self.results)
+    
+    @lru_cache(maxsize=None) # TODO: not sure about it, do we consider SuiteResult as an imutable type?
+    def _group_results(self) -> Dict[str, List[CheckResult]]:
+        result = defaultdict(list)
 
+        for check_result in self.results:
+            if isinstance(check_result, CheckResult):
+                if check_result.have_conditions():
+                    result["with-conditions"].append(check_result)
+                else:
+                    result["without-conditions"].append(check_result)
+                if check_result.have_display():
+                    result["with-display"].append(check_result)
+                else:
+                    result["without-display"].append(check_result)
+            elif isinstance(result, CheckFailure):
+                result["failures"].append(check_result)
+            else:
+                raise DeepchecksValueError(
+                    f"Expecting list of 'CheckResult'|'CheckFailure', but got {type(result)}."
+                )
+        
+        return result
+    
+    def get_failures(self) -> List[CheckResult]:
+        return self._group_results()["failures"]
+    
+    def get_results_without_conditions(self) -> List[CheckResult]:
+        return self._group_results()["without-conditions"]
+    
+    def get_results_with_conditions(self) -> List[CheckResult]:
+        return self._group_results()["with-conditions"]
+    
+    def get_results_without_display(self) -> List[CheckResult]:
+        return self._group_results()["without-display"]
+    
+    def get_results_with_display(self) -> List[CheckResult]:
+        return self._group_results()["with-display"]
+    
     def show(self):
         """Display suite result."""
         if is_ipython_display():
