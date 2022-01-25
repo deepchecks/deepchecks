@@ -12,6 +12,7 @@
 """Utils module containing feature importance calculations."""
 import time
 import typing as t
+import warnings
 from warnings import warn
 from functools import lru_cache
 
@@ -39,7 +40,6 @@ __all__ = [
 ]
 
 
-_PERMUTATION_IMPORTANCE_TIMEOUT: int = 120  # seconds
 N_TOP_MESSAGE = '* showing only the top %s columns, you can change it using n_top_columns param'
 
 
@@ -193,7 +193,7 @@ def _calc_permutation_importance(
     random_state: int = 42,
     n_samples: int = 10_000,
     alternative_scorer: t.Optional[DeepcheckScorer] = None,
-    timeout: int = _PERMUTATION_IMPORTANCE_TIMEOUT
+    timeout: int = None
 ) -> pd.Series:
     """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal.
 
@@ -235,13 +235,16 @@ def _calc_permutation_importance(
         single_scorer_dict = {scorer_name: default_scorers[scorer_name]}
         scorer = init_validate_scorers(single_scorer_dict, model, dataset, model_type=task_type)[0]
 
-    start_time = time.time()
-    scorer(model, dataset_sample)
-    calc_time = time.time() - start_time
+    if timeout:
+        start_time = time.time()
+        scorer(model, dataset_sample)
+        calc_time = time.time() - start_time
 
-    if calc_time * n_repeats * len(dataset.features) > timeout:
-        raise errors.DeepchecksTimeoutError('Permutation importance calculation was not projected to finish in'
-                                            f' {timeout} seconds.')
+        if calc_time * n_repeats * len(dataset.features) > timeout:
+            raise errors.DeepchecksTimeoutError('Permutation importance calculation was not projected to finish in'
+                                                f' {timeout} seconds.')
+    else:
+        warnings.warn('Calculating permutation feature importance without time limit')
 
     r = permutation_importance(
         model,
