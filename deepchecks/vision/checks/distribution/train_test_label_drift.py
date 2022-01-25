@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Train Test label Drift check."""
-
+from copy import copy
 from typing import Dict, Hashable, Callable, Tuple, List, Union
 
 from plotly.subplots import make_subplots
@@ -93,7 +93,10 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
         test_dataset.validate_label()
 
         task_type = train_dataset.label_type
-        if task_type == TaskType.CLASSIFICATION:
+        displays = []
+
+        if task_type == TaskType.CLASSIFICATION.value:
+
             train_label_distribution = train_dataset.get_samples_per_class()
             test_label_distribution = test_dataset.get_samples_per_class()
 
@@ -105,6 +108,59 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
                 max_num_categories=self.max_num_categories
             )
 
+            values_dict = {'Drift score': drift_score, 'Method': method}
+            displays.append(display)
+
+        elif task_type == TaskType.OBJECT_DETECTION.value:
+
+            values_dict = {}
+
+            # Drift on samples per class:
+            title = 'Samples per class'
+            train_label_distribution = train_dataset.get_samples_per_class()
+            test_label_distribution = test_dataset.get_samples_per_class()
+
+            drift_score, method, display = calc_drift_and_plot(
+                train_distribution=train_label_distribution,
+                test_distribution=test_label_distribution,
+                plot_title=title,
+                column_type='categorical',
+                max_num_categories=self.max_num_categories
+            )
+
+            values_dict[title] = {'Drift score': drift_score, 'Method': method}
+            displays.append(display)
+
+            # Drift on bbox areas:
+            title = 'bbox area distribution'
+            train_label_distribution = histogram_in_batch(dataset=train_dataset, transform=get_bbox_area)
+            test_label_distribution = histogram_in_batch(dataset=test_dataset, transform=get_bbox_area)
+
+            drift_score, method, display = calc_drift_and_plot(
+                train_distribution=train_label_distribution,
+                test_distribution=test_label_distribution,
+                plot_title=title,
+                column_type='numerical'
+            )
+
+            values_dict[title] = {'Drift score': drift_score, 'Method': method}
+            displays.append(display)
+
+            # Number of bboxes per image
+            title = 'Number of bboxes per image'
+            train_label_distribution = count_custom_transform_on_label(dataset=train_dataset, transform=count_num_bboxes)
+            test_label_distribution = count_custom_transform_on_label(dataset=test_dataset, transform=count_num_bboxes)
+
+            drift_score, method, display = calc_drift_and_plot(
+                train_distribution=train_label_distribution,
+                test_distribution=test_label_distribution,
+                plot_title=title,
+                column_type='categorical',
+            )
+
+            values_dict[title] = {'Drift score': drift_score, 'Method': method}
+            displays.append(display)
+
         else:
             raise NotImplementedError('Currently not implemented') #TODO
 
@@ -113,8 +169,7 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
             and train distributions.<br> The check shows the drift score and distributions for the label.
         </span>"""
 
-        displays = [headnote, display]
-        values_dict = {'Drift score': drift_score, 'Method': method}
+        displays = [headnote] + displays
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
 
@@ -153,6 +208,52 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
                                   f'{max_allowed_earth_movers_score} for label drift',
                                   condition)
 
+
+def get_bbox_area(label):
+    areas = (label.reshape((-1, 5))[:, 4] * label.reshape((-1, 5))[:, 3]).reshape(-1, 1).tolist()
+    return areas
+
+
+def count_num_bboxes(label):
+    num_bboxes = label.shape[0]
+    return num_bboxes
+
+
+def count_custom_transform_on_label(dataset: VisionDataset, transform: Callable = lambda x: x):
+    counter = Counter()
+    for i in range(len(dataset._data)):
+        list_of_arrays = next(iter(dataset._data))[1]
+        calc_res = [transform(arr) for arr in list_of_arrays]
+        if len(calc_res) != 0 and isinstance(calc_res[0], list):
+            calc_res = [x[0] for x in sum(calc_res, [])]
+        counter.update(calc_res)
+    return counter
+
+
+def histogram_in_batch(dataset: VisionDataset, transform: Callable = lambda x: x):
+    label_min = np.inf
+    label_max = -np.inf
+    for i in range(len(dataset._data)):
+        list_of_arrays = next(iter(dataset._data))[1]
+        calc_res = [transform(arr) for arr in list_of_arrays]
+        if len(calc_res) != 0 and isinstance(calc_res[0], list):
+            calc_res = [x[0] for x in sum(calc_res, [])]
+        label_min = min(calc_res + [label_min])
+        label_max = max(calc_res + [label_max])
+
+    hist, edges = np.histogram([], bins=100, range=(label_min, label_max))
+
+    for i in range(len(dataset._data)):
+        list_of_arrays = next(iter(dataset._data))[1]
+        calc_res = [transform(arr) for arr in list_of_arrays]
+        if len(calc_res) != 0 and isinstance(calc_res[0], list):
+            calc_res = [x[0] for x in sum(calc_res, [])]
+        new_hist, _ = np.histogram(calc_res, bins=100, range=(label_min, label_max))
+        hist = new_hist + hist
+
+    return {k: v for k, v in zip(edges, hist)}
+
+
 PSI_MIN_PERCENTAGE = 0.01
 
 def psi(expected_percents: np.ndarray, actual_percents: np.ndarray):
@@ -180,84 +281,18 @@ def psi(expected_percents: np.ndarray, actual_percents: np.ndarray):
     return psi_value
 
 
-# def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]):
-#     """
-#     Calculate the Earth Movers Distance (Wasserstein distance).
-#
-#     See https://en.wikipedia.org/wiki/Wasserstein_metric
-#
-#     Function is for numerical data only.
-#
-#     Args:
-#         dist1: array of numberical values.
-#         dist2: array of numberical values to compare dist1 to.
-#
-#     Returns:
-#         the Wasserstein distance between the two distributions.
-#
-#     """
-#     unique1 = np.unique(dist1)
-#     unique2 = np.unique(dist2)
-#
-#     sample_space = list(set(unique1).union(set(unique2)))
-#
-#     val_max = max(sample_space)
-#     val_min = min(sample_space)
-#
-#     if val_max == val_min:
-#         return 0
-#
-#     dist1 = (dist1 - val_min) / (val_max - val_min)
-#     dist2 = (dist2 - val_min) / (val_max - val_min)
-#
-#     return wasserstein_distance(dist1, dist2)
-
-# def preprocess_2_cat_cols_to_same_bins(dist1: np.ndarray, dist2: np.ndarray, max_num_categories
-#                                        ) -> Tuple[np.ndarray, np.ndarray, List]:
-#     """
-#     Preprocess distributions to the same bins in order to be able to be calculated by PSI.
-#
-#     Function returns the value counts for each distribution and the categories list. If there are more than
-#     max_num_categories, it encodes rare categories into an "OTHER" category. This is done according to the values of
-#     dist1, which is treated as the "expected" distribution.
-#
-#     Function is for categorical data only.
-#     Args:
-#         dist1: list of values from the first distribution, treated as the expected distribution
-#         dist2: list of values from the second distribution, treated as the actual distribution
-#         max_num_categories: max number of allowed categories. If there are more, they are binned into an "Other"
-#         category. If max_num_categories=None, there is no limit.
-#
-#     Returns:
-#         dist1_percents: array of percentages of each value in the first distribution.
-#         dist2_percents: array of percentages of each value in the second distribution.
-#         categories_list: list of all categories that the percentages represent.
-#
-#     """
-#     all_categories = list(set(dist1).union(set(dist2)))
-#
-#     if max_num_categories is not None and len(all_categories) > max_num_categories:
-#         dist1_counter = dict(Counter(dist1).most_common(max_num_categories))
-#         dist1_counter['Other rare categories'] = len(dist1) - sum(dist1_counter.values())
-#         categories_list = list(dist1_counter.keys())
-#
-#         dist2_counter = Counter(dist2)
-#         dist2_counter = {k: dist2_counter[k] for k in categories_list}
-#         dist2_counter['Other rare categories'] = len(dist2) - sum(dist2_counter.values())
-#
-#     else:
-#         dist1_counter = Counter(dist1)
-#         dist2_counter = Counter(dist2)
-#         categories_list = all_categories
-#
-#     dist1_percents = np.array([dist1_counter[k] for k in categories_list]) / len(dist1)
-#     dist2_percents = np.array([dist2_counter[k] for k in categories_list]) / len(dist2)
-#
-#     return dist1_percents, dist2_percents, categories_list
+def earth_movers_distance_by_histogram(expected_percents: np.ndarray, actual_percents: np.ndarray):
+    dirt = copy(actual_percents)
+    delta = 1 / expected_percents.size
+    emd = 0
+    for i in range(dirt.shape[0]-1):
+        dirt_to_pass = dirt[i] - expected_percents[i]
+        dirt[i+1] += dirt_to_pass
+        emd += abs(dirt_to_pass)*delta
+    return emd
 
 
-
-def calc_drift_and_plot(train_distribution: Counter, test_distribution: Counter, plot_title: Hashable,
+def calc_drift_and_plot(train_distribution: dict, test_distribution: dict, plot_title: Hashable,
                         column_type: str, max_num_categories: int = 10) -> Tuple[float, str, Callable]:
     """
     Calculate drift score per column.
@@ -279,23 +314,22 @@ def calc_drift_and_plot(train_distribution: Counter, test_distribution: Counter,
     # test_dist = test_distribution.dropna().values.reshape(-1)
 
     if column_type == 'numerical':
-        pass
-        # scorer_name = "Earth Mover's Distance"
-        #
-        # train_dist = train_dist.astype('float')
-        # test_dist = test_dist.astype('float')
-        #
-        # score = earth_movers_distance(dist1=train_dist, dist2=test_dist)
-        # bar_stop = max(0.4, score + 0.1)
-        #
-        # score_bar = drift_score_bar_traces(score)
-        #
-        # traces, xaxis_layout, yaxis_layout = feature_distribution_traces(train_dist, test_dist)
+        scorer_name = "Earth Mover's Distance"
+
+        expected_percents = np.array(list(train_distribution.values()))
+        actual_percents = np.array(list(test_distribution.values()))
+
+        score = earth_movers_distance_by_histogram(expected_percents=expected_percents, actual_percents=actual_percents)
+        bar_stop = max(0.4, score + 0.1)
+
+        score_bar = drift_score_bar_traces(score)
+
+        x_values = list(train_distribution.keys())
+
+        traces, xaxis_layout, yaxis_layout = feature_distribution_traces(expected_percents, actual_percents, x_values)
 
     elif column_type == 'categorical':
         scorer_name = 'PSI'
-        # expected_percents, actual_percents, _ = \
-        #     preprocess_2_cat_cols_to_same_bins(dist1=train_dist, dist2=test_dist, max_num_categories=max_num_categories)
 
         categories_list = list(set(train_distribution.keys()).union(set(test_distribution.keys())))
 
@@ -308,7 +342,7 @@ def calc_drift_and_plot(train_distribution: Counter, test_distribution: Counter,
         score_bar = drift_score_bar_traces(score)
 
         traces, xaxis_layout, yaxis_layout = feature_distribution_traces(expected_percents, actual_percents, categories_list,
-                                                                         is_categorical=True, max_num_categories=max_num_categories)
+                                                                         is_categorical=True)
 
     fig = make_subplots(rows=2, cols=1, vertical_spacing=0.4, shared_yaxes=False, shared_xaxes=False,
                         row_heights=[0.1, 0.9],
@@ -347,9 +381,8 @@ def calc_drift_and_plot(train_distribution: Counter, test_distribution: Counter,
 
 def feature_distribution_traces(expected_percents: np.array,
                                 actual_percents: np.array,
-                                categories_list: list,
-                                is_categorical: bool = False,
-                                max_num_categories: int = 10) -> [List[Union[go.Bar, go.Scatter]], Dict, Dict]:
+                                x_values: list,
+                                is_categorical: bool = False) -> [List[Union[go.Bar, go.Scatter]], Dict, Dict]:
     """Create traces for comparison between train and test column.
 
     Args:
@@ -364,14 +397,9 @@ def feature_distribution_traces(expected_percents: np.array,
         Dict: layout of y axis
     """
     if is_categorical:
-        # expected_percents, actual_percents, categories_list = \
-        #     preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column,
-        #                                        max_num_categories=max_num_categories)
-
-
 
         train_bar = go.Bar(
-            x=categories_list,
+            x=x_values,
             y=expected_percents,
             marker=dict(
                 color=colors['Train'],
@@ -380,7 +408,7 @@ def feature_distribution_traces(expected_percents: np.array,
         )
 
         test_bar = go.Bar(
-            x=categories_list,
+            x=x_values,
             y=actual_percents,
             marker=dict(
                 color=colors['Test'],
@@ -396,18 +424,18 @@ def feature_distribution_traces(expected_percents: np.array,
                             title='Percentage')
 
     else:
-        pass
-        # x_range = (min(train_column.min(), test_column.min()), max(train_column.max(), test_column.max()))
-        # xs = np.linspace(x_range[0], x_range[1], 40)
-        #
-        # traces = [go.Scatter(x=xs, y=get_density(train_column, xs), fill='tozeroy', name='Train Dataset',
-        #                      line_color=colors['Train']),
-        #           go.Scatter(x=xs, y=get_density(test_column, xs), fill='tozeroy', name='Test Dataset',
-        #                      line_color=colors['Test'])]
-        #
-        # xaxis_layout = dict(fixedrange=True,
-        #                     range=x_range,
-        #                     title='Distribution')
-        # yaxis_layout = dict(title='Probability Density')
+        # pass
+        x_range = (x_values[0], x_values[-1])
+        xs = np.linspace(x_range[0], x_range[1], 40)
+
+        traces = [go.Scatter(x=xs, y=expected_percents, fill='tozeroy', name='Train Dataset',
+                             line_color=colors['Train']),
+                  go.Scatter(x=xs, y=actual_percents, fill='tozeroy', name='Test Dataset',
+                             line_color=colors['Test'])]
+
+        xaxis_layout = dict(fixedrange=True,
+                            range=x_range,
+                            title='Distribution')
+        yaxis_layout = dict(title='Probability Density')
 
     return traces, xaxis_layout, yaxis_layout

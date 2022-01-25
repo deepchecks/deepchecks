@@ -65,12 +65,6 @@ class VisionDataset:
                 )
         return copy(self._samples_per_class)
 
-    def extract_label(self):
-        y = []
-        for i in range(len(self._data)):
-            y.append(next(iter(self._data))[1])
-        return cat(y, 0)
-
     def infer_label_type(self):
         label_shape = self.get_label_shape()
 
