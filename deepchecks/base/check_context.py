@@ -39,7 +39,7 @@ class CheckRunContext:
         pass manual features importance
     feature_importance_force_permutation : bool , default: False
         force calculation of permutation features importance
-    feature_importance_timeout : int , default: None
+    feature_importance_timeout : int , default: 120
         timeout in second for the permutation features importance calculation
     scorers : Mapping[str, Union[str, Callable]] , default: None
         dict of scorers names to scorer sklearn_name/function
@@ -57,7 +57,7 @@ class CheckRunContext:
                  model_name: str = '',
                  features_importance: pd.Series = None,
                  feature_importance_force_permutation: bool = False,
-                 feature_importance_timeout: int = None,
+                 feature_importance_timeout: int = 120,
                  scorers: Mapping[str, Union[str, Callable]] = None,
                  scorers_per_class: Mapping[str, Union[str, Callable]] = None
                  ):
@@ -169,9 +169,7 @@ class CheckRunContext:
         """Return features importance, or None if not possible."""
         if not self._calculated_importance:
             if self._model and (self._train or self._test):
-                permutation_kwargs = {}
-                if self._feature_importance_timeout:
-                    permutation_kwargs['timeout'] = self._feature_importance_timeout
+                permutation_kwargs = {'timeout': self._feature_importance_timeout}
                 dataset = self.test if self.have_test() else self.train
                 importance, importance_type = calculate_feature_importance_or_none(
                     self._model, dataset, self._feature_importance_force_permutation, permutation_kwargs
