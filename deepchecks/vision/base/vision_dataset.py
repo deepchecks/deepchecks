@@ -26,7 +26,7 @@ class VisionDataset:
 
     _data: DataLoader = None
 
-    def __init__(self, data_loader: DataLoader, num_classes: int = None, label_type: str = None):
+    def __init__(self, data_loader: DataLoader, num_classes: int = None, label_type: TaskType = None):
         self._data = data_loader
         if label_type is not None:
             self.label_type = label_type
@@ -61,7 +61,7 @@ class VisionDataset:
         return cat(y, 0)
 
     def infer_label_type(self):
-        return 'classification'
+        return TaskType.CLASSIFICATION
 
     def validate_label(self):
         # Getting first sample of data
