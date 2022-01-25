@@ -255,6 +255,13 @@ class CheckRunContext:
         If receive `alternative_scorers` return them,
         Else if user defined global scorers return them,
         Else return default scorers.
+
+        Parameters
+        ----------
+        alternative_scorers : Mapping[str, Union[str, Callable]], default None
+            dict of scorers names to scorer sklearn_name/function
+        class_avg : bool, default True
+            for classification whether to return scorers of average score or score per class
         """
         if class_avg:
             user_scorers = self._user_scorers
@@ -270,7 +277,14 @@ class CheckRunContext:
         If receive `alternative_scorers` use them,
         Else if user defined global scorers use them,
         Else use default scorers.
-        Returns the first scorer in the scorers dict.
+        Returns the first scorer from the scorers described above.
+
+        Parameters
+        ----------
+        alternative_scorers : Mapping[str, Union[str, Callable]], default None
+            dict of scorers names to scorer sklearn_name/function. Only first scorer will be used.
+        class_avg : bool, default True
+            for classification whether to return scorers of average score or score per class
         """
         if class_avg:
             user_scorers = self._user_scorers
