@@ -138,7 +138,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
             domain_classifier,
             domain_test_dataset,
             force_permutation=True,
-            permutation_kwargs={'n_repeats': 10, 'random_state': self.random_state}
+            permutation_kwargs={'n_repeats': 10, 'random_state': self.random_state, 'timeout': 120}
         )
 
         fi = fi.sort_values(ascending=False) if fi is not None else None

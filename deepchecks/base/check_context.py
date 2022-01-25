@@ -166,9 +166,7 @@ class CheckRunContext:
         """Return features importance, or None if not possible."""
         if not self._calculated_importance:
             if self._model and (self._train or self._test):
-                permutation_kwargs = {}
-                if self._feature_importance_timeout:
-                    permutation_kwargs['timeout'] = self._feature_importance_timeout
+                permutation_kwargs = {'timeout': self._feature_importance_timeout}
                 dataset = self.test if self.have_test() else self.train
                 importance, importance_type = calculate_feature_importance_or_none(
                     self._model, dataset, self._feature_importance_force_permutation, permutation_kwargs
