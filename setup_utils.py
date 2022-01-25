@@ -129,7 +129,6 @@ def verify_submodule_existence(submodule: str) -> pathlib.Path:
    
    return submodule_path
 
-t.NewType
 def get_setup_kwargs(submodule: str, **kwargs) -> t.Dict[str, t.Any]:
    version = get_version_string()
    description, long_description = get_description()

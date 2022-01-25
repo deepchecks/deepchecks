@@ -363,8 +363,18 @@ license-check:
 develop:
 	$(PYTHON) setup.py develop
 
+develop-package:
+	$(PIP) install ./core
+	$(PIP) install ./tabular
+	$(PIP) install ./vision
+
 install:
 	$(PYTHON) setup.py install
+
+install-package:
+	$(PIP) install -e ./core
+	$(PIP) install -e ./tabular
+	$(PIP) install -e ./vision
 
 download:
 	$(PIP) install $(PROJECT)
