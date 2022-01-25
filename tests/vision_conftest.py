@@ -10,7 +10,7 @@ from deepchecks.vision import VisionDataset
 from torch.utils.data import DataLoader
 from torchvision.datasets import MNIST
 
-from deepchecks.vision.datasets.detection.coco import get_trained_yolov5_object_detection
+from deepchecks.vision.datasets.detection.coco import get_trained_yolov5_object_detection, get_coco_dataloader
 
 
 @pytest.fixture(scope='session')
@@ -115,3 +115,13 @@ def obj_detection_images():
     ]
 
     return uris
+
+
+@pytest.fixture(scope='session')
+def coco_dataloader():
+    return get_coco_dataloader(batch_size=4)
+
+
+@pytest.fixture(scope='session')
+def coco_dataset(coco_dataloader):
+    return VisionDataset(coco_dataloader)

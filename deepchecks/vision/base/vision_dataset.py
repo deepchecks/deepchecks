@@ -45,13 +45,24 @@ class VisionDataset:
 
     def get_samples_per_class(self):
         if self._samples_per_class is None:
-            if len(self.get_label_shape()) == 0:
+            if self.label_type == TaskType.CLASSIFICATION.value:
                 counter = Counter()
                 for i in range(len(self._data)):
                     counter.update(next(iter(self._data))[1].tolist())
                 self._samples_per_class = counter
+            elif self.label_type == TaskType.OBJECT_DETECTION.value:
+                # Assume next(iter(self._data))[1] is a list (per sample) of numpy arrays (rows are bboxes) with the
+                # first column in the array representing class
+                counter = Counter()
+                for i in range(len(self._data)):
+                    list_of_arrays = next(iter(self._data))[1]
+                    class_list = sum([arr.reshape((-1, 5))[:, 0].tolist() for arr in list_of_arrays], [])
+                    counter.update(class_list)
+                self._samples_per_class = counter
             else:
-                raise NotImplementedError('Not implemented yet') #TODO
+                raise NotImplementedError(
+                    'Not implemented yet for tasks other than classification and object detection'
+                )
         return copy(self._samples_per_class)
 
     def extract_label(self):
@@ -61,7 +72,13 @@ class VisionDataset:
         return cat(y, 0)
 
     def infer_label_type(self):
-        return TaskType.CLASSIFICATION
+        label_shape = self.get_label_shape()
+
+        # Means the tensor is an array of scalars
+        if len(label_shape) == 0:
+            return TaskType.CLASSIFICATION.value
+        else:
+            return TaskType.OBJECT_DETECTION.value
 
     def validate_label(self):
         # Getting first sample of data
@@ -73,7 +90,7 @@ class VisionDataset:
         self.validate_label()
 
         # Assuming the dataset contains a tuple of (features, label)
-        return next(iter(self._data))[1].shape[1:]  # first argument is batch_size
+        return next(iter(self._data))[1][0].shape  # first argument is batch_size
 
     def __iter__(self):
         return iter(self._data)
