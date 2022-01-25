@@ -27,7 +27,7 @@ import pandas as pd
 import numpy as np
 import ipywidgets as widgets
 import plotly.graph_objects as go
-from IPython.core.display import display_html
+from IPython.display import display_html
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 import plotly
@@ -110,7 +110,7 @@ class CheckResult:
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
     def display_check(self, unique_id: str = None, as_widget: bool = False,
-                      show_additional_outputs=True):  # pragma: no cover
+                      show_additional_outputs=True):
         """Display the check result or return the display as widget.
 
         Parameters
