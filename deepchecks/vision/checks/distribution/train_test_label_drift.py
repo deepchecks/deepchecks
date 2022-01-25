@@ -26,6 +26,7 @@ import plotly.graph_objs as go
 
 __all__ = ['TrainTestLabelDrift']
 
+
 class TrainTestLabelDrift(TrainTestBaseCheck):
     """
     Calculate label drift between train dataset and test dataset, using statistical measures.
@@ -112,6 +113,11 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
             displays.append(display)
 
         elif task_type == TaskType.OBJECT_DETECTION.value:
+
+            #TODO: This should be one process, that iterates over the dataset once, not every metric.
+            """this means that histogram_in_batch and count_custom_transform_on_label should be the same func,
+            and that it should receive multiple transforms and do them"""
+
 
             values_dict = {}
 
