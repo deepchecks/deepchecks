@@ -336,7 +336,7 @@ class CheckResult:
             self._ipython_display_(unique_id=unique_id,
                                    show_additional_outputs=show_additional_outputs)
         else:
-            warnings.warn('You are running in a non-interactive python shell. in order to show result you have to use'
+            warnings.warn('You are running in a non-interactive python shell. in order to show result you have to use '
                           'an IPython shell (etc Jupyter)')
 
 

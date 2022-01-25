@@ -69,7 +69,7 @@ class SuiteResult:
         if is_notebook():
             self._ipython_display_()
         else:
-            warnings.warn('You are running in a non-interactive python shell. in order to show result you have to use'
+            warnings.warn('You are running in a non-interactive python shell. in order to show result you have to use '
                           'an IPython shell (etc Jupyter)')
 
     def save_as_html(self, file=None):
