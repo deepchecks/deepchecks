@@ -170,6 +170,8 @@ autodoc_typehints_format = 'short'
 #
 napoleon_preprocess_types = False
 
+# Report warnings for all validation checks
+numpydoc_validation_checks = {"all"}
 
 # -- nbsphinx extension settings --------------------------------------------------
 

@@ -40,6 +40,7 @@ class DateTrainTestLeakageDuplicates(TrainTestBaseCheck):
         CheckResult
             value is the ratio of date leakage.
             data is html display of the checks' textual result.
+
         Raises
         ------
         DeepchecksValueError
