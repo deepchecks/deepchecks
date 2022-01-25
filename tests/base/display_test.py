@@ -89,9 +89,9 @@ def test_check_result_display_plt_func():
     assert_that(check_res.display_check(as_widget=True), not_none())
 
 
-def test_check_result_display_plotly(iris_dataset):
+def test_check_result_display_plotly(iris):
     # Arrange
-    plot = plotly.express.bar(iris_dataset.label_col)
+    plot = plotly.express.bar(iris)
     check_res = CheckResult(value=7, header='test', display=[plot])
     check_res.check = DataDuplicates
     display = check_res.display_check(as_widget=True)
@@ -111,9 +111,9 @@ def test_check_result_to_json():
                 raises(Exception, 'Unable to create json for item of type: <class \'dict\'>'))
 
 
-def test_check_result_from_json(iris_dataset):
+def test_check_result_from_json(iris):
     # Arrange
-    plot = plotly.express.bar(iris_dataset.label_col)
+    plot = plotly.express.bar(iris)
 
     json_to_display = jsonpickle.dumps({
         'display': [
