@@ -72,6 +72,7 @@ class UnusedFeatures(TrainTestBaseCheck):
         CheckResult
             value is a dataframe with metrics as indexes, and scores per training and test in the columns.
             display data is a bar graph of the metrics for training and test data.
+
         Raises
         ------
         DeepchecksValueError

@@ -25,7 +25,7 @@ from deepchecks.base.display_suite import display_suite_result, ProgressBar
 from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.base.dataset import Dataset
 from deepchecks.base.check import CheckResult, TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck, \
-                                  CheckFailure, ModelComparisonBaseCheck, ModelComparisonContext
+                                  CheckFailure, ModelComparisonBaseCheck, ModelComparisonContext, BaseCheck
 from deepchecks.utils.ipython import is_ipython_display
 from deepchecks.utils.typing import BasicModel
 
@@ -123,7 +123,7 @@ class BaseSuite:
     name: str
     _check_index: int
 
-    def __init__(self, name: str, *checks):
+    def __init__(self, name: str, *checks: Union[BaseCheck, 'BaseSuite']):
         self.name = name
         self.checks = OrderedDict()
         self._check_index = 0
@@ -142,7 +142,7 @@ class BaseSuite:
             raise DeepchecksValueError(f'No index {index} in suite')
         return self.checks[index]
 
-    def add(self, check):
+    def add(self, check: Union['BaseCheck', 'BaseSuite']):
         """Add a check or a suite to current suite.
 
         Parameters

@@ -100,6 +100,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
             importance as calculated for the domain classifier model.
             display: distribution graph for each column for the columns most explaining the dataset difference,
             comparing the train and test distributions.
+
         Raises
         ------
         DeepchecksValueError
