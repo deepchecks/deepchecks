@@ -37,7 +37,7 @@ from deepchecks.base.condition import Condition, ConditionCategory, ConditionRes
 from deepchecks.base.dataset import Dataset
 from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table
 from deepchecks.utils.strings import get_docs_summary, split_camel_case
-from deepchecks.utils.ipython import is_ipython_display, is_notebook
+from deepchecks.utils.ipython import is_notebook
 from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 
 
