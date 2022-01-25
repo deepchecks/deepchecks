@@ -12,6 +12,7 @@ Here you can see the api reference.
     datasets
     suites
     utils
+    errors
 
 .. currentmodule:: deepchecks
 
@@ -22,3 +23,4 @@ Here you can see the api reference.
     datasets
     suites
     utils
+    errors

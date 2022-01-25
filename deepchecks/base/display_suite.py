@@ -64,7 +64,14 @@ def _create_table_widget(df_html: str) -> widgets.VBox:
 
 
 class ProgressBar:
-    """Progress bar for display while running suite."""
+    """Progress bar for display while running suite.
+
+    Parameters
+    ----------
+    name
+    length
+
+    """
 
     def __init__(self, name, length):
         """Initialize progress bar."""
@@ -77,7 +84,12 @@ class ProgressBar:
             self.pbar = tqdm.tqdm(**shared_args, bar_format=f'{{l_bar}}{{bar:{length}}}{{r_bar}}')
 
     def set_text(self, text):
-        """Set current running check."""
+        """Set current running check.
+
+        Parameters
+        ----------
+        text
+        """
         self.pbar.set_postfix(Check=text)
 
     def close(self):
@@ -229,7 +241,8 @@ def _display_suite_no_widgets(summary: str,
         others_df = dataframe_to_html(others_table.style.hide_index())
         display_html(others_h2 + others_df, raw=True)
 
-    display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
+    if unique_id:
+        display_html(f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>', raw=True)
 
 
 def display_suite_result(suite_name: str, results: List[Union[CheckResult, CheckFailure]],

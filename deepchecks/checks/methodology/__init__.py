@@ -18,7 +18,7 @@ from .train_test_samples_mix import TrainTestSamplesMix
 from .date_train_test_leakage_duplicates import DateTrainTestLeakageDuplicates
 from .date_train_test_leakage_overlap import DateTrainTestLeakageOverlap
 from .identifier_leakage import IdentifierLeakage
-from .model_inference_time import ModelInferenceTimeCheck
+from .model_inference_time import ModelInferenceTime
 from .datasets_size_comparison import DatasetsSizeComparison
 
 
@@ -32,6 +32,6 @@ __all__ = [
     'DateTrainTestLeakageDuplicates',
     'DateTrainTestLeakageOverlap',
     'IdentifierLeakage',
-    'ModelInferenceTimeCheck',
+    'ModelInferenceTime',
     'DatasetsSizeComparison',
 ]

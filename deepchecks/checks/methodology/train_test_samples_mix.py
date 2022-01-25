@@ -12,7 +12,7 @@
 from typing import List
 import pandas as pd
 
-from deepchecks import Dataset
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks.base.check import CheckResult, ConditionResult, TrainTestBaseCheck
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
@@ -27,28 +27,24 @@ __all__ = ['TrainTestSamplesMix']
 class TrainTestSamplesMix(TrainTestBaseCheck):
     """Detect samples in the test data that appear also in training data."""
 
-    def run(self, train_dataset: Dataset, test_dataset: Dataset,  model=None) -> CheckResult:
+    def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check.
 
-        Args:
-            train_dataset (Dataset): The training dataset object. Must contain an index.
-            test_dataset (Dataset): The test dataset object. Must contain an index.
-            model (): any = None - not used in the check
-
-        Returns:
-            CheckResult: value is sample leakage ratio in %,
+        Returns
+        -------
+        CheckResult
+            value is sample leakage ratio in %,
             displays a dataframe that shows the duplicated rows between the datasets
 
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset instance
+        Raises
+        ------
+        DeepchecksValueError
+            If the data is not a Dataset instance
         """
-        return self._data_sample_leakage_report(test_dataset=test_dataset, train_dataset=train_dataset)
-
-    def _data_sample_leakage_report(self, test_dataset: Dataset, train_dataset: Dataset):
-        test_dataset = Dataset.ensure_not_empty_dataset(test_dataset, cast=True)
-        train_dataset = Dataset.ensure_not_empty_dataset(train_dataset, cast=True)
-        features = self._datasets_share_features([test_dataset, train_dataset])
-        label_name = self._datasets_share_label([test_dataset, train_dataset])
+        test_dataset = context.test
+        train_dataset = context.train
+        features = context.features
+        label_name = context.label_name
 
         columns = features + [label_name]
 
@@ -74,8 +70,10 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
     def add_condition_duplicates_ratio_not_greater_than(self, max_ratio: float = 0.1):
         """Add condition - require max allowed ratio of test data samples to appear in train data.
 
-        Args:
-            max_ratio (float): Max allowed ratio of test data samples to appear in train data
+        Parameters
+        ----------
+        max_ratio : float , default: 0.1
+            Max allowed ratio of test data samples to appear in train data
         """
         def condition(result: dict) -> ConditionResult:
             ratio = result['ratio']

@@ -18,12 +18,12 @@ from deepchecks.errors import DeepchecksValueError
 
 
 class SimpleDatasetCheck(base.SingleDatasetBaseCheck):
-    def run(self, dataset: base.Dataset, model: object = None) -> base.CheckResult:
+    def run_logic(self, context, dataset_type: str = 'train') -> base.CheckResult:
         return base.CheckResult("Simple Check")
 
 
 class SimpleTwoDatasetsCheck(base.TrainTestBaseCheck):
-    def run(self, first: base.Dataset, second: base.Dataset, model: object = None) -> base.CheckResult:
+    def run_logic(self, context) -> base.CheckResult:
         return base.CheckResult("Simple Check")
 
 

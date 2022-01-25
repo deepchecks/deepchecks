@@ -50,6 +50,8 @@ from pandas.api.types import (
     is_timedelta64_dtype,
 )
 
+from deepchecks.utils.typing import Hashable
+
 NOT_SUPPORTED_ANYMORE = "NOT_SUPPORTED_ANYMORE"
 TO_BE_CALCULATED = -1
 
@@ -540,7 +542,7 @@ def _format_list_of_dicts(scores, output, sorted):
     return scores
 
 
-def predictors(df, y, output="df", sorted=True, **kwargs):
+def predictors(df, y: Hashable, output="df", sorted=True, **kwargs):
     """
     Calculate the Predictive Power Score (PPS) of all the features in the dataframe.
 

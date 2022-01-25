@@ -33,12 +33,12 @@ def assert_dataset(dataset: Dataset, args):
     if 'features' in args:
         assert_that(dataset.features, equal_to(args['features']))
         if 'df' in args:
-            assert_that(dataset.features_columns.equals(args['df'][args['features']]), is_(True))
+            assert_that(dataset.data[dataset.features].equals(args['df'][args['features']]), is_(True))
     if 'cat_features' in args:
         assert_that(dataset.cat_features, equal_to(args['cat_features']))
     if 'label_name' in args:
         assert_that(dataset.label_name, equal_to(args['label_name']))
-        assert_that(dataset.label_col.equals(pd.Series(args['df'][args['label_name']])), is_(True))
+        assert_that(dataset.data[dataset.label_name].equals(pd.Series(args['df'][args['label_name']])), is_(True))
     if 'use_index' in args and args['use_index']:
         assert_that(dataset.index_col.equals(pd.Series(args['df'].index)), is_(True))
     if 'index_name' in args:
@@ -140,7 +140,7 @@ def test_dataset_empty_features(iris):
     args = {'df': iris,
             'features': []}
     dataset = Dataset(**args)
-    assert_that(dataset.features, equal_to(list(iris.columns)))
+    assert_that(dataset.features, equal_to(list([])))
 
 
 def test_dataset_cat_features(diabetes_df):
@@ -579,7 +579,7 @@ def validate_dataset_created_from_numpy_arrays(
     if feature_columns_names is None:
         feature_columns_names = [str(index) for index in range(1, features_array.shape[1] + 1)]
 
-    features = dataset.features_columns
+    features = dataset.data[dataset.features]
     feature_names = dataset.features
 
     assert_that(features, all_of(
@@ -593,7 +593,7 @@ def validate_dataset_created_from_numpy_arrays(
     ))
 
     if labels_array is not None:
-        labels = dataset.label_col
+        labels = dataset.data[dataset.label_name]
         label_name = dataset.label_name
 
         assert_that(labels, all_of(
@@ -624,11 +624,11 @@ def test_dataset_initialization_with_integer_columns():
     assert_that(actual=dataset.cat_features, matcher=contains_exactly(0))
 
     assert_that(
-        (dataset.features_columns == df.drop(3, axis=1))
+        (dataset.data[dataset.features] == df.drop(3, axis=1))
             .all().all()
     )
     assert_that(
-        (dataset.label_col == df[3]).all()
+        (dataset.data[dataset.label_name] == df[3]).all()
     )
 
 
@@ -848,27 +848,19 @@ def test__ensure_not_empty_dataset__with_empty_dataset():
 
 def test__ensure_not_empty_dataset__with_dataframe(iris: pd.DataFrame):
     # Arrange
-    ds = Dataset.ensure_not_empty_dataset(iris, cast=True)
+    ds = Dataset.ensure_not_empty_dataset(iris)
     # Assert
     assert_that(ds, instance_of(Dataset))
-    assert_that(ds.features, contains_exactly(*list(iris.columns)))
+    assert_that(ds.features, has_length(0))
     assert_that(ds.label_name, equal_to(None))
     assert_that(ds.n_samples, equal_to(len(iris)))
-
-
-def test__ensure_not_empty_dataset__with_dataframe_but_without_cast_flag(iris: pd.DataFrame):
-    # Assert
-    assert_that(
-        calling(Dataset.ensure_not_empty_dataset).with_args(iris),
-        raises(DeepchecksValueError, r'non-empty Dataset instance was expected, instead got DataFrame')
-    )
 
 
 def test__ensure_not_empty_dataset__with_empty_dataframe():
     # Assert
     assert_that(
-        calling(Dataset.ensure_not_empty_dataset).with_args(pd.DataFrame(), cast=True),
-        raises(DeepchecksValueError, r'dataframe cannot be empty')
+        calling(Dataset.ensure_not_empty_dataset).with_args(pd.DataFrame()),
+        raises(DatasetValidationError, r'dataset cannot be empty')
     )
 
 
@@ -877,7 +869,7 @@ def test__datasets_share_features(iris: pd.DataFrame):
     ds = Dataset(iris)
     # Assert
     assert_that(
-        Dataset.datasets_share_features([ds, ds]),
+        Dataset.datasets_share_features(ds, ds),
         equal_to(True)
     )
 
@@ -890,7 +882,7 @@ def test__datasets_share_features__with_features_lists_ordered_differently():
     second_ds = Dataset(random_classification_dataframe(), cat_features=['X2', 'X0', 'X1'])
     # Assert
     assert_that(
-        Dataset.datasets_share_features([first_ds, second_ds]),
+        Dataset.datasets_share_features(first_ds, second_ds),
         equal_to(True)
     )
 
@@ -914,7 +906,7 @@ def test__datasets_share_features__when_it_must_return_false(
     diabetes_ds = Dataset(diabetes_df)
     # Assert
     assert_that(
-        Dataset.datasets_share_features([iris_ds, diabetes_ds]),
+        Dataset.datasets_share_features(iris_ds, diabetes_ds),
         equal_to(False)
     )
 
@@ -930,11 +922,11 @@ def test__datasets_share_features__with_differently_ordered_datasets_list(
     # no matter in which order datasets are placed in the list
     # outcome must be the same
     assert_that(
-        Dataset.datasets_share_features([iris_ds, diabetes_ds]),
+        Dataset.datasets_share_features(iris_ds, diabetes_ds),
         equal_to(False)
     )
     assert_that(
-        Dataset.datasets_share_features([diabetes_ds, iris_ds]),
+        Dataset.datasets_share_features(diabetes_ds, iris_ds),
         equal_to(False)
     )
 
@@ -944,7 +936,7 @@ def test__datasets_share_categorical_features(diabetes_df: pd.DataFrame):
     ds = Dataset(diabetes_df, cat_features=['sex'])
     # Assert
     assert_that(
-        Dataset.datasets_share_categorical_features([ds, ds]),
+        Dataset.datasets_share_categorical_features(ds, ds),
         equal_to(True)
     )
 
@@ -957,7 +949,7 @@ def test__datasets_share_categorical_features__with_features_lists_ordered_diffe
     second_ds = Dataset(random_classification_dataframe(), cat_features=['X2', 'X0', 'X1'])
     # Assert
     assert_that(
-        Dataset.datasets_share_categorical_features([first_ds, second_ds]),
+        Dataset.datasets_share_categorical_features(first_ds, second_ds),
         equal_to(True)
     )
 
@@ -967,7 +959,7 @@ def test__datasets_share_categorical_features__with_wrong_args(diabetes_df: pd.D
     ds = Dataset(diabetes_df, cat_features=['sex'])
     # Assert
     assert_that(
-        calling(Dataset.datasets_share_categorical_features).with_args([ds]),
+        calling(Dataset.datasets_share_categorical_features).with_args(ds),
         raises(AssertionError, r"'datasets' must contains at least two items")
     )
 
@@ -978,7 +970,7 @@ def test__datasets_share_categorical_features__when_it_must_return_false():
     second_ds = Dataset(random_classification_dataframe(), cat_features=['X0', 'X2', 'X3'])
     # Assert
     assert_that(
-        Dataset.datasets_share_categorical_features([first_ds, second_ds]),
+        Dataset.datasets_share_categorical_features(first_ds, second_ds),
         equal_to(False)
     )
 
@@ -992,11 +984,11 @@ def test__datasets_share_categorical_features__with_differently_ordered_datasets
     # no matter in which order datasets are placed in the list
     # outcome must be the same
     assert_that(
-        Dataset.datasets_share_categorical_features([first_ds, second_ds]),
+        Dataset.datasets_share_categorical_features(first_ds, second_ds),
         equal_to(False)
     )
     assert_that(
-        Dataset.datasets_share_categorical_features([first_ds, second_ds]),
+        Dataset.datasets_share_categorical_features(first_ds, second_ds),
         equal_to(False)
     )
 
@@ -1004,7 +996,7 @@ def test__datasets_share_categorical_features__with_differently_ordered_datasets
 def test__datasets_share_label():
     ds = Dataset(random_classification_dataframe(), label="target")
     assert_that(
-        Dataset.datasets_share_label([ds, ds]),
+        Dataset.datasets_share_label(ds, ds),
         equal_to(True)
     )
 
@@ -1027,7 +1019,7 @@ def test__datasets_share_label__when_it_must_return_false(iris: pd.DataFrame):
     iris_ds = Dataset(iris, label="target")
     # Assert
     assert_that(
-        Dataset.datasets_share_label([ds, iris_ds]),
+        Dataset.datasets_share_label(ds, iris_ds),
         equal_to(False)
     )
 
@@ -1040,11 +1032,11 @@ def test__datasets_share_label__with_differently_ordered_datasets_list(iris: pd.
     iris_ds = Dataset(iris, label="target")
     # Assert
     assert_that(
-        Dataset.datasets_share_label([ds, iris_ds]),
+        Dataset.datasets_share_label(ds, iris_ds),
         equal_to(False)
     )
     assert_that(
-        Dataset.datasets_share_label([iris_ds, ds]),
+        Dataset.datasets_share_label(iris_ds, ds),
         equal_to(False)
     )
 

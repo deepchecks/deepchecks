@@ -11,11 +11,16 @@
 """Module containing the Suite object, used for running a set of checks together."""
 # pylint: disable=broad-except
 import abc
+import io
 from collections import OrderedDict
-from typing import Union, List, Optional, Tuple, Any, Container, Mapping
+from typing import Union, List, Optional, Tuple, Any, Container, Mapping, Callable
 
+import pandas as pd
+from IPython.core.display import display_html
+from IPython.core.getipython import get_ipython
 import jsonpickle
 
+from deepchecks.base.check_context import CheckRunContext
 from deepchecks.base.display_suite import display_suite_result, ProgressBar
 from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.base.dataset import Dataset
@@ -28,7 +33,13 @@ __all__ = ['BaseSuite', 'Suite', 'ModelComparisonSuite', 'SuiteResult']
 
 
 class SuiteResult:
-    """Contain the results of a suite run."""
+    """Contain the results of a suite run.
+
+    Parameters
+    ----------
+    name: str
+    results: List[Union[CheckResult, CheckFailure]]
+    """
 
     name: str
     results: List[Union[CheckResult, CheckFailure]]
@@ -43,7 +54,13 @@ class SuiteResult:
         return self.name
 
     def _ipython_display_(self):
-        display_suite_result(self.name, self.results)
+        # google colab has no support for widgets but good support for viewing html pages in the output
+        if 'google.colab' in str(get_ipython()):
+            html_out = io.StringIO()
+            display_suite_result(self.name, self.results, html_out=html_out)
+            display_html(html_out.getvalue(), raw=True)
+        else:
+            display_suite_result(self.name, self.results)
 
     def show(self):
         """Display suite result."""
@@ -55,9 +72,10 @@ class SuiteResult:
     def save_as_html(self, file=None):
         """Save output as html file.
 
-        Args:
-           file (filename or file-like object): The file to write the HTML output to.
-                                                If None writes to output.html
+        Parameters
+        ----------
+        file : filename or file-like object
+            The file to write the HTML output to. If None writes to output.html
         """
         if file is None:
             file = 'output.html'
@@ -66,10 +84,14 @@ class SuiteResult:
     def to_json(self, with_display: bool = True):
         """Return check result as json.
 
-        Args:
-            with_display (bool): controls if to serialize display of checks or not
+        Parameters
+        ----------
+        with_display : bool
+            controls if to serialize display of checks or not
 
-        Returns:
+        Returns
+        -------
+        dict
             {'name': .., 'results': ..}
         """
         json_results = []
@@ -82,9 +104,12 @@ class SuiteResult:
 class BaseSuite:
     """Class for running a set of checks together, and returning a unified pass / no-pass.
 
-    Attributes:
-        checks: A list of checks to run.
-        name: Name of the suite
+    Parameters
+    ----------
+    checks: OrderedDict
+        A list of checks to run.
+    name: str
+        Name of the suite
     """
 
     @classmethod
@@ -119,8 +144,10 @@ class BaseSuite:
     def add(self, check):
         """Add a check or a suite to current suite.
 
-        Args:
-            check (BaseCheck): A check or suite to add.
+        Parameters
+        ----------
+        check : BaseCheck
+            A check or suite to add.
         """
         if isinstance(check, BaseSuite):
             if check is self:
@@ -139,8 +166,10 @@ class BaseSuite:
     def remove(self, index: int):
         """Remove a check by given index.
 
-        Args:
-            index (int): Index of check to remove.
+        Parameters
+        ----------
+        index : int
+            Index of check to remove.
         """
         if index not in self.checks:
             raise DeepchecksValueError(f'No index {index} in suite')
@@ -158,26 +187,47 @@ class Suite(BaseSuite):
 
     def run(
             self,
-            train_dataset: Optional[Dataset] = None,
-            test_dataset: Optional[Dataset] = None,
+            train_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
+            test_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
             model: object = None,
+            features_importance: pd.Series = None,
+            feature_importance_force_permutation: bool = False,
+            feature_importance_timeout: int = None,
+            scorers: Mapping[str, Union[str, Callable]] = None,
+            non_avg_scorers: Mapping[str, Union[str, Callable]] = None
     ) -> SuiteResult:
         """Run all checks.
 
-        Args:
-          train_dataset: Dataset object, representing data an estimator was fitted on
-          test_dataset: Dataset object, representing data an estimator predicts on
-          model: A scikit-learn-compatible fitted estimator instance
+        Parameters
+        ----------
+        train_dataset: Optional[Dataset] , default None
+            object, representing data an estimator was fitted on
+        test_dataset : Optional[Dataset] , default None
+            object, representing data an estimator predicts on
+        model : object , default None
+            A scikit-learn-compatible fitted estimator instance
+        features_importance : pd.Series , default None
+            pass manual features importance
+        feature_importance_force_permutation : bool , default None
+            force calculation of permutation features importance
+        feature_importance_timeout : int , default None
+            timeout in second for the permutation features importance calculation
+        scorers : Mapping[str, Union[str, Callable]] , default None
+            dict of scorers names to scorer sklearn_name/function
+        non_avg_scorers : Mapping[str, Union[str, Callable]], default None
+            dict of scorers for multiclass without averaging of the classes
 
-        Returns:
-          List[CheckResult] - All results by all initialized checks
-
-        Raises:
-             ValueError if check_datasets_policy is not of allowed types
+        Returns
+        -------
+        SuiteResult
+            All results by all initialized checks
         """
-        if all(it is None for it in (train_dataset, test_dataset, model)):
-            raise DeepchecksValueError('At least one dataset (or model) must be passed to the method!')
-
+        context = CheckRunContext(train_dataset, test_dataset, model,
+                                  features_importance=features_importance,
+                                  feature_importance_force_permutation=feature_importance_force_permutation,
+                                  feature_importance_timeout=feature_importance_timeout,
+                                  scorers=scorers,
+                                  non_avg_scorers=non_avg_scorers)
         # Create progress bar
         progress_bar = ProgressBar(self.name, len(self.checks))
 
@@ -188,8 +238,7 @@ class Suite(BaseSuite):
                 progress_bar.set_text(check.name())
                 if isinstance(check, TrainTestBaseCheck):
                     if train_dataset is not None and test_dataset is not None:
-                        check_result = check.run(train_dataset=train_dataset, test_dataset=test_dataset,
-                                                 model=model)
+                        check_result = check.run_logic(context)
                         results.append(check_result)
                     else:
                         msg = 'Check is irrelevant if not supplied with both train and test datasets'
@@ -199,15 +248,19 @@ class Suite(BaseSuite):
                         # In case of train & test, doesn't want to skip test if train fails. so have to explicitly
                         # wrap it in try/except
                         try:
-                            check_result = check.run(dataset=train_dataset, model=model)
-                            check_result.header = f'{check_result.get_header()} - Train Dataset'
+                            check_result = check.run_logic(context)
+                            # In case of single dataset not need to edit the header
+                            if test_dataset is not None:
+                                check_result.header = f'{check_result.get_header()} - Train Dataset'
                         except Exception as exp:
                             check_result = CheckFailure(check, exp, ' - Train Dataset')
                         results.append(check_result)
                     if test_dataset is not None:
                         try:
-                            check_result = check.run(dataset=test_dataset, model=model)
-                            check_result.header = f'{check_result.get_header()} - Test Dataset'
+                            check_result = check.run_logic(context, dataset_type='test')
+                            # In case of single dataset not need to edit the header
+                            if train_dataset is not None:
+                                check_result.header = f'{check_result.get_header()} - Test Dataset'
                         except Exception as exp:
                             check_result = CheckFailure(check, exp, ' - Test Dataset')
                         results.append(check_result)
@@ -216,7 +269,7 @@ class Suite(BaseSuite):
                         results.append(Suite._get_unsupported_failure(check, msg))
                 elif isinstance(check, ModelOnlyBaseCheck):
                     if model is not None:
-                        check_result = check.run(model=model)
+                        check_result = check.run_logic(context)
                         results.append(check_result)
                     else:
                         msg = 'Check is irrelevant if model is not supplied'
@@ -250,16 +303,22 @@ class ModelComparisonSuite(BaseSuite):
             ) -> SuiteResult:
         """Run all checks.
 
-        Args:
-          train_datasets: 1 or more dataset object, representing data an estimator was fitted on
-          test_datasets: 1 or more dataset object, representing data an estimator was fitted on
-          models: 2 or more scikit-learn-compatible fitted estimator instance
-
-        Returns:
-          List[CheckResult] - All results by all initialized checks
-
-        Raises:
-             ValueError if check_datasets_policy is not of allowed types
+        Parameters
+        ----------
+        train_datasets : Union[Dataset, Container[Dataset]]
+            representing data an estimator was fitted on
+        test_datasets: Union[Dataset, Container[Dataset]]
+            representing data an estimator was fitted on
+        models : Union[Container[Any], Mapping[str, Any]]
+            2 or more scikit-learn-compatible fitted estimator instance
+        Returns
+        -------
+        SuiteResult
+            All results by all initialized checks
+        Raises
+        ------
+        ValueError
+            if check_datasets_policy is not of allowed types
         """
         context = ModelComparisonContext(train_datasets, test_datasets, models)
 
