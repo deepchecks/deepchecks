@@ -39,7 +39,7 @@ class CheckRunContext:
         pass manual features importance
     feature_importance_force_permutation : bool , default: False
         force calculation of permutation features importance
-    feature_importance_timeout : int , default: None
+    feature_importance_timeout : int , default: 120
         timeout in second for the permutation features importance calculation
     scorers : Mapping[str, Union[str, Callable]] , default: None
         dict of scorers names to scorer sklearn_name/function
@@ -54,7 +54,7 @@ class CheckRunContext:
                  model_name: str = '',
                  features_importance: pd.Series = None,
                  feature_importance_force_permutation: bool = False,
-                 feature_importance_timeout: int = None,
+                 feature_importance_timeout: int = 120,
                  scorers: Mapping[str, Union[str, Callable]] = None,
                  non_avg_scorers: Mapping[str, Union[str, Callable]] = None
                  ):
