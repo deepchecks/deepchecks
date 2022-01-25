@@ -49,6 +49,7 @@ class ModelInferenceTime(SingleDatasetBaseCheck):
         -------
         CheckResult
             value is of the type 'float' .
+
         Raises
         ------
         DeepchecksValueError
