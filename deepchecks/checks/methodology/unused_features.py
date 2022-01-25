@@ -76,10 +76,15 @@ class UnusedFeatures(TrainTestBaseCheck):
         Parameters
         ----------
         train_dataset : Dataset
+            dataset representing data an estimator was fitted on
         test_dataset : Dataset
+            dataset representing data an estimator predicts on
         model : BasicModel
+            A scikit-learn-compatible fitted estimator instance
         feature_importance_force_permutation : bool , default None
+            force calculation of permutation features importance
         feature_importance_timeout : int , default None
+            timeout in second for the permutation features importance calculation
 
         Returns
         -------
