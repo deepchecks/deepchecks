@@ -50,6 +50,7 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         CheckResult
             value is the kurtosis value (Fisher’s definition (normal ==> 0.0)).
             display is histogram of error distribution and the largest prediction errors.
+
         Raises
         ------
         DeepchecksValueError

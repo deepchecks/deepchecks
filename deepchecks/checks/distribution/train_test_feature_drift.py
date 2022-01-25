@@ -81,13 +81,20 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         self.random_state = random_state
 
     def run_logic(self, context: CheckRunContext) -> CheckResult:
-        """Calculate drift for all columns.
+        """
+        Calculate drift for all columns.
+
+        Parameters
+        ----------
+        context : CheckRunContext
+            The run context
 
         Returns
         -------
         CheckResult
             value: dictionary of column name to drift score.
             display: distribution graph for each column, comparing the train and test distributions.
+
         Raises
         ------
         DeepchecksValueError
