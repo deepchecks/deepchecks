@@ -26,7 +26,7 @@ import pandas as pd
 import numpy as np
 import ipywidgets as widgets
 import plotly.graph_objects as go
-from IPython.core.display import display_html
+from IPython.display import display_html
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 import plotly
