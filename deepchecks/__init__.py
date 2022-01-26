@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+import warnings
 import matplotlib
 import plotly.io as pio
 from pkg_resources import get_distribution, DistributionNotFound
@@ -15,7 +16,7 @@ from pkg_resources import get_distribution, DistributionNotFound
 from deepchecks.utils.ipython import is_notebook
 from deepchecks.tabular import (
     Dataset,
-    TabularSuite,
+    Suite,
     TabularCheck,
     TabularContext,
     SingleDatasetBaseCheck,
@@ -36,6 +37,15 @@ from deepchecks.core import (
 )
 
 
+warnings.warn(
+    # TODO: better message
+    'Ability to import base tabular functionality from '
+    'the `deepchecks` directly is deprecated, please import from '
+    '`deepchecks.tabular` instead',
+    DeprecationWarning
+)
+
+
 __all__ = [
     'Dataset',
     'BaseCheck',
@@ -50,7 +60,7 @@ __all__ = [
     'ConditionResult',
     'ConditionCategory',
     'BaseSuite',
-    'TabularSuite',
+    'Suite',
     'SuiteResult',
     'ModelComparisonSuite',
     'TabularContext'

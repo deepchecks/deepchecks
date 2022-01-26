@@ -12,7 +12,7 @@ from .dataset import Dataset
 from .base import (
     TabularContext,
     TabularCheck,
-    TabularSuite,
+    Suite,
     SingleDatasetBaseCheck,
     TrainTestBaseCheck,
     ModelOnlyBaseCheck,
@@ -29,7 +29,7 @@ __all__ = [
     "SingleDatasetBaseCheck",
     "TrainTestBaseCheck",
     "ModelOnlyBaseCheck",
-    "TabularSuite",
+    "Suite",
     "ModelComparisonContext",
     "ModelComparisonCheck",
     "ModelComparisonSuite",

@@ -23,16 +23,16 @@ from deepchecks.tabular.checks import (
     ModelInfo, ColumnsInfo, DataDuplicates, IsSingleValue, LabelAmbiguity,
     DatasetsSizeComparison, UnusedFeatures, ModelInferenceTime, ModelErrorAnalysis, TrainTestLabelDrift
 )
-from deepchecks.tabular import TabularSuite
+from deepchecks.tabular import Suite
 
 
 __all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validation',
            'model_evaluation', 'full_suite']
 
 
-def single_dataset_integrity() -> TabularSuite:
+def single_dataset_integrity() -> Suite:
     """Create a suite that is meant to detect integrity issues within a single dataset."""
-    return TabularSuite(
+    return Suite(
         'Single Dataset Integrity Suite',
         IsSingleValue().add_condition_not_single_value(),
         MixedNulls().add_condition_different_nulls_not_more_than(),
@@ -45,9 +45,9 @@ def single_dataset_integrity() -> TabularSuite:
     )
 
 
-def train_test_leakage() -> TabularSuite:
+def train_test_leakage() -> Suite:
     """Create a suite that is meant to detect data leakage between the training dataset and the test dataset."""
-    return TabularSuite(
+    return Suite(
         'Train Test Leakage Suite',
         DateTrainTestLeakageDuplicates().add_condition_leakage_ratio_not_greater_than(),
         DateTrainTestLeakageOverlap().add_condition_leakage_ratio_not_greater_than(),
@@ -59,10 +59,10 @@ def train_test_leakage() -> TabularSuite:
     )
 
 
-def train_test_validation() -> TabularSuite:
+def train_test_validation() -> Suite:
     """Create a suite that is meant to validate correctness of train-test split, including integrity, \
     distribution and leakage checks."""
-    return TabularSuite(
+    return Suite(
         'Train Test Validation Suite',
         TrainTestFeatureDrift().add_condition_drift_score_not_greater_than(),
         TrainTestLabelDrift().add_condition_drift_score_not_greater_than(),
@@ -76,9 +76,9 @@ def train_test_validation() -> TabularSuite:
     )
 
 
-def model_evaluation() -> TabularSuite:
+def model_evaluation() -> Suite:
     """Create a suite that is meant to test model performance and overfit."""
-    return TabularSuite(
+    return Suite(
         'Model Evaluation Suite',
         ConfusionMatrixReport(),
         PerformanceReport().add_condition_train_test_relative_degradation_not_greater_than(),
@@ -95,9 +95,9 @@ def model_evaluation() -> TabularSuite:
     )
 
 
-def full_suite() -> TabularSuite:
+def full_suite() -> Suite:
     """Create a suite that includes many of the implemented checks, for a quick overview of your model and data."""
-    return TabularSuite(
+    return Suite(
         'Full Suite',
         ModelInfo(),
         ColumnsInfo(),

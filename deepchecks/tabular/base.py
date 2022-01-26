@@ -31,7 +31,7 @@ from deepchecks.core.errors import (
 
 __all__ = [
     'TabularContext',
-    'TabularSuite',
+    'Suite',
     'TabularCheck',
     'SingleDatasetBaseCheck',
     'TrainTestBaseCheck',
@@ -363,7 +363,7 @@ class ModelOnlyBaseCheck(TabularCheck):
         return self.run_logic(TabularContext(model=model))
 
 
-class TabularSuite(BaseSuite):
+class Suite(BaseSuite):
     """Suite for tabular checks."""
 
     @classmethod
@@ -430,7 +430,7 @@ class TabularSuite(BaseSuite):
                         results.append(check_result)
                     else:
                         msg = 'Check is irrelevant if not supplied with both train and test datasets'
-                        results.append(TabularSuite._get_unsupported_failure(check, msg))
+                        results.append(Suite._get_unsupported_failure(check, msg))
                 elif isinstance(check, SingleDatasetBaseCheck):
                     if train_dataset is not None:
                         # In case of train & test, doesn't want to skip test if train fails. so have to explicitly
@@ -454,14 +454,14 @@ class TabularSuite(BaseSuite):
                         results.append(check_result)
                     if train_dataset is None and test_dataset is None:
                         msg = 'Check is irrelevant if dataset is not supplied'
-                        results.append(TabularSuite._get_unsupported_failure(check, msg))
+                        results.append(Suite._get_unsupported_failure(check, msg))
                 elif isinstance(check, ModelOnlyBaseCheck):
                     if model is not None:
                         check_result = check.run_logic(context)
                         results.append(check_result)
                     else:
                         msg = 'Check is irrelevant if model is not supplied'
-                        results.append(TabularSuite._get_unsupported_failure(check, msg))
+                        results.append(Suite._get_unsupported_failure(check, msg))
                 else:
                     raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
             except Exception as exp:

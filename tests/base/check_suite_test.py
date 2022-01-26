@@ -14,7 +14,7 @@ from hamcrest import assert_that, calling, raises, equal_to, is_
 
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular import TabularSuite, SingleDatasetBaseCheck, TrainTestBaseCheck
+from deepchecks.tabular import Suite, SingleDatasetBaseCheck, TrainTestBaseCheck
 from deepchecks.tabular import checks as tabular_checks
 
 
@@ -32,13 +32,13 @@ class SimpleTwoDatasetsCheck(TrainTestBaseCheck):
 def test_suite_instantiation_with_incorrect_args():
     incorrect_check_suite_args = ("test suite", SimpleDatasetCheck(), object())
     assert_that(
-        calling(TabularSuite).with_args(*incorrect_check_suite_args),
+        calling(Suite).with_args(*incorrect_check_suite_args),
         raises(DeepchecksValueError)
     )
 
 
 def test_run_suite_with_incorrect_args():
-    suite = TabularSuite("test suite", SimpleDatasetCheck(), SimpleTwoDatasetsCheck())
+    suite = Suite("test suite", SimpleDatasetCheck(), SimpleTwoDatasetsCheck())
     
     # incorrect, at least one dataset (or model) must be provided
     args = {"train_dataset": None, "test_dataset": None,}
@@ -52,8 +52,8 @@ def test_add_check_to_the_suite():
     number_of_checks = random.randint(0, 50)
     produce_checks = lambda count: [SimpleDatasetCheck() for _ in range(count)]
 
-    first_suite = TabularSuite("first suite", )
-    second_suite = TabularSuite("second suite", )
+    first_suite = Suite("first suite", )
+    second_suite = Suite("second suite", )
     
     assert_that(len(first_suite.checks), equal_to(0))
     assert_that(len(second_suite.checks), equal_to(0))
@@ -69,7 +69,7 @@ def test_add_check_to_the_suite():
 
 
 def test_try_add_not_a_check_to_the_suite():
-    suite = TabularSuite("second suite")
+    suite = Suite("second suite")
     assert_that(
         calling(suite.add).with_args(object()),
         raises(DeepchecksValueError, 'Suite received unsupported object type: object')
@@ -77,7 +77,7 @@ def test_try_add_not_a_check_to_the_suite():
 
 
 def test_try_add_check_suite_to_itself():
-    suite = TabularSuite("second suite", SimpleDatasetCheck(), SimpleTwoDatasetsCheck())
+    suite = Suite("second suite", SimpleDatasetCheck(), SimpleTwoDatasetsCheck())
     assert_that(len(suite.checks), equal_to(2))
     suite.add(suite)
     assert_that(len(suite.checks), equal_to(2))
@@ -86,7 +86,7 @@ def test_try_add_check_suite_to_itself():
 def test_suite_static_indexes():
     first_check = SimpleDatasetCheck()
     second_check = SimpleTwoDatasetsCheck()
-    suite = TabularSuite("first suite", first_check, second_check)
+    suite = Suite("first suite", first_check, second_check)
 
     assert_that(len(suite.checks), equal_to(2))
     assert_that(suite[1], is_(second_check))
@@ -100,7 +100,7 @@ def test_suite_static_indexes():
 def test_access_removed_check_by_index():
     first_check = SimpleDatasetCheck()
     second_check = SimpleTwoDatasetsCheck()
-    suite = TabularSuite("first suite", first_check, second_check)
+    suite = Suite("first suite", first_check, second_check)
 
     assert_that(len(suite.checks), equal_to(2))
     assert_that(suite[1], is_(second_check))
@@ -115,7 +115,7 @@ def test_access_removed_check_by_index():
 
 
 def test_try_remove_unexisting_check_from_the_suite():
-    suite = TabularSuite("first suite", SimpleDatasetCheck(), SimpleTwoDatasetsCheck())
+    suite = Suite("first suite", SimpleDatasetCheck(), SimpleTwoDatasetsCheck())
     assert_that(len(suite.checks), equal_to(2))
     assert_that(
         calling(suite.remove).with_args(3),
@@ -124,18 +124,18 @@ def test_try_remove_unexisting_check_from_the_suite():
 
 
 def test_check_suite_instantiation_by_extending_another_check_suite():
-    suite = TabularSuite(
+    suite = Suite(
         "outer",
         tabular_checks.IsSingleValue(),
-        TabularSuite(
+        Suite(
             "inner1",
             tabular_checks.MixedNulls(),
-            TabularSuite("inner2", tabular_checks.MixedDataTypes()),
+            Suite("inner2", tabular_checks.MixedDataTypes()),
             tabular_checks.PerformanceReport()
         )
     )
 
-    assert all(not isinstance(c, TabularSuite) for c in suite.checks)
+    assert all(not isinstance(c, Suite) for c in suite.checks)
 
     # assert that order of checks instances are preserved
 
