@@ -44,6 +44,7 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
         CheckResult
             value is a dictionary with PPS per feature column.
             data is a bar graph of the PPS of each feature.
+
         Raises
         ------
         DeepchecksValueError

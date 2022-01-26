@@ -33,6 +33,7 @@ class NewLabelTrainTest(TrainTestBaseCheck):
         CheckResult
             value is a dictionary that shows label column with new labels
             displays a dataframe that label columns with new labels
+
         Raises
         ------
         DeepchecksValueError

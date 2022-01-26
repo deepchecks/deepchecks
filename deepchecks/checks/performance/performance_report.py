@@ -89,7 +89,7 @@ class PerformanceReport(TrainTestBaseCheck):
         classes = train_dataset.classes
         context.assert_features_exists()
 
-        scorers = context.get_scorers(self.user_scorers, multiclass_avg=False)
+        scorers = context.get_scorers(self.user_scorers, class_avg=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
         if task_type in {ModelType.MULTICLASS, ModelType.BINARY}:
@@ -319,7 +319,7 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
     def run_logic(self, multi_context: ModelComparisonContext):
         """Run check logic."""
         first_context = multi_context[0]
-        scorers = first_context.get_scorers(self.user_scorers, multiclass_avg=False)
+        scorers = first_context.get_scorers(self.user_scorers, class_avg=False)
 
         if multi_context.task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
             plot_x_axis = ['Class', 'Model']
