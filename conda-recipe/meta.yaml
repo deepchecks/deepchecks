@@ -34,11 +34,11 @@ requirements:
   host:
     - category_encoders >=2.3.0
     - dataclasses >=0.6   # [ py < 37 ]
-    - ipykernel >=4.10.1
+    - ipykernel >=4.10.1   # [ py < 38 ]
     - ipykernel >=5.3.0   # [ py >= 38 ]
-    - ipython >=5.5.0
-    - ipython >=7.15.0   # [ py >= 38 ]
-    - ipywidgets >=7.5.0
+    - ipython >=5.5.0, <8   # [ py < 38 ]
+    - ipython >=7.15.0, <8   # [ py >= 38 ]
+    - ipywidgets >=7.5.0   # [ py < 38 ]
     - ipywidgets >=7.6.5   # [ py >= 38 ]
     - matplotlib >=3.3.3
     - numpy >=1.19
@@ -50,14 +50,15 @@ requirements:
     - scipy >=1.5.0
     - tqdm >=4.62.3
     - typing_extensions >=3.7.4.3
+    - jsonpickle >=2.1.0
   run:
     - category_encoders >=2.3.0
     - dataclasses >=0.6   # [ py < 37 ]
-    - ipykernel >=4.10.1
+    - ipykernel >=4.10.1   # [ py < 38 ]
     - ipykernel >=5.3.0   # [ py >= 38 ]
-    - ipython >=5.5.0
-    - ipython >=7.15.0   # [ py >= 38 ]
-    - ipywidgets >=7.5.0
+    - ipython >=5.5.0, <8   # [ py < 38 ]
+    - ipython >=7.15.0, <8   # [ py >= 38 ]
+    - ipywidgets >=7.5.0   # [ py < 38 ]
     - ipywidgets >=7.6.5   # [ py >= 38 ]
     - matplotlib >=3.3.3
     - numpy >=1.19
@@ -68,6 +69,7 @@ requirements:
     - scipy >=1.5.0
     - tqdm >=4.62.3
     - typing_extensions >=3.7.4.3
+    - jsonpickle >=2.1.0
 
 test:
   imports:
