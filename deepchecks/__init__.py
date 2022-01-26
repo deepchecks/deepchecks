@@ -68,6 +68,6 @@ if 'notebook_connected' in pio_backends:
 # Set version info
 try:
     __version__ = get_distribution('deepchecks').version
-except DistributionNotFound:
+except Exception: # pylint: disable=broad-except
     # If distribution can't be found, leave version empty
     __version__ = ''
