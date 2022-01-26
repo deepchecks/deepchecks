@@ -63,10 +63,9 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
 
         context.assert_classification_task()
         dataset.assert_label()
+        label_name = dataset.label_name
 
         dataset = dataset.select(self.columns, self.ignore_columns, keep_label=True)
-
-        label_col = context.label_name
 
         # HACK: pandas have bug with groupby on category dtypes, so until it fixed, change dtypes manually
         df = dataset.data
@@ -75,7 +74,7 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
             df = df.astype({c: 'object' for c in category_columns})
 
         group_unique_data = df.groupby(dataset.features, dropna=False)
-        group_unique_labels = group_unique_data.nunique()[label_col]
+        group_unique_labels = group_unique_data.nunique()[label_name]
 
         num_ambiguous = 0
         ambiguous_label_name = 'Observed Labels'
@@ -88,7 +87,7 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
 
             group_df = group_data[1]
             sample_values = dict(group_df[dataset.features].iloc[0])
-            labels = tuple(sorted(group_df[label_col].unique()))
+            labels = tuple(sorted(group_df[label_name].unique()))
             n_data_sample = group_df.shape[0]
             num_ambiguous += n_data_sample
 
