@@ -69,7 +69,7 @@ class UnusedFeatures(TrainTestBaseCheck):
             train_dataset: Dataset,
             test_dataset: Dataset,
             model: BasicModel = None,
-            feature_importance_force_permutation: bool = None,
+            feature_importance_force_permutation: bool = False,
             feature_importance_timeout: int = None) -> CheckResult:
         """Run the check.
 
