@@ -16,7 +16,7 @@ from sklearn.ensemble import AdaBoostClassifier
 import joblib
 import pandas as pd
 
-from deepchecks import Dataset
+from deepchecks.tabular import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
 

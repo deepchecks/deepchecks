@@ -20,7 +20,7 @@ from sklearn.preprocessing import StandardScaler
 from category_encoders import OneHotEncoder
 import joblib
 from urllib.request import urlopen
-from deepchecks import Dataset
+from deepchecks.tabular import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
 

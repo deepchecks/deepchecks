@@ -15,7 +15,7 @@ import sklearn
 from sklearn.ensemble import RandomForestClassifier
 import joblib
 from urllib.request import urlopen
-from deepchecks import Dataset
+from deepchecks.tabular import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
 
