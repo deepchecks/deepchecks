@@ -13,9 +13,9 @@ import numpy as np
 import pandas as pd
 from hamcrest import assert_that, equal_to, calling, raises, has_length
 
-from deepchecks.base import Dataset
-from deepchecks.checks.overview import ColumnsInfo
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.tabular import Dataset
+from deepchecks.tabular.checks.overview import ColumnsInfo
+from deepchecks.core.errors import DeepchecksValueError
 
 
 def test_dataset_wrong_input():

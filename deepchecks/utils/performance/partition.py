@@ -12,9 +12,11 @@
 from copy import deepcopy
 from typing import List, Callable
 
+# TODO: move tabular functionality to the tabular subpackage
+
 import numpy as np
 import pandas as pd
-from deepchecks import Dataset
+from deepchecks.tabular import Dataset
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
 

@@ -8,48 +8,11 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Top module for deepchecks library."""
 import matplotlib
 import plotly.io as pio
 from pkg_resources import get_distribution, DistributionNotFound
 from .utils.ipython import is_notebook
-from .base import (
-    Dataset,
-    BaseCheck,
-    SingleDatasetBaseCheck,
-    TrainTestBaseCheck,
-    ModelOnlyBaseCheck,
-    ModelComparisonBaseCheck,
-    CheckResult,
-    CheckFailure,
-    Condition,
-    ConditionResult,
-    ConditionCategory,
-    BaseSuite,
-    Suite,
-    SuiteResult,
-    ModelComparisonSuite,
-    CheckRunContext
-)
 
-__all__ = [
-    'Dataset',
-    'BaseCheck',
-    'SingleDatasetBaseCheck',
-    'TrainTestBaseCheck',
-    'ModelOnlyBaseCheck',
-    'ModelComparisonBaseCheck',
-    'CheckResult',
-    'CheckFailure',
-    'Condition',
-    'ConditionResult',
-    'ConditionCategory',
-    'BaseSuite',
-    'Suite',
-    'SuiteResult',
-    'ModelComparisonSuite',
-    'CheckRunContext'
-]
 
 # Matplotlib has multiple backends. If we are in a context that does not support GUI (For example, during unit tests)
 # we can't use a GUI backend. Thus we must use a non-GUI backend.
@@ -65,7 +28,7 @@ if 'notebook_connected' in pio_backends:
     pio.renderers.default = '+'.join(pio_backends)
 
 
-# Set version info
+# # Set version info
 try:
     __version__ = get_distribution('deepchecks').version
 except DistributionNotFound:

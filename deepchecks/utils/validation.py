@@ -9,11 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """objects validation utilities."""
+
+# TODO: move tabular functionality to the tabular sub-package
+
 import typing as t
 import pandas as pd
 
-from deepchecks import base  # pylint: disable=unused-import, is used in type annotations
-from deepchecks import errors
+from deepchecks import tabular  # pylint: disable=unused-import, is used in type annotations
+from deepchecks.core import errors
 from deepchecks.utils.typing import Hashable, BasicModel
 
 
@@ -47,7 +50,7 @@ def model_type_validation(model: t.Any):
 
 
 def validate_model(
-    data: t.Union['base.Dataset', pd.DataFrame],
+    data: t.Union['tabular.Dataset', pd.DataFrame],
     model: t.Any
 ):
     """Check model is able to predict on the dataset.
@@ -66,7 +69,7 @@ def validate_model(
         'with the same set of features that was used to fit the model. {0}'
     )
 
-    if isinstance(data, base.Dataset):
+    if isinstance(data, tabular.Dataset):
         features = data.data[data.features]
     else:
         features = data
@@ -127,7 +130,7 @@ def ensure_dataframe_type(obj: t.Any) -> pd.DataFrame:
     """
     if isinstance(obj, pd.DataFrame):
         return obj
-    elif isinstance(obj, base.Dataset):
+    elif isinstance(obj, tabular.Dataset):
         return obj.data
     else:
         raise errors.DeepchecksValueError(

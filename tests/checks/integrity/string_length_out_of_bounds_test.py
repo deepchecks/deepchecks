@@ -12,12 +12,11 @@
 import numpy as np
 import pandas as pd
 
-from deepchecks import ConditionCategory
-from deepchecks.base import Dataset
-
-from deepchecks.checks import StringLengthOutOfBounds
-
 from hamcrest import assert_that, has_length, has_items
+
+from deepchecks.core import ConditionCategory
+from deepchecks.tabular import Dataset
+from deepchecks.tabular.checks import StringLengthOutOfBounds
 
 from tests.checks.utils import equal_condition_result
 

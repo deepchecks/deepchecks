@@ -15,10 +15,10 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-
-from deepchecks import Dataset
-from deepchecks.checks.methodology.boosting_overfit import BoostingOverfit
 from hamcrest import assert_that, close_to, has_length
+
+from deepchecks.tabular import Dataset
+from deepchecks.tabular.checks.methodology.boosting_overfit import BoostingOverfit
 
 from tests.checks.utils import equal_condition_result
 

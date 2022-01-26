@@ -11,8 +11,8 @@
 """Contains unit tests for the confusion_matrix_report check."""
 from sklearn.metrics import make_scorer, recall_score, f1_score
 
-from deepchecks.checks.performance import SimpleModelComparison
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.tabular.checks.performance import SimpleModelComparison
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.metrics import ModelType, get_default_scorers
 from tests.checks.utils import equal_condition_result
 

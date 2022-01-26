@@ -12,7 +12,7 @@
 from hamcrest import equal_to, assert_that, calling, raises
 from sklearn.svm import SVC
 
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.metrics import task_type_check, ModelType
 
 

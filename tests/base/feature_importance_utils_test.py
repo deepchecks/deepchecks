@@ -19,8 +19,8 @@ from hamcrest import (
     close_to, not_none, none, has_length, any_of, contains_exactly
 )
 
-from deepchecks.errors import ModelValidationError, DeepchecksValueError
-from deepchecks.base import Dataset
+from deepchecks.core.errors import ModelValidationError, DeepchecksValueError
+from deepchecks.tabular import Dataset
 from deepchecks.utils.features import (
     calculate_feature_importance, calculate_feature_importance_or_none,
     column_importance_sorter_df, column_importance_sorter_dict

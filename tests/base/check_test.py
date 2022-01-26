@@ -13,11 +13,12 @@
 from hamcrest import assert_that, has_property, contains_exactly, calling, raises, has_length, \
     all_of, equal_to, has_items
 
-from deepchecks import BaseCheck, ConditionResult, CheckResult, ConditionCategory
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.core import ConditionResult, CheckResult, ConditionCategory
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.tabular import TabularCheck
 
 
-class DummyCheck(BaseCheck):
+class DummyCheck(TabularCheck):
 
     def __init__(self, param1=1, param2=2):
         super().__init__()

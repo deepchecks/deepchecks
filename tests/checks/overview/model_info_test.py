@@ -13,8 +13,8 @@ from hamcrest import assert_that, has_entries, calling, raises
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 
-from deepchecks.checks.overview.model_info import ModelInfo
-from deepchecks.errors import ModelValidationError
+from deepchecks.tabular.checks.overview.model_info import ModelInfo
+from deepchecks.core.errors import ModelValidationError
 
 
 def assert_model_result(result):

@@ -11,11 +11,10 @@
 """Contains unit tests for the RegressionErrorDistribution check."""
 from hamcrest import assert_that, calling, raises, has_items, close_to
 
-from deepchecks import ConditionCategory
-from deepchecks.base import Dataset
-from deepchecks.checks.performance import RegressionErrorDistribution
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError, ModelValidationError, \
-    DeepchecksNotSupportedError
+from deepchecks.core import ConditionCategory
+from deepchecks.core.errors import DeepchecksValueError, ModelValidationError, DeepchecksNotSupportedError
+from deepchecks.tabular import Dataset
+from deepchecks.tabular.checks.performance import RegressionErrorDistribution
 from tests.checks.utils import equal_condition_result
 
 

@@ -13,8 +13,8 @@ import numpy as np
 import pandas as pd
 from hamcrest import assert_that, calling, raises, equal_to, has_items
 
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError
-from deepchecks.checks.integrity.is_single_value import IsSingleValue
+from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks.tabular.checks.integrity.is_single_value import IsSingleValue
 
 from tests.checks.utils import equal_condition_result
 

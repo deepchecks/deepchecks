@@ -10,6 +10,9 @@
 #
 # pylint: disable=inconsistent-quotes
 """Utils module containing feature importance calculations."""
+
+# TODO: move tabular functionality to the tabular sub-package
+
 import time
 import typing as t
 import warnings
@@ -21,8 +24,8 @@ import pandas as pd
 from pandas.core.dtypes.common import is_float_dtype
 from sklearn.inspection import permutation_importance
 
-from deepchecks import base
-from deepchecks import errors
+from deepchecks import tabular
+from deepchecks.core import errors
 from deepchecks.utils import validation
 from deepchecks.utils.metrics import DeepcheckScorer, get_default_scorers, task_type_check, init_validate_scorers
 from deepchecks.utils.typing import Hashable
@@ -45,7 +48,7 @@ N_TOP_MESSAGE = '* showing only the top %s columns, you can change it using n_to
 
 def calculate_feature_importance_or_none(
     model: t.Any,
-    dataset: t.Union['base.Dataset', pd.DataFrame],
+    dataset: t.Union['tabular.Dataset', pd.DataFrame],
     force_permutation: bool = False,
     permutation_kwargs: t.Optional[t.Dict[str, t.Any]] = None,
 ) -> t.Tuple[t.Optional[pd.Series], t.Optional[str]]:
@@ -55,7 +58,7 @@ def calculate_feature_importance_or_none(
     ----------
     model : t.Any
         a fitted model
-    dataset : t.Union['base.Dataset', pd.DataFrame]
+    dataset : t.Union['tabular.Dataset', pd.DataFrame]
         dataset used to fit the model
     force_permutation : bool , default: False
         force permutation importance calculation
@@ -104,7 +107,7 @@ def calculate_feature_importance_or_none(
 
 def calculate_feature_importance(
     model: t.Any,
-    dataset: t.Union['base.Dataset', pd.DataFrame],
+    dataset: t.Union['tabular.Dataset', pd.DataFrame],
     force_permutation: bool = False,
     permutation_kwargs: t.Dict[str, t.Any] = None,
 ) -> t.Tuple[pd.Series, str]:
@@ -114,7 +117,7 @@ def calculate_feature_importance(
     ----------
     model : t.Any
         a fitted model
-    dataset : t.Union['base.Dataset', pd.DataFrame]
+    dataset : t.Union['tabular.Dataset', pd.DataFrame]
         dataset used to fit the model
     force_permutation : bool, default: False
         force permutation importance calculation
@@ -144,7 +147,7 @@ def calculate_feature_importance(
     permutation_kwargs['random_state'] = permutation_kwargs.get('random_state') or 42
     validation.validate_model(dataset, model)
 
-    if isinstance(dataset, base.Dataset) and force_permutation is True:
+    if isinstance(dataset, tabular.Dataset) and force_permutation is True:
         return _calc_permutation_importance(model, dataset, **permutation_kwargs).fillna(0), 'permutation_importance'
 
     # Get the actual model in case of pipeline
@@ -153,7 +156,7 @@ def calculate_feature_importance(
 
     if features_importance is not None:
         return features_importance.fillna(0), calculation_type
-    elif isinstance(dataset, base.Dataset):
+    elif isinstance(dataset, tabular.Dataset):
         return _calc_permutation_importance(model, dataset, **permutation_kwargs).fillna(0), 'permutation_importance'
     else:
         raise errors.DeepchecksValueError(
@@ -163,10 +166,10 @@ def calculate_feature_importance(
 
 def _built_in_importance(
     model: t.Any,
-    dataset: t.Union['base.Dataset', pd.DataFrame],
+    dataset: t.Union['tabular.Dataset', pd.DataFrame],
 ) -> t.Tuple[t.Optional[pd.Series], t.Optional[str]]:
     """Get feature importance member if present in model."""
-    features = dataset.features if isinstance(dataset, base.Dataset) else dataset.columns
+    features = dataset.features if isinstance(dataset, tabular.Dataset) else dataset.columns
 
     try:
         if hasattr(model, 'feature_importances_'):  # Ensembles
@@ -187,7 +190,7 @@ def _built_in_importance(
 @lru_cache(maxsize=32)
 def _calc_permutation_importance(
     model: t.Any,
-    dataset: 'base.Dataset',
+    dataset: 'tabular.Dataset',
     n_repeats: int = 30,
     mask_high_variance_features: bool = False,
     random_state: int = 42,
@@ -201,7 +204,7 @@ def _calc_permutation_importance(
     ----------
     model : t.Any
         A fitted model
-    dataset : base.Dataset
+    dataset : tabular.Dataset
         dataset used to fit the model
     n_repeats : int , default: 30
         Number of times to permute a feature
@@ -271,7 +274,7 @@ def _calc_permutation_importance(
     return pd.Series(feature_importances, index=dataset.features)
 
 
-def get_importance(name: str, feature_importances: pd.Series, ds: 'base.Dataset') -> int:
+def get_importance(name: str, feature_importances: pd.Series, ds: 'tabular.Dataset') -> int:
     """Return importance based on feature importance or label/date/index first."""
     if name in feature_importances.keys():
         return feature_importances[name]
@@ -282,7 +285,7 @@ def get_importance(name: str, feature_importances: pd.Series, ds: 'base.Dataset'
 
 def column_importance_sorter_dict(
     cols_dict: t.Dict[Hashable, t.Any],
-    dataset: 'base.Dataset',
+    dataset: 'tabular.Dataset',
     feature_importances: t.Optional[pd.Series] = None,
     n_top: int = 10
 ) -> t.Dict:
@@ -292,7 +295,7 @@ def column_importance_sorter_dict(
     ----------
     cols_dict : t.Dict[Hashable, t.Any]
         dict where columns are the keys
-    dataset : base.Dataset
+    dataset : tabular.Dataset
         dataset used to fit the model
     feature_importances : t.Optional[pd.Series] , default: None
         feature importance normalized to 0-1 indexed by feature names
@@ -315,7 +318,7 @@ def column_importance_sorter_dict(
 
 def column_importance_sorter_df(
     df: pd.DataFrame,
-    ds: 'base.Dataset',
+    ds: 'tabular.Dataset',
     feature_importances: pd.Series,
     n_top: int = 10,
     col: t.Optional[Hashable] = None
@@ -326,7 +329,7 @@ def column_importance_sorter_df(
     ----------
     df : pd.DataFrame
         DataFrame to sort
-    ds : base.Dataset
+    ds : tabular.Dataset
         dataset used to fit the model
     feature_importances : pd.Series
         feature importance normalized to 0-1 indexed by feature names

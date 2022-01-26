@@ -13,7 +13,7 @@ import typing as t
 import pandas as pd
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError
 
 
 __all__ = ['validate_columns_exist', 'select_from_dataframe']

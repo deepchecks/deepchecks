@@ -21,9 +21,9 @@ from hamcrest import (
     calling, raises, not_none, has_property, all_of, contains_exactly, has_item, has_length
 )
 
-from deepchecks import Dataset
+from deepchecks.tabular import Dataset
 from deepchecks.utils.validation import ensure_dataframe_type
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
 
 
 def assert_dataset(dataset: Dataset, args):

@@ -9,12 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Tests for Mixed Nulls check"""
-import numpy as np
 import pandas as pd
+from hamcrest import assert_that, has_length, equal_to, has_items, close_to
 
-from hamcrest import assert_that, has_length, has_entry, has_property, equal_to, has_items, all_of, is_, close_to
-from deepchecks import Dataset, ConditionCategory
-from deepchecks.checks.integrity.label_ambiguity import LabelAmbiguity
+from deepchecks.tabular import Dataset
+from deepchecks.tabular.checks.integrity.label_ambiguity import LabelAmbiguity
 from tests.checks.utils import equal_condition_result
 
 

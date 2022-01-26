@@ -12,8 +12,8 @@
 import jsonpickle
 from hamcrest import assert_that, equal_to
 
-from deepchecks.suites import full_suite
-from deepchecks.checks import ColumnsInfo
+from deepchecks.tabular.suites import full_suite
+from deepchecks.tabular.checks import ColumnsInfo
 
 
 def test_check_full_suite_not_failing(iris_split_dataset_and_model):
@@ -22,6 +22,7 @@ def test_check_full_suite_not_failing(iris_split_dataset_and_model):
     json_res = jsonpickle.loads(suite_res.to_json())
     assert_that(json_res['name'], equal_to('Full Suite'))
     assert isinstance(json_res['results'], list)
+
 
 def test_check_metadata(iris_dataset):
     check_res = ColumnsInfo(n_top_columns = 4).run(iris_dataset)

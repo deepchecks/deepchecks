@@ -254,20 +254,35 @@ clean-docs: $(DOCS) env  $(SPHINX_BUILD)
 	@cd $(DOCS) && make clean SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS)
 
 ### Release ######################################################
-.PHONY: authors register dist upload .git-no-changes release
+.PHONY: authors register dist upload test-upload release test-release .git-no-changes
+
 
 authors:
 	echo "Authors\n=======\n\nA huge thanks to all of our contributors:\n\n" > AUTHORS.md
 	git log --raw | grep "^Author: " | cut -d ' ' -f2- | cut -d '<' -f1 | sed 's/^/- /' | sort | uniq >> AUTHORS.md
 
+
 dist: test
 	$(PYTHON) setup.py sdist
 	$(PYTHON) setup.py bdist_wheel
 
+
 # upload expects to get all twine args as environment,
 # refer to https://twine.readthedocs.io/en/latest/ for more information
+#
 upload: $(TWINE)
 	$(TWINE) upload dist/*
+
+
+# TestPyPI – a separate instance of the Python Package Index that allows us
+# to try distribution tools and processes without affecting the real index.
+#
+test-upload: $(TWINE)
+	$(TWINE) upload --repository-url https://test.pypi.org/legacy/ dist/*
+
+
+release: dist upload
+test-release: dist test-upload
 
 
 .git-no-changes:
@@ -279,8 +294,6 @@ upload: $(TWINE)
 		echo Commit your changes and try again.;  \
 		exit -1;                                  \
 	fi;
-
-release: dist upload
 
 
 $(TWINE): $(PIP)
