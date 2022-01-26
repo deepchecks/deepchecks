@@ -44,8 +44,8 @@ class CalibrationScore(SingleDatasetBaseCheck):
             dataset = context.test
 
         context.assert_classification_task()
-        ds_x = dataset.data[context.features]
-        ds_y = dataset.data[context.label_name]
+        ds_x = dataset.features_columns
+        ds_y = dataset.label_col
         model = t.cast(ClassificationModel, context.model)
 
         # Expect predict_proba to return in order of the sorted classes.

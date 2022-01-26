@@ -71,11 +71,11 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         else:
             dataset = context.test
 
-        label_name = context.label_name
-        features = context.features
+        dataset.assert_features()
+        dataset.assert_label()
+        relevant_columns = dataset.features + [dataset.label_name]
 
-        relevant_columns = features + [label_name]
-        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=label_name, random_seed=42,
+        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name, random_seed=42,
                                 **self.ppscore_params)
         df_pps = df_pps.set_index('x', drop=True)
         s_ppscore = df_pps['ppscore']

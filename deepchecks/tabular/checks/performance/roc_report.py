@@ -57,8 +57,8 @@ class RocReport(SingleDatasetBaseCheck):
             dataset = context.test
 
         context.assert_classification_task()
-        ds_y = dataset.data[context.label_name]
-        ds_x = dataset.data[context.features]
+        ds_y = dataset.label_col
+        ds_x = dataset.features_columns
         y_pred_prob = context.model.predict_proba(ds_x)
 
         dataset_classes = dataset.classes

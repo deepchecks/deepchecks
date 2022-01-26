@@ -55,6 +55,12 @@ def diabetes_df():
 
 
 @pytest.fixture(scope='session')
+def diabetes_dataset_no_label(diabetes_df):
+    diabetes_df = diabetes_df.drop('target', axis=1)
+    return Dataset(diabetes_df)
+
+
+@pytest.fixture(scope='session')
 def diabetes(diabetes_df):
     """Return diabetes dataset splited to train and test as Datasets."""
     train_df, test_df = train_test_split(diabetes_df, test_size=0.33, random_state=42)
@@ -94,6 +100,13 @@ def iris(iris_clean) -> pd.DataFrame:
 @pytest.fixture(scope='session')
 def iris_dataset(iris):
     """Return Iris dataset as Dataset object."""
+    return Dataset(iris, label='target')
+
+
+@pytest.fixture(scope='session')
+def iris_dataset_no_label(iris):
+    """Return Iris dataset as Dataset object."""
+    iris = iris.drop('target', axis=1)
     return Dataset(iris)
 
 

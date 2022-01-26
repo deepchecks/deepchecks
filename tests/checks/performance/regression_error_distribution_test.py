@@ -27,11 +27,12 @@ def test_dataset_wrong_input():
     )
 
 
-def test_dataset_no_label(diabetes_df, diabetes_model):
+def test_dataset_no_label(diabetes_dataset_no_label, diabetes_model):
     # Assert
     assert_that(
-        calling(RegressionErrorDistribution().run).with_args(Dataset(diabetes_df), diabetes_model),
-        raises(DeepchecksNotSupportedError, 'Check is irrelevant for Datasets without label')
+        calling(RegressionErrorDistribution().run).with_args(diabetes_dataset_no_label, diabetes_model),
+        raises(DeepchecksNotSupportedError,
+               'There is no label defined to use. Did you pass a DataFrame instead of a Dataset?')
     )
 
 

@@ -70,18 +70,17 @@ class TabularContext:
         scikit-learn docs</a>
     """
 
-    def __init__(
-        self,
-        train: Union[Dataset, pd.DataFrame] = None,
-        test: Union[Dataset, pd.DataFrame] = None,
-        model: BasicModel = None,
-        model_name: str = '',
-        features_importance: pd.Series = None,
-        feature_importance_force_permutation: bool = False,
-        feature_importance_timeout: int = 120,
-        scorers: Mapping[str, Union[str, Callable]] = None,
-        scorers_per_class: Mapping[str, Union[str, Callable]] = None
-    ):
+    def __init__(self,
+                 train: Union[Dataset, pd.DataFrame] = None,
+                 test: Union[Dataset, pd.DataFrame] = None,
+                 model: BasicModel = None,
+                 model_name: str = '',
+                 features_importance: pd.Series = None,
+                 feature_importance_force_permutation: bool = False,
+                 feature_importance_timeout: int = 120,
+                 scorers: Mapping[str, Union[str, Callable]] = None,
+                 scorers_per_class: Mapping[str, Union[str, Callable]] = None
+                 ):
         # Validations
         if train is None and test is None and model is None:
             raise DeepchecksValueError('At least one dataset (or model) must be passed to the method!')
@@ -156,23 +155,6 @@ class TabularContext:
         return self._model
 
     @property
-    def label_name(self) -> Hashable:
-        """Return label name if exists, else raise error."""
-        self.assert_label_exists()
-        return self.train.label_name
-
-    @property
-    def features(self) -> List[Hashable]:
-        """Return list of all feature names, including categorical. If no features defined, raise error."""
-        self.assert_features_exists()
-        return self.train.features
-
-    @property
-    def cat_features(self) -> List[Hashable]:
-        """Return list of categorical features. might be empty list."""
-        return self.train.cat_features
-
-    @property
     def model_name(self):
         """Return model name."""
         return self._model_name
@@ -181,7 +163,6 @@ class TabularContext:
     def task_type(self) -> ModelType:
         """Return task type if model & train & label exists. otherwise, raise error."""
         if self._task_type is None:
-            self.assert_label_exists()
             self._task_type = task_type_check(self.model, self.train)
         return self._task_type
 
@@ -216,16 +197,6 @@ class TabularContext:
         """Return whether there is test dataset defined."""
         return self._test is not None
 
-    def assert_features_exists(self):
-        """Assert that features are defined."""
-        if not self.train.features:
-            raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without features')
-
-    def assert_label_exists(self):
-        """Assert that label name is defined."""
-        if self.train.label_name is None:
-            raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without label')
-
     def assert_task_type(self, *expected_types: ModelType):
         """Assert task_type matching given types.
 
@@ -241,16 +212,6 @@ class TabularContext:
                 f"but received model of type '{self.task_type.value.lower()}'"  # pylint: disable=inconsistent-quotes
             )
         return True
-
-    def assert_datetime_exists(self):
-        """Assert that datetime defined on the dataset."""
-        if not self.train.datetime_exist():
-            raise DatasetValidationError('Check is irrelevant for Datasets without datetime defined')
-
-    def assert_index_exists(self):
-        """Assert that index defined on the dataset."""
-        if not self.train.index_exist():
-            raise DatasetValidationError('Check is irrelevant for Datasets without index defined')
 
     def assert_classification_task(self):
         """Assert the task_type is classification."""

@@ -25,12 +25,12 @@ def test_check_full_suite_not_failing(iris_split_dataset_and_model):
 
 
 def test_check_metadata(iris_dataset):
-    check_res = ColumnsInfo(n_top_columns = 4).run(iris_dataset)
+    check_res = ColumnsInfo(n_top_columns=4).run(iris_dataset)
     json_res = jsonpickle.loads(check_res.to_json())
     assert_that(json_res['value'], equal_to({'sepal length (cm)': 'numerical feature', 
                                             'sepal width (cm)': 'numerical feature',
                                             'petal length (cm)': 'numerical feature',
                                             'petal width (cm)': 'numerical feature',
-                                            'target': 'numerical feature'}))
+                                            'target': 'label'}))
     assert_that(json_res['name'], equal_to('Columns Info'))
     assert_that(json_res['params'], equal_to({'n_top_columns': 4}))

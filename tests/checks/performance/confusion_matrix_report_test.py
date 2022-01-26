@@ -26,11 +26,12 @@ def test_dataset_wrong_input():
     )
 
 
-def test_dataset_no_label(iris_dataset, iris_adaboost):
+def test_dataset_no_label(iris_dataset_no_label, iris_adaboost):
     # Assert
     assert_that(
-        calling(ConfusionMatrixReport().run).with_args(iris_dataset, iris_adaboost),
-        raises(DeepchecksNotSupportedError, 'Check is irrelevant for Datasets without label')
+        calling(ConfusionMatrixReport().run).with_args(iris_dataset_no_label, iris_adaboost),
+        raises(DeepchecksNotSupportedError,
+               'There is no label defined to use. Did you pass a DataFrame instead of a Dataset?')
     )
 
 
@@ -54,4 +55,4 @@ def test_model_info_object(iris_labeled_dataset, iris_adaboost):
     # Assert
     for i in range(len(result)):
         for j in range(len(result[i])):
-            assert isinstance(result[i][j] , np.int64)
+            assert isinstance(result[i][j], np.int64)

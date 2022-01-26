@@ -58,12 +58,11 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
         """
         train_dataset = context.train
         test_dataset = context.test
-        label_name = context.label_name
 
         drift_score, method, display = calc_drift_and_plot(
-            train_column=train_dataset.data[label_name],
-            test_column=test_dataset.data[label_name],
-            plot_title=label_name,
+            train_column=train_dataset.label_col,
+            test_column=test_dataset.label_col,
+            plot_title=train_dataset.label_name,
             column_type='categorical' if train_dataset.label_type == 'classification_label' else 'numerical',
             max_num_categories=self.max_num_categories
         )

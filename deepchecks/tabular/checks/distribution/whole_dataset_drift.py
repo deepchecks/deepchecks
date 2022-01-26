@@ -109,8 +109,8 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         """
         train_dataset = context.train
         test_dataset = context.test
-        features = context.features
-        cat_features = context.cat_features
+        features = train_dataset.features
+        cat_features = train_dataset.cat_features
 
         domain_classifier = self._generate_model(list(set(features) - set(cat_features)), cat_features)
 

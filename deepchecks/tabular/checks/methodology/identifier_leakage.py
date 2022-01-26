@@ -55,9 +55,10 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
         else:
             dataset = context.test
 
-        label_name = context.label_name
+        dataset.assert_label()
+        label_name = dataset.label_name
 
-        relevant_columns = list(filter(None, [dataset.datetime_name, dataset.index_name, dataset.label_name]))
+        relevant_columns = list(filter(None, [dataset.datetime_name, dataset.index_name, label_name]))
 
         if len(relevant_columns) == 1:
             raise DatasetValidationError(

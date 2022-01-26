@@ -119,11 +119,10 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         """Run check."""
         train_dataset = context.train
         test_dataset = context.test
+        train_dataset.assert_label()
         task_type = context.task_type
         model = context.model
-        features = context.features
-        cat_features = context.cat_features
-        label_name = context.label_name
+
         scorer = context.get_single_scorer(self.user_scorer)
 
         train_dataset = train_dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
@@ -132,25 +131,25 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         # Create scoring function, used to calculate the per sample model error
         if task_type == ModelType.REGRESSION:
             def scoring_func(dataset: Dataset):
-                return per_sample_mse(dataset.data[label_name], model.predict(dataset.data[features]))
+                return per_sample_mse(dataset.label_col, model.predict(dataset.features_columns))
         else:
             le = preprocessing.LabelEncoder()
             le.fit(train_dataset.classes)
 
             def scoring_func(dataset: Dataset):
-                encoded_label = le.transform(dataset.data[label_name])
+                encoded_label = le.transform(dataset.label_col)
                 return per_sample_binary_cross_entropy(encoded_label,
-                                                       model.predict_proba(dataset.data[features]))
+                                                       model.predict_proba(dataset.features_columns))
 
         train_scores = scoring_func(train_dataset)
         test_scores = scoring_func(test_dataset)
 
         # Create and fit model to predict the per sample error
         error_model, new_feature_order = create_error_regression_model(train_dataset, random_state=self.random_state)
-        error_model.fit(train_dataset.data[features], y=train_scores)
+        error_model.fit(train_dataset.features_columns, y=train_scores)
 
         # Check if fitted model is good enough
-        error_model_predicted = error_model.predict(test_dataset.data[features])
+        error_model_predicted = error_model.predict(test_dataset.features_columns)
         error_model_score = r2_score(test_scores, error_model_predicted)
 
         # This check should be ignored if no information gained from the error model (low r2_score)
@@ -182,7 +181,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
             segment2_details = {}
 
             # Violin plot for categorical features, scatter plot for numerical features
-            if feature in cat_features:
+            if feature in train_dataset.cat_features:
                 # find categories with the weakest performance
                 error_per_segment_ser = (
                     data

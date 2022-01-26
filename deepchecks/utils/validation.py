@@ -50,7 +50,7 @@ def model_type_validation(model: t.Any):
 
 
 def validate_model(
-    data: t.Union['tabular.Dataset', pd.DataFrame],
+    data: 'tabular.Dataset',
     model: t.Any
 ):
     """Check model is able to predict on the dataset.

@@ -115,10 +115,12 @@ def test_dataset_no_index():
     ds = dataset_from_dict({'col1': [1, 2, 3, 4, 10, 11]})
     assert_that(
         calling(DateTrainTestLeakageDuplicates().run).with_args(ds, ds),
-        raises(DatasetValidationError, 'Check is irrelevant for Datasets without datetime defined'))
+        raises(DatasetValidationError,
+               'There is no datetime defined to use. Did you pass a DataFrame instead of a Dataset?'))
     assert_that(
         calling(DateTrainTestLeakageOverlap().run).with_args(ds, ds),
-        raises(DatasetValidationError, 'Check is irrelevant for Datasets without datetime defined'))
+        raises(DatasetValidationError,
+               'There is no datetime defined to use. Did you pass a DataFrame instead of a Dataset?'))
 
 
 def test_dates_from_val_before_train():
