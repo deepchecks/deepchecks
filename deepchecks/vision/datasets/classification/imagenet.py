@@ -18,6 +18,9 @@ from deepchecks.vision.utils.image_utils import AlbumentationImageFolder
 
 current_path = pathlib.Path(__file__).parent.resolve()
 
+# TODO set to zero to disable mp, needs to be reset to 4+
+NUM_WORKERS = 0
+
 def get_trained_imagenet_model():
     model = torchvision.models.resnet18(pretrained=True)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -58,8 +61,8 @@ def get_imagenet_dataloaders_albumentations() -> Tuple[DataLoader, DataLoader]:
                               transform=data_transforms["val"])
     train_dataset = AlbumentationImageFolder(root=osp.join(data_dir, "train"),
                                 transform=data_transforms["train"])
-    val_dataloader = DataLoader(val_dataset, batch_size=4, shuffle=False, num_workers=1)
-    train_dataloader = DataLoader(train_dataset, batch_size=4, shuffle=False, num_workers=1)
+    val_dataloader = DataLoader(val_dataset, batch_size=4, shuffle=False, num_workers=NUM_WORKERS)
+    train_dataloader = DataLoader(train_dataset, batch_size=4, shuffle=False, num_workers=NUM_WORKERS)
     return train_dataloader, val_dataloader
 
 def get_imagenet_dataloaders() -> Tuple[DataLoader, DataLoader]:
@@ -82,7 +85,7 @@ def get_imagenet_dataloaders() -> Tuple[DataLoader, DataLoader]:
     }
 
     val_dataset = ImageFolder(root=osp.join(data_dir, "val"), transform=data_transforms["val"])
-    val_dataloader = DataLoader(val_dataset, batch_size=4, shuffle=False, num_workers=4)
+    val_dataloader = DataLoader(val_dataset, batch_size=4, shuffle=False, num_workers=NUM_WORKERS)
     train_dataset = ImageFolder(root=osp.join(data_dir, "train"), transform=data_transforms["train"])
-    train_dataloader = DataLoader(train_dataset, batch_size=4, shuffle=False, num_workers=4)
+    train_dataloader = DataLoader(train_dataset, batch_size=4, shuffle=False, num_workers=NUM_WORKERS)
     return train_dataloader, val_dataloader
