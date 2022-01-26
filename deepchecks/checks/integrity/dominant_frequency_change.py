@@ -62,7 +62,6 @@ class DominantFrequencyChange(TrainTestBaseCheck):
         test_dataset = context.test
         train_dataset = context.train
         features_importance = context.features_importance
-        features = context.features
 
         test_df = test_dataset.data
         baseline_df = train_dataset.data
@@ -71,7 +70,7 @@ class DominantFrequencyChange(TrainTestBaseCheck):
         test_len = len(test_df)
         p_dict = {}
 
-        for column in features:
+        for column in train_dataset.features:
             top_ref = baseline_df[column].value_counts(dropna=False)
             top_test = test_df[column].value_counts(dropna=False)
 

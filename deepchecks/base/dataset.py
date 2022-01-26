@@ -23,7 +23,7 @@ from sklearn.model_selection import train_test_split
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import is_categorical, infer_categorical_features
 from deepchecks.utils.typing import Hashable
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError
+from deepchecks.errors import DeepchecksValueError, DatasetValidationError, DeepchecksNotSupportedError
 
 __all__ = ['Dataset']
 
@@ -643,10 +643,6 @@ class Dataset:
         else:  # No meaningful index to use: Index column not configured, and _set_index_from_dataframe_index is False
             return
 
-    def index_exist(self) -> bool:
-        """Return whether index defined."""
-        return self._set_index_from_dataframe_index or self._index_name
-
     @property
     def datetime_name(self) -> t.Optional[Hashable]:
         """If datetime column exists, return its name.
@@ -684,10 +680,6 @@ class Dataset:
             # is False
             return
 
-    def datetime_exist(self):
-        """Return whether datetime defined."""
-        return self._set_datetime_from_dataframe_index or self._datetime_name
-
     @property
     def label_name(self) -> t.Optional[Hashable]:
         """If label column exists, return its name.
@@ -709,6 +701,28 @@ class Dataset:
            List of feature names.
         """
         return list(self._features)
+
+    @property
+    def features_columns(self) -> pd.DataFrame:
+        """Return DataFrame containing only the features defined in the dataset, if features are empty raise error.
+
+        Returns
+        -------
+        pd.DataFrame
+        """
+        self.assert_features()
+        return self.data[self.features]
+
+    @property
+    def label_col(self) -> pd.Series:
+        """Return Series of the label defined in the dataset, if label is not defined raise error.
+
+        Returns
+        -------
+        pd.Series
+        """
+        self.assert_label()
+        return self.data[self.label_name]
 
     @property
     def cat_features(self) -> t.List[Hashable]:
@@ -761,6 +775,50 @@ class Dataset:
                 value = 'other'
             columns[column] = value
         return columns
+
+    def assert_label(self):
+        """Check if label is defined and if not raise error.
+
+        Raises
+        ------
+        DeepchecksNotSupportedError
+        """
+        if not self.label_name:
+            raise DeepchecksNotSupportedError('There is no label defined to use. Did you pass a DataFrame '
+                                              'instead of a Dataset?')
+
+    def assert_features(self):
+        """Check if features are defined (not empty) and if not raise error.
+
+        Raises
+        ------
+        DeepchecksNotSupportedError
+        """
+        if not self.features:
+            raise DeepchecksNotSupportedError('There are no features defined to use. Did you pass a DataFrame '
+                                              'instead of a Dataset?')
+
+    def assert_datetime(self):
+        """Check if datetime is defined and if not raise error.
+
+        Raises
+        ------
+        DeepchecksNotSupportedError
+        """
+        if not (self._set_datetime_from_dataframe_index or self._datetime_name):
+            raise DatasetValidationError('There is no datetime defined to use. Did you pass a DataFrame instead '
+                                         'of a Dataset?')
+
+    def assert_index(self):
+        """Check if index is defined and if not raise error.
+
+        Raises
+        ------
+        DeepchecksNotSupportedError
+        """
+        if not (self._set_index_from_dataframe_index or self._index_name):
+            raise DatasetValidationError('There is no index defined to use. Did you pass a DataFrame instead '
+                                         'of a Dataset?')
 
     def select(
             self: TDataset,

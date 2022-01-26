@@ -52,7 +52,8 @@ def test_dataset_no_label():
     df = Dataset(df)
     assert_that(
         calling(IdentifierLeakage().run).with_args(dataset=df),
-        raises(DeepchecksNotSupportedError, 'Check is irrelevant for Datasets without label')
+        raises(DeepchecksNotSupportedError,
+               'There is no label defined to use. Did you pass a DataFrame instead of a Dataset?')
     )
 
 

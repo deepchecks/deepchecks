@@ -61,7 +61,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
         """
         test_dataset = context.test
         train_dataset = context.train
-        cat_features = context.cat_features
+        cat_features = train_dataset.cat_features
 
         test_df = select_from_dataframe(test_dataset.data, self.columns, self.ignore_columns)
         train_df = select_from_dataframe(train_dataset.data, self.columns, self.ignore_columns)

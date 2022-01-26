@@ -111,14 +111,14 @@ class UnusedFeatures(TrainTestBaseCheck):
             dataset = context.train
 
         feature_importance = context.features_importance
-        features = context.features
+        dataset.assert_features()
 
         # Calculate normalized variance per feature based on PCA decomposition
         pre_pca_transformer, var_col_order = naive_encoder(dataset)
         pca_trans = PCA(n_components=len(dataset.features) // 2, random_state=self.random_state)
         n_samples = min(10000, dataset.n_samples)
         pca_trans.fit(pre_pca_transformer.fit_transform(
-            dataset.data[features].sample(n_samples, random_state=self.random_state)
+            dataset.features_columns.sample(n_samples, random_state=self.random_state)
         ))
 
         feature_normed_variance = pd.Series(np.abs(pca_trans.components_).sum(axis=0), index=var_col_order)

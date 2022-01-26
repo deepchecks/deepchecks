@@ -74,7 +74,8 @@ def test_dataset_no_label():
     df = Dataset(df)
     assert_that(
         calling(SingleFeatureContribution().run).with_args(dataset=df),
-        raises(DeepchecksNotSupportedError, 'Check is irrelevant for Datasets without label'))
+        raises(DeepchecksNotSupportedError,
+               'There is no label defined to use. Did you pass a DataFrame instead of a Dataset?'))
 
 
 def test_trainval_assert_single_feature_contribution():
@@ -111,7 +112,7 @@ def test_trainval_dataset_no_label():
             test_dataset=Dataset(df2)),
         raises(
             DeepchecksNotSupportedError,
-            'Check is irrelevant for Datasets without label')
+            'There is no label defined to use. Did you pass a DataFrame instead of a Dataset?')
     )
 
 

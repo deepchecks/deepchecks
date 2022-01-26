@@ -103,8 +103,6 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         train_dataset: Dataset = context.train
         test_dataset: Dataset = context.test
         features_importance = context.features_importance
-        features = context.features
-        cat_features = context.cat_features
 
         train_dataset = train_dataset.select(
                 self.columns, self.ignore_columns
@@ -115,7 +113,7 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
 
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
-        for column in features:
+        for column in train_dataset.features:
             if features_importance is not None:
                 fi_rank_series = features_importance.rank(method='first', ascending=False)
                 fi_rank = fi_rank_series[column]
@@ -127,7 +125,7 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
                 train_column=train_dataset.data[column],
                 test_column=test_dataset.data[column],
                 plot_title=plot_title,
-                column_type='categorical' if column in cat_features else 'numerical',
+                column_type='categorical' if column in train_dataset.cat_features else 'numerical',
                 max_num_categories=self.max_num_categories
             )
             values_dict[column] = {
@@ -140,7 +138,7 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         if self.sort_feature_by == 'feature importance' and features_importance is not None:
             columns_order = features_importance.sort_values(ascending=False).head(self.n_top_columns).index
         else:
-            columns_order = sorted(features, key=lambda col: values_dict[col]['Drift score'], reverse=True
+            columns_order = sorted(train_dataset.features, key=lambda col: values_dict[col]['Drift score'], reverse=True
                                    )[:self.n_top_columns]
 
         sorted_by = self.sort_feature_by if features_importance is not None else 'drift score'
