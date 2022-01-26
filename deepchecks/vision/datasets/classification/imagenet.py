@@ -14,9 +14,7 @@ from torchvision import datasets
 from torchvision.datasets import ImageNet, ImageFolder
 from torchvision.datasets.utils import download_and_extract_archive
 from torchvision.transforms import transforms
-
-from deepchecks.vision.utils.image_utils import AlbumentationsTransformWrapper, AlbumentationsTransformsWrapper, \
-    AlbumentationImageFolder
+from deepchecks.vision.utils.image_utils import AlbumentationImageFolder
 
 current_path = pathlib.Path(__file__).parent.resolve()
 

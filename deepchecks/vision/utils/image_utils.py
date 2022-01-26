@@ -1,5 +1,6 @@
 from typing import Tuple, Any
 
+import PIL.Image
 import cv2
 import numpy as np
 import albumentations as A
@@ -7,6 +8,15 @@ import torchvision
 from torchvision.datasets import ImageFolder
 from torchvision.datasets.vision import StandardTransform
 
+
+def get_cv2_image(image: Any) -> np.ndarray:
+    if isinstance(image, PIL.Image.Image):
+        image_np = np.array(image)
+        return image_np
+    elif isinstance(image, np.ndarray):
+        return image
+    else:
+        raise RuntimeError("Only PIL.Image and CV2 loaders currently supported!")
 
 def cv2_loader(path: str) -> np.ndarray:
     img = cv2.imread(path)
@@ -32,7 +42,6 @@ class AlbumentationImageFolder(ImageFolder):
         :param kwargs:
         """
         super(AlbumentationImageFolder, self).__init__(*args, **kwargs)
-        self.loader = cv2_loader
 
     def __getitem__(self, index: int) -> Tuple[Any, Any]:
         """
@@ -45,6 +54,7 @@ class AlbumentationImageFolder(ImageFolder):
         """
         path, target = self.samples[index]
         sample = self.loader(path)
+        sample = get_cv2_image(sample)
         if self.transform is not None:
             sample = self.transform(image=sample)['image']
         if self.target_transform is not None:
