@@ -31,13 +31,14 @@ from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 import plotly
 
-from deepchecks.base.check_context import CheckRunContext
+from deepchecks.base.check_context import CheckRunContext, CheckRunConfig
 from deepchecks.base.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.base.dataset import Dataset
 from deepchecks.base.display_pandas import dataframe_to_html, get_conditions_table
 from deepchecks.utils.strings import get_docs_summary, split_camel_case
 from deepchecks.utils.ipython import is_ipython_display
 from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
+from deepchecks.utils.typing import BasicModel
 
 
 __all__ = [
@@ -461,10 +462,13 @@ class BaseCheck(metaclass=abc.ABCMeta):
 class SingleDatasetBaseCheck(BaseCheck):
     """Parent class for checks that only use one dataset."""
 
-    def run(self, dataset, model=None) -> CheckResult:
+    def run(self,
+            dataset: Union[Dataset, pd.DataFrame],
+            model: BasicModel = None,
+            config: CheckRunConfig = None) -> CheckResult:
         """Run check."""
         # By default, we initialize a single dataset as the "train"
-        c = CheckRunContext(dataset, model=model)
+        c = CheckRunContext(dataset, model=model, config=config)
         return self.run_logic(c)
 
     @abc.abstractmethod
@@ -479,9 +483,13 @@ class TrainTestBaseCheck(BaseCheck):
     The class checks train dataset and test dataset for model training and test.
     """
 
-    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
+    def run(self,
+            train_dataset: Union[Dataset, pd.DataFrame],
+            test_dataset: Union[Dataset, pd.DataFrame],
+            model: BasicModel = None,
+            config: CheckRunConfig = None) -> CheckResult:
         """Run check."""
-        c = CheckRunContext(train_dataset, test_dataset, model=model)
+        c = CheckRunContext(train_dataset, test_dataset, model=model, config=config)
         return self.run_logic(c)
 
     @abc.abstractmethod
@@ -493,9 +501,9 @@ class TrainTestBaseCheck(BaseCheck):
 class ModelOnlyBaseCheck(BaseCheck):
     """Parent class for checks that only use a model and no datasets."""
 
-    def run(self, model) -> CheckResult:
+    def run(self, model: BasicModel, config: CheckRunConfig = None) -> CheckResult:
         """Run check."""
-        c = CheckRunContext(model=model)
+        c = CheckRunContext(model=model, config=config)
         return self.run_logic(c)
 
     @abc.abstractmethod

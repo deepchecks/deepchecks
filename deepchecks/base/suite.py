@@ -13,7 +13,7 @@
 import abc
 import io
 from collections import OrderedDict
-from typing import Union, List, Optional, Tuple, Any, Container, Mapping, Callable
+from typing import Union, List, Optional, Tuple, Any, Container, Mapping
 
 import pandas as pd
 from IPython.core.display import display_html
@@ -191,11 +191,7 @@ class Suite(BaseSuite):
             train_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
             test_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
             model: BasicModel = None,
-            features_importance: pd.Series = None,
-            feature_importance_force_permutation: bool = False,
-            feature_importance_timeout: int = None,
-            scorers: Mapping[str, Union[str, Callable]] = None,
-            scorers_per_class: Mapping[str, Union[str, Callable]] = None
+            config: CheckRunContext = None
     ) -> SuiteResult:
         """Run all checks.
 
@@ -207,30 +203,14 @@ class Suite(BaseSuite):
             object, representing data an estimator predicts on
         model : BasicModel , default None
             A scikit-learn-compatible fitted estimator instance
-        features_importance : pd.Series , default None
-            pass manual features importance
-        feature_importance_force_permutation : bool , default None
-            force calculation of permutation features importance
-        feature_importance_timeout : int , default None
-            timeout in second for the permutation features importance calculation
-        scorers : Mapping[str, Union[str, Callable]] , default None
-            dict of scorers names to scorer sklearn_name/function
-        scorers_per_class : Mapping[str, Union[str, Callable]], default None
-            dict of scorers for classification without averaging of the classes
-            See <a href=
-            "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
-            scikit-learn docs</a>
+        config : CheckRunContext, default None
+            global configuration parameters for the checks in the suite
         Returns
         -------
         SuiteResult
             All results by all initialized checks
         """
-        context = CheckRunContext(train_dataset, test_dataset, model,
-                                  features_importance=features_importance,
-                                  feature_importance_force_permutation=feature_importance_force_permutation,
-                                  feature_importance_timeout=feature_importance_timeout,
-                                  scorers=scorers,
-                                  scorers_per_class=scorers_per_class)
+        context = CheckRunContext(train_dataset, test_dataset, model, config=config)
         # Create progress bar
         progress_bar = ProgressBar(self.name, len(self.checks))
 

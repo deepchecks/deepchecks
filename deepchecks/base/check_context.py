@@ -22,6 +22,45 @@ from deepchecks.utils.typing import Hashable, BasicModel
 from deepchecks.utils.features import calculate_feature_importance_or_none
 
 
+__all__ = ['CheckRunConfig', 'CheckRunContext']
+
+
+class CheckRunConfig:
+    """Global configuration parameters for a check & suite run.
+
+    Parameters
+    ----------
+    features_importance: pd.Series , default: None
+        pass manual features importance
+    feature_importance_force_permutation : bool , default: False
+        force calculation of permutation features importance. If false then use the built-in
+        features importance of the model if available
+    feature_importance_timeout : int , default: 120
+        timeout in second for the permutation features importance calculation. If estimation of
+        calculation is beyond timeout, use built-in features importance of the model if available
+    scorers : Mapping[str, Union[str, Callable]] , default: None
+        dict of scorers names to scorer sklearn_name/function
+    scorers_per_class : Mapping[str, Union[str, Callable]] , default: None
+        dict of scorers for classification without averaging of the classes.
+        See <a href=
+        "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
+        scikit-learn docs</a>
+    """
+
+    def __init__(self,
+                 features_importance: pd.Series = None,
+                 feature_importance_force_permutation: bool = False,
+                 feature_importance_timeout: int = 120,
+                 scorers: Mapping[str, Union[str, Callable]] = None,
+                 scorers_per_class: Mapping[str, Union[str, Callable]] = None
+                 ):
+        self.features_importance = features_importance
+        self.feature_importance_force_permutation = feature_importance_force_permutation
+        self.feature_importance_timeout = feature_importance_timeout
+        self.scorers = scorers
+        self.scorers_per_class = scorers_per_class
+
+
 class CheckRunContext:
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
 
@@ -35,19 +74,8 @@ class CheckRunContext:
         A scikit-learn-compatible fitted estimator instance
     model_name: str , default: ''
         The name of the model
-    features_importance: pd.Series , default: None
-        pass manual features importance
-    feature_importance_force_permutation : bool , default: False
-        force calculation of permutation features importance
-    feature_importance_timeout : int , default: 120
-        timeout in second for the permutation features importance calculation
-    scorers : Mapping[str, Union[str, Callable]] , default: None
-        dict of scorers names to scorer sklearn_name/function
-    scorers_per_class : Mapping[str, Union[str, Callable]] , default: None
-        dict of scorers for classification without averaging of the classes.
-        See <a href=
-        "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
-        scikit-learn docs</a>
+    config : CheckRunConfig , default None
+        configuration parameters
     """
 
     def __init__(self,
@@ -55,11 +83,7 @@ class CheckRunContext:
                  test: Union[Dataset, pd.DataFrame] = None,
                  model: BasicModel = None,
                  model_name: str = '',
-                 features_importance: pd.Series = None,
-                 feature_importance_force_permutation: bool = False,
-                 feature_importance_timeout: int = 120,
-                 scorers: Mapping[str, Union[str, Callable]] = None,
-                 scorers_per_class: Mapping[str, Union[str, Callable]] = None
+                 config: CheckRunConfig = None
                  ):
         # Validations
         if train is None and test is None and model is None:
@@ -92,18 +116,15 @@ class CheckRunContext:
             # Here validate only type of model, later validating it can predict on the data if needed
             model_type_validation(model)
 
+        self.config = config or CheckRunConfig()
+        self._features_importance = self.config.features_importance
         self._train = train
         self._test = test
         self._model = model
-        self._feature_importance_force_permutation = feature_importance_force_permutation
-        self._features_importance = features_importance
-        self._feature_importance_timeout = feature_importance_timeout
         self._calculated_importance = False
         self._importance_type = None
         self._validated_model = False
         self._task_type = None
-        self._user_scorers = scorers
-        self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
 
     # Properties
@@ -169,10 +190,10 @@ class CheckRunContext:
         """Return features importance, or None if not possible."""
         if not self._calculated_importance:
             if self._model and (self._train or self._test):
-                permutation_kwargs = {'timeout': self._feature_importance_timeout}
+                permutation_kwargs = {'timeout': self.config.feature_importance_timeout}
                 dataset = self.test if self.have_test() else self.train
                 importance, importance_type = calculate_feature_importance_or_none(
-                    self._model, dataset, self._feature_importance_force_permutation, permutation_kwargs
+                    self._model, dataset, self.config.feature_importance_force_permutation, permutation_kwargs
                 )
                 self._features_importance = importance
                 self._importance_type = importance_type
@@ -262,9 +283,9 @@ class CheckRunContext:
             for classification whether to return scorers of average score or score per class
         """
         if class_avg:
-            user_scorers = self._user_scorers
+            user_scorers = self.config.scorers
         else:
-            user_scorers = self._user_scorers_per_class
+            user_scorers = self.config.scorers_per_class
 
         scorers = alternative_scorers or user_scorers or get_default_scorers(self.task_type, class_avg)
         return init_validate_scorers(scorers, self.model, self.train, class_avg, self.task_type)
@@ -285,9 +306,9 @@ class CheckRunContext:
             for classification whether to return scorers of average score or score per class
         """
         if class_avg:
-            user_scorers = self._user_scorers
+            user_scorers = self.config.scorers
         else:
-            user_scorers = self._user_scorers_per_class
+            user_scorers = self.config.scorers_per_class
 
         scorers = alternative_scorers or user_scorers or get_default_scorers(self.task_type, class_avg)
         # The single scorer is the first one in the dict

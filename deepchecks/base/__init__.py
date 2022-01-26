@@ -23,7 +23,7 @@ from .check import (
     ModelComparisonBaseCheck,
     ModelComparisonContext
 )
-from .check_context import CheckRunContext
+from .check_context import CheckRunContext, CheckRunConfig
 from .suite import (
     BaseSuite,
     Suite,
@@ -54,5 +54,6 @@ __all__ = [
     'Suite',
     'SuiteResult',
     'ModelComparisonSuite',
-    'CheckRunContext'
+    'CheckRunContext',
+    'CheckRunConfig'
 ]
