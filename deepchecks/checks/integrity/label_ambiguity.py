@@ -63,9 +63,9 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
 
         context.assert_classification_task()
 
-        dataset = dataset.select(self.columns, self.ignore_columns)
+        dataset = dataset.select(self.columns, self.ignore_columns, keep_label=True)
 
-        label_col = dataset.label_name
+        label_col = context.label_name
 
         # HACK: pandas have bug with groupby on category dtypes, so until it fixed, change dtypes manually
         df = dataset.data
