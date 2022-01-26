@@ -21,7 +21,7 @@ from hamcrest.core.matcher import Matcher
 from hamcrest import assert_that, instance_of, only_contains, any_of
 
 from deepchecks.core import SuiteResult, CheckResult, CheckFailure
-from deepchecks.tabular import suites, Dataset
+from deepchecks.tabular import suites, Dataset, SingleDatasetBaseCheck, TabularSuite
 from deepchecks.core.errors import DeepchecksBaseError
 
 
@@ -71,7 +71,8 @@ def test_generic_suite(
 
     for args in arguments:
         result = suite.run(**args)
-        validate_suite_result(result, len(suite.checks.values()))
+        length = get_expected_results_length(suite, args)
+        validate_suite_result(result, length)
 
 
 def validate_suite_result(
@@ -100,16 +101,16 @@ def validate_suite_result(
         assert_that(actual=failures, matcher=exception_matcher) # type: ignore
 
 
-# def get_expected_results_length(suite: TabularSuite, args: t.Dict):
-#     num_single = len([c for c in suite.checks.values() if isinstance(c, TabularCheck)])
-#     num_others = len(suite.checks.values()) - num_single
-#     multiply = 0
-#     if 'train_dataset' in args:
-#         multiply += 1
-#     if 'test_dataset' in args:
-#         multiply += 1
-#     # If no train and no test (only model) there will be single result of check failure
-#     if multiply == 0:
-#         multiply = 1
+def get_expected_results_length(suite: TabularSuite, args: t.Dict):
+    num_single = len([c for c in suite.checks.values() if isinstance(c, SingleDatasetBaseCheck)])
+    num_others = len(suite.checks.values()) - num_single
+    multiply = 0
+    if 'train_dataset' in args:
+        multiply += 1
+    if 'test_dataset' in args:
+        multiply += 1
+    # If no train and no test (only model) there will be single result of check failure
+    if multiply == 0:
+        multiply = 1
 
-#     return num_single * multiply + num_others
+    return num_single * multiply + num_others

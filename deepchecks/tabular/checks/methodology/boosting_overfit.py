@@ -18,7 +18,7 @@ import numpy as np
 
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError, ModelValidationError
-from deepchecks.tabular.base import TabularContext, TabularCheck
+from deepchecks.tabular import TabularContext, TrainTestBaseCheck
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.model import get_model_of_pipeline
 
@@ -126,7 +126,7 @@ class PartialBoostingModel:
             ))
 
 
-class BoostingOverfit(TabularCheck):
+class BoostingOverfit(TrainTestBaseCheck):
     """Check for overfit caused by using too many iterations in a gradient boosted model.
 
     The check runs a pred-defined number of steps, and in each step it limits the boosting model to use up to X

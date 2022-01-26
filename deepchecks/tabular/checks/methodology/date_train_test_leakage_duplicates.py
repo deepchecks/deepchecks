@@ -12,14 +12,14 @@
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.tabular.base import TabularContext, TabularCheck
+from deepchecks.tabular import TabularContext, TrainTestBaseCheck
 from deepchecks.utils.strings import format_percent, format_datetime
 
 
 __all__ = ['DateTrainTestLeakageDuplicates']
 
 
-class DateTrainTestLeakageDuplicates(TabularCheck):
+class DateTrainTestLeakageDuplicates(TrainTestBaseCheck):
     """Check if test dates are present in train data.
 
     Parameters

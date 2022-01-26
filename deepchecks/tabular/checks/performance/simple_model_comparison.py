@@ -21,8 +21,7 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular.base import TabularContext, TabularCheck
-from deepchecks.tabular.dataset import Dataset
+from deepchecks.tabular import TabularContext, TrainTestBaseCheck, Dataset
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.metrics import ModelType, get_gain
@@ -32,7 +31,7 @@ from deepchecks.utils.simple_models import RandomModel
 __all__ = ['SimpleModelComparison']
 
 
-class SimpleModelComparison(TabularCheck):
+class SimpleModelComparison(TrainTestBaseCheck):
     """Compare given model score to simple model score (according to given model type).
 
     Parameters

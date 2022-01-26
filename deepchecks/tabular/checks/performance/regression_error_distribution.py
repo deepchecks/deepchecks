@@ -14,14 +14,14 @@ import pandas as pd
 from scipy.stats import kurtosis
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
-from deepchecks.tabular.base import TabularContext, TabularCheck
+from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck
 from deepchecks.utils.strings import format_number
 
 
 __all__ = ['RegressionErrorDistribution']
 
 
-class RegressionErrorDistribution(TabularCheck):
+class RegressionErrorDistribution(SingleDatasetBaseCheck):
     """Check regression error distribution.
 
     The check shows the distribution of the regression error, and enables to set conditions on the distribution

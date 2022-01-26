@@ -15,9 +15,8 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from deepchecks.core import CheckResult, CheckResult, ConditionResult
-from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.base import TabularContext, TabularCheck
+from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.tabular import TabularContext, TrainTestBaseCheck, Dataset
 from deepchecks.utils.distribution.plot import feature_distribution_traces, drift_score_bar_traces
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none
 from deepchecks.utils.strings import format_percent, format_number
@@ -40,7 +39,7 @@ import plotly.graph_objects as go
 __all__ = ['WholeDatasetDrift']
 
 
-class WholeDatasetDrift(TabularCheck):
+class WholeDatasetDrift(TrainTestBaseCheck):
     """
     Calculate drift between the entire train and test datasets using a model trained to distinguish between them.
 

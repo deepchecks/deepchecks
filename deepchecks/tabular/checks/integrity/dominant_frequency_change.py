@@ -17,7 +17,7 @@ import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular.base import TabularContext, TabularCheck
+from deepchecks.tabular import TabularContext, TrainTestBaseCheck
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import format_percent, format_number
 
@@ -25,7 +25,7 @@ from deepchecks.utils.strings import format_percent, format_number
 __all__ = ['DominantFrequencyChange']
 
 
-class DominantFrequencyChange(TabularCheck):
+class DominantFrequencyChange(TrainTestBaseCheck):
     """Check if dominant values have increased significantly between test and reference data.
 
     Parameters

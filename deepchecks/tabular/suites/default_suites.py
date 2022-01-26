@@ -23,7 +23,7 @@ from deepchecks.tabular.checks import (
     ModelInfo, ColumnsInfo, DataDuplicates, IsSingleValue, LabelAmbiguity,
     DatasetsSizeComparison, UnusedFeatures, ModelInferenceTime, ModelErrorAnalysis, TrainTestLabelDrift
 )
-from deepchecks.tabular.base import TabularSuite
+from deepchecks.tabular import TabularSuite
 
 
 __all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validation',

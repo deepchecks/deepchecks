@@ -14,8 +14,7 @@ from typing import Callable, Union, Optional, List, cast, Tuple
 import numpy as np
 import plotly.figure_factory as ff
 
-from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.base import TabularContext, TabularCheck
+from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck, Dataset
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
 from deepchecks.utils.performance.partition import partition_column
@@ -26,7 +25,7 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['SegmentPerformance']
 
 
-class SegmentPerformance(TabularCheck):
+class SegmentPerformance(SingleDatasetBaseCheck):
     """Display performance score segmented by 2 top (or given) features in a heatmap.
 
     Parameters

@@ -13,7 +13,7 @@ import typing as t
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.tabular.base import TabularContext, TabularCheck
+from deepchecks.tabular import TabularContext, TrainTestBaseCheck
 
 
 __all__ = ['DatasetsSizeComparison']
@@ -22,7 +22,7 @@ __all__ = ['DatasetsSizeComparison']
 T = t.TypeVar('T', bound='DatasetsSizeComparison')
 
 
-class DatasetsSizeComparison(TabularCheck):
+class DatasetsSizeComparison(TrainTestBaseCheck):
     """Verify test dataset size comparing it to the train dataset size."""
 
     def run_logic(self, context: TabularContext) -> CheckResult:

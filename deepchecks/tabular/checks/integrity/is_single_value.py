@@ -11,7 +11,7 @@
 """Module contains is_single_value check."""
 from typing import Union, List
 
-from deepchecks.tabular.base import TabularContext, TabularCheck
+from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.typing import Hashable
@@ -20,7 +20,7 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['IsSingleValue']
 
 
-class IsSingleValue(TabularCheck):
+class IsSingleValue(SingleDatasetBaseCheck):
     """Check if there are columns which have only a single unique value in all rows.
 
     Parameters

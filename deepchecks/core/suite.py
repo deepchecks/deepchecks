@@ -10,8 +10,9 @@
 #
 """Module containing the Suite object, used for running a set of checks together."""
 import io
+import abc
 from collections import OrderedDict
-from typing import Union, List
+from typing import Union, List, Tuple
 
 from IPython.core.display import display_html
 from IPython.core.getipython import get_ipython
@@ -163,3 +164,9 @@ class BaseSuite:
         if index not in self.checks:
             raise DeepchecksValueError(f'No index {index} in suite')
         return self.checks[index]
+
+    @classmethod
+    @abc.abstractmethod
+    def supported_checks(cls) -> Tuple:
+        """Return list of of supported check types."""
+        pass

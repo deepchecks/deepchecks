@@ -15,7 +15,7 @@ import numpy as np
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.core.errors import DatasetValidationError
-from deepchecks.tabular.base import TabularContext, TabularCheck
+from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_percent, format_list
 from deepchecks.utils.typing import Hashable
@@ -24,7 +24,7 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['DataDuplicates']
 
 
-class DataDuplicates(TabularCheck):
+class DataDuplicates(SingleDatasetBaseCheck):
     """Checks for duplicate samples in the dataset.
 
     Parameters

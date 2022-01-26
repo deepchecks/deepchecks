@@ -15,7 +15,7 @@ import pandas as pd
 import numpy as np
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
-from deepchecks.tabular.base import TabularContext, TabularCheck
+from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import is_string_column, format_percent
@@ -25,7 +25,7 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['MixedDataTypes']
 
 
-class MixedDataTypes(TabularCheck):
+class MixedDataTypes(SingleDatasetBaseCheck):
     """Detect a small amount of a rare data type within a column, such as few string samples in a mostly numeric column.
 
     Parameters

@@ -13,14 +13,14 @@ import plotly.graph_objects as go
 from sklearn.metrics import mean_squared_error
 
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.tabular.base import TabularContext, TabularCheck
+from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck
 from deepchecks.utils.strings import format_number
 
 
 __all__ = ['RegressionSystematicError']
 
 
-class RegressionSystematicError(TabularCheck):
+class RegressionSystematicError(SingleDatasetBaseCheck):
     """Check the regression systematic error."""
 
     def run_logic(self, context: TabularContext, dataset_type: str = 'train') -> CheckResult:

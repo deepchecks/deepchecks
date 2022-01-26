@@ -11,7 +11,7 @@
 """The index_leakage check module."""
 import pandas as pd
 
-from deepchecks.tabular.base import TabularContext, TabularCheck
+from deepchecks.tabular import TabularContext, TrainTestBaseCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.utils.strings import format_percent
 
@@ -19,7 +19,7 @@ from deepchecks.utils.strings import format_percent
 __all__ = ['IndexTrainTestLeakage']
 
 
-class IndexTrainTestLeakage(TabularCheck):
+class IndexTrainTestLeakage(TrainTestBaseCheck):
     """Check if test indexes are present in train data.
 
     Parameters

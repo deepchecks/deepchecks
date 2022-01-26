@@ -18,7 +18,7 @@ from pandas import DataFrame, Series
 from scipy import stats
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
-from deepchecks.tabular.base import TabularContext, TabularCheck
+from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df, is_categorical
 from deepchecks.utils.strings import is_string_column, format_number, format_percent
 from deepchecks.utils.dataframes import select_from_dataframe
@@ -28,7 +28,7 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['StringLengthOutOfBounds']
 
 
-class StringLengthOutOfBounds(TabularCheck):
+class StringLengthOutOfBounds(SingleDatasetBaseCheck):
     """Detect strings with length that is much longer/shorter than the identified "normal" string lengths.
 
     Parameters
@@ -71,7 +71,7 @@ class StringLengthOutOfBounds(TabularCheck):
         inner_quantile_range: int = 94,
         outlier_factor: int = 4,
         min_length_difference: int = 5,
-        min_length_ratio_difference: int = 0.5,
+        min_length_ratio_difference: float = 0.5,
         min_unique_value_ratio: float = 0.01,
         min_unique_values: int = 100,
         n_top_columns: int = 10,

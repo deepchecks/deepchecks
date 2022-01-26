@@ -14,7 +14,7 @@ from typing import Union, List
 import pandas as pd
 
 from deepchecks.core import ConditionResult, CheckResult
-from deepchecks.tabular.base import TabularContext, TabularCheck
+from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
@@ -22,7 +22,7 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['LabelAmbiguity']
 
 
-class LabelAmbiguity(TabularCheck):
+class LabelAmbiguity(SingleDatasetBaseCheck):
     """Find samples with multiple labels.
 
     Parameters

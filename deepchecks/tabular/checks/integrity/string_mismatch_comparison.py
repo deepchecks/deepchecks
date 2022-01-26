@@ -15,7 +15,7 @@ from typing import Union, List
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.tabular.base import TabularContext, TabularCheck
+from deepchecks.tabular import TabularContext, TrainTestBaseCheck
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.typing import Hashable
@@ -29,7 +29,7 @@ from deepchecks.utils.strings import (
 __all__ = ['StringMismatchComparison']
 
 
-class StringMismatchComparison(TabularCheck):
+class StringMismatchComparison(TrainTestBaseCheck):
     """Detect different variants of string categories between the same categorical column in two datasets.
 
     This check compares the same categorical column within a dataset and baseline and checks whether there are

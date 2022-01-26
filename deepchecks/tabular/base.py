@@ -1,10 +1,21 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+# pylint: disable=broad-except
+# TODO: separate into modules
 import abc
 from collections import OrderedDict
-from typing import Callable, Union, Mapping, List, Optional, Any
+from typing import Callable, Union, Tuple, Mapping, List, Optional, Any
 
 import pandas as pd
 
-from deepchecks.tabular.dataset import Dataset
+from deepchecks.tabular import Dataset
 from deepchecks.utils.validation import validate_model, model_type_validation
 from deepchecks.utils.metrics import ModelType, task_type_check, get_default_scorers, init_validate_scorers
 from deepchecks.utils.typing import Hashable, BasicModel
@@ -19,11 +30,14 @@ from deepchecks.core.errors import (
 
 
 __all__ = [
-    "TabularContext",
-    "TabularSuite",
-    "TabularCheck",
-    "ModelComparisonSuite",
-    "ModelComparisonCheck"
+    'TabularContext',
+    'TabularSuite',
+    'TabularCheck',
+    'SingleDatasetBaseCheck',
+    'TrainTestBaseCheck',
+    'ModelOnlyBaseCheck',
+    'ModelComparisonSuite',
+    'ModelComparisonCheck'
 ]
 
 
@@ -305,21 +319,57 @@ class TabularContext:
 class TabularCheck(BaseCheck):
 
     def __init__(self):
+        # pylint: disable=super-init-not-called
         self._conditions = OrderedDict()
         self._conditions_index = 0
         # Replace the run_logic function with wrapped run function
         setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
 
-    def run(self, **params) -> CheckResult:
-        context = TabularContext(**params)
-        return self.run_logic(context)
-
     def run_logic(self, context: TabularContext, **kwargs) -> CheckResult:
         raise NotImplementedError()
 
 
+class SingleDatasetBaseCheck(TabularCheck):
+    """Parent class for checks that only use one dataset."""
+
+    def run(self, dataset, model=None) -> CheckResult:
+        """Run check."""
+        # By default, we initialize a single dataset as the "train"
+        c = TabularContext(dataset, model=model)
+        return self.run_logic(c)
+
+    @abc.abstractmethod
+    def run_logic(self, context: TabularContext, dataset_type: str = 'train') -> CheckResult:
+        """Run check."""
+        pass
+
+
+class TrainTestBaseCheck(TabularCheck):
+    """Parent class for checks that compare two datasets.
+    The class checks train dataset and test dataset for model training and test.
+    """
+
+    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
+        """Run check."""
+        c = TabularContext(train_dataset, test_dataset, model=model)
+        return self.run_logic(c)
+
+
+class ModelOnlyBaseCheck(TabularCheck):
+    """Parent class for checks that only use a model and no datasets."""
+
+    def run(self, model) -> CheckResult:
+        """Run check."""
+        return self.run_logic(TabularContext(model=model))
+
+
 class TabularSuite(BaseSuite):
     """Suite for tabular checks."""
+
+    @classmethod
+    def supported_checks(cls) -> Tuple:
+        """Return tuple of supported check types of this suite."""
+        return TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck
 
     def run(
         self,
@@ -374,14 +424,56 @@ class TabularSuite(BaseSuite):
         for check in self.checks.values():
             try:
                 progress_bar.set_text(check.name())
-                check_result = check.run_logic(context)
-                results.append(check_result)
+                if isinstance(check, TrainTestBaseCheck):
+                    if train_dataset is not None and test_dataset is not None:
+                        check_result = check.run_logic(context)
+                        results.append(check_result)
+                    else:
+                        msg = 'Check is irrelevant if not supplied with both train and test datasets'
+                        results.append(TabularSuite._get_unsupported_failure(check, msg))
+                elif isinstance(check, SingleDatasetBaseCheck):
+                    if train_dataset is not None:
+                        # In case of train & test, doesn't want to skip test if train fails. so have to explicitly
+                        # wrap it in try/except
+                        try:
+                            check_result = check.run_logic(context)
+                            # In case of single dataset not need to edit the header
+                            if test_dataset is not None:
+                                check_result.header = f'{check_result.get_header()} - Train Dataset'
+                        except Exception as exp:
+                            check_result = CheckFailure(check, exp, ' - Train Dataset')
+                        results.append(check_result)
+                    if test_dataset is not None:
+                        try:
+                            check_result = check.run_logic(context, dataset_type='test')
+                            # In case of single dataset not need to edit the header
+                            if train_dataset is not None:
+                                check_result.header = f'{check_result.get_header()} - Test Dataset'
+                        except Exception as exp:
+                            check_result = CheckFailure(check, exp, ' - Test Dataset')
+                        results.append(check_result)
+                    if train_dataset is None and test_dataset is None:
+                        msg = 'Check is irrelevant if dataset is not supplied'
+                        results.append(TabularSuite._get_unsupported_failure(check, msg))
+                elif isinstance(check, ModelOnlyBaseCheck):
+                    if model is not None:
+                        check_result = check.run_logic(context)
+                        results.append(check_result)
+                    else:
+                        msg = 'Check is irrelevant if model is not supplied'
+                        results.append(TabularSuite._get_unsupported_failure(check, msg))
+                else:
+                    raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
             except Exception as exp:
                 results.append(CheckFailure(check, exp))
             progress_bar.inc_progress()
 
         progress_bar.close()
         return SuiteResult(self.name, results)
+
+    @classmethod
+    def _get_unsupported_failure(cls, check, msg):
+        return CheckFailure(check, DeepchecksNotSupportedError(msg))
 
 
 class ModelComparisonSuite(BaseSuite):

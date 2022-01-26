@@ -13,7 +13,7 @@ import typing as t
 
 import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.tabular.base import TabularContext, TabularCheck
+from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck
 from deepchecks.utils.plot import create_colorbar_barchart_for_check
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.strings import format_number
@@ -30,7 +30,7 @@ pps_url = 'https://docs.deepchecks.com/en/stable/examples/checks/methodology/sin
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
 
-class SingleFeatureContribution(TabularCheck):
+class SingleFeatureContribution(SingleDatasetBaseCheck):
     """Return the PPS (Predictive Power Score) of all features in relation to the label.
 
     The PPS represents the ability of a feature to single-handedly predict another feature or label.

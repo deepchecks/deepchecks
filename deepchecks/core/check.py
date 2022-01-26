@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing all the base classes for checks."""
+# pylint: disable=broad-except
 import abc
 import base64
 import inspect
@@ -358,7 +359,7 @@ class BaseCheck(abc.ABC):
         setattr(self, 'run', wrap_run(getattr(self, 'run'), self))
 
     @abc.abstractmethod
-    def run(self, *args, **params) -> CheckResult:
+    def run(self, *args, **kwargs) -> CheckResult:
         raise NotImplementedError()
 
     def conditions_decision(self, result: CheckResult) -> List[ConditionResult]:

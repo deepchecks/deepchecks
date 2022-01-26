@@ -22,14 +22,13 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import RobustScaler, OrdinalEncoder
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
-from deepchecks.tabular.base import TabularContext, TabularCheck
-from deepchecks.tabular.dataset import Dataset
+from deepchecks.tabular import TabularContext, TrainTestBaseCheck, Dataset
 
 
 __all__ = ['UnusedFeatures']
 
 
-class UnusedFeatures(TabularCheck):
+class UnusedFeatures(TrainTestBaseCheck):
     """Detect features that are nearly unused by the model.
 
     The check uses feature importance (either internally computed in appropriate models or calculated by permutation
