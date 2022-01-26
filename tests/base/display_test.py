@@ -19,7 +19,7 @@ from deepchecks import CheckResult
 from hamcrest import assert_that, equal_to, instance_of, has_length, is_, calling, raises, not_none
 from ipywidgets import VBox
 
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.checks import ColumnsInfo, DataDuplicates, MixedNulls
 
 pio.renderers.default = "json"

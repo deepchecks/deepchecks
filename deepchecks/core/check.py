@@ -29,7 +29,6 @@ import plotly.graph_objects as go
 import plotly
 from plotly.basedatatypes import BaseFigure
 from matplotlib import pyplot as plt
-from IPython.core.display import display_html
 from IPython.display import display_html
 from pandas.io.formats.style import Styler
 
