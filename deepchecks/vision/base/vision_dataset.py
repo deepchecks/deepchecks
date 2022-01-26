@@ -36,6 +36,22 @@ class VisionDataset:
         self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
         self._samples_per_class = None
 
+    @property
+    def num_classes(self):
+        return self.get_num_classes()
+
+    @property
+    def samples_per_class(self):
+        return self.get_samples_per_class()
+
+    @property
+    def label_shape(self):
+        return self.get_label_shape()
+
+    @property
+    def data_loader(self):
+        return self.get_data_loader()
+
     def get_num_classes(self):
         if self._num_classes is None:
             samples_per_class = self.get_samples_per_class()
