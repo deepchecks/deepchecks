@@ -87,7 +87,7 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
 
             group_df = group_data[1]
             sample_values = dict(group_df[dataset.features].iloc[0])
-            labels = tuple(group_df[label_col].unique())
+            labels = tuple(sorted(group_df[label_col].unique()))
             n_data_sample = group_df.shape[0]
             num_ambiguous += n_data_sample
 
