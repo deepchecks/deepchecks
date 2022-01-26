@@ -318,6 +318,7 @@ class TabularContext:
 
 
 class TabularCheck(BaseCheck):
+    """Base class for all tabular checks."""
 
     def __init__(self):
         # pylint: disable=super-init-not-called
