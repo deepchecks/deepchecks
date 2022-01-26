@@ -823,7 +823,8 @@ class Dataset:
     def select(
             self: TDataset,
             columns: t.Union[Hashable, t.List[Hashable], None] = None,
-            ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None
+            ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None,
+            keep_label: bool = False
     ) -> TDataset:
         """Filter dataset columns by given params.
 
@@ -844,6 +845,9 @@ class Dataset:
         DeepchecksValueError
             In case one of columns given don't exists raise error
         """
+        if keep_label and columns and self.label_name not in columns:
+            columns.append(self.label_name)
+
         new_data = select_from_dataframe(self._data, columns, ignore_columns)
         if new_data.equals(self.data):
             return self
