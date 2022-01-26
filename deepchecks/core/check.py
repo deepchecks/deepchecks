@@ -15,6 +15,7 @@ import base64
 import inspect
 import io
 import traceback
+import warnings
 from collections import OrderedDict
 from functools import wraps
 from typing import Any, Callable, List, Union, Dict
@@ -29,13 +30,14 @@ import plotly
 from plotly.basedatatypes import BaseFigure
 from matplotlib import pyplot as plt
 from IPython.core.display import display_html
+from IPython.display import display_html
 from pandas.io.formats.style import Styler
 
 from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.core.display_pandas import dataframe_to_html, get_conditions_table
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import get_docs_summary, split_camel_case
-from deepchecks.utils.ipython import is_ipython_display
+from deepchecks.utils.ipython import is_notebook
 
 
 __all__ = [
@@ -102,7 +104,7 @@ class CheckResult:
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
     def display_check(self, unique_id: str = None, as_widget: bool = False,
-                      show_additional_outputs=True):  # pragma: no cover
+                      show_additional_outputs=True):
         """Display the check result or return the display as widget.
 
         Parameters
@@ -324,11 +326,12 @@ class CheckResult:
 
     def show(self, unique_id=None, show_additional_outputs=True):
         """Display check result."""
-        if is_ipython_display():
+        if is_notebook():
             self._ipython_display_(unique_id=unique_id,
                                    show_additional_outputs=show_additional_outputs)
         else:
-            print(self)
+            warnings.warn('You are running in a non-interactive python shell. in order to show result you have to use '
+                          'an IPython shell (etc Jupyter)')
 
 
 def wrap_run(func, class_instance):

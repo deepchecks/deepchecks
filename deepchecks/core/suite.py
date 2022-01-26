@@ -11,6 +11,7 @@
 """Module containing the Suite object, used for running a set of checks together."""
 import io
 import abc
+import warnings
 from collections import OrderedDict
 from typing import Union, List, Tuple
 
@@ -21,7 +22,7 @@ import jsonpickle
 from deepchecks.core.display_suite import display_suite_result
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.check import CheckResult, CheckFailure, BaseCheck
-from deepchecks.utils.ipython import is_ipython_display
+from deepchecks.utils.ipython import is_notebook
 
 
 __all__ = ['BaseSuite', 'SuiteResult']
@@ -59,10 +60,11 @@ class SuiteResult:
 
     def show(self):
         """Display suite result."""
-        if is_ipython_display():
+        if is_notebook():
             self._ipython_display_()
         else:
-            print(self)
+            warnings.warn('You are running in a non-interactive python shell. in order to show result you have to use '
+                          'an IPython shell (etc Jupyter)')
 
     def save_as_html(self, file=None):
         """Save output as html file.
@@ -107,6 +109,12 @@ class BaseSuite:
         Name of the suite
     """
 
+    @classmethod
+    @abc.abstractmethod
+    def supported_checks(cls) -> Tuple:
+        """Return list of of supported check types."""
+        pass
+
     checks: OrderedDict
     name: str
     _check_index: int
@@ -117,6 +125,18 @@ class BaseSuite:
         self._check_index = 0
         for check in checks:
             self.add(check)
+
+    def __repr__(self, tabs=0):
+        """Representation of suite as string."""
+        tabs_str = '\t' * tabs
+        checks_str = ''.join([f'\n{c.__repr__(tabs + 1, str(n) + ": ")}' for n, c in self.checks.items()])
+        return f'{tabs_str}{self.name}: [{checks_str}\n{tabs_str}]'
+
+    def __getitem__(self, index):
+        """Access check inside the suite by name."""
+        if index not in self.checks:
+            raise DeepchecksValueError(f'No index {index} in suite')
+        return self.checks[index]
 
     def add(self, check: Union['BaseCheck', 'BaseSuite']):
         """Add a check or a suite to current suite.
@@ -131,9 +151,9 @@ class BaseSuite:
                 return self
             for c in check.checks.values():
                 self.add(c)
-        elif not isinstance(check, BaseCheck):
+        elif not isinstance(check, self.supported_checks()):
             raise DeepchecksValueError(
-                f'Suite received unsupported object type: {type(check).__name__}'
+                f'Suite received unsupported object type: {check.__class__.__name__}'
             )
         else:
             self.checks[self._check_index] = check
@@ -152,21 +172,3 @@ class BaseSuite:
             raise DeepchecksValueError(f'No index {index} in suite')
         self.checks.pop(index)
         return self
-
-    def __repr__(self, tabs=0):
-        """Representation of suite as string."""
-        tabs_str = '\t' * tabs
-        checks_str = ''.join([f'\n{c.__repr__(tabs + 1, str(n) + ": ")}' for n, c in self.checks.items()])
-        return f'{tabs_str}{self.name}: [{checks_str}\n{tabs_str}]'
-
-    def __getitem__(self, index):
-        """Access check inside the suite by name."""
-        if index not in self.checks:
-            raise DeepchecksValueError(f'No index {index} in suite')
-        return self.checks[index]
-
-    @classmethod
-    @abc.abstractmethod
-    def supported_checks(cls) -> Tuple:
-        """Return list of of supported check types."""
-        pass

@@ -19,7 +19,7 @@ from typing import List, Union
 import tqdm
 from tqdm.notebook import tqdm as tqdm_notebook
 import pandas as pd
-from IPython.core.display import display, display_html
+from IPython.display import display, display_html
 from IPython import get_ipython
 import ipywidgets as widgets
 from ipywidgets.embed import embed_minimal_html

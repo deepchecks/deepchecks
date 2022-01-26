@@ -362,9 +362,8 @@ class ModelOnlyBaseCheck(TabularCheck):
         """Run check."""
         return self.run_logic(TabularContext(model=model))
 
-
 class Suite(BaseSuite):
-    """Suite for tabular checks."""
+    """Tabular suite to run checks of types: TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck."""
 
     @classmethod
     def supported_checks(cls) -> Tuple:
@@ -372,15 +371,15 @@ class Suite(BaseSuite):
         return TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck
 
     def run(
-        self,
-        train_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
-        test_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
-        model: BasicModel = None,
-        features_importance: pd.Series = None,
-        feature_importance_force_permutation: bool = False,
-        feature_importance_timeout: int = None,
-        scorers: Mapping[str, Union[str, Callable]] = None,
-        scorers_per_class: Mapping[str, Union[str, Callable]] = None
+            self,
+            train_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
+            test_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
+            model: BasicModel = None,
+            features_importance: pd.Series = None,
+            feature_importance_force_permutation: bool = False,
+            feature_importance_timeout: int = None,
+            scorers: Mapping[str, Union[str, Callable]] = None,
+            scorers_per_class: Mapping[str, Union[str, Callable]] = None
     ) -> SuiteResult:
         """Run all checks.
 
@@ -479,21 +478,25 @@ class Suite(BaseSuite):
 class ModelComparisonSuite(BaseSuite):
     """Suite to run checks of types: CompareModelsBaseCheck."""
 
-    def run(
-        self,
-        train_datasets: Union[Dataset, List[Dataset]],
-        test_datasets: Union[Dataset, List[Dataset]],
-        models: Union[List[Any], Mapping[str, Any]]
-    ) -> SuiteResult:
+    @classmethod
+    def supported_checks(cls) -> Tuple:
+        """Return tuple of supported check types of this suite."""
+        return tuple([ModelComparisonCheck])
+
+    def run(self,
+            train_datasets: Union[Dataset, List[Dataset]],
+            test_datasets: Union[Dataset, List[Dataset]],
+            models: Union[List[Any], Mapping[str, Any]]
+            ) -> SuiteResult:
         """Run all checks.
 
         Parameters
         ----------
-        train_datasets : Union[Dataset, List[Dataset]]
+        train_datasets : Union[Dataset, Container[Dataset]]
             representing data an estimator was fitted on
-        test_datasets: Union[Dataset, List[Dataset]]
+        test_datasets: Union[Dataset, Container[Dataset]]
             representing data an estimator was fitted on
-        models : Union[List[Any], Mapping[str, Any]]
+        models : Union[Container[Any], Mapping[str, Any]]
             2 or more scikit-learn-compatible fitted estimator instance
         Returns
         -------

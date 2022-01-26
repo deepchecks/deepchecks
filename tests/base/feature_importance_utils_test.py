@@ -9,6 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Test feature importance utils"""
+import warnings
+
 import pandas as pd
 import pytest
 from sklearn.ensemble import AdaBoostClassifier
@@ -16,7 +18,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.neural_network import MLPClassifier
 from hamcrest import (
     equal_to, assert_that, calling, raises, is_,
-    close_to, not_none, none, has_length, any_of, contains_exactly
+    close_to, not_none, none, has_length, any_of, contains_exactly, has_item
 )
 
 from deepchecks.core.errors import ModelValidationError, DeepchecksValueError
@@ -67,13 +69,68 @@ def test_logistic_regression():
     assert_that(fi_type, is_('coef_'))
 
 
-def test_calculate_importance(iris_labeled_dataset):
+def test_calculate_importance_when_no_builtin(iris_labeled_dataset):
+    # Arrange
     clf = MLPClassifier(hidden_layer_sizes=(10,), random_state=42)
     clf.fit(iris_labeled_dataset.data[iris_labeled_dataset.features],
             iris_labeled_dataset.data[iris_labeled_dataset.label_name])
-    feature_importances, fi_type = calculate_feature_importance(clf, iris_labeled_dataset)
+
+    # Act
+    with warnings.catch_warnings(record=True) as w:
+        feature_importances, fi_type = calculate_feature_importance(clf, iris_labeled_dataset,
+                                                                    permutation_kwargs={'timeout': 120})
+        assert_that(w, has_length(1))
+        assert_that(str(w[0].message), equal_to('Could not find built-in feature importance on the model, using '
+                                                'permutation feature importance calculation'))
+
+    # Assert
     assert_that(feature_importances.sum(), close_to(1, 0.000001))
     assert_that(fi_type, is_('permutation_importance'))
+
+
+def test_calculate_importance_force_permutation_fail_on_timeout(iris_split_dataset_and_model):
+    # Arrange
+    train_ds, _, adaboost = iris_split_dataset_and_model
+    # Act
+    with warnings.catch_warnings(record=True) as w:
+        feature_importances, fi_type = calculate_feature_importance(adaboost, train_ds, force_permutation=True,
+                                                                    permutation_kwargs={'timeout': 0})
+        assert_that(w, has_length(1))
+        assert_that(str(w[0].message), equal_to('Permutation importance calculation was not projected to finish in 0 '
+                                                'seconds.\n using model\'s built-in feature importance instead'))
+
+    # Assert
+    assert_that(feature_importances.sum(), equal_to(1))
+    assert_that(fi_type, is_('feature_importances_'))
+
+
+def test_calculate_importance_force_permutation_fail_on_dataframe(iris_split_dataset_and_model):
+    # Arrange
+    train_ds, _, adaboost = iris_split_dataset_and_model
+    df_only_features = train_ds.data.drop(train_ds.label_name, axis=1)
+    # Act
+    with warnings.catch_warnings(record=True) as w:
+        feature_importances, fi_type = calculate_feature_importance(adaboost, df_only_features, force_permutation=True,
+                                                                    permutation_kwargs={'timeout': 120})
+        assert_that(w, has_length(1))
+        assert_that(str(w[0].message), equal_to('Cannot calculate permutation feature importance on dataframe, '
+                                                'using built-in model\'s feature importance instead'))
+
+    # Assert
+    assert_that(feature_importances.sum(), equal_to(1))
+    assert_that(fi_type, is_('feature_importances_'))
+
+
+def test_calculate_importance_when_no_builtin_and_force_timeout(iris_labeled_dataset):
+    # Arrange
+    clf = MLPClassifier(hidden_layer_sizes=(10,), random_state=42)
+    clf.fit(iris_labeled_dataset.data[iris_labeled_dataset.features],
+            iris_labeled_dataset.data[iris_labeled_dataset.label_name])
+
+    # Act & Assert
+    assert_that(calling(calculate_feature_importance)
+                .with_args(clf, iris_labeled_dataset, force_permutation=True, permutation_kwargs={'timeout': 0}),
+                raises(DeepchecksValueError, 'Was not able to calculate features importance'))
 
 
 def test_bad_dataset_model(iris_random_forest, diabetes):
