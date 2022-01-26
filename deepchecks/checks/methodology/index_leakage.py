@@ -41,6 +41,7 @@ class IndexTrainTestLeakage(TrainTestBaseCheck):
         CheckResult
             value is the ratio of index leakage.
             data is html display of the checks' textual result.
+
         Raises
         ------
         DeepchecksValueError

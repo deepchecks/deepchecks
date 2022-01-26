@@ -12,6 +12,7 @@
 """Utils module containing feature importance calculations."""
 import time
 import typing as t
+import warnings
 from warnings import warn
 from functools import lru_cache
 
@@ -39,7 +40,6 @@ __all__ = [
 ]
 
 
-_PERMUTATION_IMPORTANCE_TIMEOUT: int = 120  # seconds
 N_TOP_MESSAGE = '* showing only the top %s columns, you can change it using n_top_columns param'
 
 
@@ -143,22 +143,42 @@ def calculate_feature_importance(
     permutation_kwargs = permutation_kwargs or {}
     permutation_kwargs['random_state'] = permutation_kwargs.get('random_state') or 42
     validation.validate_model(dataset, model)
+    permutation_failure = None
+    calc_type = None
+    importance = None
 
-    if isinstance(dataset, base.Dataset) and force_permutation is True:
-        return _calc_permutation_importance(model, dataset, **permutation_kwargs).fillna(0), 'permutation_importance'
+    if force_permutation:
+        if isinstance(dataset, pd.DataFrame):
+            permutation_failure = 'Cannot calculate permutation feature importance on dataframe, using' \
+                                  ' built-in model\'s feature importance instead'
+        else:
+            try:
+                importance = _calc_permutation_importance(model, dataset, **permutation_kwargs)
+                calc_type = 'permutation_importance'
+            except errors.DeepchecksTimeoutError as e:
+                permutation_failure = f'{e.message}\n using model\'s built-in feature importance instead'
 
-    # Get the actual model in case of pipeline
-    internal_estimator = get_model_of_pipeline(model)
-    features_importance, calculation_type = _built_in_importance(internal_estimator, dataset)
+    # If there was no force permutation, or it failed tries to take importance from the model
+    if importance is None:
+        # Get the actual model in case of pipeline
+        internal_estimator = get_model_of_pipeline(model)
+        importance, calc_type = _built_in_importance(internal_estimator, dataset)
+        # If found importance and was force permutation failure before, show warning
+        if importance is not None and permutation_failure:
+            warnings.warn(permutation_failure)
 
-    if features_importance is not None:
-        return features_importance.fillna(0), calculation_type
-    elif isinstance(dataset, base.Dataset):
-        return _calc_permutation_importance(model, dataset, **permutation_kwargs).fillna(0), 'permutation_importance'
-    else:
-        raise errors.DeepchecksValueError(
-            "Was not able to calculate features importance"  # FIXME: better message
-        )
+    # If there was no permutation failure and no importance on the model, using permutation anyway
+    if importance is None and permutation_failure is None and isinstance(dataset, base.Dataset):
+        importance = _calc_permutation_importance(model, dataset, **permutation_kwargs)
+        calc_type = 'permutation_importance'
+        warnings.warn('Could not find built-in feature importance on the model, using '
+                      'permutation feature importance calculation')
+
+    # If after all importance is still none raise error
+    if importance is None:
+        # FIXME: better message
+        raise errors.DeepchecksValueError("Was not able to calculate features importance")
+    return importance.fillna(0), calc_type
 
 
 def _built_in_importance(
@@ -193,7 +213,7 @@ def _calc_permutation_importance(
     random_state: int = 42,
     n_samples: int = 10_000,
     alternative_scorer: t.Optional[DeepcheckScorer] = None,
-    timeout: int = _PERMUTATION_IMPORTANCE_TIMEOUT
+    timeout: int = None
 ) -> pd.Series:
     """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal.
 
@@ -235,13 +255,16 @@ def _calc_permutation_importance(
         single_scorer_dict = {scorer_name: default_scorers[scorer_name]}
         scorer = init_validate_scorers(single_scorer_dict, model, dataset, model_type=task_type)[0]
 
-    start_time = time.time()
-    scorer(model, dataset_sample)
-    calc_time = time.time() - start_time
+    if timeout is not None:
+        start_time = time.time()
+        scorer(model, dataset_sample)
+        calc_time = time.time() - start_time
 
-    if calc_time * n_repeats * len(dataset.features) > timeout:
-        raise errors.DeepchecksTimeoutError('Permutation importance calculation was not projected to finish in'
-                                            f' {timeout} seconds.')
+        if calc_time * n_repeats * len(dataset.features) > timeout:
+            raise errors.DeepchecksTimeoutError('Permutation importance calculation was not projected to finish in'
+                                                f' {timeout} seconds.')
+    else:
+        warnings.warn('Calculating permutation feature importance without time limit')
 
     r = permutation_importance(
         model,

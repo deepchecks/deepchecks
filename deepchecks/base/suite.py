@@ -12,6 +12,7 @@
 # pylint: disable=broad-except
 import abc
 import io
+import warnings
 from collections import OrderedDict
 from typing import Union, List, Optional, Tuple, Any, Container, Mapping, Callable
 
@@ -25,8 +26,9 @@ from deepchecks.base.display_suite import display_suite_result, ProgressBar
 from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.base.dataset import Dataset
 from deepchecks.base.check import CheckResult, TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck, \
-                                  CheckFailure, ModelComparisonBaseCheck, ModelComparisonContext
-from deepchecks.utils.ipython import is_ipython_display
+                                  CheckFailure, ModelComparisonBaseCheck, ModelComparisonContext, BaseCheck
+from deepchecks.utils.ipython import is_notebook
+from deepchecks.utils.typing import BasicModel
 
 
 __all__ = ['BaseSuite', 'Suite', 'ModelComparisonSuite', 'SuiteResult']
@@ -64,10 +66,11 @@ class SuiteResult:
 
     def show(self):
         """Display suite result."""
-        if is_ipython_display():
+        if is_notebook():
             self._ipython_display_()
         else:
-            print(self)
+            warnings.warn('You are running in a non-interactive python shell. in order to show result you have to use '
+                          'an IPython shell (etc Jupyter)')
 
     def save_as_html(self, file=None):
         """Save output as html file.
@@ -122,7 +125,7 @@ class BaseSuite:
     name: str
     _check_index: int
 
-    def __init__(self, name: str, *checks):
+    def __init__(self, name: str, *checks: Union[BaseCheck, 'BaseSuite']):
         self.name = name
         self.checks = OrderedDict()
         self._check_index = 0
@@ -141,7 +144,7 @@ class BaseSuite:
             raise DeepchecksValueError(f'No index {index} in suite')
         return self.checks[index]
 
-    def add(self, check):
+    def add(self, check: Union['BaseCheck', 'BaseSuite']):
         """Add a check or a suite to current suite.
 
         Parameters
@@ -189,22 +192,22 @@ class Suite(BaseSuite):
             self,
             train_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
             test_dataset: Optional[Union[Dataset, pd.DataFrame]] = None,
-            model: object = None,
+            model: BasicModel = None,
             features_importance: pd.Series = None,
             feature_importance_force_permutation: bool = False,
             feature_importance_timeout: int = None,
             scorers: Mapping[str, Union[str, Callable]] = None,
-            non_avg_scorers: Mapping[str, Union[str, Callable]] = None
+            scorers_per_class: Mapping[str, Union[str, Callable]] = None
     ) -> SuiteResult:
         """Run all checks.
 
         Parameters
         ----------
-        train_dataset: Optional[Dataset] , default None
+        train_dataset: Optional[Union[Dataset, pd.DataFrame]] , default None
             object, representing data an estimator was fitted on
-        test_dataset : Optional[Dataset] , default None
+        test_dataset : Optional[Union[Dataset, pd.DataFrame]] , default None
             object, representing data an estimator predicts on
-        model : object , default None
+        model : BasicModel , default None
             A scikit-learn-compatible fitted estimator instance
         features_importance : pd.Series , default None
             pass manual features importance
@@ -214,9 +217,11 @@ class Suite(BaseSuite):
             timeout in second for the permutation features importance calculation
         scorers : Mapping[str, Union[str, Callable]] , default None
             dict of scorers names to scorer sklearn_name/function
-        non_avg_scorers : Mapping[str, Union[str, Callable]], default None
-            dict of scorers for multiclass without averaging of the classes
-
+        scorers_per_class : Mapping[str, Union[str, Callable]], default None
+            dict of scorers for classification without averaging of the classes
+            See <a href=
+            "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
+            scikit-learn docs</a>
         Returns
         -------
         SuiteResult
@@ -227,7 +232,7 @@ class Suite(BaseSuite):
                                   feature_importance_force_permutation=feature_importance_force_permutation,
                                   feature_importance_timeout=feature_importance_timeout,
                                   scorers=scorers,
-                                  non_avg_scorers=non_avg_scorers)
+                                  scorers_per_class=scorers_per_class)
         # Create progress bar
         progress_bar = ProgressBar(self.name, len(self.checks))
 

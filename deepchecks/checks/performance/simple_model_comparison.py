@@ -99,6 +99,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
             value is a Dict of: given_model_score, simple_model_score, ratio <br>
             ratio is given model / simple model (if the scorer returns negative values we divide 1 by it) <br>
             if ratio is infinite max_ratio is returned
+
         Raises
         ------
         DeepchecksValueError
@@ -112,9 +113,9 @@ class SimpleModelComparison(TrainTestBaseCheck):
 
         # If user defined scorers used them, else use a single scorer
         if self.user_scorers:
-            scorers = context.get_scorers(self.user_scorers, multiclass_avg=False)
+            scorers = context.get_scorers(self.user_scorers, class_avg=False)
         else:
-            scorers = [context.get_single_scorer(multiclass_avg=False)]
+            scorers = [context.get_single_scorer(class_avg=False)]
 
         simple_model = self._create_simple_model(train_dataset, task_type)
 
