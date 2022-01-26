@@ -1,5 +1,11 @@
+"""Alternative way to import tabular checks.
+
+This module exists only for backward compatibility and will be
+removed in the nexts versions.
+"""
+
 import warnings
-from deepchecks.tabular.checks import *
+from deepchecks.tabular.checks import * # pylint: disable=wildcard-import
 
 
 warnings.warn(

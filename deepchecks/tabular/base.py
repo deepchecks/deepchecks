@@ -7,8 +7,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
+"""Module for base tabular abstractions."""
 # pylint: disable=broad-except
-# TODO: separate into modules
 import abc
 from collections import OrderedDict
 from typing import Callable, Union, Tuple, Mapping, List, Optional, Any

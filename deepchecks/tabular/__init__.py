@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""Package for tabular functionality."""
 from .dataset import Dataset
 from .base import (
     TabularContext,

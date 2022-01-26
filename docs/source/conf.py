@@ -127,12 +127,12 @@ python_use_unqualified_type_names = True
 # A boolean flag indicating whether to document classes and
 # functions imported in modules. Default is False
 #
-autosummary_imported_members = True
+autosummary_imported_members = False
 
 # If False and a module has the __all__ attribute set, autosummary
 # documents every member listed in __all__ and no others. Default is True
 #
-autosummary_ignore_module_all = False
+autosummary_ignore_module_all = True
 
 # A dictionary of values to pass into the template engine’s context
 # for autosummary stubs files.
@@ -488,8 +488,8 @@ def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
             .replace(".py", "")
     )
 
-    import deepchecks.checks
-    check_clazz = getattr(deepchecks.checks, notebook_name, None)
+    import deepchecks.tabular.checks
+    check_clazz = getattr(deepchecks.tabular.checks, notebook_name, None)
 
     if check_clazz is None or not hasattr(check_clazz, "__module__"):
         return

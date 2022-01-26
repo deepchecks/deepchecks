@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The Dataset module containing the dataset Class and its functions."""
+"""The dataset module containing the tabular Dataset class and its functions."""
 # pylint: disable=inconsistent-quotes,protected-access
 import typing as t
 import logging
