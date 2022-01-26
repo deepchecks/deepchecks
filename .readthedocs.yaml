@@ -41,6 +41,6 @@ python:
   system_packages: false
   install:
   - requirements: docs/requirements.txt
-  - requirements: requirements.txt
+  - requirements: requirements/requirements.txt
   - method: pip
     path: .
