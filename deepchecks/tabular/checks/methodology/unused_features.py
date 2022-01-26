@@ -99,8 +99,8 @@ class UnusedFeatures(TrainTestBaseCheck):
             not a Dataset instance with a label.
         """
         c = TabularContext(train_dataset, test_dataset, model,
-                            feature_importance_force_permutation=feature_importance_force_permutation,
-                            feature_importance_timeout=feature_importance_timeout)
+                           feature_importance_force_permutation=feature_importance_force_permutation,
+                           feature_importance_timeout=feature_importance_timeout)
         return self.run_logic(c)
 
     def run_logic(self, context: TabularContext) -> CheckResult:
