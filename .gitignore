@@ -84,3 +84,7 @@ ENV/
 # Sphinx Docs
 _autosummary/
 generated/
+
+#other
+lychee.output
+docs.error.log

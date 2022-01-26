@@ -78,7 +78,7 @@ The default behavior is to use the builtin feature importance property if it exi
 Check-Specific Model Interfaces
 --------------------------------
 
-Some checks require specific apis to run. For example, :doc:`BoostingOverfit </api/generated/deepchecks.checks.methodology.BoostingOverfit>`
+Some checks require specific apis to run. For example, :doc:`BoostingOverfit </api/generated/deepchecks.tabular.checks.methodology.boosting_overfit.BoostingOverfit>`
 requires model to be a supported boosting model type. Examples for such models include XGBoost, LightGBM, CatBoost and additional GBM implementations.
 
 ..

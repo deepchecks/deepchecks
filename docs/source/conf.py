@@ -494,7 +494,7 @@ def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
     if check_clazz is None or not hasattr(check_clazz, "__module__"):
         return
 
-    clazz_module = ".".join(check_clazz.__module__.split(".")[:-1])
+    clazz_module = ".".join(check_clazz.__module__.split("."))
 
     apipath = f"/api/generated/{clazz_module}.{notebook_name}"
     result = f"* :doc:`API Reference - {notebook_name} <{apipath}>`"

@@ -92,7 +92,8 @@ def _generate_check_docs_link_html(check):
         # Get the python path of the check
         module_path = check.__class__.__module__
         # Transform into html path, dropping the first item which is 'deepchecks'
-        check_html_path = '/'.join(module_path.split('.')[1:])
+        path_parts = [it for it in module_path.split('.') if it != 'tabular']
+        check_html_path = '/'.join(path_parts[1:])
         # In case couldn't load version direct user to stable
         version = deepchecks.__version__ or 'stable'
         html_template = ('https://docs.deepchecks.com/en/{}/examples/{}.html?utm_source=display_output'

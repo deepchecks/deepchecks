@@ -45,6 +45,7 @@ TWINE := $(BIN)/twine
 APIDOC := $(BIN)/sphinx-apidoc
 SPHINX_BUILD := $(BIN)/sphinx-build
 JUPYTER := $(BIN)/jupyter
+LYCHEE := $(BIN)/lychee
 
 # Project Settings
 PKGDIR := $(or $(PACKAGE), ./)
@@ -112,12 +113,13 @@ help:
 
 all: validate test notebook
 
-
 env: $(REQUIREMENTS_LOG)
+
 $(PIP):
 	$(info #### Remember to source new environment  [ $(ENV) ] ####)
 	@echo "external python_exe is $(ext_py)"
 	test -d $(ENV) || $(ext_py) -m venv $(ENV)
+
 $(REQUIREMENTS_LOG): $(PIP) $(REQUIREMENTS)
 	$(ext_py) -m pip install --upgrade pip
 	$(PIP) install $(INSTALLATION_PKGS)
@@ -188,7 +190,6 @@ regenerate-examples: $(REQUIREMENTS_LOG)
 	for path in $(NOTEBOOK_CHECKS)/**/*.ipynb ; do \
 	  $(JUPYTER) nbconvert --to notebook --inplace --execute $$path ; \
 	done
-
 
 
 coverage: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
@@ -301,13 +302,27 @@ $(TWINE): $(PIP)
 
 
 ### Documentation
-.PHONY: docs website dev-docs gen-static-notebooks license-check
+.PHONY: docs website dev-docs gen-static-notebooks license-check links-check lychee-bin
+
 
 docs: env $(DOCS_SRC)
-	@cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS)
+	@cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS) 2> docs.error.log
+	@echo ""
+	@echo "++++++++++++++++++++++++"
+	@echo "++++ Build Finished ++++"
+	@echo "++++++++++++++++++++++++"
+	@echo ""
+	@echo "all errors/warnings were written to the file:"
+	@echo "- $(DOCS)/docs.error.log"
+	@echo ""
+	@echo "statistic:"
+	@echo "- ERRORs: $$(grep "ERROR" $(DOCS)/docs.error.log | wc -l)"
+	@echo "- WARNINGs: $$(grep "WARNING" $(DOCS)/docs.error.log | wc -l)"
+
 
 show-docs: $(DOCS_BUILD)/html
 	@cd $(DOCS_BUILD)/html && $(PYTHON) -m http.server
+
 
 license-check:
 	@wget https://dlcdn.apache.org/skywalking/eyes/0.2.0/skywalking-license-eye-0.2.0-bin.tgz && tar -xzvf skywalking-license-eye-0.2.0-bin.tgz
@@ -316,6 +331,41 @@ license-check:
 	./license-eye -c .licenserc_fix.yaml header check
 	@rm license-eye
 
+
+links-check: $(DOCS_BUILD) $(LYCHEE)
+	@$(LYCHEE) \
+		"./**/*.rst" "$(DOCS_BUILD)/html/**/*.html" \
+		--base $(DOCS_BUILD)/html \
+		--accept=200,403,429 \
+		--format markdown \
+		--output ./lychee.output \
+		--exclude-loopback \
+		--exclude-mail \
+		--exclude-file $(DOCS)/.lycheeignore \
+		--exclude ".*git.*"; \
+	if [ $? -eq 0 ]; \
+	then \
+		echo "+++ Nothing Detected +++"; \
+	else \
+		echo ""; \
+		echo "++++++++++++++++++++++++++++"; \
+		echo "++++ Links Check Failed ++++"; \
+		echo "++++++++++++++++++++++++++++"; \
+		echo ""; \
+		echo "full output was written to the next file:"; \
+		echo "- $(shell realpath ./lychee.output)"; \
+		echo ""; \
+		head -n 12 lychee.output; \
+	fi;
+
+
+$(LYCHEE):
+	curl -L --output lychee.tar.gz https://github.com/lycheeverse/lychee/releases/download/v0.8.2/lychee-v0.8.2-x86_64-unknown-linux-gnu.tar.gz \
+	&& tar -xvzf lychee.tar.gz \
+	&& rm -rf ./lychee.tar.gz \
+	&& chmod +x ./lychee \
+	&& mkdir -p $(BIN)/ \
+	&& mv ./lychee $(BIN)/ \
 
 
 ### System Installation ######################################################
