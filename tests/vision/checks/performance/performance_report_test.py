@@ -21,6 +21,7 @@ from deepchecks import ConditionResult
 from deepchecks.vision import VisionDataset
 from deepchecks.vision.checks.performance import PerformanceReport
 from deepchecks.errors import DeepchecksValueError
+from deepchecks.vision.datasets.detection.coco import yolo_wrapper
 from deepchecks.vision.utils.metrics import get_default_classification_scorers
 
 from tests.tabular.checks.utils import equal_condition_result
@@ -80,6 +81,17 @@ def test_classification(mnist_dataset_train, mnist_dataset_test, trained_mnist):
     result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist).value
     # Assert
     assert_classification_result(result, mnist_dataset_test)
+
+
+def test_detection(trained_yolov5_object_detection, coco_dataset):
+    # Arrange
+
+    # train, test, model = iris_split_dataset_and_model
+    check = PerformanceReport(prediction_extract=yolo_wrapper)
+    # Act X
+    result = check.run(coco_dataset, coco_dataset, trained_yolov5_object_detection).value
+    # Assert
+    # assert_classification_result(result, mnist_dataset_test)
 
 #
 # def test_classification_binary(iris_dataset_single_class_labeled):

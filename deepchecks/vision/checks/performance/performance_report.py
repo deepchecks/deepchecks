@@ -23,7 +23,7 @@ from deepchecks.vision.base.vision_dataset import TaskType
 from deepchecks.vision.utils.metrics import get_scorers_list, task_type_check, calculate_metrics
 
 
-__all__ = ['PerformanceReport', 'MultiModelPerformanceReport']
+__all__ = ['PerformanceReport']
 
 from deepchecks.vision.utils.validation import model_type_validation
 
@@ -31,54 +31,25 @@ PR = TypeVar('PR', bound='PerformanceReport')
 
 
 class PerformanceReport(TrainTestBaseCheck):
-    """Summarize given scores on a dataset and model.
+    """Summarize given metrics on a dataset and model.
 
     Args:
-        alternative_scorers (Dict[str, Callable], default None):
-            An optional dictionary of scorer name to scorer functions.
-            If none given, using default scorers
-
-    Notes
-    -----
-    Scorers are a convention of sklearn to evaluate a model.
-    `See scorers documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`_
-    A scorer is a function which accepts (model, X, y_true) and returns a float result which is the score.
-    For every scorer higher scores are better than lower scores.
-
-    You can create a scorer out of existing sklearn metrics:
-
-    .. code-block:: python
-
-        from sklearn.metrics import roc_auc_score, make_scorer
-        auc_scorer = make_scorer(roc_auc_score)
-
-    Or you can implement your own:
-
-    .. code-block:: python
-
-        from sklearn.metrics import make_scorer
-
-
-        def my_mse(y_true, y_pred):
-            return (y_true - y_pred) ** 2
-
-
-        # Mark greater_is_better=False, since scorers always suppose to return
-        # value to maximize.
-        my_mse_scorer = make_scorer(my_mse, greater_is_better=False)
+        alternative_metrics (List[Metric], default None):
+            A list of ignite.Metric objects whose score should be used. If None are given, use the default metrics.
     """
 
-    def __init__(self, alternative_scorers: List[Metric] = None, label_map: List = None):
+    def __init__(self, alternative_metrics: List[Metric] = None, prediction_extract: Callable = None):
         super().__init__()
-        self.alternative_scorers = alternative_scorers
-        self.label_map = label_map
+        self.alternative_metrics = alternative_metrics
+        self.prediction_extract = prediction_extract
 
     def run(self, train_dataset: VisionDataset, test_dataset: VisionDataset, model=None) -> CheckResult:
         """Run check.
 
         Args:
-            dataset (Dataset): a Dataset object
-            model (BaseEstimator): A scikit-learn-compatible fitted estimator instance
+            train_dataset (VisionDataset): a VisionDataset object
+            test_dataset (VisionDataset): a VisionDataset object
+            model : A torch model supporting inference in eval mode.
 
         Returns:
             CheckResult: value is dictionary in format 'score-name': score-value
@@ -96,10 +67,10 @@ class PerformanceReport(TrainTestBaseCheck):
         task_type = task_type_check(model, train_dataset)
 
         # Get default scorers if no alternative, or validate alternatives
-        scorers = get_scorers_list(model, test_dataset, train_dataset.get_num_classes(), self.alternative_scorers)
+        scorers = get_scorers_list(model, test_dataset, train_dataset.get_num_classes(), self.alternative_metrics)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
-        if task_type == TaskType.CLASSIFICATION:
+        if task_type in (TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION):
             classes = train_dataset.get_samples_per_class().keys()
             plot_x_axis = 'Class'
             results = []
@@ -108,12 +79,14 @@ class PerformanceReport(TrainTestBaseCheck):
                 n_samples = dataset.get_samples_per_class()
                 results.extend(
                     [dataset_name, class_name, name, class_score, n_samples[class_name]]
-                    for name, score in calculate_metrics(scorers.values(), dataset, model).items()
+                    for name, score in calculate_metrics(list(scorers.values()), dataset, model,
+                                                         prediction_extract=self.prediction_extract).items()
                     # scorer returns numpy array of results with item per class
                     for class_score, class_name in zip(score, classes)
                 )
 
-            results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples'])
+            results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples']
+                                      ).sort_values(by=['Class'])
 
         else:
             return NotImplementedError('only works for classification ATM')
@@ -284,72 +257,3 @@ class PerformanceReport(TrainTestBaseCheck):
             ),
             condition_func=condition
         )
-
-
-class MultiModelPerformanceReport(ModelComparisonBaseCheck):
-    """Summarize performance scores for multiple models on test datasets.
-
-    Args:
-        alternative_scorers (Dict[str, Callable], default None):
-            An optional dictionary of scorer name to scorer functions.
-            If none given, using default scorers
-    """
-
-    def __init__(self, alternative_scorers: Dict[str, Callable] = None):
-        super().__init__()
-        self.alternative_scorers = initialize_multi_scorers(alternative_scorers)
-
-    def run_logic(self, context: ModelComparisonContext):
-        """Run check logic."""
-        first_model = context.models[0]
-        first_test_ds = context.test_datasets[0]
-        scorers = get_scorers_list(first_model, first_test_ds, self.alternative_scorers, multiclass_avg=False)
-
-        if context.task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
-            plot_x_axis = ['Class', 'Model']
-            results = []
-
-            for _, test_dataset, model, model_name in context:
-                label = cast(pd.Series, test_dataset.label_col)
-                n_samples = label.groupby(label).count()
-                results.extend(
-                    [model_name, class_score, scorer.name, class_name, n_samples[class_name]]
-                    for scorer in scorers
-                    # scorer returns numpy array of results with item per class
-                    for class_score, class_name in zip(scorer(model, test_dataset), test_dataset.classes)
-                )
-
-            results_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric', 'Class', 'Number of samples'])
-
-        else:
-            plot_x_axis = 'Model'
-            results = [
-                [model_name, scorer(model, test_dataset), scorer.name, cast(pd.Series, test_dataset.label_col).count()]
-                for _, test_dataset, model, model_name in context
-                for scorer in scorers
-            ]
-            results_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric', 'Number of samples'])
-
-        fig = px.histogram(
-            results_df,
-            x=plot_x_axis,
-            y='Value',
-            color='Model',
-            barmode='group',
-            facet_col='Metric',
-            facet_col_spacing=0.05,
-            hover_data=['Number of samples'],
-        )
-
-        if context.task_type in [ModelType.MULTICLASS, ModelType.BINARY]:
-            fig.update_xaxes(title=None, tickprefix='Class ', tickangle=60)
-        else:
-            fig.update_xaxes(title=None)
-
-        fig = (
-            fig.update_yaxes(title=None, matches=None)
-            .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-            .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
-        )
-
-        return CheckResult(results_df, display=[fig])

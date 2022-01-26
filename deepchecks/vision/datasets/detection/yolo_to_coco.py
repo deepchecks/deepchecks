@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 import uuid
 
+
 YOLO_PATH = "/Users/nirbenzvi/code/DeepChecks/coco128"
 # Complete this by putting COCO labels
 CATEGORIES = ('person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
@@ -22,6 +23,7 @@ CATEGORIES = ('person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
                'mouse', 'remote', 'keyboard', 'cell phone', 'microwave',
                'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock',
                'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush')
+
 
 class YoloParser:
     def __init__(self, category_list: Optional[Union[Sequence, str, dict]] = CATEGORIES):
@@ -126,9 +128,10 @@ class YoloParser:
         if isinstance(self._categories, dict):
             coco_json["categories"] = self._categories
         else:
-            coco_json["categories"] = [{"id": idx, "supercategory": c, "name": c} for idx, c in  enumerate(self._categories)]
+            coco_json["categories"] = [{"id": idx, "supercategory": c, "name": c} for idx, c in enumerate(self._categories)]
         with open(output_path, 'w') as fid:
             json.dump(coco_json, fid, indent=4, sort_keys=True)
+
 
 if __name__ == '__main__':
     parser = YoloParser()
