@@ -255,7 +255,7 @@ def _calc_permutation_importance(
         single_scorer_dict = {scorer_name: default_scorers[scorer_name]}
         scorer = init_validate_scorers(single_scorer_dict, model, dataset, model_type=task_type)[0]
 
-    if timeout:
+    if timeout is not None:
         start_time = time.time()
         scorer(model, dataset_sample)
         calc_time = time.time() - start_time
