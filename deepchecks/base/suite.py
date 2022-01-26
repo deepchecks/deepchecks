@@ -12,6 +12,7 @@
 # pylint: disable=broad-except
 import abc
 import io
+import warnings
 from collections import OrderedDict
 from typing import Union, List, Optional, Tuple, Any, Container, Mapping
 
@@ -26,7 +27,7 @@ from deepchecks.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.base.dataset import Dataset
 from deepchecks.base.check import CheckResult, TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck, \
                                   CheckFailure, ModelComparisonBaseCheck, ModelComparisonContext, BaseCheck
-from deepchecks.utils.ipython import is_ipython_display
+from deepchecks.utils.ipython import is_notebook
 from deepchecks.utils.typing import BasicModel
 
 
@@ -65,10 +66,11 @@ class SuiteResult:
 
     def show(self):
         """Display suite result."""
-        if is_ipython_display():
+        if is_notebook():
             self._ipython_display_()
         else:
-            print(self)
+            warnings.warn('You are running in a non-interactive python shell. in order to show result you have to use '
+                          'an IPython shell (etc Jupyter)')
 
     def save_as_html(self, file=None):
         """Save output as html file.
