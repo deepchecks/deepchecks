@@ -362,6 +362,7 @@ class BaseCheck(abc.ABC):
 
     @abc.abstractmethod
     def run(self, *args, **kwargs) -> CheckResult:
+        """Run Check."""
         raise NotImplementedError()
 
     def conditions_decision(self, result: CheckResult) -> List[ConditionResult]:

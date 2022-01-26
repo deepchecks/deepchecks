@@ -328,6 +328,7 @@ class TabularCheck(BaseCheck):
         setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
 
     def run_logic(self, context: TabularContext, **kwargs) -> CheckResult:
+        """Run check logic."""
         raise NotImplementedError()
 
 
@@ -348,6 +349,7 @@ class SingleDatasetBaseCheck(TabularCheck):
 
 class TrainTestBaseCheck(TabularCheck):
     """Parent class for checks that compare two datasets.
+
     The class checks train dataset and test dataset for model training and test.
     """
 
@@ -363,6 +365,7 @@ class ModelOnlyBaseCheck(TabularCheck):
     def run(self, model) -> CheckResult:
         """Run check."""
         return self.run_logic(TabularContext(model=model))
+
 
 class Suite(BaseSuite):
     """Tabular suite to run checks of types: TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck."""
@@ -412,11 +415,11 @@ class Suite(BaseSuite):
             All results by all initialized checks
         """
         context = TabularContext(train_dataset, test_dataset, model,
-                                  features_importance=features_importance,
-                                  feature_importance_force_permutation=feature_importance_force_permutation,
-                                  feature_importance_timeout=feature_importance_timeout,
-                                  scorers=scorers,
-                                  scorers_per_class=scorers_per_class)
+                                 features_importance=features_importance,
+                                 feature_importance_force_permutation=feature_importance_force_permutation,
+                                 feature_importance_timeout=feature_importance_timeout,
+                                 scorers=scorers,
+                                 scorers_per_class=scorers_per_class)
         # Create progress bar
         progress_bar = ProgressBar(self.name, len(self.checks))
 

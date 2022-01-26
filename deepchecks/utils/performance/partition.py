@@ -12,7 +12,7 @@
 from copy import deepcopy
 from typing import List, Callable
 
-# TODO: move tabular functionality to the tabular subpackage
+# TODO: move tabular functionality to the tabular sub-package
 
 import numpy as np
 import pandas as pd

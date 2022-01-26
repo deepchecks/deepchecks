@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""Deepchecks."""
 import warnings
 import matplotlib
 import plotly.io as pio
