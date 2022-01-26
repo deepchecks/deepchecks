@@ -96,7 +96,8 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
         display = display.set_index(ambiguous_label_name)
 
         explanation = ('Each row in the table shows an example of a data sample '
-                       'and the its observed labels as found in the dataset.')
+                       'and the its observed labels as found in the dataset. '
+                       f'Showing top {self.n_to_show} of {display.shape[0]}')
 
         display = None if display.empty else [explanation, display.head(self.n_to_show)]
 
