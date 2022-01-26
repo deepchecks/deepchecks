@@ -11,7 +11,50 @@
 import matplotlib
 import plotly.io as pio
 from pkg_resources import get_distribution, DistributionNotFound
-from .utils.ipython import is_notebook
+
+from deepchecks.utils.ipython import is_notebook
+from deepchecks.tabular import (
+    Dataset,
+    TabularSuite,
+    TabularCheck,
+    TabularContext,
+    SingleDatasetBaseCheck,
+    TrainTestBaseCheck,
+    ModelOnlyBaseCheck,
+    ModelComparisonCheck,
+    ModelComparisonSuite,
+)
+from deepchecks.core import (
+    BaseCheck,
+    BaseSuite,
+    CheckResult,
+    CheckFailure,
+    SuiteResult,
+    Condition,
+    ConditionResult,
+    ConditionCategory
+)
+
+
+__all__ = [
+    'Dataset',
+    'BaseCheck',
+    'TabularCheck',
+    'SingleDatasetBaseCheck',
+    'TrainTestBaseCheck',
+    'ModelOnlyBaseCheck',
+    'ModelComparisonCheck',
+    'CheckResult',
+    'CheckFailure',
+    'Condition',
+    'ConditionResult',
+    'ConditionCategory',
+    'BaseSuite',
+    'TabularSuite',
+    'SuiteResult',
+    'ModelComparisonSuite',
+    'TabularContext'
+]
 
 
 # Matplotlib has multiple backends. If we are in a context that does not support GUI (For example, during unit tests)
