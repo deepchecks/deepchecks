@@ -83,11 +83,10 @@ class PerformanceReport(TrainTestBaseCheck):
         """
         train_dataset = context.train
         test_dataset = context.test
-        label_name = context.label_name
+
         model = context.model
         task_type = context.task_type
         classes = train_dataset.classes
-        context.assert_features_exists()
 
         scorers = context.get_scorers(self.user_scorers, class_avg=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
@@ -97,7 +96,7 @@ class PerformanceReport(TrainTestBaseCheck):
             results = []
 
             for dataset_name, dataset in datasets.items():
-                label = cast(pd.Series, dataset.data[label_name])
+                label = cast(pd.Series, dataset.label_col)
                 n_samples = label.groupby(label).count()
                 results.extend(
                     [dataset_name, class_name, scorer.name, class_score, n_samples[class_name]]
@@ -111,7 +110,7 @@ class PerformanceReport(TrainTestBaseCheck):
         else:
             plot_x_axis = 'Dataset'
             results = [
-                [dataset_name, scorer.name, scorer(model, dataset), cast(pd.Series, dataset.data[label_name]).count()]
+                [dataset_name, scorer.name, scorer(model, dataset), cast(pd.Series, dataset.label_col).count()]
                 for dataset_name, dataset in datasets.items()
                 for scorer in scorers
             ]
@@ -326,10 +325,9 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
             results = []
 
             for context in multi_context:
-                label_name = context.label_name
-                model = context.model
                 test = context.test
-                label = cast(pd.Series, test.data[label_name])
+                model = context.model
+                label = cast(pd.Series, test.label_col)
                 n_samples = label.groupby(label).count()
                 results.extend(
                     [context.model_name, class_score, scorer.name, class_name, n_samples[class_name]]
@@ -344,7 +342,7 @@ class MultiModelPerformanceReport(ModelComparisonBaseCheck):
             plot_x_axis = 'Model'
             results = [
                 [context.model_name, scorer(context.model, context.test), scorer.name,
-                 cast(pd.Series, context.test.data[context.label_name]).count()]
+                 cast(pd.Series, context.test.label_col).count()]
                 for context in multi_context
                 for scorer in scorers
             ]

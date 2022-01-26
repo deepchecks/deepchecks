@@ -61,9 +61,8 @@ class ModelInferenceTime(SingleDatasetBaseCheck):
         else:
             dataset = context.test
 
-        features = context.features
         model = context.model
-        df = dataset.data[features]
+        df = dataset.features_columns
 
         prediction_method = model.predict  # type: ignore
 

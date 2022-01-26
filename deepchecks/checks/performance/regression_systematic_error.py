@@ -43,8 +43,8 @@ class RegressionSystematicError(SingleDatasetBaseCheck):
             dataset = context.test
 
         context.assert_regression_task()
-        y_test = dataset.data[context.label_name]
-        x_test = dataset.data[context.features]
+        y_test = dataset.label_col
+        x_test = dataset.features_columns
         y_pred = context.model.predict(x_test)
 
         rmse = mean_squared_error(y_test, y_pred, squared=False)

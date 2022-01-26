@@ -46,11 +46,12 @@ def test_model_wrong_input(iris_labeled_dataset):
     )
 
 
-def test_dataset_no_label(iris_dataset):
+def test_dataset_no_label(iris_dataset_no_label, iris_adaboost):
     # Assert
     assert_that(
-        calling(PerformanceReport().run).with_args(iris_dataset, iris_dataset, None),
-        raises(DeepchecksNotSupportedError, 'Check is irrelevant for Datasets without label')
+        calling(PerformanceReport().run).with_args(iris_dataset_no_label, iris_dataset_no_label, iris_adaboost),
+        raises(DeepchecksNotSupportedError,
+               'There is no label defined to use. Did you pass a DataFrame instead of a Dataset?')
     )
 
 

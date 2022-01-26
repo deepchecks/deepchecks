@@ -63,8 +63,8 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
 
         context.assert_regression_task()
         model = context.model
-        x_test = dataset.data[context.features]
-        y_test = dataset.data[context.label_name]
+        x_test = dataset.features_columns
+        y_test = dataset.label_col
 
         y_pred = model.predict(x_test)
         y_pred = pd.Series(y_pred, name='predicted ' + str(dataset.label_name), index=y_test.index)

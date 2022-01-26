@@ -62,6 +62,7 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
             dataset = context.test
 
         context.assert_classification_task()
+        dataset.assert_label()
 
         dataset = dataset.select(self.columns, self.ignore_columns)
 

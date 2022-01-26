@@ -47,7 +47,7 @@ def model_type_validation(model: t.Any):
 
 
 def validate_model(
-    data: t.Union['base.Dataset', pd.DataFrame],
+    data: 'base.Dataset',
     model: t.Any
 ):
     """Check model is able to predict on the dataset.
@@ -67,7 +67,7 @@ def validate_model(
     )
 
     if isinstance(data, base.Dataset):
-        features = data.data[data.features]
+        features = data.features_columns
     else:
         features = data
 

@@ -78,10 +78,10 @@ class TrustScoreComparison(TrainTestBaseCheck):
     def run_logic(self, context: CheckRunContext) -> CheckResult:
         """Run check."""
         test_dataset = context.test
-        label_name = context.label_name
         train_dataset = context.train
         model = context.model
-        features_list = context.features
+        features_list = train_dataset.features
+        label_name = train_dataset.label_name
         context.assert_classification_task()
 
         if test_dataset.n_samples < self.min_test_samples:
@@ -91,13 +91,13 @@ class TrustScoreComparison(TrainTestBaseCheck):
                 'check to run with the parameter "min_test_samples"'
             )
 
-        no_null_label_train = train_dataset.data[train_dataset.data[label_name].notna()]
+        no_null_label_train = train_dataset.data[train_dataset.label_col.notna()]
         train_data_sample = no_null_label_train.sample(
             min(self.sample_size, len(no_null_label_train)),
             random_state=self.random_state
         )
 
-        no_null_label_test = test_dataset.data[test_dataset.data[label_name].notna()]
+        no_null_label_test = test_dataset.data[test_dataset.label_col.notna()]
         test_data_sample = no_null_label_test.sample(
             min(self.sample_size, len(no_null_label_test)),
             random_state=self.random_state

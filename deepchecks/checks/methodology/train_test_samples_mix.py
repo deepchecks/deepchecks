@@ -43,10 +43,10 @@ class TrainTestSamplesMix(TrainTestBaseCheck):
         """
         test_dataset = context.test
         train_dataset = context.train
-        features = context.features
-        label_name = context.label_name
 
-        columns = features + [label_name]
+        test_dataset.assert_features()
+        test_dataset.assert_label()
+        columns = test_dataset.features + [test_dataset.label_name]
 
         # For pandas.groupby in python 3.6, there is problem with comparing numpy nan, so replace with placeholder
         na_filler = '__deepchecks_na_filler__'

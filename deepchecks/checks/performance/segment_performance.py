@@ -76,9 +76,10 @@ class SegmentPerformance(SingleDatasetBaseCheck):
             dataset = context.test
 
         model = context.model
-        features = context.features
         features_importance = context.features_importance
         scorer = context.get_single_scorer(self.user_scorer)
+        dataset.assert_features()
+        features = dataset.features
 
         if len(features) < 2:
             raise DatasetValidationError('Dataset must have at least 2 features')

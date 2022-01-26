@@ -37,7 +37,7 @@ class DateTrainTestLeakageOverlap(TrainTestBaseCheck):
         train_dataset = context.train
         test_dataset = context.test
 
-        context.assert_datetime_exists()
+        train_dataset.assert_datetime()
         train_date = train_dataset.datetime_col
         val_date = test_dataset.datetime_col
 

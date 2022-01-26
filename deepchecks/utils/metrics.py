@@ -15,7 +15,6 @@ import warnings
 from numbers import Number
 
 import numpy as np
-import pandas as pd
 from sklearn.metrics import get_scorer, make_scorer, f1_score, precision_score, recall_score
 from sklearn.base import ClassifierMixin, BaseEstimator
 
@@ -126,11 +125,15 @@ class DeepcheckScorer:
 
     def __call__(self, model, dataset: 'base.Dataset'):
         """Run score with labels null filtering."""
+        dataset.assert_features()
+        dataset.assert_label()
         df = self.filter_nulls(dataset)
         return self._run_score(model, df, dataset)
 
     def score_perfect(self, dataset: 'base.Dataset'):
         """Calculate the perfect score of the current scorer for given dataset."""
+        dataset.assert_label()
+        dataset.assert_features()
         df = self.filter_nulls(dataset)
         perfect_model = PerfectModel()
         perfect_model.fit(None, df[dataset.label_name])
@@ -145,6 +148,8 @@ class DeepcheckScorer:
 
     def validate_fitting(self, model, dataset: 'base.Dataset', should_return_array: bool):
         """Validate given scorer for the model and dataset."""
+        dataset.assert_label()
+        dataset.assert_features()
         df = self.filter_nulls(dataset)
         if should_return_array:
             # In order for scorer to return array in right length need to pass him samples from all labels
@@ -197,10 +202,7 @@ def task_type_check(
     ModelType
         TaskType enum corresponding to the model and dataset
     """
-    if dataset.label_name is None:
-        raise errors.DatasetValidationError('Expected dataset with label')
-
-    label_col = t.cast(pd.Series, dataset.data[dataset.label_name])
+    label_col = dataset.label_col
     if isinstance(model, BaseEstimator):
         if not hasattr(model, 'predict_proba'):
             if is_string_column(label_col):

@@ -41,14 +41,13 @@ class NewLabelTrainTest(TrainTestBaseCheck):
         """
         test_dataset = context.test
         train_dataset = context.train
-        label_name = context.label_name
-
         context.assert_classification_task()
+        train_dataset.assert_label()
 
         n_test_samples = test_dataset.n_samples
 
-        train_label = train_dataset.data[label_name]
-        test_label = test_dataset.data[label_name]
+        train_label = train_dataset.label_col
+        test_label = test_dataset.label_col
 
         unique_training_values = set(train_label.unique())
         unique_test_values = set(test_label.unique())
@@ -58,7 +57,7 @@ class NewLabelTrainTest(TrainTestBaseCheck):
         if new_labels:
             n_new_label = len(test_label[test_label.isin(new_labels)])
 
-            dataframe = pd.DataFrame(data=[[label_name, format_percent(n_new_label / n_test_samples),
+            dataframe = pd.DataFrame(data=[[train_dataset.label_name, format_percent(n_new_label / n_test_samples),
                                             sorted(new_labels)]],
                                      columns=['Label column', 'Percent new labels in sample', 'New labels'])
             dataframe = dataframe.set_index(['Label column'])

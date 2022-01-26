@@ -50,7 +50,7 @@ class IndexTrainTestLeakage(TrainTestBaseCheck):
         train_dataset = context.train
         test_dataset = context.test
 
-        context.assert_index_exists()
+        train_dataset.assert_index()
         train_index = train_dataset.index_col
         val_index = test_dataset.index_col
 

@@ -107,7 +107,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
         """
         train_dataset = context.train
         test_dataset = context.test
-        test_label = test_dataset.data[context.label_name]
+        test_label = test_dataset.label_col
         task_type = context.task_type
         model = context.model
 
