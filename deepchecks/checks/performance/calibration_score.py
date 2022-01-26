@@ -96,11 +96,11 @@ class CalibrationScore(SingleDatasetBaseCheck):
         fig.update_layout(title_text='Calibration plots (reliability curve)',
                           width=700, height=500)
         fig.update_yaxes(title='Fraction of positives')
-        fig.update_xaxes(title='Mean predicted value')
+        fig.update_xaxes(title='Mean predicted probability')
 
-        calibration_text = 'Calibration curves (also known as reliability diagrams) compare how well the ' \
-                           'probabilistic predictions of a binary classifier are calibrated. It plots the true ' \
-                           'frequency of the positive label against its predicted probability, for binned predictions.'
+        calibration_text = 'The calibration curve is based on ' \
+                           '<a href="https://scikit-learn.org/stable/modules/calibration.html" '\
+                           'target="_blank">scikit-learn calibration curve</a>.'
         brier_text = 'The Brier score metric may be used to assess how well a classifier is calibrated. For more ' \
                      'info, please visit <a href="https://en.wikipedia.org/wiki/Brier_score" target="_blank">' \
                      'https://en.wikipedia.org/wiki/Brier_score</a>'
