@@ -105,7 +105,7 @@ def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn
 
     def process_function(_, batch):
         X = batch[0]
-        Y = batch[1]
+        Y = dataset.label_transformer(batch[1])
 
         predictions = model.forward(X)
 
