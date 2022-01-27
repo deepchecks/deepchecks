@@ -243,6 +243,9 @@ def _calc_permutation_importance(
     if dataset.label_name is None:
         raise errors.DatasetValidationError("Expected dataset with label.")
 
+    if len(dataset.features) == 1:
+        return pd.Series([1], index=dataset.features)
+
     dataset_sample = dataset.sample(n_samples, drop_na_label=True, random_state=random_state)
 
     # Test score time on the dataset sample
@@ -268,8 +271,8 @@ def _calc_permutation_importance(
 
     r = permutation_importance(
         model,
-        dataset_sample.data[dataset.features],
-        dataset_sample.data[dataset.label_name],
+        dataset_sample.features_columns,
+        dataset_sample.label_col,
         n_repeats=n_repeats,
         random_state=random_state,
         n_jobs=-1,

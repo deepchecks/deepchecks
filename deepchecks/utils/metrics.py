@@ -115,29 +115,24 @@ class DeepcheckScorer:
             raise errors.DeepchecksValueError(message)
 
     @classmethod
-    def filter_nulls(cls, dataset: 'base.Dataset'):
+    def filter_nulls(cls, dataset: 'base.Dataset') -> 'base.Dataset':
         """Return data of dataset without null labels."""
         valid_idx = dataset.data[dataset.label_name].notna()
-        return dataset.data[valid_idx]
+        return dataset.copy(dataset.data[valid_idx])
 
-    def _run_score(self, model, dataframe, dataset):
-        return self.scorer(model, dataframe[dataset.features], dataframe[dataset.label_name])
+    def _run_score(self, model, dataset: 'base.Dataset'):
+        return self.scorer(model, dataset.features_columns, dataset.label_col)
 
     def __call__(self, model, dataset: 'base.Dataset'):
         """Run score with labels null filtering."""
-        dataset.assert_features()
-        dataset.assert_label()
-        df = self.filter_nulls(dataset)
-        return self._run_score(model, df, dataset)
+        return self._run_score(model, self.filter_nulls(dataset))
 
     def score_perfect(self, dataset: 'base.Dataset'):
         """Calculate the perfect score of the current scorer for given dataset."""
-        dataset.assert_label()
-        dataset.assert_features()
-        df = self.filter_nulls(dataset)
+        dataset = self.filter_nulls(dataset)
         perfect_model = PerfectModel()
-        perfect_model.fit(None, df[dataset.label_name])
-        score = self._run_score(perfect_model, df, dataset)
+        perfect_model.fit(None, dataset.label_col)
+        score = self._run_score(perfect_model, dataset)
         if isinstance(score, np.ndarray):
             # We expect the perfect score to be equal for all the classes, so takes the first one
             first_score = score[0]
@@ -150,11 +145,11 @@ class DeepcheckScorer:
         """Validate given scorer for the model and dataset."""
         dataset.assert_label()
         dataset.assert_features()
-        df = self.filter_nulls(dataset)
+        dataset = self.filter_nulls(dataset)
         if should_return_array:
             # In order for scorer to return array in right length need to pass him samples from all labels
-            single_label_data = df.groupby(dataset.label_name).head(1)
-            result = self._run_score(model, single_label_data, dataset)
+            single_label_data = dataset.data.groupby(dataset.label_name).head(1)
+            result = self._run_score(model, dataset.copy(single_label_data))
             if not isinstance(result, np.ndarray):
                 raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return np.ndarray '
                                                   f'but got: {type(result).__name__}')
@@ -173,8 +168,8 @@ class DeepcheckScorer:
 
         else:
             # In order for scorer to run, it must have at least one sample of each label.
-            single_label_data = df.groupby(dataset.label_name).head(1)
-            result = self._run_score(model, single_label_data, dataset)
+            single_label_data = dataset.data.groupby(dataset.label_name).head(1)
+            result = self._run_score(model, dataset.copy(single_label_data))
             if not isinstance(result, Number):
                 raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return number '
                                                   f'but got: {type(result).__name__}')
