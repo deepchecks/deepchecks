@@ -60,7 +60,7 @@ REQUIREMENTS_LOG := .requirements.log
 # Test and Analyize
 ANALIZE_PKGS = pylint pydocstyle flake8 flake8-spellcheck flake8-eradicate flake8-rst
 TEST_CODE := tests/
-TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval coveralls
+TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval coveralls torch==1.10.1+cpu torchvision==0.11.2+cpu torchaudio==0.10.1+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
 NOTEBOOK_CHECKS = ./docs/source/examples/checks
 NOTEBOOK_EXAMPLES = ./docs/source/examples/guides/*.ipynb
 NOTEBOOK_USECASES = ./docs/source/examples/use-cases/*.ipynb
