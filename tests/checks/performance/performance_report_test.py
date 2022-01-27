@@ -11,19 +11,20 @@
 """Contains unit tests for the performance report check."""
 import re
 from typing import List
-import numpy as np
 
 from hamcrest import assert_that, calling, raises, close_to, has_items, instance_of
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
-from deepchecks import ConditionResult, Dataset
-from deepchecks.checks.performance import PerformanceReport
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError, ModelValidationError, \
+from deepchecks.core import ConditionResult
+from deepchecks.tabular import Dataset
+from deepchecks.tabular.checks.performance import PerformanceReport
+from deepchecks.utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, DEFAULT_REGRESSION_SCORERS
+from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError, ModelValidationError, \
     DeepchecksNotSupportedError
 
 from tests.checks.utils import equal_condition_result
-from deepchecks.utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, DEFAULT_REGRESSION_SCORERS
+
 
 
 def test_dataset_wrong_input():

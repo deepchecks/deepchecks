@@ -1,0 +1,26 @@
+pandas>=1.1.5
+numpy>=1.19
+scikit-learn>=0.24.2
+jsonpickle>=2
+
+# require for python 3.8+
+ipython>=7.15.0,<8; python_version >= '3.8'
+ipykernel>=5.3.0; python_version >= '3.8'
+ipywidgets>=7.6.5; python_version >= '3.8'
+
+# google colab requirements (python 3.7)
+ipython>=5.5.0,<8; python_version < '3.8'
+ipykernel>=4.10.1; python_version < '3.8'
+ipywidgets>=7.5.0; python_version < '3.8'
+
+typing_extensions>=3.7.4.3
+tqdm>=4.62.3
+category-encoders>=2.3.0
+
+# Category encoder depends on old statsmodels version which raises pandas warning. until dependency in category-encoders
+# is updated, explicitly add it here
+statsmodels>=0.11.0
+scipy>=1.4.1
+dataclasses>=0.6; python_version < '3.7'
+plotly>=5.5.0
+matplotlib>=3.2.2

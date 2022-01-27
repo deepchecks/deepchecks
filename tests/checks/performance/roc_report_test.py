@@ -15,10 +15,9 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from hamcrest import assert_that, calling, raises, has_items, has_entries, has_length, close_to
 
-from deepchecks.base import Dataset
-from deepchecks.checks.performance import RocReport
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError, ModelValidationError, \
-    DeepchecksNotSupportedError
+from deepchecks.tabular import Dataset
+from deepchecks.tabular.checks.performance import RocReport
+from deepchecks.core.errors import DeepchecksValueError, ModelValidationError, DeepchecksNotSupportedError
 from tests.checks.utils import equal_condition_result
 
 

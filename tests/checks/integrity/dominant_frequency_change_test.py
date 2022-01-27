@@ -16,9 +16,10 @@ from sklearn.model_selection import train_test_split
 from hamcrest import assert_that, calling, raises, equal_to, \
                      has_length, has_items, close_to, empty
 
-from deepchecks.base import Dataset
-from deepchecks.errors import DeepchecksValueError
-from deepchecks.checks.integrity import DominantFrequencyChange
+from deepchecks.tabular import Dataset
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.tabular.checks.integrity import DominantFrequencyChange
+
 from tests.checks.utils import equal_condition_result
 
 

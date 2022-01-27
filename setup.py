@@ -8,101 +8,101 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""
-
-|build| |Documentation Status| |pkgVersion| |pyVersions|
-|Maintainability| |Coverage Status|
-
-.. image:: https://raw.githubusercontent.com/deepchecks/deepchecks/main/docs/images/deepchecks-logo-with-white-wide-back.png
-  :target: https://github.com/deepchecks/deepchecks
-
-Deepchecks is a Python package for comprehensively validating your machine learning models and data with minimal effort.
-This includes checks related to various types of issues, such as model performance, data integrity,
-distribution mismatches, and more.
-
-What Do You Need in Order to Start Validating?
-----------------------------------------------
-
-Depending on your phase and what you wise to validate, you'll need a
-subset of the following:
-
--  Raw data (before pre-processing such as OHE, string processing,
-   etc.), with optional labels
-
--  The model's training data with labels
-
--  Test data (which the model isn't exposed to) with labels
-
--  A model compatible with scikit-learn API that you wish to validate
-   (e.g. RandomForest, XGBoost)
-
-Deepchecks validation accompanies you from the initial phase when you
-have only raw data, through the data splits, and to the final stage of
-having a trained model that you wish to evaluate. Accordingly, each
-phase requires different assets for the validation. See more about
-typical usage scenarios and the built-in suites in the
-`docs <https://docs.deepchecks.com/?utm_source=pypi.org&utm_medium=referral&utm_campaign=readme>`__.
-
-Installation
-------------
-
-Using pip
-~~~~~~~~~
-
-.. code:: bash
-
-   pip install deepchecks #--upgrade --user
-
-Using conda
-~~~~~~~~~~~
-
-.. code:: bash
-
-   conda install -c deepchecks deepchecks
-
-.. |build| image:: https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg
-.. |Documentation Status| image:: https://readthedocs.org/projects/deepchecks/badge/?version=latest
-   :target: https://docs.deepchecks.com/en/latest/?badge=latest
-.. |pkgVersion| image:: https://img.shields.io/pypi/v/deepchecks
-.. |pyVersions| image:: https://img.shields.io/pypi/pyversions/deepchecks
-.. |Maintainability| image:: https://api.codeclimate.com/v1/badges/970b11794144139975fa/maintainability
-   :target: https://codeclimate.com/github/deepchecks/deepchecks/maintainability
-.. |Coverage Status| image:: https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main
-   :target: https://coveralls.io/github/deepchecks/deepchecks?branch=main
-
-"""
-
+import typing as t
+import pathlib
 import setuptools
-from setuptools import setup
-import os
+import re
+from functools import lru_cache
 
-main_ns = {}
-DOCLINES = (__doc__ or '').split("\n")
 
-with open(os.path.join('./', 'VERSION')) as version_file:
-    VER = version_file.read().strip()
+DEEPCHECKS = "deepchecks"
+SUPPORTED_PYTHON_VERSIONS = '>=3.6, <=3.10'
 
-requirementPath = os.path.dirname(os.path.realpath(__file__)) + '/requirements.txt'
-install_requires = []
-if os.path.isfile(requirementPath):
-    with open(requirementPath) as f:
-        install_requires = f.read().splitlines()
+SETUP_MODULE = pathlib.Path(__file__).absolute()
+DEEPCHECKS_DIR = SETUP_MODULE.parent
+LICENSE_FILE = DEEPCHECKS_DIR / "LICENSE" 
+VERSION_FILE = DEEPCHECKS_DIR / "VERSION" 
+DESCRIPTION_FILE = DEEPCHECKS_DIR / "DESCRIPTION.rst" 
 
-setup(
-    name='deepchecks',
-    version=VER,
-    packages=setuptools.find_packages(),
-    install_requires=install_requires,
-    license_files = ('LICENSE', ),
-    description = DOCLINES[0],
-    long_description="\n".join(DOCLINES[2:]),
+
+SEMANTIC_VERSIONING_RE = re.compile(
+   r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
+   r"(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)"
+   r"(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))"
+   r"?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$"
+)
+
+
+@lru_cache(maxsize=None)
+def is_correct_version_string(value: str) -> bool:
+    match = SEMANTIC_VERSIONING_RE.match(value)
+    return match is not None
+
+
+@lru_cache(maxsize=None)
+def get_version_string() -> str:
+    if not (VERSION_FILE.exists() and VERSION_FILE.is_file()):
+        raise RuntimeError(
+            "Version file does not exist! "
+            f"(filepath: {str(VERSION_FILE)})")
+    else:
+        version = VERSION_FILE.open("r").readline()
+        if not is_correct_version_string(version):
+            raise RuntimeError(
+                "Incorrect version string! "
+                f"(filepath: {str(VERSION_FILE)})"
+            )
+        return version
+
+
+@lru_cache(maxsize=None)
+def get_description() -> t.Tuple[str, str]:
+    if not (DESCRIPTION_FILE.exists() and DESCRIPTION_FILE.is_file()):
+        raise RuntimeError(
+            "DESCRIPTION.rst file does not exist! "
+            f"(filepath: {str(DESCRIPTION_FILE)})"
+        )
+    else:
+        return "Deepchecks package", DESCRIPTION_FILE.open("r").read()
+
+
+@lru_cache(maxsize=None)
+def read_requirements() -> t.Dict[str,t.List[str]]:
+    requirements_folder = DEEPCHECKS_DIR / "requirements"
+    
+    if not (requirements_folder.exists() and requirements_folder.is_dir()):
+        raise RuntimeError(
+            "Cannot find folder with requirements files."
+            f"(path: {str(requirements_folder)})"
+        )
+    else:
+        return {
+            "main": (requirements_folder / "requirements.txt").open("r").readlines(),
+            "vision": (requirements_folder / "vision-requirements.txt").open("r").readlines(),
+            "nlp": (requirements_folder / "nlp-requirements.txt").open("r").readlines(),
+        }
+
+
+# =================================================================================
+
+VERSION = get_version_string()
+short_desc, long_desc = get_description()
+
+requirements = read_requirements()
+main_requirements = requirements.pop("main")
+extra_requirements = requirements
+
+
+setuptools.setup(
+    # -- description --------------------------------
+    name=DEEPCHECKS,
     author = 'deepchecks',  
     author_email = 'info@deepchecks.com', 
-    url = 'https://github.com/deepchecks/deepchecks',
-    download_url = "https://github.com/deepchecks/deepchecks/releases/download/{0}/deepchecks-{0}.tar.gz".format(VER),
+    version=VERSION,
+    description=short_desc,
+    long_description = long_desc,
     keywords = ['Software Development', 'Machine Learning'],
-    include_package_data=True,
-    classifiers         = [
+    classifiers = [
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'Topic :: Software Development',
@@ -115,4 +115,19 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
     ],
+    license_files=('LICENSE', ),
+    url = 'https://github.com/deepchecks/deepchecks',
+    download_url = "https://github.com/deepchecks/deepchecks/releases/download/{0}/deepchecks-{0}.tar.gz".format(VERSION),
+    project_urls={
+        'Documentation': 'https://docs.deepchecks.com',
+        'Bug Reports': 'https://github.com/deepchecks/deepchecks',
+        'Source': 'https://github.com/deepchecks/deepchecks',
+        'Contribute!': 'https://github.com/deepchecks/deepchecks/blob/master/CONTRIBUTING.md',
+    },
+    
+    # -- dependencies --------------------------------
+    packages=setuptools.find_packages(),
+    install_requires=main_requirements,
+    extras_require=extra_requirements,
+    include_package_data=True,
 )

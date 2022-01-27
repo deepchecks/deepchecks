@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Unused features tests."""
-from deepchecks.checks.methodology import UnusedFeatures
+from deepchecks.tabular.checks.methodology import UnusedFeatures
 from hamcrest import assert_that, equal_to
 
 

@@ -41,11 +41,16 @@ Use Cases
 Check Demonstrations
 ~~~~~~~~~~~~~~~~~~~~
 
+.. raw:: html
+
+    <h4>Tabular</h4>
+
 - :doc:`checks/distribution/index`
 - :doc:`checks/integrity/index`
 - :doc:`checks/methodology/index`
 - :doc:`checks/performance/index`
 - :doc:`checks/overview/index`
+
 
 .. toctree::
     :maxdepth: 3
@@ -53,9 +58,6 @@ Check Demonstrations
     :caption: Check Demonstrations
     :hidden:
 
-    checks/distribution/index
-    checks/integrity/index
-    checks/methodology/index
-    checks/performance/index
-    checks/overview/index
+    checks/tabular
+    
     

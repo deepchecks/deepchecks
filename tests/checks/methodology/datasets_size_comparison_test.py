@@ -8,12 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-import pandas as pd
-from hamcrest import assert_that, calling, raises, has_entries, instance_of, all_of
+from hamcrest import assert_that, has_entries, instance_of
 
-from deepchecks import CheckResult, ConditionCategory
-from deepchecks.checks import DatasetsSizeComparison
-from deepchecks.errors import DeepchecksValueError
+from deepchecks.core import CheckResult, ConditionCategory
+from deepchecks.tabular.checks import DatasetsSizeComparison
 
 from tests.checks.utils import equal_condition_result
 

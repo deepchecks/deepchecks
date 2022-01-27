@@ -11,7 +11,7 @@
 from datetime import datetime
 from hamcrest import assert_that, calling, raises, matches_regexp, instance_of, equal_to
 
-from deepchecks.checks import ModelInfo
+from deepchecks.tabular.checks import ModelInfo
 from deepchecks.utils.strings import format_datetime, get_ellipsis, _generate_check_docs_link_html
 import deepchecks
 
