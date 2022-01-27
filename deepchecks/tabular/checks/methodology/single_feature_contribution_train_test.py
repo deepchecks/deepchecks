@@ -14,7 +14,7 @@ import numpy as np
 import plotly.graph_objects as go
 
 import deepchecks.ppscore as pps
-from deepchecks.tabular import TabularContext, TrainTestBaseCheck
+from deepchecks.tabular import Context, TrainTestBaseCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.utils.plot import colors
 from deepchecks.utils.typing import Hashable
@@ -60,7 +60,7 @@ class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
         self.ppscore_params = ppscore_params or {}
         self.n_show_top = n_show_top
 
-    def run_logic(self, context: TabularContext) -> CheckResult:
+    def run_logic(self, context: Context) -> CheckResult:
         """Run check.
 
         Returns

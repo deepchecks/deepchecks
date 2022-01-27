@@ -15,7 +15,7 @@ import numpy as np
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.core.errors import DatasetValidationError
-from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetBaseCheck
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_percent, format_list
 from deepchecks.utils.typing import Hashable
@@ -50,7 +50,7 @@ class DataDuplicates(SingleDatasetBaseCheck):
         self.ignore_columns = ignore_columns
         self.n_to_show = n_to_show
 
-    def run_logic(self, context: TabularContext, dataset_type: str = 'train'):
+    def run_logic(self, context: Context, dataset_type: str = 'train'):
         """Run check.
 
         Returns

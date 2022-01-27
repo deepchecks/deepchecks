@@ -11,7 +11,7 @@
 """Module contains is_single_value check."""
 from typing import Union, List
 
-from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetBaseCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.typing import Hashable
@@ -42,7 +42,7 @@ class IsSingleValue(SingleDatasetBaseCheck):
         self.columns = columns
         self.ignore_columns = ignore_columns
 
-    def run_logic(self, context: TabularContext, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
         Returns

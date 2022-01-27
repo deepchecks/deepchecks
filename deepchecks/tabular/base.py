@@ -31,9 +31,9 @@ from deepchecks.core.errors import (
 
 
 __all__ = [
-    'TabularContext',
+    'Context',
     'Suite',
-    'TabularCheck',
+    'Check',
     'SingleDatasetBaseCheck',
     'TrainTestBaseCheck',
     'ModelOnlyBaseCheck',
@@ -42,7 +42,7 @@ __all__ = [
 ]
 
 
-class TabularContext:
+class Context:
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
 
     Parameters
@@ -278,7 +278,7 @@ class TabularContext:
         return init_validate_scorers(single_scorer_dict, self.model, self.train, class_avg, self.task_type)[0]
 
 
-class TabularCheck(BaseCheck):
+class Check(BaseCheck):
     """Base class for all tabular checks."""
 
     def __init__(self):
@@ -288,27 +288,27 @@ class TabularCheck(BaseCheck):
         # Replace the run_logic function with wrapped run function
         setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
 
-    def run_logic(self, context: TabularContext, **kwargs) -> CheckResult:
+    def run_logic(self, context: Context, **kwargs) -> CheckResult:
         """Run check logic."""
         raise NotImplementedError()
 
 
-class SingleDatasetBaseCheck(TabularCheck):
+class SingleDatasetBaseCheck(Check):
     """Parent class for checks that only use one dataset."""
 
     def run(self, dataset, model=None) -> CheckResult:
         """Run check."""
         # By default, we initialize a single dataset as the "train"
-        c = TabularContext(dataset, model=model)
+        c = Context(dataset, model=model)
         return self.run_logic(c)
 
     @abc.abstractmethod
-    def run_logic(self, context: TabularContext, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check."""
         pass
 
 
-class TrainTestBaseCheck(TabularCheck):
+class TrainTestBaseCheck(Check):
     """Parent class for checks that compare two datasets.
 
     The class checks train dataset and test dataset for model training and test.
@@ -316,16 +316,16 @@ class TrainTestBaseCheck(TabularCheck):
 
     def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
         """Run check."""
-        c = TabularContext(train_dataset, test_dataset, model=model)
+        c = Context(train_dataset, test_dataset, model=model)
         return self.run_logic(c)
 
 
-class ModelOnlyBaseCheck(TabularCheck):
+class ModelOnlyBaseCheck(Check):
     """Parent class for checks that only use a model and no datasets."""
 
     def run(self, model) -> CheckResult:
         """Run check."""
-        return self.run_logic(TabularContext(model=model))
+        return self.run_logic(Context(model=model))
 
 
 class Suite(BaseSuite):
@@ -375,12 +375,12 @@ class Suite(BaseSuite):
         SuiteResult
             All results by all initialized checks
         """
-        context = TabularContext(train_dataset, test_dataset, model,
-                                 features_importance=features_importance,
-                                 feature_importance_force_permutation=feature_importance_force_permutation,
-                                 feature_importance_timeout=feature_importance_timeout,
-                                 scorers=scorers,
-                                 scorers_per_class=scorers_per_class)
+        context = Context(train_dataset, test_dataset, model,
+                          features_importance=features_importance,
+                          feature_importance_force_permutation=feature_importance_force_permutation,
+                          feature_importance_timeout=feature_importance_timeout,
+                          scorers=scorers,
+                          scorers_per_class=scorers_per_class)
         # Create progress bar
         progress_bar = ProgressBar(self.name, len(self.checks))
 
@@ -541,7 +541,7 @@ class ModelComparisonContext:
             test = test_datasets[i]
             model = list(models.values())[i]
             name = list(models.keys())[i]
-            context = TabularContext(train, test, model, model_name=name)
+            context = Context(train, test, model, model_name=name)
             if self.task_type is None:
                 self.task_type = context.task_type
             elif self.task_type != context.task_type:

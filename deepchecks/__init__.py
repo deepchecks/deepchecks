@@ -18,8 +18,8 @@ from deepchecks.utils.ipython import is_notebook
 from deepchecks.tabular import (
     Dataset,
     Suite,
-    TabularCheck,
-    TabularContext,
+    Check,
+    Context,
     SingleDatasetBaseCheck,
     TrainTestBaseCheck,
     ModelOnlyBaseCheck,
@@ -50,7 +50,7 @@ warnings.warn(
 __all__ = [
     'Dataset',
     'BaseCheck',
-    'TabularCheck',
+    'Check',
     'SingleDatasetBaseCheck',
     'TrainTestBaseCheck',
     'ModelOnlyBaseCheck',
@@ -64,7 +64,7 @@ __all__ = [
     'Suite',
     'SuiteResult',
     'ModelComparisonSuite',
-    'TabularContext'
+    'Context'
 ]
 
 

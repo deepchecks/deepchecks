@@ -13,7 +13,7 @@ from typing import List
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.tabular import TabularContext, TrainTestBaseCheck
+from deepchecks.tabular import Context, TrainTestBaseCheck
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
@@ -27,7 +27,7 @@ __all__ = ['TrainTestSamplesMix']
 class TrainTestSamplesMix(TrainTestBaseCheck):
     """Detect samples in the test data that appear also in training data."""
 
-    def run_logic(self, context: TabularContext) -> CheckResult:
+    def run_logic(self, context: Context) -> CheckResult:
         """Run check.
 
         Returns

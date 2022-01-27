@@ -15,7 +15,7 @@ from typing import Union, List
 
 import pandas as pd
 
-from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetBaseCheck
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
@@ -54,7 +54,7 @@ class StringMismatch(SingleDatasetBaseCheck):
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
 
-    def run_logic(self, context: TabularContext, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check."""
         if dataset_type == 'train':
             dataset = context.train

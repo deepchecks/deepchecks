@@ -12,7 +12,7 @@
 
 from typing import Dict
 
-from deepchecks.tabular import TabularContext, TrainTestBaseCheck
+from deepchecks.tabular import Context, TrainTestBaseCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 
@@ -47,7 +47,7 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
         super().__init__()
         self.max_num_categories = max_num_categories
 
-    def run_logic(self, context: TabularContext) -> CheckResult:
+    def run_logic(self, context: Context) -> CheckResult:
         """Calculate drift for all columns.
 
         Returns

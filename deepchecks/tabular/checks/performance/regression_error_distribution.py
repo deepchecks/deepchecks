@@ -14,7 +14,7 @@ import pandas as pd
 from scipy.stats import kurtosis
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
-from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetBaseCheck
 from deepchecks.utils.strings import format_number
 
 
@@ -42,7 +42,7 @@ class RegressionErrorDistribution(SingleDatasetBaseCheck):
         self.n_top_samples = n_top_samples
         self.n_bins = n_bins
 
-    def run_logic(self, context: TabularContext, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
         Returns

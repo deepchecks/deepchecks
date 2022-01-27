@@ -11,7 +11,7 @@
 """The index_leakage check module."""
 import pandas as pd
 
-from deepchecks.tabular import TabularContext, TrainTestBaseCheck
+from deepchecks.tabular import Context, TrainTestBaseCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.utils.strings import format_percent
 
@@ -32,7 +32,7 @@ class IndexTrainTestLeakage(TrainTestBaseCheck):
         super().__init__()
         self.n_index_to_show = n_index_to_show
 
-    def run_logic(self, context: TabularContext) -> CheckResult:
+    def run_logic(self, context: Context) -> CheckResult:
         """Run check.
 
         Returns

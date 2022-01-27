@@ -15,7 +15,7 @@ from typing import Union, List
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.tabular import TabularContext, TrainTestBaseCheck
+from deepchecks.tabular import Context, TrainTestBaseCheck
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.typing import Hashable
@@ -63,7 +63,7 @@ class StringMismatchComparison(TrainTestBaseCheck):
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
 
-    def run_logic(self, context: TabularContext) -> CheckResult:
+    def run_logic(self, context: Context) -> CheckResult:
         """Run check.
 
         Returns

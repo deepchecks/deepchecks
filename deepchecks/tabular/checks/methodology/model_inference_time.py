@@ -14,7 +14,7 @@ import timeit
 
 import numpy as np
 
-from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetBaseCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_number
@@ -42,7 +42,7 @@ class ModelInferenceTime(SingleDatasetBaseCheck):
             raise DeepchecksValueError('number_of_samples cannot be le than 0!')
         super().__init__()
 
-    def run_logic(self, context: TabularContext, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
         Returns

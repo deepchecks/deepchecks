@@ -14,7 +14,7 @@ from collections import OrderedDict
 from typing import Union, List, Dict
 
 from deepchecks.core import ConditionResult, CheckResult
-from deepchecks.tabular import TabularContext, TrainTestBaseCheck, Dataset
+from deepchecks.tabular import Context, TrainTestBaseCheck, Dataset
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.typing import Hashable
@@ -80,13 +80,13 @@ class TrainTestFeatureDrift(TrainTestBaseCheck):
         self.n_samples = n_samples
         self.random_state = random_state
 
-    def run_logic(self, context: TabularContext) -> CheckResult:
+    def run_logic(self, context: Context) -> CheckResult:
         """
         Calculate drift for all columns.
 
         Parameters
         ----------
-        context : TabularContext
+        context : Context
             The run context
 
         Returns

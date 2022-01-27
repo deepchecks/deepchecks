@@ -15,7 +15,7 @@ import plotly.graph_objects as go
 import numpy as np
 import sklearn
 
-from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetBaseCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.utils.strings import format_number
 
@@ -38,7 +38,7 @@ class RocReport(SingleDatasetBaseCheck):
         super().__init__()
         self.excluded_classes = excluded_classes or []
 
-    def run_logic(self, context: TabularContext, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
         Returns

@@ -13,7 +13,7 @@ from typing import Union, List, Dict
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.tabular import TabularContext, TrainTestBaseCheck
+from deepchecks.tabular import Context, TrainTestBaseCheck
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.dataframes import select_from_dataframe
@@ -50,7 +50,7 @@ class CategoryMismatchTrainTest(TrainTestBaseCheck):
         self.max_features_to_show = max_features_to_show
         self.max_new_categories_to_show = max_new_categories_to_show
 
-    def run_logic(self, context: TabularContext) -> CheckResult:
+    def run_logic(self, context: Context) -> CheckResult:
         """Run check.
 
         Returns

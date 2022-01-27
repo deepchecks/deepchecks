@@ -11,8 +11,8 @@
 """Package for tabular functionality."""
 from .dataset import Dataset
 from .base import (
-    TabularContext,
-    TabularCheck,
+    Context,
+    Check,
     Suite,
     SingleDatasetBaseCheck,
     TrainTestBaseCheck,
@@ -25,8 +25,8 @@ from .base import (
 
 __all__ = [
     "Dataset",
-    "TabularContext",
-    "TabularCheck",
+    "Context",
+    "Check",
     "SingleDatasetBaseCheck",
     "TrainTestBaseCheck",
     "ModelOnlyBaseCheck",

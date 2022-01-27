@@ -16,7 +16,7 @@ import plotly.express as px
 import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.errors import DatasetValidationError
-from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetBaseCheck
 from deepchecks.utils.strings import format_number
 
 
@@ -36,7 +36,7 @@ class IdentifierLeakage(SingleDatasetBaseCheck):
         super().__init__()
         self.ppscore_params = ppscore_params or {}
 
-    def run_logic(self, context: TabularContext, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
         Returns

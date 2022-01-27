@@ -11,7 +11,7 @@
 """Module contains columns_info check."""
 import pandas as pd
 
-from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetBaseCheck
 from deepchecks.core import CheckResult
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_dict
 
@@ -32,7 +32,7 @@ class ColumnsInfo(SingleDatasetBaseCheck):
         super().__init__()
         self.n_top_columns = n_top_columns
 
-    def run_logic(self, context: TabularContext, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
         Returns

@@ -21,7 +21,7 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular import TabularContext, TrainTestBaseCheck, Dataset
+from deepchecks.tabular import Context, TrainTestBaseCheck, Dataset
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.metrics import ModelType, get_gain
@@ -90,7 +90,7 @@ class SimpleModelComparison(TrainTestBaseCheck):
         self.max_depth = max_depth
         self.random_state = random_state
 
-    def run_logic(self, context: TabularContext) -> CheckResult:
+    def run_logic(self, context: Context) -> CheckResult:
         """Run check.
 
         Returns

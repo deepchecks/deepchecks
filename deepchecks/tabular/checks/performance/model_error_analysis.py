@@ -25,7 +25,7 @@ from sklearn import preprocessing
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.core.errors import DeepchecksProcessError
-from deepchecks.tabular import TabularContext, TrainTestBaseCheck, Dataset
+from deepchecks.tabular import Context, TrainTestBaseCheck, Dataset
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.metrics import ModelType
 from deepchecks.utils.plot import colors
@@ -115,7 +115,7 @@ class ModelErrorAnalysis(TrainTestBaseCheck):
         self.n_display_samples = n_display_samples
         self.random_state = random_seed
 
-    def run_logic(self, context: TabularContext) -> CheckResult:
+    def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
         train_dataset = context.train
         test_dataset = context.test

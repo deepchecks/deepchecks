@@ -14,7 +14,7 @@ import plotly.graph_objects as go
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
-from deepchecks.tabular import TabularContext, TrainTestBaseCheck
+from deepchecks.tabular import Context, TrainTestBaseCheck
 from deepchecks.utils.distribution.trust_score import TrustScore
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
 from deepchecks.utils.distribution.plot import feature_distribution_traces
@@ -75,7 +75,7 @@ class TrustScoreComparison(TrainTestBaseCheck):
         self.n_to_show = n_to_show
         self.percent_top_scores_to_hide = percent_top_scores_to_hide
 
-    def run_logic(self, context: TabularContext) -> CheckResult:
+    def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
         test_dataset = context.test
         train_dataset = context.train

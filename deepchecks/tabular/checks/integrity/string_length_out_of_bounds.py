@@ -18,7 +18,7 @@ from pandas import DataFrame, Series
 from scipy import stats
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
-from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetBaseCheck
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df, is_categorical
 from deepchecks.utils.strings import is_string_column, format_number, format_percent
 from deepchecks.utils.dataframes import select_from_dataframe
@@ -92,7 +92,7 @@ class StringLengthOutOfBounds(SingleDatasetBaseCheck):
         self.outlier_length_to_show = outlier_length_to_show
         self.samples_per_range_to_show = samples_per_range_to_show
 
-    def run_logic(self, context: TabularContext, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check."""
         if dataset_type == 'train':
             dataset = context.train

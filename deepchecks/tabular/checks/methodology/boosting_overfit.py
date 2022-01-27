@@ -18,7 +18,7 @@ import numpy as np
 
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError, ModelValidationError
-from deepchecks.tabular import TabularContext, TrainTestBaseCheck
+from deepchecks.tabular import Context, TrainTestBaseCheck
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.model import get_model_of_pipeline
 
@@ -150,7 +150,7 @@ class BoostingOverfit(TrainTestBaseCheck):
         if not isinstance(self.num_steps, int) or self.num_steps < 2:
             raise DeepchecksValueError('num_steps must be an integer larger than 1')
 
-    def run_logic(self, context: TabularContext) -> CheckResult:
+    def run_logic(self, context: Context) -> CheckResult:
         """Run check.
 
         Returns

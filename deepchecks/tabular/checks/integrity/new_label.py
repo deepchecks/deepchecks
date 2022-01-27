@@ -13,7 +13,7 @@ from typing import Dict
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.tabular import TabularContext, TrainTestBaseCheck
+from deepchecks.tabular import Context, TrainTestBaseCheck
 from deepchecks.utils.strings import format_percent
 
 
@@ -26,7 +26,7 @@ __all__ = ['NewLabelTrainTest']
 class NewLabelTrainTest(TrainTestBaseCheck):
     """Find new labels in test."""
 
-    def run_logic(self, context: TabularContext) -> CheckResult:
+    def run_logic(self, context: Context) -> CheckResult:
         """Run check.
 
         Returns

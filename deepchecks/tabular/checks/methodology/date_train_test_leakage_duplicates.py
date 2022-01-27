@@ -12,7 +12,7 @@
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.tabular import TabularContext, TrainTestBaseCheck
+from deepchecks.tabular import Context, TrainTestBaseCheck
 from deepchecks.utils.strings import format_percent, format_datetime
 
 
@@ -32,7 +32,7 @@ class DateTrainTestLeakageDuplicates(TrainTestBaseCheck):
         super().__init__()
         self.n_to_show = n_to_show
 
-    def run_logic(self, context: TabularContext) -> CheckResult:
+    def run_logic(self, context: Context) -> CheckResult:
         """Run check.
 
         Returns

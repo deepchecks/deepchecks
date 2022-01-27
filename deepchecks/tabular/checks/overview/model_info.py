@@ -11,7 +11,7 @@
 """Module contains model_info check."""
 import pandas as pd
 
-from deepchecks.tabular import TabularContext, ModelOnlyBaseCheck
+from deepchecks.tabular import Context, ModelOnlyBaseCheck
 from deepchecks.core import CheckResult
 from deepchecks.utils.model import get_model_of_pipeline
 
@@ -22,7 +22,7 @@ __all__ = ['ModelInfo']
 class ModelInfo(ModelOnlyBaseCheck):
     """Summarize given model parameters."""
 
-    def run_logic(self, context: TabularContext) -> CheckResult:
+    def run_logic(self, context: Context) -> CheckResult:
         """Run check.
 
         Returns

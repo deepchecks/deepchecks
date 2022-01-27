@@ -14,7 +14,7 @@ from typing import Callable, Union, Optional, List, cast, Tuple
 import numpy as np
 import plotly.figure_factory as ff
 
-from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck, Dataset
+from deepchecks.tabular import Context, SingleDatasetBaseCheck, Dataset
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
 from deepchecks.utils.performance.partition import partition_column
@@ -68,7 +68,7 @@ class SegmentPerformance(SingleDatasetBaseCheck):
         self.max_segments = max_segments
         self.user_scorer = dict([alternative_scorer]) if alternative_scorer else None
 
-    def run_logic(self, context: TabularContext, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check."""
         if dataset_type == 'train':
             dataset = context.train

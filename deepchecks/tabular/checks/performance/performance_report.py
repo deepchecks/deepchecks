@@ -15,7 +15,7 @@ import plotly.express as px
 
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular import TabularContext, ModelComparisonContext, TrainTestBaseCheck, ModelComparisonCheck
+from deepchecks.tabular import Context, ModelComparisonContext, TrainTestBaseCheck, ModelComparisonCheck
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, ModelType
 
@@ -69,7 +69,7 @@ class PerformanceReport(TrainTestBaseCheck):
         super().__init__()
         self.user_scorers = alternative_scorers
 
-    def run_logic(self, context: TabularContext) -> CheckResult:
+    def run_logic(self, context: Context) -> CheckResult:
         """Run check.
 
         Returns

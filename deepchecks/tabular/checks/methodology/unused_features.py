@@ -22,7 +22,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import RobustScaler, OrdinalEncoder
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
-from deepchecks.tabular import TabularContext, TrainTestBaseCheck, Dataset
+from deepchecks.tabular import Context, TrainTestBaseCheck, Dataset
 from deepchecks.utils.typing import BasicModel
 
 
@@ -98,12 +98,12 @@ class UnusedFeatures(TrainTestBaseCheck):
             If neither train dataset nor test dataset exist, or either of the dataset objects are
             not a Dataset instance with a label.
         """
-        c = TabularContext(train_dataset, test_dataset, model,
-                           feature_importance_force_permutation=feature_importance_force_permutation,
-                           feature_importance_timeout=feature_importance_timeout)
+        c = Context(train_dataset, test_dataset, model,
+                    feature_importance_force_permutation=feature_importance_force_permutation,
+                    feature_importance_timeout=feature_importance_timeout)
         return self.run_logic(c)
 
-    def run_logic(self, context: TabularContext) -> CheckResult:
+    def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
         if context.have_test():
             dataset = context.test

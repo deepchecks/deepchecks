@@ -13,7 +13,7 @@ import typing as t
 
 import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetBaseCheck
 from deepchecks.utils.plot import create_colorbar_barchart_for_check
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.strings import format_number
@@ -52,7 +52,7 @@ class SingleFeatureContribution(SingleDatasetBaseCheck):
         self.ppscore_params = ppscore_params or {}
         self.n_show_top = n_show_top
 
-    def run_logic(self, context: TabularContext, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
         Returns

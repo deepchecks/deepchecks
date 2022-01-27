@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.tabular import TabularContext, TrainTestBaseCheck, Dataset
+from deepchecks.tabular import Context, TrainTestBaseCheck, Dataset
 from deepchecks.utils.distribution.plot import feature_distribution_traces, drift_score_bar_traces
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none
 from deepchecks.utils.strings import format_percent, format_number
@@ -91,7 +91,7 @@ class WholeDatasetDrift(TrainTestBaseCheck):
         self.random_state = random_state
         self.test_size = test_size
 
-    def run_logic(self, context: TabularContext) -> CheckResult:
+    def run_logic(self, context: Context) -> CheckResult:
         """Run check.
 
         Returns

@@ -14,7 +14,7 @@ from typing import Union, List
 import pandas as pd
 
 from deepchecks.core import ConditionResult, CheckResult
-from deepchecks.tabular import TabularContext, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetBaseCheck
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
@@ -48,7 +48,7 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
         self.ignore_columns = ignore_columns
         self.n_to_show = n_to_show
 
-    def run_logic(self, context: TabularContext, dataset_type: str = 'train') -> CheckResult:
+    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
         """Run check.
 
         Returns
