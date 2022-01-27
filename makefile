@@ -157,7 +157,7 @@ test-win:
 	test -d $(WIN_ENV) || python -m venv $(WIN_ENV)
 	$(WIN_ENV)\Scripts\activate.bat
 	$(PIP_WIN) $(INSTALLATION_PKGS)
-	for f in $(REQUIREMENTS); do \
+	for f in requirements/requirements.txt; do \
 	$(PIP_WIN) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
 	done
 	$(PIP_WIN) install $(TEST_RUNNER_PKGS)
