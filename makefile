@@ -54,7 +54,7 @@ SOURCES := $(or $(PACKAGE), $(wildcard *.py))
 # Installation packages
 INSTALLATION_PKGS = wheel setuptools
 
-REQUIREMENTS := $(shell find ./requirements/ -name $(REQUIRE))
+REQUIREMENTS := $(shell find . -name $(REQUIRE))
 REQUIREMENTS_LOG := .requirements.log
 
 # Test and Analyize
@@ -304,9 +304,8 @@ $(TWINE): $(PIP)
 ### Documentation
 .PHONY: docs website dev-docs gen-static-notebooks license-check links-check lychee-bin
 
-
 docs: env $(DOCS_SRC)
-	@cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS) 2> docs.error.log
+	cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS) 2> docs.error.log
 	@echo ""
 	@echo "++++++++++++++++++++++++"
 	@echo "++++ Build Finished ++++"
