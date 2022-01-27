@@ -54,7 +54,7 @@ SOURCES := $(or $(PACKAGE), $(wildcard *.py))
 # Installation packages
 INSTALLATION_PKGS = wheel setuptools
 
-REQUIREMENTS := $(shell find . -name $(REQUIRE))
+REQUIREMENTS := $(shell find ./requirements/ -name $(REQUIRE))
 REQUIREMENTS_LOG := .requirements.log
 
 # Test and Analyize
@@ -64,7 +64,7 @@ TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval coveralls
 NOTEBOOK_CHECKS = ./docs/source/examples/checks
 NOTEBOOK_EXAMPLES = ./docs/source/examples/guides/*.ipynb
 NOTEBOOK_USECASES = ./docs/source/examples/use-cases/*.ipynb
-NOTEBOOK_SANITIZER_FILE= ./docs/source/examples/.nbval-sanitizer
+NOTEBOOK_SANITIZER_FILE = ./docs/source/examples/.nbval-sanitizer
 
 PYLINT_LOG = .pylint.log
 
@@ -157,8 +157,8 @@ test-win:
 	test -d $(WIN_ENV) || python -m venv $(WIN_ENV)
 	$(WIN_ENV)\Scripts\activate.bat
 	$(PIP_WIN) $(INSTALLATION_PKGS)
-	for f in $(REQUIRE); do \
-	 $(PIP_WIN) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
+	for f in $(REQUIREMENTS); do \
+	$(PIP_WIN) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
 	done
 	$(PIP_WIN) install $(TEST_RUNNER_PKGS)
 	python -m pytest $(WIN_TESTDIR)
