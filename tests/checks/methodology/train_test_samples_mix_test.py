@@ -16,9 +16,9 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from hamcrest import assert_that, calling, raises, equal_to, has_items, has_entry
 
-from deepchecks.base import Dataset
-from deepchecks.errors import DeepchecksValueError
-from deepchecks.checks.methodology import TrainTestSamplesMix
+from deepchecks.tabular import Dataset
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.tabular.checks.methodology import TrainTestSamplesMix
 from tests.checks.utils import equal_condition_result
 
 

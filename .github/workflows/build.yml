@@ -78,7 +78,9 @@ jobs:
         python-version: '3.7'
     - name: Get explicit and transitive dependencies
       run: |
-        pip install -r requirements.txt
+        pip install -r requirements/requirements.txt
+        pip install -r requirements/vision-requirements.txt
+        pip install -r requirements/nlp-requirements.txt
         pip freeze > requirements-all.txt
     - name: Check python
       id: license_check_report

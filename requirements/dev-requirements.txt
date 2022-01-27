@@ -1,0 +1,17 @@
+wheel 
+setuptools
+twine
+
+pylint
+pydocstyle 
+flake8 
+flake8-spellcheck 
+flake8-eradicate 
+flake8-rst
+
+pytest 
+pytest-cov 
+pyhamcrest 
+nbval 
+coveralls
+tox

@@ -9,6 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing utilities for checks working with metrics."""
+
+# TODO: move tabular functionality to the tabular sub-package
+
 import typing as t
 import enum
 import warnings
@@ -19,8 +22,8 @@ from sklearn.metrics import get_scorer, make_scorer, f1_score, precision_score, 
 from sklearn.base import ClassifierMixin, BaseEstimator
 
 
-from deepchecks import base  # pylint: disable=unused-import; it is used for type annotations
-from deepchecks import errors
+from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
+from deepchecks.core import errors
 from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.simple_models import PerfectModel
 from deepchecks.utils.typing import BasicModel, ClassificationModel
@@ -115,7 +118,7 @@ class DeepcheckScorer:
             raise errors.DeepchecksValueError(message)
 
     @classmethod
-    def filter_nulls(cls, dataset: 'base.Dataset'):
+    def filter_nulls(cls, dataset: 'tabular.Dataset'):
         """Return data of dataset without null labels."""
         valid_idx = dataset.data[dataset.label_name].notna()
         return dataset.data[valid_idx]
@@ -123,14 +126,14 @@ class DeepcheckScorer:
     def _run_score(self, model, dataframe, dataset):
         return self.scorer(model, dataframe[dataset.features], dataframe[dataset.label_name])
 
-    def __call__(self, model, dataset: 'base.Dataset'):
+    def __call__(self, model, dataset: 'tabular.Dataset'):
         """Run score with labels null filtering."""
         dataset.assert_features()
         dataset.assert_label()
         df = self.filter_nulls(dataset)
         return self._run_score(model, df, dataset)
 
-    def score_perfect(self, dataset: 'base.Dataset'):
+    def score_perfect(self, dataset: 'tabular.Dataset'):
         """Calculate the perfect score of the current scorer for given dataset."""
         dataset.assert_label()
         dataset.assert_features()
@@ -146,7 +149,7 @@ class DeepcheckScorer:
             return first_score
         return score
 
-    def validate_fitting(self, model, dataset: 'base.Dataset', should_return_array: bool):
+    def validate_fitting(self, model, dataset: 'tabular.Dataset', should_return_array: bool):
         """Validate given scorer for the model and dataset."""
         dataset.assert_label()
         dataset.assert_features()
@@ -186,7 +189,7 @@ class DeepcheckScorer:
 
 def task_type_check(
     model: BasicModel,
-    dataset: 'base.Dataset'
+    dataset: 'tabular.Dataset'
 ) -> ModelType:
     """Check task type (regression, binary, multiclass) according to model object and label column.
 
@@ -194,7 +197,7 @@ def task_type_check(
     ----------
     model : BasicModel
         Model object - used to check if it has predict_proba()
-    dataset : base.Dataset
+    dataset : tabular.Dataset
         dataset - used to count the number of unique labels
 
     Returns
@@ -253,7 +256,7 @@ def get_default_scorers(model_type, class_avg: bool = True):
 
 def init_validate_scorers(scorers: t.Mapping[str, t.Union[str, t.Callable]],
                           model: BasicModel,
-                          dataset: 'base.Dataset',
+                          dataset: 'tabular.Dataset',
                           class_avg: bool = True,
                           model_type=None) -> t.List[DeepcheckScorer]:
     """Initialize scorers and return all of them as deepchecks scorers.

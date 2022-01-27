@@ -13,9 +13,9 @@ import numpy as np
 import pandas as pd
 from hamcrest import assert_that, is_in, close_to, calling, raises, has_items
 
-from deepchecks import Dataset
-from deepchecks.checks.methodology.identifier_leakage import IdentifierLeakage
-from deepchecks.errors import DeepchecksValueError, DatasetValidationError, DeepchecksNotSupportedError
+from deepchecks.tabular import Dataset
+from deepchecks.tabular.checks.methodology.identifier_leakage import IdentifierLeakage
+from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError, DeepchecksNotSupportedError
 
 from tests.checks.utils import equal_condition_result
 

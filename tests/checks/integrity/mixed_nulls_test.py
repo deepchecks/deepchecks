@@ -14,9 +14,9 @@ import pandas as pd
 
 from hamcrest import assert_that, has_length, has_entry, has_items, calling, raises
 
-from deepchecks import Dataset
-from deepchecks.checks.integrity.mixed_nulls import MixedNulls
-from deepchecks.errors import DatasetValidationError
+from deepchecks.tabular import Dataset
+from deepchecks.tabular.checks.integrity.mixed_nulls import MixedNulls
+from deepchecks.core.errors import DatasetValidationError
 from tests.checks.utils import equal_condition_result
 
 

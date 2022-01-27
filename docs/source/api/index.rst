@@ -7,20 +7,14 @@ Here you can see the api reference.
     :caption: API Reference
     :hidden:
 
-    base
-    checks
-    datasets
-    suites
+    core
+    tabular
     utils
-    errors
 
 .. currentmodule:: deepchecks
 
 .. autosummary::
-
-    base
-    checks
-    datasets
-    suites
+    
+    core
+    tabular
     utils
-    errors
