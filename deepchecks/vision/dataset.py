@@ -8,7 +8,6 @@ from torch import cat
 import logging
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.typing import Hashable
 
 logger = logging.getLogger('deepchecks')
 
@@ -55,7 +54,7 @@ class VisionDataset:
         if self._samples_per_class is None:
             if self.label_type == TaskType.CLASSIFICATION.value:
                 counter = Counter()
-                for i in range(len(self._data)):
+                for _ in range(len(self._data)):
                     counter.update(self.label_transformer(next(iter(self._data))[1]))
                 self._samples_per_class = counter
             elif self.label_type == TaskType.OBJECT_DETECTION.value:
@@ -75,7 +74,7 @@ class VisionDataset:
 
     def extract_label(self):
         y = []
-        for i in range(len(self._data)):
+        for _ in range(len(self._data)):
             y.append(self.label_transformer(next(iter(self._data))[1]))
         return cat(y, 0)
 

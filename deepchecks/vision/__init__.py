@@ -6,13 +6,10 @@ from .base import (
     Suite,
     SingleDatasetBaseCheck,
     TrainTestBaseCheck,
-    ModelOnlyBaseCheck,
-    ModelComparisonContext,
-    ModelComparisonCheck,
-    ModelComparisonSuite
+    ModelOnlyBaseCheck
 )
 
-logger = logging.getLogger('deepchecks')
+logger = logging.getLogger("deepchecks")
 
 try:
     import torch
@@ -26,8 +23,5 @@ __all__ = [
     "SingleDatasetBaseCheck",
     "TrainTestBaseCheck",
     "ModelOnlyBaseCheck",
-    "Suite",
-    "ModelComparisonContext",
-    "ModelComparisonCheck",
-    "ModelComparisonSuite",
+    "Suite"
 ]

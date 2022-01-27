@@ -13,14 +13,13 @@
 # pylint: disable=broad-except
 import abc
 from collections import OrderedDict
-from typing import Callable, Union, Tuple, Mapping, List, Optional, Any
+from typing import Tuple, Mapping, Optional
 
 from ignite.metrics import Metric
 from torch import nn
 
 from deepchecks.vision.utils.validation import model_type_validation
-from deepchecks.vision.utils.metrics import TaskType, task_type_check, get_default_classification_scorers, \
-                                            get_default_object_detection_scorers
+from deepchecks.vision.utils.metrics import TaskType, task_type_check
 from deepchecks.core.check import CheckResult, BaseCheck, CheckFailure, wrap_run
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar

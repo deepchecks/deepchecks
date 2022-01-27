@@ -1,8 +1,7 @@
 import os.path
 
-import torch.nn as nn
+from torch import nn
 import torch.nn.functional as F
-import torch.optim as optim
 import torch
 import torchvision
 

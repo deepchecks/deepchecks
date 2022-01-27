@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing performance report check."""
-from typing import Callable, TypeVar, Dict, cast, List
+from typing import Callable, TypeVar, List
 import pandas as pd
 import plotly.express as px
 from ignite.metrics import Metric

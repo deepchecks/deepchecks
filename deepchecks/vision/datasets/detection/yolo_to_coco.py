@@ -1,5 +1,6 @@
 import json
-import os, os.path as osp
+import os
+import os.path as osp
 from typing import Sequence, Optional, Union
 import datetime
 import cv2
@@ -9,20 +10,20 @@ import uuid
 
 YOLO_PATH = "/Users/nirbenzvi/code/DeepChecks/coco128"
 # Complete this by putting COCO labels
-CATEGORIES = ('person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
-               'train', 'truck', 'boat', 'traffic light', 'fire hydrant',
-               'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog',
-               'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe',
-               'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee',
-               'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat',
-               'baseball glove', 'skateboard', 'surfboard', 'tennis racket',
-               'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl',
-               'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot',
-               'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch',
-               'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop',
-               'mouse', 'remote', 'keyboard', 'cell phone', 'microwave',
-               'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock',
-               'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush')
+CATEGORIES = ("person", "bicycle", "car", "motorcycle", "airplane", "bus",
+              "train", "truck", "boat", "traffic light", "fire hydrant",
+              "stop sign", "parking meter", "bench", "bird", "cat", "dog",
+              "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe",
+              "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
+              "skis", "snowboard", "sports ball", "kite", "baseball bat",
+              "baseball glove", "skateboard", "surfboard", "tennis racket",
+              "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl",
+              "banana", "apple", "sandwich", "orange", "broccoli", "carrot",
+              "hot dog", "pizza", "donut", "cake", "chair", "couch",
+              "potted plant", "bed", "dining table", "toilet", "tv", "laptop",
+              "mouse", "remote", "keyboard", "cell phone", "microwave",
+              "oven", "toaster", "sink", "refrigerator", "book", "clock",
+              "vase", "scissors", "teddy bear", "hair drier", "toothbrush")
 
 
 class YoloParser:
@@ -30,14 +31,14 @@ class YoloParser:
         if isinstance(category_list, (list, dict, tuple)):
             self._categories = category_list
         else:
-            with open(category_list, 'r') as fid:
+            with open(category_list, "r") as fid:
                 self._categories = fid.readlines()
         self._annotations = []
         self._images = []
 
     def parse_label_file(self, full_label_path: str):
         labels = []
-        with open(full_label_path, 'r') as fid:
+        with open(full_label_path, "r") as fid:
             for line in fid:
                 labels.append(list(map(float, line.split(" "))))
         return np.array(labels)
@@ -69,12 +70,12 @@ class YoloParser:
                         "width": w,
                         "height": h,
                         "file_name": full_img_path,
-                        "date_captured": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")},
+                        "date_captured": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
             self._images.append(img_dict)
             for l in labels:
                 bbox = l[1:].tolist()
                 category_id = int(l[0])
-                # annotation ID doesn't really matter so we use running index
+                # annotation ID doesn"t really matter so we use running index
                 img_ann = {"id": len(self._annotations),
                            "category_id": category_id,
                            "iscrowd": 0,
@@ -124,12 +125,13 @@ class YoloParser:
         if isinstance(self._categories, dict):
             coco_json["categories"] = self._categories
         else:
-            coco_json["categories"] = [{"id": idx, "supercategory": c, "name": c} for idx, c in enumerate(self._categories)]
-        with open(output_path, 'w') as fid:
+            coco_json["categories"] = [{"id": idx, "supercategory": c, "name": c}
+                                       for idx, c in enumerate(self._categories)]
+        with open(output_path, "w") as fid:
             json.dump(coco_json, fid, indent=4, sort_keys=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = YoloParser()
     parser.parse_yolo_dir(YOLO_PATH)
     parser.save_coco_json("./coco_128.json")

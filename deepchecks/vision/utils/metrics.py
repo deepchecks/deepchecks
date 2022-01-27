@@ -1,16 +1,14 @@
-import enum
 import typing as t
 
-import torch
 from ignite.engine import Engine
+from ignite.metrics import Precision, Recall, Metric
+
 from torch import nn
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.vision.utils import validation
 from deepchecks.vision import VisionDataset
 from deepchecks.utils.typing import BasicModel
-from ignite.metrics import Precision, Recall, IoU, mIoU, Metric, ConfusionMatrix
-from .accuracy_multiclass import Accuracy
 
 __all__ = [
     'task_type_check'
@@ -21,23 +19,16 @@ from .detection_precision_recall import DetectionPrecisionRecall
 from deepchecks.vision.dataset import TaskType
 
 
-def get_default_classification_scorers(n_classes: int):
+def get_default_classification_scorers():
     return {
         'Precision': Precision(),
         'Recall': Recall()
     }
 
 
-def get_default_object_detection_scorers(n_classes: int):
+def get_default_object_detection_scorers():
     return {
         'mAP': DetectionPrecisionRecall()
-    }
-
-
-def get_default_semantic_segmentation_scorers(n_classes: int):
-    return {
-        'IoU': IoU(ConfusionMatrix(num_classes=n_classes)),
-        'mIoU': mIoU(ConfusionMatrix(num_classes=n_classes))
     }
 
 
@@ -61,9 +52,7 @@ def task_type_check(
 def get_scorers_list(
         model,
         dataset: VisionDataset,
-        n_classes: int,
         alternative_scorers: t.List[Metric] = None,
-        multiclass_avg: bool = True
 ) -> t.Dict[str, Metric]:
     task_type = task_type_check(model, dataset)
 
@@ -71,14 +60,14 @@ def get_scorers_list(
         # Validate that each alternative scorer is a correct type
         for met in alternative_scorers:
             if not isinstance(met, Metric):
-                raise DeepchecksValueError("alternative_scorers should contain metrics of type ignite.Metric")
+                raise DeepchecksValueError('alternative_scorers should contain metrics of type ignite.Metric')
         scorers = alternative_scorers
     elif task_type == TaskType.CLASSIFICATION:
-        scorers = get_default_classification_scorers(n_classes)
+        scorers = get_default_classification_scorers()
     elif task_type == TaskType.OBJECT_DETECTION:
-        scorers = get_default_object_detection_scorers(n_classes)
+        scorers = get_default_object_detection_scorers()
     elif task_type == TaskType.SEMANTIC_SEGMENTATION:
-        scorers = get_default_object_detection_scorers(n_classes)
+        scorers = get_default_object_detection_scorers()
     else:
         raise DeepchecksNotSupportedError(f'No scorers match task_type {task_type}')
 
@@ -98,15 +87,15 @@ def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn
     """
 
     def process_function(_, batch):
-        X = batch[0]
-        Y = dataset.label_transformer(batch[1])
+        images = batch[0]
+        label = dataset.label_transformer(batch[1])
 
-        predictions = model.forward(X)
+        predictions = model.forward(images)
 
         if prediction_extract:
             predictions = prediction_extract(predictions)
 
-        return predictions, Y
+        return predictions, label
 
     engine = Engine(process_function)
     for metric in metrics:
