@@ -1,6 +1,7 @@
 from copy import copy
 from enum import Enum
 from collections import Counter
+from typing import Callable
 
 from torch.utils.data import DataLoader
 from torch import cat
@@ -26,8 +27,15 @@ class VisionDataset:
 
     _data: DataLoader = None
 
-    def __init__(self, data_loader: DataLoader, num_classes: int = None, label_type: str = None):
+    def __init__(self, data_loader: DataLoader, num_classes: int = None, label_type: str = None,
+                 label_transformer: Callable = None):
         self._data = data_loader
+
+        if label_transformer is None:
+            self.label_transformer = lambda x: x
+        else:
+            self.label_transformer = label_transformer
+
         if label_type is not None:
             self.label_type = label_type
         else:
@@ -48,14 +56,14 @@ class VisionDataset:
             if self.label_type == TaskType.CLASSIFICATION.value:
                 counter = Counter()
                 for i in range(len(self._data)):
-                    counter.update(next(iter(self._data))[1].tolist())
+                    counter.update(self.label_transformer(next(iter(self._data))[1]))
                 self._samples_per_class = counter
             elif self.label_type == TaskType.OBJECT_DETECTION.value:
                 # Assume next(iter(self._data))[1] is a list (per sample) of numpy arrays (rows are bboxes) with the
                 # first column in the array representing class
                 counter = Counter()
                 for i in range(len(self._data)):
-                    list_of_arrays = next(iter(self._data))[1]
+                    list_of_arrays = self.label_transformer(next(iter(self._data))[1])
                     class_list = sum([arr.reshape((-1, 5))[:, 0].tolist() for arr in list_of_arrays], [])
                     counter.update(class_list)
                 self._samples_per_class = counter
@@ -68,7 +76,7 @@ class VisionDataset:
     def extract_label(self):
         y = []
         for i in range(len(self._data)):
-            y.append(next(iter(self._data))[1])
+            y.append(self.label_transformer(next(iter(self._data))[1]))
         return cat(y, 0)
 
     def infer_label_type(self):
@@ -90,7 +98,7 @@ class VisionDataset:
         self.validate_label()
 
         # Assuming the dataset contains a tuple of (features, label)
-        return next(iter(self._data))[1][0].shape  # first argument is batch_size
+        return self.label_transformer(next(iter(self._data))[1])[0].shape  # first argument is batch_size
 
     def __iter__(self):
         return iter(self._data)
