@@ -42,7 +42,7 @@ def test_model_wrong_input(iris_labeled_dataset):
     assert_that(
         calling(PerformanceReport().run).with_args(iris_labeled_dataset, iris_labeled_dataset,bad_model),
         raises(
-            ModelValidationError, 
+            ModelValidationError,
             r'Model supplied does not meets the minimal interface requirements. Read more about .*')
     )
 

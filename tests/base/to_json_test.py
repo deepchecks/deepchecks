@@ -27,7 +27,7 @@ def test_check_full_suite_not_failing(iris_split_dataset_and_model):
 def test_check_metadata(iris_dataset):
     check_res = ColumnsInfo(n_top_columns=4).run(iris_dataset)
     json_res = jsonpickle.loads(check_res.to_json())
-    assert_that(json_res['value'], equal_to({'sepal length (cm)': 'numerical feature', 
+    assert_that(json_res['value'], equal_to({'sepal length (cm)': 'numerical feature',
                                             'sepal width (cm)': 'numerical feature',
                                             'petal length (cm)': 'numerical feature',
                                             'petal width (cm)': 'numerical feature',

@@ -45,12 +45,11 @@ Check Demonstrations
 
     <h4>Tabular</h4>
 
-- :doc:`checks/distribution/index`
-- :doc:`checks/integrity/index`
-- :doc:`checks/methodology/index`
-- :doc:`checks/performance/index`
-- :doc:`checks/overview/index`
-
+- :doc:`checks/tabular/distribution/index`
+- :doc:`checks/tabular/integrity/index`
+- :doc:`checks/tabular/methodology/index`
+- :doc:`checks/tabular/performance/index`
+- :doc:`checks/tabular/overview/index`
 
 .. toctree::
     :maxdepth: 3
@@ -59,5 +58,4 @@ Check Demonstrations
     :hidden:
 
     checks/tabular
-    
-    
+

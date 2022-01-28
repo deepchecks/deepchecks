@@ -41,7 +41,7 @@ def test_multiclass_model(iris_split_dataset_and_model):
     assert_that(
         calling(RegressionSystematicError().run).with_args(test, clf),
         raises(
-            ModelValidationError, 
+            ModelValidationError,
             r'Check is relevant for models of type '
             r'\[\'regression\'\], but received model of type \'multiclass\'')
     )
@@ -87,7 +87,7 @@ def test_condition_error_ratio_not_greater_than_passed(diabetes_split_dataset_an
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                name='Bias ratio is not greater than 0.01')
-    )) 
+    ))
 
 
 def test_condition_error_ratio_not_greater_than_not_passed_0_max(diabetes_split_dataset_and_model):

@@ -88,18 +88,44 @@ def get_docs_summary(obj):
 
 def _generate_check_docs_link_html(check):
     """Create from check object a link to its example page in the docs."""
-    if isinstance(check, core.BaseCheck):
-        # Get the python path of the check
-        module_path = check.__class__.__module__
-        # Transform into html path, dropping the first item which is 'deepchecks'
-        path_parts = [it for it in module_path.split('.') if it != 'tabular']
-        check_html_path = '/'.join(path_parts[1:])
-        # In case couldn't load version direct user to stable
-        version = deepchecks.__version__ or 'stable'
-        html_template = ('https://docs.deepchecks.com/en/{}/examples/{}.html?utm_source=display_output'
-                         '&utm_medium=referral&utm_campaign=check_link')
-        return f' <a href="{html_template.format(version, check_html_path)}" target="_blank">Read More...</a>'
-    return ''
+    if not isinstance(check, core.BaseCheck):
+        return ''
+
+    module_path = type(check).__module__
+
+    # NOTE:
+    # it is better to import deepchecks.tabular.checks, deepchecks.vision.checks
+    # to be sure that those packages actually exists and we are using right names,
+    # but we do not know with what set of extra dependencies deepchecks was
+    # installed, therefore we do not want to cause ImportError.
+    # Refer to the setup.py for more understanding
+
+    if not (
+        module_path.startswith('deepchecks.tabular.checks')
+        or module_path.startswith('deepchecks.vision.checks')
+    ):
+        # not builtin check, cannot generate link to the docs
+        return ''
+
+    link_template = (
+        'https://docs.deepchecks.com/en/{version}/examples/{path}.html'
+        '?utm_source=display_output&utm_medium=referral'
+        '&utm_campaign=check_link'
+    )
+
+    # compare check full name and link to the notebook to
+    # understand how link is formatted:
+    #
+    # - deepchecks.tabular.checks.integrity.new_category.CategoryMismatchTrainTest
+    # - docs.deepchecks.com/en/{version}/examples/checks/tabular/integrity/category_mismatch_train_test.html # noqa: E501 # pylint: disable=line-too-long
+
+    module_path = module_path.split('.')
+    check_name = to_snake_case(type(check).__name__).lower()
+    path_parts = [it for it in module_path if it != 'deepchecks']
+    url = '/'.join([path_parts[1], path_parts[0], *path_parts[2:-1], check_name])
+    version = deepchecks.__version__ or 'stable'
+    link = link_template.format(version=version, path=url)
+    return f' <a href="{link}" target="_blank">Read More...</a>'
 
 
 def get_random_string(n: int = 5):
