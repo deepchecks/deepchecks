@@ -200,12 +200,13 @@ notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 # deepchecks in development mode
 	$(PIP) install --no-deps -e .
 # Making sure the examples are running, without validating their outputs.
-	$(JUPYTER) nbconvert --execute $(NOTEBOOK_EXAMPLES) --to notebook --stdout > /dev/null
-	$(JUPYTER) nbconvert --execute $(NOTEBOOK_USECASES) --to notebook --stdout > /dev/null
-
+	@NOTEBOOKS=$$(find ./docs/source/examples -name "*.ipynb") \
+	&& N_OF_NOTEBOOKS=$$(find ./docs/source/examples -name "*.ipynb" | wc -l) \
+	&& echo "+++ Number of notebooks to execute: $$N_OF_NOTEBOOKS +++" \
+	&& $(JUPYTER) nbconvert --execute $$NOTEBOOKS --to notebook --stdout > /dev/null
 # For now, because of plotly - disabling the nbval and just validate that the notebooks are running
-	$(JUPYTER) nbconvert --execute $(NOTEBOOK_CHECKS)/**/*.ipynb --to notebook --stdout > /dev/null
 #	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_CHECKS) --sanitize-with $(NOTEBOOK_SANITIZER_FILE)
+
 $(TEST_RUNNER):
 	$(PIP) install $(TEST_RUNNER_PKGS) | tee -a $(REQUIREMENTS_LOG)
 
