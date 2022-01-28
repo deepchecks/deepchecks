@@ -99,10 +99,10 @@ def _generate_check_docs_link_html(check):
     # but we do not know with what set of extra dependencies deepchecks was
     # installed, therefore we do not want to cause ImportError.
     # Refer to the setup.py for more understanding
-    
+
     if not (
-        module_path.startswith("deepchecks.tabular.checks")
-        or module_path.startswith("deepchecks.vision.checks")
+        module_path.startswith('deepchecks.tabular.checks')
+        or module_path.startswith('deepchecks.vision.checks')
     ):
         # not builtin check, cannot generate link to the docs
         return ''
@@ -117,7 +117,7 @@ def _generate_check_docs_link_html(check):
     # understand how link is formatted:
     #
     # - deepchecks.tabular.checks.integrity.new_category.CategoryMismatchTrainTest
-    # - docs.deepchecks.com/en/{version}/examples/checks/tabular/integrity/category_mismatch_train_test.html
+    # - docs.deepchecks.com/en/{version}/examples/checks/tabular/integrity/category_mismatch_train_test.html # noqa: E501 # pylint: disable=line-too-long
 
     module_path = module_path.split('.')
     check_name = to_snake_case(type(check).__name__).lower()
@@ -125,7 +125,7 @@ def _generate_check_docs_link_html(check):
     url = '/'.join([path_parts[1], path_parts[0], *path_parts[2:-1], check_name])
     version = deepchecks.__version__ or 'stable'
     link = link_template.format(version=version, path=url)
-    return f'<a href="{link}" target="_blank">Read More...</a>'
+    return f' <a href="{link}" target="_blank">Read More...</a>'
 
 
 def get_random_string(n: int = 5):

@@ -24,7 +24,7 @@ def test_dataset_wrong_input():
     assert_that(
         calling(ColumnsInfo().run).with_args(x),
         raises(
-            DeepchecksValueError, 
+            DeepchecksValueError,
             'non-empty instance of Dataset or DataFrame was expected, instead got str'
         )
     )
