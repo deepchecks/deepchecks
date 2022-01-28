@@ -91,6 +91,22 @@ def _generate_check_docs_link_html(check):
     if not isinstance(check, core.BaseCheck):
         return ''
 
+    module_path = type(check).__module__
+
+    # NOTE:
+    # it is better to import deepchecks.tabular.checks, deepchecks.vision.checks
+    # to be sure that those packages actually exists and we are using right names,
+    # but we do not know with what set of extra dependencies deepchecks was
+    # installed, therefore we do not want to cause ImportError.
+    # Refer to the setup.py for more understanding
+    
+    if not (
+        module_path.startswith("deepchecks.tabular.checks")
+        or module_path.startswith("deepchecks.vision.checks")
+    ):
+        # not builtin check, cannot generate link to the docs
+        return ''
+
     link_template = (
         'https://docs.deepchecks.com/en/{version}/examples/{path}.html'
         '?utm_source=display_output&utm_medium=referral'
@@ -101,12 +117,12 @@ def _generate_check_docs_link_html(check):
     # understand how link is formatted:
     #
     # - deepchecks.tabular.checks.integrity.new_category.CategoryMismatchTrainTest
-    # - docs.deepchecks.com/en/stable/examples/checks/integrity/category_mismatch_train_test.html
+    # - docs.deepchecks.com/en/{version}/examples/checks/tabular/integrity/category_mismatch_train_test.html
 
+    module_path = module_path.split('.')
     check_name = to_snake_case(type(check).__name__).lower()
-    module_path = type(check).__module__.split('.')
-    path_parts = [it for it in module_path if it not in {'deepchecks', 'tabular'}]
-    url = '/'.join([*path_parts[:-1], check_name])
+    path_parts = [it for it in module_path if it != 'deepchecks']
+    url = '/'.join([path_parts[1], path_parts[0], *path_parts[2:-1], check_name])
     version = deepchecks.__version__ or 'stable'
     link = link_template.format(version=version, path=url)
     return f'<a href="{link}" target="_blank">Read More...</a>'

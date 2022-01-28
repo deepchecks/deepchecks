@@ -4,8 +4,8 @@ Tabular
 .. toctree::
     :maxdepth: 2
 
-    distribution/index
-    integrity/index
-    methodology/index
-    performance/index
-    overview/index
+    tabular/distribution/index
+    tabular/integrity/index
+    tabular/methodology/index
+    tabular/performance/index
+    tabular/overview/index

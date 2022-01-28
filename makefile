@@ -94,22 +94,53 @@ EGG_INFO := $(subst -,_,$(PROJECT)).egg-info
 EGG_LINK = venv/lib/python3.7/site-packages/deepchecks.egg-link
 
 ### Main Targets ######################################################
-
 .PHONY: help env all
 
+# TODO: add description for all targets (at least for the most usefull)
+
 help:
-	@echo "env      -  Create virtual environment and install requirements"
-	@echo "               python=PYTHON_EXE   interpreter to use, default=python,"
-	@echo "						    	when creating new env and python binary is 2.X, use 'make env python=python3' \n"
-	@echo "validate - Run style checks 'pylint' , 'docstring' and 'notebook'"
-	@echo "		pylint docstring notebook -   sub commands of validate \n"
-	@echo "test -      TEST_RUNNER on '$(TESTDIR)'"
-	@echo "            args=\"<pytest Arguements>\"  optional arguments"
-	@echo "coverage -  Get coverage information, optional 'args' like test\n"
-	@echo "jupyter - Deploy jupyer-notebook using './examples' directory"
-	@echo "					 args=\"<jupyter Arguments\" -passable\n"
-	@echo "tox      -  Test against multiple versions of python as defined in tox.ini"
-	@echo "clean | clean-all -  Clean up | clean up & removing virtualenv"
+	@echo "env"
+	@echo ""
+	@echo "    Create virtual environment and install requirements"
+	@echo "    python=PYTHON_EXE interpreter to use, default=python,"
+	@echo "    when creating new env and python binary is 2.X, use 'make env python=python3'"
+	@echo ""
+	@echo "validate"
+	@echo ""
+	@echo "    Run style checks 'pylint' , 'docstring' and 'notebook'"
+	@echo "    pylint docstring notebook - sub commands of validate"
+	@echo ""
+	@echo "test"
+	@echo ""
+	@echo "    TEST_RUNNER on '$(TESTDIR)'"
+	@echo "    args=\"<pytest Arguements>\" optional arguments"
+	@echo ""
+	@echo "coverage"
+	@echo ""
+	@echo "    Get coverage information, optional 'args' like test"
+	@echo ""
+	@echo "jupyter"
+	@echo ""
+	@echo "    Deploy jupyer-notebook using './examples' directory"
+	@echo "    args=\"<jupyter Arguments\" -passable"
+	@echo ""
+	@echo "tox"
+	@echo ""
+	@echo "    Test against multiple versions of python as defined in tox.ini"
+	@echo ""
+	@echo "clean | clean-all"
+	@echo ""
+	@echo "    Clean up | clean up & removing virtualenv"
+	@echo ""
+	@echo "docs"
+	@echo ""
+	@echo "    Build documentation site content"
+	@echo ""
+	@echo "show-docs"
+	@echo ""
+	@echo "    Show documentation in the browser"
+	@echo ""
+
 
 all: validate test notebook
 
@@ -333,7 +364,7 @@ license-check:
 
 links-check: $(DOCS_BUILD) $(LYCHEE)
 	@$(LYCHEE) \
-		"./**/*.rst" "$(DOCS_BUILD)/html/**/*.html" \
+		"./deepchecks/**/*.rst" "./*.rst" "$(DOCS_BUILD)/html/**/*.html" \
 		--base $(DOCS_BUILD)/html \
 		--accept=200,403,429 \
 		--format markdown \
