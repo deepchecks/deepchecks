@@ -118,6 +118,8 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
             """this means that histogram_in_batch and count_custom_transform_on_label should be the same func,
             and that it should receive multiple transforms and do them"""
 
+            #TODO: Enable sampling of label distribution
+
 
             values_dict = {}
 
@@ -139,8 +141,8 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
 
             # Drift on bbox areas:
             title = 'bbox area distribution'
-            train_label_distribution = histogram_in_batch(dataset=train_dataset, transform=get_bbox_area)
-            test_label_distribution = histogram_in_batch(dataset=test_dataset, transform=get_bbox_area)
+            train_label_distribution = histogram_in_batch(dataset=train_dataset, label_transformer=get_bbox_area)
+            test_label_distribution = histogram_in_batch(dataset=test_dataset, label_transformer=get_bbox_area)
 
             drift_score, method, display = calc_drift_and_plot(
                 train_distribution=train_label_distribution,
@@ -154,8 +156,8 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
 
             # Number of bboxes per image
             title = 'Number of bboxes per image'
-            train_label_distribution = count_custom_transform_on_label(dataset=train_dataset, transform=count_num_bboxes)
-            test_label_distribution = count_custom_transform_on_label(dataset=test_dataset, transform=count_num_bboxes)
+            train_label_distribution = count_custom_transform_on_label(dataset=train_dataset, label_transformer=count_num_bboxes)
+            test_label_distribution = count_custom_transform_on_label(dataset=test_dataset, label_transformer=count_num_bboxes)
 
             drift_score, method, display = calc_drift_and_plot(
                 train_distribution=train_label_distribution,
@@ -225,23 +227,23 @@ def count_num_bboxes(label):
     return num_bboxes
 
 
-def count_custom_transform_on_label(dataset: VisionDataset, transform: Callable = lambda x: x):
+def count_custom_transform_on_label(dataset: VisionDataset, label_transformer: Callable = lambda x: x):
     counter = Counter()
     for i in range(len(dataset._data)):
         list_of_arrays = next(iter(dataset._data))[1]
-        calc_res = [transform(arr) for arr in list_of_arrays]
+        calc_res = [label_transformer(arr) for arr in list_of_arrays]
         if len(calc_res) != 0 and isinstance(calc_res[0], list):
             calc_res = [x[0] for x in sum(calc_res, [])]
         counter.update(calc_res)
     return counter
 
 
-def histogram_in_batch(dataset: VisionDataset, transform: Callable = lambda x: x):
+def histogram_in_batch(dataset: VisionDataset, label_transformer: Callable = lambda x: x):
     label_min = np.inf
     label_max = -np.inf
     for i in range(len(dataset._data)):
         list_of_arrays = next(iter(dataset._data))[1]
-        calc_res = [transform(arr) for arr in list_of_arrays]
+        calc_res = [label_transformer(arr) for arr in list_of_arrays]
         if len(calc_res) != 0 and isinstance(calc_res[0], list):
             calc_res = [x[0] for x in sum(calc_res, [])]
         label_min = min(calc_res + [label_min])
@@ -251,7 +253,7 @@ def histogram_in_batch(dataset: VisionDataset, transform: Callable = lambda x: x
 
     for i in range(len(dataset._data)):
         list_of_arrays = next(iter(dataset._data))[1]
-        calc_res = [transform(arr) for arr in list_of_arrays]
+        calc_res = [label_transformer(arr) for arr in list_of_arrays]
         if len(calc_res) != 0 and isinstance(calc_res[0], list):
             calc_res = [x[0] for x in sum(calc_res, [])]
         new_hist, _ = np.histogram(calc_res, bins=100, range=(label_min, label_max))
