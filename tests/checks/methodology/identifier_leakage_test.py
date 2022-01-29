@@ -42,7 +42,7 @@ def test_dataset_wrong_input():
     assert_that(
         calling(IdentifierLeakage().run).with_args(wrong),
         raises(
-            DeepchecksValueError, 
+            DeepchecksValueError,
             'non-empty instance of Dataset or DataFrame was expected, instead got str')
     )
 
@@ -63,7 +63,7 @@ def test_dataset_only_label():
     assert_that(
         calling(IdentifierLeakage().run).with_args(dataset=df),
         raises(
-            DatasetValidationError, 
+            DatasetValidationError,
             'Check is irrelevant for Datasets without index or date column')
     )
 

@@ -42,7 +42,7 @@ def test_multiclass_model(iris_split_dataset_and_model):
     assert_that(
         calling(RegressionErrorDistribution().run).with_args(test, clf),
         raises(
-            ModelValidationError, 
+            ModelValidationError,
             r'Check is relevant for models of type \[\'regression\'\], '
             r'but received model of type \'multiclass\'')
     )
@@ -88,7 +88,7 @@ def test_condition_absolute_kurtosis_not_greater_than_passed(diabetes_split_data
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                name='Kurtosis value is not less than -0.1')
-    )) 
+    ))
 
 
 def test_condition_absolute_kurtosis_not_greater_than_not_passed_0_max(diabetes_split_dataset_and_model):
@@ -104,4 +104,4 @@ def test_condition_absolute_kurtosis_not_greater_than_not_passed_0_max(diabetes_
                                name='Kurtosis value is not less than 1',
                                details='Found kurtosis below threshold: 0.02867',
                                category=ConditionCategory.WARN)
-    )) 
+    ))

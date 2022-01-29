@@ -45,7 +45,7 @@ def test_regression_model(diabetes_split_dataset_and_model):
     assert_that(
         calling(RocReport().run).with_args(train, clf),
         raises(
-            ModelValidationError, 
+            ModelValidationError,
             r'Check is relevant for models of type '
             r'\[\'multiclass\', \'binary\'\], but received model of type \'regression\'')
     )
@@ -112,7 +112,7 @@ def test_condition_ratio_more_than_passed(iris_clean):
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                name='AUC score for all the classes is not less than 0.7')
-    )) 
+    ))
 
     check = RocReport(excluded_classes=[1]).add_condition_auc_not_less_than(min_auc=0.8)
 
@@ -121,4 +121,4 @@ def test_condition_ratio_more_than_passed(iris_clean):
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                name='AUC score for all the classes except: [1] is not less than 0.8')
-    )) 
+    ))

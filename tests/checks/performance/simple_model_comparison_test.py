@@ -17,7 +17,7 @@ from deepchecks.utils.metrics import ModelType, get_default_scorers
 from tests.checks.utils import equal_condition_result
 
 from hamcrest import (
-    assert_that, calling, raises, close_to, 
+    assert_that, calling, raises, close_to,
     has_items, has_entries, has_entry, is_
 )
 
