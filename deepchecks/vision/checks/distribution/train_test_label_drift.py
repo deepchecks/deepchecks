@@ -14,11 +14,11 @@ from typing import Dict, Hashable, Callable, Tuple, List, Union
 
 from plotly.subplots import make_subplots
 
-from deepchecks import CheckResult, TrainTestBaseCheck, ConditionResult
-from deepchecks.utils.distribution.plot import drift_score_bar_traces, get_density
+from deepchecks import CheckResult, ConditionResult
+from deepchecks.vision.base import TrainTestBaseCheck, Context
+from deepchecks.utils.distribution.plot import drift_score_bar_traces
 from deepchecks.utils.plot import colors
-from deepchecks.vision.base.vision_dataset import TaskType
-from deepchecks.vision import VisionDataset
+from deepchecks.vision.dataset import VisionDataset, TaskType
 import numpy as np
 from collections import Counter
 import plotly.graph_objs as go
@@ -53,29 +53,7 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
         super().__init__()
         self.max_num_categories = max_num_categories
 
-    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
-        """Run check.
-
-        Args:
-            train_dataset (VisionDataset): The training dataset object.
-            test_dataset (VisionDataset): The test dataset object.
-            model: not used in this check.
-
-        Returns:
-            CheckResult:
-                value: dictionary of column name to drift score.
-                display: distribution graph for each column, comparing the train and test distributions.
-
-        Raises:
-            DeepchecksValueError: If the object is not a Dataset or DataFrame instance
-        """
-        return self._calc_drift(train_dataset, test_dataset)
-
-    def _calc_drift(
-            self,
-            train_dataset: VisionDataset,
-            test_dataset: VisionDataset,
-    ) -> CheckResult:
+    def run_logic(self, context: Context) -> CheckResult:
         """
         Calculate drift for all columns.
 
@@ -88,10 +66,8 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
                 value: drift score.
                 display: label distribution graph, comparing the train and test distributions.
         """
-        train_dataset = VisionDataset.validate_dataset(train_dataset)
-        test_dataset = VisionDataset.validate_dataset(test_dataset)
-        train_dataset.validate_label()
-        test_dataset.validate_label()
+        train_dataset = context.train
+        test_dataset = context.test
 
         task_type = train_dataset.label_type
         displays = []
@@ -106,7 +82,6 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
                 test_distribution=test_label_distribution,
                 plot_title='Class',
                 column_type='categorical',
-                max_num_categories=self.max_num_categories
             )
 
             values_dict = {'Drift score': drift_score, 'Method': method}
@@ -133,7 +108,6 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
                 test_distribution=test_label_distribution,
                 plot_title=title,
                 column_type='categorical',
-                max_num_categories=self.max_num_categories
             )
 
             values_dict[title] = {'Drift score': drift_score, 'Method': method}
@@ -156,8 +130,10 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
 
             # Number of bboxes per image
             title = 'Number of bboxes per image'
-            train_label_distribution = count_custom_transform_on_label(dataset=train_dataset, label_transformer=count_num_bboxes)
-            test_label_distribution = count_custom_transform_on_label(dataset=test_dataset, label_transformer=count_num_bboxes)
+            train_label_distribution = count_custom_transform_on_label(dataset=train_dataset,
+                                                                       label_transformer=count_num_bboxes)
+            test_label_distribution = count_custom_transform_on_label(dataset=test_dataset,
+                                                                      label_transformer=count_num_bboxes)
 
             drift_score, method, display = calc_drift_and_plot(
                 train_distribution=train_label_distribution,
@@ -229,8 +205,8 @@ def count_num_bboxes(label):
 
 def count_custom_transform_on_label(dataset: VisionDataset, label_transformer: Callable = lambda x: x):
     counter = Counter()
-    for i in range(len(dataset._data)):
-        list_of_arrays = next(iter(dataset._data))[1]
+    for i in range(len(dataset.get_data_loader())):
+        list_of_arrays = next(iter(dataset.get_data_loader()))[1]
         calc_res = [label_transformer(arr) for arr in list_of_arrays]
         if len(calc_res) != 0 and isinstance(calc_res[0], list):
             calc_res = [x[0] for x in sum(calc_res, [])]
@@ -241,8 +217,8 @@ def count_custom_transform_on_label(dataset: VisionDataset, label_transformer: C
 def histogram_in_batch(dataset: VisionDataset, label_transformer: Callable = lambda x: x):
     label_min = np.inf
     label_max = -np.inf
-    for i in range(len(dataset._data)):
-        list_of_arrays = next(iter(dataset._data))[1]
+    for i in range(len(dataset.get_data_loader())):
+        list_of_arrays = next(iter(dataset.get_data_loader()))[1]
         calc_res = [label_transformer(arr) for arr in list_of_arrays]
         if len(calc_res) != 0 and isinstance(calc_res[0], list):
             calc_res = [x[0] for x in sum(calc_res, [])]
@@ -251,15 +227,15 @@ def histogram_in_batch(dataset: VisionDataset, label_transformer: Callable = lam
 
     hist, edges = np.histogram([], bins=100, range=(label_min, label_max))
 
-    for i in range(len(dataset._data)):
-        list_of_arrays = next(iter(dataset._data))[1]
+    for i in range(len(dataset.get_data_loader())):
+        list_of_arrays = next(iter(dataset.get_data_loader()))[1]
         calc_res = [label_transformer(arr) for arr in list_of_arrays]
         if len(calc_res) != 0 and isinstance(calc_res[0], list):
             calc_res = [x[0] for x in sum(calc_res, [])]
         new_hist, _ = np.histogram(calc_res, bins=100, range=(label_min, label_max))
         hist = new_hist + hist
 
-    return {k: v for k, v in zip(edges, hist)}
+    return dict(zip(edges, hist))
 
 
 PSI_MIN_PERCENTAGE = 0.01
@@ -301,7 +277,7 @@ def earth_movers_distance_by_histogram(expected_percents: np.ndarray, actual_per
 
 
 def calc_drift_and_plot(train_distribution: dict, test_distribution: dict, plot_title: Hashable,
-                        column_type: str, max_num_categories: int = 10) -> Tuple[float, str, Callable]:
+                        column_type: str) -> Tuple[float, str, Callable]:
     """
     Calculate drift score per column.
 
@@ -318,8 +294,6 @@ def calc_drift_and_plot(train_distribution: dict, test_distribution: dict, plot_
         numerical, PSI for categorical)
         display: graph comparing the two distributions (density for numerical, stack bar for categorical)
     """
-    # train_dist = train_distribution.dropna().values.reshape(-1)
-    # test_dist = test_distribution.dropna().values.reshape(-1)
 
     if column_type == 'numerical':
         scorer_name = "Earth Mover's Distance"
@@ -328,53 +302,42 @@ def calc_drift_and_plot(train_distribution: dict, test_distribution: dict, plot_
         actual_percents = np.array(list(test_distribution.values()))
 
         score = earth_movers_distance_by_histogram(expected_percents=expected_percents, actual_percents=actual_percents)
-        bar_stop = max(0.4, score + 0.1)
-
-        score_bar = drift_score_bar_traces(score)
+        bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score, bar_max=1)
 
         x_values = list(train_distribution.keys())
 
-        traces, xaxis_layout, yaxis_layout = feature_distribution_traces(expected_percents, actual_percents, x_values)
+        dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(expected_percents, actual_percents,
+                                                                            x_values)
 
     elif column_type == 'categorical':
         scorer_name = 'PSI'
 
         categories_list = list(set(train_distribution.keys()).union(set(test_distribution.keys())))
 
-        expected_percents = np.array([train_distribution[k] for k in categories_list]) / np.sum(list(train_distribution.values()))
-        actual_percents = np.array([test_distribution[k] for k in categories_list]) / np.sum(list(test_distribution.values()))
+        expected_percents = \
+            np.array([train_distribution[k] for k in categories_list]) / np.sum(list(train_distribution.values()))
+        actual_percents = \
+            np.array([test_distribution[k] for k in categories_list]) / np.sum(list(test_distribution.values()))
 
         score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
-        bar_stop = min(max(0.4, score + 0.1), 1)
 
-        score_bar = drift_score_bar_traces(score)
+        bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score, bar_max=1)
 
-        traces, xaxis_layout, yaxis_layout = feature_distribution_traces(expected_percents, actual_percents, categories_list,
-                                                                         is_categorical=True)
+        dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(expected_percents, actual_percents,
+                                                                            categories_list, is_categorical=True)
 
     fig = make_subplots(rows=2, cols=1, vertical_spacing=0.4, shared_yaxes=False, shared_xaxes=False,
                         row_heights=[0.1, 0.9],
                         subplot_titles=['Drift Score - ' + scorer_name, plot_title])
 
-    fig.add_traces(score_bar, rows=[1] * len(score_bar), cols=[1] * len(score_bar))
-    fig.add_traces(traces, rows=[2] * len(traces), cols=[1] * len(traces))
+    fig.add_traces(bar_traces, rows=[1] * len(bar_traces), cols=[1] * len(bar_traces))
+    fig.add_traces(dist_traces, rows=[2] * len(dist_traces), cols=[1] * len(dist_traces))
 
     shared_layout = go.Layout(
-        xaxis=dict(
-            showgrid=False,
-            gridcolor='black',
-            linecolor='black',
-            range=[0, bar_stop],
-            dtick=0.05
-        ),
-        yaxis=dict(
-            showgrid=False,
-            showline=False,
-            showticklabels=False,
-            zeroline=False,
-        ),
-        xaxis2=xaxis_layout,
-        yaxis2=yaxis_layout,
+        xaxis=bar_x_axis,
+        yaxis=bar_y_axis,
+        xaxis2=dist_x_axis,
+        yaxis2=dist_y_axis,
         legend=dict(
             title='Dataset',
             yanchor='top',
@@ -382,6 +345,7 @@ def calc_drift_and_plot(train_distribution: dict, test_distribution: dict, plot_
         width=700,
         height=400
     )
+
 
     fig.update_layout(shared_layout)
 

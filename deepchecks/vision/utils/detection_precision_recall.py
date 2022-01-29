@@ -71,7 +71,7 @@ class DetectionPrecisionRecall(Metric):
                 **self._compute_ap_recall(ev["scores"], ev["matched"], ev["NP"])
             }
         if self.return_ap_only:
-            res = torch.tensor([res[k]['AP'] for k in sorted(res.keys())])
+            res = torch.tensor([res[k]["AP"] for k in sorted(res.keys())])
         return res
 
     def _group_detections(self, dt, gt):
@@ -153,7 +153,8 @@ class DetectionPrecisionRecall(Metric):
 
     def _compute_ap_recall(self, scores, matched, NP, recall_thresholds=None):
         """ This curve tracing method has some quirks that do not appear when only unique confidence thresholds
-        are used (i.e. Scikit-learn's implementation), however, in order to be consistent, the COCO's method is reproduced. """
+        are used (i.e. Scikit-learn's implementation), however, in order to be consistent, the COCO's method is
+        reproduced. """
         if NP == 0:
             return {
                 "precision": None,

@@ -15,17 +15,14 @@ import plotly.express as px
 from ignite.metrics import Metric
 
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.vision import TrainTestBaseCheck
+from deepchecks.vision import TrainTestBaseCheck, Context
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
-from deepchecks.vision import VisionDataset
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.utils.metrics import get_scorers_list, task_type_check, calculate_metrics
 
 
 __all__ = ['PerformanceReport']
-
-from deepchecks.vision.utils.validation import model_type_validation
 
 PR = TypeVar('PR', bound='PerformanceReport')
 
@@ -43,31 +40,14 @@ class PerformanceReport(TrainTestBaseCheck):
         self.alternative_metrics = alternative_metrics
         self.prediction_extract = prediction_extract
 
-    def run(self, train_dataset: VisionDataset, test_dataset: VisionDataset, model=None) -> CheckResult:
-        """Run check.
-
-        Args:
-            train_dataset (VisionDataset): a VisionDataset object
-            test_dataset (VisionDataset): a VisionDataset object
-            model : A torch model supporting inference in eval mode.
-
-        Returns:
-            CheckResult: value is dictionary in format 'score-name': score-value
-        """
-        return self._performance_report(train_dataset, test_dataset, model)
-
-    def _performance_report(self, train_dataset: VisionDataset, test_dataset: VisionDataset, model):
-        VisionDataset.validate_dataset(train_dataset)
-        VisionDataset.validate_dataset(test_dataset)
-        train_dataset.validate_label()
-        test_dataset.validate_label()
-        train_dataset.validate_shared_label(test_dataset)
-        model_type_validation(model)
-
+    def run_logic(self, context: Context) -> CheckResult:
+        train_dataset = context.train
+        test_dataset = context.test
+        model = context.model
         task_type = task_type_check(model, train_dataset)
 
         # Get default scorers if no alternative, or validate alternatives
-        scorers = get_scorers_list(model, test_dataset, train_dataset.get_num_classes(), self.alternative_metrics)
+        scorers = get_scorers_list(model, test_dataset, self.alternative_metrics)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
         if task_type in (TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION):
@@ -214,9 +194,6 @@ class PerformanceReport(TrainTestBaseCheck):
             DeepchecksValueError:
                 if unknown score function name were passed;
         """
-        if score is None:
-            score = next(iter(MULTICLASS_SCORERS_NON_AVERAGE))
-
         def condition(check_result: pd.DataFrame) -> ConditionResult:
             if score not in set(check_result['Metric']):
                 raise DeepchecksValueError(f'Data was not calculated using the scoring function: {score}')

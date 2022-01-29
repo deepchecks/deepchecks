@@ -100,7 +100,6 @@ class YoloParser:
         if not osp.isdir(image_dir) or not osp.isdir(label_dir):
             raise RuntimeError("Bad YOLO directory structure")
         dataset_subdirs = [f for f in os.listdir(image_dir) if osp.isdir(osp.join(image_dir, f))]
-        inter_label_dict = {}
         for subdir in dataset_subdirs:
             # this implies image directory with corresponding labels
             if osp.isdir(osp.join(label_dir, subdir)):

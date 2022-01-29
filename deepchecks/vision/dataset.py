@@ -72,12 +72,6 @@ class VisionDataset:
                 )
         return copy(self._samples_per_class)
 
-    def extract_label(self):
-        y = []
-        for _ in range(len(self._data)):
-            y.append(self.label_transformer(next(iter(self._data))[1]))
-        return cat(y, 0)
-
     def infer_label_type(self):
         label_shape = self.get_label_shape()
 
@@ -134,7 +128,7 @@ class VisionDataset:
         if not isinstance(obj, VisionDataset):
             raise DeepchecksValueError('Check requires dataset to be of type VisionDataset. instead got: '
                                        f'{type(obj).__name__}')
-        if len(obj._data.dataset) == 0:
+        if len(obj.get_data_loader().dataset) == 0:
             raise DeepchecksValueError('Check requires a non-empty dataset')
 
         return obj
