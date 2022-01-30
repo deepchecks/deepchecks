@@ -150,14 +150,14 @@ $(ENV):
 
 requirements: $(ENV)
 	@echo "####  installing dependencies, it could take some time, please wait! #### "
-	@$(PIP) install -U pip
-
 
 	@if [ $(OS) = "Linux" ]; \
 	then \
-		$(PIP) install --use-deprecated=html5lib -f https://download.pytorch.org/whl/cpu/torch_stable.html torch==1.10.2 torchvision==0.11.3 torchaudio==0.10.2; \
+		$(PIP) install -q\
+			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" "torchaudio==0.10.2+cpu" \
+			-f https://download.pytorch.org/whl/cpu/torch_stable.html; \
 	else \
-		$(PIP) install -U torch torchvision torchaudio; \
+		$(PIP) install -q -U torch torchvision torchaudio; \
 	fi;
 
 	@$(PIP) install -q \
