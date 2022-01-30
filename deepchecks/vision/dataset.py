@@ -101,7 +101,7 @@ class VisionDataset:
             if self.label_type == TaskType.CLASSIFICATION.value:
                 counter = Counter()
                 for _ in range(len(self._data)):
-                    counter.update(self.label_transformer(next(iter(self._data))[1]))
+                    counter.update(self.label_transformer(next(iter(self._data))[1].tolist()))
                 self._samples_per_class = counter
             elif self.label_type == TaskType.OBJECT_DETECTION.value:
                 # Assume next(iter(self._data))[1] is a list (per sample) of numpy arrays (rows are bboxes) with the
