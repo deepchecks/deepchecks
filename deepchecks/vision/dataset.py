@@ -19,7 +19,6 @@ from torch.utils.data import DataLoader, SequentialSampler, Dataset, Sampler
 import logging
 import numpy as np
 import torch
-from torch.utils.data.sampler import T_co
 
 from deepchecks.core.errors import DeepchecksValueError
 
@@ -64,7 +63,8 @@ class VisionDataset:
                  label_transformer: Callable = None,
                  sample_size: int = 1000,
                  seed: int = 0):
-        self._data, self._sample_data = self._create_data_loaders(data_loader, sample_size, seed)
+        self._data = data_loader
+        self._sample_data = self._create_sample_loader(data_loader, sample_size, seed)
 
         if label_transformer is None:
             self.label_transformer = lambda x: x
@@ -190,8 +190,8 @@ class VisionDataset:
         return obj
 
     @classmethod
-    def _create_data_loaders(cls, data_loader: DataLoader, sample_size: int, seed: int):
-        """Create a data loader which is shuffled and data loader with only a subset of the data."""
+    def _create_sample_loader(cls, data_loader: DataLoader, sample_size: int, seed: int):
+        """Create a data loader with only a subset of the data."""
         common_props_to_copy = {
             'num_workers': data_loader.num_workers,
             'collate_fn': data_loader.collate_fn,
@@ -219,18 +219,13 @@ class VisionDataset:
                 if i in sample_indices:
                     samples_data.append(sample)
 
-            full_loader = data_loader
             samples_dataset = InMemoryDataset(samples_data)
-            sample_loader = DataLoader(samples_dataset, generator=generator(), sampler=SequentialSampler(samples_data),
-                                       **common_props_to_copy)
+            return DataLoader(samples_dataset, generator=generator(), sampler=SequentialSampler(samples_data),
+                              **common_props_to_copy)
         else:
             length = len(dataset)
-            full_loader = DataLoader(dataset, generator=generator(),
-                                     sampler=FixedSampler(length, seed), **common_props_to_copy)
-            sample_loader = DataLoader(dataset, generator=generator(),
-                                       sampler=FixedSampler(length, seed, sample_size), **common_props_to_copy)
-
-        return full_loader, sample_loader
+            return DataLoader(dataset, generator=generator(),
+                              sampler=FixedSampler(length, seed, sample_size), **common_props_to_copy)
 
 
 class InMemoryDataset(Dataset):
