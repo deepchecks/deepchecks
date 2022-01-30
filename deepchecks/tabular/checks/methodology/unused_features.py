@@ -109,7 +109,7 @@ class UnusedFeatures(TrainTestBaseCheck):
             dataset = context.test
         else:
             dataset = context.train
-        context.model # validate model
+        _ = context.model  # validate model
 
         feature_importance = context.features_importance
         dataset.assert_features()
