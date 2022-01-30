@@ -26,7 +26,7 @@ __all__ = [
     'calculate_metrics'
 ]
 
-from .detection_precision_recall import DetectionPrecisionRecall
+from .detection_precision_recall import AveragePrecision
 
 from deepchecks.vision.dataset import TaskType
 
@@ -40,7 +40,7 @@ def get_default_classification_scorers():
 
 def get_default_object_detection_scorers():
     return {
-        'mAP': DetectionPrecisionRecall()
+        'mAP': AveragePrecision()
     }
 
 
