@@ -209,7 +209,5 @@ class VisionDataset:
         if not isinstance(obj, VisionDataset):
             raise DeepchecksValueError('Check requires dataset to be of type VisionDataset. instead got: '
                                        f'{type(obj).__name__}')
-        if len(obj.get_data_loader().dataset) == 0:
-            raise DeepchecksValueError('Check requires a non-empty dataset')
 
         return obj
