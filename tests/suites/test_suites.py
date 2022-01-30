@@ -51,7 +51,7 @@ def iris(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBoostClassifier]:
 
 def test_generic_suite(
     iris: t.Tuple[Dataset, Dataset, AdaBoostClassifier],
-    diabetes_split_dataset_and_model: t.Tuple[Dataset, Dataset, object],
+    diabetes_split_dataset_and_model: t.Tuple[Dataset, Dataset, object]
 ):
     iris_train, iris_test, iris_model = iris
     diabetes_train, diabetes_test, diabetes_model = diabetes_split_dataset_and_model
@@ -61,11 +61,7 @@ def test_generic_suite(
         dict(train_dataset=iris_train, test_dataset=iris_test, model=iris_model),
         dict(train_dataset=iris_train, model=iris_model),
         dict(train_dataset=diabetes_train, model=diabetes_model),
-        dict(
-            train_dataset=diabetes_train,
-            test_dataset=diabetes_test,
-            model=diabetes_model
-        ),
+        dict(train_dataset=diabetes_train, test_dataset=diabetes_test, model=diabetes_model),
         dict(model=diabetes_model)
     )
 

@@ -711,8 +711,6 @@ class Dataset:
         pd.DataFrame
         """
         self.assert_features()
-        if len(self.features) == 1:
-            return self.data[self.features[0]]
         return self.data[self.features]
 
     @property
