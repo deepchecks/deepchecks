@@ -1,0 +1,138 @@
+
+# file is used to sanitize all randomizations from the notebooks output in order to validate its correctness.
+
+[id_replacer1] #Replace HTML generated ID's
+regex: _.{5}_
+replace: _ELE_
+
+[random_ids]
+regex: (\u0023|\=)[a-zA-Z0-9\-\_]+
+replace: random
+
+[inconsistent-whitespace-tqdm]
+regex: ^\s+\r$
+replace: \r
+
+[date_stamp]
+regex: \d{1,4}(\\|\/|-)(\d{1,2}|\w{3})((\\|\/|-)\d{1,4})?
+replace: DATE-STAMP
+
+
+[time_stamp]
+regex: \d{2}:\d{2}:\d{2}(\.\d+)
+replace: TIME-STAMP
+
+[gen_seconds]
+regex: \d{1,2}\.\d{1,2} seconds
+replace: 0.00 seconds
+
+[special_chars] #Special Chars Are intepented incorrectly when using nbval regex
+regex: [\$\?\!\|\%]
+replace:
+
+
+# Output is lower case letters, so we need to change every uppercase letter to its lower case sub.
+# this is a bug with nbval package, TODO: remove when a fix is presented.
+[upper_letterA]
+regex: A
+replace: a
+
+[upper_letterB]
+regex: B
+replace: b
+
+[upper_letterC]
+regex: C
+replace: c
+
+[upper_letterD]
+regex: D
+replace: d
+
+[upper_letterE]
+regex: E
+replace: e
+
+[upper_letterF]
+regex: F
+replace: f
+
+[upper_letterG]
+regex: G
+replace: g
+
+[upper_letterH]
+regex: H
+replace: h
+
+[upper_letterI]
+regex: I
+replace: i
+
+[upper_letterJ]
+regex: J
+replace: j
+
+[upper_letterK]
+regex: K
+replace: k
+
+[upper_letterL]
+regex: L
+replace: l
+
+[upper_letterM]
+regex: M
+replace: m
+
+[upper_letterN]
+regex: N
+replace: n
+
+[upper_letterO]
+regex: O
+replace: o
+
+[upper_letterP]
+regex: P
+replace: p
+
+[upper_letterQ]
+regex: Q
+replace: q
+
+[upper_letterR]
+regex: R
+replace: r
+
+[upper_letterS]
+regex: S
+replace: s
+
+[upper_letterT]
+regex: T
+replace: t
+
+[upper_letterU]
+regex: U
+replace: u
+
+[upper_letterV]
+regex: V
+replace: v
+
+[upper_letterW]
+regex: W
+replace: w
+
+[upper_letterX]
+regex: X
+replace: x
+
+[upper_letterY]
+regex: Y
+replace: y
+
+[upper_letterZ]
+regex: Z
+replace: z
