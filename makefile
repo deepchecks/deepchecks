@@ -198,10 +198,10 @@ test-win:
 	@test -d $(WIN_ENV) || python -m venv $(WIN_ENV)
 	@$(WIN_ENV)\Scripts\activate.bat
 	@$(PIP_WIN) install -q \
-		-r .requirements/requirements.txt \
-		-r .requirements/vision-requirements.txt \
-		-r .requirements/nlp-requirements.txt \
-		-r .requirements/dev-requirements.txt
+		-r ./requirements/requirements.txt \
+		-r ./requirements/vision-requirements.txt \
+		-r ./requirements/nlp-requirements.txt \
+		-r ./requirements/dev-requirements.txt
 	python -m pytest $(WIN_TESTDIR)
 
 
