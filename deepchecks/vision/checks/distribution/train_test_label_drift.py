@@ -86,6 +86,7 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
 
         elif task_type == TaskType.OBJECT_DETECTION.value:
 
+
             # TODO: This should be one process, that iterates over the dataset once, not every metric.
             # this means that histogram_in_batch and count_custom_transform_on_label should be the same function,
             # and that it should receive multiple transforms and do them
@@ -110,39 +111,21 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
             values_dict[title] = {'Drift score': drift_score, 'Method': method}
             displays.append(display)
 
-            # Drift on bbox areas:
-            title = 'bbox area distribution'
-            train_label_distribution = histogram_in_batch(dataset=train_dataset, label_transformer=get_bbox_area,
-                                                          continuous_hist=True)
-            test_label_distribution = histogram_in_batch(dataset=test_dataset, label_transformer=get_bbox_area,
-                                                         continuous_hist=True)
+            label_transformers = [(get_bbox_area, True), (count_num_bboxes, False)]
+            train_distributions, test_distributions = label_histograms_by_batch(train_dataset=train_dataset, test_dataset=test_dataset,
+                                                           label_transformers=label_transformers)
 
-            drift_score, method, display = calc_drift_and_plot(
-                train_distribution=train_label_distribution,
-                test_distribution=test_label_distribution,
-                plot_title=title,
-                column_type='numerical'
-            )
+            for title, train_label_distribution, test_label_distribution, is_continuous in zip(['bbox area distribution', 'Number of bboxes per image'], train_distributions, test_distributions, label_transformers):
 
-            values_dict[title] = {'Drift score': drift_score, 'Method': method}
-            displays.append(display)
+                drift_score, method, display = calc_drift_and_plot(
+                    train_distribution=train_label_distribution,
+                    test_distribution=test_label_distribution,
+                    plot_title=title,
+                    column_type='numerical' if is_continuous[1] else 'categorical'
+                )
 
-            # Number of bboxes per image
-            title = 'Number of bboxes per image'
-            train_label_distribution = histogram_in_batch(dataset=train_dataset,
-                                                          label_transformer=count_num_bboxes)
-            test_label_distribution = histogram_in_batch(dataset=test_dataset,
-                                                         label_transformer=count_num_bboxes)
-
-            drift_score, method, display = calc_drift_and_plot(
-                train_distribution=train_label_distribution,
-                test_distribution=test_label_distribution,
-                plot_title=title,
-                column_type='categorical',
-            )
-
-            values_dict[title] = {'Drift score': drift_score, 'Method': method}
-            displays.append(display)
+                values_dict[title] = {'Drift score': drift_score, 'Method': method}
+                displays.append(display)
 
         else:
             raise NotImplementedError('Currently not implemented')  # TODO
@@ -206,49 +189,73 @@ def count_num_bboxes(label):
     return num_bboxes
 
 
-# def count_custom_transform_on_label(dataset: VisionDataset, label_transformer: Callable = lambda x: x):
-#     counter = Counter()
-#     for batch in dataset.get_data_loader():
-#         list_of_arrays = batch[1]
-#         calc_res = [label_transformer(arr) for arr in list_of_arrays]
-#         if len(calc_res) != 0 and isinstance(calc_res[0], list):
-#             calc_res = [x[0] for x in sum(calc_res, [])]
-#         counter.update(calc_res)
-#     return counter
+def label_histograms_by_batch(train_dataset: VisionDataset, test_dataset: VisionDataset, label_transformers: List[Tuple[Callable, bool]] = None):
+    if not label_transformers:
+        label_transformers = [(lambda x: x, False)]
+    res = {'train_distributions': [], 'test_distributions': []}
+    for label_transformer, continuous_hist in label_transformers:
+        train, test = histogram_in_batch(train_dataset, test_dataset, label_transformer, continuous_hist)
+        res['train_distributions'].append(train)
+        res['test_distributions'].append(train)
+    return res['train_distributions'], res['test_distributions']
 
 
-def histogram_in_batch(dataset: VisionDataset, label_transformer: Callable = lambda x: x, continuous_hist: bool = False):
+def histogram_in_batch(train_dataset: VisionDataset, test_dataset: VisionDataset = None, label_transformer: Callable = lambda x: x, continuous_hist: bool = False, num_bins: int = 100):
+
+    def get_results_on_batch(batch, label_transformer):
+        list_of_arrays = batch[1]
+        calc_res = [label_transformer(arr) for arr in list_of_arrays]
+        if len(calc_res) != 0 and isinstance(calc_res[0], list):
+            calc_res = [x[0] for x in sum(calc_res, [])]
+        return calc_res
+
     if continuous_hist:
         label_min = np.inf
         label_max = -np.inf
-        for batch in dataset.get_data_loader():
-            list_of_arrays = batch[1]
-            calc_res = [label_transformer(arr) for arr in list_of_arrays]
-            if len(calc_res) != 0 and isinstance(calc_res[0], list):
-                calc_res = [x[0] for x in sum(calc_res, [])]
+        for batch in train_dataset.get_data_loader():
+            calc_res = get_results_on_batch(batch, label_transformer)
             label_min = min(calc_res + [label_min])
             label_max = max(calc_res + [label_max])
+        if test_dataset:
+            for batch in test_dataset.get_data_loader():
+                calc_res = get_results_on_batch(batch, label_transformer)
+                label_min = min(calc_res + [label_min])
+                label_max = max(calc_res + [label_max])
 
-        hist, edges = np.histogram([], bins=100, range=(label_min, label_max))
+        hist, edges = np.histogram([], bins=num_bins, range=(label_min, label_max))
 
-        for batch in dataset.get_data_loader():
-            list_of_arrays = batch[1]
-            calc_res = [label_transformer(arr) for arr in list_of_arrays]
-            if len(calc_res) != 0 and isinstance(calc_res[0], list):
-                calc_res = [x[0] for x in sum(calc_res, [])]
-            new_hist, _ = np.histogram(calc_res, bins=100, range=(label_min, label_max))
+        for batch in train_dataset.get_data_loader():
+            calc_res = get_results_on_batch(batch, label_transformer)
+            new_hist, _ = np.histogram(calc_res, bins=num_bins, range=(label_min, label_max))
             hist = new_hist + hist
 
-        return dict(zip(edges, hist))
+        if test_dataset is not None:
+            test_hist = np.zeros(hist.shape)
+            for batch in test_dataset.get_data_loader():
+                calc_res = get_results_on_batch(batch, label_transformer)
+                new_hist, _ = np.histogram(calc_res, bins=num_bins, range=(label_min, label_max))
+                test_hist = new_hist + test_hist
+            return dict(zip(edges, hist)), dict(zip(edges, test_hist))
+        else:
+            return dict(zip(edges, hist))
+
     else:
         counter = Counter()
-        for batch in dataset.get_data_loader():
-            list_of_arrays = batch[1]
-            calc_res = [label_transformer(arr) for arr in list_of_arrays]
-            if len(calc_res) != 0 and isinstance(calc_res[0], list):
-                calc_res = [x[0] for x in sum(calc_res, [])]
+        for batch in train_dataset.get_data_loader():
+            calc_res = get_results_on_batch(batch, label_transformer)
             counter.update(calc_res)
-        return counter
+        if test_dataset is not None:
+            test_counter = Counter()
+            for batch in test_dataset.get_data_loader():
+                calc_res = get_results_on_batch(batch, label_transformer)
+                test_counter.update(calc_res)
+            all_categories = list(set(counter.keys()).union(set(test_counter.keys())))
+            counter = {k: counter[k] for k in all_categories}
+            test_counter = {k: test_counter[k] for k in all_categories}
+            return counter, test_counter
+
+        else:
+            return counter
 
 
 PSI_MIN_PERCENTAGE = 0.01
@@ -355,9 +362,9 @@ def calc_drift_and_plot(train_distribution: dict, test_distribution: dict, plot_
         categories_list = list(set(train_distribution.keys()).union(set(test_distribution.keys())))
 
         expected_percents = \
-            np.array([train_distribution[k] for k in categories_list]) / np.sum(list(train_distribution.values()))
+            np.array(list(train_distribution.keys())) / np.sum(list(train_distribution.values()))
         actual_percents = \
-            np.array([test_distribution[k] for k in categories_list]) / np.sum(list(test_distribution.values()))
+            np.array(list(test_distribution.keys())) / np.sum(list(test_distribution.values()))
 
         score = psi(expected_percents=expected_percents, actual_percents=actual_percents)
 
