@@ -14,7 +14,7 @@ class DetectionPrecisionRecall(Metric):
     """
     def __init__(self, iou_threshold=0.5, max_dets=None, area_range=None, return_ap_only: bool = True, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.bb_info = defaultdict(lambda: {"dt": [], "gt": []})
+        self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})
         self.iou_threshold = iou_threshold
         self.max_dets = max_dets
         self.area_range = area_range
@@ -24,7 +24,7 @@ class DetectionPrecisionRecall(Metric):
     @reinit__is_reduced
     def reset(self):
         super(DetectionPrecisionRecall, self).reset()
-        self.bb_info = defaultdict(lambda: {"dt": [], "gt": []})
+        self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})
         self.i = 0
 
 
@@ -36,36 +36,19 @@ class DetectionPrecisionRecall(Metric):
             self._group_detections(dt, gt)
             self.i += 1
 
-
-    @sync_all_reduce("bb_info")
+    @sync_all_reduce("_evals")
     def compute(self):
-        # Calculating pairwise IoUs
-        _ious = {k: compute_ious(**v) for k, v in self.bb_info.items()}
-        _evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})
-
-        for img_id, class_id in self.bb_info:
-            ev = self._evaluate_image(
-                self.bb_info[img_id, class_id]["dt"],
-                self.bb_info[img_id, class_id]["gt"],
-                _ious[img_id, class_id]
-            )
-
-            acc = _evals[class_id]
-            acc["scores"].append(ev["scores"])
-            acc["matched"].append(ev["matched"])
-            acc["NP"].append(ev["NP"])
-
         # now reduce accumulations
-        for class_id in _evals:
-            acc = _evals[class_id]
+        for class_id in self._evals:
+            acc = self._evals[class_id]
             acc["scores"] = np.concatenate(acc["scores"])
             acc["matched"] = np.concatenate(acc["matched"]).astype(np.bool)
             acc["NP"] = np.sum(acc["NP"])
 
         res = {}
         # run ap calculation per-class
-        for class_id in _evals:
-            ev = _evals[class_id]
+        for class_id in self._evals:
+            ev = self._evals[class_id]
             res[class_id] = {
                 "class": class_id,
                 **self._compute_ap_recall(ev["scores"], ev["matched"], ev["NP"])
@@ -76,12 +59,29 @@ class DetectionPrecisionRecall(Metric):
 
     def _group_detections(self, dt, gt):
         """ simply group gts and dts on a imageXclass basis """
+        bb_info = defaultdict(lambda: {"dt": [], "gt": []})
+
         for d in dt:
             c_id = d[5].item()
-            self.bb_info[self.i, c_id]["dt"].append(d)
+            bb_info[c_id]["dt"].append(d)
         for g in gt:
             c_id = g[0]
-            self.bb_info[self.i, c_id]["gt"].append(g)
+            bb_info[c_id]["gt"].append(g)
+
+        # Calculating pairwise IoUs
+        _ious = {k: compute_ious(**v) for k, v in bb_info.items()}
+
+        for class_id in _ious.keys():
+            ev = self._evaluate_image(
+                bb_info[class_id]["dt"],
+                bb_info[class_id]["gt"],
+                _ious[class_id]
+            )
+
+            acc = self._evals[class_id]
+            acc["scores"].append(ev["scores"])
+            acc["matched"].append(ev["matched"])
+            acc["NP"].append(ev["NP"])
 
     def _evaluate_image(self, det, gt, ious):
         """
