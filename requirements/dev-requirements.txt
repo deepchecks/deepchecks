@@ -1,5 +1,3 @@
-wheel 
-setuptools
 twine
 
 pylint
