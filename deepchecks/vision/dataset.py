@@ -37,7 +37,7 @@ class VisionDataset:
     """VisionDataset wraps a PyTorch DataLoader together with model related metadata.
 
     The VisionDataset class is containing additional data and methods intended for easily accessing
-    metadata relevant for the training or validating of an computer vision ML models.
+    metadata relevant for the training or validating of a computer vision ML models.
 
     Parameters
     ----------
@@ -48,7 +48,22 @@ class VisionDataset:
     label_type : str, optional
         Type of label. If not provided, will be inferred from the dataset.
     label_transformer : Callable, optional
+        A callable, transforming a batch of labels returned by the dataloader to a batch of labels in the desired
+        format.
 
+    Notes
+    -----
+    Accepted label formats are:
+        * Classification: tensor of shape (N, M), When N is the number of samples
+          and M is the number of classes. the value for each class should be the probability of the sample belonging to
+          that class.
+        * Object Detection: List of length N containing tensors of shape (B, 5), where N is the number of samples,
+          B is the number of bounding boxes in the sample and each bounding box is represented by 5 values: (class_id,
+          x, y, w, h). x and y are the coordinates (in pixels) of the upper left corner of the bounding box, w and h are
+          the width and height of the bounding box (in pixels) and class_id is the class id of the prediction.
+
+    The labels returned by the data loader (e.g. by using next(iter(data_loader))[1]) should be in the specified format,
+    or else the callable label_transformer should be able to transform the labels to the desired format.
     """
 
     _data: DataLoader = None
