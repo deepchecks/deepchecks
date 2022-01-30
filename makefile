@@ -7,7 +7,7 @@
 PACKAGE = deepchecks
 
 # Requirements file
-REQUIRE = requirements.txt
+REQUIRE =  "*requirements.txt"
 
 # python3 binary takes predecence over python binary,
 # this variable is used when setting python variable, (Line 18)
