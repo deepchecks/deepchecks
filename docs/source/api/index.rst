@@ -10,6 +10,7 @@ Here you can see the api reference.
     core
     tabular
     utils
+    vision
 
 .. currentmodule:: deepchecks
 
@@ -18,3 +19,4 @@ Here you can see the api reference.
     core
     tabular
     utils
+    vision
