@@ -75,6 +75,22 @@ def get_scorers_list(
         dataset: VisionDataset,
         alternative_scorers: t.List[Metric] = None,
 ) -> t.Dict[str, Metric]:
+    """Get scorers list according to model object and label column.
+
+    Parameters
+    ----------
+    model : nn.Module
+        Model object
+    dataset : VisionDataset
+        Dataset object
+    alternative_scorers : t.List[Metric]
+        Alternative scorers list
+
+    Returns
+    -------
+    t.Dict[str, Metric]
+        Scorers list
+    """
     task_type = task_type_check(model, dataset)
 
     if alternative_scorers:

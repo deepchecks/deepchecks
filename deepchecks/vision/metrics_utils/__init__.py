@@ -1,4 +1,4 @@
-"""Module containing metrics utils"""
+"""Module containing metrics utils."""
 
 from .metrics import (
     task_type_check,
