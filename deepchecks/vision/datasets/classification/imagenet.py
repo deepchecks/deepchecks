@@ -20,6 +20,8 @@ current_path = pathlib.Path(__file__).parent.resolve()
 
 # TODO set to zero to disable mp, needs to be reset to 4+
 NUM_WORKERS = 0
+# TODO this is a test dataset
+IMAGENET_BASE_DIR = "/Users/nirbenzvi/code/DeepChecks/ImageNet/Subset_256_3"
 
 def get_trained_imagenet_model():
     model = torchvision.models.resnet18(pretrained=True)
@@ -33,7 +35,7 @@ def get_imagenet_dataloaders_albumentations() -> Tuple[DataLoader, DataLoader]:
     import albumentations as A
     # TODO this needs to be downloaded from somewhere into a data dir
     # data_url = "https://url-to/imagenet_trainval_50.pb2.tar"
-    data_dir = "/Users/nirbenzvi/code/DeepChecks/ImageNet/Subset"
+    data_dir = IMAGENET_BASE_DIR
     # download_and_extract_archive(data_url, './', data_dir)
     data_transforms = {
         "train": A.Compose([
@@ -67,7 +69,7 @@ def get_imagenet_dataloaders_albumentations() -> Tuple[DataLoader, DataLoader]:
 
 def get_imagenet_dataloaders() -> Tuple[DataLoader, DataLoader]:
     data_url = "placeholder"
-    data_dir = "/Users/nirbenzvi/code/DeepChecks/ImageNet/Subset"
+    data_dir = IMAGENET_BSAE_DIR
     # download_and_extract_archive(data_url, './', data_dir)
     data_transforms = {
         'train': transforms.Compose([

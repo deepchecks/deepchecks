@@ -153,3 +153,16 @@ class VisionDataset:
             raise DeepchecksValueError('Check requires a non-empty dataset')
 
         return obj
+
+    def validate_transforms(self, field_name: str = "transform"):
+        """
+        This checks that a field of name "transform" exists as it should
+        Definitely needs expanding for more dataset support
+        :param field_name:
+        :return:
+        """
+        import albumentations as A
+        transform_field = self.get_data_loader().dataset.__getattribute__(field_name)
+        if not isinstance(transform_field, A.Compose):
+            raise DeepchecksValueError("Dataset.transform field must be of instance type albumentations.Compose")
+
