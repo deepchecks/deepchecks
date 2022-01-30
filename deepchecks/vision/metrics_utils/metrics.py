@@ -123,7 +123,6 @@ def validate_prediction(batch_predictions: t.Any, dataset: VisionDataset, eps: f
     eps : float, optional
         Epsilon value to be used in the validation, by default 1e-3
     """
-
     label_type = dataset.label_type
     n_classes = dataset.get_num_classes()
 
