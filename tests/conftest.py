@@ -20,7 +20,7 @@ from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, Gradien
 from sklearn.datasets import load_iris, load_diabetes
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import KBinsDiscretizer, OrdinalEncoder
+from sklearn.preprocessing import OrdinalEncoder
 from sklearn.tree import DecisionTreeClassifier
 
 from deepchecks.tabular import Dataset
