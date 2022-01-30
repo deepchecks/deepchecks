@@ -162,7 +162,7 @@ class RobustnessReport(TrainTestBaseCheck):
                 diff = grouped_results[grouped_results["Metric"] == metric]["Value"].diff().abs().iloc[-1]
                 differences.append(diff > epsilon)
                 metric_statuses.append(diff)
-            difference = all(differences)
+            difference = any(differences)
             return pd.Series([difference] + metric_statuses, index=["Affected"] +
                                                                    [f"{m}_delta" for m in
                                                                     grouped_results["Metric"].unique().tolist()])
