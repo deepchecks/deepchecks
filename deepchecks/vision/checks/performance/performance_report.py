@@ -195,6 +195,10 @@ class PerformanceReport(TrainTestBaseCheck):
             DeepchecksValueError:
                 if unknown score function name were passed;
         """
+        # TODO: Redefine default scorers when making the condition work
+        # if score is None:
+        #     score = next(iter(MULTICLASS_SCORERS_NON_AVERAGE))
+
         def condition(check_result: pd.DataFrame) -> ConditionResult:
             if score not in set(check_result['Metric']):
                 raise DeepchecksValueError(f'Data was not calculated using the scoring function: {score}')
