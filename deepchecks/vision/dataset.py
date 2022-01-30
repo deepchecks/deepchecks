@@ -13,8 +13,10 @@
 from copy import copy
 from enum import Enum
 from collections import Counter
-from typing import Callable
+from typing import Callable, Optional
 
+import numpy as np
+import torch
 from torch.utils.data import DataLoader
 import logging
 
@@ -43,10 +45,10 @@ class VisionDataset:
     ----------
     data_loader : DataLoader
         PyTorch DataLoader object
+    label_type : str
+        Type of label. Must be one of the following: 'classification', 'object_detection'.
     num_classes : int, optional
         Number of classes in the dataset. If not provided, will be inferred from the dataset.
-    label_type : str, optional
-        Type of label. If not provided, will be inferred from the dataset.
     label_transformer : Callable, optional
         A callable, transforming a batch of labels returned by the dataloader to a batch of labels in the desired
         format.
@@ -54,9 +56,8 @@ class VisionDataset:
     Notes
     -----
     Accepted label formats are:
-        * Classification: tensor of shape (N, M), When N is the number of samples
-          and M is the number of classes. the value for each class should be the probability of the sample belonging to
-          that class.
+        * Classification: tensor of shape (N,), When N is the number of samples. Each element is an integer
+          representing the class index.
         * Object Detection: List of length N containing tensors of shape (B, 5), where N is the number of samples,
           B is the number of bounding boxes in the sample and each bounding box is represented by 5 values: (class_id,
           x, y, w, h). x and y are the coordinates (in pixels) of the upper left corner of the bounding box, w and h are
@@ -68,8 +69,8 @@ class VisionDataset:
 
     _data: DataLoader = None
 
-    def __init__(self, data_loader: DataLoader, num_classes: int = None, label_type: str = None,
-                 label_transformer: Callable = None):
+    def __init__(self, data_loader: DataLoader, label_type: str, num_classes: Optional[int] = None,
+                 label_transformer: Optional[Callable] = None):
         self._data = data_loader
 
         if label_transformer is None:
@@ -77,10 +78,11 @@ class VisionDataset:
         else:
             self.label_transformer = label_transformer
 
-        if label_type is not None:
+        valid_label_types = [tt.value for tt in TaskType]
+        if label_type in valid_label_types:
             self.label_type = label_type
         else:
-            self.label_type = self.infer_label_type()
+            raise DeepchecksValueError(f'Invalid label type: {label_type}, must be one of {valid_label_types}.')
 
         self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
         self._samples_per_class = None
@@ -116,22 +118,39 @@ class VisionDataset:
                 )
         return copy(self._samples_per_class)
 
-    def infer_label_type(self):
-        """Infer the type of label from the dataset."""
-        label_shape = self.get_label_shape()
-
-        # Means the tensor is an array of scalars
-        if len(label_shape) == 0:
-            return TaskType.CLASSIFICATION.value
-        else:
-            return TaskType.OBJECT_DETECTION.value
-
     def validate_label(self):
         """Validate the label type of the dataset."""
         # Getting first sample of data
-        sample = self._data.dataset[0]
-        if len(sample) != 2:
+        batch = next(iter(self.get_data_loader()))
+        if len(batch) != 2:
             raise DeepchecksValueError('Check requires dataset to have a label')
+
+        label_batch = self.label_transformer(batch[1])
+        if self.label_type == TaskType.CLASSIFICATION.value:
+            if not isinstance(label_batch, (torch.Tensor, np.ndarray)):
+                raise DeepchecksValueError(f'Check requires {self.label_type} label to be a torch.Tensor or numpy '
+                                           f'array')
+            label_shape = label_batch.shape
+            if len(label_shape) != 1:
+                raise DeepchecksValueError(f'Check requires {self.label_type} label to be a 1D tensor')
+        elif self.label_type == TaskType.OBJECT_DETECTION.value:
+            if not isinstance(label_batch, list):
+                raise DeepchecksValueError(f'Check requires {self.label_type} label to be a list with an entry for each'
+                                           f' sample')
+            if len(label_batch) == 0:
+                raise DeepchecksValueError(f'Check requires {self.label_type} label to be a non-empty list')
+            if not isinstance(label_batch[0], (torch.Tensor, np.ndarray)):
+                raise DeepchecksValueError(f'Check requires {self.label_type} label to be a list of torch.Tensor or'
+                                           f' numpy array')
+            if len(label_batch[0].shape) != 2:
+                raise DeepchecksValueError(f'Check requires {self.label_type} label to be a list of 2D tensors')
+            if label_batch[0].shape[1] != 5:
+                raise DeepchecksValueError(f'Check requires {self.label_type} label to be a list of 2D tensors, when '
+                                           f'each row has 5 columns: [class_id, x, y, width, height]')
+        else:
+            raise NotImplementedError(
+                'Not implemented yet for tasks other than classification and object detection'
+            )
 
     def get_label_shape(self):
         """Return the shape of the label."""
