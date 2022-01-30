@@ -26,7 +26,7 @@ def test_dataset_wrong_input():
     assert_that(
         calling(NewLabelTrainTest().run).with_args(x, x),
         raises(
-            DeepchecksValueError, 
+            DeepchecksValueError,
             'non-empty instance of Dataset or DataFrame was expected, instead got str'
         )
     )
