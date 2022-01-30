@@ -160,6 +160,7 @@ requirements: $(ENV)
 		$(PIP) install -q -U torch torchvision torchaudio; \
 	fi;
 
+	@$(PIP) install -U pip
 	@$(PIP) install -q \
 		wheel setuptools \
 		-r ./requirements/requirements.txt \
