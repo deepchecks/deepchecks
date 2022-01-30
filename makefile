@@ -7,7 +7,7 @@
 PACKAGE = deepchecks
 
 # Requirements file
-REQUIRE =  "*requirements.txt"
+REQUIRE = requirements.txt
 
 # python3 binary takes predecence over python binary,
 # this variable is used when setting python variable, (Line 18)
@@ -29,17 +29,18 @@ WIN_BIN := $(WIN_ENV)/bin
 # System Envs
 BIN := $(ENV)/bin
 pythonpath := PYTHONPATH=.
+OS := $(shell uname -s)
 
 # Venv Executables
 PIP := $(BIN)/pip
 PIP_WIN := python -m pip
 PYTHON := $(BIN)/$(python)
-ANALIZE := $(BIN)/pylint
+ANALIZE := $(BIN)/pylint -j 0
 COVERAGE := $(BIN)/coverage
 COVERALLS := $(BIN)/coveralls
 FLAKE8 := $(BIN)/flake8 --whitelist spelling-allowlist.txt
 FLAKE8_RST := $(BIN)/flake8-rst
-TEST_RUNNER := $(BIN)/pytest
+PYTEST := $(BIN)/pytest
 TOX := $(BIN)/tox
 TWINE := $(BIN)/twine
 APIDOC := $(BIN)/sphinx-apidoc
@@ -51,16 +52,9 @@ LYCHEE := $(BIN)/lychee
 PKGDIR := $(or $(PACKAGE), ./)
 SOURCES := $(or $(PACKAGE), $(wildcard *.py))
 
-# Installation packages
-INSTALLATION_PKGS = wheel setuptools
-
-REQUIREMENTS := $(shell find . -name $(REQUIRE))
-REQUIREMENTS_LOG := .requirements.log
 
 # Test and Analyize
-ANALIZE_PKGS = pylint pydocstyle flake8 flake8-spellcheck flake8-eradicate flake8-rst
 TEST_CODE := tests/
-TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval coveralls torch==1.10.1+cpu torchvision==0.11.2+cpu torchaudio==0.10.1+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
 NOTEBOOK_CHECKS = ./docs/source/examples/checks
 NOTEBOOK_EXAMPLES = ./docs/source/examples/guides/*.ipynb
 NOTEBOOK_USECASES = ./docs/source/examples/use-cases/*.ipynb
@@ -87,14 +81,13 @@ DOCS_REQUIRE := $(DOCS)/$(REQUIRE)
 SPHINXOPTS   ?=
 
 
-# Sphinx
-# SPHINX_PKGS = sphinx pydata-sphinx-theme sphinx-markdown-builder sphinx-autoapi sphinx-copybutton nbsphinx
-
 EGG_INFO := $(subst -,_,$(PROJECT)).egg-info
 EGG_LINK = venv/lib/python3.7/site-packages/deepchecks.egg-link
 
+
 ### Main Targets ######################################################
-.PHONY: help env all
+
+.PHONY: help env all requirements doc-requirements dev-requirements
 
 # TODO: add description for all targets (at least for the most usefull)
 
@@ -142,93 +135,116 @@ help:
 	@echo ""
 
 
+
 all: validate test notebook
 
-env: $(REQUIREMENTS_LOG)
 
-$(PIP):
-	$(info #### Remember to source new environment  [ $(ENV) ] ####)
+env: $(ENV)
+
+
+$(ENV):
+	@echo "#### Creating Python Vertual Enviroment [ $(ENV) ] ####"
 	@echo "external python_exe is $(ext_py)"
-	test -d $(ENV) || $(ext_py) -m venv $(ENV)
+	@test -d $(ENV) || $(ext_py) -m venv $(ENV)
 
-$(REQUIREMENTS_LOG): $(PIP) $(REQUIREMENTS)
-	$(ext_py) -m pip install --upgrade pip
-	$(PIP) install $(INSTALLATION_PKGS)
-	for f in $(REQUIREMENTS); do \
-	  $(PIP) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
-	done
+
+requirements: $(ENV)
+	@echo "####  installing dependencies, it could take some time, please wait! #### "
+
+	@if [ $(OS) = "Linux" ]; \
+	then \
+		$(PIP) install -q\
+			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" "torchaudio==0.10.2+cpu" \
+			-f https://download.pytorch.org/whl/cpu/torch_stable.html; \
+	else \
+		$(PIP) install -q -U torch torchvision torchaudio; \
+	fi;
+
+	@$(PIP) install -U pip
+	@$(PIP) install -q \
+		wheel setuptools \
+		-r ./requirements/requirements.txt \
+		-r ./requirements/vision-requirements.txt \
+		-r ./requirements/nlp-requirements.txt
+	@$(PIP) install --no-deps -e .
+
+
+doc-requirements: $(ENV)
+	@echo "####  installing documentation dependencies, it could take some time, please wait! #### "
+	@$(PIP) install -q -r ./docs/requirements.txt
+
+
+dev-requirements: $(ENV)
+	@echo "####  installing development dependencies, it could take some time, please wait! #### "
+	@$(PIP) install -q -r ./requirements/dev-requirements.txt
 
 
 ### Static Analysis ######################################################
 
 .PHONY: validate pylint docstring
 
-validate: $(REQUIREMENTS_LOG) pylint docstring
 
-pylint: $(ANALIZE)
+validate: pylint docstring
+
+
+pylint: dev-requirements
 	$(ANALIZE) $(SOURCES) $(TEST_CODE)
 	$(FLAKE8) $(SOURCES)
 	$(FLAKE8_RST) $(SOURCES)
 
-docstring: $(ANALIZE) # We Use PEP257 Style Python Docstring
-	$(PYTHON) -m pydocstyle --convention=pep257 --add-ignore=D107 $(SOURCES)
 
-$(ANALIZE): $(PIP)
-	$(PIP) install --upgrade $(ANALIZE_PKGS) | tee -a $(REQUIREMENTS_LOG)
+docstring: dev-requirements
+	$(PYTHON) -m pydocstyle --convention=pep257 --add-ignore=D107 $(SOURCES)
 
 
 ### Testing ######################################################
 
 .PHONY: test coverage notebook
 
-test: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
-	$(pythonpath) $(TEST_RUNNER) $(args) $(TESTDIR)
+
+test: requirements dev-requirements
+	$(PYTEST) $(args) $(TESTDIR)
+
 
 test-win:
-	test -d $(WIN_ENV) || python -m venv $(WIN_ENV)
-	$(WIN_ENV)\Scripts\activate.bat
-	$(PIP_WIN) $(INSTALLATION_PKGS)
-	for f in requirements/requirements.txt; do \
-	$(PIP_WIN) install -r $$f | tee -a $(REQUIREMENTS_LOG); \
-	done
-	$(PIP_WIN) install $(TEST_RUNNER_PKGS)
+	@test -d $(WIN_ENV) || python -m venv $(WIN_ENV)
+	@$(WIN_ENV)\Scripts\activate.bat
+	@$(PIP_WIN) install -q \
+		-r ./requirements/requirements.txt \
+		-r ./requirements/vision-requirements.txt \
+		-r ./requirements/nlp-requirements.txt \
+		-r ./requirements/dev-requirements.txt
 	python -m pytest $(WIN_TESTDIR)
 
-notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
-# if deepchecks is not installed, we need to install it for testing porpuses,
-# as the only time you'll need to run make is in dev mode, we're installing
-# deepchecks in development mode
-	$(PIP) install --no-deps -e .
+
+notebook: requirements dev-requirements
 # Making sure the examples are running, without validating their outputs.
-	@NOTEBOOKS=$$(find ./docs/source/examples -name "*.ipynb") \
-	&& N_OF_NOTEBOOKS=$$(find ./docs/source/examples -name "*.ipynb" | wc -l) \
-	&& echo "+++ Number of notebooks to execute: $$N_OF_NOTEBOOKS +++" \
-	&& $(JUPYTER) nbconvert --execute $$NOTEBOOKS --to notebook --stdout > /dev/null
+	@$(JUPYTER) nbextension enable --py widgetsnbextension
+	@echo "+++ Number of notebooks to execute: $$(find ./docs/source/examples -name "*.ipynb" | wc -l) +++"
+	@$(JUPYTER) nbconvert \
+		--execute $$(find ./docs/source/examples -name "*.ipynb") \
+		--to notebook \
+		--stdout > /dev/null
 # For now, because of plotly - disabling the nbval and just validate that the notebooks are running
 #	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_CHECKS) --sanitize-with $(NOTEBOOK_SANITIZER_FILE)
 
-$(TEST_RUNNER):
-	$(PIP) install $(TEST_RUNNER_PKGS) | tee -a $(REQUIREMENTS_LOG)
 
-regenerate-examples: $(REQUIREMENTS_LOG)
-	$(PIP) install --no-deps -e .
-	$(JUPYTER) nbextension enable --py widgetsnbextension
-	for path in $(NOTEBOOK_EXAMPLES) ; do \
-	  $(JUPYTER) nbconvert --to notebook --inplace --execute $$path ; \
-	done
-	for path in $(NOTEBOOK_USECASES) ; do \
-	  $(JUPYTER) nbconvert --to notebook --inplace --execute $$path ; \
-	done
-	for path in $(NOTEBOOK_CHECKS)/**/*.ipynb ; do \
-	  $(JUPYTER) nbconvert --to notebook --inplace --execute $$path ; \
-	done
+regenerate-examples: requirements dev-requirements
+	@$(JUPYTER) nbextension enable --py widgetsnbextension
+	@echo "+++ Number of notebooks: $$(find ./docs/source/examples -name "*.ipynb" | wc -l) +++"
+	@$(JUPYTER) nbconvert \
+		--to notebook \
+		--inplace \
+		--execute $$(find ./docs/source/examples -name "*.ipynb") \
 
 
-coverage: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
+coverage: requirements dev-requirements
 	$(COVERAGE) run -m pytest
+
 
 coveralls: coverage
 	$(COVERALLS) --service=github
+
 
 # This is Here For Legacy || future use case,
 # our PKGDIR is in its own directory so we dont really need to remove the ENV dir.
@@ -245,28 +261,28 @@ endif
 endif
 
 
-# tox checks for all python versions matrix
-tox: $(TOX)
+tox:
 	$(TOX)
-
-$(TOX): $(PIP)
-	$(PIP) install tox | tee -a $(REQUIREMENTS_LOG)
 
 
 ### Cleanup ######################################################
 
 .PHONY: clean clean-env clean-all clean-build clean-test clean-dist clean-docs
 
+
 clean: clean-dist clean-test clean-build clean-docs
+
+
+clean-all: clean clean-env
+
 
 clean-env: clean
 	-@rm -rf $(ENV)
-	-@rm -rf $(REQUIREMENTS_LOG)
 	-@rm -rf $(COVERAGE_LOG)
 	-@rm -rf $(PYLINT_LOG)
+	-@rm -rf ./lychee.output
 	-@rm -rf .tox
 
-clean-all: clean clean-env
 
 clean-build:
 	@find $(PKGDIR) -name '*.pyc' -delete
@@ -276,17 +292,23 @@ clean-build:
 	-@rm -rf $(EGG_INFO)
 	-@rm -rf __pycache__
 
+
 clean-test:
 	-@rm -rf .pytest_cache
 	-@rm -rf .coverage
 
+
 clean-dist:
 	-@rm -rf dist build
 
-clean-docs: $(DOCS) env  $(SPHINX_BUILD)
-	@cd $(DOCS) && make clean SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS)
+
+clean-docs: $(DOCS)
+	@rm -rf $(DOCS_BUILD)
+	@rm -rf $(DOCS)/docs.error.log
+
 
 ### Release ######################################################
+
 .PHONY: authors register dist upload test-upload release test-release .git-no-changes
 
 
@@ -295,7 +317,7 @@ authors:
 	git log --raw | grep "^Author: " | cut -d ' ' -f2- | cut -d '<' -f1 | sed 's/^/- /' | sort | uniq >> AUTHORS.md
 
 
-dist: test
+dist: $(ENV)
 	$(PYTHON) setup.py sdist
 	$(PYTHON) setup.py bdist_wheel
 
@@ -329,14 +351,12 @@ test-release: dist test-upload
 	fi;
 
 
-$(TWINE): $(PIP)
-	$(PIP) install twine
-
-
 ### Documentation
-.PHONY: docs website dev-docs gen-static-notebooks license-check links-check lychee-bin
 
-docs: env $(DOCS_SRC)
+.PHONY: docs website dev-docs gen-static-notebooks license-check links-check
+
+
+docs: requirements doc-requirements $(DOCS_SRC)
 	cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS) 2> docs.error.log
 	@echo ""
 	@echo "++++++++++++++++++++++++"
@@ -377,6 +397,7 @@ links-check: $(DOCS_BUILD) $(LYCHEE)
 	if [ $? -eq 0 ]; \
 	then \
 		echo "+++ Nothing Detected +++"; \
+		exit 0; \
 	else \
 		echo ""; \
 		echo "++++++++++++++++++++++++++++"; \
@@ -387,19 +408,21 @@ links-check: $(DOCS_BUILD) $(LYCHEE)
 		echo "- $(shell realpath ./lychee.output)"; \
 		echo ""; \
 		head -n 12 lychee.output; \
+		exit 1; \
 	fi;
 
 
 $(LYCHEE):
-	curl -L --output lychee.tar.gz https://github.com/lycheeverse/lychee/releases/download/v0.8.2/lychee-v0.8.2-x86_64-unknown-linux-gnu.tar.gz \
-	&& tar -xvzf lychee.tar.gz \
-	&& rm -rf ./lychee.tar.gz \
-	&& chmod +x ./lychee \
-	&& mkdir -p $(BIN)/ \
-	&& mv ./lychee $(BIN)/ \
+	@curl -L --output lychee.tar.gz https://github.com/lycheeverse/lychee/releases/download/v0.8.2/lychee-v0.8.2-x86_64-unknown-linux-gnu.tar.gz
+	@tar -xvzf lychee.tar.gz
+	@rm -rf ./lychee.tar.gz
+	@chmod +x ./lychee
+	@mkdir -p $(BIN)/
+	@mv ./lychee $(BIN)/
 
 
 ### System Installation ######################################################
+
 .PHONY: develop install download jupyter
 
 develop:
