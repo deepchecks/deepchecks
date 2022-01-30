@@ -68,7 +68,7 @@ class RobustnessReport(TrainTestBaseCheck):
         # This takes time, consider replacing
         if set(baseline_dataset.get_samples_per_class().keys()) != set(augmented_dataset.get_samples_per_class().keys()):
             raise DeepchecksValueError("Datasets must share class count")
-        if not all([set(baseline_dataset.get_samples_per_class()[k]) == set(augmented_dataset.get_samples_per_class()[k])
+        if not all([baseline_dataset.get_samples_per_class()[k] == augmented_dataset.get_samples_per_class()[k]
                     for k in baseline_dataset.get_samples_per_class().keys()]):
             raise DeepchecksValueError("Dataset must have same numnber of examples per class")
         baseline_dataset.validate_transforms(field_name=self._transform_field)
@@ -81,7 +81,7 @@ class RobustnessReport(TrainTestBaseCheck):
         task_type = task_type_check(model, baseline_dataset)
 
         # Get default scorers if no alternative, or validate alternatives
-        scorers = get_scorers_list(model, augmented_dataset, baseline_dataset.get_num_classes(),
+        scorers = get_scorers_list(model, baseline_dataset, baseline_dataset.get_num_classes(),
                                    self.alternative_metrics)
         if task_type in (TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION):
             results_df = self._report_inner_loop(baseline_dataset, augmented_dataset, model, scorers)
@@ -169,10 +169,6 @@ class RobustnessReport(TrainTestBaseCheck):
 
         # TODO turn result list into a plot
         return metric_results
-
-    def _is_robust_to_augmentation(self, results_base_df, results_aug_df):
-        # TODO copy original code
-        pass
 
     def _get_random_image_pairs_from_dataloder(self, baseline_dataset, augmented_dataset, n_samples=10):
         """
