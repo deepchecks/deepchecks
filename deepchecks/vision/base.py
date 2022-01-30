@@ -384,4 +384,3 @@ class Suite(BaseSuite):
     @classmethod
     def _get_unsupported_failure(cls, check, msg):
         return CheckFailure(check, DeepchecksNotSupportedError(msg))
-

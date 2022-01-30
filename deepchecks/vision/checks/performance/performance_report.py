@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+# pylint: disable=all
 """Module containing performance report check."""
 from typing import Callable, TypeVar, List
 import pandas as pd

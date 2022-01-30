@@ -1,3 +1,4 @@
+"""Module representing the MNIST dataset."""
 import os.path
 
 from torch import nn
@@ -12,7 +13,7 @@ model_path = str(current_path).replace('\\', '/') + '/models/mnist.pth'
 
 
 class MNistNet(nn.Module):
-    """Defines NN to run on MNist data"""
+    """Represent a simple MNIST network."""
 
     def __init__(self):
         super().__init__()
@@ -23,8 +24,7 @@ class MNistNet(nn.Module):
         self.fc2 = nn.Linear(50, 10)
 
     def forward(self, x):
-        """Forward propagation"""
-
+        """Run a forward step on the network."""
         x = F.relu(F.max_pool2d(self.conv1(x), 2))
         x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
         x = x.view(-1, 320)
@@ -58,7 +58,9 @@ mnist_test_loader = torch.utils.data.DataLoader(
                              ])),
   batch_size=batch_size_test, shuffle=True, pin_memory=True)
 
+
 def load_mnist():
+    """Load the mnist model."""
     model = torch.load(model_path)
     model.eval()
 

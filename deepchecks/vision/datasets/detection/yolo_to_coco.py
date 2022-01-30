@@ -1,3 +1,4 @@
+"""Module for converting YOLO annotations to COCO format."""
 import json
 import os
 import os.path as osp
@@ -27,30 +28,47 @@ CATEGORIES = ("person", "bicycle", "car", "motorcycle", "airplane", "bus",
 
 
 class YoloParser:
+    """Parses input images and labels in the YOLO format.
+
+    Parameters
+    ----------
+    category_list : list of str or dict
+        List of categories or dictionary mapping category id to category name
+    """
+
     def __init__(self, category_list: Optional[Union[Sequence, str, dict]] = CATEGORIES):
         if isinstance(category_list, (list, dict, tuple)):
             self._categories = category_list
         else:
-            with open(category_list, "r") as fid:
+            with open(category_list, "r", encoding="utf8") as fid:
                 self._categories = fid.readlines()
         self._annotations = []
         self._images = []
 
     def parse_label_file(self, full_label_path: str):
+        """Parse a single label file.
+
+        Parameters
+        ----------
+        full_label_path : str
+            Path to the label file.
+        """
         labels = []
-        with open(full_label_path, "r") as fid:
+        with open(full_label_path, "r", encoding="utf8") as fid:
             for line in fid:
                 labels.append(list(map(float, line.split(" "))))
         return np.array(labels)
 
     def parse_images_and_labels(self, images_path: str, labels_path: str):
         """
-        We assume image and labels are correlated, meaning equivalent directories with matching
-        image and label names
-        Args:
-            images_path:
-            labels_path:
-        Returns:
+        We assume image and labels are correlated, meaning equivalent directories with matching image and label names.
+
+        Parameters
+        ----------
+        images_path : str
+            Path to the images directory.
+        labels_path : str
+            Path to the labels directory.
         """
         for img_path in [f for f in os.listdir(images_path) if f[-3:].lower() in ["jpg", "jpeg", "png"]]:
             full_img_path = osp.join(images_path, img_path)
@@ -75,7 +93,7 @@ class YoloParser:
             for l in labels:
                 bbox = l[1:].tolist()
                 category_id = int(l[0])
-                # annotation ID doesn"t really matter so we use running index
+                # annotation ID doesn't really matter so we use running index
                 img_ann = {"id": len(self._annotations),
                            "category_id": category_id,
                            "iscrowd": 0,
@@ -85,15 +103,17 @@ class YoloParser:
                            "bbox": bbox}
                 self._annotations.append(img_ann)
 
-
     def parse_yolo_dir(self, yolo_path: str):
         """
-        Creates COCO dataset;
-        used https://docs.aws.amazon.com/rekognition/latest/customlabels-dg/md-coco-overview.html
+        Create COCO dataset from a directory containing images and labels in the YOLO format.
+
+        Used https://docs.aws.amazon.com/rekognition/latest/customlabels-dg/md-coco-overview.html
         for reference
-        Args:
-            yolo_path:
-        Returns:
+
+        Parameters
+        ----------
+        yolo_path : str
+            Path to the YOLO directory.
         """
         image_dir = osp.join(yolo_path, "images")
         label_dir = osp.join(yolo_path, "labels")
@@ -108,6 +128,13 @@ class YoloParser:
                 self.parse_images_and_labels(c_image_dir, c_label_dir)
 
     def save_coco_json(self, output_path: str):
+        """Save the COCO dataset to a JSON file.
+
+        Parameters
+        ----------
+        output_path : str
+            Path to the output JSON file.
+        """
         coco_json = {}
         coco_json["info"] = {
             "description": "COCO Dataset From Script",
@@ -126,7 +153,7 @@ class YoloParser:
         else:
             coco_json["categories"] = [{"id": idx, "supercategory": c, "name": c}
                                        for idx, c in enumerate(self._categories)]
-        with open(output_path, "w") as fid:
+        with open(output_path, "w", encoding="utf8") as fid:
             json.dump(coco_json, fid, indent=4, sort_keys=True)
 
 

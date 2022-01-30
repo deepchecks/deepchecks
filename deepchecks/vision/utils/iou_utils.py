@@ -1,4 +1,4 @@
-from collections import defaultdict
+"""Module for computing IOUs."""
 import numpy as np
 
 
@@ -25,8 +25,7 @@ def _jaccard(dt, gt):
 
 
 def compute_ious(dt, gt):
-    """ compute pairwise ious """
-
+    """Compute pairwise ious between detections and ground truth."""
     ious = np.zeros((len(dt), len(gt)))
     for g_idx, g in enumerate(gt):
         for d_idx, d in enumerate(dt):
