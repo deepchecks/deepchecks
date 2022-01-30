@@ -162,12 +162,16 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
         The industry standard for PSI limit is above 0.2.
         Earth movers does not have a common industry standard.
 
-        Args:
-            max_allowed_psi_score: the max threshold for the PSI score
-            max_allowed_earth_movers_score: the max threshold for the Earth Mover's Distance score
-
-        Returns:
-            ConditionResult: False if any column has passed the max threshold, True otherwise
+        Parameters
+        ----------
+        max_allowed_psi_score: float , default: 0.2
+            the max threshold for the PSI score
+        max_allowed_earth_movers_score: float ,  default: 0.1
+            the max threshold for the Earth Mover's Distance score
+        Returns
+        -------
+        ConditionResult
+            False if any column has passed the max threshold, True otherwise
         """
 
         def condition(result: Dict) -> ConditionResult:
@@ -244,12 +248,16 @@ def psi(expected_percents: np.ndarray, actual_percents: np.ndarray):
 
     See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf
 
-    Args:
-        expected_percents: array of percentages of each value in the expected distribution.
-        actual_percents: array of percentages of each value in the actual distribution.
-
-    Returns:
-        psi: The PSI score
+    Parameters
+    ----------
+    expected_percents: np.ndarray
+        array of percentages of each value in the expected distribution.
+    actual_percents: : np.ndarray
+        array of percentages of each value in the actual distribution.
+    Returns
+    -------
+    psi
+        The PSI score
 
     """
     psi_value = 0
@@ -264,6 +272,25 @@ def psi(expected_percents: np.ndarray, actual_percents: np.ndarray):
 
 
 def earth_movers_distance_by_histogram(expected_percents: np.ndarray, actual_percents: np.ndarray):
+    """
+    Calculate the Earth Movers Distance (Wasserstein distance) by histogram.
+
+    See https://en.wikipedia.org/wiki/Wasserstein_metric
+
+    Function is for numerical data only.
+
+    Parameters
+    ----------
+    expected_percents : np.ndarray
+        array of percentages of each value in the expected distribution.
+    actual_percents : np.ndarray
+        array of percentages of each value in the actual distribution.
+    Returns
+    -------
+    Any
+        the Wasserstein distance between the two distributions.
+
+    """
     dirt = copy(actual_percents)
     delta = 1 / expected_percents.size
     emd = 0
@@ -279,19 +306,22 @@ def calc_drift_and_plot(train_distribution: dict, test_distribution: dict, plot_
     """
     Calculate drift score per column.
 
-    Args:
-        train_distribution: column from train dataset
-        test_distribution: same column from test dataset
-        plot_title: title of plot
-        column_type: type of column (either "numerical" or "categorical")
-        max_num_categories: Max number of allowed categories. If there are more, they are binned into an "Other"
-                            category.
-
-    Returns:
-        score: drift score of the difference between the two columns' distributions (Earth movers distance for
+    Parameters
+    ----------
+    train_distribution : dict
+        histogram of train values
+    test_distribution : dict
+        matching histogram for test dataset values
+    plot_title : Hashable
+        title of plot
+    column_type : str
+        type of column (either "numerical" or "categorical")
+    Returns
+    -------
+    Tuple[float, str, Callable]
+        drift score of the difference between the two columns' distributions (Earth movers distance for
         numerical, PSI for categorical)
-        scorer_name: name of scoring method
-        fig: graph comparing the two distributions (density for numerical, stack bar for categorical)
+        graph comparing the two distributions (density for numerical, stack bar for categorical)
     """
     if column_type == 'numerical':
         scorer_name = "Earth Mover's Distance"
@@ -352,19 +382,27 @@ def calc_drift_and_plot(train_distribution: dict, test_distribution: dict, plot_
 def feature_distribution_traces(expected_percents: np.array,
                                 actual_percents: np.array,
                                 x_values: list,
-                                is_categorical: bool = False) -> [List[Union[go.Bar, go.Scatter]], Dict, Dict]:
+                                is_categorical: bool = False) -> Tuple[List[Union[go.Bar, go.Scatter]], Dict, Dict]:
     """Create traces for comparison between train and test column.
 
-    Args:
-        train_column (): Train data used to trace distribution.
-        test_column (): Test data used to trace distribution.
-        is_categorical (bool): State if column is categorical (default: False).
-        max_num_categories (int): Maximum number of categories to show in plot (default: 10).
-
-    Returns:
-        List[Union[go.Bar, go.Scatter]]: list of plotly traces.
-        Dict: layout of x axis
-        Dict: layout of y axis
+    Parameters
+    ----------
+    expected_percents: np.array
+        Expected distribution of values
+    actual_percents: np.array
+        Actual distribution of values
+    x_values: list
+        list of x-axis values of expected_percents and actual_percents
+    is_categorical : bool , default: False
+        State if column is categorical.
+    Returns
+    -------
+    List[Union[go.Bar, go.Scatter]]
+        list of plotly traces.
+    Dict
+        layout of x axis
+    Dict
+        layout of y axis
     """
     if is_categorical:
 
