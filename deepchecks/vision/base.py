@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module for base tabular abstractions."""
+"""Module for base vision abstractions."""
 # TODO: This file should be completely modified
 # pylint: disable=broad-except
 import abc
