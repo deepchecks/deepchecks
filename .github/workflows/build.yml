@@ -88,12 +88,15 @@ jobs:
       with:
         requirements: 'requirements-all.txt'
         fail: 'Copyleft,Other,Error'
-        exclude: '(pyzmq.*22\.3\.0|debugpy.*1\.5\.1|certifi.*2021\.10\.8|tqdm.*4\.62\.3|webencodings.*0\.5\.1)'
+        exclude: '(pyzmq.*22\.3\.0|debugpy.*1\.5\.1|certifi.*2021\.10\.8|tqdm.*4\.62\.3|webencodings.*0\.5\.1)|pylint.*2\.12\.2)|astroid.*2\.9\.3)|docutils.*0\.18\.1)'
         # pyzmq is Revised BSD https://github.com/zeromq/pyzmq/blob/main/examples/LICENSE
         # debugpy is MIT https://github.com/microsoft/debugpy/blob/main/LICENSE
         # certifi is MPL-2.0 https://github.com/certifi/python-certifi/blob/master/LICENSE
         # tqdm is MPL-2.0 https://github.com/tqdm/tqdm/blob/master/LICENCE
         # webencodings is BSD https://github.com/gsnedders/python-webencodings/blob/master/LICENSE
+        # pylint is not used as part of the package logic
+        # astroid is not used as part of the package logic
+        # docutils is not used as part of the package logic
     - name: Print report
       if: ${{ always() }}
       run: echo "${{ steps.license_check_report.outputs.report }}"

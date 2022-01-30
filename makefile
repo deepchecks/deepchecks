@@ -29,6 +29,7 @@ WIN_BIN := $(WIN_ENV)/bin
 # System Envs
 BIN := $(ENV)/bin
 pythonpath := PYTHONPATH=.
+OS := $(shell uname -s)
 
 # Venv Executables
 PIP := $(BIN)/pip
@@ -149,6 +150,16 @@ $(ENV):
 
 requirements: $(ENV)
 	@echo "####  installing dependencies, it could take some time, please wait! #### "
+	@$(PIP) install -U pip
+
+
+	@if [ $(OS) = "Linux" ]; \
+	then \
+		$(PIP) install -U torch==1.10.2+cpu torchvision==0.11.3+cpu torchaudio==0.10.2+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html; \
+	else \
+		$(PIP) install -U torch torchvision torchaudio; \
+	fi;
+
 	@$(PIP) install -q \
 		wheel setuptools \
 		-r ./requirements/requirements.txt \
