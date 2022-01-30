@@ -56,6 +56,6 @@ def test_model_info_wrong_input():
     assert_that(
         calling(ModelInfo().run).with_args('some string'),
         raises(
-            ModelValidationError, 
+            ModelValidationError,
             r'Model supplied does not meets the minimal interface requirements. Read more about .*')
     )
