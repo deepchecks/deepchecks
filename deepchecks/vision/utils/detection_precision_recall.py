@@ -1,3 +1,4 @@
+"""Module for calculating detection precision and recall."""
 from collections import defaultdict
 
 from ignite.metrics import Metric
@@ -8,11 +9,23 @@ from .iou_utils import compute_ious
 
 
 class DetectionPrecisionRecall(Metric):
-    """"
-    We are expecting to receive the predictions in the following format:
-    [x, y, w, h, confidence, label]
+    """We are expecting to receive the predictions in the following format: [x, y, w, h, confidence, label].
+
+    Parameters
+    ----------
+    num_classes : int
+        Number of classes.
+    iou_threshold : float , default: 0.5
+        Intersection over area threshold.
+    max_dets: int, default: None
+        Maximum number of detections per class.
+    area_range: tuple, default: None
+        Range of image area to be evaluated.
+    return_ap_only: bool, default: True
+        If True, only the average precision will be returned.
     """
-    def __init__(self, iou_threshold=0.5, max_dets=None, area_range=None, return_ap_only: bool = True, *args, **kwargs):
+
+    def __init__(self, *args, iou_threshold=0.5, max_dets=None, area_range=None, return_ap_only: bool = True, **kwargs):
         super().__init__(*args, **kwargs)
         self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})
         self.iou_threshold = iou_threshold
@@ -23,13 +36,14 @@ class DetectionPrecisionRecall(Metric):
 
     @reinit__is_reduced
     def reset(self):
-        super(DetectionPrecisionRecall, self).reset()
+        """Reset metric state."""
+        super().reset()
         self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})
         self.i = 0
 
-
     @reinit__is_reduced
     def update(self, output):
+        """Update metric with batch of samples."""
         y_pred, y = output
 
         for dt, gt in zip(y_pred, y):
@@ -38,6 +52,7 @@ class DetectionPrecisionRecall(Metric):
 
     @sync_all_reduce("_evals")
     def compute(self):
+        """Compute metric value."""
         # now reduce accumulations
         for class_id in self._evals:
             acc = self._evals[class_id]
@@ -54,11 +69,11 @@ class DetectionPrecisionRecall(Metric):
                 **self._compute_ap_recall(ev["scores"], ev["matched"], ev["NP"])
             }
         if self.return_ap_only:
-            res = torch.tensor([res[k]['AP'] for k in sorted(res.keys())])
+            res = torch.tensor([res[k]["AP"] for k in sorted(res.keys())])
         return res
 
     def _group_detections(self, dt, gt):
-        """ simply group gts and dts on a imageXclass basis """
+        """Group gts and dts on a imageXclass basis."""
         bb_info = defaultdict(lambda: {"dt": [], "gt": []})
 
         for d in dt:
@@ -69,13 +84,13 @@ class DetectionPrecisionRecall(Metric):
             bb_info[c_id]["gt"].append(g)
 
         # Calculating pairwise IoUs
-        _ious = {k: compute_ious(**v) for k, v in bb_info.items()}
+        ious = {k: compute_ious(**v) for k, v in bb_info.items()}
 
-        for class_id in _ious.keys():
+        for class_id in ious.keys():
             ev = self._evaluate_image(
                 bb_info[class_id]["dt"],
                 bb_info[class_id]["gt"],
-                _ious[class_id]
+                ious[class_id]
             )
 
             acc = self._evals[class_id]
@@ -84,20 +99,17 @@ class DetectionPrecisionRecall(Metric):
             acc["NP"].append(ev["NP"])
 
     def _evaluate_image(self, det, gt, ious):
-        """
-        det - [x, y, w, h, confidence, label]
-        gt - [label, x, y, w, h]
-        """
+        """Det - [x, y, w, h, confidence, label], gt - [label, x, y, w, h]."""
         # Sort detections by increasing confidence
         det = [self.Prediction(d) for d in det]
-        det_sort = np.argsort([-d.confidence for d in det], kind='stable')
+        det_sort = np.argsort([-d.confidence for d in det], kind="stable")
 
         # sort list of dts and chop by max dets
         dt = [det[idx] for idx in det_sort[:self.max_dets]]
         ious = ious[det_sort[:self.max_dets]]
 
         # generate ignored gt list by area_range
-        def _is_ignore(bb):
+        def _is_ignore(bb):  # pylint: disable=unused-argument
             return False
             # TODO: Calculate the area of the bbox and filter
             # if self.area_range is None:
@@ -116,16 +128,16 @@ class DetectionPrecisionRecall(Metric):
         gtm = {}
         dtm = {}
 
-        for d_idx, d in enumerate(dt):
+        for d_idx, _ in enumerate(dt):
             # information about best match so far (m=-1 -> unmatched)
             iou = min(self.iou_threshold, 1 - 1e-10)
             m = -1
-            for g_idx, g in enumerate(gt):
+            for g_idx, _ in enumerate(gt):
                 # if this gt already matched, and not a crowd, continue
                 if g_idx in gtm:
                     continue
                 # if dt matched to reg gt, and on ignore gt, stop
-                if m > -1 and gt_ignore[m] == False and gt_ignore[g_idx] == True:
+                if m > -1 and not gt_ignore[m] and gt_ignore[g_idx]:
                     break
                 # continue to next gt unless better match made
                 if ious[d_idx, g_idx] < iou:
@@ -151,10 +163,8 @@ class DetectionPrecisionRecall(Metric):
         n_gts = len([g_idx for g_idx in range(len(gt)) if not gt_ignore[g_idx]])
         return {"scores": scores, "matched": matched, "NP": n_gts}
 
-    def _compute_ap_recall(self, scores, matched, NP, recall_thresholds=None):
-        """ This curve tracing method has some quirks that do not appear when only unique confidence thresholds
-        are used (i.e. Scikit-learn's implementation), however, in order to be consistent, the COCO's method is reproduced. """
-        if NP == 0:
+    def _compute_ap_recall(self, scores, matched, n_positives, recall_thresholds=None):
+        if n_positives == 0:
             return {
                 "precision": None,
                 "recall": None,
@@ -182,14 +192,13 @@ class DetectionPrecisionRecall(Metric):
         tp = np.cumsum(matched)
         fp = np.cumsum(~matched)
 
-        rc = tp / NP
+        rc = tp / n_positives
         pr = tp / (tp + fp)
 
         # make precision monotonically decreasing
         i_pr = np.maximum.accumulate(pr[::-1])[::-1]
 
         rec_idx = np.searchsorted(rc, recall_thresholds, side="left")
-        n_recalls = len(recall_thresholds)
 
         # get interpolated precision values at the evaluation thresholds
         i_pr = np.array([i_pr[r] if r < len(i_pr) else 0 for r in rec_idx])
@@ -200,12 +209,14 @@ class DetectionPrecisionRecall(Metric):
             "AP": np.mean(i_pr),
             "interpolated precision": i_pr,
             "interpolated recall": recall_thresholds,
-            "total positives": NP,
+            "total positives": n_positives,
             "TP": tp[-1] if len(tp) != 0 else 0,
             "FP": fp[-1] if len(fp) != 0 else 0
         }
 
     class Prediction:
+        """A class defining the prediction of a single image in an object detection task."""
+
         def __init__(self, det):
             self.bbox = det[:4]
             self.confidence = det[4]

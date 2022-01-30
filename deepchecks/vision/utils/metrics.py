@@ -1,3 +1,4 @@
+"""Module for defining metrics for the vision module."""
 import typing as t
 
 from ignite.engine import Engine
@@ -8,7 +9,6 @@ from torch import nn
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.vision.utils import validation
 from deepchecks.vision import VisionDataset
-from deepchecks.utils.typing import BasicModel
 
 __all__ = [
     'task_type_check'
@@ -37,10 +37,17 @@ def task_type_check(
         dataset: VisionDataset
 ) -> TaskType:
     """Check task type (regression, binary, multiclass) according to model object and label column.
-    Args:
-        model (BasicModel): Model object - used to check if it has predict_proba()
-        dataset (Dataset): dataset - used to count the number of unique labels
-    Returns:
+
+    Parameters
+    ----------
+    model : nn.Module
+        Model object
+    dataset : VisionDataset
+        Dataset object
+
+    Returns
+    -------
+    TaskType
         TaskType enum corresponding to the model and dataset
     """
     validation.model_type_validation(model)
@@ -77,13 +84,22 @@ def get_scorers_list(
 def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn.Module,
                       prediction_extract: t.Callable = None) -> t.Dict[str, float]:
     """Calculate a list of ignite metrics on a given model and dataset.
-    Args:
-        metrics: (List[Metric]) List of metrics to calculate
-        dataset (VisionDataset): dataset object to calculate metrics on
-        model (nn.Module): Model object
-        prediction_extract: (Callable) Function to convert the model output to the appropriate format for the label type
-    Returns:
-        Dict of metrics with the name as key and the value as value
+
+    Parameters
+    ----------
+    metrics : t.List[Metric]
+        List of ignite metrics to calculate
+    dataset : VisionDataset
+        Dataset object
+    model : nn.Module
+        Model object
+    prediction_extract : t.Callable
+        Function to convert the model output to the appropriate format for the label type
+
+    Returns
+    -------
+    t.Dict[str, float]
+        Dictionary of metrics with the metric name as key and the metric value as value
     """
 
     def process_function(_, batch):
