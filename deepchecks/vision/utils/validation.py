@@ -14,23 +14,30 @@ import typing as t
 from torch import nn
 
 from deepchecks.core import errors
+from deepchecks import vision  # pylint: disable=unused-import, is used in type annotations
 
 
-def model_type_validation(model: t.Any):
-    """Receive any object and check if it's an instance of a model we support.
+__all__ = ['validate_model']
+
+
+def validate_model(dataset: 'vision.VisionDataset', model: t.Any):
+    """Receive a dataset and a model and check if they are compatible.
 
     Parameters
     ----------
+    dataset : VisionDataset
+        Built on a dataloader on which the model can infer.
     model : Any
-        Any object to be checked.
+        Model to be validated
 
     Raises
     ------
     DeepchecksValueError
-        If the object is not of a supported type
+        If the dataset and the model are not compatible
     """
-    if not isinstance(model, nn.Module):
-        raise errors.DeepchecksValueError(
-            'Model must inherit from torch.nn.Module '
-            f'Received: {model.__class__.__name__}'
+    try:
+        model(next(iter(dataset.get_data_loader()))[0])
+    except Exception as exc:
+        raise errors.ModelValidationError(
+            f'Got error when trying to predict with model on dataset: {str(exc)}'
         )
