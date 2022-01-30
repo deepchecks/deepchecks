@@ -32,7 +32,7 @@ from deepchecks.vision.dataset import VisionDataset
 #     dl = coco_dataloader
 #     model = trained_yolov5_object_detection
 #
-#     res = calculate_metrics([DetectionPrecisionRecall()], VisionDataset(dl), model,
+#     res = calculate_metrics([AveragePrecision()], VisionDataset(dl), model,
 #                             prediction_extract=yolo_wrapper)
 #
 #

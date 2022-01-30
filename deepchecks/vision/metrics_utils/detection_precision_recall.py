@@ -18,7 +18,7 @@ import numpy as np
 from .iou_utils import compute_ious
 
 
-class DetectionPrecisionRecall(Metric):
+class AveragePrecision(Metric):
     """We are expecting to receive the predictions in the following format: [x, y, w, h, confidence, label].
 
     Parameters

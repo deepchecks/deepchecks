@@ -20,7 +20,7 @@ from deepchecks.vision import TrainTestBaseCheck, Context
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.utils.metrics import get_scorers_list, task_type_check, calculate_metrics
+from deepchecks.vision.metrics_utils.metrics import get_scorers_list, task_type_check, calculate_metrics
 
 
 __all__ = ['PerformanceReport']

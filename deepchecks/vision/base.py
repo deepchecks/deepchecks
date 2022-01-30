@@ -19,7 +19,7 @@ from ignite.metrics import Metric
 from torch import nn
 
 from deepchecks.vision.utils.validation import model_type_validation
-from deepchecks.vision.utils.metrics import TaskType, task_type_check
+from deepchecks.vision.metrics_utils import task_type_check
 from deepchecks.core.check import CheckResult, BaseCheck, CheckFailure, wrap_run
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
@@ -27,7 +27,7 @@ from deepchecks.core.errors import (
     DatasetValidationError, ModelValidationError,
     DeepchecksNotSupportedError, DeepchecksValueError
 )
-from deepchecks.vision import VisionDataset
+from deepchecks.vision.dataset import VisionDataset, TaskType
 
 
 __all__ = [
