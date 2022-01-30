@@ -17,3 +17,9 @@
 # other
 ^https://www\.linkedin\.com/in/rohith-ramakrishnan-54094a1a0.*$
 ^.*examples/guides/\\.*$
+
+^http://www\.schlamar.org/.*$
+^https://daniel\.hahler.de/.*$
+^http://blog\.cookiestack\.com/.*$
+^http://www\.ceastapleton\.com/.*$
+^https://www\.dcc\.fc\.up\.pt/\~ltorgo/Regression/cal_housing\.html.*$

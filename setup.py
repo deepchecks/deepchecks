@@ -66,6 +66,22 @@ def get_description() -> t.Tuple[str, str]:
         return "Deepchecks package", DESCRIPTION_FILE.open("r").read()
 
 
+def read_requirements_file(path):
+    dependencies = []
+    dependencies_links = []
+    for line in path.open("r").readlines():
+        if "-f" in line or "--find-links" in line:
+            dependencies_links.append(
+                line
+                .replace("-f", "")
+                .replace("--find-links", "")
+                .strip()
+            )
+        else:
+            dependencies.append(line)
+    return dependencies, dependencies_links
+
+
 @lru_cache(maxsize=None)
 def read_requirements() -> t.Dict[str,t.List[str]]:
     requirements_folder = DEEPCHECKS_DIR / "requirements"
@@ -76,10 +92,15 @@ def read_requirements() -> t.Dict[str,t.List[str]]:
             f"(path: {str(requirements_folder)})"
         )
     else:
+        main, main_dep_links = read_requirements_file(requirements_folder / "requirements.txt")
+        vision, vision_dep_links = read_requirements_file(requirements_folder / "vision-requirements.txt")
+        nlp, nlp_dep_links = read_requirements_file(requirements_folder / "nlp-requirements.txt")
+
         return {
-            "main": (requirements_folder / "requirements.txt").open("r").readlines(),
-            "vision": (requirements_folder / "vision-requirements.txt").open("r").readlines(),
-            "nlp": (requirements_folder / "nlp-requirements.txt").open("r").readlines(),
+            "dependency_links": main_dep_links + vision_dep_links,
+            "main": main,
+            "vision": vision,
+            # "nlp": nlp,
         }
 
 
@@ -89,15 +110,16 @@ VERSION = get_version_string()
 short_desc, long_desc = get_description()
 
 requirements = read_requirements()
-main_requirements = requirements.pop("main")
+main_requirements = requirements.pop('main')
+dependency_links = requirements.pop('dependency_links', [])
 extra_requirements = requirements
 
 
 setuptools.setup(
     # -- description --------------------------------
     name=DEEPCHECKS,
-    author = 'deepchecks',  
-    author_email = 'info@deepchecks.com', 
+    author='deepchecks',  
+    author_email='info@deepchecks.com', 
     version=VERSION,
     description=short_desc,
     long_description = long_desc,
@@ -129,5 +151,6 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=main_requirements,
     extras_require=extra_requirements,
+    dependency_links=dependency_links,
     include_package_data=True,
 )
