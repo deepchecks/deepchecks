@@ -2,18 +2,6 @@ from collections import defaultdict
 import numpy as np
 
 
-def group_detections(dt, gt):
-    """ simply group gts and dts on a imageXclass basis """
-    bb_info = defaultdict(lambda: {"dt": [], "gt": []})
-    for d in dt:
-        c_id = d[5].item()
-        bb_info[c_id]["dt"].append(d)
-    for g in gt:
-        c_id = g[0]
-        bb_info[c_id]["gt"].append(g)
-    return bb_info
-
-
 def _jaccard(dt, gt):
     x_dt, y_dt, w_dt, h_dt = dt[:4]
     x_gt, y_gt, w_gt, h_gt = gt[1:]
