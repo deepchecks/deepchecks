@@ -21,7 +21,9 @@ from deepchecks.vision.utils import validation
 from deepchecks.vision import VisionDataset
 
 __all__ = [
-    'task_type_check'
+    'task_type_check',
+    'get_scorers_list',
+    'calculate_metrics'
 ]
 
 from .detection_precision_recall import DetectionPrecisionRecall
