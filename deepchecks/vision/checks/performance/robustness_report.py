@@ -68,7 +68,7 @@ class RobustnessReport(TrainTestBaseCheck):
         # This takes time, consider replacing
         if set(baseline_dataset.get_samples_per_class().keys()) != set(augmented_dataset.get_samples_per_class().keys()):
             raise DeepchecksValueError("Datasets must share class count")
-        if not all([baseline_dataset.get_samples_per_class()[k] == augmented_dataset.get_samples_per_class()[k]
+        if not all([baseline_dataset.get_samples_pe_class()[k] == augmented_dataset.get_samples_per_class()[k]
                     for k in baseline_dataset.get_samples_per_class().keys()]):
             raise DeepchecksValueError("Dataset must have same numnber of examples per class")
         baseline_dataset.validate_transforms(field_name=self._transform_field)
@@ -157,15 +157,18 @@ class RobustnessReport(TrainTestBaseCheck):
         def _is_robust_to_augmentation(p, epsilon=10 ** -4):
             grouped_results = p[["Status", "Metric", "Value"]].groupby(["Status", "Metric"]).mean().reset_index()
             differences = []
+            metric_statuses = []
             for metric in grouped_results["Metric"].unique():
                 diff = grouped_results[grouped_results["Metric"] == metric]["Value"].diff().abs().iloc[-1]
                 differences.append(diff > epsilon)
+                metric_statuses.append(diff)
             difference = all(differences)
-            return difference
+            return pd.Series([difference] + metric_statuses, index=["Affected"] +
+                                                                   [f"{m}_delta" for m in
+                                                                    grouped_results["Metric"].unique().tolist()])
 
         # Iterating this dataframe per [Status, Augmentation] will give us easy comparisons
-        metric_results = results_df.groupby(["Augmentation"]).apply(_is_robust_to_augmentation).\
-            reset_index(name="Affected")
+        metric_results = results_df.groupby(["Augmentation"]).apply(_is_robust_to_augmentation).reset_index()
 
         # TODO turn result list into a plot
         return metric_results
