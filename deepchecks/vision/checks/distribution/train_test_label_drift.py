@@ -111,17 +111,18 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
             values_dict[title] = {'Drift score': drift_score, 'Method': method}
             displays.append(display)
 
-            label_transformers = [(get_bbox_area, True), (count_num_bboxes, False)]
-            train_distributions, test_distributions = label_histograms_by_batch(train_dataset=train_dataset, test_dataset=test_dataset,
-                                                           label_transformers=label_transformers)
+            continuous_label_transformers = [get_bbox_area]
+            discrete_label_transformers = [count_num_bboxes]
+            train_distributions, test_distributions = generate_label_histograms_by_batch(train_dataset=train_dataset, test_dataset=test_dataset,
+                                                                                         continuous_label_transformers=continuous_label_transformers, discrete_label_transformers=discrete_label_transformers)
 
-            for title, train_label_distribution, test_label_distribution, is_continuous in zip(['bbox area distribution', 'Number of bboxes per image'], train_distributions, test_distributions, label_transformers):
+            for title, train_label_distribution, test_label_distribution, is_continuous in zip(['bbox area distribution', 'Number of bboxes per image'], train_distributions, test_distributions, [True, False]):
 
                 drift_score, method, display = calc_drift_and_plot(
                     train_distribution=train_label_distribution,
                     test_distribution=test_label_distribution,
                     plot_title=title,
-                    column_type='numerical' if is_continuous[1] else 'categorical'
+                    column_type='numerical' if is_continuous else 'categorical'
                 )
 
                 values_dict[title] = {'Drift score': drift_score, 'Method': method}
@@ -189,73 +190,81 @@ def count_num_bboxes(label):
     return num_bboxes
 
 
-def label_histograms_by_batch(train_dataset: VisionDataset, test_dataset: VisionDataset, label_transformers: List[Tuple[Callable, bool]] = None):
-    if not label_transformers:
-        label_transformers = [(lambda x: x, False)]
-    res = {'train_distributions': [], 'test_distributions': []}
-    for label_transformer, continuous_hist in label_transformers:
-        train, test = histogram_in_batch(train_dataset, test_dataset, label_transformer, continuous_hist)
-        res['train_distributions'].append(train)
-        res['test_distributions'].append(train)
-    return res['train_distributions'], res['test_distributions']
+def generate_label_histograms_by_batch(train_dataset: VisionDataset, test_dataset: VisionDataset,
+                                       continuous_label_transformers: List[Callable] = None,
+                                       discrete_label_transformers: List[Callable] = None,
+                                       num_bins: int = 100):
+
+    if not continuous_label_transformers and not discrete_label_transformers:
+        discrete_label_transformers = [lambda x: x]
+
+    num_continuous_transformers = len(continuous_label_transformers)
+    num_discrete_transformers = len(discrete_label_transformers)
+
+    train_bounds = get_boundaries_by_batch(train_dataset, continuous_label_transformers)
+    test_bounds = get_boundaries_by_batch(test_dataset, continuous_label_transformers)
+    bounds = [(min(train_bounds[i]['min'], test_bounds[i]['min']),
+               max(train_bounds[i]['max'], test_bounds[i]['max'])) for i in range(num_continuous_transformers)]
+
+    hists_and_edges = [np.histogram([], bins=num_bins, range=(bound[0], bound[1])) for bound in bounds]
+    train_hists = [x[0] for x in hists_and_edges]
+    test_hists = copy(train_hists)
+    edges = [x[1] for x in hists_and_edges]
+
+    train_counters = [Counter()] * num_continuous_transformers
+    test_counters = [Counter()] * num_continuous_transformers
+
+    for batch in train_dataset.get_data_loader():
+        train_hists = calculate_continuous_histograms_in_batch(batch, train_hists, continuous_label_transformers, bounds, num_bins)
+        train_counters = calculate_discrete_histograms_in_batch(batch, train_counters, discrete_label_transformers)
+
+    for batch in test_dataset.get_data_loader():
+        test_hists = calculate_continuous_histograms_in_batch(batch, test_hists, continuous_label_transformers, bounds, num_bins)
+        test_counters = calculate_discrete_histograms_in_batch(batch, test_counters, discrete_label_transformers)
+
+    all_discrete_categories = [list(set(train_counter.keys()).union(set(test_counter.keys())))
+                               for train_counter, test_counter in zip(train_counters, test_counters)]
+
+    train_discrete_hists = [{k: train_counters[i][k] for k in all_discrete_categories[i]} for i in range(num_discrete_transformers)]
+    test_discrete_hists = [{k: test_counters[i][k] for k in all_discrete_categories[i]} for i in range(num_discrete_transformers)]
+
+    train_continuous_hists = [dict(zip(edges[i], train_hists[i])) for i in range(num_continuous_transformers)]
+    test_continuous_hists = [dict(zip(edges[i], test_hists[i])) for i in range(num_continuous_transformers)]
+
+    return train_continuous_hists + train_discrete_hists, test_continuous_hists + test_discrete_hists
 
 
-def histogram_in_batch(train_dataset: VisionDataset, test_dataset: VisionDataset = None, label_transformer: Callable = lambda x: x, continuous_hist: bool = False, num_bins: int = 100):
+def calculate_discrete_histograms_in_batch(batch, counters, discrete_label_transformers):
+    for i in range(len(discrete_label_transformers)):
+        calc_res = get_results_on_batch(batch, discrete_label_transformers[i])
+        counters[i].update(calc_res)
+    return counters
 
-    def get_results_on_batch(batch, label_transformer):
+
+def calculate_continuous_histograms_in_batch(batch, hists, continuous_label_transformers, bounds, num_bins):
+    for i in range(len(continuous_label_transformers)):
+        calc_res = get_results_on_batch(batch, continuous_label_transformers[i])
+        new_hist, _ = np.histogram(calc_res, bins=num_bins, range=(bounds[i][0], bounds[i][1]))
+        hists[i] += new_hist
+    return hists
+
+def get_results_on_batch(batch, label_transformer):
         list_of_arrays = batch[1]
         calc_res = [label_transformer(arr) for arr in list_of_arrays]
         if len(calc_res) != 0 and isinstance(calc_res[0], list):
             calc_res = [x[0] for x in sum(calc_res, [])]
         return calc_res
 
-    if continuous_hist:
-        label_min = np.inf
-        label_max = -np.inf
-        for batch in train_dataset.get_data_loader():
-            calc_res = get_results_on_batch(batch, label_transformer)
-            label_min = min(calc_res + [label_min])
-            label_max = max(calc_res + [label_max])
-        if test_dataset:
-            for batch in test_dataset.get_data_loader():
-                calc_res = get_results_on_batch(batch, label_transformer)
-                label_min = min(calc_res + [label_min])
-                label_max = max(calc_res + [label_max])
 
-        hist, edges = np.histogram([], bins=num_bins, range=(label_min, label_max))
+def get_boundaries_by_batch(dataset: VisionDataset, label_transformers: List[Callable]) -> List[Dict[str, float]]:
+    bounds = [{'min': np.inf, 'max': -np.inf}] * len(label_transformers)
+    for batch in dataset.get_data_loader():
+        for i in range(len(label_transformers)):
+            calc_res = get_results_on_batch(batch, label_transformers[i])
+            bounds[i]['min'] = min(calc_res + [bounds[i]['min']])
+            bounds[i]['max'] = max(calc_res + [bounds[i]['max']])
 
-        for batch in train_dataset.get_data_loader():
-            calc_res = get_results_on_batch(batch, label_transformer)
-            new_hist, _ = np.histogram(calc_res, bins=num_bins, range=(label_min, label_max))
-            hist = new_hist + hist
-
-        if test_dataset is not None:
-            test_hist = np.zeros(hist.shape)
-            for batch in test_dataset.get_data_loader():
-                calc_res = get_results_on_batch(batch, label_transformer)
-                new_hist, _ = np.histogram(calc_res, bins=num_bins, range=(label_min, label_max))
-                test_hist = new_hist + test_hist
-            return dict(zip(edges, hist)), dict(zip(edges, test_hist))
-        else:
-            return dict(zip(edges, hist))
-
-    else:
-        counter = Counter()
-        for batch in train_dataset.get_data_loader():
-            calc_res = get_results_on_batch(batch, label_transformer)
-            counter.update(calc_res)
-        if test_dataset is not None:
-            test_counter = Counter()
-            for batch in test_dataset.get_data_loader():
-                calc_res = get_results_on_batch(batch, label_transformer)
-                test_counter.update(calc_res)
-            all_categories = list(set(counter.keys()).union(set(test_counter.keys())))
-            counter = {k: counter[k] for k in all_categories}
-            test_counter = {k: test_counter[k] for k in all_categories}
-            return counter, test_counter
-
-        else:
-            return counter
+    return bounds
 
 
 PSI_MIN_PERCENTAGE = 0.01
