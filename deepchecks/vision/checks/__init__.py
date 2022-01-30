@@ -9,3 +9,5 @@
 # ----------------------------------------------------------------------------
 #
 """Module importing all vision checks."""
+from .performance import *
+from .distribution import *

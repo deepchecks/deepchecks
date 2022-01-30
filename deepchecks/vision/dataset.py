@@ -16,7 +16,6 @@ from collections import Counter
 from typing import Callable
 
 from torch.utils.data import DataLoader
-from torch import cat
 import logging
 
 from deepchecks.core.errors import DeepchecksValueError
@@ -101,13 +100,6 @@ class VisionDataset:
                     'Not implemented yet for tasks other than classification and object detection'
                 )
         return copy(self._samples_per_class)
-
-    def extract_label(self):
-        """Return a list of labels from the dataset."""
-        y = []
-        for _ in range(len(self._data)):
-            y.append(self.label_transformer(next(iter(self._data))[1]))
-        return cat(y, 0)
 
     def infer_label_type(self):
         """Infer the type of label from the dataset."""
