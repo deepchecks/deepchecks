@@ -155,7 +155,7 @@ requirements: $(ENV)
 
 	@if [ $(OS) = "Linux" ]; \
 	then \
-		$(PIP) install torch==1.10.2+cpu torchvision==0.11.3+cpu torchaudio==0.10.2+cpu ; \
+		$(PIP) install --use-deprecated=html5lib -f https://download.pytorch.org/whl/cpu/torch_stable.html torch==1.10.2+cpu torchvision==0.11.3+cpu torchaudio==0.10.2+cpu; \
 	else \
 		$(PIP) install -U torch torchvision torchaudio; \
 	fi;
