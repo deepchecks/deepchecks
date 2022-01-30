@@ -25,6 +25,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 from deepchecks.tabular import Dataset
 
+from .vision import vision_conftest #pylint: disable=unused-import
 
 @pytest.fixture(scope='session')
 def multi_index_dataframe():

@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module importing all checks."""
+"""Module importing all tabular checks."""
 from .integrity import (
     MixedNulls,
     StringMismatch,
