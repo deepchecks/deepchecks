@@ -11,8 +11,6 @@
 """Module for validation of the vision module."""
 import typing as t
 
-from torch import nn
-
 from deepchecks.core import errors
 from deepchecks import vision  # pylint: disable=unused-import, is used in type annotations
 
