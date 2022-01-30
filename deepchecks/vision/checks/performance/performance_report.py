@@ -8,7 +8,6 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-# pylint: disable=all
 """Module containing performance report check."""
 from typing import Callable, TypeVar, List
 import pandas as pd
@@ -20,7 +19,7 @@ from deepchecks.vision import TrainTestBaseCheck, Context
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.utils.metrics import get_scorers_list, task_type_check, calculate_metrics
+from deepchecks.vision.metrics_utils.metrics import get_scorers_list, task_type_check, calculate_metrics
 
 
 __all__ = ['PerformanceReport']
@@ -31,9 +30,10 @@ PR = TypeVar('PR', bound='PerformanceReport')
 class PerformanceReport(TrainTestBaseCheck):
     """Summarize given metrics on a dataset and model.
 
-    Args:
-        alternative_metrics (List[Metric], default None):
-            A list of ignite.Metric objects whose score should be used. If None are given, use the default metrics.
+    Parameters
+    ----------
+    alternative_metrics (List[Metric], default None):
+        A list of ignite.Metric objects whose score should be used. If None are given, use the default metrics.
     """
 
     def __init__(self, alternative_metrics: List[Metric] = None, prediction_extract: Callable = None):
@@ -109,8 +109,10 @@ class PerformanceReport(TrainTestBaseCheck):
     def add_condition_test_performance_not_less_than(self: PR, min_score: float) -> PR:
         """Add condition - metric scores are not less than given score.
 
-        Args:
-            min_score (float): Minimal score to pass.
+        Parameters
+        ----------
+        min_score : float
+            Minimum score to pass the check.
         """
         def condition(check_result: pd.DataFrame):
             not_passed = check_result.loc[check_result['Value'] < min_score]
@@ -126,8 +128,10 @@ class PerformanceReport(TrainTestBaseCheck):
     def add_condition_train_test_relative_degradation_not_greater_than(self: PR, threshold: float = 0.1) -> PR:
         """Add condition that will check that test performance is not degraded by more than given percentage in train.
 
-        Args:
-            threshold: maximum degradation ratio allowed (value between 0 and 1)
+        Parameters
+        ----------
+        threshold : float
+            maximum degradation ratio allowed (value between 0 and 1)
         """
         def _ratio_of_change_calc(score_1, score_2):
             if score_1 == 0:
@@ -191,16 +195,22 @@ class PerformanceReport(TrainTestBaseCheck):
         Verifying that relative ratio difference
         between highest-class and lowest-class is not greater than 'threshold'.
 
-        Args:
-            threshold: ratio difference threshold
-            score: limit score for condition
+        Parameters
+        ----------
+        threshold : float
+            ratio difference threshold
+        score : str
+            limit score for condition
 
-        Returns:
-            Self: instance of 'ClassPerformance' or it subtype
+        Returns
+        -------
+        Self
+            instance of 'ClassPerformance' or it subtype
 
-        Raises:
-            DeepchecksValueError:
-                if unknown score function name were passed;
+        Raises
+        ------
+        DeepchecksValueError
+            if unknown score function name were passed;
         """
         # TODO: Redefine default scorers when making the condition work
         # if score is None:

@@ -11,10 +11,10 @@
 from hamcrest import equal_to, assert_that, calling, raises
 
 from deepchecks.vision.datasets.detection.coco import yolo_wrapper
-from deepchecks.vision.utils.metrics import task_type_check, TaskType, \
+from deepchecks.vision.metrics_utils.metrics import task_type_check, TaskType, \
     get_default_classification_scorers
-from deepchecks.vision.utils.metrics import calculate_metrics
-from deepchecks.vision.utils.detection_precision_recall import DetectionPrecisionRecall
+from deepchecks.vision.metrics_utils.metrics import calculate_metrics
+from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
 from deepchecks.vision.dataset import VisionDataset
 
 
@@ -32,7 +32,7 @@ from deepchecks.vision.dataset import VisionDataset
 #     dl = coco_dataloader
 #     model = trained_yolov5_object_detection
 #
-#     res = calculate_metrics([DetectionPrecisionRecall()], VisionDataset(dl), model,
+#     res = calculate_metrics([AveragePrecision()], VisionDataset(dl), model,
 #                             prediction_extract=yolo_wrapper)
 #
 #

@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module for base tabular abstractions."""
+"""Module for base vision abstractions."""
 # TODO: This file should be completely modified
 # pylint: disable=broad-except
 import abc
@@ -18,8 +18,8 @@ from typing import Tuple, Mapping, Optional
 from ignite.metrics import Metric
 from torch import nn
 
-from deepchecks.vision.utils.validation import model_type_validation
-from deepchecks.vision.utils.metrics import TaskType, task_type_check
+from deepchecks.vision.utils.validation import validate_model
+from deepchecks.vision.metrics_utils import task_type_check
 from deepchecks.core.check import CheckResult, BaseCheck, CheckFailure, wrap_run
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
@@ -27,7 +27,7 @@ from deepchecks.core.errors import (
     DatasetValidationError, ModelValidationError,
     DeepchecksNotSupportedError, DeepchecksValueError
 )
-from deepchecks.vision import VisionDataset
+from deepchecks.vision.dataset import VisionDataset, TaskType
 
 
 __all__ = [
@@ -97,9 +97,6 @@ class Context:
         if test and not train:
             raise DatasetValidationError('Can\'t initialize context with only test. if you have single dataset, '
                                          'initialize it as train')
-        if model is not None:
-            # Here validate only type of model, later validating it can predict on the data if needed
-            model_type_validation(model)
 
         self._train = train
         self._test = test
@@ -133,8 +130,8 @@ class Context:
         if self._model is None:
             raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without model')
         if not self._validated_model:
-            # if self._train:
-            #     validate_model(self._train, self._model)
+            if self._train:
+                validate_model(self._train, self._model)
             self._validated_model = True
         return self._model
 
