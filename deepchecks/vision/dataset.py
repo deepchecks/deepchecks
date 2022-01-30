@@ -16,7 +16,6 @@ from collections import Counter
 from typing import Callable
 
 from torch.utils.data import DataLoader
-from torch import cat
 import logging
 
 from deepchecks.core.errors import DeepchecksValueError
