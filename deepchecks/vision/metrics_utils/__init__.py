@@ -11,4 +11,3 @@ __all__ = [
     'get_scorers_list',
     'calculate_metrics',
 ]
-
