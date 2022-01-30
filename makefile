@@ -138,7 +138,7 @@ help:
 all: validate test notebook
 
 
-env: $(ENV) requirements dev-requirements
+env: $(ENV)
 
 
 $(ENV):
