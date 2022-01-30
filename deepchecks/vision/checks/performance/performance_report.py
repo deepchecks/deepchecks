@@ -59,12 +59,12 @@ class PerformanceReport(TrainTestBaseCheck):
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
         if task_type in (TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION):
-            classes = train_dataset.get_samples_per_class().keys()
+            classes = train_dataset.samples_per_class.keys()
             plot_x_axis = 'Class'
             results = []
 
             for dataset_name, dataset in datasets.items():
-                n_samples = dataset.get_samples_per_class()
+                n_samples = dataset.samples_per_class
                 results.extend(
                     [dataset_name, class_name, name, class_score, n_samples[class_name]]
                     for name, score in calculate_metrics(list(scorers.values()), dataset, model,

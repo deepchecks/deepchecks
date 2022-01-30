@@ -19,7 +19,6 @@ from ignite.metrics import Metric
 from torch import nn
 
 from deepchecks.vision.utils.validation import model_type_validation
-from deepchecks.vision.metrics_utils import task_type_check
 from deepchecks.core.check import CheckResult, BaseCheck, CheckFailure, wrap_run
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
@@ -28,6 +27,7 @@ from deepchecks.core.errors import (
     DeepchecksNotSupportedError, DeepchecksValueError
 )
 from deepchecks.vision.dataset import VisionDataset, TaskType
+from deepchecks.vision.metrics_utils.metrics import task_type_check
 
 
 __all__ = [
@@ -57,9 +57,6 @@ class Context:
         dict of scorers names to a Metric
     scorers_per_class : Mapping[str, Metric] , default: None
         dict of scorers for classification without averaging of the classes.
-        See <a href=
-        "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
-        scikit-learn docs</a>
     """
 
     def __init__(self,
@@ -73,27 +70,6 @@ class Context:
         # Validations
         if train is None and test is None and model is None:
             raise DeepchecksValueError('At least one dataset (or model) must be passed to the method!')
-        # if train is not None:
-        #     train = VisionDataset.ensure_not_empty_dataset(train)
-        # if test is not None:
-        #     test = VisionDataset.ensure_not_empty_dataset(test)
-        # # If both dataset, validate they fit each other
-        # if train and test:
-        #     if not VisionDataset.datasets_share_label(train, test):
-        #         raise DatasetValidationError('train and test requires to have and to share the same label')
-        #     if not VisionDataset.datasets_share_features(train, test):
-        #         raise DatasetValidationError('train and test requires to share the same features columns')
-        #     if not VisionDataset.datasets_share_categorical_features(train, test):
-        #         raise DatasetValidationError(
-        #             'train and test datasets should share '
-        #             'the same categorical features. Possible reason is that some columns were'
-        #             'inferred incorrectly as categorical features. To fix this, manually edit the '
-        #             'categorical features using Dataset(cat_features=<list_of_features>'
-        #         )
-        #     if not VisionDataset.datasets_share_index(train, test):
-        #         raise DatasetValidationError('train and test requires to share the same index column')
-        #     if not VisionDataset.datasets_share_date(train, test):
-        #         raise DatasetValidationError('train and test requires to share the same date column')
         if test and not train:
             raise DatasetValidationError('Can\'t initialize context with only test. if you have single dataset, '
                                          'initialize it as train')
@@ -106,6 +82,8 @@ class Context:
         self._model = model
         self._validated_model = False
         self._task_type = None
+        self._train_sample_predictions = None
+        self._test_sample_predictions = None
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
@@ -150,6 +128,22 @@ class Context:
             self._task_type = task_type_check(self.model, self.train)
         return self._task_type
 
+    @property
+    def train_sample_predictions(self):
+        if self._train_sample_predictions is None:
+            self._train_sample_predictions = []
+            for tensor, _ in self.train.sample_data_loader:
+                self._train_sample_predictions.append(self.model(tensor))
+        return self._train_sample_predictions
+
+    @property
+    def test_sample_predictions(self):
+        if self._test_sample_predictions is None:
+            self._test_sample_predictions = []
+            for tensor, _ in self.test.sample_data_loader:
+                self._test_sample_predictions.append(self.model(tensor))
+        return self._test_sample_predictions
+
     def have_test(self):
         """Return whether there is test dataset defined."""
         return self._test is not None
@@ -169,70 +163,6 @@ class Context:
                 f"but received model of type '{self.task_type.value.lower()}'"  # pylint: disable=inconsistent-quotes
             )
         return True
-
-    def assert_classification_task(self):
-        """Assert the task_type is classification."""
-        # assert_task_type makes assertion if task type exists and returns True, else returns False
-        # If not task type than check label type
-        if (not self.assert_task_type(TaskType.CLASSIFICATION) and
-                self.train.label_type == 'regression_label'):
-            raise ModelValidationError('Check is irrelevant for regressions tasks')
-
-    def assert_regression_task(self):
-        """Assert the task type is regression."""
-        # assert_task_type makes assertion if task type exists and returns True, else returns False
-        # If not task type than check label type
-        if (not self.assert_task_type(TaskType.REGRESSION) and
-                self.train.label_type == 'classification_label'):
-            raise ModelValidationError('Check is irrelevant for classification tasks')
-
-    # def get_scorers(self, alternative_scorers: Mapping[str, Union[str, Callable]] = None, class_avg=True):
-    #     """Return initialized & validated scorers in a given priority.
-    #
-    #     If receive `alternative_scorers` return them,
-    #     Else if user defined global scorers return them,
-    #     Else return default scorers.
-    #
-    #     Parameters
-    #     ----------
-    #     alternative_scorers : Mapping[str, Union[str, Callable]], default None
-    #         dict of scorers names to scorer sklearn_name/function
-    #     class_avg : bool, default True
-    #         for classification whether to return scorers of average score or score per class
-    #     """
-    #     if class_avg:
-    #         user_scorers = self._user_scorers
-    #     else:
-    #         user_scorers = self._user_scorers_per_class
-    #
-    #     scorers = alternative_scorers or user_scorers or get_default_scorers(self.task_type, class_avg)
-    #     return init_validate_scorers(scorers, self.model, self.train, class_avg, self.task_type)
-    #
-    # def get_single_scorer(self, alternative_scorers: Mapping[str, Union[str, Callable]] = None, class_avg=True):
-    #     """Return initialized & validated single scorer in a given priority.
-    #
-    #     If receive `alternative_scorers` use them,
-    #     Else if user defined global scorers use them,
-    #     Else use default scorers.
-    #     Returns the first scorer from the scorers described above.
-    #
-    #     Parameters
-    #     ----------
-    #     alternative_scorers : Mapping[str, Union[str, Callable]], default None
-    #         dict of scorers names to scorer sklearn_name/function. Only first scorer will be used.
-    #     class_avg : bool, default True
-    #         for classification whether to return scorers of average score or score per class
-    #     """
-    #     if class_avg:
-    #         user_scorers = self._user_scorers
-    #     else:
-    #         user_scorers = self._user_scorers_per_class
-    #
-    #     scorers = alternative_scorers or user_scorers or get_default_scorers(self.task_type, class_avg)
-    #     # The single scorer is the first one in the dict
-    #     scorer_name = next(iter(scorers))
-    #     single_scorer_dict = {scorer_name: scorers[scorer_name]}
-    #     return init_validate_scorers(single_scorer_dict, self.model, self.train, class_avg, self.task_type)[0]
 
 
 class Check(BaseCheck):
@@ -315,9 +245,6 @@ class Suite(BaseSuite):
             dict of scorers names to scorer sklearn_name/function
         scorers_per_class : Mapping[str, Metric], default None
             dict of scorers for classification without averaging of the classes
-            See <a href=
-            "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
-            scikit-learn docs</a>
         Returns
         -------
         SuiteResult

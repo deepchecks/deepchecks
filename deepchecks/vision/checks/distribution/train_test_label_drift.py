@@ -71,8 +71,8 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
 
         if task_type == TaskType.CLASSIFICATION.value:
 
-            train_label_distribution = train_dataset.get_samples_per_class()
-            test_label_distribution = test_dataset.get_samples_per_class()
+            train_label_distribution = train_dataset.samples_per_class
+            test_label_distribution = test_dataset.samples_per_class
 
             drift_score, method, display = calc_drift_and_plot(
                 train_distribution=train_label_distribution,
@@ -97,8 +97,8 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
 
             # Drift on samples per class:
             title = 'Samples per class'
-            train_label_distribution = train_dataset.get_samples_per_class()
-            test_label_distribution = test_dataset.get_samples_per_class()
+            train_label_distribution = train_dataset.samples_per_class()
+            test_label_distribution = test_dataset.samples_per_class()
 
             drift_score, method, display = calc_drift_and_plot(
                 train_distribution=train_label_distribution,

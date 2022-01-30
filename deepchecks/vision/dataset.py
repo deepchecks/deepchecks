@@ -15,7 +15,7 @@ from enum import Enum
 from collections import Counter
 
 from torch.utils.data import DataLoader, SequentialSampler, Dataset, Sampler
-from typing import Callable, Optional,  List, Iterator
+from typing import Callable, Optional, List, Iterator, Union
 
 from torch.utils.data import DataLoader
 import logging
@@ -70,7 +70,6 @@ class VisionDataset:
     """
 
     _data: DataLoader = None
-    _sample_data: DataLoader = None
 
     def __init__(self,
                  data_loader: DataLoader,
@@ -81,7 +80,6 @@ class VisionDataset:
                  seed: int = 0):
 
         self._data = data_loader
-        self._sample_data = self._create_sample_loader(data_loader, sample_size, seed)
 
         if label_transformer is None:
             self.label_transformer = lambda x: x
@@ -96,16 +94,24 @@ class VisionDataset:
 
         self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
         self._samples_per_class = None
+        self._label_valid = self.label_valid()  # Will be either none if valid, or string with error
+        # Sample dataset properties
+        self._sample_data_loader = None
+        self._sample_labels = None
+        self._sample_size = sample_size
+        self._seed = seed
 
-    def get_num_classes(self):
+    @property
+    def num_classes(self):
         """Return the number of classes in the dataset."""
         if self._num_classes is None:
-            samples_per_class = self.get_samples_per_class()
+            samples_per_class = self.samples_per_class()
             num_classes = len(samples_per_class.keys())
             self._num_classes = num_classes
         return self._num_classes
 
-    def get_samples_per_class(self):
+    @property
+    def samples_per_class(self):
         """Return a dictionary containing the number of samples per class."""
         if self._samples_per_class is None:
             if self.label_type == TaskType.CLASSIFICATION.value:
@@ -128,46 +134,60 @@ class VisionDataset:
                 )
         return copy(self._samples_per_class)
 
-    def validate_label(self):
-        """Validate the label type of the dataset."""
+    @property
+    def sample_data_loader(self):
+        if self._sample_data_loader is None:
+            self._sample_data_loader = create_sample_loader(self._data, self._sample_size, self._seed)
+        return self._sample_data_loader
+
+    def label_valid(self) -> Union[str, bool]:
+        """Validate the label of the dataset. If found problem return string describing it, else returns none."""
         # Getting first sample of data
         batch = next(iter(self.get_data_loader()))
         if len(batch) != 2:
-            raise DeepchecksValueError('Check requires dataset to have a label')
+            return 'Check requires dataset to have a label'
 
         label_batch = self.label_transformer(batch[1])
         if self.label_type == TaskType.CLASSIFICATION.value:
             if not isinstance(label_batch, (torch.Tensor, np.ndarray)):
-                raise DeepchecksValueError(f'Check requires {self.label_type} label to be a torch.Tensor or numpy '
-                                           f'array')
+                return f'Check requires {self.label_type} label to be a torch.Tensor or numpy array'
             label_shape = label_batch.shape
             if len(label_shape) != 1:
-                raise DeepchecksValueError(f'Check requires {self.label_type} label to be a 1D tensor')
+                return f'Check requires {self.label_type} label to be a 1D tensor'
         elif self.label_type == TaskType.OBJECT_DETECTION.value:
             if not isinstance(label_batch, list):
-                raise DeepchecksValueError(f'Check requires {self.label_type} label to be a list with an entry for each'
-                                           f' sample')
+                return f'Check requires {self.label_type} label to be a list with an entry for each sample'
             if len(label_batch) == 0:
-                raise DeepchecksValueError(f'Check requires {self.label_type} label to be a non-empty list')
+                return f'Check requires {self.label_type} label to be a non-empty list'
             if not isinstance(label_batch[0], (torch.Tensor, np.ndarray)):
-                raise DeepchecksValueError(f'Check requires {self.label_type} label to be a list of torch.Tensor or'
-                                           f' numpy array')
+                return f'Check requires {self.label_type} label to be a list of torch.Tensor or numpy array'
             if len(label_batch[0].shape) != 2:
-                raise DeepchecksValueError(f'Check requires {self.label_type} label to be a list of 2D tensors')
+                return f'Check requires {self.label_type} label to be a list of 2D tensors'
             if label_batch[0].shape[1] != 5:
-                raise DeepchecksValueError(f'Check requires {self.label_type} label to be a list of 2D tensors, when '
-                                           f'each row has 5 columns: [class_id, x, y, width, height]')
+                return f'Check requires {self.label_type} label to be a list of 2D tensors, when ' \
+                       f'each row has 5 columns: [class_id, x, y, width, height]'
         else:
-            raise NotImplementedError(
-                'Not implemented yet for tasks other than classification and object detection'
-            )
+            return 'Not implemented yet for tasks other than classification and object detection'
 
-    def get_label_shape(self):
+    @property
+    def sample_labels(self):
+        if self._sample_labels is None:
+            self._sample_labels = []
+            for _, label in self.sample_data_loader:
+                self._sample_labels.append(label)
+        return self._sample_labels
+
+    @property
+    def label_shape(self):
         """Return the shape of the label."""
-        self.validate_label()
-
+        self.assert_label()
         # Assuming the dataset contains a tuple of (features, label)
         return self.label_transformer(next(iter(self._data))[1])[0].shape  # first argument is batch_size
+
+    def assert_label(self):
+        """Raise error if label is not exists or not valid."""
+        if isinstance(self._label_valid, str):
+            raise DeepchecksValueError(self._label_valid)
 
     def __iter__(self):
         """Return an iterator over the dataset."""
@@ -197,10 +217,7 @@ class VisionDataset:
         """
         VisionDataset.validate_dataset(other)
 
-        label_shape = self.get_label_shape()
-        other_label_shape = other.get_label_shape()
-
-        if other_label_shape != label_shape:
+        if self.label_shape != other.label_shape:
             raise DeepchecksValueError('Check requires datasets to share the same label shape')
 
     @classmethod
@@ -221,44 +238,6 @@ class VisionDataset:
                                        f'{type(obj).__name__}')
 
         return obj
-
-    @classmethod
-    def _create_sample_loader(cls, data_loader: DataLoader, sample_size: int, seed: int):
-        """Create a data loader with only a subset of the data."""
-        common_props_to_copy = {
-            'num_workers': data_loader.num_workers,
-            'collate_fn': data_loader.collate_fn,
-            'pin_memory': data_loader.pin_memory,
-            'timeout': data_loader.timeout,
-            'worker_init_fn': data_loader.worker_init_fn,
-            'prefetch_factor': data_loader.prefetch_factor,
-            'persistent_workers': data_loader.persistent_workers
-        }
-
-        generator = lambda: torch.Generator().manual_seed(seed)
-
-        dataset = data_loader.dataset
-        # IterableDataset doesn't work with samplers, so instead we manually copy all samples to memory and create
-        # new dataset that will contain them.
-        if isinstance(dataset, torch.utils.data.IterableDataset):
-            iter_length = 0
-            for _ in dataset:
-                iter_length += 1
-            np.random.seed(seed)
-            sample_indices = set(np.random.choice(iter_length, size=(sample_size,), replace=False))
-
-            samples_data = []
-            for i, sample in enumerate(dataset):
-                if i in sample_indices:
-                    samples_data.append(sample)
-
-            samples_dataset = InMemoryDataset(samples_data)
-            return DataLoader(samples_dataset, generator=generator(), sampler=SequentialSampler(samples_data),
-                              **common_props_to_copy)
-        else:
-            length = len(dataset)
-            return DataLoader(dataset, generator=generator(),
-                              sampler=FixedSampler(length, seed, sample_size), **common_props_to_copy)
 
 
 class InMemoryDataset(Dataset):
@@ -299,3 +278,41 @@ class FixedSampler(Sampler):
 
     def __len__(self) -> int:
         return len(self._indices) if self._indices else self._length
+
+
+def create_sample_loader(data_loader: DataLoader, sample_size: int, seed: int):
+    """Create a data loader with only a subset of the data."""
+    common_props_to_copy = {
+        'num_workers': data_loader.num_workers,
+        'collate_fn': data_loader.collate_fn,
+        'pin_memory': data_loader.pin_memory,
+        'timeout': data_loader.timeout,
+        'worker_init_fn': data_loader.worker_init_fn,
+        'prefetch_factor': data_loader.prefetch_factor,
+        'persistent_workers': data_loader.persistent_workers
+    }
+
+    generator = lambda: torch.Generator().manual_seed(seed)
+
+    dataset = data_loader.dataset
+    # IterableDataset doesn't work with samplers, so instead we manually copy all samples to memory and create
+    # new dataset that will contain them.
+    if isinstance(dataset, torch.utils.data.IterableDataset):
+        iter_length = 0
+        for _ in dataset:
+            iter_length += 1
+        np.random.seed(seed)
+        sample_indices = set(np.random.choice(iter_length, size=(sample_size,), replace=False))
+
+        samples_data = []
+        for i, sample in enumerate(dataset):
+            if i in sample_indices:
+                samples_data.append(sample)
+
+        samples_dataset = InMemoryDataset(samples_data)
+        return DataLoader(samples_dataset, generator=generator(), sampler=SequentialSampler(samples_data),
+                          **common_props_to_copy)
+    else:
+        length = len(dataset)
+        return DataLoader(dataset, generator=generator(),
+                          sampler=FixedSampler(length, seed, sample_size), **common_props_to_copy)

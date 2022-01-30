@@ -48,7 +48,8 @@ def task_type_check(
         model: nn.Module,
         dataset: VisionDataset
 ) -> TaskType:
-    """Check task type (regression, binary, multiclass) according to model object and label column.
+    """Check task type (classification, object-detection, semantic-segmentation) according to model object and label \
+    column.
 
     Parameters
     ----------
@@ -60,10 +61,10 @@ def task_type_check(
     Returns
     -------
     TaskType
-        TaskType enum corresponding to the model and dataset
+        enum corresponding to the model and dataset
     """
     validation.model_type_validation(model)
-    dataset.validate_label()
+    dataset.assert_label()
 
     return TaskType(dataset.label_type)
 
