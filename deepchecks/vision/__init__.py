@@ -24,8 +24,11 @@ logger = logging.getLogger("deepchecks")
 
 try:
     import torch  # noqa: F401
+    import torchvision  # noqa: F401
+
 except ImportError:
-    logger.error("PyTorch is not installed. Please install it in order to use deepchecks.vision")
+    raise ImportError("PyTorch is not installed. Please install torch and torchvision "
+                      "in order to use deepchecks.vision functionalities.")
 
 __all__ = [
     "VisionDataset",
