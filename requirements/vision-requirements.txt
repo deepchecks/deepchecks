@@ -1,3 +1,2 @@
 pytorch-ignite>=0.4.8
 opencv-python>=4.5.5.62
-yolov5>=6.0.6
