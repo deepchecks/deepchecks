@@ -13,6 +13,7 @@ model_path = str(current_path).replace('\\', '/') + '/models/mnist.pth'
 
 class MNistNet(nn.Module):
     """Defines NN to run on MNist data"""
+
     def __init__(self):
         super().__init__()
         self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
@@ -22,6 +23,8 @@ class MNistNet(nn.Module):
         self.fc2 = nn.Linear(50, 10)
 
     def forward(self, x):
+        """Forward propagation"""
+
         x = F.relu(F.max_pool2d(self.conv1(x), 2))
         x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
         x = x.view(-1, 320)

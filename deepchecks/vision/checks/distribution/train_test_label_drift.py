@@ -86,13 +86,12 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
 
         elif task_type == TaskType.OBJECT_DETECTION.value:
 
-            #TODO: This should be one process, that iterates over the dataset once, not every metric.
+            # TODO: This should be one process, that iterates over the dataset once, not every metric.
             # this means that histogram_in_batch and count_custom_transform_on_label should be the same func,
             # and that it should receive multiple transforms and do them
 
-            #TODO: Enable sampling of label distribution
-            #TODO: Re-use max_num_categories
-
+            # TODO: Enable sampling of label distribution
+            # TODO: Re-use max_num_categories
 
             values_dict = {}
 
@@ -144,7 +143,7 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
             displays.append(display)
 
         else:
-            raise NotImplementedError('Currently not implemented') #TODO
+            raise NotImplementedError('Currently not implemented')  # TODO
 
         headnote = """<span>
             The Drift score is a measure for the difference between two distributions, in this check - the test
@@ -238,6 +237,7 @@ def histogram_in_batch(dataset: VisionDataset, label_transformer: Callable = lam
 
 PSI_MIN_PERCENTAGE = 0.01
 
+
 def psi(expected_percents: np.ndarray, actual_percents: np.ndarray):
     """
     Calculate the PSI (Population Stability Index).
@@ -290,9 +290,9 @@ def calc_drift_and_plot(train_distribution: dict, test_distribution: dict, plot_
     Returns:
         score: drift score of the difference between the two columns' distributions (Earth movers distance for
         numerical, PSI for categorical)
-        display: graph comparing the two distributions (density for numerical, stack bar for categorical)
+        scorer_name: name of scoring method
+        fig: graph comparing the two distributions (density for numerical, stack bar for categorical)
     """
-
     if column_type == 'numerical':
         scorer_name = "Earth Mover's Distance"
 
@@ -344,10 +344,10 @@ def calc_drift_and_plot(train_distribution: dict, test_distribution: dict, plot_
         height=400
     )
 
-
     fig.update_layout(shared_layout)
 
     return score, scorer_name, fig
+
 
 def feature_distribution_traces(expected_percents: np.array,
                                 actual_percents: np.array,
