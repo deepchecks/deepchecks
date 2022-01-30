@@ -157,7 +157,7 @@ requirements: $(ENV)
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" "torchaudio==0.10.2+cpu" \
 			-f https://download.pytorch.org/whl/cpu/torch_stable.html; \
 	else \
-		$(PIP) install -q -U torch torchvision torchaudio; \
+		$(PIP) install -q torch torchvision torchaudio; \
 	fi;
 
 	@$(PIP) install -U pip
@@ -209,6 +209,8 @@ test: requirements dev-requirements
 test-win:
 	@test -d $(WIN_ENV) || python -m venv $(WIN_ENV)
 	@$(WIN_ENV)\Scripts\activate.bat
+	@$(PIP_WIN) install -q torch torchvision torchaudio
+	@$(PIP_WIN) install -U pip
 	@$(PIP_WIN) install -q \
 		-r ./requirements/requirements.txt \
 		-r ./requirements/vision-requirements.txt \

@@ -18,8 +18,8 @@ Tabular
     datasets
     
     Dataset
-    TabularContext
-    TabularCheck
+    Context
+    Check
     SingleDatasetBaseCheck
     TrainTestBaseCheck
     ModelOnlyBaseCheck
