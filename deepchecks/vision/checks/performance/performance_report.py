@@ -42,6 +42,13 @@ class PerformanceReport(TrainTestBaseCheck):
         self.prediction_extract = prediction_extract
 
     def run_logic(self, context: Context) -> CheckResult:
+        """Run check.
+
+        Returns
+        -------
+        CheckResult
+            value is dictionary in format 'score-name': score-value
+        """
         train_dataset = context.train
         test_dataset = context.test
         model = context.model
