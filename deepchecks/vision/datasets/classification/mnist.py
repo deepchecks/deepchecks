@@ -12,8 +12,9 @@ model_path = str(current_path).replace('\\', '/') + '/models/mnist.pth'
 
 
 class MNistNet(nn.Module):
+    """Defines NN to run on MNist data"""
     def __init__(self):
-        super(MNistNet, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
         self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
         self.conv2_drop = nn.Dropout2d()
@@ -28,6 +29,7 @@ class MNistNet(nn.Module):
         x = F.dropout(x, training=self.training)
         x = self.fc2(x)
         return F.log_softmax(x)
+
 
 batch_size_train = 64
 batch_size_test = 1000

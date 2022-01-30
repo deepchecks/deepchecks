@@ -34,16 +34,17 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
     Check calculates a drift score for the label in test dataset, by comparing its distribution to the train
     dataset.
     For numerical columns, we use the Earth Movers Distance.
-    See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf
+    See https://en.wikipedia.org/wiki/Wasserstein_metric
     For categorical columns, we use the Population Stability Index (PSI).
-    See https://en.wikipedia.org/wiki/Wasserstein_metric.
+    See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
 
 
-    Args:
-        max_num_categories (int):
-            Only for categorical columns. Max number of allowed categories. If there are more,
-            they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
-            for both drift calculation and for distribution plots.
+    Parameters
+    ----------
+    max_num_categories : int , default: 10
+        Only for categorical columns. Max number of allowed categories. If there are more,
+        they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
+        for both drift calculation and for distribution plots.
     """
 
     def __init__(
@@ -54,17 +55,13 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
         self.max_num_categories = max_num_categories
 
     def run_logic(self, context: Context) -> CheckResult:
-        """
-        Calculate drift for all columns.
+        """Calculate drift for all columns.
 
-        Args:
-            train_dataset (VisionDataset): The training dataset object. Must contain a label.
-            test_dataset (VisionDataset): The test dataset object. Must contain a label.
-
-        Returns:
-            CheckResult:
-                value: drift score.
-                display: label distribution graph, comparing the train and test distributions.
+        Returns
+        -------
+        CheckResult
+            value: drift score.
+            display: label distribution graph, comparing the train and test distributions.
         """
         train_dataset = context.train
         test_dataset = context.test
@@ -90,10 +87,11 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
         elif task_type == TaskType.OBJECT_DETECTION.value:
 
             #TODO: This should be one process, that iterates over the dataset once, not every metric.
-            """this means that histogram_in_batch and count_custom_transform_on_label should be the same func,
-            and that it should receive multiple transforms and do them"""
+            # this means that histogram_in_batch and count_custom_transform_on_label should be the same func,
+            # and that it should receive multiple transforms and do them
 
             #TODO: Enable sampling of label distribution
+            #TODO: Re-use max_num_categories
 
 
             values_dict = {}
@@ -205,8 +203,8 @@ def count_num_bboxes(label):
 
 def count_custom_transform_on_label(dataset: VisionDataset, label_transformer: Callable = lambda x: x):
     counter = Counter()
-    for i in range(len(dataset.get_data_loader())):
-        list_of_arrays = next(iter(dataset.get_data_loader()))[1]
+    for batch in dataset.get_data_loader():
+        list_of_arrays = batch[1]
         calc_res = [label_transformer(arr) for arr in list_of_arrays]
         if len(calc_res) != 0 and isinstance(calc_res[0], list):
             calc_res = [x[0] for x in sum(calc_res, [])]
@@ -217,8 +215,8 @@ def count_custom_transform_on_label(dataset: VisionDataset, label_transformer: C
 def histogram_in_batch(dataset: VisionDataset, label_transformer: Callable = lambda x: x):
     label_min = np.inf
     label_max = -np.inf
-    for i in range(len(dataset.get_data_loader())):
-        list_of_arrays = next(iter(dataset.get_data_loader()))[1]
+    for batch in dataset.get_data_loader():
+        list_of_arrays = batch[1]
         calc_res = [label_transformer(arr) for arr in list_of_arrays]
         if len(calc_res) != 0 and isinstance(calc_res[0], list):
             calc_res = [x[0] for x in sum(calc_res, [])]
@@ -227,8 +225,8 @@ def histogram_in_batch(dataset: VisionDataset, label_transformer: Callable = lam
 
     hist, edges = np.histogram([], bins=100, range=(label_min, label_max))
 
-    for i in range(len(dataset.get_data_loader())):
-        list_of_arrays = next(iter(dataset.get_data_loader()))[1]
+    for batch in dataset.get_data_loader():
+        list_of_arrays = batch[1]
         calc_res = [label_transformer(arr) for arr in list_of_arrays]
         if len(calc_res) != 0 and isinstance(calc_res[0], list):
             calc_res = [x[0] for x in sum(calc_res, [])]
