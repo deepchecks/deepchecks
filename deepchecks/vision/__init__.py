@@ -26,9 +26,9 @@ try:
     import torch  # noqa: F401
     import torchvision  # noqa: F401
 
-except ImportError:
+except ImportError as torch_missing:
     raise ImportError("PyTorch is not installed. Please install torch and torchvision "
-                      "in order to use deepchecks.vision functionalities.")
+                      "in order to use deepchecks.vision functionalities.") from torch_missing
 
 __all__ = [
     "VisionDataset",
