@@ -20,7 +20,7 @@ from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, Gradien
 from sklearn.datasets import load_iris, load_diabetes
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OrdinalEncoder
+from sklearn.preprocessing import KBinsDiscretizer, OrdinalEncoder
 from sklearn.tree import DecisionTreeClassifier
 
 from deepchecks.tabular import Dataset
@@ -170,10 +170,21 @@ def iris_split_dataset_and_model(iris_clean) -> Tuple[Dataset, Dataset, AdaBoost
     """Return Iris train and val datasets and trained AdaBoostClassifier model."""
     train, test = train_test_split(iris_clean.frame, test_size=0.33, random_state=42)
     train_ds = Dataset(train, label='target')
-    val_ds = Dataset(test, label='target')
+    test_ds = Dataset(test, label='target')
     clf = AdaBoostClassifier(random_state=0)
-    clf.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
-    return train_ds, val_ds, clf
+    clf.fit(train_ds.features_columns, train_ds.label_col)
+    return train_ds, test_ds, clf
+
+@pytest.fixture
+def iris_split_dataset_and_model_single_feature(iris_clean) -> Tuple[Dataset, Dataset, AdaBoostClassifier]:
+    """Return Iris train and val datasets and trained AdaBoostClassifier model."""
+    train, test = train_test_split(iris_clean.frame, test_size=0.33, random_state=42)
+    train_ds = Dataset(train[['sepal length (cm)', 'target']], label='target')
+    test_ds = Dataset(test[['sepal length (cm)', 'target']], label='target')
+    clf = Pipeline([('bin', KBinsDiscretizer()),
+                    ('clf', AdaBoostClassifier(random_state=0))])
+    clf.fit(train_ds.features_columns, train_ds.label_col)
+    return train_ds, test_ds, clf
 
 
 @pytest.fixture(scope='session')
@@ -181,10 +192,10 @@ def iris_split_dataset_and_model_rf(iris) -> Tuple[Dataset, Dataset, RandomFores
     """Return Iris train and val datasets and trained RF model."""
     train, test = train_test_split(iris, test_size=0.33, random_state=0)
     train_ds = Dataset(train, label='target')
-    val_ds = Dataset(test, label='target')
+    test_ds = Dataset(test, label='target')
     clf = RandomForestClassifier(random_state=0, n_estimators=10, max_depth=2)
-    clf.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
-    return train_ds, val_ds, clf
+    clf.fit(train_ds.features_columns, train_ds.label_col)
+    return train_ds, test_ds, clf
 
 
 @pytest.fixture
@@ -197,7 +208,7 @@ def iris_binary_string_split_dataset_and_model(iris) -> Tuple[Dataset, Dataset, 
     train_ds = Dataset(train, label='target')
     test_ds = Dataset(test, label='target')
     clf = DecisionTreeClassifier(random_state=0)
-    clf.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
+    clf.fit(train_ds.features_columns, train_ds.label_col)
     return train_ds, test_ds, clf
 
 
@@ -285,7 +296,7 @@ def drifted_data_and_model(drifted_data) -> Tuple[Dataset, Dataset, Pipeline]:
         ('model', DecisionTreeClassifier(random_state=0, max_depth=2))]
     )
 
-    model.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
+    model.fit(train_ds.features_columns, train_ds.label_col)
 
     return train_ds, test_ds, model
 
