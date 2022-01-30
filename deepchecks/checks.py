@@ -15,7 +15,7 @@ removed in the nexts versions.
 """
 # flake8: noqa
 import warnings
-from deepchecks.tabular.checks import * # pylint: disable=wildcard-import
+from deepchecks.tabular.checks import *  # pylint: disable=wildcard-import
 
 
 warnings.warn(
