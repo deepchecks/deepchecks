@@ -46,12 +46,12 @@ def dataframe_to_html(df: Union[pd.DataFrame, Styler]):
             warnings.simplefilter(action='ignore', category=FutureWarning)
             df_styler.set_precision(2)
 
-        table_css_props = [
-            ('text-align', 'left'),  # Align everything to the left
-            ('white-space', 'pre-wrap')  # Define how to handle white space characters (like \n)
-        ]
-        df_styler.set_table_styles([dict(selector='table,thead,tbody,th,td', props=table_css_props)])
-        return df_styler.render()
+            table_css_props = [
+                ('text-align', 'left'),  # Align everything to the left
+                ('white-space', 'pre-wrap')  # Define how to handle white space characters (like \n)
+            ]
+            df_styler.set_table_styles([dict(selector='table,thead,tbody,th,td', props=table_css_props)])
+            return df_styler.render()
     # Because of MLC-154. Dataframe with Multi-index or non unique indices does not have a style
     # attribute, hence we need to display as a regular pd html format.
     except ValueError:
@@ -104,7 +104,9 @@ def get_conditions_table(check_results: Union['check.CheckResult', List['check.C
     if show_check_column is False:
         conditions_table.drop('Check', axis=1, inplace=True)
     conditions_table['More Info'] = conditions_table['More Info'].map(lambda x: get_ellipsis(x, max_info_len))
-    return conditions_table.style.hide_index()
+    with warnings.catch_warnings():
+        warnings.simplefilter(action='ignore', category=FutureWarning)
+        return conditions_table.style.hide_index()
 
 
 def get_result_navigation_display(check_results: Union['check.CheckResult', List['check.CheckResult']],
@@ -133,4 +135,6 @@ def get_result_navigation_display(check_results: Union['check.CheckResult', List
 
     nav_table = pd.DataFrame(data=table,
                              columns=['Check', 'Summary'])
-    return dataframe_to_html(nav_table.style.hide_index())
+    with warnings.catch_warnings():
+        warnings.simplefilter(action='ignore', category=FutureWarning)
+        return dataframe_to_html(nav_table.style.hide_index())
