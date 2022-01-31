@@ -15,7 +15,7 @@ from typing import Dict, Hashable, Callable, Tuple, List, Union
 from plotly.subplots import make_subplots
 
 from deepchecks import CheckResult, ConditionResult
-from deepchecks.vision.base import TrainTestBaseCheck, Context
+from deepchecks.vision.base import TrainTestCheck, Context
 from deepchecks.utils.distribution.plot import drift_score_bar_traces
 from deepchecks.utils.plot import colors
 from deepchecks.vision.dataset import VisionDataset, TaskType
@@ -27,7 +27,7 @@ import plotly.graph_objs as go
 __all__ = ['TrainTestLabelDrift']
 
 
-class TrainTestLabelDrift(TrainTestBaseCheck):
+class TrainTestLabelDrift(TrainTestCheck):
     """
     Calculate label drift between train dataset and test dataset, using statistical measures.
 

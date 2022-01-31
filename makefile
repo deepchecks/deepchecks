@@ -133,6 +133,11 @@ help:
 	@echo ""
 	@echo "    Show documentation in the browser"
 	@echo ""
+	@echo "trailing-spaces"
+	@echo ""
+	@echo "    Remove trailing whitespaces from all python modules"
+	@echo ""
+	
 
 
 
@@ -269,7 +274,7 @@ tox:
 
 ### Cleanup ######################################################
 
-.PHONY: clean clean-env clean-all clean-build clean-test clean-dist clean-docs
+.PHONY: clean clean-env clean-all clean-build clean-test clean-dist clean-docs trailing-spaces
 
 
 clean: clean-dist clean-test clean-build clean-docs
@@ -307,6 +312,10 @@ clean-dist:
 clean-docs: $(DOCS)
 	@rm -rf $(DOCS_BUILD)
 	@rm -rf $(DOCS)/docs.error.log
+
+
+trailing-spaces:
+	@find ./deepchecks/ -name "*.py" -type f -print0 | xargs -0 sed -i "s/[[:space:]]*$$//"
 
 
 ### Release ######################################################

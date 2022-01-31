@@ -13,11 +13,10 @@ import logging
 from .dataset import VisionDataset
 from .base import (
     Context,
-    Check,
     Suite,
-    SingleDatasetBaseCheck,
-    TrainTestBaseCheck,
-    ModelOnlyBaseCheck
+    SingleDatasetCheck,
+    TrainTestCheck,
+    ModelOnlyCheck
 )
 
 logger = logging.getLogger("deepchecks")
@@ -26,16 +25,15 @@ try:
     import torch  # noqa: F401
     import torchvision  # noqa: F401
 
-except ImportError as torch_missing:
+except ImportError as error:
     raise ImportError("PyTorch is not installed. Please install torch and torchvision "
-                      "in order to use deepchecks.vision functionalities.") from torch_missing
+                      "in order to use deepchecks.vision functionalities.") from error
 
 __all__ = [
     "VisionDataset",
     "Context",
-    "Check",
-    "SingleDatasetBaseCheck",
-    "TrainTestBaseCheck",
-    "ModelOnlyBaseCheck",
+    "SingleDatasetCheck",
+    "TrainTestCheck",
+    "ModelOnlyCheck",
     "Suite"
 ]

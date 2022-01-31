@@ -18,7 +18,7 @@ import traceback
 import warnings
 from collections import OrderedDict
 from functools import wraps
-from typing import Any, Callable, List, Union, Dict
+from typing import Any, Callable, List, Union, Dict, Type, ClassVar, Optional
 
 import jsonpickle
 import matplotlib
@@ -357,8 +357,6 @@ class BaseCheck(abc.ABC):
     def __init__(self):
         self._conditions = OrderedDict()
         self._conditions_index = 0
-        # Replace the run_logic function with wrapped run function
-        setattr(self, 'run', wrap_run(getattr(self, 'run'), self))
 
     @abc.abstractmethod
     def run(self, *args, **kwargs) -> CheckResult:
@@ -456,6 +454,71 @@ class BaseCheck(abc.ABC):
     def name(cls):
         """Name of class in split camel case."""
         return split_camel_case(cls.__name__)
+
+
+class SingleDatasetBaseCheck(BaseCheck):
+    """Parent class for checks that only use one dataset."""
+    context_type: ClassVar[Optional[Type[Any]]] = None # TODO: Base context type
+
+    def __init__(self):
+        super().__init__()
+        # Replace the run_logic function with wrapped run function
+        setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
+
+    def run(self, dataset, model=None) -> CheckResult:
+        """Run check."""
+        assert self.context_type is not None
+        return self.run_logic(self.context_type(dataset, model=model))
+
+    @abc.abstractmethod
+    def run_logic(self, context, dataset_type: str = 'train') -> CheckResult:
+        """Run check."""
+        raise NotImplementedError()
+
+
+class TrainTestBaseCheck(BaseCheck):
+    """Parent class for checks that compare two datasets.
+
+    The class checks train dataset and test dataset for model training and test.
+    """
+
+    context_type: ClassVar[Optional[Type[Any]]] = None # TODO: Base context type
+
+    def __init__(self):
+        super().__init__()
+        # Replace the run_logic function with wrapped run function
+        setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
+
+    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
+        """Run check."""
+        assert self.context_type is not None
+        return self.run_logic(self.context_type(train_dataset, test_dataset, model=model))
+
+    @abc.abstractmethod
+    def run_logic(self, context) -> CheckResult:
+        """Run check."""
+        raise NotImplementedError()
+
+
+class ModelOnlyBaseCheck(BaseCheck):
+    """Parent class for checks that only use a model and no datasets."""
+
+    context_type: ClassVar[Optional[Type[Any]]] = None # TODO: Base context type
+
+    def __init__(self):
+        super().__init__()
+        # Replace the run_logic function with wrapped run function
+        setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
+
+    def run(self, model) -> CheckResult:
+        """Run check."""
+        assert self.context_type is not None
+        return self.run_logic(self.context_type(model=model))
+
+    @abc.abstractmethod
+    def run_logic(self, context) -> CheckResult:
+        """Run check."""
+        raise NotImplementedError()
 
 
 class CheckFailure:

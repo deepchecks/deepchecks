@@ -16,7 +16,7 @@ import pandas as pd
 from pandas.api.types import infer_dtype
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
-from deepchecks.tabular import Context, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import string_baseform, format_percent
@@ -26,7 +26,7 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['SpecialCharacters']
 
 
-class SpecialCharacters(SingleDatasetBaseCheck):
+class SpecialCharacters(SingleDatasetCheck):
     """Search in column[s] for values that contains only special characters.
 
     Parameters

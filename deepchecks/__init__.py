@@ -18,11 +18,10 @@ from deepchecks.utils.ipython import is_notebook
 from deepchecks.tabular import (
     Dataset,
     Suite,
-    Check,
     Context,
-    SingleDatasetBaseCheck,
-    TrainTestBaseCheck,
-    ModelOnlyBaseCheck,
+    SingleDatasetCheck,
+    TrainTestCheck,
+    ModelOnlyCheck,
     ModelComparisonCheck,
     ModelComparisonSuite,
 )
@@ -34,7 +33,10 @@ from deepchecks.core import (
     SuiteResult,
     Condition,
     ConditionResult,
-    ConditionCategory
+    ConditionCategory,
+    SingleDatasetBaseCheck,
+    TrainTestBaseCheck,
+    ModelOnlyBaseCheck
 )
 
 
@@ -48,9 +50,7 @@ warnings.warn(
 
 
 __all__ = [
-    'Dataset',
     'BaseCheck',
-    'Check',
     'SingleDatasetBaseCheck',
     'TrainTestBaseCheck',
     'ModelOnlyBaseCheck',
@@ -61,8 +61,14 @@ __all__ = [
     'ConditionResult',
     'ConditionCategory',
     'BaseSuite',
-    'Suite',
     'SuiteResult',
+
+    # tabular checks
+    'SingleDatasetCheck',
+    'TrainTestCheck',
+    'ModelOnlyCheck',
+    'Dataset',
+    'Suite',
     'ModelComparisonSuite',
     'Context'
 ]

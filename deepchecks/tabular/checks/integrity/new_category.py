@@ -13,7 +13,7 @@ from typing import Union, List, Dict
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.tabular import Context, TrainTestBaseCheck
+from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.dataframes import select_from_dataframe
@@ -22,7 +22,7 @@ from deepchecks.utils.dataframes import select_from_dataframe
 __all__ = ['CategoryMismatchTrainTest']
 
 
-class CategoryMismatchTrainTest(TrainTestBaseCheck):
+class CategoryMismatchTrainTest(TrainTestCheck):
     """Find new categories in the test set.
 
     Parameters
