@@ -19,7 +19,6 @@ from ignite.metrics import Metric
 from torch import nn
 
 from deepchecks.vision.utils.validation import validate_model
-from deepchecks.vision.metrics_utils import task_type_check
 from deepchecks.core.check import CheckResult, BaseCheck, CheckFailure, wrap_run
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
@@ -83,7 +82,6 @@ class Context:
         self._test = test
         self._model = model
         self._validated_model = False
-        self._task_type = None
         self._train_sample_predictions = None
         self._test_sample_predictions = None
         self._user_scorers = scorers
@@ -124,13 +122,6 @@ class Context:
         return self._model_name
 
     @property
-    def task_type(self) -> TaskType:
-        """Return task type if model & train & label exists. otherwise, raise error."""
-        if self._task_type is None:
-            self._task_type = TaskType(self.train.label_type)
-        return self._task_type
-
-    @property
     def train_sample_predictions(self):
         """Return the predictions on the train samples."""
         if self._train_sample_predictions is None:
@@ -154,9 +145,9 @@ class Context:
 
     def assert_task_type(self, *expected_types: TaskType):
         """Assert task_type matching given types."""
-        if self.task_type not in expected_types:
+        if self.train.task_type not in expected_types:
             raise ModelValidationError(
-                f'Check is irrelevant for task of type {self.task_type}')
+                f'Check is irrelevant for task of type {self.train.task_type}')
         return True
 
 

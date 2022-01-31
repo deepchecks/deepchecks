@@ -44,7 +44,7 @@ class VisionDataset:
     Parameters
     ----------
     data_loader : DataLoader
-        PyTorch DataLoader object
+        PyTorch DataLoader object. If your data loader is using IterableDataset please see note below.
     label_type : str
         Type of label. Must be one of the following: 'classification', 'object_detection'.
     num_classes : int, optional
@@ -52,9 +52,22 @@ class VisionDataset:
     label_transformer : Callable, optional
         A callable, transforming a batch of labels returned by the dataloader to a batch of labels in the desired
         format.
+    sample_size : int, default: 1,000
+        Sample size to run the checks on.
+    sample_iteration_limit : int, default: 1,000,000
+        For IterableDataset the limitation for iteration to take samples.
+    random_seed : int, default: 0
+        Random seed used to generate the sample.
 
     Notes
     -----
+    IterableDataset:
+        Our checks are running on a sample of the data. In order to generate this sample on IterableDataset we are
+        running on it to find its length and then takes samples from it. We define a limitation for the iteration
+        over the dataset (can be controlled with `sample_iteration_limit`) to prevent a too long run time. If your
+        data is NOT shuffled, this might lead to invalid results. Either make sure to shuffle the data or increase
+        the iteration limit with the disadvantage of a longer run time.
+
     Accepted label formats are:
         * Classification: tensor of shape (N,), When N is the number of samples. Each element is an integer
           representing the class index.
@@ -75,6 +88,7 @@ class VisionDataset:
                  num_classes: Optional[int] = None,
                  label_transformer: Optional[Callable] = None,
                  sample_size: int = 1000,
+                 sample_iteration_limit: int = 1_000_000,
                  random_seed: int = 0):
         self._data = data_loader
 
@@ -85,7 +99,7 @@ class VisionDataset:
 
         valid_label_types = [tt.value for tt in TaskType]
         if label_type in valid_label_types:
-            self.label_type = label_type
+            self.task_type = TaskType(label_type)
         else:
             raise DeepchecksValueError(f'Invalid label type: {label_type}, must be one of {valid_label_types}.')
 
@@ -97,6 +111,7 @@ class VisionDataset:
         self._sample_labels = None
         self._sample_size = sample_size
         self._random_seed = random_seed
+        self.sample_iteration_limit = sample_iteration_limit
 
     def get_num_classes(self):
         """Return the number of classes in the dataset."""
@@ -109,12 +124,12 @@ class VisionDataset:
     def get_samples_per_class(self):
         """Return a dictionary containing the number of samples per class."""
         if self._samples_per_class is None:
-            if self.label_type == TaskType.CLASSIFICATION.value:
+            if self.task_type == TaskType.CLASSIFICATION:
                 counter = Counter()
                 for _ in range(len(self._data)):
                     counter.update(self.label_transformer(next(iter(self._data))[1].tolist()))
                 self._samples_per_class = counter
-            elif self.label_type == TaskType.OBJECT_DETECTION.value:
+            elif self.task_type == TaskType.OBJECT_DETECTION:
                 # Assume next(iter(self._data))[1] is a list (per sample) of numpy arrays (rows are bboxes) with the
                 # first column in the array representing class
                 counter = Counter()
@@ -133,7 +148,8 @@ class VisionDataset:
     def sample_data_loader(self) -> DataLoader:
         """Return sample of the data."""
         if self._sample_data_loader is None:
-            self._sample_data_loader = create_sample_loader(self._data, self._sample_size, self._random_seed)
+            self._sample_data_loader = create_sample_loader(self._data, self._sample_size, self._random_seed,
+                                                            self.sample_iteration_limit)
         return self._sample_data_loader
 
     @property
@@ -152,23 +168,23 @@ class VisionDataset:
             return 'Check requires dataset to have a label'
 
         label_batch = self.label_transformer(batch[1])
-        if self.label_type == TaskType.CLASSIFICATION.value:
+        if self.task_type == TaskType.CLASSIFICATION:
             if not isinstance(label_batch, (torch.Tensor, np.ndarray)):
-                return f'Check requires {self.label_type} label to be a torch.Tensor or numpy array'
+                return f'Check requires {self.task_type} label to be a torch.Tensor or numpy array'
             label_shape = label_batch.shape
             if len(label_shape) != 1:
-                return f'Check requires {self.label_type} label to be a 1D tensor'
-        elif self.label_type == TaskType.OBJECT_DETECTION.value:
+                return f'Check requires {self.task_type} label to be a 1D tensor'
+        elif self.task_type == TaskType.OBJECT_DETECTION:
             if not isinstance(label_batch, list):
-                return f'Check requires {self.label_type} label to be a list with an entry for each sample'
+                return f'Check requires {self.task_type} label to be a list with an entry for each sample'
             if len(label_batch) == 0:
-                return f'Check requires {self.label_type} label to be a non-empty list'
+                return f'Check requires {self.task_type} label to be a non-empty list'
             if not isinstance(label_batch[0], (torch.Tensor, np.ndarray)):
-                return f'Check requires {self.label_type} label to be a list of torch.Tensor or numpy array'
+                return f'Check requires {self.task_type} label to be a list of torch.Tensor or numpy array'
             if len(label_batch[0].shape) != 2:
-                return f'Check requires {self.label_type} label to be a list of 2D tensors'
+                return f'Check requires {self.task_type} label to be a list of 2D tensors'
             if label_batch[0].shape[1] != 5:
-                return f'Check requires {self.label_type} label to be a list of 2D tensors, when ' \
+                return f'Check requires {self.task_type} label to be a list of 2D tensors, when ' \
                        f'each row has 5 columns: [class_id, x, y, width, height]'
         else:
             return 'Not implemented yet for tasks other than classification and object detection'
@@ -205,7 +221,7 @@ class VisionDataset:
 
         Parameters
         ----------
-        other : Dataset
+        other : VisionDataset
             Expected to be Dataset type. dataset to compare
         Returns
         -------
@@ -220,6 +236,9 @@ class VisionDataset:
 
         if self.is_have_label() != other.is_have_label():
             raise DeepchecksValueError('Datasets required to both either have or don\'t have labels')
+
+        if self.task_type != other.task_type:
+            raise DeepchecksValueError('Datasets required to have same label type')
 
         if self.get_label_shape() != other.get_label_shape():
             raise DeepchecksValueError('Datasets required to share the same label shape')
@@ -285,7 +304,7 @@ class FixedSampler(Sampler):
         return len(self._indices) if self._indices else self._length
 
 
-def create_sample_loader(data_loader: DataLoader, sample_size: int, seed: int):
+def create_sample_loader(data_loader: DataLoader, sample_size: int, seed: int, iteration_limit: int):
     """Create a data loader with only a subset of the data."""
     common_props_to_copy = {
         'num_workers': data_loader.num_workers,
@@ -306,6 +325,8 @@ def create_sample_loader(data_loader: DataLoader, sample_size: int, seed: int):
         iter_length = 0
         for _ in dataset:
             iter_length += 1
+            if iter_length == iteration_limit:
+                break
         sample_size = min(sample_size, iter_length)
         np.random.seed(seed)
         sample_indices = set(np.random.choice(iter_length, size=(sample_size,), replace=False))

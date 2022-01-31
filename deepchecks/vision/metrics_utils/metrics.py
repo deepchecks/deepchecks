@@ -19,7 +19,6 @@ from ignite.metrics import Precision, Recall, Metric
 from torch import nn
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.vision.utils import validation
 from deepchecks.vision import VisionDataset
 
 __all__ = [
@@ -46,7 +45,6 @@ def get_default_object_detection_scorers():
 
 
 def get_scorers_list(
-        model,
         dataset: VisionDataset,
         alternative_scorers: t.List[Metric] = None,
 ) -> t.Dict[str, Metric]:
@@ -54,8 +52,6 @@ def get_scorers_list(
 
     Parameters
     ----------
-    model : nn.Module
-        Model object
     dataset : VisionDataset
         Dataset object
     alternative_scorers : t.List[Metric]
@@ -66,7 +62,7 @@ def get_scorers_list(
     t.Dict[str, Metric]
         Scorers list
     """
-    task_type = task_type_check(model, dataset)
+    task_type = dataset.label_type
 
     if alternative_scorers:
         # Validate that each alternative scorer is a correct type
