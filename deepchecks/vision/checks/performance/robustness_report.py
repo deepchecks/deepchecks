@@ -105,6 +105,8 @@ class RobustnessReport(TrainTestBaseCheck):
             return NotImplementedError('only works for classification ATM')
 
         example_dict = self._get_bad_aug_examples(baseline_dataset, augmented_dataset, results_df)
+        bad_example_figures = self._create_example_figure(example_dict)
+
         # TODO visualiztion
         plot_x_axis = 'Class'
         fig = px.histogram(
@@ -214,6 +216,7 @@ class RobustnessReport(TrainTestBaseCheck):
         for idx, (sample_base, sample_aug) in enumerate(zip(baseline_sampler, aug_sampler)):
             if idx > n_samples:
                 break
+            # TODO this method uses
             sample_base_ = baseline_dataset.inverse_transform(sample_base[0])
             sample_aug_ = augmented_dataset.inverse_transform(sample_aug[0])
             samples.append((sample_base_, sample_aug_))
@@ -229,3 +232,20 @@ class RobustnessReport(TrainTestBaseCheck):
             sample_dict[aug.get_class_fullname()] = self._get_random_image_pairs_from_dataloder(baseline_dataset,
                                                                                                 augmented_dataset)
         return sample_dict
+
+    def _create_example_figure(self, example_dict):
+        # TODO not fully implemented
+        from plotly.subplots import make_subplots
+        import plotly.graph_objects as go
+        figures = []
+        for aug_name, aug_images in example_dict.items():
+            fig = make_subplots(rows=3, cols=3)
+            for i in range(3):
+                for j in range(3):
+                    print(j + (i * 3))
+                    fig.add_trace(
+                        go.Image(z=aug_images[j + (i * 3)]), row=i+1, col=j+1
+                    )
+            fig.update_layout(height=600, width=800)
+            figures.append(fig)
+        return figures
