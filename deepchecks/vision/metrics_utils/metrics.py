@@ -23,7 +23,6 @@ from deepchecks.vision.utils import validation
 from deepchecks.vision import VisionDataset
 
 __all__ = [
-    'task_type_check',
     'get_scorers_list',
     'calculate_metrics'
 ]
@@ -44,30 +43,6 @@ def get_default_object_detection_scorers():
     return {
         'mAP': AveragePrecision()
     }
-
-
-def task_type_check(
-        model: nn.Module,
-        dataset: VisionDataset
-) -> TaskType:
-    """Check task type (regression, binary, multiclass) according to model object and label column.
-
-    Parameters
-    ----------
-    model : nn.Module
-        Model object
-    dataset : VisionDataset
-        Dataset object
-
-    Returns
-    -------
-    TaskType
-        TaskType enum corresponding to the model and dataset
-    """
-    dataset.assert_label()
-    validation.validate_model(dataset, model)
-
-    return TaskType(dataset.label_type)
 
 
 def get_scorers_list(

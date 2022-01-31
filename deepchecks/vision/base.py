@@ -127,7 +127,7 @@ class Context:
     def task_type(self) -> TaskType:
         """Return task type if model & train & label exists. otherwise, raise error."""
         if self._task_type is None:
-            self._task_type = task_type_check(self.model, self.train)
+            self._task_type = TaskType(self.train.label_type)
         return self._task_type
 
     @property
