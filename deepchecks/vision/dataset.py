@@ -314,6 +314,9 @@ def create_sample_loader(data_loader: DataLoader, sample_size: int, seed: int):
         for i, sample in enumerate(dataset):
             if i in sample_indices:
                 samples_data.append(sample)
+                # If found all exit the iteration
+                if len(samples_data) == sample_size:
+                    break
 
         samples_dataset = InMemoryDataset(samples_data)
         return DataLoader(samples_dataset, generator=generator(), sampler=SequentialSampler(samples_data),
