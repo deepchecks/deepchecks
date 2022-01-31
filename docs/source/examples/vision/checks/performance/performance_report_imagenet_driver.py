@@ -18,4 +18,6 @@ aug_ds = VisionDataset(augmented_dataloader)
 
 # Run Check
 check = RobustnessReport()  # label_map=class_names
+# For reproducability
+check.set_seeds(42)
 result = check.run(baseline_dataset=baseline_ds, augmented_dataset=aug_ds, model=model)

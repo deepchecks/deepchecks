@@ -31,8 +31,10 @@ class RobustnessReport(TrainTestBaseCheck):
 
     def __init__(self, alternative_metrics: Optional[List[Metric]] = None,
                  prediction_extract: Optional[Callable] = None,
-                 augmentations: Optional[Union[A.Compose, List[A.BasicTransform]]] = None):
+                 augmentations: Optional[Union[A.Compose, List[A.BasicTransform]]] = None,
+                 epsilon: float = 10 ** -2):
         super().__init__()
+        self._epsilon = epsilon
         self.alternative_metrics = alternative_metrics
         self.prediction_extract = prediction_extract
         # Now we duplicate the val_dataloader and create an augmented one
@@ -48,7 +50,6 @@ class RobustnessReport(TrainTestBaseCheck):
         elif isinstance(augmentations, A.Compose):
             augmentations = augmentations.transforms.transforms
         self.augmentations = augmentations
-        self._transform_field = "transform"
 
     def set_seeds(self, seed: int = 42):
         """
@@ -86,8 +87,8 @@ class RobustnessReport(TrainTestBaseCheck):
         if not all([baseline_dataset.get_samples_per_class()[k] == augmented_dataset.get_samples_per_class()[k]
                     for k in baseline_dataset.get_samples_per_class().keys()]):
             raise DeepchecksValueError("Dataset must have same numnber of examples per class")
-        baseline_dataset.validate_transforms(field_name=self._transform_field)
-        augmented_dataset.validate_transforms(field_name=self._transform_field)
+        baseline_dataset.validate_transforms()
+        augmented_dataset.validate_transforms()
         baseline_dataset.validate_label()
         augmented_dataset.validate_label()
         baseline_dataset.validate_shared_label(augmented_dataset)
@@ -104,7 +105,7 @@ class RobustnessReport(TrainTestBaseCheck):
             return NotImplementedError('only works for classification ATM')
 
         example_dict = self._get_bad_aug_examples(baseline_dataset, augmented_dataset, results_df)
-
+        # TODO visualiztion
         plot_x_axis = 'Class'
         fig = px.histogram(
             results_df,
@@ -146,7 +147,7 @@ class RobustnessReport(TrainTestBaseCheck):
                 for class_score, class_name in zip(score, classes)
             )
         # We put a NoOp for first spot (e.g. identity) so we can replace first Op at every iteration
-        self._add_dataset_transforms(augmented_dataset)
+        augmented_dataset.add_dataset_transforms()
         results = []
         # Run baseline
         curr_results_base = evaluate_dataset(baseline_dataset)
@@ -156,7 +157,7 @@ class RobustnessReport(TrainTestBaseCheck):
             aug_name = curr_aug.get_class_fullname()
             # We will override the first augmentation, the one that is currently identity,
             # with the one we want to test for robustness
-            self._edit_dataset_transforms(augmented_dataset, curr_aug)
+            augmented_dataset.edit_dataset_transforms(curr_aug)
             curr_results_aug = evaluate_dataset(augmented_dataset)
             results_aug_df = pd.DataFrame(curr_results_aug, columns=['Class', 'Metric', 'Value', 'N']
                                           ).sort_values(by=['Class'])
@@ -173,7 +174,7 @@ class RobustnessReport(TrainTestBaseCheck):
             rename({"level_0": "Status"}, axis=1).\
             drop(labels="level_1", axis=1)
 
-        def _is_robust_to_augmentation(p, epsilon=10 ** -4):
+        def _is_robust_to_augmentation(p, epsilon=10 ** -2):
             grouped_results = p[["Status", "Metric", "Value"]].groupby(["Status", "Metric"]).median().reset_index()
             differences = []
             metric_statuses = []
@@ -187,7 +188,7 @@ class RobustnessReport(TrainTestBaseCheck):
                                                                     grouped_results["Metric"].unique().tolist()])
 
         # Iterating this dataframe per [Status, Augmentation] will give us easy comparisons
-        metric_results = results_df.groupby(["Augmentation"]).apply(_is_robust_to_augmentation).reset_index()
+        metric_results = results_df.groupby(["Augmentation"]).apply(_is_robust_to_augmentation, self._epsilon).reset_index()
 
         # TODO turn result list into a plot
         return metric_results
@@ -197,6 +198,9 @@ class RobustnessReport(TrainTestBaseCheck):
         We iterate the internal dataset object directly to avoid randomness
         Dataset returns data points as processed images, making this currently not really usable
         To avoid making more assumptions this currently stays as-is
+        Note that images return in RGB format, ond to visualize them using OpenCV the final dimesion should be
+        transposed;
+        can be done via image = image[:, :, ::-1] or cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         :param baseline_dataset:
         :param augmented_dataset:
         :param n_samples:
@@ -210,38 +214,18 @@ class RobustnessReport(TrainTestBaseCheck):
         for idx, (sample_base, sample_aug) in enumerate(zip(baseline_sampler, aug_sampler)):
             if idx > n_samples:
                 break
-            # sample_base_ = baseline_dataset.inverse_transform(sample_base[0])
-            # sample_aug_ = augmented_dataset.inverse_transform(sample_aug[0])
+            sample_base_ = baseline_dataset.inverse_transform(sample_base[0])
+            sample_aug_ = augmented_dataset.inverse_transform(sample_aug[0])
             samples.append((sample_base_, sample_aug_))
 
         return samples
-
-    # TODO move two methods inside VisionDataset
-    def _add_dataset_transforms(self, dataset: VisionDataset, op: A.BasicTransform = A.NoOp):
-        try:
-            dataset_ref = dataset.get_data_loader().dataset
-            transform_object = dataset_ref.__getattribute__(self._transform_field)
-            dataset_ref.__setattr__(self._transform_field, A.Compose([op()] + transform_object.transforms.transforms))
-        except AttributeError as e:
-            raise DeepchecksValueError(f"Underlying Dataset instance must have a {self._transform_field} attribute")
-
-    def _edit_dataset_transforms(self, dataset: VisionDataset, op: A.BasicTransform = A.NoOp, idx: int = 0):
-        try:
-            dataset_ref = dataset.get_data_loader().dataset
-            transform_object = dataset_ref.__getattribute__(self._transform_field)
-            dataset_ref.__setattr__(self._transform_field, A.Compose([op] + transform_object.transforms.transforms[1:]))
-        except AttributeError as e:
-            raise DeepchecksValueError(f"Underlying Dataset instance must have a {self._transform_field} attribute")
-
-    def _is_data_normalized(self, dataset_ref: data.Dataset):
-        return A.Normalize in [type(a) for a in dataset_ref.transform.transforms.transforms]
 
     def _get_bad_aug_examples(self, baseline_dataset, augmented_dataset, results_df):
         bad_aug_names = results_df[results_df["Affected"]]["Augmentation"].tolist()
         bad_augs = [a for a in self.augmentations if a.get_class_fullname() in bad_aug_names]
         sample_dict = {}
         for aug in bad_augs:
-            self._edit_dataset_transforms(augmented_dataset, aug)
+            augmented_dataset.edit_dataset_transforms(aug)
             sample_dict[aug.get_class_fullname()] = self._get_random_image_pairs_from_dataloder(baseline_dataset,
                                                                                                 augmented_dataset)
         return sample_dict

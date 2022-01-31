@@ -184,8 +184,12 @@ class VisionDataset:
         except AttributeError as e:
             raise DeepchecksValueError(f"Underlying Dataset instance must have a {self._transform_field} attribute")
 
-    # TODO move two methods inside VisionDataset
     def add_dataset_transforms(self, op: A.BasicTransform = A.NoOp):
+        """
+        Adds the operator "op" at the beginning of transforms
+        :param op:
+        :return:
+        """
         try:
             dataset_ref = self.get_data_loader().dataset
             transform_object = dataset_ref.__getattribute__(self._transform_field)
@@ -194,10 +198,18 @@ class VisionDataset:
             raise DeepchecksValueError(f"Underlying Dataset instance must have a {self._transform_field} attribute")
 
     def edit_dataset_transforms(self, op: A.BasicTransform = A.NoOp, idx: int = 0):
+        """
+        Replaces the operand at index idx
+        :param op:
+        :param idx:
+        :return:
+        """
         try:
             dataset_ref = self.get_data_loader().dataset
             transform_object = dataset_ref.__getattribute__(self._transform_field)
-            dataset_ref.__setattr__(self._transform_field, A.Compose([op] + transform_object.transforms.transforms[1:]))
+            transform_list = transform_object.transforms.transforms[:]
+            transform_list[idx] = op
+            dataset_ref.__setattr__(self._transform_field, A.Compose(transform_list))
         except AttributeError as e:
             raise DeepchecksValueError(f"Underlying Dataset instance must have a {self._transform_field} attribute")
 
@@ -209,7 +221,8 @@ class VisionDataset:
         """
         if self._inverse_transform is None:
             self._inverse_transform = self._create_inverse_transform()
-        return self._inverse_transform.apply(image=sample)["image"]
+        sample = sample.detach().cpu().numpy()
+        return self._inverse_transform(image=sample)["image"]
 
     def _create_inverse_transform(self):
         import albumentations as A
