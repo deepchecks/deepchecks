@@ -86,7 +86,6 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
 
         elif task_type == TaskType.OBJECT_DETECTION.value:
 
-
             # TODO: This should be one process, that iterates over the dataset once, not every metric.
             # this means that histogram_in_batch and count_custom_transform_on_label should be the same function,
             # and that it should receive multiple transforms and do them
