@@ -228,22 +228,22 @@ notebook: requirements dev-requirements
 # Making sure the examples are running, without validating their outputs.
 	@$(JUPYTER) nbextension enable --py widgetsnbextension
 	@echo "+++ Number of notebooks to execute: $$(find ./docs/source/examples -name "*.ipynb" | wc -l) +++"
-	@$(JUPYTER) nbconvert \
-		--execute $$(find ./docs/source/examples -name "*.ipynb") \
-		--to notebook \
-		--stdout > /dev/null
-# For now, because of plotly - disabling the nbval and just validate that the notebooks are running
+	@echo "+++ Executing notebooks in $(PWD) +++"
+	@find ./docs/source/examples -name "*.ipynb" | \
+	 xargs -P4 -I'{}' $(JUPYTER) nbconvert --execute '{}' \
+	  --to notebook --stdout > /dev/null
+
+	# For now, because of plotly - disabling the nbval and just validate that the notebooks are running
 #	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_CHECKS) --sanitize-with $(NOTEBOOK_SANITIZER_FILE)
 
 
 regenerate-examples: requirements dev-requirements
 	@$(JUPYTER) nbextension enable --py widgetsnbextension
 	@echo "+++ Number of notebooks: $$(find ./docs/source/examples -name "*.ipynb" | wc -l) +++"
-	@$(JUPYTER) nbconvert \
-		--to notebook \
+	@find ./docs/source/examples -name "*.ipynb" | \
+	xargs -P4 -I'{}' $(JUPYTER) nbconvert --to notebook \
 		--inplace \
-		--execute $$(find ./docs/source/examples -name "*.ipynb") \
-
+		--execute '{}' \
 
 coverage: requirements dev-requirements
 	$(COVERAGE) run -m pytest
