@@ -19,7 +19,7 @@ from deepchecks.vision import TrainTestBaseCheck, Context
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.metrics_utils.metrics import get_scorers_list, task_type_check, calculate_metrics
+from deepchecks.vision.metrics_utils.metrics import get_scorers_list, calculate_metrics
 
 
 __all__ = ['PerformanceReport']
@@ -52,32 +52,28 @@ class PerformanceReport(TrainTestBaseCheck):
         train_dataset = context.train
         test_dataset = context.test
         model = context.model
-        task_type = task_type_check(model, train_dataset)
+        context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
 
         # Get default scorers if no alternative, or validate alternatives
-        scorers = get_scorers_list(model, test_dataset, self.alternative_metrics)
+        scorers = get_scorers_list(test_dataset, self.alternative_metrics)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
-        if task_type in (TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION):
-            classes = train_dataset.get_samples_per_class().keys()
-            plot_x_axis = 'Class'
-            results = []
+        classes = train_dataset.get_samples_per_class().keys()
+        plot_x_axis = 'Class'
+        results = []
 
-            for dataset_name, dataset in datasets.items():
-                n_samples = dataset.get_samples_per_class()
-                results.extend(
-                    [dataset_name, class_name, name, class_score, n_samples[class_name]]
-                    for name, score in calculate_metrics(list(scorers.values()), dataset, model,
-                                                         prediction_extract=self.prediction_extract).items()
-                    # scorer returns numpy array of results with item per class
-                    for class_score, class_name in zip(score, classes)
-                )
+        for dataset_name, dataset in datasets.items():
+            n_samples = dataset.get_samples_per_class()
+            results.extend(
+                [dataset_name, class_name, name, class_score, n_samples[class_name]]
+                for name, score in calculate_metrics(list(scorers.values()), dataset, model,
+                                                     prediction_extract=self.prediction_extract).items()
+                # scorer returns numpy array of results with item per class
+                for class_score, class_name in zip(score, classes)
+            )
 
-            results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples']
-                                      ).sort_values(by=['Class'])
-
-        else:
-            return NotImplementedError('only works for classification ATM')
+        results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples']
+                                  ).sort_values(by=['Class'])
 
         fig = px.histogram(
             results_df,
@@ -90,7 +86,7 @@ class PerformanceReport(TrainTestBaseCheck):
             hover_data=['Number of samples']
         )
 
-        if task_type == TaskType.CLASSIFICATION:
+        if train_dataset.task_type == TaskType.CLASSIFICATION:
             fig.update_xaxes(tickprefix='Class ', tickangle=60)
 
         fig = (

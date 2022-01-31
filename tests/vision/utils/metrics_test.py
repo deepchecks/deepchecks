@@ -11,7 +11,7 @@
 from hamcrest import equal_to, assert_that, calling, raises
 
 from deepchecks.vision.datasets.detection.coco import yolo_wrapper
-from deepchecks.vision.metrics_utils.metrics import task_type_check, TaskType, \
+from deepchecks.vision.metrics_utils.metrics import TaskType, \
     get_default_classification_scorers
 from deepchecks.vision.metrics_utils.metrics import calculate_metrics
 from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
