@@ -75,7 +75,7 @@ class VisionDataset:
                  num_classes: Optional[int] = None,
                  label_transformer: Optional[Callable] = None,
                  sample_size: int = 1000,
-                 seed: int = 0):
+                 random_seed: int = 0):
         self._data = data_loader
 
         if label_transformer is None:
@@ -96,7 +96,7 @@ class VisionDataset:
         self._sample_data_loader = None
         self._sample_labels = None
         self._sample_size = sample_size
-        self._seed = seed
+        self._random_seed = random_seed
 
     def get_num_classes(self):
         """Return the number of classes in the dataset."""
@@ -133,7 +133,7 @@ class VisionDataset:
     def sample_data_loader(self) -> DataLoader:
         """Return sample of the data."""
         if self._sample_data_loader is None:
-            self._sample_data_loader = create_sample_loader(self._data, self._sample_size, self._seed)
+            self._sample_data_loader = create_sample_loader(self._data, self._sample_size, self._random_seed)
         return self._sample_data_loader
 
     @property
@@ -147,7 +147,6 @@ class VisionDataset:
 
     def label_valid(self) -> Union[str, bool]:
         """Validate the label of the dataset. If found problem return string describing it, else returns none."""
-        # Getting first sample of data
         batch = next(iter(self.get_data_loader()))
         if len(batch) != 2:
             return 'Check requires dataset to have a label'
@@ -186,6 +185,11 @@ class VisionDataset:
         if isinstance(self._label_valid, str):
             raise DeepchecksValueError(self._label_valid)
 
+    def is_have_label(self) -> bool:
+        """Return whether the data contains labels."""
+        batch = next(iter(self.get_data_loader()))
+        return len(batch) == 2
+
     def __iter__(self):
         """Return an iterator over the dataset."""
         return iter(self._data)
@@ -214,8 +218,11 @@ class VisionDataset:
         """
         VisionDataset.validate_dataset(other)
 
+        if self.is_have_label() != other.is_have_label():
+            raise DeepchecksValueError('Datasets required to both either have or don\'t have labels')
+
         if self.get_label_shape() != other.get_label_shape():
-            raise DeepchecksValueError('Check requires datasets to share the same label shape')
+            raise DeepchecksValueError('Datasets required to share the same label shape')
 
     @classmethod
     def validate_dataset(cls, obj) -> 'VisionDataset':
