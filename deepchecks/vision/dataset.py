@@ -262,6 +262,7 @@ class FixedSampler(Sampler):
         self._length = length
         self._seed = seed
         if sample_size:
+            sample_size = min(sample_size, length)
             np.random.seed(self._seed)
             self._indices = np.random.choice(self._length, size=(sample_size,), replace=False)
 
@@ -298,6 +299,7 @@ def create_sample_loader(data_loader: DataLoader, sample_size: int, seed: int):
         iter_length = 0
         for _ in dataset:
             iter_length += 1
+        sample_size = min(sample_size, iter_length)
         np.random.seed(seed)
         sample_indices = set(np.random.choice(iter_length, size=(sample_size,), replace=False))
 
