@@ -62,7 +62,7 @@ def get_scorers_list(
     t.Dict[str, Metric]
         Scorers list
     """
-    task_type = dataset.label_type
+    task_type = dataset.task_type
 
     if alternative_scorers:
         # Validate that each alternative scorer is a correct type
@@ -94,34 +94,34 @@ def validate_prediction(batch_predictions: t.Any, dataset: VisionDataset, eps: f
     eps : float, optional
         Epsilon value to be used in the validation, by default 1e-3
     """
-    label_type = dataset.label_type
+    task_type = dataset.task_type
     n_classes = dataset.get_num_classes()
 
-    if label_type == TaskType.CLASSIFICATION.value:
+    if task_type == TaskType.CLASSIFICATION:
         if not isinstance(batch_predictions, (torch.Tensor, np.ndarray)):
-            raise DeepchecksValueError(f'Check requires {label_type} predictions to be a torch.Tensor or numpy '
+            raise DeepchecksValueError(f'Check requires {task_type} predictions to be a torch.Tensor or numpy '
                                        f'array')
         pred_shape = batch_predictions.shape
         if len(pred_shape) != 2:
-            raise DeepchecksValueError(f'Check requires {label_type} predictions to be a 2D tensor')
+            raise DeepchecksValueError(f'Check requires {task_type} predictions to be a 2D tensor')
         if pred_shape[1] != n_classes:
-            raise DeepchecksValueError(f'Check requires {label_type} predictions to have {n_classes} columns')
+            raise DeepchecksValueError(f'Check requires {task_type} predictions to have {n_classes} columns')
         if any(abs(batch_predictions.sum(axis=1) - 1) > eps):
-            raise DeepchecksValueError(f'Check requires {label_type} predictions to be a probability distribution and'
+            raise DeepchecksValueError(f'Check requires {task_type} predictions to be a probability distribution and'
                                        f' sum to 1 for each row')
-    elif dataset.label_type == TaskType.OBJECT_DETECTION.value:
+    elif task_type == TaskType.OBJECT_DETECTION:
         if not isinstance(batch_predictions, list):
-            raise DeepchecksValueError(f'Check requires {label_type} predictions to be a list with an entry for each'
+            raise DeepchecksValueError(f'Check requires {task_type} predictions to be a list with an entry for each'
                                        f' sample')
         if len(batch_predictions) == 0:
-            raise DeepchecksValueError(f'Check requires {label_type} predictions to be a non-empty list')
+            raise DeepchecksValueError(f'Check requires {task_type} predictions to be a non-empty list')
         if not isinstance(batch_predictions[0], (torch.Tensor, np.ndarray)):
-            raise DeepchecksValueError(f'Check requires {label_type} predictions to be a list of torch.Tensor or'
+            raise DeepchecksValueError(f'Check requires {task_type} predictions to be a list of torch.Tensor or'
                                        f' numpy array')
         if len(batch_predictions[0].shape) != 2:
-            raise DeepchecksValueError(f'Check requires {label_type} predictions to be a list of 2D tensors')
+            raise DeepchecksValueError(f'Check requires {task_type} predictions to be a list of 2D tensors')
         if batch_predictions[0].shape[1] != 6:
-            raise DeepchecksValueError(f'Check requires {label_type} predictions to be a list of 2D tensors, when '
+            raise DeepchecksValueError(f'Check requires {task_type} predictions to be a list of 2D tensors, when '
                                        f'each row has 6 columns: [x, y, width, height, class_probability, class_id]')
     else:
         raise NotImplementedError(
