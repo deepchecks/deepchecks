@@ -367,7 +367,7 @@ def column_importance_sorter_df(
         the dataframe sorted and limited by feature importance.
 
     """
-    if not len(df):
+    if len(df) == 0:
         return df
 
     if feature_importances is not None:
