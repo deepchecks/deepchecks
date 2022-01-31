@@ -1,5 +1,7 @@
 """Module containing robustness report check."""
-from collections import defaultdict
+import numpy as np
+import random
+import torch
 from typing import Callable, TypeVar, List, Optional, Union
 import albumentations as A
 import pandas as pd
@@ -48,6 +50,19 @@ class RobustnessReport(TrainTestBaseCheck):
         self.augmentations = augmentations
         self._transform_field = "transform"
 
+    def set_seeds(self, seed: int = 42):
+        """
+        Sets seeds for reproduceability
+        Imgaug uses numpy's State
+        Albumentation uses Python and imgaug seeds
+        :param seed:
+        :return:
+        """
+        np.random.seed(seed)
+        random.seed(seed)
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
 
     def run(self, *, baseline_dataset: VisionDataset, augmented_dataset: VisionDataset, model=None) -> CheckResult:
         """Run check.
@@ -68,7 +83,7 @@ class RobustnessReport(TrainTestBaseCheck):
         # This takes time, consider replacing
         if set(baseline_dataset.get_samples_per_class().keys()) != set(augmented_dataset.get_samples_per_class().keys()):
             raise DeepchecksValueError("Datasets must share class count")
-        if not all([baseline_dataset.get_samples_pe_class()[k] == augmented_dataset.get_samples_per_class()[k]
+        if not all([baseline_dataset.get_samples_per_class()[k] == augmented_dataset.get_samples_per_class()[k]
                     for k in baseline_dataset.get_samples_per_class().keys()]):
             raise DeepchecksValueError("Dataset must have same numnber of examples per class")
         baseline_dataset.validate_transforms(field_name=self._transform_field)
@@ -87,6 +102,8 @@ class RobustnessReport(TrainTestBaseCheck):
             results_df = self._report_inner_loop(baseline_dataset, augmented_dataset, model, scorers)
         else:
             return NotImplementedError('only works for classification ATM')
+
+        example_dict = self._get_bad_aug_examples(baseline_dataset, augmented_dataset, results_df)
 
         plot_x_axis = 'Class'
         fig = px.histogram(
@@ -129,22 +146,24 @@ class RobustnessReport(TrainTestBaseCheck):
                 for class_score, class_name in zip(score, classes)
             )
         # We put a NoOp for first spot (e.g. identity) so we can replace first Op at every iteration
-        dataset_ref = augmented_dataset.get_data_loader().dataset
-        self._add_dataset_transforms(dataset_ref)
+        self._add_dataset_transforms(augmented_dataset)
         results = []
+        # Run baseline
+        curr_results_base = evaluate_dataset(baseline_dataset)
+        results_base_df = pd.DataFrame(curr_results_base, columns=['Class', 'Metric', 'Value', 'N']
+                                       ).sort_values(by=['Class'])
         for curr_aug in self.augmentations:
             aug_name = curr_aug.get_class_fullname()
             # We will override the first augmentation, the one that is currently identity,
             # with the one we want to test for robustness
-            self._edit_dataset_transforms(dataset_ref, curr_aug)
-            curr_results_base = evaluate_dataset(baseline_dataset)
+            self._edit_dataset_transforms(augmented_dataset, curr_aug)
             curr_results_aug = evaluate_dataset(augmented_dataset)
-            results_base_df = pd.DataFrame(curr_results_base, columns=['Class', 'Metric', 'Value', 'N']
-                                           ).sort_values(by=['Class'])
             results_aug_df = pd.DataFrame(curr_results_aug, columns=['Class', 'Metric', 'Value', 'N']
                                           ).sort_values(by=['Class'])
-            results_base_df.insert(0, "Augmentation", aug_name)
-            results_aug_df.insert(0, "Augmentation", aug_name)
+            # This modifies the augmentation name in-place
+            results_base_df["Augmentation"] = aug_name
+            # This adds the augmentation
+            results_aug_df["Augmentation"] = aug_name
             results.append(pd.concat([results_base_df, results_aug_df], keys=["Baseline", "Augmented"]))
 
         # Create grand DataFrame from dictionary of augmentations
@@ -155,7 +174,7 @@ class RobustnessReport(TrainTestBaseCheck):
             drop(labels="level_1", axis=1)
 
         def _is_robust_to_augmentation(p, epsilon=10 ** -4):
-            grouped_results = p[["Status", "Metric", "Value"]].groupby(["Status", "Metric"]).mean().reset_index()
+            grouped_results = p[["Status", "Metric", "Value"]].groupby(["Status", "Metric"]).median().reset_index()
             differences = []
             metric_statuses = []
             for metric in grouped_results["Metric"].unique():
@@ -184,23 +203,45 @@ class RobustnessReport(TrainTestBaseCheck):
         :return:
         """
         # We definitely make the assumption that the underlying structure is torch.utils.Dataset
-        baseline_dataset = baseline_dataset.get_data_loader().dataset
-        aug_loader_dataset = augmented_dataset.get_data_loader().dataset
-        baseline_sampler = iter(baseline_dataset)
-        aug_sampler = iter(aug_loader_dataset)
+        baseline_sampler = iter(baseline_dataset.get_data_loader().dataset)
+        aug_sampler = iter(augmented_dataset.get_data_loader().dataset)
         samples = []
         # iterate and sample
-        for idx, (sample_b, sample_a) in enumerate(zip(baseline_sampler, aug_sampler)):
+        for idx, (sample_base, sample_aug) in enumerate(zip(baseline_sampler, aug_sampler)):
             if idx > n_samples:
                 break
-            samples.append((sample_b, sample_b))
+            # sample_base_ = baseline_dataset.inverse_transform(sample_base[0])
+            # sample_aug_ = augmented_dataset.inverse_transform(sample_aug[0])
+            samples.append((sample_base_, sample_aug_))
 
         return samples
 
-    def _add_dataset_transforms(self, dataset_ref: data.Dataset, op: A.BasicTransform = A.NoOp):
-        transform_object = dataset_ref.__getattribute__(self._transform_field)
-        dataset_ref.__setattr__(self._transform_field, A.Compose([op()] + transform_object.transforms.transforms))
+    # TODO move two methods inside VisionDataset
+    def _add_dataset_transforms(self, dataset: VisionDataset, op: A.BasicTransform = A.NoOp):
+        try:
+            dataset_ref = dataset.get_data_loader().dataset
+            transform_object = dataset_ref.__getattribute__(self._transform_field)
+            dataset_ref.__setattr__(self._transform_field, A.Compose([op()] + transform_object.transforms.transforms))
+        except AttributeError as e:
+            raise DeepchecksValueError(f"Underlying Dataset instance must have a {self._transform_field} attribute")
 
-    def _edit_dataset_transforms(self, dataset_ref: data.Dataset, op: A.BasicTransform = A.NoOp):
-        transform_object = dataset_ref.__getattribute__(self._transform_field)
-        dataset_ref.__setattr__(self._transform_field, A.Compose([op] + transform_object.transforms.transforms[1:]))
+    def _edit_dataset_transforms(self, dataset: VisionDataset, op: A.BasicTransform = A.NoOp, idx: int = 0):
+        try:
+            dataset_ref = dataset.get_data_loader().dataset
+            transform_object = dataset_ref.__getattribute__(self._transform_field)
+            dataset_ref.__setattr__(self._transform_field, A.Compose([op] + transform_object.transforms.transforms[1:]))
+        except AttributeError as e:
+            raise DeepchecksValueError(f"Underlying Dataset instance must have a {self._transform_field} attribute")
+
+    def _is_data_normalized(self, dataset_ref: data.Dataset):
+        return A.Normalize in [type(a) for a in dataset_ref.transform.transforms.transforms]
+
+    def _get_bad_aug_examples(self, baseline_dataset, augmented_dataset, results_df):
+        bad_aug_names = results_df[results_df["Affected"]]["Augmentation"].tolist()
+        bad_augs = [a for a in self.augmentations if a.get_class_fullname() in bad_aug_names]
+        sample_dict = {}
+        for aug in bad_augs:
+            self._edit_dataset_transforms(augmented_dataset, aug)
+            sample_dict[aug.get_class_fullname()] = self._get_random_image_pairs_from_dataloder(baseline_dataset,
+                                                                                                augmented_dataset)
+        return sample_dict

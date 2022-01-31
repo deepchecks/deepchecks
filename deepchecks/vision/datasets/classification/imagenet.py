@@ -42,7 +42,6 @@ def get_imagenet_dataloaders_albumentations() -> Tuple[DataLoader, DataLoader]:
                 A.Resize(256, 256),
                 A.RandomCrop(224, 224),
                 A.HorizontalFlip(),
-                A.pytorch.ToTensorV2(),
                 A.Normalize(
                     mean=[0.485, 0.456, 0.406],
                     std=[0.229, 0.224, 0.225],
@@ -69,7 +68,7 @@ def get_imagenet_dataloaders_albumentations() -> Tuple[DataLoader, DataLoader]:
 
 def get_imagenet_dataloaders() -> Tuple[DataLoader, DataLoader]:
     data_url = "placeholder"
-    data_dir = IMAGENET_BSAE_DIR
+    data_dir = IMAGENET_BASE_DIR
     # download_and_extract_archive(data_url, './', data_dir)
     data_transforms = {
         'train': transforms.Compose([
