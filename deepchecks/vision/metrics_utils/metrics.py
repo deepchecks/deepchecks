@@ -64,8 +64,8 @@ def task_type_check(
     TaskType
         TaskType enum corresponding to the model and dataset
     """
+    dataset.assert_label()
     validation.validate_model(dataset, model)
-    dataset.validate_label()
 
     return TaskType(dataset.label_type)
 
