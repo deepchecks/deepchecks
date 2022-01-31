@@ -44,7 +44,10 @@ __all__ = [
     'BaseCheck',
     'CheckFailure',
     'ConditionResult',
-    'ConditionCategory'
+    'ConditionCategory',
+    'SingleDatasetBaseCheck',
+    'TrainTestBaseCheck',
+    'ModelOnlyBaseCheck',
 ]
 
 
@@ -458,7 +461,8 @@ class BaseCheck(abc.ABC):
 
 class SingleDatasetBaseCheck(BaseCheck):
     """Parent class for checks that only use one dataset."""
-    context_type: ClassVar[Optional[Type[Any]]] = None # TODO: Base context type
+
+    context_type: ClassVar[Optional[Type[Any]]] = None  # TODO: Base context type
 
     def __init__(self):
         super().__init__()
@@ -468,7 +472,10 @@ class SingleDatasetBaseCheck(BaseCheck):
     def run(self, dataset, model=None) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        return self.run_logic(self.context_type(dataset, model=model))
+        return self.run_logic(self.context_type(  # pylint: disable=not-callable
+            dataset,
+            model=model
+        ))
 
     @abc.abstractmethod
     def run_logic(self, context, dataset_type: str = 'train') -> CheckResult:
@@ -482,7 +489,7 @@ class TrainTestBaseCheck(BaseCheck):
     The class checks train dataset and test dataset for model training and test.
     """
 
-    context_type: ClassVar[Optional[Type[Any]]] = None # TODO: Base context type
+    context_type: ClassVar[Optional[Type[Any]]] = None  # TODO: Base context type
 
     def __init__(self):
         super().__init__()
@@ -492,7 +499,11 @@ class TrainTestBaseCheck(BaseCheck):
     def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        return self.run_logic(self.context_type(train_dataset, test_dataset, model=model))
+        return self.run_logic(self.context_type(  # pylint: disable=not-callable
+            train_dataset,
+            test_dataset,
+            model=model
+        ))
 
     @abc.abstractmethod
     def run_logic(self, context) -> CheckResult:
@@ -503,7 +514,7 @@ class TrainTestBaseCheck(BaseCheck):
 class ModelOnlyBaseCheck(BaseCheck):
     """Parent class for checks that only use a model and no datasets."""
 
-    context_type: ClassVar[Optional[Type[Any]]] = None # TODO: Base context type
+    context_type: ClassVar[Optional[Type[Any]]] = None  # TODO: Base context type
 
     def __init__(self):
         super().__init__()
@@ -513,7 +524,7 @@ class ModelOnlyBaseCheck(BaseCheck):
     def run(self, model) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        return self.run_logic(self.context_type(model=model))
+        return self.run_logic(self.context_type(model=model))  # pylint: disable=not-callable
 
     @abc.abstractmethod
     def run_logic(self, context) -> CheckResult:

@@ -10,9 +10,7 @@
 #
 """Module for base vision abstractions."""
 # TODO: This file should be completely modified
-# pylint: disable=broad-except
 # pylint: disable=broad-except,not-callable
-from collections import OrderedDict
 from typing import Tuple, Mapping, Optional
 
 from ignite.metrics import Metric
@@ -157,6 +155,7 @@ class Context:
 
 class SingleDatasetCheck(SingleDatasetBaseCheck):
     """Parent class for checks that only use one dataset."""
+
     context_type = Context
 
 
@@ -165,11 +164,13 @@ class TrainTestCheck(TrainTestBaseCheck):
 
     The class checks train dataset and test dataset for model training and test.
     """
+
     context_type = Context
 
 
 class ModelOnlyCheck(ModelOnlyBaseCheck):
     """Parent class for checks that only use a model and no datasets."""
+
     context_type = Context
 
 

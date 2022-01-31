@@ -285,6 +285,7 @@ class Context:
 
 class SingleDatasetCheck(SingleDatasetBaseCheck):
     """Parent class for checks that only use one dataset."""
+
     context_type = Context
 
 
@@ -293,11 +294,13 @@ class TrainTestCheck(TrainTestBaseCheck):
 
     The class checks train dataset and test dataset for model training and test.
     """
+
     context_type = Context
 
 
 class ModelOnlyCheck(ModelOnlyBaseCheck):
     """Parent class for checks that only use a model and no datasets."""
+
     context_type = Context
 
 
