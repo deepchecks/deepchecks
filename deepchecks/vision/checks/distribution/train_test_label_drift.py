@@ -66,7 +66,7 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
         train_dataset = context.train
         test_dataset = context.test
 
-        task_type = train_dataset.label_type
+        task_type = train_dataset.task_type
         displays = []
 
         if task_type == TaskType.CLASSIFICATION.value:
