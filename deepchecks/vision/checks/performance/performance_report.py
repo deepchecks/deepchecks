@@ -86,7 +86,7 @@ class PerformanceReport(TrainTestBaseCheck):
             hover_data=['Number of samples']
         )
 
-        if task_type == TaskType.CLASSIFICATION:
+        if train_dataset.task_type == TaskType.CLASSIFICATION:
             fig.update_xaxes(tickprefix='Class ', tickangle=60)
 
         fig = (
