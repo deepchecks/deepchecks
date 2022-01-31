@@ -487,14 +487,21 @@ def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
             .replace(".ipynb", "")
             .replace(".py", "")
     )
+    type = filepath.split("/")[2]
 
     import deepchecks.tabular.checks
-    check_clazz = getattr(deepchecks.tabular.checks, notebook_name, None)
+    import deepchecks.vision.checks
+    tabular_check_clazz = getattr(deepchecks.tabular.checks, notebook_name, None)
+    vision_check_clazz = getattr(deepchecks.vision.checks, notebook_name, None)
 
-    if check_clazz is None or not hasattr(check_clazz, "__module__"):
+    mapping = {
+        'tabular': tabular_check_clazz,
+        'vision': vision_check_clazz
+    }
+    if type not in mapping or mapping[type] is None or not hasattr(mapping[type], "__module__"):
         return
 
-    clazz_module = ".".join(check_clazz.__module__.split("."))
+    clazz_module = ".".join(mapping[type].__module__.split("."))
 
     apipath = f"/api/generated/{clazz_module}.{notebook_name}"
     result = f"* :doc:`API Reference - {notebook_name} <{apipath}>`"
