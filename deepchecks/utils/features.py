@@ -361,6 +361,9 @@ def column_importance_sorter_df(
         the dataframe sorted and limited by feature importance.
 
     """
+    if len(df) == 0:
+        return df
+
     if feature_importances is not None:
         key = lambda column: [get_importance(name, feature_importances, ds) for name in column]
         if col:

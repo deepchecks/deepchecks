@@ -9,6 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains model_info check."""
+import warnings
+
 import pandas as pd
 
 from deepchecks.base.check_context import CheckRunContext
@@ -46,8 +48,9 @@ class ModelInfo(ModelOnlyBaseCheck):
                 return n * ['background-color: lightblue']
             else:
                 return n * ['']
-
-        model_param_df = model_param_df.style.apply(highlight_not_default, axis=1).hide_index()
+        with warnings.catch_warnings():
+            warnings.simplefilter(action='ignore', category=FutureWarning)
+            model_param_df = model_param_df.style.apply(highlight_not_default, axis=1).hide_index()
 
         value = {'type': model_type, 'params': model_params}
         footnote = '<p style="font-size:0.7em"><i>Colored rows are parameters with non-default values</i></p>'

@@ -14,6 +14,7 @@ import itertools
 import os
 import sys
 import re
+import warnings
 
 # pylint: disable=protected-access
 import tqdm
@@ -161,7 +162,8 @@ def _display_suite_widgets(summary: str,
         others_table = pd.DataFrame(data=others_table, columns=['Check', 'Reason', 'sort'])
         others_table.sort_values(by=['sort'], inplace=True)
         others_table.drop('sort', axis=1, inplace=True)
-        others_df = dataframe_to_html(others_table.style.hide_index())
+        with warnings.catch_warnings():
+            others_df = dataframe_to_html(others_table.style.hide_index())
         h2_widget = widgets.HTML(_CHECKS_WITHOUT_DISPLAY_TITLE)
         others_tab.children = [h2_widget, _create_table_widget(others_df)]
     else:
@@ -238,7 +240,8 @@ def _display_suite_no_widgets(summary: str,
         others_table.sort_values(by=['sort'], inplace=True)
         others_table.drop('sort', axis=1, inplace=True)
         others_h2 = f'{bold_hr}{_CHECKS_WITHOUT_DISPLAY_TITLE}'
-        others_df = dataframe_to_html(others_table.style.hide_index())
+        with warnings.catch_warnings():
+            others_df = dataframe_to_html(others_table.style.hide_index())
         display_html(others_h2 + others_df, raw=True)
 
     if unique_id:

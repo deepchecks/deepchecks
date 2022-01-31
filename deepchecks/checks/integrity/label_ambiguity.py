@@ -88,10 +88,12 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
             group_df = group_data[1]
             sample_values = dict(group_df[dataset.features].iloc[0])
             labels = tuple(sorted(group_df[label_col].unique()))
+            sample = pd.DataFrame.from_dict({'index': [labels] + list(sample_values.values())},
+                                            columns=[ambiguous_label_name] + list(sample_values.keys()),
+                                            orient='index')
             n_data_sample = group_df.shape[0]
             num_ambiguous += n_data_sample
-
-            display = display.append({ambiguous_label_name: labels, **sample_values}, ignore_index=True)
+            display = pd.concat([display, sample])
 
         display = display.set_index(ambiguous_label_name)
 
