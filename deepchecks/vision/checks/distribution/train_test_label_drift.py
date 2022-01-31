@@ -69,7 +69,7 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
         task_type = train_dataset.task_type
         displays = []
 
-        if task_type == TaskType.CLASSIFICATION.value:
+        if task_type == TaskType.CLASSIFICATION:
 
             train_label_distribution = train_dataset.get_samples_per_class()
             test_label_distribution = test_dataset.get_samples_per_class()
@@ -84,7 +84,7 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
             values_dict = {'Drift score': drift_score, 'Method': method}
             displays.append(display)
 
-        elif task_type == TaskType.OBJECT_DETECTION.value:
+        elif task_type == TaskType.OBJECT_DETECTION:
 
             # TODO: This should be one process, that iterates over the dataset once, not every metric.
             # this means that histogram_in_batch and count_custom_transform_on_label should be the same function,
