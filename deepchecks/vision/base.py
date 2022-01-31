@@ -233,7 +233,7 @@ class Context:
 
 
 class Check(BaseCheck):
-    """Base class for all tabular checks."""
+    """Base class for all computer vision checks."""
 
     def __init__(self):
         # pylint: disable=super-init-not-called
