@@ -15,7 +15,7 @@ from typing import Union, Dict, List, Iterable
 import numpy as np
 import pandas as pd
 
-from deepchecks.tabular import Context, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.dataframes import select_from_dataframe
@@ -30,7 +30,7 @@ __all__ = ['MixedNulls']
 DEFAULT_NULL_VALUES = {'none', 'null', 'nan', 'na', '', '\x00', '\x00\x00'}
 
 
-class MixedNulls(SingleDatasetBaseCheck):
+class MixedNulls(SingleDatasetCheck):
     """Search for various types of null values in a string column(s), including string representations of null.
 
     Parameters

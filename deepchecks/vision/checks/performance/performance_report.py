@@ -15,7 +15,7 @@ import plotly.express as px
 from ignite.metrics import Metric
 
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.vision import TrainTestBaseCheck, Context
+from deepchecks.vision import TrainTestCheck, Context
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision.dataset import TaskType
@@ -27,7 +27,7 @@ __all__ = ['PerformanceReport']
 PR = TypeVar('PR', bound='PerformanceReport')
 
 
-class PerformanceReport(TrainTestBaseCheck):
+class PerformanceReport(TrainTestCheck):
     """Summarize given metrics on a dataset and model.
 
     Parameters

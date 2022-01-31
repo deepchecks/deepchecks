@@ -15,7 +15,7 @@ import plotly.express as px
 
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular import Context, ModelComparisonContext, TrainTestBaseCheck, ModelComparisonCheck
+from deepchecks.tabular import Context, ModelComparisonContext, TrainTestCheck, ModelComparisonCheck
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, ModelType
 
@@ -26,7 +26,7 @@ __all__ = ['PerformanceReport', 'MultiModelPerformanceReport']
 PR = TypeVar('PR', bound='PerformanceReport')
 
 
-class PerformanceReport(TrainTestBaseCheck):
+class PerformanceReport(TrainTestCheck):
     """Summarize given scores on a dataset and model.
 
     Parameters

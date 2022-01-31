@@ -15,14 +15,14 @@ from sklearn.metrics import brier_score_loss
 import plotly.graph_objects as go
 
 from deepchecks.core import CheckResult
-from deepchecks.tabular import Context, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.typing import ClassificationModel
 
 
 __all__ = ['CalibrationScore']
 
 
-class CalibrationScore(SingleDatasetBaseCheck):
+class CalibrationScore(SingleDatasetCheck):
     """Calculate the calibration curve with brier score for each class."""
 
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:

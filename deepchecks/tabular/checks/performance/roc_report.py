@@ -15,7 +15,7 @@ import plotly.graph_objects as go
 import numpy as np
 import sklearn
 
-from deepchecks.tabular import Context, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.utils.strings import format_number
 
@@ -23,7 +23,7 @@ from deepchecks.utils.strings import format_number
 __all__ = ['RocReport']
 
 
-class RocReport(SingleDatasetBaseCheck):
+class RocReport(SingleDatasetCheck):
     """Calculate the ROC curve for each class.
 
     For each class plots the ROC curve, calculate AUC score and displays the optimal threshold cutoff point.
