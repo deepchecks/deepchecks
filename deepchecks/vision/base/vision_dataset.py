@@ -1,7 +1,9 @@
 from copy import copy
 from enum import Enum
 from collections import Counter
+from typing import Optional
 
+import albumentations as A
 import torch
 from torch.utils.data import DataLoader
 from torch import cat
@@ -9,7 +11,7 @@ import logging
 
 from deepchecks.errors import DeepchecksValueError
 from deepchecks.utils.typing import Hashable
-from deepchecks.vision.utils.image_utils import UnNormalize, ReverseToTensorV2
+from deepchecks.vision.utils.image_transforms import UnNormalize, ReverseToTensorV2
 
 logger = logging.getLogger('deepchecks')
 
@@ -28,7 +30,11 @@ class VisionDataset:
 
     _data: DataLoader = None
 
-    def __init__(self, data_loader: DataLoader, num_classes: int = None, label_type: str = None):
+    def __init__(self, data_loader: Optional[DataLoader],
+                 num_classes: Optional[int] = None,
+                 label_type: Optional[str] = None,
+                 transform_field: Optional[str] = "transform"):
+        self._transform_field = transform_field
         self._data = data_loader
         if label_type is not None:
             self.label_type = label_type
@@ -157,32 +163,53 @@ class VisionDataset:
 
         return obj
 
-    def validate_transforms(self, field_name: str = "transform"):
+    def validate_transforms(self):
         """I
         This checks that a field of name "transform" exists as it should
         Definitely needs expanding for more dataset support
-        :param field_name:
         :return:
         """
         import albumentations as A
         dataset_ref = self.get_data_loader().dataset
         try:
-            transform_field = dataset_ref.__getattribute__(field_name)
+            transform_field = dataset_ref.__getattribute__(self._transform_field)
             # If a list, create A.Compose out of it; shouldn't really happen though
             if isinstance(transform_field, list):
-                dataset_ref.__setattr__(field_name,
+                dataset_ref.__setattr__(self._transform_field,
                                         A.Compose(transform_field))
             # Otherwise if it's not an albumentations object, throw exception
             elif not isinstance(transform_field, A.Compose):
                 raise DeepchecksValueError("Dataset.transform field must be of instance type albumentations.Compose")
         # If no field exists this is another issue
         except AttributeError as e:
-            raise DeepchecksValueError(f"Underlying Dataset instance must have a {field_name} attribute")
+            raise DeepchecksValueError(f"Underlying Dataset instance must have a {self._transform_field} attribute")
+
+    # TODO move two methods inside VisionDataset
+    def add_dataset_transforms(self, op: A.BasicTransform = A.NoOp):
+        try:
+            dataset_ref = self.get_data_loader().dataset
+            transform_object = dataset_ref.__getattribute__(self._transform_field)
+            dataset_ref.__setattr__(self._transform_field, A.Compose([op()] + transform_object.transforms.transforms))
+        except AttributeError as e:
+            raise DeepchecksValueError(f"Underlying Dataset instance must have a {self._transform_field} attribute")
+
+    def edit_dataset_transforms(self, op: A.BasicTransform = A.NoOp, idx: int = 0):
+        try:
+            dataset_ref = self.get_data_loader().dataset
+            transform_object = dataset_ref.__getattribute__(self._transform_field)
+            dataset_ref.__setattr__(self._transform_field, A.Compose([op] + transform_object.transforms.transforms[1:]))
+        except AttributeError as e:
+            raise DeepchecksValueError(f"Underlying Dataset instance must have a {self._transform_field} attribute")
 
     def inverse_transform(self, sample: torch.Tensor):
+        """
+        # TODO perhaps use like a property?
+        :param sample:
+        :return:
+        """
         if self._inverse_transform is None:
             self._inverse_transform = self._create_inverse_transform()
-        return self._inverse_transform(sample)
+        return self._inverse_transform.apply(image=sample)["image"]
 
     def _create_inverse_transform(self):
         import albumentations as A
@@ -199,13 +226,13 @@ class VisionDataset:
             final_augmentations.append(ReverseToTensorV2(self.get_transforms()[totensor_idx]))
         except ValueError:
             pass
-        return reversed(final_augmentations)
+        return A.Compose(list(reversed(final_augmentations)))
 
 
-    def get_transforms(self, field_name: str = "transform"):
+    def get_transforms(self):
         try:
             dataset_ref = self.get_data_loader().dataset
-            transform_object = dataset_ref.__getattribute__(field_name)
+            transform_object = dataset_ref.__getattribute__(self._transform_field)
             return transform_object
         except AttributeError as e:
             raise DeepchecksValueError(f"Underlying Dataset instance must have a {self._transform_field} attribute")
