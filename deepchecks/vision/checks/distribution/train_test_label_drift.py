@@ -30,24 +30,24 @@ __all__ = ['TrainTestLabelDrift']
 
 # Functions temporarily here, will be changed when Label and Prediction classes exist:
 def get_bbox_area(label):
-    """Return a list containing the area of bboxes per image in batch"""
+    """Return a list containing the area of bboxes per image in batch."""
     areas = (label.reshape((-1, 5))[:, 4] * label.reshape((-1, 5))[:, 3]).reshape(-1, 1).tolist()
     return areas
 
 
 def count_num_bboxes(label):
-    """Return a list containing the number of bboxes per image in batch"""
+    """Return a list containing the number of bboxes per image in batch."""
     num_bboxes = label.shape[0]
     return num_bboxes
 
 
 def get_samples_per_class_classification(label):
-    """Return a list containing the class per image in batch"""
+    """Return a list containing the class per image in batch."""
     return label.tolist()
 
 
 def get_samples_per_class_object_detection(label):
-    """Return a list containing the class per image in batch"""
+    """Return a list containing the class per image in batch."""
     return [arr.reshape((-1, 5))[:, 0].tolist() for arr in label]
 
 
@@ -270,7 +270,7 @@ def generate_label_histograms_by_batch(train_dataset: VisionDataset, test_datase
 
 
 def calculate_discrete_histograms_in_batch(batch, counters, discrete_label_transformers):
-    """Calculate discrete histograms by batch"""
+    """Calculate discrete histograms by batch."""
     for i in range(len(discrete_label_transformers)):
         calc_res = get_results_on_batch(batch, discrete_label_transformers[i])
         counters[i].update(calc_res)
@@ -278,7 +278,7 @@ def calculate_discrete_histograms_in_batch(batch, counters, discrete_label_trans
 
 
 def calculate_continuous_histograms_in_batch(batch, hists, continuous_label_transformers, bounds, num_bins):
-    """Calculate continuous histograms by batch"""
+    """Calculate continuous histograms by batch."""
     for i in range(len(continuous_label_transformers)):
         calc_res = get_results_on_batch(batch, continuous_label_transformers[i])
         new_hist, _ = np.histogram(calc_res, bins=num_bins, range=(bounds[i][0], bounds[i][1]))
@@ -287,7 +287,7 @@ def calculate_continuous_histograms_in_batch(batch, hists, continuous_label_tran
 
 
 def get_results_on_batch(batch, label_transformer):
-    """Calculate transformer result on batch of labels"""
+    """Calculate transformer result on batch of labels."""
     list_of_arrays = batch[1]
     calc_res = [label_transformer(arr) for arr in list_of_arrays]
     if len(calc_res) != 0 and isinstance(calc_res[0], list):
@@ -296,7 +296,7 @@ def get_results_on_batch(batch, label_transformer):
 
 
 def get_boundaries_by_batch(dataset: VisionDataset, label_transformers: List[Callable]) -> List[Dict[str, float]]:
-    """Get min and max on dataset for each label transformer"""
+    """Get min and max on dataset for each label transformer."""
     bounds = [{'min': np.inf, 'max': -np.inf}] * len(label_transformers)
     for batch in dataset.get_data_loader():
         for i in range(len(label_transformers)):
