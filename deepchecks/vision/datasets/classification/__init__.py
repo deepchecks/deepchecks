@@ -9,3 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Module for classification datasets and models."""
+import pathlib
+
+
+__all__ = ["MODELS_DIR"]
+
+
+MODELS_DIR = pathlib.Path(__file__).absolute().parent / "models"
