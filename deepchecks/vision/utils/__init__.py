@@ -9,9 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Package for vision utilities."""
-from classification_encoders import ClassificationLabelEncoder, ClassificationPredictionEncoder
-from detection_encoders import DetectionLabelEncoder, DetectionPredictionEncoder
-from validation import validate_model
+from .classification_encoders import ClassificationLabelEncoder, ClassificationPredictionEncoder
+from .detection_encoders import DetectionLabelEncoder, DetectionPredictionEncoder
+from .validation import validate_model
 
 __all__ = [
     "ClassificationLabelEncoder",

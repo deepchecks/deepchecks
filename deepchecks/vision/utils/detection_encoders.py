@@ -42,7 +42,7 @@ class DetectionLabelEncoder:
     def __call__(self, *args, **kwargs):
         if isinstance(self.label_encoder, Callable):
             return self.label_encoder(*args, **kwargs)
-        elif type(self.label_encoder) == str:
+        elif isinstance(self.label_encoder, str):
             pass
 
 

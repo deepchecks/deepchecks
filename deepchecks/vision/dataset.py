@@ -13,7 +13,7 @@
 from copy import copy
 from enum import Enum
 from collections import Counter
-from typing import Callable, Optional, Union, List, Iterator
+from typing import Optional, Union, List, Iterator
 
 import numpy as np
 import torch
@@ -21,6 +21,7 @@ from torch.utils.data import DataLoader, Dataset, Sampler, SequentialSampler
 import logging
 
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.vision.utils import ClassificationLabelEncoder, DetectionLabelEncoder
 
 logger = logging.getLogger('deepchecks')
 
@@ -45,11 +46,9 @@ class VisionDataset:
     ----------
     data_loader : DataLoader
         PyTorch DataLoader object. If your data loader is using IterableDataset please see note below.
-    label_type : str
-        Type of label. Must be one of the following: 'classification', 'object_detection'.
     num_classes : int, optional
         Number of classes in the dataset. If not provided, will be inferred from the dataset.
-    label_transformer : Callable, optional
+    label_transformer : Union[ClassificationLabelEncoder, DetectionLabelEncoder]
         A callable, transforming a batch of labels returned by the dataloader to a batch of labels in the desired
         format.
     sample_size : int, default: 1,000
@@ -84,24 +83,25 @@ class VisionDataset:
 
     def __init__(self,
                  data_loader: DataLoader,
-                 label_type: str,
                  num_classes: Optional[int] = None,
-                 label_transformer: Optional[Callable] = None,
+                 label_transformer: Union[ClassificationLabelEncoder, DetectionLabelEncoder] = None,
                  sample_size: int = 1000,
                  sample_iteration_limit: int = 1_000_000,
                  random_seed: int = 0):
         self._data = data_loader
 
         if label_transformer is None:
-            self.label_transformer = lambda x: x
+            self.label_transformer = ClassificationLabelEncoder(lambda x: x)
         else:
             self.label_transformer = label_transformer
 
-        valid_label_types = [tt.value for tt in TaskType]
-        if label_type in valid_label_types:
-            self.task_type = TaskType(label_type)
+        if isinstance(self.label_transformer, ClassificationLabelEncoder):
+            self.task_type = TaskType.CLASSIFICATION
+        elif isinstance(self.label_transformer, DetectionLabelEncoder):
+            self.task_type = TaskType.OBJECT_DETECTION
         else:
-            raise DeepchecksValueError(f'Invalid label type: {label_type}, must be one of {valid_label_types}.')
+            raise ValueError(f'Unsupported label transformer type. {type(self.label_transformer)}, must be one of '
+                             f'ClassificationLabelEncoder or DetectionLabelEncoder.')
 
         self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
         self._samples_per_class = None
