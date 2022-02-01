@@ -52,14 +52,14 @@ def get_samples_per_class_object_detection(label):
 
 
 DEFAULT_CLASSIFICATION_LABEL_TRANSFORMERS = [
-                {'name': 'Samples per class', 'method': get_samples_per_class_classification, 'is_continuous': False}
-            ]
+    {'name': 'Samples per class', 'method': get_samples_per_class_classification, 'is_continuous': False}
+]
 
 DEFAULT_OBJECT_DETECTION_LABEL_TRANSFORMERS = [
-                {'name': 'Bounding box area distribution', 'method': get_bbox_area, 'is_continuous': True},
-                {'name': 'Samples per class', 'method': get_samples_per_class_object_detection, 'is_continuous': False},
-                {'name': 'Number of bounding boxes per image', 'method': count_num_bboxes, 'is_continuous': False},
-            ]
+    {'name': 'Bounding box area distribution', 'method': get_bbox_area, 'is_continuous': True},
+    {'name': 'Samples per class', 'method': get_samples_per_class_object_detection, 'is_continuous': False},
+    {'name': 'Number of bounding boxes per image', 'method': count_num_bboxes, 'is_continuous': False},
+]
 
 
 class TrainTestLabelDrift(TrainTestCheck):
@@ -161,6 +161,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         ConditionResult
             False if any column has passed the max threshold, True otherwise
         """
+
         def condition(result: Dict) -> ConditionResult:
             drift_score = result['Drift score']
             method = result['Method']
