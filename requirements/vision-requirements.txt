@@ -1,2 +1,3 @@
 pytorch-ignite>=0.4.8
 opencv-python>=4.5.5.62
+albumentations>=1.1.0
