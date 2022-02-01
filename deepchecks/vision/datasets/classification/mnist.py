@@ -93,7 +93,6 @@ def load_dataset(
     elif object_type == 'Dataset':
         return VisionDataset(
             data_loader=loader,
-            label_type='classification',
             num_classes=len(datasets.MNIST.classes)
         )
     else:
