@@ -256,7 +256,7 @@ def generate_label_histograms_by_batch(train_dataset: VisionDataset, test_datase
     test_discrete_hists = iter([{k: test_counters[i][k] for k in all_discrete_categories[i]} for i in
                                 range(num_discrete_transformers)])
 
-    # Transform contiuous histograms into dict:
+    # Transform continuous histograms into dict:
     train_continuous_hists = iter([dict(zip(edges[i], train_hists[i])) for i in range(num_continuous_transformers)])
     test_continuous_hists = iter([dict(zip(edges[i], test_hists[i])) for i in range(num_continuous_transformers)])
 
