@@ -100,20 +100,24 @@ def load_dataset(
         raise TypeError(f'Unknown value of object_type - {object_type}')
 
 
-def load_model() -> 'MNistNet':
-    """Load pre-trained MNIST model.
+def load_model(pretrained: bool = True) -> 'MNistNet':
+    """Load MNIST model.
 
     Returns
     -------
     MNistNet
     """
-    if MODEL_PATH.exists():
+    if pretrained and MODEL_PATH.exists():
         model = MNistNet()
         model.load_state_dict(torch.load(MODEL_PATH))
         model.eval()
         return model
-
+    
     model = MNistNet()
+
+    if pretrained is False:
+        return model.train()
+    
     dataloader = t.cast(DataLoader, load_dataset(train=True, object_type='DataLoader'))
     datasize = len(dataloader.dataset)
 
