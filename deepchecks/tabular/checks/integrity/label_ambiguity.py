@@ -14,7 +14,7 @@ from typing import Union, List
 import pandas as pd
 
 from deepchecks.core import ConditionResult, CheckResult
-from deepchecks.tabular import Context, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
@@ -22,7 +22,7 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['LabelAmbiguity']
 
 
-class LabelAmbiguity(SingleDatasetBaseCheck):
+class LabelAmbiguity(SingleDatasetCheck):
     """Find samples with multiple labels.
 
     Parameters
@@ -88,10 +88,12 @@ class LabelAmbiguity(SingleDatasetBaseCheck):
             group_df = group_data[1]
             sample_values = dict(group_df[dataset.features].iloc[0])
             labels = tuple(sorted(group_df[label_name].unique()))
+            sample = pd.DataFrame.from_dict({'index': [labels] + list(sample_values.values())},
+                                            columns=[ambiguous_label_name] + list(sample_values.keys()),
+                                            orient='index')
             n_data_sample = group_df.shape[0]
             num_ambiguous += n_data_sample
-
-            display = display.append({ambiguous_label_name: labels, **sample_values}, ignore_index=True)
+            display = pd.concat([display, sample])
 
         display = display.set_index(ambiguous_label_name)
 

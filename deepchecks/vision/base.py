@@ -11,15 +11,18 @@
 """Module for base vision abstractions."""
 # TODO: This file should be completely modified
 # pylint: disable=broad-except,not-callable
-import abc
-from collections import OrderedDict
 from typing import Tuple, Mapping, Optional
 
 from ignite.metrics import Metric
 from torch import nn
 
 from deepchecks.vision.utils.validation import validate_model
-from deepchecks.core.check import CheckResult, BaseCheck, CheckFailure, wrap_run
+from deepchecks.core.check import (
+    CheckFailure,
+    SingleDatasetBaseCheck,
+    TrainTestBaseCheck,
+    ModelOnlyBaseCheck,
+)
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
 from deepchecks.core.errors import (
@@ -32,10 +35,9 @@ from deepchecks.vision.dataset import VisionDataset, TaskType
 __all__ = [
     'Context',
     'Suite',
-    'Check',
-    'SingleDatasetBaseCheck',
-    'TrainTestBaseCheck',
-    'ModelOnlyBaseCheck',
+    'SingleDatasetCheck',
+    'TrainTestCheck',
+    'ModelOnlyCheck',
 ]
 
 
@@ -151,63 +153,34 @@ class Context:
         return True
 
 
-class Check(BaseCheck):
-    """Base class for all computer vision checks."""
-
-    def __init__(self):
-        # pylint: disable=super-init-not-called
-        self._conditions = OrderedDict()
-        self._conditions_index = 0
-        # Replace the run_logic function with wrapped run function
-        setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
-
-    def run_logic(self, context: Context, **kwargs) -> CheckResult:
-        """Run check logic."""
-        raise NotImplementedError()
-
-
-class SingleDatasetBaseCheck(Check):
+class SingleDatasetCheck(SingleDatasetBaseCheck):
     """Parent class for checks that only use one dataset."""
 
-    def run(self, dataset, model=None) -> CheckResult:
-        """Run check."""
-        # By default, we initialize a single dataset as the "train"
-        c = Context(dataset, model=model)
-        return self.run_logic(c)
-
-    @abc.abstractmethod
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
-        """Run check."""
-        pass
+    context_type = Context
 
 
-class TrainTestBaseCheck(Check):
+class TrainTestCheck(TrainTestBaseCheck):
     """Parent class for checks that compare two datasets.
 
     The class checks train dataset and test dataset for model training and test.
     """
 
-    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
-        """Run check."""
-        c = Context(train_dataset, test_dataset, model=model)
-        return self.run_logic(c)
+    context_type = Context
 
 
-class ModelOnlyBaseCheck(Check):
+class ModelOnlyCheck(ModelOnlyBaseCheck):
     """Parent class for checks that only use a model and no datasets."""
 
-    def run(self, model) -> CheckResult:
-        """Run check."""
-        return self.run_logic(Context(model=model))
+    context_type = Context
 
 
 class Suite(BaseSuite):
-    """Tabular suite to run checks of types: TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck."""
+    """Tabular suite to run checks of types: TrainTestCheck, SingleDatasetCheck, ModelOnlyCheck."""
 
     @classmethod
     def supported_checks(cls) -> Tuple:
         """Return tuple of supported check types of this suite."""
-        return TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck
+        return TrainTestCheck, SingleDatasetCheck, ModelOnlyCheck
 
     def run(
             self,
@@ -250,14 +223,14 @@ class Suite(BaseSuite):
         for check in self.checks.values():
             try:
                 progress_bar.set_text(check.name())
-                if isinstance(check, TrainTestBaseCheck):
+                if isinstance(check, TrainTestCheck):
                     if train_dataset is not None and test_dataset is not None:
                         check_result = check.run_logic(context)
                         results.append(check_result)
                     else:
                         msg = 'Check is irrelevant if not supplied with both train and test datasets'
                         results.append(Suite._get_unsupported_failure(check, msg))
-                elif isinstance(check, SingleDatasetBaseCheck):
+                elif isinstance(check, SingleDatasetCheck):
                     if train_dataset is not None:
                         # In case of train & test, doesn't want to skip test if train fails. so have to explicitly
                         # wrap it in try/except
@@ -281,7 +254,7 @@ class Suite(BaseSuite):
                     if train_dataset is None and test_dataset is None:
                         msg = 'Check is irrelevant if dataset is not supplied'
                         results.append(Suite._get_unsupported_failure(check, msg))
-                elif isinstance(check, ModelOnlyBaseCheck):
+                elif isinstance(check, ModelOnlyCheck):
                     if model is not None:
                         check_result = check.run_logic(context)
                         results.append(check_result)

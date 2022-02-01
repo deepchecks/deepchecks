@@ -15,7 +15,7 @@ from typing import Union, List
 
 import pandas as pd
 
-from deepchecks.tabular import Context, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
@@ -30,7 +30,7 @@ from deepchecks.utils.strings import (
 __all__ = ['StringMismatch']
 
 
-class StringMismatch(SingleDatasetBaseCheck):
+class StringMismatch(SingleDatasetCheck):
     """Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column.
 
     Parameters

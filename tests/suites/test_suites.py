@@ -21,7 +21,7 @@ from hamcrest.core.matcher import Matcher
 from hamcrest import assert_that, instance_of, only_contains, any_of
 
 from deepchecks.core import SuiteResult, CheckResult, CheckFailure
-from deepchecks.tabular import suites, Dataset, SingleDatasetBaseCheck, Suite
+from deepchecks.tabular import suites, Dataset, SingleDatasetCheck, Suite
 from deepchecks.core.errors import DeepchecksBaseError
 
 
@@ -103,7 +103,7 @@ def validate_suite_result(
 
 
 def get_expected_results_length(suite: Suite, args: t.Dict):
-    num_single = len([c for c in suite.checks.values() if isinstance(c, SingleDatasetBaseCheck)])
+    num_single = len([c for c in suite.checks.values() if isinstance(c, SingleDatasetCheck)])
     num_others = len(suite.checks.values()) - num_single
     multiply = 0
     if 'train_dataset' in args:

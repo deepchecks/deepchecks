@@ -13,7 +13,7 @@ from typing import Dict
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.tabular import Context, TrainTestBaseCheck
+from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_percent
 
 
@@ -23,7 +23,7 @@ pd.options.mode.chained_assignment = None
 __all__ = ['NewLabelTrainTest']
 
 
-class NewLabelTrainTest(TrainTestBaseCheck):
+class NewLabelTrainTest(TrainTestCheck):
     """Find new labels in test."""
 
     def run_logic(self, context: Context) -> CheckResult:
