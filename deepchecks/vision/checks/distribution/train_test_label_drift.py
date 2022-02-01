@@ -15,7 +15,7 @@ from typing import Dict, Hashable, Callable, Tuple, List, Union, Any
 from plotly.subplots import make_subplots
 
 from deepchecks import CheckResult, ConditionResult
-from deepchecks.vision.base import TrainTestBaseCheck, Context
+from deepchecks.vision.base import Context, TrainTestCheck
 from deepchecks.utils.distribution.plot import drift_score_bar_traces
 from deepchecks.utils.plot import colors
 from deepchecks.vision.dataset import VisionDataset, TaskType
@@ -62,7 +62,7 @@ DEFAULT_OBJECT_DETECTION_LABEL_TRANSFORMERS = [
             ]
 
 
-class TrainTestLabelDrift(TrainTestBaseCheck):
+class TrainTestLabelDrift(TrainTestCheck):
     """
     Calculate label drift between train dataset and test dataset, using statistical measures.
 
@@ -101,14 +101,14 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
         train_dataset = context.train
         test_dataset = context.test
 
-        task_type = train_dataset.label_type
+        task_type = train_dataset.task_type
         displays = []
 
         if self.alternative_label_transformers is not None:
             label_transformers_list = self.alternative_label_transformers
-        elif task_type == TaskType.CLASSIFICATION.value:
+        elif task_type == TaskType.CLASSIFICATION:
             label_transformers_list = DEFAULT_CLASSIFICATION_LABEL_TRANSFORMERS
-        elif task_type == TaskType.OBJECT_DETECTION.value:
+        elif task_type == TaskType.OBJECT_DETECTION:
             label_transformers_list = DEFAULT_OBJECT_DETECTION_LABEL_TRANSFORMERS
         else:
             raise NotImplementedError('TrainTestLabelDrift must receive either alternative_label_transformers or run '
@@ -183,7 +183,7 @@ class TrainTestLabelDrift(TrainTestBaseCheck):
 
 def generate_label_histograms_by_batch(train_dataset: VisionDataset, test_dataset: VisionDataset,
                                        label_transformers: List[Dict[str, Any]] = None,
-                                       num_bins: int = 100) -> Tuple[List[Dict[Any, float], List[Dict[Any, float]]]]:
+                                       num_bins: int = 100) -> Tuple[List[Dict[Any, float]], List[Dict[Any, float]]]:
     """
     Generate label histograms by received label transformers.
 
