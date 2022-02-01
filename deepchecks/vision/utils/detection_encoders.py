@@ -21,10 +21,14 @@ class DetectionLabelEncoder:
                         normalized by the image dimensions.
             - 'cxcywhn' - (YOLO format) x, y, w, h, represent the center of the bounding box and its width and height,
                           normalized by the image dimensions.
+        In addition, the label shape should be a list of length N containing tensors of shape (M, 5), where N is the
+        number of samples, M is the number of bounding boxes, and each bounding box is represented by 5 values:
+        (class_id, 4 coordinates in the format specified by the `label_encoder` parameter).
+
         If a function, it must follow the signature:
         Function that takes in a batch of labels and returns the encoded labels in the following format:
-        List of length N containing tensors of shape (B, 5), where N is the number of samples,
-        B is the number of bounding boxes in the sample and each bounding box is represented by 5 values: (class_id,
+        List of length N containing tensors of shape (M, 5), where N is the number of samples,
+        M is the number of bounding boxes in the sample and each bounding box is represented by 5 values: (class_id,
         x, y, w, h). x and y are the coordinates (in pixels) of the upper left corner of the bounding box, w and h are
         the width and height of the bounding box (in pixels) and class_id is the class id.
 
