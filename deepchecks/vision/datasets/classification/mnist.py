@@ -108,18 +108,18 @@ def load_model(pretrained: bool = True) -> 'MNistNet':
     MNistNet
     """
     # TODO: should we put downloadable pre-trained model into our repo?
-    
+
     if pretrained and MODEL_PATH.exists():
         model = MNistNet()
         model.load_state_dict(torch.load(MODEL_PATH))
         model.eval()
         return model
-    
+
     model = MNistNet()
 
     if pretrained is False:
         return model.train()
-    
+
     dataloader = t.cast(DataLoader, load_dataset(train=True, object_type='DataLoader'))
     datasize = len(dataloader.dataset)
 
