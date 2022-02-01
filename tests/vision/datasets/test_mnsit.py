@@ -1,0 +1,50 @@
+import time
+from torch.utils.data import DataLoader
+from torchvision.datasets import MNIST
+from hamcrest import assert_that, instance_of, calling, raises
+
+from deepchecks.vision import VisionDataset
+from deepchecks.vision.datasets.classification.mnist import (
+    load_dataset, 
+    load_model, 
+    MNistNet,
+    DATA_PATH,
+    MODEL_PATH
+)
+
+
+def test_dataset_load():
+    dataloader = load_dataset(object_type="DataLoader")
+    assert_that(dataloader, instance_of(DataLoader))
+    assert_that(DATA_PATH.exists() and DATA_PATH.is_dir())
+    assert_that(dataloader.dataset._check_exists() is True)
+    
+
+def test_deepchecks_dataset_load():
+    dataloader, dataset = load_dataset(object_type='DataLoader'), load_dataset(object_type='Dataset')
+    assert_that(dataset, instance_of(VisionDataset))
+    assert_that(dataloader, instance_of(DataLoader))
+
+
+def test__load_dataset__func_with_unknow_object_type_parameter():
+    assert_that(
+        calling(load_dataset).with_args(object_type="<unknonw>"),
+        raises(TypeError)
+    )
+
+
+def test_pretrained_model_load():
+    if MODEL_PATH.exists():
+        start = time.time()
+        model = load_model()
+        end = time.time()
+        assert_that((end - start) < 5, "Saved model was not used!")
+        assert_that(model.training is False)
+        assert_that(model, instance_of(MNistNet))
+    else:
+        model = load_model()
+        assert_that(model.training is False)
+        assert_that(model, instance_of(MNistNet))
+        assert_that(MODEL_PATH.exists() and MODEL_PATH.is_file())
+        # to verify loading from the file
+        test_pretrained_model_load()
