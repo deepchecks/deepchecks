@@ -25,7 +25,7 @@ from sklearn import preprocessing
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.core.errors import DeepchecksProcessError
-from deepchecks.tabular import Context, TrainTestBaseCheck, Dataset
+from deepchecks.tabular import Context, TrainTestCheck, Dataset
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.metrics import ModelType
 from deepchecks.utils.plot import colors
@@ -35,7 +35,7 @@ from deepchecks.utils.strings import format_number, format_percent
 __all__ = ['ModelErrorAnalysis']
 
 
-class ModelErrorAnalysis(TrainTestBaseCheck):
+class ModelErrorAnalysis(TrainTestCheck):
     """Find features that best split the data into segments of high and low model error.
 
     The check trains a regression model to predict the error of the user's model. Then, the features scoring the highest

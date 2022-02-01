@@ -12,11 +12,10 @@
 from .dataset import Dataset
 from .base import (
     Context,
-    Check,
     Suite,
-    SingleDatasetBaseCheck,
-    TrainTestBaseCheck,
-    ModelOnlyBaseCheck,
+    SingleDatasetCheck,
+    TrainTestCheck,
+    ModelOnlyCheck,
     ModelComparisonContext,
     ModelComparisonCheck,
     ModelComparisonSuite
@@ -26,10 +25,9 @@ from .base import (
 __all__ = [
     "Dataset",
     "Context",
-    "Check",
-    "SingleDatasetBaseCheck",
-    "TrainTestBaseCheck",
-    "ModelOnlyBaseCheck",
+    "SingleDatasetCheck",
+    "TrainTestCheck",
+    "ModelOnlyCheck",
     "Suite",
     "ModelComparisonContext",
     "ModelComparisonCheck",

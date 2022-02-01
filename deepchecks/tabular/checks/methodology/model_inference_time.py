@@ -14,7 +14,7 @@ import timeit
 
 import numpy as np
 
-from deepchecks.tabular import Context, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_number
@@ -26,7 +26,7 @@ __all__ = ['ModelInferenceTime']
 MI = t.TypeVar('MI', bound='ModelInferenceTime')
 
 
-class ModelInferenceTime(SingleDatasetBaseCheck):
+class ModelInferenceTime(SingleDatasetCheck):
     """Measure model average inference time (in seconds) per sample.
 
     Parameters

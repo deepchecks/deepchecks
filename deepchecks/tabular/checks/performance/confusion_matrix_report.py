@@ -13,13 +13,13 @@ import sklearn
 import plotly.express as px
 
 from deepchecks.core import CheckResult
-from deepchecks.tabular import Context, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetCheck
 
 
 __all__ = ['ConfusionMatrixReport']
 
 
-class ConfusionMatrixReport(SingleDatasetBaseCheck):
+class ConfusionMatrixReport(SingleDatasetCheck):
     """Calculate the confusion matrix of the model on the given dataset."""
 
     def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:

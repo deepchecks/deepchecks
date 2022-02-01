@@ -14,17 +14,17 @@ from hamcrest import assert_that, calling, raises, equal_to, is_
 
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular import Suite, SingleDatasetBaseCheck, TrainTestBaseCheck
+from deepchecks.tabular import Suite, SingleDatasetCheck, TrainTestCheck
 from deepchecks.tabular import checks as tabular_checks
 
 
 
-class SimpleDatasetCheck(SingleDatasetBaseCheck):
+class SimpleDatasetCheck(SingleDatasetCheck):
     def run_logic(self, context, dataset_type: str = 'train') -> CheckResult:
         return CheckResult("Simple Check")
 
 
-class SimpleTwoDatasetsCheck(TrainTestBaseCheck):
+class SimpleTwoDatasetsCheck(TrainTestCheck):
     def run_logic(self, context) -> CheckResult:
         return CheckResult("Simple Check")
 

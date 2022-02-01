@@ -15,10 +15,10 @@ from hamcrest import assert_that, has_property, contains_exactly, calling, raise
 
 from deepchecks.core import ConditionResult, CheckResult, ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular import TrainTestBaseCheck
+from deepchecks.tabular import TrainTestCheck
 
 
-class DummyCheck(TrainTestBaseCheck):
+class DummyCheck(TrainTestCheck):
 
     def __init__(self, param1=1, param2=2):
         super().__init__()

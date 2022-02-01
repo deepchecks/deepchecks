@@ -16,14 +16,14 @@ import plotly.express as px
 import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.errors import DatasetValidationError
-from deepchecks.tabular import Context, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_number
 
 
 __all__ = ['IdentifierLeakage']
 
 
-class IdentifierLeakage(SingleDatasetBaseCheck):
+class IdentifierLeakage(SingleDatasetCheck):
     """Check if identifiers (Index/Date) can be used to predict the label.
 
     Parameters
