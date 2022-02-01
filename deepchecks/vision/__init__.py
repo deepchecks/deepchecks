@@ -10,13 +10,13 @@
 #
 """Package for vision functionality."""
 import logging
-from .dataset import VisionDataset
+from .dataset import VisionDataset, AugmentationWrapper
 from .base import (
     Context,
     Suite,
     SingleDatasetCheck,
     TrainTestCheck,
-    ModelOnlyCheck
+    ModelOnlyCheck,
 )
 
 logger = logging.getLogger("deepchecks")
@@ -35,5 +35,6 @@ __all__ = [
     "SingleDatasetCheck",
     "TrainTestCheck",
     "ModelOnlyCheck",
-    "Suite"
+    "Suite",
+    "AugmentationWrapper"
 ]

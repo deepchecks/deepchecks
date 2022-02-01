@@ -15,6 +15,7 @@ import numpy as np
 import torch
 from ignite.engine import Engine
 from ignite.metrics import Precision, Recall, Metric
+from torch.utils.data import DataLoader
 
 from torch import nn
 
@@ -129,7 +130,10 @@ def validate_prediction(batch_predictions: t.Any, dataset: VisionDataset, eps: f
         )
 
 
-def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn.Module,
+def calculate_metrics(metrics: t.List[Metric],
+                      dataset: VisionDataset,
+                      data_loader: DataLoader,
+                      model: nn.Module,
                       prediction_extract: t.Callable = None) -> t.Dict[str, float]:
     """Calculate a list of ignite metrics on a given model and dataset.
 
@@ -139,6 +143,8 @@ def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn
         List of ignite metrics to calculate
     dataset : VisionDataset
         Dataset object
+    data_loader : DataLoader
+
     model : nn.Module
         Model object
     prediction_extract : t.Callable
@@ -162,14 +168,14 @@ def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn
         return predictions, label
 
     # Validate that
-    data_batch = process_function(None, next(iter(dataset)))[0]
+    data_batch = process_function(None, next(iter(data_loader)))[0]
     validate_prediction(data_batch, dataset)
 
     engine = Engine(process_function)
     for metric in metrics:
         metric.attach(engine, type(metric).__name__)
 
-    state = engine.run(dataset.get_data_loader())
+    state = engine.run(data_loader)
 
     results = {k: v.tolist() for k, v in state.metrics.items()}
     return results

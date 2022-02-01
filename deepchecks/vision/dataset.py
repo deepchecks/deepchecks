@@ -21,6 +21,7 @@ from torch.utils.data import DataLoader, Dataset, Sampler, SequentialSampler
 import logging
 
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.vision.utils.transformations import get_transform_type, get_dummy_transform
 
 logger = logging.getLogger('deepchecks')
 
@@ -89,7 +90,8 @@ class VisionDataset:
                  label_transformer: Optional[Callable] = None,
                  sample_size: int = 1000,
                  sample_iteration_limit: int = 1_000_000,
-                 random_seed: int = 0):
+                 random_seed: int = 0,
+                 transform_field: Optional[str] = 'transform'):
         self._data = data_loader
 
         if label_transformer is None:
@@ -104,6 +106,7 @@ class VisionDataset:
             raise DeepchecksValueError(f'Invalid label type: {label_type}, must be one of {valid_label_types}.')
 
         self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
+        self.transform_field = transform_field
         self._samples_per_class = None
         self._label_valid = self.label_valid()  # Will be either none if valid, or string with error
         # Sample dataset properties
@@ -213,6 +216,25 @@ class VisionDataset:
     def get_data_loader(self):
         """Return the data loader."""
         return self._data
+
+    @property
+    def transform_type(self) -> str:
+        """Validate transform field in the dataset."""
+        dataset_ref = self.get_data_loader().dataset
+        try:
+            transform_field = dataset_ref.__getattribute__(self.transform_field)
+            # Validate in the wrapper that the transform_field is of valid type
+            transform_type = get_transform_type(transform_field)
+            # Validate the field is in use in the dataset
+            dataset_copy = copy(dataset_ref)
+            # Replace transform field with stupid transformation
+            dataset_copy.__setattr__(self.transform_field, get_dummy_transform(transform_type))
+            if dataset_copy[0] == dataset_ref[0]:
+                raise DeepchecksValueError(f'Transform field {self.transform_field} found to not be in use')
+            return transform_type
+        # If no field exists this is another issue
+        except AttributeError as e:
+            raise DeepchecksValueError(f"Underlying Dataset instance must have a {self.transform_field} attribute")
 
     def validate_shared_label(self, other):
         """Verify presence of shared labels.
