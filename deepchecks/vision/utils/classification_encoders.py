@@ -1,3 +1,5 @@
+"""Module for defining detection encoders."""
+
 from typing import Callable
 
 __all__ = ["ClassificationLabelEncoder", "ClassificationPredictionEncoder"]
@@ -20,6 +22,7 @@ class ClassificationLabelEncoder:
         self.label_encoder = label_encoder
 
     def __call__(self, *args, **kwargs):
+        """Call the encoder."""
         return self.label_encoder(*args, **kwargs)
 
 
@@ -40,4 +43,5 @@ class ClassificationPredictionEncoder:
         self.prediction_encoder = prediction_encoder
 
     def __call__(self, *args, **kwargs):
+        """Call the encoder."""
         return self.prediction_encoder(*args, **kwargs)

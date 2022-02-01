@@ -1,3 +1,5 @@
+"""Module for defining detection encoders."""
+
 from typing import Union, Callable
 
 __all__ = ["DetectionLabelEncoder", "DetectionPredictionEncoder"]
@@ -40,6 +42,7 @@ class DetectionLabelEncoder:
         self.label_encoder = label_encoder
 
     def __call__(self, *args, **kwargs):
+        """Call the encoder."""
         if isinstance(self.label_encoder, Callable):
             return self.label_encoder(*args, **kwargs)
         elif isinstance(self.label_encoder, str):
@@ -65,4 +68,5 @@ class DetectionPredictionEncoder:
         self.prediction_encoder = prediction_encoder
 
     def __call__(self, *args, **kwargs):
+        """Call the encoder."""
         return self.prediction_encoder(*args, **kwargs)
