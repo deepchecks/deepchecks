@@ -12,7 +12,7 @@
 
 from typing import Dict
 
-from deepchecks.tabular import Context, TrainTestBaseCheck
+from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 
@@ -20,7 +20,7 @@ from deepchecks.utils.distribution.drift import calc_drift_and_plot
 __all__ = ['TrainTestLabelDrift']
 
 
-class TrainTestLabelDrift(TrainTestBaseCheck):
+class TrainTestLabelDrift(TrainTestCheck):
     """
     Calculate label drift between train dataset and test dataset, using statistical measures.
 

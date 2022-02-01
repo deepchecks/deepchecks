@@ -184,6 +184,10 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
 
     assert_that(list(sorted_df.index), equal_to(feature_importances_sorted))
 
+    columns_info_df = pd.DataFrame()
+    sorted_df = column_importance_sorter_df(columns_info_df, train, feature_importances, num_values, col='keys')
+    assert_that(len(sorted_df), equal_to(0))
+
 
 def test_no_warning_on_none_model(iris_dataset):
     # Act

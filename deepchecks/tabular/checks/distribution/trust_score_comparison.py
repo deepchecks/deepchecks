@@ -14,7 +14,7 @@ import plotly.graph_objects as go
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
-from deepchecks.tabular import Context, TrainTestBaseCheck
+from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.distribution.trust_score import TrustScore
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
 from deepchecks.utils.distribution.plot import feature_distribution_traces
@@ -24,7 +24,7 @@ from deepchecks.utils.strings import format_percent
 __all__ = ['TrustScoreComparison']
 
 
-class TrustScoreComparison(TrainTestBaseCheck):
+class TrustScoreComparison(TrainTestCheck):
     """Compares the model's trust score for the train dataset with scores of the test dataset.
 
     The Trust Score algorithm and code was published in the paper: "To Trust or not to trust c classifier". See the

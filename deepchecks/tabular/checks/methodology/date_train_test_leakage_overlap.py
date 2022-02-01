@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """The date_leakage check module."""
-from deepchecks.tabular import Context, TrainTestBaseCheck
+from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.utils.strings import format_percent, format_datetime
 
@@ -17,7 +17,7 @@ from deepchecks.utils.strings import format_percent, format_datetime
 __all__ = ['DateTrainTestLeakageOverlap']
 
 
-class DateTrainTestLeakageOverlap(TrainTestBaseCheck):
+class DateTrainTestLeakageOverlap(TrainTestCheck):
     """Check test data that is dated earlier than latest date in train."""
 
     def run_logic(self, context: Context) -> CheckResult:

@@ -11,7 +11,7 @@
 """Module contains columns_info check."""
 import pandas as pd
 
-from deepchecks.tabular import Context, SingleDatasetBaseCheck
+from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.core import CheckResult
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_dict
 
@@ -19,7 +19,7 @@ from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_di
 __all__ = ['ColumnsInfo']
 
 
-class ColumnsInfo(SingleDatasetBaseCheck):
+class ColumnsInfo(SingleDatasetCheck):
     """Return the role and logical type of each column.
 
     Parameters

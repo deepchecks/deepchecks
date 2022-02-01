@@ -14,7 +14,7 @@ import numpy as np
 import plotly.graph_objects as go
 
 import deepchecks.ppscore as pps
-from deepchecks.tabular import Context, TrainTestBaseCheck
+from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.utils.plot import colors
 from deepchecks.utils.typing import Hashable
@@ -32,7 +32,7 @@ pps_url = 'https://docs.deepchecks.com/en/stable/examples/checks/methodology/sin
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
 
-class SingleFeatureContributionTrainTest(TrainTestBaseCheck):
+class SingleFeatureContributionTrainTest(TrainTestCheck):
     """
     Return the Predictive Power Score of all features, in order to estimate each feature's ability to predict the label.
 

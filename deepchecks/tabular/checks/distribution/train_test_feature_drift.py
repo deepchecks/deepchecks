@@ -14,7 +14,7 @@ from collections import OrderedDict
 from typing import Union, List, Dict
 
 from deepchecks.core import ConditionResult, CheckResult
-from deepchecks.tabular import Context, TrainTestBaseCheck, Dataset
+from deepchecks.tabular import Context, TrainTestCheck, Dataset
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.typing import Hashable
@@ -23,7 +23,7 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['TrainTestFeatureDrift']
 
 
-class TrainTestFeatureDrift(TrainTestBaseCheck):
+class TrainTestFeatureDrift(TrainTestCheck):
     """
     Calculate drift between train dataset and test dataset per feature, using statistical measures.
 

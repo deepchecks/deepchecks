@@ -40,7 +40,10 @@ sphinx:
 python:
   system_packages: false
   install:
+  - requirements: requirements/rtd-requirements.txt
   - requirements: docs/requirements.txt
   - requirements: requirements/requirements.txt
+  - requirements: requirements/vision-requirements.txt
+  - requirements: requirements/dev-requirements.txt
   - method: pip
     path: .

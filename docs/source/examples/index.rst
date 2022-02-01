@@ -54,8 +54,23 @@ Check Demonstrations
 .. toctree::
     :maxdepth: 3
     :titlesonly:
-    :caption: Check Demonstrations
+    :caption: Tabular Checks
     :hidden:
 
-    checks/tabular
+    checks/tabular/index
 
+
+.. raw:: html
+
+    <h4>Computer Vision</h4>
+
+- :doc:`checks/vision/distribution/index`
+- :doc:`checks/vision/performance/index`
+
+.. toctree::
+    :maxdepth: 3
+    :titlesonly:
+    :caption: Vision checks
+    :hidden:
+
+    checks/vision/index

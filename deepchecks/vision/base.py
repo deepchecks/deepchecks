@@ -10,17 +10,19 @@
 #
 """Module for base vision abstractions."""
 # TODO: This file should be completely modified
-# pylint: disable=broad-except
-import abc
-from collections import OrderedDict
+# pylint: disable=broad-except,not-callable
 from typing import Tuple, Mapping, Optional
 
 from ignite.metrics import Metric
 from torch import nn
 
 from deepchecks.vision.utils.validation import validate_model
-from deepchecks.vision.metrics_utils import task_type_check
-from deepchecks.core.check import CheckResult, BaseCheck, CheckFailure, wrap_run
+from deepchecks.core.check import (
+    CheckFailure,
+    SingleDatasetBaseCheck,
+    TrainTestBaseCheck,
+    ModelOnlyBaseCheck,
+)
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
 from deepchecks.core.errors import (
@@ -33,10 +35,9 @@ from deepchecks.vision.dataset import VisionDataset, TaskType
 __all__ = [
     'Context',
     'Suite',
-    'Check',
-    'SingleDatasetBaseCheck',
-    'TrainTestBaseCheck',
-    'ModelOnlyBaseCheck',
+    'SingleDatasetCheck',
+    'TrainTestCheck',
+    'ModelOnlyCheck',
 ]
 
 
@@ -73,36 +74,18 @@ class Context:
         # Validations
         if train is None and test is None and model is None:
             raise DeepchecksValueError('At least one dataset (or model) must be passed to the method!')
-        # if train is not None:
-        #     train = VisionDataset.ensure_not_empty_dataset(train)
-        # if test is not None:
-        #     test = VisionDataset.ensure_not_empty_dataset(test)
-        # # If both dataset, validate they fit each other
-        # if train and test:
-        #     if not VisionDataset.datasets_share_label(train, test):
-        #         raise DatasetValidationError('train and test requires to have and to share the same label')
-        #     if not VisionDataset.datasets_share_features(train, test):
-        #         raise DatasetValidationError('train and test requires to share the same features columns')
-        #     if not VisionDataset.datasets_share_categorical_features(train, test):
-        #         raise DatasetValidationError(
-        #             'train and test datasets should share '
-        #             'the same categorical features. Possible reason is that some columns were'
-        #             'inferred incorrectly as categorical features. To fix this, manually edit the '
-        #             'categorical features using Dataset(cat_features=<list_of_features>'
-        #         )
-        #     if not VisionDataset.datasets_share_index(train, test):
-        #         raise DatasetValidationError('train and test requires to share the same index column')
-        #     if not VisionDataset.datasets_share_date(train, test):
-        #         raise DatasetValidationError('train and test requires to share the same date column')
         if test and not train:
             raise DatasetValidationError('Can\'t initialize context with only test. if you have single dataset, '
                                          'initialize it as train')
+        if train and test:
+            train.validate_shared_label(test)
 
         self._train = train
         self._test = test
         self._model = model
         self._validated_model = False
-        self._task_type = None
+        self._train_sample_predictions = None
+        self._test_sample_predictions = None
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
@@ -141,154 +124,63 @@ class Context:
         return self._model_name
 
     @property
-    def task_type(self) -> TaskType:
-        """Return task type if model & train & label exists. otherwise, raise error."""
-        if self._task_type is None:
-            self._task_type = task_type_check(self.model, self.train)
-        return self._task_type
+    def train_sample_predictions(self):
+        """Return the predictions on the train samples."""
+        if self._train_sample_predictions is None:
+            self._train_sample_predictions = []
+            for tensor, _ in self.train.sample_data_loader:
+                self._train_sample_predictions.append(self.model(tensor))
+        return self._train_sample_predictions
+
+    @property
+    def test_sample_predictions(self):
+        """Return the predictions on the test samples."""
+        if self._test_sample_predictions is None:
+            self._test_sample_predictions = []
+            for tensor, _ in self.test.sample_data_loader:
+                self._test_sample_predictions.append(self.model(tensor))
+        return self._test_sample_predictions
 
     def have_test(self):
         """Return whether there is test dataset defined."""
         return self._test is not None
 
     def assert_task_type(self, *expected_types: TaskType):
-        """Assert task_type matching given types.
-
-        If task_type is defined, validate it and raise error if needed, else returns True.
-        If task_type is not defined, return False.
-        """
-        # To calculate task type we need model and train. if not exists return False, means we did not validate
-        if self._model is None or self._train is None:
-            return False
-        if self.task_type not in expected_types:
+        """Assert task_type matching given types."""
+        if self.train.task_type not in expected_types:
             raise ModelValidationError(
-                f'Check is relevant for models of type {[e.value.lower() for e in expected_types]}, '
-                f"but received model of type '{self.task_type.value.lower()}'"  # pylint: disable=inconsistent-quotes
-            )
+                f'Check is irrelevant for task of type {self.train.task_type}')
         return True
 
-    def assert_classification_task(self):
-        """Assert the task_type is classification."""
-        # assert_task_type makes assertion if task type exists and returns True, else returns False
-        # If not task type than check label type
-        if (not self.assert_task_type(TaskType.CLASSIFICATION) and
-                self.train.label_type == 'regression_label'):
-            raise ModelValidationError('Check is irrelevant for regressions tasks')
 
-    def assert_regression_task(self):
-        """Assert the task type is regression."""
-        # assert_task_type makes assertion if task type exists and returns True, else returns False
-        # If not task type than check label type
-        if (not self.assert_task_type(TaskType.REGRESSION) and
-                self.train.label_type == 'classification_label'):
-            raise ModelValidationError('Check is irrelevant for classification tasks')
-
-    # def get_scorers(self, alternative_scorers: Mapping[str, Union[str, Callable]] = None, class_avg=True):
-    #     """Return initialized & validated scorers in a given priority.
-    #
-    #     If receive `alternative_scorers` return them,
-    #     Else if user defined global scorers return them,
-    #     Else return default scorers.
-    #
-    #     Parameters
-    #     ----------
-    #     alternative_scorers : Mapping[str, Union[str, Callable]], default None
-    #         dict of scorers names to scorer sklearn_name/function
-    #     class_avg : bool, default True
-    #         for classification whether to return scorers of average score or score per class
-    #     """
-    #     if class_avg:
-    #         user_scorers = self._user_scorers
-    #     else:
-    #         user_scorers = self._user_scorers_per_class
-    #
-    #     scorers = alternative_scorers or user_scorers or get_default_scorers(self.task_type, class_avg)
-    #     return init_validate_scorers(scorers, self.model, self.train, class_avg, self.task_type)
-    #
-    # def get_single_scorer(self, alternative_scorers: Mapping[str, Union[str, Callable]] = None, class_avg=True):
-    #     """Return initialized & validated single scorer in a given priority.
-    #
-    #     If receive `alternative_scorers` use them,
-    #     Else if user defined global scorers use them,
-    #     Else use default scorers.
-    #     Returns the first scorer from the scorers described above.
-    #
-    #     Parameters
-    #     ----------
-    #     alternative_scorers : Mapping[str, Union[str, Callable]], default None
-    #         dict of scorers names to scorer sklearn_name/function. Only first scorer will be used.
-    #     class_avg : bool, default True
-    #         for classification whether to return scorers of average score or score per class
-    #     """
-    #     if class_avg:
-    #         user_scorers = self._user_scorers
-    #     else:
-    #         user_scorers = self._user_scorers_per_class
-    #
-    #     scorers = alternative_scorers or user_scorers or get_default_scorers(self.task_type, class_avg)
-    #     # The single scorer is the first one in the dict
-    #     scorer_name = next(iter(scorers))
-    #     single_scorer_dict = {scorer_name: scorers[scorer_name]}
-    #     return init_validate_scorers(single_scorer_dict, self.model, self.train, class_avg, self.task_type)[0]
-
-
-class Check(BaseCheck):
-    """Base class for all tabular checks."""
-
-    def __init__(self):
-        # pylint: disable=super-init-not-called
-        self._conditions = OrderedDict()
-        self._conditions_index = 0
-        # Replace the run_logic function with wrapped run function
-        setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
-
-    def run_logic(self, context: Context, **kwargs) -> CheckResult:
-        """Run check logic."""
-        raise NotImplementedError()
-
-
-class SingleDatasetBaseCheck(Check):
+class SingleDatasetCheck(SingleDatasetBaseCheck):
     """Parent class for checks that only use one dataset."""
 
-    def run(self, dataset, model=None) -> CheckResult:
-        """Run check."""
-        # By default, we initialize a single dataset as the "train"
-        c = Context(dataset, model=model)
-        return self.run_logic(c)
-
-    @abc.abstractmethod
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
-        """Run check."""
-        pass
+    context_type = Context
 
 
-class TrainTestBaseCheck(Check):
+class TrainTestCheck(TrainTestBaseCheck):
     """Parent class for checks that compare two datasets.
 
     The class checks train dataset and test dataset for model training and test.
     """
 
-    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
-        """Run check."""
-        c = Context(train_dataset, test_dataset, model=model)
-        return self.run_logic(c)
+    context_type = Context
 
 
-class ModelOnlyBaseCheck(Check):
+class ModelOnlyCheck(ModelOnlyBaseCheck):
     """Parent class for checks that only use a model and no datasets."""
 
-    def run(self, model) -> CheckResult:
-        """Run check."""
-        return self.run_logic(Context(model=model))
+    context_type = Context
 
 
 class Suite(BaseSuite):
-    """Tabular suite to run checks of types: TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck."""
+    """Tabular suite to run checks of types: TrainTestCheck, SingleDatasetCheck, ModelOnlyCheck."""
 
     @classmethod
     def supported_checks(cls) -> Tuple:
         """Return tuple of supported check types of this suite."""
-        return TrainTestBaseCheck, SingleDatasetBaseCheck, ModelOnlyBaseCheck
+        return TrainTestCheck, SingleDatasetCheck, ModelOnlyCheck
 
     def run(
             self,
@@ -331,14 +223,14 @@ class Suite(BaseSuite):
         for check in self.checks.values():
             try:
                 progress_bar.set_text(check.name())
-                if isinstance(check, TrainTestBaseCheck):
+                if isinstance(check, TrainTestCheck):
                     if train_dataset is not None and test_dataset is not None:
                         check_result = check.run_logic(context)
                         results.append(check_result)
                     else:
                         msg = 'Check is irrelevant if not supplied with both train and test datasets'
                         results.append(Suite._get_unsupported_failure(check, msg))
-                elif isinstance(check, SingleDatasetBaseCheck):
+                elif isinstance(check, SingleDatasetCheck):
                     if train_dataset is not None:
                         # In case of train & test, doesn't want to skip test if train fails. so have to explicitly
                         # wrap it in try/except
@@ -362,7 +254,7 @@ class Suite(BaseSuite):
                     if train_dataset is None and test_dataset is None:
                         msg = 'Check is irrelevant if dataset is not supplied'
                         results.append(Suite._get_unsupported_failure(check, msg))
-                elif isinstance(check, ModelOnlyBaseCheck):
+                elif isinstance(check, ModelOnlyCheck):
                     if model is not None:
                         check_result = check.run_logic(context)
                         results.append(check_result)
