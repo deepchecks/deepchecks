@@ -33,9 +33,9 @@ class PerformanceReport(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_metrics (List[Metric], default None):
+    alternative_metrics : List[Metric], default: None
         A list of ignite.Metric objects whose score should be used. If None are given, use the default metrics.
-    prediction_encoder Union[ClassificationPredictionEncoder, DetectionPredictionEncoder, None], default None:
+    prediction_encoder : Union[ClassificationPredictionEncoder, DetectionPredictionEncoder, None], default: None
         An encoder to convert predictions to a format that can be used by the metrics.
     """
 
