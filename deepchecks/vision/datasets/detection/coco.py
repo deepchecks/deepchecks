@@ -15,7 +15,7 @@ from typing import List, Any, Tuple, Optional, Callable
 
 import numpy as np
 import torch
-import albumentations as A
+# import albumentations as A
 from PIL import Image
 from torch.utils.data import DataLoader
 from torchvision.datasets import VisionDataset
@@ -125,9 +125,9 @@ def get_coco_dataloader(batch_size: int = 64, num_workers: int = 0, shuffle: boo
     dataset = CocoDataset(
         root=os.path.join('coco128', 'coco128'), 
         name='train2017',
-        transform=A.Compose([
-            # TODO: what else transformations we need to apply
-        ])
+        # transform=A.Compose([
+        #     # TODO: what else transformations we need to apply
+        # ])
     )
 
     def batch_collate(batch):
