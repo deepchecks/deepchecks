@@ -1,12 +1,21 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 import time
 from torch.utils.data import DataLoader
-from torchvision.datasets import MNIST
 from hamcrest import assert_that, instance_of, calling, raises
 
 from deepchecks.vision import VisionDataset
 from deepchecks.vision.datasets.classification.mnist import (
-    load_dataset, 
-    load_model, 
+    load_dataset,
+    load_model,
     MNistNet,
     DATA_PATH,
     MODEL_PATH
@@ -18,7 +27,7 @@ def test_dataset_load():
     assert_that(dataloader, instance_of(DataLoader))
     assert_that(DATA_PATH.exists() and DATA_PATH.is_dir())
     assert_that(dataloader.dataset._check_exists() is True)
-    
+
 
 def test_deepchecks_dataset_load():
     dataloader, dataset = load_dataset(object_type='DataLoader'), load_dataset(object_type='Dataset')
