@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -9,3 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Module for classification datasets and models."""
+import pathlib
+
+
+__all__ = ["MODELS_DIR"]
+
+
+MODELS_DIR = pathlib.Path(__file__).absolute().parent / "models"
