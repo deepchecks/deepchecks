@@ -315,8 +315,7 @@ def get_results_on_batch(batch, label_measurement, label_transformer):
     return calc_res
 
 
-def get_boundaries_by_batch(dataset: VisionDataset, label_measurements: List[Callable]) -> List[
-    Dict[str, float]]:
+def get_boundaries_by_batch(dataset: VisionDataset, label_measurements: List[Callable]) -> List[Dict[str, float]]:
     """Get min and max on dataset for each label transformer."""
     bounds = [{'min': np.inf, 'max': -np.inf}] * len(label_measurements)
     for batch in dataset.get_data_loader():
