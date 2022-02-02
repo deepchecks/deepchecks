@@ -16,8 +16,11 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from .base_encoders import BaseLabelEncoder
+from .base_encoders import BaseLabelEncoder, BasePredictionEncoder
+
 __all__ = ['ClassificationLabelEncoder', 'ClassificationPredictionEncoder']
+
+from ...core.errors import DeepchecksValueError
 
 
 class ClassificationLabelEncoder(BaseLabelEncoder):
@@ -89,7 +92,7 @@ class ClassificationLabelEncoder(BaseLabelEncoder):
             return 'Check requires classification label to be a 1D tensor'
 
 
-class ClassificationPredictionEncoder:
+class ClassificationPredictionEncoder(BasePredictionEncoder):
     """
     Class for encoding the classification prediction to the required format.
 
@@ -108,3 +111,28 @@ class ClassificationPredictionEncoder:
     def __call__(self, *args, **kwargs):
         """Call the encoder."""
         return self.prediction_encoder(*args, **kwargs)
+
+    def validate_prediction(self, batch_predictions, n_classes: int, eps: float = 1e-3):
+        """
+        Validate the prediction.
+
+        Parameters
+        ----------
+        batch_predictions : t.Any
+            Model prediction for a batch (output of model(batch[0]))
+        n_classes : int
+            Number of classes.
+        eps : float , default: 1e-3
+            Epsilon value to be used in the validation, by default 1e-3
+        """
+        if not isinstance(batch_predictions, (torch.Tensor, np.ndarray)):
+            raise DeepchecksValueError('Check requires classification predictions to be a torch.Tensor or numpy '
+                                       'array')
+        pred_shape = batch_predictions.shape
+        if len(pred_shape) != 2:
+            raise DeepchecksValueError('Check requires classification predictions to be a 2D tensor')
+        if pred_shape[1] != n_classes:
+            raise DeepchecksValueError(f'Check requires classification predictions to have {n_classes} columns')
+        if any(abs(batch_predictions.sum(axis=1) - 1) > eps):
+            raise DeepchecksValueError('Check requires classification} predictions to be a probability distribution and'
+                                       ' sum to 1 for each row')

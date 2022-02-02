@@ -18,7 +18,8 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from .base_encoders import BaseLabelEncoder
+from .base_encoders import BaseLabelEncoder, BasePredictionEncoder
+from ...core.errors import DeepchecksValueError
 
 
 class DetectionLabelEncoder(BaseLabelEncoder):
@@ -120,14 +121,14 @@ class DetectionLabelEncoder(BaseLabelEncoder):
                    'each row has 5 columns: [class_id, x, y, width, height]'
 
 
-class DetectionPredictionEncoder:
+class DetectionPredictionEncoder(BasePredictionEncoder):
     """
     Class for encoding the detection prediction to the required format.
 
     Parameters
     ----------
     prediction_encoder : Callable
-        Function that takes in a batch of labels and returns the encoded labels in the following format:
+        Function that takes in a batch of predictions and returns the encoded labels in the following format:
         List of length N containing tensors of shape (B, 6), where N is the number of images,
         B is the number of bounding boxes detected in the sample and each bounding box is represented by 6 values:
         [x, y, w, h, confidence, class_id]. x and y are the coordinates (in pixels) of the upper left corner of the
@@ -141,3 +142,31 @@ class DetectionPredictionEncoder:
     def __call__(self, *args, **kwargs):
         """Call the encoder."""
         return self.prediction_encoder(*args, **kwargs)
+
+    def validate_prediction(self, batch_predictions, n_classes: int, eps: float = 1e-3):
+        """
+        Validate the prediction.
+
+        Parameters
+        ----------
+        batch_predictions : t.Any
+            Model prediction for a batch (output of model(batch[0]))
+        n_classes : int
+            Number of classes.
+        eps : float , default: 1e-3
+            Epsilon value to be used in the validation, by default 1e-3
+        """
+
+        if not isinstance(batch_predictions, list):
+            raise DeepchecksValueError(f'Check requires detection predictions to be a list with an entry for each'
+                                       f' sample')
+        if len(batch_predictions) == 0:
+            raise DeepchecksValueError(f'Check requires detection predictions to be a non-empty list')
+        if not isinstance(batch_predictions[0], (torch.Tensor, np.ndarray)):
+            raise DeepchecksValueError(f'Check requires detection predictions to be a list of torch.Tensor or'
+                                       f' numpy array')
+        if len(batch_predictions[0].shape) != 2:
+            raise DeepchecksValueError(f'Check requires detection predictions to be a list of 2D tensors')
+        if batch_predictions[0].shape[1] != 6:
+            raise DeepchecksValueError(f'Check requires detection predictions to be a list of 2D tensors, when '
+                                       f'each row has 6 columns: [x, y, width, height, class_probability, class_id]')
