@@ -52,11 +52,11 @@ def get_samples_per_class_object_detection(label):
     return [arr.reshape((-1, 5))[:, 0].tolist() for arr in label]
 
 
-DEFAULT_CLASSIFICATION_LABEL_TRANSFORMERS = [
+DEFAULT_CLASSIFICATION_LABEL_MEASUREMENTS = [
     {'name': 'Samples per class', 'method': get_samples_per_class_classification, 'is_continuous': False}
 ]
 
-DEFAULT_OBJECT_DETECTION_LABEL_TRANSFORMERS = [
+DEFAULT_OBJECT_DETECTION_LABEL_MEASUREMENTS = [
     {'name': 'Bounding box area distribution', 'method': get_bbox_area, 'is_continuous': True},
     {'name': 'Samples per class', 'method': get_samples_per_class_object_detection, 'is_continuous': False},
     {'name': 'Number of bounding boxes per image', 'method': count_num_bboxes, 'is_continuous': False},
@@ -114,9 +114,9 @@ class TrainTestLabelDrift(TrainTestCheck):
         if self.alternative_label_measurements is not None:
             label_measurements_list = self.alternative_label_measurements
         elif task_type == TaskType.CLASSIFICATION:
-            label_measurements_list = DEFAULT_CLASSIFICATION_LABEL_TRANSFORMERS
+            label_measurements_list = DEFAULT_CLASSIFICATION_LABEL_MEASUREMENTS
         elif task_type == TaskType.OBJECT_DETECTION:
-            label_measurements_list = DEFAULT_OBJECT_DETECTION_LABEL_TRANSFORMERS
+            label_measurements_list = DEFAULT_OBJECT_DETECTION_LABEL_MEASUREMENTS
         else:
             raise NotImplementedError('TrainTestLabelDrift must receive either alternative_label_measurements or run '
                                       'on Classification or Object Detection class')
