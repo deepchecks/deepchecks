@@ -137,6 +137,7 @@ class DetectionPredictionEncoder(BasePredictionEncoder):
     """
 
     def __init__(self, prediction_encoder: Callable):
+        super().__init__(prediction_encoder)
         self.prediction_encoder = prediction_encoder
 
     def __call__(self, *args, **kwargs):
@@ -156,17 +157,16 @@ class DetectionPredictionEncoder(BasePredictionEncoder):
         eps : float , default: 1e-3
             Epsilon value to be used in the validation, by default 1e-3
         """
-
         if not isinstance(batch_predictions, list):
-            raise DeepchecksValueError(f'Check requires detection predictions to be a list with an entry for each'
-                                       f' sample')
+            raise DeepchecksValueError('Check requires detection predictions to be a list with an entry for each'
+                                       ' sample')
         if len(batch_predictions) == 0:
-            raise DeepchecksValueError(f'Check requires detection predictions to be a non-empty list')
+            raise DeepchecksValueError('Check requires detection predictions to be a non-empty list')
         if not isinstance(batch_predictions[0], (torch.Tensor, np.ndarray)):
-            raise DeepchecksValueError(f'Check requires detection predictions to be a list of torch.Tensor or'
-                                       f' numpy array')
+            raise DeepchecksValueError('Check requires detection predictions to be a list of torch.Tensor or'
+                                       ' numpy array')
         if len(batch_predictions[0].shape) != 2:
-            raise DeepchecksValueError(f'Check requires detection predictions to be a list of 2D tensors')
+            raise DeepchecksValueError('Check requires detection predictions to be a list of 2D tensors')
         if batch_predictions[0].shape[1] != 6:
-            raise DeepchecksValueError(f'Check requires detection predictions to be a list of 2D tensors, when '
-                                       f'each row has 6 columns: [x, y, width, height, class_probability, class_id]')
+            raise DeepchecksValueError('Check requires detection predictions to be a list of 2D tensors, when '
+                                       'each row has 6 columns: [x, y, width, height, class_probability, class_id]')

@@ -106,6 +106,7 @@ class ClassificationPredictionEncoder(BasePredictionEncoder):
     """
 
     def __init__(self, prediction_encoder: Callable):
+        super().__init__(prediction_encoder)
         self.prediction_encoder = prediction_encoder
 
     def __call__(self, *args, **kwargs):

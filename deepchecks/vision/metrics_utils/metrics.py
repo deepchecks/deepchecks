@@ -11,8 +11,6 @@
 """Module for defining metrics for the vision module."""
 import typing as t
 
-import numpy as np
-import torch
 from ignite.engine import Engine
 from ignite.metrics import Precision, Recall, Metric
 
@@ -29,8 +27,7 @@ __all__ = [
 from .detection_precision_recall import AveragePrecision
 
 from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.utils import ClassificationPredictionEncoder, DetectionPredictionEncoder
-from ..utils.base_encoders import BasePredictionEncoder
+from deepchecks.vision.utils.base_encoders import BasePredictionEncoder
 
 
 def get_default_classification_scorers():

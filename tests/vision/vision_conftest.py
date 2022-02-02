@@ -22,6 +22,7 @@ from torchvision.datasets import MNIST
 
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.datasets.detection.coco import get_trained_yolov5_object_detection, get_coco_dataloader
+from deepchecks.vision.utils import DetectionLabelEncoder, ClassificationLabelEncoder
 
 
 @pytest.fixture(scope='session')
@@ -37,7 +38,7 @@ def mnist_data_loader_train():
 @pytest.fixture(scope='session')
 def mnist_dataset_train(mnist_data_loader_train):
     """Return MNist dataset as VisionDataset object."""
-    dataset = VisionDataset(mnist_data_loader_train, label_type='classification')
+    dataset = VisionDataset(mnist_data_loader_train, label_transformer=ClassificationLabelEncoder(lambda x: x))
     return dataset
 
 
@@ -54,7 +55,7 @@ def mnist_data_loader_test():
 @pytest.fixture(scope='session')
 def mnist_dataset_test(mnist_data_loader_test):
     """Return MNist dataset as VisionDataset object."""
-    dataset = VisionDataset(mnist_data_loader_test, label_type='classification')
+    dataset = VisionDataset(mnist_data_loader_test, label_transformer=ClassificationLabelEncoder(lambda x: x))
     return dataset
 
 
@@ -135,4 +136,4 @@ def coco_dataloader():
 
 @pytest.fixture(scope='session')
 def coco_dataset(coco_dataloader):
-    return VisionDataset(coco_dataloader, label_type=TaskType.OBJECT_DETECTION.value)
+    return VisionDataset(coco_dataloader, label_transformer=DetectionLabelEncoder(lambda x: x))
