@@ -14,8 +14,9 @@ from typing import Union, Callable
 
 __all__ = ["DetectionLabelEncoder", "DetectionPredictionEncoder"]
 
+from torch.utils.data import DataLoader
+
 from .base_encoders import BaseLabelEncoder
-from .. import VisionDataset
 
 
 class DetectionLabelEncoder(BaseLabelEncoder):
@@ -61,14 +62,14 @@ class DetectionLabelEncoder(BaseLabelEncoder):
         elif isinstance(self.label_encoder, str):
             pass
 
-    def get_samples_per_class(self, dataset: VisionDataset):
+    def get_samples_per_class(self, data_loader: DataLoader):
         """
         Get the number of samples per class.
 
         Parameters
         ----------
-        dataset : VisionDataset
-            Dataset to get the samples per class from.
+        data_loader : DataLoader
+            DataLoader to get the samples per class from.
 
         Returns
         -------
@@ -76,7 +77,6 @@ class DetectionLabelEncoder(BaseLabelEncoder):
             Counter of the number of samples per class.
         """
         counter = Counter()
-        data_loader = dataset.get_data_loader()
         for _ in range(len(data_loader)):
             list_of_arrays = self(next(iter(data_loader))[1])
             class_list = sum([arr.reshape((-1, 5))[:, 0].tolist() for arr in list_of_arrays], [])

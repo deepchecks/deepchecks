@@ -126,20 +126,8 @@ class VisionDataset:
     def get_samples_per_class(self):
         """Return a dictionary containing the number of samples per class."""
         if self._samples_per_class is None:
-            if self.task_type == TaskType.CLASSIFICATION:
-                counter = Counter()
-                for _ in range(len(self._data)):
-                    counter.update(self.label_transformer(next(iter(self._data))[1].tolist()))
-                self._samples_per_class = counter
-            elif self.task_type == TaskType.OBJECT_DETECTION:
-                # Assume next(iter(self._data))[1] is a list (per sample) of numpy arrays (rows are bboxes) with the
-                # first column in the array representing class
-                counter = Counter()
-                for _ in range(len(self._data)):
-                    list_of_arrays = self.label_transformer(next(iter(self._data))[1])
-                    class_list = sum([arr.reshape((-1, 5))[:, 0].tolist() for arr in list_of_arrays], [])
-                    counter.update(class_list)
-                self._samples_per_class = counter
+            if self.task_type in [TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION]:
+                self._samples_per_class = self.label_transformer.get_samples_per_class(self._data)
             else:
                 raise NotImplementedError(
                     'Not implemented yet for tasks other than classification and object detection'

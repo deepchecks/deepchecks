@@ -11,10 +11,11 @@
 """Module for defining detection encoders."""
 from collections import Counter
 from typing import Callable
+
+from torch.utils.data import DataLoader
+
 from .base_encoders import BaseLabelEncoder
 __all__ = ["ClassificationLabelEncoder", "ClassificationPredictionEncoder"]
-
-from deepchecks.vision import VisionDataset
 
 
 class ClassificationLabelEncoder(BaseLabelEncoder):
@@ -37,14 +38,14 @@ class ClassificationLabelEncoder(BaseLabelEncoder):
         """Call the encoder."""
         return self.label_encoder(*args, **kwargs)
 
-    def get_samples_per_class(self, dataset: VisionDataset):
+    def get_samples_per_class(self, data_loader: DataLoader):
         """
         Get the number of samples per class.
 
         Parameters
         ----------
-        dataset : VisionDataset
-            Dataset to get the samples per class from.
+        data_loader : DataLoader
+            DataLoader to get the samples per class from.
 
         Returns
         -------
@@ -54,7 +55,6 @@ class ClassificationLabelEncoder(BaseLabelEncoder):
         """
 
         counter = Counter()
-        data_loader = dataset.get_data_loader()
         for _ in range(len(data_loader)):
             counter.update(self(next(iter(data_loader))[1].tolist()))
 

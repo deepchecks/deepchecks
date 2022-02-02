@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Callable
 
-from deepchecks.vision import VisionDataset
+from torch.utils.data import DataLoader
 
 
 class BaseLabelEncoder(ABC):
@@ -19,7 +19,7 @@ class BaseLabelEncoder(ABC):
         pass
 
     @abstractmethod
-    def get_samples_per_class(self, dataset: VisionDataset):
+    def get_samples_per_class(self, data_loader: DataLoader):
         """
         Get the number of samples per class.
         """
