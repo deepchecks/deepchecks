@@ -10,14 +10,14 @@
 #
 """Module for defining detection encoders."""
 from collections import Counter
-from typing import Callable, Union, Optional
+from typing import Callable, Optional
 
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
 from .base_encoders import BaseLabelEncoder
-__all__ = ["ClassificationLabelEncoder", "ClassificationPredictionEncoder"]
+__all__ = ['ClassificationLabelEncoder', 'ClassificationPredictionEncoder']
 
 
 class ClassificationLabelEncoder(BaseLabelEncoder):
@@ -34,6 +34,7 @@ class ClassificationLabelEncoder(BaseLabelEncoder):
     """
 
     def __init__(self, label_encoder: Callable):
+        super().__init__(label_encoder)
         self.label_encoder = label_encoder
 
     def __call__(self, *args, **kwargs):
@@ -55,7 +56,6 @@ class ClassificationLabelEncoder(BaseLabelEncoder):
             Dictionary of the number of samples per class.
 
         """
-
         counter = Counter()
         for _ in range(len(data_loader)):
             counter.update(self(next(iter(data_loader))[1].tolist()))
@@ -83,10 +83,10 @@ class ClassificationLabelEncoder(BaseLabelEncoder):
 
         label_batch = self(batch[1])
         if not isinstance(label_batch, (torch.Tensor, np.ndarray)):
-            return f'Check requires classification label to be a torch.Tensor or numpy array'
+            return 'Check requires classification label to be a torch.Tensor or numpy array'
         label_shape = label_batch.shape
         if len(label_shape) != 1:
-            return f'Check requires classification label to be a 1D tensor'
+            return 'Check requires classification label to be a 1D tensor'
 
 
 class ClassificationPredictionEncoder:

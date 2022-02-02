@@ -12,7 +12,7 @@
 from collections import Counter
 from typing import Union, Callable, Optional
 
-__all__ = ["DetectionLabelEncoder", "DetectionPredictionEncoder"]
+__all__ = ['DetectionLabelEncoder', 'DetectionPredictionEncoder']
 
 import numpy as np
 import torch
@@ -55,6 +55,7 @@ class DetectionLabelEncoder(BaseLabelEncoder):
     label_encoder: Union[str, Callable]
 
     def __init__(self, label_encoder: Union[str, Callable]):
+        super().__init__(label_encoder)
         self.label_encoder = label_encoder
 
     def __call__(self, *args, **kwargs):
@@ -107,16 +108,16 @@ class DetectionLabelEncoder(BaseLabelEncoder):
 
         label_batch = self(batch[1])
         if not isinstance(label_batch, list):
-            return f'Check requires object detection label to be a list with an entry for each sample'
+            return 'Check requires object detection label to be a list with an entry for each sample'
         if len(label_batch) == 0:
-            return f'Check requires object detection label to be a non-empty list'
+            return 'Check requires object detection label to be a non-empty list'
         if not isinstance(label_batch[0], (torch.Tensor, np.ndarray)):
-            return f'Check requires object detection label to be a list of torch.Tensor or numpy array'
+            return 'Check requires object detection label to be a list of torch.Tensor or numpy array'
         if len(label_batch[0].shape) != 2:
-            return f'Check requires object detection label to be a list of 2D tensors'
+            return 'Check requires object detection label to be a list of 2D tensors'
         if label_batch[0].shape[1] != 5:
-            return f'Check requires object detection label to be a list of 2D tensors, when ' \
-                   f'each row has 5 columns: [class_id, x, y, width, height]'
+            return 'Check requires object detection label to be a list of 2D tensors, when ' \
+                   'each row has 5 columns: [class_id, x, y, width, height]'
 
 
 class DetectionPredictionEncoder:
