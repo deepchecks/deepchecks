@@ -10,10 +10,12 @@
 #
 """Module for defining detection encoders."""
 from collections import Counter
-from typing import Union, Callable
+from typing import Union, Callable, Optional
 
 __all__ = ["DetectionLabelEncoder", "DetectionPredictionEncoder"]
 
+import numpy as np
+import torch
 from torch.utils.data import DataLoader
 
 from .base_encoders import BaseLabelEncoder
@@ -83,6 +85,38 @@ class DetectionLabelEncoder(BaseLabelEncoder):
             counter.update(class_list)
 
         return counter
+
+    def validate_label(self, data_loader: DataLoader) -> Optional[str]:
+        """
+        Validate the label.
+
+        Parameters
+        ----------
+        data_loader : DataLoader
+            DataLoader to get the samples per class from.
+
+        Returns
+        -------
+        Optional[str]
+            None if the label is valid, otherwise a string containing the error message.
+
+        """
+        batch = next(iter(data_loader))
+        if len(batch) != 2:
+            return 'Check requires dataset to have a label'
+
+        label_batch = self(batch[1])
+        if not isinstance(label_batch, list):
+            return f'Check requires object detection label to be a list with an entry for each sample'
+        if len(label_batch) == 0:
+            return f'Check requires object detection label to be a non-empty list'
+        if not isinstance(label_batch[0], (torch.Tensor, np.ndarray)):
+            return f'Check requires object detection label to be a list of torch.Tensor or numpy array'
+        if len(label_batch[0].shape) != 2:
+            return f'Check requires object detection label to be a list of 2D tensors'
+        if label_batch[0].shape[1] != 5:
+            return f'Check requires object detection label to be a list of 2D tensors, when ' \
+                   f'each row has 5 columns: [class_id, x, y, width, height]'
 
 
 class DetectionPredictionEncoder:

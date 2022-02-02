@@ -12,7 +12,6 @@
 
 from copy import copy
 from enum import Enum
-from collections import Counter
 from typing import Optional, Union, List, Iterator
 
 import numpy as np
@@ -107,7 +106,7 @@ class VisionDataset:
 
         self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
         self._samples_per_class = None
-        self._label_valid = self.label_valid()  # Will be either none if valid, or string with error
+        self._label_valid = self.label_transformer.validate_label(self._data)  # will contain error message if not valid
         # Sample dataset properties
         self._sample_data_loader = None
         self._sample_labels = None
@@ -150,34 +149,6 @@ class VisionDataset:
             for _, label in self.sample_data_loader:
                 self._sample_labels.append(label)
         return self._sample_labels
-
-    def label_valid(self) -> Union[str, bool]:
-        """Validate the label of the dataset. If found problem return string describing it, else returns none."""
-        batch = next(iter(self.get_data_loader()))
-        if len(batch) != 2:
-            return 'Check requires dataset to have a label'
-
-        label_batch = self.label_transformer(batch[1])
-        if self.task_type == TaskType.CLASSIFICATION:
-            if not isinstance(label_batch, (torch.Tensor, np.ndarray)):
-                return f'Check requires {self.task_type} label to be a torch.Tensor or numpy array'
-            label_shape = label_batch.shape
-            if len(label_shape) != 1:
-                return f'Check requires {self.task_type} label to be a 1D tensor'
-        elif self.task_type == TaskType.OBJECT_DETECTION:
-            if not isinstance(label_batch, list):
-                return f'Check requires {self.task_type} label to be a list with an entry for each sample'
-            if len(label_batch) == 0:
-                return f'Check requires {self.task_type} label to be a non-empty list'
-            if not isinstance(label_batch[0], (torch.Tensor, np.ndarray)):
-                return f'Check requires {self.task_type} label to be a list of torch.Tensor or numpy array'
-            if len(label_batch[0].shape) != 2:
-                return f'Check requires {self.task_type} label to be a list of 2D tensors'
-            if label_batch[0].shape[1] != 5:
-                return f'Check requires {self.task_type} label to be a list of 2D tensors, when ' \
-                       f'each row has 5 columns: [class_id, x, y, width, height]'
-        else:
-            return 'Not implemented yet for tasks other than classification and object detection'
 
     def get_label_shape(self):
         """Return the shape of the label."""

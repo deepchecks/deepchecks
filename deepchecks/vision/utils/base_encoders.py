@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable
+from typing import Callable, Optional
 
 from torch.utils.data import DataLoader
 
@@ -24,3 +24,10 @@ class BaseLabelEncoder(ABC):
         Get the number of samples per class.
         """
         pass
+
+    @abstractmethod
+    def validate_label(self, data_loader: DataLoader) -> Optional[str]:
+        """
+        Validate that the label format is in the required shape.
+        """
+        return 'Not implemented yet for tasks other than classification and object detection'

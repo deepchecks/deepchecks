@@ -10,8 +10,10 @@
 #
 """Module for defining detection encoders."""
 from collections import Counter
-from typing import Callable
+from typing import Callable, Union, Optional
 
+import numpy as np
+import torch
 from torch.utils.data import DataLoader
 
 from .base_encoders import BaseLabelEncoder
@@ -59,6 +61,32 @@ class ClassificationLabelEncoder(BaseLabelEncoder):
             counter.update(self(next(iter(data_loader))[1].tolist()))
 
         return counter
+
+    def validate_label(self, data_loader: DataLoader) -> Optional[str]:
+        """
+        Validate the label.
+
+        Parameters
+        ----------
+        data_loader : DataLoader
+            DataLoader to get the samples per class from.
+
+        Returns
+        -------
+        Optional[str]
+            None if the label is valid, otherwise a string containing the error message.
+
+        """
+        batch = next(iter(data_loader))
+        if len(batch) != 2:
+            return 'Check requires dataset to have a label'
+
+        label_batch = self(batch[1])
+        if not isinstance(label_batch, (torch.Tensor, np.ndarray)):
+            return f'Check requires classification label to be a torch.Tensor or numpy array'
+        label_shape = label_batch.shape
+        if len(label_shape) != 1:
+            return f'Check requires classification label to be a 1D tensor'
 
 
 class ClassificationPredictionEncoder:
