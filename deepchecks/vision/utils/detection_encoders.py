@@ -9,13 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 """Module for defining detection encoders."""
-
+from collections import Counter
 from typing import Union, Callable
 
 __all__ = ["DetectionLabelEncoder", "DetectionPredictionEncoder"]
 
+from .base_encoders import BaseLabelEncoder
+from .. import VisionDataset
 
-class DetectionLabelEncoder:
+
+class DetectionLabelEncoder(BaseLabelEncoder):
     """
     Class for encoding the detection annotations to the required format.
 
@@ -57,6 +60,29 @@ class DetectionLabelEncoder:
             return self.label_encoder(*args, **kwargs)
         elif isinstance(self.label_encoder, str):
             pass
+
+    def get_samples_per_class(self, dataset: VisionDataset):
+        """
+        Get the number of samples per class.
+
+        Parameters
+        ----------
+        dataset : VisionDataset
+            Dataset to get the samples per class from.
+
+        Returns
+        -------
+        Counter
+            Counter of the number of samples per class.
+        """
+        counter = Counter()
+        data_loader = dataset.get_data_loader()
+        for _ in range(len(data_loader)):
+            list_of_arrays = self(next(iter(data_loader))[1])
+            class_list = sum([arr.reshape((-1, 5))[:, 0].tolist() for arr in list_of_arrays], [])
+            counter.update(class_list)
+
+        return counter
 
 
 class DetectionPredictionEncoder:

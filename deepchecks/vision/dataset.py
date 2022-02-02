@@ -22,6 +22,7 @@ import logging
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.utils import ClassificationLabelEncoder, DetectionLabelEncoder
+from deepchecks.vision.utils.base_encoders import BaseLabelEncoder
 
 logger = logging.getLogger('deepchecks')
 
@@ -80,6 +81,7 @@ class VisionDataset:
     """
 
     _data: DataLoader = None
+    label_transformer: BaseLabelEncoder = None
 
     def __init__(self,
                  data_loader: DataLoader,

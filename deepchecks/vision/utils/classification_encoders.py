@@ -9,13 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """Module for defining detection encoders."""
-
+from collections import Counter
 from typing import Callable
-
+from .base_encoders import BaseLabelEncoder
 __all__ = ["ClassificationLabelEncoder", "ClassificationPredictionEncoder"]
 
+from deepchecks.vision import VisionDataset
 
-class ClassificationLabelEncoder:
+
+class ClassificationLabelEncoder(BaseLabelEncoder):
     """
     Class for encoding the classification label to the required format.
 
@@ -34,6 +36,29 @@ class ClassificationLabelEncoder:
     def __call__(self, *args, **kwargs):
         """Call the encoder."""
         return self.label_encoder(*args, **kwargs)
+
+    def get_samples_per_class(self, dataset: VisionDataset):
+        """
+        Get the number of samples per class.
+
+        Parameters
+        ----------
+        dataset : VisionDataset
+            Dataset to get the samples per class from.
+
+        Returns
+        -------
+        Counter
+            Dictionary of the number of samples per class.
+
+        """
+
+        counter = Counter()
+        data_loader = dataset.get_data_loader()
+        for _ in range(len(data_loader)):
+            counter.update(self(next(iter(data_loader))[1].tolist()))
+
+        return counter
 
 
 class ClassificationPredictionEncoder:
