@@ -33,7 +33,7 @@ class DetectionLabelEncoder(BaseLabelEncoder):
         If a string, it must be one of the following:
             - 'xyxy' - x1, y1, x2, y2 represent the upper left and lower right corners of the bounding box.
             - 'xywh' - x1, y1, w, h represent the upper left corner of the bounding box and its width and height.
-            - 'cxcywh' - x, y, w, h represent the center of the bounding box and its width and height.
+            - 'cxcywh' - cx, cy, w, h represent the center of the bounding box and its width and height.
             - 'xyxyn' - x1, y1, x2, y2, n represent the upper left and lower right corners of the bounding box,
                         normalized to the image dimensions.
             - 'xywhn' - x1, y1, w, h, represent the upper left corner of the bounding box and its width and height,
