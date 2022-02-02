@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -31,7 +31,7 @@ __all__ = ['load_dataset']
 DATA_DIR = Path(__file__).absolute().parent
 
 
-def load_model(pretrained: bool = False) -> nn.Module:
+def load_model(pretrained: bool = True) -> nn.Module:
     """Load the yolov5s model and return it."""
     model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=pretrained)
     model.eval()
@@ -41,7 +41,7 @@ def load_model(pretrained: bool = False) -> nn.Module:
 
 def load_dataset(
     train: bool = True,
-    batch_size: int = 64,
+    batch_size: int = 32,
     num_workers: int = 0,
     shuffle: bool = False,
     pin_memory: bool = True,
@@ -51,17 +51,26 @@ def load_dataset(
 
     Parameters
     ----------
-    batch_size : int, default: 64
+    train : bool
+        if `True` train dataset, otherwise test dataset
+    batch_size : int, default: 32
         Batch size for the dataloader.
     num_workers : int, default: 0
         Number of workers for the dataloader.
     shuffle : bool, default: False
         Whether to shuffle the dataset.
+    pin_memory : bool, default: True
+        If ``True``, the data loader will copy Tensors
+        into CUDA pinned memory before returning them.
+    object_type : Literal['Dataset', 'DataLoader'], default: 'DataLoader'
+        type of the return value. If 'Dataset', :obj:`deepchecks.vision.VisionDataset`
+        will be returned, otherwise :obj:`torch.utils.data.DataLoader`
 
     Returns
     -------
-    DataLoader
-        A dataloader for the COCO dataset.
+    Union[DataLoader, VisionDataset]
+
+        A DataLoader or VisionDataset instance representing COCO dataset
     """
     root = DATA_DIR
     coco_dir, dataset_name = CocoDataset.download_coco128(root)
