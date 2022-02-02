@@ -60,8 +60,8 @@ class ClassificationLabelEncoder(BaseLabelEncoder):
 
         """
         counter = Counter()
-        for _ in range(len(data_loader)):
-            counter.update(self(next(iter(data_loader))[1].tolist()))
+        for batch in range(len(data_loader)):
+            counter.update(self(batch[1].tolist()))
 
         return counter
 

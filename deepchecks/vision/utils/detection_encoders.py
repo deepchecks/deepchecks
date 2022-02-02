@@ -81,8 +81,8 @@ class DetectionLabelEncoder(BaseLabelEncoder):
             Counter of the number of samples per class.
         """
         counter = Counter()
-        for _ in range(len(data_loader)):
-            list_of_arrays = self(next(iter(data_loader))[1])
+        for batch in data_loader:
+            list_of_arrays = self(batch[1])
             class_list = sum([arr.reshape((-1, 5))[:, 0].tolist() for arr in list_of_arrays], [])
             counter.update(class_list)
 
