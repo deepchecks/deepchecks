@@ -70,7 +70,7 @@ def load_dataset(
     -------
     Union[DataLoader, VisionDataset]
 
-        A DataLoader or VisionDataset instance representing COCO dataset
+        A DataLoader or VisionDataset instance representing COCO128 dataset
     """
     root = DATA_DIR
     coco_dir, dataset_name = CocoDataset.download_coco128(root)
@@ -107,7 +107,7 @@ def load_dataset(
 
 
 class CocoDataset(VisionDataset):
-    """An instance of PyTorch VisionDataset the represents the COCO dataset.
+    """An instance of PyTorch VisionDataset that represents the COCO128 dataset.
 
     Parameters
     ----------
