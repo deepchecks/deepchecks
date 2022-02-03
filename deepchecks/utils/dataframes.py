@@ -10,13 +10,37 @@
 #
 """Contain functions for handling dataframes in checks."""
 import typing as t
+
 import pandas as pd
+import numpy as np
+
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 from deepchecks.errors import DeepchecksValueError
 
 
-__all__ = ['validate_columns_exist', 'select_from_dataframe']
+__all__ = ['validate_columns_exist', 'select_from_dataframe', 'un_numpy']
+
+
+def un_numpy(val):
+    """Convert numpy value to native value.
+
+    Parameters
+    ----------
+    val :
+        The value to convert.
+
+    Returns
+    -------
+        returns the numpy value in a native type.
+    """
+    if isinstance(val, np.bool_):
+        return str(val)
+    if isinstance(val, (np.float64, np.float_)):
+        if np.isnan(val):
+            return None
+        return float(val)
+    return val
 
 
 def validate_columns_exist(
