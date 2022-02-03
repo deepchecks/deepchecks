@@ -28,6 +28,7 @@ from . import MODELS_DIR
 
 __all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST']
 
+from deepchecks.vision.utils.classification_formatters import ClassificationLabelFormatter
 
 LOGGER = logging.getLogger(__name__)
 
@@ -93,8 +94,8 @@ def load_dataset(
     elif object_type == 'Dataset':
         return VisionDataset(
             data_loader=loader,
-            label_type='classification',
-            num_classes=len(datasets.MNIST.classes)
+            num_classes=len(datasets.MNIST.classes),
+            label_transformer=ClassificationLabelFormatter(lambda x: x)
         )
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
