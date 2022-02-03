@@ -108,16 +108,6 @@ def drift_score_bar_traces(drift_score: float, bar_max: float = None) -> Tuple[L
     return bars, xaxis, yaxis
 
 
-def _un_numpy(val):
-    if isinstance(val, np.bool_):
-        return str(val)
-    if isinstance(val, (np.float64, np.float_)):
-        if np.isnan(val):
-            return None
-        return float(val)
-    return val
-
-
 def feature_distribution_traces(train_column,
                                 test_column,
                                 is_categorical: bool = False,
@@ -150,7 +140,7 @@ def feature_distribution_traces(train_column,
         expected_percents, actual_percents, categories_list = \
             preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column,
                                                max_num_categories=max_num_categories)
-        categories_list = [_un_numpy(cat) for cat in categories_list]
+        categories_list = [str(cat) if isinstance(cat, np.bool_) else cat for cat in categories_list]
         cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
                               index=categories_list)
         train_bar = go.Bar(
