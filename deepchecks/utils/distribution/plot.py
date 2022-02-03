@@ -111,7 +111,7 @@ def drift_score_bar_traces(drift_score: float, bar_max: float = None) -> Tuple[L
 def _un_numpy(val):
     if isinstance(val, np.bool_):
         return str(val)
-    if isinstance(val, np.float_) or isinstance(val, np.float64):
+    if isinstance(val, (np.float64, np.float_)):
         if np.isnan(val):
             return None
         return float(val)
