@@ -47,7 +47,7 @@ def load_dataset(
     pin_memory: bool = True,
     object_type: Literal['Dataset', 'DataLoader'] = 'DataLoader'
 ) -> t.Union[DataLoader, vision.VisionDataset]:
-    """Get the COCO dataset and return a dataloader.
+    """Get the COCO128 dataset and return a dataloader.
 
     Parameters
     ----------
