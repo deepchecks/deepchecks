@@ -22,6 +22,7 @@ from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to
 from deepchecks.utils.plot import colors
 from deepchecks.utils.dataframes import un_numpy
 
+
 def get_density(data, xs) -> np.ndarray:
     """Get gaussian kde density to plot.
 
