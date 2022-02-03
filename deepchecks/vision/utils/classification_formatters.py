@@ -82,7 +82,7 @@ class ClassificationLabelFormatter(BaseLabelFormatter):
         """
         batch = next(iter(data_loader))
         if len(batch) != 2:
-            return 'Check requires dataset to have a label'
+            return 'Check requires dataloader to return tuples of (input, label).'
 
         label_batch = self(batch[1])
         if not isinstance(label_batch, (torch.Tensor, np.ndarray)):

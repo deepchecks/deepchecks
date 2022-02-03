@@ -13,11 +13,10 @@ import copy
 import pytest
 import torch
 from torch import nn
-import torch.nn.functional as F
 from torchvision.transforms import ToTensor
 
 from deepchecks.vision import VisionDataset
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 from torchvision.datasets import MNIST
 
 from deepchecks.vision.dataset import TaskType
@@ -137,3 +136,27 @@ def coco_dataloader():
 @pytest.fixture(scope='session')
 def coco_dataset(coco_dataloader):
     return VisionDataset(coco_dataloader, label_transformer=DetectionLabelFormatter(lambda x: x))
+
+
+@pytest.fixture(scope='session')
+def three_tuples_dataloader():
+    class ThreeTupleDataset(Dataset):
+        def __getitem__(self, index):
+            return [index, index, index]
+
+        def __len__(self) -> int:
+            return 8
+
+    return DataLoader(ThreeTupleDataset(), batch_size=4)
+
+
+@pytest.fixture(scope='session')
+def two_tuples_dataloader():
+    class TwoTupleDataset(Dataset):
+        def __getitem__(self, index):
+            return [index, index]
+
+        def __len__(self) -> int:
+            return 8
+
+    return DataLoader(TwoTupleDataset(), batch_size=4)
