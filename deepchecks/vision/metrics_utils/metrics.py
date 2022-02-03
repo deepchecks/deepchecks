@@ -11,8 +11,6 @@
 """Module for defining metrics for the vision module."""
 import typing as t
 
-import numpy as np
-import torch
 from ignite.engine import Engine
 from ignite.metrics import Precision, Recall, Metric
 
@@ -29,6 +27,7 @@ __all__ = [
 from .detection_precision_recall import AveragePrecision
 
 from deepchecks.vision.dataset import TaskType
+from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 
 
 def get_default_classification_scorers():
@@ -82,55 +81,9 @@ def get_scorers_list(
     return scorers
 
 
-def validate_prediction(batch_predictions: t.Any, dataset: VisionDataset, eps: float = 1e-3):
-    """Validate that the model predictions are in the correct format for working with deepchecks metrics.
-
-    Parameters
-    ----------
-    batch_predictions : t.Any
-        Model prediction for a batch (output of model(batch[0]))
-    dataset : VisionDataset
-        Dataset object, used only to get label_type and n_classes
-    eps : float, optional
-        Epsilon value to be used in the validation, by default 1e-3
-    """
-    task_type = dataset.task_type
-    n_classes = dataset.get_num_classes()
-
-    if task_type == TaskType.CLASSIFICATION:
-        if not isinstance(batch_predictions, (torch.Tensor, np.ndarray)):
-            raise DeepchecksValueError(f'Check requires {task_type} predictions to be a torch.Tensor or numpy '
-                                       f'array')
-        pred_shape = batch_predictions.shape
-        if len(pred_shape) != 2:
-            raise DeepchecksValueError(f'Check requires {task_type} predictions to be a 2D tensor')
-        if pred_shape[1] != n_classes:
-            raise DeepchecksValueError(f'Check requires {task_type} predictions to have {n_classes} columns')
-        if any(abs(batch_predictions.sum(axis=1) - 1) > eps):
-            raise DeepchecksValueError(f'Check requires {task_type} predictions to be a probability distribution and'
-                                       f' sum to 1 for each row')
-    elif task_type == TaskType.OBJECT_DETECTION:
-        if not isinstance(batch_predictions, list):
-            raise DeepchecksValueError(f'Check requires {task_type} predictions to be a list with an entry for each'
-                                       f' sample')
-        if len(batch_predictions) == 0:
-            raise DeepchecksValueError(f'Check requires {task_type} predictions to be a non-empty list')
-        if not isinstance(batch_predictions[0], (torch.Tensor, np.ndarray)):
-            raise DeepchecksValueError(f'Check requires {task_type} predictions to be a list of torch.Tensor or'
-                                       f' numpy array')
-        if len(batch_predictions[0].shape) != 2:
-            raise DeepchecksValueError(f'Check requires {task_type} predictions to be a list of 2D tensors')
-        if batch_predictions[0].shape[1] != 6:
-            raise DeepchecksValueError(f'Check requires {task_type} predictions to be a list of 2D tensors, when '
-                                       f'each row has 6 columns: [x, y, width, height, class_probability, class_id]')
-    else:
-        raise NotImplementedError(
-            'Not implemented yet for tasks other than classification and object detection'
-        )
-
-
 def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn.Module,
-                      prediction_extract: t.Callable = None) -> t.Dict[str, float]:
+                      prediction_formatter: BasePredictionFormatter) \
+        -> t.Dict[str, float]:
     """Calculate a list of ignite metrics on a given model and dataset.
 
     Parameters
@@ -141,7 +94,7 @@ def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn
         Dataset object
     model : nn.Module
         Model object
-    prediction_extract : t.Callable
+    prediction_formatter : Union[ClassificationPredictionFormatter, DetectionPredictionFormatter]
         Function to convert the model output to the appropriate format for the label type
 
     Returns
@@ -156,14 +109,14 @@ def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn
 
         predictions = model.forward(images)
 
-        if prediction_extract:
-            predictions = prediction_extract(predictions)
+        if prediction_formatter:
+            predictions = prediction_formatter(predictions)
 
         return predictions, label
 
     # Validate that
     data_batch = process_function(None, next(iter(dataset)))[0]
-    validate_prediction(data_batch, dataset)
+    prediction_formatter.validate_prediction(data_batch, dataset.get_num_classes())
 
     engine = Engine(process_function)
     for metric in metrics:

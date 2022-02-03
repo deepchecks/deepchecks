@@ -23,6 +23,7 @@ from torchvision.datasets.utils import download_and_extract_archive
 from typing_extensions import Literal
 
 from deepchecks import vision
+from deepchecks.vision.utils.detection_formatters import DetectionLabelFormatter
 
 
 __all__ = ['load_dataset']
@@ -100,7 +101,8 @@ def load_dataset(
     elif object_type == 'Dataset':
         return vision.VisionDataset(
             data_loader=dataloader,
-            label_type='object_detection'
+            label_transformer=DetectionLabelFormatter(lambda x: x),
+            num_classes=80
         )
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
