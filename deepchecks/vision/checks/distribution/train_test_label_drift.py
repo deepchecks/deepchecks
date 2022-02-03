@@ -68,18 +68,32 @@ class TrainTestLabelDrift(TrainTestCheck):
     Calculate label drift between train dataset and test dataset, using statistical measures.
 
     Check calculates a drift score for the label in test dataset, by comparing its distribution to the train
-    dataset.
-    For numerical columns, we use the Earth Movers Distance.
+    dataset. As the label may be complex, we run different measurements on the label and check their distribution.
+
+    A measurement on a label is any function that returns a single value or n-dimensional array of values. each value
+    represents a measurement on the label, such as number of objects in image or tilt of each bounding box in image.
+
+    There are default measurements per task:
+    For classification:
+    - distribution of classes
+
+    For object detection:
+    - distribution of classes
+    - distribution of bounding box areas
+    - distribution of number of bounding boxes per image
+
+    For numerical distributions, we use the Earth Movers Distance.
     See https://en.wikipedia.org/wiki/Wasserstein_metric
-    For categorical columns, we use the Population Stability Index (PSI).
+    For categorical distributions, we use the Population Stability Index (PSI).
     See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
 
 
     Parameters
     ----------
-    alternative_label_measurements : int, default: 10
-        list of measurements. Each measurement is dictionary with keys 'name' (str), 'method' (Callable) and
-        is_continuous (bool), representing attributes of said method.
+    alternative_label_measurements : List[Dict[str, Any]], default: 10
+        List of measurements. Replaces the default deepchecks measurements.
+        Each measurement is dictionary with keys 'name' (str), 'method' (Callable) and is_continuous (bool),
+        representing attributes of said method.
     num_bins: int, default: 100
             number of bins to use for continuous distributions
     """
