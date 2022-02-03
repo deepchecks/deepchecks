@@ -139,6 +139,7 @@ def _display_suite_widgets(summary: str,
     condition_tab_children.append(widgets.HTML(_CHECKS_WITH_CONDITIONS_TITLE))
     if checks_w_condition_display:
         for i, r in enumerate(checks_w_condition_display):
+            print(r.check.name)
             condition_tab_children.append(_get_check_widget(r, unique_id))
             if i < len(checks_w_condition_display) - 1:
                 condition_tab_children.append(widgets.HTML(light_hr))

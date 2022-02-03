@@ -19,7 +19,7 @@ import warnings
 from collections import OrderedDict
 from functools import wraps
 from typing import Any, Callable, List, Union, Dict, Type, ClassVar, Optional
-
+from plotly.graph_objs._bar import Bar
 import jsonpickle
 import matplotlib
 import pandas as pd
@@ -28,6 +28,7 @@ import ipywidgets as widgets
 import plotly.graph_objects as go
 import plotly
 from plotly.basedatatypes import BaseFigure
+
 from matplotlib import pyplot as plt
 from IPython.display import display_html
 from pandas.io.formats.style import Styler
@@ -49,7 +50,6 @@ __all__ = [
     'TrainTestBaseCheck',
     'ModelOnlyBaseCheck',
 ]
-
 
 def _save_all_open_figures():
     figs = [plt.figure(n) for n in plt.get_fignums()]

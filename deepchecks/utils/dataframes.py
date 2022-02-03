@@ -10,7 +10,9 @@
 #
 """Contain functions for handling dataframes in checks."""
 import typing as t
+
 import pandas as pd
+
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 from deepchecks.core.errors import DeepchecksValueError
