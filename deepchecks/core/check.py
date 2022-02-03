@@ -50,6 +50,7 @@ __all__ = [
     'ModelOnlyBaseCheck',
 ]
 
+
 def _save_all_open_figures():
     figs = [plt.figure(n) for n in plt.get_fignums()]
     images = []
