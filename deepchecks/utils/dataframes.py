@@ -24,7 +24,7 @@ __all__ = ['validate_columns_exist', 'select_from_dataframe', 'un_numpy']
 
 def un_numpy(val):
     """Convert numpy value to native value.
-    
+
     Parameters
     ----------
     val :
