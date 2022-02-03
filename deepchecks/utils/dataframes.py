@@ -19,7 +19,7 @@ from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 from deepchecks.core.errors import DeepchecksValueError
 
 
-__all__ = ['validate_columns_exist', 'select_from_dataframe']
+__all__ = ['validate_columns_exist', 'select_from_dataframe', 'un_numpy']
 
 
 def un_numpy(val):
