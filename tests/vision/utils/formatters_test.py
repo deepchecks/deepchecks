@@ -17,7 +17,7 @@ def test_classification_formatter_formatting_valid_label_shape(two_tuples_datalo
     formatter = ClassificationLabelFormatter(lambda x: x)
 
     err = formatter.validate_label(two_tuples_dataloader)
-    assert_that(err, equal_to(""))
+    assert_that(err, equal_to(None))
 
 
 def test_classification_formatter_formatting_invalid_label_type(two_tuples_dataloader):
