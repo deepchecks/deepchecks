@@ -1,27 +1,21 @@
+.. image:: _static/deepchecks-logo-with-white-wide-back.png
+   :target: https://deepchecks.com/?utm_source=docs.deepchecks.com&utm_medium=referral&utm_campaign=welcome
+   :alt: Deepchecks Logo
+   :align: center
+
+.. image:: _static/checks_and_conditions.png
+   :alt: Deepchecks Suite of Checks
+   :align: center
+|
+
 =======================
 Welcome to Deepchecks!
 =======================
-
-|checks_and_conditions|
 
 Deepchecks is the leading tool for validating your machine learning models
 and data, and it enables doing so with minimal effort. Deepchecks accompanies you through
 various validation needs such as verifying your data's integrity, inspecting its distributions,
 validating data splits, evaluating your model and comparing between different models.
-
-
-|wide_logo|
-
-
-.. |wide_logo| image:: /_static/deepchecks-logo-with-white-wide-back.png
-   :target: https://deepchecks.com/?utm_source=docs.deepchecks.com&utm_medium=referral&utm_campaign=welcome
-   :alt: Deepchecks Logo
-   :align: center
-
-
-.. |checks_and_conditions| image:: /_static/checks_and_conditions.png
-   :alt: Deepchecks Suite of Checks
-   :align: center
 
 Get Started
 ============
@@ -30,9 +24,10 @@ Head over to our :doc:`/examples/guides/quickstart_in_5_minutes` tutorial,
 and click on  |binder badge|  or on  |colab badge|  to launch it and see it in action,
 or see our :doc:`/getting-started/index` to install it locally and continue from there.
 
-.. note:: The package's output is suited for running in any Python environment.
-          The output is best viewed in Jupyter Notebooks (or JupyterLab),
-          but it can also run in any IDE and be `exported as an HTML report </examples/guides/save_suite_result_as_html>`.
+.. note:: 
+   The package's output is suited for running in any Python environment.
+   The output is best viewed in Jupyter Notebooks (or JupyterLab),
+   but it can also run in any IDE and be :doc:`exported as an HTML report </examples/guides/save_suite_result_as_html>`.
 
 When Should You Use Deepchecks?
 ================================
@@ -40,13 +35,12 @@ When Should You Use Deepchecks?
 While you're in the research phase, and want to validate your data, find potential methodological 
 problems, and/or validate your model and evaluate it.
 
-|when_to_validate|
+.. image:: /_static/pipeline_when_to_validate.png
+   :alt: When To Validate
+   :align: center
 
 See the :doc:`When Should You Use </user-guide/when_should_you_use>` Section in the User Guide for an elaborate explanation of the typical scenarios.
 
-.. |when_to_validate| image:: /_static/pipeline_when_to_validate.png
-   :alt: When To Validate
-   :align: center
 
 
 How Does it Work?
