@@ -10,7 +10,9 @@
 #
 """Module containing the performance check in the vision package."""
 from .performance_report import PerformanceReport
+from .confusion_matrix import ConfusionMatrixReport
 
 __all__ = [
     "PerformanceReport",
+    "ConfusionMatrixReport",
 ]

@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module for computing IOUs."""
+"""Module for computing Intersection over Unions."""
 import numpy as np
 
 
@@ -34,10 +34,10 @@ def _jaccard(dt, gt):
     return float(intersection / (dt_area + gt_area - intersection))
 
 
-def compute_ious(dt, gt):
+def compute_ious(detected, ground_truth):
     """Compute pairwise ious between detections and ground truth."""
-    ious = np.zeros((len(dt), len(gt)))
-    for g_idx, g in enumerate(gt):
-        for d_idx, d in enumerate(dt):
+    ious = np.zeros((len(detected), len(ground_truth)))
+    for g_idx, g in enumerate(ground_truth):
+        for d_idx, d in enumerate(detected):
             ious[d_idx, g_idx] = _jaccard(d, g)
     return ious
