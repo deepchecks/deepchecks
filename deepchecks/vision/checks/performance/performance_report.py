@@ -20,7 +20,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.metrics_utils.metrics import get_scorers_list, calculate_metrics
-from deepchecks.vision.utils import ClassificationPredictionEncoder, DetectionPredictionEncoder
+from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
 
 __all__ = ['PerformanceReport']
@@ -35,16 +35,16 @@ class PerformanceReport(TrainTestCheck):
     ----------
     alternative_metrics : List[Metric], default: None
         A list of ignite.Metric objects whose score should be used. If None are given, use the default metrics.
-    prediction_encoder : Union[ClassificationPredictionEncoder, DetectionPredictionEncoder, None], default: None
+    prediction_formatter : Union[ClassificationPredictionFormatter, DetectionPredictionFormatter, None], default: None
         An encoder to convert predictions to a format that can be used by the metrics.
     """
 
     def __init__(self,
                  alternative_metrics: List[Metric] = None,
-                 prediction_encoder: Union[ClassificationPredictionEncoder, DetectionPredictionEncoder] = None):
+                 prediction_formatter: Union[ClassificationPredictionFormatter, DetectionPredictionFormatter] = None):
         super().__init__()
         self.alternative_metrics = alternative_metrics
-        self.prediction_encoder = prediction_encoder
+        self.prediction_formatter = prediction_formatter
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -72,7 +72,7 @@ class PerformanceReport(TrainTestCheck):
             results.extend(
                 [dataset_name, class_name, name, class_score, n_samples[class_name]]
                 for name, score in calculate_metrics(list(scorers.values()), dataset, model,
-                                                     prediction_encoder=self.prediction_encoder).items()
+                                                     prediction_formatter=self.prediction_formatter).items()
                 # scorer returns numpy array of results with item per class
                 for class_score, class_name in zip(score, classes)
             )

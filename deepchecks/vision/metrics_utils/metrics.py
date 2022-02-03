@@ -27,7 +27,7 @@ __all__ = [
 from .detection_precision_recall import AveragePrecision
 
 from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.utils.base_encoders import BasePredictionEncoder
+from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 
 
 def get_default_classification_scorers():
@@ -82,7 +82,7 @@ def get_scorers_list(
 
 
 def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn.Module,
-                      prediction_encoder: BasePredictionEncoder) \
+                      prediction_formatter: BasePredictionFormatter) \
         -> t.Dict[str, float]:
     """Calculate a list of ignite metrics on a given model and dataset.
 
@@ -94,7 +94,7 @@ def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn
         Dataset object
     model : nn.Module
         Model object
-    prediction_encoder : Union[ClassificationPredictionEncoder, DetectionPredictionEncoder]
+    prediction_formatter : Union[ClassificationPredictionFormatter, DetectionPredictionFormatter]
         Function to convert the model output to the appropriate format for the label type
 
     Returns
@@ -109,14 +109,14 @@ def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn
 
         predictions = model.forward(images)
 
-        if prediction_encoder:
-            predictions = prediction_encoder(predictions)
+        if prediction_formatter:
+            predictions = prediction_formatter(predictions)
 
         return predictions, label
 
     # Validate that
     data_batch = process_function(None, next(iter(dataset)))[0]
-    prediction_encoder.validate_prediction(data_batch, dataset.get_num_classes())
+    prediction_formatter.validate_prediction(data_batch, dataset.get_num_classes())
 
     engine = Engine(process_function)
     for metric in metrics:

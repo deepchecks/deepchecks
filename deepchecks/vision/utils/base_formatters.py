@@ -15,11 +15,11 @@ from typing import Callable, Optional, Union
 from torch.utils.data import DataLoader
 
 
-class BaseLabelEncoder(abc.ABC):
+class BaseLabelFormatter(abc.ABC):
     """Base class for label encoders."""
 
     @abc.abstractmethod
-    def __init__(self, label_encoder: Union[str, Callable]):
+    def __init__(self, label_formatter: Union[str, Callable]):
         pass
 
     @abc.abstractmethod
@@ -38,11 +38,11 @@ class BaseLabelEncoder(abc.ABC):
         return 'Not implemented yet for tasks other than classification and object detection'
 
 
-class BasePredictionEncoder(abc.ABC):
+class BasePredictionFormatter(abc.ABC):
     """Base class for prediction encoders."""
 
     @abc.abstractmethod
-    def __init__(self, detection_encoder: Union[str, Callable]):
+    def __init__(self, detection_formatter: Union[str, Callable]):
         pass
 
     @abc.abstractmethod

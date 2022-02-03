@@ -16,33 +16,33 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from .base_encoders import BaseLabelEncoder, BasePredictionEncoder
+from .base_formatters import BaseLabelFormatter, BasePredictionFormatter
 
-__all__ = ['ClassificationLabelEncoder', 'ClassificationPredictionEncoder']
+__all__ = ['ClassificationLabelFormatter', 'ClassificationPredictionFormatter']
 
 from ...core.errors import DeepchecksValueError
 
 
-class ClassificationLabelEncoder(BaseLabelEncoder):
+class ClassificationLabelFormatter(BaseLabelFormatter):
     """
-    Class for encoding the classification label to the required format.
+    Class for formatting the classification label to the required format.
 
     Parameters
     ----------
-    label_encoder : Callable
+    label_formatter : Callable
         Function that takes in a batch of labels and returns the encoded labels in the following format:
         tensor of shape (N,), When N is the number of samples. Each element is an integer
         representing the class index.
 
     """
 
-    def __init__(self, label_encoder: Callable):
-        super().__init__(label_encoder)
-        self.label_encoder = label_encoder
+    def __init__(self, label_formatter: Callable):
+        super().__init__(label_formatter)
+        self.label_formatter = label_formatter
 
     def __call__(self, *args, **kwargs):
         """Call the encoder."""
-        return self.label_encoder(*args, **kwargs)
+        return self.label_formatter(*args, **kwargs)
 
     def get_samples_per_class(self, data_loader: DataLoader):
         """
@@ -60,7 +60,7 @@ class ClassificationLabelEncoder(BaseLabelEncoder):
 
         """
         counter = Counter()
-        for batch in range(len(data_loader)):
+        for batch in data_loader:
             counter.update(self(batch[1].tolist()))
 
         return counter
@@ -92,26 +92,26 @@ class ClassificationLabelEncoder(BaseLabelEncoder):
             return 'Check requires classification label to be a 1D tensor'
 
 
-class ClassificationPredictionEncoder(BasePredictionEncoder):
+class ClassificationPredictionFormatter(BasePredictionFormatter):
     """
     Class for encoding the classification prediction to the required format.
 
     Parameters
     ----------
-    prediction_encoder : Callable
+    prediction_formatter : Callable
         Function that takes in a batch of predictions and returns the encoded predictions in the following format:
         tensor of shape (N, n_classes), When N is the number of samples. Each element is an array of length n_classes
         that represent the probability of each class.
 
     """
 
-    def __init__(self, prediction_encoder: Callable):
-        super().__init__(prediction_encoder)
-        self.prediction_encoder = prediction_encoder
+    def __init__(self, prediction_formatter: Callable):
+        super().__init__(prediction_formatter)
+        self.prediction_formatter = prediction_formatter
 
     def __call__(self, *args, **kwargs):
         """Call the encoder."""
-        return self.prediction_encoder(*args, **kwargs)
+        return self.prediction_formatter(*args, **kwargs)
 
     def validate_prediction(self, batch_predictions, n_classes: int, eps: float = 1e-3):
         """

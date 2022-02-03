@@ -12,24 +12,24 @@
 from collections import Counter
 from typing import Union, Callable, Optional
 
-__all__ = ['DetectionLabelEncoder', 'DetectionPredictionEncoder']
+__all__ = ['DetectionLabelFormatter', 'DetectionPredictionFormatter']
 
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from .base_encoders import BaseLabelEncoder, BasePredictionEncoder
+from .base_formatters import BaseLabelFormatter, BasePredictionFormatter
 from ...core.errors import DeepchecksValueError
 
 
-class DetectionLabelEncoder(BaseLabelEncoder):
+class DetectionLabelFormatter(BaseLabelFormatter):
     """
     Class for encoding the detection annotations to the required format.
 
     Parameters
     ----------
-    label_encoder : Union[str, Callable]
-        Function or string that specifies the encoding function.
+    label_formatter : Union[str, Callable]
+        Function or string that specifies the formatting function.
         If a string, it must be one of the following:
             - 'xyxy' - x1, y1, x2, y2 represent the upper left and lower right corners of the bounding box.
             - 'xywh' - x1, y1, w, h represent the upper left corner of the bounding box and its width and height.
@@ -42,7 +42,7 @@ class DetectionLabelEncoder(BaseLabelEncoder):
                           normalized by the image dimensions.
         In addition, the label shape should be a list of length N containing tensors of shape (M, 5), where N is the
         number of samples, M is the number of bounding boxes, and each bounding box is represented by 5 values:
-        (class_id, 4 coordinates in the format specified by the `label_encoder` parameter).
+        (class_id, 4 coordinates in the format specified by the `label_formatter` parameter).
 
         If a function, it must follow the signature:
         Function that takes in a batch of labels and returns the encoded labels in the following format:
@@ -53,17 +53,17 @@ class DetectionLabelEncoder(BaseLabelEncoder):
 
     """
 
-    label_encoder: Union[str, Callable]
+    label_formatter: Union[str, Callable]
 
-    def __init__(self, label_encoder: Union[str, Callable]):
-        super().__init__(label_encoder)
-        self.label_encoder = label_encoder
+    def __init__(self, label_formatter: Union[str, Callable]):
+        super().__init__(label_formatter)
+        self.label_formatter = label_formatter
 
     def __call__(self, *args, **kwargs):
         """Call the encoder."""
-        if isinstance(self.label_encoder, Callable):
-            return self.label_encoder(*args, **kwargs)
-        elif isinstance(self.label_encoder, str):
+        if isinstance(self.label_formatter, Callable):
+            return self.label_formatter(*args, **kwargs)
+        elif isinstance(self.label_formatter, str):
             pass
 
     def get_samples_per_class(self, data_loader: DataLoader):
@@ -121,13 +121,13 @@ class DetectionLabelEncoder(BaseLabelEncoder):
                    'each row has 5 columns: [class_id, x, y, width, height]'
 
 
-class DetectionPredictionEncoder(BasePredictionEncoder):
+class DetectionPredictionFormatter(BasePredictionFormatter):
     """
     Class for encoding the detection prediction to the required format.
 
     Parameters
     ----------
-    prediction_encoder : Callable
+    prediction_formatter : Callable
         Function that takes in a batch of predictions and returns the encoded labels in the following format:
         List of length N containing tensors of shape (B, 6), where N is the number of images,
         B is the number of bounding boxes detected in the sample and each bounding box is represented by 6 values:
@@ -136,13 +136,13 @@ class DetectionPredictionEncoder(BasePredictionEncoder):
         the model and class_id is the class id.
     """
 
-    def __init__(self, prediction_encoder: Callable):
-        super().__init__(prediction_encoder)
-        self.prediction_encoder = prediction_encoder
+    def __init__(self, prediction_formatter: Callable):
+        super().__init__(prediction_formatter)
+        self.prediction_formatter = prediction_formatter
 
     def __call__(self, *args, **kwargs):
         """Call the encoder."""
-        return self.prediction_encoder(*args, **kwargs)
+        return self.prediction_formatter(*args, **kwargs)
 
     def validate_prediction(self, batch_predictions, n_classes: int, eps: float = 1e-3):
         """
