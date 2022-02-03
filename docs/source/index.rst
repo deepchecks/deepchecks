@@ -6,6 +6,7 @@
 .. image:: _static/checks_and_conditions.png
    :alt: Deepchecks Suite of Checks
    :align: center
+
 |
 
 =======================

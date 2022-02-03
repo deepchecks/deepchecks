@@ -19,7 +19,7 @@ with the purpose of efficiently giving value and initiating a quick start for ea
 Built-In Suites - API Reference
 ================================
 
-Check the :mod:`deepchecks.suites.default_suites` reference for more information about the built-in suites for tabular data.
+Check the :mod:`deepchecks.suites.default_suites` in the API reference for a list of all of the built-in suites for tabular data.
 
 
 Typical Validation Scenarios
@@ -54,7 +54,8 @@ For these purposes you can use the :func:`single_dataset_integrity` suite.
 .. _when_should_you_use__split_data:
 
 *After Splitting the Data*: Train-Test Validation
-================================================
+====================================================
+
 When you split your data (for whichever purpose and manner), you have two or more separate datasets, however you might not have a model yet.
 Just before you continue working with your data you want to ensure that the splits are indeed representative as you want them to be.
 For example, you want to verify that the classes are balanced similarly, that there is no significant change in distributions between the features or labels in each of the classes,
@@ -66,7 +67,8 @@ For these purposes you can use the :func:`train_test_validation` suite.
 .. _when_should_you_use__evaluate_model:
 
 *After Training a Model*: Analysis & Validation
-========================================================
+====================================================
+
 At this phase you have a trained model which you want to evaluate.
 Thus, you probably want to look at examine several performance metrics, compare it to various benchmarks and be able to construct a clear picture about the model's performance.
 you may also want to try identify where it under-performs, and investigate to see if you discover any insights that you may use to improve its performance.
