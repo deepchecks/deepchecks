@@ -20,7 +20,7 @@ from typing import List, Union, Dict, Tuple
 
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.plot import colors
-
+from deepchecks.utils.dataframes import un_numpy
 
 def get_density(data, xs) -> np.ndarray:
     """Get gaussian kde density to plot.
@@ -108,17 +108,6 @@ def drift_score_bar_traces(drift_score: float, bar_max: float = None) -> Tuple[L
     return bars, xaxis, yaxis
 
 
-def _un_numpy(val):
-    """Convert numpy values to native values."""
-    if isinstance(val, np.bool_):
-        return str(val)
-    if isinstance(val, (np.float64, np.float_)):
-        if np.isnan(val):
-            return None
-        return float(val)
-    return val
-
-
 def feature_distribution_traces(train_column,
                                 test_column,
                                 is_categorical: bool = False,
@@ -153,7 +142,7 @@ def feature_distribution_traces(train_column,
                                                max_num_categories=max_num_categories)
         # fixes plotly widget bug with numpy values by converting them to native values
         # https://github.com/plotly/plotly.py/issues/3470
-        categories_list = [_un_numpy(cat) for cat in categories_list]
+        categories_list = [un_numpy(cat) for cat in categories_list]
         cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
                               index=categories_list)
         train_bar = go.Bar(
