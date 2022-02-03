@@ -64,7 +64,7 @@ Using conda
 
 .. code:: bash
 
-   conda install -c deepchecks deepchecks
+   conda install -c conda-forge deepchecks
 
 
 Try it Out!
