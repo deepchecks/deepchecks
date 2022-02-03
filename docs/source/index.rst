@@ -35,8 +35,8 @@ When Should You Use Deepchecks?
 While you're in the research phase, and want to validate your data, find potential methodological 
 problems, and/or validate your model and evaluate it.
 
-.. image:: /_static/pipeline_when_to_validate.png
-   :alt: When To Validate
+.. image:: /_static/pipeline_when_to_validate.svg
+   :alt: When To Validate - ML Pipeline Schema
    :align: center
 
 See the :doc:`When Should You Use </user-guide/when_should_you_use>` Section in the User Guide for an elaborate explanation of the typical scenarios.

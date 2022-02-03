@@ -8,8 +8,8 @@ Deepchecks has many built-in checks and suites that can help validating various 
 Of course, every research process has its unique steps and challenges, and therefore all checks and suites can easily customized.
 Alongside that, we have identified that there are several recurring scenarios, that each have their own needs and characteristics.
 
-.. image:: /_static/pipeline_when_to_validate.png
-   :alt: When To Validate
+.. image:: /_static/pipeline_when_to_validate.svg
+   :alt: When To Validate - ML Pipeline Schema
    :align: center
 
 Here we explain them shortly and note the specific pre-defined suites that are built
