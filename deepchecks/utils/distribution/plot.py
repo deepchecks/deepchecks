@@ -109,7 +109,7 @@ def drift_score_bar_traces(drift_score: float, bar_max: float = None) -> Tuple[L
 
 
 def _un_numpy(val):
-    """Receive a value and return it in a none numpy representation."""
+    """Convert numpy values to native values."""
     if isinstance(val, np.bool_):
         return str(val)
     if isinstance(val, (np.float64, np.float_)):
@@ -151,7 +151,8 @@ def feature_distribution_traces(train_column,
         expected_percents, actual_percents, categories_list = \
             preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column,
                                                max_num_categories=max_num_categories)
-        # fixes plotly widget bug with numpy values https://github.com/plotly/plotly.py/issues/3470
+        # fixes plotly widget bug with numpy values by converting them to native values
+        # https://github.com/plotly/plotly.py/issues/3470
         categories_list = [_un_numpy(cat) for cat in categories_list]
         cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
                               index=categories_list)
