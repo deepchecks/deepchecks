@@ -22,6 +22,7 @@ import logging
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.utils import ClassificationLabelFormatter, DetectionLabelFormatter
 from deepchecks.vision.utils.base_formatters import BaseLabelFormatter
+from deepchecks.vision.utils.data_formatters import DataFormatter
 
 logger = logging.getLogger('deepchecks')
 
@@ -86,6 +87,7 @@ class VisionDataset:
                  data_loader: DataLoader,
                  num_classes: Optional[int] = None,
                  label_transformer: Union[ClassificationLabelFormatter, DetectionLabelFormatter] = None,
+                 data_transformer: DataFormatter = None,
                  sample_size: int = 1000,
                  sample_iteration_limit: int = 1_000_000,
                  random_seed: int = 0):
@@ -95,6 +97,9 @@ class VisionDataset:
             self.label_transformer = ClassificationLabelFormatter(lambda x: x)
         else:
             self.label_transformer = label_transformer
+
+        if data_transformer is None:
+            self.data_transformer = DataFormatter(lambda x: x)
 
         if isinstance(self.label_transformer, ClassificationLabelFormatter):
             self.task_type = TaskType.CLASSIFICATION
@@ -133,6 +138,14 @@ class VisionDataset:
                     'Not implemented yet for tasks other than classification and object detection'
                 )
         return copy(self._samples_per_class)
+
+    def to_display_data(self, batch):
+        """Converts a batch of data outputted by the data loader to a format that can be displayed."""
+        data_valid = self.data_transformer.validate_data(batch)
+        if data_valid is not None:
+            raise DeepchecksValueError(data_valid)
+
+        return self.data_transformer(batch)
 
     @property
     def sample_data_loader(self) -> DataLoader:
