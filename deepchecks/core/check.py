@@ -19,7 +19,7 @@ import warnings
 from collections import OrderedDict
 from functools import wraps
 from typing import Any, Callable, List, Union, Dict, Type, ClassVar, Optional
-from plotly.graph_objs._bar import Bar
+
 import jsonpickle
 import matplotlib
 import pandas as pd
