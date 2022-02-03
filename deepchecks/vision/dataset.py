@@ -101,8 +101,9 @@ class VisionDataset:
         elif isinstance(self.label_transformer, DetectionLabelFormatter):
             self.task_type = TaskType.OBJECT_DETECTION
         else:
-            raise ValueError(f'Unsupported label transformer type. {type(self.label_transformer)}, must be one of '
-                             f'ClassificationLabelFormatter or DetectionLabelFormatter.')
+            logger.warning(f'Unknown label transformer type was provided. Only integrity and data checks will run.'
+                           f'The supported label transformer types are: '
+                           f'{[ClassificationLabelFormatter, DetectionLabelFormatter]}')
 
         self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
         self._samples_per_class = None
