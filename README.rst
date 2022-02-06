@@ -64,7 +64,7 @@ Using conda
 
 .. code:: bash
 
-   conda install -c deepchecks deepchecks
+   conda install -c conda-forge deepchecks
 
 
 Try it Out!
@@ -84,118 +84,45 @@ Running a Suite
 A `Suite <#suite>`_ runs a collection of `Checks <#check>`_ with
 optional `Conditions <#condition>`_ added to them.
 
-To see it in action, we recommend `trying it out <#try-it-out>`_.
-
-To run an existing suite all you need to do is to import the suite and run 
-it with the required (suite-dependent) input parameters.
-The list of all built-in suites can be found `here <deepchecks/suites>`_.
-
-Let's take the "iris" dataset as an example
+Example for running a suite on given `datasets`_ and with a `supported model`_:
 
 .. code:: python
 
-   from sklearn.datasets import load_iris
-   iris_df = load_iris(return_X_y=False, as_frame=True)['frame']
+   from deepchecks.suites import full_suite
+   suite = full_suite()
+   suite.run(train_dataset=train_dataset, test_dataset=train_dataset, model=model)
 
-and run the `single_dataset_integrity` suite, which requires only a single `Dataset`_
-and can run also directly on a `pd.DataFrame`, like in the following example.
+Which will result in a report that looks like this:
 
-.. _Dataset:
+.. raw:: html
+
+   <p align="center">
+      <img src="docs/images/full_suite_output.gif" width="750">
+   </p>
+
+See the `full example here`_.
+
+Note that some other suites (e.g. ``single_dataset_integrity``) don't require a model as part of the input.
+
+.. _full example here:
+   https://docs.deepchecks.com/en/stable/
+   examples/guides/quickstart_in_5_minutes.html?
+   utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out
+
+.. _datasets:
    https://docs.deepchecks.com/en/stable/
    user-guide/dataset_object.html
    ?utm_source=github.com&utm_medium=referral&
    utm_campaign=readme&utm_content=running_a_suite
 
-.. code:: python
+.. _supported model:
+   https://docs.deepchecks.com/en/stable/
+   user-guide/supported_models.html
+   ?utm_source=github.com&utm_medium=referral&
+   utm_campaign=readme&utm_content=running_a_suite 
 
-   from deepchecks.suites import single_dataset_integrity
-   suite = single_dataset_integrity()
-   suite.run(iris_df)
 
-Will result in printing the suite's output, that starts with a summary
-of the check conditions
-
-   .. raw:: html
-
-      <h1 id="summary_NKMZO">Single Dataset Integrity Suite</h1>
-      <p>The suite is composed of various checks such as: Mixed Data Types, Is Single Value, String Mismatch, etc...<br>
-             Each check may contain conditions (which will result in pass / fail / warning, represented by 
-         <span style="color: green;display:inline-block">✓</span> /
-         <span style="color: red;display:inline-block">✖</span> /
-         <span style="color: orange;font-weight:bold;display:inline-block">!</span>
-         ),
-             as well as other outputs such as plots or tables.<br>
-             Suites, checks and conditions can all be modified (see the 
-             <a href='https://docs.deepchecks.com/en/stable/examples/guides/create_a_custom_suite.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=suite_output_link'>Create a Custom Suite</a> tutorial).</p>
-
-   .. raw:: html
-
-      <hr style="background-color: black;border: 0 none;color: black;height: 1px;">
-
-   .. raw:: html
-
-      <h2>Conditions Summary</h2>
-
-   .. raw:: html
-
-      <table id="T_7735f_">
-       <thead>
-         <tr>
-           <th class="col_heading level0 col0">Status</th>
-           <th class="col_heading level0 col1">Check</th>
-           <th class="col_heading level0 col2">Condition</th>
-           <th class="col_heading level0 col3">More Info</th>
-         </tr>
-       </thead>
-       <tbody>
-         <tr>
-           <td id="T_7735f_row0_col0" class="data row0 col0"><div style="color: red;text-align: center">✖</div></td>
-           <td id="T_7735f_row0_col1" class="data row0 col1">Single Value in Column - Test Dataset</td>
-           <td id="T_7735f_row0_col2" class="data row0 col2">Does not contain only a single value for all columns</td>
-           <td id="T_7735f_row0_col3" class="data row0 col3">Columns containing a single value: ['target']</td>
-         </tr>
-         <tr>
-           <td id="T_7735f_row1_col0" class="data row1 col0"><div style="color: orange;text-align: center;font-weight:bold">!</div></td>
-           <td id="T_7735f_row1_col1" class="data row1 col1">Data Duplicates - Test Dataset</td>
-           <td id="T_7735f_row1_col2" class="data row1 col2">Duplicate data is not greater than 0%</td>
-           <td id="T_7735f_row1_col3" class="data row1 col3">Found 2.00% duplicate data</td>
-         </tr>
-         <tr>
-          <td id="T_7735f_row2_col0" class="data row2 col0"><div style="color: green;text-align: center">✓</div></td>
-           <td id="T_7735f_row2_col1" class="data row2 col1">Mixed Nulls - Test Dataset</td>
-           <td id="T_7735f_row2_col2" class="data row2 col2">Not more than 1 different null types for all columns</td>
-           <td id="T_7735f_row2_col3" class="data row2 col3"></td>
-         </tr>
-         <tr>
-           <td id="T_7735f_row3_col0" class="data row3 col0"><div style="color: green;text-align: center">✓</div></td>
-           <td id="T_7735f_row3_col1" class="data row3 col1">Mixed Data Types - Test Dataset</td>
-           <td id="T_7735f_row3_col2" class="data row3 col2">Rare data types in all columns are either more than 10.00% or less than 1.00% of the data</td>
-           <td id="T_7735f_row3_col3" class="data row3 col3"></td>
-         </tr>
-         <tr>
-           <td id="T_7735f_row4_col0" class="data row4 col0"><div style="color: green;text-align: center">✓</div></td>
-           <td id="T_7735f_row4_col1" class="data row4 col1">String Mismatch - Test Dataset</td>
-           <td id="T_7735f_row4_col2" class="data row4 col2">No string variants for all columns</td>
-           <td id="T_7735f_row4_col3" class="data row4 col3"></td>
-         </tr>
-         <tr>
-           <td id="T_7735f_row5_col0" class="data row5 col0"><div style="color: green;text-align: center">✓</div></td>
-           <td id="T_7735f_row5_col1" class="data row5 col1">String Length Out Of Bounds - Test Dataset</td>
-           <td id="T_7735f_row5_col2" class="data row5 col2">Ratio of outliers not greater than 0% string length outliers for all columns</td>
-           <td id="T_7735f_row5_col3" class="data row5 col3"></td>
-         </tr>
-         <tr>
-           <td id="T_7735f_row6_col0" class="data row6 col0"><div style="color: green;text-align: center">✓</div></td>
-           <td id="T_7735f_row6_col1" class="data row6 col1">Special Characters - Test Dataset</td>
-           <td id="T_7735f_row6_col2" class="data row6 col2">Ratio of entirely special character samples not greater than 0.10% for all columns</td>
-           <td id="T_7735f_row6_col3" class="data row6 col3"></td>
-         </tr>
-       </tbody>
-      </table>
-
-Followed by the visual outputs of all of the checks that are in that
-suite, that isn't appended here for brevity. In the following section 
-you can see an example of how the output of a single check may look.
+In the following section you can see an example of how the output of a single check without a condition may look.
 
 Running a Check
 ----------------
@@ -286,14 +213,17 @@ Suite
 
 An ordered collection of checks, that can have conditions added to them.
 The Suite enables displaying a concluding report for all of the Checks
-that ran. See the list of `predefined existing suites`_
+that ran.
+
+See the list of `predefined existing suites`_ for tabular data
 to learn more about the suites you can work with directly and also to
 see a code example demonstrating how to build your own custom suite.
+
 The existing suites include default conditions added for most of the checks.
 You can edit the preconfigured suites or build a suite of your own with a collection
 of checks and optional conditions.
 
-.. _predefined existing suites: deepchecks/suites
+.. _predefined existing suites: deepchecks/tabular/suites
 
 .. include:: 
 
@@ -327,15 +257,20 @@ subset of the following:
 
 -  Test data (which the model isn't exposed to) with labels
 
--  A model compatible with scikit-learn API that you wish to validate
-   (e.g. RandomForest, XGBoost)
+-  A `supported model`_ (e.g. scikit-learn models, XGBoost, any model implementing the `predict` method in the required format)
+
+Supported Data Types
+~~~~~~~~~~~~~~~~~~~~
+
+Currently the package supports tabular data.
+Stay tuned for the upcoming Computer Vision release.
+
+When Should I Run Deepchecks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Deepchecks validation accompanies you from the initial phase when you
 have only raw data, through the data splits, and to the final stage of
-having a trained model that you wish to evaluate. Accordingly, each
-phase requires different assets for the validation.
-
-See more about typical usage scenarios and the built-in suites in the
+having a trained model that you wish to evaluate. See more about typical usage scenarios and the built-in suites in the
 `docs <https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utme_content=what_do_you_need_in_order_to_start_validating>`__.
 
 
