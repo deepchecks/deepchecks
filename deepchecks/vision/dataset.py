@@ -141,10 +141,7 @@ class VisionData:
 
     def to_display_data(self, batch):
         """Converts a batch of data outputted by the data loader to a format that can be displayed."""
-        data_valid = self.data_transformer.validate_data(batch)
-        if data_valid is not None:
-            raise DeepchecksValueError(data_valid)
-
+        self.data_transformer.validate_data(batch)
         return self.data_transformer(batch)
 
     @property

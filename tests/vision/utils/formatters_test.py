@@ -9,8 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 import numpy as np
-from hamcrest import assert_that, equal_to
+from hamcrest import assert_that, equal_to, calling, raises
 
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.utils.data_formatters import DataFormatter
 from tests.vision.vision_conftest import *
 
@@ -51,34 +52,62 @@ def numpy_shape_dataloader(shape, value: float = 1, collate_fn=None):
     return DataLoader(TwoTupleDataset(), batch_size=4, collate_fn=collate_fn)
 
 
+def test_data_formatter_not_iterable():
+    formatter = DataFormatter()
+
+    batch = 1
+    assert_that(
+        calling(formatter.validate_data).with_args(batch),
+        raises(DeepchecksValueError, 'The batch data must be an iterable.')
+    )
+
+
+def test_data_formatter_not_numpy():
+    formatter = DataFormatter(lambda x: [[x] for x in x])
+
+    batch = next(iter(numpy_shape_dataloader((10, 10, 3))))
+    assert_that(
+        calling(formatter.validate_data).with_args(batch),
+        raises(DeepchecksValueError, 'The data inside the iterable must be a numpy array.')
+    )
+
+
 def test_data_formatter_missing_dimensions():
     formatter = DataFormatter(lambda x: x)
 
     batch = next(iter(numpy_shape_dataloader((10, 10))))
-    err = formatter.validate_data(batch)
-    assert_that(err, equal_to('The data inside the iterable must be a 3D array.'))
+    assert_that(
+        calling(formatter.validate_data).with_args(batch),
+        raises(DeepchecksValueError, 'The data inside the iterable must be a 3D array.')
+    )
 
 
 def test_data_formatter_wrong_color_channel():
     formatter = DataFormatter(lambda x: x)
 
     batch = next(iter(numpy_shape_dataloader((3, 10, 10))))
-    err = formatter.validate_data(batch)
-    assert_that(err, equal_to('The data must have 1 or 3 channels.'))
+    assert_that(
+        calling(formatter.validate_data).with_args(batch),
+        raises(DeepchecksValueError, 'The data inside the iterable must have 1 or 3 channels.')
+    )
 
 
 def test_data_formatter_invalid_values():
     formatter = DataFormatter(lambda x: x * 300)
 
     batch = next(iter(numpy_shape_dataloader((10, 10, 3))))
-    err = formatter.validate_data(batch)
-    assert_that(err, equal_to('The data must be in the range [0, 255].'))
+    assert_that(
+        calling(formatter.validate_data).with_args(batch),
+        raises(DeepchecksValueError, r'The data inside the iterable must be in the range \[0, 255\].')
+    )
 
     formatter = DataFormatter(lambda x: -x)
 
     batch = next(iter(numpy_shape_dataloader((10, 10, 3))))
-    err = formatter.validate_data(batch)
-    assert_that(err, equal_to('The data must be in the range [0, 255].'))
+    assert_that(
+        calling(formatter.validate_data).with_args(batch),
+        raises(DeepchecksValueError, r'The data inside the iterable must be in the range \[0, 255\].')
+    )
 
 
 def test_data_formatter_valid_dimensions():
