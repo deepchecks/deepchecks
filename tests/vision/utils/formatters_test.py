@@ -39,7 +39,11 @@ def test_classification_formatter_formatting_invalid_label_type(two_tuples_datal
     assert_that(err, equal_to("Check requires classification label to be a torch.Tensor or numpy array"))
 
 
-def numpy_shape_dataloader(shape, value: float = 1):
+def numpy_shape_dataloader(shape, value: float = 1, collate_fn=None):
+
+    if collate_fn is None:
+        collate_fn = np.stack
+
     class TwoTupleDataset(Dataset):
         def __getitem__(self, index):
             return np.ones(shape) * value
@@ -47,37 +51,54 @@ def numpy_shape_dataloader(shape, value: float = 1):
         def __len__(self) -> int:
             return 8
 
-    return DataLoader(TwoTupleDataset(), batch_size=4, collate_fn=np.stack)
+    return DataLoader(TwoTupleDataset(), batch_size=4, collate_fn=collate_fn)
 
 
 def test_data_formatter_missing_dimensions():
     formatter = DataFormatter(lambda x: x)
 
-    err = formatter.validate_data(numpy_shape_dataloader((10, 10)))
-    assert_that(err, equal_to('The data must be a 4D array.'))
+    batch = next(iter(numpy_shape_dataloader((10, 10))))
+    err = formatter.validate_data(batch)
+    assert_that(err, equal_to('The data inside the iterable must be a 3D array.'))
 
 
 def test_data_formatter_wrong_color_channel():
     formatter = DataFormatter(lambda x: x)
 
-    err = formatter.validate_data(numpy_shape_dataloader((3, 10, 10)))
+    batch = next(iter(numpy_shape_dataloader((3, 10, 10))))
+    err = formatter.validate_data(batch)
     assert_that(err, equal_to('The data must have 1 or 3 channels.'))
 
 
 def test_data_formatter_invalid_values():
     formatter = DataFormatter(lambda x: x * 300)
 
-    err = formatter.validate_data(numpy_shape_dataloader((10, 10, 3)))
+    batch = next(iter(numpy_shape_dataloader((10, 10, 3))))
+    err = formatter.validate_data(batch)
     assert_that(err, equal_to('The data must be in the range [0, 255].'))
 
     formatter = DataFormatter(lambda x: -x)
 
-    err = formatter.validate_data(numpy_shape_dataloader((10, 10, 3)))
+    batch = next(iter(numpy_shape_dataloader((10, 10, 3))))
+    err = formatter.validate_data(batch)
     assert_that(err, equal_to('The data must be in the range [0, 255].'))
 
 
 def test_data_formatter_valid_dimensions():
     formatter = DataFormatter(lambda x: x)
 
-    err = formatter.validate_data(numpy_shape_dataloader((10, 10, 3)))
+    batch = next(iter(numpy_shape_dataloader((10, 10, 3))))
+    err = formatter.validate_data(batch)
+    assert_that(err, equal_to(None))
+
+
+def test_data_formatter_valid_dimensions_other_iterable():
+    formatter = DataFormatter(lambda x: x)
+
+    batch = next(iter(numpy_shape_dataloader((10, 10, 3), collate_fn=list)))
+    err = formatter.validate_data(batch)
+    assert_that(err, equal_to(None))
+
+    batch = next(iter(numpy_shape_dataloader((10, 10, 3), collate_fn=tuple)))
+    err = formatter.validate_data(batch)
     assert_that(err, equal_to(None))
