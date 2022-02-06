@@ -1,3 +1,4 @@
+"""Module containing the data formatter class for the vision module."""
 from typing import Callable, Optional
 
 import numpy as np
@@ -5,9 +6,11 @@ import numpy as np
 from deepchecks.core.errors import DeepchecksValueError
 
 
+__all__ = ['DataFormatter']
+
+
 class DataFormatter:
-    """
-    Class for formatting the image data outputted from the dataloader to the required format for check displays.
+    """Class for formatting the image data outputted from the dataloader to the required format for check displays.
 
     Parameters
     ----------
@@ -47,12 +50,11 @@ class DataFormatter:
             If the batch data doesn't fit the format after being transformed by self().
 
         """
-
         batch_data = self(batch_data)
         try:
             sample: np.ndarray = batch_data[0]
-        except TypeError:
-            raise DeepchecksValueError('The batch data must be an iterable.')
+        except TypeError as err:
+            raise DeepchecksValueError('The batch data must be an iterable.') from err
         if not isinstance(sample, np.ndarray):
             raise DeepchecksValueError('The data inside the iterable must be a numpy array.')
         if sample.ndim != 3:
@@ -61,4 +63,3 @@ class DataFormatter:
             raise DeepchecksValueError('The data inside the iterable must have 1 or 3 channels.')
         if sample.min() < 0 or sample.max() > 255:
             raise DeepchecksValueError('The data inside the iterable must be in the range [0, 255].')
-

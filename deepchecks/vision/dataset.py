@@ -140,7 +140,7 @@ class VisionData:
         return copy(self._samples_per_class)
 
     def to_display_data(self, batch):
-        """Converts a batch of data outputted by the data loader to a format that can be displayed."""
+        """Convert a batch of data outputted by the data loader to a format that can be displayed."""
         self.data_transformer.validate_data(batch)
         return self.data_transformer(batch)
 
