@@ -34,9 +34,9 @@ def test_no_drift_classification_label(mnist_dataset_train, mnist_dataset_test):
                 )
 
 
-def test_no_drift_object_detection_label(coco_dataset):
+def test_no_drift_object_detection_label(coco_data):
     # Arrange
-    train, test = coco_dataset, coco_dataset
+    train, test = coco_data, coco_data
     check = TrainTestLabelDrift()
 
     # Act

@@ -17,7 +17,7 @@ from ignite.metrics import Precision, Recall, Metric
 from torch import nn
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.vision import VisionDataset
+from deepchecks.vision import VisionData
 
 __all__ = [
     'get_scorers_list',
@@ -44,14 +44,14 @@ def get_default_object_detection_scorers():
 
 
 def get_scorers_list(
-        dataset: VisionDataset,
+        dataset: VisionData,
         alternative_scorers: t.List[Metric] = None,
 ) -> t.Dict[str, Metric]:
     """Get scorers list according to model object and label column.
 
     Parameters
     ----------
-    dataset : VisionDataset
+    dataset : VisionData
         Dataset object
     alternative_scorers : t.List[Metric]
         Alternative scorers list
@@ -81,7 +81,7 @@ def get_scorers_list(
     return scorers
 
 
-def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn.Module,
+def calculate_metrics(metrics: t.List[Metric], dataset: VisionData, model: nn.Module,
                       prediction_formatter: BasePredictionFormatter) \
         -> t.Dict[str, float]:
     """Calculate a list of ignite metrics on a given model and dataset.
@@ -90,7 +90,7 @@ def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn
     ----------
     metrics : t.List[Metric]
         List of ignite metrics to calculate
-    dataset : VisionDataset
+    dataset : VisionData
         Dataset object
     model : nn.Module
         Model object

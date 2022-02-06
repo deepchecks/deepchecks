@@ -25,7 +25,7 @@ from deepchecks.vision.utils.base_formatters import BaseLabelFormatter
 
 logger = logging.getLogger('deepchecks')
 
-__all__ = ['TaskType', 'VisionDataset']
+__all__ = ['TaskType', 'VisionData']
 
 
 class TaskType(Enum):
@@ -36,10 +36,10 @@ class TaskType(Enum):
     SEMANTIC_SEGMENTATION = 'semantic_segmentation'
 
 
-class VisionDataset:
-    """VisionDataset wraps a PyTorch DataLoader together with model related metadata.
+class VisionData:
+    """VisionData wraps a PyTorch DataLoader together with model related metadata.
 
-    The VisionDataset class is containing additional data and methods intended for easily accessing
+    The VisionData class is containing additional data and methods intended for easily accessing
     metadata relevant for the training or validating of a computer vision ML models.
 
     Parameters
@@ -183,7 +183,7 @@ class VisionDataset:
 
         Parameters
         ----------
-        other : VisionDataset
+        other : VisionData
             Expected to be Dataset type. dataset to compare
         Returns
         -------
@@ -194,7 +194,7 @@ class VisionDataset:
         DeepchecksValueError
             if datasets don't have the same label
         """
-        VisionDataset.validate_dataset(other)
+        VisionData.validate_dataset(other)
 
         if self.is_have_label() != other.is_have_label():
             raise DeepchecksValueError('Datasets required to both either have or don\'t have labels')
@@ -206,7 +206,7 @@ class VisionDataset:
             raise DeepchecksValueError('Datasets required to share the same label shape')
 
     @classmethod
-    def validate_dataset(cls, obj) -> 'VisionDataset':
+    def validate_dataset(cls, obj) -> 'VisionData':
         """Throws error if object is not deepchecks Dataset and returns the object if deepchecks Dataset.
 
         Parameters
@@ -218,8 +218,8 @@ class VisionDataset:
         Dataset
             object that is deepchecks dataset
         """
-        if not isinstance(obj, VisionDataset):
-            raise DeepchecksValueError('Check requires dataset to be of type VisionDataset. instead got: '
+        if not isinstance(obj, VisionData):
+            raise DeepchecksValueError('Check requires dataset to be of type VisionData. instead got: '
                                        f'{type(obj).__name__}')
 
         return obj
