@@ -15,7 +15,7 @@ from deepchecks.vision.metrics_utils.metrics import TaskType, \
     get_default_classification_scorers
 from deepchecks.vision.metrics_utils.metrics import calculate_metrics
 from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
-from deepchecks.vision.dataset import VisionDataset
+from deepchecks.vision.dataset import VisionData
 
 
 # def test_mnist_task_type_classification(trained_mnist, mnist_dataset_train):
@@ -23,8 +23,8 @@ from deepchecks.vision.dataset import VisionDataset
 #     assert_that(res, equal_to(TaskType.CLASSIFICATION))
 #
 #
-# def test_ssd_task_type_object(trained_yolov5_object_detection, coco_dataset):
-#     res = task_type_check(trained_yolov5_object_detection, coco_dataset)
+# def test_ssd_task_type_object(trained_yolov5_object_detection, coco_data):
+#     res = task_type_check(trained_yolov5_object_detection, coco_data)
 #     assert_that(res, equal_to(TaskType.OBJECT_DETECTION))
 #
 #
@@ -32,7 +32,7 @@ from deepchecks.vision.dataset import VisionDataset
 #     dl = coco_dataloader
 #     model = trained_yolov5_object_detection
 #
-#     res = calculate_metrics([AveragePrecision()], VisionDataset(dl), model,
+#     res = calculate_metrics([AveragePrecision()], VisionData(dl), model,
 #                             prediction_extract=yolo_wrapper)
 #
 #
