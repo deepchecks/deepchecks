@@ -66,31 +66,36 @@ class RobustnessReport(SingleDatasetCheck):
         model = context.model
 
         # Get default scorers if no alternative, or validate alternatives
-        metrics = get_scorers_list(dataset, self.alternative_metrics)
-        # Return dataframe of (Class, Metric, Value)
-        base_results: pd.DataFrame = self._evaluate_dataset(dataset, metrics, model)
-        # Return dict of metric to value
-        base_mean_results: dict = self._calc_mean_metrics(base_results)
-        # Get augmentations
-        augmentations = self.augmentations or get_robustness_augmentations(dataset.get_transform_type())
-        aug_all_data = {}
-        for augmentation_func in augmentations:
-            augmentation = augmentation_name(augmentation_func)
-            aug_dataset = self._create_augmented_datasets(dataset, augmentation_func)
-            # Return dataframe of (Class, Metric, Value)
-            aug_results = self._evaluate_dataset(aug_dataset, metrics, model)
-            # Return dict of {metric: {'score': mean score, 'diff': diff from base}, ... }
-            metrics_diff_dict = self._create_performance_diff(base_mean_results, aug_results)
-            # Return dict of metric to list {metric: [{'class': x, 'value': y, 'diff': z, 'samples': w}, ...], ...}
-            top_affected_classes = self._calculate_top_affected_classes(base_results, aug_results, dataset, 5)
-            # Return list of [(base image, augmented image, class), ...]
-            image_pairs = get_random_image_pairs_from_dataset(dataset, aug_dataset, top_affected_classes)
-            aug_all_data[augmentation] = {
-                'metrics': aug_results,
-                'metrics_diff': metrics_diff_dict,
-                'top_affected': top_affected_classes,
-                'images': image_pairs
-            }
+        # metrics = get_scorers_list(dataset, self.alternative_metrics)
+        # # Return dataframe of (Class, Metric, Value)
+        # base_results: pd.DataFrame = self._evaluate_dataset(dataset, metrics, model)
+        # # Return dict of metric to value
+        # base_mean_results: dict = self._calc_mean_metrics(base_results)
+        # # Get augmentations
+        # augmentations = self.augmentations or get_robustness_augmentations(dataset.get_transform_type())
+        # aug_all_data = {}
+        # for augmentation_func in augmentations:
+        #     augmentation = augmentation_name(augmentation_func)
+        #     aug_dataset = self._create_augmented_datasets(dataset, augmentation_func)
+        #     # Return dataframe of (Class, Metric, Value)
+        #     aug_results = self._evaluate_dataset(aug_dataset, metrics, model)
+        #     # Return dict of {metric: {'score': mean score, 'diff': diff from base}, ... }
+        #     metrics_diff_dict = self._create_performance_diff(base_mean_results, aug_results)
+        #     # Return dict of metric to list {metric: [{'class': x, 'value': y, 'diff': z, 'samples': w}, ...], ...}
+        #     top_affected_classes = self._calculate_top_affected_classes(base_results, aug_results, dataset, 5)
+        #     # Return list of [(base image, augmented image, class), ...]
+        #     image_pairs = get_random_image_pairs_from_dataset(dataset, aug_dataset, top_affected_classes)
+        #     aug_all_data[augmentation] = {
+        #         'metrics': aug_results,
+        #         'metrics_diff': metrics_diff_dict,
+        #         'top_affected': top_affected_classes,
+        #         'images': image_pairs
+        #     }
+
+        with open('robustness.pkl', 'rb') as inp:
+            loaded = pickle.load(inp)
+            base_mean_results = loaded[0]
+            aug_all_data = loaded[1]
 
         # Create figures to display
         figures = self._create_augmentation_figure(dataset, base_mean_results, aug_all_data)
@@ -134,35 +139,6 @@ class RobustnessReport(SingleDatasetCheck):
 
         return pd.DataFrame(per_class_result, columns=['Class', 'Metric', 'Value']).sort_values(by=['Class'])
 
-    def _create_example_figure(self, dataset: VisionDataset, images):
-        image_classes = []
-        origin_figures = []
-        augment_figures = []
-        row_titles = ['Origin', 'Augmented']
-
-        for index, (base_image, aug_image, curr_class) in enumerate(images):
-            # Add image figures
-            origin_figures.append(go.Image(z=dataset.display_transform(base_image), hoverinfo='skip'))
-            augment_figures.append(go.Image(z=dataset.display_transform(aug_image), hoverinfo='skip'))
-            image_classes.append(curr_class)
-
-        fig = make_subplots(rows=2, cols=len(image_classes), column_titles=image_classes, row_titles=row_titles,
-                            vertical_spacing=0.01, horizontal_spacing=0)
-
-        for index in range(len(image_classes)):
-            fig.append_trace(origin_figures[index], row=1, col=index + 1)
-            fig.append_trace(augment_figures[index], row=2, col=index + 1)
-
-        (fig.update_layout(title='Augmentation Samples', autosize=True)
-         .update_yaxes(showticklabels=False, visible=True, fixedrange=True, side='left')
-         .update_xaxes(showticklabels=False, visible=True, fixedrange=True))
-
-        # Since row and columns titles are annotations need this hack to move them to bottom & left
-        # fig.for_each_annotation(lambda a: a.update(y=-100) if a.text in image_classes else a.update(
-        #     x=-100) if a.text in row_titles else a)
-
-        return fig
-
     def _calculate_top_affected_classes(self, base_results, augmented_results, dataset, n_classes_to_show):
         def calc_percent(a, b):
             return (a - b) / b if b != 0 else 0
@@ -182,6 +158,83 @@ class RobustnessReport(SingleDatasetCheck):
                                                  'diff': diff_value,
                                                  'samples': dataset.get_samples_per_class()[index_class]})
         return aug_top_affected
+
+    def _create_performance_diff(self, mean_base, augmented_metrics):
+        def difference(aug_score, base_score):
+            return (aug_score - base_score) / base_score
+
+        diff_dict = {}
+        for metric, score in self._calc_mean_metrics(augmented_metrics).items():
+            diff_dict[metric] = {'score': score, 'diff': difference(score, mean_base[metric])}
+
+        return diff_dict
+
+    def _calc_mean_metrics(self, metrics_df) -> dict:
+        metrics_df = metrics_df[['Metric', 'Value']].groupby(['Metric']).median()
+        return metrics_df.to_dict()['Value']
+
+    def _create_augmentation_figure(self, dataset, base_mean_results, aug_all_data):
+        figures = []
+        # Iterate augmentation names
+        for augmentation, curr_data in aug_all_data.items():
+            figures.append(f'<h3>Augmentation: {augmentation}</h3>')
+            # Create performance graph
+            figures.append(self._create_performance_graph(base_mean_results, curr_data['metrics_diff']))
+            # Create top affected graph
+            figures.append(self._create_top_affected_graph(curr_data['top_affected']))
+            # Create example figures, return first n_pictures_to_show from original and then n_pictures_to_show from
+            # augmented dataset
+            figures.append(self._create_example_figure(dataset, curr_data['images']))
+
+        return figures
+
+    def _create_example_figure(self, dataset: VisionDataset, images):
+        image_classes = []
+        origin_figures = []
+        augment_figures = []
+        row_titles = ['Origin', 'Augmented']
+
+        for index, (base_image, aug_image, curr_class) in enumerate(images):
+            # Add image figures
+            origin_figures.append(go.Image(z=dataset.display_transform(base_image), hoverinfo='skip'))
+            augment_figures.append(go.Image(z=dataset.display_transform(aug_image), hoverinfo='skip'))
+            image_classes.append(curr_class)
+
+        fig = make_subplots(rows=2, cols=len(image_classes), column_titles=image_classes, row_titles=row_titles,
+                            vertical_spacing=0, horizontal_spacing=0.01)
+
+        for index in range(len(image_classes)):
+            fig.append_trace(origin_figures[index], row=1, col=index + 1)
+            fig.append_trace(augment_figures[index], row=2, col=index + 1)
+
+        (fig.update_layout(title='Augmentation Samples', autosize=True)
+         .update_yaxes(showticklabels=False, visible=True, fixedrange=True)
+         .update_xaxes(showticklabels=False, visible=True, fixedrange=True)
+         .update_traces())
+
+        # Since row and columns titles are annotations need this hack to move them to bottom & left
+        # fig.for_each_annotation(lambda a: a.update(y=-100) if a.text in image_classes else a.update(
+        #     x=-100) if a.text in row_titles else a)
+
+        return fig
+
+    def _create_performance_graph(self, base_scores: dict, augmented_scores: dict):
+        metrics = sorted(list(base_scores.keys()))
+        fig = make_subplots(rows=1, cols=len(metrics), subplot_titles=metrics)
+
+        for index, metric in enumerate(metrics):
+            curr_aug = augmented_scores[metric]
+            x = ['Augmented', 'Origin']
+            y = [curr_aug['score'], base_scores[metric]]
+            diff = [format_percent(curr_aug['diff']), '']
+
+            fig.add_trace(go.Bar(name=metric, x=x, y=y, customdata=diff, texttemplate='%{customdata}',
+                                 textposition='inside'), col=index + 1, row=1)
+
+        (fig.update_layout(font=dict(size=12), height=200,
+                           title=dict(text='Performance Comparison', font=dict(size=20)))
+         .update_xaxes(title=None, type='category', tickangle=30))
+        return fig
 
     def _create_top_affected_graph(self, top_affected_dict):
         metrics = sorted(top_affected_dict.keys())
@@ -207,54 +260,6 @@ class RobustnessReport(SingleDatasetCheck):
          .update_xaxes(title=None, type='category', tickangle=30, tickprefix='Class '))
 
         return fig
-
-    def _create_performance_diff(self, mean_base, augmented_metrics):
-        def difference(aug_score, base_score):
-            return (aug_score - base_score) / base_score
-
-        diff_dict = {}
-        for metric, score in self._calc_mean_metrics(augmented_metrics).items():
-            diff_dict[metric] = {'score': score, 'diff': difference(score, mean_base[metric])}
-
-        return diff_dict
-
-    def _calc_mean_metrics(self, metrics_df) -> dict:
-        metrics_df = metrics_df[['Metric', 'Value']].groupby(['Metric']).median()
-        return metrics_df.to_dict()['Value']
-
-    def _create_performance_graph(self, base_scores: dict, augmented_scores: dict):
-        metrics = sorted(list(base_scores.keys()))
-        fig = make_subplots(rows=4, cols=len(metrics), subplot_titles=metrics)
-
-        for index, metric in enumerate(base_scores):
-            curr_aug = augmented_scores[metric]
-            x = ['Augmented', 'Origin']
-            y = [curr_aug['score'], base_scores[metric]]
-            diff = [format_percent(curr_aug['diff']), '']
-
-            fig.add_trace(go.Bar(name=metric, x=x, y=y, customdata=diff, texttemplate='%{customdata}',
-                                 textposition='inside'), col=index + 1, row=1)
-
-        (fig.update_layout(font=dict(size=12), height=600,
-                           title=dict(text='Performance Comparison', font=dict(size=20)))
-         .update_xaxes(title=None, type='category', tickangle=30)
-         .update_yaxes(matches=None))
-        return fig
-
-    def _create_augmentation_figure(self, dataset, base_mean_results, aug_all_data):
-        figures = []
-        # Iterate augmentation names
-        for augmentation, curr_data in aug_all_data.items():
-            figures.append(f'<h3>Augmentation: {augmentation}</h3>')
-            # Create performance graph
-            figures.append(self._create_performance_graph(base_mean_results, curr_data['metrics_diff']))
-            # Create top affected graph
-            figures.append(self._create_top_affected_graph(curr_data['top_affected']))
-            # Create example figures, return first n_pictures_to_show from original and then n_pictures_to_show from
-            # augmented dataset
-            figures.append(self._create_example_figure(dataset, curr_data['images']))
-
-        return figures
 
 
 def get_robustness_augmentations(transform_type):
