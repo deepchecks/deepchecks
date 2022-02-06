@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 import numpy as np
-
 from hamcrest import assert_that, equal_to
 
 from deepchecks.vision.utils.data_formatters import DataFormatter

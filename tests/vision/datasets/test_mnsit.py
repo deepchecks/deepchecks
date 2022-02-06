@@ -12,7 +12,7 @@ import time
 from torch.utils.data import DataLoader
 from hamcrest import assert_that, instance_of, calling, raises
 
-from deepchecks.vision import VisionDataset
+from deepchecks.vision import VisionData
 from deepchecks.vision.datasets.classification.mnist import (
     load_dataset,
     load_model,
@@ -31,7 +31,7 @@ def test_dataset_load():
 
 def test_deepchecks_dataset_load():
     dataloader, dataset = load_dataset(object_type='DataLoader'), load_dataset(object_type='Dataset')
-    assert_that(dataset, instance_of(VisionDataset))
+    assert_that(dataset, instance_of(VisionData))
     assert_that(dataloader, instance_of(DataLoader))
 
 
