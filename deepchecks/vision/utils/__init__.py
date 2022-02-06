@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -9,3 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Package for vision utilities."""
+from .classification_formatters import ClassificationLabelFormatter, ClassificationPredictionFormatter
+from .detection_formatters import DetectionLabelFormatter, DetectionPredictionFormatter
+from .validation import validate_model
+
+__all__ = [
+    "ClassificationLabelFormatter",
+    "ClassificationPredictionFormatter",
+    "DetectionLabelFormatter",
+    "DetectionPredictionFormatter",
+    "validate_model",
+    ]

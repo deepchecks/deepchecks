@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -13,14 +13,15 @@ import copy
 import pytest
 import torch
 from torch import nn
-import torch.nn.functional as F
 from torchvision.transforms import ToTensor
 
 from deepchecks.vision import VisionDataset
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 from torchvision.datasets import MNIST
 
+from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.datasets.detection.coco import get_trained_yolov5_object_detection, get_coco_dataloader
+from deepchecks.vision.utils import DetectionLabelFormatter, ClassificationLabelFormatter
 
 
 @pytest.fixture(scope='session')
@@ -36,7 +37,7 @@ def mnist_data_loader_train():
 @pytest.fixture(scope='session')
 def mnist_dataset_train(mnist_data_loader_train):
     """Return MNist dataset as VisionDataset object."""
-    dataset = VisionDataset(mnist_data_loader_train)
+    dataset = VisionDataset(mnist_data_loader_train, label_transformer=ClassificationLabelFormatter(lambda x: x))
     return dataset
 
 
@@ -53,7 +54,7 @@ def mnist_data_loader_test():
 @pytest.fixture(scope='session')
 def mnist_dataset_test(mnist_data_loader_test):
     """Return MNist dataset as VisionDataset object."""
-    dataset = VisionDataset(mnist_data_loader_test)
+    dataset = VisionDataset(mnist_data_loader_test, label_transformer=ClassificationLabelFormatter(lambda x: x))
     return dataset
 
 
@@ -134,4 +135,28 @@ def coco_dataloader():
 
 @pytest.fixture(scope='session')
 def coco_dataset(coco_dataloader):
-    return VisionDataset(coco_dataloader)
+    return VisionDataset(coco_dataloader, label_transformer=DetectionLabelFormatter(lambda x: x))
+
+
+@pytest.fixture(scope='session')
+def three_tuples_dataloader():
+    class ThreeTupleDataset(Dataset):
+        def __getitem__(self, index):
+            return [index, index, index]
+
+        def __len__(self) -> int:
+            return 8
+
+    return DataLoader(ThreeTupleDataset(), batch_size=4)
+
+
+@pytest.fixture(scope='session')
+def two_tuples_dataloader():
+    class TwoTupleDataset(Dataset):
+        def __getitem__(self, index):
+            return [index, index]
+
+        def __len__(self) -> int:
+            return 8
+
+    return DataLoader(TwoTupleDataset(), batch_size=4)

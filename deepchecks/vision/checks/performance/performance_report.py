@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing performance report check."""
-from typing import Callable, TypeVar, List
+from typing import TypeVar, List, Union
 import pandas as pd
 import plotly.express as px
 from ignite.metrics import Metric
@@ -20,6 +20,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.metrics_utils.metrics import get_scorers_list, calculate_metrics
+from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
 
 __all__ = ['PerformanceReport']
@@ -32,14 +33,18 @@ class PerformanceReport(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_metrics (List[Metric], default None):
+    alternative_metrics : List[Metric], default: None
         A list of ignite.Metric objects whose score should be used. If None are given, use the default metrics.
+    prediction_formatter : Union[ClassificationPredictionFormatter, DetectionPredictionFormatter, None], default: None
+        An encoder to convert predictions to a format that can be used by the metrics.
     """
 
-    def __init__(self, alternative_metrics: List[Metric] = None, prediction_extract: Callable = None):
+    def __init__(self,
+                 alternative_metrics: List[Metric] = None,
+                 prediction_formatter: Union[ClassificationPredictionFormatter, DetectionPredictionFormatter] = None):
         super().__init__()
         self.alternative_metrics = alternative_metrics
-        self.prediction_extract = prediction_extract
+        self.prediction_formatter = prediction_formatter
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -67,7 +72,7 @@ class PerformanceReport(TrainTestCheck):
             results.extend(
                 [dataset_name, class_name, name, class_score, n_samples[class_name]]
                 for name, score in calculate_metrics(list(scorers.values()), dataset, model,
-                                                     prediction_extract=self.prediction_extract).items()
+                                                     prediction_formatter=self.prediction_formatter).items()
                 # scorer returns numpy array of results with item per class
                 for class_score, class_name in zip(score, classes)
             )
