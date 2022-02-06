@@ -194,7 +194,8 @@ class VisionDataset:
         props = get_data_loader_props_to_copy(self.get_data_loader())
         props['dataset'] = copy(self.get_data_loader().dataset)
         new_data_loader = self.get_data_loader().__class__(**props)
-        return VisionDataset(new_data_loader, label_type=self.task_type.value,
+        return VisionDataset(new_data_loader,
+                             display_transform=self.display_transform,
                              label_transformer=self.label_transformer,
                              transform_field=self.transform_field)
 

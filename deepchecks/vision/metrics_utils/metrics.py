@@ -85,7 +85,7 @@ def get_scorers_list(
 
 def calculate_metrics(metrics: t.List[Metric], dataset: VisionDataset, model: nn.Module,
                       prediction_formatter: BasePredictionFormatter) \
-        -> t.Dict[str, float]:
+        -> t.Dict[str, t.Union[t.List, float]]:
     """Calculate a list of ignite metrics on a given model and dataset.
 
     Parameters

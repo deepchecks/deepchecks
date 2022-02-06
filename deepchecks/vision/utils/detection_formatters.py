@@ -55,7 +55,7 @@ class DetectionLabelFormatter(BaseLabelFormatter):
 
     label_formatter: Union[str, Callable]
 
-    def __init__(self, label_formatter: Union[str, Callable]):
+    def __init__(self, label_formatter: Union[str, Callable] = lambda x: x):
         super().__init__(label_formatter)
         self.label_formatter = label_formatter
 

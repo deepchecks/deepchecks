@@ -36,7 +36,7 @@ class ClassificationLabelFormatter(BaseLabelFormatter):
 
     """
 
-    def __init__(self, label_formatter: Callable):
+    def __init__(self, label_formatter: Callable = lambda x: x):
         super().__init__(label_formatter)
         self.label_formatter = label_formatter
 
