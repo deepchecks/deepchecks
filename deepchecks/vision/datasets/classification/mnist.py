@@ -22,7 +22,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from typing_extensions import Literal
 
-from deepchecks.vision.dataset import VisionDataset
+from deepchecks.vision.dataset import VisionData
 from . import MODELS_DIR
 
 
@@ -44,7 +44,7 @@ def load_dataset(
     shuffle: bool = True,
     pin_memory: bool = True,
     object_type: Literal['Dataset', 'DataLoader'] = 'DataLoader'
-) -> t.Union[DataLoader, VisionDataset]:
+) -> t.Union[DataLoader, VisionData]:
     """Download MNIST dataset.
 
     Parameters
@@ -59,15 +59,15 @@ def load_dataset(
         If ``True``, the data loader will copy Tensors
         into CUDA pinned memory before returning them.
     object_type : Literal[Dataset, DataLoader], default 'DataLoader'
-        object type to return. if `'Dataset'` then :obj:`deepchecks.vision.VisionDataset`
+        object type to return. if `'Dataset'` then :obj:`deepchecks.vision.VisionData`
         will be returned, if `'DataLoader'` then :obj:`torch.utils.data.DataLoader`
 
     Returns
     -------
-    Union[:obj:`deepchecks.vision.VisionDataset`, :obj:`torch.utils.data.DataLoader`]
+    Union[:obj:`deepchecks.vision.VisionData`, :obj:`torch.utils.data.DataLoader`]
 
         depending on the ``object_type`` parameter value, instance of
-        :obj:`deepchecks.vision.VisionDataset` or :obj:`torch.utils.data.DataLoader`
+        :obj:`deepchecks.vision.VisionData` or :obj:`torch.utils.data.DataLoader`
         will be returned
 
     """
@@ -92,7 +92,7 @@ def load_dataset(
     if object_type == 'DataLoader':
         return loader
     elif object_type == 'Dataset':
-        return VisionDataset(
+        return VisionData(
             data_loader=loader,
             num_classes=len(datasets.MNIST.classes),
             label_transformer=ClassificationLabelFormatter(lambda x: x)
