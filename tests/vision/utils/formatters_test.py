@@ -10,9 +10,7 @@
 #
 import numpy as np
 
-from deepchecks.vision import VisionDataset
-from deepchecks.vision.utils import ClassificationLabelFormatter
-from hamcrest import assert_that, instance_of, calling, raises, equal_to
+from hamcrest import assert_that, equal_to
 
 from deepchecks.vision.utils.data_formatters import DataFormatter
 from tests.vision.vision_conftest import *
