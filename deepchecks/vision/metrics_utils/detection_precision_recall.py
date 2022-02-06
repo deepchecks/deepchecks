@@ -10,6 +10,7 @@
 #
 """Module for calculating detection precision and recall."""
 from collections import defaultdict
+from typing import List, Tuple
 
 from ignite.metrics import Metric
 from ignite.metrics.metric import sync_all_reduce, reinit__is_reduced
@@ -35,7 +36,7 @@ class AveragePrecision(Metric):
         If True, only the average precision will be returned.
     """
 
-    def __init__(self, *args, iou_threshold=0.5, max_dets=None, area_range=None, return_ap_only: bool = True, **kwargs):
+    def __init__(self, *args, iou_threshold=0.5, max_dets: List[int] = (1, 10, 10), area_range: Tuple = (32, 64), return_ap_only: bool = True, **kwargs):
         super().__init__(*args, **kwargs)
         self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})
         self.iou_threshold = iou_threshold
@@ -114,63 +115,69 @@ class AveragePrecision(Metric):
         det = [self.Prediction(d) for d in det]
         det_sort = np.argsort([-d.confidence for d in det], kind="stable")
 
-        # sort list of dts and chop by max dets
-        dt = [det[idx] for idx in det_sort[:self.max_dets]]
-        ious = ious[det_sort[:self.max_dets]]
+        scores = {}
+        matched = {}
+        n_gts = {}
 
-        # generate ignored gt list by area_range
-        def _is_ignore(bb):  # pylint: disable=unused-argument
-            return False
-            # TODO: Calculate the area of the bbox and filter
-            # if self.area_range is None:
-            #     return False
-            # return not (self.area_range[0] <= _get_area(bb) <= area_range[1])
+        for area_size in ["small", "medium", "large"]:
+            # sort list of dts and chop by max dets
+            dt = [det[idx] for idx in det_sort[:self.max_dets]]
+            ious = ious[det_sort[:self.max_dets]]
 
-        gt_ignore = [_is_ignore(g) for g in gt]
+            # generate ignored gt list by area_range
+            def _is_ignore(bb, area_size):
+                area_bb = bb[2] * bb[3]
+                if area_size == "small":
+                    return not area_bb < self.area_range[0]
+                if area_size == "medium":
+                    return not self.area_range[0] <= area_bb <= self.area_range[1]
+                return area_bb > self.area_range[1]
 
-        # sort gts by ignore last
-        gt_sort = np.argsort(gt_ignore, kind="stable")
-        gt = [gt[idx] for idx in gt_sort]
-        gt_ignore = [gt_ignore[idx] for idx in gt_sort]
+            gt_ignore = [_is_ignore(g, area_size) for g in gt]
 
-        ious = ious[:, gt_sort]
+            # sort gts by ignore last
+            gt_sort = np.argsort(gt_ignore, kind="stable")
+            gt = [gt[idx] for idx in gt_sort]
+            gt_ignore = [gt_ignore[idx] for idx in gt_sort]
 
-        gtm = {}
-        dtm = {}
+            ious = ious[:, gt_sort]
 
-        for d_idx, _ in enumerate(dt):
-            # information about best match so far (m=-1 -> unmatched)
-            iou = min(self.iou_threshold, 1 - 1e-10)
-            m = -1
-            for g_idx, _ in enumerate(gt):
-                # if this gt already matched, and not a crowd, continue
-                if g_idx in gtm:
+            gtm = {}
+            dtm = {}
+
+            for d_idx, _ in enumerate(dt):
+                # information about best match so far (m=-1 -> unmatched)
+                iou = min(self.iou_threshold, 1 - 1e-10)
+                m = -1
+                for g_idx, _ in enumerate(gt):
+                    # if this gt already matched, and not a crowd, continue
+                    if g_idx in gtm:
+                        continue
+                    # if dt matched to reg gt, and on ignore gt, stop
+                    if m > -1 and not gt_ignore[m] and gt_ignore[g_idx]:
+                        break
+                    # continue to next gt unless better match made
+                    if ious[d_idx, g_idx] < iou:
+                        continue
+                    # if match successful and best so far, store appropriately
+                    iou = ious[d_idx, g_idx]
+                    m = g_idx
+                # if match made store id of match for both dt and gt
+                if m == -1:
                     continue
-                # if dt matched to reg gt, and on ignore gt, stop
-                if m > -1 and not gt_ignore[m] and gt_ignore[g_idx]:
-                    break
-                # continue to next gt unless better match made
-                if ious[d_idx, g_idx] < iou:
-                    continue
-                # if match successful and best so far, store appropriately
-                iou = ious[d_idx, g_idx]
-                m = g_idx
-            # if match made store id of match for both dt and gt
-            if m == -1:
-                continue
-            dtm[d_idx] = m
-            gtm[m] = d_idx
+                dtm[d_idx] = m
+                gtm[m] = d_idx
 
-        # generate ignore list for dts
-        dt_ignore = [
-            gt_ignore[dtm[d_idx]] if d_idx in dtm else _is_ignore(d) for d_idx, d in enumerate(dt)
-        ]
+            # generate ignore list for dts
+            dt_ignore = [
+                gt_ignore[dtm[d_idx]] if d_idx in dtm else _is_ignore(d, area_size) for d_idx, d in enumerate(dt)
+            ]
 
-        # get score for non-ignored dts
-        scores = [dt[d_idx].confidence for d_idx in range(len(dt)) if not dt_ignore[d_idx]]
-        matched = [d_idx in dtm for d_idx in range(len(dt)) if not dt_ignore[d_idx]]
+            # get score for non-ignored dts
+            scores[area_size] = [dt[d_idx].confidence for d_idx in range(len(dt)) if not dt_ignore[d_idx]]
+            matched[area_size] = [d_idx in dtm for d_idx in range(len(dt)) if not dt_ignore[d_idx]]
 
-        n_gts = len([g_idx for g_idx in range(len(gt)) if not gt_ignore[g_idx]])
+            n_gts[area_size] = len([g_idx for g_idx in range(len(gt)) if not gt_ignore[g_idx]])
         return {"scores": scores, "matched": matched, "NP": n_gts}
 
     def _compute_ap_recall(self, scores, matched, n_positives, recall_thresholds=None):
