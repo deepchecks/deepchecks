@@ -10,7 +10,7 @@
 #
 """Package for vision functionality."""
 import logging
-from .dataset import VisionDataset, AugmentationWrapper
+from .dataset import VisionDataset
 from .base import (
     Context,
     Suite,
@@ -36,5 +36,4 @@ __all__ = [
     "TrainTestCheck",
     "ModelOnlyCheck",
     "Suite",
-    "AugmentationWrapper"
 ]

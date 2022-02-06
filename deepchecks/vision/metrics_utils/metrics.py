@@ -32,10 +32,10 @@ from .detection_precision_recall import AveragePrecision
 from deepchecks.vision.dataset import TaskType
 
 
-def get_default_classification_scorers():
+def get_default_classification_scorers(average=False):
     return {
-        'Precision': Precision(),
-        'Recall': Recall()
+        'Precision': Precision(average=average),
+        'Recall': Recall(average=average)
     }
 
 
@@ -48,6 +48,7 @@ def get_default_object_detection_scorers():
 def get_scorers_list(
         dataset: VisionDataset,
         alternative_scorers: t.List[Metric] = None,
+        class_average: bool = False
 ) -> t.Dict[str, Metric]:
     """Get scorers list according to model object and label column.
 
@@ -57,7 +58,8 @@ def get_scorers_list(
         Dataset object
     alternative_scorers : t.List[Metric]
         Alternative scorers list
-
+    class_average : bool, default: False
+        Whether classification metrics should average the results or return result per class
     Returns
     -------
     t.Dict[str, Metric]
@@ -72,7 +74,7 @@ def get_scorers_list(
                 raise DeepchecksValueError('alternative_scorers should contain metrics of type ignite.Metric')
         scorers = alternative_scorers
     elif task_type == TaskType.CLASSIFICATION:
-        scorers = get_default_classification_scorers()
+        scorers = get_default_classification_scorers(average=class_average)
     elif task_type == TaskType.OBJECT_DETECTION:
         scorers = get_default_object_detection_scorers()
     elif task_type == TaskType.SEMANTIC_SEGMENTATION:
@@ -130,20 +132,18 @@ def validate_prediction(batch_predictions: t.Any, dataset: VisionDataset, eps: f
         )
 
 
-def calculate_metrics(metrics: t.List[Metric],
+def calculate_metrics(metrics: t.Union[t.Dict[str, Metric], t.List[Metric]],
                       dataset: VisionDataset,
-                      data_loader: DataLoader,
                       model: nn.Module,
-                      prediction_extract: t.Callable = None) -> t.Dict[str, float]:
+                      prediction_extract: t.Callable = None) -> t.Dict[str, t.Any]:
     """Calculate a list of ignite metrics on a given model and dataset.
 
     Parameters
     ----------
-    metrics : t.List[Metric]
-        List of ignite metrics to calculate
+    metrics : t.Union[t.Dict[str, Metric], t.List[Metric]]
+        ignite metrics to calculate
     dataset : VisionDataset
         Dataset object
-    data_loader : DataLoader
 
     model : nn.Module
         Model object
@@ -168,14 +168,15 @@ def calculate_metrics(metrics: t.List[Metric],
         return predictions, label
 
     # Validate that
-    data_batch = process_function(None, next(iter(data_loader)))[0]
+    data_batch = process_function(None, next(iter(dataset.get_data_loader())))[0]
     validate_prediction(data_batch, dataset)
 
     engine = Engine(process_function)
+
+    metrics = metrics if isinstance(metrics, list) else metrics.values()
     for metric in metrics:
         metric.attach(engine, type(metric).__name__)
 
-    state = engine.run(data_loader)
+    state = engine.run(dataset.get_data_loader())
+    return state.metrics
 
-    results = {k: v.tolist() for k, v in state.metrics.items()}
-    return results

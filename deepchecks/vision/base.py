@@ -78,7 +78,7 @@ class Context:
             raise DatasetValidationError('Can\'t initialize context with only test. if you have single dataset, '
                                          'initialize it as train')
         if train and test:
-            train.validate_shared_label(test)
+            train.validate_shared_properties(test)
 
         self._train = train
         self._test = test
@@ -151,6 +151,7 @@ class Context:
             raise ModelValidationError(
                 f'Check is irrelevant for task of type {self.train.task_type}')
         return True
+
 
 
 class SingleDatasetCheck(SingleDatasetBaseCheck):
