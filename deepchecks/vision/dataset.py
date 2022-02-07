@@ -82,17 +82,9 @@ class VisionData:
                  data_transformer: DataFormatter = None,
                  sample_size: int = 1000,
                  random_seed: int = 0,
-                 transform_field: Optional[str] = 'transform',
-                 display_transform: Optional[Callable] = None):
+                 transform_field: Optional[str] = 'transform'):
         self._data = data_loader
-
-        if label_transformer is None:
-            self.label_transformer = ClassificationLabelFormatter(lambda x: x)
-        else:
-            self.label_transformer = label_transformer
-
-        if data_transformer is None:
-            self.data_transformer = DataFormatter(lambda x: x)
+        self.label_transformer = label_transformer or ClassificationLabelFormatter(lambda x: x)
 
         if isinstance(self.label_transformer, ClassificationLabelFormatter):
             self.task_type = TaskType.CLASSIFICATION
@@ -103,9 +95,9 @@ class VisionData:
                            'The supported label transformer types are: '
                            '[ClassificationLabelFormatter, DetectionLabelFormatter]')
 
+        self.data_transformer = data_transformer or DataFormatter(lambda x: x)
         self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
         self.transform_field = transform_field
-        self.display_transform = display_transform if display_transform else lambda x: x
         self._samples_per_class = None
         self._label_valid = self.label_transformer.validate_label(self._data)  # will contain error message if not valid
         # Sample dataset properties
@@ -204,10 +196,10 @@ class VisionData:
         props = get_data_loader_props_to_copy(self.get_data_loader())
         props['dataset'] = copy(self.get_data_loader().dataset)
         new_data_loader = self.get_data_loader().__class__(**props)
-        return VisionDataset(new_data_loader,
-                             display_transform=self.display_transform,
-                             label_transformer=self.label_transformer,
-                             transform_field=self.transform_field)
+        return VisionData(new_data_loader,
+                          data_transformer=self.data_transformer,
+                          label_transformer=self.label_transformer,
+                          transform_field=self.transform_field)
 
     def validate_shared_properties(self, other):
         """Verify presence of shared labels.

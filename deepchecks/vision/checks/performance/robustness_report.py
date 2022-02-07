@@ -7,14 +7,14 @@ from typing import Callable, TypeVar, List, Optional
 import albumentations
 
 import pandas as pd
-import plotly.express as px
+import torch
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 from ignite.metrics import Metric
 
 from deepchecks import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision import VisionDataset, SingleDatasetCheck, Context
+from deepchecks.vision import VisionData, SingleDatasetCheck, Context
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.metrics_utils import calculate_metrics
 from deepchecks.vision.utils.validation import set_seeds
@@ -101,15 +101,15 @@ class RobustnessReport(SingleDatasetCheck):
             display=figures
         )
 
-    def _create_augmented_dataset(self, dataset: VisionDataset, augmentation_func):
+    def _create_augmented_dataset(self, dataset: VisionData, augmentation_func):
         # Create a copy of data loader and the dataset
-        aug_dataset: VisionDataset = dataset.copy()
+        aug_dataset: VisionData = dataset.copy()
         transform: TransformWrapper = aug_dataset.wrap_transform_field()
         # Add augmentation in the first place
         transform.add_augmentation_in_start(augmentation_func)
         return aug_dataset
 
-    def _evaluate_dataset(self, dataset: VisionDataset, metrics, model):
+    def _evaluate_dataset(self, dataset: VisionData, metrics, model):
         classes = dataset.get_samples_per_class().keys()
         metrics_results = calculate_metrics(metrics, dataset, model, self.prediction_extract)
         per_class_result = (
@@ -171,22 +171,27 @@ class RobustnessReport(SingleDatasetCheck):
 
         return figures
 
-    def _create_example_figure(self, dataset: VisionDataset, images):
-        image_classes = []
+    def _create_example_figure(self, dataset: VisionData, images):
+        # First join all images to convert them in a single action to displayable format
+        # Create tuple of ([base images], [aug images], [classes])
+        transposed = list(zip(*images))
+        base_images = dataset.to_display_data(torch.stack(transposed[0]))
+        aug_images = dataset.to_display_data(torch.stack(transposed[1]))
+        classes = transposed[2]
+
+        # Create image figures
         origin_figures = []
         augment_figures = []
-        row_titles = ['Origin', 'Augmented']
 
-        for index, (base_image, aug_image, curr_class) in enumerate(images):
+        for index, (base_image, aug_image, curr_class) in enumerate(zip(base_images, aug_images, classes)):
             # Add image figures
-            origin_figures.append(go.Image(z=dataset.display_transform(base_image), hoverinfo='skip'))
-            augment_figures.append(go.Image(z=dataset.display_transform(aug_image), hoverinfo='skip'))
-            image_classes.append(curr_class)
+            origin_figures.append(go.Image(z=base_image, hoverinfo='skip'))
+            augment_figures.append(go.Image(z=aug_image, hoverinfo='skip'))
 
-        fig = make_subplots(rows=2, cols=len(image_classes), column_titles=image_classes, row_titles=row_titles,
+        fig = make_subplots(rows=2, cols=len(classes), column_titles=classes, row_titles=['Origin', 'Augmented'],
                             vertical_spacing=0, horizontal_spacing=0)
 
-        for index in range(len(image_classes)):
+        for index in range(len(classes)):
             fig.append_trace(origin_figures[index], row=1, col=index + 1)
             fig.append_trace(augment_figures[index], row=2, col=index + 1)
 
@@ -276,8 +281,8 @@ def augmentation_name(aug):
         raise DeepchecksValueError(f'Unsupported augmentation type {type(aug)}')
 
 
-def get_random_image_pairs_from_dataset(original_dataset: VisionDataset,
-                                        augmented_dataset: VisionDataset,
+def get_random_image_pairs_from_dataset(original_dataset: VisionData,
+                                        augmented_dataset: VisionData,
                                         top_affected_classes: dict):
     """Get image pairs from 2 datasets.
 
