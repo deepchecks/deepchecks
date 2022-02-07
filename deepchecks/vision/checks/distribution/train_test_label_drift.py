@@ -12,6 +12,7 @@
 from copy import copy
 from typing import Dict, Hashable, Callable, Tuple, List, Union, Any
 
+import torch
 from plotly.subplots import make_subplots
 
 from deepchecks import CheckResult, ConditionResult
@@ -309,7 +310,7 @@ def calculate_continuous_histograms_in_batch(batch, hists, continuous_label_meas
 def get_results_on_batch(batch, label_measurement, label_transformer):
     """Calculate transformer result on batch of labels."""
     list_of_arrays = batch[1]
-    calc_res = [label_measurement(label_transformer(arr)) for arr in list_of_arrays]
+    calc_res = [label_measurement(torch.hstack(label_transformer(arr))) for arr in list_of_arrays]
     if len(calc_res) != 0 and isinstance(calc_res[0], list):
         calc_res = [x[0] for x in sum(calc_res, [])]
     return calc_res
