@@ -11,7 +11,7 @@
 """Module for base vision abstractions."""
 # TODO: This file should be completely modified
 # pylint: disable=broad-except,not-callable
-from typing import Tuple, Mapping, Optional
+from typing import Tuple, Mapping, Optional, Any
 
 from ignite.metrics import Metric
 from torch import nn
@@ -21,7 +21,7 @@ from deepchecks.core.check import (
     CheckFailure,
     SingleDatasetBaseCheck,
     TrainTestBaseCheck,
-    ModelOnlyBaseCheck,
+    ModelOnlyBaseCheck, CheckResult,
 )
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
@@ -158,6 +158,33 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
     context_type = Context
 
+    def run_logic(self, context, dataset_type: str = 'train') -> CheckResult:
+        """Run check."""
+
+        self.initialize_run(context)
+
+        if dataset_type == 'train':
+            dataset = context.train
+        else:
+            dataset = context.test
+
+        for batch in dataset.get_data_loader():
+            self.update(context, batch)
+
+        return self.compute(context)
+
+    def initialize_run(self, context: Context):
+        """Optional method to initialize run before starting updating on batches."""
+        pass
+
+    def update(self, context: Context, batch: Any):
+        """Update internal check state with given batch."""
+        raise NotImplementedError()
+
+    def compute(self, context: Context) -> CheckResult:
+        """Compute final check result based on accumulated internal state."""
+        raise NotImplementedError()
+
 
 class TrainTestCheck(TrainTestBaseCheck):
     """Parent class for checks that compare two datasets.
@@ -166,6 +193,34 @@ class TrainTestCheck(TrainTestBaseCheck):
     """
 
     context_type = Context
+
+    def run_logic(self, context) -> CheckResult:
+        """Run check."""
+
+        self.initialize_run(context)
+
+        train_dataset = context.train
+        test_dataset = context.test
+
+        for batch in train_dataset.get_data_loader():
+            self.update(context, batch, dataset_name='train')
+
+        for batch in test_dataset.get_data_loader():
+            self.update(context, batch, dataset_name='test')
+
+        return self.compute(context)
+
+    def initialize_run(self, context: Context):
+        """Optional method to initialize run before starting updating on batches."""
+        pass
+
+    def update(self, context: Context, batch: Any, dataset_name: str = 'train'):
+        """Update internal check state with given batch for either train or test."""
+        raise NotImplementedError()
+
+    def compute(self, context: Context) -> CheckResult:
+        """Compute final check result based on accumulated internal state."""
+        raise NotImplementedError()
 
 
 class ModelOnlyCheck(ModelOnlyBaseCheck):
