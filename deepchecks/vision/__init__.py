@@ -10,7 +10,7 @@
 #
 """Package for vision functionality."""
 import logging
-from .dataset import VisionDataset
+from .dataset import VisionData
 from .base import (
     Context,
     Suite,
@@ -30,7 +30,7 @@ except ImportError as error:
                       "in order to use deepchecks.vision functionalities.") from error
 
 __all__ = [
-    "VisionDataset",
+    "VisionData",
     "Context",
     "SingleDatasetCheck",
     "TrainTestCheck",

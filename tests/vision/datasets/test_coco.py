@@ -44,7 +44,7 @@ def test_load_dataset():
 
 def test_deepchecks_dataset_load():
     loader = load_dataset(train=True, object_type='Dataset')
-    assert_that(loader, instance_of(vision.VisionDataset))
+    assert_that(loader, instance_of(vision.VisionData))
 
 
 def test__load_dataset__func_with_unknow_object_type_parameter():

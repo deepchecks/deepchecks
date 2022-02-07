@@ -47,7 +47,7 @@ def load_dataset(
     shuffle: bool = False,
     pin_memory: bool = True,
     object_type: Literal['Dataset', 'DataLoader'] = 'DataLoader'
-) -> t.Union[DataLoader, vision.VisionDataset]:
+) -> t.Union[DataLoader, vision.VisionData]:
     """Get the COCO128 dataset and return a dataloader.
 
     Parameters
@@ -99,7 +99,7 @@ def load_dataset(
     if object_type == 'DataLoader':
         return dataloader
     elif object_type == 'Dataset':
-        return vision.VisionDataset(
+        return vision.VisionData(
             data_loader=dataloader,
             label_transformer=DetectionLabelFormatter(lambda x: x),
             num_classes=80
@@ -109,7 +109,7 @@ def load_dataset(
 
 
 class CocoDataset(VisionDataset):
-    """An instance of PyTorch VisionDataset that represents the COCO128 dataset.
+    """An instance of PyTorch VisionData the represents the COCO128 dataset.
 
     Parameters
     ----------
