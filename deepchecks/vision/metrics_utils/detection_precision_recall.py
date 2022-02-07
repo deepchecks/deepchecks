@@ -53,10 +53,11 @@ class AveragePrecision(Metric):
 
     def __init__(self, *args, iou_thresholds: List[int] = (0, .5, .75), max_dets: List[int] = (1, 10, 100),
                  area_range: Tuple = (32 * 32, 64 * 64), return_single_value: bool = True,
-                 return_ap_only: bool = True, **kwargs):
+                 return_ap_only: bool = True,
+                 get_per_all: bool = False, **kwargs):
         super().__init__(*args, **kwargs)
         self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})
-        
+        self.get_per_all = get_per_all
         self.return_ap_only = return_ap_only
         self.return_single_value = return_single_value
         if return_single_value:
@@ -104,12 +105,19 @@ class AveragePrecision(Metric):
                     for class_id in self._evals:
                         ev = self._evals[class_id]
                         # print(ev)
-                        res[class_id] = {}
                         res[class_id] = {
                             "class": class_id,
                             **self._compute_ap_recall(np.array(ev["scores"][(area_size, dets, min_iou)]),
                                                       np.array(ev["matched"][(area_size, dets, min_iou)]),
                                                       np.sum(np.array(ev["NP"][(area_size, dets, min_iou)])))
+                        }
+                    if self.get_per_all:
+                        all_evals = _dict_conc(self._evals)
+                        res[-1] = {
+                                "class": -1,
+                                **self._compute_ap_recall(np.array(all_evals[(area_size, dets, min_iou)]),
+                                                        np.array(all_evals[(area_size, dets, min_iou)]),
+                                                        np.sum(np.array(all_evals[(area_size, dets, min_iou)])))
                         }
                     if self.return_ap_only:
                         res = torch.tensor([res[k]["AP"] for k in sorted(res.keys())])
