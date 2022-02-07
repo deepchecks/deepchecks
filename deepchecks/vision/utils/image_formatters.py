@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing the data formatter class for the vision module."""
+"""Module containing the image formatter class for the vision module."""
 from typing import Callable, Optional
 
 import numpy as np
@@ -16,15 +16,15 @@ import numpy as np
 from deepchecks.core.errors import DeepchecksValueError
 
 
-__all__ = ['DataFormatter']
+__all__ = ['ImageFormatter']
 
 
-class DataFormatter:
+class ImageFormatter:
     """Class for formatting the image data outputted from the dataloader to the required format for check displays.
 
     Parameters
     ----------
-    data_formatter : Callable, optional
+    image_formatter : Callable, optional
         Function that takes in a batch of data and returns the data in the following format (an iterable of cv2 images):
         Each image in the iterable must be a [H, W, C] 3D numpy array. The first dimension must be the image height
         (y axis), the second being the image width (x axis), and the third being the number of channels. The numbers
@@ -34,11 +34,11 @@ class DataFormatter:
         If None, the identity function will be used (the data will be assumed to be in format as-is).
     """
 
-    def __init__(self, data_formatter: Optional[Callable] = None):
-        if data_formatter is None:
+    def __init__(self, image_formatter: Optional[Callable] = None):
+        if image_formatter is None:
             self.data_formatter = lambda x: x
         else:
-            self.data_formatter = data_formatter
+            self.data_formatter = image_formatter
 
     def __call__(self, *args, **kwargs):
         """Call the encoder."""
