@@ -23,7 +23,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.utils.transformations import TransformWrapper, get_transform_type
 from deepchecks.vision.utils import ClassificationLabelFormatter, DetectionLabelFormatter
 from deepchecks.vision.utils.base_formatters import BaseLabelFormatter
-from deepchecks.vision.utils.data_formatters import DataFormatter
+from deepchecks.vision.utils.image_formatters import ImageFormatter
 
 logger = logging.getLogger('deepchecks')
 
@@ -79,12 +79,13 @@ class VisionData:
                  data_loader: DataLoader,
                  num_classes: Optional[int] = None,
                  label_transformer: Union[ClassificationLabelFormatter, DetectionLabelFormatter] = None,
-                 data_transformer: DataFormatter = None,
+                 image_transformer: ImageFormatter = None,
                  sample_size: int = 1000,
                  random_seed: int = 0,
                  transform_field: Optional[str] = 'transform'):
         self._data = data_loader
-        self.label_transformer = label_transformer or ClassificationLabelFormatter(lambda x: x)
+        self.label_transformer = label_transformer
+        self.image_transformer = image_transformer or ImageFormatter(lambda x: x)
 
         if isinstance(self.label_transformer, ClassificationLabelFormatter):
             self.task_type = TaskType.CLASSIFICATION
@@ -95,7 +96,6 @@ class VisionData:
                            'The supported label transformer types are: '
                            '[ClassificationLabelFormatter, DetectionLabelFormatter]')
 
-        self.data_transformer = data_transformer or DataFormatter(lambda x: x)
         self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
         self.transform_field = transform_field
         self._samples_per_class = None
@@ -127,8 +127,8 @@ class VisionData:
 
     def to_display_data(self, batch):
         """Convert a batch of data outputted by the data loader to a format that can be displayed."""
-        self.data_transformer.validate_data(batch)
-        return self.data_transformer(batch)
+        self.image_transformer.validate_data(batch)
+        return self.image_transformer(batch)
 
     @property
     def sample_data_loader(self) -> DataLoader:

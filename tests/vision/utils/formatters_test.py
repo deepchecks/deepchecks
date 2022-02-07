@@ -12,7 +12,7 @@ import numpy as np
 from hamcrest import assert_that, equal_to, calling, raises
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.utils.data_formatters import DataFormatter
+from deepchecks.vision.utils.image_formatters import ImageFormatter
 from tests.vision.vision_conftest import *
 
 
@@ -53,7 +53,7 @@ def numpy_shape_dataloader(shape, value: float = 1, collate_fn=None):
 
 
 def test_data_formatter_not_iterable():
-    formatter = DataFormatter()
+    formatter = ImageFormatter()
 
     batch = 1
     assert_that(
@@ -63,7 +63,7 @@ def test_data_formatter_not_iterable():
 
 
 def test_data_formatter_not_numpy():
-    formatter = DataFormatter(lambda x: [[x] for x in x])
+    formatter = ImageFormatter(lambda x: [[x] for x in x])
 
     batch = next(iter(numpy_shape_dataloader((10, 10, 3))))
     assert_that(
@@ -73,7 +73,7 @@ def test_data_formatter_not_numpy():
 
 
 def test_data_formatter_missing_dimensions():
-    formatter = DataFormatter(lambda x: x)
+    formatter = ImageFormatter(lambda x: x)
 
     batch = next(iter(numpy_shape_dataloader((10, 10))))
     assert_that(
@@ -83,7 +83,7 @@ def test_data_formatter_missing_dimensions():
 
 
 def test_data_formatter_wrong_color_channel():
-    formatter = DataFormatter(lambda x: x)
+    formatter = ImageFormatter(lambda x: x)
 
     batch = next(iter(numpy_shape_dataloader((3, 10, 10))))
     assert_that(
@@ -93,7 +93,7 @@ def test_data_formatter_wrong_color_channel():
 
 
 def test_data_formatter_invalid_values():
-    formatter = DataFormatter(lambda x: x * 300)
+    formatter = ImageFormatter(lambda x: x * 300)
 
     batch = next(iter(numpy_shape_dataloader((10, 10, 3))))
     assert_that(
@@ -101,7 +101,7 @@ def test_data_formatter_invalid_values():
         raises(DeepchecksValueError, r'The data inside the iterable must be in the range \[0, 255\].')
     )
 
-    formatter = DataFormatter(lambda x: -x)
+    formatter = ImageFormatter(lambda x: -x)
 
     batch = next(iter(numpy_shape_dataloader((10, 10, 3))))
     assert_that(
@@ -111,7 +111,7 @@ def test_data_formatter_invalid_values():
 
 
 def test_data_formatter_valid_dimensions():
-    formatter = DataFormatter(lambda x: x)
+    formatter = ImageFormatter(lambda x: x)
 
     batch = next(iter(numpy_shape_dataloader((10, 10, 3))))
     err = formatter.validate_data(batch)
@@ -119,7 +119,7 @@ def test_data_formatter_valid_dimensions():
 
 
 def test_data_formatter_valid_dimensions_other_iterable():
-    formatter = DataFormatter(lambda x: x)
+    formatter = ImageFormatter(lambda x: x)
 
     batch = next(iter(numpy_shape_dataloader((10, 10, 3), collate_fn=list)))
     err = formatter.validate_data(batch)
