@@ -11,7 +11,7 @@
 """Package for vision utilities."""
 from .classification_formatters import ClassificationLabelFormatter, ClassificationPredictionFormatter
 from .detection_formatters import DetectionLabelFormatter, DetectionPredictionFormatter
-from .data_formatters import DataFormatter
+from .image_formatters import ImageFormatter
 from .validation import validate_model
 
 __all__ = [
@@ -19,6 +19,6 @@ __all__ = [
     "ClassificationPredictionFormatter",
     "DetectionLabelFormatter",
     "DetectionPredictionFormatter",
-    "DataFormatter",
+    "ImageFormatter",
     "validate_model",
     ]
