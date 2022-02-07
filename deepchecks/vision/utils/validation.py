@@ -22,12 +22,12 @@ from deepchecks import vision  # pylint: disable=unused-import, is used in type 
 __all__ = ['validate_model']
 
 
-def validate_model(dataset: 'vision.VisionDataset', model: t.Any):
+def validate_model(dataset: 'vision.VisionData', model: t.Any):
     """Receive a dataset and a model and check if they are compatible.
 
     Parameters
     ----------
-    dataset : VisionDataset
+    dataset : VisionData
         Built on a dataloader on which the model can infer.
     model : Any
         Model to be validated

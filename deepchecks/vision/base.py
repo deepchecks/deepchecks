@@ -29,7 +29,7 @@ from deepchecks.core.errors import (
     DatasetValidationError, ModelValidationError,
     DeepchecksNotSupportedError, DeepchecksValueError
 )
-from deepchecks.vision.dataset import VisionDataset, TaskType
+from deepchecks.vision.dataset import VisionData, TaskType
 
 
 __all__ = [
@@ -46,9 +46,9 @@ class Context:
 
     Parameters
     ----------
-    train : VisionDataset , default: None
+    train : VisionData , default: None
         Dataset or DataFrame object, representing data an estimator was fitted on
-    test : VisionDataset , default: None
+    test : VisionData , default: None
         Dataset or DataFrame object, representing data an estimator predicts on
     model : BasicModel , default: None
         A scikit-learn-compatible fitted estimator instance
@@ -64,8 +64,8 @@ class Context:
     """
 
     def __init__(self,
-                 train: VisionDataset = None,
-                 test: VisionDataset = None,
+                 train: VisionData = None,
+                 test: VisionData = None,
                  model: nn.Module = None,
                  model_name: str = '',
                  scorers: Mapping[str, Metric] = None,
@@ -94,14 +94,14 @@ class Context:
     # Validations note: We know train & test fit each other so all validations can be run only on train
 
     @property
-    def train(self) -> VisionDataset:
+    def train(self) -> VisionData:
         """Return train if exists, otherwise raise error."""
         if self._train is None:
             raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without train dataset')
         return self._train
 
     @property
-    def test(self) -> VisionDataset:
+    def test(self) -> VisionData:
         """Return test if exists, otherwise raise error."""
         if self._test is None:
             raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without test dataset')
@@ -185,8 +185,8 @@ class Suite(BaseSuite):
 
     def run(
             self,
-            train_dataset: Optional[VisionDataset] = None,
-            test_dataset: Optional[VisionDataset] = None,
+            train_dataset: Optional[VisionData] = None,
+            test_dataset: Optional[VisionData] = None,
             model: nn.Module = None,
             scorers: Mapping[str, Metric] = None,
             scorers_per_class: Mapping[str, Metric] = None
@@ -195,9 +195,9 @@ class Suite(BaseSuite):
 
         Parameters
         ----------
-        train_dataset: Optional[VisionDataset] , default None
+        train_dataset: Optional[VisionData] , default None
             object, representing data an estimator was fitted on
-        test_dataset : Optional[VisionDataset] , default None
+        test_dataset : Optional[VisionData] , default None
             object, representing data an estimator predicts on
         model : nn.Module , default None
             A scikit-learn-compatible fitted estimator instance

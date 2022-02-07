@@ -32,7 +32,7 @@ def get_trained_yolov5_object_detection():
 
 
 class CocoDataset(VisionDataset):
-    """An instance of PyTorch VisionDataset the represents the COCO dataset.
+    """An instance of PyTorch VisionData the represents the COCO dataset.
 
     Parameters
     ----------

@@ -15,7 +15,7 @@ import torch
 from torch import nn
 from torchvision.transforms import ToTensor
 
-from deepchecks.vision import VisionDataset
+from deepchecks.vision import VisionData
 from torch.utils.data import DataLoader, Dataset
 from torchvision.datasets import MNIST
 
@@ -36,8 +36,8 @@ def mnist_data_loader_train():
 
 @pytest.fixture(scope='session')
 def mnist_dataset_train(mnist_data_loader_train):
-    """Return MNist dataset as VisionDataset object."""
-    dataset = VisionDataset(mnist_data_loader_train, label_transformer=ClassificationLabelFormatter(lambda x: x))
+    """Return MNist dataset as VisionData object."""
+    dataset = VisionData(mnist_data_loader_train, label_transformer=ClassificationLabelFormatter(lambda x: x))
     return dataset
 
 
@@ -53,8 +53,8 @@ def mnist_data_loader_test():
 
 @pytest.fixture(scope='session')
 def mnist_dataset_test(mnist_data_loader_test):
-    """Return MNist dataset as VisionDataset object."""
-    dataset = VisionDataset(mnist_data_loader_test, label_transformer=ClassificationLabelFormatter(lambda x: x))
+    """Return MNist dataset as VisionData object."""
+    dataset = VisionData(mnist_data_loader_test, label_transformer=ClassificationLabelFormatter(lambda x: x))
     return dataset
 
 
@@ -134,8 +134,8 @@ def coco_dataloader():
 
 
 @pytest.fixture(scope='session')
-def coco_dataset(coco_dataloader):
-    return VisionDataset(coco_dataloader, label_transformer=DetectionLabelFormatter(lambda x: x))
+def coco_data(coco_dataloader):
+    return VisionData(coco_dataloader, label_transformer=DetectionLabelFormatter(lambda x: x))
 
 
 @pytest.fixture(scope='session')

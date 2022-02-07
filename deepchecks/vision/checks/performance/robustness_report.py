@@ -66,36 +66,31 @@ class RobustnessReport(SingleDatasetCheck):
         model = context.model
 
         # Get default scorers if no alternative, or validate alternatives
-        # metrics = get_scorers_list(dataset, self.alternative_metrics)
-        # # Return dataframe of (Class, Metric, Value)
-        # base_results: pd.DataFrame = self._evaluate_dataset(dataset, metrics, model)
-        # # Return dict of metric to value
-        # base_mean_results: dict = self._calc_mean_metrics(base_results)
-        # # Get augmentations
-        # augmentations = self.augmentations or get_robustness_augmentations(dataset.get_transform_type())
-        # aug_all_data = {}
-        # for augmentation_func in augmentations:
-        #     augmentation = augmentation_name(augmentation_func)
-        #     aug_dataset = self._create_augmented_datasets(dataset, augmentation_func)
-        #     # Return dataframe of (Class, Metric, Value)
-        #     aug_results = self._evaluate_dataset(aug_dataset, metrics, model)
-        #     # Return dict of {metric: {'score': mean score, 'diff': diff from base}, ... }
-        #     metrics_diff_dict = self._create_performance_diff(base_mean_results, aug_results)
-        #     # Return dict of metric to list {metric: [{'class': x, 'value': y, 'diff': z, 'samples': w}, ...], ...}
-        #     top_affected_classes = self._calculate_top_affected_classes(base_results, aug_results, dataset, 5)
-        #     # Return list of [(base image, augmented image, class), ...]
-        #     image_pairs = get_random_image_pairs_from_dataset(dataset, aug_dataset, top_affected_classes)
-        #     aug_all_data[augmentation] = {
-        #         'metrics': aug_results,
-        #         'metrics_diff': metrics_diff_dict,
-        #         'top_affected': top_affected_classes,
-        #         'images': image_pairs
-        #     }
-
-        with open('robustness.pkl', 'rb') as inp:
-            loaded = pickle.load(inp)
-            base_mean_results = loaded[0]
-            aug_all_data = loaded[1]
+        metrics = get_scorers_list(dataset, self.alternative_metrics)
+        # Return dataframe of (Class, Metric, Value)
+        base_results: pd.DataFrame = self._evaluate_dataset(dataset, metrics, model)
+        # Return dict of metric to value
+        base_mean_results: dict = self._calc_mean_metrics(base_results)
+        # Get augmentations
+        augmentations = self.augmentations or get_robustness_augmentations(dataset.get_transform_type())
+        aug_all_data = {}
+        for augmentation_func in augmentations:
+            augmentation = augmentation_name(augmentation_func)
+            aug_dataset = self._create_augmented_dataset(dataset, augmentation_func)
+            # Return dataframe of (Class, Metric, Value)
+            aug_results = self._evaluate_dataset(aug_dataset, metrics, model)
+            # Return dict of {metric: {'score': mean score, 'diff': diff from base}, ... }
+            metrics_diff_dict = self._calc_performance_diff(base_mean_results, aug_results)
+            # Return dict of metric to list {metric: [{'class': x, 'value': y, 'diff': z, 'samples': w}, ...], ...}
+            top_affected_classes = self._calc_top_affected_classes(base_results, aug_results, dataset, 5)
+            # Return list of [(base image, augmented image, class), ...]
+            image_pairs = get_random_image_pairs_from_dataset(dataset, aug_dataset, top_affected_classes)
+            aug_all_data[augmentation] = {
+                'metrics': aug_results,
+                'metrics_diff': metrics_diff_dict,
+                'top_affected': top_affected_classes,
+                'images': image_pairs
+            }
 
         # Create figures to display
         figures = self._create_augmentation_figure(dataset, base_mean_results, aug_all_data)
@@ -106,26 +101,13 @@ class RobustnessReport(SingleDatasetCheck):
             display=figures
         )
 
-    def _create_augmented_datasets(self, dataset: VisionDataset, augmentation_func):
+    def _create_augmented_dataset(self, dataset: VisionDataset, augmentation_func):
         # Create a copy of data loader and the dataset
         aug_dataset: VisionDataset = dataset.copy()
         transform: TransformWrapper = aug_dataset.wrap_transform_field()
         # Add augmentation in the first place
         transform.add_augmentation_in_start(augmentation_func)
         return aug_dataset
-
-    def _augment_and_evaluate(self, aug_datasets, model, metrics):
-        results = {}
-
-        for curr_aug in aug_datasets:
-            # Evaluate
-            aug_dataset = aug_datasets[curr_aug]
-            results_aug_df = self._evaluate_dataset(aug_dataset, metrics, model)
-            # Add augmentation name
-            aug_name = augmentation_name(curr_aug)
-            results[aug_name] = results_aug_df
-
-        return results
 
     def _evaluate_dataset(self, dataset: VisionDataset, metrics, model):
         classes = dataset.get_samples_per_class().keys()
@@ -139,7 +121,7 @@ class RobustnessReport(SingleDatasetCheck):
 
         return pd.DataFrame(per_class_result, columns=['Class', 'Metric', 'Value']).sort_values(by=['Class'])
 
-    def _calculate_top_affected_classes(self, base_results, augmented_results, dataset, n_classes_to_show):
+    def _calc_top_affected_classes(self, base_results, augmented_results, dataset, n_classes_to_show):
         def calc_percent(a, b):
             return (a - b) / b if b != 0 else 0
 
@@ -159,7 +141,7 @@ class RobustnessReport(SingleDatasetCheck):
                                                  'samples': dataset.get_samples_per_class()[index_class]})
         return aug_top_affected
 
-    def _create_performance_diff(self, mean_base, augmented_metrics):
+    def _calc_performance_diff(self, mean_base, augmented_metrics):
         def difference(aug_score, base_score):
             return (aug_score - base_score) / base_score
 
@@ -185,6 +167,7 @@ class RobustnessReport(SingleDatasetCheck):
             # Create example figures, return first n_pictures_to_show from original and then n_pictures_to_show from
             # augmented dataset
             figures.append(self._create_example_figure(dataset, curr_data['images']))
+            figures.append('<br>')
 
         return figures
 
@@ -201,13 +184,14 @@ class RobustnessReport(SingleDatasetCheck):
             image_classes.append(curr_class)
 
         fig = make_subplots(rows=2, cols=len(image_classes), column_titles=image_classes, row_titles=row_titles,
-                            vertical_spacing=0, horizontal_spacing=0.01)
+                            vertical_spacing=0, horizontal_spacing=0)
 
         for index in range(len(image_classes)):
             fig.append_trace(origin_figures[index], row=1, col=index + 1)
             fig.append_trace(augment_figures[index], row=2, col=index + 1)
 
-        (fig.update_layout(title='Augmentation Samples', autosize=True)
+        (fig.update_layout(title=dict(text='Augmentation Samples', font=dict(size=20)),
+                           margin=dict(l=0, r=0, t=60, b=0))
          .update_yaxes(showticklabels=False, visible=True, fixedrange=True)
          .update_xaxes(showticklabels=False, visible=True, fixedrange=True)
          .update_traces())
@@ -224,15 +208,16 @@ class RobustnessReport(SingleDatasetCheck):
 
         for index, metric in enumerate(metrics):
             curr_aug = augmented_scores[metric]
-            x = ['Augmented', 'Origin']
-            y = [curr_aug['score'], base_scores[metric]]
-            diff = [format_percent(curr_aug['diff']), '']
+            x = ['Origin', 'Augmented']
+            y = [base_scores[metric], curr_aug['score']]
+            diff = ['', format_percent(curr_aug['diff'])]
 
-            fig.add_trace(go.Bar(name=metric, x=x, y=y, customdata=diff, texttemplate='%{customdata}',
+            fig.add_trace(go.Bar(x=x, y=y, customdata=diff, texttemplate='%{customdata}',
                                  textposition='inside'), col=index + 1, row=1)
 
-        (fig.update_layout(font=dict(size=12), height=200,
-                           title=dict(text='Performance Comparison', font=dict(size=20)))
+        (fig.update_layout(font=dict(size=12), height=300, width=400 * len(metrics), autosize=False,
+                           title=dict(text='Performance Comparison', font=dict(size=20)),
+                           showlegend=False)
          .update_xaxes(title=None, type='category', tickangle=30))
         return fig
 
@@ -249,14 +234,16 @@ class RobustnessReport(SingleDatasetCheck):
             for class_info in metric_classes:
                 x.append(class_info['class'])
                 y.append(class_info['value'])
-                custom_data.append([class_info['diff'], class_info['samples']])
+                custom_data.append([format_percent(class_info['diff']), class_info['samples']])
 
             fig.add_trace(go.Bar(name=metric, x=x, y=y, customdata=custom_data, texttemplate='%{customdata[0]}',
                                  textposition='outside', hovertemplate='Number of samples: %{customdata[1]}'),
                           row=1, col=index + 1)
+            fig.update_yaxes(range=(min(y), max(y) + 1), row=1, col=index + 1)
 
-        (fig.update_layout(font=dict(size=12), width=200,
-                           title=dict(text='Top Affected Classes', font=dict(size=20)))
+        (fig.update_layout(font=dict(size=12), height=300, width=600 * len(metrics),
+                           title=dict(text='Top Affected Classes', font=dict(size=20)),
+                           showlegend=False)
          .update_xaxes(title=None, type='category', tickangle=30, tickprefix='Class '))
 
         return fig
@@ -267,9 +254,9 @@ def get_robustness_augmentations(transform_type):
         # Note that p=1.0 since we want to apply those to entire dataset
         return [
             albumentations.RandomBrightnessContrast(p=1.0),
-            # albumentations.ShiftScaleRotate(p=1.0),
-            # albumentations.HueSaturationValue(p=1.0),
-            # albumentations.RGBShift(r_shift_limit=15, g_shift_limit=15, b_shift_limit=15, p=1.0),
+            albumentations.ShiftScaleRotate(p=1.0),
+            albumentations.HueSaturationValue(p=1.0),
+            albumentations.RGBShift(r_shift_limit=15, g_shift_limit=15, b_shift_limit=15, p=1.0),
         ]
     # imgaug augmentations works also inside pytorch compose
     elif transform_type == 'imgaug':
