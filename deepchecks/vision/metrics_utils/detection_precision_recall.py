@@ -45,13 +45,13 @@ class AveragePrecision(Metric):
         Intersection over area threshold.
     max_dets: int, default: None
         Maximum number of detections per class.
-    area_range: tuple, default: None
-        Range of image area to be evaluated.
+    area_range: tuple, default: (32 * 32, 64 * 64)
+        Slices for small/medium/large buckets.
     return_ap_only: bool, default: True
         If True, only the average precision will be returned.
     """
 
-    def __init__(self, *args, iou_thresholds: List[int] = (0, .5, .75), max_dets: List[int] = (1, 10, 100),
+    def __init__(self, *args, max_dets: List[int] = (1, 10, 100),
                  area_range: Tuple = (32 * 32, 64 * 64), return_single_value: bool = True,
                  return_ap_only: bool = True,
                  get_per_all: bool = False, **kwargs):
@@ -61,12 +61,11 @@ class AveragePrecision(Metric):
         self.return_ap_only = return_ap_only
         self.return_single_value = return_single_value
         if return_single_value:
-            iou_thresholds = [iou_thresholds[0]]
             max_dets = [max_dets[-1]]
             self.area_ranges_names = ["all"]
         else:
             self.area_ranges_names = ["small", "medium", "large", "all"]
-        self.iou_thresholds = iou_thresholds
+        self.iou_thresholds = np.arange(0.5, 0.95, 0.05)
         self.max_dets = max_dets
         self.area_range = area_range
         self.i = 0
@@ -119,8 +118,10 @@ class AveragePrecision(Metric):
                                                           np.sum(np.array(all_evals[(area_size, dets, min_iou)])))
                         }
                     if self.return_ap_only:
-                        res = torch.tensor([res[k]["AP"] for k in sorted(res.keys())])
+                        res = torch.tensor([res[k]["precision"] for k in sorted(res.keys())])
                     reses[(area_size, dets, min_iou)] = res
+        for min_iou in self.iou_thresholds:
+            pass
         if self.return_single_value:
             return list(reses.values())[0]
         return [reses]
@@ -223,13 +224,7 @@ class AveragePrecision(Metric):
         if n_positives == 0:
             return {
                 "precision": 0,
-                "recall": 0,
-                "AP": 0,
-                "interpolated precision": 0,
-                "interpolated recall": 0,
-                "total positives": 0,
-                "TP": 0,
-                "FP": 0
+                "recall": 0
             }
 
         # by default evaluate on 101 recall levels
@@ -263,22 +258,10 @@ class AveragePrecision(Metric):
             return {
                 "precision": pr,
                 "recall": rc,
-                "AP": np.mean(i_pr),
-                "interpolated precision": i_pr,
-                "interpolated recall": recall_thresholds,
-                "total positives": n_positives,
-                "TP": tp[-1] if len(tp) != 0 else 0,
-                "FP": fp[-1] if len(fp) != 0 else 0
             }
         return {
             "precision": 0,
             "recall": 0,
-            "AP": 0,
-            "interpolated precision": -1,
-            "interpolated recall": recall_thresholds,
-            "total positives": n_positives,
-            "TP": 0,
-            "FP": 0
         }
 
     def _is_ignore_area(self, area_bb, area_size):
