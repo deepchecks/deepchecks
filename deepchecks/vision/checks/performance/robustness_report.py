@@ -1,9 +1,8 @@
 """Module containing robustness report check."""
-import pickle
 from collections import defaultdict
 
 import imgaug
-from typing import Callable, TypeVar, List, Optional
+from typing import TypeVar, List, Optional
 import albumentations
 
 import pandas as pd
@@ -12,7 +11,7 @@ from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 from ignite.metrics import Metric
 
-from deepchecks import CheckResult
+from deepchecks import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import VisionData, SingleDatasetCheck, Context
 from deepchecks.vision.dataset import TaskType
@@ -21,8 +20,12 @@ from deepchecks.vision.utils.validation import set_seeds
 from deepchecks.vision.utils.transformations import TransformWrapper
 from deepchecks.vision.metrics_utils import get_scorers_list
 from deepchecks.utils.strings import format_percent
+from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
+from deepchecks.vision.utils.image_functions import numpy_to_image_figure, apply_heatmap_image_properties
+
 
 __all__ = ['RobustnessReport']
+
 
 PR = TypeVar('PR', bound='RobustnessReport')
 
@@ -37,15 +40,13 @@ class RobustnessReport(SingleDatasetCheck):
     """
 
     def __init__(self,
+                 prediction_formatter: BasePredictionFormatter,
                  alternative_metrics: Optional[List[Metric]] = None,
-                 prediction_extract: Optional[Callable] = None,
                  augmentations=None,
-                 epsilon: float = 10 ** -2,
                  random_state: int = 42):
         super().__init__()
-        self._epsilon = epsilon
         self.alternative_metrics = alternative_metrics
-        self.prediction_extract = prediction_extract
+        self.prediction_formatter = prediction_formatter
         self.random_state = random_state
         self.augmentations = augmentations
 
@@ -72,7 +73,7 @@ class RobustnessReport(SingleDatasetCheck):
         # Return dict of metric to value
         base_mean_results: dict = self._calc_mean_metrics(base_results)
         # Get augmentations
-        augmentations = self.augmentations or get_robustness_augmentations(dataset.get_transform_type())
+        augmentations = self.augmentations or get_robustness_augmentations(dataset)
         aug_all_data = {}
         for augmentation_func in augmentations:
             augmentation = augmentation_name(augmentation_func)
@@ -95,11 +96,32 @@ class RobustnessReport(SingleDatasetCheck):
         # Create figures to display
         figures = self._create_augmentation_figure(dataset, base_mean_results, aug_all_data)
 
+        # Save as result only the metrics diff per augmentation
+        result = {aug: data['metrics_diff'] for aug, data in aug_all_data.items()}
+
         return CheckResult(
-            base_mean_results,
+            result,
             header='Robustness Report',
             display=figures
         )
+
+    def add_condition_degradation_not_more_than(self, ratio: 0.01):
+        """Add condition which validates augmentations doesn't degrade the model metrics by given amount"""
+        def condition(result):
+            failed = [
+                aug
+                for aug, metrics in result.items()
+                for metric, metric_data in metrics.items()
+                if metric_data['diff'] < -1 * ratio
+            ]
+
+            if not failed:
+                return ConditionResult(True)
+            else:
+                details = f'Augmentations not passing: {set(failed)}'
+                return ConditionResult(False, details)
+
+        return self.add_condition(f'Metrics degrade by not more than {format_percent(ratio)}', condition)
 
     def _create_augmented_dataset(self, dataset: VisionData, augmentation_func):
         # Create a copy of data loader and the dataset
@@ -111,7 +133,7 @@ class RobustnessReport(SingleDatasetCheck):
 
     def _evaluate_dataset(self, dataset: VisionData, metrics, model):
         classes = dataset.get_samples_per_class().keys()
-        metrics_results = calculate_metrics(metrics, dataset, model, self.prediction_extract)
+        metrics_results = calculate_metrics(metrics, dataset, model, self.prediction_formatter)
         per_class_result = (
             [class_name, metric, class_score]
             for metric, score in metrics_results.items()
@@ -177,33 +199,26 @@ class RobustnessReport(SingleDatasetCheck):
         transposed = list(zip(*images))
         base_images = dataset.to_display_data(torch.stack(transposed[0]))
         aug_images = dataset.to_display_data(torch.stack(transposed[1]))
-        classes = transposed[2]
+        classes = list(map(str, transposed[2]))
+        dimension = dataset.data_dimension
 
         # Create image figures
-        origin_figures = []
-        augment_figures = []
-
-        for index, (base_image, aug_image, curr_class) in enumerate(zip(base_images, aug_images, classes)):
-            # Add image figures
-            origin_figures.append(go.Image(z=base_image, hoverinfo='skip'))
-            augment_figures.append(go.Image(z=aug_image, hoverinfo='skip'))
-
         fig = make_subplots(rows=2, cols=len(classes), column_titles=classes, row_titles=['Origin', 'Augmented'],
                             vertical_spacing=0, horizontal_spacing=0)
 
-        for index in range(len(classes)):
-            fig.append_trace(origin_figures[index], row=1, col=index + 1)
-            fig.append_trace(augment_figures[index], row=2, col=index + 1)
+        for index, (base_image, aug_image, curr_class) in enumerate(zip(base_images, aug_images, classes)):
+            # Add image figures
+            fig.append_trace(numpy_to_image_figure(base_image), row=1, col=index + 1)
+            fig.append_trace(numpy_to_image_figure(aug_image), row=2, col=index + 1)
 
         (fig.update_layout(title=dict(text='Augmentation Samples', font=dict(size=20)),
                            margin=dict(l=0, r=0, t=60, b=0))
          .update_yaxes(showticklabels=False, visible=True, fixedrange=True)
-         .update_xaxes(showticklabels=False, visible=True, fixedrange=True)
-         .update_traces())
+         .update_xaxes(showticklabels=False, visible=True, fixedrange=True))
 
-        # Since row and columns titles are annotations need this hack to move them to bottom & left
-        # fig.for_each_annotation(lambda a: a.update(y=-100) if a.text in image_classes else a.update(
-        #     x=-100) if a.text in row_titles else a)
+        # In case of heatmap and grayscale images, need to add those properties which on Image exists automatically
+        if dimension == 1:
+            apply_heatmap_image_properties(fig)
 
         return fig
 
@@ -218,7 +233,7 @@ class RobustnessReport(SingleDatasetCheck):
             diff = ['', format_percent(curr_aug['diff'])]
 
             fig.add_trace(go.Bar(x=x, y=y, customdata=diff, texttemplate='%{customdata}',
-                                 textposition='inside'), col=index + 1, row=1)
+                                 textposition='auto'), col=index + 1, row=1)
 
         (fig.update_layout(font=dict(size=12), height=300, width=400 * len(metrics), autosize=False,
                            title=dict(text='Performance Comparison', font=dict(size=20)),
@@ -242,9 +257,8 @@ class RobustnessReport(SingleDatasetCheck):
                 custom_data.append([format_percent(class_info['diff']), class_info['samples']])
 
             fig.add_trace(go.Bar(name=metric, x=x, y=y, customdata=custom_data, texttemplate='%{customdata[0]}',
-                                 textposition='outside', hovertemplate='Number of samples: %{customdata[1]}'),
+                                 textposition='auto', hovertemplate='Number of samples: %{customdata[1]}'),
                           row=1, col=index + 1)
-            fig.update_yaxes(range=(min(y), max(y) + 1), row=1, col=index + 1)
 
         (fig.update_layout(font=dict(size=12), height=300, width=600 * len(metrics),
                            title=dict(text='Top Affected Classes', font=dict(size=20)),
@@ -254,22 +268,29 @@ class RobustnessReport(SingleDatasetCheck):
         return fig
 
 
-def get_robustness_augmentations(transform_type):
+def get_robustness_augmentations(dataset):
+    transform_type = dataset.get_transform_type()
+    multi_channel = dataset.data_dimension > 1
     if transform_type == 'albumentations':
         # Note that p=1.0 since we want to apply those to entire dataset
-        return [
+        augmentations = [
             albumentations.RandomBrightnessContrast(p=1.0),
             albumentations.ShiftScaleRotate(p=1.0),
-            albumentations.HueSaturationValue(p=1.0),
-            albumentations.RGBShift(r_shift_limit=15, g_shift_limit=15, b_shift_limit=15, p=1.0),
         ]
+        if multi_channel:
+            augmentations.extend([
+                albumentations.HueSaturationValue(p=1.0),
+                albumentations.RGBShift(r_shift_limit=15, g_shift_limit=15, b_shift_limit=15, p=1.0)
+            ])
     # imgaug augmentations works also inside pytorch compose
     elif transform_type == 'imgaug':
-        return [
+        augmentations = [
             imgaug.augmenters.MultiplyHueAndSaturation()
         ]
     else:
         raise DeepchecksValueError(f'Transformations of type {transform_type} are not supported')
+
+    return augmentations
 
 
 def augmentation_name(aug):
@@ -293,7 +314,7 @@ def get_random_image_pairs_from_dataset(original_dataset: VisionData,
     transposed;
     can be done via image = image[:, :, ::-1] or cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     """
-    classes_to_show = {class_info['class']
+    classes_to_show = {class_info['class']: class_info['diff']
                        for classes_list in top_affected_classes.values()
                        for class_info in classes_list
                        }
@@ -302,15 +323,20 @@ def get_random_image_pairs_from_dataset(original_dataset: VisionData,
     baseline_sampler = iter(original_dataset.get_data_loader().dataset)
     aug_sampler = iter(augmented_dataset.get_data_loader().dataset)
     samples = []
-    classes_to_show = set(classes_to_show)
+    # Will use the diff value to sort by highest diff first
+    sort_value = []
+    classes_set = set(classes_to_show.keys())
     # iterate and sample
     for (sample_base, sample_aug) in zip(baseline_sampler, aug_sampler):
-        if not classes_to_show:
+        if not classes_set:
             break
         curr_class = sample_base[1]
-        if curr_class not in classes_to_show:
+        if curr_class not in classes_set:
             continue
         samples.append((sample_base[0], sample_aug[0], curr_class))
-        classes_to_show.remove(curr_class)
+        sort_value.append(classes_to_show[curr_class])
+        classes_set.remove(curr_class)
 
-    return samples
+    # Sort by diff but return only the tuple
+    return [s for s, _ in sorted(zip(samples, sort_value), key=lambda pair: pair[1])]
+
