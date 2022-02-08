@@ -87,14 +87,15 @@ class VisionData:
         self.label_transformer = label_transformer
         self.image_transformer = image_transformer or ImageFormatter(lambda x: x)
 
-        if isinstance(self.label_transformer, ClassificationLabelFormatter):
-            self.task_type = TaskType.CLASSIFICATION
-        elif isinstance(self.label_transformer, DetectionLabelFormatter):
-            self.task_type = TaskType.OBJECT_DETECTION
-        else:
-            logger.warning('Unknown label transformer type was provided. Only integrity and data checks will run.'
-                           'The supported label transformer types are: '
-                           '[ClassificationLabelFormatter, DetectionLabelFormatter]')
+        if self.label_transformer:
+            if isinstance(self.label_transformer, ClassificationLabelFormatter):
+                self.task_type = TaskType.CLASSIFICATION
+            elif isinstance(self.label_transformer, DetectionLabelFormatter):
+                self.task_type = TaskType.OBJECT_DETECTION
+            else:
+                logger.warning('Unknown label transformer type was provided. Only integrity and data checks will run.'
+                               'The supported label transformer types are: '
+                               '[ClassificationLabelFormatter, DetectionLabelFormatter]')
 
         self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
         self.transform_field = transform_field
@@ -129,6 +130,12 @@ class VisionData:
         """Convert a batch of data outputted by the data loader to a format that can be displayed."""
         self.image_transformer.validate_data(batch)
         return self.image_transformer(batch)
+
+    @property
+    def data_dimension(self):
+        sample = next(iter(self.get_data_loader()))[0]
+        # Expecting NCWH, so second arg in shape is image dimensions
+        return sample.shape[1]
 
     @property
     def sample_data_loader(self) -> DataLoader:
@@ -197,7 +204,7 @@ class VisionData:
         props['dataset'] = copy(self.get_data_loader().dataset)
         new_data_loader = self.get_data_loader().__class__(**props)
         return VisionData(new_data_loader,
-                          data_transformer=self.data_transformer,
+                          image_transformer=self.image_transformer,
                           label_transformer=self.label_transformer,
                           transform_field=self.transform_field)
 

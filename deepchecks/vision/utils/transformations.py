@@ -1,8 +1,7 @@
-import random
+from typing import Sized
 
 import albumentations
 import imgaug
-import numpy
 import torch
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
@@ -48,3 +47,13 @@ def get_transform_type(transforms):
     else:
         raise DeepchecksNotSupportedError('Currently only imgaug and albumentations are supported')
 
+
+def un_normalize_batch(tensor, mean: Sized, std: Sized, max_pixel_value: int = 255):
+    dim = len(mean)
+    reshape_shape = (1, 1, 1, dim)
+    max_pixel_value = [max_pixel_value] * dim
+    mean = torch.tensor(mean).reshape(reshape_shape)
+    std = torch.tensor(std).reshape(reshape_shape)
+    tensor = (tensor * std) + mean
+    tensor = tensor * torch.tensor(max_pixel_value).reshape(reshape_shape)
+    return tensor.numpy()
