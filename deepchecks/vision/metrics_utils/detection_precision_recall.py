@@ -104,7 +104,6 @@ class AveragePrecision(Metric):
                     # run ap calculation per-class
                     for class_id in self._evals:
                         ev = self._evals[class_id]
-                        # print(ev)
                         res[class_id] = {
                             "class": class_id,
                             **self._compute_ap_recall(np.array(ev["scores"][(area_size, dets, min_iou)]),
@@ -116,8 +115,8 @@ class AveragePrecision(Metric):
                         res[-1] = {
                                 "class": -1,
                                 **self._compute_ap_recall(np.array(all_evals[(area_size, dets, min_iou)]),
-                                                        np.array(all_evals[(area_size, dets, min_iou)]),
-                                                        np.sum(np.array(all_evals[(area_size, dets, min_iou)])))
+                                                          np.array(all_evals[(area_size, dets, min_iou)]),
+                                                          np.sum(np.array(all_evals[(area_size, dets, min_iou)])))
                         }
                     if self.return_ap_only:
                         res = torch.tensor([res[k]["AP"] for k in sorted(res.keys())])
