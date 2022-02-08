@@ -21,7 +21,7 @@ from .iou_utils import compute_ious
 
 def _dict_conc(test_list):
     result = defaultdict(list)
- 
+
     for i in range(len(test_list)):
         current = test_list[i]
         for key, value in current.items():
@@ -30,7 +30,7 @@ def _dict_conc(test_list):
                     result[key].append(value[j])
             else:
                 result[key].append(value)
-    
+
     return result
 
 
@@ -206,12 +206,16 @@ class AveragePrecision(Metric):
 
                     # generate ignore list for dts
                     dt_ignore = [
-                        gt_ignore[dtm[d_idx]] if d_idx in dtm else self._is_ignore_area(d.bbox[2] * d.bbox[3], area_size) for d_idx, d in enumerate(dt)
+                        gt_ignore[dtm[d_idx]] if d_idx in dtm
+                        else self._is_ignore_area(d.bbox[2] * d.bbox[3], area_size)
+                        for d_idx, d in enumerate(dt)
                     ]
 
                     # get score for non-ignored dts
-                    scores[(area_size, dets, min_iou)] = [dt[d_idx].confidence for d_idx in range(len(dt)) if not dt_ignore[d_idx]]
-                    matched[(area_size, dets, min_iou)] = [d_idx in dtm for d_idx in range(len(dt)) if not dt_ignore[d_idx]]
+                    scores[(area_size, dets, min_iou)] = [dt[d_idx].confidence for d_idx in range(len(dt))
+                                                          if not dt_ignore[d_idx]]
+                    matched[(area_size, dets, min_iou)] = [d_idx in dtm for d_idx in range(len(dt))
+                                                           if not dt_ignore[d_idx]]
 
                     n_gts[(area_size, dets, min_iou)] = len([g_idx for g_idx in range(len(gt)) if not gt_ignore[g_idx]])
         return {"scores": scores, "matched": matched, "NP": n_gts}
