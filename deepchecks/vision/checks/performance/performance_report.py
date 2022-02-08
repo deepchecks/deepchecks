@@ -69,16 +69,24 @@ class PerformanceReport(TrainTestCheck):
 
         for dataset_name, dataset in datasets.items():
             n_samples = dataset.get_samples_per_class()
+            metric_values = calculate_metrics(
+                list(scorers.values()),
+                dataset,
+                model,
+                prediction_formatter=self.prediction_formatter,
+                device=context.device
+            )
             results.extend(
                 [dataset_name, class_name, name, class_score, n_samples[class_name]]
-                for name, score in calculate_metrics(list(scorers.values()), dataset, model,
-                                                     prediction_formatter=self.prediction_formatter).items()
+                for name, score in metric_values.items()
                 # scorer returns numpy array of results with item per class
                 for class_score, class_name in zip(score, classes)
             )
 
-        results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples']
-                                  ).sort_values(by=['Class'])
+        results_df = pd.DataFrame(
+            results,
+            columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples']
+        ).sort_values(by=['Class'])
 
         fig = px.histogram(
             results_df,

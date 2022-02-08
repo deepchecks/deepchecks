@@ -143,9 +143,10 @@ class Context:
             for tensor, _ in self.test.sample_data_loader:
                 self._test_sample_predictions.append(self.model(tensor))
         return self._test_sample_predictions
-    
+
     @property
     def device(self) -> Optional[torch.device]:
+        """Return device to use specified by the user."""
         return self._device
 
     def have_test(self):
