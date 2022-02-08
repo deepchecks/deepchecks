@@ -84,8 +84,7 @@ class Context:
         self._test = test
         self._model = model
         self._validated_model = False
-        self._train_sample_predictions = None
-        self._test_sample_predictions = None
+        self._batch_prediction_cache = None
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
@@ -123,24 +122,6 @@ class Context:
         """Return model name."""
         return self._model_name
 
-    @property
-    def train_sample_predictions(self):
-        """Return the predictions on the train samples."""
-        if self._train_sample_predictions is None:
-            self._train_sample_predictions = []
-            for tensor, _ in self.train.sample_data_loader:
-                self._train_sample_predictions.append(self.model(tensor))
-        return self._train_sample_predictions
-
-    @property
-    def test_sample_predictions(self):
-        """Return the predictions on the test samples."""
-        if self._test_sample_predictions is None:
-            self._test_sample_predictions = []
-            for tensor, _ in self.test.sample_data_loader:
-                self._test_sample_predictions.append(self.model(tensor))
-        return self._test_sample_predictions
-
     def have_test(self):
         """Return whether there is test dataset defined."""
         return self._test is not None
@@ -151,6 +132,17 @@ class Context:
             raise ModelValidationError(
                 f'Check is irrelevant for task of type {self.train.task_type}')
         return True
+
+    def infer(self, batch: Any) -> Any:
+        """Return the predictions on the given batch, and cache them for later."""
+        if self._batch_prediction_cache is None:
+            self._batch_prediction_cache = self.model(batch)
+        return self._batch_prediction_cache
+
+    def flush_cached_inference(self):
+        """Flush the cached inference."""
+        self._train_sample_predictions = None
+        self._test_sample_predictions = None
 
 
 class SingleDatasetCheck(SingleDatasetBaseCheck):
@@ -170,6 +162,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
         for batch in dataset.get_data_loader():
             self.update(context, batch)
+            context.flush_cached_inference()
 
         return self.compute(context)
 
@@ -204,9 +197,11 @@ class TrainTestCheck(TrainTestBaseCheck):
 
         for batch in train_dataset.get_data_loader():
             self.update(context, batch, dataset_name='train')
+            context.flush_cached_inference()
 
         for batch in test_dataset.get_data_loader():
             self.update(context, batch, dataset_name='test')
+            context.flush_cached_inference()
 
         return self.compute(context)
 

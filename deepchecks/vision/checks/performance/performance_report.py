@@ -72,7 +72,7 @@ class PerformanceReport(TrainTestCheck):
             dataset = context.test
         images = batch[0]
         label = dataset.label_transformer(batch[1])
-        prediction = self.prediction_formatter(context.model(images))
+        prediction = self.prediction_formatter(context.infer(images))
         for metric_name, metric in self._state[dataset_name]['scorers'].items():
             metric.update((prediction, label))
 
