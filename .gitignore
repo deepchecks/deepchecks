@@ -88,3 +88,5 @@ generated/
 #other
 lychee.output
 docs.error.log
+*.pt
+*.zip

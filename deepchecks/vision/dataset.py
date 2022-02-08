@@ -234,8 +234,15 @@ class VisionData:
         if self.task_type != other.task_type:
             raise DeepchecksValueError('Datasets required to have same label type')
 
-        if self.get_label_shape() != other.get_label_shape():
-            raise DeepchecksValueError('Datasets required to share the same label shape')
+        if self.task_type == TaskType.OBJECT_DETECTION:
+            # number of objects can be different
+            _, *label_shape = self.get_label_shape()
+            _, *other_label_shape = other.get_label_shape()
+            if label_shape != other_label_shape:
+                raise DeepchecksValueError('Datasets required to share the same label shape')
+        else:
+            if self.get_label_shape() != other.get_label_shape():
+                raise DeepchecksValueError('Datasets required to share the same label shape')
 
     @classmethod
     def validate_dataset(cls, obj) -> 'VisionData':

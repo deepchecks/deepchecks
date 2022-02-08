@@ -79,7 +79,10 @@ class AveragePrecision(Metric):
                 **self._compute_ap_recall(ev["scores"], ev["matched"], ev["NP"])
             }
         if self.return_ap_only:
-            res = torch.tensor([res[k]["AP"] for k in sorted(res.keys())])
+            res = torch.tensor([
+                res[k]["AP"] if res[k]["AP"] is not None else 0
+                for k in sorted(res.keys())
+            ])
         return res
 
     def _group_detections(self, dt, gt):
