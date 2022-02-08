@@ -20,6 +20,7 @@ from typing import List, Union, Dict, Tuple
 
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.plot import colors
+from deepchecks.utils.dataframes import un_numpy
 
 
 def get_density(data, xs) -> np.ndarray:
@@ -140,6 +141,9 @@ def feature_distribution_traces(train_column,
         expected_percents, actual_percents, categories_list = \
             preprocess_2_cat_cols_to_same_bins(dist1=train_column, dist2=test_column,
                                                max_num_categories=max_num_categories)
+        # fixes plotly widget bug with numpy values by converting them to native values
+        # https://github.com/plotly/plotly.py/issues/3470
+        categories_list = [un_numpy(cat) for cat in categories_list]
         cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
                               index=categories_list)
         train_bar = go.Bar(

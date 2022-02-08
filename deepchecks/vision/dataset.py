@@ -22,10 +22,11 @@ import logging
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.utils import ClassificationLabelFormatter, DetectionLabelFormatter
 from deepchecks.vision.utils.base_formatters import BaseLabelFormatter
+from deepchecks.vision.utils.image_formatters import ImageFormatter
 
 logger = logging.getLogger('deepchecks')
 
-__all__ = ['TaskType', 'VisionDataset']
+__all__ = ['TaskType', 'VisionData']
 
 
 class TaskType(Enum):
@@ -36,10 +37,10 @@ class TaskType(Enum):
     SEMANTIC_SEGMENTATION = 'semantic_segmentation'
 
 
-class VisionDataset:
-    """VisionDataset wraps a PyTorch DataLoader together with model related metadata.
+class VisionData:
+    """VisionData wraps a PyTorch DataLoader together with model related metadata.
 
-    The VisionDataset class is containing additional data and methods intended for easily accessing
+    The VisionData class is containing additional data and methods intended for easily accessing
     metadata relevant for the training or validating of a computer vision ML models.
 
     Parameters
@@ -86,6 +87,7 @@ class VisionDataset:
                  data_loader: DataLoader,
                  num_classes: Optional[int] = None,
                  label_transformer: Union[ClassificationLabelFormatter, DetectionLabelFormatter] = None,
+                 image_transformer: ImageFormatter = None,
                  sample_size: int = 1000,
                  sample_iteration_limit: int = 1_000_000,
                  random_seed: int = 0):
@@ -95,6 +97,11 @@ class VisionDataset:
             self.label_transformer = ClassificationLabelFormatter(lambda x: x)
         else:
             self.label_transformer = label_transformer
+
+        if image_transformer is None:
+            self.image_transformer = ImageFormatter(lambda x: x)
+        else:
+            self.image_transformer = image_transformer
 
         if isinstance(self.label_transformer, ClassificationLabelFormatter):
             self.task_type = TaskType.CLASSIFICATION
@@ -133,6 +140,11 @@ class VisionDataset:
                     'Not implemented yet for tasks other than classification and object detection'
                 )
         return copy(self._samples_per_class)
+
+    def to_display_data(self, batch):
+        """Convert a batch of data outputted by the data loader to a format that can be displayed."""
+        self.image_transformer.validate_data(batch)
+        return self.image_transformer(batch)
 
     @property
     def sample_data_loader(self) -> DataLoader:
@@ -183,7 +195,7 @@ class VisionDataset:
 
         Parameters
         ----------
-        other : VisionDataset
+        other : VisionData
             Expected to be Dataset type. dataset to compare
         Returns
         -------
@@ -194,7 +206,7 @@ class VisionDataset:
         DeepchecksValueError
             if datasets don't have the same label
         """
-        VisionDataset.validate_dataset(other)
+        VisionData.validate_dataset(other)
 
         if self.is_have_label() != other.is_have_label():
             raise DeepchecksValueError('Datasets required to both either have or don\'t have labels')
@@ -206,7 +218,7 @@ class VisionDataset:
             raise DeepchecksValueError('Datasets required to share the same label shape')
 
     @classmethod
-    def validate_dataset(cls, obj) -> 'VisionDataset':
+    def validate_dataset(cls, obj) -> 'VisionData':
         """Throws error if object is not deepchecks Dataset and returns the object if deepchecks Dataset.
 
         Parameters
@@ -218,8 +230,8 @@ class VisionDataset:
         Dataset
             object that is deepchecks dataset
         """
-        if not isinstance(obj, VisionDataset):
-            raise DeepchecksValueError('Check requires dataset to be of type VisionDataset. instead got: '
+        if not isinstance(obj, VisionData):
+            raise DeepchecksValueError('Check requires dataset to be of type VisionData. instead got: '
                                        f'{type(obj).__name__}')
 
         return obj

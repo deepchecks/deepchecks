@@ -19,7 +19,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.base import Context, TrainTestCheck
 from deepchecks.utils.distribution.plot import drift_score_bar_traces
 from deepchecks.utils.plot import colors
-from deepchecks.vision.dataset import VisionDataset, TaskType
+from deepchecks.vision.dataset import VisionData, TaskType
 import numpy as np
 from collections import Counter
 import plotly.graph_objs as go
@@ -213,7 +213,7 @@ class TrainTestLabelDrift(TrainTestCheck):
                 raise DeepchecksValueError(f'Label measurement must be of type dict, and include keys {expected_keys}')
 
 
-def generate_label_histograms_by_batch(train_dataset: VisionDataset, test_dataset: VisionDataset,
+def generate_label_histograms_by_batch(train_dataset: VisionData, test_dataset: VisionData,
                                        label_measurements: List[Dict[str, Any]] = None,
                                        num_bins: int = 100) -> Tuple[List[Dict[Any, float]], List[Dict[Any, float]]]:
     """
@@ -225,9 +225,9 @@ def generate_label_histograms_by_batch(train_dataset: VisionDataset, test_datase
 
     Parameters
     ----------
-    train_dataset: VisionDataset
+    train_dataset: VisionData
         dataset representing train data
-    test_dataset: VisionDataset
+    test_dataset: VisionData
         dataset representing test data
     label_measurements: List[Dict[str, Any]]
         list of measurements. Each measurement is dictionary with keys 'name' (str), 'method' (Callable) and
@@ -323,13 +323,13 @@ def calculate_continuous_histograms_in_batch(batch, hists, continuous_label_meas
 def get_results_on_batch(batch, label_measurement, label_transformer):
     """Calculate transformer result on batch of labels."""
     list_of_arrays = batch[1]
-    calc_res = [label_measurement(label_transformer(arr)) for arr in list_of_arrays]
+    calc_res = [label_measurement(arr) for arr in label_transformer(list_of_arrays)]
     if len(calc_res) != 0 and isinstance(calc_res[0], list):
         calc_res = [x[0] for x in sum(calc_res, [])]
     return calc_res
 
 
-def get_boundaries_by_batch(dataset: VisionDataset, label_measurements: List[Callable]) -> List[Dict[str, float]]:
+def get_boundaries_by_batch(dataset: VisionData, label_measurements: List[Callable]) -> List[Dict[str, float]]:
     """Get min and max on dataset for each label transformer."""
     bounds = [{'min': np.inf, 'max': -np.inf}] * len(label_measurements)
     for batch in dataset.get_data_loader():
