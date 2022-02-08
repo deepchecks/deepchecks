@@ -11,10 +11,11 @@
 """Module for base vision abstractions."""
 # TODO: This file should be completely modified
 # pylint: disable=broad-except,not-callable
-from typing import Tuple, Mapping, Optional
+from typing import Tuple, Mapping, Optional, Union
 
-from ignite.metrics import Metric
+import torch
 from torch import nn
+from ignite.metrics import Metric
 
 from deepchecks.vision.utils.validation import validate_model
 from deepchecks.core.check import (
@@ -69,7 +70,8 @@ class Context:
                  model: nn.Module = None,
                  model_name: str = '',
                  scorers: Mapping[str, Metric] = None,
-                 scorers_per_class: Mapping[str, Metric] = None
+                 scorers_per_class: Mapping[str, Metric] = None,
+                 device: Union[str, torch.device, None] = None
                  ):
         # Validations
         if train is None and test is None and model is None:
@@ -89,6 +91,7 @@ class Context:
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
+        self._device = torch.device(device) if isinstance(device, str) else device
 
     # Properties
     # Validations note: We know train & test fit each other so all validations can be run only on train
@@ -140,6 +143,10 @@ class Context:
             for tensor, _ in self.test.sample_data_loader:
                 self._test_sample_predictions.append(self.model(tensor))
         return self._test_sample_predictions
+    
+    @property
+    def device(self) -> Optional[torch.device]:
+        return self._device
 
     def have_test(self):
         """Return whether there is test dataset defined."""
