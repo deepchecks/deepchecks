@@ -33,6 +33,11 @@ class BaseLabelFormatter(abc.ABC):
         pass
 
     @abc.abstractmethod
+    def get_classes(self, label) -> set:
+        """Extract from single label the classes value."""
+        pass
+
+    @abc.abstractmethod
     def validate_label(self, data_loader: DataLoader) -> Optional[str]:
         """Validate that the label is in the required format."""
         return 'Not implemented yet for tasks other than classification and object detection'

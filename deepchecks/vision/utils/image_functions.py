@@ -1,5 +1,7 @@
+import PIL
 import numpy as np
 import plotly.graph_objects as go
+import torch
 
 from deepchecks.core.errors import DeepchecksValueError
 
@@ -20,3 +22,12 @@ def apply_heatmap_image_properties(fig):
     fig.update_yaxes(autorange='reversed', scaleanchor='x', constrain='domain')
     fig.update_xaxes(constrain='domain')
     fig.update_traces(showscale=False)
+
+
+def get_image_dimension(img):
+    if isinstance(img, (torch.Tensor, np.ndarray)):
+        return img.shape[0]
+    elif isinstance(img, PIL.Image.Image):
+        return img.im.bands
+    else:
+        raise DeepchecksValueError(f'Don\'t know image object of type {type(img)}')

@@ -65,6 +65,10 @@ class ClassificationLabelFormatter(BaseLabelFormatter):
 
         return counter
 
+    def get_classes(self, label):
+        transformed_label = self([label])
+        return {transformed_label}
+
     def validate_label(self, data_loader: DataLoader) -> Optional[str]:
         """
         Validate the label.

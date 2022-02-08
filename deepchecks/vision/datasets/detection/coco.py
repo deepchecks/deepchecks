@@ -9,12 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Module for loading a sample of the COCO dataset and the yolov5s model."""
+import os
 import typing as t
 from pathlib import Path
 
 import numpy as np
 import torch
-# import albumentations as A
+import albumentations as A
 from PIL import Image
 from torch import nn
 from torch.utils.data import DataLoader
@@ -24,9 +25,9 @@ from typing_extensions import Literal
 
 from deepchecks import vision
 from deepchecks.vision.utils.detection_formatters import DetectionLabelFormatter
+from deepchecks.vision.utils import ImageFormatter
 
-
-__all__ = ['load_dataset']
+__all__ = ['load_dataset', 'load_model', 'yolo_prediction_formatter']
 
 
 DATA_DIR = Path(__file__).absolute().parent
@@ -41,12 +42,12 @@ def load_model(pretrained: bool = True) -> nn.Module:
 
 
 def load_dataset(
-    train: bool = True,
-    batch_size: int = 32,
-    num_workers: int = 0,
-    shuffle: bool = False,
-    pin_memory: bool = True,
-    object_type: Literal['Dataset', 'DataLoader'] = 'DataLoader'
+        train: bool = True,
+        batch_size: int = 32,
+        num_workers: int = 0,
+        shuffle: bool = False,
+        pin_memory: bool = True,
+        object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader'
 ) -> t.Union[DataLoader, vision.VisionData]:
     """Get the COCO128 dataset and return a dataloader.
 
@@ -85,9 +86,11 @@ def load_dataset(
             root=str(coco_dir),
             name=dataset_name,
             train=train,
-            # transform=A.Compose([
-            #     # TODO: what transformations we need to apply
-            # ])
+            transforms=A.Compose([
+                A.NoOp()
+            ],
+                bbox_params=A.BboxParams(format="coco")
+            )
         ),
         batch_size=batch_size,
         shuffle=shuffle,
@@ -96,12 +99,20 @@ def load_dataset(
         pin_memory=pin_memory,
     )
 
+    def label_formatter(x):
+        # our labels return at the end, and the VisionDataset expect it at the start
+        def move_class(tensor):
+            return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3])) if len(tensor) > 0 else tensor
+        return [move_class(tensor) for tensor in x]
+
     if object_type == 'DataLoader':
         return dataloader
-    elif object_type == 'Dataset':
+    elif object_type == 'VisionData':
         return vision.VisionData(
             data_loader=dataloader,
-            label_transformer=DetectionLabelFormatter(lambda x: x),
+            label_transformer=DetectionLabelFormatter(label_formatter),
+            # To display images we need them as numpy array
+            image_transformer=ImageFormatter(lambda pil_list: [np.array(x) for x in pil_list]),
             num_classes=80
         )
     else:
@@ -133,13 +144,13 @@ class CocoDataset(VisionDataset):
     TRAIN_FRACTION = 0.5
 
     def __init__(
-        self,
-        root: str,
-        name: str,
-        train: bool = True,
-        transform: t.Optional[t.Callable] = None,
-        target_transform: t.Optional[t.Callable] = None,
-        transforms: t.Optional[t.Callable] = None,
+            self,
+            root: str,
+            name: str,
+            train: bool = True,
+            transform: t.Optional[t.Callable] = None,
+            target_transform: t.Optional[t.Callable] = None,
+            transforms: t.Optional[t.Callable] = None,
     ) -> None:
         super().__init__(root, transforms, transform, target_transform)
 
@@ -184,19 +195,30 @@ class CocoDataset(VisionDataset):
 
         # Transform x,y,w,h in yolo format (x, y are of the image center, and coordinates are normalized) to standard
         # x,y,w,h format, where x,y are of the top left corner of the bounding box and coordinates are absolute.
-        for i in range(len(img_labels)):
-            x, y, w, h = img_labels[i, 1:]
-            img_labels[i, 1:] = np.array([
-                (x - w / 2) * img.width,
-                (y - h / 2) * img.height,
+        bboxes = []
+        for label in img_labels:
+            x, y, w, h = label[1:]
+            # Note: probably the normalization loses some accuracy in the coordinates as it truncates the number,
+            # leading in some cases to `y - w / 2` or `x - w / 2` to be negative
+            bboxes.append(np.array([
+                max((x - w / 2) * img.width, 0),
+                max((y - h / 2) * img.height, 0),
                 w * img.width,
-                h * img.height
-            ])
+                h * img.height,
+                label[0]
+            ]))
 
         if self.transforms is not None:
-            img, img_labels = self.transforms(img, img_labels)
+            transformed = self.transforms(image=np.array(img), bboxes=bboxes)
+            img = Image.fromarray(transformed['image'])
+            bboxes = transformed['bboxes']
 
-        return img, img_labels
+        # Return tensor of bboxes
+        if bboxes:
+            bboxes = torch.stack([torch.tensor(x) for x in bboxes])
+        else:
+            bboxes = torch.tensor([])
+        return img, bboxes
 
     def __len__(self) -> int:
         """Return the number of images in the dataset."""
@@ -228,8 +250,8 @@ class CocoDataset(VisionDataset):
         return coco_dir, 'train2017'
 
 
-def yolo_wrapper(
-    predictions: 'ultralytics.models.common.Detections'  # noqa: F821
+def yolo_prediction_formatter(
+        predictions: 'ultralytics.models.common.Detections'  # noqa: F821
 ) -> t.List[torch.Tensor]:
     """Convert from yolo Detections object to List (per image) of Tensors of the shape [N, 6] with each row being \
     [x, y, w, h, confidence, class] for each bbox in the image."""

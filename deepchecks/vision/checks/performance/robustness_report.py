@@ -17,7 +17,6 @@ from deepchecks.vision import VisionData, SingleDatasetCheck, Context
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.metrics_utils import calculate_metrics
 from deepchecks.vision.utils.validation import set_seeds
-from deepchecks.vision.utils.transformations import TransformWrapper
 from deepchecks.vision.metrics_utils import get_scorers_list
 from deepchecks.utils.strings import format_percent
 from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
@@ -58,7 +57,7 @@ class RobustnessReport(SingleDatasetCheck):
             CheckResult: value is dictionary in format 'score-name': score-value
         """
         set_seeds(self.random_state)
-        context.assert_task_type(TaskType.CLASSIFICATION)
+        context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
         if dataset_type == 'train':
             dataset = context.train
         else:
@@ -126,20 +125,19 @@ class RobustnessReport(SingleDatasetCheck):
     def _create_augmented_dataset(self, dataset: VisionData, augmentation_func):
         # Create a copy of data loader and the dataset
         aug_dataset: VisionData = dataset.copy()
-        transform: TransformWrapper = aug_dataset.wrap_transform_field()
         # Add augmentation in the first place
-        transform.add_augmentation_in_start(augmentation_func)
+        aug_dataset.add_augmentation(augmentation_func)
         return aug_dataset
 
     def _evaluate_dataset(self, dataset: VisionData, metrics, model):
         classes = dataset.get_samples_per_class().keys()
         metrics_results = calculate_metrics(metrics, dataset, model, self.prediction_formatter)
-        per_class_result = (
+        per_class_result = [
             [class_name, metric, class_score]
             for metric, score in metrics_results.items()
             # scorer returns numpy array of results with item per class
             for class_score, class_name in zip(score.tolist(), classes)
-        )
+        ]
 
         return pd.DataFrame(per_class_result, columns=['Class', 'Metric', 'Value']).sort_values(by=['Class'])
 
@@ -156,7 +154,7 @@ class RobustnessReport(SingleDatasetCheck):
                 .set_index('Class')
             diff = single_metric_scores.apply(lambda x: calc_percent(x.Value, x.Base), axis=1)
 
-            for index_class, diff_value in diff.sort_values()[:n_classes_to_show].iteritems():
+            for index_class, diff_value in diff.sort_values().iloc[:n_classes_to_show].iteritems():
                 aug_top_affected[metric].append({'class': index_class,
                                                  'value': single_metric_scores.at[index_class, 'Value'],
                                                  'diff': diff_value,
@@ -165,7 +163,8 @@ class RobustnessReport(SingleDatasetCheck):
 
     def _calc_performance_diff(self, mean_base, augmented_metrics):
         def difference(aug_score, base_score):
-            return (aug_score - base_score) / base_score
+            # TODO how to handle zero base score
+            return (aug_score - base_score) / base_score if base_score != 0 else 0
 
         diff_dict = {}
         for metric, score in self._calc_mean_metrics(augmented_metrics).items():
@@ -194,11 +193,15 @@ class RobustnessReport(SingleDatasetCheck):
         return figures
 
     def _create_example_figure(self, dataset: VisionData, images):
+        def to_batch(img_list):
+            if isinstance(img_list[0], torch.Tensor):
+                return torch.stack(img_list)
+            return img_list
         # First join all images to convert them in a single action to displayable format
         # Create tuple of ([base images], [aug images], [classes])
         transposed = list(zip(*images))
-        base_images = dataset.to_display_data(torch.stack(transposed[0]))
-        aug_images = dataset.to_display_data(torch.stack(transposed[1]))
+        base_images = dataset.to_display_data(to_batch(transposed[0]))
+        aug_images = dataset.to_display_data(to_batch(transposed[1]))
         classes = list(map(str, transposed[2]))
         dimension = dataset.data_dimension
 
@@ -314,10 +317,11 @@ def get_random_image_pairs_from_dataset(original_dataset: VisionData,
     transposed;
     can be done via image = image[:, :, ::-1] or cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     """
-    classes_to_show = {class_info['class']: class_info['diff']
-                       for classes_list in top_affected_classes.values()
-                       for class_info in classes_list
-                       }
+    classes_to_show = {
+        class_info['class']: class_info['diff']
+        for classes_list in top_affected_classes.values()
+        for class_info in classes_list
+    }
 
     # We definitely make the assumption that the underlying structure is torch.utils.Dataset
     baseline_sampler = iter(original_dataset.get_data_loader().dataset)
@@ -330,13 +334,16 @@ def get_random_image_pairs_from_dataset(original_dataset: VisionData,
     for (sample_base, sample_aug) in zip(baseline_sampler, aug_sampler):
         if not classes_set:
             break
-        curr_class = sample_base[1]
-        if curr_class not in classes_set:
+        curr_classes: set = original_dataset.label_transformer.get_classes(sample_base[1])
+        # If not relevant classes continue
+        intersect = curr_classes.intersection(classes_set)
+        if not intersect:
             continue
-        samples.append((sample_base[0], sample_aug[0], curr_class))
-        sort_value.append(classes_to_show[curr_class])
-        classes_set.remove(curr_class)
+        # Take randomly first class which will represents the current image
+        first_class = next(iter(intersect))
+        samples.append((sample_base[0], sample_aug[0], first_class))
+        sort_value.append(classes_to_show[first_class])
+        classes_set.remove(first_class)
 
     # Sort by diff but return only the tuple
     return [s for s, _ in sorted(zip(samples, sort_value), key=lambda pair: pair[1])]
-

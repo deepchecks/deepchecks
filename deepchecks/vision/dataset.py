@@ -20,10 +20,11 @@ from torch.utils.data import DataLoader, Dataset, Sampler
 import logging
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.utils.transformations import TransformWrapper, get_transform_type
+from deepchecks.vision.utils.transformations import get_transform_type, add_augmentation_in_start
 from deepchecks.vision.utils import ClassificationLabelFormatter, DetectionLabelFormatter
 from deepchecks.vision.utils.base_formatters import BaseLabelFormatter
 from deepchecks.vision.utils.image_formatters import ImageFormatter
+from deepchecks.vision.utils.image_functions import get_image_dimension
 
 logger = logging.getLogger('deepchecks')
 
@@ -78,11 +79,11 @@ class VisionData:
     def __init__(self,
                  data_loader: DataLoader,
                  num_classes: Optional[int] = None,
-                 label_transformer: Union[ClassificationLabelFormatter, DetectionLabelFormatter] = None,
+                 label_transformer: BaseLabelFormatter = None,
                  image_transformer: ImageFormatter = None,
                  sample_size: int = 1000,
                  random_seed: int = 0,
-                 transform_field: Optional[str] = 'transform'):
+                 transform_field: Optional[str] = 'transforms'):
         self._data = data_loader
         self.label_transformer = label_transformer
         self.image_transformer = image_transformer or ImageFormatter(lambda x: x)
@@ -133,9 +134,8 @@ class VisionData:
 
     @property
     def data_dimension(self):
-        sample = next(iter(self.get_data_loader()))[0]
-        # Expecting NCWH, so second arg in shape is image dimensions
-        return sample.shape[1]
+        sample = next(iter(self.get_data_loader()))[0][0]
+        return get_image_dimension(sample)
 
     @property
     def sample_data_loader(self) -> DataLoader:
@@ -187,14 +187,13 @@ class VisionData:
         except AttributeError:
             raise DeepchecksValueError(f"Underlying Dataset instance must have a {self.transform_field} attribute")
 
-    def wrap_transform_field(self) -> TransformWrapper:
-        """Validate transform field in the dataset, and return it wrapped in TransformWrapper"""
+    def add_augmentation(self, aug):
+        """Validate transform field in the dataset, and add the augmentation in the start of it."""
         dataset_ref = self.get_data_loader().dataset
         try:
             transform = dataset_ref.__getattribute__(self.transform_field)
-            wrapper = TransformWrapper(transform)
-            dataset_ref.__setattr__(self.transform_field, wrapper)
-            return wrapper
+            new_transform = add_augmentation_in_start(aug, transform)
+            dataset_ref.__setattr__(self.transform_field, new_transform)
         # If no field exists raise error
         except AttributeError:
             raise DeepchecksValueError(f"Underlying Dataset instance must have a {self.transform_field} attribute")

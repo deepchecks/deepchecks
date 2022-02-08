@@ -102,7 +102,8 @@ def load_dataset(
             data_loader=loader,
             num_classes=len(datasets.MNIST.classes),
             label_transformer=ClassificationLabelFormatter(),
-            image_transformer=ImageFormatter(inverse_transform)
+            image_transformer=ImageFormatter(inverse_transform),
+            transform_field='transform'
         )
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')

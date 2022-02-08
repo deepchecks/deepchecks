@@ -24,7 +24,7 @@ __all__ = [
     'calculate_metrics'
 ]
 
-from .detection_precision_recall import AveragePrecision
+from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
 
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
