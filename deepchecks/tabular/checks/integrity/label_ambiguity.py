@@ -87,7 +87,11 @@ class LabelAmbiguity(SingleDatasetCheck):
 
             group_df = group_data[1]
             sample_values = dict(group_df[dataset.features].iloc[0])
+<<<<<<< HEAD:deepchecks/tabular/checks/integrity/label_ambiguity.py
             labels = tuple(sorted(group_df[label_name].unique()))
+=======
+            labels = tuple(sorted(group_df[label_col].unique()))
+>>>>>>> 18bc25cd (No warning in stable (#830)):deepchecks/checks/integrity/label_ambiguity.py
             sample = pd.DataFrame.from_dict({'index': [labels] + list(sample_values.values())},
                                             columns=[ambiguous_label_name] + list(sample_values.keys()),
                                             orient='index')
