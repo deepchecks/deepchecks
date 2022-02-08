@@ -163,6 +163,7 @@ def _display_suite_widgets(summary: str,
         others_table.sort_values(by=['sort'], inplace=True)
         others_table.drop('sort', axis=1, inplace=True)
         with warnings.catch_warnings():
+            warnings.simplefilter(action='ignore', category=FutureWarning)
             others_df = dataframe_to_html(others_table.style.hide_index())
         h2_widget = widgets.HTML(_CHECKS_WITHOUT_DISPLAY_TITLE)
         others_tab.children = [h2_widget, _create_table_widget(others_df)]

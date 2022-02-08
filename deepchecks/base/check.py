@@ -256,6 +256,7 @@ class CheckResult:
             display_html(_CONDITIONS_HEADER, raw=True)
             conditions_table = pd.read_json(json_data['conditions_table'], orient='records')
             with warnings.catch_warnings():
+                warnings.simplefilter(action='ignore', category=FutureWarning)
                 display_html(dataframe_to_html(conditions_table.style.hide_index()), raw=True)
         display_html(_ADDITIONAL_OUTPUTS_HEADER, raw=True)
         for display_type, value in json_data['display']:
