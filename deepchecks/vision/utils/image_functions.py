@@ -1,4 +1,6 @@
 import PIL
+from PIL import ImageChops
+import numpy
 import numpy as np
 import plotly.graph_objects as go
 import torch
@@ -31,3 +33,15 @@ def get_image_dimension(img):
         return img.im.bands
     else:
         raise DeepchecksValueError(f'Don\'t know image object of type {type(img)}')
+
+
+def is_images_equal(img_a, img_b):
+    if isinstance(img_a, torch.Tensor):
+        return torch.equal(img_a, img_b)
+    elif isinstance(img_a, np.ndarray):
+        return numpy.array_equal(img_a, img_b)
+    elif isinstance(img_a, PIL.Image.Image):
+        diff = ImageChops.difference(img_a, img_b)
+        return diff.getbbox() is None
+    else:
+        raise DeepchecksValueError(f'Don\'t know image object of type {type(img_a)}')

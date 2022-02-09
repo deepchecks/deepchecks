@@ -20,7 +20,7 @@ from torch.utils.data import DataLoader, Dataset, Sampler
 import logging
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.utils.transformations import get_transform_type, add_augmentation_in_start
+from deepchecks.vision.utils.transformations import get_transforms_handler, add_augmentation_in_start
 from deepchecks.vision.utils import ClassificationLabelFormatter, DetectionLabelFormatter
 from deepchecks.vision.utils.base_formatters import BaseLabelFormatter
 from deepchecks.vision.utils.image_formatters import ImageFormatter
@@ -178,11 +178,11 @@ class VisionData:
         """Return the data loader."""
         return self._data
 
-    def get_transform_type(self) -> str:
+    def get_transform_type(self):
         dataset_ref = self.get_data_loader().dataset
         try:
             transform = dataset_ref.__getattribute__(self.transform_field)
-            return get_transform_type(transform)
+            return get_transforms_handler(transform)
         # If no field exists raise error
         except AttributeError:
             raise DeepchecksValueError(f"Underlying Dataset instance must have a {self.transform_field} attribute")
@@ -198,7 +198,7 @@ class VisionData:
         except AttributeError:
             raise DeepchecksValueError(f"Underlying Dataset instance must have a {self.transform_field} attribute")
 
-    def copy(self) -> 'VisionDataset':
+    def copy(self) -> 'VisionData':
         props = get_data_loader_props_to_copy(self.get_data_loader())
         props['dataset'] = copy(self.get_data_loader().dataset)
         new_data_loader = self.get_data_loader().__class__(**props)
