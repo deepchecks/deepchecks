@@ -46,14 +46,14 @@ class AlbumentationsTransformations:
     @classmethod
     def get_robustness_augmentations(cls, data_dim):
         augmentations = [
-            albumentations.RandomBrightnessContrast(p=1.0),
+            # albumentations.RandomBrightnessContrast(p=1.0),
             albumentations.ShiftScaleRotate(p=1.0),
         ]
-        if data_dim == 3:
-            augmentations.extend([
-                albumentations.HueSaturationValue(p=1.0),
-                albumentations.RGBShift(r_shift_limit=15, g_shift_limit=15, b_shift_limit=15, p=1.0)
-            ])
+        # if data_dim == 3:
+        #     augmentations.extend([
+        #         albumentations.HueSaturationValue(p=1.0),
+        #         albumentations.RGBShift(r_shift_limit=15, g_shift_limit=15, b_shift_limit=15, p=1.0)
+        #     ])
         return augmentations
 
 

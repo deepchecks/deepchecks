@@ -88,10 +88,6 @@ class DetectionLabelFormatter(BaseLabelFormatter):
 
         return counter
 
-    def get_classes(self, label):
-        transformed_label = self([label])[0]
-        return {x[0].item() for x in transformed_label}
-
     def validate_label(self, data_loader: DataLoader) -> Optional[str]:
         """
         Validate the label.

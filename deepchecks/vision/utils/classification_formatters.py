@@ -17,10 +17,10 @@ import torch
 from torch.utils.data import DataLoader
 
 from .base_formatters import BaseLabelFormatter, BasePredictionFormatter
+from deepchecks.core.errors import DeepchecksValueError
+
 
 __all__ = ['ClassificationLabelFormatter', 'ClassificationPredictionFormatter']
-
-from ...core.errors import DeepchecksValueError
 
 
 class ClassificationLabelFormatter(BaseLabelFormatter):
@@ -32,8 +32,8 @@ class ClassificationLabelFormatter(BaseLabelFormatter):
     label_formatter : Callable
         Function that takes in a batch of labels and returns the encoded labels in the following format:
         tensor of shape (N,), When N is the number of samples. Each element is an integer
-        representing the class index.
-
+        representing the class index. A class index is the position of the class in the second dimension of the vector
+        of predictions returned by the model.
     """
 
     def __init__(self, label_formatter: Callable = lambda x: x):
@@ -64,10 +64,6 @@ class ClassificationLabelFormatter(BaseLabelFormatter):
             counter.update(self(batch[1].tolist()))
 
         return counter
-
-    def get_classes(self, label):
-        transformed_label = self([label])
-        return {transformed_label}
 
     def validate_label(self, data_loader: DataLoader) -> Optional[str]:
         """

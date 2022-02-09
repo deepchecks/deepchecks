@@ -11,23 +11,23 @@
 """Module for defining metrics for the vision module."""
 import typing as t
 
+import pandas as pd
+import torch
 from ignite.engine import Engine
 from ignite.metrics import Precision, Recall, Metric
 
 from torch import nn
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.vision import VisionData
+from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
+from deepchecks.vision.dataset import TaskType, VisionData
+from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 
 __all__ = [
     'get_scorers_list',
-    'calculate_metrics'
+    'calculate_metrics',
+    'metric_results_to_df'
 ]
-
-from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
-
-from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 
 
 def get_default_classification_scorers(average=False):
@@ -83,9 +83,9 @@ def get_scorers_list(
     return scorers
 
 
-def calculate_metrics(metrics: t.List[Metric], dataset: VisionData, model: nn.Module,
+def calculate_metrics(metrics: t.Union[t.Dict, t.List[Metric]], dataset: VisionData, model: nn.Module,
                       prediction_formatter: BasePredictionFormatter) \
-        -> t.Dict[str, t.Union[t.List, float]]:
+        -> t.Dict:
     """Calculate a list of ignite metrics on a given model and dataset.
 
     Parameters
@@ -129,3 +129,15 @@ def calculate_metrics(metrics: t.List[Metric], dataset: VisionData, model: nn.Mo
 
     state = engine.run(dataset.get_data_loader())
     return state.metrics
+
+
+def metric_results_to_df(results, dataset):
+    per_class_result = [
+        [metric, class_name,
+         class_score.item() if isinstance(class_score, torch.Tensor) else class_score]
+        for metric, score in results.items()
+        # scorer returns numpy array of results with item per class
+        for class_score, class_name in zip(score, sorted(dataset.get_samples_per_class().keys()))
+    ]
+
+    return pd.DataFrame(per_class_result, columns=['Metric', 'Class', 'Value']).sort_values(by=['Metric', 'Class'])

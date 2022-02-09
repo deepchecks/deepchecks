@@ -15,13 +15,13 @@ from deepchecks import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import VisionData, SingleDatasetCheck, Context
 from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.metrics_utils import calculate_metrics
+from deepchecks.vision.metrics_utils import calculate_metrics, metric_results_to_df
 from deepchecks.vision.utils.validation import set_seeds
 from deepchecks.vision.metrics_utils import get_scorers_list
 from deepchecks.utils.strings import format_percent
 from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 from deepchecks.vision.utils.image_functions import numpy_to_image_figure, apply_heatmap_image_properties, \
-    is_images_equal
+    is_images_equal, label_bbox_add_to_figure
 
 __all__ = ['RobustnessReport']
 
@@ -71,7 +71,9 @@ class RobustnessReport(SingleDatasetCheck):
         # Get default scorers if no alternative, or validate alternatives
         metrics = get_scorers_list(dataset, self.alternative_metrics)
         # Return dataframe of (Class, Metric, Value)
-        base_results: pd.DataFrame = self._evaluate_dataset(dataset, metrics, model)
+        base_results: pd.DataFrame = metric_results_to_df(
+            calculate_metrics(metrics, dataset, model, self.prediction_formatter), dataset
+        )
         # Return dict of metric to value
         base_mean_results: dict = self._calc_mean_metrics(base_results)
         # Get augmentations
@@ -81,7 +83,9 @@ class RobustnessReport(SingleDatasetCheck):
             augmentation = augmentation_name(augmentation_func)
             aug_dataset = self._create_augmented_dataset(dataset, augmentation_func)
             # Return dataframe of (Class, Metric, Value)
-            aug_results = self._evaluate_dataset(aug_dataset, metrics, model)
+            aug_results = metric_results_to_df(
+                calculate_metrics(metrics, aug_dataset, model, self.prediction_formatter), aug_dataset
+            )
             # Return dict of {metric: {'score': mean score, 'diff': diff from base}, ... }
             metrics_diff_dict = self._calc_performance_diff(base_mean_results, aug_results)
             # Return dict of metric to list {metric: [{'class': x, 'value': y, 'diff': z, 'samples': w}, ...], ...}
@@ -139,6 +143,7 @@ class RobustnessReport(SingleDatasetCheck):
         baseline_sampler = iter(dataset.get_data_loader().dataset)
         aug_sampler = iter(aug_dataset.get_data_loader().dataset)
 
+        # Validating on a single sample that the augmentation had affected
         for (sample_base, sample_aug) in zip(baseline_sampler, aug_sampler):
             # Skips any sample without label
             if sample_base[1] is None or len(sample_base[1]) == 0:
@@ -158,18 +163,6 @@ class RobustnessReport(SingleDatasetCheck):
                                                f'implementation of Dataset.__getitem__')
             # If all validations passed return
             return
-
-    def _evaluate_dataset(self, dataset: VisionData, metrics, model):
-        classes = dataset.get_samples_per_class().keys()
-        metrics_results = calculate_metrics(metrics, dataset, model, self.prediction_formatter)
-        per_class_result = [
-            [class_name, metric, class_score]
-            for metric, score in metrics_results.items()
-            # scorer returns numpy array of results with item per class
-            for class_score, class_name in zip(score.tolist(), classes)
-        ]
-
-        return pd.DataFrame(per_class_result, columns=['Class', 'Metric', 'Value']).sort_values(by=['Class'])
 
     def _calc_top_affected_classes(self, base_results, augmented_results, dataset, n_classes_to_show):
         def calc_percent(a, b):
@@ -233,7 +226,6 @@ class RobustnessReport(SingleDatasetCheck):
         base_images = dataset.to_display_data(to_batch(transposed[0]))
         aug_images = dataset.to_display_data(to_batch(transposed[1]))
         classes = list(map(str, transposed[2]))
-        dimension = dataset.data_dimension
 
         # Create image figures
         fig = make_subplots(rows=2, cols=len(classes), column_titles=classes, row_titles=['Origin', 'Augmented'],
@@ -244,13 +236,19 @@ class RobustnessReport(SingleDatasetCheck):
             fig.append_trace(numpy_to_image_figure(base_image), row=1, col=index + 1)
             fig.append_trace(numpy_to_image_figure(aug_image), row=2, col=index + 1)
 
+        # If length is 4 means we also have bounding boxes to draw
+        if len(transposed) == 4:
+            for index, (base_bbox, aug_bbox) in enumerate(transposed[3]):
+                label_bbox_add_to_figure(base_bbox, fig, row=1, col=index + 1)
+                label_bbox_add_to_figure(aug_bbox, fig, row=2, col=index + 1)
+
         (fig.update_layout(title=dict(text='Augmentation Samples', font=dict(size=20)),
                            margin=dict(l=0, r=0, t=60, b=0))
          .update_yaxes(showticklabels=False, visible=True, fixedrange=True)
          .update_xaxes(showticklabels=False, visible=True, fixedrange=True))
 
         # In case of heatmap and grayscale images, need to add those properties which on Image exists automatically
-        if dimension == 1:
+        if dataset.data_dimension == 1:
             apply_heatmap_image_properties(fig)
 
         return fig
@@ -339,16 +337,36 @@ def get_random_image_pairs_from_dataset(original_dataset: VisionData,
     for (sample_base, sample_aug) in zip(baseline_sampler, aug_sampler):
         if not classes_set:
             break
-        curr_classes: set = original_dataset.label_transformer.get_classes(sample_base[1])
-        # If not relevant classes continue
-        intersect = curr_classes.intersection(classes_set)
-        if not intersect:
-            continue
-        # Take randomly first class which will represents the current image
-        first_class = next(iter(intersect))
-        samples.append((sample_base[0], sample_aug[0], first_class))
-        sort_value.append(classes_to_show[first_class])
-        classes_set.remove(first_class)
+
+        base_label = original_dataset.label_transformer([sample_base[1]])[0]
+        aug_label = original_dataset.label_transformer([sample_aug[1]])[0]
+        if original_dataset.task_type == TaskType.OBJECT_DETECTION:
+            # Classes are the first item in the label
+            all_classes_in_label = set(
+                base_label[:, 0].tolist() if len(base_label) > 0 else []
+            )
+            # If not relevant classes continue
+            intersect = all_classes_in_label.intersection(classes_set)
+            if not intersect:
+                continue
+            # Take randomly first class which will represents the current image
+            curr_class = next(iter(intersect))
+            # Take only bboxes of this class
+            base_class_label = [x for x in base_label if x[0] == curr_class]
+            aug_class_label = [x for x in aug_label if x[0] == curr_class]
+            samples.append((sample_base[0], sample_aug[0], curr_class, (base_class_label, aug_class_label)))
+        elif original_dataset.task_type == TaskType.CLASSIFICATION:
+            curr_class = base_label
+            if curr_class not in classes_set:
+                continue
+            samples.append((sample_base[0], sample_aug[0], curr_class))
+        else:
+            raise DeepchecksValueError('Not implemented')
+
+        # Add the sort value to sort later images by difference
+        sort_value.append(classes_to_show[curr_class])
+        # Remove from the classes set to not take another sample of the same class
+        classes_set.remove(curr_class)
 
     # Sort by diff but return only the tuple
     return [s for s, _ in sorted(zip(samples, sort_value), key=lambda pair: pair[1])]
