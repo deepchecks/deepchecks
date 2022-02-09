@@ -31,6 +31,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Set Up Env
       run: make env
+    - name: Print Requirements
+      run: pip freeze
     - name: Run Tests
       run: make test
   coverage:
