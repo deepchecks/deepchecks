@@ -517,7 +517,8 @@ def feature_distribution_traces(expected_percents: np.array,
 
         traces = [train_bar, test_bar]
 
-        xaxis_layout = dict(type='category')
+        xaxis_layout = dict(type='category',
+                            title='Values')
         yaxis_layout = dict(fixedrange=True,
                             range=(0, 1),
                             title='Percentage')
