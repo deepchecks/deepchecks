@@ -67,7 +67,7 @@ class RobustnessReport(SingleDatasetCheck):
 
         # Validate the transformations works
         transforms_handler = dataset.get_transform_type()
-
+        self._validate_augmenting_affects(transforms_handler, dataset)
         # Get default scorers if no alternative, or validate alternatives
         metrics = get_scorers_list(dataset, self.alternative_metrics)
         # Return dataframe of (Class, Metric, Value)
@@ -132,7 +132,7 @@ class RobustnessReport(SingleDatasetCheck):
         aug_dataset.add_augmentation(augmentation_func)
         return aug_dataset
 
-    def _validate_augmenting_label(self, transform_handler, dataset: VisionData):
+    def _validate_augmenting_affects(self, transform_handler, dataset: VisionData):
         """Validate the user is using the transforms' field correctly, and that if affects the image and label"""
         aug_dataset = self._create_augmented_dataset(dataset, transform_handler.get_test_transformation())
         # Iterate both datasets and compare results
@@ -150,12 +150,14 @@ class RobustnessReport(SingleDatasetCheck):
 
             # For classification does not check label for difference
             if dataset.task_type != TaskType.CLASSIFICATION:
-                label_a = dataset.label_transformer(sample_base[1])
-                label_b = dataset.label_transformer(sample_aug[1])
+                label_a = dataset.label_transformer([sample_base[1]])[0]
+                label_b = dataset.label_transformer([sample_aug[1]])[0]
                 if torch.equal(label_a, label_b):
                     raise DeepchecksValueError('Found that labels have not been affected by adding augmentation. label '
                                                f'before {label_a} and after {label_b}. This might be a problem with the '
                                                f'implementation of Dataset.__getitem__')
+            # If all validations passed return
+            return
 
     def _evaluate_dataset(self, dataset: VisionData, metrics, model):
         classes = dataset.get_samples_per_class().keys()

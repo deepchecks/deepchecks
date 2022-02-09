@@ -41,7 +41,7 @@ class AlbumentationsTransformations:
 
     @classmethod
     def get_test_transformation(cls):
-        return imgaug.augmenters.Rotate(rotate=(20, 30))
+        return albumentations.Rotate(limit=(20, 30), p=1)
 
     @classmethod
     def get_robustness_augmentations(cls, data_dim):
