@@ -96,7 +96,11 @@ class TrainTestLabelDrift(TrainTestCheck):
         self.alternative_label_measurements = alternative_label_measurements
         self.num_bins = num_bins
 
-    def run_logic(self, context: Context) -> CheckResult:
+    def update(self, context: Context, batch: Any, dataset_name: str = 'train'):
+        """Perform update on batch."""
+        pass
+
+    def compute(self, context: Context) -> CheckResult:
         """Calculate drift for all columns.
 
         Returns
