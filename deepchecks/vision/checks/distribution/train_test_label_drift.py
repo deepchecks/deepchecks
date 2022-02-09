@@ -524,7 +524,6 @@ def feature_distribution_traces(expected_percents: np.array,
 
     else:
         x_range = (x_values[0], x_values[-1])
-        # xs = np.linspace(x_range[0], x_range[1], len())
 
         traces = [go.Scatter(x=x_values, y=expected_percents, fill='tozeroy', name='Train Dataset',
                              line_color=colors['Train']),
