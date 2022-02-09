@@ -97,6 +97,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         self.num_bins = num_bins
 
     def update(self, context: Context, batch: Any, dataset_name: str = 'train'):
+        """Perform update on batch."""
         pass
 
     def compute(self, context: Context) -> CheckResult:
