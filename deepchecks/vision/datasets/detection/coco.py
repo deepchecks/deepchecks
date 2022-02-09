@@ -199,7 +199,7 @@ class CocoDataset(VisionDataset):
         for label in img_labels:
             x, y, w, h = label[1:]
             # Note: probably the normalization loses some accuracy in the coordinates as it truncates the number,
-            # leading in some cases to `y - w / 2` or `x - w / 2` to be negative
+            # leading in some cases to `y - h / 2` or `x - w / 2` to be negative
             bboxes.append(np.array([
                 max((x - w / 2) * img.width, 0),
                 max((y - h / 2) * img.height, 0),
@@ -209,6 +209,7 @@ class CocoDataset(VisionDataset):
             ]))
 
         if self.transforms is not None:
+            # Albumentations accepts images as numpy and bboxes in defined format + class at the end
             transformed = self.transforms(image=np.array(img), bboxes=bboxes)
             img = Image.fromarray(transformed['image'])
             bboxes = transformed['bboxes']

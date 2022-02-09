@@ -20,8 +20,8 @@ from deepchecks.vision.utils.validation import set_seeds
 from deepchecks.vision.metrics_utils import get_scorers_list
 from deepchecks.utils.strings import format_percent
 from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
-from deepchecks.vision.utils.image_functions import numpy_to_image_figure, apply_heatmap_image_properties
-
+from deepchecks.vision.utils.image_functions import numpy_to_image_figure, apply_heatmap_image_properties, \
+    is_images_equal
 
 __all__ = ['RobustnessReport']
 
@@ -65,6 +65,9 @@ class RobustnessReport(SingleDatasetCheck):
 
         model = context.model
 
+        # Validate the transformations works
+        transforms_handler = dataset.get_transform_type()
+        self._validate_augmenting_affects(transforms_handler, dataset)
         # Get default scorers if no alternative, or validate alternatives
         metrics = get_scorers_list(dataset, self.alternative_metrics)
         # Return dataframe of (Class, Metric, Value)
@@ -72,7 +75,7 @@ class RobustnessReport(SingleDatasetCheck):
         # Return dict of metric to value
         base_mean_results: dict = self._calc_mean_metrics(base_results)
         # Get augmentations
-        augmentations = self.augmentations or get_robustness_augmentations(dataset)
+        augmentations = self.augmentations or transforms_handler.get_robustness_augmentations(dataset.data_dimension)
         aug_all_data = {}
         for augmentation_func in augmentations:
             augmentation = augmentation_name(augmentation_func)
@@ -128,6 +131,33 @@ class RobustnessReport(SingleDatasetCheck):
         # Add augmentation in the first place
         aug_dataset.add_augmentation(augmentation_func)
         return aug_dataset
+
+    def _validate_augmenting_affects(self, transform_handler, dataset: VisionData):
+        """Validate the user is using the transforms' field correctly, and that if affects the image and label"""
+        aug_dataset = self._create_augmented_dataset(dataset, transform_handler.get_test_transformation())
+        # Iterate both datasets and compare results
+        baseline_sampler = iter(dataset.get_data_loader().dataset)
+        aug_sampler = iter(aug_dataset.get_data_loader().dataset)
+
+        for (sample_base, sample_aug) in zip(baseline_sampler, aug_sampler):
+            # Skips any sample without label
+            if sample_base[1] is None or len(sample_base[1]) == 0:
+                continue
+
+            if is_images_equal(sample_base[0], sample_aug[0]):
+                raise DeepchecksValueError('Found that images have not been affected by adding augmentation. '
+                                           'This might be a problem with the implementation of Dataset.__getitem__')
+
+            # For classification does not check label for difference
+            if dataset.task_type != TaskType.CLASSIFICATION:
+                label_a = dataset.label_transformer([sample_base[1]])[0]
+                label_b = dataset.label_transformer([sample_aug[1]])[0]
+                if torch.equal(label_a, label_b):
+                    raise DeepchecksValueError('Found that labels have not been affected by adding augmentation. label '
+                                               f'before {label_a} and after {label_b}. This might be a problem with the '
+                                               f'implementation of Dataset.__getitem__')
+            # If all validations passed return
+            return
 
     def _evaluate_dataset(self, dataset: VisionData, metrics, model):
         classes = dataset.get_samples_per_class().keys()
@@ -269,31 +299,6 @@ class RobustnessReport(SingleDatasetCheck):
          .update_xaxes(title=None, type='category', tickangle=30, tickprefix='Class '))
 
         return fig
-
-
-def get_robustness_augmentations(dataset):
-    transform_type = dataset.get_transform_type()
-    multi_channel = dataset.data_dimension > 1
-    if transform_type == 'albumentations':
-        # Note that p=1.0 since we want to apply those to entire dataset
-        augmentations = [
-            albumentations.RandomBrightnessContrast(p=1.0),
-            albumentations.ShiftScaleRotate(p=1.0),
-        ]
-        if multi_channel:
-            augmentations.extend([
-                albumentations.HueSaturationValue(p=1.0),
-                albumentations.RGBShift(r_shift_limit=15, g_shift_limit=15, b_shift_limit=15, p=1.0)
-            ])
-    # imgaug augmentations works also inside pytorch compose
-    elif transform_type == 'imgaug':
-        augmentations = [
-            imgaug.augmenters.MultiplyHueAndSaturation()
-        ]
-    else:
-        raise DeepchecksValueError(f'Transformations of type {transform_type} are not supported')
-
-    return augmentations
 
 
 def augmentation_name(aug):
