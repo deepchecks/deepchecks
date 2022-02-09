@@ -19,7 +19,7 @@ from deepchecks.vision import TrainTestCheck, Context
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.metrics_utils.metrics import get_scorers_list, calculate_metrics
+from deepchecks.vision.metrics_utils.metrics import get_scorers_list
 from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
 
@@ -48,21 +48,15 @@ class PerformanceReport(TrainTestCheck):
         self._state = {}
 
     def initialize_run(self, context: Context):
-        """Optional method to initialize run before starting updating on batches."""
-        self._state = {}
+        """Initialize run before starting updating on batches. Optional."""
         context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
-        # Get default scorers if no alternative, or validate alternatives
-        self._state['train'] = {}
-        self._state['test'] = {}
+
+        self._state = {'train': {}, 'test': {}}
         self._state['train']['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
         self._state['test']['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
         for dataset_name in ['train', 'test']:
             for _, metric in self._state[dataset_name]['scorers'].items():
                 metric.reset()
-        self._state['train']['n_samples'] = context.train.get_samples_per_class()
-        self._state['test']['n_samples'] = context.test.get_samples_per_class()
-
-        self._state['classes'] = context.train.get_samples_per_class().keys()
 
     def update(self, context: Context, batch: Any, dataset_name: str = 'train'):
         """Update internal check state with given batch for either train or test."""
@@ -73,11 +67,15 @@ class PerformanceReport(TrainTestCheck):
         images = batch[0]
         label = dataset.label_transformer(batch[1])
         prediction = self.prediction_formatter(context.infer(images))
-        for metric_name, metric in self._state[dataset_name]['scorers'].items():
+        for _, metric in self._state[dataset_name]['scorers'].items():
             metric.update((prediction, label))
 
     def compute(self, context: Context) -> CheckResult:
         """Compute final check result based on accumulated internal state."""
+        self._state['train']['n_samples'] = context.train.get_samples_per_class()
+        self._state['test']['n_samples'] = context.test.get_samples_per_class()
+        self._state['classes'] = context.train.get_samples_per_class().keys()
+
         results = []
         for dataset_name in ['train', 'test']:
             n_samples = self._state[dataset_name]['n_samples']
@@ -118,7 +116,6 @@ class PerformanceReport(TrainTestCheck):
             header='Performance Report',
             display=fig
         )
-
 
     def add_condition_test_performance_not_less_than(self: PR, min_score: float) -> PR:
         """Add condition - metric scores are not less than given score.

@@ -11,7 +11,9 @@
 """Module for base vision abstractions."""
 # TODO: This file should be completely modified
 # pylint: disable=broad-except,not-callable
+import copy
 from typing import Tuple, Mapping, Optional, Any
+from collections import OrderedDict
 
 from ignite.metrics import Metric
 from torch import nn
@@ -21,7 +23,7 @@ from deepchecks.core.check import (
     CheckFailure,
     SingleDatasetBaseCheck,
     TrainTestBaseCheck,
-    ModelOnlyBaseCheck, CheckResult,
+    ModelOnlyBaseCheck, CheckResult, BaseCheck, wrap_run,
 )
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
@@ -141,8 +143,7 @@ class Context:
 
     def flush_cached_inference(self):
         """Flush the cached inference."""
-        self._train_sample_predictions = None
-        self._test_sample_predictions = None
+        self._batch_prediction_cache = None
 
 
 class SingleDatasetCheck(SingleDatasetBaseCheck):
@@ -150,15 +151,20 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
     context_type = Context
 
-    def run_logic(self, context, dataset_type: str = 'train') -> CheckResult:
+    def __init__(self):
+        super().__init__()
+        # Replace the compute function with wrapped compute function
+        setattr(self, 'compute', wrap_run(getattr(self, 'compute'), self))
+
+    def run(self, dataset, model=None) -> CheckResult:
         """Run check."""
+        assert self.context_type is not None
+        context = self.context_type(  # pylint: disable=not-callable
+            dataset,
+            model=model
+        )
 
         self.initialize_run(context)
-
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
 
         for batch in dataset.get_data_loader():
             self.update(context, batch)
@@ -167,7 +173,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         return self.compute(context)
 
     def initialize_run(self, context: Context):
-        """Optional method to initialize run before starting updating on batches."""
+        """Initialize run before starting updating on batches. Optional."""
         pass
 
     def update(self, context: Context, batch: Any):
@@ -187,26 +193,34 @@ class TrainTestCheck(TrainTestBaseCheck):
 
     context_type = Context
 
-    def run_logic(self, context) -> CheckResult:
+    def __init__(self):
+        super().__init__()
+        # Replace the compute function with wrapped compute function
+        setattr(self, 'compute', wrap_run(getattr(self, 'compute'), self))
+
+    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
         """Run check."""
+        assert self.context_type is not None
+        context = self.context_type(  # pylint: disable=not-callable
+            train_dataset,
+            test_dataset,
+            model=model
+        )
 
         self.initialize_run(context)
 
-        train_dataset = context.train
-        test_dataset = context.test
-
-        for batch in train_dataset.get_data_loader():
+        for batch in context.train.get_data_loader():
             self.update(context, batch, dataset_name='train')
             context.flush_cached_inference()
 
-        for batch in test_dataset.get_data_loader():
+        for batch in context.test.get_data_loader():
             self.update(context, batch, dataset_name='test')
             context.flush_cached_inference()
 
         return self.compute(context)
 
     def initialize_run(self, context: Context):
-        """Optional method to initialize run before starting updating on batches."""
+        """Initialize run before starting updating on batches. Optional."""
         pass
 
     def update(self, context: Context, batch: Any, dataset_name: str = 'train'):
@@ -222,6 +236,27 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
     """Parent class for checks that only use a model and no datasets."""
 
     context_type = Context
+
+    def __init__(self):
+        super().__init__()
+        # Replace the compute function with wrapped compute function
+        setattr(self, 'compute', wrap_run(getattr(self, 'compute'), self))
+
+    def run(self, model) -> CheckResult:
+        """Run check."""
+        assert self.context_type is not None
+        context = self.context_type(model=model)  # pylint: disable=not-callable
+
+        self.initialize_run(context)
+        return self.compute(context)
+
+    def initialize_run(self, context: Context):
+        """Initialize run before starting updating on batches. Optional."""
+        pass
+
+    def compute(self, context: Context) -> CheckResult:
+        """Compute final check result."""
+        raise NotImplementedError()
 
 
 class Suite(BaseSuite):
@@ -265,60 +300,104 @@ class Suite(BaseSuite):
         context = Context(train_dataset, test_dataset, model,
                           scorers=scorers,
                           scorers_per_class=scorers_per_class)
-        # Create progress bar
-        progress_bar = ProgressBar(self.name, len(self.checks))
 
-        # Run all checks
-        results = []
-        for check in self.checks.values():
-            try:
-                progress_bar.set_text(check.name())
-                if isinstance(check, TrainTestCheck):
-                    if train_dataset is not None and test_dataset is not None:
-                        check_result = check.run_logic(context)
-                        results.append(check_result)
-                    else:
-                        msg = 'Check is irrelevant if not supplied with both train and test datasets'
-                        results.append(Suite._get_unsupported_failure(check, msg))
-                elif isinstance(check, SingleDatasetCheck):
-                    if train_dataset is not None:
-                        # In case of train & test, doesn't want to skip test if train fails. so have to explicitly
-                        # wrap it in try/except
-                        try:
-                            check_result = check.run_logic(context)
-                            # In case of single dataset not need to edit the header
-                            if test_dataset is not None:
-                                check_result.header = f'{check_result.get_header()} - Train Dataset'
-                        except Exception as exp:
-                            check_result = CheckFailure(check, exp, ' - Train Dataset')
-                        results.append(check_result)
-                    if test_dataset is not None:
-                        try:
-                            check_result = check.run_logic(context, dataset_type='test')
-                            # In case of single dataset not need to edit the header
-                            if train_dataset is not None:
-                                check_result.header = f'{check_result.get_header()} - Test Dataset'
-                        except Exception as exp:
-                            check_result = CheckFailure(check, exp, ' - Test Dataset')
-                        results.append(check_result)
-                    if train_dataset is None and test_dataset is None:
-                        msg = 'Check is irrelevant if dataset is not supplied'
-                        results.append(Suite._get_unsupported_failure(check, msg))
-                elif isinstance(check, ModelOnlyCheck):
-                    if model is not None:
-                        check_result = check.run_logic(context)
-                        results.append(check_result)
-                    else:
-                        msg = 'Check is irrelevant if model is not supplied'
-                        results.append(Suite._get_unsupported_failure(check, msg))
-                else:
-                    raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
-            except Exception as exp:
-                results.append(CheckFailure(check, exp))
+        # Create instances of SingleDatasetCheck for train and test if train and test exist.
+        # This is needed because in the vision package checks update their internal state with update, so it will be
+        # easier to iterate and keep the check order if we have an instance for each dataset.
+        checks_list = []
+        for check_idx, check in list(self.checks.items()):
+            if isinstance(check, (TrainTestCheck, ModelOnlyCheck)):
+                checks_list.append((check_idx, copy.deepcopy(check)))
+            elif isinstance(check, SingleDatasetCheck):
+                if context.train is not None:
+                    new_check: BaseCheck = copy.deepcopy(check)
+                    checks_list.append((str(check_idx) + ' - Train', new_check))
+                if context.test is not None:
+                    new_check: BaseCheck = copy.deepcopy(check)
+                    checks_list.append((str(check_idx) + ' - Test', new_check))
+        check_dict = OrderedDict(checks_list)
+
+        # Initialize all checks
+        for check in check_dict.values():
+            check.initialize_run(context)
+
+        # Create result dict to hold results by check name
+        results = OrderedDict({check_idx: None for check_idx, check in check_dict.items()})
+
+        # Loop over training batches
+        n_batches = len(context.train.get_data_loader())
+        progress_bar = ProgressBar(self.name + ' - Train', n_batches)
+        for batch_id, batch in enumerate(context.train.get_data_loader()):
+            progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
+
+            for check_idx, check in check_dict.items():
+                if results[check_idx] is None:
+                    try:
+                        if isinstance(check, TrainTestCheck):
+                            if context.train is not None and context.test is not None:
+                                check.update(context, batch, dataset_name='train')
+
+                            else:
+                                msg = 'Check is irrelevant if not supplied with both train and test datasets'
+                                results[check_idx] = Suite._get_unsupported_failure(check, msg)
+                        elif isinstance(check, SingleDatasetCheck):
+                            if str(check_idx).endswith(' - Train'):
+                                check.update(context, batch)
+                        elif isinstance(check, ModelOnlyCheck):
+                            pass
+                        else:
+                            raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
+                    except Exception as exp:
+                        results[check_idx] = CheckFailure(check, exp)
             progress_bar.inc_progress()
-
+            context.flush_cached_inference()
         progress_bar.close()
-        return SuiteResult(self.name, results)
+
+        # Loop over test batches
+        n_batches = len(context.test.get_data_loader())
+        progress_bar = ProgressBar(self.name + ' - Test', n_batches)
+        for batch_id, batch in enumerate(context.test.get_data_loader()):
+            progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
+
+            for check_idx, check in check_dict.items():
+                if results[check_idx] is None:
+                    try:
+                        if isinstance(check, TrainTestCheck):
+                            if context.train is not None and context.test is not None:
+                                check.update(context, batch, dataset_name='test')
+                            else:
+                                msg = 'Check is irrelevant if not supplied with both train and test datasets'
+                                results[check_idx] = Suite._get_unsupported_failure(check, msg)
+                        elif isinstance(check, SingleDatasetCheck):
+                            if str(check_idx).endswith(' - Test'):
+                                check.update(context, batch)
+                        elif isinstance(check, ModelOnlyCheck):
+                            pass
+                        else:
+                            raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
+                    except Exception as exp:
+                        results[check_idx] = CheckFailure(check, exp)
+            progress_bar.inc_progress()
+            context.flush_cached_inference()
+        progress_bar.close()
+
+        # Perform the computation stage
+        for check_idx, check in check_dict.items():
+            if results[check_idx] is None:
+                try:
+                    results[check_idx] = check.compute(context)
+                except Exception as exp:
+                    raise exp
+                    results[check_idx] = CheckFailure(check, exp)
+
+        # Update check result names for SingleDatasetChecks
+        for check_idx, check in check_dict.items():
+            if str(check_idx).endswith(' - Train'):
+                results[check_idx].header = f'{results[check_idx].get_header()} - Train Dataset'
+            elif str(check_idx).endswith(' - Test'):
+                results[check_idx].header = f'{results[check_idx].get_header()} - Test Dataset'
+
+        return SuiteResult(self.name, list(results.values()))
 
     @classmethod
     def _get_unsupported_failure(cls, check, msg):

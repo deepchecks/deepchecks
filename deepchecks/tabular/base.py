@@ -26,7 +26,7 @@ from deepchecks.core.check import (
     CheckFailure,
     SingleDatasetBaseCheck,
     TrainTestBaseCheck,
-    ModelOnlyBaseCheck,
+    ModelOnlyBaseCheck, wrap_run,
 )
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
@@ -288,6 +288,24 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
     context_type = Context
 
+    def __init__(self):
+        super().__init__()
+        # Replace the run_logic function with wrapped run function
+        setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
+
+    def run(self, dataset, model=None) -> CheckResult:
+        """Run check."""
+        assert self.context_type is not None
+        return self.run_logic(self.context_type(  # pylint: disable=not-callable
+            dataset,
+            model=model
+        ))
+
+    @abc.abstractmethod
+    def run_logic(self, context, dataset_type: str = 'train') -> CheckResult:
+        """Run check."""
+        raise NotImplementedError()
+
 
 class TrainTestCheck(TrainTestBaseCheck):
     """Parent class for checks that compare two datasets.
@@ -297,11 +315,46 @@ class TrainTestCheck(TrainTestBaseCheck):
 
     context_type = Context
 
+    def __init__(self):
+        super().__init__()
+        # Replace the run_logic function with wrapped run function
+        setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
+
+    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
+        """Run check."""
+        assert self.context_type is not None
+        return self.run_logic(self.context_type(  # pylint: disable=not-callable
+            train_dataset,
+            test_dataset,
+            model=model
+        ))
+
+    @abc.abstractmethod
+    def run_logic(self, context) -> CheckResult:
+        """Run check."""
+        raise NotImplementedError()
+
 
 class ModelOnlyCheck(ModelOnlyBaseCheck):
     """Parent class for checks that only use a model and no datasets."""
 
     context_type = Context
+
+    def __init__(self):
+        """Initialize the class."""
+        super().__init__()
+        # Replace the run_logic function with wrapped run function
+        setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
+
+    def run(self, model) -> CheckResult:
+        """Run check."""
+        assert self.context_type is not None
+        return self.run_logic(self.context_type(model=model))  # pylint: disable=not-callable
+
+    @abc.abstractmethod
+    def run_logic(self, context) -> CheckResult:
+        """Run check."""
+        raise NotImplementedError()
 
 
 class Suite(BaseSuite):
