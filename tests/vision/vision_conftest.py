@@ -130,13 +130,23 @@ def obj_detection_images():
 
 
 @pytest.fixture(scope='session')
-def coco_dataloader():
+def coco_train_dataloader():
     return load_coco_dataset(train=True, object_type='DataLoader')
 
 
 @pytest.fixture(scope='session')
-def coco_data(coco_dataloader):
-    return VisionData(coco_dataloader, label_transformer=DetectionLabelFormatter(lambda x: x))
+def coco_train_visiondata(coco_train_dataloader):
+    return VisionData(coco_train_dataloader, label_transformer=DetectionLabelFormatter(lambda x: x))
+
+
+@pytest.fixture(scope='session')
+def coco_test_dataloader():
+    return load_coco_dataset(train=False, object_type='DataLoader')
+
+
+@pytest.fixture(scope='session')
+def coco_test_visiondata(coco_test_dataloader):
+    return VisionData(coco_test_dataloader, label_transformer=DetectionLabelFormatter(lambda x: x))
 
 
 @pytest.fixture(scope='session')

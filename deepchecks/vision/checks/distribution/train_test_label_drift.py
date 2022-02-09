@@ -59,7 +59,7 @@ DEFAULT_CLASSIFICATION_LABEL_MEASUREMENTS = [
 DEFAULT_OBJECT_DETECTION_LABEL_MEASUREMENTS = [
     {'name': 'Bounding box area distribution', 'method': get_bbox_area, 'is_continuous': True},
     {'name': 'Samples per class', 'method': get_samples_per_class_object_detection, 'is_continuous': False},
-    {'name': 'Number of bounding boxes per image', 'method': count_num_bboxes, 'is_continuous': False},
+    {'name': 'Number of bounding boxes per image', 'method': count_num_bboxes, 'is_continuous': True},
 ]
 
 
@@ -162,45 +162,6 @@ class TrainTestLabelDrift(TrainTestCheck):
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
 
-    def add_condition_drift_score_not_greater_than(self, max_allowed_psi_score: float = 0.2,
-                                                   max_allowed_earth_movers_score: float = 0.1):
-        """
-        Add condition - require drift score to not be more than a certain threshold.
-
-        The industry standard for PSI limit is above 0.2.
-        Earth movers does not have a common industry standard.
-
-        Parameters
-        ----------
-        max_allowed_psi_score: float, default: 0.2
-            the max threshold for the PSI score
-        max_allowed_earth_movers_score: float, default: 0.1
-            the max threshold for the Earth Mover's Distance score
-        Returns
-        -------
-        ConditionResult
-            False if any column has passed the max threshold, True otherwise
-        """
-
-        def condition(result: Dict) -> ConditionResult:
-            drift_score = result['Drift score']
-            method = result['Method']
-            has_failed = (drift_score > max_allowed_psi_score and method == 'PSI') or \
-                         (drift_score > max_allowed_earth_movers_score and method == "Earth Mover's Distance")
-
-            if method == 'PSI' and has_failed:
-                return_str = f'Found label PSI above threshold: {drift_score:.2f}'
-                return ConditionResult(False, return_str)
-            elif method == "Earth Mover's Distance" and has_failed:
-                return_str = f'Label\'s Earth Mover\'s Distance above threshold: {drift_score:.2f}'
-                return ConditionResult(False, return_str)
-
-            return ConditionResult(True)
-
-        return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
-                                  f'{max_allowed_earth_movers_score} for label drift',
-                                  condition)
-
     def _validate_label_measurements(self, label_measurements):
         """Validate structure of label measurements."""
         expected_keys = ['name', 'method', 'is_continuous']
@@ -259,9 +220,12 @@ def generate_label_histograms_by_batch(train_dataset: VisionData, test_dataset: 
     bounds = [(min(train_bounds[i]['min'], test_bounds[i]['min']),
                max(train_bounds[i]['max'], test_bounds[i]['max'])) for i in range(num_continuous_transformers)]
 
-    hists_and_edges = [np.histogram([], bins=num_bins, range=(bound[0], bound[1])) for bound in bounds]
+    bounds, bins = adjust_bounds_and_bins(bounds, num_bins)
+
+    hists_and_edges = [np.histogram([], bins=num_bins, range=bound) for bound, num_bins in
+                       zip(bounds, bins)]
     train_hists = [x[0] for x in hists_and_edges]
-    test_hists = copy(train_hists)
+    test_hists = [copy(hist) for hist in train_hists]
     edges = [x[1] for x in hists_and_edges]
 
     train_counters = [Counter() for i in range(num_discrete_transformers)]
@@ -270,13 +234,13 @@ def generate_label_histograms_by_batch(train_dataset: VisionData, test_dataset: 
     # For all transformers, calculate histograms by batch:
     for batch in train_dataset.get_data_loader():
         train_hists = calculate_continuous_histograms_in_batch(batch, train_hists, continuous_label_measurements,
-                                                               bounds, num_bins, train_dataset.label_transformer)
+                                                               bounds, bins, train_dataset.label_transformer)
         train_counters = calculate_discrete_histograms_in_batch(batch, train_counters, discrete_label_measurements,
                                                                 train_dataset.label_transformer)
 
     for batch in test_dataset.get_data_loader():
         test_hists = calculate_continuous_histograms_in_batch(batch, test_hists, continuous_label_measurements, bounds,
-                                                              num_bins, test_dataset.label_transformer)
+                                                              bins, test_dataset.label_transformer)
         test_counters = calculate_discrete_histograms_in_batch(batch, test_counters, discrete_label_measurements,
                                                                test_dataset.label_transformer)
 
@@ -302,6 +266,25 @@ def generate_label_histograms_by_batch(train_dataset: VisionData, test_dataset: 
     return train_hists, test_hists
 
 
+def adjust_bounds_and_bins(bounds: List[Tuple[float, float]], default_num_bins: int) \
+        -> Tuple[List[Tuple[float, float]], List[int]]:
+    """Returns adjusted bounds and bins for better presentation in graphs."""
+    bins = [default_num_bins] * len(bounds)
+    for i in range(len(bounds)):
+        bmin, bmax = bounds[i]
+        # If bounds are integers, we assume data is discrete integers and we'd like the binned data to reflect that:
+        if np.floor(bmin) == bmin and np.floor(bmax) == bmax:
+            if bmax - bmin < default_num_bins:
+                bins[i] = int(bmax - bmin)  # Adjusted number of bins is the assumed number of unique values
+            else:
+                # If bounds are wider than the default_num_bins, adjust the upper bounds so that the bounds' range
+                # is a round multiplication of default_num_ bins.
+                # e.g. if bounds are (0, 197) and default_num_bins = 100, then change bounds to (0, 200).
+                res = default_num_bins - (bmax - bmin) % default_num_bins
+                bounds[i] = (bmin, bmax + res)
+    return bounds, bins
+
+
 def calculate_discrete_histograms_in_batch(batch, counters, discrete_label_measurements, label_transformer):
     """Calculate discrete histograms by batch."""
     for i in range(len(discrete_label_measurements)):
@@ -310,12 +293,12 @@ def calculate_discrete_histograms_in_batch(batch, counters, discrete_label_measu
     return counters
 
 
-def calculate_continuous_histograms_in_batch(batch, hists, continuous_label_measurements, bounds, num_bins,
+def calculate_continuous_histograms_in_batch(batch, hists, continuous_label_measurements, bounds, bins,
                                              label_transformer):
     """Calculate continuous histograms by batch."""
     for i in range(len(continuous_label_measurements)):
         calc_res = get_results_on_batch(batch, continuous_label_measurements[i], label_transformer)
-        new_hist, _ = np.histogram(calc_res, bins=num_bins, range=(bounds[i][0], bounds[i][1]))
+        new_hist, _ = np.histogram(calc_res, bins=bins[i], range=(bounds[i][0], bounds[i][1]))
         hists[i] += new_hist
     return hists
 
@@ -331,7 +314,7 @@ def get_results_on_batch(batch, label_measurement, label_transformer):
 
 def get_boundaries_by_batch(dataset: VisionData, label_measurements: List[Callable]) -> List[Dict[str, float]]:
     """Get min and max on dataset for each label transformer."""
-    bounds = [{'min': np.inf, 'max': -np.inf}] * len(label_measurements)
+    bounds = [{'min': np.inf, 'max': -np.inf} for i in range(len(label_measurements))]
     for batch in dataset.get_data_loader():
         for i in range(len(label_measurements)):
             calc_res = get_results_on_batch(batch, label_measurements[i], dataset.label_transformer)
@@ -393,11 +376,13 @@ def earth_movers_distance_by_histogram(expected_percents: np.ndarray, actual_per
         the Wasserstein distance between the two distributions.
 
     """
-    dirt = copy(actual_percents)
+    dirt = copy(actual_percents) / sum(actual_percents)
+    dirt_to_match = copy(expected_percents) / sum(expected_percents)
     delta = 1 / expected_percents.size
+
     emd = 0
     for i in range(dirt.shape[0] - 1):
-        dirt_to_pass = dirt[i] - expected_percents[i]
+        dirt_to_pass = dirt[i] - dirt_to_match[i]
         dirt[i + 1] += dirt_to_pass
         emd += abs(dirt_to_pass) * delta
     return emd
@@ -455,6 +440,10 @@ def calc_drift_and_plot(train_distribution: dict, test_distribution: dict, plot_
 
         dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(expected_percents, actual_percents,
                                                                             categories_list, is_categorical=True)
+
+    else:
+        raise DeepchecksValueError(
+            f'column_type must be one of ["numerical", "categorical"], instead got {column_type}')
 
     fig = make_subplots(rows=2, cols=1, vertical_spacing=0.4, shared_yaxes=False, shared_xaxes=False,
                         row_heights=[0.1, 0.9],
@@ -535,11 +524,11 @@ def feature_distribution_traces(expected_percents: np.array,
 
     else:
         x_range = (x_values[0], x_values[-1])
-        xs = np.linspace(x_range[0], x_range[1], 40)
+        # xs = np.linspace(x_range[0], x_range[1], len())
 
-        traces = [go.Scatter(x=xs, y=expected_percents, fill='tozeroy', name='Train Dataset',
+        traces = [go.Scatter(x=x_values, y=expected_percents, fill='tozeroy', name='Train Dataset',
                              line_color=colors['Train']),
-                  go.Scatter(x=xs, y=actual_percents, fill='tozeroy', name='Test Dataset',
+                  go.Scatter(x=x_values, y=actual_percents, fill='tozeroy', name='Test Dataset',
                              line_color=colors['Test'])]
 
         xaxis_layout = dict(fixedrange=True,
