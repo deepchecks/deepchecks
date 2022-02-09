@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing confusion matrix report check."""
-from typing import Union
+from typing import Union, Any
 
 import numpy as np
 import plotly.express as px
@@ -57,7 +57,6 @@ class ConfusionMatrixReport(SingleDatasetCheck):
     iou_threshold (float, default 0.5):
         Threshold to consider detected bounding box as labeled bounding box.
     """
-
     def __init__(self,
                  prediction_formatter: Union[ClassificationPredictionFormatter, DetectionPredictionFormatter] = None,
                  categories_to_display: int = 10,
@@ -65,57 +64,40 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                  iou_threshold: float = 0.5):
         super().__init__()
         self.prediction_formatter = prediction_formatter
-        self.iou_threshold = iou_threshold
         self.confidence_threshold = confidence_threshold
         self.categories_to_display = categories_to_display
+        self.iou_threshold = iou_threshold
+        self.matrix = None
+        self.num_classes = 0
 
-    def run_logic(self, context: Context) -> CheckResult:
-        """Run check.
-
-        Returns
-        -------
-        CheckResult
-            value is the full confusion matrix.
-        """
+    def initialize_run(self, context: Context):
+        """Initialize run by creating an empty matrix the size of the data."""
+        context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
         dataset: VisionData = context.train
 
-        model: nn.Module = context.model
-        context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
+        self.num_classes = dataset.get_num_classes()
+        self.matrix = np.zeros((self.num_classes + 1, self.num_classes + 1))
 
-        calculator = CalculateConfusionMatrix(dataset.get_num_classes(), self.categories_to_display, self.confidence_threshold, self.iou_threshold)
-
-        for images, labels in dataset.get_data_loader():
-            labels = dataset.label_transformer(labels)
-
-            predictions = model.forward(images)
-
-            if self.prediction_formatter:
-                predictions = self.prediction_formatter(predictions)
-
-            calculator.process_batch(predictions, labels)
-
-        return calculator.compute_display()
-
-
-class CalculateConfusionMatrix:
-    """Calculate the confusion matrix on batches.
-
-    """
-    def __init__(self, num_classes: int, categories_to_display: int = 10, conf_threshold=0.3, iou_threshold=0.5):
-        self.matrix = np.zeros((num_classes + 1, num_classes + 1))
-        self.num_classes = num_classes
-        self.categories_to_display = categories_to_display
-        self.conf_threshold = conf_threshold
-        self.iou_threshold = iou_threshold
-
-    def process_batch(self, detections, labels: np.ndarray):
+    def update(self, context: Context, batch: Any, dataset_name: str = 'train'):
         """Add batch to confusion matrix.
 
         """
-        for image_detections, image_labels in zip(detections, labels):
+        if dataset_name == 'train':
+            dataset = context.train
+        else:
+            dataset = context.test
+
+        labels = dataset.label_transformer(batch[1])
+
+        predictions = context.infer(batch[0])
+
+        if self.prediction_formatter:
+            predictions = self.prediction_formatter(predictions)
+
+        for image_detections, image_labels in zip(predictions, labels):
             try:
                 detections_passed_threshold = [
-                    detection for detection in image_detections if detection[4] > self.conf_threshold
+                    detection for detection in image_detections if detection[4] > self.confidence_threshold
                 ]
             except IndexError:
                 # detections are empty, update matrix for labels
@@ -158,17 +140,14 @@ class CalculateConfusionMatrix:
                     detection_class = int(detection[5])
                     self.matrix[detection_class, self.num_classes] += 1
 
-    def compute_display(self) -> CheckResult:
+    def compute(self, context: Context) -> CheckResult:
         display_confusion_matrix, categories = filter_confusion_matrix(self.matrix, self.categories_to_display)
 
         fig = px.imshow(display_confusion_matrix,
                         x=categories,
                         y=categories,
                         text_auto=True)
-        #fig = px.imshow(self.matrix,
-        #                x=list(range(self.num_classes+1)),
-        #                y=list(range(self.num_classes+1)),
-        #                text_auto=True)
+
         fig.update_layout(width=600, height=600)
         fig.update_xaxes(title='Predicted Value', type='category')
         fig.update_yaxes(title='True value', type='category')
