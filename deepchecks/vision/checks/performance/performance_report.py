@@ -10,18 +10,18 @@
 #
 """Module containing performance report check."""
 from typing import TypeVar, List, Union, Any
+
 import pandas as pd
 import plotly.express as px
 from ignite.metrics import Metric
 
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.vision import TrainTestCheck, Context
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
+from deepchecks.vision import TrainTestCheck, Context
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.metrics_utils.metrics import get_scorers_list
 from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
-
 
 __all__ = ['PerformanceReport']
 
@@ -106,9 +106,9 @@ class PerformanceReport(TrainTestCheck):
 
         fig = (
             fig.update_xaxes(title=None, type='category')
-                .update_yaxes(title=None, matches=None)
-                .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-                .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+               .update_yaxes(title=None, matches=None)
+               .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+               .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
         )
 
         return CheckResult(
