@@ -119,7 +119,6 @@ class TrainTestLabelDrift(TrainTestCheck):
             value: drift score.
             display: label distribution graph, comparing the train and test distributions.
         """
-        np.random.seed(42)
         train_dataset = context.train
         test_dataset = context.test
 
