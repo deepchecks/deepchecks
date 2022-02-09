@@ -268,7 +268,7 @@ def generate_label_histograms_by_batch(train_dataset: VisionData, test_dataset: 
 
 def adjust_bounds_and_bins(bounds: List[Tuple[float, float]], default_num_bins: int) \
         -> Tuple[List[Tuple[float, float]], List[int]]:
-    """Returns adjusted bounds and bins for better presentation in graphs."""
+    """Return adjusted bounds and bins for better presentation in graphs."""
     bins = [default_num_bins] * len(bounds)
     for i in range(len(bounds)):
         bmin, bmax = bounds[i]
