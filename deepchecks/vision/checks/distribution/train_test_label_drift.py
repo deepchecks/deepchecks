@@ -23,6 +23,7 @@ from deepchecks.vision.dataset import VisionData, TaskType
 import numpy as np
 from collections import Counter
 import plotly.graph_objs as go
+import random
 
 __all__ = ['TrainTestLabelDrift']
 
@@ -119,6 +120,7 @@ class TrainTestLabelDrift(TrainTestCheck):
             value: drift score.
             display: label distribution graph, comparing the train and test distributions.
         """
+        random.seed('blabla')
         train_dataset = context.train
         test_dataset = context.test
 
