@@ -79,3 +79,50 @@ def get_scorers_list(
         raise DeepchecksNotSupportedError(f'No scorers match task_type {task_type}')
 
     return scorers
+
+
+def calculate_metrics(metrics: t.List[Metric], dataset: VisionData, model: nn.Module,
+                      prediction_formatter: BasePredictionFormatter) \
+        -> t.Dict[str, float]:
+    """Calculate a list of ignite metrics on a given model and dataset.
+
+    Parameters
+    ----------
+    metrics : t.List[Metric]
+        List of ignite metrics to calculate
+    dataset : VisionData
+        Dataset object
+    model : nn.Module
+        Model object
+    prediction_formatter : Union[ClassificationPredictionFormatter, DetectionPredictionFormatter]
+        Function to convert the model output to the appropriate format for the label type
+
+    Returns
+    -------
+    t.Dict[str, float]
+        Dictionary of metrics with the metric name as key and the metric value as value
+    """
+
+    def process_function(_, batch):
+        images = batch[0]
+        label = dataset.label_transformer(batch[1])
+
+        predictions = model.forward(images)
+
+        if prediction_formatter:
+            predictions = prediction_formatter(predictions)
+
+        return predictions, label
+
+    # Validate that
+    data_batch = process_function(None, next(iter(dataset)))[0]
+    prediction_formatter.validate_prediction(data_batch, dataset.get_num_classes())
+
+    engine = Engine(process_function)
+    for metric in metrics:
+        metric.attach(engine, type(metric).__name__)
+
+    state = engine.run(dataset.get_data_loader())
+
+    results = {k: v.tolist() for k, v in state.metrics.items()}
+    return results
