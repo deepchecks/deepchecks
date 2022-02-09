@@ -12,7 +12,6 @@
 from hamcrest import assert_that, has_entries, close_to, equal_to
 
 from deepchecks.vision.checks import TrainTestLabelDrift
-from tests.vision.vision_conftest import *
 
 
 def test_no_drift_classification_label(mnist_dataset_train, mnist_dataset_test):

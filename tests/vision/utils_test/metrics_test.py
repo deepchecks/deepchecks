@@ -15,7 +15,6 @@ from deepchecks.vision.metrics_utils.metrics import calculate_metrics
 from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
 from deepchecks.vision.utils.detection_formatters import DetectionLabelFormatter, DetectionPredictionFormatter
 from deepchecks.vision.dataset import VisionData
-from tests.vision.vision_conftest import *
 
 def test_iou(coco_dataloader, trained_yolov5_object_detection):
     dl = VisionData(coco_dataloader, label_transformer=DetectionLabelFormatter(lambda x: x), num_classes=80)
@@ -24,4 +23,3 @@ def test_iou(coco_dataloader, trained_yolov5_object_detection):
     res = calculate_metrics([AveragePrecision()], VisionData(dl), model,
                             prediction_formatter=DetectionPredictionFormatter(yolo_wrapper))
     print(res)
-

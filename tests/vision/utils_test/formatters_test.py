@@ -11,9 +11,10 @@
 import numpy as np
 from hamcrest import assert_that, equal_to, calling, raises
 
+from torch.utils.data import DataLoader, Dataset
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.utils.image_formatters import ImageFormatter
-from tests.vision.vision_conftest import *
+from deepchecks.vision.utils import ClassificationLabelFormatter
 
 
 def test_classification_formatter_invalid_dataloader(three_tuples_dataloader):
