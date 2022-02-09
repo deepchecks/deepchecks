@@ -14,14 +14,15 @@ import pytest
 import torch
 from torch import nn
 from torchvision.transforms import ToTensor
-
-from deepchecks.vision import VisionData
 from torch.utils.data import DataLoader, Dataset
 from torchvision.datasets import MNIST
 
-from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.datasets.detection.coco import get_trained_yolov5_object_detection, get_coco_dataloader
+from deepchecks.vision import VisionData
 from deepchecks.vision.utils import DetectionLabelFormatter, ClassificationLabelFormatter
+from deepchecks.vision.datasets.detection.coco import (
+    load_model as load_yolov5_model, 
+    load_dataset as load_coco_dataset
+)
 
 
 @pytest.fixture(scope='session')
@@ -114,7 +115,7 @@ def trained_mnist(simple_nn, mnist_data_loader_train):
 
 @pytest.fixture(scope='session')
 def trained_yolov5_object_detection():
-    return get_trained_yolov5_object_detection()
+    return load_yolov5_model()
 
 
 @pytest.fixture(scope='session')
@@ -130,7 +131,7 @@ def obj_detection_images():
 
 @pytest.fixture(scope='session')
 def coco_dataloader():
-    return get_coco_dataloader(batch_size=4)
+    return load_coco_dataset(train=True, object_type='DataLoader')
 
 
 @pytest.fixture(scope='session')
