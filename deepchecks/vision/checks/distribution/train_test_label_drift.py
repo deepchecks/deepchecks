@@ -14,7 +14,7 @@ from typing import Dict, Hashable, Callable, Tuple, List, Union, Any
 
 from plotly.subplots import make_subplots
 
-from deepchecks import CheckResult, ConditionResult
+from deepchecks import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.base import Context, TrainTestCheck
 from deepchecks.utils.distribution.plot import drift_score_bar_traces
