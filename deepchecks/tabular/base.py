@@ -11,6 +11,7 @@
 """Module for base tabular abstractions."""
 # pylint: disable=broad-except
 import abc
+from functools import wraps
 from typing import Callable, Union, Tuple, Mapping, List, Optional, Any
 
 import pandas as pd
@@ -26,7 +27,7 @@ from deepchecks.core.check import (
     CheckFailure,
     SingleDatasetBaseCheck,
     TrainTestBaseCheck,
-    ModelOnlyBaseCheck, wrap_run,
+    ModelOnlyBaseCheck
 )
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
@@ -281,6 +282,21 @@ class Context:
         scorer_name = next(iter(scorers))
         single_scorer_dict = {scorer_name: scorers[scorer_name]}
         return init_validate_scorers(single_scorer_dict, self.model, self.train, class_avg, self.task_type)[0]
+
+
+def wrap_run(func, class_instance):
+    """Wrap the run function of checks, and sets the `check` property on the check result."""
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        result = func(*args, **kwargs)
+        if not isinstance(result, CheckResult):
+            raise DeepchecksValueError(f'Check {class_instance.name()} expected to return CheckResult but got: '
+                                       + type(result).__name__)
+        result.check = class_instance
+        result.process_conditions()
+        return result
+
+    return wrapped
 
 
 class SingleDatasetCheck(SingleDatasetBaseCheck):

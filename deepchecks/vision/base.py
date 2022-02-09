@@ -23,7 +23,7 @@ from deepchecks.core.check import (
     CheckFailure,
     SingleDatasetBaseCheck,
     TrainTestBaseCheck,
-    ModelOnlyBaseCheck, CheckResult, BaseCheck, wrap_run,
+    ModelOnlyBaseCheck, CheckResult, BaseCheck
 )
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
@@ -385,12 +385,12 @@ class Suite(BaseSuite):
                     results[check_idx] = CheckFailure(check, exp)
 
         # Update check result names for SingleDatasetChecks and finalize results
-        for check_idx in results.keys():
+        for check_idx, result in results.items():
             if str(check_idx).endswith(' - Train'):
-                results[check_idx].header = f'{results[check_idx].get_header()} - Train Dataset'
+                result.header = f'{result.get_header()} - Train Dataset'
             elif str(check_idx).endswith(' - Test'):
-                results[check_idx].header = f'{results[check_idx].get_header()} - Test Dataset'
-            results[check_idx] = finalize_check_result(results[check_idx], check_dict[check_idx])
+                result.header = f'{result.get_header()} - Test Dataset'
+            results[check_idx] = finalize_check_result(result, check_dict[check_idx])
 
         return SuiteResult(self.name, list(results.values()))
 

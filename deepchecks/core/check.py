@@ -17,7 +17,6 @@ import io
 import traceback
 import warnings
 from collections import OrderedDict
-from functools import wraps
 from typing import Any, Callable, List, Union, Dict, Type, ClassVar, Optional
 
 import jsonpickle
@@ -48,7 +47,6 @@ __all__ = [
     'SingleDatasetBaseCheck',
     'TrainTestBaseCheck',
     'ModelOnlyBaseCheck',
-    'wrap_run'
 ]
 
 
@@ -335,21 +333,6 @@ class CheckResult:
         else:
             warnings.warn('You are running in a non-interactive python shell. in order to show result you have to use '
                           'an IPython shell (etc Jupyter)')
-
-
-def wrap_run(func, class_instance):
-    """Wrap the run function of checks, and sets the `check` property on the check result."""
-    @wraps(func)
-    def wrapped(*args, **kwargs):
-        result = func(*args, **kwargs)
-        if not isinstance(result, CheckResult):
-            raise DeepchecksValueError(f'Check {class_instance.name()} expected to return CheckResult but got: '
-                                       + type(result).__name__)
-        result.check = class_instance
-        result.process_conditions()
-        return result
-
-    return wrapped
 
 
 class BaseCheck(abc.ABC):
