@@ -33,13 +33,13 @@ To install the deepchecks package from the conda package manager run
 
 .. code-block:: bash
 
-    conda install -c deepchecks deepchecks
+    conda install -c conda-forge deepchecks
 
 or, if you already have deepchecks installed and want to update then run
 
 .. code-block:: bash
 
-    conda update -c deepchecks deepchecks
+    conda update -c conda-forge deepchecks
 
 Installing On Google Colab or on a Kaggle Kernel
 ==================================================

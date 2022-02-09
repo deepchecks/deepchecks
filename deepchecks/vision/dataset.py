@@ -22,6 +22,7 @@ import logging
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.utils import ClassificationLabelFormatter, DetectionLabelFormatter
 from deepchecks.vision.utils.base_formatters import BaseLabelFormatter
+from deepchecks.vision.utils.image_formatters import ImageFormatter
 
 logger = logging.getLogger('deepchecks')
 
@@ -86,6 +87,7 @@ class VisionData:
                  data_loader: DataLoader,
                  num_classes: Optional[int] = None,
                  label_transformer: Union[ClassificationLabelFormatter, DetectionLabelFormatter] = None,
+                 image_transformer: ImageFormatter = None,
                  sample_size: int = 1000,
                  sample_iteration_limit: int = 1_000_000,
                  random_seed: int = 0):
@@ -95,6 +97,11 @@ class VisionData:
             self.label_transformer = ClassificationLabelFormatter(lambda x: x)
         else:
             self.label_transformer = label_transformer
+
+        if image_transformer is None:
+            self.image_transformer = ImageFormatter(lambda x: x)
+        else:
+            self.image_transformer = image_transformer
 
         if isinstance(self.label_transformer, ClassificationLabelFormatter):
             self.task_type = TaskType.CLASSIFICATION
@@ -133,6 +140,11 @@ class VisionData:
                     'Not implemented yet for tasks other than classification and object detection'
                 )
         return copy(self._samples_per_class)
+
+    def to_display_data(self, batch):
+        """Convert a batch of data outputted by the data loader to a format that can be displayed."""
+        self.image_transformer.validate_data(batch)
+        return self.image_transformer(batch)
 
     @property
     def sample_data_loader(self) -> DataLoader:
@@ -202,8 +214,15 @@ class VisionData:
         if self.task_type != other.task_type:
             raise DeepchecksValueError('Datasets required to have same label type')
 
-        if self.get_label_shape() != other.get_label_shape():
-            raise DeepchecksValueError('Datasets required to share the same label shape')
+        if self.task_type == TaskType.OBJECT_DETECTION:
+            # number of objects can be different
+            _, *label_shape = self.get_label_shape()
+            _, *other_label_shape = other.get_label_shape()
+            if label_shape != other_label_shape:
+                raise DeepchecksValueError('Datasets required to share the same label shape')
+        else:
+            if self.get_label_shape() != other.get_label_shape():
+                raise DeepchecksValueError('Datasets required to share the same label shape')
 
     @classmethod
     def validate_dataset(cls, obj) -> 'VisionData':
