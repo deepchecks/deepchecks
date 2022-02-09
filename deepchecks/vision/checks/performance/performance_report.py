@@ -12,6 +12,7 @@
 from typing import TypeVar, List, Union
 import pandas as pd
 import plotly.express as px
+import torch
 from ignite.metrics import Metric
 
 from deepchecks.core import CheckResult, ConditionResult
@@ -70,7 +71,8 @@ class PerformanceReport(TrainTestCheck):
         for dataset_name, dataset in datasets.items():
             n_samples = dataset.get_samples_per_class()
             results.extend(
-                [dataset_name, class_name, name, class_score, n_samples[class_name]]
+                [dataset_name, class_name, name,
+                 class_score.item() if isinstance(class_score, torch.Tensor) else class_score, n_samples[class_name]]
                 for name, score in calculate_metrics(list(scorers.values()), dataset, model,
                                                      prediction_formatter=self.prediction_formatter).items()
                 # scorer returns numpy array of results with item per class
