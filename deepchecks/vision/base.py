@@ -62,6 +62,9 @@ class Context:
         See <a href=
         "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
         scikit-learn docs</a>
+    device : Union[str, torch.device], default: None
+        processing unit for use
+
     """
 
     def __init__(self,
@@ -196,7 +199,8 @@ class Suite(BaseSuite):
             test_dataset: Optional[VisionData] = None,
             model: nn.Module = None,
             scorers: Mapping[str, Metric] = None,
-            scorers_per_class: Mapping[str, Metric] = None
+            scorers_per_class: Mapping[str, Metric] = None,
+            device: Union[str, torch.device, None] = None
     ) -> SuiteResult:
         """Run all checks.
 
@@ -215,14 +219,22 @@ class Suite(BaseSuite):
             See <a href=
             "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
             scikit-learn docs</a>
+        device : Union[str, torch.device], default: None
+            processing unit for use
+
         Returns
         -------
         SuiteResult
             All results by all initialized checks
         """
-        context = Context(train_dataset, test_dataset, model,
-                          scorers=scorers,
-                          scorers_per_class=scorers_per_class)
+        context = Context(
+            train_dataset,
+            test_dataset,
+            model,
+            scorers=scorers,
+            scorers_per_class=scorers_per_class,
+            device=device
+        )
         # Create progress bar
         progress_bar = ProgressBar(self.name, len(self.checks))
 
