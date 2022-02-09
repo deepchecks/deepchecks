@@ -74,7 +74,7 @@ class PerformanceReport(TrainTestCheck):
         """Compute final check result based on accumulated internal state."""
         self._state['train']['n_samples'] = context.train.get_samples_per_class()
         self._state['test']['n_samples'] = context.test.get_samples_per_class()
-        self._state['classes'] = context.train.get_samples_per_class().keys()
+        self._state['classes'] = sorted(context.train.get_samples_per_class().keys())
 
         results = []
         for dataset_name in ['train', 'test']:
