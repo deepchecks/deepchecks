@@ -14,6 +14,7 @@ from typing import List, Tuple
 
 from ignite.metrics import Metric
 from ignite.metrics.metric import sync_all_reduce, reinit__is_reduced
+from sklearn.metrics import mean_absolute_error
 import torch
 import numpy as np
 from .iou_utils import compute_ious
@@ -100,6 +101,8 @@ class AveragePrecision(Metric):
             for dets in self.max_dets:
                 for area_size in self.area_ranges_names:
                     res = {}
+                    if not reses.get((area_size, dets, "0.5..0.95")):
+                        reses[(area_size, dets, "0.5..0.95")] = {}
                     # run ap calculation per-class
                     for class_id in self._evals:
                         ev = self._evals[class_id]
@@ -109,6 +112,15 @@ class AveragePrecision(Metric):
                                                       np.array(ev["matched"][(area_size, dets, min_iou)]),
                                                       np.sum(np.array(ev["NP"][(area_size, dets, min_iou)])))
                         }
+                        if not reses[(area_size, dets, "0.5..0.95")].get(class_id):
+                            reses[(area_size, dets, "0.5..0.95")][class_id] = {
+                                "class": class_id,
+                                "precision": [res[class_id]["precision"]],
+                                "recall": [res[class_id]["recall"]]
+                            }
+                        else:
+                            reses[(area_size, dets, "0.5..0.95")][class_id]["precision"].append(res[class_id]["precision"])
+                            reses[(area_size, dets, "0.5..0.95")][class_id]["recall"].append(res[class_id]["recall"])
                     if self.get_per_all:
                         all_evals = _dict_conc(self._evals)
                         res[-1] = {
@@ -117,13 +129,32 @@ class AveragePrecision(Metric):
                                                           np.array(all_evals[(area_size, dets, min_iou)]),
                                                           np.sum(np.array(all_evals[(area_size, dets, min_iou)])))
                         }
+                        if not reses[(area_size, dets, "0.5..0.95")].get(-1):
+                            reses[(area_size, dets, "0.5..0.95")][-1] = {
+                                "class": -1,
+                                "precision": [res[-1]["precision"]],
+                                "recall": [res[-1]["recall"]]
+                            }
+                        else:
+                            reses[(area_size, dets, "0.5..0.95")][-1]["precision"].append(res[-1]["precision"])
+                            reses[(area_size, dets, "0.5..0.95")][-1]["recall"].append(res[-1]["recall"])
                     if self.return_ap_only:
                         res = torch.tensor([res[k]["precision"] for k in sorted(res.keys())])
-                    reses[(area_size, dets, min_iou)] = res
-        for min_iou in self.iou_thresholds:
-            pass
+                    if min_iou in [0.5, 0.75] and dets == 100 and area_size == 'all':
+                        reses[(area_size, dets, min_iou)] = res
+        for dets in self.max_dets:
+            for area_size in self.area_ranges_names:
+                for class_id in self._evals:
+                    reses[(area_size, dets, "0.5..0.95")][class_id]["precision"] = \
+                        np.mean(reses[(area_size, dets, "0.5..0.95")][class_id]["precision"])
+                    reses[(area_size, dets, "0.5..0.95")][class_id]["recall"] = \
+                            np.mean(reses[(area_size, dets, "0.5..0.95")][class_id]["recall"])
+                if self.return_ap_only:
+                    reses[(area_size, dets, "0.5..0.95")] = \
+                        torch.tensor([reses[(area_size, dets, "0.5..0.95")][k]["precision"]
+                                        for k in sorted(reses[(area_size, dets, "0.5..0.95")].keys())])
         if self.return_single_value:
-            return list(reses.values())[0]
+            return reses[(self.area_ranges_names[0], self.max_dets[0], "0.5..0.95")]
         return [reses]
 
     def _group_detections(self, dt, gt):
@@ -256,12 +287,13 @@ class AveragePrecision(Metric):
             i_pr = np.array([i_pr[r] if r < len(i_pr) else 0 for r in rec_idx])
 
             return {
-                "precision": pr,
-                "recall": rc,
+                "precision": np.mean(i_pr),
+                "recall": tp[-1] / n_positives
             }
+
         return {
             "precision": 0,
-            "recall": 0,
+            "recall": 0
         }
 
     def _is_ignore_area(self, area_bb, area_size):
