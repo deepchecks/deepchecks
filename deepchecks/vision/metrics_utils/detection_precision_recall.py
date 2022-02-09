@@ -90,10 +90,16 @@ class AveragePrecision(Metric):
         bb_info = defaultdict(lambda: {"dt": [], "gt": []})
 
         for d in dt:
-            c_id = d[5].item()
+            if isinstance(d[5], torch.Tensor):
+                c_id = d[5].item()
+            else:
+                c_id = d[5]
             bb_info[c_id]["dt"].append(d)
         for g in gt:
-            c_id = g[0]
+            if isinstance(g[0], torch.Tensor):
+                c_id = g[0].item()
+            else:
+                c_id = g[0]
             bb_info[c_id]["gt"].append(g)
 
         # Calculating pairwise IoUs
