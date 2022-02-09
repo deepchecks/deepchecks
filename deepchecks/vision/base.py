@@ -146,15 +146,20 @@ class Context:
         self._batch_prediction_cache = None
 
 
+def finalize_check_result(check_result: CheckResult, class_instance: BaseCheck) -> CheckResult:
+    """Finalize the check result by adding the check instance and processing the conditions."""
+    if not isinstance(check_result, CheckResult):
+        raise DeepchecksValueError(f'Check {class_instance.name()} expected to return CheckResult but got: '
+                                   + type(check_result).__name__)
+    check_result.check = class_instance
+    check_result.process_conditions()
+    return check_result
+
+
 class SingleDatasetCheck(SingleDatasetBaseCheck):
     """Parent class for checks that only use one dataset."""
 
     context_type = Context
-
-    def __init__(self):
-        super().__init__()
-        # Replace the compute function with wrapped compute function
-        setattr(self, 'compute', wrap_run(getattr(self, 'compute'), self))
 
     def run(self, dataset, model=None) -> CheckResult:
         """Run check."""
@@ -170,7 +175,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             self.update(context, batch)
             context.flush_cached_inference()
 
-        return self.compute(context)
+        return finalize_check_result(self.compute(context), self)
 
     def initialize_run(self, context: Context):
         """Initialize run before starting updating on batches. Optional."""
@@ -193,11 +198,6 @@ class TrainTestCheck(TrainTestBaseCheck):
 
     context_type = Context
 
-    def __init__(self):
-        super().__init__()
-        # Replace the compute function with wrapped compute function
-        setattr(self, 'compute', wrap_run(getattr(self, 'compute'), self))
-
     def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
@@ -217,7 +217,7 @@ class TrainTestCheck(TrainTestBaseCheck):
             self.update(context, batch, dataset_name='test')
             context.flush_cached_inference()
 
-        return self.compute(context)
+        return finalize_check_result(self.compute(context), self)
 
     def initialize_run(self, context: Context):
         """Initialize run before starting updating on batches. Optional."""
@@ -237,18 +237,13 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
 
     context_type = Context
 
-    def __init__(self):
-        super().__init__()
-        # Replace the compute function with wrapped compute function
-        setattr(self, 'compute', wrap_run(getattr(self, 'compute'), self))
-
     def run(self, model) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
         context = self.context_type(model=model)  # pylint: disable=not-callable
 
         self.initialize_run(context)
-        return self.compute(context)
+        return finalize_check_result(self.compute(context), self)
 
     def initialize_run(self, context: Context):
         """Initialize run before starting updating on batches. Optional."""
@@ -387,15 +382,15 @@ class Suite(BaseSuite):
                 try:
                     results[check_idx] = check.compute(context)
                 except Exception as exp:
-                    raise exp
                     results[check_idx] = CheckFailure(check, exp)
 
-        # Update check result names for SingleDatasetChecks
-        for check_idx, check in check_dict.items():
+        # Update check result names for SingleDatasetChecks and finalize results
+        for check_idx in results.keys():
             if str(check_idx).endswith(' - Train'):
                 results[check_idx].header = f'{results[check_idx].get_header()} - Train Dataset'
             elif str(check_idx).endswith(' - Test'):
                 results[check_idx].header = f'{results[check_idx].get_header()} - Test Dataset'
+            results[check_idx] = finalize_check_result(results[check_idx], check_dict[check_idx])
 
         return SuiteResult(self.name, list(results.values()))
 
