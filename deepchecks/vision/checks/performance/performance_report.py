@@ -48,7 +48,7 @@ class PerformanceReport(TrainTestCheck):
         self._state = {}
 
     def initialize_run(self, context: Context):
-        """Initialize run before starting updating on batches. Optional."""
+        """Initialize run by creating the _state member with metrics for train and test."""
         context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
 
         self._state = {'train': {}, 'test': {}}
@@ -59,7 +59,7 @@ class PerformanceReport(TrainTestCheck):
                 metric.reset()
 
     def update(self, context: Context, batch: Any, dataset_name: str = 'train'):
-        """Update internal check state with given batch for either train or test."""
+        """Update the metrics by passing the batch to ignite metric update method."""
         if dataset_name == 'train':
             dataset = context.train
         else:
@@ -71,7 +71,7 @@ class PerformanceReport(TrainTestCheck):
             metric.update((prediction, label))
 
     def compute(self, context: Context) -> CheckResult:
-        """Compute final check result based on accumulated internal state."""
+        """Compute the metric result using the ignite metrics compute method and create display."""
         self._state['train']['n_samples'] = context.train.get_samples_per_class()
         self._state['test']['n_samples'] = context.test.get_samples_per_class()
         self._state['classes'] = sorted(context.train.get_samples_per_class().keys())
