@@ -136,7 +136,7 @@ def coco_dataloader():
 
 @pytest.fixture(scope='session')
 def coco_data(coco_dataloader):
-    return VisionData(coco_dataloader, label_transformer=DetectionLabelFormatter(lambda x: x))
+    return load_coco_dataset(train=True, object_type='Dataset')
 
 
 @pytest.fixture(scope='session')

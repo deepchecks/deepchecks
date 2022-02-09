@@ -125,9 +125,7 @@ class VisionData:
     def get_num_classes(self):
         """Return the number of classes in the dataset."""
         if self._num_classes is None:
-            samples_per_class = self.get_samples_per_class()
-            num_classes = len(samples_per_class.keys())
-            self._num_classes = num_classes
+            self._num_classes = len(self.get_samples_per_class().keys())
         return self._num_classes
 
     def get_samples_per_class(self):
@@ -266,15 +264,17 @@ class FixedSampler(Sampler):
 
     def __init__(self, length: int, seed: int = 0, sample_size: int = None) -> None:
         super().__init__(None)
+        assert length >= 0
         self._length = length
         self._seed = seed
-        if sample_size:
+        if sample_size is not None:
+            assert sample_size >= 0
             sample_size = min(sample_size, length)
             np.random.seed(self._seed)
             self._indices = np.random.choice(self._length, size=(sample_size,), replace=False)
 
     def __iter__(self) -> Iterator[int]:
-        if self._indices:
+        if self._indices is not None:
             for i in self._indices:
                 yield i
         else:
@@ -282,7 +282,11 @@ class FixedSampler(Sampler):
                 yield i
 
     def __len__(self) -> int:
-        return len(self._indices) if self._indices else self._length
+        return (
+            len(self._indices)
+            if self._indices is not None
+            else self._length
+        )
 
 
 def create_sample_loader(data_loader: DataLoader, sample_size: int, seed: int, iteration_limit: int):
@@ -296,8 +300,6 @@ def create_sample_loader(data_loader: DataLoader, sample_size: int, seed: int, i
         'prefetch_factor': data_loader.prefetch_factor,
         'persistent_workers': data_loader.persistent_workers
     }
-
-    generator = lambda: torch.Generator().manual_seed(seed)
 
     dataset = data_loader.dataset
     # IterableDataset doesn't work with samplers, so instead we manually copy all samples to memory and create
@@ -321,9 +323,17 @@ def create_sample_loader(data_loader: DataLoader, sample_size: int, seed: int, i
                     break
 
         samples_dataset = InMemoryDataset(samples_data)
-        return DataLoader(samples_dataset, generator=generator(), sampler=SequentialSampler(samples_data),
-                          **common_props_to_copy)
+        return DataLoader(
+            samples_dataset, 
+            generator=torch.Generator().manual_seed(seed), 
+            sampler=SequentialSampler(samples_data),
+            **common_props_to_copy
+        )
     else:
         length = len(dataset)
-        return DataLoader(dataset, generator=generator(),
-                          sampler=FixedSampler(length, seed, sample_size), **common_props_to_copy)
+        return DataLoader(
+            dataset, 
+            generator=torch.Generator().manual_seed(seed),
+            sampler=FixedSampler(length, seed, sample_size), 
+            **common_props_to_copy
+        )
