@@ -10,22 +10,39 @@
 #
 """Module containing performance report check."""
 from collections import defaultdict
-from typing import Callable, TypeVar, List, Union
+from typing import Union
 
 import numpy as np
 import plotly.express as px
 from torch import nn
+from queue import PriorityQueue
 
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core import CheckResult
 from deepchecks.vision import SingleDatasetCheck, Context
 from deepchecks.vision.dataset import TaskType, VisionData
-from deepchecks.vision.metrics_utils.iou_utils import compute_ious, _jaccard
+from deepchecks.vision.metrics_utils.iou_utils import _jaccard
+from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
+
 
 __all__ = ['ConfusionMatrixReport']
 
-from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
-PR = TypeVar('PR', bound='PerformanceReport')
+def filter_confusion_matrix(confusion_matrix, number_of_categories):
+    pq = PriorityQueue()
+    for row, values in enumerate(confusion_matrix):
+        for col, value in enumerate(values):
+            if row == col: continue
+            pq.put((-value, (row, col)))
+    categories = set()
+    while not pq.empty():
+        if len(categories) >= number_of_categories:
+            break
+        _, (row, col) = pq.get()
+        categories.add(row)
+        categories.add(col)
+
+    categories = sorted(categories)
+    return confusion_matrix[np.ix_(categories, categories)], categories
 
 
 class ConfusionMatrixReport(SingleDatasetCheck):
@@ -35,17 +52,24 @@ class ConfusionMatrixReport(SingleDatasetCheck):
     ----------
     confidence_threshold (float, default 0.3):
         Threshold to consider object as detected.
-    iou_threshold (float, default 0.3):
-        Threshold to consider object as detected.
+    categories_to_display (int, default 10):
+        Maximum number of categories to display
+    confidence_threshold (float, default 0.3):
+        Threshold to consider bounding box as detected.
+    iou_threshold (float, default 0.5):
+        Threshold to consider detected bounding box as labeled bounding box.
     """
 
     def __init__(self,
                  prediction_formatter: Union[ClassificationPredictionFormatter, DetectionPredictionFormatter] = None,
-                 confidence_threshold: float = 0.3, iou_threshold: float = 0.5):
+                 categories_to_display: int = 10,
+                 confidence_threshold: float = 0.3,
+                 iou_threshold: float = 0.5):
         super().__init__()
         self.prediction_formatter = prediction_formatter
         self.iou_threshold = iou_threshold
         self.confidence_threshold = confidence_threshold
+        self.categories_to_display = categories_to_display
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -53,12 +77,9 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         Returns
         -------
         CheckResult
-            value is dictionary in format 'score-name': score-value
+            value is the full confusion matrix.
         """
-        #if dataset_type == 'train':
         dataset: VisionData = context.train
-        #else:
-        #    dataset: VisionData = context.test
 
         model: nn.Module = context.model
         context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
@@ -75,36 +96,22 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
             calculator.process_batch(predictions, labels)
 
-        confusion_matrix = calculator.return_matrix()
-
-        print(confusion_matrix)
-        print(confusion_matrix.shape)
-
-        fig = px.imshow(confusion_matrix, x=list(range(0,dataset.get_num_classes()+1)), y=list(range(dataset.get_num_classes()+1)), text_auto=True)
-        fig.update_layout(width=600, height=600)
-        fig.update_xaxes(title='Predicted Value', type='category')
-        fig.update_yaxes(title='True value', type='category')
-
-        return CheckResult(
-            confusion_matrix,
-            header='Confusion Matrix',
-            display=fig
-        )
+        return calculator.return_matrix()
 
 
 class CalculateConfusionMatrix:
-    """Calculate the confusion matrix on batches
-
+    """Calculate the confusion matrix on batches.
 
     """
-    def __init__(self, num_classes: int, conf_threshold=0.3, iou_threshold=0.5):
+    def __init__(self, num_classes: int, categories_to_display: int = 10, conf_threshold=0.3, iou_threshold=0.5):
         self.matrix = np.zeros((num_classes + 1, num_classes + 1))
         self.num_classes = num_classes
+        self.categories_to_display = categories_to_display
         self.conf_threshold = conf_threshold
         self.iou_threshold = iou_threshold
 
     def process_batch(self, detections, labels: np.ndarray):
-        """Add batch to confusion matrix
+        """Add batch to confusion matrix.
 
         """
         for image_detections, image_labels in zip(detections, labels):
@@ -112,12 +119,12 @@ class CalculateConfusionMatrix:
                 detections_passed_threshold = [
                     detection for detection in image_detections if detection[4] > self.conf_threshold
                 ]
-            except IndexError or TypeError:
-                # detections are empty, end of process
+            except IndexError:
+                # detections are empty, update matrix for labels
                 for label in image_labels:
                     gt_class = label[0]
                     self.matrix[self.num_classes, gt_class] += 1
-                return
+                continue
 
             all_ious = np.zeros((len(image_labels), len(detections_passed_threshold)))
 
@@ -131,7 +138,7 @@ class CalculateConfusionMatrix:
                            for i in range(want_idx[0].shape[0])]
             all_matches = np.array(all_matches)
 
-            if all_matches.shape[0] > 0:  # if there is match
+            if all_matches.shape[0] > 0:
                 all_matches = all_matches[all_matches[:, 2].argsort()[::-1]]
 
                 all_matches = all_matches[np.unique(all_matches[:, 1], return_index=True)[1]]
@@ -153,5 +160,19 @@ class CalculateConfusionMatrix:
                     detection_class = int(detection[5])
                     self.matrix[detection_class, self.num_classes] += 1
 
-    def return_matrix(self):
-        return self.matrix
+    def compute_display(self) -> CheckResult:
+        display_confusion_matrix, categories = filter_confusion_matrix(self.confusion_matrix, self.categories_to_display)
+
+        fig = px.imshow(display_confusion_matrix,
+                        x=categories,
+                        y=categories,
+                        text_auto=True)
+        fig.update_layout(width=600, height=600)
+        fig.update_xaxes(title='Predicted Value', type='category')
+        fig.update_yaxes(title='True value', type='category')
+
+        return CheckResult(
+            self.confusion_matrix,
+            header='Confusion Matrix',
+            display=fig
+        )
