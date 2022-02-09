@@ -13,7 +13,7 @@ from hamcrest import assert_that, has_entries, close_to, equal_to
 
 from deepchecks.vision.checks import TrainTestLabelDrift
 from tests.vision.vision_conftest import *
-
+import numpy as np
 
 def test_no_drift_classification(mnist_dataset_train):
     # Arrange
@@ -35,6 +35,8 @@ def test_no_drift_classification(mnist_dataset_train):
 
 
 def test_no_drift_object_detection(coco_train_visiondata):
+    np.random.seed(42)
+
     # Arrange
     check = TrainTestLabelDrift()
 
@@ -79,6 +81,7 @@ def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test):
 
 def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata):
     # Arrange
+    np.random.seed(42)
     check = TrainTestLabelDrift()
 
     # Act
@@ -102,6 +105,8 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
 
 
 def test_with_drift_object_detection_changed_num_bins(coco_train_visiondata, coco_test_visiondata):
+    np.random.seed(42)
+
     # Arrange
     check = TrainTestLabelDrift(num_bins=10)
 
@@ -126,6 +131,8 @@ def test_with_drift_object_detection_changed_num_bins(coco_train_visiondata, coc
 
 
 def test_with_drift_object_detection_alternative_measurements(coco_train_visiondata, coco_test_visiondata):
+    np.random.seed(42)
+
     # Arrange
     alternative_measurements = [
         {'name': 'test', 'method': lambda x: x[0][0] if len(x) != 0 else 0, 'is_continuous': True}]
