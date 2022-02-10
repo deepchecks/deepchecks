@@ -44,6 +44,9 @@ def filter_confusion_matrix(confusion_matrix, number_of_categories):
 
 class ConfusionMatrixReport(SingleDatasetCheck):
     """Calculate the confusion matrix of the model on the given dataset.
+    For object detection, each detected bounding box calculates the IoU for each label and then is that label class is
+    used for the confusion matrix. detected bounding boxes that don't match a label has their own class and same
+    for labels without detected bounding boxes.
 
     Parameters
     ----------
@@ -56,6 +59,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
     iou_threshold (float, default 0.5):
         Threshold to consider detected bounding box as labeled bounding box.
     """
+
     def __init__(self,
                  prediction_formatter: Union[ClassificationPredictionFormatter, DetectionPredictionFormatter] = None,
                  categories_to_display: int = 10,
@@ -83,9 +87,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         self.matrix = np.zeros((matrix_size, matrix_size))
 
     def update(self, context: Context, batch: Any, dataset_name: str = 'train'):
-        """Add batch to confusion matrix.
-
-        """
+        """Add batch to confusion matrix."""
         if dataset_name == 'train':
             dataset = context.train
         else:
