@@ -57,8 +57,8 @@ DEFAULT_CLASSIFICATION_LABEL_MEASUREMENTS = [
 ]
 
 DEFAULT_OBJECT_DETECTION_LABEL_MEASUREMENTS = [
-    {'name': 'Bounding box area distribution', 'method': get_bbox_area, 'is_continuous': True},
     {'name': 'Samples per class', 'method': get_samples_per_class_object_detection, 'is_continuous': False},
+    {'name': 'Bounding box area (in pixels) distribution', 'method': get_bbox_area, 'is_continuous': True},
     {'name': 'Number of bounding boxes per image', 'method': count_num_bboxes, 'is_continuous': True},
 ]
 
@@ -528,10 +528,13 @@ def feature_distribution_traces(expected_percents: np.array,
 
         traces = [train_bar, test_bar]
 
+        max_y = max(max(expected_percents), max(actual_percents))
+        y_lim = 1 if max_y > 0.5 else max_y * 1.1
+
         xaxis_layout = dict(type='category',
                             title='Values')
         yaxis_layout = dict(fixedrange=True,
-                            range=(0, 1),
+                            range=(0, y_lim),
                             title='Percentage')
 
     else:
