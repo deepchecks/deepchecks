@@ -159,6 +159,7 @@ class CocoDataset(VisionDataset):
         self.labels_dir = Path(root) / 'labels' / name
 
         images: t.List[Path] = list(self.images_dir.glob('./*.jpg'))
+        images = sorted(images)
         labels: t.List[t.Optional[Path]] = []
 
         for image in images:
