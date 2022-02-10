@@ -19,7 +19,7 @@ from deepchecks.core import errors
 from deepchecks import vision  # pylint: disable=unused-import, is used in type annotations
 
 
-__all__ = ['validate_model']
+__all__ = ['validate_model', 'set_seeds']
 
 
 def validate_model(dataset: 'vision.VisionData', model: t.Any):

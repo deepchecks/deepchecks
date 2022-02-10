@@ -268,8 +268,8 @@ class RobustnessReport(SingleDatasetCheck):
         # If length is 4 means we also have bounding boxes to draw
         if len(transposed) == 4:
             for index, (base_bbox, aug_bbox) in enumerate(transposed[3]):
-                label_bbox_add_to_figure(base_bbox, fig, row=1, col=index + 1, font_size=base_font_size)
-                label_bbox_add_to_figure(aug_bbox, fig, row=2, col=index + 1, font_size=base_font_size)
+                label_bbox_add_to_figure(base_bbox, fig, row=1, col=index + 1)
+                label_bbox_add_to_figure(aug_bbox, fig, row=2, col=index + 1)
 
         (fig.update_layout(title=dict(text='Augmentation Samples', font=dict(size=base_font_size * 2)))
          .update_yaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
