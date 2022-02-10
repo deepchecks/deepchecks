@@ -1,5 +1,7 @@
 .. formatters:
 
+.. currentmodule:: deepchecks.vision.utils
+
 =============================================
 The Image, Labels, and Prediction formatters
 =============================================
@@ -7,6 +9,9 @@ The Image, Labels, and Prediction formatters
 The formatter objects in the deepchecks.vision module were designed to provide easy access to the data while making their implementation easy and maintainable.
 They are responsible for converting the data (whether these are images, labels, or predictions) to a format deepchecks can work with.
 
+.. contents:: Table of Contents
+    :local:
+    :depth: 3
 
 Why is this important?
 ========================
@@ -16,7 +21,7 @@ In order to run a model and data-agnostic comprehensive testing suites, the data
 The formatter objects provide an easy way to do that, and are an important part of the vision module.
 
 
-Implementing a formatter
+Types of formatters
 ==========================
 Deepchecks requires three data formatters:
 
@@ -31,13 +36,8 @@ In order to initialize a new formatter, a transformation function between the in
 The Image Formatter
 =====================
 The image formatter is responsible for formatting the image data outputted from the data loader to the required format for check displays.
-Below is the API reference for the ``ImageFormatter`` class:
-
-.. currentmodule:: deepchecks.vision.utils.image_formatters
-
-.. autosummary::
-
-    ImageFormatter
+In order to create an image formatter, you need to initialize an instance of the :class:`image_formatters.ImageFormatter` class,
+passing the transformation function.
 
 Task types formats
 =====================
@@ -51,25 +51,13 @@ Classification format
 
 Accepted format
 ~~~~~~~~~~~~~~~~~~~~~
-In order to use deepchecks to validate your classification model, it is required to implement a ``ClassificationLabelFormatter`` for formatting the labels, and a
-``ClassificationPredictionFormatter`` for formatting the predictions.
+In order to use deepchecks to validate your classification model, it is required to implement a :class:`classification_formatters.ClassificationLabelFormatter` for formatting the labels, and a
+:class:`classification_formatters.ClassificationPredictionFormatter` for formatting the predictions.
 
 For the labels, the accepted format is a tensor of shape (N,), when N is the number of samples in the batch. Each element is an integer representing the class index.
 
-.. currentmodule:: deepchecks.vision.utils.classification_formatters
-
-.. autosummary::
-
-    ClassificationLabelFormatter
-
 For the predictions, the accepted format is a tensor of shape (N, n_classes), when N is the number of samples in batch. Each element is an array of length n_classes
 that represents the probability of each class.
-
-.. currentmodule:: deepchecks.vision.utils.classification_formatters
-
-.. autosummary::
-
-    ClassificationPredictionFormatter
 
 Example
 ~~~~~~~~
@@ -90,18 +78,13 @@ Object detection format
 
 Accepted Format
 ~~~~~~~~~~~~~~~~
-For object detection tasks, it is required to implement the ``DetectionLabelFormatter`` and ``DetectionPredictionFormatter`` classes.
+For object detection tasks, it is required to implement the :class:`detection_formatters.DetectionLabelFormatter` and the
+:class:`detection_formatters.DetectionPredictionFormatter` classes.
 
 The accepted format for the labels is a list of length N containing tensors of shape (M, 5), where N is the number of samples,
 M is the number of bounding boxes in the sample and each bounding box is represented by 5 values: (class_id,
 x, y, w, h). x and y are the coordinates (in pixels) of the upper left corner of the bounding box, w and h are
 the width and height of the bounding box (in pixels) and class_id is the class id.
-
-.. currentmodule:: deepchecks.vision.utils.detection_formatters
-
-.. autosummary::
-
-    DetectionLabelFormatter
 
 For the detection, the accepted format is list of length N containing tensors of shape (B, 6), where N is the number of images,
 B is the number of bounding boxes detected in the sample and each bounding box is represented by 6 values:
@@ -109,11 +92,6 @@ B is the number of bounding boxes detected in the sample and each bounding box i
 bounding box, w and h are the width and height of the bounding box (in pixels), confidence is the confidence of
 the model and class_id is the class id.
 
-.. currentmodule:: deepchecks.vision.utils.detection_formatters
-
-.. autosummary::
-
-    DetectionPredictionFormatter
 
 Converting from common formats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
