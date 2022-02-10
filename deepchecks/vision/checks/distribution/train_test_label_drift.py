@@ -94,6 +94,11 @@ class TrainTestLabelDrift(TrainTestCheck):
         List of measurements. Replaces the default deepchecks measurements.
         Each measurement is dictionary with keys 'name' (str), 'method' (Callable) and is_continuous (bool),
         representing attributes of said method.
+    min_sample_size: int, default: None
+        number of minimum samples (not batches) to be accumulated in order to estimate the boundaries (min, max) of
+        continuous histograms. As the check cannot load all label measurement results into memory, the check saves only
+        the histogram of results - but prior to that, the check requires to know the estimated boundaries of train AND
+        test datasets (they must share an x-axis).
     default_num_bins: int, default: 100
         number of bins to use for continuous distributions. This value is not used if the distribution has less unique
         values than default number of bins (and instead, number of unique values is used).
@@ -102,6 +107,7 @@ class TrainTestLabelDrift(TrainTestCheck):
     def __init__(
             self,
             alternative_label_measurements: List[Dict[str, Any]] = None,
+            min_sample_size: int = None,
             default_num_bins: int = 100
     ):
         super().__init__()
@@ -109,6 +115,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         if alternative_label_measurements is not None:
             self._validate_label_measurements(alternative_label_measurements)
         self.alternative_label_measurements = alternative_label_measurements
+        self.min_sample_size = min_sample_size
         self.default_num_bins = default_num_bins
 
     def initialize_run(self, context: Context):
@@ -157,8 +164,8 @@ class TrainTestLabelDrift(TrainTestCheck):
         num_discrete_transformers = len(self._discrete_label_measurements)
 
         # For continuous transformers, calculate bounds:
-        train_bounds = get_boundaries_by_batch(train_dataset, self._continuous_label_measurements)
-        test_bounds = get_boundaries_by_batch(test_dataset, self._continuous_label_measurements)
+        train_bounds = get_boundaries_by_batch(train_dataset, self._continuous_label_measurements, self.min_sample_size)
+        test_bounds = get_boundaries_by_batch(test_dataset, self._continuous_label_measurements, self.min_sample_size)
         bounds = [(min(train_bounds[i]['min'], test_bounds[i]['min']),
                    max(train_bounds[i]['max'], test_bounds[i]['max'])) for i in range(num_continuous_transformers)]
 
@@ -310,14 +317,20 @@ def get_results_on_batch(batch, label_measurement, label_transformer):
     return calc_res
 
 
-def get_boundaries_by_batch(dataset: VisionData, label_measurements: List[Callable]) -> List[Dict[str, float]]:
+def get_boundaries_by_batch(dataset: VisionData, label_measurements: List[Callable], min_sample_size: int) \
+        -> List[Dict[str, float]]:
     """Get min and max on dataset for each label transformer."""
     bounds = [{'min': np.inf, 'max': -np.inf} for i in range(len(label_measurements))]
+    num_samples = 0
     for batch in dataset.get_data_loader():
         for i in range(len(label_measurements)):
             calc_res = get_results_on_batch(batch, label_measurements[i], dataset.label_transformer)
             bounds[i]['min'] = min(calc_res + [bounds[i]['min']])
             bounds[i]['max'] = max(calc_res + [bounds[i]['max']])
+
+        num_samples += len(batch[0])
+        if min_sample_size is not None and num_samples >= min_sample_size:
+            return bounds
 
     return bounds
 
