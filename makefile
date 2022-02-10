@@ -263,7 +263,7 @@ endif
 endif
 
 
-tox:
+tox: requirements dev-requirements
 	$(TOX)
 
 
