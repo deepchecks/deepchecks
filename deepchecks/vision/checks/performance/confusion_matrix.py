@@ -69,14 +69,19 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         self.iou_threshold = iou_threshold
         self.matrix = None
         self.num_classes = 0
+        self.task_type = None
 
     def initialize_run(self, context: Context):
         """Initialize run by creating an empty matrix the size of the data."""
         context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
         dataset: VisionData = context.train
 
+        self.task_type = dataset.task_type
         self.num_classes = dataset.get_num_classes()
-        self.matrix = np.zeros((self.num_classes + 1, self.num_classes + 1))
+
+        matrix_size = self.num_classes if self.task_type == TaskType.CLASSIFICATION else self.num_classes + 1
+
+        self.matrix = np.zeros((matrix_size, matrix_size))
 
     def update(self, context: Context, batch: Any, dataset_name: str = 'train'):
         """Add batch to confusion matrix.
@@ -94,6 +99,40 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         if self.prediction_formatter:
             predictions = self.prediction_formatter(predictions)
 
+        if self.task_type == TaskType.CLASSIFICATION:
+            self.update_classification(predictions, labels)
+        elif self.task_type == TaskType.OBJECT_DETECTION:
+            self.update_object_detection(predictions, labels)
+
+    def compute(self, context: Context) -> CheckResult:
+        display_confusion_matrix, categories = filter_confusion_matrix(self.matrix, self.categories_to_display)
+
+        description = ''
+
+        if self.task_type == TaskType.OBJECT_DETECTION:
+            if self.num_classes == categories[-1]:
+                categories[-1] = 'not found'
+                description += ('last category are detections that do not overlap with labeled data'
+                                ' and labels that have not been detected. ')
+
+        description += f'Showing {self.categories_to_display} of {self.num_classes} classes:'
+
+        fig = px.imshow(display_confusion_matrix,
+                        x=categories,
+                        y=categories,
+                        text_auto=True)
+
+        fig.update_layout(width=600, height=600)
+        fig.update_xaxes(title='Predicted Value', type='category')
+        fig.update_yaxes(title='True value', type='category')
+
+        return CheckResult(
+            self.matrix,
+            header='Confusion Matrix',
+            display=[description, fig]
+        )
+
+    def update_object_detection(self, predictions, labels):
         for image_detections, image_labels in zip(predictions, labels):
             try:
                 detections_passed_threshold = [
@@ -140,20 +179,8 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                     detection_class = int(detection[5])
                     self.matrix[detection_class, self.num_classes] += 1
 
-    def compute(self, context: Context) -> CheckResult:
-        display_confusion_matrix, categories = filter_confusion_matrix(self.matrix, self.categories_to_display)
+    def update_classification(self, predictions, labels):
+        for predicted_classes, image_labels in zip(predictions, labels):
+            detected_class = min(range(len(predicted_classes)), key=predicted_classes.__getitem__)
 
-        fig = px.imshow(display_confusion_matrix,
-                        x=categories,
-                        y=categories,
-                        text_auto=True)
-
-        fig.update_layout(width=600, height=600)
-        fig.update_xaxes(title='Predicted Value', type='category')
-        fig.update_yaxes(title='True value', type='category')
-
-        return CheckResult(
-            self.matrix,
-            header='Confusion Matrix',
-            display=fig
-        )
+            self.matrix[detected_class, image_labels] += 1
