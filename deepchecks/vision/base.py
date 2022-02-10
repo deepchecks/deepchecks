@@ -146,9 +146,10 @@ class Context:
         self._batch_prediction_cache = None
 
     def get_data_by_kind(self, kind: DatasetKind):
-        if kind == DatasetKind.Train:
+        """Return the relevant VisionData by given kind."""
+        if kind == DatasetKind.TRAIN:
             return self.train
-        elif kind == DatasetKind.Test:
+        elif kind == DatasetKind.TEST:
             return self.test
         else:
             raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
@@ -177,13 +178,13 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             model=model
         )
 
-        self.initialize_run(context, DatasetKind.Train)
+        self.initialize_run(context, DatasetKind.TRAIN)
 
         for batch in dataset.get_data_loader():
-            self.update(context, batch, DatasetKind.Train)
+            self.update(context, batch, DatasetKind.TRAIN)
             context.flush_cached_inference()
 
-        return finalize_check_result(self.compute(context, DatasetKind.Train), self)
+        return finalize_check_result(self.compute(context, DatasetKind.TRAIN), self)
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize run before starting updating on batches. Optional."""
@@ -218,11 +219,11 @@ class TrainTestCheck(TrainTestBaseCheck):
         self.initialize_run(context)
 
         for batch in context.train.get_data_loader():
-            self.update(context, batch, DatasetKind.Train)
+            self.update(context, batch, DatasetKind.TRAIN)
             context.flush_cached_inference()
 
         for batch in context.test.get_data_loader():
-            self.update(context, batch, DatasetKind.Train)
+            self.update(context, batch, DatasetKind.TRAIN)
             context.flush_cached_inference()
 
         return finalize_check_result(self.compute(context), self)

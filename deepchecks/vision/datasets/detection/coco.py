@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for loading a sample of the COCO dataset and the yolov5s model."""
-import os
 import typing as t
 from pathlib import Path
 
@@ -89,7 +88,7 @@ def load_dataset(
             transforms=A.Compose([
                 A.NoOp()
             ],
-                bbox_params=A.BboxParams(format="coco")
+                bbox_params=A.BboxParams(format='coco')
             )
         ),
         batch_size=batch_size,

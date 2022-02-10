@@ -12,11 +12,11 @@
 from collections import Counter
 from copy import copy
 from enum import Enum
-from typing import Optional, Union, List, Iterator, Callable
+from typing import Optional, List, Iterator
 
 import numpy as np
 import torch
-from torch.utils.data import DataLoader, Dataset, Sampler
+from torch.utils.data import DataLoader, Sampler
 import logging
 
 from deepchecks.core.errors import DeepchecksValueError
@@ -134,6 +134,7 @@ class VisionData:
 
     @property
     def data_dimension(self):
+        """Return how many dimensions the image data have."""
         sample = next(iter(self.get_data_loader()))[0][0]
         return get_image_info(sample).get_dimension()
 
@@ -179,26 +180,26 @@ class VisionData:
         return self._data
 
     def get_transform_type(self):
+        """Return transforms handler created from the transform field."""
         dataset_ref = self.get_data_loader().dataset
-        try:
-            transform = dataset_ref.__getattribute__(self.transform_field)
-            return get_transforms_handler(transform)
         # If no field exists raise error
-        except AttributeError:
-            raise DeepchecksValueError(f"Underlying Dataset instance must have a {self.transform_field} attribute")
+        if not hasattr(dataset_ref, self.transform_field):
+            raise DeepchecksValueError(f'Underlying Dataset instance must have a {self.transform_field} attribute')
+        transform = dataset_ref.__getattribute__(self.transform_field)
+        return get_transforms_handler(transform)
 
     def add_augmentation(self, aug):
         """Validate transform field in the dataset, and add the augmentation in the start of it."""
         dataset_ref = self.get_data_loader().dataset
-        try:
-            transform = dataset_ref.__getattribute__(self.transform_field)
-            new_transform = add_augmentation_in_start(aug, transform)
-            dataset_ref.__setattr__(self.transform_field, new_transform)
         # If no field exists raise error
-        except AttributeError:
-            raise DeepchecksValueError(f"Underlying Dataset instance must have a {self.transform_field} attribute")
+        if not hasattr(dataset_ref, self.transform_field):
+            raise DeepchecksValueError(f'Underlying Dataset instance must have a {self.transform_field} attribute')
+        transform = dataset_ref.__getattribute__(self.transform_field)
+        new_transform = add_augmentation_in_start(aug, transform)
+        dataset_ref.__setattr__(self.transform_field, new_transform)
 
     def copy(self) -> 'VisionData':
+        """Create new copy of this object, with the data-loader and dataset also copied."""
         props = get_data_loader_props_to_copy(self.get_data_loader())
         props['dataset'] = copy(self.get_data_loader().dataset)
         new_data_loader = self.get_data_loader().__class__(**props)

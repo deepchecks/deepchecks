@@ -1,9 +1,19 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Module for defining functions related to image data."""
 from abc import abstractmethod
 from typing import Tuple
 
 import PIL
 from PIL import ImageChops
-import numpy
 import numpy as np
 import plotly.graph_objects as go
 import torch
@@ -15,12 +25,14 @@ __all__ = ['get_image_info', 'numpy_to_image_figure', 'apply_heatmap_image_prope
 
 
 class ImageInfo:
+    """Abstract class with methods defined to extract metadata about image."""
 
     def __init__(self, img):
         self.img = img
 
     @abstractmethod
     def get_size(self) -> Tuple[int, int]:
+        """Get size of image as (width, height) tuple."""
         pass
 
     @abstractmethod
@@ -30,22 +42,25 @@ class ImageInfo:
 
     @abstractmethod
     def is_equals(self, img_b) -> bool:
+        """Compare image to another image for equality."""
         pass
 
 
 class ImageInfoNumpy(ImageInfo):
+    """Class to extract image metadata from numpy image."""
 
     def get_dimension(self) -> int:
         return self.img.shape[2]
 
     def is_equals(self, img_b) -> bool:
-        return numpy.array_equal(self.img, img_b)
+        return np.array_equal(self.img, img_b)
 
     def get_size(self) -> Tuple[int, int]:
         return self.img.shape[1], self.img.shape[0]
 
 
 class ImageInfoPIL(ImageInfo):
+    """Class to extract image metadata from PIL image."""
 
     def get_dimension(self) -> int:
         return self.img.im.bands
@@ -59,8 +74,9 @@ class ImageInfoPIL(ImageInfo):
 
 
 def numpy_to_image_figure(data: np.ndarray):
-    # Image knows to plot only RGB images
+    """Create image graph object from given numpy array data."""
     dimension = data.shape[2]
+    # Image knows to plot only RGB images, need to use heatmap for grayscale.
     if dimension == 3:
         return go.Image(z=data, hoverinfo='skip')
     elif dimension == 1:
@@ -70,7 +86,7 @@ def numpy_to_image_figure(data: np.ndarray):
 
 
 def apply_heatmap_image_properties(fig):
-    # In case of heatmap and grayscale images, need to add those properties which on Image exists automatically
+    """For heatmap and grayscale images, need to add those properties which on Image exists automatically."""
     fig.update_yaxes(autorange='reversed', scaleanchor='x', constrain='domain')
     fig.update_xaxes(constrain='domain')
     fig.update_traces(showscale=False)
@@ -89,10 +105,9 @@ def get_image_info(img):
 
 
 def label_bbox_add_to_figure(label: torch.Tensor, figure, row=None, col=None):
+    """Add a bounding box label and rectangle to given figure."""
     for single in label:
         clazz, x, y, w, h = single.tolist()
-        # xs = [x, x, x + w, x + w, x]
-        # ys = [y, y + h, y + h, y, y]
-        figure.add_shape(type="rect", x0=x, y0=y, x1=x+w, y1=y+h, row=row, col=col, line=dict(color='red'))
+        figure.add_shape(type='rect', x0=x, y0=y, x1=x+w, y1=y+h, row=row, col=col, line=dict(color='red'))
         figure.add_annotation(x=x + w / 2, y=y, text=str(clazz), showarrow=False, yshift=10, row=row, col=col,
                               font=dict(color='red'))

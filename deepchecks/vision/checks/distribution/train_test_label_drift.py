@@ -96,7 +96,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         self.alternative_label_measurements = alternative_label_measurements
         self.num_bins = num_bins
 
-    def update(self, context: Context, batch: Any, dataset_name: str = 'train'):
+    def update(self, context: Context, batch: Any, dataset_kind):
         """Perform update on batch."""
         pass
 

@@ -10,7 +10,7 @@
 #
 from hamcrest import equal_to, assert_that, calling, raises
 
-from deepchecks.vision.datasets.detection.coco import yolo_wrapper
+from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
 from deepchecks.vision.metrics_utils.metrics import TaskType, \
     get_default_classification_scorers
 from deepchecks.vision.metrics_utils.metrics import calculate_metrics

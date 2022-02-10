@@ -46,7 +46,7 @@ def validate_model(dataset: 'vision.VisionData', model: t.Any):
 
 
 def set_seeds(seed: int):
-    """Sets seeds for reproducibility.
+    """Set seeds for reproducibility.
 
     Imgaug uses numpy's State
     Albumentation uses Python and imgaug seeds

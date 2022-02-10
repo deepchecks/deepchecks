@@ -134,12 +134,13 @@ def calculate_metrics(metrics: t.Union[t.Dict, t.List[Metric]], dataset: VisionD
     return state.metrics
 
 
-def metric_results_to_df(results: dict, dataset: VisionData):
+def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
+    """Get dict of metric name to tensor of classes scores, and convert it to dataframe."""
     per_class_result = [
         [metric, class_name,
          class_score.item() if isinstance(class_score, torch.Tensor) else class_score]
         for metric, score in results.items()
-        # scorer returns numpy array of results with item per class
+        # scorer returns results as array, containing result per class
         for class_score, class_name in zip(score, sorted(dataset.get_samples_per_class().keys()))
     ]
 

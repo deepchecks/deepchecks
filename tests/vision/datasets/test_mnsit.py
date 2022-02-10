@@ -30,7 +30,7 @@ def test_dataset_load():
 
 
 def test_deepchecks_dataset_load():
-    dataloader, dataset = load_dataset(object_type='DataLoader'), load_dataset(object_type='Dataset')
+    dataloader, dataset = load_dataset(object_type='DataLoader'), load_dataset(object_type='VisionData')
     assert_that(dataset, instance_of(VisionData))
     assert_that(dataloader, instance_of(DataLoader))
 

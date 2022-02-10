@@ -52,12 +52,14 @@ class RobustnessReport(SingleDatasetCheck):
         self._state = None
 
     def initialize_run(self, context: Context, dataset_kind):
+        """Initialize the metrics for the check, and validate task type is relevant."""
         context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
         dataset = context.get_data_by_kind(dataset_kind)
         # Set empty version of metrics
         self._state = {'metrics': get_scorers_list(dataset, self.alternative_metrics)}
 
     def update(self, context: Context, batch: Any, dataset_kind):
+        """Accumulates batch data into the metrics."""
         dataset = context.get_data_by_kind(dataset_kind)
         images = batch[0]
         label = dataset.label_transformer(batch[1])
@@ -124,7 +126,7 @@ class RobustnessReport(SingleDatasetCheck):
         )
 
     def add_condition_degradation_not_more_than(self, ratio: 0.01):
-        """Add condition which validates augmentations doesn't degrade the model metrics by given amount"""
+        """Add condition which validates augmentations doesn't degrade the model metrics by given amount."""
         def condition(result):
             failed = [
                 aug
@@ -149,7 +151,7 @@ class RobustnessReport(SingleDatasetCheck):
         return aug_dataset
 
     def _validate_augmenting_affects(self, transform_handler, dataset: VisionData):
-        """Validate the user is using the transforms' field correctly, and that if affects the image and label"""
+        """Validate the user is using the transforms' field correctly, and that if affects the image and label."""
         aug_dataset = self._create_augmented_dataset(dataset, transform_handler.get_test_transformation())
         # Iterate both datasets and compare results
         baseline_sampler = iter(dataset.get_data_loader().dataset)
@@ -172,8 +174,8 @@ class RobustnessReport(SingleDatasetCheck):
                 label_b = dataset.label_transformer([sample_aug[1]])[0]
                 if torch.equal(label_a, label_b):
                     raise DeepchecksValueError('Found that labels have not been affected by adding augmentation. label '
-                                               f'before {label_a} and after {label_b}. This might be a problem with the '
-                                               f'implementation of Dataset.__getitem__')
+                                               f'before {label_a} and after {label_b}. This might be a problem with '
+                                               f'the implementation of Dataset.__getitem__')
             # If all validations passed return
             return
 
@@ -244,13 +246,14 @@ class RobustnessReport(SingleDatasetCheck):
         fig = make_subplots(rows=2, cols=len(classes), column_titles=classes, row_titles=['Origin', 'Augmented'],
                             vertical_spacing=0.01, horizontal_spacing=0.01)
 
-        # The width is accumulated and the height is taken by the max column
+        # The width is accumulated and the height is taken by the max image
         images_width = 0
         max_height = 0
-        for index, (base_image, aug_image, curr_class) in enumerate(zip(base_images, aug_images, classes)):
+        for index, (base_image, aug_image) in enumerate(zip(base_images, aug_images)):
             # Add image figures
             fig.append_trace(numpy_to_image_figure(base_image), row=1, col=index + 1)
             fig.append_trace(numpy_to_image_figure(aug_image), row=2, col=index + 1)
+            # Update sizes
             img_width, img_height = get_image_info(base_image).get_size()
             images_width += img_width
             max_height = max(max_height, img_height)

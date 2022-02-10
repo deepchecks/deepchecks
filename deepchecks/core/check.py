@@ -338,8 +338,10 @@ class CheckResult:
 
 
 class DatasetKind(enum.Enum):
-    Train = 'Train'
-    Test = 'Test'
+    """Represents in single dataset checks, which dataset is currently worked on."""
+
+    TRAIN = 'Train'
+    TEST = 'Test'
 
 
 class BaseCheck(abc.ABC):

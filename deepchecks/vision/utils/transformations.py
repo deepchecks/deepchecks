@@ -1,3 +1,14 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Module for defining functions related to vision transforms."""
 from copy import copy
 from typing import Sized
 
@@ -8,7 +19,11 @@ import torch
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 
 
+__all__ = ['get_transforms_handler', 'add_augmentation_in_start', 'un_normalize_batch']
+
+
 class ImgaugTransformations:
+    """Class containing supporting functions for imgaug transforms."""
 
     @classmethod
     def add_augmentation_in_start(cls, aug, transforms):
@@ -22,12 +37,17 @@ class ImgaugTransformations:
 
     @classmethod
     def get_robustness_augmentations(cls, data_dim):
-        return [
+        augmentations = [
             imgaug.augmenters.MultiplyHueAndSaturation()
         ]
+        if data_dim == 3:
+            # TODO add RGB augmentations
+            pass
+        return augmentations
 
 
 class AlbumentationsTransformations:
+    """Class containing supporting functions for albumentations transforms."""
 
     @classmethod
     def add_augmentation_in_start(cls, aug, transforms):
@@ -58,8 +78,9 @@ class AlbumentationsTransformations:
 
 
 def get_transforms_handler(transforms):
+    """Return the appropriate transforms handler based on type of given transforms."""
     if transforms is None:
-        raise DeepchecksNotSupportedError("Underlying Dataset instance must have transform field not None")
+        raise DeepchecksNotSupportedError('Underlying Dataset instance must have transform field not None')
     elif isinstance(transforms, albumentations.Compose):
         return AlbumentationsTransformations
     elif isinstance(transforms, imgaug.augmenters.Augmenter):
@@ -69,14 +90,12 @@ def get_transforms_handler(transforms):
 
 
 def add_augmentation_in_start(aug, transforms):
+    """Add given augmentation to the first place in the transforms."""
     return get_transforms_handler(transforms).add_augmentation_in_start(aug, transforms)
 
 
-def get_bbox_test_transformation(transforms):
-    return get_transforms_handler(transforms).get_bbox_test_transformation()
-
-
 def un_normalize_batch(tensor, mean: Sized, std: Sized, max_pixel_value: int = 255):
+    """Apply un-normalization on a tensor in order to display an image."""
     dim = len(mean)
     reshape_shape = (1, 1, 1, dim)
     max_pixel_value = [max_pixel_value] * dim

@@ -51,9 +51,9 @@ class PerformanceReport(TrainTestCheck):
         """Initialize run by creating the _state member with metrics for train and test."""
         context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
 
-        self._state = {DatasetKind.Train: {}, DatasetKind.Test: {}}
-        self._state[DatasetKind.Train]['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
-        self._state[DatasetKind.Test]['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
+        self._state = {DatasetKind.TRAIN: {}, DatasetKind.TEST: {}}
+        self._state[DatasetKind.TRAIN]['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
+        self._state[DatasetKind.TEST]['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
 
     def update(self, context: Context, batch: Any, dataset_kind):
         """Update the metrics by passing the batch to ignite metric update method."""
@@ -66,12 +66,12 @@ class PerformanceReport(TrainTestCheck):
 
     def compute(self, context: Context) -> CheckResult:
         """Compute the metric result using the ignite metrics compute method and create display."""
-        self._state[DatasetKind.Train]['n_samples'] = context.train.get_samples_per_class()
-        self._state[DatasetKind.Test]['n_samples'] = context.test.get_samples_per_class()
+        self._state[DatasetKind.TRAIN]['n_samples'] = context.train.get_samples_per_class()
+        self._state[DatasetKind.TEST]['n_samples'] = context.test.get_samples_per_class()
         self._state['classes'] = sorted(context.train.get_samples_per_class().keys())
 
         results = []
-        for dataset_kind in [DatasetKind.Train, DatasetKind.Test]:
+        for dataset_kind in [DatasetKind.TRAIN, DatasetKind.TEST]:
             dataset = context.get_data_by_kind(dataset_kind)
             metrics_df = metric_results_to_df(
                 {k: m.compute() for k, m in self._state[dataset_kind]['scorers'].items()}, dataset
