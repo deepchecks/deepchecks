@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -8,12 +8,9 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module importing all vision checks."""
-from .performance import PerformanceReport, ConfusionMatrixReport
-from .distribution import TrainTestLabelDrift
+"""Test functions of the VISION confusion matrix."""
 
-__all__ = [
-    'PerformanceReport',
-    'ConfusionMatrixReport',
-    'TrainTestLabelDrift',
-]
+from hamcrest import assert_that, has_entries, close_to, equal_to, raises, calling
+
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.vision.checks import ConfusionMatrixReport
