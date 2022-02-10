@@ -125,7 +125,7 @@ class RobustnessReport(SingleDatasetCheck):
             display=figures
         )
 
-    def add_condition_degradation_not_more_than(self, ratio: 0.01):
+    def add_condition_degradation_not_greater_than(self, ratio: 0.01):
         """Add condition which validates augmentations doesn't degrade the model metrics by given amount."""
         def condition(result):
             failed = [
