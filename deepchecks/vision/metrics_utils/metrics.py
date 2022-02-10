@@ -123,15 +123,18 @@ def calculate_metrics(metrics: t.Union[t.Dict, t.List[Metric]], dataset: VisionD
 
     engine = Engine(process_function)
 
-    metrics = metrics if isinstance(metrics, list) else metrics.values()
-    for metric in metrics:
-        metric.attach(engine, type(metric).__name__)
+    if isinstance(metrics, list):
+        metrics = {type(metric).__name__: metric for metric in metrics}
+
+    for name, metric in metrics.items():
+        metric.reset()
+        metric.attach(engine, name)
 
     state = engine.run(dataset.get_data_loader())
     return state.metrics
 
 
-def metric_results_to_df(results, dataset):
+def metric_results_to_df(results: dict, dataset: VisionData):
     per_class_result = [
         [metric, class_name,
          class_score.item() if isinstance(class_score, torch.Tensor) else class_score]

@@ -20,7 +20,8 @@ from .check import (
     CheckFailure,
     SingleDatasetBaseCheck,
     TrainTestBaseCheck,
-    ModelOnlyBaseCheck
+    ModelOnlyBaseCheck,
+    DatasetKind
 )
 
 
@@ -36,4 +37,5 @@ __all__ = [
     'SingleDatasetBaseCheck',
     'TrainTestBaseCheck',
     'ModelOnlyBaseCheck',
+    'DatasetKind'
 ]

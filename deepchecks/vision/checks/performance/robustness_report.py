@@ -2,7 +2,7 @@
 from collections import defaultdict
 
 import imgaug
-from typing import TypeVar, List, Optional
+from typing import TypeVar, List, Optional, Any, Sized
 import albumentations
 
 import pandas as pd
@@ -21,7 +21,8 @@ from deepchecks.vision.metrics_utils import get_scorers_list
 from deepchecks.utils.strings import format_percent
 from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 from deepchecks.vision.utils.image_functions import numpy_to_image_figure, apply_heatmap_image_properties, \
-    is_images_equal, label_bbox_add_to_figure
+    is_images_equal, label_bbox_add_to_figure, get_image_size
+
 
 __all__ = ['RobustnessReport']
 
@@ -48,8 +49,24 @@ class RobustnessReport(SingleDatasetCheck):
         self.prediction_formatter = prediction_formatter
         self.random_state = random_state
         self.augmentations = augmentations
+        self._state = None
 
-    def run_logic(self, context: Context, dataset_type: str = 'train') -> CheckResult:
+    def initialize_run(self, context: Context, dataset_kind):
+        context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
+        dataset = context.get_data_by_kind(dataset_kind)
+        # Set empty version of metrics
+        self._state = {'metrics': get_scorers_list(dataset, self.alternative_metrics)}
+
+    def update(self, context: Context, batch: Any, dataset_kind):
+        dataset = context.get_data_by_kind(dataset_kind)
+        images = batch[0]
+        label = dataset.label_transformer(batch[1])
+        # Using context.infer to get cached prediction if exists
+        prediction = self.prediction_formatter(context.infer(images))
+        for _, metric in self._state['metrics'].items():
+            metric.update((prediction, label))
+
+    def compute(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
 
         Returns
@@ -57,22 +74,15 @@ class RobustnessReport(SingleDatasetCheck):
             CheckResult: value is dictionary in format 'score-name': score-value
         """
         set_seeds(self.random_state)
-        context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
-        if dataset_type == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
-
+        dataset = context.get_data_by_kind(dataset_kind)
         model = context.model
 
         # Validate the transformations works
         transforms_handler = dataset.get_transform_type()
         self._validate_augmenting_affects(transforms_handler, dataset)
-        # Get default scorers if no alternative, or validate alternatives
-        metrics = get_scorers_list(dataset, self.alternative_metrics)
         # Return dataframe of (Class, Metric, Value)
         base_results: pd.DataFrame = metric_results_to_df(
-            calculate_metrics(metrics, dataset, model, self.prediction_formatter), dataset
+            {k: m.compute() for k, m in self._state['metrics'].items()}, dataset
         )
         # Return dict of metric to value
         base_mean_results: dict = self._calc_mean_metrics(base_results)
@@ -82,6 +92,8 @@ class RobustnessReport(SingleDatasetCheck):
         for augmentation_func in augmentations:
             augmentation = augmentation_name(augmentation_func)
             aug_dataset = self._create_augmented_dataset(dataset, augmentation_func)
+            # The metrics have saved state, but they are reset inside `calculate_metrics`
+            metrics = self._state['metrics']
             # Return dataframe of (Class, Metric, Value)
             aug_results = metric_results_to_df(
                 calculate_metrics(metrics, aug_dataset, model, self.prediction_formatter), aug_dataset
@@ -146,7 +158,8 @@ class RobustnessReport(SingleDatasetCheck):
         # Validating on a single sample that the augmentation had affected
         for (sample_base, sample_aug) in zip(baseline_sampler, aug_sampler):
             # Skips any sample without label
-            if sample_base[1] is None or len(sample_base[1]) == 0:
+            label = sample_base[1]
+            if label is None or (isinstance(label, Sized) and len(label) == 0):
                 continue
 
             if is_images_equal(sample_base[0], sample_aug[0]):
@@ -229,29 +242,45 @@ class RobustnessReport(SingleDatasetCheck):
 
         # Create image figures
         fig = make_subplots(rows=2, cols=len(classes), column_titles=classes, row_titles=['Origin', 'Augmented'],
-                            vertical_spacing=0, horizontal_spacing=0)
+                            vertical_spacing=0.01, horizontal_spacing=0.01)
 
+        # The width is accumulated and the height is taken by the max column
+        images_width = 0
+        max_height = 0
         for index, (base_image, aug_image, curr_class) in enumerate(zip(base_images, aug_images, classes)):
             # Add image figures
             fig.append_trace(numpy_to_image_figure(base_image), row=1, col=index + 1)
             fig.append_trace(numpy_to_image_figure(aug_image), row=2, col=index + 1)
+            img_width, img_height = get_image_size(base_image)
+            images_width += img_width
+            max_height = max(max_height, img_height)
+
+        # Add 10 to space between image columns and another 20 for titles
+        width = images_width + 10 * len(base_images) + 20
+        # We have fixed 2 rows, and add 60 for titles space
+        height = max_height * 2 + 60
+        # Set minimum sizes in case of very small images
+        height = max(height, 400)
+        width = max(width, 800)
+        # Font size is annoying and not fixed, but relative to image size, so set the base font relative to height
+        base_font_size = height / 40
 
         # If length is 4 means we also have bounding boxes to draw
         if len(transposed) == 4:
             for index, (base_bbox, aug_bbox) in enumerate(transposed[3]):
-                label_bbox_add_to_figure(base_bbox, fig, row=1, col=index + 1)
-                label_bbox_add_to_figure(aug_bbox, fig, row=2, col=index + 1)
+                label_bbox_add_to_figure(base_bbox, fig, row=1, col=index + 1, font_size=base_font_size)
+                label_bbox_add_to_figure(aug_bbox, fig, row=2, col=index + 1, font_size=base_font_size)
 
-        (fig.update_layout(title=dict(text='Augmentation Samples', font=dict(size=20)),
-                           margin=dict(l=0, r=0, t=60, b=0))
-         .update_yaxes(showticklabels=False, visible=True, fixedrange=True)
-         .update_xaxes(showticklabels=False, visible=True, fixedrange=True))
+        (fig.update_layout(title=dict(text='Augmentation Samples', font=dict(size=base_font_size * 2)))
+         .update_yaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
+         .update_xaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
+         .update_annotations(font_size=base_font_size * 1.5))
 
-        # In case of heatmap and grayscale images, need to add those properties which on Image exists automatically
+        # In case of heatmap (grayscale images), need to add those properties which on Image exists automatically
         if dataset.data_dimension == 1:
             apply_heatmap_image_properties(fig)
 
-        return fig
+        return fig.to_image('svg', width=width, height=height).decode('utf-8')
 
     def _create_performance_graph(self, base_scores: dict, augmented_scores: dict):
         metrics = sorted(list(base_scores.keys()))
@@ -287,14 +316,17 @@ class RobustnessReport(SingleDatasetCheck):
                 y.append(class_info['value'])
                 custom_data.append([format_percent(class_info['diff']), class_info['samples']])
 
+            # Plotly have a bug that if all y values are zero text position 'auto' doesn't work
+            textposition = 'outside' if sum(y) == 0 else 'auto'
             fig.add_trace(go.Bar(name=metric, x=x, y=y, customdata=custom_data, texttemplate='%{customdata[0]}',
-                                 textposition='auto', hovertemplate='Number of samples: %{customdata[1]}'),
+                                 textposition=textposition, hovertemplate='Number of samples: %{customdata[1]}'),
                           row=1, col=index + 1)
 
         (fig.update_layout(font=dict(size=12), height=300, width=600 * len(metrics),
                            title=dict(text='Top Affected Classes', font=dict(size=20)),
                            showlegend=False)
-         .update_xaxes(title=None, type='category', tickangle=30, tickprefix='Class '))
+         .update_xaxes(title=None, type='category', tickangle=30, tickprefix='Class ', automargin=True)
+         .update_yaxes(automargin=True))
 
         return fig
 
@@ -326,7 +358,6 @@ def get_random_image_pairs_from_dataset(original_dataset: VisionData,
         for class_info in classes_list
     }
 
-    # We definitely make the assumption that the underlying structure is torch.utils.Dataset
     baseline_sampler = iter(original_dataset.get_data_loader().dataset)
     aug_sampler = iter(augmented_dataset.get_data_loader().dataset)
     samples = []

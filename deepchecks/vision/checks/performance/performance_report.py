@@ -15,7 +15,7 @@ import pandas as pd
 import plotly.express as px
 from ignite.metrics import Metric
 
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision import TrainTestCheck, Context
@@ -51,36 +51,32 @@ class PerformanceReport(TrainTestCheck):
         """Initialize run by creating the _state member with metrics for train and test."""
         context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
 
-        self._state = {'train': {}, 'test': {}}
-        self._state['train']['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
-        self._state['test']['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
-        for dataset_name in ['train', 'test']:
-            for _, metric in self._state[dataset_name]['scorers'].items():
-                metric.reset()
+        self._state = {DatasetKind.Train: {}, DatasetKind.Test: {}}
+        self._state[DatasetKind.Train]['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
+        self._state[DatasetKind.Test]['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
 
-    def update(self, context: Context, batch: Any, dataset_name: str = 'train'):
+    def update(self, context: Context, batch: Any, dataset_kind):
         """Update the metrics by passing the batch to ignite metric update method."""
-        if dataset_name == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
+        dataset = context.get_data_by_kind(dataset_kind)
         images = batch[0]
         label = dataset.label_transformer(batch[1])
         prediction = self.prediction_formatter(context.infer(images))
-        for _, metric in self._state[dataset_name]['scorers'].items():
+        for _, metric in self._state[dataset_kind]['scorers'].items():
             metric.update((prediction, label))
 
     def compute(self, context: Context) -> CheckResult:
         """Compute the metric result using the ignite metrics compute method and create display."""
-        self._state['train']['n_samples'] = context.train.get_samples_per_class()
-        self._state['test']['n_samples'] = context.test.get_samples_per_class()
+        self._state[DatasetKind.Train]['n_samples'] = context.train.get_samples_per_class()
+        self._state[DatasetKind.Test]['n_samples'] = context.test.get_samples_per_class()
         self._state['classes'] = sorted(context.train.get_samples_per_class().keys())
 
         results = []
-        for dataset_name in ['train', 'test']:
-            dataset = context.train if dataset_name == 'train' else context.test
-            metrics_df = metric_results_to_df(self._state[dataset_name]['scorers'], dataset)
-            metrics_df['Dataset'] = dataset_name
+        for dataset_kind in [DatasetKind.Train, DatasetKind.Test]:
+            dataset = context.get_data_by_kind(dataset_kind)
+            metrics_df = metric_results_to_df(
+                {k: m.compute() for k, m in self._state[dataset_kind]['scorers'].items()}, dataset
+            )
+            metrics_df['Dataset'] = dataset_kind.value
             metrics_df['Number of samples'] = metrics_df['Class'].map(dataset.get_samples_per_class().get)
 
         results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples']
