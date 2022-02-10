@@ -104,7 +104,7 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
 
 def test_with_drift_object_detection_changed_num_bins(coco_train_visiondata, coco_test_visiondata):
     # Arrange
-    check = TrainTestLabelDrift(num_bins=10)
+    check = TrainTestLabelDrift(default_num_bins=10)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata)
