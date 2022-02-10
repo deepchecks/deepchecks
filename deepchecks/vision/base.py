@@ -33,6 +33,7 @@ from deepchecks.core.errors import (
     DeepchecksNotSupportedError, DeepchecksValueError
 )
 from deepchecks.vision.dataset import VisionData, TaskType
+from deepchecks.vision.utils.validation import apply_to_tensor
 
 
 __all__ = [
@@ -185,6 +186,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         self.initialize_run(context)
 
         for batch in dataset.get_data_loader():
+            batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch)
             context.flush_cached_inference()
 
@@ -225,10 +227,12 @@ class TrainTestCheck(TrainTestBaseCheck):
         self.initialize_run(context)
 
         for batch in context.train.get_data_loader():
+            batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch, dataset_name='train')
             context.flush_cached_inference()
 
         for batch in context.test.get_data_loader():
+            batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch, dataset_name='test')
             context.flush_cached_inference()
 
