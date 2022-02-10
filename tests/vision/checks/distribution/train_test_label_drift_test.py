@@ -9,8 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the VISION train test label drift."""
-from hamcrest import assert_that, has_entries, close_to, equal_to
+from hamcrest import assert_that, has_entries, close_to, equal_to, raises, calling
 
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import TrainTestLabelDrift
 from tests.vision.vision_conftest import *
 
@@ -142,4 +143,29 @@ def test_with_drift_object_detection_alternative_measurements(coco_train_visiond
         )
         }
     )
+                )
+
+
+def test_with_drift_object_detection_defected_alternative_measurements():
+    # Arrange
+    alternative_measurements = [
+        {'name': 'test', 'method': lambda x: x[0][0] if len(x) != 0 else 0, 'is_continuous': True},
+        {'name234': 'test', 'method': lambda x: x[0][0] if len(x) != 0 else 0, 'is_continuous': True},
+    ]
+
+    # Assert
+    assert_that(calling(TrainTestLabelDrift).with_args(alternative_measurements),
+                raises(DeepchecksValueError,
+                       "Label measurement must be of type dict, and include keys \['name', 'method', 'is_continuous'\]")
+                )
+
+
+def test_with_drift_object_detection_defected_alternative_measurements2():
+    # Arrange
+    alternative_measurements = {'name': 'test', 'method': lambda x: x, 'is_continuous': True}
+
+    # Assert
+    assert_that(calling(TrainTestLabelDrift).with_args(alternative_measurements),
+                raises(DeepchecksValueError,
+                       "Expected label measurements to be a list, instead got dict")
                 )

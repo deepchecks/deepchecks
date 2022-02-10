@@ -166,7 +166,8 @@ class TrainTestLabelDrift(TrainTestCheck):
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
 
-    def _validate_label_measurements(self, label_measurements):
+    @staticmethod
+    def _validate_label_measurements(label_measurements):
         """Validate structure of label measurements."""
         expected_keys = ['name', 'method', 'is_continuous']
         if not isinstance(label_measurements, list):
