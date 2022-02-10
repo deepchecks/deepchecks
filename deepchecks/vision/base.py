@@ -220,7 +220,7 @@ class TrainTestCheck(TrainTestBaseCheck):
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        context = self.context_type(train_dataset, test_dataset,model=model, device=device)
+        context = self.context_type(train_dataset, test_dataset, model=model, device=device)
 
         self.initialize_run(context)
 

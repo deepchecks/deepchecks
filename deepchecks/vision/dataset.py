@@ -238,7 +238,7 @@ class VisionData:
             if label_shape != other_label_shape:
                 raise DeepchecksValueError('Datasets required to share the same label shape')
         elif self.task_type == TaskType.SEMANTIC_SEGMENTATION:
-            raise NotImplementedError() # TODO
+            raise NotImplementedError()  # TODO
         else:
             if self.get_label_shape() != other.get_label_shape():
                 raise DeepchecksValueError('Datasets required to share the same label shape')
