@@ -12,7 +12,7 @@
 import numpy as np
 
 
-def _jaccard(dt, gt):
+def jaccard_iou(dt, gt):
     x_dt, y_dt, w_dt, h_dt = dt[:4]
     x_gt, y_gt, w_gt, h_gt = gt[1:]
 
@@ -34,10 +34,10 @@ def _jaccard(dt, gt):
     return float(intersection / (dt_area + gt_area - intersection))
 
 
-def compute_ious(detected, ground_truth):
+def compute_pairwise_ious(detected, ground_truth):
     """Compute pairwise ious between detections and ground truth."""
     ious = np.zeros((len(detected), len(ground_truth)))
     for g_idx, g in enumerate(ground_truth):
         for d_idx, d in enumerate(detected):
-            ious[d_idx, g_idx] = _jaccard(d, g)
+            ious[d_idx, g_idx] = jaccard_iou(d, g)
     return ious

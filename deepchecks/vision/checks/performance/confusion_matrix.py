@@ -13,13 +13,12 @@ from typing import Union, Any
 
 import numpy as np
 import plotly.express as px
-from torch import nn
 from queue import PriorityQueue
 
 from deepchecks.core import CheckResult
 from deepchecks.vision import SingleDatasetCheck, Context
 from deepchecks.vision.dataset import TaskType, VisionData
-from deepchecks.vision.metrics_utils.iou_utils import _jaccard
+from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
 from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
 
@@ -149,7 +148,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
             for label_index, label in enumerate(image_labels):
                 for detected_index, detected in enumerate(detections_passed_threshold):
-                    all_ious[label_index, detected_index] = _jaccard(detected, label)
+                    all_ious[label_index, detected_index] = jaccard_iou(detected, label)
 
             want_idx = np.where(all_ious > self.iou_threshold)
 
