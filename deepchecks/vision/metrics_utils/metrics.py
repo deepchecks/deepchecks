@@ -125,7 +125,7 @@ def calculate_metrics(
 
     # Validate that
     data_batch = process_function(None, next(iter(dataset)))[0]
-    prediction_formatter.validate_prediction(data_batch, dataset.get_num_classes())
+    prediction_formatter.validate_prediction(data_batch, dataset.n_of_classes)
 
     engine = Engine(process_function)
     for metric in metrics:

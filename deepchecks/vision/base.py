@@ -129,7 +129,7 @@ class Context:
     def model_name(self):
         """Return model name."""
         return self._model_name
-    
+
     @property
     def device(self) -> Optional[torch.device]:
         """Return device specified by the user."""
@@ -173,9 +173,9 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
     context_type = Context
 
     def run(
-        self, 
-        dataset: VisionData, 
-        model: Optional[nn.Module] = None, 
+        self,
+        dataset: VisionData,
+        model: Optional[nn.Module] = None,
         device: Union[str, torch.device, None] = None
     ) -> CheckResult:
         """Run check."""
@@ -212,10 +212,10 @@ class TrainTestCheck(TrainTestBaseCheck):
     context_type = Context
 
     def run(
-        self, 
-        train_dataset: VisionData, 
-        test_dataset: VisionData, 
-        model: Optional[nn.Module] = None, 
+        self,
+        train_dataset: VisionData,
+        test_dataset: VisionData,
+        model: Optional[nn.Module] = None,
         device: Union[str, torch.device, None] = None
     ) -> CheckResult:
         """Run check."""
@@ -253,7 +253,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
     context_type = Context
 
     def run(
-        self, 
+        self,
         model: nn.Module,
         device: Union[str, torch.device, None] = None
     ) -> CheckResult:
@@ -316,8 +316,8 @@ class Suite(BaseSuite):
             All results by all initialized checks
         """
         context = Context(
-            train_dataset, 
-            test_dataset, 
+            train_dataset,
+            test_dataset,
             model,
             scorers=scorers,
             scorers_per_class=scorers_per_class,

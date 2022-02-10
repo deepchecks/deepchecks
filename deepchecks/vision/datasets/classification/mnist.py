@@ -22,13 +22,13 @@ from torch import nn
 from torch.utils.data import DataLoader
 from typing_extensions import Literal
 
+from deepchecks.vision.utils.classification_formatters import ClassificationLabelFormatter
 from deepchecks.vision.dataset import VisionData
 from . import MODELS_DIR
 
 
 __all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST']
 
-from deepchecks.vision.utils.classification_formatters import ClassificationLabelFormatter
 
 LOGGER = logging.getLogger(__name__)
 

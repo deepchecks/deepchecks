@@ -72,16 +72,16 @@ class PerformanceReport(TrainTestCheck):
 
     def compute(self, context: Context) -> CheckResult:
         """Compute the metric result using the ignite metrics compute method and create display."""
-        self._state['train']['n_samples'] = context.train.get_samples_per_class()
-        self._state['test']['n_samples'] = context.test.get_samples_per_class()
-        self._state['classes'] = sorted(context.train.get_samples_per_class().keys())
+        self._state['train']['n_samples'] = context.train.n_of_samples_per_class
+        self._state['test']['n_samples'] = context.test.n_of_samples_per_class
+        self._state['classes'] = sorted(context.train.n_of_samples_per_class.keys())
 
         results = []
-        
+
         for dataset_name in ['train', 'test']:
             n_samples = self._state[dataset_name]['n_samples']
             computed_metrics = (
-                (name, metric.compute().tolist()) 
+                (name, metric.compute().tolist())
                 for name, metric in self._state[dataset_name]['scorers'].items()
             )
             results.extend(

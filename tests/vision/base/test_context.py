@@ -25,10 +25,12 @@ from deepchecks.vision.datasets.classification import mnist
 
 
 def test_vision_context_initialization_for_classification_task():
+    # Arrange
     train_dataset = t.cast(VisionData, mnist.load_dataset(train=True, object_type='Dataset'))
     test_dataset = t.cast(VisionData, mnist.load_dataset(train=False, object_type='Dataset'))
     model = mnist.load_model()
 
+    # Act
     context = Context(
         train=train_dataset,
         test=test_dataset,
@@ -37,6 +39,7 @@ def test_vision_context_initialization_for_classification_task():
         device='cpu',
     )
 
+    # Assert
     assert_that(context, has_properties({
         'train': same_instance(train_dataset),
         'test': same_instance(test_dataset),
@@ -50,10 +53,12 @@ def test_vision_context_initialization_for_classification_task():
 
 
 def test_vision_context_initialization_for_object_detection_task():
+    # Arrange
     train_dataset = t.cast(VisionData, coco.load_dataset(train=True, object_type='Dataset'))
     test_dataset = t.cast(VisionData, coco.load_dataset(train=False, object_type='Dataset'))
     model = coco.load_model()
 
+    # Act
     context = Context(
         train=train_dataset,
         test=test_dataset,
@@ -62,6 +67,7 @@ def test_vision_context_initialization_for_object_detection_task():
         device='cpu',
     )
 
+    # Assert
     assert_that(context, has_properties({
         'train': same_instance(train_dataset),
         'test': same_instance(test_dataset),
@@ -79,9 +85,11 @@ def test_vision_context_initialization_for_object_detection_task():
 
 
 def test_vision_context_initialization_with_datasets_from_different_tasks():
+    # Act
     train_dataset = t.cast(VisionData, coco.load_dataset(train=True, object_type='Dataset'))
     test_dataset = t.cast(VisionData, mnist.load_dataset(train=True, object_type='Dataset'))
 
+    # Assert
     assert_that(
         calling(Context).with_args(train=train_dataset, test=test_dataset),
         raises(
@@ -91,9 +99,11 @@ def test_vision_context_initialization_with_datasets_from_different_tasks():
 
 
 def test_that_vision_context_raises_exception_for_unset_properties():
+    # Arrange
     train_dataset = t.cast(VisionData, mnist.load_dataset(train=True, object_type='Dataset'))
     context = Context(train=train_dataset)
 
+    # Act
     assert_that(
         calling(lambda: context.test),
         raises(
@@ -140,6 +150,7 @@ def test_context_initialization_with_model_only():
 
 def test_context_initialization_with_broken_model():
 
+    # Arrange
     class BrokenModel(nn.Module):
         def __call__(self, *args, **kwargs):
             raise Exception("Unvalid arguments")
@@ -148,12 +159,14 @@ def test_context_initialization_with_broken_model():
     test_dataset = t.cast(VisionData, mnist.load_dataset(train=False, object_type='Dataset'))
     model = BrokenModel()
 
+    # Act
     context = Context(
         train=train_dataset,
         test=test_dataset,
         model=model
     )
 
+    # Assert
     assert_that(
         calling(lambda: context.model),
         raises(

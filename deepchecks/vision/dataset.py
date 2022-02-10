@@ -12,7 +12,7 @@
 
 from copy import copy
 from enum import Enum
-from typing import Optional, Union, List, Iterator
+from typing import Optional, Union, List, Iterator, Dict, Any
 
 import numpy as np
 import torch
@@ -80,8 +80,18 @@ class VisionData:
     or else the callable label_transformer should be able to transform the labels to the desired format.
     """
 
-    _data: DataLoader = None
-    label_transformer: BaseLabelFormatter = None
+    label_transformer: BaseLabelFormatter
+    image_transformer: ImageFormatter
+    task_type: Optional[TaskType]
+    sample_iteration_limit: int
+    _data: DataLoader
+    _num_classes: Optional[int]
+    _samples_per_class: Optional[Dict[Any, int]]
+    _label_valid: Optional[str]
+    _sample_size: int
+    _random_seed: int
+    _sample_labels: Optional[Any]
+    _sample_data_loader: Optional[DataLoader]
 
     def __init__(self,
                  data_loader: DataLoader,
@@ -108,11 +118,12 @@ class VisionData:
         elif isinstance(self.label_transformer, DetectionLabelFormatter):
             self.task_type = TaskType.OBJECT_DETECTION
         else:
+            self.task_type = None
             logger.warning('Unknown label transformer type was provided. Only integrity and data checks will run.'
                            'The supported label transformer types are: '
                            '[ClassificationLabelFormatter, DetectionLabelFormatter]')
 
-        self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
+        self._num_classes = num_classes  # if not initialized, then initialized later in n_of_classes
         self._samples_per_class = None
         self._label_valid = self.label_transformer.validate_label(self._data)  # will contain error message if not valid
         # Sample dataset properties
@@ -122,13 +133,17 @@ class VisionData:
         self._random_seed = random_seed
         self.sample_iteration_limit = sample_iteration_limit
 
-    def get_num_classes(self):
+    @property
+    def n_of_classes(self) -> int:
         """Return the number of classes in the dataset."""
         if self._num_classes is None:
-            self._num_classes = len(self.get_samples_per_class().keys())
+            self._num_classes = len(self.n_of_samples_per_class.keys())
         return self._num_classes
 
-    def get_samples_per_class(self):
+    # def get_num_classes(self):
+
+    @property
+    def n_of_samples_per_class(self) -> Dict[Any, int]:
         """Return a dictionary containing the number of samples per class."""
         if self._samples_per_class is None:
             if self.task_type in [TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION]:
@@ -138,6 +153,8 @@ class VisionData:
                     'Not implemented yet for tasks other than classification and object detection'
                 )
         return copy(self._samples_per_class)
+
+    # def get_samples_per_class(self):
 
     def to_display_data(self, batch):
         """Convert a batch of data outputted by the data loader to a format that can be displayed."""
@@ -195,10 +212,7 @@ class VisionData:
         ----------
         other : VisionData
             Expected to be Dataset type. dataset to compare
-        Returns
-        -------
-        Hashable
-            name of the label column
+
         Raises
         ------
         DeepchecksValueError
@@ -212,12 +226,19 @@ class VisionData:
         if self.task_type != other.task_type:
             raise DeepchecksValueError('Datasets required to have same label type')
 
+        # TODO:
+        # does it have a sense at all?
+        # we compare and verify only the first labels
+        # it does not mean that all other labels will be correct
+
         if self.task_type == TaskType.OBJECT_DETECTION:
             # number of objects can be different
             _, *label_shape = self.get_label_shape()
             _, *other_label_shape = other.get_label_shape()
             if label_shape != other_label_shape:
                 raise DeepchecksValueError('Datasets required to share the same label shape')
+        elif self.task_type == TaskType.SEMANTIC_SEGMENTATION:
+            raise NotImplementedError() # TODO
         else:
             if self.get_label_shape() != other.get_label_shape():
                 raise DeepchecksValueError('Datasets required to share the same label shape')
@@ -324,16 +345,16 @@ def create_sample_loader(data_loader: DataLoader, sample_size: int, seed: int, i
 
         samples_dataset = InMemoryDataset(samples_data)
         return DataLoader(
-            samples_dataset, 
-            generator=torch.Generator().manual_seed(seed), 
+            samples_dataset,
+            generator=torch.Generator().manual_seed(seed),
             sampler=SequentialSampler(samples_data),
             **common_props_to_copy
         )
     else:
         length = len(dataset)
         return DataLoader(
-            dataset, 
+            dataset,
             generator=torch.Generator().manual_seed(seed),
-            sampler=FixedSampler(length, seed, sample_size), 
+            sampler=FixedSampler(length, seed, sample_size),
             **common_props_to_copy
         )
