@@ -21,7 +21,7 @@ from deepchecks.vision.metrics_utils import get_scorers_list
 from deepchecks.utils.strings import format_percent
 from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 from deepchecks.vision.utils.image_functions import numpy_to_image_figure, apply_heatmap_image_properties, \
-    is_images_equal, label_bbox_add_to_figure, get_image_size
+    label_bbox_add_to_figure, get_image_info
 
 
 __all__ = ['RobustnessReport']
@@ -162,7 +162,7 @@ class RobustnessReport(SingleDatasetCheck):
             if label is None or (isinstance(label, Sized) and len(label) == 0):
                 continue
 
-            if is_images_equal(sample_base[0], sample_aug[0]):
+            if get_image_info(sample_base[0]).is_equals(sample_aug[0]):
                 raise DeepchecksValueError('Found that images have not been affected by adding augmentation. '
                                            'This might be a problem with the implementation of Dataset.__getitem__')
 
@@ -251,7 +251,7 @@ class RobustnessReport(SingleDatasetCheck):
             # Add image figures
             fig.append_trace(numpy_to_image_figure(base_image), row=1, col=index + 1)
             fig.append_trace(numpy_to_image_figure(aug_image), row=2, col=index + 1)
-            img_width, img_height = get_image_size(base_image)
+            img_width, img_height = get_image_info(base_image).get_size()
             images_width += img_width
             max_height = max(max_height, img_height)
 

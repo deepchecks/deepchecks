@@ -24,7 +24,7 @@ from deepchecks.vision.utils.transformations import get_transforms_handler, add_
 from deepchecks.vision.utils import ClassificationLabelFormatter, DetectionLabelFormatter
 from deepchecks.vision.utils.base_formatters import BaseLabelFormatter
 from deepchecks.vision.utils.image_formatters import ImageFormatter
-from deepchecks.vision.utils.image_functions import get_image_dimension
+from deepchecks.vision.utils.image_functions import get_image_info
 
 logger = logging.getLogger('deepchecks')
 
@@ -135,7 +135,7 @@ class VisionData:
     @property
     def data_dimension(self):
         sample = next(iter(self.get_data_loader()))[0][0]
-        return get_image_dimension(sample)
+        return get_image_info(sample).get_dimension()
 
     @property
     def sample_data_loader(self) -> DataLoader:
