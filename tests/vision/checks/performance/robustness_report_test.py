@@ -32,7 +32,6 @@ def test_mnist(mnist_dataset_train, trained_mnist):
     check = RobustnessReport(prediction_formatter=ClassificationPredictionFormatter(nn.Softmax(dim=1)))
     result = check.run(mnist_dataset_train, trained_mnist)
     # Assert
-    print(result.value)
     assert_that(result.value, has_entries({
         'RandomBrightnessContrast': has_entries({
             'Precision': has_entries(score=close_to(0.98, 0.01), diff=close_to(0, 0.02)),
