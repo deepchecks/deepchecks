@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing class performance check."""
-from typing import TypeVar, List, Union, Any
+from typing import TypeVar, List, Any
 
 import pandas as pd
 import plotly.express as px
@@ -21,7 +21,6 @@ from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision import TrainTestCheck, Context
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.metrics_utils.metrics import get_scorers_list
-from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
 __all__ = ['ClassPerformance']
 

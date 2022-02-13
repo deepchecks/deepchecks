@@ -15,11 +15,11 @@ import copy
 from typing import Tuple, Mapping, Optional, Any
 from collections import OrderedDict
 
-from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 from ignite.metrics import Metric
 from torch import nn
 
 from deepchecks.vision.utils.validation import validate_model
+from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 from deepchecks.core.check import (
     CheckFailure,
     SingleDatasetBaseCheck,
