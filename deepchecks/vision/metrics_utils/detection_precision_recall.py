@@ -46,26 +46,28 @@ class AveragePrecision(Metric):
         Intersection over area threshold.
     max_dets: int, default: None
         Maximum number of detections per class.
-    area_range: tuple, default: (32 * 32, 64 * 64)
+    area_range: tuple, default: (32**2, 96**2)
         Slices for small/medium/large buckets.
     return_ap_only: bool, default: True
         If True, only the average precision will be returned.
     """
 
     def __init__(self, *args, max_dets: List[int] = (1, 10, 100),
-                 area_range: Tuple = (32 * 32, 64 * 64), return_single_value: bool = True,
+                 area_range: Tuple = (32**2, 96**2), return_single_value: bool = True,
                  return_ap_only: bool = True,
-                 get_per_all: bool = False, **kwargs):
+                 only_per_class: bool = True, **kwargs):
         super().__init__(*args, **kwargs)
         self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})
-        self.get_per_all = get_per_all
+        self.only_per_class = only_per_class
         self.return_ap_only = return_ap_only
         self.return_single_value = return_single_value
         if return_single_value:
             max_dets = [max_dets[-1]]
+            print(max_dets)
             self.area_ranges_names = ["all"]
         else:
             self.area_ranges_names = ["small", "medium", "large", "all"]
+        print('ahhh')
         self.iou_thresholds = np.arange(0.5, 0.95, 0.05)
         self.max_dets = max_dets
         self.area_range = area_range
@@ -121,7 +123,7 @@ class AveragePrecision(Metric):
                         else:
                             reses[(area_size, dets, "0.5..0.95")][class_id]["precision"].append(res[class_id]["precision"])
                             reses[(area_size, dets, "0.5..0.95")][class_id]["recall"].append(res[class_id]["recall"])
-                    if self.get_per_all:
+                    if not self.only_per_class:
                         all_evals = _dict_conc(self._evals)
                         res[-1] = {
                                 "class": -1,
@@ -140,7 +142,7 @@ class AveragePrecision(Metric):
                             reses[(area_size, dets, "0.5..0.95")][-1]["recall"].append(res[-1]["recall"])
                     if self.return_ap_only:
                         res = torch.tensor([res[k]["precision"] for k in sorted(res.keys())])
-                    if min_iou in [0.5, 0.75] and dets == 100 and area_size == 'all':
+                    if dets == 100 and area_size == 'all':
                         reses[(area_size, dets, min_iou)] = res
         for dets in self.max_dets:
             for area_size in self.area_ranges_names:
