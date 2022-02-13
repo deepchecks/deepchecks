@@ -35,12 +35,12 @@ def test_mnist(mnist_dataset_train, trained_mnist):
     print(result.value)
     assert_that(result.value, has_entries({
         'RandomBrightnessContrast': has_entries({
-            'Precision': has_entries(score=close_to(0.98, 0.01), diff=close_to(0, 0.01)),
-            'Recall': has_entries(score=close_to(0.98, 0.01), diff=close_to(0, 0.01))
+            'Precision': has_entries(score=close_to(0.98, 0.01), diff=close_to(0, 0.02)),
+            'Recall': has_entries(score=close_to(0.98, 0.01), diff=close_to(0, 0.02))
         }),
         'ShiftScaleRotate': has_entries({
-            'Precision': has_entries(score=close_to(0.78, 0.01), diff=close_to(-0.2, 0.01)),
-            'Recall': has_entries(score=close_to(0.78, 0.01), diff=close_to(-0.2, 0.01))
+            'Precision': has_entries(score=close_to(0.78, 0.01), diff=close_to(-0.2, 0.02)),
+            'Recall': has_entries(score=close_to(0.78, 0.01), diff=close_to(-0.2, 0.02))
         }),
     }))
 
@@ -53,16 +53,16 @@ def test_coco(coco_train_visiondata, trained_yolov5_object_detection):
     # Assert
     assert_that(result.value, has_entries({
         'RandomBrightnessContrast': has_entries({
-            'mAP': has_entries(score=close_to(0.5, 0.01), diff=close_to(0, 0.01)),
+            'mAP': has_entries(score=close_to(0.5, 0.01), diff=close_to(0, 0.02)),
         }),
         'ShiftScaleRotate': has_entries({
-            'mAP': has_entries(score=close_to(0.22, 0.01), diff=close_to(-0.54, 0.01)),
+            'mAP': has_entries(score=close_to(0.22, 0.01), diff=close_to(-0.54, 0.02)),
         }),
         'HueSaturationValue': has_entries({
-            'mAP': has_entries(score=close_to(0.46, 0.01), diff=close_to(-0.07, 0.01)),
+            'mAP': has_entries(score=close_to(0.46, 0.01), diff=close_to(-0.16, 0.02)),
         }),
         'RGBShift': has_entries({
-            'mAP': has_entries(score=close_to(0.5, 0.01), diff=close_to(0, 0.01)),
+            'mAP': has_entries(score=close_to(0.5, 0.01), diff=close_to(0, 0.02)),
         }),
     }))
 
