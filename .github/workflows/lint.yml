@@ -31,9 +31,7 @@ jobs:
       run: make pylint
 
   docstring:
-    runs-on: [self-hosted]
-
-
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.9

@@ -17,7 +17,6 @@ import io
 import traceback
 import warnings
 from collections import OrderedDict
-from functools import wraps
 from typing import Any, Callable, List, Union, Dict, Type, ClassVar, Optional
 
 import jsonpickle
@@ -336,21 +335,6 @@ class CheckResult:
                           'an IPython shell (etc Jupyter)')
 
 
-def wrap_run(func, class_instance):
-    """Wrap the run function of checks, and sets the `check` property on the check result."""
-    @wraps(func)
-    def wrapped(*args, **kwargs):
-        result = func(*args, **kwargs)
-        if not isinstance(result, CheckResult):
-            raise DeepchecksValueError(f'Check {class_instance.name()} expected to return CheckResult but got: '
-                                       + type(result).__name__)
-        result.check = class_instance
-        result.process_conditions()
-        return result
-
-    return wrapped
-
-
 class BaseCheck(abc.ABC):
     """Base class for check."""
 
@@ -464,21 +448,8 @@ class SingleDatasetBaseCheck(BaseCheck):
 
     context_type: ClassVar[Optional[Type[Any]]] = None  # TODO: Base context type
 
-    def __init__(self):
-        super().__init__()
-        # Replace the run_logic function with wrapped run function
-        setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
-
-    def run(self, dataset, model=None) -> CheckResult:
-        """Run check."""
-        assert self.context_type is not None
-        return self.run_logic(self.context_type(  # pylint: disable=not-callable
-            dataset,
-            model=model
-        ))
-
     @abc.abstractmethod
-    def run_logic(self, context, dataset_type: str = 'train') -> CheckResult:
+    def run(self, dataset, model=None) -> CheckResult:
         """Run check."""
         raise NotImplementedError()
 
@@ -491,22 +462,8 @@ class TrainTestBaseCheck(BaseCheck):
 
     context_type: ClassVar[Optional[Type[Any]]] = None  # TODO: Base context type
 
-    def __init__(self):
-        super().__init__()
-        # Replace the run_logic function with wrapped run function
-        setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
-
-    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
-        """Run check."""
-        assert self.context_type is not None
-        return self.run_logic(self.context_type(  # pylint: disable=not-callable
-            train_dataset,
-            test_dataset,
-            model=model
-        ))
-
     @abc.abstractmethod
-    def run_logic(self, context) -> CheckResult:
+    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
         """Run check."""
         raise NotImplementedError()
 
@@ -516,24 +473,14 @@ class ModelOnlyBaseCheck(BaseCheck):
 
     context_type: ClassVar[Optional[Type[Any]]] = None  # TODO: Base context type
 
-    def __init__(self):
-        super().__init__()
-        # Replace the run_logic function with wrapped run function
-        setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
-
-    def run(self, model) -> CheckResult:
-        """Run check."""
-        assert self.context_type is not None
-        return self.run_logic(self.context_type(model=model))  # pylint: disable=not-callable
-
     @abc.abstractmethod
-    def run_logic(self, context) -> CheckResult:
+    def run(self, model) -> CheckResult:
         """Run check."""
         raise NotImplementedError()
 
 
 class CheckFailure:
-    """Class which holds a run exception of a check.
+    """Class which holds a check run exception.
 
     Parameters
     ----------

@@ -172,6 +172,7 @@ requirements: $(ENV)
 		-r ./requirements/vision-requirements.txt \
 		-r ./requirements/nlp-requirements.txt
 	@$(PIP) install --no-deps -e .
+	@$(PIP) freeze
 
 
 doc-requirements: $(ENV)
@@ -263,7 +264,7 @@ endif
 endif
 
 
-tox:
+tox: requirements dev-requirements
 	$(TOX)
 
 

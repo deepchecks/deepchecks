@@ -8,27 +8,27 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing performance report check."""
-from typing import TypeVar, List, Union
+"""Module containing class performance check."""
+from typing import TypeVar, List, Union, Any
+
 import pandas as pd
 import plotly.express as px
 from ignite.metrics import Metric
 
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.vision import TrainTestCheck, Context
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
+from deepchecks.vision import TrainTestCheck, Context
 from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.metrics_utils.metrics import get_scorers_list, calculate_metrics
+from deepchecks.vision.metrics_utils.metrics import get_scorers_list
 from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
+__all__ = ['ClassPerformance']
 
-__all__ = ['PerformanceReport']
-
-PR = TypeVar('PR', bound='PerformanceReport')
+PR = TypeVar('PR', bound='ClassPerformance')
 
 
-class PerformanceReport(TrainTestCheck):
+class ClassPerformance(TrainTestCheck):
     """Summarize given metrics on a dataset and model.
 
     Parameters
@@ -45,36 +45,46 @@ class PerformanceReport(TrainTestCheck):
         super().__init__()
         self.alternative_metrics = alternative_metrics
         self.prediction_formatter = prediction_formatter
+        self._state = {}
 
-    def run_logic(self, context: Context) -> CheckResult:
-        """Run check.
-
-        Returns
-        -------
-        CheckResult
-            value is dictionary in format 'score-name': score-value
-        """
-        train_dataset = context.train
-        test_dataset = context.test
-        model = context.model
+    def initialize_run(self, context: Context):
+        """Initialize run by creating the _state member with metrics for train and test."""
         context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
 
-        # Get default scorers if no alternative, or validate alternatives
-        scorers = get_scorers_list(test_dataset, self.alternative_metrics)
-        datasets = {'Train': train_dataset, 'Test': test_dataset}
+        self._state = {'train': {}, 'test': {}}
+        self._state['train']['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
+        self._state['test']['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
+        for dataset_name in ['train', 'test']:
+            for _, metric in self._state[dataset_name]['scorers'].items():
+                metric.reset()
 
-        classes = train_dataset.get_samples_per_class().keys()
-        plot_x_axis = 'Class'
+    def update(self, context: Context, batch: Any, dataset_name: str = 'train'):
+        """Update the metrics by passing the batch to ignite metric update method."""
+        if dataset_name == 'train':
+            dataset = context.train
+        else:
+            dataset = context.test
+        images = batch[0]
+        label = dataset.label_transformer(batch[1])
+        prediction = self.prediction_formatter(context.infer(images))
+        for _, metric in self._state[dataset_name]['scorers'].items():
+            metric.update((prediction, label))
+
+    def compute(self, context: Context) -> CheckResult:
+        """Compute the metric result using the ignite metrics compute method and create display."""
+        self._state['train']['n_samples'] = context.train.get_samples_per_class()
+        self._state['test']['n_samples'] = context.test.get_samples_per_class()
+        self._state['classes'] = sorted(context.train.get_samples_per_class().keys())
+
         results = []
-
-        for dataset_name, dataset in datasets.items():
-            n_samples = dataset.get_samples_per_class()
+        for dataset_name in ['train', 'test']:
+            n_samples = self._state[dataset_name]['n_samples']
             results.extend(
                 [dataset_name, class_name, name, class_score, n_samples[class_name]]
-                for name, score in calculate_metrics(list(scorers.values()), dataset, model,
-                                                     prediction_formatter=self.prediction_formatter).items()
+                for name, score in [(name, metric.compute().tolist()) for name, metric in
+                                    self._state[dataset_name]['scorers'].items()]
                 # scorer returns numpy array of results with item per class
-                for class_score, class_name in zip(score, classes)
+                for class_score, class_name in zip(score, self._state['classes'])
             )
 
         results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples']
@@ -82,7 +92,7 @@ class PerformanceReport(TrainTestCheck):
 
         fig = px.histogram(
             results_df,
-            x=plot_x_axis,
+            x='Class',
             y='Value',
             color='Dataset',
             barmode='group',
@@ -91,19 +101,19 @@ class PerformanceReport(TrainTestCheck):
             hover_data=['Number of samples']
         )
 
-        if train_dataset.task_type == TaskType.CLASSIFICATION:
+        if context.train.task_type == TaskType.CLASSIFICATION:
             fig.update_xaxes(tickprefix='Class ', tickangle=60)
 
         fig = (
             fig.update_xaxes(title=None, type='category')
-            .update_yaxes(title=None, matches=None)
-            .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-            .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+               .update_yaxes(title=None, matches=None)
+               .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+               .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
         )
 
         return CheckResult(
             results_df,
-            header='Performance Report',
+            header='Class Performance',
             display=fig
         )
 
