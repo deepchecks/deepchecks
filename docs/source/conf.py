@@ -171,7 +171,8 @@ autodoc_typehints_format = 'short'
 napoleon_preprocess_types = False
 
 # Report warnings for all validation checks
-numpydoc_validation_checks = {"GL06", "GL07", "GL08", "GL09", "GL10", "PR02", "PR06", "RT02"}
+numpydoc_validation_checks = {"all"}
+
 # -- nbsphinx extension settings --------------------------------------------------
 
 nbsphinx_prolog = r"""
