@@ -176,7 +176,7 @@ class RobustnessReport(SingleDatasetCheck):
             labels = dataset.label_transformer(batch[1])
             if ImageInfo(images[0]).is_equals(images[1]):
                 msg = f'Found that images have not been affected by adding augmentation to field ' \
-                      f'{dataset.transform_field} This might be a problem with the implementation of ' \
+                      f'"{dataset.transform_field}". This might be a problem with the implementation of ' \
                       f'Dataset.__getitem__'
                 raise DeepchecksValueError(msg)
 
@@ -184,7 +184,7 @@ class RobustnessReport(SingleDatasetCheck):
             if dataset.task_type != TaskType.CLASSIFICATION:
                 if torch.equal(labels[0], labels[1]):
                     msg = f'Found that labels have not been affected by adding augmentation to field ' \
-                          f'{dataset.transform_field} This might be a problem with the implementation of ' \
+                          f'"{dataset.transform_field}". This might be a problem with the implementation of ' \
                           f'`Dataset.__getitem__`. label value: {labels[0]}'
                     raise DeepchecksValueError(msg)
             # If all validations passed return

@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base vision abstractions."""
-# TODO: This file should be completely modified
 # pylint: disable=broad-except,not-callable
 import copy
 from typing import Tuple, Mapping, Optional, Any

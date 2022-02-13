@@ -19,7 +19,8 @@ import torch
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 
 
-__all__ = ['get_transforms_handler', 'add_augmentation_in_start', 'un_normalize_batch']
+__all__ = ['get_transforms_handler', 'add_augmentation_in_start', 'un_normalize_batch',
+           'ImgaugTransformations', 'AlbumentationsTransformations']
 
 
 class ImgaugTransformations:
@@ -28,7 +29,7 @@ class ImgaugTransformations:
     @classmethod
     def add_augmentation_in_start(cls, aug, transforms):
         if not isinstance(aug, imgaug.augmenters.Augmenter):
-            raise DeepchecksValueError(f'Transforms is of type imgaug, can\'t add to it type {type(aug)}')
+            raise DeepchecksValueError(f'Transforms is of type imgaug, can\'t add to it type {type(aug).__name__}')
         return imgaug.augmenters.Sequential([aug, transforms])
 
     @classmethod
@@ -52,7 +53,8 @@ class AlbumentationsTransformations:
     @classmethod
     def add_augmentation_in_start(cls, aug, transforms):
         if not isinstance(aug, (albumentations.Compose, albumentations.BasicTransform)):
-            raise DeepchecksValueError(f'Transforms is of type albumentations, can\'t add to it type {type(aug)}')
+            raise DeepchecksValueError(f'Transforms is of type albumentations, can\'t add to it type '
+                                       f'{type(aug).__name__}')
         # Albumentations compose contains preprocessors and another metadata needed, so we can't just create a new one,
         # so we need to copy it.
         album_compose = copy(transforms)

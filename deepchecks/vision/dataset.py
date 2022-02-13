@@ -103,7 +103,11 @@ class VisionData:
         self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
         self.transform_field = transform_field
         self._samples_per_class = None
-        self._label_valid = self.label_transformer.validate_label(self._data)  # will contain error message if not valid
+        if self.label_transformer:
+            # will contain error message if not valid
+            self._label_valid = self.label_transformer.validate_label(self._data)
+        else:
+            self._label_valid = 'label_transformer parameter was not defined'
         # Sample dataset properties
         self._sample_data_loader = None
         self._sample_labels = None

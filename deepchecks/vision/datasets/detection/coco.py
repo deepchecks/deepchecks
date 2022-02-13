@@ -213,17 +213,22 @@ class CocoDataset(VisionDataset):
                 label[0]
             ]))
 
-        if self.transforms is not None:
-            # Albumentations accepts images as numpy and bboxes in defined format + class at the end
-            transformed = self.transforms(image=np.array(img), bboxes=bboxes)
-            img = Image.fromarray(transformed['image'])
-            bboxes = transformed['bboxes']
+        img, bboxes = self.apply_transform(img, bboxes)
 
         # Return tensor of bboxes
         if bboxes:
             bboxes = torch.stack([torch.tensor(x) for x in bboxes])
         else:
             bboxes = torch.tensor([])
+        return img, bboxes
+
+    def apply_transform(self, img, bboxes):
+        """Implement the transform in a function to be able to override it in tests."""
+        if self.transforms is not None:
+            # Albumentations accepts images as numpy and bboxes in defined format + class at the end
+            transformed = self.transforms(image=np.array(img), bboxes=bboxes)
+            img = Image.fromarray(transformed['image'])
+            bboxes = transformed['bboxes']
         return img, bboxes
 
     def __len__(self) -> int:

@@ -8,10 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-
 import pytest
-import torch
-from torch import nn
 from torch.utils.data import DataLoader, Dataset
 
 from deepchecks.vision.datasets.detection.coco import (
@@ -22,6 +19,7 @@ from deepchecks.vision.datasets.classification.mnist import (
     load_model as load_mnist_net_model,
     load_dataset as load_mnist_dataset
 )
+from tests.vision.utils.mnist_imgaug import mnist_dataset_imgaug
 
 
 @pytest.fixture(scope='session')
@@ -47,58 +45,14 @@ def mnist_dataset_test():
 
 
 @pytest.fixture(scope='session')
-def simple_nn():
-    torch.manual_seed(42)
-
-    # Define model
-    class NeuralNetwork(nn.Module):
-        def __init__(self):
-            super(NeuralNetwork, self).__init__()
-            self.flatten = nn.Flatten()
-            self.linear_relu_stack = nn.Sequential(
-                nn.Linear(28 * 28, 512),
-                nn.ReLU(),
-                nn.Linear(512, 512),
-                nn.ReLU(),
-                nn.Linear(512, 10)
-            )
-
-        def forward(self, x):
-            x = self.flatten(x)
-            logits = self.linear_relu_stack(x)
-            return logits
-
-    model = NeuralNetwork().to('cpu')
-    return model
+def trained_mnist(mnist_data_loader_train):
+    return load_mnist_net_model()
 
 
 @pytest.fixture(scope='session')
-def trained_mnist(simple_nn, mnist_data_loader_train):
-    return load_mnist_net_model()
-    # torch.manual_seed(42)
-    # simple_nn = copy.deepcopy(simple_nn)
-    # loss_fn = nn.CrossEntropyLoss()
-    # optimizer = torch.optim.SGD(simple_nn.parameters(), lr=1e-3)
-    # size = len(mnist_data_loader_train.dataset)
-    # # Training 1 epoch
-    # simple_nn.train()
-    # for batch, (X, y) in enumerate(mnist_data_loader_train):
-    #     X, y = X.to('cpu'), y.to('cpu')
-    #
-    #     # Compute prediction error
-    #     pred = simple_nn(X)
-    #     loss = loss_fn(pred, y)
-    #
-    #     # Backpropagation
-    #     optimizer.zero_grad()
-    #     loss.backward()
-    #     optimizer.step()
-    #
-    #     if batch % 100 == 0:
-    #         loss, current = loss.item(), batch * len(X)
-    #         print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
-    #
-    # return simple_nn
+def mnist_dataset_train_imgaug():
+    """Return MNist dataset as VisionData object."""
+    return mnist_dataset_imgaug(train=True)
 
 
 @pytest.fixture(scope='session')

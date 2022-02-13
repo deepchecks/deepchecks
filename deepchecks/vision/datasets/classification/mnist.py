@@ -31,7 +31,7 @@ from deepchecks.vision.dataset import VisionData
 from . import MODELS_DIR
 
 
-__all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST']
+__all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST', 'mnist_image_formatter']
 
 LOGGER = logging.getLogger(__name__)
 MODULE_DIR = pathlib.Path(__file__).absolute().parent
@@ -82,7 +82,6 @@ def load_dataset(
             train=train,
             download=True,
             transform=A.Compose([
-                # TODO: what else transformations we need to apply
                 A.Normalize(mean, std),
                 ToTensorV2(),
             ]),
@@ -92,10 +91,6 @@ def load_dataset(
         pin_memory=pin_memory
     )
 
-    def inverse_transform(tensor):
-        tensor = tensor.permute(0, 2, 3, 1)
-        return un_normalize_batch(tensor, mean, std)
-
     if object_type == 'DataLoader':
         return loader
     elif object_type == 'VisionData':
@@ -103,7 +98,7 @@ def load_dataset(
             data_loader=loader,
             num_classes=len(datasets.MNIST.classes),
             label_transformer=ClassificationLabelFormatter(),
-            image_transformer=ImageFormatter(inverse_transform),
+            image_transformer=ImageFormatter(mnist_image_formatter(mean, std)),
             transform_field='transform'
         )
     else:
@@ -210,3 +205,11 @@ class MNistNet(nn.Module):
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=UserWarning)
             return F.log_softmax(x, dim=1)
+
+
+def mnist_image_formatter(mean, std):
+    def inverse_transform(tensor):
+        tensor = tensor.permute(0, 2, 3, 1)
+        return un_normalize_batch(tensor, mean, std)
+    return inverse_transform
+
