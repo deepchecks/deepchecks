@@ -203,4 +203,3 @@ class MNistNet(nn.Module):
             warnings.simplefilter(action='ignore', category=UserWarning)
 
             return F.log_softmax(x)
-
