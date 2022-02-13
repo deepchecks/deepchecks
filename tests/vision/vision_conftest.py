@@ -35,6 +35,8 @@ __all__ = ['mnist_data_loader_train',
            'obj_detection_images',
            'coco_train_dataloader',
            'coco_train_visiondata',
+           'coco_test_dataloader',
+           'coco_test_visiondata',
            'three_tuples_dataloader',
            'two_tuples_dataloader',
         ]
