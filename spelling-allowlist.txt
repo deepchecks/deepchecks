@@ -56,3 +56,4 @@ heatmap
 grayscale
 RGB
 preprocessors
+PIL

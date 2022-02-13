@@ -208,8 +208,8 @@ class MNistNet(nn.Module):
 
 
 def mnist_image_formatter(mean, std):
+    """Create function which inverse the data normalization."""
     def inverse_transform(tensor):
         tensor = tensor.permute(0, 2, 3, 1)
         return un_normalize_batch(tensor, mean, std)
     return inverse_transform
-

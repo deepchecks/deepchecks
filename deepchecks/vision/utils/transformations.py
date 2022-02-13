@@ -28,16 +28,19 @@ class ImgaugTransformations:
 
     @classmethod
     def add_augmentation_in_start(cls, aug, transforms):
+        """Add given transformations to the start of given transforms object."""
         if not isinstance(aug, imgaug.augmenters.Augmenter):
             raise DeepchecksValueError(f'Transforms is of type imgaug, can\'t add to it type {type(aug).__name__}')
         return imgaug.augmenters.Sequential([aug, transforms])
 
     @classmethod
     def get_test_transformation(cls):
+        """Get transformation which is affecting both image data and bbox."""
         return imgaug.augmenters.Rotate(rotate=(20, 30))
 
     @classmethod
     def get_robustness_augmentations(cls, data_dim):
+        """Get default augmentations to use in robustness report check."""
         augmentations = [
             imgaug.augmenters.MultiplyHueAndSaturation()
         ]
@@ -52,6 +55,7 @@ class AlbumentationsTransformations:
 
     @classmethod
     def add_augmentation_in_start(cls, aug, transforms):
+        """Add given transformations to the start of given transforms object."""
         if not isinstance(aug, (albumentations.Compose, albumentations.BasicTransform)):
             raise DeepchecksValueError(f'Transforms is of type albumentations, can\'t add to it type '
                                        f'{type(aug).__name__}')
@@ -63,10 +67,12 @@ class AlbumentationsTransformations:
 
     @classmethod
     def get_test_transformation(cls):
+        """Get transformation which is affecting both image data and bbox."""
         return albumentations.Rotate(limit=(20, 30), p=1)
 
     @classmethod
     def get_robustness_augmentations(cls, data_dim):
+        """Get default augmentations to use in robustness report check."""
         augmentations = [
             albumentations.RandomBrightnessContrast(p=1.0),
             albumentations.ShiftScaleRotate(p=1.0),

@@ -283,6 +283,7 @@ def yolo_prediction_formatter(
 
 
 def yolo_label_formatter(label):
+    """Function which translate yolo label to deepchecks format."""
     # our labels return at the end, and the VisionDataset expect it at the start
     def move_class(tensor):
         return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3])) if len(tensor) > 0 else tensor
@@ -290,5 +291,6 @@ def yolo_label_formatter(label):
 
 
 def yolo_image_formatter(pil_list):
+    """Function which converts list of PIL images to deepchecks image format."""
     # Yolo works on PIL and VisionDataset expects images as numpy arrays
     return [np.array(x) for x in pil_list]

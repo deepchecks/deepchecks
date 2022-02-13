@@ -12,7 +12,7 @@ import pytest
 from torch.utils.data import DataLoader, Dataset
 
 from deepchecks.vision.datasets.detection.coco import (
-    load_model as load_yolov5_model, 
+    load_model as load_yolov5_model,
     load_dataset as load_coco_dataset
 )
 from deepchecks.vision.datasets.classification.mnist import (
@@ -45,7 +45,7 @@ def mnist_dataset_test():
 
 
 @pytest.fixture(scope='session')
-def trained_mnist(mnist_data_loader_train):
+def trained_mnist():
     return load_mnist_net_model()
 
 
@@ -77,7 +77,7 @@ def coco_train_dataloader():
 
 
 @pytest.fixture(scope='session')
-def coco_train_visiondata(coco_train_dataloader):
+def coco_train_visiondata():
     return load_coco_dataset(train=True, object_type='VisionData')
 
 
@@ -87,7 +87,7 @@ def coco_test_dataloader():
 
 
 @pytest.fixture(scope='session')
-def coco_test_visiondata(coco_test_dataloader):
+def coco_test_visiondata():
     return load_coco_dataset(train=False, object_type='VisionData')
 
 

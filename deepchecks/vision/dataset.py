@@ -220,7 +220,7 @@ class VisionData:
                           transform_field=self.transform_field)
 
     def to_batch(self, *samples):
-        """Using the defined collate_fn to transform a few data items to batch format"""
+        """Use the defined collate_fn to transform a few data items to batch format."""
         return self.get_data_loader().collate_fn(list(samples))
 
     def validate_shared_properties(self, other):

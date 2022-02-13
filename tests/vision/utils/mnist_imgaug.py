@@ -74,6 +74,7 @@ def mnist_dataset_imgaug(train: bool = True, dataset=None):
 
 
 def normalize(mean, std):
+    # pylint: disable=unused-argument
     def func(images, random_state, parents, hooks):
         max_pixel_value = np.array(255)
         return [(img - np.array(mean)) / np.array(std) / max_pixel_value for img in images]

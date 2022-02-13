@@ -8,15 +8,15 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from hamcrest import equal_to, assert_that, calling, raises
-
-from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
-from deepchecks.vision.metrics_utils.metrics import TaskType, \
-    get_default_classification_scorers
-from deepchecks.vision.metrics_utils.metrics import calculate_metrics
-from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
-from deepchecks.vision.dataset import VisionData
-
+# from hamcrest import equal_to, assert_that, calling, raises
+#
+# from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
+# from deepchecks.vision.metrics_utils.metrics import TaskType, \
+#     get_default_classification_scorers
+# from deepchecks.vision.metrics_utils.metrics import calculate_metrics
+# from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
+# from deepchecks.vision.dataset import VisionData
+#
 
 # def test_mnist_task_type_classification(trained_mnist, mnist_dataset_train):
 #     res = task_type_check(trained_mnist, mnist_dataset_train)
