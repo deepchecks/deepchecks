@@ -14,7 +14,6 @@ from typing import List, Tuple
 
 from ignite.metrics import Metric
 from ignite.metrics.metric import sync_all_reduce, reinit__is_reduced
-from sklearn.metrics import mean_absolute_error
 import torch
 import numpy as np
 from .iou_utils import compute_ious

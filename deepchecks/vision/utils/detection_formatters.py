@@ -85,7 +85,6 @@ class DetectionLabelFormatter(BaseLabelFormatter):
             list_of_arrays = self(batch[1])
             class_list = sum([arr.reshape((-1, 5))[:, 0].tolist() for arr in list_of_arrays], [])
             counter.update(class_list)
-
         return counter
 
     def validate_label(self, data_loader: DataLoader) -> Optional[str]:
