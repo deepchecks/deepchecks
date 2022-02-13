@@ -13,9 +13,6 @@ For checks that works on the raw images, see :ref:`Image Formatters <formatters_
 For classification tasks, see :ref:`Classification Formatters <formatters__classification_formatter>`.
 For object detection tasks, see :ref:`Object Detection Formatters <formatters__object_detection_formatter>`.
 
-.. contents:: Table of Contents
-    :local:
-    :depth: 3
 
 Why is this important?
 ========================
