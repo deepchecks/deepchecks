@@ -12,7 +12,7 @@
 from typing import Union, Any
 
 import numpy as np
-import plotly.express as px
+from plotly.express import imshow
 from queue import PriorityQueue
 
 from deepchecks.core import CheckResult
@@ -20,7 +20,6 @@ from deepchecks.vision import SingleDatasetCheck, Context
 from deepchecks.vision.dataset import TaskType, VisionData
 from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
 from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
-
 
 __all__ = ['ConfusionMatrixReport']
 
@@ -44,6 +43,7 @@ def filter_confusion_matrix(confusion_matrix, number_of_categories):
 
 class ConfusionMatrixReport(SingleDatasetCheck):
     """Calculate the confusion matrix of the model on the given dataset.
+
     For object detection, each detected bounding box calculates the IoU for each label and then is that label class is
     used for the confusion matrix. detected bounding boxes that don't match a label has their own class and same
     for labels without detected bounding boxes.
@@ -106,6 +106,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             self.update_object_detection(predictions, labels)
 
     def compute(self, context: Context) -> CheckResult:
+        """Compute and plot confusion matrix after all batches were processed."""
         display_confusion_matrix, categories = filter_confusion_matrix(self.matrix, self.categories_to_display)
 
         description = ''
@@ -118,10 +119,10 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
         description += f'Showing {self.categories_to_display} of {self.num_classes} classes:'
 
-        fig = px.imshow(display_confusion_matrix,
-                        x=categories,
-                        y=categories,
-                        text_auto=True)
+        fig = imshow(display_confusion_matrix,
+                     x=categories,
+                     y=categories,
+                     text_auto=True)
 
         fig.update_layout(width=600, height=600)
         fig.update_xaxes(title='Predicted Value', type='category')
@@ -134,6 +135,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         )
 
     def update_object_detection(self, predictions, labels):
+        """Update the confusion matrix by batch for object detection task."""
         for image_detections, image_labels in zip(predictions, labels):
             try:
                 detections_passed_threshold = [
@@ -181,6 +183,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                     self.matrix[detection_class, self.num_classes] += 1
 
     def update_classification(self, predictions, labels):
+        """Update the confusion matrix by batch for classification task."""
         for predicted_classes, image_labels in zip(predictions, labels):
             detected_class = min(range(len(predicted_classes)), key=predicted_classes.__getitem__)
 

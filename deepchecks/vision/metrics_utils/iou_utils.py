@@ -13,6 +13,10 @@ import numpy as np
 
 
 def jaccard_iou(dt, gt):
+    """Calculate the jaccard IoU.
+
+    See https://en.wikipedia.org/wiki/Jaccard_index
+    """
     x_dt, y_dt, w_dt, h_dt = dt[:4]
     x_gt, y_gt, w_gt, h_gt = gt[1:]
 
