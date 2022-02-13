@@ -12,6 +12,7 @@
 import typing as t
 import pathlib
 import logging
+import warnings
 
 import torch
 import torch.nn.functional as F
@@ -206,4 +207,6 @@ class MNistNet(nn.Module):
         x = F.relu(self.fc1(x))
         x = F.dropout(x, training=self.training)
         x = self.fc2(x)
-        return F.log_softmax(x, dim=1)
+        with warnings.catch_warnings():
+            warnings.simplefilter(action='ignore', category=UserWarning)
+            return F.log_softmax(x, dim=1)
