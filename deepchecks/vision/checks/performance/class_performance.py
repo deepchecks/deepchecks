@@ -78,9 +78,9 @@ class ClassPerformance(TrainTestCheck):
             )
             metrics_df['Dataset'] = dataset_kind.value
             metrics_df['Number of samples'] = metrics_df['Class'].map(dataset.get_samples_per_class().get)
+            results.append(metrics_df)
 
-        results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples']
-                                  ).sort_values(by=['Class'])
+        results_df = pd.concat(results)
 
         fig = px.histogram(
             results_df,
