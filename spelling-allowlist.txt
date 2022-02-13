@@ -52,3 +52,7 @@ dets
 albumentations
 overridded
 repo
+yolo
+Detections
+xyxy
+pred

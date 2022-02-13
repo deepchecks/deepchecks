@@ -41,10 +41,12 @@ class ClassificationLabelFormatter(BaseLabelFormatter):
     In order to transform the label to the accepted format, we will use the following function:
 
     >>> from deepchecks.vision.utils import ClassificationLabelFormatter
+
+
     >>> def to_accepted_format(input_batch_from_loader):
     ...     return input_batch_from_loader[:, 0]
-    >>> label_formatter = ClassificationLabelFormatter(to_accepted_format)
 
+    >>> label_formatter = ClassificationLabelFormatter(to_accepted_format)
 
     See Also
     --------
@@ -124,9 +126,12 @@ class ClassificationPredictionFormatter(BasePredictionFormatter):
     In order to transform the predictions to the accepted format, we will use the following function:
 
     >>> import torch.nn.functional as F
-    >>> from deepchecks.vision.utils import ClassificationLabelFormatter
+    >>> from deepchecks.vision.utils import ClassificationPredictionFormatter
+
+
     >>> def to_accepted_format(predictions_batch_from_model):
     ...     return F.softmax(predictions_batch_from_model, dim=1)
+
     >>> pred_formatter = ClassificationPredictionFormatter(to_accepted_format)
 
 
