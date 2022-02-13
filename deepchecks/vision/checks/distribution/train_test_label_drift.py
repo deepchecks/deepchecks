@@ -57,8 +57,8 @@ DEFAULT_CLASSIFICATION_LABEL_MEASUREMENTS = [
 ]
 
 DEFAULT_OBJECT_DETECTION_LABEL_MEASUREMENTS = [
-    {'name': 'Bounding box area distribution', 'method': get_bbox_area, 'is_continuous': True},
     {'name': 'Samples per class', 'method': get_samples_per_class_object_detection, 'is_continuous': False},
+    {'name': 'Bounding box area (in pixels) distribution', 'method': get_bbox_area, 'is_continuous': True},
     {'name': 'Number of bounding boxes per image', 'method': count_num_bboxes, 'is_continuous': True},
 ]
 
@@ -94,25 +94,114 @@ class TrainTestLabelDrift(TrainTestCheck):
         List of measurements. Replaces the default deepchecks measurements.
         Each measurement is dictionary with keys 'name' (str), 'method' (Callable) and is_continuous (bool),
         representing attributes of said method.
-    num_bins: int, default: 100
-            number of bins to use for continuous distributions
+    min_sample_size: int, default: None
+        number of minimum samples (not batches) to be accumulated in order to estimate the boundaries (min, max) of
+        continuous histograms. As the check cannot load all label measurement results into memory, the check saves only
+        the histogram of results - but prior to that, the check requires to know the estimated boundaries of train AND
+        test datasets (they must share an x-axis).
+    default_num_bins: int, default: 100
+        number of bins to use for continuous distributions. This value is not used if the distribution has less unique
+        values than default number of bins (and instead, number of unique values is used).
     """
 
     def __init__(
             self,
             alternative_label_measurements: List[Dict[str, Any]] = None,
-            num_bins: int = 100
+            min_sample_size: int = None,
+            default_num_bins: int = 100
     ):
         super().__init__()
         # validate alternative_label_measurements:
         if alternative_label_measurements is not None:
             self._validate_label_measurements(alternative_label_measurements)
         self.alternative_label_measurements = alternative_label_measurements
-        self.num_bins = num_bins
+        self.min_sample_size = min_sample_size
+        self.default_num_bins = default_num_bins
+
+    def initialize_run(self, context: Context):
+        """Initialize run.
+
+        Function initializes the following private variables:
+
+        Label measurements:
+        _label_measurements: all label measurements to be calculated in run
+        _continuous_label_measurements: all continuous label measurements
+        _discrete_label_measurements: all discrete label measurements
+
+        Value counts of measures, to be updated per batch:
+        _train_hists, _test_hists: histograms for continuous measurements for train and test respectively.
+            Initialized as list of empty histograms (np.array) that update in the "update" method per batch.
+        _train_counters, _test_counters: counters for discrete measurements for train and test respectively.
+            Initialized as list of empty counters (collections.Counter) that update in the "update" method per batch.
+
+        Parameters for continuous measurements histogram calculation:
+        _bounds_list: List[Tuple]. Each tuple represents histogram bounds (min, max)
+        _num_bins_list: List[int]. List of number of bins for each histogram.
+        _edges: List[np.array]. List of x-axis values for each histogram.
+        """
+        train_dataset = context.train
+        test_dataset = context.test
+
+        task_type = train_dataset.task_type
+
+        if self.alternative_label_measurements is not None:
+            self._label_measurements = self.alternative_label_measurements
+        elif task_type == TaskType.CLASSIFICATION:
+            self._label_measurements = DEFAULT_CLASSIFICATION_LABEL_MEASUREMENTS
+        elif task_type == TaskType.OBJECT_DETECTION:
+            self._label_measurements = DEFAULT_OBJECT_DETECTION_LABEL_MEASUREMENTS
+        else:
+            raise NotImplementedError('TrainTestLabelDrift must receive either alternative_label_measurements or run '
+                                      'on Classification or Object Detection class')
+
+        # Separate to discrete and continuous transformers:
+        self._continuous_label_measurements = [d['method'] for d in self._label_measurements if
+                                               d['is_continuous'] is True]
+        self._discrete_label_measurements = [d['method'] for d in self._label_measurements if
+                                             d['is_continuous'] is False]
+
+        num_continuous_transformers = len(self._continuous_label_measurements)
+        num_discrete_transformers = len(self._discrete_label_measurements)
+
+        # For continuous transformers, calculate bounds:
+        train_bounds = get_boundaries_by_batch(train_dataset, self._continuous_label_measurements, self.min_sample_size)
+        test_bounds = get_boundaries_by_batch(test_dataset, self._continuous_label_measurements, self.min_sample_size)
+        bounds = [(min(train_bounds[i]['min'], test_bounds[i]['min']),
+                   max(train_bounds[i]['max'], test_bounds[i]['max'])) for i in range(num_continuous_transformers)]
+
+        self._bounds_list, self._num_bins_list = adjust_bounds_and_bins(bounds, self.default_num_bins)
+
+        hists_and_edges = [np.histogram([], bins=num_bins, range=bound) for bound, num_bins in
+                           zip(self._bounds_list, self._num_bins_list)]
+        self._train_hists = [x[0] for x in hists_and_edges]
+        self._test_hists = [copy(hist) for hist in self._train_hists]
+        self._edges = [x[1] for x in hists_and_edges]
+
+        self._train_counters = [Counter() for i in range(num_discrete_transformers)]
+        self._test_counters = [Counter() for i in range(num_discrete_transformers)]
 
     def update(self, context: Context, batch: Any, dataset_name: str = 'train'):
-        """Perform update on batch."""
-        pass
+        """Perform update on batch for train or test counters and histograms."""
+        # For all transformers, calculate histograms by batch:
+        if dataset_name == 'train':
+            train_dataset = context.train
+            self._train_hists = calculate_continuous_histograms_in_batch(batch, self._train_hists,
+                                                                         self._continuous_label_measurements,
+                                                                         self._bounds_list, self._num_bins_list,
+                                                                         train_dataset.label_transformer)
+            self._train_counters = calculate_discrete_histograms_in_batch(batch, self._train_counters,
+                                                                          self._discrete_label_measurements,
+                                                                          train_dataset.label_transformer)
+
+        else:
+            test_dataset = context.test
+            self._test_hists = calculate_continuous_histograms_in_batch(batch, self._test_hists,
+                                                                        self._continuous_label_measurements,
+                                                                        self._bounds_list, self._num_bins_list,
+                                                                        test_dataset.label_transformer)
+            self._test_counters = calculate_discrete_histograms_in_batch(batch, self._test_counters,
+                                                                         self._discrete_label_measurements,
+                                                                         test_dataset.label_transformer)
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate drift for all columns.
@@ -123,29 +212,32 @@ class TrainTestLabelDrift(TrainTestCheck):
             value: drift score.
             display: label distribution graph, comparing the train and test distributions.
         """
-        train_dataset = context.train
-        test_dataset = context.test
+        # Match discrete histograms to share x axis:
+        all_discrete_categories = [list(set(train_counter.keys()).union(set(test_counter.keys())))
+                                   for train_counter, test_counter in zip(self._train_counters, self._test_counters)]
 
-        task_type = train_dataset.task_type
+        train_discrete_hists = iter([{k: self._train_counters[i][k] for k in all_discrete_categories[i]} for i in
+                                     range(len(self._discrete_label_measurements))])
+        test_discrete_hists = iter([{k: self._test_counters[i][k] for k in all_discrete_categories[i]} for i in
+                                    range(len(self._discrete_label_measurements))])
+
+        # Transform continuous histograms into dict:
+        train_continuous_hists = iter(
+            [dict(zip(self._edges[i], self._train_hists[i])) for i in range(len(self._continuous_label_measurements))])
+        test_continuous_hists = iter(
+            [dict(zip(self._edges[i], self._test_hists[i])) for i in range(len(self._continuous_label_measurements))])
+
+        # # Return output in original order:
+        train_distributions = [
+            next(train_continuous_hists) if d['is_continuous'] is True else next(train_discrete_hists) for d in
+            self._label_measurements]
+        test_distributions = [next(test_continuous_hists) if d['is_continuous'] is True else next(test_discrete_hists)
+                              for d in self._label_measurements]
+
+        values_dict = {}
         displays = []
 
-        if self.alternative_label_measurements is not None:
-            label_measurements_list = self.alternative_label_measurements
-        elif task_type == TaskType.CLASSIFICATION:
-            label_measurements_list = DEFAULT_CLASSIFICATION_LABEL_MEASUREMENTS
-        elif task_type == TaskType.OBJECT_DETECTION:
-            label_measurements_list = DEFAULT_OBJECT_DETECTION_LABEL_MEASUREMENTS
-        else:
-            raise NotImplementedError('TrainTestLabelDrift must receive either alternative_label_measurements or run '
-                                      'on Classification or Object Detection class')
-
-        train_distributions, test_distributions = \
-            generate_label_histograms_by_batch(train_dataset=train_dataset, test_dataset=test_dataset,
-                                               label_measurements=label_measurements_list, num_bins=self.num_bins)
-
-        figs_configs = zip(label_measurements_list, train_distributions, test_distributions)
-        values_dict = {}
-
+        figs_configs = zip(self._label_measurements, train_distributions, test_distributions)
         for d, train_label_distribution, test_label_distribution in figs_configs:
             drift_score, method, display = calc_drift_and_plot(
                 train_distribution=train_label_distribution,
@@ -166,7 +258,8 @@ class TrainTestLabelDrift(TrainTestCheck):
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
 
-    def _validate_label_measurements(self, label_measurements):
+    @staticmethod
+    def _validate_label_measurements(label_measurements):
         """Validate structure of label measurements."""
         expected_keys = ['name', 'method', 'is_continuous']
         if not isinstance(label_measurements, list):
@@ -176,98 +269,6 @@ class TrainTestLabelDrift(TrainTestCheck):
             if not isinstance(label_measurement, dict) or any(
                     key not in label_measurement.keys() for key in expected_keys):
                 raise DeepchecksValueError(f'Label measurement must be of type dict, and include keys {expected_keys}')
-
-
-def generate_label_histograms_by_batch(train_dataset: VisionData, test_dataset: VisionData,
-                                       label_measurements: List[Dict[str, Any]] = None,
-                                       num_bins: int = 100) -> Tuple[List[Dict[Any, float]], List[Dict[Any, float]]]:
-    """
-    Generate label histograms by received label transformers.
-
-    This function calculates all label transformers per batch.
-    For continuous transformers, the function has to run twice, once to get boundaries of histogram and second to
-    calculate histograms. For discrete transformers, function runs only once.
-
-    Parameters
-    ----------
-    train_dataset: VisionData
-        dataset representing train data
-    test_dataset: VisionData
-        dataset representing test data
-    label_measurements: List[Dict[str, Any]]
-        list of measurements. Each measurement is dictionary with keys 'name' (str), 'method' (Callable) and
-        is_continuous (bool), representing attributes of said method.
-    num_bins: int, default 100
-        number of bins to use for continuous distributions
-
-    Returns
-    -------
-    Tuple[List[Dict[Any, float], List[Dict[Any, float]]]
-        two lists of train and test histograms (each histogram is a dictionary, where key is returned metric or binned
-        metric result, and value is the number of occurrences)
-
-    """
-    # Separate to discrete and continuous transformers:
-    if not label_measurements:
-        continuous_label_measurements = []
-        discrete_label_measurements = [lambda x: x]
-    else:
-        continuous_label_measurements = [d['method'] for d in label_measurements if d['is_continuous'] is True]
-        discrete_label_measurements = [d['method'] for d in label_measurements if d['is_continuous'] is False]
-
-    num_continuous_transformers = len(continuous_label_measurements)
-    num_discrete_transformers = len(discrete_label_measurements)
-
-    # For continuous transformers, calculate bounds:
-    train_bounds = get_boundaries_by_batch(train_dataset, continuous_label_measurements)
-    test_bounds = get_boundaries_by_batch(test_dataset, continuous_label_measurements)
-    bounds = [(min(train_bounds[i]['min'], test_bounds[i]['min']),
-               max(train_bounds[i]['max'], test_bounds[i]['max'])) for i in range(num_continuous_transformers)]
-
-    bounds, bins = adjust_bounds_and_bins(bounds, num_bins)
-
-    hists_and_edges = [np.histogram([], bins=num_bins, range=bound) for bound, num_bins in
-                       zip(bounds, bins)]
-    train_hists = [x[0] for x in hists_and_edges]
-    test_hists = [copy(hist) for hist in train_hists]
-    edges = [x[1] for x in hists_and_edges]
-
-    train_counters = [Counter() for i in range(num_discrete_transformers)]
-    test_counters = [Counter() for i in range(num_discrete_transformers)]
-
-    # For all transformers, calculate histograms by batch:
-    for batch in train_dataset.get_data_loader():
-        train_hists = calculate_continuous_histograms_in_batch(batch, train_hists, continuous_label_measurements,
-                                                               bounds, bins, train_dataset.label_transformer)
-        train_counters = calculate_discrete_histograms_in_batch(batch, train_counters, discrete_label_measurements,
-                                                                train_dataset.label_transformer)
-
-    for batch in test_dataset.get_data_loader():
-        test_hists = calculate_continuous_histograms_in_batch(batch, test_hists, continuous_label_measurements, bounds,
-                                                              bins, test_dataset.label_transformer)
-        test_counters = calculate_discrete_histograms_in_batch(batch, test_counters, discrete_label_measurements,
-                                                               test_dataset.label_transformer)
-
-    # Match discrete histograms to share x axis:
-    all_discrete_categories = [list(set(train_counter.keys()).union(set(test_counter.keys())))
-                               for train_counter, test_counter in zip(train_counters, test_counters)]
-
-    train_discrete_hists = iter([{k: train_counters[i][k] for k in all_discrete_categories[i]} for i in
-                                 range(num_discrete_transformers)])
-    test_discrete_hists = iter([{k: test_counters[i][k] for k in all_discrete_categories[i]} for i in
-                                range(num_discrete_transformers)])
-
-    # Transform continuous histograms into dict:
-    train_continuous_hists = iter([dict(zip(edges[i], train_hists[i])) for i in range(num_continuous_transformers)])
-    test_continuous_hists = iter([dict(zip(edges[i], test_hists[i])) for i in range(num_continuous_transformers)])
-
-    # # Return output in original order:
-    train_hists = [next(train_continuous_hists) if d['is_continuous'] is True else next(train_discrete_hists) for d in
-                   label_measurements]
-    test_hists = [next(test_continuous_hists) if d['is_continuous'] is True else next(test_discrete_hists) for d in
-                  label_measurements]
-
-    return train_hists, test_hists
 
 
 def adjust_bounds_and_bins(bounds: List[Tuple[float, float]], default_num_bins: int) \
@@ -316,14 +317,20 @@ def get_results_on_batch(batch, label_measurement, label_transformer):
     return calc_res
 
 
-def get_boundaries_by_batch(dataset: VisionData, label_measurements: List[Callable]) -> List[Dict[str, float]]:
+def get_boundaries_by_batch(dataset: VisionData, label_measurements: List[Callable], min_sample_size: int) \
+        -> List[Dict[str, float]]:
     """Get min and max on dataset for each label transformer."""
     bounds = [{'min': np.inf, 'max': -np.inf} for i in range(len(label_measurements))]
+    num_samples = 0
     for batch in dataset.get_data_loader():
         for i in range(len(label_measurements)):
             calc_res = get_results_on_batch(batch, label_measurements[i], dataset.label_transformer)
             bounds[i]['min'] = min(calc_res + [bounds[i]['min']])
             bounds[i]['max'] = max(calc_res + [bounds[i]['max']])
+
+        num_samples += len(batch[0])
+        if min_sample_size is not None and num_samples >= min_sample_size:
+            return bounds
 
     return bounds
 
@@ -521,10 +528,13 @@ def feature_distribution_traces(expected_percents: np.array,
 
         traces = [train_bar, test_bar]
 
+        max_y = max(max(expected_percents), max(actual_percents))
+        y_lim = 1 if max_y > 0.5 else max_y * 1.1
+
         xaxis_layout = dict(type='category',
                             title='Values')
         yaxis_layout = dict(fixedrange=True,
-                            range=(0, 1),
+                            range=(0, y_lim),
                             title='Percentage')
 
     else:
