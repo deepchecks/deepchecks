@@ -90,7 +90,7 @@ Example for running a suite on given `datasets`_ and with a `supported model`_:
 
    from deepchecks.suites import full_suite
    suite = full_suite()
-   suite.run(train_dataset=train_dataset, test_dataset=train_dataset, model=model)
+   suite.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
 
 Which will result in a report that looks like this:
 
