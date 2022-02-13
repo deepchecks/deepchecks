@@ -25,6 +25,21 @@ from deepchecks.vision.datasets.detection.coco import (
 )
 
 
+__all__ = ['mnist_data_loader_train',
+           'mnist_dataset_train',
+           'mnist_data_loader_test',
+           'mnist_dataset_test',
+           'simple_nn',
+           'trained_mnist',
+           'trained_yolov5_object_detection',
+           'obj_detection_images'
+           'coco_train_dataloader',
+           'coco_train_visiondata',
+           'three_tuples_dataloader',
+           'two_tuples_dataloader'
+        ]
+
+
 @pytest.fixture(scope='session')
 def mnist_data_loader_train():
     mnist_train_dataset = MNIST('./mnist',
