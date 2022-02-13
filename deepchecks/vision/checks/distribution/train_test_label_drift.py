@@ -180,7 +180,6 @@ class TrainTestLabelDrift(TrainTestCheck):
         self._train_counters = [Counter() for i in range(num_discrete_transformers)]
         self._test_counters = [Counter() for i in range(num_discrete_transformers)]
 
-
     def update(self, context: Context, batch: Any, dataset_kind):
         """Perform update on batch for train or test counters and histograms."""
         # For all transformers, calculate histograms by batch:

@@ -4,6 +4,7 @@ from collections import defaultdict
 import imgaug
 from typing import TypeVar, List, Optional, Any, Sized
 import albumentations
+import numpy as np
 
 import pandas as pd
 import torch
@@ -21,7 +22,7 @@ from deepchecks.vision.metrics_utils import get_scorers_list
 from deepchecks.utils.strings import format_percent
 from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 from deepchecks.vision.utils.image_functions import numpy_to_image_figure, apply_heatmap_image_properties, \
-    label_bbox_add_to_figure, get_image_info
+    label_bbox_add_to_figure, ImageInfo
 
 
 __all__ = ['RobustnessReport']
@@ -35,14 +36,19 @@ class RobustnessReport(SingleDatasetCheck):
 
     Parameters
     ----------
-        alternative_metrics (List[Metric], default None):
+        alternative_metrics : List[Metric], default: None
             A list of ignite.Metric objects whose score should be used. If None are given, use the default metrics.
+        augmentations : List, default: None
+            A list of augmentations to test on the data. If none are given default augmentations are used.
+            Supported augmentations are of albumentations and imgaug.
+        random_state : int, default: 42
+            A random state seed to make the check reproducible.
     """
 
     def __init__(self,
                  prediction_formatter: BasePredictionFormatter,
                  alternative_metrics: Optional[List[Metric]] = None,
-                 augmentations=None,
+                 augmentations: List = None,
                  random_state: int = 42):
         super().__init__()
         self.alternative_metrics = alternative_metrics
@@ -86,6 +92,7 @@ class RobustnessReport(SingleDatasetCheck):
         base_results: pd.DataFrame = metric_results_to_df(
             {k: m.compute() for k, m in self._state['metrics'].items()}, dataset
         )
+        # TODO: update later the way we handle average metrics
         # Return dict of metric to value
         base_mean_results: dict = self._calc_mean_metrics(base_results)
         # Get augmentations
@@ -164,18 +171,22 @@ class RobustnessReport(SingleDatasetCheck):
             if label is None or (isinstance(label, Sized) and len(label) == 0):
                 continue
 
-            if get_image_info(sample_base[0]).is_equals(sample_aug[0]):
-                raise DeepchecksValueError('Found that images have not been affected by adding augmentation. '
-                                           'This might be a problem with the implementation of Dataset.__getitem__')
+            batch = dataset.to_batch(sample_base, sample_aug)
+            images = dataset.image_transformer(batch[0])
+            labels = dataset.label_transformer(batch[1])
+            if ImageInfo(images[0]).is_equals(images[1]):
+                msg = f'Found that images have not been affected by adding augmentation to field ' \
+                      f'{dataset.transform_field} This might be a problem with the implementation of ' \
+                      f'Dataset.__getitem__'
+                raise DeepchecksValueError(msg)
 
             # For classification does not check label for difference
             if dataset.task_type != TaskType.CLASSIFICATION:
-                label_a = dataset.label_transformer([sample_base[1]])[0]
-                label_b = dataset.label_transformer([sample_aug[1]])[0]
-                if torch.equal(label_a, label_b):
-                    raise DeepchecksValueError('Found that labels have not been affected by adding augmentation. label '
-                                               f'before {label_a} and after {label_b}. This might be a problem with '
-                                               f'the implementation of Dataset.__getitem__')
+                if torch.equal(labels[0], labels[1]):
+                    msg = f'Found that labels have not been affected by adding augmentation to field ' \
+                          f'{dataset.transform_field} This might be a problem with the implementation of ' \
+                          f'`Dataset.__getitem__`. label value: {labels[0]}'
+                    raise DeepchecksValueError(msg)
             # If all validations passed return
             return
 
@@ -201,8 +212,11 @@ class RobustnessReport(SingleDatasetCheck):
 
     def _calc_performance_diff(self, mean_base, augmented_metrics):
         def difference(aug_score, base_score):
-            # TODO how to handle zero base score
-            return (aug_score - base_score) / base_score if base_score != 0 else 0
+            if base_score == 0:
+                # If base score is 0 can't divide by it, so if aug score equals returns 0 which means no difference,
+                # else return negative or positive infinity depends on direction of aug
+                return 0 if aug_score == 0 else np.inf if aug_score > base_score else -np.inf
+            return (aug_score - base_score) / base_score
 
         diff_dict = {}
         for metric, score in self._calc_mean_metrics(augmented_metrics).items():
@@ -231,15 +245,10 @@ class RobustnessReport(SingleDatasetCheck):
         return figures
 
     def _create_example_figure(self, dataset: VisionData, images):
-        def to_batch(img_list):
-            if isinstance(img_list[0], torch.Tensor):
-                return torch.stack(img_list)
-            return img_list
-        # First join all images to convert them in a single action to displayable format
-        # Create tuple of ([base images], [aug images], [classes])
+        # Create tuple of ([base images], [aug images], [classes], <[bboxes]>)
         transposed = list(zip(*images))
-        base_images = dataset.to_display_data(to_batch(transposed[0]))
-        aug_images = dataset.to_display_data(to_batch(transposed[1]))
+        base_images = transposed[0]
+        aug_images = transposed[1]
         classes = list(map(str, transposed[2]))
 
         # Create image figures
@@ -254,7 +263,7 @@ class RobustnessReport(SingleDatasetCheck):
             fig.append_trace(numpy_to_image_figure(base_image), row=1, col=index + 1)
             fig.append_trace(numpy_to_image_figure(aug_image), row=2, col=index + 1)
             # Update sizes
-            img_width, img_height = get_image_info(base_image).get_size()
+            img_width, img_height = ImageInfo(base_image).get_size()
             images_width += img_width
             max_height = max(max_height, img_height)
 
@@ -372,8 +381,11 @@ def get_random_image_pairs_from_dataset(original_dataset: VisionData,
         if not classes_set:
             break
 
-        base_label = original_dataset.label_transformer([sample_base[1]])[0]
-        aug_label = original_dataset.label_transformer([sample_aug[1]])[0]
+        batch = original_dataset.to_batch(sample_base, sample_aug)
+        batch_label: torch.Tensor = original_dataset.label_transformer(batch[1])
+        images: List[np.ndarray] = original_dataset.image_transformer(batch[0])
+        base_label: torch.Tensor = batch_label[0]
+        aug_label: torch.Tensor = batch_label[1]
         if original_dataset.task_type == TaskType.OBJECT_DETECTION:
             # Classes are the first item in the label
             all_classes_in_label = set(
@@ -388,12 +400,12 @@ def get_random_image_pairs_from_dataset(original_dataset: VisionData,
             # Take only bboxes of this class
             base_class_label = [x for x in base_label if x[0] == curr_class]
             aug_class_label = [x for x in aug_label if x[0] == curr_class]
-            samples.append((sample_base[0], sample_aug[0], curr_class, (base_class_label, aug_class_label)))
+            samples.append((images[0], images[1], curr_class, (base_class_label, aug_class_label)))
         elif original_dataset.task_type == TaskType.CLASSIFICATION:
-            curr_class = base_label
+            curr_class = base_label.item()
             if curr_class not in classes_set:
                 continue
-            samples.append((sample_base[0], sample_aug[0], curr_class))
+            samples.append((images[0], images[1], curr_class))
         else:
             raise DeepchecksValueError('Not implemented')
 

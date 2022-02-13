@@ -9,11 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module for defining functions related to image data."""
-from abc import abstractmethod
 from typing import Tuple
 
-import PIL
-from PIL import ImageChops
 import numpy as np
 import plotly.graph_objects as go
 import torch
@@ -21,56 +18,28 @@ import torch
 from deepchecks.core.errors import DeepchecksValueError
 
 
-__all__ = ['get_image_info', 'numpy_to_image_figure', 'apply_heatmap_image_properties', 'label_bbox_add_to_figure']
+__all__ = ['ImageInfo', 'numpy_to_image_figure', 'apply_heatmap_image_properties', 'label_bbox_add_to_figure']
 
 
 class ImageInfo:
     """Abstract class with methods defined to extract metadata about image."""
 
     def __init__(self, img):
+        if not isinstance(img, np.ndarray):
+            raise DeepchecksValueError('Expect image to be numpy array')
         self.img = img
 
-    @abstractmethod
     def get_size(self) -> Tuple[int, int]:
         """Get size of image as (width, height) tuple."""
-        pass
+        return self.img.shape[1], self.img.shape[0]
 
-    @abstractmethod
     def get_dimension(self) -> int:
         """Return the number of dimensions of the image (grayscale = 1, RGB = 3)."""
-        pass
-
-    @abstractmethod
-    def is_equals(self, img_b) -> bool:
-        """Compare image to another image for equality."""
-        pass
-
-
-class ImageInfoNumpy(ImageInfo):
-    """Class to extract image metadata from numpy image."""
-
-    def get_dimension(self) -> int:
         return self.img.shape[2]
 
     def is_equals(self, img_b) -> bool:
+        """Compare image to another image for equality."""
         return np.array_equal(self.img, img_b)
-
-    def get_size(self) -> Tuple[int, int]:
-        return self.img.shape[1], self.img.shape[0]
-
-
-class ImageInfoPIL(ImageInfo):
-    """Class to extract image metadata from PIL image."""
-
-    def get_dimension(self) -> int:
-        return self.img.im.bands
-
-    def is_equals(self, img_b) -> bool:
-        diff = ImageChops.difference(self.img, img_b)
-        return diff.getbbox() is None
-
-    def get_size(self) -> Tuple[int, int]:
-        return self.img.size
 
 
 def numpy_to_image_figure(data: np.ndarray):
@@ -90,18 +59,6 @@ def apply_heatmap_image_properties(fig):
     fig.update_yaxes(autorange='reversed', scaleanchor='x', constrain='domain')
     fig.update_xaxes(constrain='domain')
     fig.update_traces(showscale=False)
-
-
-def get_image_info(img):
-    """Return object containing info about the image."""
-    if isinstance(img, torch.Tensor):
-        return ImageInfoNumpy(img.numpy())
-    elif isinstance(img, np.ndarray):
-        return ImageInfoNumpy(img)
-    elif isinstance(img, PIL.Image.Image):
-        return ImageInfoPIL(img)
-    else:
-        raise DeepchecksValueError(f'Don\'t know image object of type {type(img)}')
 
 
 def label_bbox_add_to_figure(label: torch.Tensor, figure, row=None, col=None):

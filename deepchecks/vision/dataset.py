@@ -24,7 +24,7 @@ from deepchecks.vision.utils.transformations import get_transforms_handler, add_
 from deepchecks.vision.utils import ClassificationLabelFormatter, DetectionLabelFormatter
 from deepchecks.vision.utils.base_formatters import BaseLabelFormatter
 from deepchecks.vision.utils.image_formatters import ImageFormatter
-from deepchecks.vision.utils.image_functions import get_image_info
+from deepchecks.vision.utils.image_functions import ImageInfo
 
 logger = logging.getLogger('deepchecks')
 
@@ -58,6 +58,8 @@ class VisionData:
         Sample size to run the checks on.
     random_seed : int, default: 0
         Random seed used to generate the sample.
+    transform_field : str, default: 'transforms'
+        Name of transforms field in the dataset which holds transformations of both data and label.
 
     Notes
     -----
@@ -135,8 +137,9 @@ class VisionData:
     @property
     def data_dimension(self):
         """Return how many dimensions the image data have."""
-        sample = next(iter(self.get_data_loader()))[0][0]
-        return get_image_info(sample).get_dimension()
+        batch = next(iter(self.get_data_loader()))
+        image = self.image_transformer(batch[0])[0]
+        return ImageInfo(image).get_dimension()
 
     @property
     def sample_data_loader(self) -> DataLoader:
@@ -184,7 +187,9 @@ class VisionData:
         dataset_ref = self.get_data_loader().dataset
         # If no field exists raise error
         if not hasattr(dataset_ref, self.transform_field):
-            raise DeepchecksValueError(f'Underlying Dataset instance must have a {self.transform_field} attribute')
+            msg = f'Underlying Dataset instance does not contain "{self.transform_field}" attribute. If your ' \
+                  f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
+            raise DeepchecksValueError(msg)
         transform = dataset_ref.__getattribute__(self.transform_field)
         return get_transforms_handler(transform)
 
@@ -193,7 +198,9 @@ class VisionData:
         dataset_ref = self.get_data_loader().dataset
         # If no field exists raise error
         if not hasattr(dataset_ref, self.transform_field):
-            raise DeepchecksValueError(f'Underlying Dataset instance must have a {self.transform_field} attribute')
+            msg = f'Underlying Dataset instance does not contain "{self.transform_field}" attribute. If your ' \
+                  f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
+            raise DeepchecksValueError(msg)
         transform = dataset_ref.__getattribute__(self.transform_field)
         new_transform = add_augmentation_in_start(aug, transform)
         dataset_ref.__setattr__(self.transform_field, new_transform)
@@ -207,6 +214,10 @@ class VisionData:
                           image_transformer=self.image_transformer,
                           label_transformer=self.label_transformer,
                           transform_field=self.transform_field)
+
+    def to_batch(self, *samples):
+        """Using the defined collate_fn to transform a few data items to batch format"""
+        return self.get_data_loader().collate_fn(list(samples))
 
     def validate_shared_properties(self, other):
         """Verify presence of shared labels.
