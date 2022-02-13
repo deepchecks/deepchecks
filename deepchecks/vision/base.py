@@ -390,7 +390,8 @@ class Suite(BaseSuite):
                 result.header = f'{result.get_header()} - Train Dataset'
             elif str(check_idx).endswith(' - Test'):
                 result.header = f'{result.get_header()} - Test Dataset'
-            results[check_idx] = finalize_check_result(result, check_dict[check_idx])
+            if isinstance(result, CheckResult):
+                results[check_idx] = finalize_check_result(result, check_dict[check_idx])
 
         return SuiteResult(self.name, list(results.values()))
 
