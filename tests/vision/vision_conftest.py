@@ -32,11 +32,11 @@ __all__ = ['mnist_data_loader_train',
            'simple_nn',
            'trained_mnist',
            'trained_yolov5_object_detection',
-           'obj_detection_images'
+           'obj_detection_images',
            'coco_train_dataloader',
            'coco_train_visiondata',
            'three_tuples_dataloader',
-           'two_tuples_dataloader'
+           'two_tuples_dataloader',
         ]
 
 
