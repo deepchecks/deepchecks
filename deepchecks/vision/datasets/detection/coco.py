@@ -9,7 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Module for loading a sample of the COCO dataset and the yolov5s model."""
+import contextlib
+import logging
+import os
 import typing as t
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -26,7 +30,7 @@ from deepchecks import vision
 from deepchecks.vision.utils.detection_formatters import DetectionLabelFormatter
 
 
-__all__ = ['load_dataset']
+__all__ = ['load_dataset', 'load_model']
 
 
 DATA_DIR = Path(__file__).absolute().parent
@@ -34,9 +38,15 @@ DATA_DIR = Path(__file__).absolute().parent
 
 def load_model(pretrained: bool = True) -> nn.Module:
     """Load the yolov5s model and return it."""
-    model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=pretrained)
+    logger = logging.getLogger('yolov5')
+    logger.disabled = True
+    model = torch.hub.load('ultralytics/yolov5', 'yolov5s',
+                           pretrained=pretrained,
+                           verbose=False,
+                           device='cpu')
     model.eval()
     model.cpu()
+    logger.disabled = False
     return model
 
 
@@ -218,12 +228,13 @@ class CocoDataset(VisionDataset):
         url = 'https://ultralytics.com/assets/coco128.zip'
         md5 = '90faf47c90d1cfa5161c4298d890df55'
 
-        download_and_extract_archive(
-            url,
-            download_root=str(root),
-            extract_root=str(root),
-            md5=md5
-        )
+        with open(os.devnull, 'w', encoding='utf8') as f, contextlib.redirect_stdout(f):
+            download_and_extract_archive(
+                url,
+                download_root=str(root),
+                extract_root=str(root),
+                md5=md5
+            )
 
         return coco_dir, 'train2017'
 
@@ -235,11 +246,14 @@ def yolo_wrapper(
     [x, y, w, h, confidence, class] for each bbox in the image."""
     return_list = []
 
-    # yolo Detections objects have List[torch.Tensor] xyxy output in .pred
-    for single_image_tensor in predictions.pred:
-        pred_modified = torch.clone(single_image_tensor)
-        pred_modified[:, 2] = pred_modified[:, 2] - pred_modified[:, 0]  # w = x_right - x_left
-        pred_modified[:, 3] = pred_modified[:, 3] - pred_modified[:, 1]  # h = y_bottom - y_top
-        return_list.append(pred_modified)
+    with warnings.catch_warnings():
+        warnings.simplefilter(action='ignore', category=UserWarning)
+
+        # yolo Detections objects have List[torch.Tensor] xyxy output in .pred
+        for single_image_tensor in predictions.pred:
+            pred_modified = torch.clone(single_image_tensor)
+            pred_modified[:, 2] = pred_modified[:, 2] - pred_modified[:, 0]  # w = x_right - x_left
+            pred_modified[:, 3] = pred_modified[:, 3] - pred_modified[:, 1]  # h = y_bottom - y_top
+            return_list.append(pred_modified)
 
     return return_list
