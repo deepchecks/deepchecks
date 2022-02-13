@@ -58,7 +58,7 @@ def test_coco(coco_train_visiondata, trained_yolov5_object_detection):
             'mAP': has_entries(score=close_to(0.22, 0.01), diff=close_to(-0.54, 0.02)),
         }),
         'HueSaturationValue': has_entries({
-            'mAP': has_entries(score=close_to(0.46, 0.01), diff=close_to(-0.16, 0.02)),
+            'mAP': has_entries(score=close_to(0.46, 0.01), diff=close_to(-0.1, 0.05)),
         }),
         'RGBShift': has_entries({
             'mAP': has_entries(score=close_to(0.5, 0.01), diff=close_to(0, 0.02)),
