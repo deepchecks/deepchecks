@@ -35,16 +35,13 @@ class ClassPerformance(TrainTestCheck):
     ----------
     alternative_metrics : List[Metric], default: None
         A list of ignite.Metric objects whose score should be used. If None are given, use the default metrics.
-    prediction_formatter : Union[ClassificationPredictionFormatter, DetectionPredictionFormatter, None], default: None
-        An encoder to convert predictions to a format that can be used by the metrics.
     """
 
     def __init__(self,
-                 alternative_metrics: List[Metric] = None,
-                 prediction_formatter: Union[ClassificationPredictionFormatter, DetectionPredictionFormatter] = None):
+                 alternative_metrics: List[Metric] = None
+                 ):
         super().__init__()
         self.alternative_metrics = alternative_metrics
-        self.prediction_formatter = prediction_formatter
         self._state = {}
 
     def initialize_run(self, context: Context):
@@ -66,7 +63,7 @@ class ClassPerformance(TrainTestCheck):
             dataset = context.test
         images = batch[0]
         label = dataset.label_transformer(batch[1])
-        prediction = self.prediction_formatter(context.infer(images))
+        prediction = context.prediction_formatter(context.infer(images))
         for _, metric in self._state[dataset_name]['scorers'].items():
             metric.update((prediction, label))
 

@@ -15,6 +15,7 @@ import copy
 from typing import Tuple, Mapping, Optional, Any
 from collections import OrderedDict
 
+from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 from ignite.metrics import Metric
 from torch import nn
 
@@ -56,6 +57,8 @@ class Context:
         A scikit-learn-compatible fitted estimator instance
     model_name: str , default: ''
         The name of the model
+    prediction_formatter : BasePredictionFormatter, default: None
+        An encoder to convert predictions to a format that can be used by the metrics.
     scorers : Mapping[str, Metric] , default: None
         dict of scorers names to a Metric
     scorers_per_class : Mapping[str, Metric] , default: None
@@ -70,6 +73,7 @@ class Context:
                  test: VisionData = None,
                  model: nn.Module = None,
                  model_name: str = '',
+                 prediction_formatter: BasePredictionFormatter = None,
                  scorers: Mapping[str, Metric] = None,
                  scorers_per_class: Mapping[str, Metric] = None
                  ):
@@ -90,6 +94,7 @@ class Context:
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
+        self._prediction_formatter = prediction_formatter
 
     # Properties
     # Validations note: We know train & test fit each other so all validations can be run only on train
@@ -123,6 +128,11 @@ class Context:
     def model_name(self):
         """Return model name."""
         return self._model_name
+
+    @property
+    def prediction_formatter(self):
+        """Return prediction formatter."""
+        return self._prediction_formatter
 
     def have_test(self):
         """Return whether there is test dataset defined."""
@@ -161,12 +171,13 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
     context_type = Context
 
-    def run(self, dataset, model=None) -> CheckResult:
+    def run(self, dataset, model=None, prediction_formatter: BasePredictionFormatter = None) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
         context = self.context_type(  # pylint: disable=not-callable
             dataset,
-            model=model
+            model=model,
+            prediction_formatter=prediction_formatter
         )
 
         self.initialize_run(context)
@@ -198,13 +209,15 @@ class TrainTestCheck(TrainTestBaseCheck):
 
     context_type = Context
 
-    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
+    def run(self, train_dataset, test_dataset, model=None, prediction_formatter: BasePredictionFormatter = None
+            ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
         context = self.context_type(  # pylint: disable=not-callable
             train_dataset,
             test_dataset,
-            model=model
+            model=model,
+            prediction_formatter=prediction_formatter
         )
 
         self.initialize_run(context)
@@ -267,6 +280,7 @@ class Suite(BaseSuite):
             train_dataset: Optional[VisionData] = None,
             test_dataset: Optional[VisionData] = None,
             model: nn.Module = None,
+            prediction_formatter: BasePredictionFormatter = None,
             scorers: Mapping[str, Metric] = None,
             scorers_per_class: Mapping[str, Metric] = None
     ) -> SuiteResult:
@@ -280,6 +294,8 @@ class Suite(BaseSuite):
             object, representing data an estimator predicts on
         model : nn.Module , default None
             A scikit-learn-compatible fitted estimator instance
+        prediction_formatter : BasePredictionFormatter, default: None
+            An encoder to convert predictions to a format that can be used by the metrics.
         scorers : Mapping[str, Metric] , default None
             dict of scorers names to scorer sklearn_name/function
         scorers_per_class : Mapping[str, Metric], default None
@@ -293,6 +309,7 @@ class Suite(BaseSuite):
             All results by all initialized checks
         """
         context = Context(train_dataset, test_dataset, model,
+                          prediction_formatter=prediction_formatter,
                           scorers=scorers,
                           scorers_per_class=scorers_per_class)
 
