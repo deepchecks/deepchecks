@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing performance report check."""
+"""Module containing class performance check."""
 from typing import TypeVar, List, Union, Any
 
 import pandas as pd
@@ -23,12 +23,12 @@ from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.metrics_utils.metrics import get_scorers_list
 from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
-__all__ = ['PerformanceReport']
+__all__ = ['ClassPerformance']
 
-PR = TypeVar('PR', bound='PerformanceReport')
+PR = TypeVar('PR', bound='ClassPerformance')
 
 
-class PerformanceReport(TrainTestCheck):
+class ClassPerformance(TrainTestCheck):
     """Summarize given metrics on a dataset and model.
 
     Parameters
@@ -113,7 +113,7 @@ class PerformanceReport(TrainTestCheck):
 
         return CheckResult(
             results_df,
-            header='Performance Report',
+            header='Class Performance',
             display=fig
         )
 
