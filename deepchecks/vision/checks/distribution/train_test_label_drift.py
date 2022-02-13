@@ -183,7 +183,7 @@ class TrainTestLabelDrift(TrainTestCheck):
     def update(self, context: Context, batch: Any, dataset_kind):
         """Perform update on batch for train or test counters and histograms."""
         # For all transformers, calculate histograms by batch:
-        if dataset_kind == DatasetKind.TEST:
+        if dataset_kind == DatasetKind.TRAIN:
             train_dataset = context.train
             self._train_hists = calculate_continuous_histograms_in_batch(batch, self._train_hists,
                                                                          self._continuous_label_measurements,
@@ -193,7 +193,7 @@ class TrainTestLabelDrift(TrainTestCheck):
                                                                           self._discrete_label_measurements,
                                                                           train_dataset.label_transformer)
 
-        elif dataset_kind == DatasetKind.TRAIN:
+        elif dataset_kind == DatasetKind.TEST:
             test_dataset = context.test
             self._test_hists = calculate_continuous_histograms_in_batch(batch, self._test_hists,
                                                                         self._continuous_label_measurements,
@@ -322,7 +322,7 @@ def get_results_on_batch(batch, label_measurement, label_transformer):
 def get_boundaries_by_batch(dataset: VisionData, label_measurements: List[Callable], min_sample_size: int) \
         -> List[Dict[str, float]]:
     """Get min and max on dataset for each label transformer."""
-    bounds = [{'min': np.inf, 'max': -np.inf} for i in range(len(label_measurements))]
+    bounds = [{'min': np.inf, 'max': -np.inf} for _ in range(len(label_measurements))]
     num_samples = 0
     for batch in dataset.get_data_loader():
         for i in range(len(label_measurements)):

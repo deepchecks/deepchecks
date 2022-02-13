@@ -223,7 +223,7 @@ class TrainTestCheck(TrainTestBaseCheck):
             context.flush_cached_inference()
 
         for batch in context.test.get_data_loader():
-            self.update(context, batch, DatasetKind.TRAIN)
+            self.update(context, batch, DatasetKind.TEST)
             context.flush_cached_inference()
 
         return finalize_check_result(self.compute(context), self)

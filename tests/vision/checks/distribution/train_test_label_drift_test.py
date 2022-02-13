@@ -29,10 +29,8 @@ def test_no_drift_classification(mnist_dataset_train):
         {'Samples per class': has_entries(
             {'Drift score': 0,
              'Method': equal_to('PSI')}
-        )
-        }
-    )
-                )
+        )}
+    ))
 
 
 def test_no_drift_object_detection(coco_train_visiondata):
@@ -55,8 +53,7 @@ def test_no_drift_object_detection(coco_train_visiondata):
              'Method': equal_to('Earth Mover\'s Distance')}
         )
         }
-    )
-                )
+    ))
 
 
 def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test):
@@ -74,8 +71,7 @@ def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test):
              'Method': equal_to('PSI')}
         )
         }
-    )
-                )
+    ))
 
 
 def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata):
@@ -98,8 +94,7 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
              'Method': equal_to('Earth Mover\'s Distance')}
         )
         }
-    )
-                )
+    ))
 
 
 def test_with_drift_object_detection_changed_num_samples(coco_train_visiondata, coco_test_visiondata):
@@ -122,8 +117,7 @@ def test_with_drift_object_detection_changed_num_samples(coco_train_visiondata, 
              'Method': equal_to('Earth Mover\'s Distance')}
         )
         }
-    )
-                )
+    ))
 
 
 def test_with_drift_object_detection_changed_num_bins(coco_train_visiondata, coco_test_visiondata):
@@ -146,14 +140,13 @@ def test_with_drift_object_detection_changed_num_bins(coco_train_visiondata, coc
              'Method': equal_to('Earth Mover\'s Distance')}
         )
         }
-    )
-                )
+    ))
 
 
 def test_with_drift_object_detection_alternative_measurements(coco_train_visiondata, coco_test_visiondata):
     # Arrange
     alternative_measurements = [
-        {'name': 'test', 'method': lambda x: x[0][0] if len(x) != 0 else 0, 'is_continuous': True}]
+        {'name': 'test', 'method': lambda x: int(x[0][0]) if len(x) != 0 else 0, 'is_continuous': True}]
     check = TrainTestLabelDrift(alternative_label_measurements=alternative_measurements)
 
     # Act
@@ -166,8 +159,7 @@ def test_with_drift_object_detection_alternative_measurements(coco_train_visiond
              'Method': equal_to('Earth Mover\'s Distance')}
         )
         }
-    )
-                )
+    ))
 
 
 def test_with_drift_object_detection_defected_alternative_measurements():

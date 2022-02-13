@@ -31,7 +31,7 @@ from deepchecks.vision.utils.detection_formatters import DetectionLabelFormatter
 from deepchecks.vision.utils import ImageFormatter
 
 
-__all__ = ['load_dataset', 'load_model', 'yolo_prediction_formatter']
+__all__ = ['load_dataset', 'load_model', 'yolo_prediction_formatter', 'yolo_label_formatter', 'yolo_image_formatter']
 
 
 DATA_DIR = Path(__file__).absolute().parent
@@ -109,18 +109,12 @@ def load_dataset(
         pin_memory=pin_memory,
     )
 
-    def label_formatter(x):
-        # our labels return at the end, and the VisionDataset expect it at the start
-        def move_class(tensor):
-            return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3])) if len(tensor) > 0 else tensor
-        return [move_class(tensor) for tensor in x]
-
     if object_type == 'DataLoader':
         return dataloader
     elif object_type == 'VisionData':
         return vision.VisionData(
             data_loader=dataloader,
-            label_transformer=DetectionLabelFormatter(label_formatter),
+            label_transformer=DetectionLabelFormatter(yolo_label_formatter),
             # To display images we need them as numpy array
             image_transformer=ImageFormatter(lambda pil_list: [np.array(x) for x in pil_list]),
             num_classes=80
@@ -281,3 +275,15 @@ def yolo_prediction_formatter(
             return_list.append(pred_modified)
 
     return return_list
+
+
+def yolo_label_formatter(label):
+    # our labels return at the end, and the VisionDataset expect it at the start
+    def move_class(tensor):
+        return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3])) if len(tensor) > 0 else tensor
+    return [move_class(tensor) for tensor in label]
+
+
+def yolo_image_formatter(pil_list):
+    # Yolo works on PIL and VisionDataset expects images as numpy arrays
+    return [np.array(x) for x in pil_list]

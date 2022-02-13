@@ -22,7 +22,7 @@ __all__ = ['ImageInfo', 'numpy_to_image_figure', 'apply_heatmap_image_properties
 
 
 class ImageInfo:
-    """Abstract class with methods defined to extract metadata about image."""
+    """Class with methods defined to extract metadata about image."""
 
     def __init__(self, img):
         if not isinstance(img, np.ndarray):
