@@ -229,7 +229,7 @@ class CocoDataset(VisionDataset):
         url = 'https://ultralytics.com/assets/coco128.zip'
         md5 = '90faf47c90d1cfa5161c4298d890df55'
 
-        with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
+        with open(os.devnull, 'w', encoding='utf8') as f, contextlib.redirect_stdout(f):
             download_and_extract_archive(
                 url,
                 download_root=str(root),
