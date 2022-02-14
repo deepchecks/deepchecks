@@ -49,7 +49,7 @@ Deepchecks accepts a specific data format for each task type and for some types,
 
 .. _formatters__classification_formatter:
 
-Classification format
+Classification Format
 -------------------------
 
 Accepted format
