@@ -1,6 +1,9 @@
 Examples
 ========
 
+General Guides
+--------------
+
 .. toctree::
     :maxdepth: 3
     :titlesonly:
@@ -12,6 +15,9 @@ Examples
     general/export_outputs_to_json
 
 
+Tabular Examples
+-----------------
+
 .. toctree::
     :maxdepth: 2
     :caption: Tabular
@@ -21,6 +27,8 @@ Examples
     tabular/use-cases/index
     tabular/checks/index
 
+Computer Vision Examples
+------------------------
 
 .. toctree::
     :maxdepth: 2
