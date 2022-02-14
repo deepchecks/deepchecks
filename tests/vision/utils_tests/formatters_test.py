@@ -48,7 +48,7 @@ def numpy_shape_dataloader(shape: tuple = None, value: Union[float, np.array] = 
 
     class TwoTupleDataset(Dataset):
         def __getitem__(self, index):
-            if isinstance(value, float) or isinstance(value, int):
+            if isinstance(value, (float, int)):
                 return np.ones(shape) * value
             else:
                 return value
@@ -243,7 +243,7 @@ def test_flatten_batch_without_sample():
 
     batch = next(iter(numpy_shape_dataloader(value=value)))
 
-    res = formatter._flatten_batch(batch)
+    res = formatter._flatten_batch(batch)  # pylint: disable=protected-access
 
     assert_that(np.array_equal(res[0], expected_result), equal_to(True))
 
@@ -261,7 +261,7 @@ def test_flatten_batch_with_sampling():
 
     batch = next(iter(numpy_shape_dataloader(value=value)))
 
-    res = formatter._flatten_batch(batch)
+    res = formatter._flatten_batch(batch)  # pylint: disable=protected-access
 
     assert_that(np.array_equal(res[0], expected_result), equal_to(True))
 
@@ -279,6 +279,6 @@ def test_flatten_batch_with_sampling_larger_than_num_pixels():
 
     batch = next(iter(numpy_shape_dataloader(value=value)))
 
-    res = formatter._flatten_batch(batch)
+    res = formatter._flatten_batch(batch)  # pylint: disable=protected-access
 
     assert_that(np.array_equal(res[0], expected_result), equal_to(True))
