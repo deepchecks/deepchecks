@@ -84,7 +84,7 @@ class ImageFormatter:
         """Return list of tuples of image height and width."""
         return [self.get_size(img) for img in batch]
 
-    def ratio(self, batch: List[np.array]):
+    def aspect_ratio(self, batch: List[np.array]):
         """Return list of floats of image height and width ratio."""
         return [x[0] / x[1] for x in self.sizes(batch)]
 
