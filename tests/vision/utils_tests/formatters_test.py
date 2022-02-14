@@ -8,8 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+from typing import Union
+
 import numpy as np
-from hamcrest import assert_that, equal_to, calling, raises
+from hamcrest import assert_that, equal_to, calling, raises, close_to
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.utils.image_formatters import ImageFormatter
@@ -37,14 +39,17 @@ def test_classification_formatter_formatting_invalid_label_type(two_tuples_datal
     assert_that(err, equal_to("Check requires classification label to be a torch.Tensor or numpy array"))
 
 
-def numpy_shape_dataloader(shape, value: float = 1, collate_fn=None):
+def numpy_shape_dataloader(shape: tuple = None, value: Union[float, np.array] = 1, collate_fn=None):
 
     if collate_fn is None:
         collate_fn = np.stack
 
     class TwoTupleDataset(Dataset):
         def __getitem__(self, index):
-            return np.ones(shape) * value
+            if isinstance(value, float) or isinstance(value, int):
+                return np.ones(shape) * value
+            else:
+                return value
 
         def __len__(self) -> int:
             return 8
@@ -128,3 +133,153 @@ def test_data_formatter_valid_dimensions_other_iterable():
     batch = next(iter(numpy_shape_dataloader((10, 10, 3), collate_fn=tuple)))
     err = formatter.validate_data(batch)
     assert_that(err, equal_to(None))
+
+
+def test_brightness_grayscale():
+    formatter = ImageFormatter(lambda x: x)
+
+    value = np.concatenate([np.zeros((3, 10, 1)),  np.ones((7, 10, 1))], axis=0)
+
+    batch = next(iter(numpy_shape_dataloader(value=value)))
+
+    res = formatter.brightness(batch)
+
+    assert_that(res, equal_to([0.7]*4))
+
+
+def test_brightness_rgb():
+    formatter = ImageFormatter(lambda x: x)
+
+    value = np.concatenate([np.ones((10, 10, 1)) * 1,
+                            np.ones((10, 10, 1)) * 2,
+                            np.ones((10, 10, 1)) * 3], axis=2)
+
+    expected_result = 0.299 + 0.587 * 2 + 0.114 * 3
+
+    batch = next(iter(numpy_shape_dataloader(value=value)))
+
+    res = formatter.brightness(batch)
+
+    assert_that(res, equal_to([expected_result]*4))
+
+
+def test_aspect_ratio():
+    formatter = ImageFormatter(lambda x: x)
+
+    batch = next(iter(numpy_shape_dataloader((10, 20, 3))))
+
+    res = formatter.aspect_ratio(batch)
+
+    assert_that(res, equal_to([0.5]*4))
+
+
+def test_area():
+    formatter = ImageFormatter(lambda x: x)
+
+    batch = next(iter(numpy_shape_dataloader((10, 20, 3))))
+
+    res = formatter.area(batch)
+
+    assert_that(res, equal_to([200]*4))
+
+
+def test_normalized_mean_red():
+    formatter = ImageFormatter(lambda x: x)
+
+    value = np.concatenate([np.ones((10, 10, 1)) * 1,
+                            np.ones((10, 10, 1)) * 2,
+                            np.ones((10, 10, 1)) * 3], axis=2)
+
+    expected_result = 1/6
+
+    batch = next(iter(numpy_shape_dataloader(value=value)))
+
+    res = formatter.normalized_red_mean(batch)
+
+    assert_that(res[0], close_to(expected_result, 0.0000001))
+
+
+def test_normalized_mean_green():
+    formatter = ImageFormatter(lambda x: x)
+
+    value = np.concatenate([np.ones((10, 10, 1)) * 1,
+                            np.ones((10, 10, 1)) * 2,
+                            np.ones((10, 10, 1)) * 3], axis=2)
+
+    expected_result = 2/6
+
+    batch = next(iter(numpy_shape_dataloader(value=value)))
+
+    res = formatter.normalized_green_mean(batch)
+
+    assert_that(res[0], close_to(expected_result, 0.0000001))
+
+
+def test_normalized_mean_blue():
+    formatter = ImageFormatter(lambda x: x)
+
+    value = np.concatenate([np.ones((10, 10, 1)) * 1,
+                            np.ones((10, 10, 1)) * 2,
+                            np.ones((10, 10, 1)) * 3], axis=2)
+
+    expected_result = 3/6
+
+    batch = next(iter(numpy_shape_dataloader(value=value)))
+
+    res = formatter.normalized_blue_mean(batch)
+
+    assert_that(res[0], close_to(expected_result, 0.0000001))
+
+
+def test_flatten_batch_without_sample():
+    formatter = ImageFormatter(lambda x: x, sample_size_for_image_properties=None)
+
+    value = np.concatenate([np.ones((2, 2, 1)) * 1,
+                            np.ones((2, 2, 1)) * 2,
+                            np.ones((2, 2, 1)) * 3], axis=2)
+
+    expected_result = np.concatenate([np.ones((4, 1)) * 1,
+                                      np.ones((4, 1)) * 2,
+                                      np.ones((4, 1)) * 3], axis=1)
+
+    batch = next(iter(numpy_shape_dataloader(value=value)))
+
+    res = formatter._flatten_batch(batch)
+
+    assert_that(np.array_equal(res[0], expected_result), equal_to(True))
+
+
+def test_flatten_batch_with_sampling():
+    formatter = ImageFormatter(lambda x: x, sample_size_for_image_properties=3)
+
+    value = np.concatenate([np.ones((2, 2, 1)) * 1,
+                            np.ones((2, 2, 1)) * 2,
+                            np.ones((2, 2, 1)) * 3], axis=2)
+
+    expected_result = np.concatenate([np.ones((3, 1)) * 1,
+                                      np.ones((3, 1)) * 2,
+                                      np.ones((3, 1)) * 3], axis=1)
+
+    batch = next(iter(numpy_shape_dataloader(value=value)))
+
+    res = formatter._flatten_batch(batch)
+
+    assert_that(np.array_equal(res[0], expected_result), equal_to(True))
+
+
+def test_flatten_batch_with_sampling_larger_than_num_pixels():
+    formatter = ImageFormatter(lambda x: x, sample_size_for_image_properties=5)
+
+    value = np.concatenate([np.ones((2, 2, 1)) * 1,
+                            np.ones((2, 2, 1)) * 2,
+                            np.ones((2, 2, 1)) * 3], axis=2)
+
+    expected_result = np.concatenate([np.ones((4, 1)) * 1,
+                                      np.ones((4, 1)) * 2,
+                                      np.ones((4, 1)) * 3], axis=1)
+
+    batch = next(iter(numpy_shape_dataloader(value=value)))
+
+    res = formatter._flatten_batch(batch)
+
+    assert_that(np.array_equal(res[0], expected_result), equal_to(True))
