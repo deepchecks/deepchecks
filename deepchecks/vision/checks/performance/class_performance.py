@@ -20,12 +20,8 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision import TrainTestCheck, Context
 from deepchecks.vision.dataset import TaskType
-<<<<<<< HEAD
 from deepchecks.vision.metrics_utils.metrics import get_scorers_list, metric_results_to_df
-from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
-=======
-from deepchecks.vision.metrics_utils.metrics import get_scorers_list
->>>>>>> 29302fa21f8f00680d33fabfbbdce49cd613f3bc
+
 
 __all__ = ['ClassPerformance']
 
