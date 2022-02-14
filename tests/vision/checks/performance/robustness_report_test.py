@@ -40,12 +40,12 @@ def test_mnist(mnist_dataset_train, trained_mnist):
     # Assert
     assert_that(result.value, has_entries({
         'RandomBrightnessContrast': has_entries({
-            'Precision': has_entries(score=close_to(0.98, 0.01), diff=close_to(0, 0.02)),
-            'Recall': has_entries(score=close_to(0.98, 0.01), diff=close_to(0, 0.02))
+            'Precision': has_entries(score=close_to(0.98, 0.1), diff=close_to(0, 0.1)),
+            'Recall': has_entries(score=close_to(0.98, 0.1), diff=close_to(0, 0.1))
         }),
         'ShiftScaleRotate': has_entries({
-            'Precision': has_entries(score=close_to(0.40, 0.01), diff=close_to(-0.59, 0.02)),
-            'Recall': has_entries(score=close_to(0.38, 0.01), diff=close_to(-0.6, 0.02))
+            'Precision': has_entries(score=close_to(0.40, 0.1), diff=close_to(-0.59, 0.1)),
+            'Recall': has_entries(score=close_to(0.38, 0.1), diff=close_to(-0.6, 0.1))
         }),
     }))
 
@@ -63,7 +63,7 @@ def test_coco(coco_train_visiondata, trained_yolov5_object_detection):
     # Assert
     assert_that(result.value, has_entries({
         'RGBShift': has_entries({
-            'mAP': has_entries(score=close_to(0.5, 0.05), diff=close_to(0, 0.05)),
+            'mAP': has_entries(score=close_to(0.5, 0.1), diff=close_to(0, 0.1)),
         }),
     }))
 
