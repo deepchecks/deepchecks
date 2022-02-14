@@ -57,3 +57,7 @@ grayscale
 RGB
 preprocessors
 PIL
+yolo
+Detections
+xyxy
+pred

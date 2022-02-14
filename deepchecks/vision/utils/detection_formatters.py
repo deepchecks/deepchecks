@@ -28,28 +28,32 @@ class DetectionLabelFormatter(BaseLabelFormatter):
 
     Parameters
     ----------
-    label_formatter : Union[str, Callable]
-        Function or string that specifies the formatting function.
-        If a string, it must be one of the following:
-            - 'xyxy' - x1, y1, x2, y2 represent the upper left and lower right corners of the bounding box.
-            - 'xywh' - x1, y1, w, h represent the upper left corner of the bounding box and its width and height.
-            - 'cxcywh' - cx, cy, w, h represent the center of the bounding box and its width and height.
-            - 'xyxyn' - x1, y1, x2, y2, n represent the upper left and lower right corners of the bounding box,
-                        normalized to the image dimensions.
-            - 'xywhn' - x1, y1, w, h, represent the upper left corner of the bounding box and its width and height,
-                        normalized by the image dimensions.
-            - 'cxcywhn' - (YOLO format) x, y, w, h, represent the center of the bounding box and its width and height,
-                          normalized by the image dimensions.
-        In addition, the label shape should be a list of length N containing tensors of shape (M, 5), where N is the
-        number of samples, M is the number of bounding boxes, and each bounding box is represented by 5 values:
-        (class_id, 4 coordinates in the format specified by the `label_formatter` parameter).
-
-        If a function, it must follow the signature:
+    label_formatter : Callable
         Function that takes in a batch of labels and returns the encoded labels in the following format:
         List of length N containing tensors of shape (M, 5), where N is the number of samples,
-        M is the number of bounding boxes in the sample and each bounding box is represented by 5 values: (class_id,
-        x, y, w, h). x and y are the coordinates (in pixels) of the upper left corner of the bounding box, w and h are
+        M is the number of bounding boxes in the sample and each bounding box is represented by 5 values: **(class_id,
+        x, y, w, h)**. x and y are the coordinates (in pixels) of the upper left corner of the bounding box, w and h are
         the width and height of the bounding box (in pixels) and class_id is the class id.
+
+    Examples
+    --------
+    >>> import torch
+    ... from deepchecks.vision.utils.detection_formatters import DetectionLabelFormatter
+    ...
+    ...
+    ... def yolo_to_coco(input_batch_from_loader):
+    ...     return [torch.stack(
+    ...             [torch.cat((bbox[1:3], bbox[4:] - bbox[1:3], bbox[0]), dim=0)
+    ...                 for bbox in image])
+    ...             for image in input_batch_from_loader]
+    ...
+    ...
+    ... label_formatter = DetectionLabelFormatter(yolo_to_coco)
+
+
+    See Also
+    --------
+    DetectionPredictionFormatter
 
     """
 
@@ -131,9 +135,39 @@ class DetectionPredictionFormatter(BasePredictionFormatter):
         Function that takes in a batch of predictions and returns the encoded labels in the following format:
         List of length N containing tensors of shape (B, 6), where N is the number of images,
         B is the number of bounding boxes detected in the sample and each bounding box is represented by 6 values:
-        [x, y, w, h, confidence, class_id]. x and y are the coordinates (in pixels) of the upper left corner of the
+        **[x, y, w, h, confidence, class_id]**. x and y are the coordinates (in pixels) of the upper left corner of the
         bounding box, w and h are the width and height of the bounding box (in pixels), confidence is the confidence of
         the model and class_id is the class id.
+
+    Examples
+    --------
+    >>> import torch
+    ... import typing as t
+    ... from deepchecks.vision.utils.detection_formatters import DetectionPredictionFormatter
+    ...
+    ...
+    ... def yolo_wrapper(
+    ...     predictions: 'ultralytics.models.common.Detections'  # noqa: F821
+    ... ) -> t.List[torch.Tensor]:
+    ...     return_list = []
+    ...
+    ...     # yolo Detections objects have List[torch.Tensor] xyxy output in .pred
+    ...     for single_image_tensor in predictions.pred:
+    ...         pred_modified = torch.clone(single_image_tensor)
+    ...         pred_modified[:, 2] = pred_modified[:, 2] - pred_modified[:, 0]
+    ...         pred_modified[:, 3] = pred_modified[:, 3] - pred_modified[:, 1]
+    ...         return_list.append(pred_modified)
+    ...
+    ...     return return_list
+    ...
+    ...
+    ... label_formatter = DetectionPredictionFormatter(yolo_wrapper)
+
+
+    See Also
+    --------
+    DetectionLabelFormatter
+
     """
 
     def __init__(self, prediction_formatter: Callable = lambda x: x):
