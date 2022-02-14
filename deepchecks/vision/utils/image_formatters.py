@@ -97,7 +97,7 @@ class ImageFormatter:
             return [(0.299*img[:, 0] + 0.587*img[:, 1] + 0.114 * img[:, 2]).mean() for img in flattened_batch]
 
     def contrast(self,  batch: List[np.array]) -> List[float]:
-        raise NotImplementedError('Not yet implemented') #TODO
+        raise NotImplementedError('Not yet implemented')  # TODO
 
     def normalized_red_mean(self, batch: List[np.array]) -> List[float]:
         """Return the normalized mean of the red channel"""
