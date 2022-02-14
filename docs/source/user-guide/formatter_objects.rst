@@ -40,7 +40,7 @@ The image formatter is responsible for formatting the image data outputted from 
 In order to create an image formatter, you need to initialize an instance of the :class:`image_formatters.ImageFormatter` class,
 passing the transformation function.
 
-Task types formats
+Formats for Task Types
 =====================
 Each CV task type (e.g. classification, object detection, instance segmentation, etc.) has its own data formats.
 For example, in classification tasks a common format for the label is simply the label_id, and for the prediction is a probability vector with the probability for each class. In object detection, there are various formats like the COCO format, PASCAL VOC XML format, YOLO format, and more...
