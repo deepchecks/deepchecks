@@ -63,7 +63,7 @@ def get_description() -> t.Tuple[str, str]:
             f"(filepath: {str(DESCRIPTION_FILE)})"
         )
     else:
-        return "Deepchecks package", DESCRIPTION_FILE.open("r").read()
+        return "Deepchecks package", DESCRIPTION_FILE.open("r", encoding="utf8").read()
 
 
 def read_requirements_file(path):
@@ -122,7 +122,7 @@ setuptools.setup(
     author_email='info@deepchecks.com', 
     version=VERSION,
     description=short_desc,
-    long_description = long_desc,
+    long_description=long_desc,
     keywords = ['Software Development', 'Machine Learning'],
     classifiers = [
         'Intended Audience :: Developers',
