@@ -85,7 +85,7 @@ class ImageFormatter:
         return [x[0] / x[1] for x in self._sizes(batch)]
 
     def area(self, batch: List[np.array]) -> List[int]:
-        """Return list of integers of image area (height multiplied by width)."""
+        """Return list of integers of image areas (height multiplied by width)."""
         return [np.prod(self.get_size(img)) for img in batch]
 
     def brightness(self, batch: List[np.array]) -> List[float]:
@@ -97,18 +97,19 @@ class ImageFormatter:
             return [(0.299*img[:, 0] + 0.587*img[:, 1] + 0.114 * img[:, 2]).mean() for img in flattened_batch]
 
     def contrast(self,  batch: List[np.array]) -> List[float]:
+        """Return constrast of image."""
         raise NotImplementedError('Not yet implemented')  # TODO
 
     def normalized_red_mean(self, batch: List[np.array]) -> List[float]:
-        """Return the normalized mean of the red channel"""
+        """Return the normalized mean of the red channel."""
         return [x[0] for x in self._normalized_rgb_mean(batch)]
 
     def normalized_green_mean(self, batch: List[np.array]) -> List[float]:
-        """Return the normalized mean of the green channel"""
+        """Return the normalized mean of the green channel."""
         return [x[1] for x in self._normalized_rgb_mean(batch)]
 
     def normalized_blue_mean(self, batch: List[np.array]) -> List[float]:
-        """Return the normalized mean of the blue channel"""
+        """Return the normalized mean of the blue channel."""
         return [x[2] for x in self._normalized_rgb_mean(batch)]
 
     def _sizes(self, batch: List[np.array]):
@@ -133,7 +134,6 @@ class ImageFormatter:
             List of 3-dimensional arrays, each dimension is the normalized mean of the color channel. An array is
             returned for each image.
         """
-
         if self._is_grayscale(batch) is True:
             raise DeepchecksValueError('function normalized_color_score cannot run on 1-dimensional image (grayscale)')
         flattened_batch = self._flatten_batch(batch)
