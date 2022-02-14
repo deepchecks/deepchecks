@@ -12,11 +12,12 @@
 # TODO: This file should be completely modified
 # pylint: disable=broad-except,not-callable
 import copy
-from typing import Tuple, Mapping, Optional, Any
+from typing import Tuple, Mapping, Optional, Any, Union
 from collections import OrderedDict
 
-from ignite.metrics import Metric
+import torch
 from torch import nn
+from ignite.metrics import Metric
 
 from deepchecks.vision.utils.validation import validate_model
 from deepchecks.core.check import (
@@ -32,6 +33,7 @@ from deepchecks.core.errors import (
     DeepchecksNotSupportedError, DeepchecksValueError
 )
 from deepchecks.vision.dataset import VisionData, TaskType
+from deepchecks.vision.utils.validation import apply_to_tensor
 
 
 __all__ = [
@@ -63,6 +65,9 @@ class Context:
         See <a href=
         "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
         scikit-learn docs</a>
+    device : Union[str, torch.device], default: None
+        processing unit for use
+
     """
 
     def __init__(self,
@@ -71,7 +76,8 @@ class Context:
                  model: nn.Module = None,
                  model_name: str = '',
                  scorers: Mapping[str, Metric] = None,
-                 scorers_per_class: Mapping[str, Metric] = None
+                 scorers_per_class: Mapping[str, Metric] = None,
+                 device: Union[str, torch.device, None] = None
                  ):
         # Validations
         if train is None and test is None and model is None:
@@ -90,6 +96,7 @@ class Context:
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
+        self._device = torch.device(device) if isinstance(device, str) else device
 
     # Properties
     # Validations note: We know train & test fit each other so all validations can be run only on train
@@ -123,6 +130,11 @@ class Context:
     def model_name(self):
         """Return model name."""
         return self._model_name
+
+    @property
+    def device(self) -> Optional[torch.device]:
+        """Return device specified by the user."""
+        return self._device
 
     def have_test(self):
         """Return whether there is test dataset defined."""
@@ -161,17 +173,20 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
     context_type = Context
 
-    def run(self, dataset, model=None) -> CheckResult:
+    def run(
+        self,
+        dataset: VisionData,
+        model: Optional[nn.Module] = None,
+        device: Union[str, torch.device, None] = None
+    ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        context = self.context_type(  # pylint: disable=not-callable
-            dataset,
-            model=model
-        )
+        context = self.context_type(dataset, model=model, device=device)
 
         self.initialize_run(context)
 
         for batch in dataset.get_data_loader():
+            batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch)
             context.flush_cached_inference()
 
@@ -198,22 +213,26 @@ class TrainTestCheck(TrainTestBaseCheck):
 
     context_type = Context
 
-    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
+    def run(
+        self,
+        train_dataset: VisionData,
+        test_dataset: VisionData,
+        model: Optional[nn.Module] = None,
+        device: Union[str, torch.device, None] = None
+    ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        context = self.context_type(  # pylint: disable=not-callable
-            train_dataset,
-            test_dataset,
-            model=model
-        )
+        context = self.context_type(train_dataset, test_dataset, model=model, device=device)
 
         self.initialize_run(context)
 
         for batch in context.train.get_data_loader():
+            batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch, dataset_name='train')
             context.flush_cached_inference()
 
         for batch in context.test.get_data_loader():
+            batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch, dataset_name='test')
             context.flush_cached_inference()
 
@@ -237,10 +256,14 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
 
     context_type = Context
 
-    def run(self, model) -> CheckResult:
+    def run(
+        self,
+        model: nn.Module,
+        device: Union[str, torch.device, None] = None
+    ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        context = self.context_type(model=model)  # pylint: disable=not-callable
+        context = self.context_type(model=model, device=device)
 
         self.initialize_run(context)
         return finalize_check_result(self.compute(context), self)
@@ -268,7 +291,8 @@ class Suite(BaseSuite):
             test_dataset: Optional[VisionData] = None,
             model: nn.Module = None,
             scorers: Mapping[str, Metric] = None,
-            scorers_per_class: Mapping[str, Metric] = None
+            scorers_per_class: Mapping[str, Metric] = None,
+            device: Union[str, torch.device, None] = None
     ) -> SuiteResult:
         """Run all checks.
 
@@ -287,14 +311,22 @@ class Suite(BaseSuite):
             See <a href=
             "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
             scikit-learn docs</a>
+        device : Union[str, torch.device], default: None
+            processing unit for use
+
         Returns
         -------
         SuiteResult
             All results by all initialized checks
         """
-        context = Context(train_dataset, test_dataset, model,
-                          scorers=scorers,
-                          scorers_per_class=scorers_per_class)
+        context = Context(
+            train_dataset,
+            test_dataset,
+            model,
+            scorers=scorers,
+            scorers_per_class=scorers_per_class,
+            device=device
+        )
 
         # Create instances of SingleDatasetCheck for train and test if train and test exist.
         # This is needed because in the vision package checks update their internal state with update, so it will be

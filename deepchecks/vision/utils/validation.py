@@ -11,11 +11,12 @@
 """Module for validation of the vision module."""
 import typing as t
 
+import torch
 from deepchecks.core import errors
 from deepchecks import vision  # pylint: disable=unused-import, is used in type annotations
 
 
-__all__ = ['validate_model']
+__all__ = ['validate_model', 'apply_to_tensor']
 
 
 def validate_model(dataset: 'vision.VisionData', model: t.Any):
@@ -39,3 +40,22 @@ def validate_model(dataset: 'vision.VisionData', model: t.Any):
         raise errors.ModelValidationError(
             f'Got error when trying to predict with model on dataset: {str(exc)}'
         )
+
+
+T = t.TypeVar('T')
+
+
+def apply_to_tensor(
+    x: T,
+    fn: t.Callable[[torch.Tensor], torch.Tensor]
+) -> T:
+    """Apply provided function to tensor instances recursivly."""
+    if isinstance(x, torch.Tensor):
+        return t.cast(T, fn(x))
+    elif isinstance(x, (str, bytes, bytearray)):
+        return x
+    elif isinstance(x, (list, tuple, set)):
+        return type(x)(apply_to_tensor(it, fn) for it in x)
+    elif isinstance(x, dict):
+        return type(x)((k, apply_to_tensor(v, fn)) for k, v in x.items())
+    return x
