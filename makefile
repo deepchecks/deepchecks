@@ -172,7 +172,6 @@ requirements: $(ENV)
 		-r ./requirements/vision-requirements.txt \
 		-r ./requirements/nlp-requirements.txt
 	@$(PIP) install --no-deps -e .
-	@$(PIP) freeze
 
 
 doc-requirements: $(ENV)
@@ -242,8 +241,7 @@ regenerate-examples: requirements dev-requirements
 	@$(JUPYTER) nbconvert --execute $$(find ./docs/source/examples -name "*.ipynb") --to notebook --inplace
 
 coverage: requirements dev-requirements
-	$(COVERAGE) run -m pytest
-
+	$(COVERAGE) run --source deepchecks/,tests/ --omit ultralytics_yolov5_master/ -m pytest
 
 coveralls: coverage
 	$(COVERALLS) --service=github

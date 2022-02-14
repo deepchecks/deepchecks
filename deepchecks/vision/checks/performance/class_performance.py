@@ -72,23 +72,29 @@ class ClassPerformance(TrainTestCheck):
 
     def compute(self, context: Context) -> CheckResult:
         """Compute the metric result using the ignite metrics compute method and create display."""
-        self._state['train']['n_samples'] = context.train.get_samples_per_class()
-        self._state['test']['n_samples'] = context.test.get_samples_per_class()
-        self._state['classes'] = sorted(context.train.get_samples_per_class().keys())
+        self._state['train']['n_samples'] = context.train.n_of_samples_per_class
+        self._state['test']['n_samples'] = context.test.n_of_samples_per_class
+        self._state['classes'] = sorted(context.train.n_of_samples_per_class.keys())
 
         results = []
+
         for dataset_name in ['train', 'test']:
             n_samples = self._state[dataset_name]['n_samples']
+            computed_metrics = (
+                (name, metric.compute().tolist())
+                for name, metric in self._state[dataset_name]['scorers'].items()
+            )
             results.extend(
                 [dataset_name, class_name, name, class_score, n_samples[class_name]]
-                for name, score in [(name, metric.compute().tolist()) for name, metric in
-                                    self._state[dataset_name]['scorers'].items()]
+                for name, score in computed_metrics
                 # scorer returns numpy array of results with item per class
                 for class_score, class_name in zip(score, self._state['classes'])
             )
 
-        results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples']
-                                  ).sort_values(by=['Class'])
+        results_df = pd.DataFrame(
+            results,
+            columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples']
+        ).sort_values(by=['Class'])
 
         fig = px.histogram(
             results_df,
