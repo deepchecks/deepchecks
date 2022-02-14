@@ -104,7 +104,7 @@ class RobustnessReport(SingleDatasetCheck):
         )
         # TODO: update later the way we handle average metrics
         # Return dict of metric to value
-        base_mean_results: dict = self._calc_mean_metrics(base_results)
+        base_mean_results: dict = self._calc_median_metrics(base_results)
         # Get augmentations
         augmentations = self.augmentations or transforms_handler.get_robustness_augmentations(dataset.data_dimension)
         aug_all_data = {}
@@ -229,12 +229,12 @@ class RobustnessReport(SingleDatasetCheck):
             return (aug_score - base_score) / base_score
 
         diff_dict = {}
-        for metric, score in self._calc_mean_metrics(augmented_metrics).items():
+        for metric, score in self._calc_median_metrics(augmented_metrics).items():
             diff_dict[metric] = {'score': score, 'diff': difference(score, mean_base[metric])}
 
         return diff_dict
 
-    def _calc_mean_metrics(self, metrics_df) -> dict:
+    def _calc_median_metrics(self, metrics_df) -> dict:
         metrics_df = metrics_df[['Metric', 'Value']].groupby(['Metric']).median()
         return metrics_df.to_dict()['Value']
 

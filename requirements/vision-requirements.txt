@@ -2,4 +2,4 @@ pytorch-ignite>=0.4.8
 opencv-python>=4.5.5.62
 albumentations>=1.1.0
 kaleido>=0.2.1
-imgaug
+imgaug>=0.4.0
