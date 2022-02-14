@@ -27,7 +27,7 @@ The Dataset's metadata properties are all optional. Check out the API Reference 
 Dataset API Reference
 --------------------------
 
-.. currentmodule:: deepchecks.base.dataset
+.. currentmodule:: deepchecks.tabular.dataset
 
 .. autosummary::
 
