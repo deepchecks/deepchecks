@@ -37,8 +37,8 @@ class ClassificationLabelFormatter(BaseLabelFormatter):
 
     Examples
     --------
-    Assuming the dataloader return the following label: [class_id, image_sha1].
-    In order to transform the label to the accepted format, we will use the following function:
+   For a given dataloader that returns the following label structure: [class_id, image_sha1].
+    To transform the labels to the accepted format, we will implement the following function:
 
     >>> from deepchecks.vision.utils import ClassificationLabelFormatter
 
