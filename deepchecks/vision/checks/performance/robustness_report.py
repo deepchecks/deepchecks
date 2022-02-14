@@ -30,7 +30,6 @@ from deepchecks.vision.metrics_utils import calculate_metrics, metric_results_to
 from deepchecks.vision.utils.validation import set_seeds
 from deepchecks.vision.metrics_utils import get_scorers_list
 from deepchecks.utils.strings import format_percent
-from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 from deepchecks.vision.utils.image_functions import numpy_to_image_figure, apply_heatmap_image_properties, \
     label_bbox_add_to_figure, ImageInfo
 
