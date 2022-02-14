@@ -17,7 +17,7 @@ import io
 import traceback
 import warnings
 from collections import OrderedDict
-from typing import Any, Callable, List, Union, Dict, Type, ClassVar, Optional
+from typing import Any, Callable, List, Tuple, Union, Dict, Type, ClassVar, Optional
 
 import jsonpickle
 import matplotlib
@@ -179,7 +179,7 @@ class CheckResult:
             return box
         display_html(check_html, raw=True)
 
-    def _display_to_json(self):
+    def _display_to_json(self) -> List[Tuple[str, str]]:
         displays = []
         old_backend = matplotlib.get_backend()
         for item in self.display:
@@ -204,7 +204,7 @@ class CheckResult:
         matplotlib.use(old_backend)
         return displays
 
-    def to_json(self, with_display: bool = True):
+    def to_json(self, with_display: bool = True) -> str:
         """Return check result as json.
 
         Parameters
@@ -277,24 +277,24 @@ class CheckResult:
         """Return default __repr__ function uses value."""
         return f'{self.get_header()}: {self.value}'
 
-    def get_header(self):
+    def get_header(self) -> str:
         """Return header for display. if header was defined return it, else extract name of check class."""
         return self.header or self.check.name()
 
-    def process_conditions(self):
+    def process_conditions(self) -> List[Condition]:
         """Process the conditions results from current result and check."""
         self.conditions_results = self.check.conditions_decision(self)
 
     def have_conditions(self) -> bool:
-        """Return if this check have condition results."""
+        """Return if this check has condition results."""
         return bool(self.conditions_results)
 
     def have_display(self) -> bool:
-        """Return if this check have dsiplay."""
+        """Return if this check has display."""
         return bool(self.display)
 
-    def passed_conditions(self):
-        """Return if this check have not passing condition results."""
+    def passed_conditions(self) -> bool:
+        """Return if this check has no passing condition results."""
         return all((r.is_pass for r in self.conditions_results))
 
     @property
