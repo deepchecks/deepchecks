@@ -81,7 +81,7 @@ class ImageFormatter:
             raise DeepchecksValueError('The data inside the iterable must be in the range [0, 255].')
 
     def aspect_ratio(self, batch: List[np.array]) -> List[float]:
-        """Return list of floats of image height and width ratio."""
+        """Return list of floats of image height to width ratio."""
         return [x[0] / x[1] for x in self._sizes(batch)]
 
     def area(self, batch: List[np.array]) -> List[int]:
@@ -171,8 +171,8 @@ class ImageFormatter:
 
     @staticmethod
     def get_size(img) -> Tuple[int, int]:
-        """Get size of image as (width, height) tuple."""
-        return img.shape[1], img.shape[0]
+        """Get size of image as (height, width) tuple."""
+        return img.shape[0], img.shape[1]
 
     @staticmethod
     def get_dimension(img) -> int:
