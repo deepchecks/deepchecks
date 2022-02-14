@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 import copy
+import pathlib
 
 import pytest
 import torch
@@ -23,6 +24,12 @@ from deepchecks.vision.datasets.detection.coco import (
     load_model as load_yolov5_model, 
     load_dataset as load_coco_dataset
 )
+
+
+CURRENT_DIR = pathlib.Path(__file__).absolute().parent
+
+
+torch.hub.set_dir(str(CURRENT_DIR))
 
 
 @pytest.fixture(scope='session')
