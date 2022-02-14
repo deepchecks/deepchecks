@@ -31,9 +31,26 @@ class ClassificationLabelFormatter(BaseLabelFormatter):
     ----------
     label_formatter : Callable
         Function that takes in a batch of labels and returns the encoded labels in the following format:
-        tensor of shape (N,), When N is the number of samples. Each element is an integer
-        representing the class index. A class index is the position of the class in the second dimension of the vector
-        of predictions returned by the model.
+        tensor of shape (N,), where N is the number of samples. Each element is an integer
+        representing the class index.
+
+    Examples
+    --------
+    For a given dataloader that returns the following label structure: [class_id, image_sha1].
+    To transform the labels to the accepted format, we will implement the following function:
+
+    >>> from deepchecks.vision.utils import ClassificationLabelFormatter
+    ...
+    ...
+    ... def to_accepted_format(input_batch_from_loader):
+    ...     return input_batch_from_loader[:, 0]
+    ...
+    ...
+    ... label_formatter = ClassificationLabelFormatter(to_accepted_format)
+
+    See Also
+    --------
+    ClassificationPredictionFormatter
     """
 
     def __init__(self, label_formatter: Callable):
@@ -103,6 +120,25 @@ class ClassificationPredictionFormatter(BasePredictionFormatter):
         tensor of shape (N, n_classes), When N is the number of samples. Each element is an array of length n_classes
         that represent the probability of each class.
 
+    Examples
+    --------
+    For a given model that returns the logits of the model, without applying softmax.
+    To transform the predictions to the accepted format, we will use the following function:
+
+    >>> import torch.nn.functional as F
+    ... from deepchecks.vision.utils import ClassificationPredictionFormatter
+    ...
+    ...
+    ... def to_accepted_format(predictions_batch_from_model):
+    ...     return F.softmax(predictions_batch_from_model, dim=1)
+    ...
+    ...
+    ... pred_formatter = ClassificationPredictionFormatter(to_accepted_format)
+
+
+    See Also
+    --------
+    ClassificationLabelFormatter
     """
 
     def __init__(self, prediction_formatter: Callable):
