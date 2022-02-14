@@ -45,7 +45,7 @@ def test_no_drift_object_detection(coco_train_visiondata):
         {'Samples per class': has_entries(
             {'Drift score': 0,
              'Method': equal_to('PSI')}
-        ), 'Bounding box area (in pixels) distribution': has_entries(
+        ), 'Bounding box area (in pixels)': has_entries(
             {'Drift score': 0,
              'Method': equal_to('Earth Mover\'s Distance')}
         ), 'Number of bounding boxes per image': has_entries(
@@ -86,7 +86,7 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
         {'Samples per class': has_entries(
             {'Drift score': close_to(0.44, 0.01),
              'Method': equal_to('PSI')}
-        ), 'Bounding box area (in pixels) distribution': has_entries(
+        ), 'Bounding box area (in pixels)': has_entries(
             {'Drift score': close_to(0.012, 0.001),
              'Method': equal_to('Earth Mover\'s Distance')}
         ), 'Number of bounding boxes per image': has_entries(
@@ -109,7 +109,7 @@ def test_with_drift_object_detection_changed_num_samples(coco_train_visiondata, 
         {'Samples per class': has_entries(
             {'Drift score': close_to(0.44, 0.01),
              'Method': equal_to('PSI')}
-        ), 'Bounding box area (in pixels) distribution': has_entries(
+        ), 'Bounding box area (in pixels)': has_entries(
             {'Drift score': close_to(0.012, 0.001),
              'Method': equal_to('Earth Mover\'s Distance')}
         ), 'Number of bounding boxes per image': has_entries(
@@ -132,7 +132,7 @@ def test_with_drift_object_detection_changed_num_bins(coco_train_visiondata, coc
         {'Samples per class': has_entries(
             {'Drift score': close_to(0.44, 0.01),
              'Method': equal_to('PSI')}
-        ), 'Bounding box area (in pixels) distribution': has_entries(
+        ), 'Bounding box area (in pixels)': has_entries(
             {'Drift score': close_to(0.01, 0.001),
              'Method': equal_to('Earth Mover\'s Distance')}
         ), 'Number of bounding boxes per image': has_entries(

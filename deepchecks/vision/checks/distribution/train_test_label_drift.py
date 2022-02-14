@@ -58,7 +58,7 @@ DEFAULT_CLASSIFICATION_LABEL_MEASUREMENTS = [
 
 DEFAULT_OBJECT_DETECTION_LABEL_MEASUREMENTS = [
     {'name': 'Samples per class', 'method': get_samples_per_class_object_detection, 'is_continuous': False},
-    {'name': 'Bounding box area (in pixels) distribution', 'method': get_bbox_area, 'is_continuous': True},
+    {'name': 'Bounding box area (in pixels)', 'method': get_bbox_area, 'is_continuous': True},
     {'name': 'Number of bounding boxes per image', 'method': count_num_bboxes, 'is_continuous': True},
 ]
 
@@ -251,9 +251,9 @@ class TrainTestLabelDrift(TrainTestCheck):
             values_dict[d['name']] = {'Drift score': drift_score, 'Method': method}
             displays.append(display)
 
-        headnote = """<span>
-            The Drift score is a measure for the difference between two distributions, in this check - the test
-            and train distributions of different measurement(s) on the label.
+        headnote = f"""<span>
+            The Drift score is a measure for the difference between two distributions. In this check, drift is measured
+            for the distribution of the following label properties: {[x['name'] for x in self._label_measurements]}.
         </span>"""
 
         displays = [headnote] + displays
