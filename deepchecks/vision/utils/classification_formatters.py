@@ -122,8 +122,8 @@ class ClassificationPredictionFormatter(BasePredictionFormatter):
 
     Examples
     --------
-    Assuming the model return the logits of the model, without applying softmax.
-    In order to transform the predictions to the accepted format, we will use the following function:
+    For a given model that returns the logits of the model, without applying softmax.
+    To transform the predictions to the accepted format, we will use the following function:
 
     >>> import torch.nn.functional as F
     >>> from deepchecks.vision.utils import ClassificationPredictionFormatter
