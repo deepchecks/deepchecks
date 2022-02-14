@@ -9,7 +9,7 @@ The Image, Labels, and Prediction Formatters
 The formatter objects in the deepchecks.vision module were designed to enable access to the data while making the formatting easy and maintainable.
 They are responsible for converting the data (whether these are images, labels, or predictions) to a format deepchecks can work with.
 
-For checks that works on the raw images, see :ref:`Image Formatters <formatters__image_formatter>`.
+For checks that need the image's data, see :ref:`Image Formatters <formatters__image_formatter>`.
 For classification tasks, see :ref:`Classification Formatters <formatters__classification_formatter>`.
 For object detection tasks, see :ref:`Object Detection Formatters <formatters__object_detection_formatter>`.
 
