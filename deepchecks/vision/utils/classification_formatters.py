@@ -31,7 +31,7 @@ class ClassificationLabelFormatter(BaseLabelFormatter):
     ----------
     label_formatter : Callable
         Function that takes in a batch of labels and returns the encoded labels in the following format:
-        tensor of shape (N,), When N is the number of samples. Each element is an integer
+        tensor of shape (N,), where N is the number of samples. Each element is an integer
         representing the class index. A class index is the position of the class in the second dimension of the vector
         of predictions returned by the model.
 
