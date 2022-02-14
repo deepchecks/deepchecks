@@ -11,7 +11,8 @@
 """Module for base vision abstractions."""
 # pylint: disable=broad-except,not-callable
 import copy
-from typing import Tuple, Mapping, Optional, Any, Union, OrderedDict
+from typing import Tuple, Mapping, Optional, Any, Union, Dict
+from collections import OrderedDict
 
 import torch
 from torch import nn
@@ -363,10 +364,10 @@ class Suite(BaseSuite):
         # This is needed because in the vision package checks update their internal state with update, so it will be
         # easier to iterate and keep the check order if we have an instance for each dataset.
         checks: OrderedDict[
-            Union[str, int], 
+            Union[str, int],
             Union[SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck]
         ] = OrderedDict({})
-        
+
         for check_idx, check in list(self.checks.items()):
             if isinstance(check, (TrainTestCheck, ModelOnlyCheck)):
                 checks[check_idx] = copy.deepcopy(check)
@@ -379,7 +380,7 @@ class Suite(BaseSuite):
         for check in checks.values():
             if isinstance(check, SingleDatasetCheck):
                 check.initialize_run(
-                    context, 
+                    context,
                     dataset_kind=None # TODO: when this method should be called?
                 )
             else:
@@ -389,7 +390,7 @@ class Suite(BaseSuite):
             Union[str, int],
             Union[CheckResult, CheckFailure]
         ] = OrderedDict({})
-        
+
         run_train_test_checks = train_dataset is not None and test_dataset is not None
 
         if train_dataset is not None:
@@ -400,7 +401,7 @@ class Suite(BaseSuite):
                 run_train_test_checks=run_train_test_checks,
                 results=results
             )
-        
+
         if test_dataset is not None:
             self._validation_loop(
                 checks=checks,
@@ -435,21 +436,21 @@ class Suite(BaseSuite):
                 results[check_idx] = finalize_check_result(result, checks[check_idx])
 
         return SuiteResult(self.name, list(results.values()))
-    
+
     def _training_loop(
-        self, 
-        checks: OrderedDict[
-            Union[str, int], 
+        self,
+        checks: Dict[
+            Union[str, int],
             Union[SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck]
-        ], 
-        data_loader: DataLoader, 
+        ],
+        data_loader: DataLoader,
         context: Context,
         run_train_test_checks: bool,
-        results: OrderedDict[Union[str, int], Union[CheckResult, CheckFailure]]
+        results: Dict[Union[str, int], Union[CheckResult, CheckFailure]]
     ):
         n_batches = len(data_loader)
         progress_bar = ProgressBar(self.name + ' - Train', n_batches)
-        
+
         for batch_id, batch in enumerate(data_loader):
             progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
             batch = apply_to_tensor(batch, lambda it: it.to(context.device))
@@ -471,24 +472,24 @@ class Suite(BaseSuite):
                     results[check_idx] = CheckFailure(check, exp)
             progress_bar.inc_progress()
             context.flush_cached_inference()
-        
+
         progress_bar.close()
 
     def _validation_loop(
-        self, 
-        checks: OrderedDict[
+        self,
+        checks: Dict[
             Union[str, int],
             Union[SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck]
         ],
-        data_loader: DataLoader, 
+        data_loader: DataLoader,
         context: Context,
         run_train_test_checks: bool,
-        results: OrderedDict[Union[str, int], Union[CheckResult, CheckFailure]]
+        results: Dict[Union[str, int], Union[CheckResult, CheckFailure]]
     ):
         # Loop over test batches
         n_batches = len(data_loader)
         progress_bar = ProgressBar(self.name + ' - Test', n_batches)
-        
+
         for batch_id, batch in enumerate(data_loader):
             progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
             batch = apply_to_tensor(batch, lambda it: it.to(context.device))
@@ -513,7 +514,7 @@ class Suite(BaseSuite):
                         results[check_idx] = CheckFailure(check, exp)
             progress_bar.inc_progress()
             context.flush_cached_inference()
-        
+
         progress_bar.close()
 
     @classmethod
