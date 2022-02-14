@@ -56,13 +56,11 @@ class RobustnessReport(SingleDatasetCheck):
     """
 
     def __init__(self,
-                 prediction_formatter: BasePredictionFormatter,
                  alternative_metrics: Optional[List[Metric]] = None,
                  augmentations: List = None,
                  random_state: int = 42):
         super().__init__()
         self.alternative_metrics = alternative_metrics
-        self.prediction_formatter = prediction_formatter
         self.random_state = random_state
         self.augmentations = augmentations
         self._state = None
@@ -80,7 +78,7 @@ class RobustnessReport(SingleDatasetCheck):
         images = batch[0]
         label = dataset.label_transformer(batch[1])
         # Using context.infer to get cached prediction if exists
-        prediction = self.prediction_formatter(context.infer(images))
+        prediction = context.prediction_formatter(context.infer(images))
         for _, metric in self._state['metrics'].items():
             metric.update((prediction, label))
 
@@ -115,7 +113,7 @@ class RobustnessReport(SingleDatasetCheck):
             metrics = self._state['metrics']
             # Return dataframe of (Class, Metric, Value)
             aug_results = metric_results_to_df(
-                calculate_metrics(metrics, aug_dataset, model, self.prediction_formatter), aug_dataset
+                calculate_metrics(metrics, aug_dataset, model, context.prediction_formatter), aug_dataset
             )
             # Return dict of {metric: {'score': mean score, 'diff': diff from base}, ... }
             metrics_diff_dict = self._calc_performance_diff(base_mean_results, aug_results)

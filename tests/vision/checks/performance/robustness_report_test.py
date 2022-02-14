@@ -28,15 +28,16 @@ from tests.vision.vision_conftest import *
 
 
 def test_mnist(mnist_dataset_train, trained_mnist):
-    # Act
+    # Arrange
     # Create augmentations without randomness to get fixed metrics results
     augmentations = [
         albumentations.RandomBrightnessContrast(brightness_limit=(0.2, 0.2), contrast_limit=(0.2, 0.2), p=1.0),
         albumentations.ShiftScaleRotate(shift_limit=(0.1, 0.1), scale_limit=(0.1, 0.1), rotate_limit=(10, 10), p=1.0),
     ]
-    check = RobustnessReport(prediction_formatter=ClassificationPredictionFormatter(nn.Softmax(dim=1)),
-                             augmentations=augmentations)
-    result = check.run(mnist_dataset_train, trained_mnist)
+    check = RobustnessReport(augmentations=augmentations)
+    # Act
+    result = check.run(mnist_dataset_train, trained_mnist,
+                       prediction_formatter=ClassificationPredictionFormatter(nn.Softmax(dim=1)))
     # Assert
     assert_that(result.value, has_entries({
         'RandomBrightnessContrast': has_entries({
@@ -57,9 +58,9 @@ def test_coco(coco_train_visiondata, trained_yolov5_object_detection):
         albumentations.RGBShift(r_shift_limit=(15, 15), g_shift_limit=(15, 15), b_shift_limit=(15, 15), p=1.0)
     ]
     pred_formatter = DetectionPredictionFormatter(yolo_prediction_formatter)
-    check = RobustnessReport(prediction_formatter=pred_formatter, augmentations=augmentations)
+    check = RobustnessReport(augmentations=augmentations)
     # Act
-    result = check.run(coco_train_visiondata, trained_yolov5_object_detection)
+    result = check.run(coco_train_visiondata, trained_yolov5_object_detection, prediction_formatter=pred_formatter)
     # Assert
     assert_that(result.value, has_entries({
         'RGBShift': has_entries({
@@ -83,10 +84,11 @@ def test_dataset_not_augmenting_labels(coco_train_visiondata, trained_yolov5_obj
     vision_data.add_augmentation(albumentations.ShiftScaleRotate(p=1))
     # Act & Assert
     pred_formatter = DetectionPredictionFormatter(yolo_prediction_formatter)
-    check = RobustnessReport(prediction_formatter=pred_formatter)
+    check = RobustnessReport()
     msg = r'Found that labels have not been affected by adding augmentation to field "transforms". This might be ' \
           r'a problem with the implementation of `Dataset.__getitem__`. label value: .*'
-    assert_that(calling(check.run).with_args(vision_data, trained_yolov5_object_detection),
+    assert_that(calling(check.run).with_args(vision_data, trained_yolov5_object_detection,
+                                             prediction_formatter=pred_formatter),
                 raises(DeepchecksValueError, msg))
 
 
@@ -102,19 +104,21 @@ def test_dataset_not_augmenting_data(coco_train_visiondata, trained_yolov5_objec
 
     # Act & Assert
     pred_formatter = DetectionPredictionFormatter(yolo_prediction_formatter)
-    check = RobustnessReport(prediction_formatter=pred_formatter)
+    check = RobustnessReport()
     msg = r'Found that images have not been affected by adding augmentation to field "transforms". This might be a ' \
           r'problem with the implementation of Dataset.__getitem__'
-    assert_that(calling(check.run).with_args(vision_data, trained_yolov5_object_detection),
+    assert_that(calling(check.run).with_args(vision_data, trained_yolov5_object_detection,
+                                             prediction_formatter=pred_formatter),
                 raises(DeepchecksValueError, msg))
 
 
 def test_condition_degradation_not_greater_than_pass(mnist_dataset_train, trained_mnist):
     # Arrange
-    check = RobustnessReport(prediction_formatter=ClassificationPredictionFormatter(nn.Softmax(dim=1)))
+    check = RobustnessReport()
     check.add_condition_degradation_not_greater_than(0.4)
     # Act
-    result = check.run(mnist_dataset_train, trained_mnist)
+    result = check.run(mnist_dataset_train, trained_mnist,
+                       prediction_formatter=ClassificationPredictionFormatter(nn.Softmax(dim=1)))
     # Assert
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=True,
@@ -124,10 +128,11 @@ def test_condition_degradation_not_greater_than_pass(mnist_dataset_train, traine
 
 def test_condition_degradation_not_greater_than_fail(mnist_dataset_train, trained_mnist):
     # Arrange
-    check = RobustnessReport(prediction_formatter=ClassificationPredictionFormatter(nn.Softmax(dim=1)))
+    check = RobustnessReport()
     check.add_condition_degradation_not_greater_than(0.01)
     # Act
-    result = check.run(mnist_dataset_train, trained_mnist)
+    result = check.run(mnist_dataset_train, trained_mnist,
+                       prediction_formatter=ClassificationPredictionFormatter(nn.Softmax(dim=1)))
     # Assert
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=False,
