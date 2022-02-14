@@ -377,11 +377,11 @@ class Suite(BaseSuite):
                 if test_dataset is not None:
                     checks[str(check_idx) + ' - Test'] = copy.deepcopy(check)
 
-        for check in checks.values():
+        for idx, check in checks.items():
             if isinstance(check, SingleDatasetCheck):
                 check.initialize_run(
                     context,
-                    dataset_kind=None # TODO: when this method should be called?
+                    dataset_kind=DatasetKind.TEST if str(idx).endswith("Test") else DatasetKind.TRAIN
                 )
             else:
                 check.initialize_run(context)
@@ -417,7 +417,11 @@ class Suite(BaseSuite):
                     if isinstance(check, SingleDatasetCheck):
                         results[check_idx] = check.compute(
                             context,
-                            dataset_kind=None # TODO: when this method should be called?
+                            dataset_kind=(
+                                DatasetKind.TEST 
+                                if str(check_idx).endswith("Test") 
+                                else DatasetKind.TRAIN
+                            )
                         )
                     else:
                         results[check_idx] = check.compute(context)
@@ -505,7 +509,7 @@ class Suite(BaseSuite):
                                 msg = 'Check is irrelevant if not supplied with both train and test datasets'
                                 results[check_idx] = Suite._get_unsupported_failure(check, msg)
                         elif isinstance(check, SingleDatasetCheck) and str(check_idx).endswith(' - Test'):
-                            check.update(context, batch, dataset_kind=DatasetKind. TEST)
+                            check.update(context, batch, dataset_kind=DatasetKind.TEST)
                         elif isinstance(check, ModelOnlyCheck):
                             pass
                         else:
