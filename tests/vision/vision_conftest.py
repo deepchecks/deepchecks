@@ -8,7 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+import pathlib
+
 import pytest
+import torch
 from torch.utils.data import DataLoader, Dataset
 
 from deepchecks.vision.datasets.detection.coco import (
@@ -20,6 +23,10 @@ from deepchecks.vision.datasets.classification.mnist import (
     load_dataset as load_mnist_dataset
 )
 from tests.vision.utils.mnist_imgaug import mnist_dataset_imgaug
+
+# Fix bug with torch.hub path on windows
+CURRENT_DIR = pathlib.Path(__file__).absolute().parent
+torch.hub.set_dir(str(CURRENT_DIR))
 
 
 @pytest.fixture(scope='session')
