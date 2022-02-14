@@ -21,15 +21,14 @@ from torchvision.datasets import MNIST
 from deepchecks.vision import VisionData
 from deepchecks.vision.utils import DetectionLabelFormatter, ClassificationLabelFormatter
 from deepchecks.vision.datasets.detection.coco import (
-    load_model as load_yolov5_model, 
+    load_model as load_yolov5_model,
     load_dataset as load_coco_dataset
 )
 
 
-CURRENT_DIR = pathlib.Path(__file__).absolute().parent
+PROJECT_DIR = pathlib.Path(__file__).absolute().parent.parent.parent
 
-
-torch.hub.set_dir(str(CURRENT_DIR))
+torch.hub.set_dir(str(PROJECT_DIR))
 
 
 @pytest.fixture(scope='session')
