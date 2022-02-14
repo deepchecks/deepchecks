@@ -12,14 +12,22 @@
 import random
 import typing as t
 
+<<<<<<< HEAD
 import numpy as np
 import torch
 
+=======
+import torch
+>>>>>>> 1f9f6b47cb04c2c1db322ff86b864e897cb60f05
 from deepchecks.core import errors
 from deepchecks import vision  # pylint: disable=unused-import, is used in type annotations
 
 
+<<<<<<< HEAD
 __all__ = ['validate_model', 'set_seeds']
+=======
+__all__ = ['validate_model', 'apply_to_tensor']
+>>>>>>> 1f9f6b47cb04c2c1db322ff86b864e897cb60f05
 
 
 def validate_model(dataset: 'vision.VisionData', model: t.Any):
@@ -45,6 +53,7 @@ def validate_model(dataset: 'vision.VisionData', model: t.Any):
         )
 
 
+<<<<<<< HEAD
 def set_seeds(seed: int):
     """Set seeds for reproducibility.
 
@@ -61,3 +70,22 @@ def set_seeds(seed: int):
     torch.manual_seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
+=======
+T = t.TypeVar('T')
+
+
+def apply_to_tensor(
+    x: T,
+    fn: t.Callable[[torch.Tensor], torch.Tensor]
+) -> T:
+    """Apply provided function to tensor instances recursivly."""
+    if isinstance(x, torch.Tensor):
+        return t.cast(T, fn(x))
+    elif isinstance(x, (str, bytes, bytearray)):
+        return x
+    elif isinstance(x, (list, tuple, set)):
+        return type(x)(apply_to_tensor(it, fn) for it in x)
+    elif isinstance(x, dict):
+        return type(x)((k, apply_to_tensor(v, fn)) for k, v in x.items())
+    return x
+>>>>>>> 1f9f6b47cb04c2c1db322ff86b864e897cb60f05

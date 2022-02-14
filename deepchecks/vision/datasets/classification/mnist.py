@@ -22,16 +22,15 @@ from torchvision import datasets
 from torch import nn
 from torch.utils.data import DataLoader
 from typing_extensions import Literal
-
-
-from deepchecks.vision.utils.classification_formatters import ClassificationLabelFormatter
 from deepchecks.vision.utils.transformations import un_normalize_batch
 from deepchecks.vision.utils import ImageFormatter
+from deepchecks.vision.utils.classification_formatters import ClassificationLabelFormatter
 from deepchecks.vision.dataset import VisionData
 from . import MODELS_DIR
 
 
 __all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST', 'mnist_image_formatter']
+
 
 LOGGER = logging.getLogger(__name__)
 MODULE_DIR = pathlib.Path(__file__).absolute().parent

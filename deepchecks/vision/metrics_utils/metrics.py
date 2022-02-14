@@ -15,13 +15,15 @@ import pandas as pd
 import torch
 from ignite.engine import Engine
 from ignite.metrics import Precision, Recall, Metric
-
 from torch import nn
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
-from deepchecks.vision.dataset import TaskType, VisionData
+
+from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
+from deepchecks.vision import VisionData
+from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
+
 
 __all__ = [
     'get_scorers_list',
@@ -30,10 +32,10 @@ __all__ = [
 ]
 
 
-def get_default_classification_scorers(average=False):
+def get_default_classification_scorers():
     return {
-        'Precision': Precision(average=average),
-        'Recall': Recall(average=average)
+        'Precision': Precision(),
+        'Recall': Recall()
     }
 
 
@@ -45,8 +47,7 @@ def get_default_object_detection_scorers():
 
 def get_scorers_list(
         dataset: VisionData,
-        alternative_scorers: t.List[Metric] = None,
-        class_average: bool = False
+        alternative_scorers: t.List[Metric] = None
 ) -> t.Dict[str, Metric]:
     """Get scorers list according to model object and label column.
 
@@ -72,7 +73,7 @@ def get_scorers_list(
                 raise DeepchecksValueError('alternative_scorers should contain metrics of type ignite.Metric')
         scorers = alternative_scorers
     elif task_type == TaskType.CLASSIFICATION:
-        scorers = get_default_classification_scorers(average=class_average)
+        scorers = get_default_classification_scorers()
     elif task_type == TaskType.OBJECT_DETECTION:
         scorers = get_default_object_detection_scorers()
     elif task_type == TaskType.SEMANTIC_SEGMENTATION:
@@ -83,14 +84,17 @@ def get_scorers_list(
     return scorers
 
 
-def calculate_metrics(metrics: t.Union[t.Dict, t.List[Metric]], dataset: VisionData, model: nn.Module,
-                      prediction_formatter: BasePredictionFormatter) \
-        -> t.Dict:
+def calculate_metrics(
+    metrics: t.Union[t.Dict, t.List[Metric]],
+    dataset: VisionData, model: nn.Module,
+    prediction_formatter: BasePredictionFormatter,
+    device: t.Union[str, torch.device, None] = None
+) -> t.Dict[str, float]:
     """Calculate a list of ignite metrics on a given model and dataset.
 
     Parameters
     ----------
-    metrics : t.List[Metric]
+    metrics : List[Metric]
         List of ignite metrics to calculate
     dataset : VisionData
         Dataset object
@@ -99,6 +103,7 @@ def calculate_metrics(metrics: t.Union[t.Dict, t.List[Metric]], dataset: VisionD
         Model object
     prediction_formatter : Union[ClassificationPredictionFormatter, DetectionPredictionFormatter]
         Function to convert the model output to the appropriate format for the label type
+    device : Union[str, torch.device, None]
 
     Returns
     -------
@@ -110,6 +115,11 @@ def calculate_metrics(metrics: t.Union[t.Dict, t.List[Metric]], dataset: VisionD
         images = batch[0]
         label = dataset.label_transformer(batch[1])
 
+        if isinstance(images, torch.Tensor):
+            images = images.to(device)
+        if isinstance(label, torch.Tensor):
+            label = label.to(device)
+
         predictions = model.forward(images)
 
         if prediction_formatter:
@@ -119,7 +129,7 @@ def calculate_metrics(metrics: t.Union[t.Dict, t.List[Metric]], dataset: VisionD
 
     # Validate that
     data_batch = process_function(None, next(iter(dataset)))[0]
-    prediction_formatter.validate_prediction(data_batch, dataset.get_num_classes())
+    prediction_formatter.validate_prediction(data_batch, dataset.n_of_classes)
 
     engine = Engine(process_function)
 

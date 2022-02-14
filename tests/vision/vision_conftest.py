@@ -22,11 +22,16 @@ from deepchecks.vision.datasets.classification.mnist import (
     load_model as load_mnist_net_model,
     load_dataset as load_mnist_dataset
 )
-from tests.vision.utils.mnist_imgaug import mnist_dataset_imgaug
+from tests.vision.utils_tests.mnist_imgaug import mnist_dataset_imgaug
 
 # Fix bug with torch.hub path on windows
 CURRENT_DIR = pathlib.Path(__file__).absolute().parent
 torch.hub.set_dir(str(CURRENT_DIR))
+
+
+PROJECT_DIR = pathlib.Path(__file__).absolute().parent.parent.parent
+
+torch.hub.set_dir(str(PROJECT_DIR))
 
 
 @pytest.fixture(scope='session')

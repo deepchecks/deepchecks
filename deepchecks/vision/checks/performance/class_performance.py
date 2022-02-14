@@ -66,10 +66,6 @@ class ClassPerformance(TrainTestCheck):
 
     def compute(self, context: Context) -> CheckResult:
         """Compute the metric result using the ignite metrics compute method and create display."""
-        self._state[DatasetKind.TRAIN]['n_samples'] = context.train.get_samples_per_class()
-        self._state[DatasetKind.TEST]['n_samples'] = context.test.get_samples_per_class()
-        self._state['classes'] = sorted(context.train.get_samples_per_class().keys())
-
         results = []
         for dataset_kind in [DatasetKind.TRAIN, DatasetKind.TEST]:
             dataset = context.get_data_by_kind(dataset_kind)
@@ -77,7 +73,7 @@ class ClassPerformance(TrainTestCheck):
                 {k: m.compute() for k, m in self._state[dataset_kind]['scorers'].items()}, dataset
             )
             metrics_df['Dataset'] = dataset_kind.value
-            metrics_df['Number of samples'] = metrics_df['Class'].map(dataset.get_samples_per_class().get)
+            metrics_df['Number of samples'] = metrics_df['Class'].map(dataset.n_of_samples_per_class.get)
             results.append(metrics_df)
 
         results_df = pd.concat(results)

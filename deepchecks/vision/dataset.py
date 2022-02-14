@@ -12,7 +12,7 @@
 from collections import Counter
 from copy import copy
 from enum import Enum
-from typing import Optional, List, Iterator
+from typing import Optional, Union, List, Iterator, Dict, Any
 
 import numpy as np
 import torch
@@ -75,8 +75,18 @@ class VisionData:
     or else the callable label_transformer should be able to transform the labels to the desired format.
     """
 
-    _data: DataLoader = None
-    label_transformer: BaseLabelFormatter = None
+    label_transformer: BaseLabelFormatter
+    image_transformer: ImageFormatter
+    task_type: Optional[TaskType]
+    sample_iteration_limit: int
+    _data: DataLoader
+    _num_classes: Optional[int]
+    _samples_per_class: Optional[Dict[Any, int]]
+    _label_valid: Optional[str]
+    _sample_size: int
+    _random_seed: int
+    _sample_labels: Optional[Any]
+    _sample_data_loader: Optional[DataLoader]
 
     def __init__(self,
                  data_loader: DataLoader,
@@ -102,6 +112,23 @@ class VisionData:
 
         self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
         self.transform_field = transform_field
+
+        if image_transformer is None:
+            self.image_transformer = ImageFormatter(lambda x: x)
+        else:
+            self.image_transformer = image_transformer
+
+        if isinstance(self.label_transformer, ClassificationLabelFormatter):
+            self.task_type = TaskType.CLASSIFICATION
+        elif isinstance(self.label_transformer, DetectionLabelFormatter):
+            self.task_type = TaskType.OBJECT_DETECTION
+        else:
+            self.task_type = None
+            logger.warning('Unknown label transformer type was provided. Only integrity and data checks will run.'
+                           'The supported label transformer types are: '
+                           '[ClassificationLabelFormatter, DetectionLabelFormatter]')
+
+        self._num_classes = num_classes  # if not initialized, then initialized later in n_of_classes
         self._samples_per_class = None
         if self.label_transformer:
             # will contain error message if not valid
@@ -114,15 +141,15 @@ class VisionData:
         self._sample_size = sample_size
         self._random_seed = random_seed
 
-    def get_num_classes(self):
+    @property
+    def n_of_classes(self) -> int:
         """Return the number of classes in the dataset."""
         if self._num_classes is None:
-            samples_per_class = self.get_samples_per_class()
-            num_classes = len(samples_per_class.keys())
-            self._num_classes = num_classes
+            self._num_classes = len(self.n_of_samples_per_class.keys())
         return self._num_classes
 
-    def get_samples_per_class(self) -> Counter:
+    @property
+    def n_of_samples_per_class(self) -> Dict[Any, int]:
         """Return a dictionary containing the number of samples per class."""
         if self._samples_per_class is None:
             if self.task_type in [TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION]:
@@ -232,10 +259,7 @@ class VisionData:
         ----------
         other : VisionData
             Expected to be Dataset type. dataset to compare
-        Returns
-        -------
-        Hashable
-            name of the label column
+
         Raises
         ------
         DeepchecksValueError
@@ -249,12 +273,19 @@ class VisionData:
         if self.task_type != other.task_type:
             raise DeepchecksValueError('Datasets required to have same label type')
 
+        # TODO:
+        # does it have a sense at all?
+        # we compare and verify only the first labels
+        # it does not mean that all other labels will be correct
+
         if self.task_type == TaskType.OBJECT_DETECTION:
             # number of objects can be different
             _, *label_shape = self.get_label_shape()
             _, *other_label_shape = other.get_label_shape()
             if label_shape != other_label_shape:
                 raise DeepchecksValueError('Datasets required to share the same label shape')
+        elif self.task_type == TaskType.SEMANTIC_SEGMENTATION:
+            raise NotImplementedError()  # TODO
         else:
             if self.get_label_shape() != other.get_label_shape():
                 raise DeepchecksValueError('Datasets required to share the same label shape')
@@ -288,15 +319,17 @@ class FixedSampler(Sampler):
 
     def __init__(self, length: int, seed: int = 0, sample_size: int = None) -> None:
         super().__init__(None)
+        assert length >= 0
         self._length = length
         self._seed = seed
-        if sample_size:
+        if sample_size is not None:
+            assert sample_size >= 0
             sample_size = min(sample_size, length)
             np.random.seed(self._seed)
             self._indices = np.random.choice(self._length, size=(sample_size,), replace=False)
 
     def __iter__(self) -> Iterator[int]:
-        if self._indices:
+        if self._indices is not None:
             for i in self._indices:
                 yield i
         else:
@@ -304,7 +337,11 @@ class FixedSampler(Sampler):
                 yield i
 
     def __len__(self) -> int:
-        return len(self._indices) if self._indices else self._length
+        return (
+            len(self._indices)
+            if self._indices is not None
+            else self._length
+        )
 
 
 def create_sample_loader(data_loader: DataLoader, sample_size: int, seed: int):
@@ -319,14 +356,12 @@ def create_sample_loader(data_loader: DataLoader, sample_size: int, seed: int):
         'persistent_workers': data_loader.persistent_workers
     }
 
-    generator = lambda: torch.Generator().manual_seed(seed)
-
     dataset = data_loader.dataset
     if isinstance(dataset, torch.utils.data.IterableDataset):
         raise DeepchecksValueError('Unable to create sample for IterableDataset')
     else:
         length = len(dataset)
-        return DataLoader(dataset, generator=generator(),
+        return DataLoader(dataset,
                           sampler=FixedSampler(length, seed, sample_size), **common_props_to_copy)
 
 
