@@ -1,28 +1,44 @@
 Examples
 ========
 
-How-to Guides
+General
 ~~~~~~~~~~~~~
 
-- :doc:`guides/quickstart_in_5_minutes`
-- :doc:`guides/create_a_custom_suite`
-- :doc:`guides/add_a_custom_check`
-- :doc:`guides/configure_check_conditions`
-- :doc:`guides/save_suite_result_as_html`
-- :doc:`guides/export_outputs_to_json`
+
+- :doc:`general/create_a_custom_suite`
+- :doc:`general/configure_check_conditions`
+- :doc:`general/save_suite_result_as_html`
+- :doc:`general/export_outputs_to_json`
 
 .. toctree::
     :maxdepth: 3
     :titlesonly:
     :hidden:
-    :caption: How-to Guides
+    :caption: General Guides
+
+    general/create_a_custom_suite
+    general/configure_check_conditions
+    general/save_suite_result_as_html
+    general/export_outputs_to_json
+
+Tabular
+~~~~~~~
+
+How-to Guides
+-------------
+
+- :doc:`guides/quickstart_in_5_minutes`
+- :doc:`guides/add_a_custom_check`
+
+.. toctree::
+    :maxdepth: 3
+    :titlesonly:
+    :hidden:
+    :caption: Tabular How-to Guides
 
     guides/quickstart_in_5_minutes
-    guides/create_a_custom_suite
     guides/add_a_custom_check
-    guides/configure_check_conditions
-    guides/save_suite_result_as_html
-    guides/export_outputs_to_json
+
 
 Use Cases
 ~~~~~~~~~
