@@ -1,8 +1,8 @@
 .. _vision_user_guide:
 
-=======================
-Vision User Guide
-=======================
+=======
+Vision
+=======
 
 .. toctree::
     :maxdepth: 2

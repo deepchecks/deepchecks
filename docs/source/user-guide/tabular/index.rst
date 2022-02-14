@@ -1,8 +1,8 @@
 .. _tabular_user_guide:
 
-=======================
-Tabular User Guide
-=======================
+=========
+Tabular
+=========
 
 .. toctree::
     :maxdepth: 2
