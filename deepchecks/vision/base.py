@@ -363,7 +363,7 @@ class Suite(BaseSuite):
         # Create instances of SingleDatasetCheck for train and test if train and test exist.
         # This is needed because in the vision package checks update their internal state with update, so it will be
         # easier to iterate and keep the check order if we have an instance for each dataset.
-        checks: OrderedDict[
+        checks: Dict[
             Union[str, int],
             Union[SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck]
         ] = OrderedDict({})
@@ -381,12 +381,16 @@ class Suite(BaseSuite):
             if isinstance(check, SingleDatasetCheck):
                 check.initialize_run(
                     context,
-                    dataset_kind=DatasetKind.TEST if str(idx).endswith("Test") else DatasetKind.TRAIN
+                    dataset_kind=(
+                        DatasetKind.TEST
+                        if str(idx).endswith('Test')
+                        else DatasetKind.TRAIN
+                    )
                 )
             else:
                 check.initialize_run(context)
 
-        results: OrderedDict[
+        results: Dict[
             Union[str, int],
             Union[CheckResult, CheckFailure]
         ] = OrderedDict({})
@@ -418,8 +422,8 @@ class Suite(BaseSuite):
                         results[check_idx] = check.compute(
                             context,
                             dataset_kind=(
-                                DatasetKind.TEST 
-                                if str(check_idx).endswith("Test") 
+                                DatasetKind.TEST
+                                if str(check_idx).endswith('Test')
                                 else DatasetKind.TRAIN
                             )
                         )
