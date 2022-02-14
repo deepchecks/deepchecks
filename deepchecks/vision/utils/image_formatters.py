@@ -84,7 +84,7 @@ class ImageFormatter:
         """Return list of floats of image height and width ratio."""
         return [x[0] / x[1] for x in self._sizes(batch)]
 
-    def areas(self, batch: List[np.array]) -> List[float]:
+    def area(self, batch: List[np.array]) -> List[int]:
         """Return list of integers of image area (height multiplied by width)."""
         return [np.prod(self.get_size(img)) for img in batch]
 
