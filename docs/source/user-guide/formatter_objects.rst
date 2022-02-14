@@ -61,7 +61,7 @@ In classification tasks, it is required to implement the following formatters:
 
 .. _formatters__object_detection_formatter:
 
-Object detection format
+Object Detection Format
 -------------------------
 
 Accepted Format
