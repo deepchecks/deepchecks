@@ -66,7 +66,7 @@ Object Detection Format
 
 Accepted Format
 ~~~~~~~~~~~~~~~~
-In object detection tasks, it is required to implement the following formatters:
+For object detection tasks, it is required to implement the following formatters:
 
 - **Label** - should implement an instance of :class:`detection_formatters.DetectionLabelFormatter`.
 
