@@ -36,7 +36,7 @@ In order to initialize a new formatter, a transformation function between the in
 
 The Image Formatter
 =====================
-The image formatter is responsible for formatting the image data outputted from the data loader to the required format for check displays.
+The image formatter is responsible for transforming the image data that is received as an output from the data loader to the required format for check's display (e.g. unnormalize the image).
 In order to create an image formatter, you need to initialize an instance of the :class:`image_formatters.ImageFormatter` class,
 passing the transformation function.
 
