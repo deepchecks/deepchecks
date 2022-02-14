@@ -34,7 +34,7 @@ class ImageFormatter:
     sample_size_for_image_properties: int, optional. default: 1000
         sampling size used for image property estimation.
         If defined, samples only N pixels (uniformly) out of image and calculates property on those.
-        If None, calculates on whole image.
+        If None, calculates on the whole image.
     """
 
     def __init__(self, image_formatter: Optional[Callable] = None,
