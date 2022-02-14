@@ -3,7 +3,7 @@
 .. currentmodule:: deepchecks.vision.utils
 
 =============================================
-The Image, Labels, and Prediction formatters
+The Image, Labels, and Prediction Formatters
 =============================================
 
 The formatter objects in the deepchecks.vision module were designed to enable access to the data while making the formatting easy and maintainable.
