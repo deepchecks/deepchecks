@@ -117,7 +117,7 @@ def _generate_check_docs_link_html(check):
     # understand how link is formatted:
     #
     # - deepchecks.tabular.checks.integrity.new_category.CategoryMismatchTrainTest
-    # - docs.deepchecks.com/en/{version}/examples/checks/tabular/integrity/category_mismatch_train_test.html # noqa: E501 # pylint: disable=line-too-long
+    # - docs.deepchecks.com/en/{version}/examples/tabular/checks/integrity/category_mismatch_train_test.html # noqa: E501 # pylint: disable=line-too-long
 
     module_path = module_path.split('.')
     check_name = to_snake_case(type(check).__name__).lower()
