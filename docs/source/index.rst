@@ -47,7 +47,7 @@ problems, and/or validate your model and evaluate it.
    :alt: When To Validate - ML Pipeline Schema
    :align: center
 
-See the :doc:`When Should You Use </user-guide/when_should_you_use>` Section in the User Guide for an elaborate explanation of the typical scenarios.
+See the :doc:`When Should You Use </user-guide/concepts/when_should_you_use>` Section in the User Guide for an elaborate explanation of the typical scenarios.
 
 
 
@@ -55,7 +55,7 @@ How Does it Work?
 ===================
 
 Suites are composed of checks. Each check contains outputs to display in a notebook and/or conditions with a pass/fail/warning output.
-For more information head over to our :doc:`/user-guide/key_concepts` in the User Guide.
+For more information head over to our :doc:`/user-guide/concepts/deepchecks_structure` in the User Guide.
 
 What Do You Need in Order to Start?
 =====================================
