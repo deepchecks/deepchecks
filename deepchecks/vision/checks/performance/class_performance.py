@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing class performance check."""
-from typing import TypeVar, List, Union, Any
+from typing import TypeVar, List, Any
 
 import pandas as pd
 import plotly.express as px
@@ -21,7 +21,6 @@ from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision import TrainTestCheck, Context
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.metrics_utils.metrics import get_scorers_list
-from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
 __all__ = ['ClassPerformance']
 
@@ -35,16 +34,13 @@ class ClassPerformance(TrainTestCheck):
     ----------
     alternative_metrics : List[Metric], default: None
         A list of ignite.Metric objects whose score should be used. If None are given, use the default metrics.
-    prediction_formatter : Union[ClassificationPredictionFormatter, DetectionPredictionFormatter, None], default: None
-        An encoder to convert predictions to a format that can be used by the metrics.
     """
 
     def __init__(self,
-                 alternative_metrics: List[Metric] = None,
-                 prediction_formatter: Union[ClassificationPredictionFormatter, DetectionPredictionFormatter] = None):
+                 alternative_metrics: List[Metric] = None
+                 ):
         super().__init__()
         self.alternative_metrics = alternative_metrics
-        self.prediction_formatter = prediction_formatter
         self._state = {}
 
     def initialize_run(self, context: Context):
@@ -66,7 +62,7 @@ class ClassPerformance(TrainTestCheck):
             dataset = context.test
         images = batch[0]
         label = dataset.label_transformer(batch[1])
-        prediction = self.prediction_formatter(context.infer(images))
+        prediction = context.prediction_formatter(context.infer(images))
         for _, metric in self._state[dataset_name]['scorers'].items():
             metric.update((prediction, label))
 
