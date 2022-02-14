@@ -19,7 +19,7 @@ Why is this important?
 There is no standard when it comes to data formats in computer vision. Each model can have its own supported data format for the output predictions, and each new benchmark dataset can propose a new labeling format. Even the images formats can be different from each other (PIL, OpenCV, etc.).
 
 In order to run a model and data-agnostic comprehensive testing suites, the data should be in an accepted format the checks can work with.
-The formatter objects provide an easy way to do that, and are an important part of the vision module.
+The formatter objects provide a structured and repeatable way to do that, and are an important part of the vision module.
 
 
 Types of Formatters
