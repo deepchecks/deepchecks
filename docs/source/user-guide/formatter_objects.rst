@@ -72,6 +72,6 @@ In object detection tasks, it is required to implement the following formatters:
 
 - **Detections** - should implement an instance of :class:`detection_formatters.DetectionPredictionFormatter`.
 
-Converting from common formats
+Converting From Common Formats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TBD (Not implemented yet)
