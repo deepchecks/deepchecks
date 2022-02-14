@@ -52,18 +52,16 @@ class AveragePrecision(Metric):
     """
 
     def __init__(self, *args, max_dets: List[int] = (1, 10, 100),
-                 area_range: Tuple = (32**2, 96**2), return_single_value: bool = True,
-                 get_per_class: bool = True, **kwargs):
+                 area_range: Tuple = (32**2, 96**2), return_single_value: bool = True, **kwargs):
         super().__init__(*args, **kwargs)
         self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})
-        self.get_per_class = get_per_class
         self.return_single_value = return_single_value
         if return_single_value:
             max_dets = [max_dets[-1]]
             self.area_ranges_names = ["all"]
         else:
             self.area_ranges_names = ["small", "medium", "large", "all"]
-        self.iou_thresholds = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
+        self.iou_thresholds = np.linspace(.5, 0.95, int(np.round((0.95 - .5) / .05)) + 1, endpoint=True)
         self.max_dets = max_dets
         self.area_range = area_range
         self.i = 0
@@ -88,70 +86,38 @@ class AveragePrecision(Metric):
     def compute(self):
         """Compute metric value."""
         # now reduce accumulations
-        for class_id in self._evals:
+        sorted_classes = sorted(self._evals.keys())
+        for class_id in sorted_classes:
             acc = self._evals[class_id]
             acc["scores"] = _dict_conc(acc["scores"])
             acc["matched"] = _dict_conc(acc["matched"])
             acc["NP"] = _dict_conc(acc["NP"])
-        reses = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict))))
-        for min_iou in self.iou_thresholds:
-            for dets in self.max_dets:
-                for area_size in self.area_ranges_names:
-                    if self.get_per_class:
-                        # run ap calculation per-class
-                        for class_id in self._evals:
-                            ev = self._evals[class_id]
-                            precision, recall = self._compute_ap_recall(np.array(ev["scores"][(area_size, dets, min_iou)]),
-                                                                        np.array(ev["matched"][(area_size, dets, min_iou)]),
-                                                                        np.sum(np.array(ev["NP"][(area_size, dets, min_iou)])))
-                            reses["precision"][min_iou][area_size][dets][class_id] = precision
-                            reses["recall"][min_iou][area_size][dets][class_id] = recall
-                            if not reses["precision"][-1][area_size][dets].get(class_id):
-                                reses["precision"][-1][area_size][dets][class_id] = [precision]
-                                reses["recall"][-1][area_size][dets][class_id] = [recall]
-                            else:
-                                reses["precision"][-1][area_size][dets][class_id].append(precision)
-                                reses["recall"][-1][area_size][dets][class_id].append(recall)
-                    else:
-                        all_evals = defaultdict(dict)
-                        all_evals["scores"][(area_size, dets, min_iou)] = []
-                        all_evals["matched"][(area_size, dets, min_iou)] = []
-                        all_evals["NP"][(area_size, dets, min_iou)] = []
-                        for class_id in self._evals:
-                            ev = self._evals[class_id]
-                            all_evals["scores"][(area_size, dets, min_iou)] += ev["scores"][(area_size, dets, min_iou)]
-                            all_evals["matched"][(area_size, dets, min_iou)] += ev["matched"][(area_size, dets, min_iou)]
-                            all_evals["NP"][(area_size, dets, min_iou)] += ev["NP"][(area_size, dets, min_iou)]
-                        precision, recall = self._compute_ap_recall(np.array(all_evals["scores"][(area_size, dets, min_iou)]),
-                                                                    np.array(all_evals["matched"][(area_size, dets, min_iou)]),
-                                                                    np.sum(np.array(all_evals["NP"][(area_size, dets, min_iou)])))
-                        reses["precision"][min_iou][area_size][dets][-1] = precision
-                        reses["recall"][min_iou][area_size][dets][-1] = recall
-                        if not reses["precision"][-1][area_size][dets].get(-1):
-                            reses["precision"][-1][area_size][dets][-1] = [precision]
-                            reses["recall"][-1][area_size][dets][-1] = [recall]
-                        else:
-                            reses["precision"][-1][area_size][dets][-1].append(precision)
-                            reses["recall"][-1][area_size][dets][-1].append(recall)
-        classes_list = sorted(reses["precision"][-1][self.area_ranges_names[0]][self.max_dets[0]].keys())
-        for dets in self.max_dets:
-            for area_size in self.area_ranges_names:
-                for class_id in classes_list:
-                    reses["precision"][-1][area_size][dets][class_id] = \
-                        np.mean(reses["precision"][-1][area_size][dets][class_id])
-                    reses["recall"][-1][area_size][dets][class_id] = \
-                            np.mean(reses["recall"][-1][area_size][dets][class_id])
-        for min_iou in self.iou_thresholds + [-1]:
-            for dets in self.max_dets:
-                for area_size in self.area_ranges_names:
-                    reses["precision"][min_iou][area_size][dets] = \
-                        [reses["precision"][min_iou][area_size][dets][class_id] for class_id
-                         in classes_list]
-                    reses["recall"][min_iou][area_size][dets] = \
-                        [reses["recall"][min_iou][area_size][dets][class_id] for class_id
-                         in classes_list]
+        reses = {}
+        reses["precision"] = -np.ones((len(self.iou_thresholds),
+                                       len(self.area_ranges_names),
+                                       len(self.max_dets),
+                                       len(self._evals.keys())))
+        reses["recall"] = -np.ones((len(self.iou_thresholds),
+                                    len(self.area_ranges_names),
+                                    len(self.max_dets),
+                                    len(self._evals.keys())))
+        for iou_i, min_iou in enumerate(self.iou_thresholds):
+            for dets_i, dets in enumerate(self.max_dets):
+                for area_i, area_size in enumerate(self.area_ranges_names):
+                    precision_list = []
+                    recall_list = []
+                    # run ap calculation per-class
+                    for class_id in sorted_classes:
+                        ev = self._evals[class_id]
+                        precision, recall = self._compute_ap_recall(np.array(ev["scores"][(area_size, dets, min_iou)]),
+                                                                    np.array(ev["matched"][(area_size, dets, min_iou)]),
+                                                                    np.sum(np.array(ev["NP"][(area_size, dets, min_iou)])))
+                        precision_list.append(precision)
+                        recall_list.append(recall)
+                    reses["precision"][iou_i, area_i, dets_i] = np.array(precision_list)
+                    reses["recall"][iou_i, area_i, dets_i] = np.array(recall_list)
         if self.return_single_value:
-            return torch.tensor(reses["precision"][-1][self.area_ranges_names[0]][self.max_dets[0]])
+            return torch.tensor(np.mean(reses["precision"][:, 0, 0], axis=0))
         return [reses]
 
     def _group_detections(self, dt, gt):
@@ -244,13 +210,12 @@ class AveragePrecision(Metric):
                                                           if not dt_ignore[d_idx]]
                     matched[(area_size, dets, min_iou)] = [d_idx in dtm for d_idx in range(len(dt))
                                                            if not dt_ignore[d_idx]]
-
                     n_gts[(area_size, dets, min_iou)] = len([g_idx for g_idx in range(len(gt)) if not gt_ignore[g_idx]])
         return {"scores": scores, "matched": matched, "NP": n_gts}
 
     def _compute_ap_recall(self, scores, matched, n_positives, recall_thresholds=None):
         if n_positives == 0:
-            return 0, 0
+            return -1, -1
 
         # by default evaluate on 101 recall levels
         if recall_thresholds is None:
@@ -268,7 +233,6 @@ class AveragePrecision(Metric):
         if len(matched):
             tp = np.cumsum(matched)
             fp = np.cumsum(~matched)
-
             rc = tp / n_positives
             pr = tp / (tp + fp)
 
@@ -280,8 +244,8 @@ class AveragePrecision(Metric):
             # get interpolated precision values at the evaluation thresholds
             i_pr = np.array([i_pr[r] if r < len(i_pr) else 0 for r in rec_idx])
 
-            return np.mean(i_pr), tp[-1] / n_positives
-        return 0, 0
+            return np.mean(i_pr), rc[-1]
+        return -1, -1
 
     def _is_ignore_area(self, area_bb, area_size):
         """Generate ignored gt list by area_range."""

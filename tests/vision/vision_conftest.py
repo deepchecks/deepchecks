@@ -153,7 +153,7 @@ def coco_train_dataloader():
 
 @pytest.fixture(scope='session')
 def coco_train_visiondata(coco_train_dataloader):
-    return VisionData(coco_train_dataloader, label_transformer=DetectionLabelFormatter(lambda x: x))
+    return VisionData(coco_train_dataloader, label_transformer=DetectionLabelFormatter(lambda x: x), num_classes=80)
 
 
 @pytest.fixture(scope='session')
@@ -163,7 +163,7 @@ def coco_test_dataloader():
 
 @pytest.fixture(scope='session')
 def coco_test_visiondata(coco_test_dataloader):
-    return VisionData(coco_test_dataloader, label_transformer=DetectionLabelFormatter(lambda x: x))
+    return VisionData(coco_test_dataloader, label_transformer=DetectionLabelFormatter(lambda x: x), num_classes=80)
 
 
 @pytest.fixture(scope='session')
