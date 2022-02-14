@@ -11,9 +11,9 @@ Each check enables you to inspect a specific aspect of your data and
 models. They are the basic building block of the deepchecks package,
 covering all kinds of common issues, such as:
 
-- :doc:`/examples/checks/performance/model_error_analysis`
-- :doc:`/examples/checks/integrity/label_ambiguity`
-- :doc:`/examples/checks/methodology/date_train_test_leakage_overlap`
+- :doc:`/examples/tabular/checks/performance/model_error_analysis`
+- :doc:`/examples/tabular/checks/integrity/label_ambiguity`
+- :doc:`/examples/tabular/checks/methodology/date_train_test_leakage_overlap`
 
 Each check can have two types of results:
 

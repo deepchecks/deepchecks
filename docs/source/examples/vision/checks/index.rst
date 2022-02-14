@@ -1,5 +1,5 @@
-Computer Vision
-===============
+Checks Demonstrations
+======================
 
 .. toctree::
     :maxdepth: 2

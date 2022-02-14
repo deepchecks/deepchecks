@@ -1,5 +1,5 @@
-Tabular
-=======
+Checks Demonstrations
+======================
 
 .. toctree::
     :maxdepth: 2
