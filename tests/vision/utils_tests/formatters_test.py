@@ -13,8 +13,10 @@ from typing import Union
 import numpy as np
 from hamcrest import assert_that, equal_to, calling, raises, close_to
 
+from deepchecks.vision.utils import ClassificationLabelFormatter
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.utils.image_formatters import ImageFormatter
+# pylint: disable=wildcard-import,redefined-outer-name,unused-wildcard-import
 from tests.vision.vision_conftest import *
 
 
@@ -22,7 +24,7 @@ def test_classification_formatter_invalid_dataloader(three_tuples_dataloader):
     formatter = ClassificationLabelFormatter(lambda x: x)
 
     err = formatter.validate_label(three_tuples_dataloader)
-    assert_that(err, equal_to("Check requires dataloader to return tuples of (input, label)."))
+    assert_that(err, equal_to('Check requires dataloader to return tuples of (input, label).'))
 
 
 def test_classification_formatter_formatting_valid_label_shape(two_tuples_dataloader):
@@ -36,7 +38,7 @@ def test_classification_formatter_formatting_invalid_label_type(two_tuples_datal
     formatter = ClassificationLabelFormatter(lambda x: [x, x])
 
     err = formatter.validate_label(two_tuples_dataloader)
-    assert_that(err, equal_to("Check requires classification label to be a torch.Tensor or numpy array"))
+    assert_that(err, equal_to('Check requires classification label to be a torch.Tensor or numpy array'))
 
 
 def numpy_shape_dataloader(shape: tuple = None, value: Union[float, np.array] = 1, collate_fn=None):
@@ -119,20 +121,17 @@ def test_data_formatter_valid_dimensions():
     formatter = ImageFormatter(lambda x: x)
 
     batch = next(iter(numpy_shape_dataloader((10, 10, 3))))
-    err = formatter.validate_data(batch)
-    assert_that(err, equal_to(None))
+    formatter.validate_data(batch)
 
 
 def test_data_formatter_valid_dimensions_other_iterable():
     formatter = ImageFormatter(lambda x: x)
 
     batch = next(iter(numpy_shape_dataloader((10, 10, 3), collate_fn=list)))
-    err = formatter.validate_data(batch)
-    assert_that(err, equal_to(None))
+    formatter.validate_data(batch)
 
     batch = next(iter(numpy_shape_dataloader((10, 10, 3), collate_fn=tuple)))
-    err = formatter.validate_data(batch)
-    assert_that(err, equal_to(None))
+    formatter.validate_data(batch)
 
 
 def test_brightness_grayscale():

@@ -12,10 +12,12 @@
 
 from .metrics import (
     get_scorers_list,
-    calculate_metrics
+    calculate_metrics,
+    metric_results_to_df
 )
 
 __all__ = [
     'get_scorers_list',
     'calculate_metrics',
+    'metric_results_to_df'
 ]

@@ -9,19 +9,19 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing class performance check."""
-from typing import TypeVar, List, Union, Any
+from typing import TypeVar, List, Any
 
 import pandas as pd
 import plotly.express as px
 from ignite.metrics import Metric
 
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision import TrainTestCheck, Context
 from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.metrics_utils.metrics import get_scorers_list
-from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
+from deepchecks.vision.metrics_utils.metrics import get_scorers_list, metric_results_to_df
+
 
 __all__ = ['ClassPerformance']
 
@@ -35,66 +35,45 @@ class ClassPerformance(TrainTestCheck):
     ----------
     alternative_metrics : List[Metric], default: None
         A list of ignite.Metric objects whose score should be used. If None are given, use the default metrics.
-    prediction_formatter : Union[ClassificationPredictionFormatter, DetectionPredictionFormatter, None], default: None
-        An encoder to convert predictions to a format that can be used by the metrics.
     """
 
     def __init__(self,
-                 alternative_metrics: List[Metric] = None,
-                 prediction_formatter: Union[ClassificationPredictionFormatter, DetectionPredictionFormatter] = None):
+                 alternative_metrics: List[Metric] = None
+                 ):
         super().__init__()
         self.alternative_metrics = alternative_metrics
-        self.prediction_formatter = prediction_formatter
         self._state = {}
 
     def initialize_run(self, context: Context):
         """Initialize run by creating the _state member with metrics for train and test."""
         context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
 
-        self._state = {'train': {}, 'test': {}}
-        self._state['train']['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
-        self._state['test']['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
-        for dataset_name in ['train', 'test']:
-            for _, metric in self._state[dataset_name]['scorers'].items():
-                metric.reset()
+        self._state = {DatasetKind.TRAIN: {}, DatasetKind.TEST: {}}
+        self._state[DatasetKind.TRAIN]['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
+        self._state[DatasetKind.TEST]['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
 
-    def update(self, context: Context, batch: Any, dataset_name: str = 'train'):
+    def update(self, context: Context, batch: Any, dataset_kind):
         """Update the metrics by passing the batch to ignite metric update method."""
-        if dataset_name == 'train':
-            dataset = context.train
-        else:
-            dataset = context.test
+        dataset = context.get_data_by_kind(dataset_kind)
         images = batch[0]
         label = dataset.label_transformer(batch[1])
-        prediction = self.prediction_formatter(context.infer(images))
-        for _, metric in self._state[dataset_name]['scorers'].items():
+        prediction = context.prediction_formatter(context.infer(images))
+        for _, metric in self._state[dataset_kind]['scorers'].items():
             metric.update((prediction, label))
 
     def compute(self, context: Context) -> CheckResult:
         """Compute the metric result using the ignite metrics compute method and create display."""
-        self._state['train']['n_samples'] = context.train.n_of_samples_per_class
-        self._state['test']['n_samples'] = context.test.n_of_samples_per_class
-        self._state['classes'] = sorted(context.train.n_of_samples_per_class.keys())
-
         results = []
-
-        for dataset_name in ['train', 'test']:
-            n_samples = self._state[dataset_name]['n_samples']
-            computed_metrics = (
-                (name, metric.compute().tolist())
-                for name, metric in self._state[dataset_name]['scorers'].items()
+        for dataset_kind in [DatasetKind.TRAIN, DatasetKind.TEST]:
+            dataset = context.get_data_by_kind(dataset_kind)
+            metrics_df = metric_results_to_df(
+                {k: m.compute() for k, m in self._state[dataset_kind]['scorers'].items()}, dataset
             )
-            results.extend(
-                [dataset_name, class_name, name, class_score, n_samples[class_name]]
-                for name, score in computed_metrics
-                # scorer returns numpy array of results with item per class
-                for class_score, class_name in zip(score, self._state['classes'])
-            )
+            metrics_df['Dataset'] = dataset_kind.value
+            metrics_df['Number of samples'] = metrics_df['Class'].map(dataset.n_of_samples_per_class.get)
+            results.append(metrics_df)
 
-        results_df = pd.DataFrame(
-            results,
-            columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples']
-        ).sort_values(by=['Class'])
+        results_df = pd.concat(results)
 
         fig = px.histogram(
             results_df,

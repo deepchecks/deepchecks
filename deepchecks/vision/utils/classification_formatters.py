@@ -17,10 +17,10 @@ import torch
 from torch.utils.data import DataLoader
 
 from .base_formatters import BaseLabelFormatter, BasePredictionFormatter
+from deepchecks.core.errors import DeepchecksValueError
+
 
 __all__ = ['ClassificationLabelFormatter', 'ClassificationPredictionFormatter']
-
-from ...core.errors import DeepchecksValueError
 
 
 class ClassificationLabelFormatter(BaseLabelFormatter):
@@ -53,7 +53,7 @@ class ClassificationLabelFormatter(BaseLabelFormatter):
     ClassificationPredictionFormatter
     """
 
-    def __init__(self, label_formatter: Callable):
+    def __init__(self, label_formatter: Callable = lambda x: x):
         super().__init__(label_formatter)
         self.label_formatter = label_formatter
 

@@ -34,7 +34,7 @@ from deepchecks.vision.datasets.classification import mnist
 
 
 def test_vision_data_number_of_classes_inference():
-    dataset = t.cast(VisionData, mnist.load_dataset(train=True, object_type='Dataset'))
+    dataset = t.cast(VisionData, mnist.load_dataset(train=True, object_type='VisionData'))
     assert_that(dataset.n_of_classes, equal_to(10))
 
 
@@ -54,13 +54,11 @@ def test_vision_data_task_type_inference():
             return {}
 
     # Act
-    classification_dataset = VisionData(mnist_loader)
     second_classification_dataset = VisionData(mnist_loader, label_transformer=ClassificationLabelFormatter(lambda x: x))
     detection_dataset = VisionData(coco_loader, label_transformer=DetectionLabelFormatter(lambda x: x))
     dataset_with_custom_formatter = VisionData(mnist_loader, label_transformer=CustomLabelFormatter())
 
     # Assert
-    assert_that(classification_dataset.task_type == TaskType.CLASSIFICATION)
     assert_that(second_classification_dataset.task_type == TaskType.CLASSIFICATION)
     assert_that(detection_dataset.task_type == TaskType.OBJECT_DETECTION)
     assert_that(dataset_with_custom_formatter.task_type is None)
@@ -148,7 +146,7 @@ def test_vision_data_sample_loader():
 def test_vision_data_n_of_samples_per_class_inference_for_classification_dataset():
     # Arrange
     loader = t.cast(DataLoader, mnist.load_dataset(train=True, object_type="DataLoader"))
-    dataset = VisionData(loader)
+    dataset = VisionData(loader, label_transformer=ClassificationLabelFormatter())
 
     real_n_of_samples = {}
     for index in range(len(loader.dataset)):
@@ -168,16 +166,16 @@ def test_vision_data_n_of_samples_per_class_inference_for_classification_dataset
 def test_vision_data_n_of_samples_per_class_inference_for_detection_dataset():
     # Arrange
     loader = t.cast(DataLoader, coco.load_dataset(train=True, object_type="DataLoader"))
-    dataset = VisionData(loader, label_transformer=DetectionLabelFormatter(lambda x: x))
 
     real_n_of_samples = {}
     for index in range(len(loader.dataset)):
         _, y = loader.dataset[index]
         for bbox in y:
-            clazz = bbox[0]
+            clazz = bbox[4].item()
             real_n_of_samples[clazz] = 1 + real_n_of_samples.get(clazz, 0)
 
     # Act
+    dataset = VisionData(loader, label_transformer=DetectionLabelFormatter(coco.yolo_label_formatter))
     infered_n_of_samples = dataset.n_of_samples_per_class
 
     # Assert
@@ -194,8 +192,8 @@ def test_vision_data_n_of_samples_per_class_inference_for_detection_dataset():
 
 def test_vision_data_label_comparison_with_different_datasets():
     # Arrange
-    coco_dataset = t.cast(VisionData, coco.load_dataset(train=True, object_type="Dataset"))
-    mnist_dataset = t.cast(VisionData, mnist.load_dataset(train=True, object_type="Dataset"))
+    coco_dataset = t.cast(VisionData, coco.load_dataset(train=True, object_type='VisionData'))
+    mnist_dataset = t.cast(VisionData, mnist.load_dataset(train=True, object_type='VisionData'))
 
     # Act/Assert
     assert_that(

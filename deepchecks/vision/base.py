@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base vision abstractions."""
-# TODO: This file should be completely modified
 # pylint: disable=broad-except,not-callable
 import copy
 from typing import Tuple, Mapping, Optional, Any, Union
@@ -20,11 +19,12 @@ from torch import nn
 from ignite.metrics import Metric
 
 from deepchecks.vision.utils.validation import validate_model
+from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 from deepchecks.core.check import (
     CheckFailure,
     SingleDatasetBaseCheck,
     TrainTestBaseCheck,
-    ModelOnlyBaseCheck, CheckResult, BaseCheck
+    ModelOnlyBaseCheck, CheckResult, BaseCheck, DatasetKind
 )
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
@@ -58,6 +58,8 @@ class Context:
         A scikit-learn-compatible fitted estimator instance
     model_name: str , default: ''
         The name of the model
+    prediction_formatter : BasePredictionFormatter, default: None
+        An encoder to convert predictions to a format that can be used by the metrics.
     scorers : Mapping[str, Metric] , default: None
         dict of scorers names to a Metric
     scorers_per_class : Mapping[str, Metric] , default: None
@@ -75,6 +77,7 @@ class Context:
                  test: VisionData = None,
                  model: nn.Module = None,
                  model_name: str = '',
+                 prediction_formatter: BasePredictionFormatter = None,
                  scorers: Mapping[str, Metric] = None,
                  scorers_per_class: Mapping[str, Metric] = None,
                  device: Union[str, torch.device, None] = None
@@ -96,6 +99,7 @@ class Context:
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
+        self._prediction_formatter = prediction_formatter
         self._device = torch.device(device) if isinstance(device, str) else device
 
     # Properties
@@ -132,6 +136,11 @@ class Context:
         return self._model_name
 
     @property
+    def prediction_formatter(self):
+        """Return prediction formatter."""
+        return self._prediction_formatter
+
+    @property
     def device(self) -> Optional[torch.device]:
         """Return device specified by the user."""
         return self._device
@@ -157,6 +166,15 @@ class Context:
         """Flush the cached inference."""
         self._batch_prediction_cache = None
 
+    def get_data_by_kind(self, kind: DatasetKind):
+        """Return the relevant VisionData by given kind."""
+        if kind == DatasetKind.TRAIN:
+            return self.train
+        elif kind == DatasetKind.TEST:
+            return self.test
+        else:
+            raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
+
 
 def finalize_check_result(check_result: CheckResult, class_instance: BaseCheck) -> CheckResult:
     """Finalize the check result by adding the check instance and processing the conditions."""
@@ -177,30 +195,34 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         self,
         dataset: VisionData,
         model: Optional[nn.Module] = None,
+        prediction_formatter: BasePredictionFormatter = None,
         device: Union[str, torch.device, None] = None
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        context = self.context_type(dataset, model=model, device=device)
+        context = self.context_type(dataset,
+                                    model=model,
+                                    prediction_formatter=prediction_formatter,
+                                    device=device)
 
-        self.initialize_run(context)
+        self.initialize_run(context, DatasetKind.TRAIN)
 
         for batch in dataset.get_data_loader():
             batch = apply_to_tensor(batch, lambda x: x.to(device))
-            self.update(context, batch)
+            self.update(context, batch, DatasetKind.TRAIN)
             context.flush_cached_inference()
 
-        return finalize_check_result(self.compute(context), self)
+        return finalize_check_result(self.compute(context, DatasetKind.TRAIN), self)
 
-    def initialize_run(self, context: Context):
+    def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize run before starting updating on batches. Optional."""
         pass
 
-    def update(self, context: Context, batch: Any):
+    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
         """Update internal check state with given batch."""
         raise NotImplementedError()
 
-    def compute(self, context: Context) -> CheckResult:
+    def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Compute final check result based on accumulated internal state."""
         raise NotImplementedError()
 
@@ -218,22 +240,27 @@ class TrainTestCheck(TrainTestBaseCheck):
         train_dataset: VisionData,
         test_dataset: VisionData,
         model: Optional[nn.Module] = None,
+        prediction_formatter: BasePredictionFormatter = None,
         device: Union[str, torch.device, None] = None
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        context = self.context_type(train_dataset, test_dataset, model=model, device=device)
+        context = self.context_type(train_dataset,
+                                    test_dataset,
+                                    model=model,
+                                    prediction_formatter=prediction_formatter,
+                                    device=device)
 
         self.initialize_run(context)
 
         for batch in context.train.get_data_loader():
             batch = apply_to_tensor(batch, lambda x: x.to(device))
-            self.update(context, batch, dataset_name='train')
+            self.update(context, batch, DatasetKind.TRAIN)
             context.flush_cached_inference()
 
         for batch in context.test.get_data_loader():
             batch = apply_to_tensor(batch, lambda x: x.to(device))
-            self.update(context, batch, dataset_name='test')
+            self.update(context, batch, DatasetKind.TEST)
             context.flush_cached_inference()
 
         return finalize_check_result(self.compute(context), self)
@@ -242,7 +269,7 @@ class TrainTestCheck(TrainTestBaseCheck):
         """Initialize run before starting updating on batches. Optional."""
         pass
 
-    def update(self, context: Context, batch: Any, dataset_name: str = 'train'):
+    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
         """Update internal check state with given batch for either train or test."""
         raise NotImplementedError()
 
@@ -290,6 +317,7 @@ class Suite(BaseSuite):
             train_dataset: Optional[VisionData] = None,
             test_dataset: Optional[VisionData] = None,
             model: nn.Module = None,
+            prediction_formatter: BasePredictionFormatter = None,
             scorers: Mapping[str, Metric] = None,
             scorers_per_class: Mapping[str, Metric] = None,
             device: Union[str, torch.device, None] = None
@@ -304,6 +332,8 @@ class Suite(BaseSuite):
             object, representing data an estimator predicts on
         model : nn.Module , default None
             A scikit-learn-compatible fitted estimator instance
+        prediction_formatter : BasePredictionFormatter, default: None
+            An encoder to convert predictions to a format that can be used by the metrics.
         scorers : Mapping[str, Metric] , default None
             dict of scorers names to scorer sklearn_name/function
         scorers_per_class : Mapping[str, Metric], default None
@@ -323,6 +353,7 @@ class Suite(BaseSuite):
             train_dataset,
             test_dataset,
             model,
+            prediction_formatter=prediction_formatter,
             scorers=scorers,
             scorers_per_class=scorers_per_class,
             device=device
@@ -422,7 +453,8 @@ class Suite(BaseSuite):
                 result.header = f'{result.get_header()} - Train Dataset'
             elif str(check_idx).endswith(' - Test'):
                 result.header = f'{result.get_header()} - Test Dataset'
-            results[check_idx] = finalize_check_result(result, check_dict[check_idx])
+            if isinstance(result, CheckResult):
+                results[check_idx] = finalize_check_result(result, check_dict[check_idx])
 
         return SuiteResult(self.name, list(results.values()))
 

@@ -42,7 +42,7 @@ To run a prebuilt suite, first import it
 
 .. code:: python
 
-   from deepchecks.suites import *
+   from deepchecks.tabular.suites import *
 
 Then run it with the required (suite-dependant) input parameters
 
@@ -57,8 +57,8 @@ Import Suite and Checks from deepchecks
 
 .. code:: python
 
-   from deepchecks import Suite
-   from deepchecks.checks import *
+   from deepchecks.tabular import Suite
+   from deepchecks.tabular.checks import *
 
 Build the suite with custom checks and desired parameters
 
@@ -77,4 +77,4 @@ Then run with required input parameters (datasets and models)
 
 .. code:: python
 
-   MyModelSuite.run(model=rf_clf, train_dataset=ds_train, test_dataset=ds_test, check_datasets_policy='both')
+   MyModelSuite.run(model=rf_clf, train_dataset=ds_train, test_dataset=ds_test)

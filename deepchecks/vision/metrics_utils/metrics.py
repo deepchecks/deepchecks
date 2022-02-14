@@ -11,22 +11,24 @@
 """Module for defining metrics for the vision module."""
 import typing as t
 
+import pandas as pd
 import torch
 from ignite.engine import Engine
 from ignite.metrics import Precision, Recall, Metric
 from torch import nn
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
+
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 from deepchecks.vision import VisionData
-
-from .detection_precision_recall import AveragePrecision
+from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
 
 
 __all__ = [
     'get_scorers_list',
-    'calculate_metrics'
+    'calculate_metrics',
+    'metric_results_to_df'
 ]
 
 
@@ -45,7 +47,7 @@ def get_default_object_detection_scorers():
 
 def get_scorers_list(
         dataset: VisionData,
-        alternative_scorers: t.List[Metric] = None,
+        alternative_scorers: t.List[Metric] = None
 ) -> t.Dict[str, Metric]:
     """Get scorers list according to model object and label column.
 
@@ -55,7 +57,8 @@ def get_scorers_list(
         Dataset object
     alternative_scorers : t.List[Metric]
         Alternative scorers list
-
+    class_average : bool, default: False
+        Whether classification metrics should average the results or return result per class
     Returns
     -------
     t.Dict[str, Metric]
@@ -82,7 +85,7 @@ def get_scorers_list(
 
 
 def calculate_metrics(
-    metrics: t.List[Metric],
+    metrics: t.Union[t.Dict, t.List[Metric]],
     dataset: VisionData, model: nn.Module,
     prediction_formatter: BasePredictionFormatter,
     device: t.Union[str, torch.device, None] = None
@@ -95,6 +98,7 @@ def calculate_metrics(
         List of ignite metrics to calculate
     dataset : VisionData
         Dataset object
+
     model : nn.Module
         Model object
     prediction_formatter : Union[ClassificationPredictionFormatter, DetectionPredictionFormatter]
@@ -128,10 +132,26 @@ def calculate_metrics(
     prediction_formatter.validate_prediction(data_batch, dataset.n_of_classes)
 
     engine = Engine(process_function)
-    for metric in metrics:
-        metric.attach(engine, type(metric).__name__)
+
+    if isinstance(metrics, list):
+        metrics = {type(metric).__name__: metric for metric in metrics}
+
+    for name, metric in metrics.items():
+        metric.reset()
+        metric.attach(engine, name)
 
     state = engine.run(dataset.get_data_loader())
+    return state.metrics
 
-    results = {k: v.tolist() for k, v in state.metrics.items()}
-    return results
+
+def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
+    """Get dict of metric name to tensor of classes scores, and convert it to dataframe."""
+    per_class_result = [
+        [metric, class_name,
+         class_score.item() if isinstance(class_score, torch.Tensor) else class_score]
+        for metric, score in results.items()
+        # scorer returns results as array, containing result per class
+        for class_score, class_name in zip(score, sorted(dataset.n_of_samples_per_class.keys()))
+    ]
+
+    return pd.DataFrame(per_class_result, columns=['Metric', 'Class', 'Value']).sort_values(by=['Metric', 'Class'])
