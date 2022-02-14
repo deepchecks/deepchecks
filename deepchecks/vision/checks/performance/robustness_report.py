@@ -217,7 +217,7 @@ class RobustnessReport(SingleDatasetCheck):
                 aug_top_affected[metric].append({'class': index_class,
                                                  'value': single_metric_scores.at[index_class, 'Value'],
                                                  'diff': diff_value,
-                                                 'samples': dataset.get_samples_per_class()[index_class]})
+                                                 'samples': dataset.n_of_samples_per_class[index_class]})
         return aug_top_affected
 
     def _calc_performance_diff(self, mean_base, augmented_metrics):

@@ -85,7 +85,7 @@ class Context:
             raise DatasetValidationError('Can\'t initialize context with only test. if you have single dataset, '
                                          'initialize it as train')
         if train and test:
-            train.validate_shared_properties(test)
+            train.validate_shared_label(test)
 
         self._train = train
         self._test = test

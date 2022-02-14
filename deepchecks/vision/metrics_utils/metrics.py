@@ -151,7 +151,7 @@ def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
          class_score.item() if isinstance(class_score, torch.Tensor) else class_score]
         for metric, score in results.items()
         # scorer returns results as array, containing result per class
-        for class_score, class_name in zip(score, sorted(dataset.get_samples_per_class().keys()))
+        for class_score, class_name in zip(score, sorted(dataset.n_of_samples_per_class.keys()))
     ]
 
     return pd.DataFrame(per_class_result, columns=['Metric', 'Class', 'Value']).sort_values(by=['Metric', 'Class'])

@@ -9,10 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
-from collections import Counter
 from copy import copy
 from enum import Enum
-from typing import Optional, Union, List, Iterator, Dict, Any
+from typing import Optional, List, Iterator, Dict, Any
 
 import numpy as np
 import torch
@@ -250,7 +249,7 @@ class VisionData:
         """Use the defined collate_fn to transform a few data items to batch format."""
         return self.get_data_loader().collate_fn(list(samples))
 
-    def validate_shared_properties(self, other):
+    def validate_shared_label(self, other):
         """Verify presence of shared labels.
 
         Validates whether the 2 datasets share the same label shape
