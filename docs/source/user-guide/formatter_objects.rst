@@ -54,7 +54,7 @@ Classification Format
 
 Accepted format
 ~~~~~~~~~~~~~~~~~~~~~
-In classification tasks, it is required to implement the following formatters:
+For classification tasks, it is required to implement the following formatters:
 
 - **Label**  - should implement an instance of :class:`classification_formatters.ClassificationLabelFormatter`.
 - **Predictions** - should implement an instance of :class:`classification_formatters.ClassificationPredictionFormatter`.
