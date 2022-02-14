@@ -53,17 +53,17 @@ class AveragePrecision(Metric):
 
     def __init__(self, *args, max_dets: List[int] = (1, 10, 100),
                  area_range: Tuple = (32**2, 96**2), return_single_value: bool = True,
-                 only_per_class: bool = True, **kwargs):
+                 get_per_class: bool = True, **kwargs):
         super().__init__(*args, **kwargs)
         self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})
-        self.only_per_class = only_per_class
+        self.get_per_class = get_per_class
         self.return_single_value = return_single_value
         if return_single_value:
             max_dets = [max_dets[-1]]
             self.area_ranges_names = ["all"]
         else:
             self.area_ranges_names = ["small", "medium", "large", "all"]
-        self.iou_thresholds = list(np.arange(0.5, 0.95, 0.05))
+        self.iou_thresholds = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
         self.max_dets = max_dets
         self.area_range = area_range
         self.i = 0
@@ -97,7 +97,7 @@ class AveragePrecision(Metric):
         for min_iou in self.iou_thresholds:
             for dets in self.max_dets:
                 for area_size in self.area_ranges_names:
-                    if self.only_per_class:
+                    if self.get_per_class:
                         # run ap calculation per-class
                         for class_id in self._evals:
                             ev = self._evals[class_id]
@@ -113,10 +113,20 @@ class AveragePrecision(Metric):
                                 reses["precision"][-1][area_size][dets][class_id].append(precision)
                                 reses["recall"][-1][area_size][dets][class_id].append(recall)
                     else:
-                        all_evals = _dict_conc(self._evals)
-                        precision, recall = self._compute_ap_recall(np.array(all_evals[(area_size, dets, min_iou)]),
-                                                                    np.array(all_evals[(area_size, dets, min_iou)]),
-                                                                    np.sum(np.array(all_evals[(area_size, dets, min_iou)])))
+                        all_evals = defaultdict(dict)
+                        all_evals["scores"][(area_size, dets, min_iou)] = []
+                        all_evals["matched"][(area_size, dets, min_iou)] = []
+                        all_evals["NP"][(area_size, dets, min_iou)] = []
+                        for class_id in self._evals:
+                            ev = self._evals[class_id]
+                            all_evals["scores"][(area_size, dets, min_iou)] += ev["scores"][(area_size, dets, min_iou)]
+                            all_evals["matched"][(area_size, dets, min_iou)] += ev["matched"][(area_size, dets, min_iou)]
+                            all_evals["NP"][(area_size, dets, min_iou)] += ev["NP"][(area_size, dets, min_iou)]
+                        precision, recall = self._compute_ap_recall(np.array(all_evals["scores"][(area_size, dets, min_iou)]),
+                                                                    np.array(all_evals["matched"][(area_size, dets, min_iou)]),
+                                                                    np.sum(np.array(all_evals["NP"][(area_size, dets, min_iou)])))
+                        reses["precision"][min_iou][area_size][dets][-1] = precision
+                        reses["recall"][min_iou][area_size][dets][-1] = recall
                         if not reses["precision"][-1][area_size][dets].get(-1):
                             reses["precision"][-1][area_size][dets][-1] = [precision]
                             reses["recall"][-1][area_size][dets][-1] = [recall]
