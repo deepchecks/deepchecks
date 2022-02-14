@@ -16,6 +16,8 @@ Vision
     checks
     suites
     datasets
+    utils
+    metrics_utils
 
     Check
     Context
