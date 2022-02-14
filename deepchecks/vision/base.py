@@ -231,8 +231,8 @@ class TrainTestCheck(TrainTestBaseCheck):
         self,
         train_dataset: VisionData,
         test_dataset: VisionData,
-        prediction_formatter: BasePredictionFormatter = None,
         model: Optional[nn.Module] = None,
+        prediction_formatter: BasePredictionFormatter = None,
         device: Union[str, torch.device, None] = None
     ) -> CheckResult:
         """Run check."""
