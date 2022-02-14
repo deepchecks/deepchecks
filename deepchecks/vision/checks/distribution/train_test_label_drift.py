@@ -251,7 +251,7 @@ class TrainTestLabelDrift(TrainTestCheck):
 
         headnote = f"""<span>
             The Drift score is a measure for the difference between two distributions. In this check, drift is measured
-            for the distribution of the following label properties: {[x['name'] for x in self._label_measurements]}. 
+            for the distribution of the following label properties: {[x['name'] for x in self._label_measurements]}.
         </span>"""
 
         displays = [headnote] + displays
