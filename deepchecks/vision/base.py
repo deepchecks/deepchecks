@@ -387,20 +387,20 @@ class Suite(BaseSuite):
         progress_bar = ProgressBar(self.name + ' - Train', n_batches)
         for batch_id, batch in enumerate(context.train.get_data_loader()):
             progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
+            batch = apply_to_tensor(batch, lambda it: it.to(device))
 
             for check_idx, check in check_dict.items():
                 if results[check_idx] is None:
                     try:
                         if isinstance(check, TrainTestCheck):
-                            if context.train is not None and context.test is not None:
-                                check.update(context, batch, dataset_name='train')
-
+                            if train_dataset is not None and test_dataset is not None:
+                                check.update(context, batch, dataset_kind=DatasetKind.TRAIN)
                             else:
                                 msg = 'Check is irrelevant if not supplied with both train and test datasets'
                                 results[check_idx] = Suite._get_unsupported_failure(check, msg)
                         elif isinstance(check, SingleDatasetCheck):
                             if str(check_idx).endswith(' - Train'):
-                                check.update(context, batch)
+                                check.update(context, batch, dataset_kind=DatasetKind.TRAIN)
                         elif isinstance(check, ModelOnlyCheck):
                             pass
                         else:
@@ -416,19 +416,20 @@ class Suite(BaseSuite):
         progress_bar = ProgressBar(self.name + ' - Test', n_batches)
         for batch_id, batch in enumerate(context.test.get_data_loader()):
             progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
+            batch = apply_to_tensor(batch, lambda it: it.to(device))
 
             for check_idx, check in check_dict.items():
                 if results[check_idx] is None:
                     try:
                         if isinstance(check, TrainTestCheck):
-                            if context.train is not None and context.test is not None:
-                                check.update(context, batch, dataset_name='test')
+                            if train_dataset is not None and test_dataset is not None:
+                                check.update(context, batch, dataset_kind=DatasetKind.TEST)
                             else:
                                 msg = 'Check is irrelevant if not supplied with both train and test datasets'
                                 results[check_idx] = Suite._get_unsupported_failure(check, msg)
                         elif isinstance(check, SingleDatasetCheck):
                             if str(check_idx).endswith(' - Test'):
-                                check.update(context, batch)
+                                check.update(context, batch, dataset_kind=DatasetKind.TEST)
                         elif isinstance(check, ModelOnlyCheck):
                             pass
                         else:
