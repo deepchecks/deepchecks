@@ -1,6 +1,6 @@
-==============
-Key Concepts
-==============
+=====================
+Deepchecks Structure
+=====================
 
 A Suite runs a collection of Checks with optional Conditions added to them.
 
