@@ -12,6 +12,7 @@
 # pylint: disable=broad-except
 import abc
 import base64
+import enum
 import inspect
 import io
 import traceback
@@ -47,6 +48,7 @@ __all__ = [
     'SingleDatasetBaseCheck',
     'TrainTestBaseCheck',
     'ModelOnlyBaseCheck',
+    'DatasetKind'
 ]
 
 
@@ -333,6 +335,13 @@ class CheckResult:
         else:
             warnings.warn('You are running in a non-interactive python shell. in order to show result you have to use '
                           'an IPython shell (etc Jupyter)')
+
+
+class DatasetKind(enum.Enum):
+    """Represents in single dataset checks, which dataset is currently worked on."""
+
+    TRAIN = 'Train'
+    TEST = 'Test'
 
 
 class BaseCheck(abc.ABC):

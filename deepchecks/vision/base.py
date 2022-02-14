@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base vision abstractions."""
-# TODO: This file should be completely modified
 # pylint: disable=broad-except,not-callable
 import copy
 from typing import Tuple, Mapping, Optional, Any, Union
@@ -25,7 +24,7 @@ from deepchecks.core.check import (
     CheckFailure,
     SingleDatasetBaseCheck,
     TrainTestBaseCheck,
-    ModelOnlyBaseCheck, CheckResult, BaseCheck
+    ModelOnlyBaseCheck, CheckResult, BaseCheck, DatasetKind
 )
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
@@ -167,6 +166,15 @@ class Context:
         """Flush the cached inference."""
         self._batch_prediction_cache = None
 
+    def get_data_by_kind(self, kind: DatasetKind):
+        """Return the relevant VisionData by given kind."""
+        if kind == DatasetKind.TRAIN:
+            return self.train
+        elif kind == DatasetKind.TEST:
+            return self.test
+        else:
+            raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
+
 
 def finalize_check_result(check_result: CheckResult, class_instance: BaseCheck) -> CheckResult:
     """Finalize the check result by adding the check instance and processing the conditions."""
@@ -197,24 +205,24 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
                                     prediction_formatter=prediction_formatter,
                                     device=device)
 
-        self.initialize_run(context)
+        self.initialize_run(context, DatasetKind.TRAIN)
 
         for batch in dataset.get_data_loader():
             batch = apply_to_tensor(batch, lambda x: x.to(device))
-            self.update(context, batch)
+            self.update(context, batch, DatasetKind.TRAIN)
             context.flush_cached_inference()
 
-        return finalize_check_result(self.compute(context), self)
+        return finalize_check_result(self.compute(context, DatasetKind.TRAIN), self)
 
-    def initialize_run(self, context: Context):
+    def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize run before starting updating on batches. Optional."""
         pass
 
-    def update(self, context: Context, batch: Any):
+    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
         """Update internal check state with given batch."""
         raise NotImplementedError()
 
-    def compute(self, context: Context) -> CheckResult:
+    def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Compute final check result based on accumulated internal state."""
         raise NotImplementedError()
 
@@ -247,12 +255,12 @@ class TrainTestCheck(TrainTestBaseCheck):
 
         for batch in context.train.get_data_loader():
             batch = apply_to_tensor(batch, lambda x: x.to(device))
-            self.update(context, batch, dataset_name='train')
+            self.update(context, batch, DatasetKind.TRAIN)
             context.flush_cached_inference()
 
         for batch in context.test.get_data_loader():
             batch = apply_to_tensor(batch, lambda x: x.to(device))
-            self.update(context, batch, dataset_name='test')
+            self.update(context, batch, DatasetKind.TEST)
             context.flush_cached_inference()
 
         return finalize_check_result(self.compute(context), self)
@@ -261,7 +269,7 @@ class TrainTestCheck(TrainTestBaseCheck):
         """Initialize run before starting updating on batches. Optional."""
         pass
 
-    def update(self, context: Context, batch: Any, dataset_name: str = 'train'):
+    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
         """Update internal check state with given batch for either train or test."""
         raise NotImplementedError()
 
