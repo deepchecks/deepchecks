@@ -38,19 +38,18 @@ class DetectionLabelFormatter(BaseLabelFormatter):
     Examples
     --------
     >>> import torch
-    >>> from deepchecks.vision.utils.detection_formatters import DetectionLabelFormatter
-
-
-    >>> def yolo_to_coco(input_batch_from_loader):
-    ...     return [torch.stack([torch.cat((bbox[1:3], bbox[4:] - bbox[1:3], bbox[0]), dim=0) for bbox in image])
+    ... from deepchecks.vision.utils.detection_formatters import DetectionLabelFormatter
+    ...
+    ...
+    ... def yolo_to_coco(input_batch_from_loader):
+    ...     return [torch.stack(
+    ...             [torch.cat((bbox[1:3], bbox[4:] - bbox[1:3], bbox[0]), dim=0)
+    ...                 for bbox in image])
     ...             for image in input_batch_from_loader]
+    ...
+    ...
+    ... label_formatter = DetectionLabelFormatter(yolo_to_coco)
 
-
-    >>> label_formatter = DetectionLabelFormatter(yolo_to_coco)
-
-    Or, if your labels are in a common format:
-
-    >>> label_formatter = DetectionLabelFormatter('cxcywhn')
 
     See Also
     --------
@@ -143,11 +142,11 @@ class DetectionPredictionFormatter(BasePredictionFormatter):
     Examples
     --------
     >>> import torch
-    >>> import typing as t
-    >>> from deepchecks.vision.utils.detection_formatters import DetectionPredictionFormatter
-
-
-    >>> def yolo_wrapper(
+    ... import typing as t
+    ... from deepchecks.vision.utils.detection_formatters import DetectionPredictionFormatter
+    ...
+    ...
+    ... def yolo_wrapper(
     ...     predictions: 'ultralytics.models.common.Detections'  # noqa: F821
     ... ) -> t.List[torch.Tensor]:
     ...     return_list = []
@@ -155,14 +154,14 @@ class DetectionPredictionFormatter(BasePredictionFormatter):
     ...     # yolo Detections objects have List[torch.Tensor] xyxy output in .pred
     ...     for single_image_tensor in predictions.pred:
     ...         pred_modified = torch.clone(single_image_tensor)
-    ...         pred_modified[:, 2] = pred_modified[:, 2] - pred_modified[:, 0]  # w = x_right - x_left
-    ...         pred_modified[:, 3] = pred_modified[:, 3] - pred_modified[:, 1]  # h = y_bottom - y_top
+    ...         pred_modified[:, 2] = pred_modified[:, 2] - pred_modified[:, 0]
+    ...         pred_modified[:, 3] = pred_modified[:, 3] - pred_modified[:, 1]
     ...         return_list.append(pred_modified)
     ...
     ...     return return_list
-
-
-    >>> label_formatter = DetectionPredictionFormatter(yolo_wrapper)
+    ...
+    ...
+    ... label_formatter = DetectionPredictionFormatter(yolo_wrapper)
 
 
     See Also

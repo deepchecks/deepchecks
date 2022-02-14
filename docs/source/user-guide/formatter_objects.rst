@@ -14,7 +14,7 @@ For prediction and label formats for **classification tasks**, see :ref:`Classif
 For prediction and label formats for **object detection** tasks, see :ref:`Object Detection Formatters <formatters__object_detection_formatter>`.
 
 
-Why is this important?
+Why is This Important?
 ========================
 There is no standard when it comes to data formats in computer vision. Each model can have its own supported data format for the output predictions, and each new benchmark dataset can propose a new labeling format. Even the images formats can be different from each other (PIL, OpenCV, etc.).
 
@@ -57,6 +57,7 @@ Accepted format
 For classification tasks, it is required to implement the following formatters:
 
 - **Label**  - should implement an instance of :class:`classification_formatters.ClassificationLabelFormatter`.
+
 - **Predictions** - should implement an instance of :class:`classification_formatters.ClassificationPredictionFormatter`.
 
 .. _formatters__object_detection_formatter:
@@ -70,7 +71,7 @@ For object detection tasks, it is required to implement the following formatters
 
 - **Label** - should implement an instance of :class:`detection_formatters.DetectionLabelFormatter`.
 
-- **Detections** - should implement an instance of :class:`detection_formatters.DetectionPredictionFormatter`.
+- **Detections Predictions** - should implement an instance of :class:`detection_formatters.DetectionPredictionFormatter`.
 
 Converting From Common Formats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
