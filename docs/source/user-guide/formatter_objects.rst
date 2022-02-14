@@ -22,7 +22,7 @@ In order to run a model and data-agnostic comprehensive testing suites, the data
 The formatter objects provide an easy way to do that, and are an important part of the vision module.
 
 
-Types of formatters
+Types of Formatters
 ==========================
 Deepchecks requires three data formatters:
 
