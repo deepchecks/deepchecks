@@ -94,7 +94,7 @@ class ImageFormatter:
             return [img.mean() for img in batch]
         else:
             flattened_batch = self._flatten_batch(batch)
-            return [(0.299*img[:, 0] + 0.587*img[:, 1] + 0.114 * img[:, 2]).mean() for img in flattened_batch]
+            return [(299*img[:, 0] + 587*img[:, 1] + 114 * img[:, 2]).mean()/1000 for img in flattened_batch]
 
     def contrast(self,  batch: List[np.array]) -> List[float]:
         """Return constrast of image."""
@@ -135,7 +135,7 @@ class ImageFormatter:
             returned for each image.
         """
         if self._is_grayscale(batch) is True:
-            raise DeepchecksValueError('function normalized_color_score cannot run on 1-dimensional image (grayscale)')
+            raise DeepchecksValueError('function _normalized_rgb_mean cannot run on 1-dimensional image (grayscale)')
         flattened_batch = self._flatten_batch(batch)
         # TODO: Check for faster implementations than pixel by pixel
         normalized_images = [np.array([self._normalize_colors_in_pixel(pxl) for pxl in img]) for img in flattened_batch]
@@ -156,13 +156,18 @@ class ImageFormatter:
         ret_batch = []
         np.random.seed(len(flattened_batch))
         for img in flattened_batch:
-            indexes = np.random.randint(0, img.shape[0], self.sample_size_for_image_properties)
-            sampled_img = np.array([img[i, :] for i in indexes])
-            ret_batch.append(sampled_img)
+            if img.shape[0] <= self.sample_size_for_image_properties:
+                ret_batch.append(img)
+            else:
+                indexes = np.random.randint(0, img.shape[0], self.sample_size_for_image_properties)
+                sampled_img = np.array([img[i, :] for i in indexes])
+                ret_batch.append(sampled_img)
 
         return ret_batch
 
     def _flatten_batch(self, batch):
+        if self._is_grayscale(batch) is True:
+            raise DeepchecksValueError('function _flatten_batch cannot run on 1-dimensional image (grayscale)')
         flattened_imgs = [img.reshape([img.shape[0] * img.shape[1], 3]) for img in batch]
         if self.sample_size_for_image_properties is not None:
             return self._sample_images_in_batch(flattened_imgs)
