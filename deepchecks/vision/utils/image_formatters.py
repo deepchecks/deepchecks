@@ -80,19 +80,15 @@ class ImageFormatter:
         if sample.min() < 0 or sample.max() > 255:
             raise DeepchecksValueError('The data inside the iterable must be in the range [0, 255].')
 
-    def sizes(self, batch: List[np.array]):
-        """Return list of tuples of image height and width."""
-        return [self.get_size(img) for img in batch]
-
-    def aspect_ratio(self, batch: List[np.array]):
+    def aspect_ratio(self, batch: List[np.array]) -> List[float]:
         """Return list of floats of image height and width ratio."""
-        return [x[0] / x[1] for x in self.sizes(batch)]
+        return [x[0] / x[1] for x in self._sizes(batch)]
 
-    def areas(self, batch: List[np.array]):
+    def areas(self, batch: List[np.array]) -> List[float]:
         """Return list of integers of image area (height multiplied by width)."""
         return [np.prod(self.get_size(img)) for img in batch]
 
-    def brightness(self, batch: List[np.array]):
+    def brightness(self, batch: List[np.array]) -> List[float]:
         """Calculate brightness on each image in the batch."""
         if self._is_grayscale(batch) is True:
             return [img.mean() for img in batch]
@@ -100,10 +96,26 @@ class ImageFormatter:
             flattened_batch = self._flatten_batch(batch)
             return [(0.299*img[:, 0] + 0.587*img[:, 1] + 0.114 * img[:, 2]).mean() for img in flattened_batch]
 
-    def contrast(self,  batch: List[np.array]):
+    def contrast(self,  batch: List[np.array]) -> List[float]:
         raise NotImplementedError('Not yet implemented') #TODO
 
-    def normalized_rgb_mean(self, batch: List[np.array]):
+    def normalized_red_mean(self, batch: List[np.array]) -> List[float]:
+        """Return the normalized mean of the red channel"""
+        return [x[0] for x in self._normalized_rgb_mean(batch)]
+
+    def normalized_green_mean(self, batch: List[np.array]) -> List[float]:
+        """Return the normalized mean of the green channel"""
+        return [x[1] for x in self._normalized_rgb_mean(batch)]
+
+    def normalized_blue_mean(self, batch: List[np.array]) -> List[float]:
+        """Return the normalized mean of the blue channel"""
+        return [x[2] for x in self._normalized_rgb_mean(batch)]
+
+    def _sizes(self, batch: List[np.array]):
+        """Return list of tuples of image height and width."""
+        return [self.get_size(img) for img in batch]
+
+    def _normalized_rgb_mean(self, batch: List[np.array]):
         """Calculate normalized mean for each channel (rgb) in image.
 
         The normalized mean of each channel is calculated by first normalizing the image's pixels (meaning, each color
@@ -166,4 +178,3 @@ class ImageFormatter:
     def get_dimension(img) -> int:
         """Return the number of dimensions of the image (grayscale = 1, RGB = 3)."""
         return img.shape[2]
-
