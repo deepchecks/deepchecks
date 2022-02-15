@@ -192,7 +192,7 @@ def feature_distribution_traces(train_column,
 
         xaxis_layout = dict(fixedrange=False,
                             range=x_range_to_show,
-                            title='Distribution')
+                            title='Value')
         yaxis_layout = dict(title='Probability Density', fixedrange=True)
 
     return traces, xaxis_layout, yaxis_layout
