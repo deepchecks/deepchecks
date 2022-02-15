@@ -44,7 +44,7 @@ class AveragePrecision(Metric):
     area_range: tuple, default: (32**2, 96**2)
         Slices for small/medium/large buckets.
     return_option: int, default: 0
-        0: ap only, 1: ar only, 2 (or another value): all (not ignite complient)
+        0: ap only, 1: ar only, None: all (not ignite complient)
     """
 
     def __init__(self, *args, max_dets: Union[List[int], Tuple[int]] = (1, 10, 100),
@@ -53,7 +53,7 @@ class AveragePrecision(Metric):
         super().__init__(*args, **kwargs)
         self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})
         self.return_option = return_option
-        if self.return_option in [0, 1]:
+        if self.return_option is not None:
             max_dets = [max_dets[-1]]
             self.area_ranges_names = ["all"]
         else:
@@ -261,8 +261,6 @@ class AveragePrecision(Metric):
 
     def _is_ignore_area(self, area_bb, area_size):
         """Generate ignored gt list by area_range."""
-        if self.return_option in [0, 1]:
-            return False
         if area_size == "small":
             return not area_bb < self.area_range[0]
         if area_size == "medium":
