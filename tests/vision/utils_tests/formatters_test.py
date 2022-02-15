@@ -12,6 +12,7 @@ from typing import Union
 
 import numpy as np
 from hamcrest import assert_that, equal_to, calling, raises, close_to
+from torch.utils.data import DataLoader, Dataset
 
 from deepchecks.vision.utils import ClassificationLabelFormatter
 from deepchecks.core.errors import DeepchecksValueError
