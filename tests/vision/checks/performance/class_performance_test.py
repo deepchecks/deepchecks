@@ -29,7 +29,7 @@ def test_mnist_largest(mnist_dataset_train, mnist_dataset_test, trained_mnist):
     first_row = result.value.sort_values(by='Number of samples', ascending=False).iloc[0]
     # Assert
     assert_that(len(result.value), equal_to(8))
-    assert_that(first_row['Value'], close_to(0.991532, 0.01))
+    assert_that(first_row['Value'], close_to(0.991532, 0.05))
     assert_that(first_row['Number of samples'], equal_to(6742))
     assert_that(first_row['Class'], equal_to(1))
 
@@ -45,7 +45,7 @@ def test_mnist_smallest(mnist_dataset_train, mnist_dataset_test, trained_mnist):
 
     # Assert
     assert_that(len(result.value), equal_to(8))
-    assert_that(first_row['Value'], close_to(0.988739, 0.01))
+    assert_that(first_row['Value'], close_to(0.988739, 0.05))
     assert_that(first_row['Number of samples'], equal_to(892))
     assert_that(first_row['Class'], equal_to(5))
 
@@ -61,7 +61,7 @@ def test_mnist_worst(mnist_dataset_train, mnist_dataset_test, trained_mnist):
 
     # Assert
     assert_that(len(result.value), equal_to(8))
-    assert_that(first_row['Value'], close_to(0.977713, 0.01))
+    assert_that(first_row['Value'], close_to(0.977713, 0.05))
 
 
 def test_mnist_best(mnist_dataset_train, mnist_dataset_test, trained_mnist):
@@ -75,7 +75,7 @@ def test_mnist_best(mnist_dataset_train, mnist_dataset_test, trained_mnist):
 
     # Assert
     assert_that(len(result.value), equal_to(8))
-    assert_that(first_row['Value'], close_to(0.990854, 0.01))
+    assert_that(first_row['Value'], close_to(0.990854, 0.05))
 
 
 def test_coco_best(coco_train_visiondata, coco_test_visiondata, trained_yolov5_object_detection):
@@ -89,7 +89,7 @@ def test_coco_best(coco_train_visiondata, coco_test_visiondata, trained_yolov5_o
 
     # Assert
     assert_that(len(result.value), equal_to(4))
-    assert_that(first_row['Value'], close_to(0.990854, 0.01))
+    assert_that(first_row['Value'], close_to(0.990854, 0.05))
     assert_that(first_row['Number of samples'], equal_to(1))
     assert_that(first_row['Class'], is_in([28, 40]))
 
