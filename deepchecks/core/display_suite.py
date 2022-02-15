@@ -13,11 +13,8 @@ import itertools
 import os
 import sys
 import re
-<<<<<<< HEAD:deepchecks/core/display_suite.py
 from typing import List, Union
-=======
 import warnings
->>>>>>> 18bc25cd (No warning in stable (#830)):deepchecks/base/display_suite.py
 
 # pylint: disable=protected-access
 import tqdm
