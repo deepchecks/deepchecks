@@ -51,6 +51,7 @@ class AveragePrecision(Metric):
                  area_range: Tuple = (32**2, 96**2),
                  return_option: int = 0, **kwargs):
         super().__init__(*args, **kwargs)
+
         self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})
         self.return_option = return_option
         if self.return_option is not None:
