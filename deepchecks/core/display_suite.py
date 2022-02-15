@@ -244,6 +244,7 @@ def _display_suite_no_widgets(summary: str,
         others_table.drop('sort', axis=1, inplace=True)
         others_h2 = f'{bold_hr}{_CHECKS_WITHOUT_DISPLAY_TITLE}'
         with warnings.catch_warnings():
+            warnings.simplefilter(action='ignore', category=FutureWarning)
             others_df = dataframe_to_html(others_table.style.hide_index())
         display_html(others_h2 + others_df, raw=True)
 
