@@ -94,20 +94,17 @@ class WholeDatasetDrift(TrainTestCheck):
 
     def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""
-        train_dataset = context.train
-        test_dataset = context.test
-
         if dataset_kind == DatasetKind.TRAIN:
-            imgs = train_dataset.image_transformer(batch[0])
-            for func_name in self.image_properties:
-                self._train_properties[func_name] += train_dataset.image_transformer.__getattribute__(
-                    func_name)(imgs)
+            dataset = context.train
+            properties = self._train_properties
+        else:
+            dataset = context.test
+            properties = self._test_properties
 
-        elif dataset_kind == DatasetKind.TEST:
-            imgs = test_dataset.image_transformer(batch[0])
-            for func_name in self.image_properties:
-                self._test_properties[func_name] += test_dataset.image_transformer.__getattribute__(
-                    func_name)(imgs)
+        imgs = dataset.image_transformer(batch[0])
+        for func_name in self.image_properties:
+            image_property_function = dataset.image_transformer.__getattribute__(func_name)
+            properties[func_name] += image_property_function(imgs)
 
     def compute(self, context: Context) -> CheckResult:
         """Train a Domain Classifier on image property data that was collected during update() calls.
