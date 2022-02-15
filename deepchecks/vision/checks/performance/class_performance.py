@@ -65,8 +65,8 @@ class ClassPerformance(TrainTestCheck):
 
         self.show_only = show_only
         if alternative_metrics is not None and show_only in ['best', 'worst'] and metric_to_show_by is None:
-            raise DeepchecksValueError(f'When alternative_metrics are provided and show_only is be one of: '
-                                       f'["best", "worst"], metric_to_show_by must be specified.')
+            raise DeepchecksValueError('When alternative_metrics are provided and show_only is be one of: '
+                                       '["best", "worst"], metric_to_show_by must be specified.')
         self.metric_to_show_by = metric_to_show_by
         self._state = {}
 
