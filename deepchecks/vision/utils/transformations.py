@@ -13,7 +13,6 @@ from copy import copy
 from typing import Sized, Optional
 
 import albumentations
-import imgaug
 import imgaug.augmenters as iaa
 import torch
 
