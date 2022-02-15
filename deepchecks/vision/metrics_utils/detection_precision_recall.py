@@ -47,16 +47,17 @@ class AveragePrecision(Metric):
         Maximum number of detections per class.
     area_range: tuple, default: (32**2, 96**2)
         Slices for small/medium/large buckets.
-    return_ap_only: bool, default: True
-        If True, only the average precision will be returned.
+    return_option: int, default: 0
+        0: ap only, 1: ar only, 2 (or another value): all (not ignite complient)
     """
 
     def __init__(self, *args, max_dets: List[int] = (1, 10, 100),
-                 area_range: Tuple = (32**2, 96**2), return_single_value: bool = True, **kwargs):
+                 area_range: Tuple = (32**2, 96**2),
+                 return_option: int = 0, **kwargs):
         super().__init__(*args, **kwargs)
         self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})
-        self.return_single_value = return_single_value
-        if return_single_value:
+        self.return_option = return_option
+        if self.return_option in [0, 1]:
             max_dets = [max_dets[-1]]
             self.area_ranges_names = ["all"]
         else:
@@ -116,8 +117,10 @@ class AveragePrecision(Metric):
                         recall_list.append(recall)
                     reses["precision"][iou_i, area_i, dets_i] = np.array(precision_list)
                     reses["recall"][iou_i, area_i, dets_i] = np.array(recall_list)
-        if self.return_single_value:
+        if self.return_option == 0:
             return torch.tensor(np.mean(reses["precision"][:, 0, 0], axis=0))
+        elif self.return_option == 1:
+            return torch.tensor(np.mean(reses["recall"][:, 0, 0], axis=0))
         return [reses]
 
     def _group_detections(self, dt, gt):
@@ -249,7 +252,7 @@ class AveragePrecision(Metric):
 
     def _is_ignore_area(self, area_bb, area_size):
         """Generate ignored gt list by area_range."""
-        if self.return_single_value:
+        if self.return_option in [0, 1]:
             return False
         if area_size == "small":
             return not area_bb < self.area_range[0]

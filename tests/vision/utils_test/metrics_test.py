@@ -17,15 +17,22 @@ from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePr
 from deepchecks.vision.utils.detection_formatters import DetectionPredictionFormatter
 from deepchecks.vision import VisionData
 
-def test_default_ignite_complient(coco_test_visiondata: VisionData, trained_yolov5_object_detection):
+def test_default_ap_ignite_complient(coco_test_visiondata: VisionData, trained_yolov5_object_detection):
     res = calculate_metrics([AveragePrecision()], coco_test_visiondata, trained_yolov5_object_detection,
                             prediction_formatter=DetectionPredictionFormatter(yolo_wrapper))
     assert_that(res.keys(), has_length(1))
     assert_that(res['AveragePrecision'], has_length(59))
 
 
+def test_ar_ignite_complient(coco_test_visiondata: VisionData, trained_yolov5_object_detection):
+    res = calculate_metrics([AveragePrecision(return_option=1)], coco_test_visiondata, trained_yolov5_object_detection,
+                            prediction_formatter=DetectionPredictionFormatter(yolo_wrapper))
+    assert_that(res.keys(), has_length(1))
+    assert_that(res['AveragePrecision'], has_length(59))
+
+
 def test_equal_pycocotools(coco_test_visiondata: VisionData, trained_yolov5_object_detection):
-    metric = AveragePrecision(return_single_value=False)
+    metric = AveragePrecision(return_option=2)
     for batch in coco_test_visiondata.get_data_loader():
         images = batch[0]
         label = coco_test_visiondata.label_transformer(batch[1])
