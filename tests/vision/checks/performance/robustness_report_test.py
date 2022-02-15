@@ -10,6 +10,9 @@
 #
 import types
 
+from PIL import Image
+import torch.nn as nn
+from hamcrest import assert_that, has_entries, close_to, calling, raises
 import albumentations
 import numpy as np
 
@@ -19,11 +22,6 @@ from deepchecks.vision.checks.performance.robustness_report import RobustnessRep
 from deepchecks.vision.utils.classification_formatters import ClassificationPredictionFormatter
 from deepchecks.vision.utils import DetectionPredictionFormatter
 from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
-from PIL import Image
-
-import torch.nn as nn
-
-from hamcrest import assert_that, has_entries, close_to, calling, raises
 from tests.vision.vision_conftest import *
 
 
@@ -64,7 +62,8 @@ def test_coco(coco_train_visiondata, trained_yolov5_object_detection):
     # Assert
     assert_that(result.value, has_entries({
         'RGBShift': has_entries({
-            'mAP': has_entries(score=close_to(0.3, 0.1), diff=close_to(0, 0.1)),
+            'AP': has_entries(score=close_to(0.3, 0.1), diff=close_to(0, 0.1)),
+            'AR': has_entries(score=close_to(0.3, 0.1), diff=close_to(0, 0.1))
         }),
     }))
 
