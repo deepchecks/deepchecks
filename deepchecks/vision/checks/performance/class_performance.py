@@ -75,9 +75,9 @@ class ClassPerformance(TrainTestCheck):
 
         if not self.metric_to_show_by:
             if context.train.task_type == TaskType.CLASSIFICATION:
-                self.metric_to_show_by = get_default_classification_scorers().keys()[0]
+                self.metric_to_show_by = list(get_default_classification_scorers().keys())[0]
             elif context.train.task_type == TaskType.OBJECT_DETECTION:
-                self.metric_to_show_by = get_default_object_detection_scorers().keys()[0]
+                self.metric_to_show_by = list(get_default_object_detection_scorers().keys())[0]
             else:
                 raise DeepchecksValueError(f'Invalid task type: {context.train.task_type}')
 
