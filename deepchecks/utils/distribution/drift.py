@@ -15,7 +15,6 @@ from typing import Tuple, Union, Hashable, Callable
 from scipy.stats import wasserstein_distance
 import numpy as np
 import pandas as pd
-import re
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
