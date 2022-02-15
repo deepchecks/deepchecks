@@ -113,6 +113,8 @@ class ClassPerformance(TrainTestCheck):
             classes_to_show = self._filter_classes(results_df)
             results_df = results_df.loc[results_df['Class'].isin(classes_to_show)]
 
+        results_df = results_df.sort_values(by=['Dataset', 'Value'], ascending=False)
+
         fig = px.histogram(
             results_df,
             x='Class',
