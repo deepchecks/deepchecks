@@ -47,26 +47,36 @@ class ClassPerformance(TrainTestCheck):
     metric_to_show_by : str, default: None
         Specify the metric to sort the results by. Relevant only when show_only is 'best' or 'worst'.
         If None, sorting by the first metric in the default metrics list.
+    class_list_to_show: List[int], default: None
+        Specify the list of classes to show in the report. If specified, n_to_show, show_only and metric_to_show_by
+        are ignored.
     """
 
     def __init__(self,
                  alternative_metrics: List[Metric] = None,
                  n_to_show: int = 20,
                  show_only: str = 'largest',
-                 metric_to_show_by: str = None):
+                 metric_to_show_by: str = None,
+                 class_list_to_show: List[int] = None):
         super().__init__()
         self.alternative_metrics = alternative_metrics
         self.n_to_show = n_to_show
+        self.class_list_to_show = class_list_to_show
 
-        if show_only not in ['largest', 'smallest', 'random', 'best', 'worst']:
-            raise DeepchecksValueError(f'Invalid value for show_only: {show_only}. Should be one of: '
-                                       f'["largest", "smallest", "random", "best", "worst"]')
+        if self.class_list_to_show is None:
+            self.n_to_show = n_to_show
 
-        self.show_only = show_only
-        if alternative_metrics is not None and show_only in ['best', 'worst'] and metric_to_show_by is None:
-            raise DeepchecksValueError('When alternative_metrics are provided and show_only is one of: '
-                                       '["best", "worst"], metric_to_show_by must be specified.')
+            if show_only not in ['largest', 'smallest', 'random', 'best', 'worst']:
+                raise DeepchecksValueError(f'Invalid value for show_only: {show_only}. Should be one of: '
+                                           f'["largest", "smallest", "random", "best", "worst"]')
+
+            self.show_only = show_only
+            if alternative_metrics is not None and show_only in ['best', 'worst'] and metric_to_show_by is None:
+                raise DeepchecksValueError('When alternative_metrics are provided and show_only is one of: '
+                                           '["best", "worst"], metric_to_show_by must be specified.')
+
         self.metric_to_show_by = metric_to_show_by
+
         self._state = {}
 
     def initialize_run(self, context: Context):
@@ -108,7 +118,9 @@ class ClassPerformance(TrainTestCheck):
 
         results_df = pd.concat(results)
 
-        if self.n_to_show is not None:
+        if self.class_list_to_show is not None:
+            results_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
+        elif self.n_to_show is not None:
             classes_to_show = self._filter_classes(results_df)
             results_df = results_df.loc[results_df['Class'].isin(classes_to_show)]
 

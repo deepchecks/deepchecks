@@ -93,3 +93,18 @@ def test_coco_best(coco_train_visiondata, coco_test_visiondata, trained_yolov5_o
     assert_that(first_row['Number of samples'], equal_to(1))
     assert_that(first_row['Class'], is_in([28, 40]))
 
+
+def test_class_list(mnist_dataset_train, mnist_dataset_test, trained_mnist):
+    # Arrange
+
+    check = ClassPerformance(class_list_to_show=[1])
+    # Act
+    result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
+                       prediction_formatter=ClassificationPredictionFormatter(nn.Softmax(dim=1)))
+
+    # Assert
+    assert_that(len(result.value), equal_to(4))
+    assert_that(result.value['Class'].iloc[0], equal_to(1))
+    assert_that(result.value['Class'].iloc[1], equal_to(1))
+    assert_that(result.value['Class'].iloc[2], equal_to(1))
+    assert_that(result.value['Class'].iloc[3], equal_to(1))
