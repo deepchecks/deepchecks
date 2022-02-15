@@ -115,9 +115,15 @@ class AveragePrecision(Metric):
                     reses["precision"][iou_i, area_i, dets_i] = np.array(precision_list)
                     reses["recall"][iou_i, area_i, dets_i] = np.array(recall_list)
         if self.return_option == 0:
-            return torch.tensor(np.mean(reses["precision"][:, 0, 0], axis=0))
+            return torch.tensor(self.get_val_at(reses["precision"],
+                                                max_dets=self.max_dets[0],
+                                                area=self.area_ranges_names[0],
+                                                get_mean_val=False))
         elif self.return_option == 1:
-            return torch.tensor(np.mean(reses["recall"][:, 0, 0], axis=0))
+            return torch.tensor(self.get_val_at(reses["recall"],
+                                                max_dets=self.max_dets[0],
+                                                area=self.area_ranges_names[0],
+                                                get_mean_val=False))
         return [reses]
 
     def _group_detections(self, dt, gt):
@@ -265,12 +271,13 @@ class AveragePrecision(Metric):
             return not area_bb > self.area_range[1]
         return False
 
-    def get_val_at(self, res, iou: float = None, area: str = None, max_dets: int = None, get_mean_val: bool = True):
+    def get_val_at(self, res: np.array, iou: float = None, area: str = None, max_dets: int = None,
+                   get_mean_val: bool = True, zeroed_negative: bool = True):
         """Get the value a result by the filtering values.
 
         Parameters
         ----------
-        res:
+        res: np.array
             either prrecision or recall when using the '2' return option
         iou : float, default: None
             filter by iou threshold
@@ -280,6 +287,8 @@ class AveragePrecision(Metric):
             filter by max detections
         get_mean_val : bool, default: True
             get mean value if True, if False get per class
+        zeroed_negative : bool, default: True
+            if getting the class results list set negative (-1) values to 0
 
         Returns
         -------
@@ -296,10 +305,11 @@ class AveragePrecision(Metric):
             dets_i = [i for i, det in enumerate(self.max_dets) if max_dets == det]
             res = res[:, :, dets_i, :]
         res = np.mean(res[:, :, :], axis=0)
-        res = res[res > -1]
         if get_mean_val:
-            return np.mean(res)
-        return res
+            return np.mean(res[res > -1])
+        if zeroed_negative:
+            res = res.clip(min=0)
+        return res[0][0]
 
     class Prediction:
         """A class defining the prediction of a single image in an object detection task."""
