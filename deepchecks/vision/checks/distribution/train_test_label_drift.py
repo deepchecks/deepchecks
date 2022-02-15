@@ -206,7 +206,7 @@ class TrainTestLabelDrift(TrainTestCheck):
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
     def compute(self, context: Context) -> CheckResult:
-        """Calculate drift for all columns.
+        """Calculate drift on label measurements histograms that were collected during update() calls.
 
         Returns
         -------

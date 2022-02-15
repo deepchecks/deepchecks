@@ -10,9 +10,10 @@
 #
 """Module importing all vision checks."""
 from .performance import ClassPerformance
-from .distribution import TrainTestLabelDrift
+from .distribution import TrainTestLabelDrift, WholeDatasetDrift
 
 __all__ = [
     'ClassPerformance',
     'TrainTestLabelDrift',
+    'WholeDatasetDrift'
 ]

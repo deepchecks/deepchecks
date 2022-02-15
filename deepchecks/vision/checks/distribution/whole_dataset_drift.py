@@ -9,12 +9,21 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains the domain classifier drift check."""
-from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.tabular import Context, TrainTestCheck
+from typing import Any, List
+
+from deepchecks.core import CheckResult, DatasetKind
+from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
-from deepchecks.utils.strings import format_number
+import pandas as pd
 
 __all__ = ['WholeDatasetDrift']
+
+DEFAULT_IMAGE_PROPERTIES = ['aspect_ratio',
+                            'area',
+                            'brightness',
+                            'normalized_red_mean',
+                            'normalized_green_mean',
+                            'normalized_blue_mean']
 
 
 class WholeDatasetDrift(TrainTestCheck):
@@ -22,6 +31,9 @@ class WholeDatasetDrift(TrainTestCheck):
     Calculate drift between the entire train and test datasets using a model trained to distinguish between them.
 
     Check fits a new model to distinguish between train and test datasets, called a Domain Classifier.
+    The Domain Classifier is a tabular model, that cannot run on the images themselves. Therefore, the check calculates
+    properties for each image (such as brightness, aspect ratio etc.) and uses them as input features to the Domain
+    Classifier.
     Once the Domain Classifier is fitted the check calculates the feature importance for the domain classifier
     model. The result of the check is based on the AUC of the domain classifier model, and the check displays
     the change in distribution between train and test for the top features according to the
@@ -29,6 +41,9 @@ class WholeDatasetDrift(TrainTestCheck):
 
     Parameters
     ----------
+    alternative_image_properties : List[str] , default: None
+        List of alternative image properties names. Must be attributes of the ImageFormatter classes that are passed to
+        train and test's VisionData class.
     n_top_columns : int , default: 3
         Amount of columns to show ordered by domain classifier feature importance. This limit is used together
         (AND) with min_feature_importance, so less than n_top_columns features can be displayed.
@@ -48,11 +63,11 @@ class WholeDatasetDrift(TrainTestCheck):
         Random seed for the check.
     test_size : float , default: 0.3
         Fraction of the combined datasets to use for the evaluation of the domain classifier.
-
     """
 
     def __init__(
             self,
+            alternative_image_properties: List[str] = None,
             n_top_columns: int = 3,
             min_feature_importance: float = 0.05,
             max_num_categories: int = 10,
@@ -62,6 +77,11 @@ class WholeDatasetDrift(TrainTestCheck):
     ):
         super().__init__()
 
+        if alternative_image_properties:
+            self.image_properties = alternative_image_properties
+        else:
+            self.image_properties = DEFAULT_IMAGE_PROPERTIES
+
         self.n_top_columns = n_top_columns
         self.min_feature_importance = min_feature_importance
         self.max_num_categories = max_num_categories
@@ -69,8 +89,28 @@ class WholeDatasetDrift(TrainTestCheck):
         self.random_state = random_state
         self.test_size = test_size
 
-    def run_logic(self, context: Context) -> CheckResult:
-        """Run check.
+        self._train_properties = {k: [] for k in self.image_properties}
+        self._test_properties = {k: [] for k in self.image_properties}
+
+    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
+        """Calculate image properties for train or test batches."""
+        train_dataset = context.train
+        test_dataset = context.test
+
+        if dataset_kind == DatasetKind.TRAIN:
+            imgs = train_dataset.image_transformer(batch[0])
+            for func_name in self.image_properties:
+                self._train_properties[func_name] += train_dataset.image_transformer.__getattribute__(
+                    func_name)(imgs)
+
+        elif dataset_kind == DatasetKind.TEST:
+            imgs = test_dataset.image_transformer(batch[0])
+            for func_name in self.image_properties:
+                self._test_properties[func_name] += test_dataset.image_transformer.__getattribute__(
+                    func_name)(imgs)
+
+    def compute(self, context: Context) -> CheckResult:
+        """Train a Domain Classifier on image property data that was collected during update() calls.
 
         Returns
         -------
@@ -79,50 +119,15 @@ class WholeDatasetDrift(TrainTestCheck):
             importance as calculated for the domain classifier model.
             display: distribution graph for each column for the columns most explaining the dataset difference,
             comparing the train and test distributions.
-
-        Raises
-        ------
-        DeepchecksValueError
-            If the object is not a Dataset or DataFrame instance
         """
-        train_dataset = context.train
-        test_dataset = context.test
-        features = train_dataset.features
-        cat_features = train_dataset.cat_features
+        df_train = pd.DataFrame(self._train_properties)
+        df_test = pd.DataFrame(self._test_properties)
 
-        sample_size = min(self.sample_size, train_dataset.n_samples, test_dataset.n_samples)
+        sample_size = min(self.sample_size, df_train.shape[0], df_test.shape[0])
 
-        numerical_features = list(set(features) - set(cat_features))
-
-        return run_whole_dataset_drift(train_dataframe=train_dataset.data[features],
-                                       test_dataframe=test_dataset.data[features],
-                                       numerical_features=numerical_features, cat_features=cat_features,
-                                       sample_size=sample_size, random_state=self.random_state,
-                                       test_size=self.test_size, n_top_columns=self.n_top_columns,
-                                       min_feature_importance=self.min_feature_importance,
-                                       max_num_categories=self.max_num_categories)
-
-    def add_condition_overall_drift_value_not_greater_than(self, max_drift_value: float = 0.25):
-        """Add condition.
-
-        Overall drift score, calculated as (2 * AUC - 1) for the AUC of the dataset discriminator model, is not greater
-        than the specified value. This value is used as it scales the AUC value to the range [0, 1], where 0 indicates
-        a random model (and no drift) and 1 indicates a perfect model (and completely distinguishable datasets).
-
-        Parameters
-        ----------
-        max_drift_value : float , default: 0.25
-            Maximal drift value allowed (value 0 and above)
-        """
-
-        def condition(result: dict):
-            drift_score = result['domain_classifier_drift_score']
-            if drift_score > max_drift_value:
-                message = f'Found drift value of: {format_number(drift_score)}, corresponding to a domain classifier ' \
-                          f'AUC of: {format_number(result["domain_classifier_auc"])}'
-                return ConditionResult(False, message)
-            else:
-                return ConditionResult(True)
-
-        return self.add_condition(f'Drift value is not greater than {format_number(max_drift_value)}',
-                                  condition)
+        return run_whole_dataset_drift(
+            train_dataframe=df_train, test_dataframe=df_test, numerical_features=self.image_properties, cat_features=[],
+            sample_size=sample_size, random_state=self.random_state, test_size=self.test_size,
+            n_top_columns=self.n_top_columns, min_feature_importance=self.min_feature_importance,
+            max_num_categories=self.max_num_categories
+        )

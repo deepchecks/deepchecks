@@ -10,7 +10,9 @@
 #
 """Module containing the distribution checks in the vision package."""
 from .train_test_label_drift import TrainTestLabelDrift
+from .whole_dataset_drift import WholeDatasetDrift
 
 __all__ = [
     'TrainTestLabelDrift',
+    'WholeDatasetDrift',
 ]

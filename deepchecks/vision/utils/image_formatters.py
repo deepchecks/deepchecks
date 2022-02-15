@@ -94,7 +94,7 @@ class ImageFormatter:
             return [img.mean() for img in batch]
         else:
             flattened_batch = self._flatten_batch(batch)
-            return [(299*img[:, 0] + 587*img[:, 1] + 114 * img[:, 2]).mean()/1000 for img in flattened_batch]
+            return [(0.299*img[:, 0] + 0.587*img[:, 1] + 0.114 * img[:, 2]).mean() for img in flattened_batch]
 
     def contrast(self,  batch: List[np.array]) -> List[float]:
         """Return constrast of image."""
