@@ -141,7 +141,7 @@ class ClassPerformance(TrainTestCheck):
         )
 
     def _filter_classes(self, metrics_df: pd.DataFrame) -> list:
-        # working only on the test set
+        # working only on the test set, and on the precision metric
         tests_metrics_df = metrics_df[(metrics_df['Dataset'] == DatasetKind.TEST.value) &
                                       (metrics_df['Metric'] == self.metric_to_show_by)]
         if self.show_only == 'largest':
@@ -157,10 +157,7 @@ class ClassPerformance(TrainTestCheck):
         else:
             raise ValueError(f'Unknown show_only value: {self.show_only}')
 
-        if self.n_to_show:
-            tests_metrics_df = tests_metrics_df.head(self.n_to_show)
-
-        return tests_metrics_df['Class'].to_list()
+        return tests_metrics_df.head(self.n_to_show)['Class'].to_list()
 
     def add_condition_test_performance_not_less_than(self: PR, min_score: float) -> PR:
         """Add condition - metric scores are not less than given score.
