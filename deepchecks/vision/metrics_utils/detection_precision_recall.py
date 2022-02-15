@@ -204,7 +204,7 @@ class AveragePrecision(Metric):
                         else self._is_ignore_area(d.bbox[2] * d.bbox[3], area_size)
                         for d_idx, d in enumerate(dt)
                     ]
-
+ 
                     # get score for non-ignored dts
                     scores[(area_size, dets, min_iou)] = [dt[d_idx].confidence for d_idx in range(len(dt))
                                                           if not dt_ignore[d_idx]]
@@ -245,7 +245,7 @@ class AveragePrecision(Metric):
             i_pr = np.array([i_pr[r] if r < len(i_pr) else 0 for r in rec_idx])
 
             return np.mean(i_pr), rc[-1]
-        return -1, -1
+        return 0, 0
 
     def _is_ignore_area(self, area_bb, area_size):
         """Generate ignored gt list by area_range."""
@@ -258,6 +258,22 @@ class AveragePrecision(Metric):
         if area_size == "large":
             return not area_bb > self.area_range[1]
         return False
+
+    def get_val_at(self, res, iou: float = None, area: str = None, max_dets: int = None, get_mean_val = True):
+        if iou:
+            iou_i = [i for i, iou_thres in enumerate(self.iou_thresholds) if iou == iou_thres]
+            res = res[iou_i, :, :, :]
+        if area:
+            area_i = [i for i, area_name in enumerate(self.area_ranges_names) if area == area_name]
+            res = res[:, area_i, :, :]
+        if max_dets:
+            dets_i = [i for i, det in enumerate(self.max_dets) if max_dets == det]
+            res = res[:, :, dets_i, :]
+        res = np.mean(res[:, :, :], axis=0)
+        res = res[res>-1]
+        if get_mean_val:
+            return np.mean(res)
+        return res
 
     class Prediction:
         """A class defining the prediction of a single image in an object detection task."""
