@@ -64,7 +64,7 @@ def test_coco(coco_train_visiondata, trained_yolov5_object_detection):
     # Assert
     assert_that(result.value, has_entries({
         'RGBShift': has_entries({
-            'mAP': has_entries(score=close_to(0.5, 0.1), diff=close_to(0, 0.1)),
+            'mAP': has_entries(score=close_to(0.3, 0.1), diff=close_to(0, 0.1)),
         }),
     }))
 
