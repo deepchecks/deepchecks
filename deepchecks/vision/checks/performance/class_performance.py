@@ -20,8 +20,8 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision import TrainTestCheck, Context
 from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.metrics_utils.metrics import get_scorers_list, metric_results_to_df
-
+from deepchecks.vision.metrics_utils.metrics import get_scorers_list, metric_results_to_df, \
+    get_default_classification_scorers, get_default_object_detection_scorers
 
 __all__ = ['ClassPerformance']
 
@@ -46,8 +46,7 @@ class ClassPerformance(TrainTestCheck):
         - 'worst': Show the classes with the lowest score.
     metric_to_show_by : str, default: None
         Specify the metric to sort the results by. Relevant only when show_only is 'best' or 'worst'.
-        If not specified, for classification tasks the default is Precision. for object detection tasks the default is
-        mAP.
+        If None, sorting by the first metric in the default metrics list.
     """
 
     def __init__(self,
@@ -65,7 +64,7 @@ class ClassPerformance(TrainTestCheck):
 
         self.show_only = show_only
         if alternative_metrics is not None and show_only in ['best', 'worst'] and metric_to_show_by is None:
-            raise DeepchecksValueError('When alternative_metrics are provided and show_only is be one of: '
+            raise DeepchecksValueError('When alternative_metrics are provided and show_only is one of: '
                                        '["best", "worst"], metric_to_show_by must be specified.')
         self.metric_to_show_by = metric_to_show_by
         self._state = {}
@@ -76,9 +75,9 @@ class ClassPerformance(TrainTestCheck):
 
         if not self.metric_to_show_by:
             if context.train.task_type == TaskType.CLASSIFICATION:
-                self.metric_to_show_by = 'Precision'
+                self.metric_to_show_by = get_default_classification_scorers().keys()[0]
             elif context.train.task_type == TaskType.OBJECT_DETECTION:
-                self.metric_to_show_by = 'mAP'
+                self.metric_to_show_by = get_default_object_detection_scorers().keys()[0]
             else:
                 raise DeepchecksValueError(f'Invalid task type: {context.train.task_type}')
 
@@ -143,7 +142,7 @@ class ClassPerformance(TrainTestCheck):
         )
 
     def _filter_classes(self, metrics_df: pd.DataFrame) -> list:
-        # working only on the test set, and on the precision metric
+        # working only on the test set
         tests_metrics_df = metrics_df[(metrics_df['Dataset'] == DatasetKind.TEST.value) &
                                       (metrics_df['Metric'] == self.metric_to_show_by)]
         if self.show_only == 'largest':

@@ -87,10 +87,9 @@ def test_coco_best(coco_train_visiondata, coco_test_visiondata, trained_yolov5_o
                        trained_yolov5_object_detection, prediction_formatter=pred_formatter)
     first_row = result.value.loc[result.value['Metric'] == 'mAP'].sort_values(by='Value', ascending=False).iloc[0]
 
+    # Assert
     assert_that(len(result.value), equal_to(4))
     assert_that(first_row['Value'], close_to(0.990854, 0.01))
     assert_that(first_row['Number of samples'], equal_to(1))
     assert_that(first_row['Class'], is_in([28, 40]))
-
-    # Assert
 
