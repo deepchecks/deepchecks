@@ -27,7 +27,8 @@ __all__ = ['SingleFeatureContributionTrainTest']
 FC = t.TypeVar('FC', bound='SingleFeatureContributionTrainTest')
 
 
-pps_url = 'https://docs.deepchecks.com/en/stable/examples/checks/methodology/single_feature_contribution_train_test' \
+pps_url = 'https://docs.deepchecks.com/en/stable/examples/tabular/' \
+          'checks/methodology/single_feature_contribution_train_test' \
           '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 

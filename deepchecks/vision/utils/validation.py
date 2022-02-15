@@ -9,13 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """Module for validation of the vision module."""
+import random
 import typing as t
-
+import numpy as np
+import torch
 from deepchecks.core import errors
 from deepchecks import vision  # pylint: disable=unused-import, is used in type annotations
 
 
-__all__ = ['validate_model']
+__all__ = ['validate_model', 'set_seeds', 'apply_to_tensor']
 
 
 def validate_model(dataset: 'vision.VisionData', model: t.Any):
@@ -39,3 +41,40 @@ def validate_model(dataset: 'vision.VisionData', model: t.Any):
         raise errors.ModelValidationError(
             f'Got error when trying to predict with model on dataset: {str(exc)}'
         )
+
+
+def set_seeds(seed: int):
+    """Set seeds for reproducibility.
+
+    Imgaug uses numpy's State
+    Albumentation uses Python and imgaug seeds
+
+    Parameters
+    ----------
+    seed : int
+        Seed to be set
+    """
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
+T = t.TypeVar('T')
+
+
+def apply_to_tensor(
+    x: T,
+    fn: t.Callable[[torch.Tensor], torch.Tensor]
+) -> T:
+    """Apply provided function to tensor instances recursivly."""
+    if isinstance(x, torch.Tensor):
+        return t.cast(T, fn(x))
+    elif isinstance(x, (str, bytes, bytearray)):
+        return x
+    elif isinstance(x, (list, tuple, set)):
+        return type(x)(apply_to_tensor(it, fn) for it in x)
+    elif isinstance(x, dict):
+        return type(x)((k, apply_to_tensor(v, fn)) for k, v in x.items())
+    return x

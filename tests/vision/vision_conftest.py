@@ -8,21 +8,25 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-import copy
+import pathlib
 
 import pytest
 import torch
-from torch import nn
-from torchvision.transforms import ToTensor
 from torch.utils.data import DataLoader, Dataset
-from torchvision.datasets import MNIST
 
-from deepchecks.vision import VisionData
-from deepchecks.vision.utils import DetectionLabelFormatter, ClassificationLabelFormatter
 from deepchecks.vision.datasets.detection.coco import (
-    load_model as load_yolov5_model, 
+    load_model as load_yolov5_model,
     load_dataset as load_coco_dataset
 )
+from deepchecks.vision.datasets.classification.mnist import (
+    load_model as load_mnist_net_model,
+    load_dataset as load_mnist_dataset
+)
+from tests.vision.utils_tests.mnist_imgaug import mnist_dataset_imgaug
+
+# Fix bug with torch.hub path on windows
+PROJECT_DIR = pathlib.Path(__file__).absolute().parent.parent.parent
+torch.hub.set_dir(str(PROJECT_DIR))
 
 
 __all__ = ['mnist_data_loader_train',
@@ -44,90 +48,35 @@ __all__ = ['mnist_data_loader_train',
 
 @pytest.fixture(scope='session')
 def mnist_data_loader_train():
-    mnist_train_dataset = MNIST('./mnist',
-                                download=True,
-                                train=True,
-                                transform=ToTensor())
-
-    return DataLoader(mnist_train_dataset, batch_size=64)
+    return load_mnist_dataset(train=True, object_type='DataLoader')
 
 
 @pytest.fixture(scope='session')
-def mnist_dataset_train(mnist_data_loader_train):
+def mnist_dataset_train():
     """Return MNist dataset as VisionData object."""
-    dataset = VisionData(mnist_data_loader_train, label_transformer=ClassificationLabelFormatter(lambda x: x))
-    return dataset
+    return load_mnist_dataset(train=True, object_type='VisionData')
 
 
 @pytest.fixture(scope='session')
 def mnist_data_loader_test():
-    mnist_train_dataset = MNIST('./mnist',
-                                download=True,
-                                train=False,
-                                transform=ToTensor())
-
-    return DataLoader(mnist_train_dataset, batch_size=1000)
+    return load_mnist_dataset(train=False, object_type='DataLoader')
 
 
 @pytest.fixture(scope='session')
-def mnist_dataset_test(mnist_data_loader_test):
+def mnist_dataset_test():
     """Return MNist dataset as VisionData object."""
-    dataset = VisionData(mnist_data_loader_test, label_transformer=ClassificationLabelFormatter(lambda x: x))
-    return dataset
+    return load_mnist_dataset(train=False, object_type='VisionData')
 
 
 @pytest.fixture(scope='session')
-def simple_nn():
-    torch.manual_seed(42)
-
-    # Define model
-    class NeuralNetwork(nn.Module):
-        def __init__(self):
-            super(NeuralNetwork, self).__init__()
-            self.flatten = nn.Flatten()
-            self.linear_relu_stack = nn.Sequential(
-                nn.Linear(28 * 28, 512),
-                nn.ReLU(),
-                nn.Linear(512, 512),
-                nn.ReLU(),
-                nn.Linear(512, 10)
-            )
-
-        def forward(self, x):
-            x = self.flatten(x)
-            logits = self.linear_relu_stack(x)
-            return logits
-
-    model = NeuralNetwork().to('cpu')
-    return model
+def trained_mnist():
+    return load_mnist_net_model()
 
 
 @pytest.fixture(scope='session')
-def trained_mnist(simple_nn, mnist_data_loader_train):
-    torch.manual_seed(42)
-    simple_nn = copy.deepcopy(simple_nn)
-    loss_fn = nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(simple_nn.parameters(), lr=1e-3)
-    size = len(mnist_data_loader_train.dataset)
-    # Training 1 epoch
-    simple_nn.train()
-    for batch, (X, y) in enumerate(mnist_data_loader_train):
-        X, y = X.to('cpu'), y.to('cpu')
-
-        # Compute prediction error
-        pred = simple_nn(X)
-        loss = loss_fn(pred, y)
-
-        # Backpropagation
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
-        if batch % 100 == 0:
-            loss, current = loss.item(), batch * len(X)
-            print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
-
-    return simple_nn
+def mnist_dataset_train_imgaug():
+    """Return MNist dataset as VisionData object."""
+    return mnist_dataset_imgaug(train=True)
 
 
 @pytest.fixture(scope='session')
@@ -152,8 +101,8 @@ def coco_train_dataloader():
 
 
 @pytest.fixture(scope='session')
-def coco_train_visiondata(coco_train_dataloader):
-    return VisionData(coco_train_dataloader, label_transformer=DetectionLabelFormatter(lambda x: x), num_classes=80)
+def coco_train_visiondata():
+    return load_coco_dataset(train=True, object_type='VisionData')
 
 
 @pytest.fixture(scope='session')
@@ -162,8 +111,8 @@ def coco_test_dataloader():
 
 
 @pytest.fixture(scope='session')
-def coco_test_visiondata(coco_test_dataloader):
-    return VisionData(coco_test_dataloader, label_transformer=DetectionLabelFormatter(lambda x: x), num_classes=80)
+def coco_test_visiondata():
+    return load_coco_dataset(train=False, object_type='VisionData')
 
 
 @pytest.fixture(scope='session')

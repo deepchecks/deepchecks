@@ -43,7 +43,7 @@ def test_load_dataset():
 
 
 def test_deepchecks_dataset_load():
-    loader = load_dataset(train=True, object_type='Dataset')
+    loader = load_dataset(train=True, object_type='VisionData')
     assert_that(loader, instance_of(vision.VisionData))
 
 

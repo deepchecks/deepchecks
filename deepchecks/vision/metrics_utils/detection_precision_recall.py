@@ -10,8 +10,7 @@
 #
 """Module for calculating detection precision and recall."""
 from collections import defaultdict
-from ctypes import Union
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 from ignite.metrics import Metric
 from ignite.metrics.metric import sync_all_reduce, reinit__is_reduced
@@ -126,10 +125,16 @@ class AveragePrecision(Metric):
         bb_info = defaultdict(lambda: {"dt": [], "gt": []})
 
         for d in dt:
-            c_id = d[5].item()
+            if isinstance(d[5], torch.Tensor):
+                c_id = d[5].item()
+            else:
+                c_id = d[5]
             bb_info[c_id]["dt"].append(d)
         for g in gt:
-            c_id = g[0]
+            if isinstance(g[0], torch.Tensor):
+                c_id = g[0].item()
+            else:
+                c_id = g[0]
             bb_info[c_id]["gt"].append(g)
 
         # Calculating pairwise IoUs
@@ -278,7 +283,7 @@ class AveragePrecision(Metric):
 
         Returns
         -------
-        Uninon[List[float], float]
+        Union[List[float], float]
            The mean value of the classes scores or the scores list.
         """
         if iou:

@@ -9,7 +9,6 @@ Here you can find the key concepts, structure, recommended flow, and dive in to 
 .. toctree::
     :maxdepth: 2
 
-    key_concepts
-    when_should_you_use
-    dataset_object
-    supported_models
+    concepts/index
+    tabular/index
+    vision/index
