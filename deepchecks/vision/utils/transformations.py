@@ -10,14 +10,14 @@
 #
 """Module for defining functions related to vision transforms."""
 from copy import copy
-from typing import Sized
+from typing import Sized, Optional
 
 import albumentations
 import imgaug
+import imgaug.augmenters as iaa
 import torch
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-
 
 __all__ = ['get_transforms_handler', 'add_augmentation_in_start', 'un_normalize_batch',
            'ImgaugTransformations', 'AlbumentationsTransformations']
@@ -29,24 +29,57 @@ class ImgaugTransformations:
     @classmethod
     def add_augmentation_in_start(cls, aug, transforms):
         """Add given transformations to the start of given transforms object."""
-        if not isinstance(aug, imgaug.augmenters.Augmenter):
+        if not isinstance(aug, iaa.Augmenter):
             raise DeepchecksValueError(f'Transforms is of type imgaug, can\'t add to it type {type(aug).__name__}')
-        return imgaug.augmenters.Sequential([aug, transforms])
+        return iaa.Sequential([aug, transforms])
 
     @classmethod
     def get_test_transformation(cls):
         """Get transformation which is affecting both image data and bbox."""
-        return imgaug.augmenters.Rotate(rotate=(20, 30))
+        return iaa.Rotate(rotate=(20, 30))
 
     @classmethod
-    def get_robustness_augmentations(cls, data_dim):
+    def get_robustness_augmentations(cls, data_dim: Optional[int] = 3):
         """Get default augmentations to use in robustness report check."""
         augmentations = [
-            imgaug.augmenters.MultiplyHueAndSaturation()
+            # Tries to be similar to output of
+            # albumentations.RandomBrightnessContrast
+            # Exact output is difficult
+            iaa.Sequential([
+                iaa.contrast.LinearContrast([0.8, 1.2]),
+                iaa.color.MultiplyBrightness([0.8, 1.2])
+
+            ], name="RandomBrightnessContrast"),
+            # mimics albumentations.ShiftScaleRotate
+            iaa.geometric.Affine(scale=[0.9, 1.1],
+                                 translate_percent=[-0.0625, 0.0625],
+                                 rotate=[-45, 45],
+                                 order=1,
+                                 cval=0,
+                                 mode="reflect",
+                                 name="ShiftScaleRotate")
         ]
         if data_dim == 3:
-            # TODO add RGB augmentations
-            pass
+            augmentations.extend([
+                # mimics h(p=1.0),
+                iaa.WithColorspace(
+                    to_colorspace="HSV",
+                    from_colorspace="RGB",
+                    children=[
+                        # Hue
+                        iaa.WithChannels(0, iaa.Add((-20, 20))),
+                        # Saturation
+                        iaa.WithChannels(1, iaa.Add((-30, 30))),
+                        # Value
+                        iaa.WithChannels(0, iaa.Add((-20, 20))),
+                    ],
+                    name="HueSaturationValue"
+                ),
+                # mimics albumentations.RGBShift
+                iaa.Add(value=[-15, 15],
+                        per_channel=True,
+                        name="RGBShift")
+            ])
         return augmentations
 
 
@@ -71,7 +104,7 @@ class AlbumentationsTransformations:
         return albumentations.Rotate(limit=(20, 30), p=1)
 
     @classmethod
-    def get_robustness_augmentations(cls, data_dim):
+    def get_robustness_augmentations(cls, data_dim: Optional[int] = 3):
         """Get default augmentations to use in robustness report check."""
         augmentations = [
             albumentations.RandomBrightnessContrast(p=1.0),
