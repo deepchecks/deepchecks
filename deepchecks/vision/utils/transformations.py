@@ -48,22 +48,22 @@ class ImgaugTransformations:
                 iaa.contrast.LinearContrast([0.8, 1.2]),
                 iaa.color.MultiplyBrightness([0.8, 1.2])
 
-            ], name="RandomBrightnessContrast"),
+            ], name='RandomBrightnessContrast'),
             # mimics albumentations.ShiftScaleRotate
             iaa.geometric.Affine(scale=[0.9, 1.1],
                                  translate_percent=[-0.0625, 0.0625],
                                  rotate=[-45, 45],
                                  order=1,
                                  cval=0,
-                                 mode="reflect",
-                                 name="ShiftScaleRotate")
+                                 mode='reflect',
+                                 name='ShiftScaleRotate')
         ]
         if data_dim == 3:
             augmentations.extend([
                 # mimics h(p=1.0),
                 iaa.WithColorspace(
-                    to_colorspace="HSV",
-                    from_colorspace="RGB",
+                    to_colorspace='HSV',
+                    from_colorspace='RGB',
                     children=[
                         # Hue
                         iaa.WithChannels(0, iaa.Add((-20, 20))),
@@ -72,12 +72,12 @@ class ImgaugTransformations:
                         # Value
                         iaa.WithChannels(0, iaa.Add((-20, 20))),
                     ],
-                    name="HueSaturationValue"
+                    name='HueSaturationValue'
                 ),
                 # mimics albumentations.RGBShift
                 iaa.Add(value=[-15, 15],
                         per_channel=True,
-                        name="RGBShift")
+                        name='RGBShift')
             ])
         return augmentations
 
@@ -123,7 +123,7 @@ def get_transforms_handler(transforms):
         raise DeepchecksNotSupportedError('Underlying Dataset instance must have transform field not None')
     elif isinstance(transforms, albumentations.Compose):
         return AlbumentationsTransformations
-    elif isinstance(transforms, imgaug.augmenters.Augmenter):
+    elif isinstance(transforms, iaa.Augmenter):
         return ImgaugTransformations
     else:
         raise DeepchecksNotSupportedError('Currently only imgaug and albumentations are supported')
