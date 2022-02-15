@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 import numpy as np
-from hamcrest import assert_that, equal_to, calling, raises
+from hamcrest import assert_that, calling, raises
 
 from deepchecks.vision.utils import ClassificationLabelFormatter
 from deepchecks.core.errors import DeepchecksValueError
@@ -18,35 +18,32 @@ from deepchecks.vision.utils.image_formatters import ImageFormatter
 from tests.vision.vision_conftest import *
 
 
-def test_classification_formatter_invalid_dataloader(three_tuples_dataloader):
-    formatter = ClassificationLabelFormatter(lambda x: x)
-
-    err = formatter.validate_label(three_tuples_dataloader)
-    assert_that(err, equal_to('Check requires dataloader to return tuples of (input, label).'))
-
-
 def test_classification_formatter_formatting_valid_label_shape(two_tuples_dataloader):
     formatter = ClassificationLabelFormatter(lambda x: x)
+    formatted_label = formatter(next(iter(two_tuples_dataloader))[1])
 
-    err = formatter.validate_label(two_tuples_dataloader)
-    assert_that(err, equal_to(None))
+    # Should not raise exception
+    formatter.validate_label(formatted_label)
 
 
 def test_classification_formatter_formatting_invalid_label_type(two_tuples_dataloader):
     formatter = ClassificationLabelFormatter(lambda x: [x, x])
+    formatted_label = formatter(next(iter(two_tuples_dataloader))[1])
 
-    err = formatter.validate_label(two_tuples_dataloader)
-    assert_that(err, equal_to('Check requires classification label to be a torch.Tensor or numpy array'))
+    assert_that(
+        calling(formatter.validate_label).with_args(formatted_label),
+        raises(DeepchecksValueError, 'Check requires classification label to be a torch.Tensor or numpy array')
+    )
 
 
-def numpy_shape_dataloader(shape, value: float = 1, collate_fn=None):
+def numpy_shape_dataloader(shape, value: float = 255, collate_fn=None):
 
     if collate_fn is None:
         collate_fn = np.stack
 
     class TwoTupleDataset(Dataset):
         def __getitem__(self, index):
-            return np.ones(shape) * value
+            return np.ones(shape) * value, 0
 
         def __len__(self) -> int:
             return 8
@@ -67,9 +64,11 @@ def test_data_formatter_not_iterable():
 def test_data_formatter_not_numpy():
     formatter = ImageFormatter(lambda x: [[x] for x in x])
 
-    batch = next(iter(numpy_shape_dataloader((10, 10, 3))))
+    batch = next(iter(numpy_shape_dataloader((10, 10, 3))))[0]
+    formatted_data = formatter(batch)
+
     assert_that(
-        calling(formatter.validate_data).with_args(batch),
+        calling(formatter.validate_data).with_args(formatted_data),
         raises(DeepchecksValueError, 'The data inside the iterable must be a numpy array.')
     )
 
@@ -77,53 +76,65 @@ def test_data_formatter_not_numpy():
 def test_data_formatter_missing_dimensions():
     formatter = ImageFormatter(lambda x: x)
 
-    batch = next(iter(numpy_shape_dataloader((10, 10))))
+    batch = next(iter(numpy_shape_dataloader((10, 10))))[0]
+    formatted_data = formatter(batch)
+
     assert_that(
-        calling(formatter.validate_data).with_args(batch),
-        raises(DeepchecksValueError, 'The data inside the iterable must be a 3D array.')
+        calling(formatter.validate_data).with_args(formatted_data),
+        raises(DeepchecksValueError, 'The data inside the numpy array must be a 3D array.')
     )
 
 
 def test_data_formatter_wrong_color_channel():
     formatter = ImageFormatter(lambda x: x)
 
-    batch = next(iter(numpy_shape_dataloader((3, 10, 10))))
+    batch = next(iter(numpy_shape_dataloader((3, 10, 10))))[0]
+    formatted_data = formatter(batch)
+
     assert_that(
-        calling(formatter.validate_data).with_args(batch),
-        raises(DeepchecksValueError, 'The data inside the iterable must have 1 or 3 channels.')
+        calling(formatter.validate_data).with_args(formatted_data),
+        raises(DeepchecksValueError, 'The data inside the numpy array must have 1 or 3 channels.')
     )
 
 
 def test_data_formatter_invalid_values():
     formatter = ImageFormatter(lambda x: x * 300)
 
-    batch = next(iter(numpy_shape_dataloader((10, 10, 3))))
+    batch = next(iter(numpy_shape_dataloader((10, 10, 3))))[0]
+    formatted_data = formatter(batch)
+
     assert_that(
-        calling(formatter.validate_data).with_args(batch),
-        raises(DeepchecksValueError, r'The data inside the iterable must be in the range \[0, 255\].')
+        calling(formatter.validate_data).with_args(formatted_data),
+        raises(DeepchecksValueError, r'The data inside the numpy array must be in the range \[0, 255\].')
     )
 
     formatter = ImageFormatter(lambda x: -x)
 
-    batch = next(iter(numpy_shape_dataloader((10, 10, 3))))
+    batch = next(iter(numpy_shape_dataloader((10, 10, 3))))[0]
+    formatted_data = formatter(batch)
+
     assert_that(
-        calling(formatter.validate_data).with_args(batch),
-        raises(DeepchecksValueError, r'The data inside the iterable must be in the range \[0, 255\].')
+        calling(formatter.validate_data).with_args(formatted_data),
+        raises(DeepchecksValueError, r'The data inside the numpy array must be in the range \[0, 255\].')
     )
 
 
 def test_data_formatter_valid_dimensions():
     formatter = ImageFormatter(lambda x: x)
 
-    batch = next(iter(numpy_shape_dataloader((10, 10, 3))))
-    formatter.validate_data(batch)
+    batch = next(iter(numpy_shape_dataloader((10, 10, 3))))[0]
+    formatted_data = formatter(batch)
+
+    formatter.validate_data(formatted_data)
 
 
 def test_data_formatter_valid_dimensions_other_iterable():
     formatter = ImageFormatter(lambda x: x)
 
-    batch = next(iter(numpy_shape_dataloader((10, 10, 3), collate_fn=list)))
-    formatter.validate_data(batch)
+    batch = next(iter(numpy_shape_dataloader((10, 10, 3), collate_fn=list)))[0]
+    formatted_data = formatter(batch)
+    formatter.validate_data(formatted_data)
 
-    batch = next(iter(numpy_shape_dataloader((10, 10, 3), collate_fn=tuple)))
-    formatter.validate_data(batch)
+    batch = next(iter(numpy_shape_dataloader((10, 10, 3), collate_fn=tuple)))[0]
+    formatted_data = formatter(batch)
+    formatter.validate_data(formatted_data)

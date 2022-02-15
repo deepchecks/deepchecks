@@ -10,7 +10,7 @@
 #
 """Module for defining detection encoders."""
 from collections import Counter
-from typing import Callable, Optional
+from typing import Callable
 
 import numpy as np
 import torch
@@ -82,31 +82,19 @@ class ClassificationLabelFormatter(BaseLabelFormatter):
 
         return counter
 
-    def validate_label(self, data_loader: DataLoader) -> Optional[str]:
+    def validate_label(self, labels):
         """
         Validate the label.
 
         Parameters
         ----------
-        data_loader : DataLoader
-            DataLoader to get the samples per class from.
-
-        Returns
-        -------
-        Optional[str]
-            None if the label is valid, otherwise a string containing the error message.
-
+        labels
         """
-        batch = next(iter(data_loader))
-        if len(batch) != 2:
-            return 'Check requires dataloader to return tuples of (input, label).'
-
-        label_batch = self(batch[1])
-        if not isinstance(label_batch, (torch.Tensor, np.ndarray)):
-            return 'Check requires classification label to be a torch.Tensor or numpy array'
-        label_shape = label_batch.shape
+        if not isinstance(labels, (torch.Tensor, np.ndarray)):
+            raise DeepchecksValueError('Check requires classification label to be a torch.Tensor or numpy array')
+        label_shape = labels.shape
         if len(label_shape) != 1:
-            return 'Check requires classification label to be a 1D tensor'
+            raise DeepchecksValueError('Check requires classification label to be a 1D tensor')
 
 
 class ClassificationPredictionFormatter(BasePredictionFormatter):
@@ -149,7 +137,7 @@ class ClassificationPredictionFormatter(BasePredictionFormatter):
         """Call the encoder."""
         return self.prediction_formatter(*args, **kwargs)
 
-    def validate_prediction(self, batch_predictions, n_classes: int, eps: float = 1e-3):
+    def validate_prediction(self, batch_predictions, n_classes: int = None, eps: float = 1e-3):
         """
         Validate the prediction.
 
@@ -168,7 +156,7 @@ class ClassificationPredictionFormatter(BasePredictionFormatter):
         pred_shape = batch_predictions.shape
         if len(pred_shape) != 2:
             raise DeepchecksValueError('Check requires classification predictions to be a 2D tensor')
-        if pred_shape[1] != n_classes:
+        if n_classes and pred_shape[1] != n_classes:
             raise DeepchecksValueError(f'Check requires classification predictions to have {n_classes} columns')
         if any(abs(batch_predictions.sum(axis=1) - 1) > eps):
             raise DeepchecksValueError('Check requires classification} predictions to be a probability distribution and'

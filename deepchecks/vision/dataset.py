@@ -11,7 +11,7 @@
 """The vision/dataset module containing the vision Dataset class and its functions."""
 from copy import copy
 from enum import Enum
-from typing import Optional, List, Iterator, Dict, Any
+from typing import Optional, List, Iterator, Dict, Any, Sized
 
 import numpy as np
 import torch
@@ -81,7 +81,7 @@ class VisionData:
     _data: DataLoader
     _num_classes: Optional[int]
     _samples_per_class: Optional[Dict[Any, int]]
-    _label_valid: Optional[str]
+    _label_invalid: Optional[str]
     _sample_size: int
     _random_seed: int
     _sample_labels: Optional[Any]
@@ -99,41 +99,41 @@ class VisionData:
         self.label_transformer = label_transformer
         self.image_transformer = image_transformer or ImageFormatter(lambda x: x)
 
-        if self.label_transformer:
-            if isinstance(self.label_transformer, ClassificationLabelFormatter):
+        batch = next(iter(self._data))
+        if not isinstance(batch, Sized) or len(batch) != 2:
+            raise DeepchecksValueError('dataloader required to return tuples of (input, label)')
+
+        if label_transformer:
+            if isinstance(label_transformer, ClassificationLabelFormatter):
                 self.task_type = TaskType.CLASSIFICATION
-            elif isinstance(self.label_transformer, DetectionLabelFormatter):
+                self.label_transformer = label_transformer
+            elif isinstance(label_transformer, DetectionLabelFormatter):
                 self.task_type = TaskType.OBJECT_DETECTION
+                self.label_transformer = label_transformer
             else:
+                self._label_invalid = f'Invalid transformer type: {type(self.label_transformer).__name__}'
                 logger.warning('Unknown label transformer type was provided. Only integrity and data checks will run.'
                                'The supported label transformer types are: '
                                '[ClassificationLabelFormatter, DetectionLabelFormatter]')
 
-        self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
-        self.transform_field = transform_field
+            if self.label_transformer:
+                try:
+                    transformed_label = self.label_transformer(next(iter(self._data))[1])
+                    self.label_transformer.validate_label(transformed_label)
+                    self._label_invalid = None
+                except DeepchecksValueError as ex:
+                    self._label_invalid = str(ex)
+        else:
+            self._label_invalid = 'label_transformer parameter was not defined'
 
         if image_transformer is None:
             self.image_transformer = ImageFormatter(lambda x: x)
         else:
             self.image_transformer = image_transformer
 
-        if isinstance(self.label_transformer, ClassificationLabelFormatter):
-            self.task_type = TaskType.CLASSIFICATION
-        elif isinstance(self.label_transformer, DetectionLabelFormatter):
-            self.task_type = TaskType.OBJECT_DETECTION
-        else:
-            self.task_type = None
-            logger.warning('Unknown label transformer type was provided. Only integrity and data checks will run.'
-                           'The supported label transformer types are: '
-                           '[ClassificationLabelFormatter, DetectionLabelFormatter]')
-
-        self._num_classes = num_classes  # if not initialized, then initialized later in n_of_classes
         self._samples_per_class = None
-        if self.label_transformer:
-            # will contain error message if not valid
-            self._label_valid = self.label_transformer.validate_label(self._data)
-        else:
-            self._label_valid = 'label_transformer parameter was not defined'
+        self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
+        self.transform_field = transform_field
         # Sample dataset properties
         self._sample_data_loader = None
         self._sample_labels = None
@@ -196,8 +196,8 @@ class VisionData:
 
     def assert_label(self):
         """Raise error if label is not exists or not valid."""
-        if isinstance(self._label_valid, str):
-            raise DeepchecksValueError(self._label_valid)
+        if self._label_invalid:
+            raise DeepchecksValueError(self._label_invalid)
 
     def is_have_label(self) -> bool:
         """Return whether the data contains labels."""

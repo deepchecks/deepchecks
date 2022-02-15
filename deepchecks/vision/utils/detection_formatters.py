@@ -92,14 +92,13 @@ class DetectionLabelFormatter(BaseLabelFormatter):
 
         return counter
 
-    def validate_label(self, data_loader: DataLoader) -> Optional[str]:
+    def validate_label(self, labels) -> Optional[str]:
         """
         Validate the label.
 
         Parameters
         ----------
-        data_loader : DataLoader
-            DataLoader to get the samples per class from.
+        labels
 
         Returns
         -------
@@ -107,22 +106,19 @@ class DetectionLabelFormatter(BaseLabelFormatter):
             None if the label is valid, otherwise a string containing the error message.
 
         """
-        batch = next(iter(data_loader))
-        if len(batch) != 2:
-            return 'Check requires dataset to have a label'
-
-        label_batch = self(batch[1])
-        if not isinstance(label_batch, list):
-            return 'Check requires object detection label to be a list with an entry for each sample'
-        if len(label_batch) == 0:
-            return 'Check requires object detection label to be a non-empty list'
-        if not isinstance(label_batch[0], (torch.Tensor, np.ndarray)):
-            return 'Check requires object detection label to be a list of torch.Tensor or numpy array'
-        if len(label_batch[0].shape) != 2:
-            return 'Check requires object detection label to be a list of 2D tensors'
-        if label_batch[0].shape[1] != 5:
-            return 'Check requires object detection label to be a list of 2D tensors, when ' \
-                   'each row has 5 columns: [class_id, x, y, width, height]'
+        if not isinstance(labels, list):
+            raise DeepchecksValueError('Check requires object detection label to be a list with an entry for each '
+                                       'sample')
+        if len(labels) == 0:
+            raise DeepchecksValueError('Check requires object detection label to be a non-empty list')
+        if not isinstance(labels[0], (torch.Tensor, np.ndarray)):
+            raise DeepchecksValueError('Check requires object detection label to be a list of torch.Tensor or numpy '
+                                       'array')
+        if len(labels[0].shape) != 2:
+            raise DeepchecksValueError('Check requires object detection label to be a list of 2D tensors')
+        if labels[0].shape[1] != 5:
+            raise DeepchecksValueError('Check requires object detection label to be a list of 2D tensors, when '
+                                       'each row has 5 columns: [class_id, x, y, width, height]')
 
 
 class DetectionPredictionFormatter(BasePredictionFormatter):
@@ -178,7 +174,7 @@ class DetectionPredictionFormatter(BasePredictionFormatter):
         """Call the encoder."""
         return self.prediction_formatter(*args, **kwargs)
 
-    def validate_prediction(self, batch_predictions, n_classes: int, eps: float = 1e-3):
+    def validate_prediction(self, batch_predictions, n_classes: int = None, eps: float = 1e-3):
         """
         Validate the prediction.
 

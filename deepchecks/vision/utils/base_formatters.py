@@ -10,9 +10,11 @@
 #
 """Module defining base encoders."""
 import abc
-from typing import Callable, Optional, Union
+from typing import Callable, Union
 
 from torch.utils.data import DataLoader
+
+from deepchecks.core.errors import DeepchecksValueError
 
 
 class BaseLabelFormatter(abc.ABC):
@@ -33,9 +35,9 @@ class BaseLabelFormatter(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def validate_label(self, data_loader: DataLoader) -> Optional[str]:
+    def validate_label(self, labels):
         """Validate that the label is in the required format."""
-        return 'Not implemented yet for tasks other than classification and object detection'
+        raise DeepchecksValueError('Not implemented yet for tasks other than classification and object detection')
 
 
 class BasePredictionFormatter(abc.ABC):
@@ -51,6 +53,6 @@ class BasePredictionFormatter(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def validate_prediction(self, batch_predictions, n_classes: int, eps: float = 1e-3):
+    def validate_prediction(self, batch_predictions, n_classes: int = None, eps: float = 1e-3):
         """Validate that the predictions are in the required format."""
         return 'Not implemented yet for tasks other than classification and object detection'
