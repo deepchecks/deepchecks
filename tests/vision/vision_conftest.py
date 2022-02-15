@@ -32,6 +32,7 @@ torch.hub.set_dir(str(PROJECT_DIR))
 __all__ = ['mnist_data_loader_train',
            'mnist_dataset_train',
            'mnist_data_loader_test',
+           'mnist_dataset_train_imgaug',
            'mnist_dataset_test',
            'trained_mnist',
            'trained_yolov5_object_detection',
