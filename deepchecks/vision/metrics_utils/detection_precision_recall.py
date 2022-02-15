@@ -10,6 +10,7 @@
 #
 """Module for calculating detection precision and recall."""
 from collections import defaultdict
+from ctypes import Union
 from typing import List, Tuple
 
 from ignite.metrics import Metric
@@ -39,11 +40,7 @@ class AveragePrecision(Metric):
 
     Parameters
     ----------
-    num_classes : int
-        Number of classes.
-    iou_threshold : float , default: 0.5
-        Intersection over area threshold.
-    max_dets: int, default: None
+    max_dets: Union[List[int], Tuple[int]], default: [1, 10, 100]
         Maximum number of detections per class.
     area_range: tuple, default: (32**2, 96**2)
         Slices for small/medium/large buckets.
@@ -51,7 +48,7 @@ class AveragePrecision(Metric):
         0: ap only, 1: ar only, 2 (or another value): all (not ignite complient)
     """
 
-    def __init__(self, *args, max_dets: List[int] = (1, 10, 100),
+    def __init__(self, *args, max_dets: Union[List[int], Tuple[int]] = (1, 10, 100),
                  area_range: Tuple = (32**2, 96**2),
                  return_option: int = 0, **kwargs):
         super().__init__(*args, **kwargs)
@@ -110,9 +107,10 @@ class AveragePrecision(Metric):
                     # run ap calculation per-class
                     for class_id in sorted_classes:
                         ev = self._evals[class_id]
-                        precision, recall = self._compute_ap_recall(np.array(ev["scores"][(area_size, dets, min_iou)]),
-                                                                    np.array(ev["matched"][(area_size, dets, min_iou)]),
-                                                                    np.sum(np.array(ev["NP"][(area_size, dets, min_iou)])))
+                        precision, recall = \
+                            self._compute_ap_recall(np.array(ev["scores"][(area_size, dets, min_iou)]),
+                                                    np.array(ev["matched"][(area_size, dets, min_iou)]),
+                                                    np.sum(np.array(ev["NP"][(area_size, dets, min_iou)])))
                         precision_list.append(precision)
                         recall_list.append(recall)
                     reses["precision"][iou_i, area_i, dets_i] = np.array(precision_list)
@@ -207,7 +205,7 @@ class AveragePrecision(Metric):
                         else self._is_ignore_area(d.bbox[2] * d.bbox[3], area_size)
                         for d_idx, d in enumerate(dt)
                     ]
- 
+
                     # get score for non-ignored dts
                     scores[(area_size, dets, min_iou)] = [dt[d_idx].confidence for d_idx in range(len(dt))
                                                           if not dt_ignore[d_idx]]
@@ -262,7 +260,27 @@ class AveragePrecision(Metric):
             return not area_bb > self.area_range[1]
         return False
 
-    def get_val_at(self, res, iou: float = None, area: str = None, max_dets: int = None, get_mean_val = True):
+    def get_val_at(self, res, iou: float = None, area: str = None, max_dets: int = None, get_mean_val: bool = True):
+        """Get the value a result by the filtering values.
+
+        Parameters
+        ----------
+        res:
+            either prrecision or recall when using the '2' return option
+        iou : float, default: None
+            filter by iou threshold
+        area : str, default: None
+            filter by are range name ["small", "medium", "large", "all"]
+        max_dets : int, default: None
+            filter by max detections
+        get_mean_val : bool, default: True
+            get mean value if True, if False get per class
+
+        Returns
+        -------
+        Uninon[List[float], float]
+           The mean value of the classes scores or the scores list.
+        """
         if iou:
             iou_i = [i for i, iou_thres in enumerate(self.iou_thresholds) if iou == iou_thres]
             res = res[iou_i, :, :, :]
@@ -273,7 +291,7 @@ class AveragePrecision(Metric):
             dets_i = [i for i, det in enumerate(self.max_dets) if max_dets == det]
             res = res[:, :, dets_i, :]
         res = np.mean(res[:, :, :], axis=0)
-        res = res[res>-1]
+        res = res[res > -1]
         if get_mean_val:
             return np.mean(res)
         return res
