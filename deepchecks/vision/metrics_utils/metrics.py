@@ -41,7 +41,8 @@ def get_default_classification_scorers():
 
 def get_default_object_detection_scorers():
     return {
-        'mAP': AveragePrecision()
+        'AP': AveragePrecision(),
+        'AR': AveragePrecision(return_option=1)
     }
 
 
