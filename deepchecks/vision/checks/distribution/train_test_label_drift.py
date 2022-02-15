@@ -535,7 +535,7 @@ def feature_distribution_traces(expected_percents: np.array,
         y_lim = 1 if max_y > 0.5 else max_y * 1.1
 
         xaxis_layout = dict(type='category',
-                            title='Values')
+                            title='Value')
         yaxis_layout = dict(fixedrange=True,
                             range=(0, y_lim),
                             title='Percentage')
@@ -550,7 +550,7 @@ def feature_distribution_traces(expected_percents: np.array,
 
         xaxis_layout = dict(fixedrange=True,
                             range=x_range,
-                            title='Distribution')
+                            title='Value')
         yaxis_layout = dict(title='Probability Density')
 
     return traces, xaxis_layout, yaxis_layout
