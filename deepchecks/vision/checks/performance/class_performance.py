@@ -64,8 +64,6 @@ class ClassPerformance(TrainTestCheck):
         self.class_list_to_show = class_list_to_show
 
         if self.class_list_to_show is None:
-            self.n_to_show = n_to_show
-
             if show_only not in ['largest', 'smallest', 'random', 'best', 'worst']:
                 raise DeepchecksValueError(f'Invalid value for show_only: {show_only}. Should be one of: '
                                            f'["largest", "smallest", "random", "best", "worst"]')
