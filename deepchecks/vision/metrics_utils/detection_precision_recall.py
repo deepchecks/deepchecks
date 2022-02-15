@@ -225,7 +225,7 @@ class AveragePrecision(Metric):
                                             endpoint=True)
 
         # sort in descending score order
-        inds = np.argsort(-scores, kind="stable")
+        inds = np.argsort(-scores, kind="mergesort")
 
         scores = scores[inds]
         matched = matched[inds]
@@ -234,7 +234,7 @@ class AveragePrecision(Metric):
             tp = np.cumsum(matched)
             fp = np.cumsum(~matched)
             rc = tp / n_positives
-            pr = tp / (tp + fp)
+            pr = tp / (tp + fp + np.spacing(1))
 
             # make precision monotonically decreasing
             i_pr = np.maximum.accumulate(pr[::-1])[::-1]
