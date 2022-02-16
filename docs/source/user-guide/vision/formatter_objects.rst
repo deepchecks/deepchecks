@@ -80,8 +80,8 @@ TBD (Not implemented yet)
 
 Validating The Correctness of Your Formatters
 =============================================
-While you work on writing formatters for your data to fit deepchecks, you need a way to test your work is correct.
-For this we have an helper function which checks your formatters and print info about whether they are working.
+While writing formatters for your data to fit deepchecks, you need a way to test your work is correct.
+For this purpose we have an helper function which runs your formatter and prints their outputs, which you can inspect to make sure they work correctly.
 Use this function like so:
 
 .. code-block:: python

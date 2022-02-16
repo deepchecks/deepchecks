@@ -123,17 +123,7 @@ def validate_formatters(data_loader, model, label_formatter: BaseLabelFormatter,
 
     # Classes
     if label_formatter_error is None:
-        if isinstance(label_formatter, DetectionLabelFormatter):
-            def get_classes(tensor):
-                if len(tensor) == 0:
-                    return set()
-                return set(tensor[:, 0].tolist())
-
-            classes = list(set().union(*[get_classes(x) for x in labels]))
-        elif isinstance(label_formatter, ClassificationLabelFormatter):
-            classes = labels.tolist()
-        else:
-            raise DeepchecksValueError(f'Not implemented for label formatter: {type(label_formatter).__name__}')
+        classes = label_formatter.get_classes(labels)
     else:
         classes = None
     # Plot
@@ -198,12 +188,12 @@ def validate_formatters(data_loader, model, label_formatter: BaseLabelFormatter,
             return x + '\n' + ''.join(['-'] * len(x))
 
     line_break = '<br>' if is_notebook() else '\n'
-    msg = get_header('Structure validation results')
+    msg = get_header('Structure validation')
     msg += f'Label formatter: {label_formatter_error if label_formatter_error else "Pass!"}{line_break}'
     msg += f'Prediction formatter: {prediction_formatter_error if prediction_formatter_error else "Pass!"}{line_break}'
     msg += f'Image formatter: {image_formatter_error if image_formatter_error else "Pass!"}{line_break}'
     msg += line_break
-    msg += get_header('Content validation results')
+    msg += get_header('Content validation')
     msg += 'For validating the content within the structure you have to manually observe the classes, image, label ' \
            f'and prediction.{line_break}'
 

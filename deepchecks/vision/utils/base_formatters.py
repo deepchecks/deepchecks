@@ -35,6 +35,11 @@ class BaseLabelFormatter(abc.ABC):
         pass
 
     @abc.abstractmethod
+    def get_classes(self, batch_labels):
+        """Get the classes from the batch labels"""
+        pass
+
+    @abc.abstractmethod
     def validate_label(self, labels):
         """Validate that the label is in the required format."""
         raise DeepchecksValueError('Not implemented yet for tasks other than classification and object detection')

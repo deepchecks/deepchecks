@@ -72,13 +72,13 @@ class ImageFormatter:
         if not isinstance(sample, np.ndarray):
             raise DeepchecksValueError('The data inside the iterable must be a numpy array.')
         if sample.ndim != 3:
-            raise DeepchecksValueError('The data inside the numpy array must be a 3D array.')
+            raise DeepchecksValueError('The data inside the iterable must be a 3D array.')
         if sample.shape[2] not in [1, 3]:
-            raise DeepchecksValueError('The data inside the numpy array must have 1 or 3 channels.')
+            raise DeepchecksValueError('The data inside the iterable must have 1 or 3 channels.')
         if sample.min() < 0 or sample.max() > 255:
-            raise DeepchecksValueError('The data inside the numpy array must be in the range [0, 255].')
+            raise DeepchecksValueError('The data inside the iterable must be in the range [0, 255].')
         if np.all(sample <= 1):
-            raise DeepchecksValueError('The data inside the numpy array appear to be normalized.')
+            raise DeepchecksValueError('The data inside the iterable appear to be normalized.')
 
     def aspect_ratio(self, batch: List[np.array]) -> List[float]:
         """Return list of floats of image height to width ratio."""

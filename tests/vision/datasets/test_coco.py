@@ -39,7 +39,7 @@ def test_load_dataset():
         end = time.time()
         verify(loader)
         assert_that(loader, instance_of(DataLoader))
-        assert_that((end - start) < 1, "Downloaded previously data was not used!")
+        assert_that((end - start) < 0.1, "Downloaded previously data was not used!")
 
 
 def test_deepchecks_dataset_load():

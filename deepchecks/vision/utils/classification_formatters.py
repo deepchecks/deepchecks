@@ -61,6 +61,9 @@ class ClassificationLabelFormatter(BaseLabelFormatter):
         """Call the encoder."""
         return self.label_formatter(*args, **kwargs)
 
+    def get_classes(self, batch_labels):
+        return batch_labels.tolist()
+
     def get_samples_per_class(self, data_loader: DataLoader):
         """
         Get the number of samples per class.

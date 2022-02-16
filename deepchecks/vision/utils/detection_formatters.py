@@ -19,7 +19,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from .base_formatters import BaseLabelFormatter, BasePredictionFormatter
-from ...core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError
 
 
 class DetectionLabelFormatter(BaseLabelFormatter):
@@ -90,6 +90,14 @@ class DetectionLabelFormatter(BaseLabelFormatter):
             class_list = sum([arr.reshape((-1, 5))[:, 0].tolist() for arr in list_of_arrays], [])
             counter.update(class_list)
         return counter
+
+    def get_classes(self, batch_labels):
+        def get_classes(tensor):
+            if len(tensor) == 0:
+                return set()
+            return set(tensor[:, 0].tolist())
+
+        return list(set().union(*[get_classes(x) for x in batch_labels]))
 
     def validate_label(self, labels) -> Optional[str]:
         """

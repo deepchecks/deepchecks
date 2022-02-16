@@ -88,7 +88,7 @@ def test_data_formatter_missing_dimensions():
 
     assert_that(
         calling(formatter.validate_data).with_args(formatted_data),
-        raises(DeepchecksValueError, 'The data inside the numpy array must be a 3D array.')
+        raises(DeepchecksValueError, 'The data inside the iterable must be a 3D array.')
     )
 
 
@@ -100,7 +100,7 @@ def test_data_formatter_wrong_color_channel():
 
     assert_that(
         calling(formatter.validate_data).with_args(formatted_data),
-        raises(DeepchecksValueError, 'The data inside the numpy array must have 1 or 3 channels.')
+        raises(DeepchecksValueError, 'The data inside the iterable must have 1 or 3 channels.')
     )
 
 
@@ -112,7 +112,7 @@ def test_data_formatter_invalid_values():
 
     assert_that(
         calling(formatter.validate_data).with_args(formatted_data),
-        raises(DeepchecksValueError, r'The data inside the numpy array must be in the range \[0, 255\].')
+        raises(DeepchecksValueError, r'The data inside the iterable must be in the range \[0, 255\].')
     )
 
     formatter = ImageFormatter(lambda x: -x)
@@ -122,7 +122,7 @@ def test_data_formatter_invalid_values():
 
     assert_that(
         calling(formatter.validate_data).with_args(formatted_data),
-        raises(DeepchecksValueError, r'The data inside the numpy array must be in the range \[0, 255\].')
+        raises(DeepchecksValueError, r'The data inside the iterable must be in the range \[0, 255\].')
     )
 
 
