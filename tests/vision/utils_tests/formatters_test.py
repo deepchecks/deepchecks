@@ -12,6 +12,7 @@ from typing import Union
 
 import numpy as np
 from hamcrest import assert_that, equal_to, calling, raises, close_to
+from skimage.color import rgb2gray
 from torch.utils.data import DataLoader, Dataset
 
 from deepchecks.vision.utils import ClassificationLabelFormatter
@@ -154,13 +155,11 @@ def test_brightness_rgb():
                             np.ones((10, 10, 1)) * 2,
                             np.ones((10, 10, 1)) * 3], axis=2)
 
-    expected_result = 0.299 + 0.587 * 2 + 0.114 * 3
-
     batch = next(iter(numpy_shape_dataloader(value=value)))
 
     res = formatter.brightness(batch)
 
-    assert_that(res, equal_to([expected_result]*4))
+    assert_that(res[0], close_to(1.86, 0.01))
 
 
 def test_aspect_ratio():
