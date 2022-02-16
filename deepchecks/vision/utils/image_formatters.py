@@ -14,6 +14,7 @@ from typing import Callable, Optional, Tuple, List
 import numpy as np
 
 from deepchecks.core.errors import DeepchecksValueError
+from skimage.color import rgb2gray
 
 __all__ = ['ImageFormatter']
 
@@ -94,7 +95,7 @@ class ImageFormatter:
             return [img.mean() for img in batch]
         else:
             flattened_batch = self._flatten_batch(batch)
-            return [(299*img[:, 0] + 587*img[:, 1] + 114 * img[:, 2]).mean()/1000 for img in flattened_batch]
+            return [rgb2gray(img).mean() for img in flattened_batch]
 
     def contrast(self,  batch: List[np.array]) -> List[float]:
         """Return constrast of image."""
