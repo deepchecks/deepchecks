@@ -29,7 +29,7 @@ DEFAULT_IMAGE_PROPERTIES = ['aspect_ratio',
 
 class WholeDatasetDrift(TrainTestCheck):
     """
-    Calculate drift between the entire train and test datasets using a model trained to distinguish between them.
+    Calculate drift between the entire train and test datasets (based on image properties) using a trained model.
 
     Check fits a new model to distinguish between train and test datasets, called a Domain Classifier.
     The Domain Classifier is a tabular model, that cannot run on the images themselves. Therefore, the check calculates
@@ -45,8 +45,8 @@ class WholeDatasetDrift(TrainTestCheck):
     alternative_image_properties : List[str] , default: None
         List of alternative image properties names. Must be attributes of the ImageFormatter classes that are passed to
         train and test's VisionData class. If None, check uses DEFAULT_IMAGE_PROPERTIES.
-    n_top_columns : int , default: 3
-        Amount of columns to show ordered by domain classifier feature importance. This limit is used together
+    n_top_properties : int , default: 3
+        Amount of properties to show ordered by domain classifier feature importance. This limit is used together
         (AND) with min_feature_importance, so less than n_top_columns features can be displayed.
     min_feature_importance : float , default: 0.05
         Minimum feature importance to show in the check display. Feature importance
@@ -54,10 +54,6 @@ class WholeDatasetDrift(TrainTestCheck):
         less than 5% to the predictive power of the Domain Classifier won't be displayed. This limit is used
         together (AND) with n_top_columns, so features more important than min_feature_importance can be
         hidden.
-    max_num_categories : int , default: 10
-        Only for categorical columns. Max number of categories to display in distributio plots. If there are
-        more, they are binned into an "Other" category in the display. If max_num_categories=None, there is
-        no limit.
     sample_size : int , default: 10_000
         Max number of rows to use from each dataset for the training and evaluation of the domain classifier.
     random_state : int , default: 42
@@ -69,9 +65,8 @@ class WholeDatasetDrift(TrainTestCheck):
     def __init__(
             self,
             alternative_image_properties: List[str] = None,
-            n_top_columns: int = 3,
+            n_top_properties: int = 3,
             min_feature_importance: float = 0.05,
-            max_num_categories: int = 10,
             sample_size: int = 10_000,
             random_state: int = 42,
             test_size: float = 0.3
@@ -83,9 +78,8 @@ class WholeDatasetDrift(TrainTestCheck):
         else:
             self.image_properties = DEFAULT_IMAGE_PROPERTIES
 
-        self.n_top_columns = n_top_columns
+        self.n_top_properties = n_top_properties
         self.min_feature_importance = min_feature_importance
-        self.max_num_categories = max_num_categories
         self.sample_size = sample_size
         self.random_state = random_state
         self.test_size = test_size
@@ -126,6 +120,6 @@ class WholeDatasetDrift(TrainTestCheck):
         return run_whole_dataset_drift(
             train_dataframe=df_train, test_dataframe=df_test, numerical_features=self.image_properties, cat_features=[],
             sample_size=sample_size, random_state=self.random_state, test_size=self.test_size,
-            n_top_columns=self.n_top_columns, min_feature_importance=self.min_feature_importance,
-            max_num_categories=self.max_num_categories
+            n_top_columns=self.n_top_properties, min_feature_importance=self.min_feature_importance,
+            max_num_categories=None
         )
