@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains the domain classifier drift check."""
+from collections import OrderedDict
 from typing import Any, List
 
 from deepchecks.core import CheckResult, DatasetKind
@@ -43,7 +44,7 @@ class WholeDatasetDrift(TrainTestCheck):
     ----------
     alternative_image_properties : List[str] , default: None
         List of alternative image properties names. Must be attributes of the ImageFormatter classes that are passed to
-        train and test's VisionData class.
+        train and test's VisionData class. If None, check uses DEFAULT_IMAGE_PROPERTIES.
     n_top_columns : int , default: 3
         Amount of columns to show ordered by domain classifier feature importance. This limit is used together
         (AND) with min_feature_importance, so less than n_top_columns features can be displayed.
@@ -89,8 +90,8 @@ class WholeDatasetDrift(TrainTestCheck):
         self.random_state = random_state
         self.test_size = test_size
 
-        self._train_properties = {k: [] for k in self.image_properties}
-        self._test_properties = {k: [] for k in self.image_properties}
+        self._train_properties = OrderedDict([(k, []) for k in self.image_properties])
+        self._test_properties = OrderedDict([(k, []) for k in self.image_properties])
 
     def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""

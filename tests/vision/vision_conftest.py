@@ -31,24 +31,24 @@ torch.hub.set_dir(str(PROJECT_DIR))
 
 @pytest.fixture(scope='session')
 def mnist_data_loader_train():
-    return load_mnist_dataset(train=True, object_type='DataLoader')
+    return load_mnist_dataset(train=True, object_type='DataLoader', shuffle=False)
 
 
 @pytest.fixture(scope='session')
 def mnist_dataset_train():
     """Return MNist dataset as VisionData object."""
-    return load_mnist_dataset(train=True, object_type='VisionData')
+    return load_mnist_dataset(train=True, object_type='VisionData', shuffle=False)
 
 
 @pytest.fixture(scope='session')
 def mnist_data_loader_test():
-    return load_mnist_dataset(train=False, object_type='DataLoader')
+    return load_mnist_dataset(train=False, object_type='DataLoader', shuffle=False)
 
 
 @pytest.fixture(scope='session')
 def mnist_dataset_test():
     """Return MNist dataset as VisionData object."""
-    return load_mnist_dataset(train=False, object_type='VisionData')
+    return load_mnist_dataset(train=False, object_type='VisionData', shuffle=False)
 
 
 @pytest.fixture(scope='session')
