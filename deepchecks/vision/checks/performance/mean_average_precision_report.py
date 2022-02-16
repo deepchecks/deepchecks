@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing class performance check."""
+from collections import defaultdict
 from typing import TypeVar, Any
 
 import pandas as pd
@@ -16,6 +17,7 @@ import plotly.express as px
 import numpy as np
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
+from deepchecks.utils.strings import format_number
 from deepchecks.vision import SingleDatasetCheck, Context
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
@@ -54,7 +56,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
 
             rows.append(area_scores)
 
-        results = pd.DataFrame(columns=['Area size', 'mAP@.5...95 (%)', 'AP@.50 (%)', 'AP@.75 (%)'])
+        results = pd.DataFrame(columns=['Area size', 'mAP@0.5..0.95 (%)', 'AP@.50 (%)', 'AP@.75 (%)'])
         for i in range(len(rows)):
             results.loc[i] = rows[i]
         results = results.set_index('Area size')
@@ -85,14 +87,15 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
             Minimum score to pass the check.
         """
         def condition(df: pd.DataFrame):
-            not_passed = []
-            for column in df.columns:
-                not_passed_in_col = df.loc[df[column] < min_score].loc[:,column]
-                if len(not_passed_in_col):
-                    not_passed.append(not_passed_in_col)
+            not_passed = defaultdict(dict)
+            for index, column in zip(df.index, df.columns):
+                if df.loc[index, column] < min_score:
+                    not_passed[index][column] = format_number(df.loc[index, column], 3)
             if len(not_passed):
+                records = pd.DataFrame(not_passed).T.to_dict("records")
+                records = records
                 details = f'Found scores below threshold:\n' \
-                          f'{pd.DataFrame(not_passed).T.to_dict("records")}'
+                          f'{dict(not_passed)}'
                 return ConditionResult(False, details)
             return ConditionResult(True)
 
