@@ -97,6 +97,9 @@ def validate_formatters(data_loader, model, label_formatter: BaseLabelFormatter,
     """Validate for given data_loader and model that the formatters are valid."""
     print('Deepchecks will try to validate the formatters given...')
     batch = next(iter(data_loader))
+    if not isinstance(batch, t.Tuple) or len(batch) != 2:
+        raise DeepchecksValueError('dataloader required to return tuples of (input, label)')
+
     labels = label_formatter(batch[1])
     try:
         label_formatter.validate_label(labels)
@@ -137,7 +140,7 @@ def validate_formatters(data_loader, model, label_formatter: BaseLabelFormatter,
     if image_formatter_error is None:
         sample_image = images[0]
         if isinstance(label_formatter, DetectionLabelFormatter):
-            # In case both label and prediction ç are valid show image side by side
+            # In case both label and prediction are valid show image side by side
             if prediction_formatter_error is None and label_formatter_error is None:
                 fig = make_subplots(rows=1, cols=2)
                 fig.add_trace(numpy_to_image_figure(sample_image), row=1, col=1)
@@ -146,23 +149,38 @@ def validate_formatters(data_loader, model, label_formatter: BaseLabelFormatter,
                 label_bbox_add_to_figure(predictions[0], fig, prediction=True, color='orange', row=1, col=2)
                 fig.update_xaxes(title_text='Label', row=1, col=1)
                 fig.update_xaxes(title_text='Prediction', row=1, col=2)
+                fig.update_layout(title='Visual examples of an image with prediction and label data')
             else:
                 fig = go.Figure(numpy_to_image_figure(sample_image))
                 # In here only label formatter or prediction formatter are valid (or none of them)
                 if label_formatter_error is None:
                     label_bbox_add_to_figure(labels[0], fig)
                     fig.update_xaxes(title='Label')
+                    fig.update_layout(title='Visual example of an image with label data')
                 elif prediction_formatter_error is None:
                     label_bbox_add_to_figure(predictions[0], fig, prediction=True, color='orange')
                     fig.update_xaxes(title='Prediction')
+                    fig.update_layout(title='Visual example of an image with prediction data')
+
         elif isinstance(label_formatter, ClassificationLabelFormatter):
             fig = go.Figure(numpy_to_image_figure(sample_image))
-            title = ''
+            # Create figure title
+            title = 'Visual example of an image'
+            if label_formatter_error is None and prediction_formatter_error is None:
+                title += ' with prediction and label data'
+            elif label_formatter_error is None:
+                title += ' with label data'
+            elif prediction_formatter_error is None:
+                title += ' with prediction data'
+            # Create x-axis title
+            x_title = []
             if label_formatter_error is None:
-                title += f'Label: {labels[0]} '
+                x_title.append(f'Label: {labels[0]}')
             if prediction_formatter_error is None:
-                title += f'Prediction: {predictions[0]}'
-            fig.update_xaxes(title=title)
+                x_title.append(f'Prediction: {predictions[0]}')
+
+            fig.update_layout(title=title)
+            fig.update_xaxes(title=', '.join(x_title))
         else:
             raise DeepchecksValueError(f'Not implemented for label formatter: {type(label_formatter).__name__}')
 
@@ -170,32 +188,39 @@ def validate_formatters(data_loader, model, label_formatter: BaseLabelFormatter,
             apply_heatmap_image_properties(fig)
         fig.update_yaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
         fig.update_xaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
-        fig.update_layout(title='Visual examples of image (with prediction and with label data)')
     else:
         fig = None
 
-    msg = 'Structure validation results:\n'
-    msg += f'Label formatter: {label_formatter_error if label_formatter_error else "Pass!"}\n'
-    msg += f'Prediction formatter: {prediction_formatter_error if prediction_formatter_error else "Pass!"}\n'
-    msg += f'Image formatter: {image_formatter_error if image_formatter_error else "Pass!"}\n'
-    msg += '\n'
-    msg += 'Content validation results:\n'
-    msg += 'For validating the content within the structure you have to manually observe the classes, image, label ' \
-           'and prediction.\n'
-    if classes:
-        msg += f'Classes (observed from the batch labels): {classes[:10]}\n'
-    else:
-        msg += 'Classes: Unable to show due to invalid label formatter.\n'
+    def get_header(x):
+        if is_notebook():
+            return f'<h4>{x}</h4>'
+        else:
+            return x + '\n' + ''.join(['-'] * len(x))
 
-    msg += 'Visual images & label & prediction'
+    line_break = '<br>' if is_notebook() else '\n'
+    msg = get_header('Structure validation results')
+    msg += f'Label formatter: {label_formatter_error if label_formatter_error else "Pass!"}{line_break}'
+    msg += f'Prediction formatter: {prediction_formatter_error if prediction_formatter_error else "Pass!"}{line_break}'
+    msg += f'Image formatter: {image_formatter_error if image_formatter_error else "Pass!"}{line_break}'
+    msg += line_break
+    msg += get_header('Content validation results')
+    msg += 'For validating the content within the structure you have to manually observe the classes, image, label ' \
+           f'and prediction.{line_break}'
+
+    msg += 'Examples of classes observed in the batch\'s labels: '
+    if classes:
+        msg += f'{classes[:5]}{line_break}'
+    else:
+        msg += f'Unable to show due to invalid label formatter.{line_break}'
+
     if fig:
         if not is_notebook():
-            msg += ' should open in a new window'
+            msg += 'Visual images & label & prediction: should open in a new window'
     else:
-        msg += ': Unable to show due to invalid image formatter.'
+        msg += 'Visual images & label & prediction: Unable to show due to invalid image formatter.'
 
     if is_notebook():
-        display(HTML(msg.replace('\n', '<br>')))
+        display(HTML(msg))
         if fig:
             display(HTML(fig.to_image('svg').decode('utf-8')))
     else:

@@ -11,7 +11,7 @@
 """The vision/dataset module containing the vision Dataset class and its functions."""
 from copy import copy
 from enum import Enum
-from typing import Optional, List, Iterator, Dict, Any, Sized
+from typing import Optional, List, Iterator, Dict, Any, Sized, Tuple, Sequence
 
 import numpy as np
 import torch
@@ -100,7 +100,7 @@ class VisionData:
         self.image_transformer = image_transformer or ImageFormatter(lambda x: x)
 
         batch = next(iter(self._data))
-        if not isinstance(batch, Sized) or len(batch) != 2:
+        if not isinstance(batch, Sequence) or len(batch) != 2:
             raise DeepchecksValueError('dataloader required to return tuples of (input, label)')
 
         if label_transformer:
@@ -111,6 +111,7 @@ class VisionData:
                 self.task_type = TaskType.OBJECT_DETECTION
                 self.label_transformer = label_transformer
             else:
+                self.task_type = None
                 self._label_invalid = f'Invalid transformer type: {type(self.label_transformer).__name__}'
                 logger.warning('Unknown label transformer type was provided. Only integrity and data checks will run.'
                                'The supported label transformer types are: '

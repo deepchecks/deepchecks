@@ -71,18 +71,12 @@ def test_initialization_of_vision_data_with_classification_dataset_that_does_not
         (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), ),
     ])
 
-    # Act
-    dataset = VisionData(
-        loader,
-        label_transformer=ClassificationLabelFormatter(lambda x: x)
-    )
-
-    # Assert
+    # Act Assert
     assert_that(
-        calling(dataset.assert_label),
+        calling(VisionData).with_args(loader, label_transformer=ClassificationLabelFormatter()),
         raises(
             DeepchecksValueError,
-            r'Check requires dataloader to return tuples of \(input\, label\)\.')
+            r'dataloader required to return tuples of \(input\, label\)')
     )
 
 
