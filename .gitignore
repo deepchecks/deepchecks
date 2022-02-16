@@ -90,3 +90,7 @@ lychee.output
 docs.error.log
 *.pt
 *.zip
+
+# Automatically downloaded files
+*coco128*
+*MNIST*

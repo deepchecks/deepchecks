@@ -147,9 +147,9 @@ def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, plot_ti
         # Should never reach here
         raise DeepchecksValueError(f'Unsupported column type for drift: {column_type}')
 
-    fig = make_subplots(rows=2, cols=1, vertical_spacing=0.4, shared_yaxes=False, shared_xaxes=False,
+    fig = make_subplots(rows=2, cols=1, vertical_spacing=0.2, shared_yaxes=False, shared_xaxes=False,
                         row_heights=[0.1, 0.9],
-                        subplot_titles=['Drift Score - ' + scorer_name, plot_title])
+                        subplot_titles=['Drift Score - ' + scorer_name, 'Distribution Plot'])
 
     fig.add_traces(bar_traces, rows=[1] * len(bar_traces), cols=[1] * len(bar_traces))
     fig.add_traces(dist_traces, rows=[2] * len(dist_traces), cols=[1] * len(dist_traces))
@@ -164,7 +164,8 @@ def calc_drift_and_plot(train_column: pd.Series, test_column: pd.Series, plot_ti
             yanchor='top',
             y=0.6),
         width=700,
-        height=400
+        height=400,
+        title=plot_title
     )
 
     fig.update_layout(shared_layout)

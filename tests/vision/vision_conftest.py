@@ -29,6 +29,23 @@ PROJECT_DIR = pathlib.Path(__file__).absolute().parent.parent.parent
 torch.hub.set_dir(str(PROJECT_DIR))
 
 
+__all__ = ['mnist_data_loader_train',
+           'mnist_dataset_train',
+           'mnist_data_loader_test',
+           'mnist_dataset_train_imgaug',
+           'mnist_dataset_test',
+           'trained_mnist',
+           'trained_yolov5_object_detection',
+           'obj_detection_images',
+           'coco_train_dataloader',
+           'coco_train_visiondata',
+           'coco_test_dataloader',
+           'coco_test_visiondata',
+           'three_tuples_dataloader',
+           'two_tuples_dataloader',
+        ]
+
+
 @pytest.fixture(scope='session')
 def mnist_data_loader_train():
     return load_mnist_dataset(train=True, object_type='DataLoader')
