@@ -11,7 +11,7 @@
 """The vision/dataset module containing the vision Dataset class and its functions."""
 from copy import copy
 from enum import Enum
-from typing import Optional, List, Iterator, Dict, Any, Sized, Tuple, Sequence
+from typing import Optional, List, Iterator, Dict, Any, Sequence
 
 import numpy as np
 import torch
