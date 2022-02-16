@@ -10,7 +10,9 @@
 #
 """Module containing the performance check in the vision package."""
 from .class_performance import ClassPerformance
+from .robustness_report import RobustnessReport
 
 __all__ = [
     "ClassPerformance",
+    "RobustnessReport"
 ]
