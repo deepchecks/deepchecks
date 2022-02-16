@@ -117,9 +117,22 @@ class WholeDatasetDrift(TrainTestCheck):
 
         sample_size = min(self.sample_size, df_train.shape[0], df_test.shape[0])
 
-        return run_whole_dataset_drift(
+        headnote = """
+        <span>
+        The shown features are the image properties (brighness, aspect ratio, etc.) that are most important for the 
+        domain classifier - the domain_classifier trained to distinguish between the train and test datasets.<br>
+        </span>
+        """
+
+        values_dict, displays = run_whole_dataset_drift(
             train_dataframe=df_train, test_dataframe=df_test, numerical_features=self.image_properties, cat_features=[],
             sample_size=sample_size, random_state=self.random_state, test_size=self.test_size,
             n_top_columns=self.n_top_properties, min_feature_importance=self.min_feature_importance,
             max_num_categories=None
         )
+
+        if displays:
+            displays.insert(0, headnote)
+
+        return CheckResult(value=values_dict, display=displays, header='Whole Dataset Drift')
+

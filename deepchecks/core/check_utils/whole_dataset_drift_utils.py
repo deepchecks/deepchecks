@@ -79,11 +79,10 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
         'domain_classifier_feature_importance': fi.to_dict() if fi is not None else {},
     }
 
-    headnote = f"""
+    feature_importance_note = f"""
     <span>
-    The shown features are the features that are most important for the domain classifier - the
-    domain_classifier trained to distinguish between the train and test datasets.<br> The percents of
-    explained dataset difference are the importance values for the feature calculated using `{importance_type}`.
+    The percents of explained dataset difference are the importance values for the feature calculated 
+    using `{importance_type}`.
     </span><br><br>
     """
 
@@ -96,7 +95,7 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
     if top_fi is not None and len(top_fi):
         score = values_dict['domain_classifier_drift_score']
 
-        displays = [headnote, build_drift_plot(score),
+        displays = [feature_importance_note, build_drift_plot(score),
                     '<h3>Main features contributing to drift</h3>',
                     N_TOP_MESSAGE % n_top_columns]
         displays += [display_dist(train_sample_df[feature], test_sample_df[feature], top_fi, cat_features,
@@ -105,7 +104,8 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
     else:
         displays = None
 
-    return CheckResult(value=values_dict, display=displays, header='Whole Dataset Drift')
+    # return CheckResult(value=values_dict, display=displays, header='Whole Dataset Drift')
+    return values_dict, displays
 
 
 def generate_model(numerical_columns: List[Hashable], categorical_columns: List[Hashable],

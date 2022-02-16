@@ -94,13 +94,26 @@ class WholeDatasetDrift(TrainTestCheck):
 
         numerical_features = list(set(features) - set(cat_features))
 
-        return run_whole_dataset_drift(train_dataframe=train_dataset.data[features],
-                                       test_dataframe=test_dataset.data[features],
-                                       numerical_features=numerical_features, cat_features=cat_features,
-                                       sample_size=sample_size, random_state=self.random_state,
-                                       test_size=self.test_size, n_top_columns=self.n_top_columns,
-                                       min_feature_importance=self.min_feature_importance,
-                                       max_num_categories=self.max_num_categories)
+        headnote = """
+        <span>
+        The shown features are the features that are most important for the domain classifier - the
+        domain_classifier trained to distinguish between the train and test datasets.<br>
+        </span>
+        """
+
+        values_dict, displays = run_whole_dataset_drift(train_dataframe=train_dataset.data[features],
+                                                        test_dataframe=test_dataset.data[features],
+                                                        numerical_features=numerical_features,
+                                                        cat_features=cat_features,
+                                                        sample_size=sample_size, random_state=self.random_state,
+                                                        test_size=self.test_size, n_top_columns=self.n_top_columns,
+                                                        min_feature_importance=self.min_feature_importance,
+                                                        max_num_categories=self.max_num_categories)
+
+        if displays:
+            displays.insert(0, headnote)
+
+        return CheckResult(value=values_dict, display=displays, header='Whole Dataset Drift')
 
     def add_condition_overall_drift_value_not_greater_than(self, max_drift_value: float = 0.25):
         """Add condition.
