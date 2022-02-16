@@ -9,3 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for working with pre-built regression datasets."""
+from . import avocado
+
+__all__ = ['avocado']
