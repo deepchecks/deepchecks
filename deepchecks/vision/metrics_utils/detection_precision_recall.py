@@ -116,12 +116,12 @@ class AveragePrecision(Metric):
                     reses["precision"][iou_i, area_i, dets_i] = np.array(precision_list)
                     reses["recall"][iou_i, area_i, dets_i] = np.array(recall_list)
         if self.return_option == 0:
-            return torch.tensor(self.get_val_at(reses["precision"],
+            return torch.tensor(self.get_classes_scores_at(reses["precision"],
                                                 max_dets=self.max_dets[0],
                                                 area=self.area_ranges_names[0],
                                                 get_mean_val=False))
         elif self.return_option == 1:
-            return torch.tensor(self.get_val_at(reses["recall"],
+            return torch.tensor(self.get_classes_scores_at(reses["recall"],
                                                 max_dets=self.max_dets[0],
                                                 area=self.area_ranges_names[0],
                                                 get_mean_val=False))
@@ -270,9 +270,39 @@ class AveragePrecision(Metric):
             return not area_bb > self.area_range[1]
         return False
 
-    def get_val_at(self, res: np.array, iou: float = None, area: str = None, max_dets: int = None,
+    def filter_res(self, res: np.array, iou: float = None, area: str = None, max_dets: int = None):
+        """Get the value of a result by the filtering values.
+
+        Parameters
+        ----------
+        res: np.array
+            either prrecision or recall when using the '2' return option
+        iou : float, default: None
+            filter by iou threshold
+        area : str, default: None
+            filter by are range name ["small", "medium", "large", "all"]
+        max_dets : int, default: None
+            filter by max detections
+
+        Returns
+        -------
+        np.array
+           The filtered result.
+        """
+        if iou:
+            iou_i = [i for i, iou_thres in enumerate(self.iou_thresholds) if iou == iou_thres]
+            res = res[iou_i, :, :, :]
+        if area:
+            area_i = [i for i, area_name in enumerate(self.area_ranges_names) if area == area_name]
+            res = res[:, area_i, :, :]
+        if max_dets:
+            dets_i = [i for i, det in enumerate(self.max_dets) if max_dets == det]
+            res = res[:, :, dets_i, :]
+        return res
+
+    def get_classes_scores_at(self, res: np.array, iou: float = None, area: str = None, max_dets: int = None,
                    get_mean_val: bool = True, zeroed_negative: bool = True):
-        """Get the value a result by the filtering values.
+        """Get the mean value of the classes scores and the result values.
 
         Parameters
         ----------
@@ -294,15 +324,7 @@ class AveragePrecision(Metric):
         Union[List[float], float]
            The mean value of the classes scores or the scores list.
         """
-        if iou:
-            iou_i = [i for i, iou_thres in enumerate(self.iou_thresholds) if iou == iou_thres]
-            res = res[iou_i, :, :, :]
-        if area:
-            area_i = [i for i, area_name in enumerate(self.area_ranges_names) if area == area_name]
-            res = res[:, area_i, :, :]
-        if max_dets:
-            dets_i = [i for i, det in enumerate(self.max_dets) if max_dets == det]
-            res = res[:, :, dets_i, :]
+        res = self.filter_res(res, iou, area, max_dets)
         res = np.mean(res[:, :, :], axis=0)
         if get_mean_val:
             return np.mean(res[res > -1])
