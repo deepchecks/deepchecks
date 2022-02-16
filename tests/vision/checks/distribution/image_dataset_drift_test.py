@@ -14,7 +14,7 @@ from hamcrest import assert_that, has_entries, close_to, equal_to, raises, calli
 import numpy as np
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import VisionData
-from deepchecks.vision.checks import WholeDatasetDrift
+from deepchecks.vision.checks import ImageDatasetDrift
 from deepchecks.vision.utils import ImageFormatter, DetectionLabelFormatter
 from tests.vision.vision_conftest import *
 
@@ -36,7 +36,7 @@ def pil_drift_formatter(batch):
 def test_no_drift_grayscale(mnist_dataset_train):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
-    check = WholeDatasetDrift()
+    check = ImageDatasetDrift()
 
     # Act
     result = check.run(train, test)
@@ -60,7 +60,7 @@ def test_no_drift_grayscale(mnist_dataset_train):
 def test_drift_grayscale(mnist_dataset_train, mnist_dataset_test):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_test
-    check = WholeDatasetDrift()
+    check = ImageDatasetDrift()
 
     # Act
     result = check.run(train, test)
@@ -88,7 +88,7 @@ def test_no_drift_rgb(coco_train_dataloader, coco_test_dataloader):
     test = VisionData(coco_test_dataloader, image_transformer=ImageFormatter(pil_formatter),
                       label_transformer=DetectionLabelFormatter(lambda x: x))
 
-    check = WholeDatasetDrift()
+    check = ImageDatasetDrift()
 
     # Act
     result = check.run(train, test)
@@ -116,7 +116,7 @@ def test_with_drift_rgb(coco_train_dataloader, coco_test_dataloader):
     test = VisionData(coco_test_dataloader, image_transformer=ImageFormatter(pil_formatter),
                       label_transformer=DetectionLabelFormatter(lambda x: x))
 
-    check = WholeDatasetDrift()
+    check = ImageDatasetDrift()
 
     # Act
     result = check.run(train, test)

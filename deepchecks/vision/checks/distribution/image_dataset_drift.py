@@ -17,7 +17,7 @@ from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
 import pandas as pd
 
-__all__ = ['WholeDatasetDrift']
+__all__ = ['ImageDatasetDrift']
 
 DEFAULT_IMAGE_PROPERTIES = ['aspect_ratio',
                             'area',
@@ -27,7 +27,7 @@ DEFAULT_IMAGE_PROPERTIES = ['aspect_ratio',
                             'normalized_blue_mean']
 
 
-class WholeDatasetDrift(TrainTestCheck):
+class ImageDatasetDrift(TrainTestCheck):
     """
     Calculate drift between the entire train and test datasets (based on image properties) using a trained model.
 
@@ -119,7 +119,7 @@ class WholeDatasetDrift(TrainTestCheck):
 
         headnote = """
         <span>
-        The shown features are the image properties (brighness, aspect ratio, etc.) that are most important for the 
+        The shown features are the image properties (brightness, aspect ratio, etc.) that are most important for the 
         domain classifier - the domain_classifier trained to distinguish between the train and test datasets.<br>
         </span>
         """
@@ -134,5 +134,5 @@ class WholeDatasetDrift(TrainTestCheck):
         if displays:
             displays.insert(0, headnote)
 
-        return CheckResult(value=values_dict, display=displays, header='Whole Dataset Drift')
+        return CheckResult(value=values_dict, display=displays, header='Image Dataset Drift')
 
