@@ -16,11 +16,11 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from deepchecks import Dataset #TODO: Remove?
-from deepchecks.core import CheckResult, ConditionResult
+from deepchecks import Dataset  # TODO: Remove?
+from deepchecks.core import CheckResult
 from deepchecks.utils.distribution.plot import feature_distribution_traces, drift_score_bar_traces
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none
-from deepchecks.utils.strings import format_percent, format_number
+from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
 from sklearn.pipeline import Pipeline
@@ -107,7 +107,9 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
 
     return CheckResult(value=values_dict, display=displays, header='Whole Dataset Drift')
 
-def generate_model(numerical_columns: List[Hashable], categorical_columns: List[Hashable], random_state: int = 42) -> Pipeline:
+
+def generate_model(numerical_columns: List[Hashable], categorical_columns: List[Hashable],
+                   random_state: int = 42) -> Pipeline:
     """Generate the unfitted Domain Classifier model."""
     categorical_transformer = Pipeline(
         steps=[('encoder', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=np.nan,
@@ -157,7 +159,8 @@ def build_drift_plot(score):
     return drift_plot
 
 
-def display_dist(train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Series, cat_features, max_num_categories: int=10):
+def display_dist(train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Series, cat_features,
+                 max_num_categories: int = 10):
     """Display a distribution comparison plot for the given columns."""
     column_name = train_column.name
 
@@ -184,5 +187,3 @@ def display_dist(train_column: pd.Series, test_column: pd.Series, fi_ser: pd.Ser
     figure.add_traces(traces)
 
     return figure
-
-
