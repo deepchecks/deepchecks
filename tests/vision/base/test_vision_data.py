@@ -52,6 +52,8 @@ def test_vision_data_task_type_inference():
             return
         def get_samples_per_class(self, *args, **kwargs):
             return {}
+        def get_classes(self, batch_labels):
+            return []
 
     # Act
     second_classification_dataset = VisionData(mnist_loader, label_transformer=ClassificationLabelFormatter(lambda x: x))
