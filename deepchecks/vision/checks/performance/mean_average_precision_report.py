@@ -57,7 +57,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         results = pd.DataFrame(columns=['Area size', 'mAP(COCO challenge) (%)', 'AP@.50 (%)', 'AP@.75 (%)'])
         for i in range(len(rows)):
             results.loc[i] = rows[i]
-        results.set_index('Area size')
+        results = results.set_index('Area size')
 
         filtered_res = self._ap_metric.filter_res(res, area='all', max_dets=100)
         filtered_res_shape = filtered_res.shape
@@ -76,8 +76,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
 
         return CheckResult(value=results, display=[results, fig])
 
-    def add_condition_test_average_precision_not_less_than(self: MPR, min_score: float,
-    ) -> MPR:
+    def add_condition_test_average_precision_not_less_than(self: MPR, min_score: float)-> MPR:
         """Add condition - mAP score is not less than given score.
 
         Parameters
@@ -85,12 +84,15 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         min_score : float
             Minimum score to pass the check.
         """
-        def condition(check_result: pd.DataFrame):
-            not_passed = check_result.loc[check_result['Value'] < min_score]
-            not_passed_test = check_result.loc[check_result['Dataset'] == 'Test']
+        def condition(df: pd.DataFrame):
+            not_passed = []
+            for column in df.columns:
+                not_passed_in_col = df.loc[df[column] < min_score].loc[:,column]
+                if len(not_passed_in_col):
+                    not_passed.append(not_passed_in_col)
             if len(not_passed):
-                details = f'Found metrics with scores below threshold:\n' \
-                          f'{not_passed_test[["Class", "Metric", "Value"]].to_dict("records")}'
+                details = f'Found scores below threshold:\n' \
+                          f'{pd.DataFrame(not_passed).T.to_dict("records")}'
                 return ConditionResult(False, details)
             return ConditionResult(True)
 
