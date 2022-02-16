@@ -76,3 +76,18 @@ For object detection tasks, it is required to implement the following formatters
 Converting From Common Formats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TBD (Not implemented yet)
+
+
+Validating The Correctness of Your Formatters
+=============================================
+While you work on writing formatters for your data to fit deepchecks, you need a way to test your work is correct.
+For this we have an helper function which checks your formatters and print info about whether they are working.
+Use this function like so:
+
+.. code-block:: python
+
+    from deepchecks.vision.utils.validation import validate_formatters    
+    validate_formatters(data_loader, model, label_formatter, image_formatter, pred_formatter)
+
+
+For more info about the formatters validating see the guide :doc:`formatters_validation </examples/vision/guides/formatters_validating>`
