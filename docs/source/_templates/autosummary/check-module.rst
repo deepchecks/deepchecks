@@ -1,18 +1,18 @@
 {% extends "autosummary/module.rst" %}
 
 {% block header %}
-{{ name | escape | title | underline }}
+{{ name | escape | underline }}
 {% endblock %}
 
-   {% block classes %}
-   {% if classes %}
-   .. rubric:: {{ _('Classes') }}
+{% block members %}
+{% if members %}
+.. rubric:: {{ _('Classes') }}
 
-   .. autosummary::
-      :template: autosummary/check.rst
-      :toctree:
-   {% for item in classes %}
-      {{ item }}
-   {% endfor %}
-   {% endif %}
-   {% endblock classes %}
+.. autosummary::
+   :template: autosummary/check.rst
+   :toctree:
+{% for item in members %}
+   {{ item }}
+{% endfor %}
+{% endif %}
+{% endblock members %}
