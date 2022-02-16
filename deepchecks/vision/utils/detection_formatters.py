@@ -92,6 +92,7 @@ class DetectionLabelFormatter(BaseLabelFormatter):
         return counter
 
     def get_classes(self, batch_labels):
+        """Get a labels batch and return classes inside it."""
         def get_classes(tensor):
             if len(tensor) == 0:
                 return set()

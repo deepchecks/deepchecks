@@ -36,7 +36,7 @@ class BaseLabelFormatter(abc.ABC):
 
     @abc.abstractmethod
     def get_classes(self, batch_labels):
-        """Get the classes from the batch labels"""
+        """Get a labels batch and return classes inside it."""
         pass
 
     @abc.abstractmethod

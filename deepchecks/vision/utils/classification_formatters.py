@@ -62,6 +62,7 @@ class ClassificationLabelFormatter(BaseLabelFormatter):
         return self.label_formatter(*args, **kwargs)
 
     def get_classes(self, batch_labels):
+        """Get a labels batch and return classes inside it."""
         return batch_labels.tolist()
 
     def get_samples_per_class(self, data_loader: DataLoader):
