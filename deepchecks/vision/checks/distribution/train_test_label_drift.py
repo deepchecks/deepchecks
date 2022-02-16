@@ -218,10 +218,12 @@ class TrainTestLabelDrift(TrainTestCheck):
         all_discrete_categories = [list(set(train_counter.keys()).union(set(test_counter.keys())))
                                    for train_counter, test_counter in zip(self._train_counters, self._test_counters)]
 
-        train_discrete_hists = iter([{k: self._train_counters[i][k] for k in all_discrete_categories[i]} for i in
-                                     range(len(self._discrete_label_measurements))])
-        test_discrete_hists = iter([{k: self._test_counters[i][k] for k in all_discrete_categories[i]} for i in
-                                    range(len(self._discrete_label_measurements))])
+        train_discrete_hists = iter([{context.train.translate_label_id_to_name(k): self._train_counters[i][k]
+                                      for k in all_discrete_categories[i]}
+                                    for i in range(len(self._discrete_label_measurements))])
+        test_discrete_hists = iter([{context.test.translate_label_id_to_name(k): self._test_counters[i][k]
+                                     for k in all_discrete_categories[i]}
+                                    for i in range(len(self._discrete_label_measurements))])
 
         # Transform continuous histograms into dict:
         train_continuous_hists = iter(

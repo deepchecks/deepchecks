@@ -50,6 +50,8 @@ class VisionData:
         PyTorch DataLoader object. If your data loader is using IterableDataset please see note below.
     num_classes : int, optional
         Number of classes in the dataset. If not provided, will be inferred from the dataset.
+    label_map : Dict[int, str], optional
+        A dictionary mapping class ids to their names.
     label_transformer : Union[ClassificationLabelFormatter, DetectionLabelFormatter]
         A callable, transforming a batch of labels returned by the dataloader to a batch of labels in the desired
         format.
@@ -80,6 +82,7 @@ class VisionData:
     sample_iteration_limit: int
     _data: DataLoader
     _num_classes: Optional[int]
+    _label_map: Optional[Dict[int, str]]
     _samples_per_class: Optional[Dict[Any, int]]
     _label_valid: Optional[str]
     _sample_size: int
@@ -90,6 +93,7 @@ class VisionData:
     def __init__(self,
                  data_loader: DataLoader,
                  num_classes: Optional[int] = None,
+                 label_map: Optional[Dict[int, str]] = None,
                  label_transformer: BaseLabelFormatter = None,
                  image_transformer: ImageFormatter = None,
                  sample_size: int = 1000,
@@ -110,6 +114,7 @@ class VisionData:
                                '[ClassificationLabelFormatter, DetectionLabelFormatter]')
 
         self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
+        self._label_map = label_map
         self.transform_field = transform_field
 
         if image_transformer is None:
@@ -187,6 +192,19 @@ class VisionData:
                 self._sample_labels.append(label)
         return self._sample_labels
 
+    def translate_label_id_to_name(self, class_id: int) -> str:
+        """Return the name of the class with the given id."""
+        # Converting the class_id to integer to make sure it is an integer
+        class_id = int(class_id)
+
+        if self._label_map is None:
+            return str(class_id)
+        elif class_id not in self._label_map:
+            logger.warning(f'Class id {class_id} is not in the label map.')
+            return str(class_id)
+        else:
+            return self._label_map[class_id]
+
     def get_label_shape(self):
         """Return the shape of the label."""
         self.assert_label()
@@ -243,7 +261,8 @@ class VisionData:
         return VisionData(new_data_loader,
                           image_transformer=self.image_transformer,
                           label_transformer=self.label_transformer,
-                          transform_field=self.transform_field)
+                          transform_field=self.transform_field,
+                          label_map=self._label_map)
 
     def to_batch(self, *samples):
         """Use the defined collate_fn to transform a few data items to batch format."""
