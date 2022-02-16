@@ -48,7 +48,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         res = self._ap_metric.compute()[0]['precision']
         rows = []
         for title, area_name in zip(['All', 'Small (area<32^2)', 'Medium (32^2<area<96^2)', 'Large (area<96^2)'],
-                                ['all', 'small', 'medium', 'large']):
+                                    ['all', 'small', 'medium', 'large']):
             area_scores = [title]
             area_scores.append(self._ap_metric.get_classes_scores_at(res, area=area_name, max_dets=100))
             area_scores.append(self._ap_metric.get_classes_scores_at(res, iou=0.5, area=area_name, max_dets=100))
@@ -78,7 +78,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
 
         return CheckResult(value=results, display=[results, fig])
 
-    def add_condition_test_average_precision_not_less_than(self: MPR, min_score: float)-> MPR:
+    def add_condition_test_average_precision_not_less_than(self: MPR, min_score: float) -> MPR:
         """Add condition - mAP score is not less than given score.
 
         Parameters
@@ -92,8 +92,6 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
                 if df.loc[index, column] < min_score:
                     not_passed[index][column] = format_number(df.loc[index, column], 3)
             if len(not_passed):
-                records = pd.DataFrame(not_passed).T.to_dict("records")
-                records = records
                 details = f'Found scores below threshold:\n' \
                           f'{dict(not_passed)}'
                 return ConditionResult(False, details)

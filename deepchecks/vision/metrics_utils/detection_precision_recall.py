@@ -117,14 +117,14 @@ class AveragePrecision(Metric):
                     reses["recall"][iou_i, area_i, dets_i] = np.array(recall_list)
         if self.return_option == 0:
             return torch.tensor(self.get_classes_scores_at(reses["precision"],
-                                                max_dets=self.max_dets[0],
-                                                area=self.area_ranges_names[0],
-                                                get_mean_val=False))
+                                                           max_dets=self.max_dets[0],
+                                                           area=self.area_ranges_names[0],
+                                                           get_mean_val=False))
         elif self.return_option == 1:
             return torch.tensor(self.get_classes_scores_at(reses["recall"],
-                                                max_dets=self.max_dets[0],
-                                                area=self.area_ranges_names[0],
-                                                get_mean_val=False))
+                                                           max_dets=self.max_dets[0],
+                                                           area=self.area_ranges_names[0],
+                                                           get_mean_val=False))
         return [reses]
 
     def _group_detections(self, dt, gt):
@@ -301,7 +301,7 @@ class AveragePrecision(Metric):
         return res
 
     def get_classes_scores_at(self, res: np.array, iou: float = None, area: str = None, max_dets: int = None,
-                   get_mean_val: bool = True, zeroed_negative: bool = True):
+                              get_mean_val: bool = True, zeroed_negative: bool = True):
         """Get the mean value of the classes scores and the result values.
 
         Parameters
