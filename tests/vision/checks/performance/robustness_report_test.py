@@ -10,6 +10,7 @@
 #
 import types
 
+
 import albumentations
 import numpy as np
 
@@ -20,10 +21,9 @@ from deepchecks.vision.utils.classification_formatters import ClassificationPred
 from deepchecks.vision.utils import DetectionPredictionFormatter
 from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
 from PIL import Image
-
 import torch.nn as nn
-
 from hamcrest import assert_that, has_entries, close_to, calling, raises, has_items
+
 from tests.vision.vision_conftest import *
 
 
@@ -70,7 +70,8 @@ def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detecti
     # Assert
     assert_that(result.value, has_entries({
         'HueSaturationValue': has_entries({
-            'mAP': has_entries(score=close_to(0.5, 0.5), diff=close_to(0, 0.5)),
+            'AP': has_entries(score=close_to(0.5, 0.5), diff=close_to(0, 0.5)),
+            'AR': has_entries(score=close_to(0.5, 0.5), diff=close_to(0, 0.5))
         }),
     }))
     assert_that(result.conditions_results, has_items(
