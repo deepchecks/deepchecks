@@ -162,6 +162,32 @@ def test_brightness_rgb():
     assert_that(res[0], close_to(1.86, 0.01))
 
 
+def test_blur_grayscale():
+    formatter = ImageFormatter(lambda x: x)
+
+    np.random.seed(42)
+    value = np.random.randint(0, 255, (100, 100, 1))
+
+    batch = next(iter(numpy_shape_dataloader(value=value)))
+
+    res = formatter.blur(batch)
+
+    assert_that(res[0], close_to(0.12, 0.01))
+
+
+def test_blur_rgb():
+    formatter = ImageFormatter(lambda x: x)
+
+    np.random.seed(42)
+    value = np.random.randint(0, 255, (100, 100, 3))
+
+    batch = next(iter(numpy_shape_dataloader(value=value)))
+
+    res = formatter.blur(batch)
+
+    assert_that(res[0], close_to(0.12, 0.01))
+
+
 def test_aspect_ratio():
     formatter = ImageFormatter(lambda x: x)
 

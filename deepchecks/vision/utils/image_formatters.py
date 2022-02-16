@@ -12,6 +12,7 @@
 from typing import Callable, Optional, Tuple, List
 
 import numpy as np
+from skimage.measure import blur_effect
 
 from deepchecks.core.errors import DeepchecksValueError
 from skimage.color import rgb2gray
@@ -96,6 +97,15 @@ class ImageFormatter:
         else:
             flattened_batch = self._flatten_batch(batch)
             return [rgb2gray(img).mean() for img in flattened_batch]
+
+    def blur(self, batch: List[np.array]) -> List[float]:
+        """Return blur effect score of image.
+
+        See https://hal.archives-ouvertes.fr/hal-00232709 for more details"""
+        if self._is_grayscale(batch) is True:
+            return [blur_effect(img.reshape(self.get_size(img))) for img in batch]
+        else:
+            return [blur_effect(rgb2gray(img)) for img in batch]
 
     def contrast(self,  batch: List[np.array]) -> List[float]:
         """Return constrast of image."""
