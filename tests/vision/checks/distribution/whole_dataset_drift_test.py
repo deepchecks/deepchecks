@@ -43,7 +43,7 @@ def test_no_drift_grayscale(mnist_dataset_train):
 
     # Assert
     assert_that(result.value, has_entries({
-        'domain_classifier_auc': close_to(0.47, 0.01),
+        'domain_classifier_auc': close_to(0.48, 0.01),
         'domain_classifier_drift_score': equal_to(0),
         'domain_classifier_feature_importance': has_entries({
             'brightness': equal_to(0),
@@ -68,7 +68,7 @@ def test_drift_grayscale(mnist_dataset_train, mnist_dataset_test):
     # Assert
     assert_that(result.value, has_entries({
         'domain_classifier_auc': close_to(0.51, 0.01),
-        'domain_classifier_drift_score': close_to(0.028, 0.01),
+        'domain_classifier_drift_score': close_to(0.017, 0.01),
         'domain_classifier_feature_importance': has_entries({
             'brightness': equal_to(1),
             'aspect_ratio': equal_to(0),

@@ -49,11 +49,11 @@ class WholeDatasetDrift(TrainTestCheck):
         Amount of properties to show ordered by domain classifier feature importance. This limit is used together
         (AND) with min_feature_importance, so less than n_top_columns features can be displayed.
     min_feature_importance : float , default: 0.05
-        Minimum feature importance to show in the check display. Feature importance
-        sums to 1, so for example the default value of 0.05 means that all features with importance contributing
-        less than 5% to the predictive power of the Domain Classifier won't be displayed. This limit is used
-        together (AND) with n_top_columns, so features more important than min_feature_importance can be
-        hidden.
+        Minimum feature importance to show in the check display. The features are the image properties that are given
+        to the Domain Classifier as features to learn on.
+        Feature importance sums to 1, so for example the default value of 0.05 means that all features with importance
+        contributing less than 5% to the predictive power of the Domain Classifier won't be displayed. This limit is
+        used together (AND) with n_top_columns, so features more important than min_feature_importance can be hidden.
     sample_size : int , default: 10_000
         Max number of rows to use from each dataset for the training and evaluation of the domain classifier.
     random_state : int , default: 42
