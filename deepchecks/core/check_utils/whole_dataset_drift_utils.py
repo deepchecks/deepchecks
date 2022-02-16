@@ -80,7 +80,7 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
 
     feature_importance_note = f"""
     <span>
-    The percents of explained dataset difference are the importance values for the feature calculated 
+    The percents of explained dataset difference are the importance values for the feature calculated
     using `{importance_type}`.
     </span><br><br>
     """
@@ -103,7 +103,6 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
     else:
         displays = None
 
-    # return CheckResult(value=values_dict, display=displays, header='Whole Dataset Drift')
     return values_dict, displays
 
 

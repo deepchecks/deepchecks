@@ -119,7 +119,7 @@ class ImageDatasetDrift(TrainTestCheck):
 
         headnote = """
         <span>
-        The shown features are the image properties (brightness, aspect ratio, etc.) that are most important for the 
+        The shown features are the image properties (brightness, aspect ratio, etc.) that are most important for the
         domain classifier - the domain_classifier trained to distinguish between the train and test datasets.<br>
         </span>
         """
@@ -135,4 +135,3 @@ class ImageDatasetDrift(TrainTestCheck):
             displays.insert(0, headnote)
 
         return CheckResult(value=values_dict, display=displays, header='Image Dataset Drift')
-
