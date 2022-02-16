@@ -7,10 +7,10 @@ Here you can see the api reference.
     :caption: API Reference
     :hidden:
 
-    core
-    tabular
-    utils
-    vision
+    deepchecks.core
+    deepchecks.tabular
+    deepchecks.vision
+    deepchecks.utils
 
 .. currentmodule:: deepchecks
 
@@ -18,5 +18,5 @@ Here you can see the api reference.
     
     core
     tabular
-    utils
     vision
+    utils

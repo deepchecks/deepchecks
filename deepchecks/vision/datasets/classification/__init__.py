@@ -9,10 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Module for classification datasets and models."""
-import pathlib
+from . import mnist
 
 
-__all__ = ["MODELS_DIR"]
+__all__ = ["mnist"]
 
 
-MODELS_DIR = pathlib.Path(__file__).absolute().parent / "models"
+
