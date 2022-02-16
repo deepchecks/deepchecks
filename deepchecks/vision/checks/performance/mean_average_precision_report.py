@@ -54,7 +54,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
 
             rows.append(area_scores)
 
-        results = pd.DataFrame(columns=['Area size', 'mAP(COCO challenge) (%)', 'AP@.50 (%)', 'AP@.75 (%)'])
+        results = pd.DataFrame(columns=['Area size', 'mAP@.5...95 (%)', 'AP@.50 (%)', 'AP@.75 (%)'])
         for i in range(len(rows)):
             results.loc[i] = rows[i]
         results = results.set_index('Area size')
