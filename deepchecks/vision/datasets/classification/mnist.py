@@ -31,7 +31,7 @@ from deepchecks.vision.dataset import VisionData
 __all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST', 'mnist_image_formatter']
 
 
-MODELS_DIR = pathlib.Path(__file__).absolute().parent / "models"
+MODELS_DIR = pathlib.Path(__file__).absolute().parent / 'models'
 
 LOGGER = logging.getLogger(__name__)
 MODULE_DIR = pathlib.Path(__file__).absolute().parent
