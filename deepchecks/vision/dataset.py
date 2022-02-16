@@ -200,7 +200,7 @@ class VisionData:
         if self._label_map is None:
             return str(class_id)
         elif class_id not in self._label_map:
-            logger.warning(f'Class id {class_id} is not in the label map.')
+            logger.warning('Class id %s is not in the label map.', class_id)
             return str(class_id)
         else:
             return self._label_map[class_id]
