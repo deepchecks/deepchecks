@@ -36,6 +36,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
     area_range: tuple, default: (32**2, 96**2)
         Slices for small/medium/large buckets.
     """
+
     def __init__(self, area_range: Tuple = (32**2, 96**2)):
         super().__init__()
         self._ap_metric = AveragePrecision(return_option=None, area_range=area_range)
