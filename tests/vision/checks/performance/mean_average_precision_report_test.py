@@ -33,6 +33,7 @@ def test_coco(coco_test_visiondata, trained_yolov5_object_detection):
     check = MeanAveragePrecisionReport() \
             .add_condition_test_average_precision_not_less_than(0.1) \
             .add_condition_test_average_precision_not_less_than(0.4)
+
     # Act
     result = check.run(coco_test_visiondata,
                        trained_yolov5_object_detection, prediction_formatter=pred_formatter)
