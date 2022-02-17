@@ -94,7 +94,7 @@ class ImageFormatter:
             return [img.mean() for img in batch]
         else:
             flattened_batch = self._flatten_batch(batch)
-            return [(299*img[:, 0] + 587*img[:, 1] + 114 * img[:, 2]).mean()/1000 for img in flattened_batch]
+            return [(0.299*img[:, 0] + 0.587*img[:, 1] + 0.114 * img[:, 2]).mean() for img in flattened_batch]
 
     def contrast(self,  batch: List[np.array]) -> List[float]:
         """Return constrast of image."""
@@ -116,7 +116,7 @@ class ImageFormatter:
         """Return list of tuples of image height and width."""
         return [self.get_size(img) for img in batch]
 
-    def _normalized_rgb_mean(self, batch: List[np.array]):
+    def _normalized_rgb_mean(self, batch: List[np.array]) -> List[Tuple[float, float, float]]:
         """Calculate normalized mean for each channel (rgb) in image.
 
         The normalized mean of each channel is calculated by first normalizing the image's pixels (meaning, each color
@@ -135,7 +135,8 @@ class ImageFormatter:
             returned for each image.
         """
         if self._is_grayscale(batch) is True:
-            raise DeepchecksValueError('function _normalized_rgb_mean cannot run on 1-dimensional image (grayscale)')
+            return [(None, None, None)] * len(batch)
+
         flattened_batch = self._flatten_batch(batch)
         # TODO: Check for faster implementations than pixel by pixel
         normalized_images = [np.array([self._normalize_colors_in_pixel(pxl) for pxl in img]) for img in flattened_batch]

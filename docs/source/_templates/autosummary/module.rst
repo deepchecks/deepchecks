@@ -5,57 +5,74 @@
 {% block content %}
 .. automodule:: {{ fullname }}
 
-   {% block attributes %}
-   {% if attributes %}
-   .. rubric:: Module Attributes
+.. currentmodule:: {{ fullname }}
 
-   .. autosummary::
-      :toctree:
+{% block attributes %}
+{% if attributes %}
+.. rubric:: Module Attributes
 
-   {% for item in attributes %}
-      {{ item }}
-   {%- endfor %}
-   {% endif %}
-   {% endblock attributes %}
+.. autosummary::
+   :toctree:
 
-   {% block functions %}
-   {% if functions %}
-   .. rubric:: {{ _('Functions') }}
+{% for item in attributes %}
+   {{ item }}
+{%- endfor %}
+{% endif %}
+{% endblock attributes %}
 
-   .. autosummary::
-      :toctree:
+{% block functions %}
+{% if functions %}
+.. rubric:: {{ _('Functions') }}
 
-   {% for item in functions %}
-      {{ item }}
-   {% endfor %}
-   {% endif %}
-   {% endblock functions %}
+.. autosummary::
+   :toctree:
 
-   {% block classes %}
-   {% if classes %}
-   .. rubric:: {{ _('Classes') }}
+{% for item in functions %}
+   {{ item }}
+{% endfor %}
+{% endif %}
+{% endblock functions %}
 
-   .. autosummary::
-      :toctree:
+{% block classes %}
+{% if classes %}
+.. rubric:: {{ _('Classes') }}
 
-   {% for item in classes %}
-      {{ item }}
-   {% endfor %}
-   {% endif %}
-   {% endblock classes %}
+.. autosummary::
+   :toctree:
 
-   {% block exceptions %}
-   {% if exceptions %}
-   .. rubric:: {{ _('Exceptions') }}
+{% for item in classes %}
+   {{ item }}
+{% endfor %}
+{% endif %}
+{% endblock classes %}
 
-   .. autosummary::
-      :toctree:
 
-   {% for item in exceptions %}
-      {{ item }}
-   {% endfor %}
-   {% endif %}
-   {% endblock exceptions %}
+{% block members %}
+{% if members|length != 0 and exceptions|length == 0 and classes|length == 0 and functions|length == 0 and attributes|length == 0 %}
+.. rubric:: {{ _('Members') }}
+
+.. autosummary::
+   :toctree:
+
+{% for item in members %}
+   {{ item }}
+{% endfor %}
+{% endif %}
+{% endblock members %}
+
+
+{% block exceptions %}
+{% if exceptions %}
+.. rubric:: {{ _('Exceptions') }}
+
+.. autosummary::
+   :toctree:
+
+{% for item in exceptions %}
+   {{ item }}
+{% endfor %}
+{% endif %}
+{% endblock exceptions %}
 
 {% block modules %}
 {% if modules %}
