@@ -30,7 +30,9 @@ def test_mnist_error(mnist_dataset_test, trained_mnist):
 def test_coco(coco_test_visiondata, trained_yolov5_object_detection):
     # Arrange
     pred_formatter = DetectionPredictionFormatter(yolo_prediction_formatter)
-    check = MeanAveragePrecisionReport()
+    check = MeanAveragePrecisionReport() \
+            .add_condition_test_average_precision_not_less_than(0.1) \
+            .add_condition_test_average_precision_not_less_than(0.4)
     # Act
     result = check.run(coco_test_visiondata,
                        trained_yolov5_object_detection, prediction_formatter=pred_formatter)
@@ -55,30 +57,12 @@ def test_coco(coco_test_visiondata, trained_yolov5_object_detection):
     assert_that(df.loc['Large (area<96^2)', 'AP@.50 (%)'], close_to(0.575, 0.001))
     assert_that(df.loc['Large (area<96^2)', 'AP@.75 (%)'], close_to(0.533, 0.001))
 
-def test_coco_not_less_than_passed(coco_test_visiondata, trained_yolov5_object_detection):
-    # Arrange
-    pred_formatter = DetectionPredictionFormatter(yolo_prediction_formatter)
-    check = MeanAveragePrecisionReport().add_condition_test_average_precision_not_less_than(0.1)
-    # Act
-    result = check.run(coco_test_visiondata,
-                       trained_yolov5_object_detection, prediction_formatter=pred_formatter)
-
-    # Assert
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=True,
         name='Scores are not less than 0.1'
     ))
 
-def test_coco_not_less_than_failed(coco_test_visiondata, trained_yolov5_object_detection):
-    # Arrange
-    pred_formatter = DetectionPredictionFormatter(yolo_prediction_formatter)
-    check = MeanAveragePrecisionReport().add_condition_test_average_precision_not_less_than(0.4)
-    # Act
-    result = check.run(coco_test_visiondata,
-                       trained_yolov5_object_detection, prediction_formatter=pred_formatter)
-
-    # Assert
-    assert_that(result.conditions_results[0], equal_condition_result(
+    assert_that(result.conditions_results[1], equal_condition_result(
         is_pass=False,
         name='Scores are not less than 0.4',
         details="Found scores below threshold:\n{'All': {'mAP@0.5..0.95 (%)': '0.361'}, " + \
