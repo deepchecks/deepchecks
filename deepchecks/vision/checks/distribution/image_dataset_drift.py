@@ -20,6 +20,7 @@ import pandas as pd
 __all__ = ['ImageDatasetDrift']
 
 DEFAULT_IMAGE_PROPERTIES = ['aspect_ratio',
+                            'blur',
                             'area',
                             'brightness',
                             'normalized_red_mean',
