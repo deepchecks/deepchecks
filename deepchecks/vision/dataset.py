@@ -98,17 +98,6 @@ class VisionData:
         self._data = data_loader
         self.label_transformer = label_transformer
         self.image_transformer = image_transformer or ImageFormatter(lambda x: x)
-
-        if self.label_transformer:
-            if isinstance(self.label_transformer, ClassificationLabelFormatter):
-                self.task_type = TaskType.CLASSIFICATION
-            elif isinstance(self.label_transformer, DetectionLabelFormatter):
-                self.task_type = TaskType.OBJECT_DETECTION
-            else:
-                logger.warning('Unknown label transformer type was provided. Only integrity and data checks will run.'
-                               'The supported label transformer types are: '
-                               '[ClassificationLabelFormatter, DetectionLabelFormatter]')
-
         self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
         self.transform_field = transform_field
 

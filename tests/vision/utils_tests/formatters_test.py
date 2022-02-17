@@ -9,16 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 from typing import Union
+from itertools import permutations
 
 import numpy as np
+import torch
 from hamcrest import assert_that, equal_to, calling, raises, close_to
 from torch.utils.data import DataLoader, Dataset
 
 from deepchecks.vision.utils import ClassificationLabelFormatter
+from deepchecks.vision.utils.detection_formatters import verify_bbox_format_notation
+from deepchecks.vision.utils.detection_formatters import convert_bbox
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.utils.image_formatters import ImageFormatter
-# pylint: disable=wildcard-import,redefined-outer-name,unused-wildcard-import
-from tests.vision.vision_conftest import *
 
 
 def test_classification_formatter_invalid_dataloader(three_tuples_dataloader):
@@ -283,3 +285,100 @@ def test_flatten_batch_with_sampling_larger_than_num_pixels():
     res = formatter._flatten_batch(batch)  # pylint: disable=protected-access
 
     assert_that(np.array_equal(res[0], expected_result), equal_to(True))
+
+
+def test_allowed_bbox_format_notations():
+    notations = (
+        '  lxyxy       ',
+        'LxywH',
+        *[''.join(it) for it in set(permutations(['l', 'xy', 'xy'], 3))],
+        *[''.join(it) for it in permutations(['l', 'xy', 'wh'], 3)],
+        *[''.join(it) for it in permutations(['l', 'xy', 'wh'], 3)],
+        *[''.join(it) for it in permutations(['l', 'cxcy', 'wh'], 3)]
+    )
+
+    tokens = {
+        'label',
+        'width',
+        'height',
+        'xmin',
+        'ymin',
+        'xmax',
+        'ymax',
+        'xcenter',
+        'ycenter',
+    }
+
+    for n in notations:
+        tokens = verify_bbox_format_notation(n)
+        assert_that(
+            len(set(tokens).difference(tokens)),
+            equal_to(0)
+        )
+
+
+def test_bbox_format_notations_with_forbidden_combination_of_elements():
+    notations = [
+        'l',
+        'xy',
+        'wh',
+        'cxcy',
+        *[''.join(it) for it in permutations(['l', 'xy', 'wh'], 2)],
+        *[''.join(it) for it in permutations(['l', 'xy', 'cxcy'], 3)],
+        *[''.join(it) for it in permutations(['l', 'cxcy', 'xy'], 2)],
+        *[''.join(it) for it in permutations(['wh', 'cxcy', 'xy'], 2)],
+        *[''.join(it) for it in permutations(['wh', 'cxcy', 'xy'], 3)],
+    ]
+
+    for n in notations:
+        assert_that(
+            calling(verify_bbox_format_notation).with_args(n),
+            raises(
+                ValueError,
+                fr'Incorrect bbox format notation - {n}\.\n'
+                r'Only next combinations of elements are allowed:.*\n'
+            )
+        )
+
+
+def test_bbox_format_notations_with_unknown_elements():
+    notations = [
+        'lxyah',
+        'xyxyhw',
+        'cxywhl',
+        'l xy xy',
+        'lxxyy'
+    ]
+    for n in notations:
+        assert_that(
+            calling(verify_bbox_format_notation).with_args(n),
+            raises(
+                ValueError,
+                rf'Incorrect bbox format notation - {n}\. '
+                r'Unknown sequence of charecters starting from position.*'
+            )
+        )
+
+
+def test_bbox_convertion_to_the_required_format():
+    data = (
+        (
+            'xylxy',
+            torch.tensor([20, 15, 2, 41, 23]),
+            torch.tensor([2, 20, 15, (41 - 20), (23 - 15)]),
+        ),
+        (
+            'cxcywhl',
+            torch.tensor([50, 55, 100, 100, 0]),
+            torch.tensor([0, (50 - 100 / 2), (55 - 100 / 2), 100, 100]),
+        ),
+        (
+            'whxyl',
+            torch.tensor([35, 70, 10, 15, 1]),
+            torch.tensor([1, 10, 15, 35, 70,]),
+        )
+    )
+
+    for notation, input_args, output in data:
+        result = convert_bbox(input_args, notation)
+        assert_that((result == output).all())
