@@ -170,7 +170,9 @@ class DetectionPredictionFormatter(BasePredictionFormatter):
         Parameters
         ----------
         batch : t.Any
-            Model prediction for a batch (output of model(batch[0]))
+            Batch from DataLoader
+        model : t.Any
+        device : torch.Device
         n_classes : int
             Number of classes.
         eps : float , default: 1e-3

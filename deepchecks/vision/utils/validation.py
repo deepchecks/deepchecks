@@ -110,7 +110,7 @@ def validate_formatters(data_loader, model, label_formatter: BaseLabelFormatter,
         labels = label_formatter(batch)
     except DeepchecksValueError as ex:
         label_formatter_error = str(ex)
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         label_formatter_error = 'Got exception \n' + traceback.format_exc()
 
     try:
@@ -118,7 +118,7 @@ def validate_formatters(data_loader, model, label_formatter: BaseLabelFormatter,
         images = image_formatter(batch)
     except DeepchecksValueError as ex:
         image_formatter_error = str(ex)
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         image_formatter_error = 'Got exception \n' + traceback.format_exc()
 
     try:
@@ -126,7 +126,7 @@ def validate_formatters(data_loader, model, label_formatter: BaseLabelFormatter,
         predictions = prediction_formatter(batch, model, torch.device('cpu'))
     except DeepchecksValueError as ex:
         prediction_formatter_error = str(ex)
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         prediction_formatter_error = 'Got exception \n' + traceback.format_exc()
 
     # Classes
