@@ -39,21 +39,23 @@ def test_equal_pycocotools(coco_test_visiondata: VisionData, trained_yolov5_obje
         metric.update((prediction, label))
     res = metric.compute()[0]
 
-    assert_that(metric.get_val_at(res['precision'], area='all', max_dets=100), close_to(0.361, 0.001))
-    assert_that(metric.get_val_at(res['precision'], iou=0.5, area='all', max_dets=100), close_to(0.502, 0.001))
-    assert_that(metric.get_val_at(res['precision'], iou=0.75, area='all', max_dets=100), close_to(0.376, 0.001))
-    assert_that(metric.get_val_at(res['precision'], area='small', max_dets=100), close_to(0.189, 0.001))
-    assert_that(metric.get_val_at(res['precision'], area='medium', max_dets=100), close_to(0.367, 0.001))
-    assert_that(metric.get_val_at(res['precision'], area='large', max_dets=100), close_to(0.476, 0.001))
+    assert_that(metric.get_classes_scores_at(res['precision'], area='all', max_dets=100), close_to(0.361, 0.001))
+    assert_that(metric.get_classes_scores_at(res['precision'], iou=0.5, area='all', max_dets=100),
+                close_to(0.502, 0.001))
+    assert_that(metric.get_classes_scores_at(res['precision'], iou=0.75, area='all', max_dets=100),
+                close_to(0.376, 0.001))
+    assert_that(metric.get_classes_scores_at(res['precision'], area='small', max_dets=100), close_to(0.189, 0.001))
+    assert_that(metric.get_classes_scores_at(res['precision'], area='medium', max_dets=100), close_to(0.367, 0.001))
+    assert_that(metric.get_classes_scores_at(res['precision'], area='large', max_dets=100), close_to(0.476, 0.001))
 
-    assert_that(metric.get_val_at(res['recall'], area='all', max_dets=1), close_to(0.3, 0.001))
-    assert_that(metric.get_val_at(res['recall'], area='all', max_dets=10), close_to(0.379, 0.001))
-    assert_that(metric.get_val_at(res['recall'], area='all', max_dets=100), close_to(0.388, 0.001))
-    assert_that(metric.get_val_at(res['recall'], area='small', max_dets=100), close_to(0.194, 0.001))
-    assert_that(metric.get_val_at(res['recall'], area='medium', max_dets=100), close_to(0.403, 0.001))
-    assert_that(metric.get_val_at(res['recall'], area='large', max_dets=100), close_to(0.488, 0.001))
+    assert_that(metric.get_classes_scores_at(res['recall'], area='all', max_dets=1), close_to(0.3, 0.001))
+    assert_that(metric.get_classes_scores_at(res['recall'], area='all', max_dets=10), close_to(0.379, 0.001))
+    assert_that(metric.get_classes_scores_at(res['recall'], area='all', max_dets=100), close_to(0.388, 0.001))
+    assert_that(metric.get_classes_scores_at(res['recall'], area='small', max_dets=100), close_to(0.194, 0.001))
+    assert_that(metric.get_classes_scores_at(res['recall'], area='medium', max_dets=100), close_to(0.403, 0.001))
+    assert_that(metric.get_classes_scores_at(res['recall'], area='large', max_dets=100), close_to(0.488, 0.001))
 
     # unrelated to coco but needed to check another param
-    assert_that(metric.get_val_at(res['recall'], area='large', max_dets=100, get_mean_val=False,
+    assert_that(metric.get_classes_scores_at(res['recall'], area='large', max_dets=100, get_mean_val=False,
                 zeroed_negative=False), has_items([-1]))
-    assert_that(metric.get_val_at(res['recall'], get_mean_val=False, zeroed_negative=False), has_items([-1]))
+    assert_that(metric.get_classes_scores_at(res['recall'], get_mean_val=False, zeroed_negative=False), has_items([-1]))
