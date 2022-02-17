@@ -16,8 +16,7 @@ from deepchecks.vision.datasets.classification.mnist import  mnist_prediction_fo
 
 import torch.nn as nn
 
-from hamcrest import assert_that, has_entries, close_to, equal_to, is_in
-from tests.vision.vision_conftest import *
+from hamcrest import assert_that, close_to, equal_to, is_in
 
 
 def test_mnist_largest(mnist_dataset_train, mnist_dataset_test, trained_mnist):
