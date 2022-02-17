@@ -14,8 +14,6 @@ import math
 from typing import TypeVar, Tuple, Any
 
 import pandas as pd
-import plotly.express as px
-import numpy as np
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.utils.strings import format_number
