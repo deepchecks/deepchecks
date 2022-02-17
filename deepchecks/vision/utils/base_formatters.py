@@ -10,6 +10,7 @@
 #
 """Module defining base encoders."""
 import abc
+from collections import Counter
 from typing import Callable, Union
 
 from torch.utils.data import DataLoader
@@ -29,10 +30,25 @@ class BaseLabelFormatter(abc.ABC):
         """Call the encoder."""
         pass
 
-    @abc.abstractmethod
     def get_samples_per_class(self, data_loader: DataLoader):
-        """Get the number of samples per class."""
-        pass
+        """
+        Get the number of samples per class.
+
+        Parameters
+        ----------
+        data_loader : DataLoader
+            DataLoader to get the samples per class from.
+
+        Returns
+        -------
+        Counter
+            Counter of the number of samples per class.
+        """
+        counter = Counter()
+        for batch in data_loader:
+            labels = self(batch)
+            counter.update(self.get_classes(labels))
+        return counter
 
     @abc.abstractmethod
     def get_classes(self, batch_labels):
@@ -40,7 +56,7 @@ class BaseLabelFormatter(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def validate_label(self, labels):
+    def validate_label(self, batch):
         """Validate that the label is in the required format."""
         raise DeepchecksValueError('Not implemented yet for tasks other than classification and object detection')
 
@@ -58,6 +74,6 @@ class BasePredictionFormatter(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def validate_prediction(self, batch_predictions, n_classes: int = None, eps: float = 1e-3):
+    def validate_prediction(self, batch, model, device, n_classes: int = None, eps: float = 1e-3):
         """Validate that the predictions are in the required format."""
         return 'Not implemented yet for tasks other than classification and object detection'

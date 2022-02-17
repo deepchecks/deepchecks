@@ -9,17 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """Module for defining detection encoders."""
-from collections import Counter
-from typing import Union, Callable, Optional
-
-__all__ = ['DetectionLabelFormatter', 'DetectionPredictionFormatter']
-
+from typing import Union, Callable
+from itertools import chain
 import numpy as np
 import torch
-from torch.utils.data import DataLoader
 
 from .base_formatters import BaseLabelFormatter, BasePredictionFormatter
 from deepchecks.core.errors import DeepchecksValueError
+
+__all__ = ['DetectionLabelFormatter', 'DetectionPredictionFormatter']
 
 
 class DetectionLabelFormatter(BaseLabelFormatter):
@@ -29,7 +27,7 @@ class DetectionLabelFormatter(BaseLabelFormatter):
     Parameters
     ----------
     label_formatter : Callable
-        Function that takes in a batch of labels and returns the encoded labels in the following format:
+        Function that takes in a batch from DataLoader and returns only the encoded labels in the following format:
         List of length N containing tensors of shape (M, 5), where N is the number of samples,
         M is the number of bounding boxes in the sample and each bounding box is represented by 5 values: **(class_id,
         x, y, w, h)**. x and y are the coordinates (in pixels) of the upper left corner of the bounding box, w and h are
@@ -41,11 +39,11 @@ class DetectionLabelFormatter(BaseLabelFormatter):
     ... from deepchecks.vision.utils.detection_formatters import DetectionLabelFormatter
     ...
     ...
-    ... def yolo_to_coco(input_batch_from_loader):
+    ... def yolo_to_coco(batch):
     ...     return [torch.stack(
     ...             [torch.cat((bbox[1:3], bbox[4:] - bbox[1:3], bbox[0]), dim=0)
     ...                 for bbox in image])
-    ...             for image in input_batch_from_loader]
+    ...             for image in batch[1]]
     ...
     ...
     ... label_formatter = DetectionLabelFormatter(yolo_to_coco)
@@ -59,7 +57,7 @@ class DetectionLabelFormatter(BaseLabelFormatter):
 
     label_formatter: Union[str, Callable]
 
-    def __init__(self, label_formatter: Union[str, Callable] = lambda x: x):
+    def __init__(self, label_formatter: Union[str, Callable] = lambda x: x[1]):
         super().__init__(label_formatter)
         self.label_formatter = label_formatter
 
@@ -70,43 +68,20 @@ class DetectionLabelFormatter(BaseLabelFormatter):
         elif isinstance(self.label_formatter, str):
             pass
 
-    def get_samples_per_class(self, data_loader: DataLoader):
-        """
-        Get the number of samples per class.
-
-        Parameters
-        ----------
-        data_loader : DataLoader
-            DataLoader to get the samples per class from.
-
-        Returns
-        -------
-        Counter
-            Counter of the number of samples per class.
-        """
-        counter = Counter()
-        for batch in data_loader:
-            list_of_arrays = self(batch[1])
-            class_list = sum([arr.reshape((-1, 5))[:, 0].tolist() for arr in list_of_arrays], [])
-            counter.update(class_list)
-        return counter
-
     def get_classes(self, batch_labels):
         """Get a labels batch and return classes inside it."""
-        def get_classes(tensor):
-            if len(tensor) == 0:
-                return set()
-            return set(tensor[:, 0].tolist())
+        def get_classes_from_single_label(tensor):
+            return list(tensor[:, 0].tolist()) if len(tensor) > 0 else []
 
-        return list(set().union(*[get_classes(x) for x in batch_labels]))
+        return list(chain(*[get_classes_from_single_label(x) for x in batch_labels]))
 
-    def validate_label(self, labels) -> Optional[str]:
+    def validate_label(self, batch):
         """
         Validate the label.
 
         Parameters
         ----------
-        labels
+        batch
 
         Returns
         -------
@@ -114,6 +89,7 @@ class DetectionLabelFormatter(BaseLabelFormatter):
             None if the label is valid, otherwise a string containing the error message.
 
         """
+        labels = self(batch)
         if not isinstance(labels, list):
             raise DeepchecksValueError('Check requires object detection label to be a list with an entry for each '
                                        'sample')
@@ -136,7 +112,8 @@ class DetectionPredictionFormatter(BasePredictionFormatter):
     Parameters
     ----------
     prediction_formatter : Callable
-        Function that takes in a batch of predictions and returns the encoded labels in the following format:
+        Function that takes in a batch from DataLoader and model, and returns the encoded labels in the
+        following format:
         List of length N containing tensors of shape (B, 6), where N is the number of images,
         B is the number of bounding boxes detected in the sample and each bounding box is represented by 6 values:
         **[x, y, w, h, confidence, class_id]**. x and y are the coordinates (in pixels) of the upper left corner of the
@@ -151,10 +128,11 @@ class DetectionPredictionFormatter(BasePredictionFormatter):
     ...
     ...
     ... def yolo_wrapper(
-    ...     predictions: 'ultralytics.models.common.Detections'  # noqa: F821
+    ...     batch, model, device
     ... ) -> t.List[torch.Tensor]:
     ...     return_list = []
     ...
+    ...     predictions = model(batch[0])
     ...     # yolo Detections objects have List[torch.Tensor] xyxy output in .pred
     ...     for single_image_tensor in predictions.pred:
     ...         pred_modified = torch.clone(single_image_tensor)
@@ -174,15 +152,17 @@ class DetectionPredictionFormatter(BasePredictionFormatter):
 
     """
 
-    def __init__(self, prediction_formatter: Callable = lambda x: x):
+    def __init__(self, prediction_formatter: Callable = None):
         super().__init__(prediction_formatter)
+        if prediction_formatter is None:
+            self.prediction_formatter = lambda batch, model, device: model.to(device)(batch[0].to(device))
         self.prediction_formatter = prediction_formatter
 
     def __call__(self, *args, **kwargs):
         """Call the encoder."""
         return self.prediction_formatter(*args, **kwargs)
 
-    def validate_prediction(self, batch_predictions, n_classes: int = None, eps: float = 1e-3):
+    def validate_prediction(self, batch, model, device, n_classes: int = None, eps: float = 1e-3):
         """
         Validate the prediction.
 
@@ -195,6 +175,7 @@ class DetectionPredictionFormatter(BasePredictionFormatter):
         eps : float , default: 1e-3
             Epsilon value to be used in the validation, by default 1e-3
         """
+        batch_predictions = self(batch, model, device)
         if not isinstance(batch_predictions, list):
             raise DeepchecksValueError('Check requires detection predictions to be a list with an entry for each'
                                        ' sample')

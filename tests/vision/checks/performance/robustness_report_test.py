@@ -18,11 +18,12 @@ from tests.checks.utils import equal_condition_result
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks.performance.robustness_report import RobustnessReport
 from deepchecks.vision.utils.classification_formatters import ClassificationPredictionFormatter
+from deepchecks.vision.datasets.classification.mnist import mnist_prediction_formatter
 from deepchecks.vision.utils import DetectionPredictionFormatter
 from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
 from PIL import Image
-import torch.nn as nn
 from hamcrest import assert_that, has_entries, close_to, calling, raises, has_items
+
 
 from tests.vision.vision_conftest import *
 
@@ -37,7 +38,7 @@ def test_mnist(mnist_dataset_train, trained_mnist):
     check = RobustnessReport(augmentations=augmentations)
     # Act
     result = check.run(mnist_dataset_train, trained_mnist,
-                       prediction_formatter=ClassificationPredictionFormatter(nn.Softmax(dim=1)))
+                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter))
     # Assert
     assert_that(result.value, has_entries({
         'RandomBrightnessContrast': has_entries({

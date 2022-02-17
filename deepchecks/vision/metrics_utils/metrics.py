@@ -113,24 +113,7 @@ def calculate_metrics(
     """
 
     def process_function(_, batch):
-        images = batch[0]
-        label = dataset.label_transformer(batch[1])
-
-        if isinstance(images, torch.Tensor):
-            images = images.to(device)
-        if isinstance(label, torch.Tensor):
-            label = label.to(device)
-
-        predictions = model.forward(images)
-
-        if prediction_formatter:
-            predictions = prediction_formatter(predictions)
-
-        return predictions, label
-
-    # Validate that
-    data_batch = process_function(None, next(iter(dataset)))[0]
-    prediction_formatter.validate_prediction(data_batch, dataset.n_of_classes)
+        return prediction_formatter(batch, model, device), dataset.label_transformer(batch)
 
     engine = Engine(process_function)
 

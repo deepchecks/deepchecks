@@ -66,29 +66,13 @@ def test_vision_data_task_type_inference():
     assert_that(dataset_with_custom_formatter.task_type is None)
 
 
-def test_initialization_of_vision_data_with_classification_dataset_that_does_not_return_labels():
-    # Arrange
-    loader = DataLoader(dataset=[
-        (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), ),
-        (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), ),
-    ])
-
-    # Act Assert
-    assert_that(
-        calling(VisionData).with_args(loader, label_transformer=ClassificationLabelFormatter()),
-        raises(
-            DeepchecksValueError,
-            r'dataloader required to return tuples of \(input\, label\)')
-    )
-
-
 def test_initialization_of_vision_data_with_classification_dataset_that_contains_incorrect_labels():
     # Arrange
     loader_with_string_labels = DataLoader(dataset=[
         (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), "1"),
         (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), "2"),
     ])
-    loader_witth_labels_of_incorrect_shape = DataLoader(dataset=[
+    loader_with_labels_of_incorrect_shape = DataLoader(dataset=[
         (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), torch.tensor([1,2])),
         (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), torch.tensor([2,3])),
     ])
@@ -96,11 +80,11 @@ def test_initialization_of_vision_data_with_classification_dataset_that_contains
     # Act
     first_dataset = VisionData(
         loader_with_string_labels,
-        label_transformer=ClassificationLabelFormatter(lambda x: x)
+        label_transformer=ClassificationLabelFormatter()
     )
     second_dataset = VisionData(
-        loader_witth_labels_of_incorrect_shape,
-        label_transformer=ClassificationLabelFormatter(lambda x: x)
+        loader_with_labels_of_incorrect_shape,
+        label_transformer=ClassificationLabelFormatter()
     )
 
     # Assert
@@ -221,8 +205,8 @@ def test_vision_data_label_comparison_for_detection_task():
     first_loader = DataLoader([(first_X, first_label),], collate_fn=batch_collate)
     second_loader = DataLoader([(second_X, second_label),], collate_fn=batch_collate)
 
-    first_dataset = VisionData(first_loader, label_transformer=DetectionLabelFormatter(lambda x: x))
-    second_dataset = VisionData(second_loader, label_transformer=DetectionLabelFormatter(lambda x: x))
+    first_dataset = VisionData(first_loader, label_transformer=DetectionLabelFormatter())
+    second_dataset = VisionData(second_loader, label_transformer=DetectionLabelFormatter())
 
     # Act
     # it must not raise an error

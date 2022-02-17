@@ -97,29 +97,30 @@ def validate_formatters(data_loader, model, label_formatter: BaseLabelFormatter,
     """Validate for given data_loader and model that the formatters are valid."""
     print('Deepchecks will try to validate the formatters given...')
     batch = next(iter(data_loader))
-    if not isinstance(batch, t.Tuple) or len(batch) != 2:
-        raise DeepchecksValueError('dataloader required to return tuples of (input, label)')
 
-    labels = label_formatter(batch[1])
     try:
-        label_formatter.validate_label(labels)
+        label_formatter.validate_label(batch)
+        labels = label_formatter(batch)
         label_formatter_error = None
     except DeepchecksValueError as ex:
         label_formatter_error = str(ex)
+        labels = None
 
-    images = image_formatter(batch[0])
     try:
-        image_formatter.validate_data(images)
+        image_formatter.validate_data(batch)
+        images = image_formatter(batch)
         image_formatter_error = None
     except DeepchecksValueError as ex:
         image_formatter_error = str(ex)
+        images = None
 
-    predictions = prediction_formatter(model(batch[0]))
     try:
-        prediction_formatter.validate_prediction(predictions)
+        prediction_formatter.validate_prediction(batch, model, torch.device('cpu'))
+        predictions = prediction_formatter(batch, model, torch.device('cpu'))
         prediction_formatter_error = None
     except DeepchecksValueError as ex:
         prediction_formatter_error = str(ex)
+        predictions = None
 
     # Classes
     if label_formatter_error is None:
