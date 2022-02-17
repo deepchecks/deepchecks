@@ -122,7 +122,7 @@ python_use_unqualified_type_names = True
 # If true, autosummary overwrites existing files by generated stub pages.
 # Defaults to true (enabled).
 #
-# autosummary_generate_overwrite = False
+autosummary_generate_overwrite = False
 
 # A boolean flag indicating whether to document classes and
 # functions imported in modules. Default is False
@@ -132,13 +132,18 @@ autosummary_imported_members = False
 # If False and a module has the __all__ attribute set, autosummary
 # documents every member listed in __all__ and no others. Default is True
 #
-autosummary_ignore_module_all = True
+autosummary_ignore_module_all = False
 
 # A dictionary of values to pass into the template engine’s context
 # for autosummary stubs files.
 #
 autosummary_context = {'to_snake_case': to_snake_case}
 
+# TODO: explaine
+autosummary_filename_map = {
+    "deepchecks.tabular.checks": "../deepchecks.tabular.checks",
+    "deepchecks.vision.checks": "../deepchecks.vision.checks",
+}
 
 # -- autodoc settings --------------------------------------------------
 
@@ -164,7 +169,6 @@ autodoc_typehints = 'signature'
 #   + 'short' – Suppress the leading module names of the typehints (default in version 5.0)
 #
 autodoc_typehints_format = 'short'
-
 
 # True to convert the type definitions in the docstrings as references. Defaults to False.
 #
@@ -365,6 +369,7 @@ html_copy_source = True
 #
 html_theme_options = {
     "collapse_navigation": False,
+    "navigation_depth": 6,
     "navbar_end": ["search-field", "navbar-icon-links", "menu-dropdown", ],
     # "page_sidebar_items": ["page-toc", "create-issue", "show-page-source"],
     "page_sidebar_items": ["page-toc", ],
