@@ -10,7 +10,8 @@
 #
 """Module containing class performance check."""
 from collections import defaultdict
-from typing import TypeVar, Any
+import math
+from typing import TypeVar, Tuple, Any
 
 import pandas as pd
 import plotly.express as px
@@ -28,12 +29,21 @@ MPR = TypeVar('MPR', bound='MeanAveragePrecisionReport')
 
 
 class MeanAveragePrecisionReport(SingleDatasetCheck):
-    """Summarize given metrics on a dataset and model."""
+    """Summarize mean average precision metrics on a dataset and model per IoU and area range.
+
+    Parameters
+    ----------
+    area_range: tuple, default: (32**2, 96**2)
+        Slices for small/medium/large buckets.
+    """
+    def __init__(self, area_range: Tuple = (32**2, 96**2)):
+        super().__init__()
+        self._ap_metric = AveragePrecision(return_option=None, area_range=area_range)
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
         """Initialize run by asserting task type and initializing metric."""
         context.assert_task_type(TaskType.OBJECT_DETECTION)
-        self._ap_metric = AveragePrecision(return_option=None)
+        
 
     def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
         """Update the metrics by passing the batch to ignite metric update method."""
@@ -45,9 +55,14 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Compute the metric result using the ignite metrics compute method and create display."""
+        small_area = int(math.sqrt(self._ap_metric.area_range[0]))
+        large_area = int(math.sqrt(self._ap_metric.area_range[1]))
         res = self._ap_metric.compute()[0]['precision']
         rows = []
-        for title, area_name in zip(['All', 'Small (area<32^2)', 'Medium (32^2<area<96^2)', 'Large (area<96^2)'],
+        for title, area_name in zip(['All',
+                                     f'Small (area < {small_area}^2)',
+                                     f'Medium ({small_area}^2 < area < {large_area}^2)',
+                                     f'Large (area < {large_area}^2)'],
                                     ['all', 'small', 'medium', 'large']):
             area_scores = [title]
             area_scores.append(self._ap_metric.get_classes_scores_at(res, area=area_name, max_dets=100))
