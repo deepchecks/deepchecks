@@ -12,6 +12,7 @@
 from typing import Callable, Optional, Tuple, List
 
 import numpy as np
+from skimage import dtype_limits
 from skimage.measure import blur_effect
 
 from deepchecks.core.errors import DeepchecksValueError
@@ -107,9 +108,32 @@ class ImageFormatter:
         else:
             return [blur_effect(rgb2gray(img)) for img in batch]
 
-    def contrast(self,  batch: List[np.array]) -> List[float]:
+    def weber_contrast(self, batch: List[np.array]) -> List[float]:
         """Return constrast of image."""
-        raise NotImplementedError('Not yet implemented')  # TODO
+
+        #TODO: Complete and test. Also, is this weber for sure?
+
+        if self._is_grayscale is False:
+            batch = [rgb2gray(img) for img in batch]
+
+        contrasts = []
+        for img in batch:
+            dlimits = dtype_limits(img, clip_negative=False)
+            limits = np.percentile(img, [10, 90])
+            ratio = (limits[1] - limits[0]) / (dlimits[1] - dlimits[0])
+            contrasts.append(ratio)
+
+        return contrasts
+
+    def rms_contrast(self, batch: List[np.array]) -> List[float]:
+        """Return constrast of image."""
+
+        #TODO: Complete and test. 
+
+        if self._is_grayscale is False:
+            batch = [rgb2gray(img) for img in batch]
+
+        return [img.std() for img in batch]
 
     def normalized_red_mean(self, batch: List[np.array]) -> List[float]:
         """Return the normalized mean of the red channel."""
