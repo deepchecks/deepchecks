@@ -10,6 +10,7 @@
 #
 """Module for validation of the vision module."""
 import random
+import traceback
 import typing as t
 import numpy as np
 import torch
@@ -97,30 +98,36 @@ def validate_formatters(data_loader, model, label_formatter: BaseLabelFormatter,
     """Validate for given data_loader and model that the formatters are valid."""
     print('Deepchecks will try to validate the formatters given...')
     batch = next(iter(data_loader))
+    images = None
+    labels = None
+    predictions = None
+    label_formatter_error = None
+    image_formatter_error = None
+    prediction_formatter_error = None
 
     try:
         label_formatter.validate_label(batch)
         labels = label_formatter(batch)
-        label_formatter_error = None
     except DeepchecksValueError as ex:
         label_formatter_error = str(ex)
-        labels = None
+    except Exception:
+        label_formatter_error = 'Got exception \n' + traceback.format_exc()
 
     try:
         image_formatter.validate_data(batch)
         images = image_formatter(batch)
-        image_formatter_error = None
     except DeepchecksValueError as ex:
         image_formatter_error = str(ex)
-        images = None
+    except Exception:
+        image_formatter_error = 'Got exception \n' + traceback.format_exc()
 
     try:
         prediction_formatter.validate_prediction(batch, model, torch.device('cpu'))
         predictions = prediction_formatter(batch, model, torch.device('cpu'))
-        prediction_formatter_error = None
     except DeepchecksValueError as ex:
         prediction_formatter_error = str(ex)
-        predictions = None
+    except Exception:
+        prediction_formatter_error = 'Got exception \n' + traceback.format_exc()
 
     # Classes
     if label_formatter_error is None:
@@ -186,7 +193,7 @@ def validate_formatters(data_loader, model, label_formatter: BaseLabelFormatter,
         if is_notebook():
             return f'<h4>{x}</h4>'
         else:
-            return x + '\n' + ''.join(['-'] * len(x))
+            return x + '\n' + ''.join(['-'] * len(x)) + '\n'
 
     line_break = '<br>' if is_notebook() else '\n'
     msg = get_header('Structure validation')

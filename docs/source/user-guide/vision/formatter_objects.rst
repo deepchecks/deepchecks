@@ -27,7 +27,7 @@ Types of Formatters
 Deepchecks requires three data formatters:
 
 - **Image Formatter** - responsible for formatting the input images to the accepted format
-- **Prediction Formatter** - responsible for formatting the output of the model to an accepted format (depends on the model type)
+- **Prediction Formatter** - responsible for predicting using the model and formatting the output to an accepted format (depends on the model type)
 - **Label Formatter** - responsible for formatting the targets to an accepted format (depends on the task type)
 
 In order to initialize a new formatter, a transformation function between the input format and the accepted format is required.
@@ -36,7 +36,7 @@ In order to initialize a new formatter, a transformation function between the in
 
 The Image Formatter
 =====================
-The image formatter is responsible for transforming the image data that is received as an output from the data loader to the required format for the check's display (e.g. unnormalize the image).
+The image formatter is responsible for transforming the image data that is received as an output from the data loader to a format that is displayable for the check's display (e.g. unnormalize the image).
 In order to create an image formatter, you need to initialize an instance of the :class:`image_formatters.ImageFormatter` class,
 passing the transformation function.
 

@@ -156,7 +156,8 @@ class DetectionPredictionFormatter(BasePredictionFormatter):
         super().__init__(prediction_formatter)
         if prediction_formatter is None:
             self.prediction_formatter = lambda batch, model, device: model.to(device)(batch[0].to(device))
-        self.prediction_formatter = prediction_formatter
+        else:
+            self.prediction_formatter = prediction_formatter
 
     def __call__(self, *args, **kwargs):
         """Call the encoder."""
@@ -168,7 +169,7 @@ class DetectionPredictionFormatter(BasePredictionFormatter):
 
         Parameters
         ----------
-        batch_predictions : t.Any
+        batch : t.Any
             Model prediction for a batch (output of model(batch[0]))
         n_classes : int
             Number of classes.
