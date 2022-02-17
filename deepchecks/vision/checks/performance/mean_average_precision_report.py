@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing class performance check."""
+"""Module containing mean average precision report check."""
 from collections import defaultdict
 import math
 from typing import TypeVar, Tuple, Any
