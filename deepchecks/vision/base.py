@@ -394,7 +394,8 @@ class Suite(BaseSuite):
                 data_loader=train_dataset.get_data_loader(),
                 context=context,
                 run_train_test_checks=run_train_test_checks,
-                results=results
+                results=results,
+                dataset_kind=DatasetKind.TRAIN
             )
             for check_idx, check in checks.items():
                 if check_idx not in results:
@@ -410,7 +411,8 @@ class Suite(BaseSuite):
                 data_loader=test_dataset.get_data_loader(),
                 context=context,
                 run_train_test_checks=run_train_test_checks,
-                results=results
+                results=results,
+                dataset_kind=DatasetKind.TEST
             )
             for check_idx, check in checks.items():
                 if check_idx not in results:
