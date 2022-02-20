@@ -27,7 +27,7 @@ Types of Formatters
 Deepchecks requires three data formatters:
 
 - **Image Formatter** - responsible for formatting the input images to the accepted format
-- **Prediction Formatter** - responsible for formatting the output of the model to an accepted format (depends on the model type)
+- **Prediction Formatter** - responsible for predicting using the model and formatting the output to an accepted format (depends on the model type)
 - **Label Formatter** - responsible for formatting the targets to an accepted format (depends on the task type)
 
 In order to initialize a new formatter, a transformation function between the input format and the accepted format is required.
@@ -36,7 +36,7 @@ In order to initialize a new formatter, a transformation function between the in
 
 The Image Formatter
 =====================
-The image formatter is responsible for transforming the image data that is received as an output from the data loader to the required format for the check's display (e.g. unnormalize the image).
+The image formatter is responsible for transforming the image data that is received as an output from the data loader to a format that is displayable for the check's display (e.g. unnormalize the image).
 In order to create an image formatter, you need to initialize an instance of the :class:`image_formatters.ImageFormatter` class,
 passing the transformation function.
 
@@ -76,3 +76,18 @@ For object detection tasks, it is required to implement the following formatters
 Converting From Common Formats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TBD (Not implemented yet)
+
+
+Validating The Correctness of Your Formatters
+=============================================
+While writing formatters for your data to fit deepchecks, you need a way to test your work is correct.
+For this purpose we have an helper function which runs your formatter and prints their outputs, which you can inspect to make sure they work correctly.
+Use this function like so:
+
+.. code-block:: python
+
+    from deepchecks.vision.utils.validation import validate_formatters    
+    validate_formatters(data_loader, model, label_formatter, image_formatter, pred_formatter)
+
+
+For more info about the formatters validating see the guide :doc:`formatters_validation </examples/vision/guides/formatters_validating>`
