@@ -242,7 +242,7 @@ class RobustnessReport(SingleDatasetCheck):
             # Create performance graph
             figures.append(self._create_performance_graph(base_mean_results, curr_data['metrics_diff']))
             # Create top affected graph
-            figures.append(self._create_top_affected_graph(curr_data['top_affected']))
+            figures.append(self._create_top_affected_graph(curr_data['top_affected'], dataset))
             # Create example figures, return first n_pictures_to_show from original and then n_pictures_to_show from
             # augmented dataset
             figures.append(self._create_example_figure(dataset, curr_data['images']))
@@ -255,7 +255,7 @@ class RobustnessReport(SingleDatasetCheck):
         transposed = list(zip(*images))
         base_images = transposed[0]
         aug_images = transposed[1]
-        classes = list(map(str, transposed[2]))
+        classes = list(map(dataset.label_id_to_name, transposed[2]))
 
         # Create image figures
         fig = make_subplots(rows=2, cols=len(classes), column_titles=classes, row_titles=['Origin', 'Augmented'],
@@ -319,7 +319,7 @@ class RobustnessReport(SingleDatasetCheck):
          .update_xaxes(title=None, type='category', tickangle=30))
         return fig
 
-    def _create_top_affected_graph(self, top_affected_dict):
+    def _create_top_affected_graph(self, top_affected_dict, dataset):
         metrics = sorted(top_affected_dict.keys())
         fig = make_subplots(rows=1, cols=len(metrics), subplot_titles=metrics)
 
@@ -330,7 +330,7 @@ class RobustnessReport(SingleDatasetCheck):
             y = []
             custom_data = []
             for class_info in metric_classes:
-                x.append(class_info['class'])
+                x.append(dataset.label_id_to_name(class_info['class']))
                 y.append(class_info['value'])
                 custom_data.append([format_percent(class_info['diff']), class_info['samples']])
 

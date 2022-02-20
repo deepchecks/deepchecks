@@ -145,7 +145,7 @@ def test_with_drift_object_detection_changed_num_bins(coco_train_visiondata, coc
 def test_with_drift_object_detection_alternative_measurements(coco_train_visiondata, coco_test_visiondata):
     # Arrange
     alternative_measurements = [
-        {'name': 'test', 'method': lambda x: int(x[0][0]) if len(x) != 0 else 0, 'is_continuous': True}]
+        {'name': 'test', 'method': lambda x, dataset: int(x[0][0]) if len(x) != 0 else 0, 'is_continuous': True}]
     check = TrainTestLabelDrift(alternative_label_measurements=alternative_measurements)
 
     # Act
@@ -164,8 +164,8 @@ def test_with_drift_object_detection_alternative_measurements(coco_train_visiond
 def test_with_drift_object_detection_defected_alternative_measurements():
     # Arrange
     alternative_measurements = [
-        {'name': 'test', 'method': lambda x: x[0][0] if len(x) != 0 else 0, 'is_continuous': True},
-        {'name234': 'test', 'method': lambda x: x[0][0] if len(x) != 0 else 0, 'is_continuous': True},
+        {'name': 'test', 'method': lambda x, dataset: x[0][0] if len(x) != 0 else 0, 'is_continuous': True},
+        {'name234': 'test', 'method': lambda x, dataset: x[0][0] if len(x) != 0 else 0, 'is_continuous': True},
     ]
 
     # Assert
@@ -177,7 +177,7 @@ def test_with_drift_object_detection_defected_alternative_measurements():
 
 def test_with_drift_object_detection_defected_alternative_measurements2():
     # Arrange
-    alternative_measurements = {'name': 'test', 'method': lambda x: x, 'is_continuous': True}
+    alternative_measurements = {'name': 'test', 'method': lambda x, dataset: x, 'is_continuous': True}
 
     # Assert
     assert_that(calling(TrainTestLabelDrift).with_args(alternative_measurements),
