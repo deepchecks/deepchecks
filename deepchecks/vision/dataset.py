@@ -50,10 +50,9 @@ class VisionData:
         PyTorch DataLoader object. If your data loader is using IterableDataset please see note below.
     num_classes : int, optional
         Number of classes in the dataset. If not provided, will be inferred from the dataset.
-    label_formatter : Union[ClassificationLabelFormatter, DetectionLabelFormatter]
     label_map : Dict[int, str], optional
         A dictionary mapping class ids to their names.
-    label_transformer : Union[ClassificationLabelFormatter, DetectionLabelFormatter]
+    label_formatter : Union[ClassificationLabelFormatter, DetectionLabelFormatter]
         A callable, transforming a batch of labels returned by the dataloader to a batch of labels in the desired
         format.
     sample_size : int, default: 1,000
