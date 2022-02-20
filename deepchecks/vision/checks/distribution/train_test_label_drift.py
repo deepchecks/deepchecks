@@ -30,36 +30,36 @@ __all__ = ['TrainTestLabelDrift']
 # TODO: Add label sampling when available
 
 # Functions temporarily here, will be changed when Label and Prediction classes exist:
-def get_bbox_area(label, dataset):  # pylint: disable=unused-argument
+def _get_bbox_area(label, _):
     """Return a list containing the area of bboxes per image in batch."""
     areas = (label.reshape((-1, 5))[:, 4] * label.reshape((-1, 5))[:, 3]).reshape(-1, 1).tolist()
     return areas
 
 
-def count_num_bboxes(label, dataset):  # pylint: disable=unused-argument
+def _count_num_bboxes(label, _):
     """Return a list containing the number of bboxes per image in batch."""
     num_bboxes = label.shape[0]
     return num_bboxes
 
 
-def get_samples_per_class_classification(label, dataset):
+def _get_samples_per_class_classification(label, dataset):
     """Return a list containing the class per image in batch."""
     return dataset.label_id_to_name(label.tolist())
 
 
-def get_samples_per_class_object_detection(label, dataset):
+def _get_samples_per_class_object_detection(label, dataset):
     """Return a list containing the class per image in batch."""
     return [[dataset.label_id_to_name(arr.reshape((-1, 5))[:, 0])] for arr in label]
 
 
 DEFAULT_CLASSIFICATION_LABEL_MEASUREMENTS = [
-    {'name': 'Samples per class', 'method': get_samples_per_class_classification, 'is_continuous': False}
+    {'name': 'Samples per class', 'method': _get_samples_per_class_classification, 'is_continuous': False}
 ]
 
 DEFAULT_OBJECT_DETECTION_LABEL_MEASUREMENTS = [
-    {'name': 'Samples per class', 'method': get_samples_per_class_object_detection, 'is_continuous': False},
-    {'name': 'Bounding box area (in pixels)', 'method': get_bbox_area, 'is_continuous': True},
-    {'name': 'Number of bounding boxes per image', 'method': count_num_bboxes, 'is_continuous': True},
+    {'name': 'Samples per class', 'method': _get_samples_per_class_object_detection, 'is_continuous': False},
+    {'name': 'Bounding box area (in pixels)', 'method': _get_bbox_area, 'is_continuous': True},
+    {'name': 'Number of bounding boxes per image', 'method': _count_num_bboxes, 'is_continuous': True},
 ]
 
 

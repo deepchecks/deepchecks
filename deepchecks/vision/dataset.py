@@ -136,6 +136,7 @@ class VisionData:
         self._samples_per_class = None
         self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
         self._label_map = label_map
+        self._warned_labels = set()
         self.transform_field = transform_field
         # Sample dataset properties
         self._sample_data_loader = None
@@ -196,7 +197,10 @@ class VisionData:
         if self._label_map is None:
             return str(class_id)
         elif class_id not in self._label_map:
-            logger.warning('Class id %s is not in the label map.', class_id)
+            if class_id not in self._warned_labels:
+                # We want to warn one time per class
+                self._warned_labels.add(class_id)
+                logger.warning('Class id %s is not in the label map.', class_id)
             return str(class_id)
         else:
             return self._label_map[class_id]
