@@ -113,7 +113,7 @@ def calculate_metrics(
     """
 
     def process_function(_, batch):
-        return prediction_formatter(batch, model, device), dataset.label_transformer(batch)
+        return prediction_formatter(batch, model, device), dataset.label_formatter(batch)
 
     engine = Engine(process_function)
 
