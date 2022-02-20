@@ -253,7 +253,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         label_properties = [x['name'] for x in self._label_measurements]
         headnote = '<span>' \
                    'The Drift score is a measure for the difference between two distributions. ' \
-                   'In this check, drift is measured' \
+                   'In this check, drift is measured ' \
                    f'for the distribution of the following label properties: {label_properties}.' \
                    '</span>'
 
