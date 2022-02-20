@@ -24,7 +24,8 @@ class ImageFormatter:
     Parameters
     ----------
     image_formatter : Callable, optional
-        Function that takes in a batch of data and returns the data in the following format (an iterable of cv2 images):
+        Function that takes in a batch from DataLoader and returns only the data from it in the following format (an
+        iterable of cv2 images):
         Each image in the iterable must be a [H, W, C] 3D numpy array. The first dimension must be the image height
         (y axis), the second being the image width (x axis), and the third being the number of channels. The numbers
         in the array should be in the range [0, 255]. Color images should be in RGB format and have 3 channels, while
@@ -40,7 +41,7 @@ class ImageFormatter:
     def __init__(self, image_formatter: Optional[Callable] = None,
                  sample_size_for_image_properties: Optional[int] = 1000):
         if image_formatter is None:
-            self.data_formatter = lambda x: x
+            self.data_formatter = lambda x: x[0]
         else:
             self.data_formatter = image_formatter
 
@@ -50,15 +51,14 @@ class ImageFormatter:
         """Call the encoder."""
         return self.data_formatter(*args, **kwargs)
 
-    def validate_data(self, batch_data):
+    def validate_data(self, batch):
         """Validate that the data is in the required format.
 
         The validation is done on the first element of the batch.
 
         Parameters
         ----------
-        batch_data
-            A batch of data outputted from the dataloader.
+        batch
 
         Raises
         -------
@@ -66,9 +66,9 @@ class ImageFormatter:
             If the batch data doesn't fit the format after being transformed by self().
 
         """
-        batch_data = self(batch_data)
+        data = self(batch)
         try:
-            sample: np.ndarray = batch_data[0]
+            sample: np.ndarray = data[0]
         except TypeError as err:
             raise DeepchecksValueError('The batch data must be an iterable.') from err
         if not isinstance(sample, np.ndarray):
@@ -79,6 +79,8 @@ class ImageFormatter:
             raise DeepchecksValueError('The data inside the iterable must have 1 or 3 channels.')
         if sample.min() < 0 or sample.max() > 255:
             raise DeepchecksValueError('The data inside the iterable must be in the range [0, 255].')
+        if np.all(sample <= 1):
+            raise DeepchecksValueError('The data inside the iterable appear to be normalized.')
 
     def aspect_ratio(self, batch: List[np.array]) -> List[float]:
         """Return list of floats of image height to width ratio."""

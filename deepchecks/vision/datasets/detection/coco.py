@@ -116,7 +116,7 @@ def load_dataset(
             data_loader=dataloader,
             label_transformer=DetectionLabelFormatter(yolo_label_formatter),
             # To display images we need them as numpy array
-            image_transformer=ImageFormatter(lambda pil_list: [np.array(x) for x in pil_list]),
+            image_transformer=ImageFormatter(lambda batch: [np.array(x) for x in batch[0]]),
             num_classes=80
         )
     else:
@@ -261,15 +261,15 @@ class CocoDataset(VisionDataset):
         return coco_dir, 'train2017'
 
 
-def yolo_prediction_formatter(
-        predictions: 'ultralytics.models.common.Detections'  # noqa: F821
-) -> t.List[torch.Tensor]:
+def yolo_prediction_formatter(batch, model, device) -> t.List[torch.Tensor]:
     """Convert from yolo Detections object to List (per image) of Tensors of the shape [N, 6] with each row being \
     [x, y, w, h, confidence, class] for each bbox in the image."""
     return_list = []
 
     with warnings.catch_warnings():
         warnings.simplefilter(action='ignore', category=UserWarning)
+
+        predictions: 'ultralytics.models.common.Detections' = model.to(device)(batch[0])  # noqa: F821
 
         # yolo Detections objects have List[torch.Tensor] xyxy output in .pred
         for single_image_tensor in predictions.pred:
@@ -281,15 +281,15 @@ def yolo_prediction_formatter(
     return return_list
 
 
-def yolo_label_formatter(label):
+def yolo_label_formatter(batch):
     """Translate yolo label to deepchecks format."""
     # our labels return at the end, and the VisionDataset expect it at the start
     def move_class(tensor):
         return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3])) if len(tensor) > 0 else tensor
-    return [move_class(tensor) for tensor in label]
+    return [move_class(tensor) for tensor in batch[1]]
 
 
-def yolo_image_formatter(pil_list):
+def yolo_image_formatter(batch):
     """Convert list of PIL images to deepchecks image format."""
     # Yolo works on PIL and VisionDataset expects images as numpy arrays
-    return [np.array(x) for x in pil_list]
+    return [np.array(x) for x in batch[0]]
