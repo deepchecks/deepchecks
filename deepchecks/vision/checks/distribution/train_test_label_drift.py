@@ -30,13 +30,13 @@ __all__ = ['TrainTestLabelDrift']
 # TODO: Add label sampling when available
 
 # Functions temporarily here, will be changed when Label and Prediction classes exist:
-def get_bbox_area(label, dataset):
+def get_bbox_area(label, dataset):  # pylint: disable=unused-argument
     """Return a list containing the area of bboxes per image in batch."""
     areas = (label.reshape((-1, 5))[:, 4] * label.reshape((-1, 5))[:, 3]).reshape(-1, 1).tolist()
     return areas
 
 
-def count_num_bboxes(label, dataset):
+def count_num_bboxes(label, dataset):  # pylint: disable=unused-argument
     """Return a list containing the number of bboxes per image in batch."""
     num_bboxes = label.shape[0]
     return num_bboxes
@@ -49,7 +49,7 @@ def get_samples_per_class_classification(label, dataset):
 
 def get_samples_per_class_object_detection(label, dataset):
     """Return a list containing the class per image in batch."""
-    return [dataset.translate_label_id_to_name(arr.reshape((-1, 5))[:, 0]) for arr in label]
+    return [[dataset.translate_label_id_to_name(arr.reshape((-1, 5))[:, 0])] for arr in label]
 
 
 DEFAULT_CLASSIFICATION_LABEL_MEASUREMENTS = [
