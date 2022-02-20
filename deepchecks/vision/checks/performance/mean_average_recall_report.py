@@ -46,9 +46,8 @@ class MeanAverageRecallReport(SingleDatasetCheck):
     def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
         """Update the metrics by passing the batch to ignite metric update method."""
         dataset = context.get_data_by_kind(dataset_kind)
-        images = batch[0]
-        label = dataset.label_transformer(batch[1])
-        prediction = context.prediction_formatter(context.infer(images))
+        label = dataset.label_transformer(batch)
+        prediction = context.infer(batch)
         self._ap_metric.update((prediction, label))
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
