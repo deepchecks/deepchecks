@@ -44,12 +44,12 @@ def count_num_bboxes(label, dataset):  # pylint: disable=unused-argument
 
 def get_samples_per_class_classification(label, dataset):
     """Return a list containing the class per image in batch."""
-    return dataset.translate_label_id_to_name(label.tolist())
+    return dataset.label_id_to_name(label.tolist())
 
 
 def get_samples_per_class_object_detection(label, dataset):
     """Return a list containing the class per image in batch."""
-    return [[dataset.translate_label_id_to_name(arr.reshape((-1, 5))[:, 0])] for arr in label]
+    return [[dataset.label_id_to_name(arr.reshape((-1, 5))[:, 0])] for arr in label]
 
 
 DEFAULT_CLASSIFICATION_LABEL_MEASUREMENTS = [

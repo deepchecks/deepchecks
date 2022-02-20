@@ -255,7 +255,7 @@ class RobustnessReport(SingleDatasetCheck):
         transposed = list(zip(*images))
         base_images = transposed[0]
         aug_images = transposed[1]
-        classes = list(map(dataset.translate_label_id_to_name, transposed[2]))
+        classes = list(map(dataset.label_id_to_name, transposed[2]))
 
         # Create image figures
         fig = make_subplots(rows=2, cols=len(classes), column_titles=classes, row_titles=['Origin', 'Augmented'],
@@ -330,7 +330,7 @@ class RobustnessReport(SingleDatasetCheck):
             y = []
             custom_data = []
             for class_info in metric_classes:
-                x.append(dataset.translate_label_id_to_name(class_info['class']))
+                x.append(dataset.label_id_to_name(class_info['class']))
                 y.append(class_info['value'])
                 custom_data.append([format_percent(class_info['diff']), class_info['samples']])
 

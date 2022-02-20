@@ -131,7 +131,7 @@ def calculate_metrics(
 def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
     """Get dict of metric name to tensor of classes scores, and convert it to dataframe."""
     per_class_result = [
-        [metric, class_id, dataset.translate_label_id_to_name(class_id),
+        [metric, class_id, dataset.label_id_to_name(class_id),
          class_score.item() if isinstance(class_score, torch.Tensor) else class_score]
         for metric, score in results.items()
         # scorer returns results as array, containing result per class

@@ -188,7 +188,7 @@ class VisionData:
                 self._sample_labels.append(label)
         return self._sample_labels
 
-    def translate_label_id_to_name(self, class_id: int) -> str:
+    def label_id_to_name(self, class_id: int) -> str:
         """Return the name of the class with the given id."""
         # Converting the class_id to integer to make sure it is an integer
         class_id = int(class_id)
