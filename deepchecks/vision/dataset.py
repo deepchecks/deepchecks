@@ -75,7 +75,7 @@ class VisionData:
     """
 
     label_transformer: BaseLabelFormatter
-    image_transformer: ImageFormatter
+    image_formatter: ImageFormatter
     task_type: Optional[TaskType]
     sample_iteration_limit: int
     _data: DataLoader
@@ -91,7 +91,7 @@ class VisionData:
                  data_loader: DataLoader,
                  num_classes: Optional[int] = None,
                  label_transformer: BaseLabelFormatter = None,
-                 image_transformer: ImageFormatter = None,
+                 image_formatter: ImageFormatter = None,
                  sample_size: int = 1000,
                  random_seed: int = 0,
                  transform_field: Optional[str] = 'transforms'):
@@ -99,11 +99,11 @@ class VisionData:
 
         batch_to_validate = next(iter(self._data))
         # Validate image transformer
-        if image_transformer:
-            image_transformer.validate_data(batch_to_validate)
-            self.image_transformer = image_transformer
+        if image_formatter:
+            image_formatter.validate_data(batch_to_validate)
+            self._image_formatter = image_formatter
         else:
-            self.image_transformer = None
+            self._image_formatter = None
 
         if label_transformer:
             if isinstance(label_transformer, ClassificationLabelFormatter):
@@ -139,6 +139,12 @@ class VisionData:
         self._random_seed = random_seed
 
     @property
+    def image_formatter(self) -> ImageFormatter:
+        if self._image_formatter:
+            return self.image_formatter
+        raise DeepchecksValueError('No valid image formatter provided')
+
+    @property
     def n_of_classes(self) -> int:
         """Return the number of classes in the dataset."""
         if self._num_classes is None:
@@ -159,12 +165,12 @@ class VisionData:
 
     def to_display_data(self, batch):
         """Convert a batch of data outputted by the data loader to a format that can be displayed."""
-        return self.image_transformer(batch)
+        return self.image_formatter(batch)
 
     @property
     def data_dimension(self):
         """Return how many dimensions the image data have."""
-        image = self.image_transformer(next(iter(self)))[0]
+        image = self.image_formatter(next(iter(self)))[0]
         return ImageInfo(image).get_dimension()
 
     @property
@@ -236,7 +242,7 @@ class VisionData:
         props['dataset'] = copy(self.get_data_loader().dataset)
         new_data_loader = self.get_data_loader().__class__(**props)
         return VisionData(new_data_loader,
-                          image_transformer=self.image_transformer,
+                          image_formatter=self.image_formatter,
                           label_transformer=self.label_transformer,
                           transform_field=self.transform_field)
 

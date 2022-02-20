@@ -116,7 +116,7 @@ def load_dataset(
             data_loader=dataloader,
             label_transformer=DetectionLabelFormatter(yolo_label_formatter),
             # To display images we need them as numpy array
-            image_transformer=ImageFormatter(lambda batch: [np.array(x) for x in batch[0]]),
+            image_formatter=ImageFormatter(lambda batch: [np.array(x) for x in batch[0]]),
             num_classes=80
         )
     else:

@@ -251,10 +251,10 @@ class TrainTestLabelDrift(TrainTestCheck):
             values_dict[d['name']] = {'Drift score': drift_score, 'Method': method}
             displays.append(display)
 
-        headnote = f"""<span>
-            The Drift score is a measure for the difference between two distributions. In this check, drift is measured
-            for the distribution of the following label properties: {[x['name'] for x in self._label_measurements]}.
-        </span>"""
+        headnote = "<span>" \
+                   "The Drift score is a measure for the difference between two distributions. In this check, drift is measured" \
+                   f"for the distribution of the following label properties: {[x['name'] for x in self._label_measurements]}." \
+                   "</span>"
 
         displays = [headnote] + displays
 

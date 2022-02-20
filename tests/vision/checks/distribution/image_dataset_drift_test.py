@@ -83,9 +83,9 @@ def test_drift_grayscale(mnist_dataset_train, mnist_dataset_test):
 
 def test_no_drift_rgb(coco_train_dataloader, coco_test_dataloader):
     # Arrange
-    train = VisionData(coco_train_dataloader, image_transformer=ImageFormatter(pil_formatter),
+    train = VisionData(coco_train_dataloader, image_formatter=ImageFormatter(pil_formatter),
                        label_transformer=DetectionLabelFormatter())
-    test = VisionData(coco_test_dataloader, image_transformer=ImageFormatter(pil_formatter),
+    test = VisionData(coco_test_dataloader, image_formatter=ImageFormatter(pil_formatter),
                       label_transformer=DetectionLabelFormatter())
 
     check = ImageDatasetDrift()
@@ -111,9 +111,9 @@ def test_no_drift_rgb(coco_train_dataloader, coco_test_dataloader):
 
 def test_with_drift_rgb(coco_train_dataloader, coco_test_dataloader):
     # Arrange
-    train = VisionData(coco_train_dataloader, image_transformer=ImageFormatter(pil_drift_formatter),
+    train = VisionData(coco_train_dataloader, image_formatter=ImageFormatter(pil_drift_formatter),
                        label_transformer=DetectionLabelFormatter())
-    test = VisionData(coco_test_dataloader, image_transformer=ImageFormatter(pil_formatter),
+    test = VisionData(coco_test_dataloader, image_formatter=ImageFormatter(pil_formatter),
                       label_transformer=DetectionLabelFormatter())
 
     check = ImageDatasetDrift()

@@ -98,7 +98,7 @@ def load_dataset(
             data_loader=loader,
             num_classes=len(datasets.MNIST.classes),
             label_transformer=ClassificationLabelFormatter(),
-            image_transformer=ImageFormatter(mnist_image_formatter(mean, std)),
+            image_formatter=ImageFormatter(mnist_image_formatter(mean, std)),
             transform_field='transform'
         )
     else:

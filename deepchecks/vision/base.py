@@ -374,25 +374,13 @@ class Suite(BaseSuite):
 
         for check_idx, check in list(self.checks.items()):
             if isinstance(check, (TrainTestCheck, ModelOnlyCheck)):
-                checks[check_idx] = copy.deepcopy(check)
+                check.initialize_run(context)
+                checks[check_idx] = check
             elif isinstance(check, SingleDatasetCheck):
                 if train_dataset is not None:
-                    checks[str(check_idx) + ' - Train'] = copy.deepcopy(check)
+                    checks[str(check_idx) + ' - Train'] = check
                 if test_dataset is not None:
-                    checks[str(check_idx) + ' - Test'] = copy.deepcopy(check)
-
-        for idx, check in checks.items():
-            if isinstance(check, SingleDatasetCheck):
-                check.initialize_run(
-                    context,
-                    dataset_kind=(
-                        DatasetKind.TEST
-                        if str(idx).endswith('Test')
-                        else DatasetKind.TRAIN
-                    )
-                )
-            else:
-                check.initialize_run(context)
+                    checks[str(check_idx) + ' - Test'] = check
 
         results: Dict[
             Union[str, int],
@@ -409,6 +397,13 @@ class Suite(BaseSuite):
                 run_train_test_checks=run_train_test_checks,
                 results=results
             )
+            for check_idx, check in checks.items():
+                if check_idx not in results:
+                    if str(check_idx).endswith('Test'):
+                        try:
+                            results[check_idx] = check.compute(context, dataset_kind=DatasetKind.TEST)
+                        except Exception as exp:
+                            results[check_idx] = CheckFailure(check, exp, ' - Test')
 
         if test_dataset is not None:
             self._validation_loop(
@@ -418,34 +413,32 @@ class Suite(BaseSuite):
                 run_train_test_checks=run_train_test_checks,
                 results=results
             )
+            for check_idx, check in checks.items():
+                if check_idx not in results:
+                    if str(check_idx).endswith('Train'):
+                        try:
+                            results[check_idx] = check.compute(context, dataset_kind=DatasetKind.TRAIN)
+                        except Exception as exp:
+                            results[check_idx] = CheckFailure(check, exp, ' - Train')
 
         for check_idx, check in checks.items():
             if check_idx not in results:
                 try:
-                    if isinstance(check, SingleDatasetCheck):
-                        results[check_idx] = check.compute(
-                            context,
-                            dataset_kind=(
-                                DatasetKind.TEST
-                                if str(check_idx).endswith('Test')
-                                else DatasetKind.TRAIN
-                            )
-                        )
-                    else:
+                    if not isinstance(check, SingleDatasetCheck):
                         results[check_idx] = check.compute(context)
                 except Exception as exp:
                     results[check_idx] = CheckFailure(check, exp)
 
         # Update check result names for SingleDatasetChecks and finalize results
-        # TODO: Why this is needed? (result.header modification) tabular suite does not have this
         for check_idx, result in results.items():
             if isinstance(result, CheckResult):
+                result = finalize_check_result(result, checks[check_idx])
                 result.header = (
                     f'{result.get_header()} - Train Dataset'
                     if str(check_idx).endswith(' - Train')
                     else f'{result.get_header()} - Test Dataset'
                 )
-                results[check_idx] = finalize_check_result(result, checks[check_idx])
+                results[check_idx] = result
 
         return SuiteResult(self.name, list(results.values()))
 
@@ -463,6 +456,11 @@ class Suite(BaseSuite):
         n_batches = len(data_loader)
         progress_bar = ProgressBar(self.name + ' - Train', n_batches)
 
+        for idx, check in checks.items():
+            if isinstance(check, SingleDatasetCheck):
+                if str(idx).endswith(' - Train'):
+                    check.initialize_run(context, dataset_kind=DatasetKind.TRAIN)
+
         for batch_id, batch in enumerate(data_loader):
             progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
             batch = apply_to_tensor(batch, lambda it: it.to(context.device))
@@ -474,14 +472,15 @@ class Suite(BaseSuite):
                         else:
                             msg = 'Check is irrelevant if not supplied with both train and test datasets'
                             results[check_idx] = self._get_unsupported_failure(check, msg)
-                    elif isinstance(check, SingleDatasetCheck) and str(check_idx).endswith(' - Train'):
-                        check.update(context, batch, dataset_kind=DatasetKind.TRAIN)
+                    elif isinstance(check, SingleDatasetCheck):
+                        if str(check_idx).endswith(' - Train'):
+                            check.update(context, batch, dataset_kind=DatasetKind.TRAIN)
                     elif isinstance(check, ModelOnlyCheck):
                         pass
                     else:
                         raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
                 except Exception as exp:
-                    results[check_idx] = CheckFailure(check, exp)
+                    results[check_idx] = CheckFailure(check, exp, '- Train')
             progress_bar.inc_progress()
             context.flush_cached_inference()
 
@@ -498,6 +497,11 @@ class Suite(BaseSuite):
         run_train_test_checks: bool,
         results: Dict[Union[str, int], Union[CheckResult, CheckFailure]]
     ):
+        for idx, check in checks.items():
+            if isinstance(check, SingleDatasetCheck):
+                if str(idx).endswith(' - Test'):
+                  check.initialize_run(context, dataset_kind=DatasetKind.TEST)
+
         # Loop over test batches
         n_batches = len(data_loader)
         progress_bar = ProgressBar(self.name + ' - Test', n_batches)
@@ -507,7 +511,6 @@ class Suite(BaseSuite):
             batch = apply_to_tensor(batch, lambda it: it.to(context.device))
 
             for check_idx, check in checks.items():
-                check_name = type(check).__name__
                 if check_idx not in results:
                     try:
                         if isinstance(check, TrainTestCheck):
@@ -516,14 +519,15 @@ class Suite(BaseSuite):
                             else:
                                 msg = 'Check is irrelevant if not supplied with both train and test datasets'
                                 results[check_idx] = Suite._get_unsupported_failure(check, msg)
-                        elif isinstance(check, SingleDatasetCheck) and str(check_idx).endswith(' - Test'):
-                            check.update(context, batch, dataset_kind=DatasetKind.TEST)
+                        elif isinstance(check, SingleDatasetCheck):
+                            if str(check_idx).endswith(' - Test'):
+                                check.update(context, batch, dataset_kind=DatasetKind.TEST)
                         elif isinstance(check, ModelOnlyCheck):
                             pass
                         else:
-                            raise TypeError(f'Don\'t know how to handle type {check_name} in suite.')
+                            raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
                     except Exception as exp:
-                        results[check_idx] = CheckFailure(check, exp)
+                        results[check_idx] = CheckFailure(check, exp), '- Test'
             progress_bar.inc_progress()
             context.flush_cached_inference()
 
