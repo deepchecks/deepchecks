@@ -96,7 +96,7 @@ class VisionData:
                  random_seed: int = 0,
                  transform_field: Optional[str] = 'transforms'):
         self._data = data_loader
-        self.label_transformer = label_transformer
+        self.label_transformer = label_transformer or ClassificationLabelFormatter(lambda x: x)
         self.image_transformer = image_transformer or ImageFormatter(lambda x: x)
 
         if self.label_transformer:
