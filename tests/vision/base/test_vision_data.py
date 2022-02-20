@@ -102,6 +102,18 @@ def test_initialization_of_vision_data_with_classification_dataset_that_contains
     )
 
 
+def test_no_image_formatter_raises():
+    # Arrange
+    loader = t.cast(DataLoader, mnist.load_dataset(train=True, object_type="DataLoader"))
+    dataset = VisionData(loader, label_formatter=ClassificationLabelFormatter())
+    assert_that(
+        calling(dataset.image_formatter),
+        raises(
+            DeepchecksValueError,
+            r'No valid image formatter provided')
+    )
+
+
 def test_vision_data_sample_loader():
     # Arrange
     loader = t.cast(DataLoader, mnist.load_dataset(train=True, object_type='DataLoader'))
