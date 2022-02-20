@@ -11,6 +11,10 @@ import pathlib
 import functools
 from subprocess import check_output
 
+import plotly.io as pio
+from plotly.io._sg_scraper import plotly_sg_scraper
+
+pio.renderers.default = 'sphinx_gallery'
 
 # -- Path setup --------------------------------------------------------------
 
@@ -60,7 +64,7 @@ extensions = [
     #
     'sphinx_gallery.load_style',
     #
-
+    'sphinx_gallery.gen_gallery',
     'numpydoc',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
@@ -70,6 +74,12 @@ extensions = [
     'sphinx_search.extension',
     'sphinx.ext.autosectionlabel',
 ]
+
+sphinx_gallery_conf = {
+     'examples_dirs': 'examples/vision/test_examples',   # path to your example scripts
+     'gallery_dirs': 'examples/vision/test_autoexamples',  # path to where to save gallery generated output
+     'image_scrapers': [plotly_sg_scraper]
+}
 
 # Add any paths that contain templates here, relative to this directory.
 #

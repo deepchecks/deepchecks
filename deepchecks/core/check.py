@@ -27,6 +27,7 @@ import numpy as np
 import ipywidgets as widgets
 import plotly.graph_objects as go
 import plotly
+from plotly.io import to_html
 from plotly.basedatatypes import BaseFigure
 from matplotlib import pyplot as plt
 from IPython.display import display_html
@@ -107,7 +108,7 @@ class CheckResult:
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
     def display_check(self, unique_id: str = None, as_widget: bool = False,
-                      show_additional_outputs=True):
+                      show_additional_outputs=True, as_html: bool = False):
         """Display the check result or return the display as widget.
 
         Parameters
@@ -126,6 +127,7 @@ class CheckResult:
         if as_widget:
             box = widgets.VBox()
             box_children = []
+            html_output = ''
         check_html = ''
         if unique_id:
             check_id = f'{self.check.__class__.__name__}_{unique_id}'
@@ -149,6 +151,10 @@ class CheckResult:
                     if as_widget:
                         box_children.append(widgets.HTML(check_html))
                         box_children.append(go.FigureWidget(data=item))
+
+                        html_output += check_html
+                        html_output += to_html(item)
+
                     else:
                         display_html(check_html, raw=True)
                         item.show()
@@ -162,6 +168,9 @@ class CheckResult:
                                 plt.show()
                             box_children.append(widgets.HTML(check_html))
                             box_children.append(plt_out)
+
+                            html_output += check_html
+                            html_output += plt_out
                         else:
                             display_html(check_html, raw=True)
                             item()
@@ -178,6 +187,12 @@ class CheckResult:
         if as_widget:
             box_children.append(widgets.HTML(check_html))
             box.children = box_children
+
+            html_output += check_html
+
+            if as_html:
+                return html_output
+
             return box
         display_html(check_html, raw=True)
 
@@ -276,6 +291,9 @@ class CheckResult:
                                           show_additional_outputs=show_additional_outputs,)
         if as_widget:
             display_html(check_widget)
+
+    def _repr_html_(self):
+        return self.display_check(as_widget=True, as_html=True)
 
     def __repr__(self):
         """Return default __repr__ function uses value."""
