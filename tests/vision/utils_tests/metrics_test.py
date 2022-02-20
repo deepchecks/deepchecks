@@ -35,7 +35,7 @@ def test_ar_ignite_complient(coco_test_visiondata: VisionData, trained_yolov5_ob
 def test_equal_pycocotools(coco_test_visiondata: VisionData, trained_yolov5_object_detection):
     metric = AveragePrecision(return_option=None)
     for batch in coco_test_visiondata.get_data_loader():
-        label = coco_test_visiondata.label_transformer(batch)
+        label = coco_test_visiondata.label_formatter(batch)
         prediction = DetectionPredictionFormatter(yolo_prediction_formatter)(batch, trained_yolov5_object_detection,
                                                                              torch.device('cpu'))
         metric.update((prediction, label))
