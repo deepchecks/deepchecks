@@ -92,6 +92,11 @@ class Context:
         if train and test:
             train.validate_shared_label(test)
 
+        self._device = torch.device(device) if isinstance(device, str) else device
+
+        if prediction_formatter:
+            prediction_formatter.validate_prediction(next(iter(train)), model, self._device)
+
         self._train = train
         self._test = test
         self._model = model
@@ -101,7 +106,6 @@ class Context:
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
         self._prediction_formatter = prediction_formatter
-        self._device = torch.device(device) if isinstance(device, str) else device
 
     # Properties
     # Validations note: We know train & test fit each other so all validations can be run only on train
@@ -160,7 +164,7 @@ class Context:
     def infer(self, batch: Any) -> Any:
         """Return the predictions on the given batch, and cache them for later."""
         if self._batch_prediction_cache is None:
-            self._batch_prediction_cache = self.model(batch)
+            self._batch_prediction_cache = self.prediction_formatter(batch, self.model, self.device)
         return self._batch_prediction_cache
 
     def flush_cached_inference(self):

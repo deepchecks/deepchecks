@@ -70,6 +70,7 @@ def test_coco(coco_test_visiondata, trained_yolov5_object_detection):
                 "'Small (area < 32^2)': {'AP@.50 (%)': '0.288'}, 'Medium (32^2 < area < 96^2)': {'AP@.75 (%)': '0.369'}}"
     ))
 
+
 def test_coco_area_param(coco_test_visiondata, trained_yolov5_object_detection):
     # Arrange
     pred_formatter = DetectionPredictionFormatter(yolo_prediction_formatter)

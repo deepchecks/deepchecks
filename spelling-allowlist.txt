@@ -61,4 +61,6 @@ yolo
 Detections
 xyxy
 pred
+formatters
+formatter
 imgs
