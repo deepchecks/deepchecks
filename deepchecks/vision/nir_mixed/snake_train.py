@@ -23,8 +23,8 @@ logger = TensorBoardLogger("workdir", name=None)
 checkpoint_callback = ModelCheckpoint(dirpath=logger.log_dir,
                                       monitor="val_acc",
                                       save_last=True,
-                                      save_top_k=True,
-                                      every_n_epochs=5)
+                                      save_top_k=False,
+                                      every_n_epochs=1)
 train_transforms = A.Compose([
     A.SmallestMaxSize(max_size=256),
     A.RandomCrop(height=224, width=224),
@@ -45,11 +45,6 @@ val_transforms = A.Compose([
     ),
     ToTensorV2(),
 ])
-# snake_module = SnakeDataModule(data_dir=os.path.expanduser("~/code/DeepChecks/Datasets/snakes/original"),
-#                                batch_size=batch_size,
-#                                train_transforms=train_transforms,
-#                                val_transforms=val_transforms,
-#                                num_workers=num_workers)
 snake_module = SnakeDataModule(train_data_dir=os.path.expanduser("~/code/DeepChecks/Datasets/snakes/train"),
                                val_data_dir=os.path.expanduser("~/code/DeepChecks/Datasets/snakes/val"),
                                batch_size=batch_size,
@@ -65,4 +60,3 @@ net = SnakeLitModule(num_classes=snake_module.num_classes,
 # Train
 trainer = Trainer(logger=logger, gpus=num_gpus, callbacks=[checkpoint_callback], enable_checkpointing=True)
 trainer.fit(net, datamodule=snake_module)
-snake_module.save_data_partitions(output_dir=logger.save_dir)

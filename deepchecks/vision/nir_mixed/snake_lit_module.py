@@ -10,7 +10,7 @@ from torch.optim import SGD, Adam
 class SnakeLitModule(pl.LightningModule, ABC):
     def __init__(self,
                  num_classes: int,
-                 optimizer: str = "adam",
+                 optimizer: str = "sgd",
                  finetune_last: bool = True,
                  lr: float = 1e-3,
                  *args: Any, **kwargs: Any):
@@ -25,17 +25,15 @@ class SnakeLitModule(pl.LightningModule, ABC):
         layers = list(backbone.children())[:-1]
         self.feature_extractor = nn.Sequential(*layers)
 
-        # fine tune the fully-connected layers rather than train everything
+        # set grad computation for all layers of feature extractor to false
         if finetune_last:
-            for child in list(self.feature_extractor.children())[:-1]:
-                for param in child.parameters():
-                    param.requires_grad = False
+            for param in self.feature_extractor.parameters():
+                param.requires_grad = False
 
-        # set loss and criterion
+        # create new FC layer
         num_filters = backbone.fc.in_features
-        linear_size = list(backbone.children())[-1].in_features
-        assert linear_size == num_filters
         self.classifier = nn.Linear(num_filters, num_classes)
+        # set loss and criterion
         self.criterion = nn.CrossEntropyLoss()
         # Important for loading
         self.save_hyperparameters()

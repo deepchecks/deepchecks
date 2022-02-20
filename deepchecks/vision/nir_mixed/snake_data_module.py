@@ -76,7 +76,7 @@ class SnakeDataModule(pl.LightningDataModule):
         For testing we make reuse of the validation set
         :return:
         """
-        return self.val_dataloader()
+        return self.predict_dataloader()
 
     def predict_dataloader(self):
         """

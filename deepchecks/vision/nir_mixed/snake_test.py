@@ -8,8 +8,7 @@ import torch
 from deepchecks.vision.nir_mixed.snake_data_module import SnakeDataModule
 from deepchecks.vision.nir_mixed.snake_lit_module import SnakeLitModule
 
-ckpt_path = "/home/ubuntu/code/DeepChecks/deepchecks/tfboard/deepchecks/version_2/checkpoints/" \
-             "latest.ckpt"
+ckpt_path = "/home/ubuntu/code/DeepChecks/deepchecks/workdir/version_7/last.ckpt"
 batch_size = 256
 num_workers = 1
 # validation has center crop, train has random crop + flip, otherwise same
@@ -23,7 +22,7 @@ val_transforms = A.Compose([
     ToTensorV2(),
 ])
 
-snake_test_module = SnakeDataModule(data_dir=os.path.expanduser("~/code/DeepChecks/Datasets/snakes/original"),
+snake_test_module = SnakeDataModule(data_dir=os.path.expanduser("~/code/DeepChecks/Datasets/snakes/val"),
                                batch_size=batch_size,
                                val_transforms=val_transforms,
                                num_workers=num_workers)

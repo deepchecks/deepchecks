@@ -19,6 +19,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from ignite.metrics import Metric
 
+from deepchecks.vision.utils import ClassificationPredictionFormatter
 from deepchecks.vision.utils.validation import validate_model
 from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 from deepchecks.core.check import (
@@ -246,6 +247,8 @@ class TrainTestCheck(TrainTestBaseCheck):
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
+        if prediction_formatter is None:
+            prediction_formatter = ClassificationPredictionFormatter(lambda x: x)
         context = self.context_type(train_dataset,
                                     test_dataset,
                                     model=model,
