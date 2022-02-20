@@ -39,11 +39,11 @@ def test_load_dataset():
         end = time.time()
         verify(loader)
         assert_that(loader, instance_of(DataLoader))
-        assert_that((end - start) < 1, "Downloaded previously data was not used!")
+        assert_that((end - start) < 2, "Downloaded previously data was not used!")
 
 
 def test_deepchecks_dataset_load():
-    loader = load_dataset(train=True, object_type='Dataset')
+    loader = load_dataset(train=True, object_type='VisionData')
     assert_that(loader, instance_of(vision.VisionData))
 
 

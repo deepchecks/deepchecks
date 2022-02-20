@@ -9,11 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Module importing all vision checks."""
-from .performance import PerformanceReport, ConfusionMatrixReport
+from .performance import ClassPerformance, ConfusionMatrixReport
+from .distribution import TrainTestLabelDrift, ImageDatasetDrift
 from .distribution import TrainTestLabelDrift
 
 __all__ = [
-    'PerformanceReport',
+    'ClassPerformance',
     'ConfusionMatrixReport',
     'TrainTestLabelDrift',
+    'ImageDatasetDrift'
 ]

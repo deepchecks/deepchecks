@@ -9,20 +9,21 @@
 # ----------------------------------------------------------------------------
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
-
 from copy import copy
 from enum import Enum
-from typing import Optional, Union, List, Iterator
+from typing import Optional, List, Iterator, Dict, Any
 
 import numpy as np
 import torch
-from torch.utils.data import DataLoader, Dataset, Sampler, SequentialSampler
+from torch.utils.data import DataLoader, Sampler
 import logging
 
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.vision.utils.transformations import get_transforms_handler, add_augmentation_in_start
 from deepchecks.vision.utils import ClassificationLabelFormatter, DetectionLabelFormatter
 from deepchecks.vision.utils.base_formatters import BaseLabelFormatter
 from deepchecks.vision.utils.image_formatters import ImageFormatter
+from deepchecks.vision.utils.image_functions import ImageInfo
 
 logger = logging.getLogger('deepchecks')
 
@@ -54,20 +55,13 @@ class VisionData:
         format.
     sample_size : int, default: 1,000
         Sample size to run the checks on.
-    sample_iteration_limit : int, default: 1,000,000
-        For IterableDataset the limitation for iteration to take samples.
     random_seed : int, default: 0
         Random seed used to generate the sample.
+    transform_field : str, default: 'transforms'
+        Name of transforms field in the dataset which holds transformations of both data and label.
 
     Notes
     -----
-    IterableDataset:
-        Our checks are running on a sample of the data. In order to generate this sample on IterableDataset we are
-        running on it to find its length and then takes samples from it. We define a limitation for the iteration
-        over the dataset (can be controlled with `sample_iteration_limit`) to prevent a too long run time. If your
-        data is NOT shuffled, this might lead to invalid results. Either make sure to shuffle the data or increase
-        the iteration limit with the disadvantage of a longer run time.
-
     Accepted label formats are:
         * Classification: tensor of shape (N,), When N is the number of samples. Each element is an integer
           representing the class index.
@@ -80,57 +74,79 @@ class VisionData:
     or else the callable label_transformer should be able to transform the labels to the desired format.
     """
 
-    _data: DataLoader = None
-    label_transformer: BaseLabelFormatter = None
+    label_transformer: BaseLabelFormatter
+    image_transformer: ImageFormatter
+    task_type: Optional[TaskType]
+    sample_iteration_limit: int
+    _data: DataLoader
+    _num_classes: Optional[int]
+    _samples_per_class: Optional[Dict[Any, int]]
+    _label_invalid: Optional[str]
+    _sample_size: int
+    _random_seed: int
+    _sample_labels: Optional[Any]
+    _sample_data_loader: Optional[DataLoader]
 
     def __init__(self,
                  data_loader: DataLoader,
                  num_classes: Optional[int] = None,
-                 label_transformer: Union[ClassificationLabelFormatter, DetectionLabelFormatter] = None,
+                 label_transformer: BaseLabelFormatter = None,
                  image_transformer: ImageFormatter = None,
                  sample_size: int = 1000,
-                 sample_iteration_limit: int = 1_000_000,
-                 random_seed: int = 0):
+                 random_seed: int = 0,
+                 transform_field: Optional[str] = 'transforms'):
         self._data = data_loader
 
-        if label_transformer is None:
-            self.label_transformer = ClassificationLabelFormatter(lambda x: x)
-        else:
-            self.label_transformer = label_transformer
-
-        if image_transformer is None:
-            self.image_transformer = ImageFormatter(lambda x: x)
-        else:
+        batch_to_validate = next(iter(self._data))
+        # Validate image transformer
+        if image_transformer:
+            image_transformer.validate_data(batch_to_validate)
             self.image_transformer = image_transformer
-
-        if isinstance(self.label_transformer, ClassificationLabelFormatter):
-            self.task_type = TaskType.CLASSIFICATION
-        elif isinstance(self.label_transformer, DetectionLabelFormatter):
-            self.task_type = TaskType.OBJECT_DETECTION
         else:
-            logger.warning('Unknown label transformer type was provided. Only integrity and data checks will run.'
-                           'The supported label transformer types are: '
-                           '[ClassificationLabelFormatter, DetectionLabelFormatter]')
+            self.image_transformer = None
 
-        self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
+        if label_transformer:
+            if isinstance(label_transformer, ClassificationLabelFormatter):
+                self.task_type = TaskType.CLASSIFICATION
+                self.label_transformer = label_transformer
+            elif isinstance(label_transformer, DetectionLabelFormatter):
+                self.task_type = TaskType.OBJECT_DETECTION
+                self.label_transformer = label_transformer
+            else:
+                self.label_transformer = None
+                self.task_type = None
+                self._label_invalid = f'Invalid transformer type: {type(self.label_transformer).__name__}'
+                logger.warning('Unknown label transformer type was provided. Only integrity and data checks will run.'
+                               'The supported label transformer types are: '
+                               '[ClassificationLabelFormatter, DetectionLabelFormatter]')
+
+            if self.label_transformer:
+                try:
+                    self.label_transformer.validate_label(batch_to_validate)
+                    self._label_invalid = None
+                except DeepchecksValueError as ex:
+                    self._label_invalid = str(ex)
+        else:
+            self._label_invalid = 'label_transformer parameter was not defined'
+
         self._samples_per_class = None
-        self._label_valid = self.label_transformer.validate_label(self._data)  # will contain error message if not valid
+        self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
+        self.transform_field = transform_field
         # Sample dataset properties
         self._sample_data_loader = None
         self._sample_labels = None
         self._sample_size = sample_size
         self._random_seed = random_seed
-        self.sample_iteration_limit = sample_iteration_limit
 
-    def get_num_classes(self):
+    @property
+    def n_of_classes(self) -> int:
         """Return the number of classes in the dataset."""
         if self._num_classes is None:
-            samples_per_class = self.get_samples_per_class()
-            num_classes = len(samples_per_class.keys())
-            self._num_classes = num_classes
+            self._num_classes = len(self.n_of_samples_per_class.keys())
         return self._num_classes
 
-    def get_samples_per_class(self):
+    @property
+    def n_of_samples_per_class(self) -> Dict[Any, int]:
         """Return a dictionary containing the number of samples per class."""
         if self._samples_per_class is None:
             if self.task_type in [TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION]:
@@ -143,15 +159,19 @@ class VisionData:
 
     def to_display_data(self, batch):
         """Convert a batch of data outputted by the data loader to a format that can be displayed."""
-        self.image_transformer.validate_data(batch)
         return self.image_transformer(batch)
+
+    @property
+    def data_dimension(self):
+        """Return how many dimensions the image data have."""
+        image = self.image_transformer(next(iter(self)))[0]
+        return ImageInfo(image).get_dimension()
 
     @property
     def sample_data_loader(self) -> DataLoader:
         """Return sample of the data."""
         if self._sample_data_loader is None:
-            self._sample_data_loader = create_sample_loader(self._data, self._sample_size, self._random_seed,
-                                                            self.sample_iteration_limit)
+            self._sample_data_loader = create_sample_loader(self._data, self._sample_size, self._random_seed)
         return self._sample_data_loader
 
     @property
@@ -168,17 +188,16 @@ class VisionData:
         self.assert_label()
 
         # Assuming the dataset contains a tuple of (features, label)
-        return self.label_transformer(next(iter(self._data))[1])[0].shape  # first argument is batch_size
+        return self.label_transformer(next(iter(self)))[0].shape  # first argument is batch_size
 
     def assert_label(self):
         """Raise error if label is not exists or not valid."""
-        if isinstance(self._label_valid, str):
-            raise DeepchecksValueError(self._label_valid)
+        if self._label_invalid:
+            raise DeepchecksValueError(self._label_invalid)
 
     def is_have_label(self) -> bool:
         """Return whether the data contains labels."""
-        batch = next(iter(self.get_data_loader()))
-        return len(batch) == 2
+        return self._label_invalid is None
 
     def __iter__(self):
         """Return an iterator over the dataset."""
@@ -187,6 +206,43 @@ class VisionData:
     def get_data_loader(self):
         """Return the data loader."""
         return self._data
+
+    def get_transform_type(self):
+        """Return transforms handler created from the transform field."""
+        dataset_ref = self.get_data_loader().dataset
+        # If no field exists raise error
+        if not hasattr(dataset_ref, self.transform_field):
+            msg = f'Underlying Dataset instance does not contain "{self.transform_field}" attribute. If your ' \
+                  f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
+            raise DeepchecksValueError(msg)
+        transform = dataset_ref.__getattribute__(self.transform_field)
+        return get_transforms_handler(transform)
+
+    def add_augmentation(self, aug):
+        """Validate transform field in the dataset, and add the augmentation in the start of it."""
+        dataset_ref = self.get_data_loader().dataset
+        # If no field exists raise error
+        if not hasattr(dataset_ref, self.transform_field):
+            msg = f'Underlying Dataset instance does not contain "{self.transform_field}" attribute. If your ' \
+                  f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
+            raise DeepchecksValueError(msg)
+        transform = dataset_ref.__getattribute__(self.transform_field)
+        new_transform = add_augmentation_in_start(aug, transform)
+        dataset_ref.__setattr__(self.transform_field, new_transform)
+
+    def copy(self) -> 'VisionData':
+        """Create new copy of this object, with the data-loader and dataset also copied."""
+        props = get_data_loader_props_to_copy(self.get_data_loader())
+        props['dataset'] = copy(self.get_data_loader().dataset)
+        new_data_loader = self.get_data_loader().__class__(**props)
+        return VisionData(new_data_loader,
+                          image_transformer=self.image_transformer,
+                          label_transformer=self.label_transformer,
+                          transform_field=self.transform_field)
+
+    def to_batch(self, *samples):
+        """Use the defined collate_fn to transform a few data items to batch format."""
+        return self.get_data_loader().collate_fn(list(samples))
 
     def validate_shared_label(self, other):
         """Verify presence of shared labels.
@@ -197,10 +253,7 @@ class VisionData:
         ----------
         other : VisionData
             Expected to be Dataset type. dataset to compare
-        Returns
-        -------
-        Hashable
-            name of the label column
+
         Raises
         ------
         DeepchecksValueError
@@ -214,12 +267,19 @@ class VisionData:
         if self.task_type != other.task_type:
             raise DeepchecksValueError('Datasets required to have same label type')
 
+        # TODO:
+        # does it have a sense at all?
+        # we compare and verify only the first labels
+        # it does not mean that all other labels will be correct
+
         if self.task_type == TaskType.OBJECT_DETECTION:
             # number of objects can be different
             _, *label_shape = self.get_label_shape()
             _, *other_label_shape = other.get_label_shape()
             if label_shape != other_label_shape:
                 raise DeepchecksValueError('Datasets required to share the same label shape')
+        elif self.task_type == TaskType.SEMANTIC_SEGMENTATION:
+            raise NotImplementedError()  # TODO
         else:
             if self.get_label_shape() != other.get_label_shape():
                 raise DeepchecksValueError('Datasets required to share the same label shape')
@@ -244,19 +304,6 @@ class VisionData:
         return obj
 
 
-class InMemoryDataset(Dataset):
-    """Dataset implementation that gets all the data as in-memory list."""
-
-    def __init__(self, data: List):
-        self._data = data
-
-    def __len__(self):
-        return len(self._data)
-
-    def __getitem__(self, item):
-        return self._data[item]
-
-
 class FixedSampler(Sampler):
     """Sampler which returns indices in a shuffled constant order."""
 
@@ -266,15 +313,17 @@ class FixedSampler(Sampler):
 
     def __init__(self, length: int, seed: int = 0, sample_size: int = None) -> None:
         super().__init__(None)
+        assert length >= 0
         self._length = length
         self._seed = seed
-        if sample_size:
+        if sample_size is not None:
+            assert sample_size >= 0
             sample_size = min(sample_size, length)
             np.random.seed(self._seed)
             self._indices = np.random.choice(self._length, size=(sample_size,), replace=False)
 
     def __iter__(self) -> Iterator[int]:
-        if self._indices:
+        if self._indices is not None:
             for i in self._indices:
                 yield i
         else:
@@ -282,10 +331,14 @@ class FixedSampler(Sampler):
                 yield i
 
     def __len__(self) -> int:
-        return len(self._indices) if self._indices else self._length
+        return (
+            len(self._indices)
+            if self._indices is not None
+            else self._length
+        )
 
 
-def create_sample_loader(data_loader: DataLoader, sample_size: int, seed: int, iteration_limit: int):
+def create_sample_loader(data_loader: DataLoader, sample_size: int, seed: int):
     """Create a data loader with only a subset of the data."""
     common_props_to_copy = {
         'num_workers': data_loader.num_workers,
@@ -297,33 +350,27 @@ def create_sample_loader(data_loader: DataLoader, sample_size: int, seed: int, i
         'persistent_workers': data_loader.persistent_workers
     }
 
-    generator = lambda: torch.Generator().manual_seed(seed)
-
     dataset = data_loader.dataset
-    # IterableDataset doesn't work with samplers, so instead we manually copy all samples to memory and create
-    # new dataset that will contain them.
     if isinstance(dataset, torch.utils.data.IterableDataset):
-        iter_length = 0
-        for _ in dataset:
-            iter_length += 1
-            if iter_length == iteration_limit:
-                break
-        sample_size = min(sample_size, iter_length)
-        np.random.seed(seed)
-        sample_indices = set(np.random.choice(iter_length, size=(sample_size,), replace=False))
-
-        samples_data = []
-        for i, sample in enumerate(dataset):
-            if i in sample_indices:
-                samples_data.append(sample)
-                # If found all exit the iteration
-                if len(samples_data) == sample_size:
-                    break
-
-        samples_dataset = InMemoryDataset(samples_data)
-        return DataLoader(samples_dataset, generator=generator(), sampler=SequentialSampler(samples_data),
-                          **common_props_to_copy)
+        raise DeepchecksValueError('Unable to create sample for IterableDataset')
     else:
         length = len(dataset)
-        return DataLoader(dataset, generator=generator(),
+        return DataLoader(dataset,
                           sampler=FixedSampler(length, seed, sample_size), **common_props_to_copy)
+
+
+def get_data_loader_props_to_copy(data_loader):
+    props = {
+        'num_workers': data_loader.num_workers,
+        'collate_fn': data_loader.collate_fn,
+        'pin_memory': data_loader.pin_memory,
+        'timeout': data_loader.timeout,
+        'worker_init_fn': data_loader.worker_init_fn,
+        'prefetch_factor': data_loader.prefetch_factor,
+        'persistent_workers': data_loader.persistent_workers
+    }
+    if data_loader.batch_sampler is not None:
+        props['batch_sampler'] = data_loader.batch_sampler
+    else:
+        props['sampler'] = data_loader.sampler
+    return props

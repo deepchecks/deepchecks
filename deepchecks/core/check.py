@@ -12,12 +12,13 @@
 # pylint: disable=broad-except
 import abc
 import base64
+import enum
 import inspect
 import io
 import traceback
 import warnings
 from collections import OrderedDict
-from typing import Any, Callable, List, Union, Dict, Type, ClassVar, Optional
+from typing import Any, Callable, List, Tuple, Union, Dict, Type, ClassVar, Optional
 
 import jsonpickle
 import matplotlib
@@ -47,6 +48,7 @@ __all__ = [
     'SingleDatasetBaseCheck',
     'TrainTestBaseCheck',
     'ModelOnlyBaseCheck',
+    'DatasetKind'
 ]
 
 
@@ -179,7 +181,7 @@ class CheckResult:
             return box
         display_html(check_html, raw=True)
 
-    def _display_to_json(self):
+    def _display_to_json(self) -> List[Tuple[str, str]]:
         displays = []
         old_backend = matplotlib.get_backend()
         for item in self.display:
@@ -204,7 +206,7 @@ class CheckResult:
         matplotlib.use(old_backend)
         return displays
 
-    def to_json(self, with_display: bool = True):
+    def to_json(self, with_display: bool = True) -> str:
         """Return check result as json.
 
         Parameters
@@ -250,7 +252,9 @@ class CheckResult:
         if json_data.get('conditions_table'):
             display_html(_CONDITIONS_HEADER, raw=True)
             conditions_table = pd.read_json(json_data['conditions_table'], orient='records')
-            display_html(dataframe_to_html(conditions_table.style.hide_index()), raw=True)
+            with warnings.catch_warnings():
+                warnings.simplefilter(action='ignore', category=FutureWarning)
+                display_html(dataframe_to_html(conditions_table.style.hide_index()), raw=True)
         display_html(_ADDITIONAL_OUTPUTS_HEADER, raw=True)
         for display_type, value in json_data['display']:
             if display_type == 'html':
@@ -277,24 +281,24 @@ class CheckResult:
         """Return default __repr__ function uses value."""
         return f'{self.get_header()}: {self.value}'
 
-    def get_header(self):
+    def get_header(self) -> str:
         """Return header for display. if header was defined return it, else extract name of check class."""
         return self.header or self.check.name()
 
-    def process_conditions(self):
+    def process_conditions(self) -> List[Condition]:
         """Process the conditions results from current result and check."""
         self.conditions_results = self.check.conditions_decision(self)
 
     def have_conditions(self) -> bool:
-        """Return if this check have condition results."""
+        """Return if this check has condition results."""
         return bool(self.conditions_results)
 
     def have_display(self) -> bool:
-        """Return if this check have dsiplay."""
+        """Return if this check has display."""
         return bool(self.display)
 
-    def passed_conditions(self):
-        """Return if this check have not passing condition results."""
+    def passed_conditions(self) -> bool:
+        """Return if this check has no passing condition results."""
         return all((r.is_pass for r in self.conditions_results))
 
     @property
@@ -333,6 +337,13 @@ class CheckResult:
         else:
             warnings.warn('You are running in a non-interactive python shell. in order to show result you have to use '
                           'an IPython shell (etc Jupyter)')
+
+
+class DatasetKind(enum.Enum):
+    """Represents in single dataset checks, which dataset is currently worked on."""
+
+    TRAIN = 'Train'
+    TEST = 'Test'
 
 
 class BaseCheck(abc.ABC):
@@ -449,7 +460,7 @@ class SingleDatasetBaseCheck(BaseCheck):
     context_type: ClassVar[Optional[Type[Any]]] = None  # TODO: Base context type
 
     @abc.abstractmethod
-    def run(self, dataset, model=None) -> CheckResult:
+    def run(self, dataset, model=None, **kwargs) -> CheckResult:
         """Run check."""
         raise NotImplementedError()
 
@@ -463,7 +474,7 @@ class TrainTestBaseCheck(BaseCheck):
     context_type: ClassVar[Optional[Type[Any]]] = None  # TODO: Base context type
 
     @abc.abstractmethod
-    def run(self, train_dataset, test_dataset, model=None) -> CheckResult:
+    def run(self, train_dataset, test_dataset, model=None, **kwargs) -> CheckResult:
         """Run check."""
         raise NotImplementedError()
 
@@ -474,7 +485,7 @@ class ModelOnlyBaseCheck(BaseCheck):
     context_type: ClassVar[Optional[Type[Any]]] = None  # TODO: Base context type
 
     @abc.abstractmethod
-    def run(self, model) -> CheckResult:
+    def run(self, model, **kwargs) -> CheckResult:
         """Run check."""
         raise NotImplementedError()
 

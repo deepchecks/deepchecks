@@ -12,6 +12,7 @@
 import typing as t
 import pathlib
 import logging
+import warnings
 
 import torch
 import torch.nn.functional as F
@@ -21,18 +22,18 @@ from torchvision import datasets
 from torch import nn
 from torch.utils.data import DataLoader
 from typing_extensions import Literal
-
-from deepchecks.vision.dataset import VisionData
-from . import MODELS_DIR
-
-
-__all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST']
-
+from deepchecks.vision.utils.transformations import un_normalize_batch
+from deepchecks.vision.utils import ImageFormatter
 from deepchecks.vision.utils.classification_formatters import ClassificationLabelFormatter
+from deepchecks.vision.dataset import VisionData
+
+
+__all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST', 'mnist_image_formatter', 'mnist_prediction_formatter']
+
+
+MODELS_DIR = pathlib.Path(__file__).absolute().parent / 'models'
 
 LOGGER = logging.getLogger(__name__)
-
-
 MODULE_DIR = pathlib.Path(__file__).absolute().parent
 DATA_PATH = MODULE_DIR / 'MNIST'
 MODEL_PATH = MODELS_DIR / 'mnist.pth'
@@ -43,7 +44,7 @@ def load_dataset(
     batch_size: t.Optional[int] = None,
     shuffle: bool = True,
     pin_memory: bool = True,
-    object_type: Literal['Dataset', 'DataLoader'] = 'DataLoader'
+    object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader'
 ) -> t.Union[DataLoader, VisionData]:
     """Download MNIST dataset.
 
@@ -59,7 +60,7 @@ def load_dataset(
         If ``True``, the data loader will copy Tensors
         into CUDA pinned memory before returning them.
     object_type : Literal[Dataset, DataLoader], default 'DataLoader'
-        object type to return. if `'Dataset'` then :obj:`deepchecks.vision.VisionData`
+        object type to return. if `'VisionData'` then :obj:`deepchecks.vision.VisionData`
         will be returned, if `'DataLoader'` then :obj:`torch.utils.data.DataLoader`
 
     Returns
@@ -73,14 +74,15 @@ def load_dataset(
     """
     batch_size = batch_size or (64 if train else 1000)
 
+    mean = (0.1307,)
+    std = (0.3081,)
     loader = DataLoader(
         MNIST(
             str(MODULE_DIR),
             train=train,
             download=True,
             transform=A.Compose([
-                # TODO: what else transformations we need to apply
-                A.Normalize((0.1307,), (0.3081,)),
+                A.Normalize(mean, std),
                 ToTensorV2(),
             ]),
         ),
@@ -91,11 +93,13 @@ def load_dataset(
 
     if object_type == 'DataLoader':
         return loader
-    elif object_type == 'Dataset':
+    elif object_type == 'VisionData':
         return VisionData(
             data_loader=loader,
             num_classes=len(datasets.MNIST.classes),
-            label_transformer=ClassificationLabelFormatter(lambda x: x)
+            label_transformer=ClassificationLabelFormatter(),
+            image_transformer=ImageFormatter(mnist_image_formatter(mean, std)),
+            transform_field='transform'
         )
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
@@ -198,4 +202,21 @@ class MNistNet(nn.Module):
         x = F.relu(self.fc1(x))
         x = F.dropout(x, training=self.training)
         x = self.fc2(x)
-        return F.log_softmax(x)
+        with warnings.catch_warnings():
+            warnings.simplefilter(action='ignore', category=UserWarning)
+            return F.log_softmax(x, dim=1)
+
+
+def mnist_image_formatter(mean, std):
+    """Create function which inverse the data normalization."""
+    def inverse_transform(batch):
+        tensor = batch[0]
+        tensor = tensor.permute(0, 2, 3, 1)
+        return un_normalize_batch(tensor, mean, std)
+    return inverse_transform
+
+
+def mnist_prediction_formatter(batch, model, device):
+    """Predict and format predictions of mnist."""
+    preds = model.to(device)(batch[0])
+    return nn.Softmax(dim=1)(preds)

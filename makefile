@@ -172,7 +172,6 @@ requirements: $(ENV)
 		-r ./requirements/vision-requirements.txt \
 		-r ./requirements/nlp-requirements.txt
 	@$(PIP) install --no-deps -e .
-	@$(PIP) freeze
 
 
 doc-requirements: $(ENV)
@@ -230,7 +229,7 @@ notebook: requirements dev-requirements
 	@$(JUPYTER) nbextension enable --py widgetsnbextension
 	@echo "+++ Number of notebooks to execute: $$(find ./docs/source/examples -name "*.ipynb" | wc -l) +++"
 	@echo "+++ Executing notebooks in $(PWD) +++"
-	@$(JUPYTER) nbconvert --execute $$(find ./docs/source/examples -name "*.ipynb") --to notebook --stdout > /dev/null
+	$(PYTEST) --nbval-lax ./docs/source/examples
 
 	# For now, because of plotly - disabling the nbval and just validate that the notebooks are running
 #	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_CHECKS) --sanitize-with $(NOTEBOOK_SANITIZER_FILE)
@@ -242,8 +241,7 @@ regenerate-examples: requirements dev-requirements
 	@$(JUPYTER) nbconvert --execute $$(find ./docs/source/examples -name "*.ipynb") --to notebook --inplace
 
 coverage: requirements dev-requirements
-	$(COVERAGE) run -m pytest
-
+	$(COVERAGE) run --source deepchecks/,tests/ --omit ultralytics_yolov5_master/ -m pytest
 
 coveralls: coverage
 	$(COVERALLS) --service=github

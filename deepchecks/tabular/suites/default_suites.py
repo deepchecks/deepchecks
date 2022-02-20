@@ -11,7 +11,7 @@
 """Functions for loading the default (built-in) suites for various validation stages.
 
 Each function returns a new suite that is initialized with a list of checks and default conditions.
-It is possible to customize these suites by editing the checks and conditions inside it after suite creation.
+It is possible to customize these suites by editing the checks and conditions inside it after the suites' creation.
 """
 from deepchecks.tabular.checks import (
     MixedNulls, SpecialCharacters, StringLengthOutOfBounds, StringMismatch, MixedDataTypes,

@@ -14,8 +14,8 @@ from typing import Dict, Hashable, Callable, Tuple, List, Union, Any
 
 from plotly.subplots import make_subplots
 
-from deepchecks import CheckResult
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core import DatasetKind, CheckResult
+from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.vision.base import Context, TrainTestCheck
 from deepchecks.utils.distribution.plot import drift_score_bar_traces
 from deepchecks.utils.plot import colors
@@ -58,7 +58,7 @@ DEFAULT_CLASSIFICATION_LABEL_MEASUREMENTS = [
 
 DEFAULT_OBJECT_DETECTION_LABEL_MEASUREMENTS = [
     {'name': 'Samples per class', 'method': get_samples_per_class_object_detection, 'is_continuous': False},
-    {'name': 'Bounding box area (in pixels) distribution', 'method': get_bbox_area, 'is_continuous': True},
+    {'name': 'Bounding box area (in pixels)', 'method': get_bbox_area, 'is_continuous': True},
     {'name': 'Number of bounding boxes per image', 'method': count_num_bboxes, 'is_continuous': True},
 ]
 
@@ -180,10 +180,10 @@ class TrainTestLabelDrift(TrainTestCheck):
         self._train_counters = [Counter() for i in range(num_discrete_transformers)]
         self._test_counters = [Counter() for i in range(num_discrete_transformers)]
 
-    def update(self, context: Context, batch: Any, dataset_name: str = 'train'):
+    def update(self, context: Context, batch: Any, dataset_kind):
         """Perform update on batch for train or test counters and histograms."""
         # For all transformers, calculate histograms by batch:
-        if dataset_name == 'train':
+        if dataset_kind == DatasetKind.TRAIN:
             train_dataset = context.train
             self._train_hists = calculate_continuous_histograms_in_batch(batch, self._train_hists,
                                                                          self._continuous_label_measurements,
@@ -193,7 +193,7 @@ class TrainTestLabelDrift(TrainTestCheck):
                                                                           self._discrete_label_measurements,
                                                                           train_dataset.label_transformer)
 
-        else:
+        elif dataset_kind == DatasetKind.TEST:
             test_dataset = context.test
             self._test_hists = calculate_continuous_histograms_in_batch(batch, self._test_hists,
                                                                         self._continuous_label_measurements,
@@ -202,9 +202,11 @@ class TrainTestLabelDrift(TrainTestCheck):
             self._test_counters = calculate_discrete_histograms_in_batch(batch, self._test_counters,
                                                                          self._discrete_label_measurements,
                                                                          test_dataset.label_transformer)
+        else:
+            raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
     def compute(self, context: Context) -> CheckResult:
-        """Calculate drift for all columns.
+        """Calculate drift on label measurements histograms that were collected during update() calls.
 
         Returns
         -------
@@ -249,9 +251,9 @@ class TrainTestLabelDrift(TrainTestCheck):
             values_dict[d['name']] = {'Drift score': drift_score, 'Method': method}
             displays.append(display)
 
-        headnote = """<span>
-            The Drift score is a measure for the difference between two distributions, in this check - the test
-            and train distributions of different measurement(s) on the label.
+        headnote = f"""<span>
+            The Drift score is a measure for the difference between two distributions. In this check, drift is measured
+            for the distribution of the following label properties: {[x['name'] for x in self._label_measurements]}.
         </span>"""
 
         displays = [headnote] + displays
@@ -310,8 +312,7 @@ def calculate_continuous_histograms_in_batch(batch, hists, continuous_label_meas
 
 def get_results_on_batch(batch, label_measurement, label_transformer):
     """Calculate transformer result on batch of labels."""
-    list_of_arrays = batch[1]
-    calc_res = [label_measurement(arr) for arr in label_transformer(list_of_arrays)]
+    calc_res = [label_measurement(arr) for arr in label_transformer(batch)]
     if len(calc_res) != 0 and isinstance(calc_res[0], list):
         calc_res = [x[0] for x in sum(calc_res, [])]
     return calc_res
@@ -320,7 +321,7 @@ def get_results_on_batch(batch, label_measurement, label_transformer):
 def get_boundaries_by_batch(dataset: VisionData, label_measurements: List[Callable], min_sample_size: int) \
         -> List[Dict[str, float]]:
     """Get min and max on dataset for each label transformer."""
-    bounds = [{'min': np.inf, 'max': -np.inf} for i in range(len(label_measurements))]
+    bounds = [{'min': np.inf, 'max': -np.inf} for _ in range(len(label_measurements))]
     num_samples = 0
     for batch in dataset.get_data_loader():
         for i in range(len(label_measurements)):
@@ -456,9 +457,9 @@ def calc_drift_and_plot(train_distribution: dict, test_distribution: dict, plot_
         raise DeepchecksValueError(
             f'column_type must be one of ["numerical", "categorical"], instead got {column_type}')
 
-    fig = make_subplots(rows=2, cols=1, vertical_spacing=0.4, shared_yaxes=False, shared_xaxes=False,
+    fig = make_subplots(rows=2, cols=1, vertical_spacing=0.2, shared_yaxes=False, shared_xaxes=False,
                         row_heights=[0.1, 0.9],
-                        subplot_titles=['Drift Score - ' + scorer_name, plot_title])
+                        subplot_titles=['Drift Score - ' + scorer_name, 'Distribution Plot'])
 
     fig.add_traces(bar_traces, rows=[1] * len(bar_traces), cols=[1] * len(bar_traces))
     fig.add_traces(dist_traces, rows=[2] * len(dist_traces), cols=[1] * len(dist_traces))
@@ -473,7 +474,8 @@ def calc_drift_and_plot(train_distribution: dict, test_distribution: dict, plot_
             yanchor='top',
             y=0.6),
         width=700,
-        height=400
+        height=400,
+        title=plot_title
     )
 
     fig.update_layout(shared_layout)
@@ -532,7 +534,7 @@ def feature_distribution_traces(expected_percents: np.array,
         y_lim = 1 if max_y > 0.5 else max_y * 1.1
 
         xaxis_layout = dict(type='category',
-                            title='Values')
+                            title='Value')
         yaxis_layout = dict(fixedrange=True,
                             range=(0, y_lim),
                             title='Percentage')
@@ -547,7 +549,7 @@ def feature_distribution_traces(expected_percents: np.array,
 
         xaxis_layout = dict(fixedrange=True,
                             range=x_range,
-                            title='Distribution')
+                            title='Value')
         yaxis_layout = dict(title='Probability Density')
 
     return traces, xaxis_layout, yaxis_layout

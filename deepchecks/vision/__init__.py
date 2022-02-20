@@ -16,7 +16,7 @@ from .base import (
     Suite,
     SingleDatasetCheck,
     TrainTestCheck,
-    ModelOnlyCheck
+    ModelOnlyCheck,
 )
 
 logger = logging.getLogger("deepchecks")
@@ -35,5 +35,5 @@ __all__ = [
     "SingleDatasetCheck",
     "TrainTestCheck",
     "ModelOnlyCheck",
-    "Suite"
+    "Suite",
 ]
