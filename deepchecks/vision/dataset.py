@@ -140,8 +140,9 @@ class VisionData:
 
     @property
     def image_formatter(self) -> ImageFormatter:
+        """Return the image formatter."""
         if self._image_formatter:
-            return self.image_formatter
+            return self._image_formatter
         raise DeepchecksValueError('No valid image formatter provided')
 
     @property

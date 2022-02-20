@@ -10,7 +10,6 @@
 #
 """Module for base vision abstractions."""
 # pylint: disable=broad-except,not-callable
-import copy
 from typing import Tuple, Mapping, Optional, Any, Union, Dict
 from collections import OrderedDict
 
