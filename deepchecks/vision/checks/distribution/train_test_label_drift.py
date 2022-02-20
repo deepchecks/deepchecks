@@ -206,7 +206,7 @@ class TrainTestLabelDrift(TrainTestCheck):
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
     def compute(self, context: Context) -> CheckResult:
-        """Calculate drift for all columns.
+        """Calculate drift on label measurements histograms that were collected during update() calls.
 
         Returns
         -------
@@ -314,8 +314,7 @@ def calculate_continuous_histograms_in_batch(batch, hists, continuous_label_meas
 
 def get_results_on_batch(batch, label_measurement, label_transformer):
     """Calculate transformer result on batch of labels."""
-    list_of_arrays = batch[1]
-    calc_res = [label_measurement(arr) for arr in label_transformer(list_of_arrays)]
+    calc_res = [label_measurement(arr) for arr in label_transformer(batch)]
     if len(calc_res) != 0 and isinstance(calc_res[0], list):
         calc_res = [x[0] for x in sum(calc_res, [])]
     return calc_res

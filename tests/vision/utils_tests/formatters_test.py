@@ -21,29 +21,7 @@ from deepchecks.vision.utils.image_formatters import ImageFormatter
 from tests.vision.vision_conftest import *
 
 
-def test_classification_formatter_invalid_dataloader(three_tuples_dataloader):
-    formatter = ClassificationLabelFormatter(lambda x: x)
-
-    err = formatter.validate_label(three_tuples_dataloader)
-    assert_that(err, equal_to('Check requires dataloader to return tuples of (input, label).'))
-
-
-def test_classification_formatter_formatting_valid_label_shape(two_tuples_dataloader):
-    formatter = ClassificationLabelFormatter(lambda x: x)
-
-    err = formatter.validate_label(two_tuples_dataloader)
-    assert_that(err, equal_to(None))
-
-
-def test_classification_formatter_formatting_invalid_label_type(two_tuples_dataloader):
-    formatter = ClassificationLabelFormatter(lambda x: [x, x])
-
-    err = formatter.validate_label(two_tuples_dataloader)
-    assert_that(err, equal_to('Check requires classification label to be a torch.Tensor or numpy array'))
-
-
-def numpy_shape_dataloader(shape: tuple = None, value: Union[float, np.array] = 1, collate_fn=None):
-
+def numpy_shape_dataloader(shape: tuple = None, value: Union[float, np.array] = 255, collate_fn=None):
     if collate_fn is None:
         collate_fn = np.stack
 
@@ -60,8 +38,24 @@ def numpy_shape_dataloader(shape: tuple = None, value: Union[float, np.array] = 
     return DataLoader(TwoTupleDataset(), batch_size=4, collate_fn=collate_fn)
 
 
+def test_classification_formatter_formatting_valid_label_shape(two_tuples_dataloader):
+    formatter = ClassificationLabelFormatter()
+
+    # Assert no exception raised
+    formatter.validate_label(next(iter(two_tuples_dataloader)))
+
+
+def test_classification_formatter_formatting_invalid_label_type(two_tuples_dataloader):
+    formatter = ClassificationLabelFormatter(lambda x: [x, x])
+
+    # Assert
+    assert_that(calling(formatter.validate_label).with_args(next(iter(two_tuples_dataloader))),
+                raises(DeepchecksValueError,
+                       'Check requires classification label to be a torch.Tensor or numpy array'))
+
+
 def test_data_formatter_not_iterable():
-    formatter = ImageFormatter()
+    formatter = ImageFormatter(lambda x: x)
 
     batch = 1
     assert_that(
@@ -81,7 +75,7 @@ def test_data_formatter_not_numpy():
 
 
 def test_data_formatter_missing_dimensions():
-    formatter = ImageFormatter(lambda x: x)
+    formatter = ImageFormatter()
 
     batch = next(iter(numpy_shape_dataloader((10, 10))))
     assert_that(

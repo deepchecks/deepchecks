@@ -84,7 +84,7 @@ class VisionData:
     _num_classes: Optional[int]
     _label_map: Optional[Dict[int, str]]
     _samples_per_class: Optional[Dict[Any, int]]
-    _label_valid: Optional[str]
+    _label_invalid: Optional[str]
     _sample_size: int
     _random_seed: int
     _sample_labels: Optional[Any]
@@ -100,45 +100,43 @@ class VisionData:
                  random_seed: int = 0,
                  transform_field: Optional[str] = 'transforms'):
         self._data = data_loader
-        self.label_transformer = label_transformer
-        self.image_transformer = image_transformer or ImageFormatter(lambda x: x)
 
-        if self.label_transformer:
-            if isinstance(self.label_transformer, ClassificationLabelFormatter):
+        batch_to_validate = next(iter(self._data))
+        # Validate image transformer
+        if image_transformer:
+            image_transformer.validate_data(batch_to_validate)
+            self.image_transformer = image_transformer
+        else:
+            self.image_transformer = None
+
+        if label_transformer:
+            if isinstance(label_transformer, ClassificationLabelFormatter):
                 self.task_type = TaskType.CLASSIFICATION
-            elif isinstance(self.label_transformer, DetectionLabelFormatter):
+                self.label_transformer = label_transformer
+            elif isinstance(label_transformer, DetectionLabelFormatter):
                 self.task_type = TaskType.OBJECT_DETECTION
+                self.label_transformer = label_transformer
             else:
+                self.label_transformer = None
+                self.task_type = None
+                self._label_invalid = f'Invalid transformer type: {type(self.label_transformer).__name__}'
                 logger.warning('Unknown label transformer type was provided. Only integrity and data checks will run.'
                                'The supported label transformer types are: '
                                '[ClassificationLabelFormatter, DetectionLabelFormatter]')
 
+            if self.label_transformer:
+                try:
+                    self.label_transformer.validate_label(batch_to_validate)
+                    self._label_invalid = None
+                except DeepchecksValueError as ex:
+                    self._label_invalid = str(ex)
+        else:
+            self._label_invalid = 'label_transformer parameter was not defined'
+
+        self._samples_per_class = None
         self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
         self._label_map = label_map
         self.transform_field = transform_field
-
-        if image_transformer is None:
-            self.image_transformer = ImageFormatter(lambda x: x)
-        else:
-            self.image_transformer = image_transformer
-
-        if isinstance(self.label_transformer, ClassificationLabelFormatter):
-            self.task_type = TaskType.CLASSIFICATION
-        elif isinstance(self.label_transformer, DetectionLabelFormatter):
-            self.task_type = TaskType.OBJECT_DETECTION
-        else:
-            self.task_type = None
-            logger.warning('Unknown label transformer type was provided. Only integrity and data checks will run.'
-                           'The supported label transformer types are: '
-                           '[ClassificationLabelFormatter, DetectionLabelFormatter]')
-
-        self._num_classes = num_classes  # if not initialized, then initialized later in n_of_classes
-        self._samples_per_class = None
-        if self.label_transformer:
-            # will contain error message if not valid
-            self._label_valid = self.label_transformer.validate_label(self._data)
-        else:
-            self._label_valid = 'label_transformer parameter was not defined'
         # Sample dataset properties
         self._sample_data_loader = None
         self._sample_labels = None
@@ -166,14 +164,12 @@ class VisionData:
 
     def to_display_data(self, batch):
         """Convert a batch of data outputted by the data loader to a format that can be displayed."""
-        self.image_transformer.validate_data(batch)
         return self.image_transformer(batch)
 
     @property
     def data_dimension(self):
         """Return how many dimensions the image data have."""
-        batch = next(iter(self.get_data_loader()))
-        image = self.image_transformer(batch[0])[0]
+        image = self.image_transformer(next(iter(self)))[0]
         return ImageInfo(image).get_dimension()
 
     @property
@@ -210,17 +206,16 @@ class VisionData:
         self.assert_label()
 
         # Assuming the dataset contains a tuple of (features, label)
-        return self.label_transformer(next(iter(self._data))[1])[0].shape  # first argument is batch_size
+        return self.label_transformer(next(iter(self)))[0].shape  # first argument is batch_size
 
     def assert_label(self):
         """Raise error if label is not exists or not valid."""
-        if isinstance(self._label_valid, str):
-            raise DeepchecksValueError(self._label_valid)
+        if self._label_invalid:
+            raise DeepchecksValueError(self._label_invalid)
 
     def is_have_label(self) -> bool:
         """Return whether the data contains labels."""
-        batch = next(iter(self.get_data_loader()))
-        return len(batch) == 2
+        return self._label_invalid is None
 
     def __iter__(self):
         """Return an iterator over the dataset."""

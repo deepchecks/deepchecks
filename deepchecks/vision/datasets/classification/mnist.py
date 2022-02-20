@@ -28,7 +28,7 @@ from deepchecks.vision.utils.classification_formatters import ClassificationLabe
 from deepchecks.vision.dataset import VisionData
 
 
-__all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST', 'mnist_image_formatter']
+__all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST', 'mnist_image_formatter', 'mnist_prediction_formatter']
 
 
 MODELS_DIR = pathlib.Path(__file__).absolute().parent / 'models'
@@ -209,7 +209,14 @@ class MNistNet(nn.Module):
 
 def mnist_image_formatter(mean, std):
     """Create function which inverse the data normalization."""
-    def inverse_transform(tensor):
+    def inverse_transform(batch):
+        tensor = batch[0]
         tensor = tensor.permute(0, 2, 3, 1)
         return un_normalize_batch(tensor, mean, std)
     return inverse_transform
+
+
+def mnist_prediction_formatter(batch, model, device):
+    """Predict and format predictions of mnist."""
+    preds = model.to(device)(batch[0])
+    return nn.Softmax(dim=1)(preds)
