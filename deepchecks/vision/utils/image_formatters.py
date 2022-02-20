@@ -37,6 +37,15 @@ class ImageFormatter:
         If None, calculates on the whole image.
     """
 
+    IMAGE_PROPERTIES = frozenset((
+        'aspect_ratio',
+        'area',
+        'brightness',
+        'normalized_red_mean',
+        'normalized_green_mean',
+        'normalized_blue_mean',
+    ))
+
     def __init__(self, image_formatter: Optional[Callable] = None,
                  sample_size_for_image_properties: Optional[int] = 1000):
         if image_formatter is None:
