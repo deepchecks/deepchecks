@@ -125,7 +125,7 @@ class ClassPerformance(TrainTestCheck):
 
         fig = px.histogram(
             results_df,
-            x='Class',
+            x='Class Name',
             y='Value',
             color='Dataset',
             barmode='group',
@@ -135,7 +135,7 @@ class ClassPerformance(TrainTestCheck):
         )
 
         if context.train.task_type == TaskType.CLASSIFICATION:
-            fig.update_xaxes(tickprefix='Class ', tickangle=60)
+            fig.update_xaxes(tickprefix='Class Name', tickangle=60)
 
         fig = (
             fig.update_xaxes(title=None, type='category')
