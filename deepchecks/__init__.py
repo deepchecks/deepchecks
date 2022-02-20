@@ -9,10 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Deepchecks."""
+import os
+import pathlib
 import warnings
 import matplotlib
 import plotly.io as pio
-from pkg_resources import get_distribution, DistributionNotFound
+
 
 from deepchecks.utils.ipython import is_notebook
 from deepchecks.tabular import (
@@ -88,9 +90,11 @@ if 'notebook_connected' in pio_backends:
     pio.renderers.default = '+'.join(pio_backends)
 
 
-# # Set version info
+# Set version info
 try:
-    __version__ = get_distribution('deepchecks').version
-except DistributionNotFound:
-    # If distribution can't be found, leave version empty
+    MODULE_DIR = pathlib.Path(__file__).absolute().parent.parent
+    with open(os.path.join(MODULE_DIR, "VERSION"), "r", encoding="utf-8") as f:
+        __version__ = f.read().strip()
+except Exception:
+    # If version file can't be found, leave version empty
     __version__ = ''
