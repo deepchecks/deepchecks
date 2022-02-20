@@ -30,10 +30,10 @@ from tests.vision.vision_conftest import *
 
 def test_mnist(mnist_dataset_train, trained_mnist):
     # Arrange
-    # Create augmentations without randomness to get fixed metrics results
+    # Create augmentations
     augmentations = [
-        albumentations.RandomBrightnessContrast(brightness_limit=(0.2, 0.2), contrast_limit=(0.2, 0.2), p=1.0),
-        albumentations.ShiftScaleRotate(shift_limit=(0.1, 0.1), scale_limit=(0.1, 0.1), rotate_limit=(10, 10), p=1.0),
+        albumentations.RandomBrightnessContrast(p=1.0),
+        albumentations.ShiftScaleRotate(p=1.0),
     ]
     check = RobustnessReport(augmentations=augmentations)
     # Act
@@ -42,12 +42,12 @@ def test_mnist(mnist_dataset_train, trained_mnist):
     # Assert
     assert_that(result.value, has_entries({
         'RandomBrightnessContrast': has_entries({
-            'Precision': has_entries(score=close_to(0.98, 0.5), diff=close_to(0, 0.5)),
-            'Recall': has_entries(score=close_to(0.98, 0.5), diff=close_to(0, 0.5))
+            'Precision': has_entries(score=close_to(0.987, 0.001), diff=close_to(0, 0.001)),
+            'Recall': has_entries(score=close_to(0.983, 0.001), diff=close_to(0, 0.001))
         }),
         'ShiftScaleRotate': has_entries({
-            'Precision': has_entries(score=close_to(0.40, 0.5), diff=close_to(-0.5, 0.5)),
-            'Recall': has_entries(score=close_to(0.38, 0.5), diff=close_to(-0.5, 0.5))
+            'Precision': has_entries(score=close_to(0.775, 0.001), diff=close_to(-0.215, 0.001)),
+            'Recall': has_entries(score=close_to(0.777, 0.001), diff=close_to(-0.210, 0.001))
         }),
     }))
 
@@ -56,7 +56,7 @@ def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detecti
     """Because of the large running time, instead of checking the conditions in separated tests, combining a few
     tests into one."""
     # Arrange
-    # Create augmentations without randomness to get fixed metrics results
+    # Create augmentations
     augmentations = [
         albumentations.HueSaturationValue(p=1.0),
     ]
@@ -71,8 +71,8 @@ def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detecti
     # Assert
     assert_that(result.value, has_entries({
         'HueSaturationValue': has_entries({
-            'AP': has_entries(score=close_to(0.5, 0.5), diff=close_to(0, 0.5)),
-            'AR': has_entries(score=close_to(0.5, 0.5), diff=close_to(0, 0.5))
+            'AP': has_entries(score=close_to(0.287, 0.001), diff=close_to(-0.036, 0.001)),
+            'AR': has_entries(score=close_to(0.342, 0.001), diff=close_to(-0.031, 0.001))
         }),
     }))
     assert_that(result.conditions_results, has_items(
