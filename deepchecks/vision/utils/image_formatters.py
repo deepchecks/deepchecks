@@ -108,29 +108,10 @@ class ImageFormatter:
         else:
             return [blur_effect(rgb2gray(img)) for img in batch]
 
-    def weber_contrast(self, batch: List[np.array]) -> List[float]:
-        """Return constrast of image."""
-
-        #TODO: Complete and test. Also, is this weber for sure?
-
-        if self._is_grayscale is False:
-            batch = [rgb2gray(img) for img in batch]
-
-        contrasts = []
-        for img in batch:
-            dlimits = dtype_limits(img, clip_negative=False)
-            limits = np.percentile(img, [10, 90])
-            ratio = (limits[1] - limits[0]) / (dlimits[1] - dlimits[0])
-            contrasts.append(ratio)
-
-        return contrasts
-
     def rms_contrast(self, batch: List[np.array]) -> List[float]:
-        """Return constrast of image."""
+        """Return RMS contrast of image."""
 
-        #TODO: Complete and test. 
-
-        if self._is_grayscale is False:
+        if self._is_grayscale(batch) is False:
             batch = [rgb2gray(img) for img in batch]
 
         return [img.std() for img in batch]

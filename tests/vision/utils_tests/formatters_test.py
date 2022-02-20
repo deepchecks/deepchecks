@@ -188,6 +188,38 @@ def test_blur_rgb():
     assert_that(res[0], close_to(0.12, 0.01))
 
 
+def test_rms_contrast_grayscale():
+    formatter = ImageFormatter(lambda x: x)
+
+    value = np.concatenate([np.zeros((3, 10, 1)),  np.ones((7, 10, 1))], axis=0)
+
+    expected_value = np.sqrt((70 * 0.3**2 + 30 * 0.7**2) / 100)
+
+    batch = next(iter(numpy_shape_dataloader(value=value)))
+
+    res = formatter.rms_contrast(batch)
+
+    assert_that(res[0], equal_to(expected_value))
+
+
+def test_rms_contrast_rgb():
+    formatter = ImageFormatter(lambda x: x)
+
+    # Create image that after turning from rgb to grayscale is 30% value 0 and 70% value 3:
+    value = np.concatenate([np.zeros((3, 10, 3)),  np.concatenate([np.ones((7, 10, 1)) * 1/0.2125,
+                                                                   np.ones((7, 10, 1)) * 1/0.7154,
+                                                                   np.ones((7, 10, 1)) * 1/0.0721], axis=2)],
+                           axis=0)
+
+    expected_value = np.sqrt((210 * 0.9**2 + 90 * 2.1**2) / 300)
+
+    batch = next(iter(numpy_shape_dataloader(value=value)))
+
+    res = formatter.rms_contrast(batch)
+
+    assert_that(res[0], close_to(expected_value, 0.00001))
+
+
 def test_aspect_ratio():
     formatter = ImageFormatter(lambda x: x)
 
