@@ -56,9 +56,9 @@ def test_vision_data_task_type_inference():
             return []
 
     # Act
-    second_classification_dataset = VisionData(mnist_loader, label_transformer=ClassificationLabelFormatter(lambda x: x))
-    detection_dataset = VisionData(coco_loader, label_transformer=DetectionLabelFormatter(lambda x: x))
-    dataset_with_custom_formatter = VisionData(mnist_loader, label_transformer=CustomLabelFormatter())
+    second_classification_dataset = VisionData(mnist_loader, label_formatter=ClassificationLabelFormatter(lambda x: x))
+    detection_dataset = VisionData(coco_loader, label_formatter=DetectionLabelFormatter(lambda x: x))
+    dataset_with_custom_formatter = VisionData(mnist_loader, label_formatter=CustomLabelFormatter())
 
     # Assert
     assert_that(second_classification_dataset.task_type == TaskType.CLASSIFICATION)
@@ -80,11 +80,11 @@ def test_initialization_of_vision_data_with_classification_dataset_that_contains
     # Act
     first_dataset = VisionData(
         loader_with_string_labels,
-        label_transformer=ClassificationLabelFormatter()
+        label_formatter=ClassificationLabelFormatter()
     )
     second_dataset = VisionData(
         loader_with_labels_of_incorrect_shape,
-        label_transformer=ClassificationLabelFormatter()
+        label_formatter=ClassificationLabelFormatter()
     )
 
     # Assert
@@ -126,7 +126,7 @@ def test_vision_data_sample_loader():
 def test_vision_data_n_of_samples_per_class_inference_for_classification_dataset():
     # Arrange
     loader = t.cast(DataLoader, mnist.load_dataset(train=True, object_type="DataLoader"))
-    dataset = VisionData(loader, label_transformer=ClassificationLabelFormatter())
+    dataset = VisionData(loader, label_formatter=ClassificationLabelFormatter())
 
     real_n_of_samples = {}
     for index in range(len(loader.dataset)):
@@ -155,7 +155,7 @@ def test_vision_data_n_of_samples_per_class_inference_for_detection_dataset():
             real_n_of_samples[clazz] = 1 + real_n_of_samples.get(clazz, 0)
 
     # Act
-    dataset = VisionData(loader, label_transformer=DetectionLabelFormatter(coco.yolo_label_formatter))
+    dataset = VisionData(loader, label_formatter=DetectionLabelFormatter(coco.yolo_label_formatter))
     infered_n_of_samples = dataset.n_of_samples_per_class
 
     # Assert
@@ -205,8 +205,8 @@ def test_vision_data_label_comparison_for_detection_task():
     first_loader = DataLoader([(first_X, first_label),], collate_fn=batch_collate)
     second_loader = DataLoader([(second_X, second_label),], collate_fn=batch_collate)
 
-    first_dataset = VisionData(first_loader, label_transformer=DetectionLabelFormatter())
-    second_dataset = VisionData(second_loader, label_transformer=DetectionLabelFormatter())
+    first_dataset = VisionData(first_loader, label_formatter=DetectionLabelFormatter())
+    second_dataset = VisionData(second_loader, label_formatter=DetectionLabelFormatter())
 
     # Act
     # it must not raise an error

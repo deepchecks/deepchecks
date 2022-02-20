@@ -188,20 +188,20 @@ class TrainTestLabelDrift(TrainTestCheck):
             self._train_hists = calculate_continuous_histograms_in_batch(batch, self._train_hists,
                                                                          self._continuous_label_measurements,
                                                                          self._bounds_list, self._num_bins_list,
-                                                                         train_dataset.label_transformer)
+                                                                         train_dataset.label_formatter)
             self._train_counters = calculate_discrete_histograms_in_batch(batch, self._train_counters,
                                                                           self._discrete_label_measurements,
-                                                                          train_dataset.label_transformer)
+                                                                          train_dataset.label_formatter)
 
         elif dataset_kind == DatasetKind.TEST:
             test_dataset = context.test
             self._test_hists = calculate_continuous_histograms_in_batch(batch, self._test_hists,
                                                                         self._continuous_label_measurements,
                                                                         self._bounds_list, self._num_bins_list,
-                                                                        test_dataset.label_transformer)
+                                                                        test_dataset.label_formatter)
             self._test_counters = calculate_discrete_histograms_in_batch(batch, self._test_counters,
                                                                          self._discrete_label_measurements,
-                                                                         test_dataset.label_transformer)
+                                                                         test_dataset.label_formatter)
         else:
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
@@ -292,27 +292,27 @@ def adjust_bounds_and_bins(bounds: List[Tuple[float, float]], default_num_bins: 
     return bounds, bins
 
 
-def calculate_discrete_histograms_in_batch(batch, counters, discrete_label_measurements, label_transformer):
+def calculate_discrete_histograms_in_batch(batch, counters, discrete_label_measurements, label_formatter):
     """Calculate discrete histograms by batch."""
     for i in range(len(discrete_label_measurements)):
-        calc_res = get_results_on_batch(batch, discrete_label_measurements[i], label_transformer)
+        calc_res = get_results_on_batch(batch, discrete_label_measurements[i], label_formatter)
         counters[i].update(calc_res)
     return counters
 
 
 def calculate_continuous_histograms_in_batch(batch, hists, continuous_label_measurements, bounds, bins,
-                                             label_transformer):
+                                             label_formatter):
     """Calculate continuous histograms by batch."""
     for i in range(len(continuous_label_measurements)):
-        calc_res = get_results_on_batch(batch, continuous_label_measurements[i], label_transformer)
+        calc_res = get_results_on_batch(batch, continuous_label_measurements[i], label_formatter)
         new_hist, _ = np.histogram(calc_res, bins=bins[i], range=(bounds[i][0], bounds[i][1]))
         hists[i] += new_hist
     return hists
 
 
-def get_results_on_batch(batch, label_measurement, label_transformer):
+def get_results_on_batch(batch, label_measurement, label_formatter):
     """Calculate transformer result on batch of labels."""
-    calc_res = [label_measurement(arr) for arr in label_transformer(batch)]
+    calc_res = [label_measurement(arr) for arr in label_formatter(batch)]
     if len(calc_res) != 0 and isinstance(calc_res[0], list):
         calc_res = [x[0] for x in sum(calc_res, [])]
     return calc_res
@@ -325,7 +325,7 @@ def get_boundaries_by_batch(dataset: VisionData, label_measurements: List[Callab
     num_samples = 0
     for batch in dataset.get_data_loader():
         for i in range(len(label_measurements)):
-            calc_res = get_results_on_batch(batch, label_measurements[i], dataset.label_transformer)
+            calc_res = get_results_on_batch(batch, label_measurements[i], dataset.label_formatter)
             bounds[i]['min'] = min(calc_res + [bounds[i]['min']])
             bounds[i]['max'] = max(calc_res + [bounds[i]['max']])
 

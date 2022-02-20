@@ -50,7 +50,7 @@ class VisionData:
         PyTorch DataLoader object. If your data loader is using IterableDataset please see note below.
     num_classes : int, optional
         Number of classes in the dataset. If not provided, will be inferred from the dataset.
-    label_transformer : Union[ClassificationLabelFormatter, DetectionLabelFormatter]
+    label_formatter : Union[ClassificationLabelFormatter, DetectionLabelFormatter]
         A callable, transforming a batch of labels returned by the dataloader to a batch of labels in the desired
         format.
     sample_size : int, default: 1,000
@@ -71,10 +71,10 @@ class VisionData:
           the width and height of the bounding box (in pixels) and class_id is the class id of the prediction.
 
     The labels returned by the data loader (e.g. by using next(iter(data_loader))[1]) should be in the specified format,
-    or else the callable label_transformer should be able to transform the labels to the desired format.
+    or else the callable label_formatter should be able to transform the labels to the desired format.
     """
 
-    label_transformer: BaseLabelFormatter
+    label_formatter: BaseLabelFormatter
     image_formatter: ImageFormatter
     task_type: Optional[TaskType]
     sample_iteration_limit: int
@@ -90,7 +90,7 @@ class VisionData:
     def __init__(self,
                  data_loader: DataLoader,
                  num_classes: Optional[int] = None,
-                 label_transformer: BaseLabelFormatter = None,
+                 label_formatter: BaseLabelFormatter = None,
                  image_formatter: ImageFormatter = None,
                  sample_size: int = 1000,
                  random_seed: int = 0,
@@ -105,29 +105,29 @@ class VisionData:
         else:
             self._image_formatter = None
 
-        if label_transformer:
-            if isinstance(label_transformer, ClassificationLabelFormatter):
+        if label_formatter:
+            if isinstance(label_formatter, ClassificationLabelFormatter):
                 self.task_type = TaskType.CLASSIFICATION
-                self.label_transformer = label_transformer
-            elif isinstance(label_transformer, DetectionLabelFormatter):
+                self.label_formatter = label_formatter
+            elif isinstance(label_formatter, DetectionLabelFormatter):
                 self.task_type = TaskType.OBJECT_DETECTION
-                self.label_transformer = label_transformer
+                self.label_formatter = label_formatter
             else:
-                self.label_transformer = None
+                self.label_formatter = None
                 self.task_type = None
-                self._label_invalid = f'Invalid transformer type: {type(self.label_transformer).__name__}'
+                self._label_invalid = f'Invalid transformer type: {type(self.label_formatter).__name__}'
                 logger.warning('Unknown label transformer type was provided. Only integrity and data checks will run.'
                                'The supported label transformer types are: '
                                '[ClassificationLabelFormatter, DetectionLabelFormatter]')
 
-            if self.label_transformer:
+            if self.label_formatter:
                 try:
-                    self.label_transformer.validate_label(batch_to_validate)
+                    self.label_formatter.validate_label(batch_to_validate)
                     self._label_invalid = None
                 except DeepchecksValueError as ex:
                     self._label_invalid = str(ex)
         else:
-            self._label_invalid = 'label_transformer parameter was not defined'
+            self._label_invalid = 'label_formatter parameter was not defined'
 
         self._samples_per_class = None
         self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
@@ -156,7 +156,7 @@ class VisionData:
         """Return a dictionary containing the number of samples per class."""
         if self._samples_per_class is None:
             if self.task_type in [TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION]:
-                self._samples_per_class = self.label_transformer.get_samples_per_class(self._data)
+                self._samples_per_class = self.label_formatter.get_samples_per_class(self._data)
             else:
                 raise NotImplementedError(
                     'Not implemented yet for tasks other than classification and object detection'
@@ -194,7 +194,7 @@ class VisionData:
         self.assert_label()
 
         # Assuming the dataset contains a tuple of (features, label)
-        return self.label_transformer(next(iter(self)))[0].shape  # first argument is batch_size
+        return self.label_formatter(next(iter(self)))[0].shape  # first argument is batch_size
 
     def assert_label(self):
         """Raise error if label is not exists or not valid."""
@@ -243,7 +243,7 @@ class VisionData:
         new_data_loader = self.get_data_loader().__class__(**props)
         return VisionData(new_data_loader,
                           image_formatter=self.image_formatter,
-                          label_transformer=self.label_transformer,
+                          label_formatter=self.label_formatter,
                           transform_field=self.transform_field)
 
     def to_batch(self, *samples):

@@ -49,7 +49,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
     def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
         """Update the metrics by passing the batch to ignite metric update method."""
         dataset = context.get_data_by_kind(dataset_kind)
-        label = dataset.label_transformer(batch)
+        label = dataset.label_formatter(batch)
         prediction = context.infer(batch)
         self._ap_metric.update((prediction, label))
 

@@ -97,7 +97,7 @@ def load_dataset(
         return VisionData(
             data_loader=loader,
             num_classes=len(datasets.MNIST.classes),
-            label_transformer=ClassificationLabelFormatter(),
+            label_formatter=ClassificationLabelFormatter(),
             image_formatter=ImageFormatter(mnist_image_formatter(mean, std)),
             transform_field='transform'
         )

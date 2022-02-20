@@ -114,7 +114,7 @@ def load_dataset(
     elif object_type == 'VisionData':
         return vision.VisionData(
             data_loader=dataloader,
-            label_transformer=DetectionLabelFormatter(yolo_label_formatter),
+            label_formatter=DetectionLabelFormatter(yolo_label_formatter),
             # To display images we need them as numpy array
             image_formatter=ImageFormatter(lambda batch: [np.array(x) for x in batch[0]]),
             num_classes=80
