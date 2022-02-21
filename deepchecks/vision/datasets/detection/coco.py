@@ -107,6 +107,7 @@ def load_dataset(
         num_workers=num_workers,
         collate_fn=batch_collate,
         pin_memory=pin_memory,
+        generator=torch.Generator()
     )
 
     if object_type == 'DataLoader':

@@ -43,11 +43,11 @@ def test_mnist(mnist_dataset_train, trained_mnist):
     assert_that(result.value, has_entries({
         'RandomBrightnessContrast': has_entries({
             'Precision': has_entries(score=close_to(0.987, 0.001), diff=close_to(0, 0.001)),
-            'Recall': has_entries(score=close_to(0.983, 0.001), diff=close_to(0, 0.001))
+            'Recall': has_entries(score=close_to(0.984, 0.001), diff=close_to(0, 0.001))
         }),
         'ShiftScaleRotate': has_entries({
-            'Precision': has_entries(score=close_to(0.775, 0.001), diff=close_to(-0.215, 0.001)),
-            'Recall': has_entries(score=close_to(0.777, 0.001), diff=close_to(-0.210, 0.001))
+            'Precision': has_entries(score=close_to(0.785, 0.001), diff=close_to(-0.204, 0.001)),
+            'Recall': has_entries(score=close_to(0.784, 0.001), diff=close_to(-0.203, 0.001))
         }),
     }))
 
@@ -75,6 +75,7 @@ def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detecti
             'AR': has_entries(score=close_to(0.342, 0.001), diff=close_to(-0.031, 0.001))
         }),
     }))
+    print(result.value)
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=True,

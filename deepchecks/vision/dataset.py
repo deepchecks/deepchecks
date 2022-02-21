@@ -267,6 +267,11 @@ class VisionData:
         """Use the defined collate_fn to transform a few data items to batch format."""
         return self.get_data_loader().collate_fn(list(samples))
 
+    def set_seed(self, seed):
+        generator = self._data.generator
+        if generator is not None:
+            generator.set_state(torch.Generator().manual_seed(seed).get_state())
+
     def validate_shared_label(self, other):
         """Verify presence of shared labels.
 
@@ -390,7 +395,8 @@ def get_data_loader_props_to_copy(data_loader):
         'timeout': data_loader.timeout,
         'worker_init_fn': data_loader.worker_init_fn,
         'prefetch_factor': data_loader.prefetch_factor,
-        'persistent_workers': data_loader.persistent_workers
+        'persistent_workers': data_loader.persistent_workers,
+        'generator': data_loader.generator
     }
     if data_loader.batch_sampler is not None:
         props['batch_sampler'] = data_loader.batch_sampler

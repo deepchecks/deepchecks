@@ -208,7 +208,7 @@ docstring: dev-requirements
 
 
 test: requirements dev-requirements
-	$(PYTEST) $(args) $(TESTDIR)
+	$(PYTEST) $(args) $(TESTDIR)/vision/checks/performance/robustness_report_test.py
 
 
 test-win:
