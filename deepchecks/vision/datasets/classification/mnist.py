@@ -89,7 +89,7 @@ def load_dataset(
         batch_size=batch_size,
         shuffle=shuffle,
         pin_memory=pin_memory,
-        generator=torch.Generator()
+        generator=torch.Generator().manual_seed(0)
     )
 
     if object_type == 'DataLoader':
