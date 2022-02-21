@@ -18,7 +18,7 @@ from plotly.subplots import make_subplots
 from deepchecks.vision.utils.image_functions import numpy_grayscale_to_heatmap_figure, apply_heatmap_image_properties
 
 from deepchecks.core import DatasetKind, CheckResult
-from deepchecks.core.errors import DeepchecksNotSupportedError
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.vision.base import Context, TrainTestCheck
 from deepchecks.vision.dataset import TaskType
 import numpy as np
@@ -67,6 +67,15 @@ class HeatmapComparison(TrainTestCheck):
         train_dataset = context.train
 
         self._task_type = train_dataset.task_type
+
+        # if self.classes_to_display is set, check that it has classes that actually exist
+        if self.classes_to_display is not None:
+            if not self._task_type == TaskType.OBJECT_DETECTION:
+                raise(DeepchecksNotSupportedError('Classes to display is only supported for object detection tasks.'))
+            if not set(self.classes_to_display).issubset(train_dataset.n_of_samples_per_class.keys()):
+                raise DeepchecksValueError(
+                    f'Provided list of class ids to display {self.classes_to_display} not found in training dataset.'
+                )
 
         self._train_grayscale_heatmap = None
         self._test_grayscale_heatmap = None
