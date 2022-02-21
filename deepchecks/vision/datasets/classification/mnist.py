@@ -26,6 +26,7 @@ from deepchecks.vision.utils.transformations import un_normalize_batch
 from deepchecks.vision.utils import ImageFormatter
 from deepchecks.vision.utils.classification_formatters import ClassificationLabelFormatter
 from deepchecks.vision.dataset import VisionData
+from deepchecks.vision.utils.validation import set_seeds
 
 
 __all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST', 'mnist_image_formatter', 'mnist_prediction_formatter']
@@ -125,6 +126,7 @@ def load_model(pretrained: bool = True) -> 'MNistNet':
         model.eval()
         return model
 
+    set_seeds(1)
     model = MNistNet()
 
     dataloader = t.cast(DataLoader, load_dataset(train=True, object_type='DataLoader', seed=1))
@@ -220,6 +222,4 @@ def mnist_image_formatter(mean, std):
 def mnist_prediction_formatter(batch, model, device):
     """Predict and format predictions of mnist."""
     preds = model.to(device)(batch[0])
-    print('pred: ' + str(preds[0][0]))
-    print('batch: ' + str(batch[0][0].mean()))
     return nn.Softmax(dim=1)(preds)
