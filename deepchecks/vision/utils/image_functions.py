@@ -19,7 +19,7 @@ import torch
 from deepchecks.core.errors import DeepchecksValueError
 
 
-__all__ = ['ImageInfo', 'numpy_to_image_figure', 'label_bbox_add_to_figure', 'numpy_greyscale_to_heatmap_figure',
+__all__ = ['ImageInfo', 'numpy_to_image_figure', 'label_bbox_add_to_figure', 'numpy_grayscale_to_heatmap_figure',
            'apply_heatmap_image_properties']
 
 
@@ -55,7 +55,7 @@ def numpy_to_image_figure(data: np.ndarray):
     return go.Image(z=data, hoverinfo='skip')
 
 
-def numpy_greyscale_to_heatmap_figure(data: np.ndarray):
+def numpy_grayscale_to_heatmap_figure(data: np.ndarray):
     """Create heatmap graph object from given numpy array data."""
     dimension = data.shape[2]
     if dimension == 3:

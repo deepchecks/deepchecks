@@ -15,7 +15,7 @@ import cv2
 import torch
 from plotly.subplots import make_subplots
 
-from deepchecks.vision.utils.image_functions import numpy_greyscale_to_heatmap_figure, apply_heatmap_image_properties
+from deepchecks.vision.utils.image_functions import numpy_grayscale_to_heatmap_figure, apply_heatmap_image_properties
 
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError
@@ -31,7 +31,7 @@ class HeatmapComparison(TrainTestCheck):
     """
     Check if the average image brightness (or bbox location if applicable) is similar between train and test set.
 
-    The check computes the average greyscale image per dataset (train and test) and compares the resulting images.
+    The check computes the average grayscale image per dataset (train and test) and compares the resulting images.
     This comparison may serve to visualize differences in the statistics of the datasets. Additionally, in case of an
     object detection task, the check will compare the average locations of the bounding boxes between the datasets.
 
@@ -53,8 +53,8 @@ class HeatmapComparison(TrainTestCheck):
         Function initializes the following private variables:
 
         - self._task_type: TaskType
-        - self._train_greyscale_heatmap: variable aggregating the average training greyscale image
-        - self._test_greyscale_heatmap: variable aggregating the average test greyscale image
+        - self._train_grayscale_heatmap: variable aggregating the average training grayscale image
+        - self._test_grayscale_heatmap: variable aggregating the average test grayscale image
         - self._shape: List containing the target image shape (determined by the first image encountered)
         - self._train_counter: Number of training images aggregated
         - self._test_counter: Number of test images aggregated
@@ -68,8 +68,8 @@ class HeatmapComparison(TrainTestCheck):
 
         self._task_type = train_dataset.task_type
 
-        self._train_greyscale_heatmap = None
-        self._test_greyscale_heatmap = None
+        self._train_grayscale_heatmap = None
+        self._test_grayscale_heatmap = None
         self._shape = []
         self._train_counter = 0
         self._test_counter = 0
@@ -82,19 +82,19 @@ class HeatmapComparison(TrainTestCheck):
         """Perform update on batch for train or test counters and histograms."""
         if dataset_kind == DatasetKind.TRAIN:
             image_batch = context.train.image_formatter(batch)
-            summed_image = greyscale_sum_image(image_batch, self._shape)
-            if self._train_greyscale_heatmap is None:
-                self._train_greyscale_heatmap = summed_image
+            summed_image = grayscale_sum_image(image_batch, self._shape)
+            if self._train_grayscale_heatmap is None:
+                self._train_grayscale_heatmap = summed_image
             else:
-                self._train_greyscale_heatmap += summed_image
+                self._train_grayscale_heatmap += summed_image
             self._train_counter += len(image_batch)
         elif dataset_kind == DatasetKind.TEST:
             image_batch = context.test.image_formatter(batch)
-            summed_image = greyscale_sum_image(image_batch, self._shape)
-            if self._test_greyscale_heatmap is None:
-                self._test_greyscale_heatmap = summed_image
+            summed_image = grayscale_sum_image(image_batch, self._shape)
+            if self._test_grayscale_heatmap is None:
+                self._test_grayscale_heatmap = summed_image
             else:
-                self._test_greyscale_heatmap += summed_image
+                self._test_grayscale_heatmap += summed_image
             self._test_counter += len(image_batch)
         else:
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
@@ -103,7 +103,7 @@ class HeatmapComparison(TrainTestCheck):
             if dataset_kind == DatasetKind.TRAIN:
                 label_batch = context.train.label_formatter(batch)
                 label_image_batch = label_to_image_batch(label_batch, image_batch, self.classes_to_display)
-                summed_image = greyscale_sum_image(label_image_batch, self._shape)
+                summed_image = grayscale_sum_image(label_image_batch, self._shape)
                 if self._train_bbox_heatmap is None:
                     self._train_bbox_heatmap = summed_image
                 else:
@@ -111,7 +111,7 @@ class HeatmapComparison(TrainTestCheck):
             elif dataset_kind == DatasetKind.TEST:
                 label_batch = context.test.label_formatter(batch)
                 label_image_batch = label_to_image_batch(label_batch, image_batch, self.classes_to_display)
-                summed_image = greyscale_sum_image(label_image_batch, self._shape)
+                summed_image = grayscale_sum_image(label_image_batch, self._shape)
                 if self._test_bbox_heatmap is None:
                     self._test_bbox_heatmap = summed_image
                 else:
@@ -126,16 +126,16 @@ class HeatmapComparison(TrainTestCheck):
             value: The difference images. One for average image brightness, and one for bbox locations if applicable.
             display: Heatmaps for image brightness (train, test, diff) and heatmap for bbox locations if applicable.
         """
-        train_greyscale = (np.expand_dims(self._train_greyscale_heatmap, axis=2) /
+        train_grayscale = (np.expand_dims(self._train_grayscale_heatmap, axis=2) /
                            self._train_counter).astype(np.uint8)
-        test_greyscale = (np.expand_dims(self._test_greyscale_heatmap, axis=2) /
+        test_grayscale = (np.expand_dims(self._test_grayscale_heatmap, axis=2) /
                           self._test_counter).astype(np.uint8)
 
-        display = [self.plot_row_of_heatmaps(train_greyscale, test_greyscale, 'Compare average image brightness')]
+        display = [self.plot_row_of_heatmaps(train_grayscale, test_grayscale, 'Compare average image brightness')]
         display[0].update_layout(coloraxis={'colorscale': 'Inferno', 'cmin': 0, 'cmax': 255},
                                  coloraxis_colorbar={'title': 'Pixel Value'})
         value = {
-            'diff': image_diff(test_greyscale, train_greyscale)
+            'diff': image_diff(test_grayscale, train_grayscale)
         }
 
         if self._task_type == TaskType.OBJECT_DETECTION:
@@ -159,9 +159,9 @@ class HeatmapComparison(TrainTestCheck):
     def plot_row_of_heatmaps(train_img: np.ndarray, test_img: np.ndarray, title: str) -> go.Figure:
         """Plot a row of heatmaps for train and test images."""
         fig = make_subplots(rows=1, cols=3, column_titles=['Train', 'Test', 'Test - Train'])
-        fig.add_trace(numpy_greyscale_to_heatmap_figure(train_img), row=1, col=1)
-        fig.add_trace(numpy_greyscale_to_heatmap_figure(test_img), row=1, col=2)
-        fig.add_trace(numpy_greyscale_to_heatmap_figure(image_diff(test_img, train_img)), row=1, col=3)
+        fig.add_trace(numpy_grayscale_to_heatmap_figure(train_img), row=1, col=1)
+        fig.add_trace(numpy_grayscale_to_heatmap_figure(test_img), row=1, col=2)
+        fig.add_trace(numpy_grayscale_to_heatmap_figure(image_diff(test_img, train_img)), row=1, col=3)
         fig.update_yaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
         fig.update_xaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
         fig.update_layout(title=title, width=900, height=300)
@@ -170,7 +170,7 @@ class HeatmapComparison(TrainTestCheck):
 
 
 def image_diff(img1: np.ndarray, img2: np.ndarray) -> np.ndarray:
-    """Return the difference between two greyscale images as a greyscale image."""
+    """Return the difference between two grayscale images as a grayscale image."""
     diff = img1.astype(np.int32) - img2.astype(np.int32)
     return np.abs(diff).astype(np.uint8)
 
@@ -204,9 +204,9 @@ def label_to_image_batch(label_batch: List[torch.Tensor], image_batch: List[np.n
     return return_bbox_image_batch
 
 
-def greyscale_sum_image(batch: Iterable[np.ndarray], target_shape: List[Tuple[int, int]] = None
+def grayscale_sum_image(batch: Iterable[np.ndarray], target_shape: List[Tuple[int, int]] = None
                         ) -> np.ndarray:
-    """Sum all images in batch to one greyscale image of shape target_shape.
+    """Sum all images in batch to one grayscale image of shape target_shape.
 
     Parameters
     ----------
@@ -223,13 +223,13 @@ def greyscale_sum_image(batch: Iterable[np.ndarray], target_shape: List[Tuple[in
     summed_image = None
 
     for img in batch:
-        # Cast to greyscale
+        # Cast to grayscale
         if img.shape[2] == 1:
             resized_img = img
         elif img.shape[2] == 3:
             resized_img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         else:
-            raise NotImplementedError('Images must be RGB or greyscale')
+            raise NotImplementedError('Images must be RGB or grayscale')
 
         # reshape to one shape
         if not target_shape:
