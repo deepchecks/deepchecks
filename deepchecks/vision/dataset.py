@@ -233,6 +233,7 @@ class VisionData:
         return iter(self._data)
 
     def __len__(self):
+        """Return the number of batches in the dataset dataloader."""
         return len(self._data)
 
     def get_data_loader(self):

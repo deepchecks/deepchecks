@@ -62,7 +62,7 @@ def numpy_greyscale_to_heatmap_figure(data: np.ndarray):
         data = cv2.cvtColor(data, cv2.COLOR_RGB2GRAY)
     elif dimension != 1:
         raise DeepchecksValueError(f'Don\'t know to plot images with {dimension} dimensions')
-    return go.Heatmap(z=data.squeeze(), hoverinfo='skip', coloraxis="coloraxis")
+    return go.Heatmap(z=data.squeeze(), hoverinfo='skip', coloraxis='coloraxis')
 
 
 def apply_heatmap_image_properties(fig):

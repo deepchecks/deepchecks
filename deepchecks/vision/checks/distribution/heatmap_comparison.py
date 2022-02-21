@@ -9,23 +9,19 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Train Test label Drift check."""
-from copy import copy
-from typing import Dict, Hashable, Callable, Tuple, List, Union, Any, Iterable, Optional
+from typing import Tuple, List, Any, Iterable, Optional
 
 import cv2
 import torch
-
-from deepchecks.vision.utils.image_functions import numpy_greyscale_to_heatmap_figure, apply_heatmap_image_properties
 from plotly.subplots import make_subplots
 
+from deepchecks.vision.utils.image_functions import numpy_greyscale_to_heatmap_figure, apply_heatmap_image_properties
+
 from deepchecks.core import DatasetKind, CheckResult
-from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedError
+from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.vision.base import Context, TrainTestCheck
-from deepchecks.utils.distribution.plot import drift_score_bar_traces
-from deepchecks.utils.plot import colors
-from deepchecks.vision.dataset import VisionData, TaskType
+from deepchecks.vision.dataset import TaskType
 import numpy as np
-from collections import Counter
 import plotly.graph_objs as go
 
 __all__ = ['HeatmapComparison']
@@ -84,7 +80,6 @@ class HeatmapComparison(TrainTestCheck):
 
     def update(self, context: Context, batch: Any, dataset_kind):
         """Perform update on batch for train or test counters and histograms."""
-
         if dataset_kind == DatasetKind.TRAIN:
             image_batch = context.train.image_formatter(batch)
             summed_image = greyscale_sum_image(image_batch, self._shape)
@@ -203,7 +198,9 @@ def label_to_image_batch(label_batch: List[torch.Tensor], image_batch: List[np.n
     """Convert label batch to batch of images where pixels inside the bboxes are white and the rest are black."""
     return_bbox_image_batch = []
     for image, label in zip(image_batch, label_batch):
-        return_bbox_image_batch.append(label_to_image(label.detach().cpu().numpy(), image.shape[:2], classes_to_display))
+        return_bbox_image_batch.append(
+            label_to_image(label.detach().cpu().numpy(), image.shape[:2], classes_to_display)
+        )
     return return_bbox_image_batch
 
 
@@ -223,7 +220,6 @@ def greyscale_sum_image(batch: Iterable[np.ndarray], target_shape: List[Tuple[in
     np.ndarray
         summed image.
     """
-
     summed_image = None
 
     for img in batch:
@@ -238,7 +234,6 @@ def greyscale_sum_image(batch: Iterable[np.ndarray], target_shape: List[Tuple[in
         # reshape to one shape
         if not target_shape:
             target_shape.append(resized_img.shape[:2][::-1])
-            resized_img = resized_img
         else:
             resized_img = cv2.resize(resized_img, target_shape[0], interpolation=cv2.INTER_AREA)
 
