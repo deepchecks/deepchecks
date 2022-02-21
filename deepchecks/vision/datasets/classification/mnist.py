@@ -124,7 +124,10 @@ def load_model(pretrained: bool = True, path: str = None) -> 'MNistNet':
         model = MNistNet()
         model.load_state_dict(torch.load(MODEL_PATH))
         model.eval()
+        print('======= FOUND MODEL ========')
         return model
+
+    print('======= NOT FOUND MODEL ========')
 
     set_seeds(1)
     model = MNistNet()
