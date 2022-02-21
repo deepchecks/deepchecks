@@ -20,6 +20,7 @@ import numpy as np
 import torch
 import albumentations as A
 from PIL import Image
+from cv2 import cv2
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.datasets import VisionDataset
@@ -55,7 +56,7 @@ def load_dataset(
         train: bool = True,
         batch_size: int = 32,
         num_workers: int = 0,
-        shuffle: bool = False,
+        shuffle: bool = True,
         pin_memory: bool = True,
         object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader'
 ) -> t.Union[DataLoader, vision.VisionData]:
@@ -107,6 +108,7 @@ def load_dataset(
         num_workers=num_workers,
         collate_fn=batch_collate,
         pin_memory=pin_memory,
+        generator=torch.Generator()
     )
 
     if object_type == 'DataLoader':
@@ -189,7 +191,9 @@ class CocoDataset(VisionDataset):
 
     def __getitem__(self, idx: int) -> t.Tuple[Image.Image, np.ndarray]:
         """Get the image and label at the given index."""
-        img = Image.open(self.images[idx]).convert('RGB')
+        # open image using openCV2, since opening with Pillow give slightly different results based on Pillow version
+        opencv_image = cv2.imread(str(self.images[idx]))
+        img = Image.fromarray(cv2.cvtColor(opencv_image, cv2.COLOR_BGR2RGB))
         label_file = self.labels[idx]
 
         if label_file is not None:
