@@ -10,7 +10,6 @@
 #
 """Module for base vision abstractions."""
 # pylint: disable=broad-except,not-callable
-import copy
 from typing import Tuple, Mapping, Optional, Any, Union, Dict
 from collections import OrderedDict
 
@@ -374,25 +373,13 @@ class Suite(BaseSuite):
 
         for check_idx, check in list(self.checks.items()):
             if isinstance(check, (TrainTestCheck, ModelOnlyCheck)):
-                checks[check_idx] = copy.deepcopy(check)
+                check.initialize_run(context)
+                checks[check_idx] = check
             elif isinstance(check, SingleDatasetCheck):
                 if train_dataset is not None:
-                    checks[str(check_idx) + ' - Train'] = copy.deepcopy(check)
+                    checks[str(check_idx) + ' - Train'] = check
                 if test_dataset is not None:
-                    checks[str(check_idx) + ' - Test'] = copy.deepcopy(check)
-
-        for idx, check in checks.items():
-            if isinstance(check, SingleDatasetCheck):
-                check.initialize_run(
-                    context,
-                    dataset_kind=(
-                        DatasetKind.TEST
-                        if str(idx).endswith('Test')
-                        else DatasetKind.TRAIN
-                    )
-                )
-            else:
-                check.initialize_run(context)
+                    checks[str(check_idx) + ' - Test'] = check
 
         results: Dict[
             Union[str, int],
@@ -402,54 +389,61 @@ class Suite(BaseSuite):
         run_train_test_checks = train_dataset is not None and test_dataset is not None
 
         if train_dataset is not None:
-            self._training_loop(
+            self._update_loop(
                 checks=checks,
                 data_loader=train_dataset.get_data_loader(),
                 context=context,
                 run_train_test_checks=run_train_test_checks,
-                results=results
+                results=results,
+                dataset_kind=DatasetKind.TRAIN
             )
+            for check_idx, check in checks.items():
+                if check_idx not in results:
+                    if str(check_idx).endswith('Train'):
+                        try:
+                            results[check_idx] = check.compute(context, dataset_kind=DatasetKind.TRAIN)
+                        except Exception as exp:
+                            results[check_idx] = CheckFailure(check, exp, ' - Train')
 
         if test_dataset is not None:
-            self._validation_loop(
+            self._update_loop(
                 checks=checks,
                 data_loader=test_dataset.get_data_loader(),
                 context=context,
                 run_train_test_checks=run_train_test_checks,
-                results=results
+                results=results,
+                dataset_kind=DatasetKind.TEST
             )
+            for check_idx, check in checks.items():
+                if check_idx not in results:
+                    if str(check_idx).endswith('Test'):
+                        try:
+                            results[check_idx] = check.compute(context, dataset_kind=DatasetKind.TEST)
+                        except Exception as exp:
+                            results[check_idx] = CheckFailure(check, exp, ' - Test')
 
         for check_idx, check in checks.items():
             if check_idx not in results:
                 try:
-                    if isinstance(check, SingleDatasetCheck):
-                        results[check_idx] = check.compute(
-                            context,
-                            dataset_kind=(
-                                DatasetKind.TEST
-                                if str(check_idx).endswith('Test')
-                                else DatasetKind.TRAIN
-                            )
-                        )
-                    else:
+                    if not isinstance(check, SingleDatasetCheck):
                         results[check_idx] = check.compute(context)
                 except Exception as exp:
                     results[check_idx] = CheckFailure(check, exp)
 
         # Update check result names for SingleDatasetChecks and finalize results
-        # TODO: Why this is needed? (result.header modification) tabular suite does not have this
         for check_idx, result in results.items():
             if isinstance(result, CheckResult):
+                result = finalize_check_result(result, checks[check_idx])
                 result.header = (
                     f'{result.get_header()} - Train Dataset'
                     if str(check_idx).endswith(' - Train')
                     else f'{result.get_header()} - Test Dataset'
                 )
-                results[check_idx] = finalize_check_result(result, checks[check_idx])
+                results[check_idx] = result
 
         return SuiteResult(self.name, list(results.values()))
 
-    def _training_loop(
+    def _update_loop(
         self,
         checks: Dict[
             Union[str, int],
@@ -458,10 +452,19 @@ class Suite(BaseSuite):
         data_loader: DataLoader,
         context: Context,
         run_train_test_checks: bool,
-        results: Dict[Union[str, int], Union[CheckResult, CheckFailure]]
+        results: Dict[Union[str, int], Union[CheckResult, CheckFailure]],
+        dataset_kind
     ):
+        if dataset_kind == DatasetKind.TEST:
+            type_suffix = ' - Test'
+        else:
+            type_suffix = ' - Train'
         n_batches = len(data_loader)
-        progress_bar = ProgressBar(self.name + ' - Train', n_batches)
+        progress_bar = ProgressBar(self.name + type_suffix, n_batches)
+
+        for idx, check in checks.items():
+            if str(idx).endswith(type_suffix):
+                check.initialize_run(context, dataset_kind=dataset_kind)
 
         for batch_id, batch in enumerate(data_loader):
             progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
@@ -470,60 +473,19 @@ class Suite(BaseSuite):
                 try:
                     if isinstance(check, TrainTestCheck):
                         if run_train_test_checks is True:
-                            check.update(context, batch, dataset_kind=DatasetKind.TRAIN)
+                            check.update(context, batch, dataset_kind=dataset_kind)
                         else:
                             msg = 'Check is irrelevant if not supplied with both train and test datasets'
                             results[check_idx] = self._get_unsupported_failure(check, msg)
-                    elif isinstance(check, SingleDatasetCheck) and str(check_idx).endswith(' - Train'):
-                        check.update(context, batch, dataset_kind=DatasetKind.TRAIN)
+                    elif isinstance(check, SingleDatasetCheck):
+                        if str(check_idx).endswith(type_suffix):
+                            check.update(context, batch, dataset_kind=dataset_kind)
                     elif isinstance(check, ModelOnlyCheck):
                         pass
                     else:
                         raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
                 except Exception as exp:
-                    results[check_idx] = CheckFailure(check, exp)
-            progress_bar.inc_progress()
-            context.flush_cached_inference()
-
-        progress_bar.close()
-
-    def _validation_loop(
-        self,
-        checks: Dict[
-            Union[str, int],
-            Union[SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck]
-        ],
-        data_loader: DataLoader,
-        context: Context,
-        run_train_test_checks: bool,
-        results: Dict[Union[str, int], Union[CheckResult, CheckFailure]]
-    ):
-        # Loop over test batches
-        n_batches = len(data_loader)
-        progress_bar = ProgressBar(self.name + ' - Test', n_batches)
-
-        for batch_id, batch in enumerate(data_loader):
-            progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
-            batch = apply_to_tensor(batch, lambda it: it.to(context.device))
-
-            for check_idx, check in checks.items():
-                check_name = type(check).__name__
-                if check_idx not in results:
-                    try:
-                        if isinstance(check, TrainTestCheck):
-                            if run_train_test_checks is True:
-                                check.update(context, batch, dataset_kind=DatasetKind.TEST)
-                            else:
-                                msg = 'Check is irrelevant if not supplied with both train and test datasets'
-                                results[check_idx] = Suite._get_unsupported_failure(check, msg)
-                        elif isinstance(check, SingleDatasetCheck) and str(check_idx).endswith(' - Test'):
-                            check.update(context, batch, dataset_kind=DatasetKind.TEST)
-                        elif isinstance(check, ModelOnlyCheck):
-                            pass
-                        else:
-                            raise TypeError(f'Don\'t know how to handle type {check_name} in suite.')
-                    except Exception as exp:
-                        results[check_idx] = CheckFailure(check, exp)
+                    results[check_idx] = CheckFailure(check, exp, type_suffix)
             progress_bar.inc_progress()
             context.flush_cached_inference()
 

@@ -74,7 +74,7 @@ class RobustnessReport(SingleDatasetCheck):
     def update(self, context: Context, batch: Any, dataset_kind):
         """Accumulates batch data into the metrics."""
         dataset = context.get_data_by_kind(dataset_kind)
-        label = dataset.label_transformer(batch)
+        label = dataset.label_formatter(batch)
         # Using context.infer to get cached prediction if exists
         prediction = context.infer(batch)
         for _, metric in self._state['metrics'].items():
@@ -145,7 +145,7 @@ class RobustnessReport(SingleDatasetCheck):
             failed = [
                 aug
                 for aug, metrics in result.items()
-                for metric, metric_data in metrics.items()
+                for _, metric_data in metrics.items()
                 if metric_data['diff'] < -1 * ratio
             ]
 
@@ -179,7 +179,7 @@ class RobustnessReport(SingleDatasetCheck):
                 continue
 
             batch = dataset.to_batch(sample_base, sample_aug)
-            images = dataset.image_transformer(batch)
+            images = dataset.image_formatter(batch)
             if ImageInfo(images[0]).is_equals(images[1]):
                 msg = f'Found that images have not been affected by adding augmentation to field ' \
                       f'"{dataset.transform_field}". This might be a problem with the implementation of ' \
@@ -188,7 +188,7 @@ class RobustnessReport(SingleDatasetCheck):
 
             # For classification does not check label for difference
             if dataset.task_type != TaskType.CLASSIFICATION:
-                labels = dataset.label_transformer(batch)
+                labels = dataset.label_formatter(batch)
                 if torch.equal(labels[0], labels[1]):
                     msg = f'Found that labels have not been affected by adding augmentation to field ' \
                           f'"{dataset.transform_field}". This might be a problem with the implementation of ' \
@@ -389,8 +389,8 @@ def get_random_image_pairs_from_dataset(original_dataset: VisionData,
             break
 
         batch = original_dataset.to_batch(sample_base, sample_aug)
-        batch_label: torch.Tensor = original_dataset.label_transformer(batch)
-        images: List[np.ndarray] = original_dataset.image_transformer(batch)
+        batch_label: torch.Tensor = original_dataset.label_formatter(batch)
+        images: List[np.ndarray] = original_dataset.image_formatter(batch)
         base_label: torch.Tensor = batch_label[0]
         aug_label: torch.Tensor = batch_label[1]
         if original_dataset.task_type == TaskType.OBJECT_DETECTION:
