@@ -16,10 +16,13 @@ import torch
 from hamcrest import assert_that, equal_to, calling, raises, close_to
 from torch.utils.data import DataLoader, Dataset
 
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.utils import ClassificationLabelFormatter
+from deepchecks.vision.utils import DetectionLabelFormatter
 from deepchecks.vision.utils.detection_formatters import verify_bbox_format_notation
 from deepchecks.vision.utils.detection_formatters import convert_bbox
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.vision.utils.detection_formatters import convert_batch_of_bboxes
 from deepchecks.vision.utils.image_formatters import ImageFormatter
 
 
@@ -373,6 +376,80 @@ def test_bbox_format_notation_with_coord_normalization_element_at_wrong_position
         )
 
 
+def test_batch_of_bboxes_convertion():
+    # Arrange
+    loader = coco.load_dataset()
+    image, input_bboxes = batch = loader.dataset[9] # it should be always the same sample
+
+    # Act
+    output_bboxes = convert_batch_of_bboxes([batch], 'xywhl')[0]
+
+    # Assert
+    assert_that(len(output_bboxes) == len(input_bboxes))
+
+    for in_bbox, out_bbox in zip(input_bboxes, output_bboxes):
+        assert_that(
+            (out_bbox == torch.tensor([in_bbox[-1], *in_bbox[:-1]])).all(),
+            f'Input bbox: {in_bbox}; Output bbox: {out_bbox}'
+        )
+
+
+def test_batch_of_bboxes_convertion_with_normalized_coordinates():
+    # Arrange
+    loader = coco.load_dataset()
+    image, input_bboxes = loader.dataset[9] # it should be always the same sample
+
+    normilized_input_bboxes = torch.stack([
+        torch.tensor([
+            bbox[0] / image.width,   # x
+            bbox[1] / image.height,  # y
+            bbox[2],  # w
+            bbox[3],  # h
+            bbox[4],  # l
+        ])
+        for bbox in input_bboxes
+    ], dim=0)
+
+    # Act
+    output_bboxes = convert_batch_of_bboxes(
+        [(np.array(image), normilized_input_bboxes)],
+        'nxywhl'
+    )[0]
+
+    # Assert
+    assert_that(len(normilized_input_bboxes) == len(input_bboxes))
+
+    for index, output_bbox in enumerate(output_bboxes):
+        assert_that(
+            (output_bbox == torch.tensor([input_bboxes[index][-1], *input_bboxes[index][:-1]])).all(),
+            f'Original bbox: {input_bboxes[index]}; '
+            f'Normalized bbox: {normilized_input_bboxes[index]}; '
+            f'Output bbox: {output_bbox}'
+        )
+
+
+def test_label_formatter_with_bbox_notation():
+    loader = coco.load_dataset()
+    label_formatter = DetectionLabelFormatter('xywhl')
+
+    for batch in loader:
+        images, bboxes = batch
+
+        # Act
+        transformed_bboxes = label_formatter(batch)
+
+        # Assert
+        assert len(bboxes) == len(transformed_bboxes)
+
+        for input_bboxes, output_bboxes in zip(bboxes, transformed_bboxes):
+            assert_that(input_bboxes.shape == output_bboxes.shape)
+            for input_bbox, output_bbox in zip(input_bboxes, output_bboxes):
+                assert_that(
+                    (output_bbox == torch.tensor([input_bbox[-1], *input_bbox[:-1]])).all(),
+                    f'Input bbox: {input_bbox}; Output bbox: {output_bbox}'
+                )
+
+
 def test_bbox_convertion_to_the_required_format():
     data = (
         (
@@ -468,6 +545,3 @@ def test_convert_bbox_function_with_ambiguous_combination_of_parameters():
         image_width=image_width,
         image_height=image_height
     )
-
-
-

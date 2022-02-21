@@ -11,7 +11,7 @@
 """Module for defining detection encoders."""
 from collections import Counter
 from itertools import chain
-from typing import Union, Callable, Sequence, List, Tuple
+from typing import Union, Callable, Sequence, List, Tuple, Iterable, Any
 
 import numpy as np
 import torch
@@ -64,7 +64,10 @@ class DetectionLabelFormatter(BaseLabelFormatter):
     def __init__(self, label_formatter: Union[str, Callable] = lambda x: x[1]):
         super().__init__(label_formatter)
         if isinstance(label_formatter, str):
-            self.label_formatter = lambda batch: convert_batch_of_bboxes(batch, label_formatter)
+            self.label_formatter = lambda batch: convert_batch_of_bboxes(
+                zip(*batch),  # batch - expecting to receive tuple[iterable[image], iterable[bboxes]]
+                label_formatter
+            )
         else:
             self.label_formatter = label_formatter
 
@@ -275,39 +278,44 @@ def verify_bbox_format_notation(notation: str) -> Tuple[bool, List[str]]:
             'normalized coordinates\n'
         )
 
-    normilized_tokens = []
+    normalized_tokens = []
 
     for t in tokens:
         if t == 'l':
-            normilized_tokens.append('label')
+            normalized_tokens.append('label')
         elif t == 'wh':
-            normilized_tokens.extend(('width', 'height'))
+            normalized_tokens.extend(('width', 'height'))
         elif t == 'cxcy':
-            normilized_tokens.extend(('xcenter', 'ycenter'))
+            normalized_tokens.extend(('xcenter', 'ycenter'))
         elif t == 'xy':
-            if 'xmin' not in normilized_tokens and 'ymin' not in normilized_tokens:
-                normilized_tokens.extend(('xmin', 'ymin'))
+            if 'xmin' not in normalized_tokens and 'ymin' not in normalized_tokens:
+                normalized_tokens.extend(('xmin', 'ymin'))
             else:
-                normilized_tokens.extend(('xmax', 'ymax'))
+                normalized_tokens.extend(('xmax', 'ymax'))
         else:
             raise RuntimeError('Internal Error! Unreachable part of code reached')
 
-    return are_coordinates_normalized, normilized_tokens
+    return are_coordinates_normalized, normalized_tokens
+
+
+_BatchOfSamples = Iterable[
+    Tuple[
+        Union[Image, np.ndarray, torch.Tensor],  # images
+        Sequence[Sequence[Union[int, float]]]  # bboxes
+    ]
+]
 
 
 def convert_batch_of_bboxes(
-    batch: Tuple[
-        Sequence[object],  # images
-        Sequence[Sequence[Sequence[Union[int, float]]]]  # bboxes
-    ],
+    batch: _BatchOfSamples,
     notation: str,
     device: Union[str, torch.device, None] = None
-) -> torch.Tensor:
+) -> List[torch.Tensor]:
     """Convert batch of bboxes to the required format.
 
     Parameters
     ----------
-    batch :
+    batch : tuple like object with two items - list if images, list of bboxes
         batch of images and bboxes
     notation : str
         bboxes format notation
@@ -316,13 +324,18 @@ def convert_batch_of_bboxes(
 
     Returns
     -------
-    torch.Tensor
-        tensor of transformed bboxes
+    List[torch.Tensor]
+        list of transformed bboxes
     """
     are_coordinates_normalized, notation_tokens = verify_bbox_format_notation(notation)
     output = []
 
-    for image, bboxes in zip(*batch):
+    for image, bboxes in batch:
+        if len(bboxes) == 0:
+            # image does not have bboxes
+            output.append(torch.tensor([]))
+            continue
+
         if are_coordinates_normalized is False:
             image_height = None
             image_width = None
@@ -348,9 +361,9 @@ def convert_batch_of_bboxes(
                     image_width=image_width,
                     image_height=image_height,
                 ))
-        output.append(r)
-
-    return torch.tensor(output)
+        output.append(torch.stack(r, dim=0))
+    
+    return output
 
 
 def convert_bbox(
