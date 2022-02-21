@@ -57,7 +57,8 @@ def load_dataset(
         num_workers: int = 0,
         shuffle: bool = False,
         pin_memory: bool = True,
-        object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader'
+        object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader',
+        seed: int = None
 ) -> t.Union[DataLoader, vision.VisionData]:
     """Get the COCO128 dataset and return a dataloader.
 
@@ -86,6 +87,9 @@ def load_dataset(
     """
     root = DATA_DIR
     coco_dir, dataset_name = CocoDataset.download_coco128(root)
+    generator = torch.Generator()
+    if seed:
+        generator = generator.manual_seed(seed)
 
     def batch_collate(batch):
         imgs, labels = zip(*batch)
@@ -107,6 +111,7 @@ def load_dataset(
         num_workers=num_workers,
         collate_fn=batch_collate,
         pin_memory=pin_memory,
+        generator=generator
     )
 
     if object_type == 'DataLoader':

@@ -44,7 +44,8 @@ def load_dataset(
     batch_size: t.Optional[int] = None,
     shuffle: bool = True,
     pin_memory: bool = True,
-    object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader'
+    object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader',
+    seed: int = None
 ) -> t.Union[DataLoader, VisionData]:
     """Download MNIST dataset.
 
@@ -73,7 +74,9 @@ def load_dataset(
 
     """
     batch_size = batch_size or (64 if train else 1000)
-
+    generator = torch.Generator()
+    if seed:
+        generator = generator.manual_seed(seed)
     mean = (0.1307,)
     std = (0.3081,)
     loader = DataLoader(
@@ -88,7 +91,8 @@ def load_dataset(
         ),
         batch_size=batch_size,
         shuffle=shuffle,
-        pin_memory=pin_memory
+        pin_memory=pin_memory,
+        generator=generator
     )
 
     if object_type == 'DataLoader':
