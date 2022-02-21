@@ -173,6 +173,7 @@ class CocoDataset(VisionDataset):
         labels: t.List[t.Optional[Path]] = []
 
         for image in images:
+            print(image)
             label = self.labels_dir / f'{image.stem}.txt'
             labels.append(label if label.exists() else None)
 
