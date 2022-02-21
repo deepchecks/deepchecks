@@ -20,6 +20,7 @@ import warnings
 from collections import OrderedDict
 from typing import Any, Callable, List, Tuple, Union, Dict, Type, ClassVar, Optional
 
+import wandb
 import jsonpickle
 import matplotlib
 import pandas as pd
@@ -206,6 +207,71 @@ class CheckResult:
         matplotlib.use(old_backend)
         return displays
 
+    def _display_to_wandb(self) -> List[Tuple[str, str]]:
+        i = 0
+        old_backend = matplotlib.get_backend()
+        for item in self.display:
+            if isinstance(item, Styler):
+                wandb.log({f'display_table_{i}': wandb.Table(dataframe=item.data)}, commit=False)
+            elif isinstance(item, pd.DataFrame):
+                wandb.log({f'display_table_{i}': wandb.Table(dataframe=item)}, commit=False)
+            elif isinstance(item, str):
+                pass
+            elif isinstance(item, BaseFigure):
+                wandb.log({f'plot_{i}': wandb.Plotly(item)})
+            elif callable(item):
+                try:
+                    matplotlib.use('Agg')
+                    item()
+                    wandb.log({f'plot_{i}': plt})
+                except Exception:
+                    pass
+            else:
+                matplotlib.use(old_backend)
+                raise Exception(f'Unable to create json for item of type: {type(item)}')
+            i += 1
+        matplotlib.use(old_backend)
+
+    def to_wandb(self, wandb_init: bool = True, wandb_project: str = None) -> str:
+        """Return check result as json.
+
+        Parameters
+        ----------
+        with_display : bool
+            controls if to serialize display or not
+
+        Returns
+        --------
+        str
+            {'name': .., 'params': .., 'header': ..,
+             'summary': .., 'conditions_table': .., 'value', 'display': ..}
+        """
+        check_metadata = self._get_metadata()
+        if wandb_init:
+            if wandb_project is None:
+                wandb_project = check_metadata['header']
+            wandb.init(project=wandb_project, config=check_metadata)
+        if self.conditions_results:
+            cond_df = get_conditions_table([self], icon_html=False)
+            cond_table = wandb.Table(dataframe=cond_df.data)
+            wandb.log({"conditions_table":cond_table}, commit=False)
+        if isinstance(self.value, pd.DataFrame):
+            value = self.value.to_json()
+        elif isinstance(self.value, np.ndarray):
+            value = self.value.tolist()
+        else:
+            value = jsonpickle.dumps(self.value)
+        self._display_to_wandb()
+        data = [check_metadata['header'],
+                str(check_metadata['params']),
+                check_metadata['summary'],
+                value]
+        final_table = wandb.Table(columns=['header', 'params', 'summary', 'value'])
+        final_table.add_data(*data)
+        wandb.log({"results": final_table}, commit=False)
+        if wandb_init:
+            wandb.finish()
+  
     def to_json(self, with_display: bool = True) -> str:
         """Return check result as json.
 
@@ -220,11 +286,7 @@ class CheckResult:
             {'name': .., 'params': .., 'header': ..,
              'summary': .., 'conditions_table': .., 'value', 'display': ..}
         """
-        check_name = self.check.name()
-        parameters = self.check.params()
-        header = self.get_header()
-        result_json = {'name': check_name, 'params': parameters, 'header': header,
-                       'summary': get_docs_summary(self.check)}
+        result_json = self._get_metadata()
         if self.conditions_results:
             cond_df = get_conditions_table(self)
             result_json['conditions_table'] = cond_df.data.to_json(orient='records')
@@ -269,6 +331,13 @@ class CheckResult:
                 display_html(f'<img src=\'data:image/png;base64,{value}\'>', raw=True)
             else:
                 raise ValueError(f'Unexpected type of display received: {display_type}')
+
+    def _get_metadata(self, with_doc_link: bool = False):
+        check_name = self.check.name()
+        parameters = self.check.params()
+        header = self.get_header()
+        return  {'name': check_name, 'params': parameters, 'header': header,
+                 'summary': get_docs_summary(self.check, with_doc_link=with_doc_link)}
 
     def _ipython_display_(self, unique_id=None, as_widget=False,
                           show_additional_outputs=True):

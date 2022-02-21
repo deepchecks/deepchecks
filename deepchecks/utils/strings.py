@@ -64,7 +64,7 @@ def get_ellipsis(long_string: str, max_length: int):
     return long_string[:max_length] + '...'
 
 
-def get_docs_summary(obj):
+def get_docs_summary(obj, with_doc_link: bool = True):
     """Return the docs summary if available.
 
     Parameters
@@ -82,7 +82,8 @@ def get_docs_summary(obj):
         # Take first non-whitespace line.
         summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
 
-    summary += _generate_check_docs_link_html(obj)
+    if with_doc_link:
+        summary += _generate_check_docs_link_html(obj)
     return summary
 
 

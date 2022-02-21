@@ -59,7 +59,7 @@ def dataframe_to_html(df: Union[pd.DataFrame, Styler]):
 
 
 def get_conditions_table(check_results: Union['check.CheckResult', List['check.CheckResult']],
-                         unique_id=None, max_info_len: int = 3000):
+                         unique_id: str = None, max_info_len: int = 3000, icon_html: bool = True) -> Styler:
     """Return the conditions table as DataFrame.
 
     Parameters
@@ -86,7 +86,7 @@ def get_conditions_table(check_results: Union['check.CheckResult', List['check.C
     for check_result in check_results:
         for cond_result in check_result.conditions_results:
             sort_value = cond_result.priority
-            icon = cond_result.get_icon()
+            icon = cond_result.get_icon() if icon_html else cond_result.get_icon_char()
             check_header = check_result.get_header()
             if unique_id and check_result.have_display():
                 check_id = f'{check_result.check.__class__.__name__}_{unique_id}'
