@@ -73,7 +73,7 @@ def mnist_dataset_test():
 
 @pytest.fixture(scope='session')
 def trained_mnist():
-    return load_mnist_net_model()
+    return load_mnist_net_model(pretrained=False)
 
 
 @pytest.fixture(scope='session')

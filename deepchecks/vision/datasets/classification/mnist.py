@@ -44,7 +44,8 @@ def load_dataset(
     batch_size: t.Optional[int] = None,
     shuffle: bool = True,
     pin_memory: bool = True,
-    object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader'
+    object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader',
+    seed: int = None
 ) -> t.Union[DataLoader, VisionData]:
     """Download MNIST dataset.
 
@@ -62,7 +63,8 @@ def load_dataset(
     object_type : Literal[Dataset, DataLoader], default 'DataLoader'
         object type to return. if `'VisionData'` then :obj:`deepchecks.vision.VisionData`
         will be returned, if `'DataLoader'` then :obj:`torch.utils.data.DataLoader`
-
+    seed : int
+        seed for the data loader generator
     Returns
     -------
     Union[:obj:`deepchecks.vision.VisionData`, :obj:`torch.utils.data.DataLoader`]
@@ -73,7 +75,9 @@ def load_dataset(
 
     """
     batch_size = batch_size or (64 if train else 1000)
-
+    generator = torch.Generator()
+    if seed:
+        generator = generator.manual_seed(seed)
     mean = (0.1307,)
     std = (0.3081,)
     loader = DataLoader(
@@ -89,7 +93,7 @@ def load_dataset(
         batch_size=batch_size,
         shuffle=shuffle,
         pin_memory=pin_memory,
-        generator=torch.Generator().manual_seed(0)
+        generator=generator
     )
 
     if object_type == 'DataLoader':
@@ -123,10 +127,7 @@ def load_model(pretrained: bool = True) -> 'MNistNet':
 
     model = MNistNet()
 
-    if pretrained is False:
-        return model.train()
-
-    dataloader = t.cast(DataLoader, load_dataset(train=True, object_type='DataLoader'))
+    dataloader = t.cast(DataLoader, load_dataset(train=True, object_type='DataLoader', seed=1))
     datasize = len(dataloader.dataset)
 
     loss_fn = nn.CrossEntropyLoss()
@@ -140,7 +141,6 @@ def load_model(pretrained: bool = True) -> 'MNistNet':
     for epoch in range(epochs):
         for batch, (X, y) in enumerate(dataloader):  # pylint: disable=invalid-name
             X, y = X.to('cpu'), y.to('cpu')  # pylint: disable=invalid-name
-
             pred = model(X)
             loss = loss_fn(pred, y)
 
@@ -220,5 +220,4 @@ def mnist_image_formatter(mean, std):
 def mnist_prediction_formatter(batch, model, device):
     """Predict and format predictions of mnist."""
     preds = model.to(device)(batch[0])
-    print(preds[0][0])
     return nn.Softmax(dim=1)(preds)

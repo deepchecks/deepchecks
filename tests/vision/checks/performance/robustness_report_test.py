@@ -44,12 +44,12 @@ def test_mnist(mnist_dataset_train, trained_mnist):
     print(result.value)
     assert_that(result.value, has_entries({
         'RandomBrightnessContrast': has_entries({
-            'Precision': has_entries(score=close_to(0.987, 0.001), diff=close_to(0, 0.001)),
-            'Recall': has_entries(score=close_to(0.984, 0.001), diff=close_to(0, 0.001))
+            'Precision': has_entries(score=close_to(0.983, 0.001), diff=close_to(-0.001, 0.001)),
+            'Recall': has_entries(score=close_to(0.986, 0.001), diff=close_to(0, 0.001))
         }),
         'ShiftScaleRotate': has_entries({
-            'Precision': has_entries(score=close_to(0.785, 0.001), diff=close_to(-0.204, 0.001)),
-            'Recall': has_entries(score=close_to(0.784, 0.001), diff=close_to(-0.203, 0.001))
+            'Precision': has_entries(score=close_to(0.801, 0.001), diff=close_to(-0.185, 0.001)),
+            'Recall': has_entries(score=close_to(0.756, 0.001), diff=close_to(-0.232, 0.001))
         }),
     }))
 
