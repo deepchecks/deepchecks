@@ -145,7 +145,7 @@ class SimpleModelComparison(TrainTestCheck):
         """Update the metrics for the check."""
         if dataset_kind == DatasetKind.TEST:
             dataset = context.get_data_by_kind(dataset_kind)
-            label = dataset.label_transformer(batch)
+            label = dataset.label_formatter(batch)
             prediction = context.infer(batch)
             for _, metric in self._state[DatasetKind.TEST.value].items():
                 metric.update((prediction, label))
