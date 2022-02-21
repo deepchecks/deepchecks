@@ -29,7 +29,29 @@ DEFAULT_IMAGE_PROPERTIES = ['aspect_ratio',
                             'normalized_blue_mean']
 
 
-class ImageDatasetDrift(TrainTestCheck):
+class SimpleFeatureContributionTrainTest(TrainTestCheck):
+    """
+    Return the Predictive Power Score of all features, in order to estimate each feature's ability to predict the label.
+
+    The PPS represents the ability of a feature to single-handedly predict another feature or label.
+    In this check, we specifically use it to assess the ability of each feature to predict the label.
+    A high PPS (close to 1) can mean that this feature's success in predicting the label is actually due to data
+    leakage - meaning that the feature holds information that is based on the label to begin with.
+
+    When we compare train PPS to test PPS, A high difference can strongly indicate leakage,
+    as a feature that was "powerful" in train but not in test can be explained by leakage in train that does
+    not affect a new dataset.
+
+    Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
+
+    Parameters
+    ----------
+    ppscore_params : dict , default: None
+        dictionary of additional parameters for the ppscore predictor function
+    n_show_top : int , default: 5
+        Number of features to show, sorted by the magnitude of difference in PPS
+    """
+
     """
     Calculate drift between the entire train and test datasets (based on image properties) using a trained model.
 
