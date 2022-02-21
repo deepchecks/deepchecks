@@ -10,12 +10,12 @@
 #
 """Module contains Train Test label Drift check."""
 from copy import copy
-from typing import Dict, Hashable, Callable, Tuple, List, Union, Any, Iterable
+from typing import Dict, Hashable, Callable, Tuple, List, Union, Any, Iterable, Optional
 
 import cv2
 import torch
 
-from deepchecks.vision.utils.image_functions import numpy_to_image_figure
+from deepchecks.vision.utils.image_functions import numpy_greyscale_to_heatmap_figure, apply_heatmap_image_properties
 from plotly.subplots import make_subplots
 
 from deepchecks.core import DatasetKind, CheckResult
@@ -33,72 +33,40 @@ __all__ = ['HeatmapComparison']
 
 class HeatmapComparison(TrainTestCheck):
     """
-    Calculate label drift between train dataset and test dataset, using statistical measures.
+    Check if the average image brightness (or bbox location if applicable) is similar between train and test set.
 
-    Check calculates a drift score for the label in test dataset, by comparing its distribution to the train
-    dataset. As the label may be complex, we run different measurements on the label and check their distribution.
-
-    A measurement on a label is any function that returns a single value or n-dimensional array of values. each value
-    represents a measurement on the label, such as number of objects in image or tilt of each bounding box in image.
-
-    There are default measurements per task:
-    For classification:
-    - distribution of classes
-
-    For object detection:
-    - distribution of classes
-    - distribution of bounding box areas
-    - distribution of number of bounding boxes per image
-
-    For numerical distributions, we use the Earth Movers Distance.
-    See https://en.wikipedia.org/wiki/Wasserstein_metric
-    For categorical distributions, we use the Population Stability Index (PSI).
-    See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
-
+    The check computes the average greyscale image per dataset (train and test) and compares the resulting images.
+    This comparison may serve to visualize differences in the statistics of the datasets. Additionally, in case of an
+    object detection task, the check will compare the average locations of the bounding boxes between the datasets.
 
     Parameters
     ----------
-    alternative_label_measurements : List[Dict[str, Any]], default: 10
-        List of measurements. Replaces the default deepchecks measurements.
-        Each measurement is dictionary with keys 'name' (str), 'method' (Callable) and is_continuous (bool),
-        representing attributes of said method.
-    min_sample_size: int, default: None
-        number of minimum samples (not batches) to be accumulated in order to estimate the boundaries (min, max) of
-        continuous histograms. As the check cannot load all label measurement results into memory, the check saves only
-        the histogram of results - but prior to that, the check requires to know the estimated boundaries of train AND
-        test datasets (they must share an x-axis).
-    default_num_bins: int, default: 100
-        number of bins to use for continuous distributions. This value is not used if the distribution has less unique
-        values than default number of bins (and instead, number of unique values is used).
+    classes_to_display : Optional[List[float]], default: None
+        List of classes to display in bounding box heatmap. Applies only for object detection tasks. If None, all
+        classes are displayed.
     """
 
     def __init__(self,
-                 n_sample: int = 1_000,
-                 random_state: int = 42):
+                 classes_to_display: Optional[List[float]] = None):
         super().__init__()
-        self.n_sample = n_sample
-        self.random_state = random_state
+        self.classes_to_display = classes_to_display
 
     def initialize_run(self, context: Context):
         """Initialize run.
 
         Function initializes the following private variables:
 
-        Label measurements:
-        _label_measurements: all label measurements to be calculated in run
-        _continuous_label_measurements: all continuous label measurements
-        _discrete_label_measurements: all discrete label measurements
+        - self._task_type: TaskType
+        - self._train_greyscale_heatmap: variable aggregating the average training greyscale image
+        - self._test_greyscale_heatmap: variable aggregating the average test greyscale image
+        - self._shape: List containing the target image shape (determined by the first image encountered)
+        - self._train_counter: Number of training images aggregated
+        - self._test_counter: Number of test images aggregated
 
-        Value counts of measures, to be updated per batch:
-        _train_hists, _test_hists: histograms for continuous measurements for train and test respectively.
-            Initialized as list of empty histograms (np.array) that update in the "update" method per batch.
-        _train_counters, _test_counters: counters for discrete measurements for train and test respectively.
-            Initialized as list of empty counters (collections.Counter) that update in the "update" method per batch.
+        If task is object detection, we also initialize the following variables:
 
-        Parameters for continuous measurements' histogram calculation:
-        _bounds_list: List[Tuple]. Each tuple represents histogram bounds (min, max)
-        _num_bins_list: List[int]. List of number of bins for each histogram.
-        _edges: List[np.array]. List of x-axis values for each histogram.
+        - self._train_bbox_heatmap: variable aggregating the average training bounding box heatmap
+        - self._test_bbox_heatmap: variable aggregating the average test bounding box heatmap
         """
         train_dataset = context.train
 
@@ -133,11 +101,13 @@ class HeatmapComparison(TrainTestCheck):
             else:
                 self._test_greyscale_heatmap += summed_image
             self._test_counter += len(image_batch)
+        else:
+            raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
         if self._task_type == TaskType.OBJECT_DETECTION:
             if dataset_kind == DatasetKind.TRAIN:
                 label_batch = context.train.label_formatter(batch)
-                label_image_batch = label_to_image_batch(label_batch, self._shape)
+                label_image_batch = label_to_image_batch(label_batch, image_batch, self.classes_to_display)
                 summed_image = greyscale_sum_image(label_image_batch, self._shape)
                 if self._train_bbox_heatmap is None:
                     self._train_bbox_heatmap = summed_image
@@ -145,7 +115,7 @@ class HeatmapComparison(TrainTestCheck):
                     self._train_bbox_heatmap += summed_image
             elif dataset_kind == DatasetKind.TEST:
                 label_batch = context.test.label_formatter(batch)
-                label_image_batch = label_to_image_batch(label_batch, self._shape)
+                label_image_batch = label_to_image_batch(label_batch, image_batch, self.classes_to_display)
                 summed_image = greyscale_sum_image(label_image_batch, self._shape)
                 if self._test_bbox_heatmap is None:
                     self._test_bbox_heatmap = summed_image
@@ -153,62 +123,88 @@ class HeatmapComparison(TrainTestCheck):
                     self._test_bbox_heatmap += summed_image
 
     def compute(self, context: Context) -> CheckResult:
-        """Calculate drift for all columns.
+        """Create the average images and display them.
 
         Returns
         -------
         CheckResult
-            value: drift score.
-            display: label distribution graph, comparing the train and test distributions.
+            value: The difference images. One for average image brightness, and one for bbox locations if applicable.
+            display: Heatmaps for image brightness (train, test, diff) and heatmap for bbox locations if applicable.
         """
         train_greyscale = (np.expand_dims(self._train_greyscale_heatmap, axis=2) /
                            self._train_counter).astype(np.uint8)
         test_greyscale = (np.expand_dims(self._test_greyscale_heatmap, axis=2) /
                           self._test_counter).astype(np.uint8)
-        train_bbox = (np.expand_dims(self._train_bbox_heatmap, axis=2) /
-                      self._train_counter).astype(np.uint8)
-        test_bbox = (np.expand_dims(self._test_bbox_heatmap, axis=2) /
-                     self._test_counter).astype(np.uint8)
+
+        display = [self.plot_row_of_heatmaps(train_greyscale, test_greyscale, 'Compare average image brightness')]
+        display[0].update_layout(coloraxis={'colorscale': 'Inferno', 'cmin': 0, 'cmax': 255},
+                                 coloraxis_colorbar={'title': 'Pixel Value'})
+        value = {
+            'diff': image_diff(test_greyscale, train_greyscale)
+        }
 
         if self._task_type == TaskType.OBJECT_DETECTION:
-            n_rows = 2
-            row_titles = ['Brightness', 'BBox Heatmap']
-        else:
-            n_rows = 1
-            row_titles = ['Brightness']
+            # bbox image values are frequency, between 0 and 100
+            train_bbox = (100 * np.expand_dims(self._train_bbox_heatmap, axis=2) /
+                          self._train_counter / 255).astype(np.uint8)
+            test_bbox = (100 * np.expand_dims(self._test_bbox_heatmap, axis=2) /
+                         self._test_counter / 255).astype(np.uint8)
+            display.append(
+                self.plot_row_of_heatmaps(train_bbox, test_bbox, 'Compare average label bbox locations')
+            )
+            display[1].update_layout(coloraxis={'colorscale': 'Inferno', 'cmin': 0, 'cmax': 100},
+                                     coloraxis_colorbar={'title': '% Coverage'})
+            value['diff_bbox'] = image_diff(test_bbox, train_bbox)
 
-        fig = make_subplots(rows=n_rows, cols=2, column_titles=['Train', 'Test'], row_titles=row_titles)
-        fig.add_trace(numpy_to_image_figure(train_greyscale), row=1, col=1)
-        fig.add_trace(numpy_to_image_figure(test_greyscale), row=1, col=2)
-        if n_rows == 2:
-            fig.add_trace(numpy_to_image_figure(train_bbox), row=2, col=1)
-            fig.add_trace(numpy_to_image_figure(test_bbox), row=2, col=2)
+        return CheckResult(value=value,
+                           display=[fig.to_image('svg', width=900, height=300).decode('utf-8') for fig in display],
+                           header='Heatmap Comparison')
+
+    @staticmethod
+    def plot_row_of_heatmaps(train_img: np.ndarray, test_img: np.ndarray, title: str) -> go.Figure:
+        """Plot a row of heatmaps for train and test images."""
+        fig = make_subplots(rows=1, cols=3, column_titles=['Train', 'Test', 'Test - Train'])
+        fig.add_trace(numpy_greyscale_to_heatmap_figure(train_img), row=1, col=1)
+        fig.add_trace(numpy_greyscale_to_heatmap_figure(test_img), row=1, col=2)
+        fig.add_trace(numpy_greyscale_to_heatmap_figure(image_diff(test_img, train_img)), row=1, col=3)
         fig.update_yaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
         fig.update_xaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
-        fig.update_layout(title='Comparing average images for train and test', width=600, height=300 * n_rows)
+        fig.update_layout(title=title, width=900, height=300)
+        apply_heatmap_image_properties(fig)
+        return fig
 
-        return CheckResult(value=None, display=[fig], header='Heatmap Comparison')
+
+def image_diff(img1: np.ndarray, img2: np.ndarray) -> np.ndarray:
+    """Return the difference between two greyscale images as a greyscale image."""
+    diff = img1.astype(np.int32) - img2.astype(np.int32)
+    return np.abs(diff).astype(np.uint8)
 
 
-def label_to_image(label: np.ndarray, shape: List[Tuple[int, int]]) -> np.ndarray:
+def label_to_image(label: np.ndarray, original_shape: Tuple[int], classes_to_display: Optional[List[int]]
+                   ) -> np.ndarray:
     """Convert label array to an image where pixels inside the bboxes are white and the rest are black."""
-    image = np.zeros(shape[0], dtype=np.uint8)
+    image = np.zeros(original_shape, dtype=np.uint8)
     label = label.reshape((-1, 5))
+    class_idx = label[:, 0]
     x_min = (label[:, 1]).astype(np.int32)
     y_min = (label[:, 2]).astype(np.int32)
     x_max = (label[:, 1] + label[:, 3]).astype(np.int32)
     y_max = (label[:, 2] + label[:, 4]).astype(np.int32)
     for i in range(len(label)):
+        # If classes_to_display is set, don't display the bboxes for classes not in the list.
+        if classes_to_display is not None and class_idx[i] not in classes_to_display:
+            continue
         image[y_min[i]:y_max[i], x_min[i]:x_max[i]] = 255
     return np.expand_dims(image, axis=2)
 
 
-def label_to_image_batch(label_batch: List[torch.Tensor], shape: List[Tuple[int, int]]) -> List[np.ndarray]:
+def label_to_image_batch(label_batch: List[torch.Tensor], image_batch: List[np.ndarray],
+                         classes_to_display: Optional[List[int]]) -> List[np.ndarray]:
     """Convert label batch to batch of images where pixels inside the bboxes are white and the rest are black."""
-    image_batch = []
-    for label in label_batch:
-        image_batch.append(label_to_image(label.detach().cpu().numpy(), shape))
-    return image_batch
+    return_bbox_image_batch = []
+    for image, label in zip(image_batch, label_batch):
+        return_bbox_image_batch.append(label_to_image(label.detach().cpu().numpy(), image.shape[:2], classes_to_display))
+    return return_bbox_image_batch
 
 
 def greyscale_sum_image(batch: Iterable[np.ndarray], target_shape: List[Tuple[int, int]] = None
@@ -248,8 +244,8 @@ def greyscale_sum_image(batch: Iterable[np.ndarray], target_shape: List[Tuple[in
 
         # sum images
         if summed_image is None:
-            summed_image = resized_img.astype(np.int64)
+            summed_image = resized_img.squeeze().astype(np.int64)
         else:
-            summed_image += resized_img.astype(np.int64)
+            summed_image += resized_img.squeeze().astype(np.int64)
 
     return summed_image

@@ -19,7 +19,8 @@ import torch
 from deepchecks.core.errors import DeepchecksValueError
 
 
-__all__ = ['ImageInfo', 'numpy_to_image_figure', 'label_bbox_add_to_figure']
+__all__ = ['ImageInfo', 'numpy_to_image_figure', 'label_bbox_add_to_figure', 'numpy_greyscale_to_heatmap_figure',
+           'apply_heatmap_image_properties']
 
 
 class ImageInfo:
@@ -54,6 +55,22 @@ def numpy_to_image_figure(data: np.ndarray):
     return go.Image(z=data, hoverinfo='skip')
 
 
+def numpy_greyscale_to_heatmap_figure(data: np.ndarray):
+    """Create heatmap graph object from given numpy array data."""
+    dimension = data.shape[2]
+    if dimension == 3:
+        data = cv2.cvtColor(data, cv2.COLOR_RGB2GRAY)
+    elif dimension != 1:
+        raise DeepchecksValueError(f'Don\'t know to plot images with {dimension} dimensions')
+    return go.Heatmap(z=data.squeeze(), hoverinfo='skip', coloraxis="coloraxis")
+
+
+def apply_heatmap_image_properties(fig):
+    """For heatmap and grayscale images, need to add those properties which on Image exists automatically."""
+    fig.update_yaxes(autorange='reversed', scaleanchor='x', constrain='domain')
+    fig.update_xaxes(constrain='domain')
+
+
 def label_bbox_add_to_figure(label: torch.Tensor, figure, row=None, col=None, color='red',
                              prediction=False):
     """Add a bounding box label and rectangle to given figure."""
@@ -65,11 +82,3 @@ def label_bbox_add_to_figure(label: torch.Tensor, figure, row=None, col=None, co
         figure.add_shape(type='rect', x0=x, y0=y, x1=x+w, y1=y+h, row=row, col=col, line=dict(color=color))
         figure.add_annotation(x=x + w / 2, y=y, text=str(clazz), showarrow=False, yshift=10, row=row, col=col,
                               font=dict(color=color))
-
-
-def label_bbox_full_add_to_figure(label: torch.Tensor, figure, row=None, col=None, opacity=0.3):
-    """Add full and transparent bounding box label and rectangle to given figure."""
-    for single in label:
-        _, x, y, w, h = single.tolist()
-        figure.add_shape(type='rect', x0=x, y0=y, x1=x+w, y1=y+h, row=row, col=col, fillcolor='blue', opacity=opacity,
-                         line_width=0)
