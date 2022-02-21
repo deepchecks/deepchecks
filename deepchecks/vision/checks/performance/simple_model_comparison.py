@@ -26,10 +26,10 @@ from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_
 __all__ = ['SimpleModelComparison']
 
 _allowed_strategies = (
-    "most_frequent",
-    "prior",
-    "stratified",
-    "uniform"
+    'most_frequent',
+    'prior',
+    'stratified',
+    'uniform'
 )
 
 
@@ -86,8 +86,7 @@ class SimpleModelComparison(TrainTestCheck):
 
         if self.strategy not in _allowed_strategies:
             raise DeepchecksValueError(
-                "Unknown strategy type: %s, expected one of %s."
-                % (self.strategy, _allowed_strategies)
+                f'Unknown strategy type: {self.strategy}, expected one of{_allowed_strategies}.'
             )
 
         self.alternative_metrics = alternative_metrics
@@ -105,7 +104,7 @@ class SimpleModelComparison(TrainTestCheck):
                                            '["best", "worst"], metric_to_show_by must be specified.')
 
         self.metric_to_show_by = metric_to_show_by
-        self._state = dict()
+        self._state = {}
 
     def initialize_run(self, context: Context):
         """Initialize the metrics for the check, and validate task type is relevant."""
@@ -136,14 +135,14 @@ class SimpleModelComparison(TrainTestCheck):
                     lambda: torch.from_numpy(np.ones(context.train.n_of_classes) / context.train.n_of_classes)
             else:
                 raise DeepchecksValueError(
-                    "Unknown strategy type: %s, expected one of %s."
-                    % (self.strategy, _allowed_strategies)
+                    f'Unknown strategy type: {self.strategy}, expected one of {_allowed_strategies}.'
                 )
 
         if not self.metric_to_show_by:
             self.metric_to_show_by = list(self._state[DatasetKind.TEST.value].keys())[0]
 
     def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
+        """Update the metrics for the check."""
         if dataset_kind == DatasetKind.TEST:
             dataset = context.get_data_by_kind(dataset_kind)
             label = dataset.label_transformer(batch)
@@ -157,6 +156,7 @@ class SimpleModelComparison(TrainTestCheck):
                 metric.update((torch.stack(pred), label))
 
     def compute(self, context: Context) -> CheckResult:
+        """Compute the metrics for the check."""
         results = []
         for eval_kind in [DatasetKind.TEST.value, 'Simple Model']:
             dataset = context.get_data_by_kind(DatasetKind.TEST)
@@ -193,9 +193,9 @@ class SimpleModelComparison(TrainTestCheck):
 
         fig = (
             fig.update_xaxes(title=None, type='category')
-                .update_yaxes(title=None, matches=None)
-                .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-                .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+            .update_yaxes(title=None, matches=None)
+            .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+            .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
         )
 
         return CheckResult(
