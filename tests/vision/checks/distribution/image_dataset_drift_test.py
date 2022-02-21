@@ -9,10 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the VISION train test label drift."""
-from hamcrest import assert_that, has_entries, close_to, equal_to, raises, calling
+from hamcrest import assert_that, has_entries, close_to, equal_to
 
 import numpy as np
-from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import VisionData
 from deepchecks.vision.checks import ImageDatasetDrift
 from deepchecks.vision.utils import ImageFormatter, DetectionLabelFormatter
@@ -45,10 +44,10 @@ def test_no_drift_grayscale(mnist_dataset_train):
 
     # Assert
     assert_that(result.value, has_entries({
-        'domain_classifier_auc': close_to(0.484, 0.001),
+        'domain_classifier_auc': close_to(0.494, 0.001),
         'domain_classifier_drift_score': equal_to(0),
         'domain_classifier_feature_importance': has_entries({
-            'brightness': equal_to(0),
+            'brightness': equal_to(1),
             'aspect_ratio': equal_to(0),
             'area': equal_to(0),
             'normalized_red_mean': equal_to(0),
@@ -70,8 +69,8 @@ def test_drift_grayscale(mnist_dataset_train, mnist_dataset_test):
 
     # Assert
     assert_that(result.value, has_entries({
-        'domain_classifier_auc': close_to(0.524, 0.001),
-        'domain_classifier_drift_score': close_to(0.048, 0.001),
+        'domain_classifier_auc': close_to(0.509, 0.001),
+        'domain_classifier_drift_score': close_to(0.019, 0.001),
         'domain_classifier_feature_importance': has_entries({
             'brightness': equal_to(1),
             'aspect_ratio': equal_to(0),
@@ -128,8 +127,8 @@ def test_with_drift_rgb(coco_train_dataloader, coco_test_dataloader):
 
     # Assert
     assert_that(result.value, has_entries({
-        'domain_classifier_auc': close_to(0.572, 0.001),
-        'domain_classifier_drift_score': close_to(0.144, 0.001),
+        'domain_classifier_auc': close_to(0.747, 0.001),
+        'domain_classifier_drift_score': close_to(0.494, 0.001),
         'domain_classifier_feature_importance': has_entries({
             'brightness': close_to(1, 0.01),
             'aspect_ratio': equal_to(0),
