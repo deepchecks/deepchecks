@@ -97,8 +97,7 @@ class ImageDatasetDrift(TrainTestCheck):
             properties = self._test_properties
 
         imgs = dataset.image_formatter(batch)
-        for index, img in enumerate(imgs):
-            print(f'{index}: {img.mean()}')
+        print(imgs[0][0].tolist())
         for func_name in self.image_properties:
             image_property_function = dataset.image_formatter.__getattribute__(func_name)
             properties[func_name] += image_property_function(imgs)
