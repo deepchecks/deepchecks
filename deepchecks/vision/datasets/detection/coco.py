@@ -195,6 +195,8 @@ class CocoDataset(VisionDataset):
     def __getitem__(self, idx: int) -> t.Tuple[Image.Image, np.ndarray]:
         """Get the image and label at the given index."""
         img = Image.open(self.images[idx]).convert('RGB')
+        if idx == 0:
+            print(np.array(img)[0].tolist())
         label_file = self.labels[idx]
 
         if label_file is not None:
