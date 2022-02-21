@@ -102,6 +102,7 @@ class RobustnessReport(SingleDatasetCheck):
         # TODO: update later the way we handle average metrics
         # Return dict of metric to value
         base_mean_results: dict = self._calc_median_metrics(base_results)
+        print(base_mean_results)
         # Get augmentations
         augmentations = self.augmentations or transforms_handler.get_robustness_augmentations(dataset.data_dimension)
         aug_all_data = {}
