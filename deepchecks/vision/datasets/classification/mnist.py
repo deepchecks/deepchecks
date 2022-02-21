@@ -220,4 +220,6 @@ def mnist_image_formatter(mean, std):
 def mnist_prediction_formatter(batch, model, device):
     """Predict and format predictions of mnist."""
     preds = model.to(device)(batch[0])
+    print('pred: ' + str(preds[0][0]))
+    print('batch: ' + str(batch[0][0].mean()))
     return nn.Softmax(dim=1)(preds)
