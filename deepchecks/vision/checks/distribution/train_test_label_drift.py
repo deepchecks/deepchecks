@@ -252,11 +252,12 @@ class TrainTestLabelDrift(TrainTestCheck):
 
             values_dict[d['name']] = {'Drift score': drift_score, 'Method': method}
             displays.append(display)
-
-        headnote = f"""<span>
-            The Drift score is a measure for the difference between two distributions. In this check, drift is measured
-            for the distribution of the following label properties: {[x['name'] for x in self._label_measurements]}.
-        </span>"""
+        label_properties = [x['name'] for x in self._label_measurements]
+        headnote = '<span>' \
+                   'The Drift score is a measure for the difference between two distributions. ' \
+                   'In this check, drift is measured ' \
+                   f'for the distribution of the following label properties: {label_properties}.' \
+                   '</span>'
 
         displays = [headnote] + displays
 
@@ -312,9 +313,9 @@ def calculate_continuous_histograms_in_batch(batch, hists, continuous_label_meas
     return hists
 
 
-def get_results_on_batch(batch, label_measurement, dataset):
+def get_results_on_batch(batch, label_measurement, dataset: VisionData):
     """Calculate transformer result on batch of labels."""
-    calc_res = [label_measurement(arr, dataset) for arr in dataset.label_transformer(batch)]
+    calc_res = [label_measurement(arr, dataset) for arr in dataset.label_formatter(batch)]
     if len(calc_res) != 0 and isinstance(calc_res[0], list):
         calc_res = [x[0] for x in sum(calc_res, [])]
     return calc_res
