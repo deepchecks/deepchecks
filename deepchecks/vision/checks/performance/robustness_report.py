@@ -77,7 +77,8 @@ class RobustnessReport(SingleDatasetCheck):
         label = dataset.label_formatter(batch)
         # Using context.infer to get cached prediction if exists
         prediction = context.infer(batch)
-        print(prediction)
+        print('batch: ' + str(batch[0][0].mean()))
+        print('pred: ' + str(prediction[0][0]))
         for _, metric in self._state['metrics'].items():
             metric.update((prediction, label))
 
