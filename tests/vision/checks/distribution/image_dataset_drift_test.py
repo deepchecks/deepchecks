@@ -12,7 +12,7 @@
 from hamcrest import assert_that, has_entries, close_to, equal_to, raises, calling
 
 import numpy as np
-import torch
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import VisionData
 from deepchecks.vision.checks import ImageDatasetDrift
 from deepchecks.vision.utils import ImageFormatter, DetectionLabelFormatter
@@ -71,10 +71,10 @@ def test_drift_grayscale(mnist_dataset_train, mnist_dataset_test):
 def test_no_drift_rgb(coco_train_dataloader, coco_test_dataloader):
     # Arrange
     set_seeds(42)
-    train = VisionData(coco_train_dataloader, image_transformer=ImageFormatter(pil_formatter),
-                       label_transformer=DetectionLabelFormatter())
-    test = VisionData(coco_test_dataloader, image_transformer=ImageFormatter(pil_formatter),
-                      label_transformer=DetectionLabelFormatter())
+    train = VisionData(coco_train_dataloader, image_formatter=ImageFormatter(pil_formatter),
+                       label_formatter=DetectionLabelFormatter())
+    test = VisionData(coco_test_dataloader, image_formatter=ImageFormatter(pil_formatter),
+                      label_formatter=DetectionLabelFormatter())
 
     check = ImageDatasetDrift()
 
@@ -92,10 +92,10 @@ def test_no_drift_rgb(coco_train_dataloader, coco_test_dataloader):
 def test_with_drift_rgb(coco_train_dataloader, coco_test_dataloader):
     # Arrange
     set_seeds(42)
-    train = VisionData(coco_train_dataloader, image_transformer=ImageFormatter(pil_drift_formatter),
-                       label_transformer=DetectionLabelFormatter())
-    test = VisionData(coco_test_dataloader, image_transformer=ImageFormatter(pil_formatter),
-                      label_transformer=DetectionLabelFormatter())
+    train = VisionData(coco_train_dataloader, image_formatter=ImageFormatter(pil_drift_formatter),
+                       label_formatter=DetectionLabelFormatter())
+    test = VisionData(coco_test_dataloader, image_formatter=ImageFormatter(pil_formatter),
+                      label_formatter=DetectionLabelFormatter())
 
     check = ImageDatasetDrift()
 

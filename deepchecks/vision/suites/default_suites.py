@@ -13,7 +13,8 @@
 Each function returns a new suite that is initialized with a list of checks and default conditions.
 It is possible to customize these suites by editing the checks and conditions inside it after the suites' creation.
 """
-from deepchecks.vision.checks import ClassPerformance, TrainTestLabelDrift
+from deepchecks.vision.checks import ClassPerformance, TrainTestLabelDrift, MeanAveragePrecisionReport, \
+                                     MeanAverageRecallReport
 from deepchecks.vision import Suite
 
 
@@ -33,7 +34,9 @@ def model_evaluation() -> Suite:
     """Create a suite that is meant to test model performance and overfit."""
     return Suite(
         'Model Evaluation Suite',
-        ClassPerformance()
+        ClassPerformance().add_condition_test_performance_not_less_than(0.5),
+        MeanAveragePrecisionReport().add_condition_test_average_precision_not_less_than(0.5),
+        MeanAverageRecallReport().add_condition_test_average_recall_not_less_than(0.5),
     )
 
 
