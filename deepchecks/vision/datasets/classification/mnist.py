@@ -160,6 +160,9 @@ def load_model(pretrained: bool = True) -> 'MNistNet':
     if not MODELS_DIR.exists():
         MODELS_DIR.mkdir()
 
+    print('MODEL WEIGHTS')
+    print(model.conv1.state_dict()['weight'][0][0][0])
+    print(model.conv1.state_dict()['weight'].mean())
     torch.save(model.state_dict(), MODEL_PATH)
     model.eval()
     return model
