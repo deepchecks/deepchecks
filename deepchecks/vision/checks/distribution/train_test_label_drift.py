@@ -30,36 +30,36 @@ __all__ = ['TrainTestLabelDrift']
 # TODO: Add label sampling when available
 
 # Functions temporarily here, will be changed when Label and Prediction classes exist:
-def get_bbox_area(label):
+def _get_bbox_area(label, _):
     """Return a list containing the area of bboxes per image in batch."""
     areas = (label.reshape((-1, 5))[:, 4] * label.reshape((-1, 5))[:, 3]).reshape(-1, 1).tolist()
     return areas
 
 
-def count_num_bboxes(label):
+def _count_num_bboxes(label, _):
     """Return a list containing the number of bboxes per image in batch."""
     num_bboxes = label.shape[0]
     return num_bboxes
 
 
-def get_samples_per_class_classification(label):
+def _get_samples_per_class_classification(label, dataset):
     """Return a list containing the class per image in batch."""
-    return label.tolist()
+    return dataset.label_id_to_name(label.tolist())
 
 
-def get_samples_per_class_object_detection(label):
+def _get_samples_per_class_object_detection(label, dataset):
     """Return a list containing the class per image in batch."""
-    return [arr.reshape((-1, 5))[:, 0].tolist() for arr in label]
+    return [[dataset.label_id_to_name(arr.reshape((-1, 5))[:, 0])] for arr in label]
 
 
 DEFAULT_CLASSIFICATION_LABEL_MEASUREMENTS = [
-    {'name': 'Samples per class', 'method': get_samples_per_class_classification, 'is_continuous': False}
+    {'name': 'Samples per class', 'method': _get_samples_per_class_classification, 'is_continuous': False}
 ]
 
 DEFAULT_OBJECT_DETECTION_LABEL_MEASUREMENTS = [
-    {'name': 'Samples per class', 'method': get_samples_per_class_object_detection, 'is_continuous': False},
-    {'name': 'Bounding box area (in pixels)', 'method': get_bbox_area, 'is_continuous': True},
-    {'name': 'Number of bounding boxes per image', 'method': count_num_bboxes, 'is_continuous': True},
+    {'name': 'Samples per class', 'method': _get_samples_per_class_object_detection, 'is_continuous': False},
+    {'name': 'Bounding box area (in pixels)', 'method': _get_bbox_area, 'is_continuous': True},
+    {'name': 'Number of bounding boxes per image', 'method': _count_num_bboxes, 'is_continuous': True},
 ]
 
 
@@ -188,20 +188,20 @@ class TrainTestLabelDrift(TrainTestCheck):
             self._train_hists = calculate_continuous_histograms_in_batch(batch, self._train_hists,
                                                                          self._continuous_label_measurements,
                                                                          self._bounds_list, self._num_bins_list,
-                                                                         train_dataset.label_transformer)
+                                                                         train_dataset)
             self._train_counters = calculate_discrete_histograms_in_batch(batch, self._train_counters,
                                                                           self._discrete_label_measurements,
-                                                                          train_dataset.label_transformer)
+                                                                          train_dataset)
 
         elif dataset_kind == DatasetKind.TEST:
             test_dataset = context.test
             self._test_hists = calculate_continuous_histograms_in_batch(batch, self._test_hists,
                                                                         self._continuous_label_measurements,
                                                                         self._bounds_list, self._num_bins_list,
-                                                                        test_dataset.label_transformer)
+                                                                        test_dataset)
             self._test_counters = calculate_discrete_histograms_in_batch(batch, self._test_counters,
                                                                          self._discrete_label_measurements,
-                                                                         test_dataset.label_transformer)
+                                                                         test_dataset)
         else:
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
@@ -218,10 +218,12 @@ class TrainTestLabelDrift(TrainTestCheck):
         all_discrete_categories = [list(set(train_counter.keys()).union(set(test_counter.keys())))
                                    for train_counter, test_counter in zip(self._train_counters, self._test_counters)]
 
-        train_discrete_hists = iter([{k: self._train_counters[i][k] for k in all_discrete_categories[i]} for i in
-                                     range(len(self._discrete_label_measurements))])
-        test_discrete_hists = iter([{k: self._test_counters[i][k] for k in all_discrete_categories[i]} for i in
-                                    range(len(self._discrete_label_measurements))])
+        train_discrete_hists = iter([{k: self._train_counters[i][k]
+                                      for k in all_discrete_categories[i]}
+                                    for i in range(len(self._discrete_label_measurements))])
+        test_discrete_hists = iter([{k: self._test_counters[i][k]
+                                     for k in all_discrete_categories[i]}
+                                    for i in range(len(self._discrete_label_measurements))])
 
         # Transform continuous histograms into dict:
         train_continuous_hists = iter(
@@ -250,11 +252,12 @@ class TrainTestLabelDrift(TrainTestCheck):
 
             values_dict[d['name']] = {'Drift score': drift_score, 'Method': method}
             displays.append(display)
-
-        headnote = f"""<span>
-            The Drift score is a measure for the difference between two distributions. In this check, drift is measured
-            for the distribution of the following label properties: {[x['name'] for x in self._label_measurements]}.
-        </span>"""
+        label_properties = [x['name'] for x in self._label_measurements]
+        headnote = '<span>' \
+                   'The Drift score is a measure for the difference between two distributions. ' \
+                   'In this check, drift is measured ' \
+                   f'for the distribution of the following label properties: {label_properties}.' \
+                   '</span>'
 
         displays = [headnote] + displays
 
@@ -292,28 +295,27 @@ def adjust_bounds_and_bins(bounds: List[Tuple[float, float]], default_num_bins: 
     return bounds, bins
 
 
-def calculate_discrete_histograms_in_batch(batch, counters, discrete_label_measurements, label_transformer):
+def calculate_discrete_histograms_in_batch(batch, counters, discrete_label_measurements, dataset):
     """Calculate discrete histograms by batch."""
     for i in range(len(discrete_label_measurements)):
-        calc_res = get_results_on_batch(batch, discrete_label_measurements[i], label_transformer)
+        calc_res = get_results_on_batch(batch, discrete_label_measurements[i], dataset)
         counters[i].update(calc_res)
     return counters
 
 
 def calculate_continuous_histograms_in_batch(batch, hists, continuous_label_measurements, bounds, bins,
-                                             label_transformer):
+                                             dataset):
     """Calculate continuous histograms by batch."""
     for i in range(len(continuous_label_measurements)):
-        calc_res = get_results_on_batch(batch, continuous_label_measurements[i], label_transformer)
+        calc_res = get_results_on_batch(batch, continuous_label_measurements[i], dataset)
         new_hist, _ = np.histogram(calc_res, bins=bins[i], range=(bounds[i][0], bounds[i][1]))
         hists[i] += new_hist
     return hists
 
 
-def get_results_on_batch(batch, label_measurement, label_transformer):
+def get_results_on_batch(batch, label_measurement, dataset: VisionData):
     """Calculate transformer result on batch of labels."""
-    list_of_arrays = batch[1]
-    calc_res = [label_measurement(arr) for arr in label_transformer(list_of_arrays)]
+    calc_res = [label_measurement(arr, dataset) for arr in dataset.label_formatter(batch)]
     if len(calc_res) != 0 and isinstance(calc_res[0], list):
         calc_res = [x[0] for x in sum(calc_res, [])]
     return calc_res
@@ -326,7 +328,7 @@ def get_boundaries_by_batch(dataset: VisionData, label_measurements: List[Callab
     num_samples = 0
     for batch in dataset.get_data_loader():
         for i in range(len(label_measurements)):
-            calc_res = get_results_on_batch(batch, label_measurements[i], dataset.label_transformer)
+            calc_res = get_results_on_batch(batch, label_measurements[i], dataset)
             bounds[i]['min'] = min(calc_res + [bounds[i]['min']])
             bounds[i]['max'] = max(calc_res + [bounds[i]['max']])
 

@@ -61,10 +61,14 @@ def apply_heatmap_image_properties(fig):
     fig.update_traces(showscale=False)
 
 
-def label_bbox_add_to_figure(label: torch.Tensor, figure, row=None, col=None):
+def label_bbox_add_to_figure(label: torch.Tensor, figure, row=None, col=None, color='red',
+                             prediction=False):
     """Add a bounding box label and rectangle to given figure."""
     for single in label:
-        clazz, x, y, w, h = single.tolist()
-        figure.add_shape(type='rect', x0=x, y0=y, x1=x+w, y1=y+h, row=row, col=col, line=dict(color='red'))
+        if prediction:
+            x, y, w, h, _, clazz = single.tolist()
+        else:
+            clazz, x, y, w, h = single.tolist()
+        figure.add_shape(type='rect', x0=x, y0=y, x1=x+w, y1=y+h, row=row, col=col, line=dict(color=color))
         figure.add_annotation(x=x + w / 2, y=y, text=str(clazz), showarrow=False, yshift=10, row=row, col=col,
-                              font=dict(color='red'))
+                              font=dict(color=color))

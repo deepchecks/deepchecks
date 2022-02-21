@@ -9,7 +9,9 @@ from deepchecks.core import CheckResult
 from deepchecks.vision import TrainTestCheck
 from deepchecks.vision import Context
 from deepchecks.vision.utils import ImageFormatter
-from deepchecks.utils.distribution.drift import calc_drift_and_plot
+# from deepchecks.utils.distribution.drift import calc_drift_and_plot
+
+from .train_test_label_drift import calc_drift_and_plot
 
 
 __all__ = ['ImagePropertyDrift',]
@@ -46,11 +48,11 @@ class ImagePropertyDrift(TrainTestCheck):
                 "be unreacheable was reached."
             )
 
-        images = dataset.image_transformer(batch[0])
+        images = dataset.image_formatter(batch)
 
         for name in ImageFormatter.IMAGE_PROPERTIES:
             properties[name].extend(
-                getattr(dataset.image_transformer, name)(images)
+                getattr(dataset.image_formatter, name)(images)
             )
 
     def compute(self, context: Context) -> CheckResult:
@@ -62,8 +64,8 @@ class ImagePropertyDrift(TrainTestCheck):
 
         for property_name in sorted(ImageFormatter.IMAGE_PROPERTIES):
             score, method, figure = calc_drift_and_plot(
-                train_column=df_train[property_name],
-                test_column=df_test[property_name],
+                train_distribution=dict(df_train[property_name].value_counts()),
+                test_distribution=dict(df_test[property_name].value_counts()),
                 column_type='numerical',
                 plot_title=property_name
             )

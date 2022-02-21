@@ -96,7 +96,7 @@ class ImageDatasetDrift(TrainTestCheck):
             dataset = context.test
             properties = self._test_properties
 
-        imgs = dataset.image_transformer(batch[0])
+        imgs = dataset.image_formatter(batch)
         for func_name in self.image_properties:
             properties[func_name] += getattr(dataset.image_transformer, func_name)(imgs)
 

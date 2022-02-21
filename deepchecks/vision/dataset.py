@@ -50,7 +50,9 @@ class VisionData:
         PyTorch DataLoader object. If your data loader is using IterableDataset please see note below.
     num_classes : int, optional
         Number of classes in the dataset. If not provided, will be inferred from the dataset.
-    label_transformer : Union[ClassificationLabelFormatter, DetectionLabelFormatter]
+    label_map : Dict[int, str], optional
+        A dictionary mapping class ids to their names.
+    label_formatter : Union[ClassificationLabelFormatter, DetectionLabelFormatter]
         A callable, transforming a batch of labels returned by the dataloader to a batch of labels in the desired
         format.
     sample_size : int, default: 1,000
@@ -71,17 +73,17 @@ class VisionData:
           the width and height of the bounding box (in pixels) and class_id is the class id of the prediction.
 
     The labels returned by the data loader (e.g. by using next(iter(data_loader))[1]) should be in the specified format,
-    or else the callable label_transformer should be able to transform the labels to the desired format.
+    or else the callable label_formatter should be able to transform the labels to the desired format.
     """
 
-    label_transformer: BaseLabelFormatter
-    image_transformer: ImageFormatter
+    label_formatter: BaseLabelFormatter
     task_type: Optional[TaskType]
     sample_iteration_limit: int
     _data: DataLoader
     _num_classes: Optional[int]
+    _label_map: Optional[Dict[int, str]]
     _samples_per_class: Optional[Dict[Any, int]]
-    _label_valid: Optional[str]
+    _label_invalid: Optional[str]
     _sample_size: int
     _random_seed: int
     _sample_labels: Optional[Any]
@@ -90,55 +92,63 @@ class VisionData:
     def __init__(self,
                  data_loader: DataLoader,
                  num_classes: Optional[int] = None,
-                 label_transformer: BaseLabelFormatter = None,
-                 image_transformer: ImageFormatter = None,
+                 label_formatter: BaseLabelFormatter = None,
+                 image_formatter: ImageFormatter = None,
+                 label_map: Optional[Dict[int, str]] = None,
                  sample_size: int = 1000,
                  random_seed: int = 0,
                  transform_field: Optional[str] = 'transforms'):
         self._data = data_loader
-        self.label_transformer = label_transformer
-        self.image_transformer = image_transformer or ImageFormatter(lambda x: x)
 
-        if self.label_transformer:
-            if isinstance(self.label_transformer, ClassificationLabelFormatter):
+        batch_to_validate = next(iter(self._data))
+        # Validate image transformer
+        if image_formatter:
+            image_formatter.validate_data(batch_to_validate)
+            self._image_formatter = image_formatter
+        else:
+            self._image_formatter = None
+
+        if label_formatter:
+            if isinstance(label_formatter, ClassificationLabelFormatter):
                 self.task_type = TaskType.CLASSIFICATION
-            elif isinstance(self.label_transformer, DetectionLabelFormatter):
+                self.label_formatter = label_formatter
+            elif isinstance(label_formatter, DetectionLabelFormatter):
                 self.task_type = TaskType.OBJECT_DETECTION
+                self.label_formatter = label_formatter
             else:
+                self.label_formatter = None
+                self.task_type = None
+                self._label_invalid = f'Invalid transformer type: {type(self.label_formatter).__name__}'
                 logger.warning('Unknown label transformer type was provided. Only integrity and data checks will run.'
                                'The supported label transformer types are: '
                                '[ClassificationLabelFormatter, DetectionLabelFormatter]')
 
-        self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
-        self.transform_field = transform_field
-
-        if image_transformer is None:
-            self.image_transformer = ImageFormatter(lambda x: x)
+            if self.label_formatter:
+                try:
+                    self.label_formatter.validate_label(batch_to_validate)
+                    self._label_invalid = None
+                except DeepchecksValueError as ex:
+                    self._label_invalid = str(ex)
         else:
-            self.image_transformer = image_transformer
+            self._label_invalid = 'label_formatter parameter was not defined'
 
-        if isinstance(self.label_transformer, ClassificationLabelFormatter):
-            self.task_type = TaskType.CLASSIFICATION
-        elif isinstance(self.label_transformer, DetectionLabelFormatter):
-            self.task_type = TaskType.OBJECT_DETECTION
-        else:
-            self.task_type = None
-            logger.warning('Unknown label transformer type was provided. Only integrity and data checks will run.'
-                           'The supported label transformer types are: '
-                           '[ClassificationLabelFormatter, DetectionLabelFormatter]')
-
-        self._num_classes = num_classes  # if not initialized, then initialized later in n_of_classes
         self._samples_per_class = None
-        if self.label_transformer:
-            # will contain error message if not valid
-            self._label_valid = self.label_transformer.validate_label(self._data)
-        else:
-            self._label_valid = 'label_transformer parameter was not defined'
+        self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
+        self._label_map = label_map
+        self._warned_labels = set()
+        self.transform_field = transform_field
         # Sample dataset properties
         self._sample_data_loader = None
         self._sample_labels = None
         self._sample_size = sample_size
         self._random_seed = random_seed
+
+    @property
+    def image_formatter(self) -> ImageFormatter:
+        """Return the image formatter."""
+        if self._image_formatter:
+            return self._image_formatter
+        raise DeepchecksValueError('No valid image formatter provided')
 
     @property
     def n_of_classes(self) -> int:
@@ -152,7 +162,7 @@ class VisionData:
         """Return a dictionary containing the number of samples per class."""
         if self._samples_per_class is None:
             if self.task_type in [TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION]:
-                self._samples_per_class = self.label_transformer.get_samples_per_class(self._data)
+                self._samples_per_class = self.label_formatter.get_samples_per_class(self._data)
             else:
                 raise NotImplementedError(
                     'Not implemented yet for tasks other than classification and object detection'
@@ -161,14 +171,12 @@ class VisionData:
 
     def to_display_data(self, batch):
         """Convert a batch of data outputted by the data loader to a format that can be displayed."""
-        self.image_transformer.validate_data(batch)
-        return self.image_transformer(batch)
+        return self.image_formatter(batch)
 
     @property
     def data_dimension(self):
         """Return how many dimensions the image data have."""
-        batch = next(iter(self.get_data_loader()))
-        image = self.image_transformer(batch[0])[0]
+        image = self.image_formatter(next(iter(self)))[0]
         return ImageInfo(image).get_dimension()
 
     @property
@@ -187,22 +195,37 @@ class VisionData:
                 self._sample_labels.append(label)
         return self._sample_labels
 
+    def label_id_to_name(self, class_id: int) -> str:
+        """Return the name of the class with the given id."""
+        # Converting the class_id to integer to make sure it is an integer
+        class_id = int(class_id)
+
+        if self._label_map is None:
+            return str(class_id)
+        elif class_id not in self._label_map:
+            if class_id not in self._warned_labels:
+                # We want to warn one time per class
+                self._warned_labels.add(class_id)
+                logger.warning('Class id %s is not in the label map.', class_id)
+            return str(class_id)
+        else:
+            return self._label_map[class_id]
+
     def get_label_shape(self):
         """Return the shape of the label."""
         self.assert_label()
 
         # Assuming the dataset contains a tuple of (features, label)
-        return self.label_transformer(next(iter(self._data))[1])[0].shape  # first argument is batch_size
+        return self.label_formatter(next(iter(self)))[0].shape  # first argument is batch_size
 
     def assert_label(self):
         """Raise error if label is not exists or not valid."""
-        if isinstance(self._label_valid, str):
-            raise DeepchecksValueError(self._label_valid)
+        if self._label_invalid:
+            raise DeepchecksValueError(self._label_invalid)
 
     def is_have_label(self) -> bool:
         """Return whether the data contains labels."""
-        batch = next(iter(self.get_data_loader()))
-        return len(batch) == 2
+        return self._label_invalid is None
 
     def __iter__(self):
         """Return an iterator over the dataset."""
@@ -241,9 +264,10 @@ class VisionData:
         props['dataset'] = copy(self.get_data_loader().dataset)
         new_data_loader = self.get_data_loader().__class__(**props)
         return VisionData(new_data_loader,
-                          image_transformer=self.image_transformer,
-                          label_transformer=self.label_transformer,
-                          transform_field=self.transform_field)
+                          image_formatter=self.image_formatter,
+                          label_formatter=self.label_formatter,
+                          transform_field=self.transform_field,
+                          label_map=self._label_map)
 
     def to_batch(self, *samples):
         """Use the defined collate_fn to transform a few data items to batch format."""

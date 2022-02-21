@@ -17,8 +17,9 @@ from torch.utils.data import DataLoader
 
 
 from deepchecks.vision import VisionData
-from deepchecks.vision.datasets.classification.mnist import mnist_image_formatter, MODULE_DIR
+from deepchecks.vision.datasets.classification.mnist import MODULE_DIR
 from deepchecks.vision.utils import ImageFormatter, ClassificationLabelFormatter
+from deepchecks.vision.utils.transformations import un_normalize_batch
 
 
 class MNIST(datasets.MNIST):
@@ -67,8 +68,8 @@ def mnist_dataset_imgaug(train: bool = True, dataset=None):
     return VisionData(
         data_loader=loader,
         num_classes=len(loader.dataset.classes),
-        label_transformer=ClassificationLabelFormatter(),
-        image_transformer=ImageFormatter(mnist_image_formatter(mean, std)),
+        label_formatter=ClassificationLabelFormatter(),
+        image_formatter=ImageFormatter(lambda batch: un_normalize_batch(batch[0], mean, std)),
         transform_field='transform'
     )
 
@@ -77,6 +78,5 @@ def normalize(mean, std):
     # pylint: disable=unused-argument
     def func(images, random_state, parents, hooks):
         max_pixel_value = np.array(255)
-        return [(img - np.array(mean)) / np.array(std) / max_pixel_value for img in images]
+        return [(img / max_pixel_value - np.array(mean)) / np.array(std) for img in images]
     return func
-

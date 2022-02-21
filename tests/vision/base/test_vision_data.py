@@ -52,38 +52,18 @@ def test_vision_data_task_type_inference():
             return
         def get_samples_per_class(self, *args, **kwargs):
             return {}
+        def get_classes(self, batch_labels):
+            return []
 
     # Act
-    second_classification_dataset = VisionData(mnist_loader, label_transformer=ClassificationLabelFormatter(lambda x: x))
-    detection_dataset = VisionData(coco_loader, label_transformer=DetectionLabelFormatter(lambda x: x))
-    dataset_with_custom_formatter = VisionData(mnist_loader, label_transformer=CustomLabelFormatter())
+    second_classification_dataset = VisionData(mnist_loader, label_formatter=ClassificationLabelFormatter(lambda x: x))
+    detection_dataset = VisionData(coco_loader, label_formatter=DetectionLabelFormatter(lambda x: x))
+    dataset_with_custom_formatter = VisionData(mnist_loader, label_formatter=CustomLabelFormatter())
 
     # Assert
     assert_that(second_classification_dataset.task_type == TaskType.CLASSIFICATION)
     assert_that(detection_dataset.task_type == TaskType.OBJECT_DETECTION)
     assert_that(dataset_with_custom_formatter.task_type is None)
-
-
-def test_initialization_of_vision_data_with_classification_dataset_that_does_not_return_labels():
-    # Arrange
-    loader = DataLoader(dataset=[
-        (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), ),
-        (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), ),
-    ])
-
-    # Act
-    dataset = VisionData(
-        loader,
-        label_transformer=ClassificationLabelFormatter(lambda x: x)
-    )
-
-    # Assert
-    assert_that(
-        calling(dataset.assert_label),
-        raises(
-            DeepchecksValueError,
-            r'Check requires dataloader to return tuples of \(input\, label\)\.')
-    )
 
 
 def test_initialization_of_vision_data_with_classification_dataset_that_contains_incorrect_labels():
@@ -92,7 +72,7 @@ def test_initialization_of_vision_data_with_classification_dataset_that_contains
         (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), "1"),
         (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), "2"),
     ])
-    loader_witth_labels_of_incorrect_shape = DataLoader(dataset=[
+    loader_with_labels_of_incorrect_shape = DataLoader(dataset=[
         (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), torch.tensor([1,2])),
         (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), torch.tensor([2,3])),
     ])
@@ -100,11 +80,11 @@ def test_initialization_of_vision_data_with_classification_dataset_that_contains
     # Act
     first_dataset = VisionData(
         loader_with_string_labels,
-        label_transformer=ClassificationLabelFormatter(lambda x: x)
+        label_formatter=ClassificationLabelFormatter()
     )
     second_dataset = VisionData(
-        loader_witth_labels_of_incorrect_shape,
-        label_transformer=ClassificationLabelFormatter(lambda x: x)
+        loader_with_labels_of_incorrect_shape,
+        label_formatter=ClassificationLabelFormatter()
     )
 
     # Assert
@@ -119,6 +99,18 @@ def test_initialization_of_vision_data_with_classification_dataset_that_contains
         raises(
             DeepchecksValueError,
             r'Check requires classification label to be a 1D tensor')
+    )
+
+
+def test_no_image_formatter_raises():
+    # Arrange
+    loader = t.cast(DataLoader, mnist.load_dataset(train=True, object_type="DataLoader"))
+    dataset = VisionData(loader, label_formatter=ClassificationLabelFormatter())
+    assert_that(
+        calling(lambda: dataset.image_formatter),
+        raises(
+            DeepchecksValueError,
+            r'No valid image formatter provided')
     )
 
 
@@ -146,7 +138,7 @@ def test_vision_data_sample_loader():
 def test_vision_data_n_of_samples_per_class_inference_for_classification_dataset():
     # Arrange
     loader = t.cast(DataLoader, mnist.load_dataset(train=True, object_type="DataLoader"))
-    dataset = VisionData(loader, label_transformer=ClassificationLabelFormatter())
+    dataset = VisionData(loader, label_formatter=ClassificationLabelFormatter())
 
     real_n_of_samples = {}
     for index in range(len(loader.dataset)):
@@ -175,7 +167,7 @@ def test_vision_data_n_of_samples_per_class_inference_for_detection_dataset():
             real_n_of_samples[clazz] = 1 + real_n_of_samples.get(clazz, 0)
 
     # Act
-    dataset = VisionData(loader, label_transformer=DetectionLabelFormatter(coco.yolo_label_formatter))
+    dataset = VisionData(loader, label_formatter=DetectionLabelFormatter(coco.yolo_label_formatter))
     infered_n_of_samples = dataset.n_of_samples_per_class
 
     # Assert
@@ -225,8 +217,8 @@ def test_vision_data_label_comparison_for_detection_task():
     first_loader = DataLoader([(first_X, first_label),], collate_fn=batch_collate)
     second_loader = DataLoader([(second_X, second_label),], collate_fn=batch_collate)
 
-    first_dataset = VisionData(first_loader, label_transformer=DetectionLabelFormatter(lambda x: x))
-    second_dataset = VisionData(second_loader, label_transformer=DetectionLabelFormatter(lambda x: x))
+    first_dataset = VisionData(first_loader, label_formatter=DetectionLabelFormatter())
+    second_dataset = VisionData(second_loader, label_formatter=DetectionLabelFormatter())
 
     # Act
     # it must not raise an error

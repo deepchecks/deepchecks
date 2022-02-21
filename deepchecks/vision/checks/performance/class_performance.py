@@ -96,9 +96,8 @@ class ClassPerformance(TrainTestCheck):
     def update(self, context: Context, batch: Any, dataset_kind):
         """Update the metrics by passing the batch to ignite metric update method."""
         dataset = context.get_data_by_kind(dataset_kind)
-        images = batch[0]
-        label = dataset.label_transformer(batch[1])
-        prediction = context.prediction_formatter(context.infer(images))
+        label = dataset.label_formatter(batch)
+        prediction = context.infer(batch)
         for _, metric in self._state[dataset_kind]['scorers'].items():
             metric.update((prediction, label))
 
@@ -126,7 +125,7 @@ class ClassPerformance(TrainTestCheck):
 
         fig = px.histogram(
             results_df,
-            x='Class',
+            x='Class Name',
             y='Value',
             color='Dataset',
             barmode='group',
@@ -136,7 +135,7 @@ class ClassPerformance(TrainTestCheck):
         )
 
         if context.train.task_type == TaskType.CLASSIFICATION:
-            fig.update_xaxes(tickprefix='Class ', tickangle=60)
+            fig.update_xaxes(tickprefix='Class Name', tickangle=60)
 
         fig = (
             fig.update_xaxes(title=None, type='category')
