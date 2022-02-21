@@ -191,7 +191,7 @@ class CocoDataset(VisionDataset):
 
     def __getitem__(self, idx: int) -> t.Tuple[Image.Image, np.ndarray]:
         """Get the image and label at the given index."""
-        # open image using openCV2, since opening with Pillow give slightly different results based on Pillow version
+        # open image using cv2, since opening with Pillow give slightly different results based on Pillow version
         opencv_image = cv2.imread(str(self.images[idx]))
         img = Image.fromarray(cv2.cvtColor(opencv_image, cv2.COLOR_BGR2RGB))
         label_file = self.labels[idx]

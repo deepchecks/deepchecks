@@ -208,7 +208,7 @@ docstring: dev-requirements
 
 
 test: requirements dev-requirements
-	$(PYTEST) $(args) $(TESTDIR)/vision/checks/distribution/image_dataset_drift_test.py
+	$(PYTEST) $(args) $(TESTDIR)
 
 
 test-win:
