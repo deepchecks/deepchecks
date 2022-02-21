@@ -54,26 +54,23 @@ def mnist_data_loader_train():
 @pytest.fixture(scope='session')
 def mnist_dataset_train():
     """Return MNist dataset as VisionData object."""
-    torch.manual_seed(42)
     return load_mnist_dataset(train=True, object_type='VisionData')
 
 
 @pytest.fixture(scope='session')
 def mnist_data_loader_test():
-    torch.manual_seed(42)
     return load_mnist_dataset(train=False, object_type='DataLoader')
 
 
 @pytest.fixture(scope='session')
 def mnist_dataset_test():
     """Return MNist dataset as VisionData object."""
-    torch.manual_seed(42)
     return load_mnist_dataset(train=False, object_type='VisionData')
 
 
 @pytest.fixture(scope='session')
 def trained_mnist():
-    return load_mnist_net_model(pretrained=False)
+    return load_mnist_net_model(path='vision/models/mnist.pth')
 
 
 @pytest.fixture(scope='session')

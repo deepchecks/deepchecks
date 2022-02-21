@@ -111,7 +111,7 @@ def load_dataset(
         raise TypeError(f'Unknown value of object_type - {object_type}')
 
 
-def load_model(pretrained: bool = True) -> 'MNistNet':
+def load_model(pretrained: bool = True, path: str = None) -> 'MNistNet':
     """Load MNIST model.
 
     Returns
@@ -119,8 +119,8 @@ def load_model(pretrained: bool = True) -> 'MNistNet':
     MNistNet
     """
     # TODO: should we put downloadable pre-trained model into our repo?
-
-    if pretrained and MODEL_PATH.exists():
+    path = pathlib.Path(path) if path else MODEL_PATH
+    if pretrained and path.exists():
         model = MNistNet()
         model.load_state_dict(torch.load(MODEL_PATH))
         model.eval()
@@ -160,9 +160,6 @@ def load_model(pretrained: bool = True) -> 'MNistNet':
     if not MODELS_DIR.exists():
         MODELS_DIR.mkdir()
 
-    print('MODEL WEIGHTS')
-    print(model.conv1.state_dict()['weight'][0][0][0])
-    print(model.conv1.state_dict()['weight'].mean())
     torch.save(model.state_dict(), MODEL_PATH)
     model.eval()
     return model
