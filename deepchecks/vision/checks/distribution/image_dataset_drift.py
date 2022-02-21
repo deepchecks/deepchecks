@@ -97,9 +97,9 @@ class ImageDatasetDrift(TrainTestCheck):
             dataset = context.test
             properties = self._test_properties
 
-        imgs = dataset.image_transformer(batch)
+        imgs = dataset.image_formatter(batch)
         for func_name in self.image_properties:
-            image_property_function = dataset.image_transformer.__getattribute__(func_name)
+            image_property_function = dataset.image_formatter.__getattribute__(func_name)
             properties[func_name] += image_property_function(imgs)
 
     def compute(self, context: Context) -> CheckResult:
