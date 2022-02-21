@@ -113,7 +113,7 @@ def calculate_metrics(
     """
 
     def process_function(_, batch):
-        return prediction_formatter(batch, model, device), dataset.label_transformer(batch)
+        return prediction_formatter(batch, model, device), dataset.label_formatter(batch)
 
     engine = Engine(process_function)
 
@@ -131,11 +131,14 @@ def calculate_metrics(
 def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
     """Get dict of metric name to tensor of classes scores, and convert it to dataframe."""
     per_class_result = [
-        [metric, class_name,
+        [metric, class_id, dataset.label_id_to_name(class_id),
          class_score.item() if isinstance(class_score, torch.Tensor) else class_score]
         for metric, score in results.items()
         # scorer returns results as array, containing result per class
-        for class_score, class_name in zip(score, sorted(dataset.n_of_samples_per_class.keys()))
+        for class_score, class_id in zip(score, sorted(dataset.n_of_samples_per_class.keys()))
     ]
 
-    return pd.DataFrame(per_class_result, columns=['Metric', 'Class', 'Value']).sort_values(by=['Metric', 'Class'])
+    return pd.DataFrame(per_class_result, columns=['Metric',
+                                                   'Class',
+                                                   'Class Name',
+                                                   'Value']).sort_values(by=['Metric', 'Class'])

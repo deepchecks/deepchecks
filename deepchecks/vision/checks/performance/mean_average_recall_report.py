@@ -37,24 +37,24 @@ class MeanAverageRecallReport(SingleDatasetCheck):
 
     def __init__(self, area_range: Tuple = (32**2, 96**2)):
         super().__init__()
-        self._ap_metric = AveragePrecision(return_option=None, area_range=area_range)
+        self._area_range = area_range
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
         """Initialize run by asserting task type and initializing metric."""
+        self._ap_metric = AveragePrecision(return_option=None, area_range=self._area_range)
         context.assert_task_type(TaskType.OBJECT_DETECTION)
 
     def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
         """Update the metrics by passing the batch to ignite metric update method."""
         dataset = context.get_data_by_kind(dataset_kind)
-        images = batch[0]
-        label = dataset.label_transformer(batch)
-        prediction = context.prediction_formatter(context.infer(images))
+        label = dataset.label_formatter(batch)
+        prediction = context.infer(batch)
         self._ap_metric.update((prediction, label))
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Compute the metric result using the ignite metrics compute method and create display."""
-        small_area = int(math.sqrt(self._ap_metric.area_range[0]))
-        large_area = int(math.sqrt(self._ap_metric.area_range[1]))
+        small_area = int(math.sqrt(self._area_range[0]))
+        large_area = int(math.sqrt(self._area_range[1]))
         res = self._ap_metric.compute()[0]['recall']
         rows = []
         for title, area_name in zip(['All',
