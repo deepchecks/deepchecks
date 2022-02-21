@@ -36,6 +36,7 @@ def test_mnist(mnist_dataset_train, trained_mnist):
         albumentations.ShiftScaleRotate(p=1.0),
     ]
     check = RobustnessReport(augmentations=augmentations)
+    mnist_dataset_train.set_seed(42)
     # Act
     result = check.run(mnist_dataset_train, trained_mnist,
                        prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter))
