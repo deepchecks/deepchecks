@@ -23,7 +23,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.utils.image_formatters import ImageFormatter
 
 
-def numpy_shape_dataloader(shape: tuple = None, value: Union[float, np.array] = 255, collate_fn=None):
+def numpy_shape_dataloader(shape: tuple = None, value: Union[float, np.ndarray] = 255, collate_fn=None):
     if collate_fn is None:
         collate_fn = np.stack
 
@@ -286,9 +286,11 @@ def test_allowed_bbox_format_notations():
         '  lxyxy       ',
         'LxywH',
         *[''.join(it) for it in set(permutations(['l', 'xy', 'xy'], 3))],
+        *['n'+''.join(it) for it in set(permutations(['l', 'xy', 'xy'], 3))],
         *[''.join(it) for it in permutations(['l', 'xy', 'wh'], 3)],
         *[''.join(it) for it in permutations(['l', 'xy', 'wh'], 3)],
-        *[''.join(it) for it in permutations(['l', 'cxcy', 'wh'], 3)]
+        *[''.join(it) for it in permutations(['l', 'cxcy', 'wh'], 3)],
+        *[''.join(it)+'n' for it in permutations(['l', 'cxcy', 'wh'], 3)]
     )
 
     tokens = {
@@ -303,12 +305,11 @@ def test_allowed_bbox_format_notations():
         'ycenter',
     }
 
-    for n in notations:
-        tokens = verify_bbox_format_notation(n)
-        assert_that(
-            len(set(tokens).difference(tokens)),
-            equal_to(0)
-        )
+    for notation in notations:
+        are_coordinates_normalized, tokens = verify_bbox_format_notation(notation)
+        assert_that(len(set(tokens).difference(tokens)), equal_to(0))
+        if 'n' in notation:
+            assert_that(are_coordinates_normalized is True)
 
 
 def test_bbox_format_notations_with_forbidden_combination_of_elements():
@@ -319,7 +320,7 @@ def test_bbox_format_notations_with_forbidden_combination_of_elements():
         'cxcy',
         *[''.join(it) for it in permutations(['l', 'xy', 'wh'], 2)],
         *[''.join(it) for it in permutations(['l', 'xy', 'cxcy'], 3)],
-        *[''.join(it) for it in permutations(['l', 'cxcy', 'xy'], 2)],
+        *[''.join(it) for it in permutations(['l', 'xy', 'cxcy'], 2)],
         *[''.join(it) for it in permutations(['wh', 'cxcy', 'xy'], 2)],
         *[''.join(it) for it in permutations(['wh', 'cxcy', 'xy'], 3)],
     ]
@@ -348,8 +349,26 @@ def test_bbox_format_notations_with_unknown_elements():
             calling(verify_bbox_format_notation).with_args(n),
             raises(
                 ValueError,
-                rf'Incorrect bbox format notation - {n}\. '
-                r'Unknown sequence of charecters starting from position.*'
+                rf'Wrong bbox format notation - {n}\. '
+                r'Incorrect or unknown sequence of charecters starting from position.*'
+            )
+        )
+
+def test_bbox_format_notation_with_coord_normalization_element_at_wrong_position():
+    notations = [
+        'lnxyxy',
+        'lxynxy',
+        'whnxyl',
+        'lcxcynwh',
+    ]
+
+    for notation in notations:
+        assert_that(
+            calling(verify_bbox_format_notation).with_args(notation),
+            raises(
+                ValueError,
+                rf'Wrong bbox format notation - {notation}\. '
+                r'Incorrect or unknown sequence of charecters starting from position.*'
             )
         )
 
@@ -357,22 +376,98 @@ def test_bbox_format_notations_with_unknown_elements():
 def test_bbox_convertion_to_the_required_format():
     data = (
         (
-            'xylxy',
-            torch.tensor([20, 15, 2, 41, 23]),
-            torch.tensor([2, 20, 15, (41 - 20), (23 - 15)]),
+            dict(notation='xylxy', bbox=torch.tensor([20, 15, 2, 41, 23])), # input
+            torch.tensor([2, 20, 15, 21, 8]), # expected result
         ),
         (
-            'cxcywhl',
-            torch.tensor([50, 55, 100, 100, 0]),
-            torch.tensor([0, (50 - 100 / 2), (55 - 100 / 2), 100, 100]),
+            dict(notation='cxcywhl', bbox=torch.tensor([50, 55, 100, 100, 0])), # input
+            torch.tensor([0, (50 - 100 / 2), (55 - 100 / 2), 100, 100]), # expected result
         ),
         (
-            'whxyl',
-            torch.tensor([35, 70, 10, 15, 1]),
-            torch.tensor([1, 10, 15, 35, 70,]),
+            dict(notation='whxyl', bbox=torch.tensor([35, 70, 10, 15, 1])), # input
+            torch.tensor([1, 10, 15, 35, 70,]), # expected result
+        ),
+        (
+            dict( # input
+                notation='nxywhl',
+                bbox=torch.tensor([0.20, 0.20, 20, 40, 1]),
+                image_width=100,
+                image_height=100,
+            ),
+            torch.tensor([1, 20, 20, 20, 40,]), # expected result
+        ),
+        (
+            dict( # input
+                notation='cxcylwhn',
+                bbox=torch.tensor([0.12, 0.17, 0, 50, 100]),
+                image_width=600,
+                image_height=1200,
+            ),
+            torch.tensor([0, 47, 154.00000000000003, 50, 100,]), # expected result
         )
     )
 
-    for notation, input_args, output in data:
-        result = convert_bbox(input_args, notation)
-        assert_that((result == output).all())
+    for args, expected_result in data:
+        result = convert_bbox(**args)
+        assert_that(
+            (result == expected_result).all(),
+            f'Arguments: {args}, Result: {result}'
+        )
+
+
+def test_convert_bbox_function_with_ambiguous_combination_of_parameters():
+    image_width, image_height = 100, 100
+    bbox = torch.tensor([35, 70, 10, 15, 1])
+    notation = 'whxyl'
+
+    # format notation indicates that coordinates are not normalized
+    # but image width and height parameters were passed
+    assert_that(
+        calling(convert_bbox).with_args(
+            bbox=bbox, notation=notation,
+            image_width=image_width, image_height=image_height
+        ),
+        raises(
+            ValueError,
+            r'bbox format notation indicates that coordinates of the bbox '
+            r'are not normalized but \'image_height\' and \'image_width\' were provided. '
+            r'Those parameters are redundant in the case when bbox coordinates are not '
+            r'normalized\. Please remove those parameters or add \'n\' element to the format '
+            r'notation to indicate that coordinates are indeed normalized\.'
+        )
+    )
+
+    normalized_bbox = torch.tensor([35, 70, 0.10, 0.15, 1])
+    normalized_notation = 'whxyln'
+
+    # opposite situation
+    # format notation indicates that coordinates are normalized
+    # but image width and height parameters were not provided
+    assert_that(
+        calling(convert_bbox).with_args(
+            bbox=normalized_bbox, notation=normalized_notation
+        ),
+        raises(
+            ValueError,
+            r'bbox format notation indicates that coordinates of the bbox '
+            r'are normalized but \'image_height\' and \'image_width\' parameters '
+            r'were not provided\. Please pass image height and width parameters '
+            r'or remove \'n\' element from the format notation\.'
+        )
+    )
+
+    # verify that in other cases function does not raise an error
+
+    convert_bbox(
+        bbox=bbox,
+        notation=notation,
+    )
+    convert_bbox(
+        bbox=normalized_bbox,
+        notation=normalized_notation,
+        image_width=image_width,
+        image_height=image_height
+    )
+
+
+

@@ -11,10 +11,11 @@
 """Module for defining detection encoders."""
 from collections import Counter
 from itertools import chain
-from typing import Union, Callable, Sequence, List
+from typing import Union, Callable, Sequence, List, Tuple
 
 import numpy as np
 import torch
+from PIL.Image import Image
 
 from deepchecks.core.errors import DeepchecksValueError
 from .base_formatters import BaseLabelFormatter, BasePredictionFormatter
@@ -197,7 +198,7 @@ class DetectionPredictionFormatter(BasePredictionFormatter):
                                        'each row has 6 columns: [x, y, width, height, class_probability, class_id]')
 
 
-def verify_bbox_format_notation(notation: str) -> List[str]:
+def verify_bbox_format_notation(notation: str) -> Tuple[bool, List[str]]:
     """Verify and tokenize bbox format notation.
 
     Parameters
@@ -207,9 +208,15 @@ def verify_bbox_format_notation(notation: str) -> List[str]:
 
     Returns
     -------
-    List[Literal['label', 'width', 'height', 'xmin', 'ymin', 'xmax', 'ymax', 'xcenter', 'ycenter']]
+    Tuple[
+        bool,
+        List[Literal['label', 'width', 'height', 'xmin', 'ymin', 'xmax', 'ymax', 'xcenter', 'ycenter']]
+    ]
+        first item indicates whether coordinates are normalized or not,
+        second represents format of the bbox
     """
     tokens = []
+    are_coordinates_normalized = False
     current = notation = notation.strip().lower()
     current_pos = 0
 
@@ -230,10 +237,18 @@ def verify_bbox_format_notation(notation: str) -> List[str]:
             tokens.append('cxcy')
             current = current[4:]
             current_pos = current_pos + 4
+        elif current.startswith('n') and current_pos == 0:
+            are_coordinates_normalized = True
+            current = current[1:]
+            current_pos = current_pos + 1
+        elif current.startswith('n') and (current_pos + 1) == len(notation):
+            are_coordinates_normalized = True
+            current_pos = current_pos + 1
+            break
         else:
             raise ValueError(
-                f'Incorrect bbox format notation - {notation}. '
-                f'Unknown sequence of charecters starting from position {current_pos} '
+                f'Wrong bbox format notation - {notation}. '
+                f'Incorrect or unknown sequence of charecters starting from position {current_pos} '
                 f'(sequence: ...{notation[current_pos:]}'
             )
 
@@ -244,17 +259,20 @@ def verify_bbox_format_notation(notation: str) -> List[str]:
         {'l': 1, 'cxcy': 1, 'wh': 1}
     )
 
-    if not any(c == received_combination for c in allowed_combinations):
+    if sum(c == received_combination for c in allowed_combinations) != 1:
         raise ValueError(
             f'Incorrect bbox format notation - {notation}.\n'
             'Only next combinations of elements are allowed:\n'
             '+ lxyxy (label, upper-left corner, bottom-right corner)\n'
             '+ lxywh (label, upper-left corner, bbox width and height)\n'
-            '+ lcxcywh (label, bbox center, bbox width and height)\n\n'
+            '+ lcxcywh (label, bbox center, bbox width and height)\n'
+            '+ lcxcywhn (label, normalized bbox center, bbox width and height)\n\n'
             ''
             'Note:\n'
             '- notation elements (l, xy, cxcy, wh) can be placed in any order '
-            'but only above combinations of elements are allowed.'
+            'but only above combinations of elements are allowed\n'
+            '- "n" at the begining or at the ned of the notation indicates '
+            'normalized coordinates\n'
         )
 
     normilized_tokens = []
@@ -274,11 +292,14 @@ def verify_bbox_format_notation(notation: str) -> List[str]:
         else:
             raise RuntimeError('Internal Error! Unreachable part of code reached')
 
-    return normilized_tokens
+    return are_coordinates_normalized, normilized_tokens
 
 
 def convert_batch_of_bboxes(
-    batch: Sequence[Sequence[Sequence[Union[int, float]]]],
+    batch: Tuple[
+        Sequence[object],  # images
+        Sequence[Sequence[Sequence[Union[int, float]]]]  # bboxes
+    ],
     notation: str,
     device: Union[str, torch.device, None] = None
 ) -> torch.Tensor:
@@ -286,8 +307,8 @@ def convert_batch_of_bboxes(
 
     Parameters
     ----------
-    bboxes : Sequence[Sequence[Union[int, float]]]
-        batch of bboxes to transform
+    batch :
+        batch of images and bboxes
     notation : str
         bboxes format notation
     device : Union[str, torch.device, None], default: None
@@ -296,34 +317,61 @@ def convert_batch_of_bboxes(
     Returns
     -------
     torch.Tensor
-        tensor of transformed samples of bboxes
+        tensor of transformed bboxes
     """
-    notation_tokens = verify_bbox_format_notation(notation)
+    are_coordinates_normalized, notation_tokens = verify_bbox_format_notation(notation)
     output = []
-    for sample in batch:
+
+    for image, bboxes in zip(*batch):
+        if are_coordinates_normalized is False:
+            image_height = None
+            image_width = None
+        elif isinstance(image, Image):
+            image_height, image_width = image.height, image.width
+        elif isinstance(image, (np.ndarray, torch.Tensor)):
+            image_height, image_width, *_ = image.shape
+        else:
+            raise TypeError(
+                'Do not know how to take dimension sizes of '
+                f'object of type - {type(image)}'
+            )
+
         r = []
-        for bbox in sample:
+        for bbox in bboxes:
             if len(bbox) < 5:
                 raise ValueError('incorrect bbox')  # TODO: better message
             else:
-                r.append(_convert_bbox(bbox, notation_tokens, device))
+                r.append(_convert_bbox(
+                    bbox,
+                    notation_tokens,
+                    device=device,
+                    image_width=image_width,
+                    image_height=image_height,
+                ))
         output.append(r)
+
     return torch.tensor(output)
 
 
 def convert_bbox(
     bbox: Sequence[Union[int, float]],
     notation: str,
+    image_width: Union[int, float, None] = None,
+    image_height: Union[int, float, None] = None,
     device: Union[str, torch.device, None] = None
 ) -> torch.Tensor:
     """Convert bbox to the required format.
 
     Parameters
     ----------
-    bboxes : Sequence[Sequence[Union[int, float]]]
-        batch of bboxes to transform
+    bbox : Sequence[Sequence[Union[int, float]]]
+        bbox to transform
     notation : str
         bboxes format notation
+    image_width : Union[int, float, None], default: None
+        width of the image to denormalize bbox coordinates
+    image_height : Union[int, float, None], default: None
+        height of the image to denormalize bbox coordinates
     device : Union[str, torch.device, None], default: None
         device for use
 
@@ -334,37 +382,91 @@ def convert_bbox(
     """
     if len(bbox) < 5:
         raise ValueError('incorrect bbox')  # TODO: better message
-    notation_tokens = verify_bbox_format_notation(notation)
-    return _convert_bbox(bbox, notation_tokens, device)
+
+    are_coordinates_normalized, notation_tokens = verify_bbox_format_notation(notation)
+
+    if (
+        are_coordinates_normalized is True
+        and (image_height is None or image_width is None)
+    ):
+        raise ValueError(
+            'bbox format notation indicates that coordinates of the bbox '
+            'are normalized but \'image_height\' and \'image_width\' parameters '
+            'were not provided. Please pass image height and width parameters '
+            'or remove \'n\' element from the format notation.'
+        )
+
+    if (
+        are_coordinates_normalized is False
+        and (image_height is not None or image_width is not None)
+    ):
+        raise ValueError(
+            'bbox format notation indicates that coordinates of the bbox '
+            'are not normalized but \'image_height\' and \'image_width\' were provided. '
+            'Those parameters are redundant in the case when bbox coordinates are not '
+            'normalized. Please remove those parameters or add \'n\' element to the format '
+            'notation to indicate that coordinates are indeed normalized.'
+        )
+
+    return _convert_bbox(
+        bbox,
+        notation_tokens,
+        image_width,
+        image_height,
+        device,
+    )
 
 
 def _convert_bbox(
     bbox: Sequence[Union[int, float]],
     notation_tokens: List[str],
+    image_width: Union[int, float, None] = None,
+    image_height: Union[int, float, None] = None,
     device: Union[str, torch.device, None] = None
 ) -> torch.Tensor:
+    assert \
+        (image_width is not None and image_height is not None) \
+        or (image_width is None and image_height is None)
+
     data = dict(zip(notation_tokens, bbox[:5]))
+
     if 'xcenter' in data and 'ycenter' in data:
+        if image_width is not None and image_height is not None:
+            xcenter, ycenter = data['xcenter'] * image_width, data['ycenter'] * image_height
+        else:
+            xcenter, ycenter = data['xcenter'], data['ycenter']
         return torch.tensor([
             data['label'],
-            data['xcenter'] - (data['width'] / 2),
-            data['ycenter'] - (data['height'] / 2),
+            xcenter - (data['width'] / 2),
+            ycenter - (data['height'] / 2),
             data['width'],
             data['height'],
         ], device=device)
+
     elif 'height' in data and 'width' in data:
+        if image_width is not None and image_height is not None:
+            xmin, ymin = data['xmin'] * image_width, data['ymin'] * image_height
+        else:
+            xmin, ymin = data['xmin'], data['ymin']
         return torch.tensor([
             data['label'],
-            data['xmin'],
-            data['ymin'],
+            xmin,
+            ymin,
             data['width'],
             data['height'],
         ], device=device)
+
     else:
+        if image_width is not None and image_height is not None:
+            xmin, ymin = data['xmin'] * image_width, data['ymin'] * image_height
+            xmax, ymax = data['xmax'] * image_width, data['ymax'] * image_height
+        else:
+            xmin, ymin = data['xmin'], data['ymin']
+            xmax, ymax = data['xmax'], data['ymax']
         return torch.tensor([
             data['label'],
-            data['xmin'],
-            data['ymin'],
-            data['xmax'] - data['xmin'],
-            data['ymax'] - data['ymin'],
+            xmin,
+            ymin,
+            xmax - xmin,
+            ymax - ymin,
         ], device=device)
