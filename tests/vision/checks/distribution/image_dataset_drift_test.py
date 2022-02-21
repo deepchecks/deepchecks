@@ -9,10 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the VISION train test label drift."""
-from hamcrest import assert_that, has_entries, close_to, equal_to, raises, calling
+from hamcrest import assert_that, has_entries, close_to
 
 import numpy as np
-from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import VisionData
 from deepchecks.vision.checks import ImageDatasetDrift
 from deepchecks.vision.utils import ImageFormatter, DetectionLabelFormatter
