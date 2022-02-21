@@ -11,7 +11,7 @@
 """Module for defining detection encoders."""
 from collections import Counter
 from itertools import chain
-from typing import Union, Callable, Sequence, List, Tuple, Iterable, Any
+from typing import Union, Callable, Sequence, List, Tuple, Iterable
 
 import numpy as np
 import torch
@@ -362,7 +362,7 @@ def convert_batch_of_bboxes(
                     image_height=image_height,
                 ))
         output.append(torch.stack(r, dim=0))
-    
+
     return output
 
 

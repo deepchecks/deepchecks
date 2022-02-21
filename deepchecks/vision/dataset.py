@@ -172,12 +172,12 @@ class VisionData:
 
     def to_display_data(self, batch):
         """Convert a batch of data outputted by the data loader to a format that can be displayed."""
-        return self.image_formatter(batch)
+        return self.image_formatter(batch)  # pylint: disable=not-callable
 
     @property
     def data_dimension(self):
         """Return how many dimensions the image data have."""
-        image = self.image_formatter(next(iter(self)))[0]
+        image = self.image_formatter(next(iter(self)))[0]  # pylint: disable=not-callable
         return ImageInfo(image).get_dimension()
 
     @property

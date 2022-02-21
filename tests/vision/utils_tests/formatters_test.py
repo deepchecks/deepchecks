@@ -379,7 +379,7 @@ def test_bbox_format_notation_with_coord_normalization_element_at_wrong_position
 def test_batch_of_bboxes_convertion():
     # Arrange
     loader = coco.load_dataset()
-    image, input_bboxes = batch = loader.dataset[9] # it should be always the same sample
+    _, input_bboxes = batch = loader.dataset[9]  # it should be always the same sample
 
     # Act
     output_bboxes = convert_batch_of_bboxes([batch], 'xywhl')[0]
@@ -433,7 +433,7 @@ def test_label_formatter_with_bbox_notation():
     label_formatter = DetectionLabelFormatter('xywhl')
 
     for batch in loader:
-        images, bboxes = batch
+        _, bboxes = batch
 
         # Act
         transformed_bboxes = label_formatter(batch)
