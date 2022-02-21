@@ -30,8 +30,7 @@ from deepchecks.vision.metrics_utils import calculate_metrics, metric_results_to
 from deepchecks.vision.utils.validation import set_seeds
 from deepchecks.vision.metrics_utils import get_scorers_list
 from deepchecks.utils.strings import format_percent
-from deepchecks.vision.utils.image_functions import numpy_to_image_figure, apply_heatmap_image_properties, \
-    label_bbox_add_to_figure, ImageInfo
+from deepchecks.vision.utils.image_functions import numpy_to_image_figure, label_bbox_add_to_figure, ImageInfo
 
 
 __all__ = ['RobustnessReport']
@@ -293,10 +292,6 @@ class RobustnessReport(SingleDatasetCheck):
          .update_yaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
          .update_xaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
          .update_annotations(font_size=base_font_size * 1.5))
-
-        # In case of heatmap (grayscale images), need to add those properties which on Image exists automatically
-        if dataset.data_dimension == 1:
-            apply_heatmap_image_properties(fig)
 
         return fig.to_image('svg', width=width, height=height).decode('utf-8')
 

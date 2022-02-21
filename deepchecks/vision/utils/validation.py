@@ -21,8 +21,7 @@ from deepchecks import vision  # pylint: disable=unused-import, is used in type 
 from deepchecks.utils.ipython import is_notebook
 from deepchecks.vision.utils.base_formatters import BaseLabelFormatter, BasePredictionFormatter
 from deepchecks.vision.utils import ImageFormatter, ClassificationLabelFormatter, DetectionLabelFormatter
-from deepchecks.vision.utils.image_functions import numpy_to_image_figure, apply_heatmap_image_properties, \
-    label_bbox_add_to_figure
+from deepchecks.vision.utils.image_functions import numpy_to_image_figure, label_bbox_add_to_figure
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from PIL import Image
@@ -182,8 +181,6 @@ def validate_formatters(data_loader, model, label_formatter: BaseLabelFormatter,
         else:
             raise DeepchecksValueError(f'Not implemented for label formatter: {type(label_formatter).__name__}')
 
-        if ImageFormatter.get_dimension(sample_image) == 1:
-            apply_heatmap_image_properties(fig)
         fig.update_yaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
         fig.update_xaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
     else:
