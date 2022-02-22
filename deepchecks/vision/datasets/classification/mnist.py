@@ -115,7 +115,7 @@ def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MNistNet'
     """
     # TODO: should we put downloadable pre-trained model into our repo?
     if path and not path.exists():
-        LOGGER.warning(f'Path for MNIST model not found: {path}')
+        LOGGER.warning('Path for MNIST model not found: %s', str(path))
 
     path = path or MODEL_PATH
 
