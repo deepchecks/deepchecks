@@ -99,7 +99,7 @@ Elements of the bbox format notation:
     * n - placed at the beginning or at the end of the notation to indicate whether the coordinates are normalized or not. Normalized coordinates are not measured in pixels, but as rather ratio of x / image-width and y / image-height.
 
 It is important to note that `DetectionLabelFormatter` does not work with labels represented by JSON, XML, or python dictionaries.
-The acceptable objects types for `DetectionLabelFormatter` are numpy arrays, pytorch tensors, and python sequence-like objects.
+The label batch processed by `DetectionLabelFormatter` must be an iterable of numpy arrays or pytorch tensors.
 
 Example of using the notation format to get a DetectionLabelFormatter converting from yolo format to deepchecks format:
 
