@@ -31,30 +31,7 @@ from io import BytesIO
 from IPython.display import display, HTML
 
 
-__all__ = ['validate_model', 'set_seeds', 'apply_to_tensor', 'validate_formatters']
-
-
-def validate_model(dataset: 'vision.VisionData', model: t.Any):
-    """Receive a dataset and a model and check if they are compatible.
-
-    Parameters
-    ----------
-    dataset : VisionData
-        Built on a dataloader on which the model can infer.
-    model : Any
-        Model to be validated
-
-    Raises
-    ------
-    DeepchecksValueError
-        If the dataset and the model are not compatible
-    """
-    try:
-        model(next(iter(dataset.get_data_loader()))[0])
-    except Exception as exc:
-        raise errors.ModelValidationError(
-            f'Got error when trying to predict with model on dataset: {str(exc)}'
-        )
+__all__ = ['set_seeds', 'apply_to_tensor', 'validate_formatters']
 
 
 def set_seeds(seed: int):

@@ -18,7 +18,6 @@ from torch import nn
 from torch.utils.data import DataLoader
 from ignite.metrics import Metric
 
-from deepchecks.vision.utils.validation import validate_model
 from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 from deepchecks.core.check import (
     CheckFailure,
@@ -107,7 +106,6 @@ class Context:
         self._train = train
         self._test = test
         self._model = model
-        self._validated_model = False
         self._batch_prediction_cache = None
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
@@ -137,10 +135,6 @@ class Context:
         """Return & validate model if model exists, otherwise raise error."""
         if self._model is None:
             raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without model')
-        if not self._validated_model:
-            if self._train:
-                validate_model(self._train, self._model)
-            self._validated_model = True
         return self._model
 
     @property
