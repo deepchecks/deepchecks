@@ -37,9 +37,8 @@ class HeatmapComparison(TrainTestCheck):
 
     Parameters
     ----------
-    classes_to_display : Optional[List[float]], default: None
-        List of classes to display in bounding box heatmap. Applies only for object detection tasks. If None, all
-        classes are displayed.
+    classes_to_display : Optional[List[float]], default: None List of classes to display in bounding box heatmap,
+        using the class name (strings). Applies only for object detection tasks. If None, all classes are displayed.
     """
 
     def __init__(self,
@@ -52,17 +51,17 @@ class HeatmapComparison(TrainTestCheck):
 
         Function initializes the following private variables:
 
-        - self._task_type: TaskType
-        - self._train_grayscale_heatmap: variable aggregating the average training grayscale image
-        - self._test_grayscale_heatmap: variable aggregating the average test grayscale image
-        - self._shape: List containing the target image shape (determined by the first image encountered)
-        - self._train_counter: Number of training images aggregated
-        - self._test_counter: Number of test images aggregated
+        * self._task_type: TaskType
+        * self._train_grayscale_heatmap: variable aggregating the average training grayscale image
+        * self._test_grayscale_heatmap: variable aggregating the average test grayscale image
+        * self._shape: List containing the target image shape (determined by the first image encountered)
+        * self._train_counter: Number of training images aggregated
+        * self._test_counter: Number of test images aggregated
 
         If task is object detection, we also initialize the following variables:
 
-        - self._train_bbox_heatmap: variable aggregating the average training bounding box heatmap
-        - self._test_bbox_heatmap: variable aggregating the average test bounding box heatmap
+        * self._train_bbox_heatmap: variable aggregating the average training bounding box heatmap
+        * self._test_bbox_heatmap: variable aggregating the average test bounding box heatmap
         """
         train_dataset = context.train
 
