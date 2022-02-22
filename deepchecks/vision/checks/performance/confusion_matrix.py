@@ -15,7 +15,7 @@ import numpy as np
 from plotly.express import imshow
 from queue import PriorityQueue
 
-from deepchecks.core import CheckResult
+from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.vision import SingleDatasetCheck, Context
 from deepchecks.vision.dataset import TaskType, VisionData
 from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
@@ -61,12 +61,10 @@ class ConfusionMatrixReport(SingleDatasetCheck):
     """
 
     def __init__(self,
-                 prediction_formatter: Union[ClassificationPredictionFormatter, DetectionPredictionFormatter] = None,
                  categories_to_display: int = 10,
                  confidence_threshold: float = 0.3,
                  iou_threshold: float = 0.5):
         super().__init__()
-        self.prediction_formatter = prediction_formatter
         self.confidence_threshold = confidence_threshold
         self.categories_to_display = categories_to_display
         self.iou_threshold = iou_threshold
@@ -74,21 +72,21 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         self.num_classes = 0
         self.task_type = None
 
-    def initialize_run(self, context: Context):
+    def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
         """Initialize run by creating an empty matrix the size of the data."""
         context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
         dataset: VisionData = context.train
 
         self.task_type = dataset.task_type
-        self.num_classes = dataset.get_num_classes()
+        self.num_classes = dataset.n_of_classes
 
         matrix_size = self.num_classes if self.task_type == TaskType.CLASSIFICATION else self.num_classes + 1
 
         self.matrix = np.zeros((matrix_size, matrix_size))
 
-    def update(self, context: Context, batch: Any, dataset_name: str = 'train'):
+    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind = DatasetKind.TRAIN):
         """Add batch to confusion matrix."""
-        if dataset_name == 'train':
+        if dataset_kind == DatasetKind.TRAIN:
             dataset = context.train
         else:
             dataset = context.test
@@ -97,8 +95,8 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
         predictions = context.infer(batch[0])
 
-        if self.prediction_formatter:
-            predictions = self.prediction_formatter(predictions)
+        if context.prediction_formatter:
+            predictions = context.prediction_formatter(predictions, context.model, context.device)
 
         if self.task_type == TaskType.CLASSIFICATION:
             self.update_classification(predictions, labels)
