@@ -80,18 +80,24 @@ class HeatmapComparison(TrainTestCheck):
                     f'Provided list of class ids to display {self.classes_to_display} not found in training dataset.'
                 )
 
+        # State members to store the average grayscale image throughout update steps
         self._train_grayscale_heatmap = None
         self._test_grayscale_heatmap = None
         self._shape = []
         self._train_counter = 0
         self._test_counter = 0
 
+        # State members to store the average bounding box heatmap throughout update steps
         if self._task_type == TaskType.OBJECT_DETECTION:
             self._train_bbox_heatmap = None
             self._test_bbox_heatmap = None
 
     def update(self, context: Context, batch: Any, dataset_kind):
         """Perform update on batch for train or test counters and histograms."""
+        # For each dataset kind, update the respective counter and histogram with the average image of the batch
+        # The counter accumulates the number of images in the batches
+        # image_batch is a list of images, each of which is a numpy array of shape (H, W, C), produced by running
+        # the image_formatter on the batch.
         if dataset_kind == DatasetKind.TRAIN:
             image_batch = context.train.image_formatter(batch)
             summed_image = self._grayscale_sum_image(image_batch, self._shape)
@@ -111,6 +117,10 @@ class HeatmapComparison(TrainTestCheck):
         else:
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
+        # For object detection tasks, we do the same for the bounding box average coverage of the image.
+        # The difference from the above code for the average grayscale image is that the averaged images are images of
+        # the places where the bounding boxes are located. These bounding box images are computed by
+        # _label_to_image_batch
         if self._task_type == TaskType.OBJECT_DETECTION:
             if dataset_kind == DatasetKind.TRAIN:
                 label_batch = context.train.label_formatter(batch)
@@ -138,11 +148,13 @@ class HeatmapComparison(TrainTestCheck):
             value: The difference images. One for average image brightness, and one for bbox locations if applicable.
             display: Heatmaps for image brightness (train, test, diff) and heatmap for bbox locations if applicable.
         """
+        # Compute the average grayscale image by dividing the accumulated sum by the number of images
         train_grayscale = (np.expand_dims(self._train_grayscale_heatmap, axis=2) /
                            self._train_counter).astype(np.uint8)
         test_grayscale = (np.expand_dims(self._test_grayscale_heatmap, axis=2) /
                           self._test_counter).astype(np.uint8)
 
+        # Add a display for the heatmap of the average grayscale image
         display = [self.plot_row_of_heatmaps(train_grayscale, test_grayscale, 'Compare average image brightness')]
         display[0].update_layout(coloraxis={'colorscale': 'Inferno', 'cmin': 0, 'cmax': 255},
                                  coloraxis_colorbar={'title': 'Pixel Value'})
@@ -150,6 +162,8 @@ class HeatmapComparison(TrainTestCheck):
             'diff': self._image_diff(test_grayscale, train_grayscale)
         }
 
+        # If the task is object detection, compute the average heatmap of the bounding box locations by dividing the
+        # accumulated sum by the number of images
         if self._task_type == TaskType.OBJECT_DETECTION:
             # bbox image values are frequency, between 0 and 100
             train_bbox = (100 * np.expand_dims(self._train_bbox_heatmap, axis=2) /
@@ -159,6 +173,7 @@ class HeatmapComparison(TrainTestCheck):
             display.append(
                 self.plot_row_of_heatmaps(train_bbox, test_bbox, 'Compare average label bbox locations')
             )
+            # bbox image values are frequency, between 0 and 100
             display[1].update_layout(coloraxis={'colorscale': 'Inferno', 'cmin': 0, 'cmax': 100},
                                      coloraxis_colorbar={'title': '% Coverage'})
             value['diff_bbox'] = self._image_diff(test_bbox, train_bbox)
@@ -190,6 +205,7 @@ class HeatmapComparison(TrainTestCheck):
     def _label_to_image(self, label: np.ndarray, original_shape: Tuple[int], classes_to_display: Optional[List[str]]
                         ) -> np.ndarray:
         """Convert label array to an image where pixels inside the bboxes are white and the rest are black."""
+        # Create a black image
         image = np.zeros(original_shape, dtype=np.uint8)
         label = label.reshape((-1, 5))
         class_idx = label[:, 0]
@@ -201,6 +217,7 @@ class HeatmapComparison(TrainTestCheck):
             # If classes_to_display is set, don't display the bboxes for classes not in the list.
             if classes_to_display is not None and self._class_to_string(class_idx[i]) not in classes_to_display:
                 continue
+            # For each bounding box, set the pixels inside the bounding box to white
             image[y_min[i]:y_max[i], x_min[i]:x_max[i]] = 255
         return np.expand_dims(image, axis=2)
 
@@ -233,6 +250,9 @@ class HeatmapComparison(TrainTestCheck):
         """
         summed_image = None
 
+        # Iterate over all images in batch, using the first image as the target shape if target_shape is None.
+        # All subsequent images will be resized to the target shape and their gray values will be added to the
+        # summed image.
         for img in batch:
             # Cast to grayscale
             if img.shape[2] == 1:
