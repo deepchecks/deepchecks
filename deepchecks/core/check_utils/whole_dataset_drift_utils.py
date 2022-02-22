@@ -72,10 +72,11 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
     fi = fi.sort_values(ascending=False) if fi is not None else None
 
     domain_classifier_auc = roc_auc_score(y_test, domain_classifier.predict_proba(x_test)[:, 1])
+    drift_score = auc_to_drift_score(domain_classifier_auc)
 
     values_dict = {
         'domain_classifier_auc': domain_classifier_auc,
-        'domain_classifier_drift_score': auc_to_drift_score(domain_classifier_auc),
+        'domain_classifier_drift_score': drift_score,
         'domain_classifier_feature_importance': fi.to_dict() if fi is not None else {},
     }
 
@@ -86,7 +87,7 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
     </span><br><br>
     """
 
-    if fi is not None:
+    if fi is not None and drift_score != 0:
         top_fi = fi.head(n_top_columns)
         top_fi = top_fi.loc[top_fi > min_feature_importance]
     else:
