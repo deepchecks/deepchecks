@@ -89,7 +89,7 @@ To initialize `DetectionLabelFormatter` for common label formats the notion of t
     coco_formatter = DetectionLabelFormatter('lxywh')
     albumentations_formatter = DetectionLabelFormatter('lxyxyn')
 
-By using provided bbox format notation deepchecks will know how to transform labels to the format required by deepchecks, which is 'lxywh'.
+Based on the outlined bbox format notation deepchecks will transformed the labels to the format required by deepchecks, which is 'lxywh'.
 
 Elements of the bbox format notation:
     * l - label (class index) of the object;
