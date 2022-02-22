@@ -19,6 +19,7 @@ import traceback
 import warnings
 from collections import OrderedDict
 from typing import Any, Callable, List, Tuple, Union, Dict, Type, ClassVar, Optional
+from prometheus_client import Summary
 
 import wandb
 import jsonpickle
@@ -207,32 +208,7 @@ class CheckResult:
         matplotlib.use(old_backend)
         return displays
 
-    def _display_to_wandb(self) -> List[Tuple[str, str]]:
-        i = 0
-        old_backend = matplotlib.get_backend()
-        for item in self.display:
-            if isinstance(item, Styler):
-                wandb.log({f'display_table_{i}': wandb.Table(dataframe=item.data)}, commit=False)
-            elif isinstance(item, pd.DataFrame):
-                wandb.log({f'display_table_{i}': wandb.Table(dataframe=item)}, commit=False)
-            elif isinstance(item, str):
-                pass
-            elif isinstance(item, BaseFigure):
-                wandb.log({f'plot_{i}': wandb.Plotly(item)})
-            elif callable(item):
-                try:
-                    matplotlib.use('Agg')
-                    item()
-                    wandb.log({f'plot_{i}': plt})
-                except Exception:
-                    pass
-            else:
-                matplotlib.use(old_backend)
-                raise Exception(f'Unable to create json for item of type: {type(item)}')
-            i += 1
-        matplotlib.use(old_backend)
-
-    def to_wandb(self, wandb_init: bool = True, wandb_project: str = None) -> str:
+    def to_wandb(self, wandb_init: bool = True, wandb_project: str = None):
         """Return check result as json.
 
         Parameters
@@ -249,26 +225,63 @@ class CheckResult:
         check_metadata = self._get_metadata()
         if wandb_init:
             if wandb_project is None:
-                wandb_project = check_metadata['header']
+                wandb_project = check_metadata['name']
             wandb.init(project=wandb_project, config=check_metadata)
+            section_suffix = ''
+        else:
+            section_suffix = check_metadata['name'] + '/'
         if self.conditions_results:
             cond_df = get_conditions_table([self], icon_html=False)
-            cond_table = wandb.Table(dataframe=cond_df.data)
-            wandb.log({"conditions_table":cond_table}, commit=False)
+            cond_table = wandb.Table(dataframe=cond_df.data, allow_mixed_types=True)
+            wandb.log({f'{section_suffix}conditions_table': cond_table}, commit=False)
         if isinstance(self.value, pd.DataFrame):
             value = self.value.to_json()
+        elif isinstance(self.value, Styler):
+            value = self.value.data.to_json()
         elif isinstance(self.value, np.ndarray):
             value = self.value.tolist()
         else:
             value = jsonpickle.dumps(self.value)
-        self._display_to_wandb()
+        table_i = 0
+        plot_i = 0
+        old_backend = matplotlib.get_backend()
+        for item in self.display:
+            if isinstance(item, Styler):
+                # print(check_metadata['header'])
+                # print(item.data)
+                wandb.log({f'{section_suffix}display_table_{table_i}': \
+                           wandb.Table(dataframe=item.data, allow_mixed_types=True)}, commit=False)
+                table_i += 1
+            elif isinstance(item, pd.DataFrame):
+                wandb.log({f'{section_suffix}display_table_{table_i}': \
+                           wandb.Table(dataframe=item, allow_mixed_types=True)}, commit=False)
+                table_i += 1
+            elif isinstance(item, str):
+                pass
+            elif isinstance(item, BaseFigure):
+                wandb.log({f'{section_suffix}plot_{plot_i}': wandb.Plotly(item)})
+                plot_i += 1
+            elif callable(item):
+                try:
+                    matplotlib.use('Agg')
+                    item()
+                    wandb.log({f'{section_suffix}plot_{plot_i}': plt})
+                    plot_i += 1
+                except Exception:
+                    pass
+            else:
+                matplotlib.use(old_backend)
+                raise Exception(f'Unable to process display for item of type: {type(item)}')
+            
+        matplotlib.use(old_backend)
         data = [check_metadata['header'],
                 str(check_metadata['params']),
                 check_metadata['summary'],
                 value]
         final_table = wandb.Table(columns=['header', 'params', 'summary', 'value'])
         final_table.add_data(*data)
-        wandb.log({"results": final_table}, commit=False)
+        wandb.log({f'{section_suffix}results': final_table}, commit=False)
+        print('logged: ' + section_suffix + check_metadata['header'])
         if wandb_init:
             wandb.finish()
   
@@ -292,6 +305,8 @@ class CheckResult:
             result_json['conditions_table'] = cond_df.data.to_json(orient='records')
         if isinstance(self.value, pd.DataFrame):
             result_json['value'] = self.value.to_json()
+        elif isinstance(self.value, Styler):
+            result_json['value'] = self.value.data.to_json()
         elif isinstance(self.value, np.ndarray):
             result_json['value'] = self.value.tolist()
         else:
@@ -488,8 +503,7 @@ class BaseCheck(abc.ABC):
         """Return parameters to show when printing the check."""
         init_params = inspect.signature(self.__init__).parameters
 
-        return {k: v for k, v in vars(self).items()
-                if k in init_params and v != init_params[k].default}
+        return [(v.name, v.default) for v in init_params.values()]
 
     def __repr__(self, tabs=0, prefix=''):
         """Representation of check as string.
@@ -588,12 +602,49 @@ class CheckFailure:
         dict
             {'name': .., 'params': .., 'header': .., 'display': ..}
         """
-        check_name = self.check.name()
-        parameters = self.check.params()
-        result_json = {'name': check_name, 'params': parameters, 'header': self.header}
+        result_json = self._get_metadata()
         if with_display:
             result_json['display'] = [('str', str(self.exception))]
         return jsonpickle.dumps(result_json)
+
+    def to_wandb(self, wandb_init: bool = True, wandb_project: str = None):
+        """Return check result as json.
+
+        Parameters
+        ----------
+        with_display : bool
+            controls if to serialize display or not
+
+        Returns
+        --------
+        str
+            {'name': .., 'params': .., 'header': ..,
+             'summary': .., 'conditions_table': .., 'value', 'display': ..}
+        """
+        check_metadata = self._get_metadata()
+        if wandb_init:
+            if wandb_project is None:
+                wandb_project = check_metadata['name']
+            wandb.init(project=wandb_project, config=check_metadata)
+            section_suffix = ''
+        else:
+            section_suffix = check_metadata['name'] + '/'
+        data = [check_metadata['header'],
+                str(check_metadata['params']),
+                check_metadata['summary'],
+                str(self.exception)]
+        final_table = wandb.Table(columns=['header', 'params', 'summary', 'value'])
+        final_table.add_data(*data)
+        wandb.log({f'{section_suffix}results': final_table}, commit=False)
+        print('logged: ' + section_suffix + check_metadata['header'])
+        if wandb_init:
+            wandb.finish()
+
+    def _get_metadata(self, with_doc_link: bool = False):
+        check_name = self.check.name()
+        parameters = self.check.params()
+        summary = get_docs_summary(self.check, with_doc_link=with_doc_link)
+        return {'name': check_name, 'params': parameters, 'header': self.header, 'summary': summary}
 
     def __repr__(self):
         """Return string representation."""

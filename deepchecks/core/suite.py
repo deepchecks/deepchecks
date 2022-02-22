@@ -18,6 +18,7 @@ from typing import Union, List, Tuple
 from IPython.core.display import display_html
 from IPython.core.getipython import get_ipython
 import jsonpickle
+import wandb
 
 from deepchecks.core.display_suite import display_suite_result
 from deepchecks.core.errors import DeepchecksValueError
@@ -96,6 +97,16 @@ class SuiteResult:
             json_results.append(res.to_json(with_display=with_display))
 
         return jsonpickle.dumps({'name': self.name, 'results': json_results})
+
+    def to_wandb(self, wandb_init: bool = True, wandb_project: str = None):
+        if wandb_init:
+            if wandb_project is None:
+                wandb_project = self.name
+            wandb.init(project=wandb_project, config={'name': self.name})
+        for res in self.results:
+            res.to_wandb(False)
+        if wandb_init:
+            wandb.finish()
 
 
 class BaseSuite:
