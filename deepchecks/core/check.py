@@ -19,7 +19,6 @@ import traceback
 import warnings
 from collections import OrderedDict
 from typing import Any, Callable, List, Tuple, Union, Dict, Type, ClassVar, Optional
-from prometheus_client import Summary
 
 import wandb
 import jsonpickle
@@ -245,11 +244,11 @@ class CheckResult:
             if isinstance(item, Styler):
                 # print(check_metadata['header'])
                 # print(item.data)
-                wandb.log({f'{section_suffix}display_table_{table_i}': \
+                wandb.log({f'{section_suffix}display_table_{table_i}':
                            wandb.Table(dataframe=item.data, allow_mixed_types=True)}, commit=False)
                 table_i += 1
             elif isinstance(item, pd.DataFrame):
-                wandb.log({f'{section_suffix}display_table_{table_i}': \
+                wandb.log({f'{section_suffix}display_table_{table_i}':
                            wandb.Table(dataframe=item, allow_mixed_types=True)}, commit=False)
                 table_i += 1
             elif isinstance(item, str):
@@ -268,7 +267,7 @@ class CheckResult:
             else:
                 matplotlib.use(old_backend)
                 raise Exception(f'Unable to process display for item of type: {type(item)}')
-            
+
         matplotlib.use(old_backend)
         data = [check_metadata['header'],
                 str(check_metadata['params']),
@@ -280,7 +279,7 @@ class CheckResult:
         print('logged: ' + check_metadata['header'])
         if wandb_init:
             wandb.finish()
-  
+
     def to_json(self, with_display: bool = True) -> str:
         """Return check result as json.
 
@@ -347,8 +346,8 @@ class CheckResult:
         check_name = self.check.name()
         parameters = self.check.params(True)
         header = self.get_header()
-        return  {'name': check_name, 'params': parameters, 'header': header,
-                 'summary': get_docs_summary(self.check, with_doc_link=with_doc_link)}
+        return {'name': check_name, 'params': parameters, 'header': header,
+                'summary': get_docs_summary(self.check, with_doc_link=with_doc_link)}
 
     def _ipython_display_(self, unique_id=None, as_widget=False,
                           show_additional_outputs=True):
