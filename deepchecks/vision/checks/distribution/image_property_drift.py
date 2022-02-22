@@ -25,44 +25,44 @@ class ImagePropertyDrift(TrainTestCheck):
 
     Check calculates a drift score for each image property in test dataset, by comparing its distribution to the train
     dataset. For this, we use the Earth Movers Distance.
-    
+
     See https://en.wikipedia.org/wiki/Wasserstein_metric
 
     Pramaters
     ---------
     image_properties : Optional[List[Union[str, Callable[..., Number]]]]
     """
-    
+
     def __init__(
         self,
         image_properties: t.Optional[t.List[ImageProperty]] = None,
     ):
         super().__init__()
-        
+
         if image_properties is None:
             self.image_properties = ImageFormatter.IMAGE_PROPERTIES
         else:
             if len(image_properties) == 0:
                 raise DeepchecksValueError('image_properties list cannot be empty')
-            
+
             received_properties = {p for p in image_properties if isinstance(p, str)}
             unknown_properties = received_properties.difference(ImageFormatter.IMAGE_PROPERTIES)
-            
+
             if len(unknown_properties) > 0:
                 raise DeepchecksValueError(
                     'receivedd list of unknown image properties '
                     f'- {sorted(unknown_properties)}'
                 )
-            
+
             self.image_properties = image_properties
 
         self.train_properties = defaultdict(list)
         self.test_properties = defaultdict(list)
-    
+
     def update(
-        self, 
+        self,
         context: Context,
-        batch: t.Any, 
+        batch: t.Any,
         dataset_kind: DatasetKind
     ):
         """Calculate image properties for train or test batches."""
@@ -103,7 +103,7 @@ class ImagePropertyDrift(TrainTestCheck):
             value: dictionary containing drift score for each image property.
             display: distribution graph for each image property.
         """
-        
+
         if sorted(self.train_properties.keys()) != sorted(self.test_properties.keys()):
             raise DeepchecksValueError('') # TODO: message
 
@@ -123,7 +123,7 @@ class ImagePropertyDrift(TrainTestCheck):
             )
             figures.append(figure)
             drifts[property_name] = {'Drift score': score,}
-        
+
         headnote = '' # TODO:
 
         return CheckResult(
