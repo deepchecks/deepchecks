@@ -99,7 +99,8 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
                                                              test_dataset.label_name, self.ppscore_params,
                                                              self.n_show_top)
 
-        display += text
+        if display:
+            display += text
 
         return CheckResult(value=ret_value, display=display, header='Single Feature Contribution Train-Test')
 

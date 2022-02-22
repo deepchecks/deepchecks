@@ -170,6 +170,7 @@ class SimpleFeatureContributionTrainTest(TrainTestCheck):
                                                              self.ppscore_params,
                                                              self.n_top_properties)
 
-        display += text
+        if display:
+            display += text
 
         return CheckResult(value=ret_value, display=display, header='Single Feature Contribution Train-Test')
