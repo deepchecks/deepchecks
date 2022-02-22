@@ -48,7 +48,8 @@ class WholeDatasetDrift(TrainTestCheck):
         Random seed for the check.
     test_size : float , default: 0.3
         Fraction of the combined datasets to use for the evaluation of the domain classifier.
-
+    min_meaningful_drift_score : float , default 0.05
+        Minimum drift score for displaying drift in check. Under that score, check will display "nothing found".
     """
 
     def __init__(
@@ -58,7 +59,8 @@ class WholeDatasetDrift(TrainTestCheck):
             max_num_categories: int = 10,
             sample_size: int = 10_000,
             random_state: int = 42,
-            test_size: float = 0.3
+            test_size: float = 0.3,
+            min_meaningful_drift_score: float = 0.05
     ):
         super().__init__()
 
@@ -68,6 +70,7 @@ class WholeDatasetDrift(TrainTestCheck):
         self.sample_size = sample_size
         self.random_state = random_state
         self.test_size = test_size
+        self.min_meaningful_drift_score = min_meaningful_drift_score
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -108,7 +111,8 @@ class WholeDatasetDrift(TrainTestCheck):
                                                         sample_size=sample_size, random_state=self.random_state,
                                                         test_size=self.test_size, n_top_columns=self.n_top_columns,
                                                         min_feature_importance=self.min_feature_importance,
-                                                        max_num_categories=self.max_num_categories)
+                                                        max_num_categories=self.max_num_categories,
+                                                        min_meaningful_drift_score=self.min_meaningful_drift_score)
 
         if displays:
             displays.insert(0, headnote)
