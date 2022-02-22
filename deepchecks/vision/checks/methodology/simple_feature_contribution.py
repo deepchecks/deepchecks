@@ -13,11 +13,18 @@ from collections import OrderedDict
 from typing import Any, List
 
 from deepchecks.core import CheckResult, DatasetKind
+from deepchecks.core.check_utils.single_feature_contribution_utils import get_single_feature_contribution
 from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
 import pandas as pd
 
-__all__ = ['ImageDatasetDrift']
+__all__ = ['SimpleFeatureContributionTrainTest']
+
+# TODO
+pps_url = 'https://docs.deepchecks.com/en/stable/examples/tabular/' \
+          'checks/methodology/single_feature_contribution_train_test' \
+          '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
+pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
 DEFAULT_IMAGE_PROPERTIES = ['aspect_ratio',
                             'blur',
@@ -90,10 +97,9 @@ class SimpleFeatureContributionTrainTest(TrainTestCheck):
             self,
             alternative_image_properties: List[str] = None,
             n_top_properties: int = 3,
-            min_feature_importance: float = 0.05,
-            sample_size: int = 10_000,
-            random_state: int = 42,
-            test_size: float = 0.3
+            ppscore_params: dict = None,
+
+
     ):
         super().__init__()
 
@@ -103,13 +109,12 @@ class SimpleFeatureContributionTrainTest(TrainTestCheck):
             self.image_properties = DEFAULT_IMAGE_PROPERTIES
 
         self.n_top_properties = n_top_properties
-        self.min_feature_importance = min_feature_importance
-        self.sample_size = sample_size
-        self.random_state = random_state
-        self.test_size = test_size
+        self.ppscore_params = ppscore_params or {}
 
         self._train_properties = OrderedDict([(k, []) for k in self.image_properties])
         self._test_properties = OrderedDict([(k, []) for k in self.image_properties])
+        self._train_properties['target'] = []
+        self._test_properties['target'] = []
 
     def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""
@@ -124,6 +129,7 @@ class SimpleFeatureContributionTrainTest(TrainTestCheck):
         for func_name in self.image_properties:
             image_property_function = dataset.image_formatter.__getattribute__(func_name)
             properties[func_name] += image_property_function(imgs)
+        properties['target'] += dataset.label_formatter(batch)
 
     def compute(self, context: Context) -> CheckResult:
         """Train a Domain Classifier on image property data that was collected during update() calls.
@@ -138,8 +144,6 @@ class SimpleFeatureContributionTrainTest(TrainTestCheck):
         """
         df_train = pd.DataFrame(self._train_properties)
         df_test = pd.DataFrame(self._test_properties)
-
-        sample_size = min(self.sample_size, df_train.shape[0], df_test.shape[0])
 
         text = [
             'The Predictive Power Score (PPS) is used to estimate the ability of a feature to predict the '
@@ -160,13 +164,12 @@ class SimpleFeatureContributionTrainTest(TrainTestCheck):
         ]
 
         ret_value, display = get_single_feature_contribution(df_train,
-                                                             train_dataset.label_name,
+                                                             'target',
                                                              df_test,
-                                                             test_dataset.label_name, self.ppscore_params,
-                                                             self.n_show_top)
+                                                             'target',
+                                                             self.ppscore_params,
+                                                             self.n_top_properties)
 
         display += text
 
         return CheckResult(value=ret_value, display=display, header='Single Feature Contribution Train-Test')
-
-        return CheckResult(value=values_dict, display=displays, header='Image Dataset Drift')
