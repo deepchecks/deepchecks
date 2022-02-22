@@ -208,9 +208,9 @@ docstring: dev-requirements
 
 
 test: requirements dev-requirements
-	echo "==================="
-	echo $$(pip freeze)
-	echo "==================="
+	@echo "===================\n"
+	@pip freeze
+	@echo "===================\n"
 	$(PYTEST) $(args) $(TESTDIR)/vision/checks/performance/mean_average_recall_report_test.py
 #	$(PYTEST) $(args) $(TESTDIR)
 
