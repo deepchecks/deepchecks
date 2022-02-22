@@ -92,7 +92,7 @@ To initialize `DetectionLabelFormatter` for common label formats the notion of t
 By using provided bbox format notation deepchecks will know how to transform labels to the format required by deepchecks, which is 'lxywh'.
 
 Elements of the bbox format notation:
-    * l - label (class) of the object;
+    * l - label (class index) of the object;
     * xy - top-left or bottom-right corner of the bbox. (First 'xy' element is always interpreted as x-min, y-min, and second as x-max, y-max). Coordinates of the bounding box's corners are represented with respect to the top-left corner of the image which has (x, y) coordinates (0, 0);
     * cxcy - xy measured from the center of the image, meaning the center of the image is (0, 0);
     * wh - width and height of the bbox;
