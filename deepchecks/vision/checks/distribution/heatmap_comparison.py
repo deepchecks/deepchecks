@@ -71,7 +71,7 @@ class HeatmapComparison(TrainTestCheck):
         # if self.classes_to_display is set, check that it has classes that actually exist
         if self.classes_to_display is not None:
             if not self._task_type == TaskType.OBJECT_DETECTION:
-                raise(DeepchecksNotSupportedError('Classes to display is only supported for object detection tasks.'))
+                raise DeepchecksNotSupportedError('Classes to display is only supported for object detection tasks.')
             if not set(self.classes_to_display).issubset(train_dataset.n_of_samples_per_class.keys()):
                 raise DeepchecksValueError(
                     f'Provided list of class ids to display {self.classes_to_display} not found in training dataset.'
