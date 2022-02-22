@@ -122,7 +122,7 @@ def _generate_check_docs_link_html(check):
     module_path = module_path.split('.')
     check_name = to_snake_case(type(check).__name__).lower()
     path_parts = [it for it in module_path if it != 'deepchecks']
-    url = '/'.join([path_parts[1], path_parts[0], *path_parts[2:-1], check_name])
+    url = '/'.join([*path_parts[:-1], check_name])
     version = deepchecks.__version__ or 'stable'
     link = link_template.format(version=version, path=url)
     return f' <a href="{link}" target="_blank">Read More...</a>'
