@@ -32,6 +32,7 @@ def test_ar_ignite_complient(coco_test_visiondata: VisionData, trained_yolov5_ob
                             coco_test_visiondata, trained_yolov5_object_detection,
                             prediction_formatter=DetectionPredictionFormatter(yolo_prediction_formatter),
                             device=torch.device('cpu'))
+
     assert_that(res.keys(), has_length(1))
     assert_that(res['AveragePrecision'], has_length(59))
 
