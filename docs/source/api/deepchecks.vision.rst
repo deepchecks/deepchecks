@@ -14,6 +14,7 @@ deepchecks.vision
     checks
     suites
     datasets
+    utils
 
 .. rubric:: Classes
 
