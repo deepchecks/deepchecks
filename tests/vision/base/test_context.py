@@ -12,6 +12,7 @@
 import typing as t
 
 import torch
+from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 from torch import nn
 from hamcrest import (
     assert_that,
@@ -48,6 +49,7 @@ def test_vision_context_initialization_for_classification_task():
         model=model,
         model_name='MNIST',
         device='cpu',
+        prediction_formatter=ClassificationPredictionFormatter(mnist.mnist_prediction_formatter)
     )
 
     # Assert
@@ -76,6 +78,7 @@ def test_vision_context_initialization_for_object_detection_task():
         model=model,
         model_name='COCO',
         device='cpu',
+        prediction_formatter=DetectionPredictionFormatter(coco.yolo_prediction_formatter)
     )
 
     # Assert
@@ -112,7 +115,8 @@ def test_vision_context_initialization_with_datasets_from_different_tasks():
 def test_that_vision_context_raises_exception_for_unset_properties():
     # Arrange
     train_dataset = t.cast(VisionData, mnist.load_dataset(train=True, object_type='VisionData'))
-    context = Context(train=train_dataset)
+    context = Context(train=train_dataset,
+                      prediction_formatter=ClassificationPredictionFormatter(mnist.mnist_prediction_formatter))
 
     # Act
     assert_that(
@@ -131,7 +135,7 @@ def test_that_vision_context_raises_exception_for_unset_properties():
 
 def test_empty_context_initialization():
     assert_that(
-        calling(Context).with_args(model_name="Name",),
+        calling(Context).with_args(model_name="Name", ),
         raises(
             DeepchecksValueError,
             r'At least one dataset \(or model\) must be passed to the method\!')
@@ -151,16 +155,17 @@ def test_context_initialization_with_test_dataset_only():
 
 def test_context_initialization_with_train_dataset_only():
     train_dataset = t.cast(VisionData, coco.load_dataset(train=True, object_type='VisionData'))
-    Context(model_name="Name", train=train_dataset)
+    Context(model_name="Name", train=train_dataset,
+            prediction_formatter=DetectionPredictionFormatter(coco.yolo_prediction_formatter))
 
 
 def test_context_initialization_with_model_only():
     model = coco.load_model()
-    Context(model_name="Name", model=model)
+    Context(model_name="Name", model=model,
+            prediction_formatter=DetectionPredictionFormatter(coco.yolo_prediction_formatter))
 
 
 def test_context_initialization_with_broken_model():
-
     # Arrange
     class BrokenModel(nn.Module):
         def __call__(self, *args, **kwargs):
@@ -170,16 +175,13 @@ def test_context_initialization_with_broken_model():
     test_dataset = t.cast(VisionData, mnist.load_dataset(train=False, object_type='VisionData'))
     model = BrokenModel()
 
-    # Act
-    context = Context(
-        train=train_dataset,
-        test=test_dataset,
-        model=model
-    )
-
-    # Assert
+    # Act & Assert
     assert_that(
-        calling(lambda: context.model),
+        calling(Context
+                ).with_args(train=train_dataset,
+                            test=test_dataset,
+                            model=model,
+                            prediction_formatter=ClassificationPredictionFormatter(mnist.mnist_prediction_formatter)),
         raises(
             ModelValidationError,
             r'Got error when trying to predict with model on dataset: .*')

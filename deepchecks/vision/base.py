@@ -14,6 +14,7 @@ from typing import Tuple, Mapping, Optional, Any, Union, Dict
 from collections import OrderedDict
 
 import torch
+from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 from torch import nn
 from torch.utils.data import DataLoader
 from ignite.metrics import Metric
@@ -91,10 +92,33 @@ class Context:
         if train and test:
             train.validate_shared_label(test)
 
-        self._device = torch.device(device) if isinstance(device, str) else device
+        self._device = torch.device(device) if isinstance(device, str) else (device if device else torch.device('cpu'))
 
-        if prediction_formatter:
-            prediction_formatter.validate_prediction(next(iter(train)), model, self._device)
+        # If no prediction_formatter is passed and model is defined, we will use the default one according to the
+        # dataset task type
+        if model is not None:
+            if prediction_formatter is None:
+                if train:
+                    task_type = train.task_type
+                elif test:
+                    task_type = test.task_type
+                else:
+                    task_type = None
+
+                if task_type == TaskType.CLASSIFICATION:
+                    prediction_formatter = ClassificationPredictionFormatter()
+                elif task_type == TaskType.OBJECT_DETECTION:
+                    prediction_formatter = DetectionPredictionFormatter()
+                else:
+                    raise DeepchecksNotSupportedError(f'No scorers match task_type {task_type}')
+
+            if prediction_formatter is not None:
+                if train:
+                    validate_model(train, model)
+                    prediction_formatter.validate_prediction(next(iter(train)), model, self._device)
+                elif test:
+                    validate_model(train, model)
+                    prediction_formatter.validate_prediction(next(iter(test)), model, self._device)
 
         self._train = train
         self._test = test
