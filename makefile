@@ -208,7 +208,11 @@ docstring: dev-requirements
 
 
 test: requirements dev-requirements
-	$(PYTEST) $(args) $(TESTDIR)
+	echo "==================="
+	echo $$(pip freeze)
+	echo "==================="
+	$(PYTEST) $(args) $(TESTDIR)/vision/checks/performance/mean_average_recall_report_test.py
+#	$(PYTEST) $(args) $(TESTDIR)
 
 
 test-win:
