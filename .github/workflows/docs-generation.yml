@@ -64,8 +64,8 @@ jobs:
           echo
 
           exit ${exit_code}
-      - name: Commit and Push notebooks
-        run: |
-          git add docs/source/examples/*.ipynb
-          git commit -m "Regenerate notebooks"
-          git push origin ${{ github.ref_name }}
+#      - name: Commit and Push notebooks
+#        run: |
+#          git add docs/source/examples/*.ipynb
+#          git commit -m "Regenerate notebooks"
+#          git push origin ${{ github.ref_name }}
