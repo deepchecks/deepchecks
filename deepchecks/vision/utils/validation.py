@@ -14,6 +14,7 @@ import traceback
 import typing as t
 import numpy as np
 import torch
+import imgaug
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core import errors
@@ -67,11 +68,11 @@ def set_seeds(seed: int):
     seed : int
         Seed to be set
     """
-    np.random.seed(seed)
-    random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
+    if seed is not None:
+        np.random.seed(seed)
+        random.seed(seed)
+        torch.manual_seed(seed)
+        imgaug.seed(seed)
 
 
 T = t.TypeVar('T')
