@@ -47,33 +47,31 @@ __all__ = ['mnist_data_loader_train',
 
 @pytest.fixture(scope='session')
 def mnist_data_loader_train():
-    torch.manual_seed(42)
     return load_mnist_dataset(train=True, object_type='DataLoader')
 
 
 @pytest.fixture(scope='session')
 def mnist_dataset_train():
     """Return MNist dataset as VisionData object."""
-    torch.manual_seed(42)
     return load_mnist_dataset(train=True, object_type='VisionData')
 
 
 @pytest.fixture(scope='session')
 def mnist_data_loader_test():
-    torch.manual_seed(42)
     return load_mnist_dataset(train=False, object_type='DataLoader')
 
 
 @pytest.fixture(scope='session')
 def mnist_dataset_test():
     """Return MNist dataset as VisionData object."""
-    torch.manual_seed(42)
     return load_mnist_dataset(train=False, object_type='VisionData')
 
 
 @pytest.fixture(scope='session')
 def trained_mnist():
-    return load_mnist_net_model()
+    # The MNIST model training is not deterministic, so loading a saved version of it for the tests.
+    path = pathlib.Path(__file__).absolute().parent / 'models' / 'mnist.pth'
+    return load_mnist_net_model(pretrained=True, path=path)
 
 
 @pytest.fixture(scope='session')
