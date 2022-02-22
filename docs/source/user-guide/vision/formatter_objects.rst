@@ -101,7 +101,7 @@ Elements of the bbox format notation:
 An important moment to note is that `DetectionLabelFormatter` do not work with labels represented by JSON, XML, or python dictionaries.
 The acceptable objects types for `DetectionLabelFormatter` are numpy arrays, pytorch tensors, and python sequence-like objects.
 
-Example to represent the thought:
+Example of using the notation format to get a DetectionLabelFormatter converting from yolo format to deepchecks format:
 
 .. code-block:: python
 
