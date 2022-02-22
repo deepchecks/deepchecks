@@ -17,8 +17,6 @@ import torch
 import imgaug
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.core import errors
-from deepchecks import vision  # pylint: disable=unused-import, is used in type annotations
 from deepchecks.utils.ipython import is_notebook
 from deepchecks.vision.utils.base_formatters import BaseLabelFormatter, BasePredictionFormatter
 from deepchecks.vision.utils import ImageFormatter, ClassificationLabelFormatter, DetectionLabelFormatter
