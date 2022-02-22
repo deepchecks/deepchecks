@@ -171,6 +171,7 @@ def filter_classes_for_display(metrics_df: pd.DataFrame,
     # working only on the test set
     tests_metrics_df = metrics_df[(metrics_df['Dataset'] == DatasetKind.TEST.value) &
                                   (metrics_df['Metric'] == metric_to_show_by)]
+    print(tests_metrics_df)
     if show_only == 'largest':
         tests_metrics_df = tests_metrics_df.sort_values(by='Number of samples', ascending=False)
     elif show_only == 'smallest':
