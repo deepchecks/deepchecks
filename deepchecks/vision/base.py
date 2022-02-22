@@ -70,7 +70,8 @@ class Context:
         scikit-learn docs</a>
     device : Union[str, torch.device], default: None
         processing unit for use
-
+    random_state : int
+        A seed to set for pseudo-random functions
     """
 
     def __init__(self,
@@ -81,7 +82,8 @@ class Context:
                  prediction_formatter: BasePredictionFormatter = None,
                  scorers: Mapping[str, Metric] = None,
                  scorers_per_class: Mapping[str, Metric] = None,
-                 device: Union[str, torch.device, None] = None
+                 device: Union[str, torch.device, None] = None,
+                 random_state: int = 42
                  ):
         # Validations
         if train is None and test is None and model is None:
@@ -91,6 +93,12 @@ class Context:
                                          'initialize it as train')
         if train and test:
             train.validate_shared_label(test)
+
+        # Set seeds to if possible
+        if train and random_state:
+            train.set_seed(random_state)
+        if test and random_state:
+            test.set_seed(random_state)
 
         self._device = torch.device(device) if isinstance(device, str) else (device if device else torch.device('cpu'))
 
@@ -129,6 +137,7 @@ class Context:
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
         self._prediction_formatter = prediction_formatter
+        self.random_state = random_state
 
     # Properties
     # Validations note: We know train & test fit each other so all validations can be run only on train
@@ -224,14 +233,16 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         dataset: VisionData,
         model: Optional[nn.Module] = None,
         prediction_formatter: BasePredictionFormatter = None,
-        device: Union[str, torch.device, None] = None
+        device: Union[str, torch.device, None] = None,
+        random_state: int = 42
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
         context = self.context_type(dataset,
                                     model=model,
                                     prediction_formatter=prediction_formatter,
-                                    device=device)
+                                    device=device,
+                                    random_state=random_state)
 
         self.initialize_run(context, DatasetKind.TRAIN)
 
@@ -269,7 +280,8 @@ class TrainTestCheck(TrainTestBaseCheck):
         test_dataset: VisionData,
         model: Optional[nn.Module] = None,
         prediction_formatter: BasePredictionFormatter = None,
-        device: Union[str, torch.device, None] = None
+        device: Union[str, torch.device, None] = None,
+        random_state: int = 42
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
@@ -277,7 +289,8 @@ class TrainTestCheck(TrainTestBaseCheck):
                                     test_dataset,
                                     model=model,
                                     prediction_formatter=prediction_formatter,
-                                    device=device)
+                                    device=device,
+                                    random_state=random_state)
 
         self.initialize_run(context)
 
@@ -314,11 +327,12 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
     def run(
         self,
         model: nn.Module,
-        device: Union[str, torch.device, None] = None
+        device: Union[str, torch.device, None] = None,
+        random_state: int = 42
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        context = self.context_type(model=model, device=device)
+        context = self.context_type(model=model, device=device, random_state=random_state)
 
         self.initialize_run(context)
         return finalize_check_result(self.compute(context), self)
@@ -348,7 +362,8 @@ class Suite(BaseSuite):
             prediction_formatter: BasePredictionFormatter = None,
             scorers: Mapping[str, Metric] = None,
             scorers_per_class: Mapping[str, Metric] = None,
-            device: Union[str, torch.device, None] = None
+            device: Union[str, torch.device, None] = None,
+            random_state: int = 42
     ) -> SuiteResult:
         """Run all checks.
 
@@ -371,6 +386,8 @@ class Suite(BaseSuite):
             scikit-learn docs</a>
         device : Union[str, torch.device], default: None
             processing unit for use
+        random_state : int
+            A seed to set for pseudo-random functions
 
         Returns
         -------
@@ -384,7 +401,8 @@ class Suite(BaseSuite):
             prediction_formatter=prediction_formatter,
             scorers=scorers,
             scorers_per_class=scorers_per_class,
-            device=device
+            device=device,
+            random_state=random_state
         )
 
         # Create instances of SingleDatasetCheck for train and test if train and test exist.
