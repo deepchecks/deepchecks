@@ -91,19 +91,15 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         else:
             dataset = context.test
 
-        labels = dataset.label_transformer(batch[1])
-
-        predictions = context.infer(batch[0])
-
-        if context.prediction_formatter:
-            predictions = context.prediction_formatter(predictions, context.model, context.device)
+        labels = dataset.label_transformer(batch)
+        predictions = context.infer(batch)
 
         if self.task_type == TaskType.CLASSIFICATION:
             self.update_classification(predictions, labels)
         elif self.task_type == TaskType.OBJECT_DETECTION:
             self.update_object_detection(predictions, labels)
 
-    def compute(self, context: Context) -> CheckResult:
+    def compute(self, context: Context, dataset_kin: DatasetKind = None) -> CheckResult:
         """Compute and plot confusion matrix after all batches were processed."""
         display_confusion_matrix, categories = filter_confusion_matrix(self.matrix, self.categories_to_display)
 
@@ -183,6 +179,6 @@ class ConfusionMatrixReport(SingleDatasetCheck):
     def update_classification(self, predictions, labels):
         """Update the confusion matrix by batch for classification task."""
         for predicted_classes, image_labels in zip(predictions, labels):
-            detected_class = min(range(len(predicted_classes)), key=predicted_classes.__getitem__)
+            detected_class = max(range(len(predicted_classes)), key=predicted_classes.__getitem__)
 
             self.matrix[detected_class, image_labels] += 1
