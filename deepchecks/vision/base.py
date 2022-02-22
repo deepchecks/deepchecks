@@ -14,7 +14,6 @@ from typing import Tuple, Mapping, Optional, Any, Union, Dict
 from collections import OrderedDict
 
 import torch
-from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 from torch import nn
 from torch.utils.data import DataLoader
 from ignite.metrics import Metric
@@ -35,6 +34,7 @@ from deepchecks.core.errors import (
 )
 from deepchecks.vision.dataset import VisionData, TaskType
 from deepchecks.vision.utils.validation import apply_to_tensor
+from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
 
 __all__ = [
@@ -93,6 +93,7 @@ class Context:
                                          'initialize it as train')
         if train and test:
             train.validate_shared_label(test)
+
         # Set seeds to if possible
         if train and random_state:
             train.set_seed(random_state)
