@@ -14,7 +14,6 @@ from typing import Tuple, Mapping, Optional, Any, Union, Dict
 from collections import OrderedDict
 
 import torch
-from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 from torch import nn
 from torch.utils.data import DataLoader
 from ignite.metrics import Metric
@@ -35,6 +34,7 @@ from deepchecks.core.errors import (
 )
 from deepchecks.vision.dataset import VisionData, TaskType
 from deepchecks.vision.utils.validation import apply_to_tensor
+from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
 
 __all__ = [
@@ -117,8 +117,6 @@ class Context:
                     prediction_formatter = ClassificationPredictionFormatter()
                 elif task_type == TaskType.OBJECT_DETECTION:
                     prediction_formatter = DetectionPredictionFormatter()
-                else:
-                    raise DeepchecksNotSupportedError(f'No scorers match task_type {task_type}')
 
             if prediction_formatter is not None:
                 if train:
