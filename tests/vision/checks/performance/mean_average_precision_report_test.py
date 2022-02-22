@@ -8,7 +8,6 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-import re
 from hamcrest import assert_that, close_to, has_length, calling, raises
 
 from tests.checks.utils import equal_condition_result
@@ -16,6 +15,7 @@ from deepchecks.core.errors import ModelValidationError
 from deepchecks.vision.checks.performance import MeanAveragePrecisionReport
 from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
 from deepchecks.vision.utils import DetectionPredictionFormatter
+
 
 def test_mnist_error(mnist_dataset_test, trained_mnist):
     # Arrange

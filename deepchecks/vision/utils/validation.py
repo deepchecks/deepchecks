@@ -68,7 +68,7 @@ def set_seeds(seed: int):
     seed : int
         Seed to be set
     """
-    if seed:
+    if seed is not None:
         np.random.seed(seed)
         random.seed(seed)
         torch.manual_seed(seed)
