@@ -12,6 +12,7 @@
 from .performance import ClassPerformance, MeanAveragePrecisionReport, MeanAverageRecallReport, \
                          RobustnessReport
 from .distribution import TrainTestLabelDrift, ImageDatasetDrift
+from .methodology import SimpleFeatureContributionTrainTest
 
 __all__ = [
     'ClassPerformance',
@@ -19,5 +20,6 @@ __all__ = [
     'MeanAverageRecallReport',
     'RobustnessReport',
     'TrainTestLabelDrift',
-    'ImageDatasetDrift'
+    'ImageDatasetDrift',
+    'SimpleFeatureContributionTrainTest'
 ]

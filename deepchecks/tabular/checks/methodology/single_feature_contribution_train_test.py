@@ -10,22 +10,15 @@
 #
 """The single_feature_contribution check module."""
 import typing as t
-import numpy as np
-import plotly.graph_objects as go
-
-import deepchecks.ppscore as pps
+from deepchecks.core.check_utils.single_feature_contribution_utils import get_single_feature_contribution
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.utils.plot import colors
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.strings import format_number
 
-
 __all__ = ['SingleFeatureContributionTrainTest']
 
-
 FC = t.TypeVar('FC', bound='SingleFeatureContributionTrainTest')
-
 
 pps_url = 'https://docs.deepchecks.com/en/stable/examples/tabular/' \
           'checks/methodology/single_feature_contribution_train_test' \
@@ -82,51 +75,6 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
         train_dataset.assert_label()
         relevant_columns = train_dataset.features + [train_dataset.label_name]
 
-        df_pps_train = pps.predictors(df=train_dataset.data[relevant_columns], y=train_dataset.label_name,
-                                      random_seed=42,
-                                      **self.ppscore_params)
-        df_pps_test = pps.predictors(df=test_dataset.data[relevant_columns],
-                                     y=test_dataset.label_name,
-                                     random_seed=42, **self.ppscore_params)
-
-        s_pps_train = df_pps_train.set_index('x', drop=True)['ppscore']
-        s_pps_test = df_pps_test.set_index('x', drop=True)['ppscore']
-        s_difference = s_pps_train - s_pps_test
-
-        s_difference_to_display = np.abs(s_difference).apply(lambda x: 0 if x < 0 else x)
-        s_difference_to_display = s_difference_to_display.sort_values(ascending=False).head(self.n_show_top)
-
-        s_pps_train_to_display = s_pps_train[s_difference_to_display.index]
-        s_pps_test_to_display = s_pps_test[s_difference_to_display.index]
-
-        fig = go.Figure()
-        fig.add_trace(go.Bar(x=s_pps_train_to_display.index,
-                             y=s_pps_train_to_display,
-                             name='Train',
-                             marker_color=colors['Train'], text=s_pps_train_to_display.round(2), textposition='outside'
-                             ))
-        fig.add_trace(go.Bar(x=s_pps_test_to_display.index,
-                             y=s_pps_test_to_display,
-                             name='Test',
-                             marker_color=colors['Test'], text=s_pps_test_to_display.round(2), textposition='outside'
-                             ))
-        fig.add_trace(go.Scatter(x=s_difference_to_display.index,
-                                 y=s_difference_to_display,
-                                 name='Train-Test Difference (abs)',
-                                 marker=dict(symbol='circle', size=15),
-                                 line=dict(color='#aa57b5', width=5)
-                                 ))
-
-        fig.update_layout(
-            title='Predictive Power Score (PPS) - Can a feature predict the label by itself?',
-            xaxis_title='Column',
-            yaxis_title='Predictive Power Score (PPS)',
-            yaxis_range=[0, 1.05],
-            legend=dict(x=1.0, y=1.0),
-            barmode='group',
-            width=800, height=500
-        )
-
         text = [
             'The Predictive Power Score (PPS) is used to estimate the ability of a feature to predict the '
             f'label by itself. (Read more about {pps_html})'
@@ -145,11 +93,13 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
             'the target label.'
         ]
 
-        ret_value = {'train': s_pps_train.to_dict(), 'test': s_pps_test.to_dict(),
-                     'train-test difference': s_difference.to_dict()}
+        ret_value, display = get_single_feature_contribution(train_dataset.data[relevant_columns],
+                                                             train_dataset.label_name,
+                                                             test_dataset.data[relevant_columns],
+                                                             test_dataset.label_name, self.ppscore_params,
+                                                             self.n_show_top)
 
-        # display only if not all scores are 0
-        display = [fig, *text] if s_pps_train.sum() or s_pps_test.sum() else None
+        display += text
 
         return CheckResult(value=ret_value, display=display, header='Single Feature Contribution Train-Test')
 
