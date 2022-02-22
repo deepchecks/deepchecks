@@ -39,11 +39,11 @@ DATA_DIR = Path(__file__).absolute().parent
 
 
 def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cpu') -> nn.Module:
-    """Load the yolov5s model and return it."""
+    """Load the yolov5s (version 6.1)  model and return it."""
     dev = torch.device(device) if isinstance(device, str) else device
     logger = logging.getLogger('yolov5')
     logger.disabled = True
-    model = torch.hub.load('ultralytics/yolov5', 'yolov5s',
+    model = torch.hub.load('ultralytics/yolov5:v6.1', 'yolov5s',
                            pretrained=pretrained,
                            verbose=False,
                            device=dev)
