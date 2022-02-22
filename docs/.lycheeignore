@@ -2,6 +2,9 @@
 ^.*_static/.*pathto\('_static/.*$
 ^.*split\(n\.wrapSplitCharacter\).*$
 
+^.*docs\.deepchecks\.com.*examples/.*$
+^.*docs/build/html/examples/.*$
+
 # links within plotly js scripts
 ^https://.*\.tile\.openstreetmap\.org.*$
 ^https://api\.mapbox.*$
