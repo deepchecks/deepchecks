@@ -103,7 +103,7 @@ def coco_train_dataloader():
 
 @pytest.fixture(scope='session')
 def coco_train_visiondata():
-    return load_coco_dataset(train=True, object_type='VisionData', batch_size=1)
+    return load_coco_dataset(train=True, object_type='VisionData')
 
 
 @pytest.fixture(scope='session')

@@ -37,12 +37,13 @@ class HeatmapComparison(TrainTestCheck):
 
     Parameters
     ----------
-    classes_to_display : Optional[List[float]], default: None List of classes to display in bounding box heatmap,
-        using the class name (strings). Applies only for object detection tasks. If None, all classes are displayed.
+    classes_to_display : Optional[List[float]], default: None
+        List of classes to display in bounding box heatmap, using the class names (strings). Applies only for
+        object detection tasks. If None, all classes are displayed.
     """
 
     def __init__(self,
-                 classes_to_display: Optional[List[float]] = None):
+                 classes_to_display: Optional[List[str]] = None):
         super().__init__()
         self.classes_to_display = classes_to_display
 
@@ -66,12 +67,15 @@ class HeatmapComparison(TrainTestCheck):
         train_dataset = context.train
 
         self._task_type = train_dataset.task_type
+        self._class_to_string = context.train.label_id_to_name
 
         # if self.classes_to_display is set, check that it has classes that actually exist
         if self.classes_to_display is not None:
             if not self._task_type == TaskType.OBJECT_DETECTION:
                 raise DeepchecksNotSupportedError('Classes to display is only supported for object detection tasks.')
-            if not set(self.classes_to_display).issubset(train_dataset.n_of_samples_per_class.keys()):
+            if not set(self.classes_to_display).issubset(
+                    map(self._class_to_string, train_dataset.n_of_samples_per_class.keys())
+            ):
                 raise DeepchecksValueError(
                     f'Provided list of class ids to display {self.classes_to_display} not found in training dataset.'
                 )
@@ -90,7 +94,7 @@ class HeatmapComparison(TrainTestCheck):
         """Perform update on batch for train or test counters and histograms."""
         if dataset_kind == DatasetKind.TRAIN:
             image_batch = context.train.image_formatter(batch)
-            summed_image = grayscale_sum_image(image_batch, self._shape)
+            summed_image = self._grayscale_sum_image(image_batch, self._shape)
             if self._train_grayscale_heatmap is None:
                 self._train_grayscale_heatmap = summed_image
             else:
@@ -98,7 +102,7 @@ class HeatmapComparison(TrainTestCheck):
             self._train_counter += len(image_batch)
         elif dataset_kind == DatasetKind.TEST:
             image_batch = context.test.image_formatter(batch)
-            summed_image = grayscale_sum_image(image_batch, self._shape)
+            summed_image = self._grayscale_sum_image(image_batch, self._shape)
             if self._test_grayscale_heatmap is None:
                 self._test_grayscale_heatmap = summed_image
             else:
@@ -110,16 +114,16 @@ class HeatmapComparison(TrainTestCheck):
         if self._task_type == TaskType.OBJECT_DETECTION:
             if dataset_kind == DatasetKind.TRAIN:
                 label_batch = context.train.label_formatter(batch)
-                label_image_batch = label_to_image_batch(label_batch, image_batch, self.classes_to_display)
-                summed_image = grayscale_sum_image(label_image_batch, self._shape)
+                label_image_batch = self._label_to_image_batch(label_batch, image_batch, self.classes_to_display)
+                summed_image = self._grayscale_sum_image(label_image_batch, self._shape)
                 if self._train_bbox_heatmap is None:
                     self._train_bbox_heatmap = summed_image
                 else:
                     self._train_bbox_heatmap += summed_image
             elif dataset_kind == DatasetKind.TEST:
                 label_batch = context.test.label_formatter(batch)
-                label_image_batch = label_to_image_batch(label_batch, image_batch, self.classes_to_display)
-                summed_image = grayscale_sum_image(label_image_batch, self._shape)
+                label_image_batch = self._label_to_image_batch(label_batch, image_batch, self.classes_to_display)
+                summed_image = self._grayscale_sum_image(label_image_batch, self._shape)
                 if self._test_bbox_heatmap is None:
                     self._test_bbox_heatmap = summed_image
                 else:
@@ -143,7 +147,7 @@ class HeatmapComparison(TrainTestCheck):
         display[0].update_layout(coloraxis={'colorscale': 'Inferno', 'cmin': 0, 'cmax': 255},
                                  coloraxis_colorbar={'title': 'Pixel Value'})
         value = {
-            'diff': image_diff(test_grayscale, train_grayscale)
+            'diff': self._image_diff(test_grayscale, train_grayscale)
         }
 
         if self._task_type == TaskType.OBJECT_DETECTION:
@@ -157,7 +161,7 @@ class HeatmapComparison(TrainTestCheck):
             )
             display[1].update_layout(coloraxis={'colorscale': 'Inferno', 'cmin': 0, 'cmax': 100},
                                      coloraxis_colorbar={'title': '% Coverage'})
-            value['diff_bbox'] = image_diff(test_bbox, train_bbox)
+            value['diff_bbox'] = self._image_diff(test_bbox, train_bbox)
 
         return CheckResult(value=value,
                            display=[fig.to_image('svg', width=900, height=300).decode('utf-8') for fig in display],
@@ -169,86 +173,85 @@ class HeatmapComparison(TrainTestCheck):
         fig = make_subplots(rows=1, cols=3, column_titles=['Train', 'Test', 'Test - Train'])
         fig.add_trace(numpy_grayscale_to_heatmap_figure(train_img), row=1, col=1)
         fig.add_trace(numpy_grayscale_to_heatmap_figure(test_img), row=1, col=2)
-        fig.add_trace(numpy_grayscale_to_heatmap_figure(image_diff(test_img, train_img)), row=1, col=3)
+        fig.add_trace(numpy_grayscale_to_heatmap_figure(HeatmapComparison._image_diff(test_img, train_img)), row=1,
+                      col=3)
         fig.update_yaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
         fig.update_xaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
         fig.update_layout(title=title, width=900, height=300)
         apply_heatmap_image_properties(fig)
         return fig
 
+    @staticmethod
+    def _image_diff(img1: np.ndarray, img2: np.ndarray) -> np.ndarray:
+        """Return the difference between two grayscale images as a grayscale image."""
+        diff = img1.astype(np.int32) - img2.astype(np.int32)
+        return np.abs(diff).astype(np.uint8)
 
-def image_diff(img1: np.ndarray, img2: np.ndarray) -> np.ndarray:
-    """Return the difference between two grayscale images as a grayscale image."""
-    diff = img1.astype(np.int32) - img2.astype(np.int32)
-    return np.abs(diff).astype(np.uint8)
-
-
-def label_to_image(label: np.ndarray, original_shape: Tuple[int], classes_to_display: Optional[List[int]]
-                   ) -> np.ndarray:
-    """Convert label array to an image where pixels inside the bboxes are white and the rest are black."""
-    image = np.zeros(original_shape, dtype=np.uint8)
-    label = label.reshape((-1, 5))
-    class_idx = label[:, 0]
-    x_min = (label[:, 1]).astype(np.int32)
-    y_min = (label[:, 2]).astype(np.int32)
-    x_max = (label[:, 1] + label[:, 3]).astype(np.int32)
-    y_max = (label[:, 2] + label[:, 4]).astype(np.int32)
-    for i in range(len(label)):
-        # If classes_to_display is set, don't display the bboxes for classes not in the list.
-        if classes_to_display is not None and class_idx[i] not in classes_to_display:
-            continue
-        image[y_min[i]:y_max[i], x_min[i]:x_max[i]] = 255
-    return np.expand_dims(image, axis=2)
-
-
-def label_to_image_batch(label_batch: List[torch.Tensor], image_batch: List[np.ndarray],
-                         classes_to_display: Optional[List[int]]) -> List[np.ndarray]:
-    """Convert label batch to batch of images where pixels inside the bboxes are white and the rest are black."""
-    return_bbox_image_batch = []
-    for image, label in zip(image_batch, label_batch):
-        return_bbox_image_batch.append(
-            label_to_image(label.detach().cpu().numpy(), image.shape[:2], classes_to_display)
-        )
-    return return_bbox_image_batch
-
-
-def grayscale_sum_image(batch: Iterable[np.ndarray], target_shape: List[Tuple[int, int]] = None
+    def _label_to_image(self, label: np.ndarray, original_shape: Tuple[int], classes_to_display: Optional[List[str]]
                         ) -> np.ndarray:
-    """Sum all images in batch to one grayscale image of shape target_shape.
+        """Convert label array to an image where pixels inside the bboxes are white and the rest are black."""
+        image = np.zeros(original_shape, dtype=np.uint8)
+        label = label.reshape((-1, 5))
+        class_idx = label[:, 0]
+        x_min = (label[:, 1]).astype(np.int32)
+        y_min = (label[:, 2]).astype(np.int32)
+        x_max = (label[:, 1] + label[:, 3]).astype(np.int32)
+        y_max = (label[:, 2] + label[:, 4]).astype(np.int32)
+        for i in range(len(label)):
+            # If classes_to_display is set, don't display the bboxes for classes not in the list.
+            if classes_to_display is not None and self._class_to_string(class_idx[i]) not in classes_to_display:
+                continue
+            image[y_min[i]:y_max[i], x_min[i]:x_max[i]] = 255
+        return np.expand_dims(image, axis=2)
 
-    Parameters
-    ----------
-    batch: np.ndarray
-        batch of images.
-    target_shape: List[Tuple[int, int]], default: None
-        list containing shape of image. If empty, the shape is taken from the first image in the batch.
+    def _label_to_image_batch(self, label_batch: List[torch.Tensor], image_batch: List[np.ndarray],
+                              classes_to_display: Optional[List[str]]) -> List[np.ndarray]:
+        """Convert label batch to batch of images where pixels inside the bboxes are white and the rest are black."""
+        return_bbox_image_batch = []
+        for image, label in zip(image_batch, label_batch):
+            return_bbox_image_batch.append(
+                self._label_to_image(label.detach().cpu().numpy(), image.shape[:2], classes_to_display)
+            )
+        return return_bbox_image_batch
 
-    Returns
-    -------
-    np.ndarray
-        summed image.
-    """
-    summed_image = None
+    @staticmethod
+    def _grayscale_sum_image(batch: Iterable[np.ndarray], target_shape: List[Tuple[int, int]] = None
+                            ) -> np.ndarray:
+        """Sum all images in batch to one grayscale image of shape target_shape.
 
-    for img in batch:
-        # Cast to grayscale
-        if img.shape[2] == 1:
-            resized_img = img
-        elif img.shape[2] == 3:
-            resized_img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-        else:
-            raise NotImplementedError('Images must be RGB or grayscale')
+        Parameters
+        ----------
+        batch: np.ndarray
+            batch of images.
+        target_shape: List[Tuple[int, int]], default: None
+            list containing shape of image. If empty, the shape is taken from the first image in the batch.
 
-        # reshape to one shape
-        if not target_shape:
-            target_shape.append(resized_img.shape[:2][::-1])
-        else:
-            resized_img = cv2.resize(resized_img, target_shape[0], interpolation=cv2.INTER_AREA)
+        Returns
+        -------
+        np.ndarray
+            summed image.
+        """
+        summed_image = None
 
-        # sum images
-        if summed_image is None:
-            summed_image = resized_img.squeeze().astype(np.int64)
-        else:
-            summed_image += resized_img.squeeze().astype(np.int64)
+        for img in batch:
+            # Cast to grayscale
+            if img.shape[2] == 1:
+                resized_img = img
+            elif img.shape[2] == 3:
+                resized_img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+            else:
+                raise NotImplementedError('Images must be RGB or grayscale')
 
-    return summed_image
+            # reshape to one shape
+            if not target_shape:
+                target_shape.append(resized_img.shape[:2][::-1])
+            else:
+                resized_img = cv2.resize(resized_img, target_shape[0], interpolation=cv2.INTER_AREA)
+
+            # sum images
+            if summed_image is None:
+                summed_image = resized_img.squeeze().astype(np.int64)
+            else:
+                summed_image += resized_img.squeeze().astype(np.int64)
+
+        return summed_image

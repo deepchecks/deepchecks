@@ -25,11 +25,11 @@ def test_object_detection(coco_train_visiondata, coco_test_visiondata):
     # Assert
     brightness_diff = result.value["diff"]
     assert_that(brightness_diff.mean(), less_than(11))
-    assert_that(brightness_diff.max(), less_than(45))
+    assert_that(brightness_diff.max(), less_than(46))
 
     bbox_diff = result.value["diff_bbox"]
     assert_that(bbox_diff.mean(), less_than(11))
-    assert_that(bbox_diff.max(), less_than(24))
+    assert_that(bbox_diff.max(), less_than(25))
 
 
 def test_classification(mnist_dataset_train, mnist_dataset_test):
@@ -47,7 +47,7 @@ def test_classification(mnist_dataset_train, mnist_dataset_test):
 
 def test_object_detection_limit_classes(coco_train_visiondata, coco_test_visiondata):
     # Arrange
-    check = HeatmapComparison(classes_to_display=[0])
+    check = HeatmapComparison(classes_to_display=['0'])
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata)
@@ -64,7 +64,7 @@ def test_object_detection_limit_classes(coco_train_visiondata, coco_test_visiond
 
 def test_limit_classes_for_classification(mnist_dataset_train, mnist_dataset_test):
     # Arrange
-    check = HeatmapComparison(classes_to_display=[0])
+    check = HeatmapComparison(classes_to_display=['0'])
 
     # Act & Assert
     assert_that(
@@ -75,11 +75,11 @@ def test_limit_classes_for_classification(mnist_dataset_train, mnist_dataset_tes
 
 def test_limit_classes_nonexistant_class(coco_train_visiondata, coco_test_visiondata):
     # Arrange
-    check = HeatmapComparison(classes_to_display=[1000])
+    check = HeatmapComparison(classes_to_display=['1000'])
 
     # Act & Assert
     assert_that(
         calling(check.run).with_args(coco_train_visiondata, coco_test_visiondata),
         raises(DeepchecksValueError,
-               r'Provided list of class ids to display \[1000\] not found in training dataset.')
+               r'Provided list of class ids to display \[\'1000\'\] not found in training dataset.')
     )
