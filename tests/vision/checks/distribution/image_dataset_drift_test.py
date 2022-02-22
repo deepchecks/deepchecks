@@ -38,7 +38,7 @@ def test_no_drift_grayscale(mnist_dataset_train):
     check = ImageDatasetDrift()
 
     # Act
-    result = check.run(train, test, seed=42)
+    result = check.run(train, test, random_state=42)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -61,7 +61,7 @@ def test_drift_grayscale(mnist_dataset_train, mnist_dataset_test):
     check = ImageDatasetDrift()
 
     # Act
-    result = check.run(train, test, seed=42)
+    result = check.run(train, test, random_state=42)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -88,7 +88,7 @@ def test_no_drift_rgb(coco_train_dataloader, coco_test_dataloader):
     check = ImageDatasetDrift()
 
     # Act
-    result = check.run(train, test, seed=42)
+    result = check.run(train, test, random_state=42)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -115,7 +115,7 @@ def test_with_drift_rgb(coco_train_dataloader, coco_test_dataloader):
     check = ImageDatasetDrift()
 
     # Act
-    result = check.run(train, test, seed=42)
+    result = check.run(train, test, random_state=42)
 
     # Assert
     assert_that(result.value, has_entries({

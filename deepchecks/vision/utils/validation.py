@@ -68,12 +68,11 @@ def set_seeds(seed: int):
     seed : int
         Seed to be set
     """
-    np.random.seed(seed)
-    random.seed(seed)
-    torch.manual_seed(seed)
-    imgaug.seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
+    if seed:
+        np.random.seed(seed)
+        random.seed(seed)
+        torch.manual_seed(seed)
+        imgaug.seed(seed)
 
 
 T = t.TypeVar('T')

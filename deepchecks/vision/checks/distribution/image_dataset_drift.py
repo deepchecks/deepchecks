@@ -122,7 +122,7 @@ class ImageDatasetDrift(TrainTestCheck):
 
         values_dict, displays = run_whole_dataset_drift(
             train_dataframe=df_train, test_dataframe=df_test, numerical_features=self.image_properties, cat_features=[],
-            sample_size=sample_size, random_state=context.seed, test_size=self.test_size,
+            sample_size=sample_size, random_state=context.random_state, test_size=self.test_size,
             n_top_columns=self.n_top_properties, min_feature_importance=self.min_feature_importance,
             max_num_categories=None
         )
