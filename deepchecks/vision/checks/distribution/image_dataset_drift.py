@@ -60,6 +60,8 @@ class ImageDatasetDrift(TrainTestCheck):
         Random seed for the check.
     test_size : float , default: 0.3
         Fraction of the combined datasets to use for the evaluation of the domain classifier.
+    min_meaningful_drift_score : float , default 0.05
+        Minimum drift score for displaying drift in check. Under that score, check will display "nothing found".
     """
 
     def __init__(
@@ -69,7 +71,8 @@ class ImageDatasetDrift(TrainTestCheck):
             min_feature_importance: float = 0.05,
             sample_size: int = 10_000,
             random_state: int = 42,
-            test_size: float = 0.3
+            test_size: float = 0.3,
+            min_meaningful_drift_score: float = 0.05
     ):
         super().__init__()
 
@@ -83,6 +86,7 @@ class ImageDatasetDrift(TrainTestCheck):
         self.sample_size = sample_size
         self.random_state = random_state
         self.test_size = test_size
+        self.min_meaningful_drift_score = min_meaningful_drift_score
 
         self._train_properties = OrderedDict([(k, []) for k in self.image_properties])
         self._test_properties = OrderedDict([(k, []) for k in self.image_properties])
@@ -128,7 +132,7 @@ class ImageDatasetDrift(TrainTestCheck):
             train_dataframe=df_train, test_dataframe=df_test, numerical_features=self.image_properties, cat_features=[],
             sample_size=sample_size, random_state=self.random_state, test_size=self.test_size,
             n_top_columns=self.n_top_properties, min_feature_importance=self.min_feature_importance,
-            max_num_categories=None
+            max_num_categories=None, min_meaningful_drift_score=self.min_meaningful_drift_score
         )
 
         if displays:

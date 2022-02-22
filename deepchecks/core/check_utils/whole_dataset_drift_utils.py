@@ -38,7 +38,8 @@ import plotly.graph_objects as go
 
 def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.DataFrame,
                             numerical_features: List[Hashable], cat_features: List[Hashable], sample_size: int,
-                            random_state, test_size, n_top_columns, min_feature_importance, max_num_categories):
+                            random_state: int, test_size: float, n_top_columns: int, min_feature_importance: float,
+                            max_num_categories: int, min_meaningful_drift_score: float):
     """Calculate whole dataset drift."""
     domain_classifier = generate_model(numerical_features, cat_features, random_state)
 
@@ -87,7 +88,7 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
     </span><br><br>
     """
 
-    if fi is not None and drift_score < 0.05:
+    if fi is not None and drift_score < min_meaningful_drift_score:
         top_fi = fi.head(n_top_columns)
         top_fi = top_fi.loc[top_fi > min_feature_importance]
     else:
