@@ -87,7 +87,7 @@ def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
     </span><br><br>
     """
 
-    if fi is not None and drift_score != 0:
+    if fi is not None and drift_score < 0.05:
         top_fi = fi.head(n_top_columns)
         top_fi = top_fi.loc[top_fi > min_feature_importance]
     else:
