@@ -277,7 +277,7 @@ class CheckResult:
         final_table = wandb.Table(columns=['header', 'params', 'summary', 'value'])
         final_table.add_data(*data)
         wandb.log({f'{section_suffix}results': final_table}, commit=False)
-        print('logged: ' + section_suffix + check_metadata['header'])
+        print('logged: ' + check_metadata['header'])
         if wandb_init:
             wandb.finish()
   
@@ -345,7 +345,7 @@ class CheckResult:
 
     def _get_metadata(self, with_doc_link: bool = False):
         check_name = self.check.name()
-        parameters = self.check.params()
+        parameters = self.check.params(False)
         header = self.get_header()
         return  {'name': check_name, 'params': parameters, 'header': header,
                  'summary': get_docs_summary(self.check, with_doc_link=with_doc_link)}
@@ -495,11 +495,14 @@ class BaseCheck(abc.ABC):
             raise DeepchecksValueError(f'Index {index} of conditions does not exists')
         self._conditions.pop(index)
 
-    def params(self) -> Dict:
+    def params(self, show_defaults: bool = False) -> Dict:
         """Return parameters to show when printing the check."""
         init_params = inspect.signature(self.__init__).parameters
 
-        return [(v.name, v.default) for v in init_params.values()]
+        if show_defaults:
+            return {k: v for k, v in vars(self).items() if k in init_params}
+        return {k: v for k, v in vars(self).items()
+                if k in init_params and v != init_params[k].default}
 
     def __repr__(self, tabs=0, prefix=''):
         """Representation of check as string.
@@ -628,13 +631,13 @@ class CheckFailure:
         final_table = wandb.Table(columns=['header', 'params', 'summary', 'value'])
         final_table.add_data(*data)
         wandb.log({f'{section_suffix}results': final_table}, commit=False)
-        print('logged: ' + section_suffix + check_metadata['header'])
+        print('logged: ' + check_metadata['header'])
         if wandb_init:
             wandb.finish()
 
     def _get_metadata(self, with_doc_link: bool = False):
         check_name = self.check.name()
-        parameters = self.check.params()
+        parameters = self.check.params(False)
         summary = get_docs_summary(self.check, with_doc_link=with_doc_link)
         return {'name': check_name, 'params': parameters, 'header': self.header, 'summary': summary}
 
