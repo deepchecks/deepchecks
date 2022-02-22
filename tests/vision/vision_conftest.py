@@ -69,7 +69,9 @@ def mnist_dataset_test():
 
 @pytest.fixture(scope='session')
 def trained_mnist():
-    return load_mnist_net_model()
+    # The MNIST model training is not deterministic, so loading a saved version of it for the tests.
+    path = pathlib.Path(__file__).absolute().parent / 'models' / 'mnist.pth'
+    return load_mnist_net_model(pretrained=True, path=path)
 
 
 @pytest.fixture(scope='session')

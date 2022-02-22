@@ -106,7 +106,7 @@ def load_dataset(
         raise TypeError(f'Unknown value of object_type - {object_type}')
 
 
-def load_model(pretrained: bool = True) -> 'MNistNet':
+def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MNistNet':
     """Load MNIST model.
 
     Returns
@@ -114,17 +114,18 @@ def load_model(pretrained: bool = True) -> 'MNistNet':
     MNistNet
     """
     # TODO: should we put downloadable pre-trained model into our repo?
+    if path and not path.exists():
+        LOGGER.warning(f'Path for MNIST model not found: {path}')
 
-    if pretrained and MODEL_PATH.exists():
+    path = path or MODEL_PATH
+
+    if pretrained and path.exists():
         model = MNistNet()
-        model.load_state_dict(torch.load(MODEL_PATH))
+        model.load_state_dict(torch.load(path))
         model.eval()
         return model
 
     model = MNistNet()
-
-    if pretrained is False:
-        return model.train()
 
     dataloader = t.cast(DataLoader, load_dataset(train=True, object_type='DataLoader'))
     datasize = len(dataloader.dataset)
@@ -155,10 +156,10 @@ def load_model(pretrained: bool = True) -> 'MNistNet':
                     epoch, loss, current, datasize
                 )
 
-    if not MODELS_DIR.exists():
-        MODELS_DIR.mkdir()
+    if not path.parent.exists():
+        path.parent.mkdir()
 
-    torch.save(model.state_dict(), MODEL_PATH)
+    torch.save(model.state_dict(), path)
     model.eval()
     return model
 
