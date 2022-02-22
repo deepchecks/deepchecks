@@ -345,7 +345,7 @@ class CheckResult:
 
     def _get_metadata(self, with_doc_link: bool = False):
         check_name = self.check.name()
-        parameters = self.check.params(False)
+        parameters = self.check.params(True)
         header = self.get_header()
         return  {'name': check_name, 'params': parameters, 'header': header,
                  'summary': get_docs_summary(self.check, with_doc_link=with_doc_link)}
@@ -637,7 +637,7 @@ class CheckFailure:
 
     def _get_metadata(self, with_doc_link: bool = False):
         check_name = self.check.name()
-        parameters = self.check.params(False)
+        parameters = self.check.params(True)
         summary = get_docs_summary(self.check, with_doc_link=with_doc_link)
         return {'name': check_name, 'params': parameters, 'header': self.header, 'summary': summary}
 
