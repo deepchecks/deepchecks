@@ -212,13 +212,6 @@ class VisionData:
         else:
             return self._label_map[class_id]
 
-    def get_label_shape(self):
-        """Return the shape of the label."""
-        self.assert_label()
-
-        # Assuming the dataset contains a tuple of (features, label)
-        return self.label_formatter(next(iter(self)))[0].shape  # first argument is batch_size
-
     def assert_label(self):
         """Raise error if label is not exists or not valid."""
         if self._label_invalid:
@@ -274,6 +267,12 @@ class VisionData:
         """Use the defined collate_fn to transform a few data items to batch format."""
         return self.get_data_loader().collate_fn(list(samples))
 
+    def set_seed(self, seed):
+        """Set seed for data loader."""
+        generator = self._data.generator
+        if generator is not None:
+            generator.set_state(torch.Generator().manual_seed(seed).get_state())
+
     def validate_shared_label(self, other):
         """Verify presence of shared labels.
 
@@ -297,22 +296,8 @@ class VisionData:
         if self.task_type != other.task_type:
             raise DeepchecksValueError('Datasets required to have same label type')
 
-        # TODO:
-        # does it have a sense at all?
-        # we compare and verify only the first labels
-        # it does not mean that all other labels will be correct
-
-        if self.task_type == TaskType.OBJECT_DETECTION:
-            # number of objects can be different
-            _, *label_shape = self.get_label_shape()
-            _, *other_label_shape = other.get_label_shape()
-            if label_shape != other_label_shape:
-                raise DeepchecksValueError('Datasets required to share the same label shape')
         elif self.task_type == TaskType.SEMANTIC_SEGMENTATION:
             raise NotImplementedError()  # TODO
-        else:
-            if self.get_label_shape() != other.get_label_shape():
-                raise DeepchecksValueError('Datasets required to share the same label shape')
 
     @classmethod
     def validate_dataset(cls, obj) -> 'VisionData':
