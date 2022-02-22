@@ -70,7 +70,8 @@ def get_conditions_table(check_results: Union['check.CheckResult', List['check.C
         the unique id to append for the check names to create links (won't create links if None/empty).
     max_info_len : int
         max length of the additional info.
-
+    icon_html : bool , default: True
+        if to show the html condition result icon or a char
     Returns
     -------
     pd.Dataframe:

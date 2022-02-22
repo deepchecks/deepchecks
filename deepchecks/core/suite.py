@@ -99,6 +99,15 @@ class SuiteResult:
         return jsonpickle.dumps({'name': self.name, 'results': json_results})
 
     def to_wandb(self, wandb_init: bool = True, wandb_project: str = None):
+        """Send suite result to wandb.
+
+        Parameters
+        ----------
+        wandb_init : bool , default: True
+            if to initiate a new wandb run
+        wandb_project: str
+            if given and wandb_init is True, set the project name to it otherwise use suite name
+        """
         if wandb_init:
             if wandb_project is None:
                 wandb_project = self.name

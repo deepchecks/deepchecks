@@ -209,18 +209,14 @@ class CheckResult:
         return displays
 
     def to_wandb(self, wandb_init: bool = True, wandb_project: str = None):
-        """Return check result as json.
+        """Send check result to wandb.
 
         Parameters
         ----------
-        with_display : bool
-            controls if to serialize display or not
-
-        Returns
-        --------
-        str
-            {'name': .., 'params': .., 'header': ..,
-             'summary': .., 'conditions_table': .., 'value', 'display': ..}
+        wandb_init : bool , default: True
+            if to initiate a new wandb run
+        wandb_project: str
+            if given and wandb_init is True, set the project name to it otherwise use check name
         """
         check_metadata = self._get_metadata()
         if wandb_init:
@@ -608,18 +604,14 @@ class CheckFailure:
         return jsonpickle.dumps(result_json)
 
     def to_wandb(self, wandb_init: bool = True, wandb_project: str = None):
-        """Return check result as json.
+        """Send check result to wandb.
 
         Parameters
         ----------
-        with_display : bool
-            controls if to serialize display or not
-
-        Returns
-        --------
-        str
-            {'name': .., 'params': .., 'header': ..,
-             'summary': .., 'conditions_table': .., 'value', 'display': ..}
+        wandb_init : bool , default: True
+            if to initiate a new wandb run
+        wandb_project: str
+            if given and wandb_init is True, set the project name to it otherwise use check name
         """
         check_metadata = self._get_metadata()
         if wandb_init:
