@@ -33,6 +33,7 @@ from deepchecks.core.errors import (
 )
 from deepchecks.vision.dataset import VisionData, TaskType
 from deepchecks.vision.utils.validation import apply_to_tensor
+from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
 
 __all__ = [
@@ -98,9 +99,22 @@ class Context:
         if test and random_state:
             test.set_seed(random_state)
 
-        self._device = torch.device(device) if isinstance(device, str) else device
+        task_type = train.task_type if train else None
+        self._device = torch.device(device) if isinstance(device, str) else (device if device else torch.device('cpu'))
 
-        if prediction_formatter:
+        # If no prediction_formatter is passed and model and train are defined, we will use the default one according
+        # to the dataset task type
+        if model is not None and train is not None and prediction_formatter is None:
+            if task_type == TaskType.CLASSIFICATION:
+                prediction_formatter = ClassificationPredictionFormatter()
+            elif task_type == TaskType.OBJECT_DETECTION:
+                prediction_formatter = DetectionPredictionFormatter()
+            else:
+                raise DeepchecksValueError(f'Must pass prediction formatter for task_type {task_type}')
+
+        if prediction_formatter is not None:
+            if train is None or model is None:
+                raise DeepchecksValueError('Can\'t pass prediction formatter without model and train data')
             prediction_formatter.validate_prediction(next(iter(train)), model, self._device)
 
         self._train = train
