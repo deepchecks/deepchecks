@@ -71,6 +71,8 @@ def get_docs_summary(obj, with_doc_link: bool = True):
     ----------
     obj
         an object
+    with_doc_link : bool , default: True
+        if to add doc link
     Returns
     -------
     str
