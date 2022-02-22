@@ -208,7 +208,7 @@ docstring: dev-requirements
 
 
 test: requirements dev-requirements
-	$(PYTEST) $(args) $(TESTDIR)/vision/checks/performance/class_performance_test.py::test_coco_best
+	$(PYTEST) $(args) $(TESTDIR)
 
 
 test-win:
