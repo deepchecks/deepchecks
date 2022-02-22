@@ -99,7 +99,7 @@ class SuiteResult:
         return jsonpickle.dumps({'name': self.name, 'results': json_results})
 
     def to_wandb(self, wandb_init: bool = True, wandb_project: str = None):
-        """Send suite result to wandb.
+        """Export suite result to wandb.
 
         Parameters
         ----------

@@ -209,7 +209,7 @@ class CheckResult:
         return displays
 
     def to_wandb(self, wandb_init: bool = True, wandb_project: str = None):
-        """Send check result to wandb.
+        """Export check result to wandb.
 
         Parameters
         ----------
@@ -604,7 +604,7 @@ class CheckFailure:
         return jsonpickle.dumps(result_json)
 
     def to_wandb(self, wandb_init: bool = True, wandb_project: str = None):
-        """Send check result to wandb.
+        """Export check result to wandb.
 
         Parameters
         ----------
