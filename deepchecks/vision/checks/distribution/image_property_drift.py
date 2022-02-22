@@ -2,7 +2,6 @@ import typing as t
 from numbers import Number
 from collections import defaultdict
 
-import torch
 import pandas as pd
 
 from deepchecks.core import DatasetKind
@@ -17,7 +16,8 @@ from deepchecks.utils.distribution.drift import calc_drift_and_plot
 __all__ = ['ImagePropertyDrift',]
 
 
-ImageProperty = t.Union[str, t.Callable[..., Number]]
+ImageProperty = t.Union[str, t.Callable[..., t.List[Number]]]
+
 
 class ImagePropertyDrift(TrainTestCheck):
     """
@@ -27,6 +27,10 @@ class ImagePropertyDrift(TrainTestCheck):
     dataset. For this, we use the Earth Movers Distance.
     
     See https://en.wikipedia.org/wiki/Wasserstein_metric
+
+    Pramaters
+    ---------
+    image_properties : Optional[List[Union[str, Callable[..., Number]]]]
     """
     
     def __init__(
@@ -61,6 +65,7 @@ class ImagePropertyDrift(TrainTestCheck):
         batch: t.Any, 
         dataset_kind: DatasetKind
     ):
+        """Calculate image properties for train or test batches."""
         if dataset_kind == DatasetKind.TRAIN:
             dataset = context.train
             properties = self.train_properties
@@ -75,32 +80,54 @@ class ImagePropertyDrift(TrainTestCheck):
 
         images = dataset.image_formatter(batch)
 
-        for name in ImageFormatter.IMAGE_PROPERTIES:
-            properties[name].extend(
-                getattr(dataset.image_formatter, name)(images)
-            )
+        for image_property in self.image_properties:
+            if isinstance(image_property, str):
+                properties[image_property].extend(
+                    getattr(dataset.image_formatter, image_property)(images)
+                )
+            elif callable(image_property):
+                # TODO: if it is a lambda it will have a name - <lambda>, that is a problem/
+                properties[image_property.__name__].extend(image_property(images))
+            else:
+                raise DeepchecksValueError(
+                    'Do not know how to work with image'
+                    f'property of type - {type(image_property).__name__}'
+                )
 
     def compute(self, context: Context) -> CheckResult:
+        """Calculate drift score between train and test datasets for the collected image properties.
+
+        Returns
+        -------
+        CheckResult
+            value: dictionary containing drift score for each image property.
+            display: distribution graph for each image property.
+        """
+        
+        if sorted(self.train_properties.keys()) != sorted(self.test_properties.keys()):
+            raise DeepchecksValueError('') # TODO: message
+
+        properties = sorted(self.train_properties.keys())
         df_train = pd.DataFrame(self.train_properties)
         df_test = pd.DataFrame(self.test_properties)
 
         figures = []
         drifts = {}
 
-        for property_name in sorted(ImageFormatter.IMAGE_PROPERTIES):
-            score, method, figure = calc_drift_and_plot(
+        for property_name in properties:
+            score, _, figure = calc_drift_and_plot(
                 train_column=df_train[property_name],
                 test_column=df_test[property_name],
                 column_type='numerical',
                 plot_title=property_name
             )
             figures.append(figure)
-            drifts[property_name] = {'Drift score': score, 'Method': method} 
+            drifts[property_name] = {'Drift score': score,}
         
-        headnote = "" # TODO:
+        headnote = '' # TODO:
 
         return CheckResult(
-            drifts, 
+            drifts,
             display=[headnote, *figures],
-            header="Image Property Drift"
+            header='Image Property Drift'
         )
