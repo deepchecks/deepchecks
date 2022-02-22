@@ -111,8 +111,7 @@ class Context:
             elif task_type == TaskType.OBJECT_DETECTION:
                 prediction_formatter = DetectionPredictionFormatter()
             else:
-                # Doing nothing for now in case user wants to implement his own task type
-                pass
+                raise DeepchecksValueError(f'Must pass prediction formatter for task_type {task_type}')
 
         if prediction_formatter is not None:
             if train is None or model is None:
