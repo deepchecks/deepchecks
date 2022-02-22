@@ -94,7 +94,7 @@ By using provided bbox format notation deepchecks will know how to transform lab
 Elements of the bbox format notation:
     * l - label (class) of the object;
     * xy - top-left or bottom-right corner of the bbox. (First 'xy' element is always interpreted as x-min, y-min, and second as x-max, y-max). Coordinates of the bounding box's corners are represented with respect to the top-left corner of the image which has (x, y) coordinates (0, 0);
-    * cxcy - center of the bbox;
+    * cxcy - xy measured from the center of the image, meaning the center of the image is (0, 0);
     * wh - width and height of the bbox;
     * n - element placed at the beggining or at the end of the notation indicates whether coordinates are normalized or not. Which means that coordinates of the bbox are representated not in pixels but as ration of x / image-width and y / image-height.
 
