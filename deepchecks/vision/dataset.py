@@ -76,8 +76,8 @@ class VisionData:
     or else the callable label_formatter should be able to transform the labels to the desired format.
     """
 
-    label_formatter: BaseLabelFormatter
-    image_formatter: ImageFormatter
+    label_transformer: Optional[BaseLabelFormatter]
+    image_transformer: Optional[ImageFormatter]
     task_type: Optional[TaskType]
     sample_iteration_limit: int
     _data: DataLoader
@@ -172,12 +172,12 @@ class VisionData:
 
     def to_display_data(self, batch):
         """Convert a batch of data outputted by the data loader to a format that can be displayed."""
-        return self.image_formatter(batch)
+        return self.image_formatter(batch)  # pylint: disable=not-callable
 
     @property
     def data_dimension(self):
         """Return how many dimensions the image data have."""
-        image = self.image_formatter(next(iter(self)))[0]
+        image = self.image_formatter(next(iter(self)))[0]  # pylint: disable=not-callable
         return ImageInfo(image).get_dimension()
 
     @property
