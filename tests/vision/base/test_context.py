@@ -9,9 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 #
-import typing as t
-
 import torch
+from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 from torch import nn
 from hamcrest import (
     assert_that,
@@ -27,34 +26,29 @@ from hamcrest import (
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.core.errors import ModelValidationError
 from deepchecks.core.errors import DatasetValidationError
 from deepchecks.vision.base import Context
-from deepchecks.vision.dataset import VisionData
-from deepchecks.vision.datasets.detection import coco
-from deepchecks.vision.datasets.classification import mnist
+from deepchecks.vision.datasets.classification.mnist import mnist_prediction_formatter
+from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
 
 
-def test_vision_context_initialization_for_classification_task():
-    # Arrange
-    train_dataset = t.cast(VisionData, mnist.load_dataset(train=True, object_type='VisionData'))
-    test_dataset = t.cast(VisionData, mnist.load_dataset(train=False, object_type='VisionData'))
-    model = mnist.load_model()
-
+def test_vision_context_initialization_for_classification_task(mnist_dataset_train, mnist_dataset_test,
+                                                               trained_mnist):
     # Act
     context = Context(
-        train=train_dataset,
-        test=test_dataset,
-        model=model,
+        train=mnist_dataset_train,
+        test=mnist_dataset_test,
+        model=trained_mnist,
         model_name='MNIST',
         device='cpu',
+        prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter)
     )
 
     # Assert
     assert_that(context, has_properties({
-        'train': same_instance(train_dataset),
-        'test': same_instance(test_dataset),
-        'model': same_instance(model),
+        'train': same_instance(mnist_dataset_train),
+        'test': same_instance(mnist_dataset_test),
+        'model': same_instance(trained_mnist),
         'model_name': equal_to('MNIST'),
         'device': all_of(
             instance_of(torch.device),
@@ -63,26 +57,23 @@ def test_vision_context_initialization_for_classification_task():
     }))
 
 
-def test_vision_context_initialization_for_object_detection_task():
-    # Arrange
-    train_dataset = t.cast(VisionData, coco.load_dataset(train=True, object_type='VisionData'))
-    test_dataset = t.cast(VisionData, coco.load_dataset(train=False, object_type='VisionData'))
-    model = coco.load_model()
-
+def test_vision_context_initialization_for_object_detection_task(coco_train_visiondata, coco_test_visiondata,
+                                                                 trained_yolov5_object_detection):
     # Act
     context = Context(
-        train=train_dataset,
-        test=test_dataset,
-        model=model,
+        train=coco_train_visiondata,
+        test=coco_test_visiondata,
+        model=trained_yolov5_object_detection,
         model_name='COCO',
         device='cpu',
+        prediction_formatter=DetectionPredictionFormatter(yolo_prediction_formatter)
     )
 
     # Assert
     assert_that(context, has_properties({
-        'train': same_instance(train_dataset),
-        'test': same_instance(test_dataset),
-        'model': same_instance(model),
+        'train': same_instance(coco_train_visiondata),
+        'test': same_instance(coco_test_visiondata),
+        'model': same_instance(trained_yolov5_object_detection),
         'model_name': equal_to('COCO'),
         'device': all_of(
             instance_of(torch.device),
@@ -95,24 +86,19 @@ def test_vision_context_initialization_for_object_detection_task():
 #   pass
 
 
-def test_vision_context_initialization_with_datasets_from_different_tasks():
-    # Act
-    train_dataset = t.cast(VisionData, coco.load_dataset(train=True, object_type='VisionData'))
-    test_dataset = t.cast(VisionData, mnist.load_dataset(train=True, object_type='VisionData'))
-
+def test_vision_context_initialization_with_datasets_from_different_tasks(mnist_dataset_train, coco_train_visiondata):
     # Assert
     assert_that(
-        calling(Context).with_args(train=train_dataset, test=test_dataset),
+        calling(Context).with_args(train=coco_train_visiondata, test=mnist_dataset_train),
         raises(
             DeepchecksValueError,
             r'Datasets required to have same label type')
     )
 
 
-def test_that_vision_context_raises_exception_for_unset_properties():
+def test_that_vision_context_raises_exception_for_unset_properties(mnist_dataset_train):
     # Arrange
-    train_dataset = t.cast(VisionData, mnist.load_dataset(train=True, object_type='VisionData'))
-    context = Context(train=train_dataset)
+    context = Context(train=mnist_dataset_train)
 
     # Act
     assert_that(
@@ -131,17 +117,16 @@ def test_that_vision_context_raises_exception_for_unset_properties():
 
 def test_empty_context_initialization():
     assert_that(
-        calling(Context).with_args(model_name="Name",),
+        calling(Context).with_args(model_name="Name", ),
         raises(
             DeepchecksValueError,
             r'At least one dataset \(or model\) must be passed to the method\!')
     )
 
 
-def test_context_initialization_with_test_dataset_only():
-    test_dataset = coco.load_dataset(object_type='VisionData')
+def test_context_initialization_with_test_dataset_only(coco_test_visiondata):
     assert_that(
-        calling(Context).with_args(model_name="Name", test=test_dataset),
+        calling(Context).with_args(model_name="Name", test=coco_test_visiondata),
         raises(
             DatasetValidationError,
             r"Can't initialize context with only test\. if you have single dataset, "
@@ -149,38 +134,30 @@ def test_context_initialization_with_test_dataset_only():
     )
 
 
-def test_context_initialization_with_train_dataset_only():
-    train_dataset = t.cast(VisionData, coco.load_dataset(train=True, object_type='VisionData'))
-    Context(model_name="Name", train=train_dataset)
+def test_context_initialization_with_train_dataset_only(coco_train_visiondata):
+    Context(model_name="Name", train=coco_train_visiondata)
 
 
-def test_context_initialization_with_model_only():
-    model = coco.load_model()
-    Context(model_name="Name", model=model)
+def test_context_initialization_with_model_only(trained_mnist):
+    Context(model_name="Name", model=trained_mnist)
 
 
-def test_context_initialization_with_broken_model():
-
+def test_context_initialization_with_broken_model(mnist_dataset_train, mnist_dataset_test):
     # Arrange
     class BrokenModel(nn.Module):
         def __call__(self, *args, **kwargs):
             raise Exception("Unvalid arguments")
 
-    train_dataset = t.cast(VisionData, mnist.load_dataset(train=True, object_type='VisionData'))
-    test_dataset = t.cast(VisionData, mnist.load_dataset(train=False, object_type='VisionData'))
     model = BrokenModel()
 
-    # Act
-    context = Context(
-        train=train_dataset,
-        test=test_dataset,
-        model=model
-    )
-
-    # Assert
+    # Act & Assert
     assert_that(
-        calling(lambda: context.model),
+        calling(Context
+                ).with_args(train=mnist_dataset_train,
+                            test=mnist_dataset_test,
+                            model=model,
+                            prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter)),
         raises(
-            ModelValidationError,
-            r'Got error when trying to predict with model on dataset: .*')
+            Exception,
+            r'Unvalid arguments')
     )
