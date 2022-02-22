@@ -69,7 +69,8 @@ class Context:
         scikit-learn docs</a>
     device : Union[str, torch.device], default: None
         processing unit for use
-
+    seed : int
+        A seed to set for deterministic results
     """
 
     def __init__(self,
@@ -80,7 +81,8 @@ class Context:
                  prediction_formatter: BasePredictionFormatter = None,
                  scorers: Mapping[str, Metric] = None,
                  scorers_per_class: Mapping[str, Metric] = None,
-                 device: Union[str, torch.device, None] = None
+                 device: Union[str, torch.device, None] = None,
+                 seed: int = None
                  ):
         # Validations
         if train is None and test is None and model is None:
@@ -90,6 +92,12 @@ class Context:
                                          'initialize it as train')
         if train and test:
             train.validate_shared_label(test)
+
+        # Set seeds to if possible
+        self.seed = seed or 42
+        train.set_seed(self.seed)
+        if test:
+            test.set_seed(self.seed)
 
         self._device = torch.device(device) if isinstance(device, str) else device
 
@@ -200,14 +208,16 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         dataset: VisionData,
         model: Optional[nn.Module] = None,
         prediction_formatter: BasePredictionFormatter = None,
-        device: Union[str, torch.device, None] = None
+        device: Union[str, torch.device, None] = None,
+        seed: int = None
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
         context = self.context_type(dataset,
                                     model=model,
                                     prediction_formatter=prediction_formatter,
-                                    device=device)
+                                    device=device,
+                                    seed=seed)
 
         self.initialize_run(context, DatasetKind.TRAIN)
 
@@ -245,7 +255,8 @@ class TrainTestCheck(TrainTestBaseCheck):
         test_dataset: VisionData,
         model: Optional[nn.Module] = None,
         prediction_formatter: BasePredictionFormatter = None,
-        device: Union[str, torch.device, None] = None
+        device: Union[str, torch.device, None] = None,
+        seed: int = None
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
@@ -253,7 +264,8 @@ class TrainTestCheck(TrainTestBaseCheck):
                                     test_dataset,
                                     model=model,
                                     prediction_formatter=prediction_formatter,
-                                    device=device)
+                                    device=device,
+                                    seed=seed)
 
         self.initialize_run(context)
 
@@ -290,11 +302,12 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
     def run(
         self,
         model: nn.Module,
-        device: Union[str, torch.device, None] = None
+        device: Union[str, torch.device, None] = None,
+        seed: int = None
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        context = self.context_type(model=model, device=device)
+        context = self.context_type(model=model, device=device, seed=seed)
 
         self.initialize_run(context)
         return finalize_check_result(self.compute(context), self)
@@ -324,7 +337,8 @@ class Suite(BaseSuite):
             prediction_formatter: BasePredictionFormatter = None,
             scorers: Mapping[str, Metric] = None,
             scorers_per_class: Mapping[str, Metric] = None,
-            device: Union[str, torch.device, None] = None
+            device: Union[str, torch.device, None] = None,
+            seed: int = None
     ) -> SuiteResult:
         """Run all checks.
 
@@ -347,6 +361,8 @@ class Suite(BaseSuite):
             scikit-learn docs</a>
         device : Union[str, torch.device], default: None
             processing unit for use
+        seed : int
+            A seed to set for deterministic results
 
         Returns
         -------
@@ -360,7 +376,8 @@ class Suite(BaseSuite):
             prediction_formatter=prediction_formatter,
             scorers=scorers,
             scorers_per_class=scorers_per_class,
-            device=device
+            device=device,
+            seed=seed
         )
 
         # Create instances of SingleDatasetCheck for train and test if train and test exist.

@@ -36,11 +36,9 @@ def test_no_drift_grayscale(mnist_dataset_train):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
     check = ImageDatasetDrift()
-    train.set_seed(42)
-    test.set_seed(42)
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, seed=42)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -61,11 +59,9 @@ def test_drift_grayscale(mnist_dataset_train, mnist_dataset_test):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_test
     check = ImageDatasetDrift()
-    train.set_seed(42)
-    test.set_seed(42)
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, seed=42)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -88,13 +84,11 @@ def test_no_drift_rgb(coco_train_dataloader, coco_test_dataloader):
                        label_formatter=DetectionLabelFormatter())
     test = VisionData(coco_test_dataloader, image_formatter=ImageFormatter(pil_formatter),
                       label_formatter=DetectionLabelFormatter())
-    train.set_seed(42)
-    test.set_seed(42)
 
     check = ImageDatasetDrift()
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, seed=42)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -117,13 +111,11 @@ def test_with_drift_rgb(coco_train_dataloader, coco_test_dataloader):
                        label_formatter=DetectionLabelFormatter())
     test = VisionData(coco_test_dataloader, image_formatter=ImageFormatter(pil_formatter),
                       label_formatter=DetectionLabelFormatter())
-    train.set_seed(42)
-    test.set_seed(42)
 
     check = ImageDatasetDrift()
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, seed=42)
 
     # Assert
     assert_that(result.value, has_entries({

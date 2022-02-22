@@ -87,7 +87,7 @@ class RobustnessReport(SingleDatasetCheck):
         -------
             CheckResult: value is dictionary in format 'score-name': score-value
         """
-        set_seeds(self.random_state)
+        set_seeds(context.seed)
         dataset = context.get_data_by_kind(dataset_kind)
         model = context.model
 
