@@ -233,7 +233,7 @@ class HeatmapComparison(TrainTestCheck):
 
     @staticmethod
     def _grayscale_sum_image(batch: Iterable[np.ndarray], target_shape: List[Tuple[int, int]] = None
-                            ) -> np.ndarray:
+                             ) -> np.ndarray:
         """Sum all images in batch to one grayscale image of shape target_shape.
 
         Parameters
