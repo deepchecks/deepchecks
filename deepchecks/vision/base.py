@@ -95,7 +95,8 @@ class Context:
 
         # Set seeds to if possible
         self.seed = seed or 42
-        train.set_seed(self.seed)
+        if train:
+            train.set_seed(self.seed)
         if test:
             test.set_seed(self.seed)
 
