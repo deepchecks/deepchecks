@@ -12,7 +12,7 @@
 from collections import defaultdict
 
 import imgaug
-from typing import TypeVar, List, Optional, Any, Sized, Dict
+from typing import TypeVar, List, Optional, Any, Sized
 import albumentations
 import numpy as np
 
@@ -45,16 +45,15 @@ class RobustnessReport(SingleDatasetCheck):
 
     Parameters
     ----------
-    alternative_metrics : Dict[str, Metric], default: None
-        A dictionary of metrics, where the key is the metric name and the value is an ignite.Metric object whose score
-        should be used. If None are given, use the default metrics.
-    augmentations : List, default: None
-        A list of augmentations to test on the data. If none are given default augmentations are used.
-        Supported augmentations are of albumentations and imgaug.
+        alternative_metrics : List[Metric], default: None
+            A list of ignite.Metric objects whose score should be used. If None are given, use the default metrics.
+        augmentations : List, default: None
+            A list of augmentations to test on the data. If none are given default augmentations are used.
+            Supported augmentations are of albumentations and imgaug.
     """
 
     def __init__(self,
-                 alternative_metrics: Optional[Dict[str, Metric]] = None,
+                 alternative_metrics: Optional[List[Metric]] = None,
                  augmentations: List = None):
         super().__init__()
         self.alternative_metrics = alternative_metrics
