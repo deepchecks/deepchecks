@@ -50,7 +50,7 @@ def get_default_object_detection_scorers():
 
 def get_scorers_list(
         dataset: VisionData,
-        alternative_scorers: t.List[Metric] = None
+        alternative_scorers: t.Dict[str, Metric] = None
 ) -> t.Dict[str, Metric]:
     """Get scorers list according to model object and label column.
 
@@ -58,10 +58,8 @@ def get_scorers_list(
     ----------
     dataset : VisionData
         Dataset object
-    alternative_scorers : t.List[Metric]
-        Alternative scorers list
-    class_average : bool, default: False
-        Whether classification metrics should average the results or return result per class
+    alternative_scorers : t.Dict[str, Metric]
+        Alternative scorers dictionary
     Returns
     -------
     t.Dict[str, Metric]
@@ -71,7 +69,7 @@ def get_scorers_list(
 
     if alternative_scorers:
         # Validate that each alternative scorer is a correct type
-        for met in alternative_scorers:
+        for _, met in alternative_scorers.items():
             if not isinstance(met, Metric):
                 raise DeepchecksValueError('alternative_scorers should contain metrics of type ignite.Metric')
         scorers = alternative_scorers
@@ -88,8 +86,9 @@ def get_scorers_list(
 
 
 def calculate_metrics(
-    metrics: t.Union[t.Dict, t.List[Metric]],
-    dataset: VisionData, model: nn.Module,
+    metrics: t.Dict[str, Metric],
+    dataset: VisionData,
+    model: nn.Module,
     prediction_formatter: BasePredictionFormatter,
     device: t.Union[str, torch.device, None] = None
 ) -> t.Dict[str, float]:
@@ -97,11 +96,10 @@ def calculate_metrics(
 
     Parameters
     ----------
-    metrics : List[Metric]
+    metrics : Dict[str, Metric]
         List of ignite metrics to calculate
     dataset : VisionData
         Dataset object
-
     model : nn.Module
         Model object
     prediction_formatter : Union[ClassificationPredictionFormatter, DetectionPredictionFormatter]
@@ -118,9 +116,6 @@ def calculate_metrics(
         return prediction_formatter(batch, model, device), dataset.label_formatter(batch)
 
     engine = Engine(process_function)
-
-    if isinstance(metrics, list):
-        metrics = {type(metric).__name__: metric for metric in metrics}
 
     for name, metric in metrics.items():
         metric.reset()

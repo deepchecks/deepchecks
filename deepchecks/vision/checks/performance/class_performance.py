@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing class performance check."""
-from typing import TypeVar, List, Any
+from typing import TypeVar, List, Any, Dict
 
 import pandas as pd
 import plotly.express as px
@@ -33,8 +33,9 @@ class ClassPerformance(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_metrics : List[Metric], default: None
-        A list of ignite.Metric objects whose score should be used. If None are given, use the default metrics.
+    alternative_metrics : Dict[str, Metric], default: None
+        A dictionary of metrics, where the key is the metric name and the value is an ignite.Metric object whose score
+        should be used. If None are given, use the default metrics.
     n_to_show : int, default: 20
         Number of classes to show in the report. If None, show all classes.
     show_only : str, default: 'largest'
@@ -53,7 +54,7 @@ class ClassPerformance(TrainTestCheck):
     """
 
     def __init__(self,
-                 alternative_metrics: List[Metric] = None,
+                 alternative_metrics: Dict[str, Metric] = None,
                  n_to_show: int = 20,
                  show_only: str = 'largest',
                  metric_to_show_by: str = None,
