@@ -73,9 +73,29 @@ For object detection tasks, it is required to implement the following formatters
 
 - **Detections Predictions** - should implement an instance of :class:`detection_formatters.DetectionPredictionFormatter`.
 
+
 Converting From Common Formats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TBD (Not implemented yet)
+
+To initialize `DetectionLabelFormatter` for common label formats the notion of the bbox format notation can be used:
+
+.. code-block:: python
+    from deepchecks.vision.utils import DetectionLabelFormatter
+
+    yolo_formatter = DetectionLabelFormatter('lcxcywhn') 
+    pascal_formatter = DetectionLabelFormatter('lxyxy')
+    coco_formatter = DetectionLabelFormatter('lxywh')
+    albumentations = DetectionLabelFormatter('lxyxyn')
+
+By using provided bbox format notation deepchecks will know how to transform labels to the required format.
+
+Elements of the bbox format notation:
+    + 'l' - label (class) of the object
+    + 'xy' - left-top or bottom-right corner of the bbox (first 'xy' element always interpretated as x-min, y-min, and second as x-max, y-max)
+    + 'cxcy' - center of the bbox
+    + 'wh' - width and height of the bbox
+    + 'n' - at the beggining or at the end of the notation string indicates whether coordinates are normalized or not.
+
 
 
 Validating The Correctness of Your Formatters
