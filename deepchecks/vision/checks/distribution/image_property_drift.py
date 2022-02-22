@@ -21,21 +21,17 @@ ImageProperty = t.Union[str, t.Callable[..., Number]]
 
 class ImagePropertyDrift(TrainTestCheck):
     """
-    Calculate drift between train dataset and test dataset per feature, using statistical measures.
+    Calculate drift between train dataset and test dataset per image property, using statistical measures.
 
-    Check calculates a drift score for each column in test dataset, by comparing its distribution to the train
-    dataset.
-    For numerical columns, we use the Earth Movers Distance.
+    Check calculates a drift score for each image property in test dataset, by comparing its distribution to the train
+    dataset. For this, we use the Earth Movers Distance.
+    
     See https://en.wikipedia.org/wiki/Wasserstein_metric
-    For categorical columns, we use the Population Stability Index (PSI).
-    See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf
     """
     
     def __init__(
         self,
         image_properties: t.Optional[t.List[ImageProperty]] = None,
-        sample_size: int = 10_000,
-        random_state: int = 42,
     ):
         super().__init__()
         
@@ -56,9 +52,6 @@ class ImagePropertyDrift(TrainTestCheck):
             
             self.image_properties = image_properties
 
-        self.random_state = random_state
-        self.sample_size = sample_size
-        
         self.train_properties = defaultdict(list)
         self.test_properties = defaultdict(list)
     
