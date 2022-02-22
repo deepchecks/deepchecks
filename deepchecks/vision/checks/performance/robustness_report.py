@@ -107,7 +107,7 @@ class RobustnessReport(SingleDatasetCheck):
             metrics = self._state['metrics']
             # Return dataframe of (Class, Metric, Value)
             aug_results = metric_results_to_df(
-                calculate_metrics(metrics, aug_dataset, model, context.prediction_formatter), aug_dataset
+                calculate_metrics(metrics, aug_dataset, model, context.prediction_formatter, context.device), aug_dataset
             )
             # Return dict of {metric: {'score': mean score, 'diff': diff from base}, ... }
             metrics_diff_dict = self._calc_performance_diff(base_mean_results, aug_results)

@@ -66,7 +66,7 @@ class Context:
         See <a href=
         "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
         scikit-learn docs</a>
-    device : Union[str, torch.device], default: None
+    device : Union[str, torch.device], default: 'cpu'
         processing unit for use
     random_state : int
         A seed to set for pseudo-random functions
@@ -80,7 +80,7 @@ class Context:
                  prediction_formatter: BasePredictionFormatter = None,
                  scorers: Mapping[str, Metric] = None,
                  scorers_per_class: Mapping[str, Metric] = None,
-                 device: Union[str, torch.device, None] = None,
+                 device: Union[str, torch.device, None] = 'cpu',
                  random_state: int = 42
                  ):
         # Validations
@@ -148,7 +148,7 @@ class Context:
         return self._prediction_formatter
 
     @property
-    def device(self) -> Optional[torch.device]:
+    def device(self) -> torch.device:
         """Return device specified by the user."""
         return self._device
 
@@ -203,7 +203,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         dataset: VisionData,
         model: Optional[nn.Module] = None,
         prediction_formatter: BasePredictionFormatter = None,
-        device: Union[str, torch.device, None] = None,
+        device: Union[str, torch.device, None] = 'cpu',
         random_state: int = 42
     ) -> CheckResult:
         """Run check."""
@@ -250,7 +250,7 @@ class TrainTestCheck(TrainTestBaseCheck):
         test_dataset: VisionData,
         model: Optional[nn.Module] = None,
         prediction_formatter: BasePredictionFormatter = None,
-        device: Union[str, torch.device, None] = None,
+        device: Union[str, torch.device, None] = 'cpu',
         random_state: int = 42
     ) -> CheckResult:
         """Run check."""
@@ -297,7 +297,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
     def run(
         self,
         model: nn.Module,
-        device: Union[str, torch.device, None] = None,
+        device: Union[str, torch.device, None] = 'cpu',
         random_state: int = 42
     ) -> CheckResult:
         """Run check."""
@@ -332,7 +332,7 @@ class Suite(BaseSuite):
             prediction_formatter: BasePredictionFormatter = None,
             scorers: Mapping[str, Metric] = None,
             scorers_per_class: Mapping[str, Metric] = None,
-            device: Union[str, torch.device, None] = None,
+            device: Union[str, torch.device, None] = 'cpu',
             random_state: int = 42
     ) -> SuiteResult:
         """Run all checks.

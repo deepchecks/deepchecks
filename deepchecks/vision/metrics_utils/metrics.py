@@ -91,7 +91,7 @@ def calculate_metrics(
     metrics: t.Union[t.Dict, t.List[Metric]],
     dataset: VisionData, model: nn.Module,
     prediction_formatter: BasePredictionFormatter,
-    device: t.Union[str, torch.device, None] = None
+    device: torch.device
 ) -> t.Dict[str, float]:
     """Calculate a list of ignite metrics on a given model and dataset.
 
