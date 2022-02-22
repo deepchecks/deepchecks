@@ -38,16 +38,16 @@ __all__ = ['load_dataset', 'load_model', 'yolo_prediction_formatter', 'yolo_labe
 DATA_DIR = Path(__file__).absolute().parent
 
 
-def load_model(pretrained: bool = True) -> nn.Module:
+def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cpu') -> nn.Module:
     """Load the yolov5s model and return it."""
+    dev = torch.device(device) if isinstance(device, str) else device
     logger = logging.getLogger('yolov5')
     logger.disabled = True
     model = torch.hub.load('ultralytics/yolov5', 'yolov5s',
                            pretrained=pretrained,
                            verbose=False,
-                           device='cpu')
+                           device=dev)
     model.eval()
-    model.cpu()
     logger.disabled = False
     return model
 
@@ -290,7 +290,8 @@ def yolo_label_formatter(batch):
     """Translate yolo label to deepchecks format."""
     # our labels return at the end, and the VisionDataset expect it at the start
     def move_class(tensor):
-        return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3])) if len(tensor) > 0 else tensor
+        return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
+                if len(tensor) > 0 else tensor
     return [move_class(tensor) for tensor in batch[1]]
 
 
