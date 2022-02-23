@@ -22,7 +22,7 @@ from hamcrest import (
     contains_exactly,
     contains_inanyorder,
     greater_than,
-    matches_regexp as matches,
+    # matches_regexp as matches,
     equal_to
 )
 
@@ -71,18 +71,18 @@ def test_image_property_drift_condition():
     ))
 
 
-def contains_failed_condition():
-    condition_assertion = has_properties({
-        'is_pass': equal_to(False),
-        'details': matches(
-            r'Earth Mover\'s Distance is above the threshold '
-            r'for the next properties\:\n.*'
-        )
-    })
-    return has_property(
-        'conditions_results',
-        contains_exactly(condition_assertion)
-    )
+# def contains_failed_condition():
+#     condition_assertion = has_properties({
+#         'is_pass': equal_to(False),
+#         'details': matches(
+#             r'Earth Mover\'s Distance is above the threshold '
+#             r'for the next properties\:\n.*'
+#         )
+#     })
+#     return has_property(
+#         'conditions_results',
+#         contains_exactly(condition_assertion)
+#     )
 
 
 def contains_passed_condition():

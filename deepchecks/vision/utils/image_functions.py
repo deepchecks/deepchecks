@@ -11,6 +11,7 @@
 """Module for defining functions related to image data."""
 from typing import Tuple
 
+import cv2
 import numpy as np
 import plotly.graph_objects as go
 import torch
@@ -18,7 +19,8 @@ import torch
 from deepchecks.core.errors import DeepchecksValueError
 
 
-__all__ = ['ImageInfo', 'numpy_to_image_figure', 'apply_heatmap_image_properties', 'label_bbox_add_to_figure']
+__all__ = ['ImageInfo', 'numpy_to_image_figure', 'label_bbox_add_to_figure', 'numpy_grayscale_to_heatmap_figure',
+           'apply_heatmap_image_properties']
 
 
 class ImageInfo:
@@ -45,20 +47,28 @@ class ImageInfo:
 def numpy_to_image_figure(data: np.ndarray):
     """Create image graph object from given numpy array data."""
     dimension = data.shape[2]
-    # Image knows to plot only RGB images, need to use heatmap for grayscale.
-    if dimension == 3:
-        return go.Image(z=data, hoverinfo='skip')
-    elif dimension == 1:
-        return go.Heatmap(z=data.squeeze(), colorscale='gray', hoverinfo='skip')
-    else:
+    if dimension == 1:
+        data = cv2.cvtColor(data, cv2.COLOR_GRAY2RGB)
+    elif dimension != 3:
         raise DeepchecksValueError(f'Don\'t know to plot images with {dimension} dimensions')
+
+    return go.Image(z=data, hoverinfo='skip')
+
+
+def numpy_grayscale_to_heatmap_figure(data: np.ndarray):
+    """Create heatmap graph object from given numpy array data."""
+    dimension = data.shape[2]
+    if dimension == 3:
+        data = cv2.cvtColor(data, cv2.COLOR_RGB2GRAY)
+    elif dimension != 1:
+        raise DeepchecksValueError(f'Don\'t know to plot images with {dimension} dimensions')
+    return go.Heatmap(z=data.squeeze(), hoverinfo='skip', coloraxis='coloraxis')
 
 
 def apply_heatmap_image_properties(fig):
     """For heatmap and grayscale images, need to add those properties which on Image exists automatically."""
     fig.update_yaxes(autorange='reversed', scaleanchor='x', constrain='domain')
     fig.update_xaxes(constrain='domain')
-    fig.update_traces(showscale=False)
 
 
 def label_bbox_add_to_figure(label: torch.Tensor, figure, row=None, col=None, color='red',
