@@ -1,14 +1,25 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Image Property Drift check tests"""
 from numbers import Number
 from hamcrest import (
-    assert_that, 
-    instance_of, 
-    all_of, 
-    has_entries, 
+    assert_that,
+    instance_of,
+    all_of,
+    has_entries,
     calling,
     raises,
-    has_property, 
-    has_properties, 
-    has_length, 
+    has_property,
+    has_properties,
+    has_length,
     contains_exactly,
     greater_than,
     matches_regexp as matches,
@@ -47,7 +58,7 @@ def test_image_property_drift_initialization_with_list_of_unknown_image_properti
 def test_image_property_drift_condition():
     train_dataset = coco.load_dataset(train=True, object_type='VisionData')
     test_dataset = coco.load_dataset(train=False, object_type='VisionData')
-    
+
     result = (
         ImagePropertyDrift()
         .add_condition_drift_score_not_greater_than()
@@ -69,7 +80,7 @@ def contains_failed_condition():
         )
     })
     return has_property(
-        'conditions_results', 
+        'conditions_results',
         contains_exactly(condition_assertion)
     )
 
@@ -79,10 +90,10 @@ def contains_passed_condition():
         'is_pass': equal_to(True),
     })
     return has_property(
-        'conditions_results', 
+        'conditions_results',
         contains_exactly(condition_assertion)
     )
-    
+
 
 def is_correct_image_property_drift_result():
     value_assertion = all_of(
@@ -97,7 +108,7 @@ def is_correct_image_property_drift_result():
     )
     display_assertion = all_of(
         instance_of(list),
-        has_length(greater_than(1)), 
+        has_length(greater_than(1)),
         # TODO
     )
     return all_of(
@@ -108,4 +119,3 @@ def is_correct_image_property_drift_result():
             'display': display_assertion
         })
     )
-    
