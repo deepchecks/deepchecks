@@ -336,6 +336,7 @@ class AveragePrecision(Metric):
         """A class defining the prediction of a single image in an object detection task."""
 
         def __init__(self, det):
-            self.bbox = det[:4]
-            self.confidence = det[4]
-            self.label = det[5]
+            det_cpu = det.cpu()
+            self.bbox = det_cpu[:4]
+            self.confidence = det_cpu[4]
+            self.label = det_cpu[5]
