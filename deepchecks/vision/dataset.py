@@ -77,7 +77,6 @@ class VisionData:
     """
 
     label_transformer: Optional[BaseLabelFormatter]
-    image_transformer: Optional[ImageFormatter]
     task_type: Optional[TaskType]
     sample_iteration_limit: int
     _data: DataLoader

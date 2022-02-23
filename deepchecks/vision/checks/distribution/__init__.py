@@ -12,9 +12,11 @@
 from .train_test_label_drift import TrainTestLabelDrift
 from .image_dataset_drift import ImageDatasetDrift
 from .heatmap_comparison import HeatmapComparison
+from .image_property_drift import ImagePropertyDrift
 
 __all__ = [
     'TrainTestLabelDrift',
     'ImageDatasetDrift',
-    'HeatmapComparison'
+    'HeatmapComparison',
+    'ImagePropertyDrift'
 ]
