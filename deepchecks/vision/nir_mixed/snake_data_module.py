@@ -13,6 +13,14 @@ from deepchecks.vision.utils.image_utils import AlbumentationImageFolder
 
 
 class SnakeDataModule(pl.LightningDataModule):
+    """
+    This is a LightningDataModule subclass.
+    This wraps a Dataset object and takes care of splitting, if requires.
+    setup() is ran when training begins and does splits.
+
+    Additionally, this can be either given a "dataset" - and then split happens.
+    It can alternatively receive a train and val directories, in which case the datasets are used as is.
+    """
     def __init__(self,
                  data_dir: Optional[str] = None,
                  train_data_dir: Optional[str] = None,
@@ -61,7 +69,18 @@ class SnakeDataModule(pl.LightningDataModule):
         self.val.dataset.transforms = self._val_transforms
         self.save_data_partitions()
 
-    def save_data_partitions(self, output_dir=None, copy=True):
+    def save_data_partitions(self, output_dir: Optional[str] = None,
+                             copy: Optional[bool] = True):
+        """
+        This method is called externally to save partitions - in case they where created by the
+        Module (or simply handed them).
+        This allows for experiment reusability.
+        If provided 'copy' is True, the data is actually copied.
+        Otherwise, only train/val txt lists are created.
+        :param output_dir:
+        :param copy:
+        :return:
+        """
         if not self.train:
             print("Partitions not created yet!", file=sys.stderr)
             return
@@ -105,6 +124,7 @@ class SnakeDataModule(pl.LightningDataModule):
 
     @staticmethod
     def save_dataset(full_dataset, subset, output_dir, dataset_name, copy_files=True, ref_dir=""):
+        """Aux method for saving the splits."""
         dataset_file = f"{dataset_name}.txt"
         dataset_dir = os.path.join(output_dir, dataset_name)
         os.makedirs(dataset_dir, exist_ok=True)
