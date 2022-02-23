@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing confusion matrix report check."""
-from typing import Union, Any
+from typing import Any
 
 import numpy as np
 from plotly.express import imshow
@@ -17,9 +17,8 @@ from queue import PriorityQueue
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.vision import SingleDatasetCheck, Context
-from deepchecks.vision.dataset import TaskType, VisionData
+from deepchecks.vision.dataset import TaskType,
 from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
-from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
 __all__ = ['ConfusionMatrixReport']
 
@@ -161,6 +160,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                            for i in range(want_idx[0].shape[0])]
             all_matches = np.array(all_matches)
 
+            # remove duplicate matches
             if all_matches.shape[0] > 0:
                 all_matches = all_matches[all_matches[:, 2].argsort()[::-1]]
 
