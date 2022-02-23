@@ -12,7 +12,6 @@
 from .classification_formatters import ClassificationLabelFormatter, ClassificationPredictionFormatter
 from .detection_formatters import DetectionLabelFormatter, DetectionPredictionFormatter
 from .image_formatters import ImageFormatter
-from .validation import validate_model
 
 __all__ = [
     "ClassificationLabelFormatter",
@@ -20,5 +19,4 @@ __all__ = [
     "DetectionLabelFormatter",
     "DetectionPredictionFormatter",
     "ImageFormatter",
-    "validate_model",
     ]
