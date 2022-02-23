@@ -34,7 +34,7 @@ class SnakeDataModule(pl.LightningDataModule):
             self.val = None
             if subset_size <= 0:
                 subset_size = len(self.dataset)
-                self._subset_size = subset_size
+            self._subset_size = subset_size
         else:
             self._subset_size = subset_size
             self.train = AlbumentationImageFolder(root=train_data_dir)

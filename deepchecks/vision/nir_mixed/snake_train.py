@@ -8,11 +8,10 @@ from pytorch_lightning.loggers import TensorBoardLogger
 import albumentations as A
 import sys
 
-# local
 # Ugly hack
-from deepchecks.vision.nir_mixed.snake_skewed_data_module import SnakeSkewedDataModule
-
 sys.path.insert(0, os.getcwd())
+# local
+from deepchecks.vision.nir_mixed.snake_skewed_data_module import SnakeSkewedDataModule
 from deepchecks.vision.nir_mixed.snake_data_module import SnakeDataModule
 from deepchecks.vision.nir_mixed.snake_lit_module import SnakeLitModule
 
@@ -49,7 +48,7 @@ val_transforms = A.Compose([
     ToTensorV2(),
 ])
 # Choose this for splitting live (split is saved after training ends)
-snake_module = SnakeSkewedDataModule(data_dir=os.path.expanduser("~/code/DeepChecks/Datasets/snakes/train"),
+snake_module = SnakeSkewedDataModule(data_dir=os.path.expanduser("~/code/DeepChecks/Datasets/snakes/original"),
                                      batch_size=batch_size,
                                      train_transforms=train_transforms,
                                      val_transforms=val_transforms,
