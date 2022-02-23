@@ -11,8 +11,10 @@
 """Module containing the distribution checks in the vision package."""
 from .train_test_label_drift import TrainTestLabelDrift
 from .image_dataset_drift import ImageDatasetDrift
+from .heatmap_comparison import HeatmapComparison
 
 __all__ = [
     'TrainTestLabelDrift',
     'ImageDatasetDrift',
+    'HeatmapComparison'
 ]
