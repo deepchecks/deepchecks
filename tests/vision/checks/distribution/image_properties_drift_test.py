@@ -7,8 +7,12 @@ from hamcrest import (
     calling,
     raises,
     has_property, 
+    has_properties, 
     has_length, 
+    contains_exactly,
     greater_than,
+    matches_regexp as matches,
+    equal_to
 )
 
 from deepchecks.core import CheckResult
@@ -40,6 +44,65 @@ def test_image_property_drift_initialization_with_list_of_unknown_image_properti
     )
 
 
+def test_image_property_drift_condition():
+    train_dataset = coco.load_dataset(train=True, object_type='VisionData')
+    test_dataset = coco.load_dataset(train=False, object_type='VisionData')
+    
+    result = (
+        ImagePropertyDrift()
+        .add_condition_drift_score_not_greater_than()
+        .run(train_dataset, test_dataset)
+    )
+
+    breakpoint()
+    
+    assert_that(result, all_of(
+        is_correct_image_property_drift_result(),
+        contains_passed_condition()
+    ))
+
+
+def test_image_property_drift_condition_with_negative_result():
+    train_dataset = coco.load_dataset(train=True, object_type='VisionData')
+    
+    result = (
+        ImagePropertyDrift()
+        .add_condition_drift_score_not_greater_than()
+        .run(train_dataset, train_dataset)
+    )
+
+    breakpoint()
+
+    assert_that(result, all_of(
+        is_correct_image_property_drift_result(),
+        contains_failed_condition()
+    ))
+
+
+def contains_failed_condition():
+    condition_assertion = has_properties({
+        'is_pass': equal_to(False),
+        'details': matches(
+            r'Earth Mover\'s Distance is above the threshold '
+            r'for the next properties\:\n.*'
+        )
+    })
+    return has_property(
+        'conditions_results', 
+        contains_exactly(condition_assertion)
+    )
+
+
+def contains_passed_condition():
+    condition_assertion = has_properties({
+        'is_pass': equal_to(True),
+    })
+    return has_property(
+        'conditions_results', 
+        contains_exactly(condition_assertion)
+    )
+    
+
 def is_correct_image_property_drift_result():
     value_assertion = all_of(
         instance_of(dict),
@@ -58,8 +121,10 @@ def is_correct_image_property_drift_result():
     )
     return all_of(
         instance_of(CheckResult),
-        has_property('value', value_assertion),
-        has_property('header', 'Image Property Drift'),
-        has_property('display', display_assertion)
+        has_properties({
+            'value': value_assertion,
+            'header': 'Image Property Drift',
+            'display': display_assertion
+        })
     )
     
