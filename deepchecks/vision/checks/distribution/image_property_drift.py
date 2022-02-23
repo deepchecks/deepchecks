@@ -1,3 +1,14 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Module contains Image Property Drift check."""
 import typing as t
 from numbers import Number
 from collections import defaultdict
@@ -112,9 +123,8 @@ class ImagePropertyDrift(TrainTestCheck):
             value: dictionary containing drift score for each image property.
             display: distribution graph for each image property.
         """
-
         if sorted(self.train_properties.keys()) != sorted(self.test_properties.keys()):
-            raise DeepchecksValueError('')  # TODO: message
+            raise RuntimeError('Internal Error! Vision check was used improperly.')
 
         properties = sorted(self.train_properties.keys())
         df_train = pd.DataFrame(self.train_properties)
