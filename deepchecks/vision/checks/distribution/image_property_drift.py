@@ -14,7 +14,6 @@ from deepchecks.vision import Context
 from deepchecks.vision.utils import ImageFormatter
 
 from .train_test_label_drift import calc_drift_and_plot
-from .train_test_label_drift import calculate_continuous_histograms_in_batch
 
 
 __all__ = ['ImagePropertyDrift',]
@@ -38,6 +37,7 @@ class ImagePropertyDrift(TrainTestCheck):
     Pramaters
     ---------
     image_properties : Optional[List[Union[str, Callable[..., Number]]]]
+    default_number_of_bins: int, default: 100
     """
 
     def __init__(
@@ -74,7 +74,7 @@ class ImagePropertyDrift(TrainTestCheck):
         batch: t.Any,
         dataset_kind: DatasetKind
     ):
-        """Calculate image properties for train or test batches."""
+        """Calculate image properties for train or test batch."""
         if dataset_kind == DatasetKind.TRAIN:
             dataset = context.train
             properties = self.train_properties
@@ -152,11 +152,17 @@ class ImagePropertyDrift(TrainTestCheck):
             figures.append(figure)
             drifts[property_name] = {'Drift score': score,}
 
-        headnote = '' # TODO:
+        if drifts:
+            value = pd.DataFrame(drifts).T
+            headnote = '' # TODO:
+            display = [headnote, *figures]
+        else:
+            value = None
+            display = []
 
         return CheckResult(
-            drifts,
-            display=[headnote, *figures],
+            value=value,
+            display=display,
             header='Image Property Drift'
         )
 
@@ -178,11 +184,11 @@ class ImagePropertyDrift(TrainTestCheck):
             False if any column has passed the max threshold, True otherwise
         """
 
-        def condition(result: t.Dict[str, t.Dict[str, float]]) -> ConditionResult:
+        def condition(result: pd.DataFrame) -> ConditionResult:
             failed_properties = [
-                (property_name, value['Drift score'])
-                for property_name, value in result.items()
-                if value['Drift score'] > max_allowed_drift_score
+                (property_name, drift_score)
+                for property_name, drift_score in result.itertuples()
+                if drift_score > max_allowed_drift_score
             ]
             if len(failed_properties) > 0:
                 failed_properties = ';\n'.join(f'{p}={d:.2f}' for p, d in failed_properties)
