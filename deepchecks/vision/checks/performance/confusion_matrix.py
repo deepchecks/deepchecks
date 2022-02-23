@@ -50,8 +50,6 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
     Parameters
     ----------
-    confidence_threshold (float, default 0.3):
-        Threshold to consider object as detected.
     categories_to_display (int, default 10):
         Maximum number of categories to display
     confidence_threshold (float, default 0.3):
@@ -131,14 +129,13 @@ class ConfusionMatrixReport(SingleDatasetCheck):
     def update_object_detection(self, predictions, labels):
         """Update the confusion matrix by batch for object detection task."""
         for image_detections, image_labels in zip(predictions, labels):
-            try:
-                detections_passed_threshold = [
-                    detection for detection in image_detections if detection[4] > self.confidence_threshold
-                ]
-            except IndexError:
+            detections_passed_threshold = [
+                detection for detection in image_detections if detection[4] > self.confidence_threshold
+            ]
+            if len(detections_passed_threshold) == 0:
                 # detections are empty, update matrix for labels
                 for label in image_labels:
-                    gt_class = label[0]
+                    gt_class = int(label[0].item())
                     self.matrix[self.num_classes, gt_class] += 1
                 continue
 
