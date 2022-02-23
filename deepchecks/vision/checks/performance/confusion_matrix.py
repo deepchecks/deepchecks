@@ -17,7 +17,7 @@ from queue import PriorityQueue
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.vision import SingleDatasetCheck, Context
-from deepchecks.vision.dataset import TaskType,
+from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
 
 __all__ = ['ConfusionMatrixReport']
