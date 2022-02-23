@@ -9,18 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Image Property Drift check tests"""
-from numbers import Number
+import pandas as pd
 from hamcrest import (
     assert_that,
     instance_of,
     all_of,
-    has_entries,
     calling,
     raises,
     has_property,
     has_properties,
     has_length,
     contains_exactly,
+    contains_inanyorder,
     greater_than,
     matches_regexp as matches,
     equal_to
@@ -97,14 +97,8 @@ def contains_passed_condition():
 
 def is_correct_image_property_drift_result():
     value_assertion = all_of(
-        instance_of(dict),
-        has_entries({
-            p: all_of(
-                instance_of(dict),
-                has_entries({'Drift score': instance_of(Number)})
-            )
-            for p in ImageFormatter.IMAGE_PROPERTIES
-        })
+        instance_of(pd.DataFrame),
+        has_property('index', contains_inanyorder(*list(ImageFormatter.IMAGE_PROPERTIES))),
     )
     display_assertion = all_of(
         instance_of(list),
