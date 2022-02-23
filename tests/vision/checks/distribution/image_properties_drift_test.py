@@ -54,28 +54,9 @@ def test_image_property_drift_condition():
         .run(train_dataset, test_dataset)
     )
 
-    breakpoint()
-    
     assert_that(result, all_of(
         is_correct_image_property_drift_result(),
         contains_passed_condition()
-    ))
-
-
-def test_image_property_drift_condition_with_negative_result():
-    train_dataset = coco.load_dataset(train=True, object_type='VisionData')
-    
-    result = (
-        ImagePropertyDrift()
-        .add_condition_drift_score_not_greater_than()
-        .run(train_dataset, train_dataset)
-    )
-
-    breakpoint()
-
-    assert_that(result, all_of(
-        is_correct_image_property_drift_result(),
-        contains_failed_condition()
     ))
 
 
