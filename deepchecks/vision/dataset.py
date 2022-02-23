@@ -107,7 +107,7 @@ class VisionData:
             image_formatter.validate_data(batch_to_validate)
             self._image_formatter = image_formatter
         else:
-            self._image_formatter = None
+            self._image_formatter = ImageFormatter()
 
         if label_formatter:
             if isinstance(label_formatter, ClassificationLabelFormatter):
@@ -224,6 +224,10 @@ class VisionData:
     def __iter__(self):
         """Return an iterator over the dataset."""
         return iter(self._data)
+
+    def __len__(self):
+        """Return the number of batches in the dataset dataloader."""
+        return len(self._data)
 
     def get_data_loader(self):
         """Return the data loader."""
