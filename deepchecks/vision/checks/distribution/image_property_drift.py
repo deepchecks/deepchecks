@@ -16,13 +16,13 @@ from deepchecks.vision.utils import ImageFormatter
 from .train_test_label_drift import calc_drift_and_plot
 
 
-__all__ = ['ImagePropertyDrift',]
+__all__ = ['ImagePropertyDrift']
 
 
 ImageProperty = t.Union[str, t.Callable[..., t.List[Number]]]
 
 
-TImagePropertyDrift = t.TypeVar("TImagePropertyDrift", bound="ImagePropertyDrift")
+TImagePropertyDrift = t.TypeVar('TImagePropertyDrift', bound='ImagePropertyDrift')
 
 
 class ImagePropertyDrift(TrainTestCheck):
@@ -83,8 +83,8 @@ class ImagePropertyDrift(TrainTestCheck):
             properties = self.test_properties
         else:
             raise RuntimeError(
-                "Internal Error! Part of code that must "
-                "be unreacheable was reached."
+                'Internal Error! Part of code that must '
+                'be unreacheable was reached.'
             )
 
         images = dataset.image_formatter(batch)
@@ -114,7 +114,7 @@ class ImagePropertyDrift(TrainTestCheck):
         """
 
         if sorted(self.train_properties.keys()) != sorted(self.test_properties.keys()):
-            raise DeepchecksValueError('') # TODO: message
+            raise DeepchecksValueError('')  # TODO: message
 
         properties = sorted(self.train_properties.keys())
         df_train = pd.DataFrame(self.train_properties)
@@ -150,11 +150,11 @@ class ImagePropertyDrift(TrainTestCheck):
             )
 
             figures.append(figure)
-            drifts[property_name] = {'Drift score': score,}
+            drifts[property_name] = {'Drift score': score}
 
         if drifts:
             value = pd.DataFrame(drifts).T
-            headnote = '' # TODO:
+            headnote = ''  # TODO:
             display = [headnote, *figures]
         else:
             value = None
