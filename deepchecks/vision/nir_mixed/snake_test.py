@@ -36,3 +36,4 @@ snake_test_dataloader = snake_test_module.test_dataloader()
 trainer = Trainer(gpus=1)
 test_result = trainer.test(net, dataloaders=snake_test_dataloader)
 result = trainer.predict(net, dataloaders=snake_test_dataloader)
+
