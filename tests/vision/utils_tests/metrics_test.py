@@ -21,7 +21,8 @@ from deepchecks.vision import VisionData
 def test_default_ap_ignite_complient(coco_test_visiondata: VisionData, trained_yolov5_object_detection):
     res = calculate_metrics({'AveragePrecision': AveragePrecision()},
                             coco_test_visiondata, trained_yolov5_object_detection,
-                            prediction_formatter=DetectionPredictionFormatter(yolo_prediction_formatter))
+                            prediction_formatter=DetectionPredictionFormatter(yolo_prediction_formatter),
+                            device=torch.device('cpu'))
     assert_that(res.keys(), has_length(1))
     assert_that(res['AveragePrecision'], has_length(59))
 
@@ -29,7 +30,9 @@ def test_default_ap_ignite_complient(coco_test_visiondata: VisionData, trained_y
 def test_ar_ignite_complient(coco_test_visiondata: VisionData, trained_yolov5_object_detection):
     res = calculate_metrics({'AveragePrecision': AveragePrecision(return_option=1)},
                             coco_test_visiondata, trained_yolov5_object_detection,
-                            prediction_formatter=DetectionPredictionFormatter(yolo_prediction_formatter))
+                            prediction_formatter=DetectionPredictionFormatter(yolo_prediction_formatter),
+                            device=torch.device('cpu'))
+
     assert_that(res.keys(), has_length(1))
     assert_that(res['AveragePrecision'], has_length(59))
 

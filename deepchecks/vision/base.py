@@ -18,7 +18,6 @@ from torch import nn
 from torch.utils.data import DataLoader
 from ignite.metrics import Metric
 
-from deepchecks.vision.utils.validation import validate_model
 from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 from deepchecks.core.check import (
     CheckFailure,
@@ -68,7 +67,7 @@ class Context:
         See <a href=
         "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
         scikit-learn docs</a>
-    device : Union[str, torch.device], default: None
+    device : Union[str, torch.device], default: 'cpu'
         processing unit for use
     random_state : int
         A seed to set for pseudo-random functions
@@ -82,7 +81,7 @@ class Context:
                  prediction_formatter: BasePredictionFormatter = None,
                  scorers: Mapping[str, Metric] = None,
                  scorers_per_class: Mapping[str, Metric] = None,
-                 device: Union[str, torch.device, None] = None,
+                 device: Union[str, torch.device, None] = 'cpu',
                  random_state: int = 42
                  ):
         # Validations
@@ -121,7 +120,6 @@ class Context:
         self._train = train
         self._test = test
         self._model = model
-        self._validated_model = False
         self._batch_prediction_cache = None
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
@@ -151,10 +149,6 @@ class Context:
         """Return & validate model if model exists, otherwise raise error."""
         if self._model is None:
             raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without model')
-        if not self._validated_model:
-            if self._train:
-                validate_model(self._train, self._model)
-            self._validated_model = True
         return self._model
 
     @property
@@ -168,7 +162,7 @@ class Context:
         return self._prediction_formatter
 
     @property
-    def device(self) -> Optional[torch.device]:
+    def device(self) -> torch.device:
         """Return device specified by the user."""
         return self._device
 
@@ -223,7 +217,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         dataset: VisionData,
         model: Optional[nn.Module] = None,
         prediction_formatter: BasePredictionFormatter = None,
-        device: Union[str, torch.device, None] = None,
+        device: Union[str, torch.device, None] = 'cpu',
         random_state: int = 42
     ) -> CheckResult:
         """Run check."""
@@ -270,7 +264,7 @@ class TrainTestCheck(TrainTestBaseCheck):
         test_dataset: VisionData,
         model: Optional[nn.Module] = None,
         prediction_formatter: BasePredictionFormatter = None,
-        device: Union[str, torch.device, None] = None,
+        device: Union[str, torch.device, None] = 'cpu',
         random_state: int = 42
     ) -> CheckResult:
         """Run check."""
@@ -317,7 +311,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
     def run(
         self,
         model: nn.Module,
-        device: Union[str, torch.device, None] = None,
+        device: Union[str, torch.device, None] = 'cpu',
         random_state: int = 42
     ) -> CheckResult:
         """Run check."""
@@ -352,7 +346,7 @@ class Suite(BaseSuite):
             prediction_formatter: BasePredictionFormatter = None,
             scorers: Mapping[str, Metric] = None,
             scorers_per_class: Mapping[str, Metric] = None,
-            device: Union[str, torch.device, None] = None,
+            device: Union[str, torch.device, None] = 'cpu',
             random_state: int = 42
     ) -> SuiteResult:
         """Run all checks.
