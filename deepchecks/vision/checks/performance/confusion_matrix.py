@@ -73,8 +73,11 @@ class ConfusionMatrixReport(SingleDatasetCheck):
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
         """Initialize run by creating an empty matrix the size of the data."""
         context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
-        dataset: VisionData = context.train
 
+        if dataset_kind == DatasetKind.TRAIN:
+            dataset = context.train
+        else:
+            dataset = context.test
         self.task_type = dataset.task_type
         self.num_classes = dataset.n_of_classes
 
@@ -89,7 +92,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         else:
             dataset = context.test
 
-        labels = dataset.label_transformer(batch)
+        labels = dataset.label_formatter(batch)
         predictions = context.infer(batch)
 
         if self.task_type == TaskType.CLASSIFICATION:
@@ -97,23 +100,30 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         elif self.task_type == TaskType.OBJECT_DETECTION:
             self.update_object_detection(predictions, labels)
 
-    def compute(self, context: Context, dataset_kin: DatasetKind = None) -> CheckResult:
+    def compute(self, context: Context, dataset_kind: DatasetKind = None) -> CheckResult:
         """Compute and plot confusion matrix after all batches were processed."""
+        if dataset_kind == DatasetKind.TRAIN:
+            dataset = context.train
+        else:
+            dataset = context.test
         display_confusion_matrix, categories = filter_confusion_matrix(self.matrix, self.categories_to_display)
 
         description = ''
 
-        if self.task_type == TaskType.OBJECT_DETECTION:
-            if self.num_classes == categories[-1]:
-                categories[-1] = 'not found'
+        display_categories = []
+        for category in categories:
+            if self.num_classes == category:
                 description += ('last category are detections that do not overlap with labeled data'
                                 ' and labels that have not been detected. ')
+                display_categories.append('not found')
+            else:
+                display_categories.append(dataset.label_id_to_name(category))
 
         description += f'Showing {self.categories_to_display} of {self.num_classes} classes:'
 
         fig = imshow(display_confusion_matrix,
-                     x=categories,
-                     y=categories,
+                     x=display_categories,
+                     y=display_categories,
                      text_auto=True)
 
         fig.update_layout(width=600, height=600)
