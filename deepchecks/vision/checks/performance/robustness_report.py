@@ -159,7 +159,7 @@ class RobustnessReport(SingleDatasetCheck):
         # Add augmentation in the first place
         aug_dataset.add_augmentation(augmentation_func)
         # Set seed for reproducibility - The order of images is affecting the metrics, since the augmentations are
-        # not fixed (in a certain range), so different order of images will cause the images to be augmeneted a bit
+        # not fixed (in a certain range), so different order of images will cause the images to be augmented a bit
         # different which will lead to different metrics.
         aug_dataset.set_seed(seed)
         return aug_dataset
