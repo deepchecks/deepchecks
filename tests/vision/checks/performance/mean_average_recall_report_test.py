@@ -11,10 +11,11 @@
 from hamcrest import assert_that, close_to, has_length, calling, raises
 
 from tests.checks.utils import equal_condition_result
+from deepchecks.vision.datasets.classification.mnist import mnist_prediction_formatter
 from deepchecks.core.errors import ModelValidationError
 from deepchecks.vision.checks.performance import MeanAverageRecallReport
 from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
-from deepchecks.vision.utils import DetectionPredictionFormatter
+from deepchecks.vision.utils import DetectionPredictionFormatter, ClassificationPredictionFormatter
 
 
 def test_mnist_error(mnist_dataset_test, trained_mnist):
@@ -22,7 +23,9 @@ def test_mnist_error(mnist_dataset_test, trained_mnist):
     check = MeanAverageRecallReport()
     # Act
     assert_that(
-        calling(check.run).with_args(mnist_dataset_test, trained_mnist),
+        calling(check.run
+                ).with_args(mnist_dataset_test, trained_mnist,
+                            prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter)),
             raises(ModelValidationError, r'Check is irrelevant for task of type TaskType.CLASSIFICATION')
     )
 
