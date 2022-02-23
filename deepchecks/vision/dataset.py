@@ -390,7 +390,7 @@ def get_data_loader_props_to_copy(data_loader):
         props['generator'].set_state(data_loader.generator.get_state())
     # Add batch sampler if exists, else sampler
     if data_loader.batch_sampler is not None:
-        # Can't deepcopy since generator is not pickable, so copying shallowly and then copies also sampler inside
+        # Can't deepcopy since generator is not pickle-able, so copying shallowly and then copies also sampler inside
         batch_sampler = copy(data_loader.batch_sampler)
         batch_sampler.sampler = copy(batch_sampler.sampler)
         # Replace generator instance so the copied dataset will not affect the original
