@@ -12,7 +12,7 @@
 from collections import defaultdict
 
 import imgaug
-from typing import TypeVar, List, Optional, Any, Sized
+from typing import TypeVar, List, Optional, Any, Sized, Dict
 import albumentations
 import numpy as np
 
@@ -45,22 +45,19 @@ class RobustnessReport(SingleDatasetCheck):
 
     Parameters
     ----------
-        alternative_metrics : List[Metric], default: None
-            A list of ignite.Metric objects whose score should be used. If None are given, use the default metrics.
-        augmentations : List, default: None
-            A list of augmentations to test on the data. If none are given default augmentations are used.
-            Supported augmentations are of albumentations and imgaug.
-        random_state : int, default: 42
-            A random state seed to make the check reproducible.
+    alternative_metrics : Dict[str, Metric], default: None
+        A dictionary of metrics, where the key is the metric name and the value is an ignite.Metric object whose score
+        should be used. If None are given, use the default metrics.
+    augmentations : List, default: None
+        A list of augmentations to test on the data. If none are given default augmentations are used.
+        Supported augmentations are of albumentations and imgaug.
     """
 
     def __init__(self,
-                 alternative_metrics: Optional[List[Metric]] = None,
-                 augmentations: List = None,
-                 random_state: int = 42):
+                 alternative_metrics: Optional[Dict[str, Metric]] = None,
+                 augmentations: List = None):
         super().__init__()
         self.alternative_metrics = alternative_metrics
-        self.random_state = random_state
         self.augmentations = augmentations
         self._state = None
 
@@ -74,7 +71,7 @@ class RobustnessReport(SingleDatasetCheck):
     def update(self, context: Context, batch: Any, dataset_kind):
         """Accumulates batch data into the metrics."""
         dataset = context.get_data_by_kind(dataset_kind)
-        label = dataset.label_transformer(batch)
+        label = dataset.label_formatter(batch)
         # Using context.infer to get cached prediction if exists
         prediction = context.infer(batch)
         for _, metric in self._state['metrics'].items():
@@ -87,7 +84,7 @@ class RobustnessReport(SingleDatasetCheck):
         -------
             CheckResult: value is dictionary in format 'score-name': score-value
         """
-        set_seeds(self.random_state)
+        set_seeds(context.random_state)
         dataset = context.get_data_by_kind(dataset_kind)
         model = context.model
 
@@ -144,7 +141,7 @@ class RobustnessReport(SingleDatasetCheck):
             failed = [
                 aug
                 for aug, metrics in result.items()
-                for metric, metric_data in metrics.items()
+                for _, metric_data in metrics.items()
                 if metric_data['diff'] < -1 * ratio
             ]
 
@@ -178,7 +175,7 @@ class RobustnessReport(SingleDatasetCheck):
                 continue
 
             batch = dataset.to_batch(sample_base, sample_aug)
-            images = dataset.image_transformer(batch)
+            images = dataset.image_formatter(batch)
             if ImageInfo(images[0]).is_equals(images[1]):
                 msg = f'Found that images have not been affected by adding augmentation to field ' \
                       f'"{dataset.transform_field}". This might be a problem with the implementation of ' \
@@ -187,7 +184,7 @@ class RobustnessReport(SingleDatasetCheck):
 
             # For classification does not check label for difference
             if dataset.task_type != TaskType.CLASSIFICATION:
-                labels = dataset.label_transformer(batch)
+                labels = dataset.label_formatter(batch)
                 if torch.equal(labels[0], labels[1]):
                     msg = f'Found that labels have not been affected by adding augmentation to field ' \
                           f'"{dataset.transform_field}". This might be a problem with the implementation of ' \
@@ -242,7 +239,7 @@ class RobustnessReport(SingleDatasetCheck):
             # Create performance graph
             figures.append(self._create_performance_graph(base_mean_results, curr_data['metrics_diff']))
             # Create top affected graph
-            figures.append(self._create_top_affected_graph(curr_data['top_affected']))
+            figures.append(self._create_top_affected_graph(curr_data['top_affected'], dataset))
             # Create example figures, return first n_pictures_to_show from original and then n_pictures_to_show from
             # augmented dataset
             figures.append(self._create_example_figure(dataset, curr_data['images']))
@@ -255,7 +252,7 @@ class RobustnessReport(SingleDatasetCheck):
         transposed = list(zip(*images))
         base_images = transposed[0]
         aug_images = transposed[1]
-        classes = list(map(str, transposed[2]))
+        classes = list(map(dataset.label_id_to_name, transposed[2]))
 
         # Create image figures
         fig = make_subplots(rows=2, cols=len(classes), column_titles=classes, row_titles=['Origin', 'Augmented'],
@@ -319,7 +316,7 @@ class RobustnessReport(SingleDatasetCheck):
          .update_xaxes(title=None, type='category', tickangle=30))
         return fig
 
-    def _create_top_affected_graph(self, top_affected_dict):
+    def _create_top_affected_graph(self, top_affected_dict, dataset):
         metrics = sorted(top_affected_dict.keys())
         fig = make_subplots(rows=1, cols=len(metrics), subplot_titles=metrics)
 
@@ -330,7 +327,7 @@ class RobustnessReport(SingleDatasetCheck):
             y = []
             custom_data = []
             for class_info in metric_classes:
-                x.append(class_info['class'])
+                x.append(dataset.label_id_to_name(class_info['class']))
                 y.append(class_info['value'])
                 custom_data.append([format_percent(class_info['diff']), class_info['samples']])
 
@@ -388,8 +385,8 @@ def get_random_image_pairs_from_dataset(original_dataset: VisionData,
             break
 
         batch = original_dataset.to_batch(sample_base, sample_aug)
-        batch_label: torch.Tensor = original_dataset.label_transformer(batch)
-        images: List[np.ndarray] = original_dataset.image_transformer(batch)
+        batch_label: torch.Tensor = original_dataset.label_formatter(batch)
+        images: List[np.ndarray] = original_dataset.image_formatter(batch)
         base_label: torch.Tensor = batch_label[0]
         aug_label: torch.Tensor = batch_label[1]
         if original_dataset.task_type == TaskType.OBJECT_DETECTION:

@@ -73,9 +73,75 @@ For object detection tasks, it is required to implement the following formatters
 
 - **Detections Predictions** - should implement an instance of :class:`detection_formatters.DetectionPredictionFormatter`.
 
+
 Converting From Common Formats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TBD (Not implemented yet)
+
+To initialize `DetectionLabelFormatter` for common label formats the notion of the bbox format notation can be used:
+
+.. code-block:: python
+
+    import torch
+    from deepchecks.vision.utils import DetectionLabelFormatter
+
+    yolo_formatter = DetectionLabelFormatter('lcxcywhn') 
+    pascal_formatter = DetectionLabelFormatter('lxyxy')
+    coco_formatter = DetectionLabelFormatter()  # This is the default format of 'lxywh'
+    albumentations_formatter = DetectionLabelFormatter('lxyxyn')
+
+Based on the outlined bbox format notation deepchecks will transformed the labels to the format required by deepchecks, which is 'lxywh'.
+
+Elements of the bbox format notation:
+    * l - label (class index) of the object;
+    * xy - top-left or bottom-right corner of the bbox. (First 'xy' element is always interpreted as x-min, y-min, and second as x-max, y-max). Coordinates of the bounding box's corners are represented with respect to the top-left corner of the image which has (x, y) coordinates (0, 0);
+    * cxcy - xy measured from the center of the image, meaning the center of the image is (0, 0);
+    * wh - width and height of the bbox;
+    * n - placed at the beginning or at the end of the notation to indicate whether the coordinates are normalized or not. Normalized coordinates are not measured in pixels, but as rather ratio of x / image-width and y / image-height.
+
+It is important to note that `DetectionLabelFormatter` does not work with labels represented by JSON, XML, or python dictionaries.
+The label batch processed by `DetectionLabelFormatter` must be an iterable of numpy arrays or pytorch tensors.
+
+Example of using the notation format to get a DetectionLabelFormatter converting from yolo format to deepchecks format:
+
+.. code-block:: python
+
+    import numpy as np
+    import torch
+    from deepchecks.vision.utils import DetectionLabelFormatter
+
+    yolo_formatter = DetectionLabelFormatter('lcxcywhn') 
+
+    # the only correct way to structure data 
+    # that should be passed to the `DetectionLabelFormatter`
+    data = (
+        [ # images
+            np.zeros((200, 200)),  # image number 1
+            np.zeros((200, 200)),  # image number 2
+        ],
+        [ # bboxes
+            torch.stack([ # image number 1 bboxes
+                torch.tensor([0, 0.20, 0.20, 10, 10]), # bbox number 1
+                torch.tensor([1, 0.50, 0.50, 25, 25]) # bbox number 2
+            ]),
+            torch.stack([ # image number 2 bboxes
+                torch.tensor([2, 0.65, 0.70, 10, 10]), # bbox number 1
+            ])
+        ]
+    )
+
+    result = yolo_formatter(data)
+    # [
+    #   tensor([
+    #       [0.0000, 35.0000, 35.0000, 10.0000, 10.0000],
+    #       [1.0000, 87.5000, 87.5000, 25.0000, 25.0000]
+    #   ]),
+    #   tensor([
+    #       [2., 125., 135.,  10.,  10.]
+    #   ])
+    # ]
+    # note: 
+    # - DetectionLabelFormatter returns only transformed labels
+    # - bboxes were transformed to the format lxywh (label, x-min, y-min, width, height)
 
 
 Validating The Correctness of Your Formatters

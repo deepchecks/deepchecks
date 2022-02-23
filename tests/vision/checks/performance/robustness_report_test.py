@@ -32,8 +32,8 @@ def test_mnist(mnist_dataset_train, trained_mnist):
     # Arrange
     # Create augmentations without randomness to get fixed metrics results
     augmentations = [
-        albumentations.RandomBrightnessContrast(brightness_limit=(0.2, 0.2), contrast_limit=(0.2, 0.2), p=1.0),
-        albumentations.ShiftScaleRotate(shift_limit=(0.1, 0.1), scale_limit=(0.1, 0.1), rotate_limit=(10, 10), p=1.0),
+        albumentations.RandomBrightnessContrast(p=1.0),
+        albumentations.ShiftScaleRotate(p=1.0),
     ]
     check = RobustnessReport(augmentations=augmentations)
     # Act
@@ -42,12 +42,12 @@ def test_mnist(mnist_dataset_train, trained_mnist):
     # Assert
     assert_that(result.value, has_entries({
         'RandomBrightnessContrast': has_entries({
-            'Precision': has_entries(score=close_to(0.98, 0.5), diff=close_to(0, 0.5)),
-            'Recall': has_entries(score=close_to(0.98, 0.5), diff=close_to(0, 0.5))
+            'Precision': has_entries(score=close_to(0.984, 0.001), diff=close_to(-0.002, 0.001)),
+            'Recall': has_entries(score=close_to(0.986, 0.001), diff=close_to(-0.000, 0.001))
         }),
         'ShiftScaleRotate': has_entries({
-            'Precision': has_entries(score=close_to(0.40, 0.5), diff=close_to(-0.5, 0.5)),
-            'Recall': has_entries(score=close_to(0.38, 0.5), diff=close_to(-0.5, 0.5))
+            'Precision': has_entries(score=close_to(0.810, 0.001), diff=close_to(-0.178, 0.001)),
+            'Recall': has_entries(score=close_to(0.788, 0.001), diff=close_to(-0.201, 0.001))
         }),
     }))
 
@@ -71,8 +71,8 @@ def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detecti
     # Assert
     assert_that(result.value, has_entries({
         'HueSaturationValue': has_entries({
-            'AP': has_entries(score=close_to(0.5, 0.5), diff=close_to(0, 0.5)),
-            'AR': has_entries(score=close_to(0.5, 0.5), diff=close_to(0, 0.5))
+            'AP': has_entries(score=close_to(0.303, 0.001), diff=close_to(-0.064, 0.001)),
+            'AR': has_entries(score=close_to(0.333, 0.001), diff=close_to(-0.090, 0.001))
         }),
     }))
     assert_that(result.conditions_results, has_items(

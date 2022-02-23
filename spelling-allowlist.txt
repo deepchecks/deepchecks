@@ -64,3 +64,4 @@ pred
 formatters
 formatter
 imgs
+cv2

@@ -56,10 +56,10 @@ class ImageDatasetDrift(TrainTestCheck):
         used together (AND) with n_top_columns, so features more important than min_feature_importance can be hidden.
     sample_size : int , default: 10_000
         Max number of rows to use from each dataset for the training and evaluation of the domain classifier.
-    random_state : int , default: 42
-        Random seed for the check.
     test_size : float , default: 0.3
         Fraction of the combined datasets to use for the evaluation of the domain classifier.
+    min_meaningful_drift_score : float , default 0.05
+        Minimum drift score for displaying drift in check. Under that score, check will display "nothing found".
     """
 
     def __init__(
@@ -68,8 +68,8 @@ class ImageDatasetDrift(TrainTestCheck):
             n_top_properties: int = 3,
             min_feature_importance: float = 0.05,
             sample_size: int = 10_000,
-            random_state: int = 42,
-            test_size: float = 0.3
+            test_size: float = 0.3,
+            min_meaningful_drift_score: float = 0.05
     ):
         super().__init__()
 
@@ -81,8 +81,8 @@ class ImageDatasetDrift(TrainTestCheck):
         self.n_top_properties = n_top_properties
         self.min_feature_importance = min_feature_importance
         self.sample_size = sample_size
-        self.random_state = random_state
         self.test_size = test_size
+        self.min_meaningful_drift_score = min_meaningful_drift_score
 
         self._train_properties = OrderedDict([(k, []) for k in self.image_properties])
         self._test_properties = OrderedDict([(k, []) for k in self.image_properties])
@@ -96,9 +96,9 @@ class ImageDatasetDrift(TrainTestCheck):
             dataset = context.test
             properties = self._test_properties
 
-        imgs = dataset.image_transformer(batch)
+        imgs = dataset.image_formatter(batch)
         for func_name in self.image_properties:
-            image_property_function = dataset.image_transformer.__getattribute__(func_name)
+            image_property_function = dataset.image_formatter.__getattribute__(func_name)
             properties[func_name] += image_property_function(imgs)
 
     def compute(self, context: Context) -> CheckResult:
@@ -126,9 +126,9 @@ class ImageDatasetDrift(TrainTestCheck):
 
         values_dict, displays = run_whole_dataset_drift(
             train_dataframe=df_train, test_dataframe=df_test, numerical_features=self.image_properties, cat_features=[],
-            sample_size=sample_size, random_state=self.random_state, test_size=self.test_size,
+            sample_size=sample_size, random_state=context.random_state, test_size=self.test_size,
             n_top_columns=self.n_top_properties, min_feature_importance=self.min_feature_importance,
-            max_num_categories=None
+            max_num_categories=None, min_meaningful_drift_score=self.min_meaningful_drift_score
         )
 
         if displays:

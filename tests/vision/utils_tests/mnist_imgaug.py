@@ -68,8 +68,8 @@ def mnist_dataset_imgaug(train: bool = True, dataset=None):
     return VisionData(
         data_loader=loader,
         num_classes=len(loader.dataset.classes),
-        label_transformer=ClassificationLabelFormatter(),
-        image_transformer=ImageFormatter(lambda batch: un_normalize_batch(batch[0], mean, std)),
+        label_formatter=ClassificationLabelFormatter(),
+        image_formatter=ImageFormatter(lambda batch: un_normalize_batch(batch[0], mean, std)),
         transform_field='transform'
     )
 
