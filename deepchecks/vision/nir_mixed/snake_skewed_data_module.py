@@ -57,3 +57,6 @@ class SnakeSkewedDataModule(SnakeDataModule):
             print(len(self.train), len(self.val))
             skew_subset(self.train)
             print(len(self.train), len(self.val))
+
+        # Save splits
+        self.save_data_partitions()

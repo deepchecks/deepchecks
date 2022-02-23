@@ -11,7 +11,7 @@ from deepchecks.vision.utils.image_utils import AlbumentationImageFolder
 
 NUM_SNAKES = 5
 DATASET_ROOT = os.path.expanduser("~/code/DeepChecks/Datasets/snakes/")
-SNAKE_CKPT = "/Users/nirbenzvi/code/DeepChecks/Datasets/snakes.ckpt"
+SNAKE_CKPT = os.path.expanduser("~/code/DeepChecks/Datasets/snakes.ckpt")
 
 
 def load_val_data(transformed=False):

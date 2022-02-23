@@ -73,7 +73,7 @@ net = SnakeLitModule(num_classes=snake_module.num_classes,
 
 # Trainer Object
 trainer = Trainer(logger=logger, gpus=num_gpus, callbacks=[checkpoint_callback], enable_checkpointing=True,
-                  max_epochs=200)
+                  max_epochs=60)
 # Model.fit
 trainer.fit(net, datamodule=snake_module)
 # This saves the split into the logging folder for future use
