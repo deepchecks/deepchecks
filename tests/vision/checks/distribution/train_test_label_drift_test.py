@@ -99,8 +99,6 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
 def test_with_drift_object_detection_changed_num_samples(coco_train_visiondata, coco_test_visiondata):
     # Arrange
     check = TrainTestLabelDrift(min_sample_size=32)
-    coco_train_visiondata.set_seed(1)
-    coco_test_visiondata.set_seed(1)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata)
@@ -108,10 +106,10 @@ def test_with_drift_object_detection_changed_num_samples(coco_train_visiondata, 
     # Assert
     assert_that(result.value, has_entries(
         {'Samples per class': has_entries(
-            {'Drift score': close_to(0.44, 0.01),
+            {'Drift score': close_to(0.441, 0.001),
              'Method': equal_to('PSI')}
         ), 'Bounding box area (in pixels)': has_entries(
-            {'Drift score': close_to(0.013, 0.001),
+            {'Drift score': close_to(0.011, 0.001),
              'Method': equal_to('Earth Mover\'s Distance')}
         ), 'Number of bounding boxes per image': has_entries(
             {'Drift score': close_to(0.058, 0.001),

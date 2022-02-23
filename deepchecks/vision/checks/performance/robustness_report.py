@@ -12,7 +12,7 @@
 from collections import defaultdict
 
 import imgaug
-from typing import TypeVar, List, Optional, Any, Sized
+from typing import TypeVar, List, Optional, Any, Sized, Dict
 import albumentations
 import numpy as np
 
@@ -45,22 +45,19 @@ class RobustnessReport(SingleDatasetCheck):
 
     Parameters
     ----------
-        alternative_metrics : List[Metric], default: None
-            A list of ignite.Metric objects whose score should be used. If None are given, use the default metrics.
-        augmentations : List, default: None
-            A list of augmentations to test on the data. If none are given default augmentations are used.
-            Supported augmentations are of albumentations and imgaug.
-        random_state : int, default: 42
-            A random state seed to make the check reproducible.
+    alternative_metrics : Dict[str, Metric], default: None
+        A dictionary of metrics, where the key is the metric name and the value is an ignite.Metric object whose score
+        should be used. If None are given, use the default metrics.
+    augmentations : List, default: None
+        A list of augmentations to test on the data. If none are given default augmentations are used.
+        Supported augmentations are of albumentations and imgaug.
     """
 
     def __init__(self,
-                 alternative_metrics: Optional[List[Metric]] = None,
-                 augmentations: List = None,
-                 random_state: int = 42):
+                 alternative_metrics: Optional[Dict[str, Metric]] = None,
+                 augmentations: List = None):
         super().__init__()
         self.alternative_metrics = alternative_metrics
-        self.random_state = random_state
         self.augmentations = augmentations
         self._state = None
 
@@ -87,7 +84,7 @@ class RobustnessReport(SingleDatasetCheck):
         -------
             CheckResult: value is dictionary in format 'score-name': score-value
         """
-        set_seeds(self.random_state)
+        set_seeds(context.random_state)
         dataset = context.get_data_by_kind(dataset_kind)
         model = context.model
 

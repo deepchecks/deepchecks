@@ -34,6 +34,7 @@ from deepchecks.core.errors import (
 )
 from deepchecks.vision.dataset import VisionData, TaskType
 from deepchecks.vision.utils.validation import apply_to_tensor
+from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
 
 __all__ = [
@@ -69,7 +70,8 @@ class Context:
         scikit-learn docs</a>
     device : Union[str, torch.device], default: None
         processing unit for use
-
+    random_state : int
+        A seed to set for pseudo-random functions
     """
 
     def __init__(self,
@@ -80,7 +82,8 @@ class Context:
                  prediction_formatter: BasePredictionFormatter = None,
                  scorers: Mapping[str, Metric] = None,
                  scorers_per_class: Mapping[str, Metric] = None,
-                 device: Union[str, torch.device, None] = None
+                 device: Union[str, torch.device, None] = None,
+                 random_state: int = 42
                  ):
         # Validations
         if train is None and test is None and model is None:
@@ -91,9 +94,28 @@ class Context:
         if train and test:
             train.validate_shared_label(test)
 
-        self._device = torch.device(device) if isinstance(device, str) else device
+        # Set seeds to if possible
+        if train and random_state:
+            train.set_seed(random_state)
+        if test and random_state:
+            test.set_seed(random_state)
 
-        if prediction_formatter:
+        task_type = train.task_type if train else None
+        self._device = torch.device(device) if isinstance(device, str) else (device if device else torch.device('cpu'))
+
+        # If no prediction_formatter is passed and model and train are defined, we will use the default one according
+        # to the dataset task type
+        if model is not None and train is not None and prediction_formatter is None:
+            if task_type == TaskType.CLASSIFICATION:
+                prediction_formatter = ClassificationPredictionFormatter()
+            elif task_type == TaskType.OBJECT_DETECTION:
+                prediction_formatter = DetectionPredictionFormatter()
+            else:
+                raise DeepchecksValueError(f'Must pass prediction formatter for task_type {task_type}')
+
+        if prediction_formatter is not None:
+            if train is None or model is None:
+                raise DeepchecksValueError('Can\'t pass prediction formatter without model and train data')
             prediction_formatter.validate_prediction(next(iter(train)), model, self._device)
 
         self._train = train
@@ -105,6 +127,7 @@ class Context:
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
         self._prediction_formatter = prediction_formatter
+        self.random_state = random_state
 
     # Properties
     # Validations note: We know train & test fit each other so all validations can be run only on train
@@ -200,14 +223,16 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         dataset: VisionData,
         model: Optional[nn.Module] = None,
         prediction_formatter: BasePredictionFormatter = None,
-        device: Union[str, torch.device, None] = None
+        device: Union[str, torch.device, None] = None,
+        random_state: int = 42
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
         context = self.context_type(dataset,
                                     model=model,
                                     prediction_formatter=prediction_formatter,
-                                    device=device)
+                                    device=device,
+                                    random_state=random_state)
 
         self.initialize_run(context, DatasetKind.TRAIN)
 
@@ -245,7 +270,8 @@ class TrainTestCheck(TrainTestBaseCheck):
         test_dataset: VisionData,
         model: Optional[nn.Module] = None,
         prediction_formatter: BasePredictionFormatter = None,
-        device: Union[str, torch.device, None] = None
+        device: Union[str, torch.device, None] = None,
+        random_state: int = 42
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
@@ -253,7 +279,8 @@ class TrainTestCheck(TrainTestBaseCheck):
                                     test_dataset,
                                     model=model,
                                     prediction_formatter=prediction_formatter,
-                                    device=device)
+                                    device=device,
+                                    random_state=random_state)
 
         self.initialize_run(context)
 
@@ -290,11 +317,12 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
     def run(
         self,
         model: nn.Module,
-        device: Union[str, torch.device, None] = None
+        device: Union[str, torch.device, None] = None,
+        random_state: int = 42
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        context = self.context_type(model=model, device=device)
+        context = self.context_type(model=model, device=device, random_state=random_state)
 
         self.initialize_run(context)
         return finalize_check_result(self.compute(context), self)
@@ -324,7 +352,8 @@ class Suite(BaseSuite):
             prediction_formatter: BasePredictionFormatter = None,
             scorers: Mapping[str, Metric] = None,
             scorers_per_class: Mapping[str, Metric] = None,
-            device: Union[str, torch.device, None] = None
+            device: Union[str, torch.device, None] = None,
+            random_state: int = 42
     ) -> SuiteResult:
         """Run all checks.
 
@@ -347,6 +376,8 @@ class Suite(BaseSuite):
             scikit-learn docs</a>
         device : Union[str, torch.device], default: None
             processing unit for use
+        random_state : int
+            A seed to set for pseudo-random functions
 
         Returns
         -------
@@ -360,7 +391,8 @@ class Suite(BaseSuite):
             prediction_formatter=prediction_formatter,
             scorers=scorers,
             scorers_per_class=scorers_per_class,
-            device=device
+            device=device,
+            random_state=random_state
         )
 
         # Create instances of SingleDatasetCheck for train and test if train and test exist.
