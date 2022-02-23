@@ -9,6 +9,12 @@ from torch.optim import SGD, Adam
 
 
 class SnakeLitModule(pl.LightningModule, ABC):
+    """
+    This is a LightnignModule for the Snake dataset
+    It creates a ResNet backbone and the required classifier for using it for training purposes
+    It also has a test/prediction step which can be used for...well, test and prediction purposes.
+    Important to note that this class is a subclass of torch's Model, so it works identically.
+    """
     def __init__(self,
                  num_classes: int,
                  optimizer: str = "sgd",

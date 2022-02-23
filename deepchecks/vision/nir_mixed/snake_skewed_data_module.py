@@ -1,19 +1,20 @@
-import os.path as osp
-import sys
-from collections import Counter, defaultdict
+from collections import defaultdict
 from typing import Optional
-import albumentations as A
+
 import numpy as np
-import pytorch_lightning as pl
-from torch.utils.data import DataLoader
 from torch.utils.data.dataset import random_split
 
 # local imports
 from deepchecks.vision.nir_mixed.snake_data_module import SnakeDataModule
-from deepchecks.vision.utils.image_utils import AlbumentationImageFolder
 
 
 class SnakeSkewedDataModule(SnakeDataModule):
+    """
+    This DataModule subclass is used to:
+    1. Allow for "skewing" the dataset so that a single class gets under-represented
+    2. Allow for subsetting an entire dataset so that we'll be using a smaller portion
+    #2 is mostly used for quicker prototyping etc.
+    """
     def __init__(self, skew_class: int = -1, skew_ratio: float = 1.0,
                  subset_size: Optional[int] = 0,
                  *args, **kwargs):
@@ -49,9 +50,10 @@ class SnakeSkewedDataModule(SnakeDataModule):
             skewed_class_indices = np.random.choice(samples_per_class[self._skew_class], n_after, replace=False)
             samples_per_class[self._skew_class] = skewed_class_indices
             new_indices = [index for k, indices in samples_per_class.items() for index in indices]
+            np.random.shuffle(new_indices)
             subset.indices = new_indices
 
         if self._skew_class >= 0:
+            print(len(self.train), len(self.val))
             skew_subset(self.train)
-
-        self.save_data_partitions()
+            print(len(self.train), len(self.val))
