@@ -73,4 +73,3 @@ net = SnakeLitModule(num_classes=snake_module.num_classes,
 trainer = Trainer(logger=logger, gpus=num_gpus, callbacks=[checkpoint_callback], enable_checkpointing=True,
                   max_epochs=50)
 trainer.fit(net, datamodule=snake_module)
-snake_module.save_data_partitions(logger.log_dir)

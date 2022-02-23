@@ -21,8 +21,7 @@ class SnakeDataModule(pl.LightningDataModule):
                  train_transforms: Optional[A.Compose] = A.Compose([A.NoOp]),
                  val_transforms: Optional[A.Compose] = A.Compose([A.NoOp]),
                  batch_size: Optional[int] = 128,
-                 num_workers: Optional[int] = 8,
-                 subset_size: Optional[int] = 0):
+                 num_workers: Optional[int] = 8):
         super().__init__()
         self.data_dir = data_dir
         no_train_val_split = train_data_dir is None and val_data_dir is None
@@ -32,11 +31,7 @@ class SnakeDataModule(pl.LightningDataModule):
             self.dataset = AlbumentationImageFolder(root=data_dir)
             self.train = None
             self.val = None
-            if subset_size <= 0:
-                subset_size = len(self.dataset)
-            self._subset_size = subset_size
         else:
-            self._subset_size = subset_size
             self.train = AlbumentationImageFolder(root=train_data_dir)
             self.dataset = None
             self.val = AlbumentationImageFolder(root=val_data_dir)
@@ -59,7 +54,7 @@ class SnakeDataModule(pl.LightningDataModule):
         If both were given this only assigns the transforms
         :return:
         """
-        n = self._subset_size
+        n = len(self.dataset)
         n_train = int(np.ceil(0.8 * n))
         n_val = int(np.floor(0.2 * n))
         self.train, self.val, remainder = random_split(self.dataset, [n_train, n_val, len(self.dataset) - n])
