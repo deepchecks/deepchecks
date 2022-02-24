@@ -47,7 +47,7 @@ def test_classification(mnist_dataset_train, mnist_dataset_test):
 
 def test_object_detection_limit_classes(coco_train_visiondata, coco_test_visiondata):
     # Arrange
-    check = HeatmapComparison(classes_to_display=['0'])
+    check = HeatmapComparison(classes_to_display=['person'])
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata)
