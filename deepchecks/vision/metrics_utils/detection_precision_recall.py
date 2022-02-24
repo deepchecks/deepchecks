@@ -16,7 +16,7 @@ from ignite.metrics import Metric
 from ignite.metrics.metric import sync_all_reduce, reinit__is_reduced
 import torch
 import numpy as np
-from .iou_utils import compute_ious
+from .iou_utils import compute_pairwise_ious
 
 
 def _dict_conc(test_list):
@@ -76,8 +76,8 @@ class AveragePrecision(Metric):
         """Update metric with batch of samples."""
         y_pred, y = output
 
-        for dt, gt in zip(y_pred, y):
-            self._group_detections(dt, gt)
+        for detected, ground_truth in zip(y_pred, y):
+            self._group_detections(detected, ground_truth)
             self.i += 1
 
     @sync_all_reduce("_evals")
@@ -116,41 +116,41 @@ class AveragePrecision(Metric):
                     reses["precision"][iou_i, area_i, dets_i] = np.array(precision_list)
                     reses["recall"][iou_i, area_i, dets_i] = np.array(recall_list)
         if self.return_option == 0:
-            return torch.tensor(self.get_val_at(reses["precision"],
-                                                max_dets=self.max_dets[0],
-                                                area=self.area_ranges_names[0],
-                                                get_mean_val=False))
+            return torch.tensor(self.get_classes_scores_at(reses["precision"],
+                                                           max_dets=self.max_dets[0],
+                                                           area=self.area_ranges_names[0],
+                                                           get_mean_val=False))
         elif self.return_option == 1:
-            return torch.tensor(self.get_val_at(reses["recall"],
-                                                max_dets=self.max_dets[0],
-                                                area=self.area_ranges_names[0],
-                                                get_mean_val=False))
+            return torch.tensor(self.get_classes_scores_at(reses["recall"],
+                                                           max_dets=self.max_dets[0],
+                                                           area=self.area_ranges_names[0],
+                                                           get_mean_val=False))
         return [reses]
 
-    def _group_detections(self, dt, gt):
+    def _group_detections(self, detected, ground_truth):
         """Group gts and dts on a imageXclass basis."""
-        bb_info = defaultdict(lambda: {"dt": [], "gt": []})
+        bb_info = defaultdict(lambda: {"detected": [], "ground_truth": []})
 
-        for d in dt:
+        for d in detected:
             if isinstance(d[5], torch.Tensor):
                 c_id = d[5].item()
             else:
                 c_id = d[5]
-            bb_info[c_id]["dt"].append(d)
-        for g in gt:
+            bb_info[c_id]["detected"].append(d)
+        for g in ground_truth:
             if isinstance(g[0], torch.Tensor):
                 c_id = g[0].item()
             else:
                 c_id = g[0]
-            bb_info[c_id]["gt"].append(g)
+            bb_info[c_id]["ground_truth"].append(g)
 
         # Calculating pairwise IoUs
-        ious = {k: compute_ious(**v) for k, v in bb_info.items()}
+        ious = {k: compute_pairwise_ious(**v) for k, v in bb_info.items()}
 
         for class_id in ious.keys():
             ev = self._evaluate_image(
-                bb_info[class_id]["dt"],
-                bb_info[class_id]["gt"],
+                bb_info[class_id]["detected"],
+                bb_info[class_id]["ground_truth"],
                 ious[class_id]
             )
 
@@ -270,9 +270,39 @@ class AveragePrecision(Metric):
             return not area_bb > self.area_range[1]
         return False
 
-    def get_val_at(self, res: np.array, iou: float = None, area: str = None, max_dets: int = None,
-                   get_mean_val: bool = True, zeroed_negative: bool = True):
-        """Get the value a result by the filtering values.
+    def filter_res(self, res: np.array, iou: float = None, area: str = None, max_dets: int = None):
+        """Get the value of a result by the filtering values.
+
+        Parameters
+        ----------
+        res: np.array
+            either prrecision or recall when using the '2' return option
+        iou : float, default: None
+            filter by iou threshold
+        area : str, default: None
+            filter by are range name ["small", "medium", "large", "all"]
+        max_dets : int, default: None
+            filter by max detections
+
+        Returns
+        -------
+        np.array
+           The filtered result.
+        """
+        if iou:
+            iou_i = [i for i, iou_thres in enumerate(self.iou_thresholds) if iou == iou_thres]
+            res = res[iou_i, :, :, :]
+        if area:
+            area_i = [i for i, area_name in enumerate(self.area_ranges_names) if area == area_name]
+            res = res[:, area_i, :, :]
+        if max_dets:
+            dets_i = [i for i, det in enumerate(self.max_dets) if max_dets == det]
+            res = res[:, :, dets_i, :]
+        return res
+
+    def get_classes_scores_at(self, res: np.array, iou: float = None, area: str = None, max_dets: int = None,
+                              get_mean_val: bool = True, zeroed_negative: bool = True):
+        """Get the mean value of the classes scores and the result values.
 
         Parameters
         ----------
@@ -294,15 +324,7 @@ class AveragePrecision(Metric):
         Union[List[float], float]
            The mean value of the classes scores or the scores list.
         """
-        if iou:
-            iou_i = [i for i, iou_thres in enumerate(self.iou_thresholds) if iou == iou_thres]
-            res = res[iou_i, :, :, :]
-        if area:
-            area_i = [i for i, area_name in enumerate(self.area_ranges_names) if area == area_name]
-            res = res[:, area_i, :, :]
-        if max_dets:
-            dets_i = [i for i, det in enumerate(self.max_dets) if max_dets == det]
-            res = res[:, :, dets_i, :]
+        res = self.filter_res(res, iou, area, max_dets)
         res = np.mean(res[:, :, :], axis=0)
         if get_mean_val:
             return np.mean(res[res > -1])
@@ -314,6 +336,7 @@ class AveragePrecision(Metric):
         """A class defining the prediction of a single image in an object detection task."""
 
         def __init__(self, det):
-            self.bbox = det[:4]
-            self.confidence = det[4]
-            self.label = det[5]
+            det_cpu = det.cpu()
+            self.bbox = det_cpu[:4]
+            self.confidence = det_cpu[4]
+            self.label = det_cpu[5]

@@ -17,6 +17,7 @@ from ignite.engine import Engine
 from ignite.metrics import Precision, Recall, Metric
 from torch import nn
 
+from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 
 from deepchecks.vision.dataset import TaskType
@@ -28,7 +29,8 @@ from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePr
 __all__ = [
     'get_scorers_list',
     'calculate_metrics',
-    'metric_results_to_df'
+    'metric_results_to_df',
+    'filter_classes_for_display',
 ]
 
 
@@ -48,7 +50,7 @@ def get_default_object_detection_scorers():
 
 def get_scorers_list(
         dataset: VisionData,
-        alternative_scorers: t.List[Metric] = None
+        alternative_scorers: t.Dict[str, Metric] = None
 ) -> t.Dict[str, Metric]:
     """Get scorers list according to model object and label column.
 
@@ -56,10 +58,8 @@ def get_scorers_list(
     ----------
     dataset : VisionData
         Dataset object
-    alternative_scorers : t.List[Metric]
-        Alternative scorers list
-    class_average : bool, default: False
-        Whether classification metrics should average the results or return result per class
+    alternative_scorers : t.Dict[str, Metric]
+        Alternative scorers dictionary
     Returns
     -------
     t.Dict[str, Metric]
@@ -69,7 +69,7 @@ def get_scorers_list(
 
     if alternative_scorers:
         # Validate that each alternative scorer is a correct type
-        for met in alternative_scorers:
+        for _, met in alternative_scorers.items():
             if not isinstance(met, Metric):
                 raise DeepchecksValueError('alternative_scorers should contain metrics of type ignite.Metric')
         scorers = alternative_scorers
@@ -86,20 +86,20 @@ def get_scorers_list(
 
 
 def calculate_metrics(
-    metrics: t.Union[t.Dict, t.List[Metric]],
-    dataset: VisionData, model: nn.Module,
+    metrics: t.Dict[str, Metric],
+    dataset: VisionData,
+    model: nn.Module,
     prediction_formatter: BasePredictionFormatter,
-    device: t.Union[str, torch.device, None] = None
+    device: torch.device
 ) -> t.Dict[str, float]:
     """Calculate a list of ignite metrics on a given model and dataset.
 
     Parameters
     ----------
-    metrics : List[Metric]
+    metrics : Dict[str, Metric]
         List of ignite metrics to calculate
     dataset : VisionData
         Dataset object
-
     model : nn.Module
         Model object
     prediction_formatter : Union[ClassificationPredictionFormatter, DetectionPredictionFormatter]
@@ -113,29 +113,9 @@ def calculate_metrics(
     """
 
     def process_function(_, batch):
-        images = batch[0]
-        label = dataset.label_transformer(batch[1])
-
-        if isinstance(images, torch.Tensor):
-            images = images.to(device)
-        if isinstance(label, torch.Tensor):
-            label = label.to(device)
-
-        predictions = model.forward(images)
-
-        if prediction_formatter:
-            predictions = prediction_formatter(predictions)
-
-        return predictions, label
-
-    # Validate that
-    data_batch = process_function(None, next(iter(dataset)))[0]
-    prediction_formatter.validate_prediction(data_batch, dataset.n_of_classes)
+        return prediction_formatter(batch, model, device), dataset.label_formatter(batch)
 
     engine = Engine(process_function)
-
-    if isinstance(metrics, list):
-        metrics = {type(metric).__name__: metric for metric in metrics}
 
     for name, metric in metrics.items():
         metric.reset()
@@ -148,11 +128,61 @@ def calculate_metrics(
 def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
     """Get dict of metric name to tensor of classes scores, and convert it to dataframe."""
     per_class_result = [
-        [metric, class_name,
+        [metric, class_id, dataset.label_id_to_name(class_id),
          class_score.item() if isinstance(class_score, torch.Tensor) else class_score]
         for metric, score in results.items()
         # scorer returns results as array, containing result per class
-        for class_score, class_name in zip(score, sorted(dataset.n_of_samples_per_class.keys()))
+        for class_score, class_id in zip(score, sorted(dataset.n_of_samples_per_class.keys()))
     ]
 
-    return pd.DataFrame(per_class_result, columns=['Metric', 'Class', 'Value']).sort_values(by=['Metric', 'Class'])
+    return pd.DataFrame(per_class_result, columns=['Metric',
+                                                   'Class',
+                                                   'Class Name',
+                                                   'Value']).sort_values(by=['Metric', 'Class'])
+
+
+def filter_classes_for_display(metrics_df: pd.DataFrame,
+                               metric_to_show_by: str,
+                               n_to_show: int,
+                               show_only: str) -> list:
+    """Filter the metrics dataframe for display purposes.
+
+    Parameters
+    ----------
+    metrics_df : pd.DataFrame
+        Dataframe containing the metrics.
+    n_to_show : int
+        Number of classes to show in the report.
+    show_only : str, default: 'largest'
+        Specify which classes to show in the report. Can be one of the following:
+        - 'largest': Show the largest classes.
+        - 'smallest': Show the smallest classes.
+        - 'random': Show random classes.
+        - 'best': Show the classes with the highest score.
+        - 'worst': Show the classes with the lowest score.
+    metric_to_show_by : str
+        Specify the metric to sort the results by. Relevant only when show_only is 'best' or 'worst'.
+
+    Returns
+    -------
+    list
+        List of classes to show in the report.
+    """
+    # working only on the test set
+    tests_metrics_df = metrics_df[(metrics_df['Dataset'] == DatasetKind.TEST.value) &
+                                  (metrics_df['Metric'] == metric_to_show_by)]
+    print(tests_metrics_df)
+    if show_only == 'largest':
+        tests_metrics_df = tests_metrics_df.sort_values(by='Number of samples', ascending=False)
+    elif show_only == 'smallest':
+        tests_metrics_df = tests_metrics_df.sort_values(by='Number of samples', ascending=True)
+    elif show_only == 'random':
+        tests_metrics_df = tests_metrics_df.sample(frac=1)
+    elif show_only == 'best':
+        tests_metrics_df = tests_metrics_df.sort_values(by='Value', ascending=False)
+    elif show_only == 'worst':
+        tests_metrics_df = tests_metrics_df.sort_values(by='Value', ascending=True)
+    else:
+        raise ValueError(f'Unknown show_only value: {show_only}')
+
+    return tests_metrics_df.head(n_to_show)['Class'].to_list()

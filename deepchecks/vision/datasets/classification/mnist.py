@@ -28,7 +28,7 @@ from deepchecks.vision.utils.classification_formatters import ClassificationLabe
 from deepchecks.vision.dataset import VisionData
 
 
-__all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST', 'mnist_image_formatter']
+__all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST', 'mnist_image_formatter', 'mnist_prediction_formatter']
 
 
 MODELS_DIR = pathlib.Path(__file__).absolute().parent / 'models'
@@ -88,7 +88,8 @@ def load_dataset(
         ),
         batch_size=batch_size,
         shuffle=shuffle,
-        pin_memory=pin_memory
+        pin_memory=pin_memory,
+        generator=torch.Generator()
     )
 
     if object_type == 'DataLoader':
@@ -97,15 +98,15 @@ def load_dataset(
         return VisionData(
             data_loader=loader,
             num_classes=len(datasets.MNIST.classes),
-            label_transformer=ClassificationLabelFormatter(),
-            image_transformer=ImageFormatter(mnist_image_formatter(mean, std)),
+            label_formatter=ClassificationLabelFormatter(),
+            image_formatter=ImageFormatter(mnist_image_formatter(mean, std)),
             transform_field='transform'
         )
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
 
 
-def load_model(pretrained: bool = True) -> 'MNistNet':
+def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MNistNet':
     """Load MNIST model.
 
     Returns
@@ -113,17 +114,18 @@ def load_model(pretrained: bool = True) -> 'MNistNet':
     MNistNet
     """
     # TODO: should we put downloadable pre-trained model into our repo?
+    if path and not path.exists():
+        LOGGER.warning('Path for MNIST model not found: %s', str(path))
 
-    if pretrained and MODEL_PATH.exists():
+    path = path or MODEL_PATH
+
+    if pretrained and path.exists():
         model = MNistNet()
-        model.load_state_dict(torch.load(MODEL_PATH))
+        model.load_state_dict(torch.load(path))
         model.eval()
         return model
 
     model = MNistNet()
-
-    if pretrained is False:
-        return model.train()
 
     dataloader = t.cast(DataLoader, load_dataset(train=True, object_type='DataLoader'))
     datasize = len(dataloader.dataset)
@@ -154,10 +156,10 @@ def load_model(pretrained: bool = True) -> 'MNistNet':
                     epoch, loss, current, datasize
                 )
 
-    if not MODELS_DIR.exists():
-        MODELS_DIR.mkdir()
+    if not path.parent.exists():
+        path.parent.mkdir()
 
-    torch.save(model.state_dict(), MODEL_PATH)
+    torch.save(model.state_dict(), path)
     model.eval()
     return model
 
@@ -209,7 +211,14 @@ class MNistNet(nn.Module):
 
 def mnist_image_formatter(mean, std):
     """Create function which inverse the data normalization."""
-    def inverse_transform(tensor):
+    def inverse_transform(batch):
+        tensor = batch[0]
         tensor = tensor.permute(0, 2, 3, 1)
         return un_normalize_batch(tensor, mean, std)
     return inverse_transform
+
+
+def mnist_prediction_formatter(batch, model, device):
+    """Predict and format predictions of mnist."""
+    preds = model.to(device)(batch[0].to(device))
+    return nn.Softmax(dim=1)(preds)

@@ -41,7 +41,6 @@ __all__ = ['mnist_data_loader_train',
            'coco_train_visiondata',
            'coco_test_dataloader',
            'coco_test_visiondata',
-           'three_tuples_dataloader',
            'two_tuples_dataloader',
         ]
 
@@ -70,7 +69,9 @@ def mnist_dataset_test():
 
 @pytest.fixture(scope='session')
 def trained_mnist():
-    return load_mnist_net_model()
+    # The MNIST model training is not deterministic, so loading a saved version of it for the tests.
+    path = pathlib.Path(__file__).absolute().parent / 'models' / 'mnist.pth'
+    return load_mnist_net_model(pretrained=True, path=path)
 
 
 @pytest.fixture(scope='session')
@@ -113,18 +114,6 @@ def coco_test_dataloader():
 @pytest.fixture(scope='session')
 def coco_test_visiondata():
     return load_coco_dataset(train=False, object_type='VisionData')
-
-
-@pytest.fixture(scope='session')
-def three_tuples_dataloader():
-    class ThreeTupleDataset(Dataset):
-        def __getitem__(self, index):
-            return [index, index, index]
-
-        def __len__(self) -> int:
-            return 8
-
-    return DataLoader(ThreeTupleDataset(), batch_size=4)
 
 
 @pytest.fixture(scope='session')
