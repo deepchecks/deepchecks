@@ -10,6 +10,7 @@
 #
 """Module for base vision abstractions."""
 # pylint: disable=broad-except,not-callable
+import copy
 from typing import Tuple, Mapping, Optional, Any, Union, Dict
 from collections import OrderedDict
 
@@ -397,20 +398,23 @@ class Suite(BaseSuite):
             Union[SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck]
         ] = OrderedDict({})
 
+        results: Dict[
+            Union[str, int],
+            Union[CheckResult, CheckFailure]
+        ] = OrderedDict({})
+
         for check_idx, check in list(self.checks.items()):
             if isinstance(check, (TrainTestCheck, ModelOnlyCheck)):
-                check.initialize_run(context)
+                try:
+                    check.initialize_run(context)
+                except Exception as exp:
+                    results[check_idx] = CheckFailure(check, exp)
                 checks[check_idx] = check
             elif isinstance(check, SingleDatasetCheck):
                 if train_dataset is not None:
                     checks[str(check_idx) + ' - Train'] = check
                 if test_dataset is not None:
                     checks[str(check_idx) + ' - Test'] = check
-
-        results: Dict[
-            Union[str, int],
-            Union[CheckResult, CheckFailure]
-        ] = OrderedDict({})
 
         run_train_test_checks = train_dataset is not None and test_dataset is not None
 
@@ -490,7 +494,10 @@ class Suite(BaseSuite):
 
         for idx, check in checks.items():
             if str(idx).endswith(type_suffix):
-                check.initialize_run(context, dataset_kind=dataset_kind)
+                try:
+                    check.initialize_run(context, dataset_kind=dataset_kind)
+                except Exception as exp:
+                    results[idx] = CheckFailure(check, exp, type_suffix)
 
         for batch_id, batch in enumerate(data_loader):
             progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
