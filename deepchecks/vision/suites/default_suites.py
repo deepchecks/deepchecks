@@ -14,11 +14,14 @@ Each function returns a new suite that is initialized with a list of checks and 
 It is possible to customize these suites by editing the checks and conditions inside it after the suites' creation.
 """
 from deepchecks.vision.checks import ClassPerformance, TrainTestLabelDrift, MeanAveragePrecisionReport, \
-                                     MeanAverageRecallReport
+    MeanAverageRecallReport, ImagePropertyDrift, ImageDatasetDrift, SimpleModelComparison, ConfusionMatrixReport, \
+    RobustnessReport
 from deepchecks.vision import Suite
 
 
 __all__ = ['train_test_validation', 'model_evaluation', 'full_suite']
+
+from deepchecks.vision.checks.distribution import HeatmapComparison
 
 
 def train_test_validation() -> Suite:
@@ -26,7 +29,10 @@ def train_test_validation() -> Suite:
     distribution and leakage checks."""
     return Suite(
         'Train Test Validation Suite',
-        TrainTestLabelDrift()
+        HeatmapComparison(),
+        TrainTestLabelDrift(),
+        ImagePropertyDrift().add_condition_drift_score_not_greater_than(),
+        ImageDatasetDrift()
     )
 
 
@@ -34,9 +40,12 @@ def model_evaluation() -> Suite:
     """Create a suite that is meant to test model performance and overfit."""
     return Suite(
         'Model Evaluation Suite',
-        ClassPerformance().add_condition_test_performance_not_less_than(0.5),
-        MeanAveragePrecisionReport().add_condition_test_average_precision_not_less_than(0.5),
-        MeanAverageRecallReport().add_condition_test_average_recall_not_less_than(0.5),
+        ClassPerformance(),
+        MeanAveragePrecisionReport(),
+        MeanAverageRecallReport(),
+        SimpleModelComparison(),
+        ConfusionMatrixReport(),
+        RobustnessReport().add_condition_degradation_not_greater_than()
     )
 
 
