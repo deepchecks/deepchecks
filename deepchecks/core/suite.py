@@ -13,18 +13,23 @@ import io
 import abc
 import warnings
 from collections import OrderedDict
-from typing import Union, List, Tuple
+from typing import Any, Union, List, Tuple
 
 from IPython.core.display import display_html
 from IPython.core.getipython import get_ipython
 import jsonpickle
-import wandb
 
 from deepchecks.core.display_suite import display_suite_result
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.check import CheckResult, CheckFailure, BaseCheck
 from deepchecks.utils.ipython import is_notebook
 
+try:
+    import wandb
+
+    assert hasattr(wandb, '__version__')  # verify package import not local dir
+except (ImportError, AssertionError):
+    wandb = None
 
 __all__ = ['BaseSuite', 'SuiteResult']
 
@@ -98,20 +103,20 @@ class SuiteResult:
 
         return jsonpickle.dumps({'name': self.name, 'results': json_results})
 
-    def to_wandb(self, wandb_init: bool = True, wandb_project: str = None):
+    def to_wandb(self, wandb_init: bool = True, **kwargs: Any):
         """Export suite result to wandb.
 
         Parameters
         ----------
         wandb_init : bool , default: True
             if to initiate a new wandb run
-        wandb_project: str
-            if given and wandb_init is True, set the project name to it otherwise use suite name
+        kwargs: Keyword arguments to pass to wandb.init - relevent if wandb_init is True.
         """
+        assert wandb, 'Missing wandb dependency, please install wandb'
         if wandb_init:
-            if wandb_project is None:
-                wandb_project = self.name
-            wandb.init(project=wandb_project, config={'name': self.name})
+            kwargs['project'] = kwargs.get('project', self.name)
+            kwargs['project'] = kwargs.get('config', {'name': self.name})
+            wandb.init(**kwargs)
         for res in self.results:
             res.to_wandb(False)
         if wandb_init:

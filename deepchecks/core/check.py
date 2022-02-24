@@ -20,7 +20,6 @@ import warnings
 from collections import OrderedDict
 from typing import Any, Callable, List, Tuple, Union, Dict, Type, ClassVar, Optional
 
-import wandb
 import jsonpickle
 import matplotlib
 import pandas as pd
@@ -39,6 +38,12 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import get_docs_summary, split_camel_case
 from deepchecks.utils.ipython import is_notebook
 
+try:
+    import wandb
+
+    assert hasattr(wandb, '__version__')  # verify package import not local dir
+except (ImportError, AssertionError):
+    wandb = None
 
 __all__ = [
     'CheckResult',
@@ -207,21 +212,21 @@ class CheckResult:
         matplotlib.use(old_backend)
         return displays
 
-    def to_wandb(self, wandb_init: bool = True, wandb_project: str = None):
+    def to_wandb(self, wandb_init: bool = True, **kwargs: Any):
         """Export check result to wandb.
 
         Parameters
         ----------
         wandb_init : bool , default: True
             if to initiate a new wandb run
-        wandb_project: str
-            if given and wandb_init is True, set the project name to it otherwise use check name
+        kwargs: Keyword arguments to pass to wandb.init - relevent if wandb_init is True.
         """
+        assert wandb, 'Missing wandb dependency, please install wandb'
         check_metadata = self._get_metadata()
         if wandb_init:
-            if wandb_project is None:
-                wandb_project = check_metadata['name']
-            wandb.init(project=wandb_project, config=check_metadata)
+            kwargs['project'] = kwargs.get('project', check_metadata['name'])
+            kwargs['project'] = kwargs.get('config', check_metadata)
+            wandb.init(**kwargs)
             section_suffix = ''
         else:
             section_suffix = check_metadata['name'] + '/'
@@ -605,21 +610,21 @@ class CheckFailure:
             result_json['display'] = [('str', str(self.exception))]
         return jsonpickle.dumps(result_json)
 
-    def to_wandb(self, wandb_init: bool = True, wandb_project: str = None):
+    def to_wandb(self, wandb_init: bool = True, **kwargs: Any):
         """Export check result to wandb.
 
         Parameters
         ----------
         wandb_init : bool , default: True
             if to initiate a new wandb run
-        wandb_project: str
-            if given and wandb_init is True, set the project name to it otherwise use check name
+        kwargs: Keyword arguments to pass to wandb.init - relevent if wandb_init is True.
         """
+        assert wandb, 'Missing wandb dependency, please install wandb'
         check_metadata = self._get_metadata()
         if wandb_init:
-            if wandb_project is None:
-                wandb_project = check_metadata['name']
-            wandb.init(project=wandb_project, config=check_metadata)
+            kwargs['project'] = kwargs.get('project', check_metadata['name'])
+            kwargs['project'] = kwargs.get('config', check_metadata)
+            wandb.init(**kwargs)
             section_suffix = ''
         else:
             section_suffix = check_metadata['name'] + '/'
