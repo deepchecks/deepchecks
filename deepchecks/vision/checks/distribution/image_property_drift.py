@@ -210,6 +210,6 @@ class ImagePropertyDrift(TrainTestCheck):
             return ConditionResult(True)
 
         return self.add_condition(
-            f'Earth Mover\'s Distance <= {max_allowed_drift_score} for image propertiesdrift',
+            f'Earth Mover\'s Distance <= {max_allowed_drift_score} for image properties drift',
             condition
         )
