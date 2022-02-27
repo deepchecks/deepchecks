@@ -109,7 +109,8 @@ class SuiteResult:
         Parameters
         ----------
         dedicated_run : bool , default: None
-            if to initiate and finish a new wandb run
+            If to initiate and finish a new wandb run.
+            If None it will be deticated if wandb.run is None.
         kwargs: Keyword arguments to pass to wandb.init.
                 Default project name is suite name.
                 Default config is the suite name.

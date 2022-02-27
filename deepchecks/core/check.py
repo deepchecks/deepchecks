@@ -218,7 +218,8 @@ class CheckResult:
         Parameters
         ----------
         dedicated_run : bool , default: None
-            if to initiate and finish a new wandb run
+            If to initiate and finish a new wandb run.
+            If None it will be deticated if wandb.run is None.
         kwargs: Keyword arguments to pass to wandb.init - relevent if wandb_init is True.
                 Default project name is check name.
                 Default config is the check metadata (params, train/test/ name etc.).
