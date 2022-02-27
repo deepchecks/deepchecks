@@ -23,6 +23,7 @@ from deepchecks.core.display_suite import display_suite_result
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.check import CheckResult, CheckFailure, BaseCheck
 from deepchecks.utils.ipython import is_notebook
+from deepchecks.utils.wandb_utils import wandb_init_helper
 
 try:
     import wandb
@@ -115,13 +116,7 @@ class SuiteResult:
                 Default project name is deepchecks.
                 Default config is the suite name.
         """
-        assert wandb, 'Missing wandb dependency, please install wandb'
-        if dedicated_run is None:
-            dedicated_run = wandb.run is None
-        if dedicated_run:
-            kwargs['project'] = kwargs.get('project', 'deepchecks')
-            kwargs['config'] = kwargs.get('config', {'name': self.name})
-            wandb.init(**kwargs)
+        dedicated_run = wandb_init_helper(dedicated_run, {'name': self.name}, kwargs)
         for res in self.results:
             res.to_wandb(False)
         if dedicated_run:

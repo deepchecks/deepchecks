@@ -37,6 +37,7 @@ from deepchecks.core.display_pandas import dataframe_to_html, get_conditions_tab
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import get_docs_summary, split_camel_case
 from deepchecks.utils.ipython import is_notebook
+from deepchecks.utils.wandb_utils import wandb_init_helper
 
 try:
     import wandb
@@ -224,14 +225,8 @@ class CheckResult:
                 Default project name is deepchecks.
                 Default config is the check metadata (params, train/test/ name etc.).
         """
-        assert wandb, 'Missing wandb dependency, please install wandb'
         check_metadata = self._get_metadata()
-        if dedicated_run is None:
-            dedicated_run = wandb.run is None
-        if dedicated_run:
-            kwargs['project'] = kwargs.get('project', 'deepchecks')
-            kwargs['config'] = kwargs.get('config', check_metadata)
-            wandb.init(**kwargs)
+        dedicated_run = wandb_init_helper(dedicated_run, check_metadata, kwargs)
         section_suffix = check_metadata['name'] + '/'
         if self.conditions_results:
             cond_df = get_conditions_table([self], icon_html=False)
@@ -623,14 +618,8 @@ class CheckFailure:
                 Default project name is deepchecks.
                 Default config is the check metadata (params, train/test/ name etc.).
         """
-        assert wandb, 'Missing wandb dependency, please install wandb'
         check_metadata = self._get_metadata()
-        if dedicated_run is None:
-            dedicated_run = wandb.run is None
-        if dedicated_run:
-            kwargs['project'] = kwargs.get('project', 'deepchecks')
-            kwargs['config'] = kwargs.get('config', check_metadata)
-            wandb.init(**kwargs)
+        dedicated_run = wandb_init_helper(dedicated_run, check_metadata, kwargs)
         section_suffix = check_metadata['name'] + '/'
         data = [check_metadata['header'],
                 str(check_metadata['params']),
