@@ -226,7 +226,7 @@ class CheckResult:
                 Default config is the check metadata (params, train/test/ name etc.).
         """
         check_metadata = self._get_metadata()
-        dedicated_run = wandb_init_helper(dedicated_run, check_metadata, kwargs)
+        dedicated_run = wandb_init_helper(dedicated_run, check_metadata, **kwargs)
         section_suffix = check_metadata['name'] + '/'
         if self.conditions_results:
             cond_df = get_conditions_table([self], icon_html=False)
@@ -619,7 +619,7 @@ class CheckFailure:
                 Default config is the check metadata (params, train/test/ name etc.).
         """
         check_metadata = self._get_metadata()
-        dedicated_run = wandb_init_helper(dedicated_run, check_metadata, kwargs)
+        dedicated_run = wandb_init_helper(dedicated_run, check_metadata, **kwargs)
         section_suffix = check_metadata['name'] + '/'
         data = [check_metadata['header'],
                 str(check_metadata['params']),

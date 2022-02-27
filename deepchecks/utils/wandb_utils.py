@@ -20,7 +20,7 @@ except (ImportError, AssertionError):
 
 __all__ = ['wandb_init_helper']
 
-def wandb_init_helper(dedicated_run: bool, config: dict, **kwargs: Any):
+def wandb_init_helper(dedicated_run: bool, default_config: dict, **kwargs: Any):
     """Help keep a standart for wandb initialization
 
     Parameters
@@ -28,7 +28,7 @@ def wandb_init_helper(dedicated_run: bool, config: dict, **kwargs: Any):
     dedicated_run : bool
         If to initiate and finish a new wandb run.
         If None it will be dedicated if wandb.run is None.
-    config : dict
+    default_config : dict
         Default config dict.
     kwargs: Keyword arguments to pass to wandb.init - relevent if wandb_init is True.
             Default project name is deepchecks.
@@ -44,6 +44,6 @@ def wandb_init_helper(dedicated_run: bool, config: dict, **kwargs: Any):
         dedicated_run = wandb.run is None
     if dedicated_run:
         kwargs['project'] = kwargs.get('project', 'deepchecks')
-        kwargs['config'] = kwargs.get('config', config)
+        kwargs['config'] = kwargs.get('config', default_config)
         wandb.init(**kwargs)
     return dedicated_run

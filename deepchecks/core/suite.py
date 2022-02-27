@@ -116,7 +116,7 @@ class SuiteResult:
                 Default project name is deepchecks.
                 Default config is the suite name.
         """
-        dedicated_run = wandb_init_helper(dedicated_run, {'name': self.name}, kwargs)
+        dedicated_run = wandb_init_helper(dedicated_run, {'name': self.name}, **kwargs)
         for res in self.results:
             res.to_wandb(False)
         if dedicated_run:
