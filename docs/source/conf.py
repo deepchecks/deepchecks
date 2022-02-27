@@ -32,7 +32,7 @@ with open(os.path.join(PROJECT_DIR, 'VERSION')) as version_file:
 
 
 project = 'Deepchecks'
-copyright = '2021, Deepchecks'
+copyright = '2021-2022, Deepchecks'
 author = 'Deepchecks'
 is_readthedocs = os.environ.get("READTHEDOCS")
 version = os.environ.get("READTHEDOCS_VERSION") or VERSION
@@ -78,7 +78,7 @@ extensions = [
 sphinx_gallery_conf = {
      'examples_dirs': 'examples/vision/test_examples',   # path to your example scripts
      'gallery_dirs': 'examples/vision/test_autoexamples',  # path to where to save gallery generated output
-     'image_scrapers': [plotly_sg_scraper]
+     'image_scrapers': ('matplotlib', plotly_sg_scraper,)
 }
 
 # Add any paths that contain templates here, relative to this directory.

@@ -127,7 +127,7 @@ class CheckResult:
         if as_widget:
             box = widgets.VBox()
             box_children = []
-            html_output = ''
+        html_output = ''
         check_html = ''
         if unique_id:
             check_id = f'{self.check.__class__.__name__}_{unique_id}'
@@ -148,13 +148,12 @@ class CheckResult:
                 elif isinstance(item, str):
                     check_html += f'<div>{item}</div>'
                 elif isinstance(item, BaseFigure):
+                    html_output += check_html
+                    html_output += to_html(item, include_plotlyjs=False, full_html=False)
+
                     if as_widget:
                         box_children.append(widgets.HTML(check_html))
                         box_children.append(go.FigureWidget(data=item))
-
-                        html_output += check_html
-                        html_output += to_html(item)
-
                     else:
                         display_html(check_html, raw=True)
                         item.show()
@@ -184,14 +183,15 @@ class CheckResult:
             check_html += '<p><b>&#x2713;</b> Nothing found</p>'
         if unique_id:
             check_html += f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>'
+
+        html_output += check_html
+
+        if as_html:
+            return html_output
+
         if as_widget:
             box_children.append(widgets.HTML(check_html))
             box.children = box_children
-
-            html_output += check_html
-
-            if as_html:
-                return html_output
 
             return box
         display_html(check_html, raw=True)

@@ -76,9 +76,9 @@ coco_test_loader = coco.load_dataset(train=False)
 
 
 # The num_classes is explicitly declared to aid computation, but would be inferred automatically otherwise.
-train_ds = VisionData(coco_train_loader, label_transformer=DetectionLabelFormatter(coco.yolo_label_formatter),
+train_ds = VisionData(coco_train_loader, label_formatter=DetectionLabelFormatter(coco.yolo_label_formatter),
                       num_classes=80)
-test_ds = VisionData(coco_test_loader, label_transformer=DetectionLabelFormatter(coco.yolo_label_formatter),
+test_ds = VisionData(coco_test_loader, label_formatter=DetectionLabelFormatter(coco.yolo_label_formatter),
                      num_classes=80)
 
 #%%

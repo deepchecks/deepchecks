@@ -37,3 +37,4 @@ Computer Vision Examples
 
     vision/guides/index
     vision/checks/index
+    vision/test_autoexamples/index
