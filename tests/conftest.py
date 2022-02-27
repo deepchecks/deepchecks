@@ -364,22 +364,22 @@ def drifted_regression_label() -> Tuple[Dataset, Dataset]:
 def simple_custom_plt_check():
     class DatasetSizeComparison(TrainTestCheck):
         """Check which compares the sizes of train and test datasets."""
-        
+
         def run_logic(self, context: Context) -> CheckResult:
             ## Check logic
             train_size = context.train.n_samples
             test_size = context.test.n_samples
-            
+
             ## Create the check result value
             sizes = {'Train': train_size, 'Test': test_size}
             sizes_df_for_display =  pd.DataFrame(sizes, index=['Size'])
-            
+
             ## Display function of matplotlib graph:
             def graph_display():
                 plt.bar(sizes.keys(), sizes.values(), color='green')
-                plt.xlabel("Dataset")
-                plt.ylabel("Size")
-                plt.title("Datasets Size Comparison")
-            
+                plt.xlabel('Dataset')
+                plt.ylabel('Size')
+                plt.title('Datasets Size Comparison')
+
             return CheckResult(sizes, display=[sizes_df_for_display, graph_display])
     return DatasetSizeComparison()
