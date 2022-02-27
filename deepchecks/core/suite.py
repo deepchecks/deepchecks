@@ -110,16 +110,16 @@ class SuiteResult:
         ----------
         dedicated_run : bool , default: None
             If to initiate and finish a new wandb run.
-            If None it will be deticated if wandb.run is None.
+            If None it will be dedicated if wandb.run is None.
         kwargs: Keyword arguments to pass to wandb.init.
-                Default project name is suite name.
+                Default project name is deepchecks.
                 Default config is the suite name.
         """
         assert wandb, 'Missing wandb dependency, please install wandb'
         if dedicated_run is None:
             dedicated_run = wandb.run is None
         if dedicated_run:
-            kwargs['project'] = kwargs.get('project', self.name)
+            kwargs['project'] = kwargs.get('project', 'deepchecks')
             kwargs['config'] = kwargs.get('config', {'name': self.name})
             wandb.init(**kwargs)
         for res in self.results:

@@ -219,9 +219,9 @@ class CheckResult:
         ----------
         dedicated_run : bool , default: None
             If to initiate and finish a new wandb run.
-            If None it will be deticated if wandb.run is None.
+            If None it will be dedicated if wandb.run is None.
         kwargs: Keyword arguments to pass to wandb.init - relevent if wandb_init is True.
-                Default project name is check name.
+                Default project name is deepchecks.
                 Default config is the check metadata (params, train/test/ name etc.).
         """
         assert wandb, 'Missing wandb dependency, please install wandb'
@@ -229,12 +229,10 @@ class CheckResult:
         if dedicated_run is None:
             dedicated_run = wandb.run is None
         if dedicated_run:
-            kwargs['project'] = kwargs.get('project', check_metadata['name'])
+            kwargs['project'] = kwargs.get('project', 'deepchecks')
             kwargs['config'] = kwargs.get('config', check_metadata)
             wandb.init(**kwargs)
-            section_suffix = ''
-        else:
-            section_suffix = check_metadata['name'] + '/'
+        section_suffix = check_metadata['name'] + '/'
         if self.conditions_results:
             cond_df = get_conditions_table([self], icon_html=False)
             cond_table = wandb.Table(dataframe=cond_df.data, allow_mixed_types=True)
@@ -619,9 +617,10 @@ class CheckFailure:
         Parameters
         ----------
         dedicated_run : bool , default: None
-            if to initiate and finish a new wandb run
+            If to initiate and finish a new wandb run.
+            If None it will be dedicated if wandb.run is None.
         kwargs: Keyword arguments to pass to wandb.init - relevent if wandb_init is True.
-                Default project name is check name.
+                Default project name is deepchecks.
                 Default config is the check metadata (params, train/test/ name etc.).
         """
         assert wandb, 'Missing wandb dependency, please install wandb'
@@ -629,12 +628,10 @@ class CheckFailure:
         if dedicated_run is None:
             dedicated_run = wandb.run is None
         if dedicated_run:
-            kwargs['project'] = kwargs.get('project', check_metadata['name'])
+            kwargs['project'] = kwargs.get('project', 'deepchecks')
             kwargs['config'] = kwargs.get('config', check_metadata)
             wandb.init(**kwargs)
-            section_suffix = ''
-        else:
-            section_suffix = check_metadata['name'] + '/'
+        section_suffix = check_metadata['name'] + '/'
         data = [check_metadata['header'],
                 str(check_metadata['params']),
                 check_metadata['summary'],
