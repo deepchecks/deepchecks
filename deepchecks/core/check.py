@@ -212,20 +212,24 @@ class CheckResult:
         matplotlib.use(old_backend)
         return displays
 
-    def to_wandb(self, wandb_init: bool = True, **kwargs: Any):
+    def to_wandb(self, dedicated_run: bool = True, **kwargs: Any):
         """Export check result to wandb.
 
         Parameters
         ----------
-        wandb_init : bool , default: True
-            if to initiate a new wandb run
+        dedicated_run : bool , default: None
+            if to initiate and finish a new wandb run
         kwargs: Keyword arguments to pass to wandb.init - relevent if wandb_init is True.
+                Default project name is check name.
+                Default config is the check metadata (params, train/test/ name etc.).
         """
         assert wandb, 'Missing wandb dependency, please install wandb'
         check_metadata = self._get_metadata()
-        if wandb_init:
+        if dedicated_run is None:
+            dedicated_run = wandb.run is None
+        if dedicated_run:
             kwargs['project'] = kwargs.get('project', check_metadata['name'])
-            kwargs['project'] = kwargs.get('config', check_metadata)
+            kwargs['config'] = kwargs.get('config', check_metadata)
             wandb.init(**kwargs)
             section_suffix = ''
         else:
@@ -247,8 +251,6 @@ class CheckResult:
         old_backend = matplotlib.get_backend()
         for item in self.display:
             if isinstance(item, Styler):
-                # print(check_metadata['header'])
-                # print(item.data)
                 wandb.log({f'{section_suffix}display_table_{table_i}':
                            wandb.Table(dataframe=item.data, allow_mixed_types=True)}, commit=False)
                 table_i += 1
@@ -282,7 +284,7 @@ class CheckResult:
         final_table.add_data(*data)
         wandb.log({f'{section_suffix}results': final_table}, commit=False)
         print('logged: ' + check_metadata['header'])
-        if wandb_init:
+        if dedicated_run:
             wandb.finish()
 
     def to_json(self, with_display: bool = True) -> str:
@@ -610,20 +612,24 @@ class CheckFailure:
             result_json['display'] = [('str', str(self.exception))]
         return jsonpickle.dumps(result_json)
 
-    def to_wandb(self, wandb_init: bool = True, **kwargs: Any):
+    def to_wandb(self, dedicated_run: bool = True, **kwargs: Any):
         """Export check result to wandb.
 
         Parameters
         ----------
-        wandb_init : bool , default: True
-            if to initiate a new wandb run
+        dedicated_run : bool , default: None
+            if to initiate and finish a new wandb run
         kwargs: Keyword arguments to pass to wandb.init - relevent if wandb_init is True.
+                Default project name is check name.
+                Default config is the check metadata (params, train/test/ name etc.).
         """
         assert wandb, 'Missing wandb dependency, please install wandb'
         check_metadata = self._get_metadata()
-        if wandb_init:
+        if dedicated_run is None:
+            dedicated_run = wandb.run is None
+        if dedicated_run:
             kwargs['project'] = kwargs.get('project', check_metadata['name'])
-            kwargs['project'] = kwargs.get('config', check_metadata)
+            kwargs['config'] = kwargs.get('config', check_metadata)
             wandb.init(**kwargs)
             section_suffix = ''
         else:
@@ -636,7 +642,7 @@ class CheckFailure:
         final_table.add_data(*data)
         wandb.log({f'{section_suffix}results': final_table}, commit=False)
         print('logged: ' + check_metadata['header'])
-        if wandb_init:
+        if dedicated_run:
             wandb.finish()
 
     def _get_metadata(self, with_doc_link: bool = False):
