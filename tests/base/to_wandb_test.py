@@ -15,7 +15,6 @@ import wandb
 from hamcrest import assert_that, equal_to, not_none
 
 from deepchecks.tabular.suites import full_suite
-from deepchecks.tabular.checks import ColumnsInfo
 
 os.environ["WANDB_MODE"] = "offline"
 
@@ -44,4 +43,10 @@ def test_check_full_suite_kwargs(iris_split_dataset_and_model):
     train, test, model = iris_split_dataset_and_model
     suite_res = full_suite().run(train, test, model)
     suite_res.to_wandb(project='ahh', config={'ahh': 'oh'})
+    assert_that(wandb.run, equal_to(None))
+
+def test_check_plotly(iris_split_dataset_and_model, simple_custom_plt_check):
+    train, test, _ = iris_split_dataset_and_model
+
+    simple_custom_plt_check.run(train, test).to_wandb()
     assert_that(wandb.run, equal_to(None))
