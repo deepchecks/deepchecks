@@ -58,6 +58,8 @@ class ImageDatasetDrift(TrainTestCheck):
         Max number of rows to use from each dataset for the training and evaluation of the domain classifier.
     test_size : float , default: 0.3
         Fraction of the combined datasets to use for the evaluation of the domain classifier.
+    min_meaningful_drift_score : float , default 0.05
+        Minimum drift score for displaying drift in check. Under that score, check will display "nothing found".
     """
 
     def __init__(
@@ -66,7 +68,8 @@ class ImageDatasetDrift(TrainTestCheck):
             n_top_properties: int = 3,
             min_feature_importance: float = 0.05,
             sample_size: int = 10_000,
-            test_size: float = 0.3
+            test_size: float = 0.3,
+            min_meaningful_drift_score: float = 0.05
     ):
         super().__init__()
 
@@ -79,6 +82,7 @@ class ImageDatasetDrift(TrainTestCheck):
         self.min_feature_importance = min_feature_importance
         self.sample_size = sample_size
         self.test_size = test_size
+        self.min_meaningful_drift_score = min_meaningful_drift_score
 
         self._train_properties = OrderedDict([(k, []) for k in self.image_properties])
         self._test_properties = OrderedDict([(k, []) for k in self.image_properties])
@@ -94,8 +98,7 @@ class ImageDatasetDrift(TrainTestCheck):
 
         imgs = dataset.image_formatter(batch)
         for func_name in self.image_properties:
-            image_property_function = dataset.image_formatter.__getattribute__(func_name)
-            properties[func_name] += image_property_function(imgs)
+            properties[func_name] += getattr(dataset.image_formatter, func_name)(imgs)
 
     def compute(self, context: Context) -> CheckResult:
         """Train a Domain Classifier on image property data that was collected during update() calls.
@@ -124,7 +127,7 @@ class ImageDatasetDrift(TrainTestCheck):
             train_dataframe=df_train, test_dataframe=df_test, numerical_features=self.image_properties, cat_features=[],
             sample_size=sample_size, random_state=context.random_state, test_size=self.test_size,
             n_top_columns=self.n_top_properties, min_feature_importance=self.min_feature_importance,
-            max_num_categories=None
+            max_num_categories=None, min_meaningful_drift_score=self.min_meaningful_drift_score
         )
 
         if displays:

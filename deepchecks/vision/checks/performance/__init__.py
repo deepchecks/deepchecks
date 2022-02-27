@@ -13,6 +13,7 @@ from .class_performance import ClassPerformance
 from .mean_average_precision_report import MeanAveragePrecisionReport
 from .mean_average_recall_report import MeanAverageRecallReport
 from .robustness_report import RobustnessReport
+from .confusion_matrix import ConfusionMatrixReport
 from .simple_model_comparison import SimpleModelComparison
 
 __all__ = [
@@ -20,5 +21,6 @@ __all__ = [
     "MeanAveragePrecisionReport",
     "MeanAverageRecallReport",
     "RobustnessReport",
-    "SimpleModelComparison"
+    "SimpleModelComparison",
+    "ConfusionMatrixReport",
 ]

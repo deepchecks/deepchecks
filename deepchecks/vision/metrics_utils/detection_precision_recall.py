@@ -16,7 +16,7 @@ from ignite.metrics import Metric
 from ignite.metrics.metric import sync_all_reduce, reinit__is_reduced
 import torch
 import numpy as np
-from .iou_utils import compute_ious
+from .iou_utils import compute_pairwise_ious
 
 
 def _dict_conc(test_list):
@@ -76,8 +76,8 @@ class AveragePrecision(Metric):
         """Update metric with batch of samples."""
         y_pred, y = output
 
-        for dt, gt in zip(y_pred, y):
-            self._group_detections(dt, gt)
+        for detected, ground_truth in zip(y_pred, y):
+            self._group_detections(detected, ground_truth)
             self.i += 1
 
     @sync_all_reduce("_evals")
@@ -127,30 +127,30 @@ class AveragePrecision(Metric):
                                                            get_mean_val=False))
         return [reses]
 
-    def _group_detections(self, dt, gt):
+    def _group_detections(self, detected, ground_truth):
         """Group gts and dts on a imageXclass basis."""
-        bb_info = defaultdict(lambda: {"dt": [], "gt": []})
+        bb_info = defaultdict(lambda: {"detected": [], "ground_truth": []})
 
-        for d in dt:
+        for d in detected:
             if isinstance(d[5], torch.Tensor):
                 c_id = d[5].item()
             else:
                 c_id = d[5]
-            bb_info[c_id]["dt"].append(d)
-        for g in gt:
+            bb_info[c_id]["detected"].append(d)
+        for g in ground_truth:
             if isinstance(g[0], torch.Tensor):
                 c_id = g[0].item()
             else:
                 c_id = g[0]
-            bb_info[c_id]["gt"].append(g)
+            bb_info[c_id]["ground_truth"].append(g)
 
         # Calculating pairwise IoUs
-        ious = {k: compute_ious(**v) for k, v in bb_info.items()}
+        ious = {k: compute_pairwise_ious(**v) for k, v in bb_info.items()}
 
         for class_id in ious.keys():
             ev = self._evaluate_image(
-                bb_info[class_id]["dt"],
-                bb_info[class_id]["gt"],
+                bb_info[class_id]["detected"],
+                bb_info[class_id]["ground_truth"],
                 ious[class_id]
             )
 
@@ -336,6 +336,7 @@ class AveragePrecision(Metric):
         """A class defining the prediction of a single image in an object detection task."""
 
         def __init__(self, det):
-            self.bbox = det[:4]
-            self.confidence = det[4]
-            self.label = det[5]
+            det_cpu = det.cpu()
+            self.bbox = det_cpu[:4]
+            self.confidence = det_cpu[4]
+            self.label = det_cpu[5]

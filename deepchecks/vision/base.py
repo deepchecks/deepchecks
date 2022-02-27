@@ -18,7 +18,6 @@ from torch import nn
 from torch.utils.data import DataLoader
 from ignite.metrics import Metric
 
-from deepchecks.vision.utils.validation import validate_model
 from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 from deepchecks.core.check import (
     CheckFailure,
@@ -34,6 +33,7 @@ from deepchecks.core.errors import (
 )
 from deepchecks.vision.dataset import VisionData, TaskType
 from deepchecks.vision.utils.validation import apply_to_tensor
+from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
 
 __all__ = [
@@ -67,7 +67,7 @@ class Context:
         See <a href=
         "https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel">
         scikit-learn docs</a>
-    device : Union[str, torch.device], default: None
+    device : Union[str, torch.device], default: 'cpu'
         processing unit for use
     random_state : int
         A seed to set for pseudo-random functions
@@ -81,7 +81,7 @@ class Context:
                  prediction_formatter: BasePredictionFormatter = None,
                  scorers: Mapping[str, Metric] = None,
                  scorers_per_class: Mapping[str, Metric] = None,
-                 device: Union[str, torch.device, None] = None,
+                 device: Union[str, torch.device, None] = 'cpu',
                  random_state: int = 42
                  ):
         # Validations
@@ -99,15 +99,27 @@ class Context:
         if test and random_state:
             test.set_seed(random_state)
 
-        self._device = torch.device(device) if isinstance(device, str) else device
+        task_type = train.task_type if train else None
+        self._device = torch.device(device) if isinstance(device, str) else (device if device else torch.device('cpu'))
 
-        if prediction_formatter:
+        # If no prediction_formatter is passed and model and train are defined, we will use the default one according
+        # to the dataset task type
+        if model is not None and train is not None and prediction_formatter is None:
+            if task_type == TaskType.CLASSIFICATION:
+                prediction_formatter = ClassificationPredictionFormatter()
+            elif task_type == TaskType.OBJECT_DETECTION:
+                prediction_formatter = DetectionPredictionFormatter()
+            else:
+                raise DeepchecksValueError(f'Must pass prediction formatter for task_type {task_type}')
+
+        if prediction_formatter is not None:
+            if train is None or model is None:
+                raise DeepchecksValueError('Can\'t pass prediction formatter without model and train data')
             prediction_formatter.validate_prediction(next(iter(train)), model, self._device)
 
         self._train = train
         self._test = test
         self._model = model
-        self._validated_model = False
         self._batch_prediction_cache = None
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
@@ -137,10 +149,6 @@ class Context:
         """Return & validate model if model exists, otherwise raise error."""
         if self._model is None:
             raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without model')
-        if not self._validated_model:
-            if self._train:
-                validate_model(self._train, self._model)
-            self._validated_model = True
         return self._model
 
     @property
@@ -154,7 +162,7 @@ class Context:
         return self._prediction_formatter
 
     @property
-    def device(self) -> Optional[torch.device]:
+    def device(self) -> torch.device:
         """Return device specified by the user."""
         return self._device
 
@@ -209,7 +217,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         dataset: VisionData,
         model: Optional[nn.Module] = None,
         prediction_formatter: BasePredictionFormatter = None,
-        device: Union[str, torch.device, None] = None,
+        device: Union[str, torch.device, None] = 'cpu',
         random_state: int = 42
     ) -> CheckResult:
         """Run check."""
@@ -256,7 +264,7 @@ class TrainTestCheck(TrainTestBaseCheck):
         test_dataset: VisionData,
         model: Optional[nn.Module] = None,
         prediction_formatter: BasePredictionFormatter = None,
-        device: Union[str, torch.device, None] = None,
+        device: Union[str, torch.device, None] = 'cpu',
         random_state: int = 42
     ) -> CheckResult:
         """Run check."""
@@ -303,7 +311,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
     def run(
         self,
         model: nn.Module,
-        device: Union[str, torch.device, None] = None,
+        device: Union[str, torch.device, None] = 'cpu',
         random_state: int = 42
     ) -> CheckResult:
         """Run check."""
@@ -338,7 +346,7 @@ class Suite(BaseSuite):
             prediction_formatter: BasePredictionFormatter = None,
             scorers: Mapping[str, Metric] = None,
             scorers_per_class: Mapping[str, Metric] = None,
-            device: Union[str, torch.device, None] = None,
+            device: Union[str, torch.device, None] = 'cpu',
             random_state: int = 42
     ) -> SuiteResult:
         """Run all checks.
@@ -389,20 +397,23 @@ class Suite(BaseSuite):
             Union[SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck]
         ] = OrderedDict({})
 
+        results: Dict[
+            Union[str, int],
+            Union[CheckResult, CheckFailure]
+        ] = OrderedDict({})
+
         for check_idx, check in list(self.checks.items()):
             if isinstance(check, (TrainTestCheck, ModelOnlyCheck)):
-                check.initialize_run(context)
+                try:
+                    check.initialize_run(context)
+                except Exception as exp:
+                    results[check_idx] = CheckFailure(check, exp)
                 checks[check_idx] = check
             elif isinstance(check, SingleDatasetCheck):
                 if train_dataset is not None:
                     checks[str(check_idx) + ' - Train'] = check
                 if test_dataset is not None:
                     checks[str(check_idx) + ' - Test'] = check
-
-        results: Dict[
-            Union[str, int],
-            Union[CheckResult, CheckFailure]
-        ] = OrderedDict({})
 
         run_train_test_checks = train_dataset is not None and test_dataset is not None
 
@@ -482,7 +493,10 @@ class Suite(BaseSuite):
 
         for idx, check in checks.items():
             if str(idx).endswith(type_suffix):
-                check.initialize_run(context, dataset_kind=dataset_kind)
+                try:
+                    check.initialize_run(context, dataset_kind=dataset_kind)
+                except Exception as exp:
+                    results[idx] = CheckFailure(check, exp, type_suffix)
 
         for batch_id, batch in enumerate(data_loader):
             progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')

@@ -12,7 +12,7 @@
 from collections import defaultdict
 
 import imgaug
-from typing import TypeVar, List, Optional, Any, Sized
+from typing import TypeVar, List, Optional, Any, Sized, Dict
 import albumentations
 import numpy as np
 
@@ -30,8 +30,7 @@ from deepchecks.vision.metrics_utils import calculate_metrics, metric_results_to
 from deepchecks.vision.utils.validation import set_seeds
 from deepchecks.vision.metrics_utils import get_scorers_list
 from deepchecks.utils.strings import format_percent
-from deepchecks.vision.utils.image_functions import numpy_to_image_figure, apply_heatmap_image_properties, \
-    label_bbox_add_to_figure, ImageInfo
+from deepchecks.vision.utils.image_functions import numpy_to_image_figure, label_bbox_add_to_figure, ImageInfo
 
 
 __all__ = ['RobustnessReport']
@@ -45,15 +44,16 @@ class RobustnessReport(SingleDatasetCheck):
 
     Parameters
     ----------
-        alternative_metrics : List[Metric], default: None
-            A list of ignite.Metric objects whose score should be used. If None are given, use the default metrics.
-        augmentations : List, default: None
-            A list of augmentations to test on the data. If none are given default augmentations are used.
-            Supported augmentations are of albumentations and imgaug.
+    alternative_metrics : Dict[str, Metric], default: None
+        A dictionary of metrics, where the key is the metric name and the value is an ignite.Metric object whose score
+        should be used. If None are given, use the default metrics.
+    augmentations : List, default: None
+        A list of augmentations to test on the data. If none are given default augmentations are used.
+        Supported augmentations are of albumentations and imgaug.
     """
 
     def __init__(self,
-                 alternative_metrics: Optional[List[Metric]] = None,
+                 alternative_metrics: Optional[Dict[str, Metric]] = None,
                  augmentations: List = None):
         super().__init__()
         self.alternative_metrics = alternative_metrics
@@ -102,12 +102,13 @@ class RobustnessReport(SingleDatasetCheck):
         aug_all_data = {}
         for augmentation_func in augmentations:
             augmentation = augmentation_name(augmentation_func)
-            aug_dataset = self._create_augmented_dataset(dataset, augmentation_func)
+            aug_dataset = self._create_augmented_dataset(dataset, augmentation_func, context.random_state)
             # The metrics have saved state, but they are reset inside `calculate_metrics`
             metrics = self._state['metrics']
             # Return dataframe of (Class, Metric, Value)
             aug_results = metric_results_to_df(
-                calculate_metrics(metrics, aug_dataset, model, context.prediction_formatter), aug_dataset
+                calculate_metrics(metrics, aug_dataset, model, context.prediction_formatter, context.device),
+                aug_dataset
             )
             # Return dict of {metric: {'score': mean score, 'diff': diff from base}, ... }
             metrics_diff_dict = self._calc_performance_diff(base_mean_results, aug_results)
@@ -134,7 +135,7 @@ class RobustnessReport(SingleDatasetCheck):
             display=figures
         )
 
-    def add_condition_degradation_not_greater_than(self, ratio: 0.01):
+    def add_condition_degradation_not_greater_than(self, ratio: float = 0.02):
         """Add condition which validates augmentations doesn't degrade the model metrics by given amount."""
         def condition(result):
             failed = [
@@ -152,11 +153,15 @@ class RobustnessReport(SingleDatasetCheck):
 
         return self.add_condition(f'Metrics degrade by not more than {format_percent(ratio)}', condition)
 
-    def _create_augmented_dataset(self, dataset: VisionData, augmentation_func):
+    def _create_augmented_dataset(self, dataset: VisionData, augmentation_func, seed=None):
         # Create a copy of data loader and the dataset
         aug_dataset: VisionData = dataset.copy()
         # Add augmentation in the first place
         aug_dataset.add_augmentation(augmentation_func)
+        # Set seed for reproducibility - The order of images is affecting the metrics, since the augmentations are
+        # not fixed (in a certain range), so different order of images will cause the images to be augmented a bit
+        # different which will lead to different metrics.
+        aug_dataset.set_seed(seed)
         return aug_dataset
 
     def _validate_augmenting_affects(self, transform_handler, dataset: VisionData):
@@ -289,10 +294,6 @@ class RobustnessReport(SingleDatasetCheck):
          .update_yaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
          .update_xaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
          .update_annotations(font_size=base_font_size * 1.5))
-
-        # In case of heatmap (grayscale images), need to add those properties which on Image exists automatically
-        if dataset.data_dimension == 1:
-            apply_heatmap_image_properties(fig)
 
         return fig.to_image('svg', width=width, height=height).decode('utf-8')
 
