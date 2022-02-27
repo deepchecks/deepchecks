@@ -229,6 +229,7 @@ notebook: requirements dev-requirements
 	@$(JUPYTER) nbextension enable --py widgetsnbextension
 	@echo "+++ Number of notebooks to execute: $$(find ./docs/source/examples -name "*.ipynb" | wc -l) +++"
 	@echo "+++ Executing notebooks in $(PWD) +++"
+	@export WANDB_MODE=offline
 	$(PYTEST) --nbval-lax ./docs/source/examples
 
 	# For now, because of plotly - disabling the nbval and just validate that the notebooks are running
