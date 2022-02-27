@@ -9,14 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """to wandb tests"""
-import os
-
 import wandb
 from hamcrest import assert_that, equal_to, not_none
 
 from deepchecks.tabular.suites import full_suite
 
-os.environ["WANDB_MODE"] = "offline"
+wandb.setup(wandb.Settings(mode="disabled", program=__name__, program_relpath=__name__, disable_code=True))
 
 def test_check_full_suite_not_failing(iris_split_dataset_and_model):
     train, test, model = iris_split_dataset_and_model
