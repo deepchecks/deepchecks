@@ -9,3 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module for working with pre-built classification datasets."""
+from . import breast_cancer
+from . import iris
+from . import phishing
+
+__all__ = ['breast_cancer', 'iris', 'phishing']

@@ -1,5 +1,5 @@
-Core
-====
+deepchecks.core
+===============
 
 .. py:module:: deepchecks.core
 
@@ -7,10 +7,18 @@ Core
 
 .. currentmodule:: deepchecks.core
 
-.. rubric:: Modules and Classes
+.. rubric:: Modules
 
 .. autosummary::
-    :recursive:
+    :caption: Modules
+    :toctree: generated
+
+    errors
+
+.. rubric:: Classes
+
+.. autosummary::
+    :caption: Classes
     :toctree: generated
 
     BaseCheck
@@ -21,5 +29,3 @@ Core
     ConditionCategory
     BaseSuite
     SuiteResult
-    
-    errors

@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing class performance check."""
-from typing import TypeVar, List, Any
+from typing import TypeVar, List, Any, Dict
 
 import pandas as pd
 import plotly.express as px
@@ -20,8 +20,8 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision import TrainTestCheck, Context
 from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.metrics_utils.metrics import get_scorers_list, metric_results_to_df
-
+from deepchecks.vision.metrics_utils.metrics import get_scorers_list, metric_results_to_df, \
+    get_default_classification_scorers, get_default_object_detection_scorers, filter_classes_for_display
 
 __all__ = ['ClassPerformance']
 
@@ -33,20 +33,62 @@ class ClassPerformance(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_metrics : List[Metric], default: None
-        A list of ignite.Metric objects whose score should be used. If None are given, use the default metrics.
+    alternative_metrics : Dict[str, Metric], default: None
+        A dictionary of metrics, where the key is the metric name and the value is an ignite.Metric object whose score
+        should be used. If None are given, use the default metrics.
+    n_to_show : int, default: 20
+        Number of classes to show in the report. If None, show all classes.
+    show_only : str, default: 'largest'
+        Specify which classes to show in the report. Can be one of the following:
+        - 'largest': Show the largest classes.
+        - 'smallest': Show the smallest classes.
+        - 'random': Show random classes.
+        - 'best': Show the classes with the highest score.
+        - 'worst': Show the classes with the lowest score.
+    metric_to_show_by : str, default: None
+        Specify the metric to sort the results by. Relevant only when show_only is 'best' or 'worst'.
+        If None, sorting by the first metric in the default metrics list.
+    class_list_to_show: List[int], default: None
+        Specify the list of classes to show in the report. If specified, n_to_show, show_only and metric_to_show_by
+        are ignored.
     """
 
     def __init__(self,
-                 alternative_metrics: List[Metric] = None
-                 ):
+                 alternative_metrics: Dict[str, Metric] = None,
+                 n_to_show: int = 20,
+                 show_only: str = 'largest',
+                 metric_to_show_by: str = None,
+                 class_list_to_show: List[int] = None):
         super().__init__()
         self.alternative_metrics = alternative_metrics
+        self.n_to_show = n_to_show
+        self.class_list_to_show = class_list_to_show
+
+        if self.class_list_to_show is None:
+            if show_only not in ['largest', 'smallest', 'random', 'best', 'worst']:
+                raise DeepchecksValueError(f'Invalid value for show_only: {show_only}. Should be one of: '
+                                           f'["largest", "smallest", "random", "best", "worst"]')
+
+            self.show_only = show_only
+            if alternative_metrics is not None and show_only in ['best', 'worst'] and metric_to_show_by is None:
+                raise DeepchecksValueError('When alternative_metrics are provided and show_only is one of: '
+                                           '["best", "worst"], metric_to_show_by must be specified.')
+
+        self.metric_to_show_by = metric_to_show_by
+
         self._state = {}
 
     def initialize_run(self, context: Context):
         """Initialize run by creating the _state member with metrics for train and test."""
         context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
+
+        if not self.metric_to_show_by:
+            if context.train.task_type == TaskType.CLASSIFICATION:
+                self.metric_to_show_by = list(get_default_classification_scorers().keys())[0]
+            elif context.train.task_type == TaskType.OBJECT_DETECTION:
+                self.metric_to_show_by = list(get_default_object_detection_scorers().keys())[0]
+            else:
+                raise DeepchecksValueError(f'Invalid task type: {context.train.task_type}')
 
         self._state = {DatasetKind.TRAIN: {}, DatasetKind.TEST: {}}
         self._state[DatasetKind.TRAIN]['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
@@ -55,9 +97,8 @@ class ClassPerformance(TrainTestCheck):
     def update(self, context: Context, batch: Any, dataset_kind):
         """Update the metrics by passing the batch to ignite metric update method."""
         dataset = context.get_data_by_kind(dataset_kind)
-        images = batch[0]
-        label = dataset.label_transformer(batch[1])
-        prediction = context.prediction_formatter(context.infer(images))
+        label = dataset.label_formatter(batch)
+        prediction = context.infer(batch)
         for _, metric in self._state[dataset_kind]['scorers'].items():
             metric.update((prediction, label))
 
@@ -75,9 +116,20 @@ class ClassPerformance(TrainTestCheck):
 
         results_df = pd.concat(results)
 
+        if self.class_list_to_show is not None:
+            results_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
+        elif self.n_to_show is not None:
+            classes_to_show = filter_classes_for_display(results_df,
+                                                         self.metric_to_show_by,
+                                                         self.n_to_show,
+                                                         self.show_only)
+            results_df = results_df.loc[results_df['Class'].isin(classes_to_show)]
+
+        results_df = results_df.sort_values(by=['Dataset', 'Value'], ascending=False)
+
         fig = px.histogram(
             results_df,
-            x='Class',
+            x='Class Name',
             y='Value',
             color='Dataset',
             barmode='group',
@@ -87,7 +139,7 @@ class ClassPerformance(TrainTestCheck):
         )
 
         if context.train.task_type == TaskType.CLASSIFICATION:
-            fig.update_xaxes(tickprefix='Class ', tickangle=60)
+            fig.update_xaxes(tickprefix='Class Name', tickangle=60)
 
         fig = (
             fig.update_xaxes(title=None, type='category')

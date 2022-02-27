@@ -20,6 +20,7 @@ import numpy as np
 import torch
 import albumentations as A
 from PIL import Image
+from cv2 import cv2
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.datasets import VisionDataset
@@ -37,16 +38,16 @@ __all__ = ['load_dataset', 'load_model', 'yolo_prediction_formatter', 'yolo_labe
 DATA_DIR = Path(__file__).absolute().parent
 
 
-def load_model(pretrained: bool = True) -> nn.Module:
-    """Load the yolov5s model and return it."""
+def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cpu') -> nn.Module:
+    """Load the yolov5s (version 6.1)  model and return it."""
+    dev = torch.device(device) if isinstance(device, str) else device
     logger = logging.getLogger('yolov5')
     logger.disabled = True
-    model = torch.hub.load('ultralytics/yolov5', 'yolov5s',
+    model = torch.hub.load('ultralytics/yolov5:v6.1', 'yolov5s',
                            pretrained=pretrained,
                            verbose=False,
-                           device='cpu')
+                           device=dev)
     model.eval()
-    model.cpu()
     logger.disabled = False
     return model
 
@@ -55,7 +56,7 @@ def load_dataset(
         train: bool = True,
         batch_size: int = 32,
         num_workers: int = 0,
-        shuffle: bool = False,
+        shuffle: bool = True,
         pin_memory: bool = True,
         object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader'
 ) -> t.Union[DataLoader, vision.VisionData]:
@@ -107,6 +108,7 @@ def load_dataset(
         num_workers=num_workers,
         collate_fn=batch_collate,
         pin_memory=pin_memory,
+        generator=torch.Generator()
     )
 
     if object_type == 'DataLoader':
@@ -114,10 +116,11 @@ def load_dataset(
     elif object_type == 'VisionData':
         return vision.VisionData(
             data_loader=dataloader,
-            label_transformer=DetectionLabelFormatter(yolo_label_formatter),
+            label_formatter=DetectionLabelFormatter(yolo_label_formatter),
             # To display images we need them as numpy array
-            image_transformer=ImageFormatter(lambda pil_list: [np.array(x) for x in pil_list]),
-            num_classes=80
+            image_formatter=ImageFormatter(lambda batch: [np.array(x) for x in batch[0]]),
+            num_classes=80,
+            label_map=LABEL_MAP
         )
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
@@ -188,7 +191,9 @@ class CocoDataset(VisionDataset):
 
     def __getitem__(self, idx: int) -> t.Tuple[Image.Image, np.ndarray]:
         """Get the image and label at the given index."""
-        img = Image.open(self.images[idx]).convert('RGB')
+        # open image using cv2, since opening with Pillow give slightly different results based on Pillow version
+        opencv_image = cv2.imread(str(self.images[idx]))
+        img = Image.fromarray(cv2.cvtColor(opencv_image, cv2.COLOR_BGR2RGB))
         label_file = self.labels[idx]
 
         if label_file is not None:
@@ -261,15 +266,15 @@ class CocoDataset(VisionDataset):
         return coco_dir, 'train2017'
 
 
-def yolo_prediction_formatter(
-        predictions: 'ultralytics.models.common.Detections'  # noqa: F821
-) -> t.List[torch.Tensor]:
+def yolo_prediction_formatter(batch, model, device) -> t.List[torch.Tensor]:
     """Convert from yolo Detections object to List (per image) of Tensors of the shape [N, 6] with each row being \
     [x, y, w, h, confidence, class] for each bbox in the image."""
     return_list = []
 
     with warnings.catch_warnings():
         warnings.simplefilter(action='ignore', category=UserWarning)
+
+        predictions: 'ultralytics.models.common.Detections' = model.to(device)(batch[0])  # noqa: F821
 
         # yolo Detections objects have List[torch.Tensor] xyxy output in .pred
         for single_image_tensor in predictions.pred:
@@ -281,15 +286,111 @@ def yolo_prediction_formatter(
     return return_list
 
 
-def yolo_label_formatter(label):
+def yolo_label_formatter(batch):
     """Translate yolo label to deepchecks format."""
     # our labels return at the end, and the VisionDataset expect it at the start
     def move_class(tensor):
-        return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3])) if len(tensor) > 0 else tensor
-    return [move_class(tensor) for tensor in label]
+        return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
+                if len(tensor) > 0 else tensor
+    return [move_class(tensor) for tensor in batch[1]]
 
 
-def yolo_image_formatter(pil_list):
+def yolo_image_formatter(batch):
     """Convert list of PIL images to deepchecks image format."""
     # Yolo works on PIL and VisionDataset expects images as numpy arrays
-    return [np.array(x) for x in pil_list]
+    return [np.array(x) for x in batch[0]]
+
+
+LABEL_MAP = {
+    0: 'unknown',
+    1: 'person',
+    2: 'bicycle',
+    3: 'car',
+    4: 'motorcycle',
+    5: 'airplane',
+    6: 'bus',
+    7: 'train',
+    8: 'truck',
+    9: 'boat',
+    10: 'traffic light',
+    11: 'fire hydrant',
+    13: 'stop sign',
+    14: 'parking meter',
+    15: 'bench',
+    16: 'bird',
+    17: 'cat',
+    18: 'dog',
+    19: 'horse',
+    20: 'sheep',
+    21: 'cow',
+    22: 'elephant',
+    23: 'bear',
+    24: 'zebra',
+    25: 'giraffe',
+    26: 'hat',
+    27: 'backpack',
+    28: 'umbrella',
+    29: 'shoe',
+    30: 'eye glasses',
+    31: 'handbag',
+    32: 'tie',
+    33: 'suitcase',
+    34: 'frisbee',
+    35: 'skis',
+    36: 'snowboard',
+    37: 'sports ball',
+    38: 'kite',
+    39: 'baseball bat',
+    40: 'baseball glove',
+    41: 'skateboard',
+    42: 'surfboard',
+    43: 'tennis racket',
+    44: 'bottle',
+    45: 'plate',
+    46: 'wine glass',
+    47: 'cup',
+    48: 'fork',
+    49: 'knife',
+    50: 'spoon',
+    51: 'bowl',
+    52: 'banana',
+    53: 'apple',
+    54: 'sandwich',
+    55: 'orange',
+    56: 'broccoli',
+    57: 'carrot',
+    58: 'hot dog',
+    59: 'pizza',
+    60: 'donut',
+    61: 'cake',
+    62: 'chair',
+    63: 'couch',
+    64: 'potted plant',
+    65: 'bed',
+    66: 'mirror',
+    67: 'dining table',
+    68: 'window',
+    69: 'desk',
+    70: 'toilet',
+    71: 'door',
+    72: 'tv',
+    73: 'laptop',
+    74: 'mouse',
+    75: 'remote',
+    76: 'keyboard',
+    77: 'cell phone',
+    78: 'microwave',
+    79: 'oven',
+    80: 'toaster',
+    81: 'sink',
+    82: 'refrigerator',
+    83: 'blender',
+    84: 'book',
+    85: 'clock',
+    86: 'vase',
+    87: 'scissors',
+    88: 'teddy bear',
+    89: 'hair drier',
+    90: 'toothbrush',
+    91: 'hairbrush'
+}

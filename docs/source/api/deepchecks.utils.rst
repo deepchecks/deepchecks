@@ -1,5 +1,5 @@
-Utils
-======
+deepchecks.utils
+================
 
 .. py:module:: deepchecks.utils
 

@@ -29,6 +29,7 @@ header:
     - '.github/ISSUE_TEMPLATE/'
     - '.github/pull_request_template.md'
     - 'deepchecks/base/resources'
+    - 'DESCRIPTION.rst'
   comment: on-failure
 
 dependency:
