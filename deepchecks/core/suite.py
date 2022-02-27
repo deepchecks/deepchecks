@@ -103,23 +103,27 @@ class SuiteResult:
 
         return jsonpickle.dumps({'name': self.name, 'results': json_results})
 
-    def to_wandb(self, wandb_init: bool = True, **kwargs: Any):
+    def to_wandb(self, dedicated_run: bool = None, **kwargs: Any):
         """Export suite result to wandb.
 
         Parameters
         ----------
-        wandb_init : bool , default: True
-            if to initiate a new wandb run
-        kwargs: Keyword arguments to pass to wandb.init - relevent if wandb_init is True.
+        dedicated_run : bool , default: None
+            if to initiate and finish a new wandb run
+        kwargs: Keyword arguments to pass to wandb.init.
+                Default project name is suite name.
+                Default config is the suite name.
         """
         assert wandb, 'Missing wandb dependency, please install wandb'
-        if wandb_init:
+        if dedicated_run is None:
+            dedicated_run = wandb.run is None
+        if dedicated_run:
             kwargs['project'] = kwargs.get('project', self.name)
             kwargs['project'] = kwargs.get('config', {'name': self.name})
             wandb.init(**kwargs)
         for res in self.results:
             res.to_wandb(False)
-        if wandb_init:
+        if dedicated_run:
             wandb.finish()
 
 
