@@ -120,7 +120,6 @@ class SuiteResult:
         for res in self.results:
             res.to_wandb(False)
         if dedicated_run:
-
             wandb.finish()
 
 
