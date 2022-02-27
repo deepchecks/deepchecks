@@ -120,7 +120,7 @@ class SuiteResult:
             dedicated_run = wandb.run is None
         if dedicated_run:
             kwargs['project'] = kwargs.get('project', self.name)
-            kwargs['project'] = kwargs.get('config', {'name': self.name})
+            kwargs['config'] = kwargs.get('config', {'name': self.name})
             wandb.init(**kwargs)
         for res in self.results:
             res.to_wandb(False)
