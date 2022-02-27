@@ -20,6 +20,7 @@ except (ImportError, AssertionError):
 
 __all__ = ['wandb_init_helper']
 
+
 def wandb_init_helper(dedicated_run: bool, default_config: dict, **kwargs: Any):
     """Help keep a standart for wandb initialization
 
