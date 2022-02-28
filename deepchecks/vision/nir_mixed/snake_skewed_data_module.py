@@ -36,6 +36,8 @@ class SnakeSkewedDataModule(SnakeDataModule):
         n_train = int(np.ceil(0.8 * n))
         n_val = int(np.floor(0.2 * n))
         self.train, self.val, remainder = random_split(self.dataset, [n_train, n_val, len(self.dataset) - n])
+        # TODO: fix bug here - these two have the same dataset obj and thus the same .transform so these two lines don't
+        #       actually work
         self.train.dataset.transforms = self._train_transforms
         self.val.dataset.transforms = self._val_transforms
 
