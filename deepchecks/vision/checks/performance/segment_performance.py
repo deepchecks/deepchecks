@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module of segment performance check."""
+import math
 import typing as t
 from numbers import Number
 
@@ -132,6 +133,8 @@ class SegmentPerformance(SingleDatasetCheck):
         display_data = []
 
         for property_name, prop_bins in bins.items():
+            # Calcualte scale for the numbers formatting in the display of range
+            bins_scale = max([_get_range_scale(b['start'], b['stop']) for b in prop_bins])
             for single_bin in prop_bins:
                 # If we have a low number of unique values for a property, the first bin (-inf, x) might be empty so
                 # check the count, and if empty filter out the bin
@@ -139,7 +142,7 @@ class SegmentPerformance(SingleDatasetCheck):
                     continue
 
                 bin_data = {
-                    'Range': _range_string(single_bin['start'], single_bin['stop']),
+                    'Range': _range_string(single_bin['start'], single_bin['stop'], bins_scale),
                     'Number of samples': single_bin['count'],
                     'Property': f'Property: {property_name}'
                 }
@@ -229,9 +232,9 @@ def _add_to_fitting_bin(bins: t.List[t.Dict], property_value, label, prediction)
             return
 
 
-def _range_string(start, stop):
-    start = '[' + format_number(start) if not np.isinf(start) else '(-inf'
-    stop = format_number(stop) if not np.isinf(stop) else 'inf'
+def _range_string(start, stop, precision):
+    start = '[' + format_number(start, precision) if not np.isinf(start) else '(-inf'
+    stop = format_number(stop, precision) if not np.isinf(stop) else 'inf'
     return f'{start}, {stop})'
 
 
@@ -241,3 +244,15 @@ def _calculate_metrics(metrics, dataset):
     )
     metrics_df = metrics_df[['Metric', 'Value']].groupby(['Metric']).median()
     return metrics_df.to_dict()['Value']
+
+
+def _get_range_scale(start, stop):
+    if np.isinf(start) or np.isinf(stop):
+        return 2
+    number = stop - start
+    # Get the scale of number. if between 0 and 1, gets the number of zeros digits right to decimal point (up to
+    # non-zero digit)
+    scale = -int(math.log10(number))
+    # If the number is larger than 1, -scale will be negative, so we will get 2. if the number is smaller than 0.001
+    # then -scale will be 2 or larger (add 1 to set larger precision than the scale)
+    return max(2, scale + 1)
