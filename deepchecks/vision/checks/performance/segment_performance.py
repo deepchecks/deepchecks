@@ -99,15 +99,15 @@ class SegmentPerformance(SingleDatasetCheck):
         batch_data = zip(labels, predictions, batch_properties)
         # If we already defined bins, add the current data to them
         if bins is not None:
-            _divide_to_bins(bins, batch_data)
+            _divide_to_bins(bins, list(batch_data))
         else:
             # Add the current data to the samples list
             samples_for_bin.extend(batch_data)
             # Check if enough data to infer bins
-            if len(samples_for_bin) < self.number_of_samples_to_infer_bins:
+            if len(samples_for_bin) >= self.number_of_samples_to_infer_bins:
                 # Create the bins and metrics, and divide all cached data into the bins
                 self._state['bins'] = self._create_bins_and_metrics(samples_for_bin, dataset)
-                # Remove the samples which are no longer needed (free the memory)
+                # Remove the samples cache which are no longer needed (free the memory)
                 del samples_for_bin
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
@@ -165,10 +165,12 @@ class SegmentPerformance(SingleDatasetCheck):
             hover_data=['Number of samples']
         )
 
+        bar_width = min(0.2, 1 / self.number_of_bins)
         (fig.update_xaxes(title=None, type='category', matches=None)
             .update_yaxes(title=None)
             .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-            .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True)))
+            .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+            .update_traces(width=bar_width))
 
         return CheckResult(value=bins, display=fig)
 
@@ -216,6 +218,7 @@ def _add_to_fitting_bin(bins: t.List[t.Dict], property_value, label, prediction)
     """Find the fitting bin from the list of bins for a given value. Then increase the count and the prediction and
     label to the metrics objects."""
     if property_value is None:
+        print('None!')
         return
     for single_bin in bins:
         if single_bin['start'] <= property_value < single_bin['stop']:
