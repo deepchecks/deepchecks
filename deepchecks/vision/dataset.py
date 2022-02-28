@@ -130,6 +130,7 @@ class VisionData:
                 except DeepchecksValueError as ex:
                     self._label_invalid = str(ex)
         else:
+            self.task_type = None
             self._label_invalid = 'label_formatter parameter was not defined'
 
         self._samples_per_class = None
