@@ -130,7 +130,6 @@ class SegmentPerformance(SingleDatasetCheck):
         # bins are in format:
         # {property_name: [{start: val, stop: val, count: x, metrics: {name: metric...}}, ...], ...}
         display_data = []
-        metric_names = None
 
         for property_name, prop_bins in bins.items():
             for single_bin in prop_bins:
@@ -150,9 +149,6 @@ class SegmentPerformance(SingleDatasetCheck):
                 # For the plotly display need row per metric in the dataframe
                 for metric, val in single_bin['metrics'].items():
                     display_data.append({'Metric': metric, 'Value': val, **bin_data})
-                # Get the metric names to use in the plot creation
-                if metric_names is None:
-                    metric_names = list(single_bin['metrics'].keys())
 
         display_df = pd.DataFrame(display_data)
 
