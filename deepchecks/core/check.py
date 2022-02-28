@@ -37,7 +37,14 @@ from deepchecks.core.display_pandas import dataframe_to_html, get_conditions_tab
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import get_docs_summary, split_camel_case
 from deepchecks.utils.ipython import is_notebook
+from deepchecks.utils.wandb_utils import set_wandb_run_state
 
+try:
+    import wandb
+
+    assert hasattr(wandb, '__version__')  # verify package import not local dir
+except (ImportError, AssertionError):
+    wandb = None
 
 __all__ = [
     'CheckResult',
@@ -206,6 +213,73 @@ class CheckResult:
         matplotlib.use(old_backend)
         return displays
 
+    def to_wandb(self, dedicated_run: bool = True, **kwargs: Any):
+        """Export check result to wandb.
+
+        Parameters
+        ----------
+        dedicated_run : bool , default: None
+            If to initiate and finish a new wandb run.
+            If None it will be dedicated if wandb.run is None.
+        kwargs: Keyword arguments to pass to wandb.init.
+                Default project name is deepchecks.
+                Default config is the check metadata (params, train/test/ name etc.).
+        """
+        check_metadata = self._get_metadata()
+        dedicated_run = set_wandb_run_state(dedicated_run, check_metadata, **kwargs)
+        section_suffix = check_metadata['name'] + '/'
+        if self.conditions_results:
+            cond_df = get_conditions_table([self], icon_html=False)
+            cond_table = wandb.Table(dataframe=cond_df.data, allow_mixed_types=True)
+            wandb.log({f'{section_suffix}conditions_table': cond_table}, commit=False)
+        if isinstance(self.value, pd.DataFrame):
+            value = self.value.to_json()
+        elif isinstance(self.value, Styler):
+            value = self.value.data.to_json()
+        elif isinstance(self.value, np.ndarray):
+            value = self.value.tolist()
+        else:
+            value = jsonpickle.dumps(self.value)
+        table_i = 0
+        plot_i = 0
+        old_backend = matplotlib.get_backend()
+        for item in self.display:
+            if isinstance(item, Styler):
+                wandb.log({f'{section_suffix}display_table_{table_i}':
+                           wandb.Table(dataframe=item.data, allow_mixed_types=True)}, commit=False)
+                table_i += 1
+            elif isinstance(item, pd.DataFrame):
+                wandb.log({f'{section_suffix}display_table_{table_i}':
+                           wandb.Table(dataframe=item, allow_mixed_types=True)}, commit=False)
+                table_i += 1
+            elif isinstance(item, str):
+                pass
+            elif isinstance(item, BaseFigure):
+                wandb.log({f'{section_suffix}plot_{plot_i}': wandb.Plotly(item)})
+                plot_i += 1
+            elif callable(item):
+                try:
+                    matplotlib.use('Agg')
+                    item()
+                    wandb.log({f'{section_suffix}plot_{plot_i}': plt})
+                    plot_i += 1
+                except Exception:
+                    pass
+            else:
+                matplotlib.use(old_backend)
+                raise Exception(f'Unable to process display for item of type: {type(item)}')
+
+        matplotlib.use(old_backend)
+        data = [check_metadata['header'],
+                str(check_metadata['params']),
+                check_metadata['summary'],
+                value]
+        final_table = wandb.Table(columns=['header', 'params', 'summary', 'value'])
+        final_table.add_data(*data)
+        wandb.log({f'{section_suffix}results': final_table}, commit=False)
+        if dedicated_run:
+            wandb.finish()
+
     def to_json(self, with_display: bool = True) -> str:
         """Return check result as json.
 
@@ -220,16 +294,14 @@ class CheckResult:
             {'name': .., 'params': .., 'header': ..,
              'summary': .., 'conditions_table': .., 'value', 'display': ..}
         """
-        check_name = self.check.name()
-        parameters = self.check.params()
-        header = self.get_header()
-        result_json = {'name': check_name, 'params': parameters, 'header': header,
-                       'summary': get_docs_summary(self.check)}
+        result_json = self._get_metadata()
         if self.conditions_results:
             cond_df = get_conditions_table(self)
             result_json['conditions_table'] = cond_df.data.to_json(orient='records')
         if isinstance(self.value, pd.DataFrame):
             result_json['value'] = self.value.to_json()
+        elif isinstance(self.value, Styler):
+            result_json['value'] = self.value.data.to_json()
         elif isinstance(self.value, np.ndarray):
             result_json['value'] = self.value.tolist()
         else:
@@ -269,6 +341,13 @@ class CheckResult:
                 display_html(f'<img src=\'data:image/png;base64,{value}\'>', raw=True)
             else:
                 raise ValueError(f'Unexpected type of display received: {display_type}')
+
+    def _get_metadata(self, with_doc_link: bool = False):
+        check_name = self.check.name()
+        parameters = self.check.params(True)
+        header = self.get_header()
+        return {'name': check_name, 'params': parameters, 'header': header,
+                'summary': get_docs_summary(self.check, with_doc_link=with_doc_link)}
 
     def _ipython_display_(self, unique_id=None, as_widget=False,
                           show_additional_outputs=True):
@@ -415,10 +494,12 @@ class BaseCheck(abc.ABC):
             raise DeepchecksValueError(f'Index {index} of conditions does not exists')
         self._conditions.pop(index)
 
-    def params(self) -> Dict:
+    def params(self, show_defaults: bool = False) -> Dict:
         """Return parameters to show when printing the check."""
         init_params = inspect.signature(self.__init__).parameters
 
+        if show_defaults:
+            return {k: v for k, v in vars(self).items() if k in init_params}
         return {k: v for k, v in vars(self).items()
                 if k in init_params and v != init_params[k].default}
 
@@ -519,12 +600,41 @@ class CheckFailure:
         dict
             {'name': .., 'params': .., 'header': .., 'display': ..}
         """
-        check_name = self.check.name()
-        parameters = self.check.params()
-        result_json = {'name': check_name, 'params': parameters, 'header': self.header}
+        result_json = self._get_metadata()
         if with_display:
             result_json['display'] = [('str', str(self.exception))]
         return jsonpickle.dumps(result_json)
+
+    def to_wandb(self, dedicated_run: bool = True, **kwargs: Any):
+        """Export check result to wandb.
+
+        Parameters
+        ----------
+        dedicated_run : bool , default: None
+            If to initiate and finish a new wandb run.
+            If None it will be dedicated if wandb.run is None.
+        kwargs: Keyword arguments to pass to wandb.init.
+                Default project name is deepchecks.
+                Default config is the check metadata (params, train/test/ name etc.).
+        """
+        check_metadata = self._get_metadata()
+        dedicated_run = set_wandb_run_state(dedicated_run, check_metadata, **kwargs)
+        section_suffix = check_metadata['name'] + '/'
+        data = [check_metadata['header'],
+                str(check_metadata['params']),
+                check_metadata['summary'],
+                str(self.exception)]
+        final_table = wandb.Table(columns=['header', 'params', 'summary', 'value'])
+        final_table.add_data(*data)
+        wandb.log({f'{section_suffix}results': final_table}, commit=False)
+        if dedicated_run:
+            wandb.finish()
+
+    def _get_metadata(self, with_doc_link: bool = False):
+        check_name = self.check.name()
+        parameters = self.check.params(True)
+        summary = get_docs_summary(self.check, with_doc_link=with_doc_link)
+        return {'name': check_name, 'params': parameters, 'header': self.header, 'summary': summary}
 
     def __repr__(self):
         """Return string representation."""
