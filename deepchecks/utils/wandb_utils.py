@@ -18,11 +18,11 @@ try:
 except (ImportError, AssertionError):
     wandb = None
 
-__all__ = ['wandb_init_helper']
+__all__ = ['set_wandb_run_state']
 
 
-def wandb_init_helper(dedicated_run: bool, default_config: dict, **kwargs: Any):
-    """Help keep a standart for wandb initialization.
+def set_wandb_run_state(dedicated_run: bool, default_config: dict, **kwargs: Any):
+    """Set wandb run state.
 
     Parameters
     ----------

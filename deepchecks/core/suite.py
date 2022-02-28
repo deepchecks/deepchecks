@@ -19,11 +19,11 @@ from IPython.core.display import display_html
 from IPython.core.getipython import get_ipython
 import jsonpickle
 
-from deepchecks.core.display_suite import display_suite_result
+from deepchecks.core.display_suite import ProgressBar, display_suite_result
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.check import CheckResult, CheckFailure, BaseCheck
 from deepchecks.utils.ipython import is_notebook
-from deepchecks.utils.wandb_utils import wandb_init_helper
+from deepchecks.utils.wandb_utils import set_wandb_run_state
 
 try:
     import wandb
@@ -116,9 +116,12 @@ class SuiteResult:
                 Default project name is deepchecks.
                 Default config is the suite name.
         """
-        dedicated_run = wandb_init_helper(dedicated_run, {'name': self.name}, **kwargs)
+        dedicated_run = set_wandb_run_state(dedicated_run, {'name': self.name}, **kwargs)
+        progress_bar = ProgressBar(self.name, len(self.results))
         for res in self.results:
             res.to_wandb(False)
+            progress_bar.inc_progress()
+        progress_bar.close()
         if dedicated_run:
             wandb.finish()
 

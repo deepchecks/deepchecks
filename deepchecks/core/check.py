@@ -37,7 +37,7 @@ from deepchecks.core.display_pandas import dataframe_to_html, get_conditions_tab
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import get_docs_summary, split_camel_case
 from deepchecks.utils.ipython import is_notebook
-from deepchecks.utils.wandb_utils import wandb_init_helper
+from deepchecks.utils.wandb_utils import set_wandb_run_state
 
 try:
     import wandb
@@ -221,12 +221,12 @@ class CheckResult:
         dedicated_run : bool , default: None
             If to initiate and finish a new wandb run.
             If None it will be dedicated if wandb.run is None.
-        kwargs: Keyword arguments to pass to wandb.init - relevent if wandb_init is True.
+        kwargs: Keyword arguments to pass to wandb.init.
                 Default project name is deepchecks.
                 Default config is the check metadata (params, train/test/ name etc.).
         """
         check_metadata = self._get_metadata()
-        dedicated_run = wandb_init_helper(dedicated_run, check_metadata, **kwargs)
+        dedicated_run = set_wandb_run_state(dedicated_run, check_metadata, **kwargs)
         section_suffix = check_metadata['name'] + '/'
         if self.conditions_results:
             cond_df = get_conditions_table([self], icon_html=False)
@@ -277,7 +277,6 @@ class CheckResult:
         final_table = wandb.Table(columns=['header', 'params', 'summary', 'value'])
         final_table.add_data(*data)
         wandb.log({f'{section_suffix}results': final_table}, commit=False)
-        print('logged: ' + check_metadata['header'])
         if dedicated_run:
             wandb.finish()
 
@@ -614,12 +613,12 @@ class CheckFailure:
         dedicated_run : bool , default: None
             If to initiate and finish a new wandb run.
             If None it will be dedicated if wandb.run is None.
-        kwargs: Keyword arguments to pass to wandb.init - relevent if wandb_init is True.
+        kwargs: Keyword arguments to pass to wandb.init.
                 Default project name is deepchecks.
                 Default config is the check metadata (params, train/test/ name etc.).
         """
         check_metadata = self._get_metadata()
-        dedicated_run = wandb_init_helper(dedicated_run, check_metadata, **kwargs)
+        dedicated_run = set_wandb_run_state(dedicated_run, check_metadata, **kwargs)
         section_suffix = check_metadata['name'] + '/'
         data = [check_metadata['header'],
                 str(check_metadata['params']),
@@ -628,7 +627,6 @@ class CheckFailure:
         final_table = wandb.Table(columns=['header', 'params', 'summary', 'value'])
         final_table.add_data(*data)
         wandb.log({f'{section_suffix}results': final_table}, commit=False)
-        print('logged: ' + check_metadata['header'])
         if dedicated_run:
             wandb.finish()
 
