@@ -213,8 +213,6 @@ def _divide_to_bins(bins, batch_data: t.Iterable[t.Tuple]):
 def _create_open_bins_ranges(quantiles):
     """Return quantiles with start and stop as list of tuples [(-Inf, x1),(x1,x2),(x2, Inf)]"""
     quantiles = sorted(quantiles)
-    # if len(quantiles) == 1:
-    #     return [(quantiles[0], np.Inf)]
     return zip(([-np.Inf] + quantiles), (quantiles + [np.Inf]))
 
 
@@ -244,10 +242,3 @@ def _calculate_metrics(metrics, dataset):
     )
     metrics_df = metrics_df[['Metric', 'Value']].groupby(['Metric']).median()
     return metrics_df.to_dict()['Value']
-
-
-# def _make_plot(df, metrics):
-#     fig = make_subplots(rows=1, cols=len(metrics))
-#
-#     for i, metric in enumerate(metrics):
-#         bar = go.Bar(df, x=df['Range'], y=df[metric], )
