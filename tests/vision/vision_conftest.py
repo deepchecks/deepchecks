@@ -11,6 +11,7 @@
 import pathlib
 import numpy as np
 
+import albumentations as A
 import pytest
 import torch
 from torch.utils.data import DataLoader, Dataset
@@ -51,27 +52,30 @@ __all__ = ['device',
            'coco_test_dataloader',
            'coco_test_visiondata',
            'two_tuples_dataloader',
-        ]
+           ]
 
 
 def _batch_collate(batch):
     imgs, labels, idx = zip(*batch)
     return list(imgs), list(labels), list(idx)
 
+
 @pytest.fixture(scope='session')
 def device():
     if torch.cuda.is_available():
-        device = torch.device('cuda:0')  # pylint: disable=redefined-outer-name
+        tensor_device = torch.device('cuda:0')
     else:
-        device = torch.device('cpu')  # pylint: disable=redefined-outer-name
+        tensor_device = torch.device('cpu')
 
-    return device
+    return tensor_device
+
 
 @pytest.fixture(scope='session')
 def simple_prediction_formatter():
     def formatter(batch, model, _):
         return model(batch[2])
     return formatter
+
 
 @pytest.fixture(scope='session')
 def mnist_data_loader_train():
@@ -112,8 +116,9 @@ def mnist_dataset_train_imgaug():
 def trained_yolov5_object_detection(device):  # pylint: disable=redefined-outer-name
     return load_yolov5_model(device=device)
 
+
 @pytest.fixture(scope='session')
-def mock_trained_yolov5_object_detection(device):
+def mock_trained_yolov5_object_detection(device):  # pylint: disable=redefined-outer-name
     class FakeYolo():
         def __call__(self, batch):
             detections = []
@@ -121,6 +126,7 @@ def mock_trained_yolov5_object_detection(device):
                 detections.append(coco_detections_dict[im_id].to(device))
             return detections
     return FakeYolo()
+
 
 @pytest.fixture(scope='session')
 def obj_detection_images():
@@ -132,6 +138,7 @@ def obj_detection_images():
 
     return uris
 
+
 @pytest.fixture(scope='session')
 def coco_train_dataloader():
     return load_coco_dataset(train=True, object_type='DataLoader')
@@ -139,45 +146,54 @@ def coco_train_dataloader():
 
 @pytest.fixture(scope='session')
 def coco_train_visiondata():
-    return load_coco_dataset(train=True, object_type='VisionData')
-
-@pytest.fixture(scope='session')
-def coco_train_visiondata():
     train_dataset = load_coco_dataset(train=True, object_type='DataLoader').dataset
+
     class TrainDataset(Dataset):
+        @property
+        def transforms(self):
+            return A.Compose([A.NoOp()])
+
         def __len__(self):
             return 64
 
         def __getitem__(self, idx):
             return (train_dataset[idx][0], train_dataset[idx][1], f'train_{idx}')
-    test_dataloader = DataLoader(TrainDataset(), shuffle=True, batch_size=32, collate_fn=_batch_collate,   
-                                      generator=torch.Generator())
-    test_visiondata = VisionData(test_dataloader,
+    train_dataloader = DataLoader(TrainDataset(), shuffle=True, batch_size=32, collate_fn=_batch_collate,
+                                 generator=torch.Generator())
+    train_visiondata = VisionData(train_dataloader,
                                  image_formatter=ImageFormatter(lambda batch: [np.array(x) for x in batch[0]]),
                                  label_formatter=DetectionLabelFormatter(coco.yolo_label_formatter),
                                  num_classes=80, label_map=coco.LABEL_MAP)
-    return test_visiondata
+    return train_visiondata
+
 
 @pytest.fixture(scope='session')
 def coco_test_dataloader():
     return load_coco_dataset(train=False, object_type='DataLoader')
 
+
 @pytest.fixture(scope='session')
 def coco_test_visiondata():
     test_dataset = load_coco_dataset(train=False, object_type='DataLoader').dataset
+
     class TestDataset(Dataset):
+        @property
+        def transforms(self):
+            return A.Compose([A.NoOp()])
+
         def __len__(self):
             return 64
 
         def __getitem__(self, idx):
             return (test_dataset[idx][0], test_dataset[idx][1], f'test_{idx}')
-    test_dataloader = DataLoader(TestDataset(), shuffle=True, batch_size=32, collate_fn=_batch_collate,   
-                                      generator=torch.Generator())
+    test_dataloader = DataLoader(TestDataset(), shuffle=True, batch_size=32, collate_fn=_batch_collate,
+                                 generator=torch.Generator())
     test_visiondata = VisionData(test_dataloader,
                                  image_formatter=ImageFormatter(lambda batch: [np.array(x) for x in batch[0]]),
                                  label_formatter=DetectionLabelFormatter(coco.yolo_label_formatter),
                                  num_classes=80, label_map=coco.LABEL_MAP)
     return test_visiondata
+
 
 @pytest.fixture(scope='session')
 def two_tuples_dataloader():

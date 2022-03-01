@@ -42,7 +42,8 @@ def test_equal_pycocotools(coco_test_visiondata: VisionData,
     metric = AveragePrecision(return_option=None)
     for batch in coco_test_visiondata.get_data_loader():
         label = coco_test_visiondata.label_formatter(batch)
-        prediction = DetectionPredictionFormatter(simple_prediction_formatter)(batch, mock_trained_yolov5_object_detection,
+        prediction = DetectionPredictionFormatter(simple_prediction_formatter)(batch,
+                                                                               mock_trained_yolov5_object_detection,
                                                                                device)
         metric.update((prediction, label))
     res = metric.compute()[0]

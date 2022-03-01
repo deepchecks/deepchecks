@@ -11,6 +11,8 @@
 from torch import tensor
 import torch
 
+# pylint: disable=line-too-long
+
 coco_detections_dict = {'train_0': tensor([[3.25035e+02, 1.78517e+00, 3.02356e+02, 2.37505e+02, 7.47169e-01, 4.50000e+01],
                                            [2.46237e+02, 2.22736e+02, 3.39787e+02, 2.55168e+02, 5.75132e-01, 5.00000e+01],
                                            [0.00000e+00, 2.44942e+01, 4.23674e+02, 4.22575e+02, 2.67201e-01, 4.50000e+01]]),
