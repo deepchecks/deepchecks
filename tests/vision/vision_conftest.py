@@ -46,6 +46,16 @@ __all__ = ['mnist_data_loader_train',
 
 
 @pytest.fixture(scope='session')
+def device():
+    if torch.cuda.is_available():
+        device = torch.device('cuda')
+    else:
+        device = torch.device('cpu')
+
+    return device
+
+
+@pytest.fixture(scope='session')
 def mnist_data_loader_train():
     return load_mnist_dataset(train=True, object_type='DataLoader')
 
@@ -81,8 +91,8 @@ def mnist_dataset_train_imgaug():
 
 
 @pytest.fixture(scope='session')
-def trained_yolov5_object_detection():
-    return load_yolov5_model()
+def trained_yolov5_object_detection(device):
+    return load_yolov5_model(device=device)
 
 
 @pytest.fixture(scope='session')

@@ -32,13 +32,13 @@ def pil_drift_formatter(batch):
     return [add_brightness(np.array(img)) for img in batch[0]]
 
 
-def test_no_drift_grayscale(mnist_dataset_train):
+def test_no_drift_grayscale(mnist_dataset_train, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
     check = ImageDatasetDrift()
 
     # Act
-    result = check.run(train, test, random_state=42)
+    result = check.run(train, test, random_state=42, device=device)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -55,13 +55,13 @@ def test_no_drift_grayscale(mnist_dataset_train):
     }))
 
 
-def test_drift_grayscale(mnist_dataset_train, mnist_dataset_test):
+def test_drift_grayscale(mnist_dataset_train, mnist_dataset_test, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_test
     check = ImageDatasetDrift()
 
     # Act
-    result = check.run(train, test, random_state=42)
+    result = check.run(train, test, random_state=42, device=device)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -78,7 +78,7 @@ def test_drift_grayscale(mnist_dataset_train, mnist_dataset_test):
     }))
 
 
-def test_no_drift_rgb(coco_train_dataloader, coco_test_dataloader):
+def test_no_drift_rgb(coco_train_dataloader, coco_test_dataloader, device):
     # Arrange
     train = VisionData(coco_train_dataloader, image_formatter=ImageFormatter(pil_formatter),
                        label_formatter=DetectionLabelFormatter())
@@ -88,7 +88,7 @@ def test_no_drift_rgb(coco_train_dataloader, coco_test_dataloader):
     check = ImageDatasetDrift()
 
     # Act
-    result = check.run(train, test, random_state=42)
+    result = check.run(train, test, random_state=42, device=device)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -105,7 +105,7 @@ def test_no_drift_rgb(coco_train_dataloader, coco_test_dataloader):
     }))
 
 
-def test_with_drift_rgb(coco_train_dataloader, coco_test_dataloader):
+def test_with_drift_rgb(coco_train_dataloader, coco_test_dataloader, device):
     # Arrange
     train = VisionData(coco_train_dataloader, image_formatter=ImageFormatter(pil_drift_formatter),
                        label_formatter=DetectionLabelFormatter())
@@ -115,7 +115,7 @@ def test_with_drift_rgb(coco_train_dataloader, coco_test_dataloader):
     check = ImageDatasetDrift()
 
     # Act
-    result = check.run(train, test, random_state=42)
+    result = check.run(train, test, random_state=42, device=device)
 
     # Assert
     assert_that(result.value, has_entries({

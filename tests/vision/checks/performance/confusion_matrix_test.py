@@ -18,24 +18,26 @@ from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
 from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
 
-def test_classification(mnist_dataset_train, trained_mnist):
+def test_classification(mnist_dataset_train, trained_mnist, device):
     # Arrange
     check = ConfusionMatrixReport()
     # Act
     result = check.run(mnist_dataset_train, trained_mnist,
-                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter))
+                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter),
+                       device=device)
     # Assert
     assert_that(result.value.shape, equal_to((10, 10)))
 
 
-def test_detection(coco_train_visiondata, trained_yolov5_object_detection):
+def test_detection(coco_train_visiondata, trained_yolov5_object_detection, device):
     # Arrange
     pred_formatter = DetectionPredictionFormatter(yolo_prediction_formatter)
     check = ConfusionMatrixReport()
     # Act
     result = check.run(coco_train_visiondata,
                        trained_yolov5_object_detection,
-                       prediction_formatter=pred_formatter)
+                       prediction_formatter=pred_formatter,
+                       device=device)
 
     # Assert
     assert_that(result.value.shape, equal_to((81, 81)))
