@@ -156,7 +156,10 @@ $(ENV):
 requirements: $(ENV)
 	@echo "####  installing dependencies, it could take some time, please wait! #### "
 
-	@if [ $(OS) = "Linux" ]; \
+	@if [ -x "$$(command -v nvidia-smi)" ]; \
+	then \
+		echo "GPU found"; \
+	elif [ $(OS) = "Linux" ]; \
 	then \
 		$(PIP) install -q\
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" "torchaudio==0.10.2+cpu" \
