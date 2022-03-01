@@ -57,23 +57,23 @@ def test_vision_context_initialization_for_classification_task(mnist_dataset_tra
     }))
 
 
-def test_vision_context_initialization_for_object_detection_task(coco_train_visiondata, coco_test_visiondata,
-                                                                 trained_yolov5_object_detection):
+def test_vision_context_initialization_for_object_detection_task(fake_coco_train_visiondata, fake_coco_test_visiondata,
+                                                                 fake_trained_yolov5_object_detection, simple_formatter):
     # Act
     context = Context(
-        train=coco_train_visiondata,
-        test=coco_test_visiondata,
-        model=trained_yolov5_object_detection,
+        train=fake_coco_train_visiondata,
+        test=fake_coco_test_visiondata,
+        model=fake_trained_yolov5_object_detection,
         model_name='COCO',
         device='cpu',
-        prediction_formatter=DetectionPredictionFormatter(yolo_prediction_formatter)
+        prediction_formatter=DetectionPredictionFormatter(simple_formatter)
     )
 
     # Assert
     assert_that(context, has_properties({
-        'train': same_instance(coco_train_visiondata),
-        'test': same_instance(coco_test_visiondata),
-        'model': same_instance(trained_yolov5_object_detection),
+        'train': same_instance(fake_coco_train_visiondata),
+        'test': same_instance(fake_coco_test_visiondata),
+        'model': same_instance(fake_trained_yolov5_object_detection),
         'model_name': equal_to('COCO'),
         'device': all_of(
             instance_of(torch.device),

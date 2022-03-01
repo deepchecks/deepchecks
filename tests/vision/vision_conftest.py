@@ -33,7 +33,8 @@ PROJECT_DIR = pathlib.Path(__file__).absolute().parent.parent.parent
 torch.hub.set_dir(str(PROJECT_DIR))
 
 
-__all__ = ['mnist_data_loader_train',
+__all__ = ['simple_formatter',
+           'mnist_data_loader_train',
            'mnist_dataset_train',
            'mnist_data_loader_test',
            'mnist_dataset_train_imgaug',
@@ -49,7 +50,6 @@ __all__ = ['mnist_data_loader_train',
            'coco_test_visiondata',
            'fake_coco_test_visiondata',
            'two_tuples_dataloader',
-           'simple_formatter',
         ]
 
 
