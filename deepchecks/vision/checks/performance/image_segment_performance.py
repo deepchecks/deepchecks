@@ -105,9 +105,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         properties_functions: t.Dict = self._state['properties_functions']
 
         # Initialize a list of all properties per image sample
-        batch_properties = []
-        for _ in range(len(images)):
-            batch_properties.append({})
+        batch_properties = [{} for _ in range(len(images))]
         for prop_name, func in properties_functions.items():
             for index, image_result in enumerate(func(images)):
                 batch_properties[index][prop_name] = image_result
