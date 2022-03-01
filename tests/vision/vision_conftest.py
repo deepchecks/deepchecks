@@ -49,9 +49,9 @@ __all__ = ['device',
 @pytest.fixture(scope='session')
 def device():
     if torch.cuda.is_available():
-        device = torch.device('cuda:0')
+        device = torch.device('cuda:0')  # pylint: disable=redefined-outer-name
     else:
-        device = torch.device('cpu')
+        device = torch.device('cpu')  # pylint: disable=redefined-outer-name
 
     return device
 
@@ -92,7 +92,7 @@ def mnist_dataset_train_imgaug():
 
 
 @pytest.fixture(scope='session')
-def trained_yolov5_object_detection(device):
+def trained_yolov5_object_detection(device):  # pylint: disable=redefined-outer-name
     return load_yolov5_model(device=device)
 
 

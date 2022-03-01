@@ -8,7 +8,6 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-import torch
 from hamcrest import has_items, assert_that, has_length, close_to
 
 from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
