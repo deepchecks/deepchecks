@@ -261,7 +261,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
                 msg = f'Properties with failed segments: {failed_props}'
                 return ConditionResult(False, details=msg)
 
-        name = f'No segment with ratio between score to mean, less than {format_percent(ratio)}'
+        name = f'No segment with ratio between score to mean less than {format_percent(ratio)}'
         return self.add_condition(name, condition)
 
 
