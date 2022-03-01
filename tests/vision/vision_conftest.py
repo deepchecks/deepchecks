@@ -41,14 +41,14 @@ __all__ = ['simple_formatter',
            'mnist_dataset_test',
            'trained_mnist',
            'trained_yolov5_object_detection',
-           'fake_trained_yolov5_object_detection',
+           'mock_trained_yolov5_object_detection',
            'obj_detection_images',
            'coco_train_dataloader',
            'coco_train_visiondata',
-           'fake_coco_train_visiondata',
+           'mock_coco_train_visiondata',
            'coco_test_dataloader',
            'coco_test_visiondata',
-           'fake_coco_test_visiondata',
+           'mock_coco_test_visiondata',
            'two_tuples_dataloader',
         ]
 
@@ -103,7 +103,7 @@ def trained_yolov5_object_detection():
     return load_yolov5_model()
 
 @pytest.fixture(scope='session')
-def fake_trained_yolov5_object_detection():
+def mock_trained_yolov5_object_detection():
     curr_path = os.path.dirname(os.path.abspath(__file__))
     with open(os.path.join(curr_path, 'assets', 'detections_dict.pickle'), 'rb') as f:
         det_dict = pickle.loads(f.read())
@@ -135,19 +135,19 @@ def coco_train_visiondata():
     return load_coco_dataset(train=True, object_type='VisionData')
 
 @pytest.fixture(scope='session')
-def fake_coco_train_visiondata():
+def mock_coco_train_visiondata():
     train_dataset = load_coco_dataset(train=True, object_type='DataLoader').dataset
-    class FakeTrainDataset(Dataset):
+    class MockTrainDataset(Dataset):
         def __len__(self):
             return 64
 
         def __getitem__(self, idx):
             return (f'train_{idx}', train_dataset[idx][1])
-    fake_train_dataloader = DataLoader(FakeTrainDataset(), shuffle=False, batch_size=32, collate_fn=_batch_collate)
+    mock_train_dataloader = DataLoader(MockTrainDataset(), shuffle=False, batch_size=32, collate_fn=_batch_collate)
     label_formatter = DetectionLabelFormatter(coco.yolo_label_formatter)
-    fake_train_visiondata = VisionData(fake_train_dataloader,
+    mock_train_visiondata = VisionData(mock_train_dataloader,
                                        label_formatter=label_formatter, num_classes=80, label_map=coco.LABEL_MAP)
-    return fake_train_visiondata
+    return mock_train_visiondata
 
 @pytest.fixture(scope='session')
 def coco_test_dataloader():
@@ -158,19 +158,19 @@ def coco_test_visiondata():
     return load_coco_dataset(train=False, object_type='VisionData')
 
 @pytest.fixture(scope='session')
-def fake_coco_test_visiondata():
+def mock_coco_test_visiondata():
     test_dataset = load_coco_dataset(train=False, object_type='DataLoader').dataset
-    class FakeTestDataset(Dataset):
+    class MockTestDataset(Dataset):
         def __len__(self):
             return 64
 
         def __getitem__(self, idx):
             return (f'test_{idx}', test_dataset[idx][1])
-    fake_test_dataloader = DataLoader(FakeTestDataset(), shuffle=False, batch_size=32, collate_fn=_batch_collate)
+    mock_test_dataloader = DataLoader(MockTestDataset(), shuffle=False, batch_size=32, collate_fn=_batch_collate)
     label_formatter = DetectionLabelFormatter(coco.yolo_label_formatter)
-    fake_test_visiondata = VisionData(fake_test_dataloader,
+    mock_test_visiondata = VisionData(mock_test_dataloader,
                                       label_formatter=label_formatter, num_classes=80, label_map=coco.LABEL_MAP)
-    return fake_test_visiondata
+    return mock_test_visiondata
 
 @pytest.fixture(scope='session')
 def two_tuples_dataloader():
