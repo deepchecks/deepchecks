@@ -149,9 +149,7 @@ def coco_train_visiondata():
     train_dataset = load_coco_dataset(train=True, object_type='DataLoader').dataset
 
     class TrainDataset(Dataset):
-        @property
-        def transforms(self):
-            return A.Compose([A.NoOp()])
+        transforms = A.Compose([A.NoOp()])
 
         def __len__(self):
             return 64
@@ -177,9 +175,7 @@ def coco_test_visiondata():
     test_dataset = load_coco_dataset(train=False, object_type='DataLoader').dataset
 
     class TestDataset(Dataset):
-        @property
-        def transforms(self):
-            return A.Compose([A.NoOp()])
+        transforms = A.Compose([A.NoOp()])
 
         def __len__(self):
             return 64
