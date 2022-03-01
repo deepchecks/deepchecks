@@ -59,9 +59,9 @@ def _batch_collate(batch):
 
 @pytest.fixture(scope='session')
 def simple_formatter():
-    def format(batch, model, _):
+    def formatter(batch, model, _):
         return model(batch[0])
-    return format
+    return formatter
 
 @pytest.fixture(scope='session')
 def mnist_data_loader_train():
@@ -137,15 +137,16 @@ def coco_train_visiondata():
 @pytest.fixture(scope='session')
 def fake_coco_train_visiondata():
     train_dataset = load_coco_dataset(train=True, object_type='DataLoader').dataset
-    class fake_train_dataset(Dataset):
+    class FakeTrainDataset(Dataset):
         def __len__(self):
             return 64
 
         def __getitem__(self, idx):
             return (f'train_{idx}', train_dataset[idx][1])
-    fake_train_dataloader = DataLoader(fake_train_dataset(), shuffle=False, batch_size=32, collate_fn=_batch_collate)
+    fake_train_dataloader = DataLoader(FakeTrainDataset(), shuffle=False, batch_size=32, collate_fn=_batch_collate)
     label_formatter = DetectionLabelFormatter(coco.yolo_label_formatter)
-    fake_train_visiondata = VisionData(fake_train_dataloader, label_formatter=label_formatter, num_classes=80, label_map=coco.LABEL_MAP)
+    fake_train_visiondata = VisionData(fake_train_dataloader,
+                                       label_formatter=label_formatter, num_classes=80, label_map=coco.LABEL_MAP)
     return fake_train_visiondata
 
 @pytest.fixture(scope='session')
@@ -159,15 +160,16 @@ def coco_test_visiondata():
 @pytest.fixture(scope='session')
 def fake_coco_test_visiondata():
     test_dataset = load_coco_dataset(train=False, object_type='DataLoader').dataset
-    class fake_test_dataset(Dataset):
+    class FakeTestDataset(Dataset):
         def __len__(self):
             return 64
 
         def __getitem__(self, idx):
             return (f'test_{idx}', test_dataset[idx][1])
-    fake_test_dataloader = DataLoader(fake_test_dataset(), shuffle=False, batch_size=32, collate_fn=_batch_collate)
+    fake_test_dataloader = DataLoader(FakeTestDataset(), shuffle=False, batch_size=32, collate_fn=_batch_collate)
     label_formatter = DetectionLabelFormatter(coco.yolo_label_formatter)
-    fake_test_visiondata = VisionData(fake_test_dataloader, label_formatter=label_formatter, num_classes=80, label_map=coco.LABEL_MAP)
+    fake_test_visiondata = VisionData(fake_test_dataloader,
+                                      label_formatter=label_formatter, num_classes=80, label_map=coco.LABEL_MAP)
     return fake_test_visiondata
 
 @pytest.fixture(scope='session')

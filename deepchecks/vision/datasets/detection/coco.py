@@ -242,8 +242,6 @@ class CocoDataset(VisionDataset):
     @classmethod
     def download_coco128(cls, root: t.Union[str, Path]) -> t.Tuple[Path, str]:
         root = root if isinstance(root, Path) else Path(root)
-        print('ahhh')
-        print(root)
         coco_dir = root / 'coco128'
         images_dir = coco_dir / 'images' / 'train2017'
         labels_dir = coco_dir / 'labels' / 'train2017'
