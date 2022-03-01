@@ -12,9 +12,11 @@
 # Disable this pylint check since we use this convention in pytest fixtures
 #pylint: disable=redefined-outer-name
 from typing import Tuple
+
 import numpy as np
 import pytest
 import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, GradientBoostingRegressor
 from sklearn.datasets import load_iris, load_diabetes
@@ -23,7 +25,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import KBinsDiscretizer, OrdinalEncoder
 from sklearn.tree import DecisionTreeClassifier
 
-from deepchecks.tabular import Dataset
+from deepchecks.tabular import Dataset, TrainTestCheck, Context
+from deepchecks.core import CheckResult
 
 from .vision.vision_conftest import * #pylint: disable=wildcard-import, unused-wildcard-import
 
@@ -357,3 +360,26 @@ def drifted_regression_label() -> Tuple[Dataset, Dataset]:
 
     return train_ds, test_ds
 
+@pytest.fixture(scope='session')
+def simple_custom_plt_check():
+    class DatasetSizeComparison(TrainTestCheck):
+        """Check which compares the sizes of train and test datasets."""
+
+        def run_logic(self, context: Context) -> CheckResult:
+            ## Check logic
+            train_size = context.train.n_samples
+            test_size = context.test.n_samples
+
+            ## Create the check result value
+            sizes = {'Train': train_size, 'Test': test_size}
+            sizes_df_for_display =  pd.DataFrame(sizes, index=['Size'])
+
+            ## Display function of matplotlib graph:
+            def graph_display():
+                plt.bar(sizes.keys(), sizes.values(), color='green')
+                plt.xlabel('Dataset')
+                plt.ylabel('Size')
+                plt.title('Datasets Size Comparison')
+
+            return CheckResult(sizes, display=[sizes_df_for_display, graph_display])
+    return DatasetSizeComparison()
