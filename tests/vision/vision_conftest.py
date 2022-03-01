@@ -35,7 +35,7 @@ PROJECT_DIR = pathlib.Path(__file__).absolute().parent.parent.parent
 torch.hub.set_dir(str(PROJECT_DIR))
 
 
-__all__ = ['simple_formatter',
+__all__ = ['simple_prediction_formatter',
            'mnist_data_loader_train',
            'mnist_dataset_train',
            'mnist_data_loader_test',
@@ -58,7 +58,7 @@ def _batch_collate(batch):
     return list(imgs), list(labels), list(idx)
 
 @pytest.fixture(scope='session')
-def simple_formatter():
+def simple_prediction_formatter():
     def formatter(batch, model, _):
         return model(batch[2])
     return formatter

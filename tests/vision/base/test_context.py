@@ -58,7 +58,7 @@ def test_vision_context_initialization_for_classification_task(mnist_dataset_tra
 
 
 def test_vision_context_initialization_for_object_detection_task(coco_train_visiondata, coco_test_visiondata,
-                                                                 mock_trained_yolov5_object_detection, simple_formatter):
+                                                                 mock_trained_yolov5_object_detection, simple_prediction_formatter):
     # Act
     context = Context(
         train=coco_train_visiondata,
@@ -66,7 +66,7 @@ def test_vision_context_initialization_for_object_detection_task(coco_train_visi
         model=mock_trained_yolov5_object_detection,
         model_name='COCO',
         device='cpu',
-        prediction_formatter=DetectionPredictionFormatter(simple_formatter)
+        prediction_formatter=DetectionPredictionFormatter(simple_prediction_formatter)
     )
 
     # Assert

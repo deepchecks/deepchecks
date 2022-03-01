@@ -29,9 +29,9 @@ def test_mnist_error(mnist_dataset_test, trained_mnist):
     )
 
 
-def test_coco(coco_test_visiondata, mock_trained_yolov5_object_detection, simple_formatter):
+def test_coco(coco_test_visiondata, mock_trained_yolov5_object_detection, simple_prediction_formatter):
     # Arrange
-    pred_formatter = DetectionPredictionFormatter(simple_formatter)
+    pred_formatter = DetectionPredictionFormatter(simple_prediction_formatter)
     check = MeanAveragePrecisionReport() \
             .add_condition_test_average_precision_not_less_than(0.1) \
             .add_condition_test_average_precision_not_less_than(0.4)
@@ -73,9 +73,9 @@ def test_coco(coco_test_visiondata, mock_trained_yolov5_object_detection, simple
     ))
 
 
-def test_coco_area_param(coco_test_visiondata, mock_trained_yolov5_object_detection, simple_formatter):
+def test_coco_area_param(coco_test_visiondata, mock_trained_yolov5_object_detection, simple_prediction_formatter):
     # Arrange
-    pred_formatter = DetectionPredictionFormatter(simple_formatter)
+    pred_formatter = DetectionPredictionFormatter(simple_prediction_formatter)
     check = MeanAveragePrecisionReport(area_range=(40**2, 100**2))
 
     # Act

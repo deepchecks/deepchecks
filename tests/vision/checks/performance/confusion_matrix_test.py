@@ -27,9 +27,9 @@ def test_classification(mnist_dataset_train, trained_mnist):
     assert_that(result.value.shape, equal_to((10, 10)))
 
 
-def test_detection(coco_train_visiondata, mock_trained_yolov5_object_detection, simple_formatter):
+def test_detection(coco_train_visiondata, mock_trained_yolov5_object_detection, simple_prediction_formatter):
     # Arrange
-    pred_formatter = DetectionPredictionFormatter(simple_formatter)
+    pred_formatter = DetectionPredictionFormatter(simple_prediction_formatter)
     check = ConfusionMatrixReport()
     # Act
     result = check.run(coco_train_visiondata,
