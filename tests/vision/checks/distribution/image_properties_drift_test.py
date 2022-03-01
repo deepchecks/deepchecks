@@ -33,11 +33,10 @@ from deepchecks.vision.checks.distribution import ImagePropertyDrift
 from deepchecks.vision.datasets.detection import coco
 
 
-
-def test_image_property_drift_check():
+def test_image_property_drift_check(device):
     train_dataset = coco.load_dataset(train=True, object_type='VisionData')
     test_dataset = coco.load_dataset(train=False, object_type='VisionData')
-    result = ImagePropertyDrift().run(train_dataset, test_dataset)
+    result = ImagePropertyDrift().run(train_dataset, test_dataset, device=device)
     assert_that(result, is_correct_image_property_drift_result())
 
 
@@ -55,14 +54,14 @@ def test_image_property_drift_initialization_with_list_of_unknown_image_properti
     )
 
 
-def test_image_property_drift_condition():
+def test_image_property_drift_condition(device):
     train_dataset = coco.load_dataset(train=True, object_type='VisionData')
     test_dataset = coco.load_dataset(train=False, object_type='VisionData')
 
     result = (
         ImagePropertyDrift()
         .add_condition_drift_score_not_greater_than()
-        .run(train_dataset, test_dataset)
+        .run(train_dataset, test_dataset, device=device)
     )
 
     assert_that(result, all_of(

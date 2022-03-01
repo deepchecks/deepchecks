@@ -29,7 +29,8 @@ PROJECT_DIR = pathlib.Path(__file__).absolute().parent.parent.parent
 torch.hub.set_dir(str(PROJECT_DIR))
 
 
-__all__ = ['mnist_data_loader_train',
+__all__ = ['device',
+           'mnist_data_loader_train',
            'mnist_dataset_train',
            'mnist_data_loader_test',
            'mnist_dataset_train_imgaug',
@@ -43,6 +44,16 @@ __all__ = ['mnist_data_loader_train',
            'coco_test_visiondata',
            'two_tuples_dataloader',
         ]
+
+
+@pytest.fixture(scope='session')
+def device():
+    if torch.cuda.is_available():
+        device = torch.device('cuda:0')  # pylint: disable=redefined-outer-name
+    else:
+        device = torch.device('cpu')  # pylint: disable=redefined-outer-name
+
+    return device
 
 
 @pytest.fixture(scope='session')
@@ -81,8 +92,8 @@ def mnist_dataset_train_imgaug():
 
 
 @pytest.fixture(scope='session')
-def trained_yolov5_object_detection():
-    return load_yolov5_model()
+def trained_yolov5_object_detection(device):  # pylint: disable=redefined-outer-name
+    return load_yolov5_model(device=device)
 
 
 @pytest.fixture(scope='session')
