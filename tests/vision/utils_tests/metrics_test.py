@@ -17,20 +17,20 @@ from deepchecks.vision.utils.detection_formatters import DetectionPredictionForm
 from deepchecks.vision import VisionData
 
 
-def test_default_ap_ignite_complient(mock_coco_test_visiondata: VisionData,
+def test_default_ap_ignite_complient(coco_test_visiondata: VisionData,
                                      mock_trained_yolov5_object_detection, simple_formatter):
     res = calculate_metrics({'AveragePrecision': AveragePrecision()},
-                            mock_coco_test_visiondata, mock_trained_yolov5_object_detection,
+                            coco_test_visiondata, mock_trained_yolov5_object_detection,
                             prediction_formatter=DetectionPredictionFormatter(simple_formatter),
                             device=torch.device('cpu'))
     assert_that(res.keys(), has_length(1))
     assert_that(res['AveragePrecision'], has_length(59))
 
 
-def test_ar_ignite_complient(mock_coco_test_visiondata: VisionData,
+def test_ar_ignite_complient(coco_test_visiondata: VisionData,
                              mock_trained_yolov5_object_detection, simple_formatter):
     res = calculate_metrics({'AveragePrecision': AveragePrecision(return_option=1)},
-                            mock_coco_test_visiondata, mock_trained_yolov5_object_detection,
+                            coco_test_visiondata, mock_trained_yolov5_object_detection,
                             prediction_formatter=DetectionPredictionFormatter(simple_formatter),
                             device=torch.device('cpu'))
 
@@ -38,11 +38,11 @@ def test_ar_ignite_complient(mock_coco_test_visiondata: VisionData,
     assert_that(res['AveragePrecision'], has_length(59))
 
 
-def test_equal_pycocotools(mock_coco_test_visiondata: VisionData,
+def test_equal_pycocotools(coco_test_visiondata: VisionData,
                            mock_trained_yolov5_object_detection, simple_formatter):
     metric = AveragePrecision(return_option=None)
-    for batch in mock_coco_test_visiondata.get_data_loader():
-        label = mock_coco_test_visiondata.label_formatter(batch)
+    for batch in coco_test_visiondata.get_data_loader():
+        label = coco_test_visiondata.label_formatter(batch)
         prediction = DetectionPredictionFormatter(simple_formatter)(batch, mock_trained_yolov5_object_detection,
                                                                              torch.device('cpu'))
         metric.update((prediction, label))

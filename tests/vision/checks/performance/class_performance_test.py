@@ -77,12 +77,12 @@ def test_mnist_best(mnist_dataset_train, mnist_dataset_test, trained_mnist):
     assert_that(first_row['Value'], close_to(0.990854, 0.05))
 
 
-def test_coco_best(mock_coco_train_visiondata, mock_coco_test_visiondata, mock_trained_yolov5_object_detection, simple_formatter):
+def test_coco_best(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, simple_formatter):
     # Arrange
     pred_formatter = DetectionPredictionFormatter(simple_formatter)
     check = ClassPerformance(n_to_show=2, show_only='best')
     # Act
-    result = check.run(mock_coco_train_visiondata, mock_coco_test_visiondata,
+    result = check.run(coco_train_visiondata, coco_test_visiondata,
                        mock_trained_yolov5_object_detection, prediction_formatter=pred_formatter)
 
     # Assert

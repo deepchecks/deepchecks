@@ -29,7 +29,7 @@ def test_mnist_error(mnist_dataset_test, trained_mnist):
     )
 
 
-def test_coco(mock_coco_test_visiondata, mock_trained_yolov5_object_detection, simple_formatter):
+def test_coco(coco_test_visiondata, mock_trained_yolov5_object_detection, simple_formatter):
     # Arrange
     pred_formatter = DetectionPredictionFormatter(simple_formatter)
     check = MeanAverageRecallReport() \
@@ -37,7 +37,7 @@ def test_coco(mock_coco_test_visiondata, mock_trained_yolov5_object_detection, s
             .add_condition_test_average_recall_not_less_than(0.4)
 
     # Act
-    result = check.run(mock_coco_test_visiondata,
+    result = check.run(coco_test_visiondata,
                        mock_trained_yolov5_object_detection, prediction_formatter=pred_formatter)
 
     # Assert
@@ -73,13 +73,13 @@ def test_coco(mock_coco_test_visiondata, mock_trained_yolov5_object_detection, s
     ))
 
 
-def test_coco_area_param(mock_coco_test_visiondata, mock_trained_yolov5_object_detection, simple_formatter):
+def test_coco_area_param(coco_test_visiondata, mock_trained_yolov5_object_detection, simple_formatter):
     # Arrange
     pred_formatter = DetectionPredictionFormatter(simple_formatter)
     check = MeanAverageRecallReport(area_range=(40**2, 100**2))
 
     # Act
-    result = check.run(mock_coco_test_visiondata,
+    result = check.run(coco_test_visiondata,
                        mock_trained_yolov5_object_detection, prediction_formatter=pred_formatter)
 
     # Assert
