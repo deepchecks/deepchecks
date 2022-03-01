@@ -246,13 +246,15 @@ class ImageSegmentPerformance(SingleDatasetCheck):
                 min_scores = []
                 for metric in mean_scores:
                     min_metric_bin = sorted(prop_bins, key=lambda b, m=metric: b['metrics'][m])[0]
-                    min_scores.append({'Range': min_metric_bin['display_range'],
-                                       'Metric': metric,
-                                       'Ratio': min_metric_bin['metrics'][metric] / mean_scores[metric]})
-                # Take the lowest ratio between the metrics
-                absolutely_min_bin = sorted(min_scores, key=lambda b: b['Ratio'])[0]
-                # If bellow threshold add it to the failed dictionary
-                if absolutely_min_bin['Ratio'] < ratio:
+                    min_ratio = min_metric_bin['metrics'][metric] / mean_scores[metric]
+                    # Only if below threshold add to list
+                    if min_ratio < ratio:
+                        min_scores.append({'Range': min_metric_bin['display_range'],
+                                           'Metric': metric,
+                                           'Ratio': round(min_ratio, 2)})
+                # Take the lowest ratio between the failed metrics
+                if min_scores:
+                    absolutely_min_bin = sorted(min_scores, key=lambda b: b['Ratio'])[0]
                     failed_props[prop_name] = absolutely_min_bin
 
             if not failed_props:
