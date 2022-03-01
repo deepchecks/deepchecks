@@ -158,7 +158,9 @@ requirements: $(ENV)
 
 	@if [ -x "$$(command -v nvidia-smi)" ]; \
 	then \
-		echo "GPU found"; \
+		$(PIP) install -q\
+		 	"torch==1.10.2+cu110" "torchvision==0.11.3+cu110" "torchaudio==0.10.2+cu110" \
+		 	 -f https://download.pytorch.org/whl/cu110/torch_stable.html; \
 	elif [ $(OS) = "Linux" ]; \
 	then \
 		$(PIP) install -q\
