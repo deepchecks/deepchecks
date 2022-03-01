@@ -77,6 +77,11 @@ class AveragePrecision(Metric):
         y_pred, y = output
 
         for detected, ground_truth in zip(y_pred, y):
+            if isinstance(detected, torch.Tensor):
+                detected = detected.cpu()
+            if isinstance(ground_truth, torch.Tensor):
+                ground_truth = ground_truth.cpu()
+
             self._group_detections(detected, ground_truth)
             self.i += 1
 

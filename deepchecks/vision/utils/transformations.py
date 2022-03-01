@@ -139,8 +139,8 @@ def un_normalize_batch(tensor, mean: Sized, std: Sized, max_pixel_value: int = 2
     dim = len(mean)
     reshape_shape = (1, 1, 1, dim)
     max_pixel_value = [max_pixel_value] * dim
-    mean = torch.tensor(mean).reshape(reshape_shape)
-    std = torch.tensor(std).reshape(reshape_shape)
+    mean = torch.tensor(mean, device=tensor.device).reshape(reshape_shape)
+    std = torch.tensor(std, device=tensor.device).reshape(reshape_shape)
     tensor = (tensor * std) + mean
     tensor = tensor * torch.tensor(max_pixel_value).reshape(reshape_shape)
     return tensor.cpu().numpy()
