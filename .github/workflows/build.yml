@@ -102,6 +102,18 @@ jobs:
     - name: Print report
       if: ${{ always() }}
       run: echo "${{ steps.license_check_report.outputs.report }}"
+  gpu-tests:
+    runs-on: [self-hosted, gpu]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - name: Set Up Env
+        run: make env
+      - name: Run Tests
+        run: make test
 
 
 #  documentation-check:
