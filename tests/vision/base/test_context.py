@@ -33,14 +33,14 @@ from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
 
 
 def test_vision_context_initialization_for_classification_task(mnist_dataset_train, mnist_dataset_test,
-                                                               trained_mnist):
+                                                               trained_mnist, device):
     # Act
     context = Context(
         train=mnist_dataset_train,
         test=mnist_dataset_test,
         model=trained_mnist,
         model_name='MNIST',
-        device='cpu',
+        device=device,
         prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter)
     )
 
@@ -52,13 +52,14 @@ def test_vision_context_initialization_for_classification_task(mnist_dataset_tra
         'model_name': equal_to('MNIST'),
         'device': all_of(
             instance_of(torch.device),
-            has_property('type', equal_to('cpu'))
+            has_property('type', equal_to(device.type))
         )
     }))
 
 
 def test_vision_context_initialization_for_object_detection_task(coco_train_visiondata, coco_test_visiondata,
-                                                                 mock_trained_yolov5_object_detection, simple_prediction_formatter):
+                                                                 mock_trained_yolov5_object_detection, simple_prediction_formatter,
+                                                                 device):
     # Act
     context = Context(
         train=coco_train_visiondata,
@@ -77,7 +78,7 @@ def test_vision_context_initialization_for_object_detection_task(coco_train_visi
         'model_name': equal_to('COCO'),
         'device': all_of(
             instance_of(torch.device),
-            has_property('type', equal_to('cpu'))
+            has_property('type', device.type)
         )
     }))
 

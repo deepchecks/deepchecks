@@ -8,7 +8,6 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-import torch
 from hamcrest import has_items, assert_that, has_length, close_to
 
 from deepchecks.vision.metrics_utils.metrics import calculate_metrics
@@ -18,33 +17,33 @@ from deepchecks.vision import VisionData
 
 
 def test_default_ap_ignite_complient(coco_test_visiondata: VisionData,
-                                     mock_trained_yolov5_object_detection, simple_prediction_formatter):
+                                     mock_trained_yolov5_object_detection, simple_prediction_formatter, device):
     res = calculate_metrics({'AveragePrecision': AveragePrecision()},
                             coco_test_visiondata, mock_trained_yolov5_object_detection,
                             prediction_formatter=DetectionPredictionFormatter(simple_prediction_formatter),
-                            device=torch.device('cpu'))
+                            device=device)
     assert_that(res.keys(), has_length(1))
     assert_that(res['AveragePrecision'], has_length(59))
 
 
 def test_ar_ignite_complient(coco_test_visiondata: VisionData,
-                             mock_trained_yolov5_object_detection, simple_prediction_formatter):
+                             mock_trained_yolov5_object_detection, simple_prediction_formatter, device):
     res = calculate_metrics({'AveragePrecision': AveragePrecision(return_option=1)},
                             coco_test_visiondata, mock_trained_yolov5_object_detection,
                             prediction_formatter=DetectionPredictionFormatter(simple_prediction_formatter),
-                            device=torch.device('cpu'))
+                            device=device)
 
     assert_that(res.keys(), has_length(1))
     assert_that(res['AveragePrecision'], has_length(59))
 
 
 def test_equal_pycocotools(coco_test_visiondata: VisionData,
-                           mock_trained_yolov5_object_detection, simple_prediction_formatter):
+                           mock_trained_yolov5_object_detection, simple_prediction_formatter, device):
     metric = AveragePrecision(return_option=None)
     for batch in coco_test_visiondata.get_data_loader():
         label = coco_test_visiondata.label_formatter(batch)
         prediction = DetectionPredictionFormatter(simple_prediction_formatter)(batch, mock_trained_yolov5_object_detection,
-                                                                             torch.device('cpu'))
+                                                                               device)
         metric.update((prediction, label))
     res = metric.compute()[0]
 
