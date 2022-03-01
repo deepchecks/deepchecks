@@ -11,6 +11,7 @@
 import pathlib
 import numpy as np
 
+from PIL import Image
 import albumentations as A
 import pytest
 import torch
@@ -149,13 +150,17 @@ def coco_train_visiondata():
     train_dataset = load_coco_dataset(train=True, object_type='DataLoader').dataset
 
     class TrainDataset(Dataset):
-        transforms = A.Compose([A.NoOp()])
+        transforms = A.Compose([A.NoOp()], bbox_params=A.BboxParams(format='coco'))
 
         def __len__(self):
             return 64
 
         def __getitem__(self, idx):
-            return (train_dataset[idx][0], train_dataset[idx][1], f'train_{idx}')
+            # Albumentations accepts images as numpy and bboxes in defined format + class at the end
+            transformed = self.transforms(image=np.array(train_dataset[idx][0]), bboxes=train_dataset[idx][1])
+            img = Image.fromarray(transformed['image'])
+            bboxes = transformed['bboxes']
+            return (img, bboxes, f'train_{idx}')
     train_dataloader = DataLoader(TrainDataset(), shuffle=True, batch_size=32, collate_fn=_batch_collate,
                                  generator=torch.Generator())
     train_visiondata = VisionData(train_dataloader,
@@ -175,13 +180,17 @@ def coco_test_visiondata():
     test_dataset = load_coco_dataset(train=False, object_type='DataLoader').dataset
 
     class TestDataset(Dataset):
-        transforms = A.Compose([A.NoOp()])
+        transforms = A.Compose([A.NoOp()], bbox_params=A.BboxParams(format='coco'))
 
         def __len__(self):
             return 64
 
         def __getitem__(self, idx):
-            return (test_dataset[idx][0], test_dataset[idx][1], f'test_{idx}')
+            # Albumentations accepts images as numpy and bboxes in defined format + class at the end
+            transformed = self.transforms(image=np.array(test_dataset[idx][0]), bboxes=test_dataset[idx][1])
+            img = Image.fromarray(transformed['image'])
+            bboxes = transformed['bboxes']
+            return (img, bboxes, f'test_{idx}')
     test_dataloader = DataLoader(TestDataset(), shuffle=True, batch_size=32, collate_fn=_batch_collate,
                                  generator=torch.Generator())
     test_visiondata = VisionData(test_dataloader,
