@@ -83,7 +83,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         self._state = None
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
-        """Initialize run before starting updating on batches"""
+        """Initialize run before starting updating on batches."""
         # First we will aggregate samples up to defined amount (number_of_samples_to_infer_bins), when we reach
         # the amount we will define the bins and populate them
         self._state = {'samples_for_binning': [], 'bins': None}
@@ -94,6 +94,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         self._state['properties_functions'] = {**string_props, **func_props}
 
     def update(self, context: Context, batch: t.Any, dataset_kind: DatasetKind):
+        """Update the bins by the image properties."""
         dataset = context.get_data_by_kind(dataset_kind)
         images = dataset.image_formatter(batch)
         predictions = context.infer(batch)
@@ -132,7 +133,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         -------
         CheckResult
             value: dictionary containing performance for each property segments
-            display: table of results
+            display: plots of results
         """
         dataset = context.get_data_by_kind(dataset_kind)
         # In case there are fewer samples than 'number_of_samples_to_infer_bins' then bins were not calculated
@@ -163,7 +164,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
                     'Property': f'Property: {property_name}'
                 }
                 # Update the metrics and range in the single bin from the metrics objects to metric mean results,
-                # in order to return ths bins object as the check result value
+                # in order to return the bins object as the check result value
                 single_bin['metrics'] = _calculate_metrics(single_bin['metrics'], dataset)
                 single_bin['display_range'] = display_range
                 # For the plotly display need row per metric in the dataframe
@@ -197,8 +198,8 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         return CheckResult(value=dict(result_value), display=fig)
 
     def _create_bins_and_metrics(self, batch_data: t.List[t.Tuple], dataset):
-        """Return dict of bins for each property in format
-        {property_name: [{start: val, stop: val, count: x, metrics: {name: metric...}}, ...], ...}"""
+        """Return dict of bins for each property in format \
+        {property_name: [{start: val, stop: val, count: x, metrics: {name: metric...}}, ...], ...}."""
         # For X bins we need to have (X - 1) quantile bounds (open bounds from left and right)
         quantiles = np.linspace(1 / self.number_of_bins, 1, self.number_of_bins - 1, endpoint=False)
         # Calculate for each property the quantile values
@@ -206,10 +207,10 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         df = pd.DataFrame(batch_properties)
         bins = {}
         for prop in df.columns:
-            # Filter nans
-            # TODO: how to handle if only some of the values are nan?
+            # Filter nan values
             property_col = df[~df[prop].isnull()][prop]
             # If all values of the property are nan, then doesn't display it
+            # TODO: how to handle if only some of the values are nan?
             if len(property_col) == 0:
                 continue
             # Get quantiles without duplicates
@@ -223,25 +224,34 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         return bins
 
     def add_condition_score_from_mean_ratio_not_less_than(self, ratio=0.8):
+        """Calculate for each property & metric the mean score and compares ratio between the lowest segment score and\
+        the mean score.
+
+        Parameters
+        ----------
+        ratio : float, default : 0.8
+           Threshold of minimal ratio allowed between the lowest segment score of a property and the mean score.
+        """
         def condition(result):
             failed_props = {}
             for prop_name, prop_bins in result.items():
                 # prop bins is a list of:
-                # [{count: int, start: float, stop: float, display_range: str, metrics: {name1: float,...}}, ...]
+                # [{count: int, start: float, stop: float, display_range: str, metrics: {name_1: float,...}}, ...]
                 total_score = Counter()
-                [total_score.update(b['metrics']) for b in prop_bins]
+                for b in prop_bins:
+                    total_score.update(b['metrics'])
                 mean_scores = {metric: score / len(prop_bins) for metric, score in total_score.items()}
 
                 # Take the lowest score for each metric
                 min_scores = []
-                for metric in mean_scores.keys():
-                    min_metric_bin = sorted(prop_bins, key=lambda b: b['metrics'][metric])[0]
+                for metric in mean_scores:
+                    min_metric_bin = sorted(prop_bins, key=lambda b, m=metric: b['metrics'][m])[0]
                     min_scores.append({'Range': min_metric_bin['display_range'],
                                        'Metric': metric,
                                        'Ratio': min_metric_bin['metrics'][metric] / mean_scores[metric]})
                 # Take the lowest ratio between the metrics
                 absolutely_min_bin = sorted(min_scores, key=lambda b: b['Ratio'])[0]
-                # If bellow threshold add it to the failed dicts
+                # If bellow threshold add it to the failed dictionary
                 if absolutely_min_bin['Ratio'] < ratio:
                     failed_props[prop_name] = absolutely_min_bin
 
@@ -263,13 +273,13 @@ def _divide_to_bins(bins, batch_data: t.Iterable[t.Tuple]):
 
 
 def _create_open_bins_ranges(quantiles):
-    """Return quantiles with start and stop as list of tuples [(-Inf, x1),(x1,x2),(x2, Inf)]"""
+    """Return quantiles with start and stop as list of tuples [(-Inf, x1),(x1,x2),(x2, Inf)]."""
     quantiles = sorted(quantiles)
     return zip(([-np.Inf] + quantiles), (quantiles + [np.Inf]))
 
 
 def _add_to_fitting_bin(bins: t.List[t.Dict], property_value, label, prediction):
-    """Find the fitting bin from the list of bins for a given value. Then increase the count and the prediction and
+    """Find the fitting bin from the list of bins for a given value. Then increase the count and the prediction and \
     label to the metrics objects."""
     if property_value is None:
         return
