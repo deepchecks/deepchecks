@@ -15,13 +15,13 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import TrainTestLabelDrift
 
 
-def test_no_drift_classification(mnist_dataset_train):
+def test_no_drift_classification(mnist_dataset_train, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
     check = TrainTestLabelDrift()
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, device=device)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -32,12 +32,12 @@ def test_no_drift_classification(mnist_dataset_train):
     ))
 
 
-def test_no_drift_object_detection(coco_train_visiondata):
+def test_no_drift_object_detection(coco_train_visiondata, device):
     # Arrange
     check = TrainTestLabelDrift()
 
     # Act
-    result = check.run(coco_train_visiondata, coco_train_visiondata)
+    result = check.run(coco_train_visiondata, coco_train_visiondata, device=device)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -55,13 +55,13 @@ def test_no_drift_object_detection(coco_train_visiondata):
     ))
 
 
-def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test):
+def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, device):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_test
     check = TrainTestLabelDrift()
 
     # Act
-    result = check.run(train, test)
+    result = check.run(train, test, device=device)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -73,12 +73,12 @@ def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test):
     ))
 
 
-def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata):
+def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     check = TrainTestLabelDrift()
 
     # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata)
+    result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -96,12 +96,12 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
     ))
 
 
-def test_with_drift_object_detection_changed_num_samples(coco_train_visiondata, coco_test_visiondata):
+def test_with_drift_object_detection_changed_num_samples(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     check = TrainTestLabelDrift(min_sample_size=32)
 
     # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata)
+    result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -119,12 +119,12 @@ def test_with_drift_object_detection_changed_num_samples(coco_train_visiondata, 
     ))
 
 
-def test_with_drift_object_detection_changed_num_bins(coco_train_visiondata, coco_test_visiondata):
+def test_with_drift_object_detection_changed_num_bins(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     check = TrainTestLabelDrift(default_num_bins=10)
 
     # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata)
+    result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -142,14 +142,14 @@ def test_with_drift_object_detection_changed_num_bins(coco_train_visiondata, coc
     ))
 
 
-def test_with_drift_object_detection_alternative_measurements(coco_train_visiondata, coco_test_visiondata):
+def test_with_drift_object_detection_alternative_measurements(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     alternative_measurements = [
         {'name': 'test', 'method': lambda x, dataset: int(x[0][0]) if len(x) != 0 else 0, 'is_continuous': True}]
     check = TrainTestLabelDrift(alternative_label_measurements=alternative_measurements)
 
     # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata)
+    result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
 
     # Assert
     assert_that(result.value, has_entries(

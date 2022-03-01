@@ -18,19 +18,20 @@ from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
 from deepchecks.vision.utils import DetectionPredictionFormatter, ClassificationPredictionFormatter
 
 
-def test_mnist_error(mnist_dataset_test, trained_mnist):
+def test_mnist_error(mnist_dataset_test, trained_mnist, device):
     # Arrange
     check = MeanAveragePrecisionReport()
     # Act
     assert_that(
         calling(check.run
                 ).with_args(mnist_dataset_test, trained_mnist,
-                            prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter)),
+                            prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter),
+                            device=device),
         raises(ModelValidationError, r'Check is irrelevant for task of type TaskType.CLASSIFICATION')
     )
 
 
-def test_coco(coco_test_visiondata, trained_yolov5_object_detection):
+def test_coco(coco_test_visiondata, trained_yolov5_object_detection, device):
     # Arrange
     pred_formatter = DetectionPredictionFormatter(yolo_prediction_formatter)
     check = MeanAveragePrecisionReport() \
@@ -39,7 +40,7 @@ def test_coco(coco_test_visiondata, trained_yolov5_object_detection):
 
     # Act
     result = check.run(coco_test_visiondata,
-                       trained_yolov5_object_detection, prediction_formatter=pred_formatter)
+                       trained_yolov5_object_detection, prediction_formatter=pred_formatter, device=device)
 
     # Assert
     df = result.value
@@ -74,14 +75,15 @@ def test_coco(coco_test_visiondata, trained_yolov5_object_detection):
     ))
 
 
-def test_coco_area_param(coco_test_visiondata, trained_yolov5_object_detection):
+def test_coco_area_param(coco_test_visiondata, trained_yolov5_object_detection, device):
     # Arrange
     pred_formatter = DetectionPredictionFormatter(yolo_prediction_formatter)
     check = MeanAveragePrecisionReport(area_range=(40**2, 100**2))
 
     # Act
     result = check.run(coco_test_visiondata,
-                       trained_yolov5_object_detection, prediction_formatter=pred_formatter)
+                       trained_yolov5_object_detection, prediction_formatter=pred_formatter,
+                       device=device)
 
     # Assert
     df = result.value
