@@ -31,11 +31,11 @@ def test_mnist_prior_strategy(mnist_dataset_train, mnist_dataset_test, trained_m
     assert_that(first_row['Class'], equal_to(1))
 
 
-def test_mnist_not_exist_strategy(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
+def test_mnist_not_exist_strategy(mnist_dataset_train, mnist_dataset_test, trained_mnist):
     check = SimpleModelComparison()
     # Act
     assert_that(
-        calling(SimpleModelComparison).with_args(strategy='n', n_to_show=2, show_only='largest', device=device),
+        calling(SimpleModelComparison).with_args(strategy='n', n_to_show=2, show_only='largest'),
         raises(DeepchecksValueError)
     )
 
