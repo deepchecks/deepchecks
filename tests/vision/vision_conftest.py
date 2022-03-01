@@ -29,7 +29,8 @@ PROJECT_DIR = pathlib.Path(__file__).absolute().parent.parent.parent
 torch.hub.set_dir(str(PROJECT_DIR))
 
 
-__all__ = ['mnist_data_loader_train',
+__all__ = ['device',
+           'mnist_data_loader_train',
            'mnist_dataset_train',
            'mnist_data_loader_test',
            'mnist_dataset_train_imgaug',
