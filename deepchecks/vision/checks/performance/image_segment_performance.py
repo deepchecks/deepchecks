@@ -258,7 +258,8 @@ class ImageSegmentPerformance(SingleDatasetCheck):
             if not failed_props:
                 return ConditionResult(True)
             else:
-                msg = f'Properties with failed segments: {failed_props}'
+                props = ', '.join(sorted([f'{p}: {m}' for p, m in failed_props.items()]))
+                msg = f'Properties with failed segments: {props}'
                 return ConditionResult(False, details=msg)
 
         name = f'No segment with ratio between score to mean less than {format_percent(ratio)}'
