@@ -265,7 +265,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         return self.add_condition(name, condition)
 
 
-def _divide_to_bins(bins, batch_data: t.Iterable[t.Tuple]):
+def _divide_to_bins(bins, batch_data: t.List[t.Tuple]):
     """Iterate the data and enter it into the appropriate bins."""
     for property_name, bins_values in bins.items():
         for label, prediction, properties in batch_data:
