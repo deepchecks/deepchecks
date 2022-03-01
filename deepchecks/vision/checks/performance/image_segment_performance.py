@@ -11,6 +11,7 @@
 """Module of segment performance check."""
 import math
 import typing as t
+from collections import defaultdict, Counter
 from numbers import Number
 
 import numpy as np
@@ -19,10 +20,10 @@ import torch
 from ignite.metrics import Metric
 import plotly.express as px
 
-
+from deepchecks import ConditionResult
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.strings import format_number
+from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import SingleDatasetCheck, Context
 from deepchecks.vision.utils import ImageFormatter
 from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
@@ -30,11 +31,24 @@ from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_
 
 ImageProperty = t.Union[str, t.Callable[..., t.List[Number]]]
 
-__all__ = ['SegmentPerformance']
+__all__ = ['ImageSegmentPerformance']
 
 
-class SegmentPerformance(SingleDatasetCheck):
-    """
+class ImageSegmentPerformance(SingleDatasetCheck):
+    """Segment the data by various properties of the image, and compare the performance of the segments.
+
+    Parameters
+    ----------
+    image_properties : List[Union[str, Callable]]
+        List of image properties by name (of functions in ImageFormatter class) or callable which receives batch
+        and return properties per image.
+    alternative_metrics : Dict[str, Metric], default: None
+        A dictionary of metrics, where the key is the metric name and the value is an ignite.Metric object whose score
+        should be used. If None are given, use the default metrics.
+    number_of_bins: int, default : 5
+        Maximum number of bins to segment a single property into.
+    number_of_samples_to_infer_bins : int, default : 1000
+        Minimum number of samples to use to infer the bounds of the segments' bins
     """
 
     def __init__(
@@ -131,9 +145,10 @@ class SegmentPerformance(SingleDatasetCheck):
         # bins are in format:
         # {property_name: [{start: val, stop: val, count: x, metrics: {name: metric...}}, ...], ...}
         display_data = []
+        result_value = defaultdict(list)
 
         for property_name, prop_bins in bins.items():
-            # Calcualte scale for the numbers formatting in the display of range
+            # Calculate scale for the numbers formatting in the display of range
             bins_scale = max([_get_range_scale(b['start'], b['stop']) for b in prop_bins])
             for single_bin in prop_bins:
                 # If we have a low number of unique values for a property, the first bin (-inf, x) might be empty so
@@ -141,17 +156,21 @@ class SegmentPerformance(SingleDatasetCheck):
                 if single_bin['count'] == 0:
                     continue
 
+                display_range = _range_string(single_bin['start'], single_bin['stop'], bins_scale)
                 bin_data = {
-                    'Range': _range_string(single_bin['start'], single_bin['stop'], bins_scale),
+                    'Range': display_range,
                     'Number of samples': single_bin['count'],
                     'Property': f'Property: {property_name}'
                 }
-                # Update the metrics in the single bin from the metrics objects to metric mean results, in order to
-                # return ths bins object as the check result value
+                # Update the metrics and range in the single bin from the metrics objects to metric mean results,
+                # in order to return ths bins object as the check result value
                 single_bin['metrics'] = _calculate_metrics(single_bin['metrics'], dataset)
+                single_bin['display_range'] = display_range
                 # For the plotly display need row per metric in the dataframe
                 for metric, val in single_bin['metrics'].items():
                     display_data.append({'Metric': metric, 'Value': val, **bin_data})
+                # Save for result
+                result_value[property_name].append(single_bin)
 
         display_df = pd.DataFrame(display_data)
 
@@ -168,14 +187,14 @@ class SegmentPerformance(SingleDatasetCheck):
             hover_data=['Number of samples']
         )
 
-        bar_width = min(0.2, 1 / self.number_of_bins)
+        bar_width = 0.2
         (fig.update_xaxes(title=None, type='category', matches=None)
             .update_yaxes(title=None)
             .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
             .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
             .update_traces(width=bar_width))
 
-        return CheckResult(value=bins, display=fig)
+        return CheckResult(value=dict(result_value), display=fig)
 
     def _create_bins_and_metrics(self, batch_data: t.List[t.Tuple], dataset):
         """Return dict of bins for each property in format
@@ -203,6 +222,38 @@ class SegmentPerformance(SingleDatasetCheck):
         _divide_to_bins(bins, batch_data)
         return bins
 
+    def add_condition_score_from_mean_ratio_not_less_than(self, ratio=0.8):
+        def condition(result):
+            failed_props = {}
+            for prop_name, prop_bins in result.items():
+                # prop bins is a list of:
+                # [{count: int, start: float, stop: float, display_range: str, metrics: {name1: float,...}}, ...]
+                total_score = Counter()
+                [total_score.update(b['metrics']) for b in prop_bins]
+                mean_scores = {metric: score / len(prop_bins) for metric, score in total_score.items()}
+
+                # Take the lowest score for each metric
+                min_scores = []
+                for metric in mean_scores.keys():
+                    min_metric_bin = sorted(prop_bins, key=lambda b: b['metrics'][metric])[0]
+                    min_scores.append({'Range': min_metric_bin['display_range'],
+                                       'Metric': metric,
+                                       'Ratio': min_metric_bin['metrics'][metric] / mean_scores[metric]})
+                # Take the lowest ratio between the metrics
+                absolutely_min_bin = sorted(min_scores, key=lambda b: b['Ratio'])[0]
+                # If bellow threshold add it to the failed dicts
+                if absolutely_min_bin['Ratio'] < ratio:
+                    failed_props[prop_name] = absolutely_min_bin
+
+            if not failed_props:
+                return ConditionResult(True)
+            else:
+                msg = f'Properties with failed segments: {failed_props}'
+                return ConditionResult(False, details=msg)
+
+        name = f'No segment with ratio between score to mean, less than {format_percent(ratio)}'
+        return self.add_condition(name, condition)
+
 
 def _divide_to_bins(bins, batch_data: t.Iterable[t.Tuple]):
     """Iterate the data and enter it into the appropriate bins."""
@@ -221,7 +272,6 @@ def _add_to_fitting_bin(bins: t.List[t.Dict], property_value, label, prediction)
     """Find the fitting bin from the list of bins for a given value. Then increase the count and the prediction and
     label to the metrics objects."""
     if property_value is None:
-        print('None!')
         return
     for single_bin in bins:
         if single_bin['start'] <= property_value < single_bin['stop']:
