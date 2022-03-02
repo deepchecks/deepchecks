@@ -24,6 +24,7 @@ from deepchecks.vision.utils import ClassificationLabelFormatter, DetectionLabel
 from deepchecks.vision.utils.base_formatters import BaseLabelFormatter
 from deepchecks.vision.utils.image_formatters import ImageFormatter
 from deepchecks.vision.utils.image_functions import ImageInfo
+from deepchecks.vision.vision_task import VisionTask
 
 logger = logging.getLogger('deepchecks')
 
@@ -86,8 +87,6 @@ class VisionData:
     _label_invalid: Optional[str]
     _sample_size: int
     _random_seed: int
-    _sample_labels: Optional[Any]
-    _sample_data_loader: Optional[DataLoader]
 
     def __init__(self,
                  data_loader: DataLoader,
@@ -108,51 +107,25 @@ class VisionData:
         else:
             self._image_formatter = ImageFormatter()
 
-        if label_formatter:
-            if isinstance(label_formatter, ClassificationLabelFormatter):
-                self.task_type = TaskType.CLASSIFICATION
-                self.label_formatter = label_formatter
-            elif isinstance(label_formatter, DetectionLabelFormatter):
-                self.task_type = TaskType.OBJECT_DETECTION
-                self.label_formatter = label_formatter
-            else:
-                self.label_formatter = None
-                self.task_type = None
-                self._label_invalid = f'Invalid transformer type: {type(self.label_formatter).__name__}'
-                logger.warning('Unknown label transformer type was provided. Only integrity and data checks will run.'
-                               'The supported label transformer types are: '
-                               '[ClassificationLabelFormatter, DetectionLabelFormatter]')
-
-            if self.label_formatter:
-                try:
-                    self.label_formatter.validate_label(batch_to_validate)
-                    self._label_invalid = None
-                except DeepchecksValueError as ex:
-                    self._label_invalid = str(ex)
+        if self.label_formatter:
+            try:
+                self.label_formatter.validate_label(batch_to_validate)
+                self._label_invalid = None
+            except DeepchecksValueError as ex:
+                self._label_invalid = str(ex)
         else:
             self.task_type = None
             self._label_invalid = 'label_formatter parameter was not defined'
 
-        self._samples_per_class = None
+        self._n_of_samples_per_class = None
         self._num_classes = num_classes  # if not initialized, then initialized later in get_num_classes()
         self._label_map = label_map
         self._warned_labels = set()
         self.transform_field = transform_field
-        # Sample dataset properties
-        self._sample_data_loader = None
-        self._sample_labels = None
-        self._sample_size = sample_size
         self._random_seed = random_seed
 
     @property
-    def image_formatter(self) -> ImageFormatter:
-        """Return the image formatter."""
-        if self._image_formatter:
-            return self._image_formatter
-        raise DeepchecksValueError('No valid image formatter provided')
-
-    @property
-    def n_of_classes(self) -> int:
+    def num_classes(self) -> int:
         """Return the number of classes in the dataset."""
         if self._num_classes is None:
             self._num_classes = len(self.n_of_samples_per_class.keys())
@@ -161,40 +134,20 @@ class VisionData:
     @property
     def n_of_samples_per_class(self) -> Dict[Any, int]:
         """Return a dictionary containing the number of samples per class."""
-        if self._samples_per_class is None:
+        if self._n_of_samples_per_class is None:
             if self.task_type in [TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION]:
-                self._samples_per_class = self.label_formatter.get_samples_per_class(self._data)
+                self._n_of_samples_per_class = self.label_formatter.get_samples_per_class(self._data)
             else:
                 raise NotImplementedError(
                     'Not implemented yet for tasks other than classification and object detection'
                 )
-        return copy(self._samples_per_class)
-
-    def to_display_data(self, batch):
-        """Convert a batch of data outputted by the data loader to a format that can be displayed."""
-        return self.image_formatter(batch)  # pylint: disable=not-callable
+        return copy(self._n_of_samples_per_class)
 
     @property
     def data_dimension(self):
         """Return how many dimensions the image data have."""
         image = self.image_formatter(next(iter(self)))[0]  # pylint: disable=not-callable
         return ImageInfo(image).get_dimension()
-
-    @property
-    def sample_data_loader(self) -> DataLoader:
-        """Return sample of the data."""
-        if self._sample_data_loader is None:
-            self._sample_data_loader = create_sample_loader(self._data, self._sample_size, self._random_seed)
-        return self._sample_data_loader
-
-    @property
-    def sample_labels(self) -> List:
-        """Return the labels of the sample data."""
-        if self._sample_labels is None:
-            self._sample_labels = []
-            for _, label in self.sample_data_loader:
-                self._sample_labels.append(label)
-        return self._sample_labels
 
     def label_id_to_name(self, class_id: int) -> str:
         """Return the name of the class with the given id."""
@@ -258,7 +211,7 @@ class VisionData:
 
     def copy(self) -> 'VisionData':
         """Create new copy of this object, with the data-loader and dataset also copied."""
-        props = get_data_loader_props_to_copy(self.get_data_loader())
+        props = _get_data_loader_props_to_copy(self.get_data_loader())
         props['dataset'] = copy(self.get_data_loader().dataset)
         new_data_loader = self.get_data_loader().__class__(**props)
         return VisionData(new_data_loader,
@@ -271,13 +224,13 @@ class VisionData:
         """Use the defined collate_fn to transform a few data items to batch format."""
         return self.get_data_loader().collate_fn(list(samples))
 
-    def set_seed(self, seed):
+    def set_seed(self, seed: int):
         """Set seed for data loader."""
         generator = self._data.generator
         if generator is not None and seed is not None:
             generator.set_state(torch.Generator().manual_seed(seed).get_state())
 
-    def validate_shared_label(self, other):
+    def validate_shared_label(self, other: VisionTask):
         """Verify presence of shared labels.
 
         Validates whether the 2 datasets share the same label shape
@@ -292,7 +245,9 @@ class VisionData:
         DeepchecksValueError
             if datasets don't have the same label
         """
-        VisionData.validate_dataset(other)
+        if not isinstance(other, VisionData):
+            raise DeepchecksValueError('Check requires dataset to be of type VisionData. instead got: '
+                                       f'{type(other).__name__}')
 
         if self.is_have_label() != other.is_have_label():
             raise DeepchecksValueError('Datasets required to both either have or don\'t have labels')
@@ -300,85 +255,8 @@ class VisionData:
         if self.task_type != other.task_type:
             raise DeepchecksValueError('Datasets required to have same label type')
 
-        elif self.task_type == TaskType.SEMANTIC_SEGMENTATION:
-            raise NotImplementedError()  # TODO
 
-    @classmethod
-    def validate_dataset(cls, obj) -> 'VisionData':
-        """Throws error if object is not deepchecks Dataset and returns the object if deepchecks Dataset.
-
-        Parameters
-        ----------
-        obj : any
-            object to validate as dataset
-        Returns
-        -------
-        Dataset
-            object that is deepchecks dataset
-        """
-        if not isinstance(obj, VisionData):
-            raise DeepchecksValueError('Check requires dataset to be of type VisionData. instead got: '
-                                       f'{type(obj).__name__}')
-
-        return obj
-
-
-class FixedSampler(Sampler):
-    """Sampler which returns indices in a shuffled constant order."""
-
-    _length: int
-    _seed: int
-    _indices = None
-
-    def __init__(self, length: int, seed: int = 0, sample_size: int = None) -> None:
-        super().__init__(None)
-        assert length >= 0
-        self._length = length
-        self._seed = seed
-        if sample_size is not None:
-            assert sample_size >= 0
-            sample_size = min(sample_size, length)
-            np.random.seed(self._seed)
-            self._indices = np.random.choice(self._length, size=(sample_size,), replace=False)
-
-    def __iter__(self) -> Iterator[int]:
-        if self._indices is not None:
-            for i in self._indices:
-                yield i
-        else:
-            for i in torch.randperm(self._length, generator=torch.Generator.manual_seed(self._seed)):
-                yield i
-
-    def __len__(self) -> int:
-        return (
-            len(self._indices)
-            if self._indices is not None
-            else self._length
-        )
-
-
-def create_sample_loader(data_loader: DataLoader, sample_size: int, seed: int):
-    """Create a data loader with only a subset of the data."""
-    common_props_to_copy = {
-        'num_workers': data_loader.num_workers,
-        'collate_fn': data_loader.collate_fn,
-        'pin_memory': data_loader.pin_memory,
-        'timeout': data_loader.timeout,
-        'worker_init_fn': data_loader.worker_init_fn,
-        'prefetch_factor': data_loader.prefetch_factor,
-        'persistent_workers': data_loader.persistent_workers
-    }
-
-    dataset = data_loader.dataset
-    if isinstance(dataset, torch.utils.data.IterableDataset):
-        raise DeepchecksValueError('Unable to create sample for IterableDataset')
-    else:
-        length = len(dataset)
-        return DataLoader(dataset,
-                          sampler=FixedSampler(length, seed, sample_size), **common_props_to_copy)
-
-
-def get_data_loader_props_to_copy(data_loader):
+def _get_data_loader_props_to_copy(data_loader):
     props = {
         'num_workers': data_loader.num_workers,
         'collate_fn': data_loader.collate_fn,

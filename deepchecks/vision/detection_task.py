@@ -2,6 +2,7 @@ from abc import abstractmethod
 from typing import Optional, Dict
 
 from torch.utils.data import DataLoader
+from deepchecks.vision.dataset import TaskType
 
 from deepchecks.vision.vision_task import VisionTask
 
@@ -23,6 +24,7 @@ class ObjectDetectionTask(VisionTask):
 
         super().__init__(data_loader, num_classes, label_map, sample_size,
                          random_seed, transform_field)
+        self.task_type = TaskType.OBJECT_DETECTION
 
     @abstractmethod
     def batch_to_images(self, batch):

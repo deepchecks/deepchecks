@@ -1,8 +1,23 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""The vision/dataset module containing the vision Dataset class and its functions."""
+from copy import copy
 from abc import abstractmethod
-from typing import Optional, Dict
+from typing import Any, List, Optional, Dict, Union
 
+import numpy as np
+import torch
 from torch.utils.data import DataLoader
 
+from deepchecks.core.errors import DeepchecksBaseError, DeepchecksProcessError, DeepchecksValueError
 
 class VisionTask:
     """VisionTask represent a base task in deepchecks. It wraps PyTorch DataLoader together with model related metadata.
@@ -44,18 +59,86 @@ class VisionTask:
                  num_classes: Optional[int] = None,
                  label_map: Optional[Dict[int, str]] = None,
                  sample_size: int = 1000,
-                 random_seed: int = 0,
+                 random_seed: int = 42,
                  transform_field: Optional[str] = 'transforms'):
 
-        self.data_loader = data_loader
-        self.num_classes = num_classes
-        self.label_map = label_map
-        self.sample_size = sample_size
-        self.random_seed = random_seed
-        self.transform_field = transform_field
+        self._data_loader = data_loader
+        self._num_classes = num_classes
+        self._label_map = label_map
+        self._sample_size = sample_size
+        self._random_seed = random_seed
+        self._transform_field = transform_field
 
     @abstractmethod
-    def batch_to_images(self, batch):
-        raise NotImplementedError(
+    def batch_to_images(self, batch) -> List[np.ndarray]:
+        """Infer on batch.
+        Examples
+        --------
+        >>> return batch[0]
+        """
+        raise DeepchecksValueError(
             "batch_to_images() must be implemented in a subclass"
         )
+
+    @abstractmethod
+    def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor[torch.Tensor]]:
+        """Infer on batch.
+        Examples
+        --------
+        >>> return batch[1]
+        """
+        raise DeepchecksValueError(
+            "batch_to_labels() must be implemented in a subclass"
+        )
+
+    @abstractmethod
+    def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor[torch.Tensor]]:
+        """Infer on batch.
+        Examples
+        --------
+        >>> return model.to(device)(batch[0].to(device))
+        """
+        raise DeepchecksValueError(
+            "infer_on_batch() must be implemented in a subclass"
+        )
+
+    @property
+    def num_classes(self) -> int:
+        """Return the number of classes in the dataset."""
+        if self._num_classes is None:
+            self._num_classes = len(self.n_of_samples_per_class.keys())
+        return self._num_classes
+
+    @property
+    def n_of_samples_per_class(self) -> Dict[Any, int]:
+        """Return a dictionary containing the number of samples per class."""
+        if self._n_of_samples_per_class is None:
+            self._n_of_samples_per_class = self.batch_to_labels(self._data_loader)
+        return copy(self._n_of_samples_per_class)
+
+    @staticmethod
+    def _get_data_loader_props_to_copy(data_loader):
+        props = {
+            'num_workers': data_loader.num_workers,
+            'collate_fn': data_loader.collate_fn,
+            'pin_memory': data_loader.pin_memory,
+            'timeout': data_loader.timeout,
+            'worker_init_fn': data_loader.worker_init_fn,
+            'prefetch_factor': data_loader.prefetch_factor,
+            'persistent_workers': data_loader.persistent_workers,
+            'generator': torch.Generator()
+        }
+        # Add batch sampler if exists, else sampler
+        if data_loader.batch_sampler is not None:
+            # Can't deepcopy since generator is not pickle-able, so copying shallowly and then copies also sampler inside
+            batch_sampler = copy(data_loader.batch_sampler)
+            batch_sampler.sampler = copy(batch_sampler.sampler)
+            # Replace generator instance so the copied dataset will not affect the original
+            batch_sampler.sampler.generator = props['generator']
+            props['batch_sampler'] = batch_sampler
+        else:
+            sampler = copy(data_loader.sampler)
+            # Replace generator instance so the copied dataset will not affect the original
+            sampler.generator = props['generator']
+            props['sampler'] = sampler
+        return props
