@@ -11,10 +11,11 @@
 """Deepchecks."""
 import os
 import pathlib
+import http.client
 import warnings
 import matplotlib
 import plotly.io as pio
-
+import requests as requests
 
 from deepchecks.utils.ipython import is_notebook
 from deepchecks.tabular import (
@@ -98,3 +99,15 @@ try:
 except Exception:  # pylint: disable=broad-except
     # If version file can't be found, leave version empty
     __version__ = ''
+
+# Check for latest version
+try:
+    conn = http.client.HTTPConnection('api.deepchecks.com', timeout=3)
+    conn.request("GET", "/latest")
+    response = conn.getresponse()
+    latest_version = response.read()
+    if __version__ and __version__ != latest_version:
+        warnings.warn('Looks like you are using outdated version of deepchecks. consider upgrading using'
+                      ' pip install -U deepchecks')
+except http.client.HTTPException:
+    pass
