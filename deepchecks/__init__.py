@@ -108,5 +108,5 @@ try:
     if __version__ and __version__ != latest_version:
         warnings.warn('Looks like you are using outdated version of deepchecks. consider upgrading using'
                       ' pip install -U deepchecks')
-except http.client.HTTPException:
+except Exception:
     pass
