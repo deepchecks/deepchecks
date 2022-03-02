@@ -15,7 +15,6 @@ import http.client
 import warnings
 import matplotlib
 import plotly.io as pio
-import requests as requests
 
 from deepchecks.utils.ipython import is_notebook
 from deepchecks.tabular import (
