@@ -87,6 +87,30 @@ class VisionData:
         self._has_label = None
 
     @abstractmethod
+    def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor[torch.Tensor]]:
+        raise DeepchecksValueError(
+            "batch_to_labels() must be implemented in a subclass"
+        )
+
+    @abstractmethod
+    def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor[torch.Tensor]]:
+        raise DeepchecksValueError(
+            "infer_on_batch() must be implemented in a subclass"
+        )
+
+    @abstractmethod
+    def _validate_label(self, batch):
+        raise DeepchecksValueError(
+            "_validate_label() must be implemented in a subclass"
+        )
+
+    @abstractmethod
+    def validate_prediction(self, model, device):
+        raise DeepchecksValueError(
+            "validate_prediction() must be implemented in a subclass"
+        )
+
+    @abstractmethod
     def batch_to_images(self, batch) -> List[np.ndarray]:
         """Infer on batch.
         Examples

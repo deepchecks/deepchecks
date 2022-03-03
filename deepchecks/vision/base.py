@@ -10,6 +10,7 @@
 #
 """Module for base vision abstractions."""
 # pylint: disable=broad-except,not-callable
+import logging
 from typing import Tuple, Mapping, Optional, Any, Union, Dict
 from collections import OrderedDict
 
@@ -31,10 +32,12 @@ from deepchecks.core.errors import (
     DatasetValidationError, ModelValidationError,
     DeepchecksNotSupportedError, DeepchecksValueError
 )
-from deepchecks.vision.dataset import VisionData, TaskType
+from deepchecks.vision.dataset import TaskType
+from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.utils.validation import apply_to_tensor
 from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
+logger = logging.getLogger('deepchecks')
 
 __all__ = [
     'Context',
@@ -99,23 +102,18 @@ class Context:
         if test and random_state:
             test.set_seed(random_state)
 
-        task_type = train.task_type if train else None
         self._device = torch.device(device) if isinstance(device, str) else (device if device else torch.device('cpu'))
 
         # If no prediction_formatter is passed and model and train are defined, we will use the default one according
         # to the dataset task type
-        if model is not None and train is not None and prediction_formatter is None:
-            if task_type == TaskType.CLASSIFICATION:
-                prediction_formatter = ClassificationPredictionFormatter()
-            elif task_type == TaskType.OBJECT_DETECTION:
-                prediction_formatter = DetectionPredictionFormatter()
-            else:
-                raise DeepchecksValueError(f'Must pass prediction formatter for task_type {task_type}')
-
-        if prediction_formatter is not None:
-            if train is None or model is None:
-                raise DeepchecksValueError('Can\'t pass prediction formatter without model and train data')
-            prediction_formatter.validate_prediction(next(iter(train)), model, self._device)
+        if model is not None:
+            for dataset, dataset_type in zip([train, test], ['train', 'test']):
+                if dataset is not None:
+                    try:
+                        dataset.validate_prediction(model, device)
+                    except DeepchecksValueError:
+                        logger.warning(f'validate_prediction() was not implemented in {dataset_type} dataset, '
+                                        'some checks will not run')
 
         self._train = train
         self._test = test
@@ -222,15 +220,15 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        context = self.context_type(dataset,
-                                    model=model,
-                                    prediction_formatter=prediction_formatter,
-                                    device=device,
-                                    random_state=random_state)
+        context: Context = self.context_type(dataset,
+                                             model=model,
+                                             prediction_formatter=prediction_formatter,
+                                             device=device,
+                                             random_state=random_state)
 
         self.initialize_run(context, DatasetKind.TRAIN)
 
-        for batch in dataset.get_data_loader():
+        for batch in dataset:
             batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch, DatasetKind.TRAIN)
             context.flush_cached_inference()
@@ -269,21 +267,21 @@ class TrainTestCheck(TrainTestBaseCheck):
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        context = self.context_type(train_dataset,
-                                    test_dataset,
-                                    model=model,
-                                    prediction_formatter=prediction_formatter,
-                                    device=device,
-                                    random_state=random_state)
+        context: Context = self.context_type(train_dataset,
+                                             test_dataset,
+                                             model=model,
+                                             prediction_formatter=prediction_formatter,
+                                             device=device,
+                                             random_state=random_state)
 
         self.initialize_run(context)
 
-        for batch in context.train.get_data_loader():
+        for batch in context.train:
             batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch, DatasetKind.TRAIN)
             context.flush_cached_inference()
 
-        for batch in context.test.get_data_loader():
+        for batch in context.test:
             batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch, DatasetKind.TEST)
             context.flush_cached_inference()
@@ -316,7 +314,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        context = self.context_type(model=model, device=device, random_state=random_state)
+        context: Context = self.context_type(model=model, device=device, random_state=random_state)
 
         self.initialize_run(context)
         return finalize_check_result(self.compute(context), self)
@@ -420,7 +418,7 @@ class Suite(BaseSuite):
         if train_dataset is not None:
             self._update_loop(
                 checks=checks,
-                data_loader=train_dataset.get_data_loader(),
+                data_loader=train_dataset.data_loader,
                 context=context,
                 run_train_test_checks=run_train_test_checks,
                 results=results,
@@ -437,7 +435,7 @@ class Suite(BaseSuite):
         if test_dataset is not None:
             self._update_loop(
                 checks=checks,
-                data_loader=test_dataset.get_data_loader(),
+                data_loader=test_dataset.data_loader,
                 context=context,
                 run_train_test_checks=run_train_test_checks,
                 results=results,

@@ -80,7 +80,7 @@ class ClassificationData(VisionData):
         if len(label_shape) != 1:
             raise DeepchecksValueError('Check requires classification label to be a 1D tensor')
 
-    def validate_prediction(self, batch, model, device, n_classes: int = None, eps: float = 1e-3):
+    def validate_prediction(self, model, device, n_classes: int = None, eps: float = 1e-3):
         """
         Validate the prediction.
 
@@ -96,7 +96,7 @@ class ClassificationData(VisionData):
         eps : float , default: 1e-3
             Epsilon value to be used in the validation, by default 1e-3
         """
-        batch_predictions = self(batch, model, device)
+        batch_predictions = self(next(iter(self._data_loader)), model, device)
         if not isinstance(batch_predictions, (torch.Tensor, np.ndarray)):
             raise DeepchecksValueError('Check requires classification predictions to be a torch.Tensor or numpy '
                                        'array')

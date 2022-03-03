@@ -35,17 +35,17 @@ IMAGE_PROPERTIES = frozenset((
 ))
 
 
-def aspect_ratio(batch: List[np.array]) -> List[float]:
+def aspect_ratio(batch: List[np.ndarray]) -> List[float]:
     """Return list of floats of image height to width ratio."""
     return [x[0] / x[1] for x in _sizes(batch)]
 
 
-def area(batch: List[np.array]) -> List[int]:
+def area(batch: List[np.ndarray]) -> List[int]:
     """Return list of integers of image areas (height multiplied by width)."""
     return [np.prod(get_size(img)) for img in batch]
 
 
-def brightness(batch: List[np.array]) -> List[float]:
+def brightness(batch: List[np.ndarray]) -> List[float]:
     """Calculate brightness on each image in the batch."""
     if _is_grayscale(batch) is True:
         return [img.mean() for img in batch]
@@ -53,32 +53,32 @@ def brightness(batch: List[np.array]) -> List[float]:
         return [(0.299*img[:, 0] + 0.587*img[:, 1] + 0.114 * img[:, 2]).mean() for img in batch]
 
 
-def contrast(batch: List[np.array]) -> List[float]:
+def contrast(batch: List[np.ndarray]) -> List[float]:
     """Return constrast of image."""
     raise NotImplementedError('Not yet implemented')  # TODO
 
 
-def normalized_red_mean(batch: List[np.array]) -> List[float]:
+def normalized_red_mean(batch: List[np.ndarray]) -> List[float]:
     """Return the normalized mean of the red channel."""
     return [x[0] for x in _normalized_rgb_mean(batch)]
 
 
-def normalized_green_mean(batch: List[np.array]) -> List[float]:
+def normalized_green_mean(batch: List[np.ndarray]) -> List[float]:
     """Return the normalized mean of the green channel."""
     return [x[1] for x in _normalized_rgb_mean(batch)]
 
 
-def normalized_blue_mean(batch: List[np.array]) -> List[float]:
+def normalized_blue_mean(batch: List[np.ndarray]) -> List[float]:
     """Return the normalized mean of the blue channel."""
     return [x[2] for x in _normalized_rgb_mean(batch)]
 
 
-def _sizes(batch: List[np.array]):
+def _sizes(batch: List[np.ndarray]):
     """Return list of tuples of image height and width."""
     return [get_size(img) for img in batch]
 
 
-def _normalized_rgb_mean(batch: List[np.array]) -> List[Tuple[float, float, float]]:
+def _normalized_rgb_mean(batch: List[np.ndarray]) -> List[Tuple[float, float, float]]:
     """Calculate normalized mean for each channel (rgb) in image.
 
     The normalized mean of each channel is calculated by first normalizing the image's pixels (meaning, each color
@@ -87,14 +87,14 @@ def _normalized_rgb_mean(batch: List[np.array]) -> List[Tuple[float, float, floa
 
     Parameters
     ----------
-    batch: List[np.array]
+    batch: List[np.ndarray]
         A list of arrays, each arrays represents an image in the required deepchecks format.
     sample_size_for_image_properties: int
         The number of pixels to sample from each image.
 
     Returns
     -------
-    List[np.array]:
+    List[np.ndarray]:
         List of 3-dimensional arrays, each dimension is the normalized mean of the color channel. An array is
         returned for each image.
     """
