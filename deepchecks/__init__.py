@@ -96,7 +96,7 @@ try:
     MODULE_DIR = pathlib.Path(__file__).absolute().parent.parent
     with open(os.path.join(MODULE_DIR, 'VERSION'), 'r', encoding='utf-8') as f:
         __version__ = f.read().strip()
-except:  # pylint: disable=bare-except
+except:  # pylint: disable=bare-except # noqa
     # If version file can't be found, leave version empty
     __version__ = ''
 
@@ -116,5 +116,5 @@ try:
             if to_semantic_version(__version__) < to_semantic_version(latest_version):
                 warnings.warn('Looks like you are using outdated version of deepchecks. consider upgrading using'
                               ' pip install -U deepchecks')
-except:  # pylint: disable=bare-except
+except:  # pylint: disable=bare-except # noqa
     pass
