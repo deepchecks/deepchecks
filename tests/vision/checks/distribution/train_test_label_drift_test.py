@@ -83,59 +83,36 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
     # Assert
     assert_that(result.value, has_entries(
         {'Samples per class': has_entries(
+            {'Drift score': close_to(0.24, 0.01),
+             'Method': equal_to('PSI')}
+        ), 'Bounding box area (in pixels)': has_entries(
+            {'Drift score': close_to(0.012, 0.001),
+             'Method': equal_to('Earth Mover\'s Distance')}
+        ), 'Number of bounding boxes per image': has_entries(
+            {'Drift score': close_to(0.059, 0.001),
+             'Method': equal_to('Earth Mover\'s Distance')}
+        )
+        }
+    ))
+
+
+def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_test_visiondata, device):
+    # Arrange
+    check = TrainTestLabelDrift(max_num_categories=100)
+
+    # Act
+    result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
+
+    # Assert
+    assert_that(result.value, has_entries(
+        {'Samples per class': has_entries(
             {'Drift score': close_to(0.44, 0.01),
              'Method': equal_to('PSI')}
         ), 'Bounding box area (in pixels)': has_entries(
             {'Drift score': close_to(0.012, 0.001),
              'Method': equal_to('Earth Mover\'s Distance')}
         ), 'Number of bounding boxes per image': has_entries(
-            {'Drift score': close_to(0.058, 0.001),
-             'Method': equal_to('Earth Mover\'s Distance')}
-        )
-        }
-    ))
-
-
-def test_with_drift_object_detection_changed_num_samples(coco_train_visiondata, coco_test_visiondata, device):
-    # Arrange
-    check = TrainTestLabelDrift(min_sample_size=32)
-
-    # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
-
-    # Assert
-    assert_that(result.value, has_entries(
-        {'Samples per class': has_entries(
-            {'Drift score': close_to(0.441, 0.001),
-             'Method': equal_to('PSI')}
-        ), 'Bounding box area (in pixels)': has_entries(
-            {'Drift score': close_to(0.011, 0.001),
-             'Method': equal_to('Earth Mover\'s Distance')}
-        ), 'Number of bounding boxes per image': has_entries(
-            {'Drift score': close_to(0.058, 0.001),
-             'Method': equal_to('Earth Mover\'s Distance')}
-        )
-        }
-    ))
-
-
-def test_with_drift_object_detection_changed_num_bins(coco_train_visiondata, coco_test_visiondata, device):
-    # Arrange
-    check = TrainTestLabelDrift(default_num_bins=10)
-
-    # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
-
-    # Assert
-    assert_that(result.value, has_entries(
-        {'Samples per class': has_entries(
-            {'Drift score': close_to(0.44, 0.01),
-             'Method': equal_to('PSI')}
-        ), 'Bounding box area (in pixels)': has_entries(
-            {'Drift score': close_to(0.01, 0.001),
-             'Method': equal_to('Earth Mover\'s Distance')}
-        ), 'Number of bounding boxes per image': has_entries(
-            {'Drift score': close_to(0.043, 0.001),
+            {'Drift score': close_to(0.059, 0.001),
              'Method': equal_to('Earth Mover\'s Distance')}
         )
         }
