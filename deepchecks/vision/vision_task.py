@@ -91,28 +91,6 @@ class VisionTask:
             "batch_to_images() must be implemented in a subclass"
         )
 
-    @abstractmethod
-    def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor[torch.Tensor]]:
-        """Infer on batch.
-        Examples
-        --------
-        >>> return batch[1]
-        """
-        raise DeepchecksValueError(
-            "batch_to_labels() must be implemented in a subclass"
-        )
-
-    @abstractmethod
-    def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor[torch.Tensor]]:
-        """Infer on batch.
-        Examples
-        --------
-        >>> return model.to(device)(batch[0].to(device))
-        """
-        raise DeepchecksValueError(
-            "infer_on_batch() must be implemented in a subclass"
-        )
-
     @property
     def data_loader(self) -> int:
         """Return the data loader."""
@@ -227,6 +205,37 @@ class VisionTask:
 
         if self._task_type != other._task_type:
             raise DeepchecksValueError('Datasets required to have same label type')
+
+    def validate_image_data(self, batch):
+        """Validate that the data is in the required format.
+
+        The validation is done on the first element of the batch.
+
+        Parameters
+        ----------
+        batch
+
+        Raises
+        -------
+        DeepchecksValueError
+            If the batch data doesn't fit the format after being transformed by self().
+
+        """
+        data = self(batch)
+        try:
+            sample: np.ndarray = data[0]
+        except TypeError as err:
+            raise DeepchecksValueError('The batch data must be an iterable.') from err
+        if not isinstance(sample, np.ndarray):
+            raise DeepchecksValueError('The data inside the iterable must be a numpy array.')
+        if sample.ndim != 3:
+            raise DeepchecksValueError('The data inside the iterable must be a 3D array.')
+        if sample.shape[2] not in [1, 3]:
+            raise DeepchecksValueError('The data inside the iterable must have 1 or 3 channels.')
+        if sample.min() < 0 or sample.max() > 255:
+            raise DeepchecksValueError('The data inside the iterable must be in the range [0, 255].')
+        if np.all(sample <= 1):
+            raise DeepchecksValueError('The data inside the iterable appear to be normalized.')
 
     def __iter__(self):
         """Return an iterator over the dataset."""
