@@ -16,7 +16,7 @@ from typing import Any, List, Optional, Dict, TypeVar, Union
 import logging
 import numpy as np
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import Dataset, DataLoader
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.utils.image_functions import ImageInfo
@@ -75,6 +75,7 @@ class VisionTask:
         self._random_seed = random_seed
         self._transform_field = transform_field
         self._warned_labels = set()
+        self._task_type = None
 
     @abstractmethod
     def batch_to_images(self, batch) -> List[np.ndarray]:
@@ -113,6 +114,11 @@ class VisionTask:
     def data_loader(self) -> int:
         """Return the data loader."""
         return self._data_loader
+
+    @property
+    def task_type(self) -> int:
+        """Return the task type."""
+        return self._task_type
 
     @property
     def num_classes(self) -> int:
@@ -161,7 +167,7 @@ class VisionTask:
         transform = dataset_ref.__getattribute__(self._transform_field)
         return get_transforms_handler(transform)
 
-    def add_augmentation(self, aug):
+    def add_augmentation(self, aug) -> Dataset:
         """Validate transform field in the dataset, and add the augmentation in the start of it."""
         dataset_ref = self._data_loader.dataset
         # If no field exists raise error
@@ -171,7 +177,9 @@ class VisionTask:
             raise DeepchecksValueError(msg)
         transform = dataset_ref.__getattribute__(self._transform_field)
         new_transform = add_augmentation_in_start(aug, transform)
-        dataset_ref.__setattr__(self._transform_field, new_transform)
+        dataset_copy = copy(dataset_ref)
+        dataset_copy.__setattr__(self._transform_field, new_transform)
+        return dataset_copy
 
     def copy(self) -> VT:
         """Create new copy of this object, with the data-loader and dataset also copied."""
@@ -188,7 +196,7 @@ class VisionTask:
 
     def set_seed(self, seed: int):
         """Set seed for data loader."""
-        generator = self._data.generator
+        generator = self._data_loader.generator
         if generator is not None and seed is not None:
             generator.set_state(torch.Generator().manual_seed(seed).get_state())
 
@@ -208,13 +216,13 @@ class VisionTask:
             if datasets don't have the same label
         """
         if not isinstance(other, VT):
-            raise DeepchecksValueError('Check requires dataset to be of type VisionData. instead got: '
+            raise DeepchecksValueError('Check requires dataset to be of type VisionTask. instead got: '
                                        f'{type(other).__name__}')
 
         if self.is_have_label() != other.is_have_label():
             raise DeepchecksValueError('Datasets required to both either have or don\'t have labels')
 
-        if self.task_type != other.task_type:
+        if self._task_type != other._task_type:
             raise DeepchecksValueError('Datasets required to have same label type')
 
     def __iter__(self):
@@ -234,7 +242,7 @@ class VisionTask:
             'worker_init_fn': self._data_loader.worker_init_fn,
             'prefetch_factor': self._data_loader.prefetch_factor,
             'persistent_workers': self._data_loader.persistent_workers,
-            'generator': torch.Generator()
+            'generator': copy(self._data_loader.generator)
         }
         # Add batch sampler if exists, else sampler
         if self._data_loader.batch_sampler is not None:
