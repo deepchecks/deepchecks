@@ -59,7 +59,7 @@ REQUIREMENTS_LOG := .requirements.log
 # Test and Analyize
 ANALIZE_PKGS = pylint pydocstyle flake8 flake8-spellcheck flake8-eradicate flake8-rst
 TEST_CODE := tests/
-TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval coveralls
+TEST_RUNNER_PKGS = pytest pytest-cov pyhamcrest nbval coveralls wandb
 NOTEBOOK_CHECKS = ./docs/source/examples/checks
 NOTEBOOK_EXAMPLES = ./docs/source/examples/guides/*.ipynb
 NOTEBOOK_USECASES = ./docs/source/examples/use-cases/*.ipynb
@@ -165,13 +165,11 @@ notebook: $(REQUIREMENTS_LOG) $(TEST_RUNNER)
 # if deepchecks is not installed, we need to install it for testing porpuses,
 # as the only time you'll need to run make is in dev mode, we're installing
 # deepchecks in development mode
-	$(PIP) install --no-deps -e .
-# Making sure the examples are running, without validating their outputs.
-	$(JUPYTER) nbconvert --execute $(NOTEBOOK_EXAMPLES) --to notebook --stdout > /dev/null
-	$(JUPYTER) nbconvert --execute $(NOTEBOOK_USECASES) --to notebook --stdout > /dev/null
+	@$(PIP) install --no-deps -e .
+
+	WANDB_MODE=offline $(TEST_RUNNER) --nbval-lax ./docs/source/examples
 
 # For now, because of plotly - disabling the nbval and just validate that the notebooks are running
-	$(JUPYTER) nbconvert --execute $(NOTEBOOK_CHECKS)/**/*.ipynb --to notebook --stdout > /dev/null
 #	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_CHECKS) --sanitize-with $(NOTEBOOK_SANITIZER_FILE)
 $(TEST_RUNNER):
 	$(PIP) install $(TEST_RUNNER_PKGS) | tee -a $(REQUIREMENTS_LOG)

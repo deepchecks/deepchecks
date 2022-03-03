@@ -9,9 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Top module for deepchecks library."""
+import os
+import pathlib
+import http.client
+import warnings
 import matplotlib
 import plotly.io as pio
-from pkg_resources import get_distribution, DistributionNotFound
+from pkg_resources import parse_version
+
 from .utils.ipython import is_notebook
 from .base import (
     Dataset,
@@ -67,7 +72,23 @@ if 'notebook_connected' in pio_backends:
 
 # Set version info
 try:
-    __version__ = get_distribution('deepchecks').version
-except Exception: # pylint: disable=broad-except
-    # If distribution can't be found, leave version empty
+    MODULE_DIR = pathlib.Path(__file__).absolute().parent.parent
+    with open(os.path.join(MODULE_DIR, 'VERSION'), 'r', encoding='utf-8') as f:
+        __version__ = f.read().strip()
+except:  # pylint: disable=bare-except # noqa
+    # If version file can't be found, leave version empty
     __version__ = ''
+
+# Check for latest version
+try:
+    disable = os.environ.get('DEEPCHECKS_DISABLE_LATEST', 'false').lower() == 'true'
+    if not disable:
+        conn = http.client.HTTPSConnection('api.deepchecks.com', timeout=3)
+        conn.request('GET', '/latest')
+        response = conn.getresponse()
+        latest_version = response.read().decode('utf-8')
+        if __version__ and parse_version(__version__) < parse_version(latest_version):
+            warnings.warn('Looks like you are using outdated version of deepchecks. consider upgrading using'
+                          ' pip install -U deepchecks')
+except:  # pylint: disable=bare-except # noqa
+    pass

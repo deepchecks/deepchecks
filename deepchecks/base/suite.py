@@ -29,7 +29,14 @@ from deepchecks.base.check import CheckResult, TrainTestBaseCheck, SingleDataset
                                   CheckFailure, ModelComparisonBaseCheck, ModelComparisonContext, BaseCheck
 from deepchecks.utils.ipython import is_notebook
 from deepchecks.utils.typing import BasicModel
+from deepchecks.utils.wandb_utils import set_wandb_run_state
 
+try:
+    import wandb
+
+    assert hasattr(wandb, '__version__')  # verify package import not local dir
+except (ImportError, AssertionError):
+    wandb = None
 
 __all__ = ['BaseSuite', 'Suite', 'ModelComparisonSuite', 'SuiteResult']
 
@@ -102,6 +109,26 @@ class SuiteResult:
             json_results.append(res.to_json(with_display=with_display))
 
         return jsonpickle.dumps({'name': self.name, 'results': json_results})
+
+    def to_wandb(self, dedicated_run: bool = None, **kwargs: Any):
+        """Export suite result to wandb.
+        Parameters
+        ----------
+        dedicated_run : bool , default: None
+            If to initiate and finish a new wandb run.
+            If None it will be dedicated if wandb.run is None.
+        kwargs: Keyword arguments to pass to wandb.init.
+                Default project name is deepchecks.
+                Default config is the suite name.
+        """
+        dedicated_run = set_wandb_run_state(dedicated_run, {'name': self.name}, **kwargs)
+        progress_bar = ProgressBar(self.name, len(self.results))
+        for res in self.results:
+            res.to_wandb(False)
+            progress_bar.inc_progress()
+        progress_bar.close()
+        if dedicated_run:
+            wandb.finish()
 
 
 class BaseSuite:

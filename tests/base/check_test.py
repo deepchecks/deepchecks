@@ -155,4 +155,4 @@ def test_params():
     assert_that(default_check.params(), equal_to({}))
     assert_that(parameter_check.params(), equal_to({'param2': 5}))
     assert_that(all_param_check.params(), equal_to({'param1': 8, 'param2': 9}))
-
+    assert_that(default_check.params(show_defaults=True), equal_to({'param1': 1, 'param2': 2}))
