@@ -166,7 +166,7 @@ def feature_distribution_traces(train_column,
 
         traces = [train_bar, test_bar]
 
-        max_y = max(max(expected_percents), max(actual_percents))
+        max_y = max(*expected_percents, *actual_percents)
         y_lim = 1 if max_y > 0.5 else max_y * 1.1
 
         xaxis_layout = dict(type='category')

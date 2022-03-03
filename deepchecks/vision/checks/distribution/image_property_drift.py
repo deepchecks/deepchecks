@@ -91,8 +91,7 @@ class ImagePropertyDrift(TrainTestCheck):
             properties = self.test_properties
         else:
             raise RuntimeError(
-                'Internal Error! Part of code that must '
-                'be unreachable was reached.'
+                f'Internal Error - Should not reach here! unknown dataset_kind: {dataset_kind}'
             )
 
         images = dataset.image_formatter(batch)
