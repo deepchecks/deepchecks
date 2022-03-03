@@ -10,7 +10,7 @@
 #
 """Module containing the image formatter class for the vision module."""
 from typing import Tuple, List
-
+import cv2
 import numpy as np
 
 from deepchecks.core.errors import DeepchecksValueError
@@ -104,10 +104,9 @@ def _normalized_rgb_mean(batch: List[np.array], sample_size_for_image_properties
     if _is_grayscale(batch) is True:
         return [(None, None, None)] * len(batch)
 
-    flattened_batch = _flatten_batch(batch, sample_size_for_image_properties)
-    # TODO: Check for faster implementations than pixel by pixel
-    normalized_images = [np.array([_normalize_colors_in_pixel(pxl) for pxl in img]) for img in flattened_batch]
-    return [img.mean(axis=0) for img in normalized_images]
+    return [cv2.mean(
+        cv2.normalize(img, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F))
+                           for img in batch]
 
 
 def _normalize_colors_in_pixel(pixel):
