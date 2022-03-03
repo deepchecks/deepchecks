@@ -17,7 +17,7 @@ from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.vision.base import Context, TrainTestCheck
-from deepchecks.vision.dataset import VisionData, TaskType
+from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.utils.measurements import validate_measurements, \
     DEFAULT_CLASSIFICATION_PREDICTION_MEASUREMENTS, DEFAULT_OBJECT_DETECTION_PREDICTION_MEASUREMENTS, \
     get_prediction_measurements_on_batch
@@ -29,13 +29,15 @@ __all__ = ['TrainTestPredictionDrift']
 
 class TrainTestPredictionDrift(TrainTestCheck):
     """
-    Calculate label drift between train dataset and test dataset, using statistical measures.
+    Calculate prediction drift between train dataset and test dataset, using statistical measures.
 
-    Check calculates a drift score for the label in test dataset, by comparing its distribution to the train
-    dataset. As the label may be complex, we run different measurements on the label and check their distribution.
+    Check calculates a drift score for the predictions in the test dataset, by comparing its distribution to the
+    train dataset. As the predictions may be complex, we run different measurements on the predictions and check
+    their distribution.
 
-    A measurement on a label is any function that returns a single value or n-dimensional array of values. each value
-    represents a measurement on the label, such as number of objects in image or tilt of each bounding box in image.
+    A measurement on a prediction is any function that returns a single value or n-dimensional array of values. each
+    value represents a measurement on the prediction, such as number of objects in image or tilt of each bounding box
+    in image.
 
     There are default measurements per task:
     For classification:
@@ -84,9 +86,8 @@ class TrainTestPredictionDrift(TrainTestCheck):
         Prediction measurements:
         _prediction_measurements: all label measurements to be calculated in run
 
-        Prediction measurements caching:
-        _train_prediction_properties, _test_prediction_properties: Dicts of lists accumulating the label measurements computed for
-        each batch.
+        Prediction measurements caching: _train_prediction_properties, _test_prediction_properties: Dicts of lists
+        accumulating the label measurements computed for each batch.
         """
         train_dataset = context.train
 

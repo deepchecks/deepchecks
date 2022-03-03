@@ -54,7 +54,7 @@ DEFAULT_OBJECT_DETECTION_LABEL_MEASUREMENTS = [
 
 def _get_samples_per_predicted_class_classification(prediction, dataset):
     """Return a list containing the class per image in batch."""
-    return [dataset.label_id_to_name(pred_row.argmax()) for pred_row in prediction]
+    return dataset.label_id_to_name(prediction.argmax().tolist())
 
 
 def _get_samples_per_predicted_class_object_detection(prediction, dataset):

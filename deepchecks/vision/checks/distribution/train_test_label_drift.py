@@ -15,9 +15,9 @@ import pandas as pd
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 
 from deepchecks.core import DatasetKind, CheckResult
-from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedError
+from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.vision.base import Context, TrainTestCheck
-from deepchecks.vision.dataset import VisionData, TaskType
+from deepchecks.vision.dataset import TaskType
 from collections import OrderedDict
 
 __all__ = ['TrainTestLabelDrift']
