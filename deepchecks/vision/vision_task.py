@@ -76,6 +76,9 @@ class VisionTask:
         self._transform_field = transform_field
         self._warned_labels = set()
         self._task_type = None
+        self._has_label = None
+        self._has_images = None
+        self._has_prediction = None
 
     @abstractmethod
     def batch_to_images(self, batch) -> List[np.ndarray]:
@@ -167,7 +170,7 @@ class VisionTask:
         transform = dataset_ref.__getattribute__(self._transform_field)
         return get_transforms_handler(transform)
 
-    def add_augmentation(self, aug) -> Dataset:
+    def get_augmented_dataset(self, aug) -> Dataset:
         """Validate transform field in the dataset, and add the augmentation in the start of it."""
         dataset_ref = self._data_loader.dataset
         # If no field exists raise error
@@ -184,11 +187,11 @@ class VisionTask:
     def copy(self) -> VT:
         """Create new copy of this object, with the data-loader and dataset also copied."""
         new_data_loader = self._get_data_loader_copy()
-        return VisionTask(new_data_loader,
-                          image_formatter=self.image_formatter,
-                          label_formatter=self.label_formatter,
-                          transform_field=self.transform_field,
-                          label_map=self._label_map)
+        return self.__class__(new_data_loader,
+                              num_classes=self.num_classes,
+                              label_map=self._label_map,
+                              random_seed=self._random_seed,
+                              transform_field=self._transform_field)
 
     def to_batch(self, *samples):
         """Use the defined collate_fn to transform a few data items to batch format."""
@@ -196,7 +199,7 @@ class VisionTask:
 
     def set_seed(self, seed: int):
         """Set seed for data loader."""
-        generator = self._data_loader.generator
+        generator: torch.Generator = self._data_loader.generator
         if generator is not None and seed is not None:
             generator.set_state(torch.Generator().manual_seed(seed).get_state())
 
@@ -219,7 +222,7 @@ class VisionTask:
             raise DeepchecksValueError('Check requires dataset to be of type VisionTask. instead got: '
                                        f'{type(other).__name__}')
 
-        if self.is_have_label() != other.is_have_label():
+        if self._has_label != other._has_label:
             raise DeepchecksValueError('Datasets required to both either have or don\'t have labels')
 
         if self._task_type != other._task_type:
