@@ -45,7 +45,7 @@ class ObjectDetectionTask(VisionTask):
             self._validate_label(next(iter(self._data_loader)))
             self._has_label = True
         except DeepchecksValueError:
-            logger.warn('batch_to_labels() was not implemented, some checks will not run')
+            logger.warning('batch_to_labels() was not implemented, some checks will not run')
             self._has_label = False
 
     @abstractmethod

@@ -40,7 +40,7 @@ class ClassificationTask(VisionTask):
             self._validate_label(next(iter(self._data_loader)))
             self._has_label = True
         except DeepchecksValueError:
-            logger.warn('batch_to_labels() was not implemented, some checks will not run')
+            logger.warning('batch_to_labels() was not implemented, some checks will not run')
             self._has_label = False
 
     @abstractmethod
@@ -73,7 +73,7 @@ class ClassificationTask(VisionTask):
         ----------
         batch
         """
-        labels = self(batch)
+        labels = self.batch_to_labels(batch)
         if not isinstance(labels, (torch.Tensor, np.ndarray)):
             raise DeepchecksValueError('Check requires classification label to be a torch.Tensor or numpy array')
         label_shape = labels.shape
