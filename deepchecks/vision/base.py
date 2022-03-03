@@ -35,7 +35,6 @@ from deepchecks.core.errors import (
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.utils.validation import apply_to_tensor
-from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
 logger = logging.getLogger('deepchecks')
 
