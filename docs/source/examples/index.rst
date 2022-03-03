@@ -10,6 +10,7 @@ How-to Guides
 - :doc:`guides/configure_check_conditions`
 - :doc:`guides/save_suite_result_as_html`
 - :doc:`guides/export_outputs_to_json`
+- :doc:`guides/export_outputs_to_wandb`
 
 .. toctree::
     :maxdepth: 3
@@ -23,6 +24,7 @@ How-to Guides
     guides/configure_check_conditions
     guides/save_suite_result_as_html
     guides/export_outputs_to_json
+    guides/export_outputs_to_wandb
 
 Use Cases
 ~~~~~~~~~
