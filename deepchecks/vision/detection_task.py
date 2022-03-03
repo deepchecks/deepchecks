@@ -19,13 +19,13 @@ from torch.utils.data import DataLoader
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.vision_task import VisionTask
+from deepchecks.vision.vision_data import VisionData
 
 logger = logging.getLogger('deepchecks')
 
-class ObjectDetectionTask(VisionTask):
+class DetectionData(VisionData):
     """
-    ObjectDetectionTask is an abstract class that defines the interface for
+    DetectionData is an abstract class that defines the interface for
     object detection tasks.
 
     """

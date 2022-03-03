@@ -39,7 +39,7 @@ class TaskType(Enum):
     SEMANTIC_SEGMENTATION = 'semantic_segmentation'
 
 
-class VisionData:
+class VisionDataOld:
     """VisionData wraps a PyTorch DataLoader together with model related metadata.
 
     The VisionData class is containing additional data and methods intended for easily accessing

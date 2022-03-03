@@ -19,11 +19,11 @@ from torch.utils.data import DataLoader
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.vision_task import VisionTask
+from deepchecks.vision.vision_data import VisionData
 
 logger = logging.getLogger('deepchecks')
 
-class ClassificationTask(VisionTask):
+class ClassificationData(VisionData):
 
     def __init__(self,
                  data_loader: DataLoader,
