@@ -100,9 +100,6 @@ except:  # pylint: disable=bare-except
     # If version file can't be found, leave version empty
     __version__ = ''
 
-warnings.warn('Looks like you are using outdated version of deepchecks. consider upgrading using'
-              ' pip install -U deepchecks')
-
 # Check for latest version
 try:
     disable = os.environ.get('DEEPCHECKS_DISABLE_LATEST', 'false').lower() == 'true'
