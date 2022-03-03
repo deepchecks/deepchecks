@@ -11,13 +11,19 @@
 """The vision/dataset module containing the vision Dataset class and its functions."""
 from copy import copy
 from abc import abstractmethod
-from typing import Any, List, Optional, Dict, Union
+from typing import Any, List, Optional, Dict, TypeVar, Union
 
+import logging
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from deepchecks.core.errors import DeepchecksBaseError, DeepchecksProcessError, DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.vision.utils.image_functions import ImageInfo
+from deepchecks.vision.utils.transformations import add_augmentation_in_start, get_transforms_handler
+
+logger = logging.getLogger('deepchecks')
+VT = TypeVar('VT', bound='VisionTask')
 
 class VisionTask:
     """VisionTask represent a base task in deepchecks. It wraps PyTorch DataLoader together with model related metadata.
@@ -58,16 +64,17 @@ class VisionTask:
                  data_loader: DataLoader,
                  num_classes: Optional[int] = None,
                  label_map: Optional[Dict[int, str]] = None,
-                 sample_size: int = 1000,
                  random_seed: int = 42,
                  transform_field: Optional[str] = 'transforms'):
 
         self._data_loader = data_loader
+        self._data_loader = self._get_data_loader_copy()
+
         self._num_classes = num_classes
         self._label_map = label_map
-        self._sample_size = sample_size
         self._random_seed = random_seed
         self._transform_field = transform_field
+        self._warned_labels = set()
 
     @abstractmethod
     def batch_to_images(self, batch) -> List[np.ndarray]:
@@ -103,6 +110,11 @@ class VisionTask:
         )
 
     @property
+    def data_loader(self) -> int:
+        """Return the data loader."""
+        return self._data_loader
+
+    @property
     def num_classes(self) -> int:
         """Return the number of classes in the dataset."""
         if self._num_classes is None:
@@ -116,29 +128,126 @@ class VisionTask:
             self._n_of_samples_per_class = self.batch_to_labels(self._data_loader)
         return copy(self._n_of_samples_per_class)
 
-    @staticmethod
-    def _get_data_loader_props_to_copy(data_loader):
+    @property
+    def data_dimension(self):
+        """Return how many dimensions the image data have."""
+        image = self.batch_to_images(next(iter(self)))[0]  # pylint: disable=not-callable
+        return ImageInfo(image).get_dimension()
+
+    def label_id_to_name(self, class_id: int) -> str:
+        """Return the name of the class with the given id."""
+        # Converting the class_id to integer to make sure it is an integer
+        class_id = int(class_id)
+
+        if self._label_map is None:
+            return str(class_id)
+        elif class_id not in self._label_map:
+            if class_id not in self._warned_labels:
+                # We want to warn one time per class
+                self._warned_labels.add(class_id)
+                logger.warning('Class id %s is not in the label map.', class_id)
+            return str(class_id)
+        else:
+            return self._label_map[class_id]
+
+    def get_transform_type(self):
+        """Return transforms handler created from the transform field."""
+        dataset_ref = self._data_loader.dataset
+        # If no field exists raise error
+        if not hasattr(dataset_ref, self._transform_field):
+            msg = f'Underlying Dataset instance does not contain "{self._transform_field}" attribute. If your ' \
+                  f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
+            raise DeepchecksValueError(msg)
+        transform = dataset_ref.__getattribute__(self._transform_field)
+        return get_transforms_handler(transform)
+
+    def add_augmentation(self, aug):
+        """Validate transform field in the dataset, and add the augmentation in the start of it."""
+        dataset_ref = self._data_loader.dataset
+        # If no field exists raise error
+        if not hasattr(dataset_ref, self._transform_field):
+            msg = f'Underlying Dataset instance does not contain "{self._transform_field}" attribute. If your ' \
+                  f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
+            raise DeepchecksValueError(msg)
+        transform = dataset_ref.__getattribute__(self._transform_field)
+        new_transform = add_augmentation_in_start(aug, transform)
+        dataset_ref.__setattr__(self._transform_field, new_transform)
+
+    def copy(self) -> VT:
+        """Create new copy of this object, with the data-loader and dataset also copied."""
+        new_data_loader = self._get_data_loader_copy()
+        return VisionTask(new_data_loader,
+                          image_formatter=self.image_formatter,
+                          label_formatter=self.label_formatter,
+                          transform_field=self.transform_field,
+                          label_map=self._label_map)
+
+    def to_batch(self, *samples):
+        """Use the defined collate_fn to transform a few data items to batch format."""
+        return self._data_loader.collate_fn(list(samples))
+
+    def set_seed(self, seed: int):
+        """Set seed for data loader."""
+        generator = self._data.generator
+        if generator is not None and seed is not None:
+            generator.set_state(torch.Generator().manual_seed(seed).get_state())
+
+    def validate_shared_label(self, other: VT):
+        """Verify presence of shared labels.
+
+        Validates whether the 2 datasets share the same label shape
+
+        Parameters
+        ----------
+        other : VisionData
+            Expected to be Dataset type. dataset to compare
+
+        Raises
+        ------
+        DeepchecksValueError
+            if datasets don't have the same label
+        """
+        if not isinstance(other, VT):
+            raise DeepchecksValueError('Check requires dataset to be of type VisionData. instead got: '
+                                       f'{type(other).__name__}')
+
+        if self.is_have_label() != other.is_have_label():
+            raise DeepchecksValueError('Datasets required to both either have or don\'t have labels')
+
+        if self.task_type != other.task_type:
+            raise DeepchecksValueError('Datasets required to have same label type')
+
+    def __iter__(self):
+        """Return an iterator over the dataset."""
+        return iter(self._data_loader)
+
+    def __len__(self):
+        """Return the number of batches in the dataset dataloader."""
+        return len(self._data_loader)
+
+    def _get_data_loader_copy(self):
         props = {
-            'num_workers': data_loader.num_workers,
-            'collate_fn': data_loader.collate_fn,
-            'pin_memory': data_loader.pin_memory,
-            'timeout': data_loader.timeout,
-            'worker_init_fn': data_loader.worker_init_fn,
-            'prefetch_factor': data_loader.prefetch_factor,
-            'persistent_workers': data_loader.persistent_workers,
+            'num_workers': self._data_loader.num_workers,
+            'collate_fn': self._data_loader.collate_fn,
+            'pin_memory': self._data_loader.pin_memory,
+            'timeout': self._data_loader.timeout,
+            'worker_init_fn': self._data_loader.worker_init_fn,
+            'prefetch_factor': self._data_loader.prefetch_factor,
+            'persistent_workers': self._data_loader.persistent_workers,
             'generator': torch.Generator()
         }
         # Add batch sampler if exists, else sampler
-        if data_loader.batch_sampler is not None:
+        if self._data_loader.batch_sampler is not None:
             # Can't deepcopy since generator is not pickle-able, so copying shallowly and then copies also sampler inside
-            batch_sampler = copy(data_loader.batch_sampler)
+            batch_sampler = copy(self._data_loader.batch_sampler)
             batch_sampler.sampler = copy(batch_sampler.sampler)
             # Replace generator instance so the copied dataset will not affect the original
             batch_sampler.sampler.generator = props['generator']
             props['batch_sampler'] = batch_sampler
         else:
-            sampler = copy(data_loader.sampler)
+            sampler = copy(self._data_loader.sampler)
             # Replace generator instance so the copied dataset will not affect the original
             sampler.generator = props['generator']
             props['sampler'] = sampler
-        return props
+        props['dataset'] = copy(self._data_loader.dataset)
+        return self._data_loader.__class__(**props)
