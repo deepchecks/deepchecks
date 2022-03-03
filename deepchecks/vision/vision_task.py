@@ -75,10 +75,16 @@ class VisionTask:
         self._random_seed = random_seed
         self._transform_field = transform_field
         self._warned_labels = set()
+
+        try:
+            self._validate_image_data(next(iter(self._data_loader)))
+            self._has_images = True
+        except DeepchecksValueError:
+            logger.warn('batch_to_images() was not implemented, some checks will not run')
+            self._has_images = False
+
         self._task_type = None
         self._has_label = None
-        self._has_images = None
-        self._has_prediction = None
 
     @abstractmethod
     def batch_to_images(self, batch) -> List[np.ndarray]:
@@ -206,7 +212,7 @@ class VisionTask:
         if self._task_type != other._task_type:
             raise DeepchecksValueError('Datasets required to have same label type')
 
-    def validate_image_data(self, batch):
+    def _validate_image_data(self, batch):
         """Validate that the data is in the required format.
 
         The validation is done on the first element of the batch.
@@ -221,7 +227,7 @@ class VisionTask:
             If the batch data doesn't fit the format after being transformed by self().
 
         """
-        data = self(batch)
+        data = self.batch_to_images(batch)
         try:
             sample: np.ndarray = data[0]
         except TypeError as err:

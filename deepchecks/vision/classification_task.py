@@ -10,6 +10,7 @@
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
 from abc import abstractmethod
+import logging
 from typing import List, Optional, Dict, Union
 import numpy as np
 
@@ -19,6 +20,8 @@ from torch.utils.data import DataLoader
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.vision_task import VisionTask
+
+logger = logging.getLogger('deepchecks')
 
 class ClassificationTask(VisionTask):
 
@@ -33,6 +36,12 @@ class ClassificationTask(VisionTask):
         super().__init__(data_loader, num_classes, label_map, sample_size,
                          random_seed, transform_field)
         self.task_type = TaskType.CLASSIFICATION
+        try:
+            self._validate_label(next(iter(self._data_loader)))
+            self._has_label = True
+        except DeepchecksValueError:
+            logger.warn('batch_to_labels() was not implemented, some checks will not run')
+            self._has_label = False
 
     @abstractmethod
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor[torch.Tensor]]:
@@ -56,7 +65,7 @@ class ClassificationTask(VisionTask):
             "infer_on_batch() must be implemented in a subclass"
         )
 
-    def validate_label(self, batch):
+    def _validate_label(self, batch):
         """
         Validate the label.
 
