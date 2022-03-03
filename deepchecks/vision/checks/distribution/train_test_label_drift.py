@@ -9,22 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Train Test label Drift check."""
-from copy import copy
-from typing import Dict, Hashable, Callable, Tuple, List, Union, Any
+from typing import Dict, List, Any
 
 import pandas as pd
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
-from plotly.subplots import make_subplots
 
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.vision.base import Context, TrainTestCheck
-from deepchecks.utils.distribution.plot import drift_score_bar_traces
-from deepchecks.utils.plot import colors
 from deepchecks.vision.dataset import VisionData, TaskType
-import numpy as np
-from collections import Counter, OrderedDict
-import plotly.graph_objs as go
+from collections import OrderedDict
 
 __all__ = ['TrainTestLabelDrift']
 
@@ -96,14 +90,10 @@ class TrainTestLabelDrift(TrainTestCheck):
         List of measurements. Replaces the default deepchecks measurements.
         Each measurement is dictionary with keys 'name' (str), 'method' (Callable) and is_continuous (bool),
         representing attributes of said method.
-    min_sample_size: int, default: None
-        number of minimum samples (not batches) to be accumulated in order to estimate the boundaries (min, max) of
-        continuous histograms. As the check cannot load all label measurement results into memory, the check saves only
-        the histogram of results - but prior to that, the check requires to know the estimated boundaries of train AND
-        test datasets (they must share an x-axis).
-    default_num_bins: int, default: 100
-        number of bins to use for continuous distributions. This value is not used if the distribution has less unique
-        values than default number of bins (and instead, number of unique values is used).
+    max_num_categories : int , default: 10
+        Only for non-continues measurements. Max number of allowed categories. If there are more,
+        they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
+        for both drift calculation and for distribution plots.
     """
 
     def __init__(
@@ -125,19 +115,10 @@ class TrainTestLabelDrift(TrainTestCheck):
 
         Label measurements:
         _label_measurements: all label measurements to be calculated in run
-        _continuous_label_measurements: all continuous label measurements
-        _discrete_label_measurements: all discrete label measurements
 
-        Value counts of measures, to be updated per batch:
-        _train_hists, _test_hists: histograms for continuous measurements for train and test respectively.
-            Initialized as list of empty histograms (np.array) that update in the "update" method per batch.
-        _train_counters, _test_counters: counters for discrete measurements for train and test respectively.
-            Initialized as list of empty counters (collections.Counter) that update in the "update" method per batch.
-
-        Parameters for continuous measurements histogram calculation:
-        _bounds_list: List[Tuple]. Each tuple represents histogram bounds (min, max)
-        _num_bins_list: List[int]. List of number of bins for each histogram.
-        _edges: List[np.array]. List of x-axis values for each histogram.
+        Label measurements caching:
+        _train_label_properties, _test_label_properties: Dicts of lists accumulating the label measurements computed for
+        each batch.
         """
         train_dataset = context.train
 
@@ -180,7 +161,6 @@ class TrainTestLabelDrift(TrainTestCheck):
             value: drift score.
             display: label distribution graph, comparing the train and test distributions.
         """
-
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
         label_measures_names = [x['name'] for x in self._label_measurements]

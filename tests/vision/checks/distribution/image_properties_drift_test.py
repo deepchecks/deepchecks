@@ -23,7 +23,7 @@ from hamcrest import (
     contains_inanyorder,
     greater_than,
     # matches_regexp as matches,
-    equal_to
+    equal_to, has_key
 )
 
 from deepchecks.core import CheckResult
@@ -50,7 +50,7 @@ def test_image_property_drift_initialization_with_empty_list_of_image_properties
 def test_image_property_drift_initialization_with_list_of_unknown_image_properties():
     assert_that(
         calling(ImagePropertyDrift).with_args(image_properties=['hello', 'aspect_ratio']),
-        raises(DeepchecksValueError, r'receivedd list of unknown image properties - \[\'hello\'\]')
+        raises(DeepchecksValueError, r'received list of unknown image properties - \[\'hello\'\]')
     )
 
 
@@ -96,9 +96,9 @@ def contains_passed_condition():
 
 def is_correct_image_property_drift_result():
     value_assertion = all_of(
-        instance_of(pd.DataFrame),
-        has_property('index', contains_inanyorder(*list(ImageFormatter.IMAGE_PROPERTIES))),
-    )
+        instance_of(dict),
+        *[has_key(property_name) for property_name in ImageFormatter.IMAGE_PROPERTIES])
+
     display_assertion = all_of(
         instance_of(list),
         has_length(greater_than(1)),
