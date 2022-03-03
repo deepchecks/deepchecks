@@ -102,27 +102,6 @@ def test_initialization_of_vision_data_with_classification_dataset_that_contains
     )
 
 
-# def test_vision_data_sample_loader():
-#     # Arrange
-#     loader = t.cast(DataLoader, mnist.load_dataset(train=True, object_type='DataLoader'))
-#     dataset = VisionData(loader, num_classes=10, sample_size=100)
-
-#     # Act
-#     samples = list(iter(dataset.sample_data_loader))
-
-#     # Assert
-#     assert_that(len(samples), equal_to(100))
-
-#     for s in samples:
-#         assert_that(len(s), equal_to(2))
-
-#         x, y = s
-#         assert_that(x, instance_of(torch.Tensor))
-#         assert_that(y, instance_of(torch.Tensor))
-#         assert_that(x.shape, equal_to((1, 1, 28, 28)))
-#         assert_that(y.shape, equal_to((1,)))
-
-
 def test_vision_data_n_of_samples_per_class_inference_for_classification_dataset():
     # Arrange
     loader = t.cast(DataLoader, mnist.load_dataset(train=True, object_type="DataLoader"))
