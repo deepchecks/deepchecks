@@ -13,8 +13,6 @@ from typing import Tuple, List
 import cv2
 import numpy as np
 
-from deepchecks.core.errors import DeepchecksValueError
-
 __all__ = ['IMAGE_PROPERTIES',
            'aspect_ratio',
            'area',
@@ -47,13 +45,12 @@ def area(batch: List[np.array]) -> List[int]:
     return [np.prod(get_size(img)) for img in batch]
 
 
-def brightness(batch: List[np.array], sample_size_for_image_properties=10000) -> List[float]:
+def brightness(batch: List[np.array]) -> List[float]:
     """Calculate brightness on each image in the batch."""
     if _is_grayscale(batch) is True:
         return [img.mean() for img in batch]
     else:
-        flattened_batch = _flatten_batch(batch, sample_size_for_image_properties)
-        return [(0.299*img[:, 0] + 0.587*img[:, 1] + 0.114 * img[:, 2]).mean() for img in flattened_batch]
+        return [(0.299*img[:, 0] + 0.587*img[:, 1] + 0.114 * img[:, 2]).mean() for img in batch]
 
 
 def contrast(batch: List[np.array]) -> List[float]:
@@ -61,19 +58,19 @@ def contrast(batch: List[np.array]) -> List[float]:
     raise NotImplementedError('Not yet implemented')  # TODO
 
 
-def normalized_red_mean(batch: List[np.array], sample_size_for_image_properties=10000) -> List[float]:
+def normalized_red_mean(batch: List[np.array]) -> List[float]:
     """Return the normalized mean of the red channel."""
-    return [x[0] for x in _normalized_rgb_mean(batch, sample_size_for_image_properties)]
+    return [x[0] for x in _normalized_rgb_mean(batch)]
 
 
-def normalized_green_mean(batch: List[np.array], sample_size_for_image_properties=10000) -> List[float]:
+def normalized_green_mean(batch: List[np.array]) -> List[float]:
     """Return the normalized mean of the green channel."""
-    return [x[1] for x in _normalized_rgb_mean(batch, sample_size_for_image_properties)]
+    return [x[1] for x in _normalized_rgb_mean(batch)]
 
 
-def normalized_blue_mean(batch: List[np.array], sample_size_for_image_properties=10000) -> List[float]:
+def normalized_blue_mean(batch: List[np.array]) -> List[float]:
     """Return the normalized mean of the blue channel."""
-    return [x[2] for x in _normalized_rgb_mean(batch, sample_size_for_image_properties)]
+    return [x[2] for x in _normalized_rgb_mean(batch)]
 
 
 def _sizes(batch: List[np.array]):
@@ -81,7 +78,7 @@ def _sizes(batch: List[np.array]):
     return [get_size(img) for img in batch]
 
 
-def _normalized_rgb_mean(batch: List[np.array], sample_size_for_image_properties) -> List[Tuple[float, float, float]]:
+def _normalized_rgb_mean(batch: List[np.array]) -> List[Tuple[float, float, float]]:
     """Calculate normalized mean for each channel (rgb) in image.
 
     The normalized mean of each channel is calculated by first normalizing the image's pixels (meaning, each color
@@ -109,40 +106,8 @@ def _normalized_rgb_mean(batch: List[np.array], sample_size_for_image_properties
                            for img in batch]
 
 
-def _normalize_colors_in_pixel(pixel):
-    pxl_sum = pixel.sum()
-    return np.array([pixel[i] / pxl_sum if pxl_sum else 0 for i in range(3)])
-
-
 def _is_grayscale(batch):
     return get_dimension(batch[0]) == 1
-
-
-def _sample_images_in_batch(flattened_batch, sample_size_for_image_properties):
-    if sample_size_for_image_properties is None:
-        raise RuntimeError(
-            'function sample_images_in_batch should not be called if sample_size_for_image_properties is None')
-    ret_batch = []
-    np.random.seed(len(flattened_batch))
-    for img in flattened_batch:
-        if img.shape[0] <= sample_size_for_image_properties:
-            ret_batch.append(img)
-        else:
-            indexes = np.random.randint(0, img.shape[0], sample_size_for_image_properties)
-            sampled_img = np.array([img[i, :] for i in indexes])
-            ret_batch.append(sampled_img)
-
-    return ret_batch
-
-
-def _flatten_batch(batch, sample_size_for_image_properties):
-    if _is_grayscale(batch) is True:
-        raise DeepchecksValueError('function _flatten_batch cannot run on 1-dimensional image (grayscale)')
-    flattened_imgs = [img.reshape([img.shape[0] * img.shape[1], 3]) for img in batch]
-    if sample_size_for_image_properties is not None:
-        return _sample_images_in_batch(flattened_imgs, sample_size_for_image_properties)
-    else:
-        return flattened_imgs
 
 
 def get_size(img) -> Tuple[int, int]:
