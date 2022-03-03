@@ -163,9 +163,9 @@ And we can watch the output:
 
 Implementing the ClassificationTask class
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The first step is to define the appropriate task type that represents the model. In deepchecks, there are two
-task types: **classification** and **object detection**. In this tutorial, we will implement the classification
-task type by implementing a class that inherits from the
+The first step is to implement a Task class that enables deepchecks to interface with you model and data.
+The appropriate class to implement should be selected according to you models task type. In this tutorial,
+we will implement the classification task type by implementing a class that inherits from the
 :class:`deepchecks.vision.classification_task.ClassificationTask` class.
 
 The goal of this class is to make sure the outputs of the model and of the dataloader are in the correct format.
@@ -185,9 +185,10 @@ To learn more about the expected format please visit the API reference for the
     where each image is a numpy array of shape (height, width, channels). The numbers in the array should be in the
     range [0, 255]
     """
+        inp = batch[0].detach().numpy().transpose((1, 2, 0))
         mean = [0.485, 0.456, 0.406]
         std = [0.229, 0.224, 0.225]
-        inp = std * batch[0] + mean
+        inp = std * inp + mean
         inp = np.clip(inp, 0, 1)
         return inp
 
@@ -221,8 +222,8 @@ And observe the output:
   Validating AntsBeesTask....
   OK!
 
-Validating the model with deepchecks` full suite!
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Running Deepchecks' full suite on our data and model!
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Now that we have defined the task class, we can validate the model with the full suite of deepchecks.
 This can be done with this simple few lines of code:
 
