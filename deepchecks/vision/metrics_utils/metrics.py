@@ -21,8 +21,7 @@ from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 
 from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
-from deepchecks.vision import VisionData
+from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
 
 
@@ -89,7 +88,6 @@ def calculate_metrics(
     metrics: t.Dict[str, Metric],
     dataset: VisionData,
     model: nn.Module,
-    prediction_formatter: BasePredictionFormatter,
     device: torch.device
 ) -> t.Dict[str, float]:
     """Calculate a list of ignite metrics on a given model and dataset.
@@ -102,8 +100,6 @@ def calculate_metrics(
         Dataset object
     model : nn.Module
         Model object
-    prediction_formatter : Union[ClassificationPredictionFormatter, DetectionPredictionFormatter]
-        Function to convert the model output to the appropriate format for the label type
     device : Union[str, torch.device, None]
 
     Returns
@@ -113,7 +109,7 @@ def calculate_metrics(
     """
 
     def process_function(_, batch):
-        return prediction_formatter(batch, model, device), dataset.label_formatter(batch)
+        return dataset.infer_on_batch(batch, model, device), dataset.batch_to_labels(batch)
 
     engine = Engine(process_function)
 
@@ -121,7 +117,7 @@ def calculate_metrics(
         metric.reset()
         metric.attach(engine, name)
 
-    state = engine.run(dataset.get_data_loader())
+    state = engine.run(dataset.data_loader)
     return state.metrics
 
 

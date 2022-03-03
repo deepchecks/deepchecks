@@ -19,7 +19,6 @@ from torch import nn
 from torch.utils.data import DataLoader
 from ignite.metrics import Metric
 
-from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 from deepchecks.core.check import (
     CheckFailure,
     SingleDatasetBaseCheck,
@@ -60,8 +59,6 @@ class Context:
         A scikit-learn-compatible fitted estimator instance
     model_name: str , default: ''
         The name of the model
-    prediction_formatter : BasePredictionFormatter, default: None
-        An encoder to convert predictions to a format that can be used by the metrics.
     scorers : Mapping[str, Metric] , default: None
         dict of scorers names to a Metric
     scorers_per_class : Mapping[str, Metric] , default: None
@@ -80,7 +77,6 @@ class Context:
                  test: VisionData = None,
                  model: nn.Module = None,
                  model_name: str = '',
-                 prediction_formatter: BasePredictionFormatter = None,
                  scorers: Mapping[str, Metric] = None,
                  scorers_per_class: Mapping[str, Metric] = None,
                  device: Union[str, torch.device, None] = 'cpu',
@@ -121,7 +117,6 @@ class Context:
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
-        self._prediction_formatter = prediction_formatter
         self.random_state = random_state
 
     # Properties
@@ -213,7 +208,6 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         self,
         dataset: VisionData,
         model: Optional[nn.Module] = None,
-        prediction_formatter: BasePredictionFormatter = None,
         device: Union[str, torch.device, None] = 'cpu',
         random_state: int = 42
     ) -> CheckResult:
@@ -221,7 +215,6 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         assert self.context_type is not None
         context: Context = self.context_type(dataset,
                                              model=model,
-                                             prediction_formatter=prediction_formatter,
                                              device=device,
                                              random_state=random_state)
 
@@ -260,7 +253,6 @@ class TrainTestCheck(TrainTestBaseCheck):
         train_dataset: VisionData,
         test_dataset: VisionData,
         model: Optional[nn.Module] = None,
-        prediction_formatter: BasePredictionFormatter = None,
         device: Union[str, torch.device, None] = 'cpu',
         random_state: int = 42
     ) -> CheckResult:
@@ -269,7 +261,6 @@ class TrainTestCheck(TrainTestBaseCheck):
         context: Context = self.context_type(train_dataset,
                                              test_dataset,
                                              model=model,
-                                             prediction_formatter=prediction_formatter,
                                              device=device,
                                              random_state=random_state)
 
@@ -340,7 +331,6 @@ class Suite(BaseSuite):
             train_dataset: Optional[VisionData] = None,
             test_dataset: Optional[VisionData] = None,
             model: nn.Module = None,
-            prediction_formatter: BasePredictionFormatter = None,
             scorers: Mapping[str, Metric] = None,
             scorers_per_class: Mapping[str, Metric] = None,
             device: Union[str, torch.device, None] = 'cpu',
@@ -356,8 +346,6 @@ class Suite(BaseSuite):
             object, representing data an estimator predicts on
         model : nn.Module , default None
             A scikit-learn-compatible fitted estimator instance
-        prediction_formatter : BasePredictionFormatter, default: None
-            An encoder to convert predictions to a format that can be used by the metrics.
         scorers : Mapping[str, Metric] , default None
             dict of scorers names to scorer sklearn_name/function
         scorers_per_class : Mapping[str, Metric], default None
@@ -379,7 +367,6 @@ class Suite(BaseSuite):
             train_dataset,
             test_dataset,
             model,
-            prediction_formatter=prediction_formatter,
             scorers=scorers,
             scorers_per_class=scorers_per_class,
             device=device,

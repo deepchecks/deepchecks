@@ -10,15 +10,11 @@
 #
 """Module for defining detection encoders."""
 from collections import Counter
-from itertools import chain
-from typing import Union, Callable, Sequence, List, Tuple, Iterable
+from typing import Union, Sequence, List, Tuple, Iterable
 
 import numpy as np
 import torch
 from PIL.Image import Image
-
-from deepchecks.core.errors import DeepchecksValueError
-from .base_formatters import BaseLabelFormatter, BasePredictionFormatter
 
 
 __all__ = ['verify_bbox_format_notation', 'convert_batch_of_bboxes', 'convert_bbox', ]
