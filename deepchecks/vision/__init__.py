@@ -11,8 +11,8 @@
 """Package for vision functionality."""
 import logging
 from .dataset import VisionData
-from .vision_task import VisionTask
-from .classification_task import ClassificationTask
+from .vision_data import VisionTask
+from .classification_data import ClassificationTask
 from .base import (
     Context,
     Suite,

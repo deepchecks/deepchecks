@@ -24,7 +24,7 @@ from deepchecks.vision.utils import ClassificationLabelFormatter, DetectionLabel
 from deepchecks.vision.utils.base_formatters import BaseLabelFormatter
 from deepchecks.vision.utils.image_formatters import ImageFormatter
 from deepchecks.vision.utils.image_functions import ImageInfo
-from deepchecks.vision.vision_task import VisionTask
+from deepchecks.vision.vision_data import VisionTask
 
 logger = logging.getLogger('deepchecks')
 
