@@ -9,3 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for detection datasets and models."""
+from . import coco
+from . import yolo_to_coco
+
+__all__ = ["coco", "yolo_to_coco"]

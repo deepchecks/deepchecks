@@ -609,6 +609,12 @@ class ModelComparisonContext:
 class ModelComparisonCheck(BaseCheck):
     """Parent class for check that compares between two or more models."""
 
+    def __init__(self):
+        """Initialize the class."""
+        super().__init__()
+        # Replace the run_logic function with wrapped run function
+        setattr(self, 'run_logic', wrap_run(getattr(self, 'run_logic'), self))
+
     def run(self,
             train_datasets: Union[Dataset, List[Dataset]],
             test_datasets: Union[Dataset, List[Dataset]],
