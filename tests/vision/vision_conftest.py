@@ -9,12 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 import pathlib
-from typing import Tuple
 
 import numpy as np
 import pytest
 import torch
-from deepchecks.vision.utils import ClassificationLabelFormatter
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.dataloader import default_collate
 
@@ -27,6 +25,8 @@ from deepchecks.vision.datasets.classification.mnist import (
     load_model as load_mnist_net_model,
     load_dataset as load_mnist_dataset
 )
+from deepchecks.vision.utils import ClassificationLabelFormatter
+
 from tests.vision.utils_tests.mnist_imgaug import mnist_dataset_imgaug
 
 # Fix bug with torch.hub path on windows
@@ -83,8 +83,8 @@ def mnist_dataset_test():
     return load_mnist_dataset(train=False, object_type='VisionData')
 
 
-@pytest.fixture(scope='session')
-def mnist_drifted_datasets(mnist_dataset_train, mnist_dataset_test) -> Tuple[VisionData, VisionData]:
+@pytest.fixture
+def mnist_drifted_datasets(mnist_dataset_train, mnist_dataset_test):  # pylint: disable=redefined-outer-name
     full_mnist = torch.utils.data.ConcatDataset([mnist_dataset_train.get_data_loader().dataset,
                                                  mnist_dataset_test.get_data_loader().dataset])
     train_dataset, test_dataset = torch.utils.data.random_split(full_mnist, [60000, 10000],
@@ -95,7 +95,7 @@ def mnist_drifted_datasets(mnist_dataset_train, mnist_dataset_test) -> Tuple[Vis
     def collate_test(batch):
         modified_batch = []
         for item in batch:
-            image, label = item
+            _, label = item
             if label == 0:
                 if np.random.randint(10) == 0:
                     modified_batch.append(item)
