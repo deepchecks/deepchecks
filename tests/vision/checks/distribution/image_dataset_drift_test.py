@@ -22,11 +22,6 @@ def add_brightness(img):
     addition_of_brightness = (reverse * 0.11).astype(int)
     return img + addition_of_brightness
 
-
-def pil_formatter(batch):
-    return [np.array(img) for img in batch[0]]
-
-
 def pil_drift_formatter(batch):
     return [add_brightness(np.array(img)) for img in batch[0]]
 
@@ -81,7 +76,6 @@ def test_no_drift_rgb(coco_train_dataloader, coco_test_dataloader, device):
     # Arrange
     train = COCOData(coco_train_dataloader)
     test = COCOData(coco_test_dataloader)
-
     check = ImageDatasetDrift()
 
     # Act
@@ -89,12 +83,12 @@ def test_no_drift_rgb(coco_train_dataloader, coco_test_dataloader, device):
 
     # Assert
     assert_that(result.value, has_entries({
-        'domain_classifier_auc': close_to(0.494, 0.001),
+        'domain_classifier_auc': close_to(0.456, 0.001),
         'domain_classifier_drift_score': equal_to(0),
         'domain_classifier_feature_importance': has_entries({
             'brightness': equal_to(1),
             'aspect_ratio': equal_to(0),
-            'area': equal_to(0),
+            'area': close_to(0.142, 0.001),
             'normalized_red_mean': equal_to(0),
             'normalized_green_mean': equal_to(0),
             'normalized_blue_mean': equal_to(0),
@@ -104,8 +98,13 @@ def test_no_drift_rgb(coco_train_dataloader, coco_test_dataloader, device):
 
 def test_with_drift_rgb(coco_train_dataloader, coco_test_dataloader, device):
     # Arrange
-    train = COCOData(coco_train_dataloader)
-    test = COCOData(coco_test_dataloader)
+    class DriftCoco(COCOData):
+        def batch_to_images(self, batch):
+            return pil_drift_formatter(batch)
+
+    train = DriftCoco(coco_train_dataloader)
+    test = DriftCoco(coco_test_dataloader)
+
     check = ImageDatasetDrift()
 
     # Act

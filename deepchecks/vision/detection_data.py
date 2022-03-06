@@ -106,7 +106,7 @@ class DetectionData(VisionData):
             raise DeepchecksValueError('Check requires object detection label to be a list of 2D tensors, when '
                                        'each row has 5 columns: [class_id, x, y, width, height]')
 
-    def validate_prediction(self, batch, model, device):
+    def validate_prediction(self, model, device):
         """
         Validate the prediction.
 
@@ -117,7 +117,7 @@ class DetectionData(VisionData):
         model : t.Any
         device : torch.Device
         """
-        batch_predictions = self.infer_on_batch(batch, model, device)
+        batch_predictions = self.infer_on_batch(next(iter(self._data_loader)), model, device)
         if not isinstance(batch_predictions, list):
             raise DeepchecksValueError('Check requires detection predictions to be a list with an entry for each'
                                        ' sample')

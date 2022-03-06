@@ -270,8 +270,8 @@ class CocoDataset(VisionDataset):
     def download_coco128(cls, root: t.Union[str, Path]) -> t.Tuple[Path, str]:
         root = root if isinstance(root, Path) else Path(root)
         coco_dir = root / 'coco128'
-        images_dir = root / 'images' / 'train2017'
-        labels_dir = root / 'labels' / 'train2017'
+        images_dir = coco_dir / 'images' / 'train2017'
+        labels_dir = coco_dir / 'labels' / 'train2017'
 
         if not (root.exists() and root.is_dir()):
             raise RuntimeError(f'root path does not exist or is not a dir - {root}')

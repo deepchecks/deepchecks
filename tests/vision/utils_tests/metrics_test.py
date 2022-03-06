@@ -34,7 +34,7 @@ def test_ar_ignite_complient(coco_test_visiondata: VisionData, trained_yolov5_ob
 
 def test_equal_pycocotools(coco_test_visiondata: VisionData, trained_yolov5_object_detection, device):
     metric = AveragePrecision(return_option=None)
-    for batch in coco_test_visiondata.get_data_loader():
+    for batch in coco_test_visiondata:
         label = coco_test_visiondata.batch_to_labels(batch)
         prediction = coco_test_visiondata.infer_on_batch(batch, trained_yolov5_object_detection, device)
         metric.update((prediction, label))
