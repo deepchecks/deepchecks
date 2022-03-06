@@ -16,17 +16,15 @@ import pandas as pd
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.performance.error_model import error_model_display_dataframe, model_error_contribution, \
-    per_sample_binary_cross_entropy
+from deepchecks.utils.performance.error_model import error_model_display_dataframe, model_error_contribution
+from deepchecks.utils.single_sample_metrics import per_sample_binary_cross_entropy, per_sample_mean_iou
 
 from deepchecks.vision import TrainTestCheck, Context
 from deepchecks.vision.checks.distribution.image_property_drift import ImageProperty
 from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.metrics_utils.iou_utils import compute_class_ious
+from deepchecks.vision.utils import ImageFormatter
 
 __all__ = ['ModelErrorAnalysis']
-
-from deepchecks.vision.utils import ImageFormatter
 
 
 class ModelErrorAnalysis(TrainTestCheck):
@@ -135,29 +133,7 @@ class ModelErrorAnalysis(TrainTestCheck):
 
         elif dataset.task_type == TaskType.OBJECT_DETECTION:
             def scoring_func(predictions, labels):
-                mean_ious = []
-                for detected, ground_truth in zip(predictions, labels):
-                    if len(ground_truth) == 0:
-                        if len(detected) == 0:
-                            mean_ious.append(1)
-                        else:
-                            mean_ious.append(0)
-                        continue
-
-                    ious = compute_class_ious(detected, ground_truth)
-                    count = 0
-                    sum_iou = 0
-                    for _, cls_ious in ious.items():
-                        for detection in cls_ious:
-                            if len(detection):
-                                sum_iou += max(detection)
-                                count += 1
-                    if count:
-                        mean_ious.append(sum_iou/count)
-                    else:
-                        mean_ious.append(0)
-
-                return mean_ious
+                return per_sample_mean_iou(predictions, labels)
 
         # get score using scoring_function
         scores.extend(scoring_func(predictions, labels))

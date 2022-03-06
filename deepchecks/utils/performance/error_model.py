@@ -82,13 +82,6 @@ def create_error_regression_model(numeric_features, cat_features, random_state=4
     ]), numeric_features + cat_features
 
 
-def per_sample_binary_cross_entropy(y_true: np.array, y_pred: np.array):
-    """Calculate binary cross entropy on a single sample."""
-    y_true = np.array(y_true)
-    return - (np.tile(y_true.reshape((-1, 1)), (1, y_pred.shape[1])) *
-              np.log(y_pred + np.finfo(float).eps)).sum(axis=1)
-
-
 def error_model_display_dataframe(error_fi: pd.Series,
                                   error_model_predicted: pd.Series,
                                   dataset: pd.DataFrame,
@@ -147,8 +140,12 @@ def error_model_display(error_fi: pd.Series,
         Minimum segment size to consider.
     random_state: int
         Random seed
+
+    Returns
+    -------
+    Tuple[List, Dict]:
+        List of display elements and Dict of segment description
     """
-    print(n_display_samples)
     n_samples_display = min(n_display_samples, len(dataset))
     error_col_name = 'Deepchecks model error'
     display_error = pd.Series(error_model_predicted, name=error_col_name, index=dataset.data.index)
@@ -298,3 +295,5 @@ def get_segment_details_using_error(error_column_name, dataset: pd.DataFrame,
     segment_details = {'score': performance, 'n_samples': n_samples, 'frac_samples': n_samples / len(dataset)}
 
     return segment_label, segment_details
+
+

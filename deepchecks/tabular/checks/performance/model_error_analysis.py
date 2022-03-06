@@ -15,8 +15,8 @@ from sklearn import preprocessing
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck, Dataset
 from deepchecks.utils.metrics import ModelType
-from deepchecks.utils.performance.error_model import model_error_contribution, error_model_display, \
-    per_sample_binary_cross_entropy
+from deepchecks.utils.performance.error_model import model_error_contribution, error_model_display
+from deepchecks.utils.single_sample_metrics import per_sample_binary_cross_entropy, per_sample_mse
 from deepchecks.utils.strings import format_percent
 
 
@@ -194,7 +194,3 @@ class ModelErrorAnalysis(TrainTestCheck):
 
         return self.add_condition(f'The performance difference of the detected segments must'
                                   f' not be greater than {format_percent(max_ratio_change)}', condition)
-
-
-def per_sample_mse(y_true, y_pred):
-    return (y_true - y_pred) ** 2
