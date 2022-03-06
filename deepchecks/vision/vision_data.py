@@ -83,6 +83,7 @@ class VisionData:
             logger.warn('batch_to_images() was not implemented, some checks will not run')
             self._has_images = False
 
+        self._n_of_samples_per_class = None
         self._task_type = None
         self._has_label = None
 
