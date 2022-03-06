@@ -38,16 +38,16 @@ __all__ = ['load_dataset', 'load_model', 'yolo_prediction_formatter', 'yolo_labe
 DATA_DIR = Path(__file__).absolute().parent
 
 
-def load_model(pretrained: bool = True) -> nn.Module:
-    """Load the yolov5s model and return it."""
+def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cpu') -> nn.Module:
+    """Load the yolov5s (version 6.1)  model and return it."""
+    dev = torch.device(device) if isinstance(device, str) else device
     logger = logging.getLogger('yolov5')
     logger.disabled = True
-    model = torch.hub.load('ultralytics/yolov5', 'yolov5s',
+    model = torch.hub.load('ultralytics/yolov5:v6.1', 'yolov5s',
                            pretrained=pretrained,
                            verbose=False,
-                           device='cpu')
+                           device=dev)
     model.eval()
-    model.cpu()
     logger.disabled = False
     return model
 
@@ -290,7 +290,8 @@ def yolo_label_formatter(batch):
     """Translate yolo label to deepchecks format."""
     # our labels return at the end, and the VisionDataset expect it at the start
     def move_class(tensor):
-        return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3])) if len(tensor) > 0 else tensor
+        return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
+                if len(tensor) > 0 else tensor
     return [move_class(tensor) for tensor in batch[1]]
 
 
@@ -301,6 +302,7 @@ def yolo_image_formatter(batch):
 
 
 LABEL_MAP = {
+    0: 'unknown',
     1: 'person',
     2: 'bicycle',
     3: 'car',
@@ -325,8 +327,11 @@ LABEL_MAP = {
     23: 'bear',
     24: 'zebra',
     25: 'giraffe',
+    26: 'hat',
     27: 'backpack',
     28: 'umbrella',
+    29: 'shoe',
+    30: 'eye glasses',
     31: 'handbag',
     32: 'tie',
     33: 'suitcase',
@@ -341,6 +346,7 @@ LABEL_MAP = {
     42: 'surfboard',
     43: 'tennis racket',
     44: 'bottle',
+    45: 'plate',
     46: 'wine glass',
     47: 'cup',
     48: 'fork',
@@ -361,8 +367,12 @@ LABEL_MAP = {
     63: 'couch',
     64: 'potted plant',
     65: 'bed',
+    66: 'mirror',
     67: 'dining table',
+    68: 'window',
+    69: 'desk',
     70: 'toilet',
+    71: 'door',
     72: 'tv',
     73: 'laptop',
     74: 'mouse',
@@ -374,11 +384,13 @@ LABEL_MAP = {
     80: 'toaster',
     81: 'sink',
     82: 'refrigerator',
+    83: 'blender',
     84: 'book',
     85: 'clock',
     86: 'vase',
     87: 'scissors',
     88: 'teddy bear',
     89: 'hair drier',
-    90: 'toothbrush'
+    90: 'toothbrush',
+    91: 'hairbrush'
 }

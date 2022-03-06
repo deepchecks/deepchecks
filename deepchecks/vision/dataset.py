@@ -76,8 +76,7 @@ class VisionData:
     or else the callable label_formatter should be able to transform the labels to the desired format.
     """
 
-    label_formatter: BaseLabelFormatter
-    image_formatter: ImageFormatter
+    label_transformer: Optional[BaseLabelFormatter]
     task_type: Optional[TaskType]
     sample_iteration_limit: int
     _data: DataLoader
@@ -107,7 +106,7 @@ class VisionData:
             image_formatter.validate_data(batch_to_validate)
             self._image_formatter = image_formatter
         else:
-            self._image_formatter = None
+            self._image_formatter = ImageFormatter()
 
         if label_formatter:
             if isinstance(label_formatter, ClassificationLabelFormatter):
@@ -131,6 +130,7 @@ class VisionData:
                 except DeepchecksValueError as ex:
                     self._label_invalid = str(ex)
         else:
+            self.task_type = None
             self._label_invalid = 'label_formatter parameter was not defined'
 
         self._samples_per_class = None
@@ -172,12 +172,12 @@ class VisionData:
 
     def to_display_data(self, batch):
         """Convert a batch of data outputted by the data loader to a format that can be displayed."""
-        return self.image_formatter(batch)
+        return self.image_formatter(batch)  # pylint: disable=not-callable
 
     @property
     def data_dimension(self):
         """Return how many dimensions the image data have."""
-        image = self.image_formatter(next(iter(self)))[0]
+        image = self.image_formatter(next(iter(self)))[0]  # pylint: disable=not-callable
         return ImageInfo(image).get_dimension()
 
     @property
@@ -225,6 +225,10 @@ class VisionData:
         """Return an iterator over the dataset."""
         return iter(self._data)
 
+    def __len__(self):
+        """Return the number of batches in the dataset dataloader."""
+        return len(self._data)
+
     def get_data_loader(self):
         """Return the data loader."""
         return self._data
@@ -270,7 +274,7 @@ class VisionData:
     def set_seed(self, seed):
         """Set seed for data loader."""
         generator = self._data.generator
-        if generator is not None:
+        if generator is not None and seed is not None:
             generator.set_state(torch.Generator().manual_seed(seed).get_state())
 
     def validate_shared_label(self, other):
@@ -382,10 +386,20 @@ def get_data_loader_props_to_copy(data_loader):
         'timeout': data_loader.timeout,
         'worker_init_fn': data_loader.worker_init_fn,
         'prefetch_factor': data_loader.prefetch_factor,
-        'persistent_workers': data_loader.persistent_workers
+        'persistent_workers': data_loader.persistent_workers,
+        'generator': torch.Generator()
     }
+    # Add batch sampler if exists, else sampler
     if data_loader.batch_sampler is not None:
-        props['batch_sampler'] = data_loader.batch_sampler
+        # Can't deepcopy since generator is not pickle-able, so copying shallowly and then copies also sampler inside
+        batch_sampler = copy(data_loader.batch_sampler)
+        batch_sampler.sampler = copy(batch_sampler.sampler)
+        # Replace generator instance so the copied dataset will not affect the original
+        batch_sampler.sampler.generator = props['generator']
+        props['batch_sampler'] = batch_sampler
     else:
-        props['sampler'] = data_loader.sampler
+        sampler = copy(data_loader.sampler)
+        # Replace generator instance so the copied dataset will not affect the original
+        sampler.generator = props['generator']
+        props['sampler'] = sampler
     return props

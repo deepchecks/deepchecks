@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing class performance check."""
-from typing import TypeVar, List, Any
+from typing import TypeVar, List, Any, Dict
 
 import pandas as pd
 import plotly.express as px
@@ -21,7 +21,7 @@ from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision import TrainTestCheck, Context
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.metrics_utils.metrics import get_scorers_list, metric_results_to_df, \
-    get_default_classification_scorers, get_default_object_detection_scorers
+    get_default_classification_scorers, get_default_object_detection_scorers, filter_classes_for_display
 
 __all__ = ['ClassPerformance']
 
@@ -33,8 +33,9 @@ class ClassPerformance(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_metrics : List[Metric], default: None
-        A list of ignite.Metric objects whose score should be used. If None are given, use the default metrics.
+    alternative_metrics : Dict[str, Metric], default: None
+        A dictionary of metrics, where the key is the metric name and the value is an ignite.Metric object whose score
+        should be used. If None are given, use the default metrics.
     n_to_show : int, default: 20
         Number of classes to show in the report. If None, show all classes.
     show_only : str, default: 'largest'
@@ -53,7 +54,7 @@ class ClassPerformance(TrainTestCheck):
     """
 
     def __init__(self,
-                 alternative_metrics: List[Metric] = None,
+                 alternative_metrics: Dict[str, Metric] = None,
                  n_to_show: int = 20,
                  show_only: str = 'largest',
                  metric_to_show_by: str = None,
@@ -118,7 +119,10 @@ class ClassPerformance(TrainTestCheck):
         if self.class_list_to_show is not None:
             results_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
         elif self.n_to_show is not None:
-            classes_to_show = self._filter_classes(results_df)
+            classes_to_show = filter_classes_for_display(results_df,
+                                                         self.metric_to_show_by,
+                                                         self.n_to_show,
+                                                         self.show_only)
             results_df = results_df.loc[results_df['Class'].isin(classes_to_show)]
 
         results_df = results_df.sort_values(by=['Dataset', 'Value'], ascending=False)
@@ -149,25 +153,6 @@ class ClassPerformance(TrainTestCheck):
             header='Class Performance',
             display=fig
         )
-
-    def _filter_classes(self, metrics_df: pd.DataFrame) -> list:
-        # working only on the test set
-        tests_metrics_df = metrics_df[(metrics_df['Dataset'] == DatasetKind.TEST.value) &
-                                      (metrics_df['Metric'] == self.metric_to_show_by)]
-        if self.show_only == 'largest':
-            tests_metrics_df = tests_metrics_df.sort_values(by='Number of samples', ascending=False)
-        elif self.show_only == 'smallest':
-            tests_metrics_df = tests_metrics_df.sort_values(by='Number of samples', ascending=True)
-        elif self.show_only == 'random':
-            tests_metrics_df = tests_metrics_df.sample(frac=1)
-        elif self.show_only == 'best':
-            tests_metrics_df = tests_metrics_df.sort_values(by='Value', ascending=False)
-        elif self.show_only == 'worst':
-            tests_metrics_df = tests_metrics_df.sort_values(by='Value', ascending=True)
-        else:
-            raise ValueError(f'Unknown show_only value: {self.show_only}')
-
-        return tests_metrics_df.head(self.n_to_show)['Class'].to_list()
 
     def add_condition_test_performance_not_less_than(self: PR, min_score: float) -> PR:
         """Add condition - metric scores are not less than given score.
