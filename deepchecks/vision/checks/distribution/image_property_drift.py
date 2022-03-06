@@ -22,7 +22,7 @@ from deepchecks.core import ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import TrainTestCheck
 from deepchecks.vision import Context
-from deepchecks.vision.utils.image_formatters import IMAGE_PROPERTIES
+from deepchecks.vision.utils import image_formatters
 from .train_test_label_drift import calc_drift_and_plot
 
 
@@ -58,13 +58,13 @@ class ImagePropertyDrift(TrainTestCheck):
         super().__init__()
 
         if image_properties is None:
-            self.image_properties = IMAGE_PROPERTIES
+            self.image_properties = image_formatters.IMAGE_PROPERTIES
         else:
             if len(image_properties) == 0:
                 raise DeepchecksValueError('image_properties list cannot be empty')
 
             received_properties = {p for p in image_properties if isinstance(p, str)}
-            unknown_properties = received_properties.difference(IMAGE_PROPERTIES)
+            unknown_properties = received_properties.difference(image_formatters.IMAGE_PROPERTIES)
 
             if len(unknown_properties) > 0:
                 raise DeepchecksValueError(
@@ -102,7 +102,7 @@ class ImagePropertyDrift(TrainTestCheck):
         for image_property in self.image_properties:
             if isinstance(image_property, str):
                 properties[image_property].extend(
-                    getattr(dataset.batch_to_images, image_property)(images)
+                    getattr(image_formatters, image_property)(images)
                 )
             elif callable(image_property):
                 # TODO: if it is a lambda it will have a name - <lambda>, that is a problem/

@@ -28,7 +28,7 @@ from hamcrest import (
 
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.utils import ImageFormatter
+from deepchecks.vision.utils.image_formatters import IMAGE_PROPERTIES
 from deepchecks.vision.checks.distribution import ImagePropertyDrift
 from deepchecks.vision.datasets.detection import coco
 
@@ -97,7 +97,7 @@ def contains_passed_condition():
 def is_correct_image_property_drift_result():
     value_assertion = all_of(
         instance_of(pd.DataFrame),
-        has_property('index', contains_inanyorder(*list(ImageFormatter.IMAGE_PROPERTIES))),
+        has_property('index', contains_inanyorder(*list(IMAGE_PROPERTIES))),
     )
     display_assertion = all_of(
         instance_of(list),
