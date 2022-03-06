@@ -146,6 +146,7 @@ def feature_distribution_traces(train_column,
         categories_list = [un_numpy(cat) for cat in categories_list]
         cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
                               index=categories_list)
+        cat_df.sort_index(inplace=True)
         train_bar = go.Bar(
             x=cat_df.index,
             y=cat_df['Train dataset'],

@@ -15,48 +15,15 @@ import pandas as pd
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 
 from deepchecks.core import DatasetKind, CheckResult
-from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedError
+from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.vision.base import Context, TrainTestCheck
-from deepchecks.vision.dataset import VisionData, TaskType
+from deepchecks.vision.dataset import TaskType
 from collections import OrderedDict
 
 __all__ = ['TrainTestLabelDrift']
 
-
-# TODO: Add label sampling when available
-
-# Functions temporarily here, will be changed when Label and Prediction classes exist:
-def _get_bbox_area(label, _):
-    """Return a list containing the area of bboxes per image in batch."""
-    areas = (label.reshape((-1, 5))[:, 4] * label.reshape((-1, 5))[:, 3]).reshape(-1, 1).tolist()
-    return areas
-
-
-def _count_num_bboxes(label, _):
-    """Return a list containing the number of bboxes per image in batch."""
-    num_bboxes = label.shape[0]
-    return num_bboxes
-
-
-def _get_samples_per_class_classification(label, dataset):
-    """Return a list containing the class per image in batch."""
-    return dataset.label_id_to_name(label.tolist())
-
-
-def _get_samples_per_class_object_detection(label, dataset):
-    """Return a list containing the class per image in batch."""
-    return [[dataset.label_id_to_name(arr.reshape((-1, 5))[:, 0])] for arr in label]
-
-
-DEFAULT_CLASSIFICATION_LABEL_MEASUREMENTS = [
-    {'name': 'Samples per class', 'method': _get_samples_per_class_classification, 'is_continuous': False}
-]
-
-DEFAULT_OBJECT_DETECTION_LABEL_MEASUREMENTS = [
-    {'name': 'Samples per class', 'method': _get_samples_per_class_object_detection, 'is_continuous': False},
-    {'name': 'Bounding box area (in pixels)', 'method': _get_bbox_area, 'is_continuous': True},
-    {'name': 'Number of bounding boxes per image', 'method': _count_num_bboxes, 'is_continuous': True},
-]
+from deepchecks.vision.utils.measurements import DEFAULT_CLASSIFICATION_LABEL_MEASUREMENTS, \
+    DEFAULT_OBJECT_DETECTION_LABEL_MEASUREMENTS, get_label_measurements_on_batch, validate_measurements
 
 
 class TrainTestLabelDrift(TrainTestCheck):
@@ -86,7 +53,7 @@ class TrainTestLabelDrift(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_label_measurements : List[Dict[str, Any]], default: 10
+    alternative_label_measurements : List[Dict[str, Any]], default: None
         List of measurements. Replaces the default deepchecks measurements.
         Each measurement is dictionary with keys 'name' (str), 'method' (Callable) and is_continuous (bool),
         representing attributes of said method.
@@ -104,7 +71,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         super().__init__()
         # validate alternative_label_measurements:
         if alternative_label_measurements is not None:
-            self._validate_label_measurements(alternative_label_measurements)
+            validate_measurements(alternative_label_measurements)
         self.alternative_label_measurements = alternative_label_measurements
         self.max_num_categories = max_num_categories
 
@@ -138,7 +105,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         self._test_label_properties = OrderedDict([(k['name'], []) for k in self._label_measurements])
 
     def update(self, context: Context, batch: Any, dataset_kind):
-        """Perform update on batch for train or test counters and histograms."""
+        """Perform update on batch for train or test properties."""
         # For all transformers, calculate histograms by batch:
         if dataset_kind == DatasetKind.TRAIN:
             dataset = context.train
@@ -151,11 +118,11 @@ class TrainTestLabelDrift(TrainTestCheck):
 
         for label_measurement in self._label_measurements:
             properties[label_measurement['name']].extend(
-                get_results_on_batch(batch, label_measurement['method'], dataset)
+                get_label_measurements_on_batch(batch, label_measurement['method'], dataset)
             )
 
     def compute(self, context: Context) -> CheckResult:
-        """Calculate drift on label measurements histograms that were collected during update() calls.
+        """Calculate drift on label measurement samples that were collected during update() calls.
 
         Returns
         -------
@@ -193,23 +160,3 @@ class TrainTestLabelDrift(TrainTestCheck):
         displays = [headnote] + [displays_dict[col] for col in columns_order]
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
-
-    @staticmethod
-    def _validate_label_measurements(label_measurements):
-        """Validate structure of label measurements."""
-        expected_keys = ['name', 'method', 'is_continuous']
-        if not isinstance(label_measurements, list):
-            raise DeepchecksValueError(
-                f'Expected label measurements to be a list, instead got {label_measurements.__class__.__name__}')
-        for label_measurement in label_measurements:
-            if not isinstance(label_measurement, dict) or any(
-                    key not in label_measurement.keys() for key in expected_keys):
-                raise DeepchecksValueError(f'Label measurement must be of type dict, and include keys {expected_keys}')
-
-
-def get_results_on_batch(batch, label_measurement, dataset: VisionData):
-    """Calculate transformer result on batch of labels."""
-    calc_res = [label_measurement(arr, dataset) for arr in dataset.label_formatter(batch)]
-    if len(calc_res) != 0 and isinstance(calc_res[0], list):
-        calc_res = [x[0] for x in sum(calc_res, [])]
-    return calc_res

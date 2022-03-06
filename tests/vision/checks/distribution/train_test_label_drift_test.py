@@ -148,7 +148,7 @@ def test_with_drift_object_detection_defected_alternative_measurements():
     # Assert
     assert_that(calling(TrainTestLabelDrift).with_args(alternative_measurements),
                 raises(DeepchecksValueError,
-                       "Label measurement must be of type dict, and include keys \['name', 'method', 'is_continuous'\]")
+                       "Measurement must be of type dict, and include keys \['name', 'method', 'is_continuous'\]")
                 )
 
 
@@ -159,5 +159,5 @@ def test_with_drift_object_detection_defected_alternative_measurements2():
     # Assert
     assert_that(calling(TrainTestLabelDrift).with_args(alternative_measurements),
                 raises(DeepchecksValueError,
-                       "Expected label measurements to be a list, instead got dict")
+                       "Expected measurements to be a list, instead got dict")
                 )
