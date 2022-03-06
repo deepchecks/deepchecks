@@ -77,7 +77,7 @@ class VisionData:
         self._warned_labels = set()
 
         try:
-            self._validate_image_data(next(iter(self._data_loader)))
+            self.validate_image_data(next(iter(self._data_loader)))
             self._has_images = True
         except DeepchecksValueError:
             logger.warn('batch_to_images() was not implemented, some checks will not run')
