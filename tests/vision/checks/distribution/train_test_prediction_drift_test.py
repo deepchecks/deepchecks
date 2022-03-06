@@ -10,6 +10,7 @@
 #
 """Test functions of the VISION train test prediction drift."""
 from hamcrest import assert_that, has_entries, close_to, equal_to, raises, calling
+from tests.checks.utils import equal_condition_result
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import TrainTestPredictionDrift
@@ -150,6 +151,27 @@ def test_with_drift_object_detection_alternative_measurements(coco_train_visiond
              'Method': equal_to('Earth Mover\'s Distance')}
         )
         }
+    ))
+
+
+def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, trained_mnist, device):
+    # Arrange
+    check = TrainTestPredictionDrift().add_condition_drift_score_not_greater_than()
+    mod_train_ds, mod_test_ds = mnist_drifted_datasets
+
+    # Act
+    result = check.run(mod_train_ds, mod_test_ds, trained_mnist,
+                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter),
+                       device=device)
+
+    condition_result, *_ = result.conditions_results
+
+    # Assert
+    assert_that(condition_result, equal_condition_result(
+        is_pass=False,
+        name='PSI <= 0.15 and Earth Mover\'s Distance <= 0.07 for prediction drift',
+        details='Found non-continues prediction measurements with PSI drift score above threshold: {\'Samples per '
+                'class\': \'0.17\'}\n'
     ))
 
 

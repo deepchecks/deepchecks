@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Image Property Drift check tests"""
-import pandas as pd
 from hamcrest import (
     assert_that,
     instance_of,
@@ -20,9 +19,7 @@ from hamcrest import (
     has_properties,
     has_length,
     contains_exactly,
-    contains_inanyorder,
     greater_than,
-    # matches_regexp as matches,
     equal_to, has_key
 )
 

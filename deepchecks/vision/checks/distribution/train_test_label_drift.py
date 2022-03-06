@@ -164,7 +164,8 @@ class TrainTestLabelDrift(TrainTestCheck):
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
 
     def add_condition_drift_score_not_greater_than(self, max_allowed_psi_score: float = 0.15,
-                                                   max_allowed_earth_movers_score: float = 0.07):
+                                                   max_allowed_earth_movers_score: float = 0.07
+                                                   ) -> 'TrainTestLabelDrift':
         """
         Add condition - require label measurements drift score to not be more than a certain threshold.
 
