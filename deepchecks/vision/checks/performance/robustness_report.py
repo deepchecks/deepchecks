@@ -102,7 +102,7 @@ class RobustnessReport(SingleDatasetCheck):
         aug_all_data = {}
         for augmentation_func in augmentations:
             augmentation = augmentation_name(augmentation_func)
-            aug_dataset = self._create_augmented_dataset(dataset, augmentation_func, context.random_state)
+            aug_dataset = dataset.get_augmented_dataset(augmentation_func)
             # The metrics have saved state, but they are reset inside `calculate_metrics`
             metrics = self._state['metrics']
             # Return dataframe of (Class, Metric, Value)
@@ -153,20 +153,9 @@ class RobustnessReport(SingleDatasetCheck):
 
         return self.add_condition(f'Metrics degrade by not more than {format_percent(ratio)}', condition)
 
-    def _create_augmented_dataset(self, dataset: VisionData, augmentation_func, seed=None):
-        # Create a copy of data loader and the dataset
-        aug_dataset: VisionData = dataset.copy()
-        # Add augmentation in the first place
-        aug_dataset.add_augmentation(augmentation_func)
-        # Set seed for reproducibility - The order of images is affecting the metrics, since the augmentations are
-        # not fixed (in a certain range), so different order of images will cause the images to be augmented a bit
-        # different which will lead to different metrics.
-        aug_dataset.set_seed(seed)
-        return aug_dataset
-
     def _validate_augmenting_affects(self, transform_handler, dataset: VisionData):
         """Validate the user is using the transforms' field correctly, and that if affects the image and label."""
-        aug_dataset = self._create_augmented_dataset(dataset, transform_handler.get_test_transformation())
+        aug_dataset = dataset.get_augmented_dataset(transform_handler.get_test_transformation())
         # Iterate both datasets and compare results
         baseline_sampler = iter(dataset.data_loader.dataset)
         aug_sampler = iter(aug_dataset.data_loader.dataset)

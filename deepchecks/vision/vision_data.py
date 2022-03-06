@@ -64,7 +64,6 @@ class VisionData:
                  data_loader: DataLoader,
                  num_classes: Optional[int] = None,
                  label_map: Optional[Dict[int, str]] = None,
-                 random_seed: int = 42,
                  transform_field: Optional[str] = 'transforms'):
 
         self._data_loader = data_loader
@@ -72,12 +71,11 @@ class VisionData:
 
         self._num_classes = num_classes
         self._label_map = label_map
-        self._random_seed = random_seed
         self._transform_field = transform_field
         self._warned_labels = set()
 
         try:
-            self._validate_image_data(next(iter(self._data_loader)))
+            self.validate_image_data(next(iter(self._data_loader)))
             self._has_images = True
         except DeepchecksValueError:
             logger.warn('batch_to_images() was not implemented, some checks will not run')
@@ -86,6 +84,7 @@ class VisionData:
         self._n_of_samples_per_class = None
         self._task_type = None
         self._has_label = None
+        self._current_seed = None
 
     @abstractmethod
     def get_classes(self, batch_labels: Union[List[torch.Tensor], torch.Tensor]):
@@ -184,8 +183,9 @@ class VisionData:
         transform = dataset_ref.__getattribute__(self._transform_field)
         return get_transforms_handler(transform)
 
-    def get_augmented_dataset(self, aug) -> Dataset:
-        """Validate transform field in the dataset, and add the augmentation in the start of it."""
+    def get_augmented_dataset(self, aug) -> VD:
+        """Validate transform field in the dataset, and return a copy of the vision data object
+        with the augmentation in the start of it."""
         dataset_ref = self._data_loader.dataset
         # If no field exists raise error
         if not hasattr(dataset_ref, self._transform_field):
@@ -196,16 +196,20 @@ class VisionData:
         new_transform = add_augmentation_in_start(aug, transform)
         dataset_copy = copy(dataset_ref)
         dataset_copy.__setattr__(self._transform_field, new_transform)
-        return dataset_copy
+        new_vision_data = self.copy()
+        new_vision_data._data_loader.dataset = dataset_copy
+        return new_vision_data
 
     def copy(self) -> VD:
         """Create new copy of this object, with the data-loader and dataset also copied."""
         new_data_loader = self._get_data_loader_copy()
-        return self.__class__(new_data_loader,
-                              num_classes=self.num_classes,
-                              label_map=self._label_map,
-                              random_seed=self._random_seed,
-                              transform_field=self._transform_field)
+        new_vision_data =  self.__class__(new_data_loader,
+                                          num_classes=self.num_classes,
+                                          label_map=self._label_map,
+                                          transform_field=self._transform_field)
+        if self._current_seed is not None:
+            new_vision_data.set_seed(self._current_seed)
+        return new_vision_data
 
     def to_batch(self, *samples):
         """Use the defined collate_fn to transform a few data items to batch format."""
@@ -216,6 +220,7 @@ class VisionData:
         generator: torch.Generator = self._data_loader.generator
         if generator is not None and seed is not None:
             generator.set_state(torch.Generator().manual_seed(seed).get_state())
+            self._current_seed = seed
 
     def validate_shared_label(self, other: VD):
         """Verify presence of shared labels.
