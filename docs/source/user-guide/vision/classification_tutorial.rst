@@ -161,20 +161,20 @@ And we can watch the output:
   Predictions shape is:  torch.Size([4, 2])
   Sample prediction:  tensor([1.3353, 0.3024], grad_fn=<SelectBackward0>)
 
-Implementing the ClassificationTask class
+Implementing the ClassificationData class
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The first step is to implement a Task class that enables deepchecks to interface with you model and data.
+The first step is to implement a class that enables deepchecks to interact with your model and data.
 The appropriate class to implement should be selected according to you models task type. In this tutorial,
 we will implement the classification task type by implementing a class that inherits from the
-:class:`deepchecks.vision.classification_task.ClassificationTask` class.
+:class:`deepchecks.vision.classification_data.ClassificationData` class.
 
 The goal of this class is to make sure the outputs of the model and of the dataloader are in the correct format.
 To learn more about the expected format please visit the API reference for the
-:class:`deepchecks.vision.classification_task.ClassificationTask` class.
+:class:`deepchecks.vision.classification_data.ClassificationData` class.
 
 .. code-block:: python
 
-  class AntsBeesTask(deepchecks.vision.classification_task.ClassificationTask):
+  class AntsBeesData(deepchecks.vision.classification_data.ClassificationData):
 
     def __init__(self, *args, **kwargs):
       super().__init__(*args, **kwargs)
@@ -212,14 +212,19 @@ After defining the task class, we can validate it by running the following code:
 
 .. code-block:: python
 
-  task = AntsBeesTask()
-  task.validate(dataloaders["train"], model, device)
+  training_data = AntsBeesData(data_loader=dataloaders["train"])
+  val_data = AntsBeesData(data_loader=dataloaders["val"])
+
+  training_data.validate_impl(model, device)
+  val_data.validate_impl(model, device)
 
 And observe the output:
 
 .. code-block::
 
-  Validating AntsBeesTask....
+  Validating AntsBeesData....
+  OK!
+  Validating AntsBeesData....
   OK!
 
 Running Deepchecks' full suite on our data and model!
@@ -230,4 +235,4 @@ This can be done with this simple few lines of code:
 .. code-block:: python
 
   suite = deepchecks.vision.suites.full_suite()
-  suite.run(dataloaders["train"], dataloaders["val"], task, model, device)
+  suite.run(training_data, val_data, model, device)
