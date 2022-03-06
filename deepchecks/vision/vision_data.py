@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
+from collections import Counter
 from copy import copy
 from abc import abstractmethod
 from typing import Any, List, Optional, Dict, TypeVar, Union
@@ -86,6 +87,11 @@ class VisionData:
         self._has_label = None
 
     @abstractmethod
+    def _get_classes(self, batch_labels: Union[List[torch.Tensor], torch.Tensor]):
+        """Get a labels batch and return classes inside it."""
+        return NotImplementedError("get_classes() must be implemented in a subclass")
+
+    @abstractmethod
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
         raise DeepchecksValueError(
             "batch_to_labels() must be implemented in a subclass"
@@ -121,7 +127,14 @@ class VisionData:
         )
 
     @property
-    def data_loader(self) -> torch.utils.data.DataLoader:
+    def n_of_samples_per_class(self) -> Dict[Any, int]:
+        """Return a dictionary containing the number of samples per class."""
+        if self._n_of_samples_per_class is None:
+            self._n_of_samples_per_class = self._get_samples_per_class()
+        return copy(self._n_of_samples_per_class)
+
+    @property
+    def data_loader(self) -> DataLoader:
         """Return the data loader."""
         return self._data_loader
 
@@ -136,13 +149,6 @@ class VisionData:
         if self._num_classes is None:
             self._num_classes = len(self.n_of_samples_per_class.keys())
         return self._num_classes
-
-    @property
-    def n_of_samples_per_class(self) -> Dict[Any, int]:
-        """Return a dictionary containing the number of samples per class."""
-        if self._n_of_samples_per_class is None:
-            self._n_of_samples_per_class = self.batch_to_labels(self._data_loader)
-        return copy(self._n_of_samples_per_class)
 
     @property
     def data_dimension(self):
@@ -265,6 +271,24 @@ class VisionData:
             raise DeepchecksValueError('The data inside the iterable must be in the range [0, 255].')
         if np.all(sample <= 1):
             raise DeepchecksValueError('The data inside the iterable appear to be normalized.')
+
+    def _get_samples_per_class(self):
+        """
+        Get the number of samples per class.
+        Parameters
+        ----------
+        data_loader : DataLoader
+            DataLoader to get the samples per class from.
+        Returns
+        -------
+        Counter
+            Counter of the number of samples per class.
+        """
+        counter = Counter()
+        for batch in self:
+            labels = self.batch_to_labels(batch)
+            counter.update(self._get_classes(labels))
+        return counter
 
     def __iter__(self):
         """Return an iterator over the dataset."""

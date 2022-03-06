@@ -10,8 +10,9 @@
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
 from abc import abstractmethod
+import copy
 import logging
-from typing import List, Optional, Dict, Union
+from typing import Any, List, Optional, Dict, Union
 import numpy as np
 
 import torch
@@ -65,6 +66,10 @@ class ClassificationData(VisionData):
         raise DeepchecksValueError(
             "infer_on_batch() must be implemented in a subclass"
         )
+
+    def _get_classes(self, batch_labels: Union[List[torch.Tensor], torch.Tensor]):
+        """Get a labels batch and return classes inside it."""
+        return batch_labels.tolist()
 
     def _validate_label(self, batch):
         """
