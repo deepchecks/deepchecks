@@ -15,7 +15,7 @@ from sklearn import preprocessing
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck, Dataset
 from deepchecks.utils.metrics import ModelType
-from deepchecks.utils.performance.error_model import error_model_score, error_model_display, \
+from deepchecks.utils.performance.error_model import model_error_contribution, error_model_display, \
     per_sample_binary_cross_entropy
 from deepchecks.utils.strings import format_percent
 
@@ -135,14 +135,14 @@ class ModelErrorAnalysis(TrainTestCheck):
         cat_features = train_dataset.cat_features
         numeric_features = [num_feature for num_feature in train_dataset.features if num_feature not in cat_features]
 
-        error_fi, error_model_predicted = error_model_score(train_dataset.features_columns,
-                                                            train_scores,
-                                                            test_dataset.features_columns,
-                                                            test_scores,
-                                                            numeric_features,
-                                                            cat_features,
-                                                            min_error_model_score=self.min_error_model_score,
-                                                            random_state=self.random_state)
+        error_fi, error_model_predicted = model_error_contribution(train_dataset.features_columns,
+                                                                   train_scores,
+                                                                   test_dataset.features_columns,
+                                                                   test_scores,
+                                                                   numeric_features,
+                                                                   cat_features,
+                                                                   min_error_model_score=self.min_error_model_score,
+                                                                   random_state=self.random_state)
 
         display, value = error_model_display(error_fi,
                                              error_model_predicted,
@@ -155,7 +155,7 @@ class ModelErrorAnalysis(TrainTestCheck):
                                              self.min_segment_size,
                                              self.random_state)
 
-        headnote = f"""<span>
+        headnote = """<span>
             The following graphs show the distribution of error for top features that are most useful for distinguishing
             high error samples from low error samples.
         </span>"""
@@ -194,6 +194,7 @@ class ModelErrorAnalysis(TrainTestCheck):
 
         return self.add_condition(f'The performance difference of the detected segments must'
                                   f' not be greater than {format_percent(max_ratio_change)}', condition)
+
 
 def per_sample_mse(y_true, y_pred):
     return (y_true - y_pred) ** 2

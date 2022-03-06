@@ -51,7 +51,7 @@ def compute_pairwise_ious(detected, ground_truth):
 
 
 def compute_class_ious(detected, ground_truth):
-    """Compute ious between bounding boxes of the same class"""
+    """Compute ious between bounding boxes of the same class."""
     bb_info = defaultdict(lambda: {"detected": [], "ground_truth": []})
 
     for d in detected:

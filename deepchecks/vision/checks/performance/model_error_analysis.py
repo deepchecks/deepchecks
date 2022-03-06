@@ -13,12 +13,11 @@ import typing as t
 from collections import defaultdict
 
 import pandas as pd
-import numpy as np
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.performance.error_model import error_model_display, error_model_score, \
-    per_sample_binary_cross_entropy, error_model_display_dataframe
+from deepchecks.utils.performance.error_model import error_model_display_dataframe, model_error_contribution, \
+    per_sample_binary_cross_entropy
 
 from deepchecks.vision import TrainTestCheck, Context
 from deepchecks.vision.checks.distribution.image_property_drift import ImageProperty
@@ -33,10 +32,10 @@ from deepchecks.vision.utils import ImageFormatter
 class ModelErrorAnalysis(TrainTestCheck):
     """Find the properties that best split the data into segments of high and low model error.
 
-    The check trains a regression model to predict the error of the user's model. Then, the properties scoring the highest
-    feature importance for the error regression model are selected and the distribution of the error vs the feature
-    values is plotted. The check results are shown only if the error regression model manages to predict the error
-    well enough.
+    The check trains a regression model to predict the error of the user's model. Then, the properties scoring the
+    highest feature importance for the error regression model are selected and the distribution of the error vs the
+    property values is plotted. The check results are shown only if the error regression model manages to predict the
+    error well enough.
 
     Parameters
     ----------
@@ -59,10 +58,10 @@ class ModelErrorAnalysis(TrainTestCheck):
 
     def __init__(self,
                  image_properties: t.Optional[t.List[ImageProperty]] = None,
-                 min_error_model_score: float = 0.5,
-                 min_segment_size: float = 0.05,
                  max_properties_to_show: int = 20,
                  min_property_contribution: float = 0.15,
+                 min_error_model_score: float = 0.5,
+                 min_segment_size: float = 0.05,
                  n_display_samples: int = 5_000,
                  random_seed: int = 42):
         super().__init__()
@@ -148,7 +147,7 @@ class ModelErrorAnalysis(TrainTestCheck):
                     ious = compute_class_ious(detected, ground_truth)
                     count = 0
                     sum_iou = 0
-                    for cls, cls_ious in ious.items():
+                    for _, cls_ious in ious.items():
                         for detection in cls_ious:
                             if len(detection):
                                 sum_iou += max(detection)
@@ -164,8 +163,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         scores.extend(scoring_func(predictions, labels))
 
     def compute(self, context: Context) -> CheckResult:
-        """Train a model on the properties and errors as labels to find properties that contribute to the error, then
-        get segments of these properties to display a split of the effected
+        """Find segments that contribute to model error.
 
         Returns
         -------
@@ -178,14 +176,14 @@ class ModelErrorAnalysis(TrainTestCheck):
         test_property_df = pd.DataFrame(self.test_properties)[train_property_df.columns]
 
         error_fi, error_model_predicted = \
-            error_model_score(train_property_df,
-                              self.train_scores,
-                              test_property_df,
-                              self.test_scores,
-                              train_property_df.columns.to_list(),
-                              [],
-                              min_error_model_score=self.min_error_model_score,
-                              random_state=self.random_state)
+            model_error_contribution(train_property_df,
+                                     self.train_scores,
+                                     test_property_df,
+                                     self.test_scores,
+                                     train_property_df.columns.to_list(),
+                                     [],
+                                     min_error_model_score=self.min_error_model_score,
+                                     random_state=self.random_state)
 
         display, value = error_model_display_dataframe(error_fi,
                                                        error_model_predicted,
@@ -197,8 +195,8 @@ class ModelErrorAnalysis(TrainTestCheck):
                                                        self.min_segment_size,
                                                        self.random_state)
 
-        headnote = f"""<span>
-            The following graphs show the distribution of error for top properties that are most useful for 
+        headnote = """<span>
+            The following graphs show the distribution of error for top properties that are most useful for
             distinguishing high error samples from low error samples.
         </span>"""
         display = [headnote] + display if display else None

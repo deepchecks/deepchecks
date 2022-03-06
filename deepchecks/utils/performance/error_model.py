@@ -1,3 +1,14 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Common utilities for model error analysis."""
 from typing import Tuple, List, Hashable, Dict, Any, Optional, Callable
 
 import numpy as np
@@ -19,16 +30,19 @@ from deepchecks.utils.plot import colors
 from deepchecks.utils.strings import format_number, format_percent
 
 
-def error_model_score(train_dataset: pd.DataFrame,
-                      train_scores,
-                      test_dataset: pd.DataFrame,
-                      test_scores,
-                      numeric_features: List,
-                      categorical_features: List = [],
-                      min_error_model_score=0.5,
-                      random_state=42) -> Tuple[pd.Series, pd.Series]:
+def model_error_contribution(train_dataset: pd.DataFrame,
+                             train_scores: pd.Series,
+                             test_dataset: pd.DataFrame,
+                             test_scores: pd.Series,
+                             numeric_features: List,
+                             categorical_features: List,
+                             min_error_model_score=0.5,
+                             random_state=42) -> Tuple[pd.Series, pd.Series]:
+    """Calculate features contributing to model error."""
     # Create and fit model to predict the per sample error
-    error_model, new_feature_order = create_error_regression_model(numeric_features, categorical_features, random_state=random_state)
+    error_model, new_feature_order = create_error_regression_model(numeric_features,
+                                                                   categorical_features,
+                                                                   random_state=random_state)
     error_model.fit(train_dataset, y=train_scores)
 
     # Check if fitted model is good enough
@@ -49,6 +63,7 @@ def error_model_score(train_dataset: pd.DataFrame,
 
 
 def create_error_regression_model(numeric_features, cat_features, random_state=42) -> Tuple[Pipeline, List[Hashable]]:
+    """Create regression model to calculate error."""
     numeric_transformer = SimpleImputer()
     categorical_transformer = Pipeline(
         steps=[('imputer', SimpleImputer(strategy='most_frequent')), ('encoder', TargetEncoder())]
@@ -68,6 +83,7 @@ def create_error_regression_model(numeric_features, cat_features, random_state=4
 
 
 def per_sample_binary_cross_entropy(y_true: np.array, y_pred: np.array):
+    """Calculate binary cross entropy on a single sample."""
     y_true = np.array(y_true)
     return - (np.tile(y_true.reshape((-1, 1)), (1, y_pred.shape[1])) *
               np.log(y_pred + np.finfo(float).eps)).sum(axis=1)
@@ -82,7 +98,7 @@ def error_model_display_dataframe(error_fi: pd.Series,
                                   n_display_samples: int,
                                   min_segment_size: int,
                                   random_state: int):
-    """Wraps error_model_display function for Dataframe."""
+    """Run error_model_display function for Dataframe."""
     return error_model_display(error_fi,
                                error_model_predicted,
                                tabular.Dataset(dataset, cat_features=cat_features),
@@ -155,8 +171,7 @@ def error_model_display(error_fi: pd.Series,
         if feature in dataset.cat_features:
             # find categories with the weakest performance
             error_per_segment_ser = (
-                data
-                    .groupby(feature)
+                data.groupby(feature)
                     .agg(['mean', 'count'])[error_col_name]
                     .sort_values('mean', ascending=False)
             )
@@ -184,8 +199,9 @@ def error_model_display(error_fi: pd.Series,
                     weak_name_feature, segment2_details = get_segment_details(model, scorer, dataset,
                                                                               data[feature].isin(weak_categories))
                 else:
-                    segment1_text, segment1_details = get_segment_details_using_error(error_col_name, data,
-                                                                                      data[feature].isin(weak_categories))
+                    segment1_text, segment1_details = \
+                        get_segment_details_using_error(error_col_name, data,
+                                                        data[feature].isin(weak_categories))
 
                 color_map[weak_name_feature] = weak_color
             else:
@@ -282,4 +298,3 @@ def get_segment_details_using_error(error_column_name, dataset: pd.DataFrame,
     segment_details = {'score': performance, 'n_samples': n_samples, 'frac_samples': n_samples / len(dataset)}
 
     return segment_label, segment_details
-
