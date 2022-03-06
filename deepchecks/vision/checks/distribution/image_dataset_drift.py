@@ -96,9 +96,9 @@ class ImageDatasetDrift(TrainTestCheck):
             dataset = context.test
             properties = self._test_properties
 
-        imgs = dataset.image_formatter(batch)
+        imgs = dataset.batch_to_images(batch)
         for func_name in self.image_properties:
-            properties[func_name] += getattr(dataset.image_formatter, func_name)(imgs)
+            properties[func_name] += getattr(dataset.batch_to_images, func_name)(imgs)
 
     def compute(self, context: Context) -> CheckResult:
         """Train a Domain Classifier on image property data that was collected during update() calls.

@@ -23,19 +23,20 @@ from deepchecks.vision.vision_data import VisionData
 
 logger = logging.getLogger('deepchecks')
 
+
 class ClassificationData(VisionData):
 
     def __init__(self,
                  data_loader: DataLoader,
                  num_classes: Optional[int] = None,
                  label_map: Optional[Dict[int, str]] = None,
-                 sample_size: int = 1000,
                  random_seed: int = 0,
                  transform_field: Optional[str] = 'transforms'):
 
-        super().__init__(data_loader, num_classes, label_map, sample_size,
+        super().__init__(data_loader, num_classes, label_map,
                          random_seed, transform_field)
-        self.task_type = TaskType.CLASSIFICATION
+
+        self._task_type = TaskType.CLASSIFICATION
         try:
             self._validate_label(next(iter(self._data_loader)))
             self._has_label = True
@@ -44,7 +45,7 @@ class ClassificationData(VisionData):
             self._has_label = False
 
     @abstractmethod
-    def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor[torch.Tensor]]:
+    def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
         """Infer on batch.
         Examples
         --------
@@ -55,7 +56,7 @@ class ClassificationData(VisionData):
         )
 
     @abstractmethod
-    def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor[torch.Tensor]]:
+    def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
         """Infer on batch.
         Examples
         --------
@@ -96,7 +97,7 @@ class ClassificationData(VisionData):
         eps : float , default: 1e-3
             Epsilon value to be used in the validation, by default 1e-3
         """
-        batch_predictions = self(next(iter(self._data_loader)), model, device)
+        batch_predictions = self.infer_on_batch(next(iter(self._data_loader)), model, device)
         if not isinstance(batch_predictions, (torch.Tensor, np.ndarray)):
             raise DeepchecksValueError('Check requires classification predictions to be a torch.Tensor or numpy '
                                        'array')

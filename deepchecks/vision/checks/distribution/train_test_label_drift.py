@@ -315,7 +315,7 @@ def calculate_continuous_histograms_in_batch(batch, hists, continuous_label_meas
 
 def get_results_on_batch(batch, label_measurement, dataset: VisionData):
     """Calculate transformer result on batch of labels."""
-    calc_res = [label_measurement(arr, dataset) for arr in dataset.label_formatter(batch)]
+    calc_res = [label_measurement(arr, dataset) for arr in dataset.batch_to_labels(batch)]
     if len(calc_res) != 0 and isinstance(calc_res[0], list):
         calc_res = [x[0] for x in sum(calc_res, [])]
     return calc_res
@@ -326,7 +326,7 @@ def get_boundaries_by_batch(dataset: VisionData, label_measurements: List[Callab
     """Get min and max on dataset for each label transformer."""
     bounds = [{'min': np.inf, 'max': -np.inf} for _ in range(len(label_measurements))]
     num_samples = 0
-    for batch in dataset.get_data_loader():
+    for batch in dataset.data_loader:
         for i in range(len(label_measurements)):
             calc_res = get_results_on_batch(batch, label_measurements[i], dataset)
             bounds[i]['min'] = min(calc_res + [bounds[i]['min']])

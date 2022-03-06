@@ -11,11 +11,8 @@
 from hamcrest import assert_that, close_to, has_length, calling, raises
 
 from tests.checks.utils import equal_condition_result
-from deepchecks.vision.datasets.classification.mnist import mnist_prediction_formatter
 from deepchecks.core.errors import ModelValidationError
 from deepchecks.vision.checks.performance import MeanAveragePrecisionReport
-from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
-from deepchecks.vision.utils import DetectionPredictionFormatter, ClassificationPredictionFormatter
 
 
 def test_mnist_error(mnist_dataset_test, trained_mnist, device):
@@ -25,7 +22,6 @@ def test_mnist_error(mnist_dataset_test, trained_mnist, device):
     assert_that(
         calling(check.run
                 ).with_args(mnist_dataset_test, trained_mnist,
-                            prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter),
                             device=device),
         raises(ModelValidationError, r'Check is irrelevant for task of type TaskType.CLASSIFICATION')
     )
@@ -33,14 +29,13 @@ def test_mnist_error(mnist_dataset_test, trained_mnist, device):
 
 def test_coco(coco_test_visiondata, trained_yolov5_object_detection, device):
     # Arrange
-    pred_formatter = DetectionPredictionFormatter(yolo_prediction_formatter)
     check = MeanAveragePrecisionReport() \
             .add_condition_test_average_precision_not_less_than(0.1) \
             .add_condition_test_average_precision_not_less_than(0.4)
 
     # Act
     result = check.run(coco_test_visiondata,
-                       trained_yolov5_object_detection, prediction_formatter=pred_formatter, device=device)
+                       trained_yolov5_object_detection, device=device)
 
     # Assert
     df = result.value
@@ -77,12 +72,11 @@ def test_coco(coco_test_visiondata, trained_yolov5_object_detection, device):
 
 def test_coco_area_param(coco_test_visiondata, trained_yolov5_object_detection, device):
     # Arrange
-    pred_formatter = DetectionPredictionFormatter(yolo_prediction_formatter)
     check = MeanAveragePrecisionReport(area_range=(40**2, 100**2))
 
     # Act
     result = check.run(coco_test_visiondata,
-                       trained_yolov5_object_detection, prediction_formatter=pred_formatter,
+                       trained_yolov5_object_detection,
                        device=device)
 
     # Assert

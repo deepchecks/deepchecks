@@ -49,7 +49,7 @@ class DetectionData(VisionData):
             self._has_label = False
 
     @abstractmethod
-    def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor[torch.Tensor]]:
+    def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
         """Infer on batch.
         Examples
         --------
@@ -60,7 +60,7 @@ class DetectionData(VisionData):
         )
 
     @abstractmethod
-    def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor[torch.Tensor]]:
+    def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
         """Infer on batch.
         Examples
         --------

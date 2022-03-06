@@ -25,6 +25,7 @@ from deepchecks.vision.utils.transformations import add_augmentation_in_start, g
 logger = logging.getLogger('deepchecks')
 VD = TypeVar('VD', bound='VisionData')
 
+
 class VisionData:
     """VisionData represent a base task in deepchecks. It wraps PyTorch DataLoader together with model related metadata.
 
@@ -39,8 +40,6 @@ class VisionData:
         Number of classes in the dataset. If not provided, will be inferred from the dataset.
     label_map : Dict[int, str], optional
         A dictionary mapping class ids to their names.
-    sample_size : int, default: 1,000
-        Sample size to run the checks on.
     random_seed : int, default: 0
         Random seed used to generate the sample.
     transform_field : str, default: 'transforms'
@@ -87,13 +86,13 @@ class VisionData:
         self._has_label = None
 
     @abstractmethod
-    def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor[torch.Tensor]]:
+    def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
         raise DeepchecksValueError(
             "batch_to_labels() must be implemented in a subclass"
         )
 
     @abstractmethod
-    def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor[torch.Tensor]]:
+    def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
         raise DeepchecksValueError(
             "infer_on_batch() must be implemented in a subclass"
         )
@@ -122,7 +121,7 @@ class VisionData:
         )
 
     @property
-    def data_loader(self) -> int:
+    def data_loader(self) -> torch.utils.data.DataLoader:
         """Return the data loader."""
         return self._data_loader
 
@@ -226,7 +225,7 @@ class VisionData:
         DeepchecksValueError
             if datasets don't have the same label
         """
-        if not isinstance(other, VD):
+        if not isinstance(other, VisionData):
             raise DeepchecksValueError('Check requires dataset to be of type VisionTask. instead got: '
                                        f'{type(other).__name__}')
 
@@ -284,7 +283,7 @@ class VisionData:
             'worker_init_fn': self._data_loader.worker_init_fn,
             'prefetch_factor': self._data_loader.prefetch_factor,
             'persistent_workers': self._data_loader.persistent_workers,
-            'generator': copy(self._data_loader.generator)
+            'generator': self._data_loader.generator
         }
         # Add batch sampler if exists, else sampler
         if self._data_loader.batch_sampler is not None:

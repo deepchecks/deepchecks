@@ -15,6 +15,7 @@ import os
 import typing as t
 import warnings
 from pathlib import Path
+from typing import List, Union
 
 import numpy as np
 import torch
@@ -28,11 +29,10 @@ from torchvision.datasets.utils import download_and_extract_archive
 from typing_extensions import Literal
 
 from deepchecks import vision
-from deepchecks.vision.utils.detection_formatters import DetectionLabelFormatter
-from deepchecks.vision.utils import ImageFormatter
+from deepchecks.vision import DetectionData
 
 
-__all__ = ['load_dataset', 'load_model', 'yolo_prediction_formatter', 'yolo_label_formatter', 'yolo_image_formatter']
+__all__ = ['load_dataset', 'load_model', 'COCOData']
 
 
 DATA_DIR = Path(__file__).absolute().parent
@@ -50,6 +50,36 @@ def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cp
     model.eval()
     logger.disabled = False
     return model
+
+
+class COCOData(DetectionData):
+
+    def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
+        def move_class(tensor):
+            return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
+                if len(tensor) > 0 else tensor
+
+        return [move_class(tensor) for tensor in batch[1]]
+
+    def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
+        return_list = []
+
+        with warnings.catch_warnings():
+            warnings.simplefilter(action='ignore', category=UserWarning)
+
+            predictions: 'ultralytics.models.common.Detections' = model.to(device)(batch[0])  # noqa: F821
+
+            # yolo Detections objects have List[torch.Tensor] xyxy output in .pred
+            for single_image_tensor in predictions.pred:
+                pred_modified = torch.clone(single_image_tensor)
+                pred_modified[:, 2] = pred_modified[:, 2] - pred_modified[:, 0]  # w = x_right - x_left
+                pred_modified[:, 3] = pred_modified[:, 3] - pred_modified[:, 1]  # h = y_bottom - y_top
+                return_list.append(pred_modified)
+
+        return return_list
+
+    def batch_to_images(self, batch) -> List[np.ndarray]:
+        return [np.array(x) for x in batch[0]]
 
 
 def load_dataset(
@@ -114,11 +144,8 @@ def load_dataset(
     if object_type == 'DataLoader':
         return dataloader
     elif object_type == 'VisionData':
-        return vision.VisionData(
+        return COCOData(
             data_loader=dataloader,
-            label_formatter=DetectionLabelFormatter(yolo_label_formatter),
-            # To display images we need them as numpy array
-            image_formatter=ImageFormatter(lambda batch: [np.array(x) for x in batch[0]]),
             num_classes=80,
             label_map=LABEL_MAP
         )
