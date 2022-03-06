@@ -308,7 +308,7 @@ class VisionData:
             'worker_init_fn': self._data_loader.worker_init_fn,
             'prefetch_factor': self._data_loader.prefetch_factor,
             'persistent_workers': self._data_loader.persistent_workers,
-            'generator': self._data_loader.generator
+            'generator': torch.Generator()
         }
         # Add batch sampler if exists, else sampler
         if self._data_loader.batch_sampler is not None:
