@@ -10,10 +10,6 @@
 #
 from tests.checks.utils import equal_condition_result
 from deepchecks.vision.checks.performance import ImageSegmentPerformance
-from deepchecks.vision.utils import ClassificationPredictionFormatter
-from deepchecks.vision.datasets.classification.mnist import mnist_prediction_formatter
-from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
-from deepchecks.vision.utils import DetectionPredictionFormatter
 
 import numpy as np
 from hamcrest import assert_that, has_length, has_entries, has_items, close_to
@@ -22,8 +18,7 @@ from tests.vision.vision_conftest import *
 
 def test_mnist(mnist_dataset_train, trained_mnist):
     # Act
-    pred_formatter = ClassificationPredictionFormatter(mnist_prediction_formatter)
-    result = ImageSegmentPerformance().run(mnist_dataset_train, trained_mnist, prediction_formatter=pred_formatter)
+    result = ImageSegmentPerformance().run(mnist_dataset_train, trained_mnist)
     # Assert
     assert_that(result.value, has_entries({
         'brightness': has_length(5),
@@ -37,12 +32,10 @@ def test_mnist(mnist_dataset_train, trained_mnist):
 
 def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detection):
     # Arrange
-    pred_formatter = DetectionPredictionFormatter(yolo_prediction_formatter)
     check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_not_less_than(0.5)\
         .add_condition_score_from_mean_ratio_not_less_than(0.1)
     # Act
-    result = check.run(coco_train_visiondata, trained_yolov5_object_detection,
-                       prediction_formatter=pred_formatter)
+    result = check.run(coco_train_visiondata, trained_yolov5_object_detection)
     # Assert result
     assert_that(result.value, has_entries({
         'normalized_blue_mean': has_length(5),

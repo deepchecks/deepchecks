@@ -97,8 +97,8 @@ class ClassPerformance(TrainTestCheck):
     def update(self, context: Context, batch: Any, dataset_kind):
         """Update the metrics by passing the batch to ignite metric update method."""
         dataset = context.get_data_by_kind(dataset_kind)
-        label = dataset.label_formatter(batch)
-        prediction = context.infer(batch)
+        label = dataset.batch_to_labels(batch)
+        prediction = context.infer(batch, dataset_kind)
         for _, metric in self._state[dataset_kind]['scorers'].items():
             metric.update((prediction, label))
 

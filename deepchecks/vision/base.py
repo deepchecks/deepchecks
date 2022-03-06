@@ -113,7 +113,7 @@ class Context:
         self._train = train
         self._test = test
         self._model = model
-        self._batch_prediction_cache = None
+        self._batch_prediction_cache = dict()
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
@@ -149,11 +149,6 @@ class Context:
         return self._model_name
 
     @property
-    def prediction_formatter(self):
-        """Return prediction formatter."""
-        return self._prediction_formatter
-
-    @property
     def device(self) -> torch.device:
         """Return device specified by the user."""
         return self._device
@@ -169,15 +164,16 @@ class Context:
                 f'Check is irrelevant for task of type {self.train.task_type}')
         return True
 
-    def infer(self, batch: Any) -> Any:
+    def infer(self, batch: Any, dataset_kind: DatasetKind) -> Any:
         """Return the predictions on the given batch, and cache them for later."""
-        if self._batch_prediction_cache is None:
-            self._batch_prediction_cache = self.prediction_formatter(batch, self.model, self.device)
-        return self._batch_prediction_cache
+        if self._batch_prediction_cache.get(dataset_kind) is None:
+            dataset = self.get_data_by_kind(dataset_kind)
+            self._batch_prediction_cache[dataset_kind] = dataset.infer_on_batch(batch, self.model, self.device)
+        return self._batch_prediction_cache[dataset_kind]
 
-    def flush_cached_inference(self):
+    def flush_cached_inference(self, dataset_kind: DatasetKind):
         """Flush the cached inference."""
-        self._batch_prediction_cache = None
+        self._batch_prediction_cache[dataset_kind] = None
 
     def get_data_by_kind(self, kind: DatasetKind):
         """Return the relevant VisionData by given kind."""
@@ -223,7 +219,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         for batch in dataset:
             batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch, DatasetKind.TRAIN)
-            context.flush_cached_inference()
+            context.flush_cached_inference(DatasetKind.TRAIN)
 
         return finalize_check_result(self.compute(context, DatasetKind.TRAIN), self)
 
@@ -269,12 +265,12 @@ class TrainTestCheck(TrainTestBaseCheck):
         for batch in context.train:
             batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch, DatasetKind.TRAIN)
-            context.flush_cached_inference()
+            context.flush_cached_inference(DatasetKind.TRAIN)
 
         for batch in context.test:
             batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch, DatasetKind.TEST)
-            context.flush_cached_inference()
+            context.flush_cached_inference(DatasetKind.TEST)
 
         return finalize_check_result(self.compute(context), self)
 
@@ -503,7 +499,7 @@ class Suite(BaseSuite):
                 except Exception as exp:
                     results[check_idx] = CheckFailure(check, exp, type_suffix)
             progress_bar.inc_progress()
-            context.flush_cached_inference()
+            context.flush_cached_inference(dataset_kind)
 
         progress_bar.close()
 

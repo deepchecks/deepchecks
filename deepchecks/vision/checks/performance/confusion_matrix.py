@@ -78,7 +78,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         else:
             dataset = context.test
         self.task_type = dataset.task_type
-        self.num_classes = dataset.n_of_classes
+        self.num_classes = dataset.num_classes
 
         matrix_size = self.num_classes if self.task_type == TaskType.CLASSIFICATION else self.num_classes + 1
 
@@ -91,8 +91,8 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         else:
             dataset = context.test
 
-        labels = dataset.label_formatter(batch)
-        predictions = context.infer(batch)
+        labels = dataset.batch_to_labels(batch)
+        predictions = context.infer(batch, dataset_kind)
 
         if self.task_type == TaskType.CLASSIFICATION:
             self.update_classification(predictions, labels)

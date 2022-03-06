@@ -10,7 +10,6 @@
 #
 #
 import torch
-from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 from torch import nn
 from hamcrest import (
     assert_that,
@@ -28,8 +27,6 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.errors import DatasetValidationError
 from deepchecks.vision.base import Context
-from deepchecks.vision.datasets.classification.mnist import mnist_prediction_formatter
-from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
 
 
 def test_vision_context_initialization_for_classification_task(mnist_dataset_train, mnist_dataset_test,
@@ -40,8 +37,7 @@ def test_vision_context_initialization_for_classification_task(mnist_dataset_tra
         test=mnist_dataset_test,
         model=trained_mnist,
         model_name='MNIST',
-        device=device,
-        prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter)
+        device=device
     )
 
     # Assert
@@ -65,8 +61,7 @@ def test_vision_context_initialization_for_object_detection_task(coco_train_visi
         test=coco_test_visiondata,
         model=trained_yolov5_object_detection,
         model_name='COCO',
-        device=device,
-        prediction_formatter=DetectionPredictionFormatter(yolo_prediction_formatter)
+        device=device
     )
 
     # Assert
@@ -155,8 +150,7 @@ def test_context_initialization_with_broken_model(mnist_dataset_train, mnist_dat
         calling(Context
                 ).with_args(train=mnist_dataset_train,
                             test=mnist_dataset_test,
-                            model=model,
-                            prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter)),
+                            model=model),
         raises(
             Exception,
             r'Unvalid arguments')
