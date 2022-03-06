@@ -15,13 +15,14 @@ from deepchecks.vision.datasets.classification.mnist import mnist_prediction_for
 from hamcrest import assert_that, close_to, equal_to, is_in, calling, raises
 
 
-def test_mnist_prior_strategy(mnist_dataset_train, mnist_dataset_test, trained_mnist):
+def test_mnist_prior_strategy(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
     # Arrange
 
     check = SimpleModelComparison(strategy='prior', n_to_show=2, show_only='largest')
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
-                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter))
+                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter),
+                       device=device)
     first_row = result.value.sort_values(by='Number of samples', ascending=False).iloc[0]
     # Assert
     assert_that(len(result.value), equal_to(8))
@@ -39,12 +40,13 @@ def test_mnist_not_exist_strategy(mnist_dataset_train, mnist_dataset_test, train
     )
 
 
-def test_mnist_most_frequent(mnist_dataset_train, mnist_dataset_test, trained_mnist):
+def test_mnist_most_frequent(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
     # Arrange
     check = SimpleModelComparison(strategy='most_frequent', n_to_show=2, show_only='largest')
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
-                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter))
+                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter),
+                       device=device)
     first_row = result.value.sort_values(by='Number of samples', ascending=False).iloc[0]
     # Assert
     assert_that(len(result.value), equal_to(8))
@@ -53,21 +55,23 @@ def test_mnist_most_frequent(mnist_dataset_train, mnist_dataset_test, trained_mn
     assert_that(first_row['Class'], equal_to(1))
 
 
-def test_mnist_uniform(mnist_dataset_train, mnist_dataset_test, trained_mnist):
+def test_mnist_uniform(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
     # Arrange
     check = SimpleModelComparison(strategy='uniform', n_to_show=2, show_only='largest')
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
-                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter))
+                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter),
+                       device=device)
     # Assert
     assert_that(len(result.value), equal_to(8))
 
 
-def test_mnist_stratified(mnist_dataset_train, mnist_dataset_test, trained_mnist):
+def test_mnist_stratified(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):
     # Arrange
     check = SimpleModelComparison(strategy='stratified', n_to_show=2, show_only='largest')
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
-                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter))
+                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter),
+                       device=device)
     # Assert
     assert_that(len(result.value), equal_to(8))

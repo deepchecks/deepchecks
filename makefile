@@ -156,7 +156,12 @@ $(ENV):
 requirements: $(ENV)
 	@echo "####  installing dependencies, it could take some time, please wait! #### "
 
-	@if [ $(OS) = "Linux" ]; \
+	@if [ -x "$$(command -v nvidia-smi)" ]; \
+	then \
+		$(PIP) install -q\
+		 	"torch==1.7.1+cu110" "torchvision==0.8.2+cu110" "torchaudio==0.8.1" \
+		 	 -f https://download.pytorch.org/whl/cu110/torch_stable.html; \
+	elif [ $(OS) = "Linux" ]; \
 	then \
 		$(PIP) install -q\
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" "torchaudio==0.10.2+cpu" \
@@ -229,7 +234,7 @@ notebook: requirements dev-requirements
 	@$(JUPYTER) nbextension enable --py widgetsnbextension
 	@echo "+++ Number of notebooks to execute: $$(find ./docs/source/examples -name "*.ipynb" | wc -l) +++"
 	@echo "+++ Executing notebooks in $(PWD) +++"
-	$(PYTEST) --nbval-lax ./docs/source/examples
+	WANDB_MODE=offline $(PYTEST) --nbval-lax ./docs/source/examples
 
 	# For now, because of plotly - disabling the nbval and just validate that the notebooks are running
 #	$(pythonpath) $(TEST_RUNNER) --nbval $(NOTEBOOK_CHECKS) --sanitize-with $(NOTEBOOK_SANITIZER_FILE)
