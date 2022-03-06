@@ -88,7 +88,7 @@ class VisionData:
         self._has_label = None
 
     @abstractmethod
-    def _get_classes(self, batch_labels: Union[List[torch.Tensor], torch.Tensor]):
+    def get_classes(self, batch_labels: Union[List[torch.Tensor], torch.Tensor]):
         """Get a labels batch and return classes inside it."""
         return NotImplementedError("get_classes() must be implemented in a subclass")
 
@@ -105,9 +105,9 @@ class VisionData:
         )
 
     @abstractmethod
-    def _validate_label(self, batch):
+    def validate_label(self, batch):
         raise DeepchecksValueError(
-            "_validate_label() must be implemented in a subclass"
+            "validate_label() must be implemented in a subclass"
         )
 
     @abstractmethod
@@ -242,7 +242,7 @@ class VisionData:
         if self._task_type != other._task_type:
             raise DeepchecksValueError('Datasets required to have same label type')
 
-    def _validate_image_data(self, batch):
+    def validate_image_data(self, batch):
         """Validate that the data is in the required format.
 
         The validation is done on the first element of the batch.
@@ -288,7 +288,7 @@ class VisionData:
         counter = Counter()
         for batch in self:
             labels = self.batch_to_labels(batch)
-            counter.update(self._get_classes(labels))
+            counter.update(self.get_classes(labels))
         return counter
 
     def __iter__(self):
