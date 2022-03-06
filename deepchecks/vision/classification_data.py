@@ -39,7 +39,7 @@ class ClassificationData(VisionData):
 
         self._task_type = TaskType.CLASSIFICATION
         try:
-            self._validate_label(next(iter(self._data_loader)))
+            self.validate_label(next(iter(self._data_loader)))
             self._has_label = True
         except DeepchecksValueError:
             logger.warning('batch_to_labels() was not implemented, some checks will not run')
@@ -67,11 +67,11 @@ class ClassificationData(VisionData):
             "infer_on_batch() must be implemented in a subclass"
         )
 
-    def _get_classes(self, batch_labels: Union[List[torch.Tensor], torch.Tensor]):
+    def get_classes(self, batch_labels: Union[List[torch.Tensor], torch.Tensor]):
         """Get a labels batch and return classes inside it."""
         return batch_labels.tolist()
 
-    def _validate_label(self, batch):
+    def validate_label(self, batch):
         """
         Validate the label.
 

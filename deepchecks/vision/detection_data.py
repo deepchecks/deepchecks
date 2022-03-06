@@ -43,7 +43,7 @@ class DetectionData(VisionData):
                          random_seed, transform_field)
         self.task_type = TaskType.OBJECT_DETECTION
         try:
-            self._validate_label(next(iter(self._data_loader)))
+            self.validate_label(next(iter(self._data_loader)))
             self._has_label = True
         except DeepchecksValueError:
             logger.warning('batch_to_labels() was not implemented, some checks will not run')
@@ -71,14 +71,14 @@ class DetectionData(VisionData):
             "infer_on_batch() must be implemented in a subclass"
         )
 
-    def _get_classes(self, batch_labels: List[torch.Tensor]):
+    def get_classes(self, batch_labels: List[torch.Tensor]):
         """Get a labels batch and return classes inside it."""
         def get_classes_from_single_label(tensor: torch.Tensor):
             return list(tensor[:, 0].tolist()) if len(tensor) > 0 else []
 
         return list(chain(*[get_classes_from_single_label(x) for x in batch_labels]))
 
-    def _validate_label(self, batch):
+    def validate_label(self, batch):
         """
         Validate the label.
 
