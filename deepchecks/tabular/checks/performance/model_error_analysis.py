@@ -157,7 +157,7 @@ class ModelErrorAnalysis(TrainTestCheck):
 
         headnote = f"""<span>
             The following graphs show the distribution of error for top features that are most useful for distinguishing
-            high error samples from low error samples. Top features are calculated using `feature_importances_`.
+            high error samples from low error samples.
         </span>"""
         display = [headnote] + display if display else None
 

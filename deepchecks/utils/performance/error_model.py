@@ -107,7 +107,31 @@ def error_model_display(error_fi: pd.Series,
                         n_display_samples: int,
                         min_segment_size: int,
                         random_state: int) -> Tuple[List, Dict]:
-    """Calculate and display segments with large error discrepancies."""
+    """Calculate and display segments with large error discrepancies.
+
+    Parameters
+    ----------
+    error_fi : pd.Series
+        Feature Importances of the error model
+    error_model_predicted : pd.Series
+        Predictions of the values of the error model
+    dataset : tabular.Dataset
+        Dataset to create display from
+    model : Optional[Any]
+        Originial model for calculating the score on tabular data (Must come with scorer)
+    scorer : Optional[Callable]
+        Scorer to calculate the output values of the segments (Must come with model)
+    max_features_to_show : int
+        Maximum number of features to output.
+    min_feature_contribution : float
+        Minimum value to consider a feature to output.
+    n_display_samples : int
+        Maximum number of values to represent in the display
+    min_segment_size : int
+        Minimum segment size to consider.
+    random_state: int
+        Random seed
+    """
     print(n_display_samples)
     n_samples_display = min(n_display_samples, len(dataset))
     error_col_name = 'Deepchecks model error'
@@ -230,9 +254,9 @@ def error_model_display(error_fi: pd.Series,
     return display, value
 
 
-def get_segment_details(model, scorer, dataset: tabular.Dataset,
+def get_segment_details(model: Any, scorer: Callable, dataset: tabular.Dataset,
                         segment_condition_col: pd.Series) -> Tuple[str, Dict[str, float]]:
-    """Return a string with details about the data segment."""
+    """Return details about the data segment using the scorer and model."""
     performance = scorer(
         model,
         dataset.copy(dataset.data[segment_condition_col.values]))
@@ -248,7 +272,7 @@ def get_segment_details(model, scorer, dataset: tabular.Dataset,
 
 def get_segment_details_using_error(error_column_name, dataset: pd.DataFrame,
                                     segment_condition_col: pd.Series) -> Tuple[str, Dict[str, float]]:
-    """Return a string with details about the data segment."""
+    """Return details about the data segment using the error column."""
     n_samples = dataset[segment_condition_col].shape[0]
     performance = dataset[segment_condition_col][error_column_name].sum() / n_samples
     segment_label = \
