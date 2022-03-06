@@ -128,7 +128,9 @@ class DeepcheckScorer:
 
     def __call__(self, model, dataset: 'tabular.Dataset'):
         """Run score with labels null filtering."""
-        return self._run_score(model, self.filter_nulls(dataset))
+        if isinstance(dataset, tabular.Dataset):
+            dataset = self.filter_nulls(dataset)
+        return self._run_score(model, dataset)
 
     def score_perfect(self, dataset: 'tabular.Dataset'):
         """Calculate the perfect score of the current scorer for given dataset."""

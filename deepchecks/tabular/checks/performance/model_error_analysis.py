@@ -28,6 +28,7 @@ from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.tabular import Context, TrainTestCheck, Dataset
 from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.metrics import ModelType
+from deepchecks.utils.performance.error_model import error_model_display
 from deepchecks.utils.plot import colors
 from deepchecks.utils.strings import format_number, format_percent
 
@@ -144,131 +145,35 @@ class ModelErrorAnalysis(TrainTestCheck):
         train_scores = scoring_func(train_dataset)
         test_scores = scoring_func(test_dataset)
 
-        # Create and fit model to predict the per sample error
-        error_model, new_feature_order = create_error_regression_model(train_dataset, random_state=self.random_state)
-        error_model.fit(train_dataset.features_columns, y=train_scores)
+        cat_features = train_dataset.cat_features
+        numeric_features = [num_feature for num_feature in train_dataset.features if num_feature not in cat_features]
 
-        # Check if fitted model is good enough
-        error_model_predicted = error_model.predict(test_dataset.features_columns)
-        error_model_score = r2_score(test_scores, error_model_predicted)
+        from deepchecks.utils.performance.error_model import error_model_score
 
-        # This check should be ignored if no information gained from the error model (low r2_score)
-        if error_model_score < self.min_error_model_score:
-            raise DeepchecksProcessError(f'Unable to train meaningful error model '
-                                         f'(r^2 score: {format_number(error_model_score)})')
+        error_fi, error_model_predicted, error_model = error_model_score(train_dataset.features_columns,
+                                                            train_scores,
+                                                            test_dataset.features_columns,
+                                                            test_scores,
+                                                            numeric_features,
+                                                            cat_features,
+                                                            min_error_model_score=self.min_error_model_score,
+                                                            random_state=self.random_state)
 
-        error_fi, importance_type = calculate_feature_importance(error_model,
-                                                                 test_dataset)
-        error_fi.index = new_feature_order
-        error_fi.sort_values(ascending=False, inplace=True)
-
-        n_samples_display = min(self.n_display_samples, len(test_dataset))
-        error_col_name = 'Deepchecks model error'
-        display_error = pd.Series(error_model_predicted, name=error_col_name, index=test_dataset.data.index)
-
-        display = []
-        value = {'scorer_name': scorer.name, 'feature_segments': {}}
-        weak_color = '#d74949'
-        ok_color = colors['Test']
-
-        for feature in error_fi.keys()[:self.max_features_to_show]:
-            if error_fi[feature] < self.min_feature_contribution:  # pylint: disable=unsubscriptable-object
-                break
-
-            data = pd.concat([test_dataset.data[feature], display_error], axis=1)
-            value['feature_segments'][feature] = {}
-            segment1_details = {}
-            segment2_details = {}
-
-            # Violin plot for categorical features, scatter plot for numerical features
-            if feature in train_dataset.cat_features:
-                # find categories with the weakest performance
-                error_per_segment_ser = (
-                    data
-                    .groupby(feature)
-                    .agg(['mean', 'count'])[error_col_name]
-                    .sort_values('mean', ascending=False)
-                )
-
-                cum_sum_ratio = error_per_segment_ser['count'].cumsum() / error_per_segment_ser['count'].sum()
-
-                # Partition data into two groups - weak and ok:
-
-                in_segment_indicis = cum_sum_ratio <= self.min_segment_size
-                weak_categories = error_per_segment_ser.index[in_segment_indicis]
-                ok_categories = error_per_segment_ser.index[~in_segment_indicis]
-
-                # Calculate score for each group and assign label and color
-                ok_name_feature, segment1_details = get_segment_details(model, scorer, test_dataset,
-                                                                        data[feature].isin(ok_categories))
-
-                color_map = {ok_name_feature: ok_color}
-
-                if len(weak_categories) >= 1:
-                    weak_name_feature, segment2_details = get_segment_details(model, scorer, test_dataset,
-                                                                              data[feature].isin(weak_categories))
-
-                    color_map[weak_name_feature] = weak_color
-                else:
-                    weak_name_feature = None
-
-                replace_dict = {x: weak_name_feature if x in weak_categories else ok_name_feature for x in
-                                error_per_segment_ser.index}
-                color_col = data[feature].replace(replace_dict)
-
-                # Display
-                display.append(px.violin(
-                    data, y=error_col_name, x=feature, title=f'Segmentation of error by {feature}', box=False,
-                    labels={error_col_name: 'model error'}, color=color_col,
-                    color_discrete_map=color_map
-                ))
-            else:
-                # sample data for display
-                np.random.seed(self.random_state)
-                sampling_idx = np.random.choice(range(len(data)), size=n_samples_display, replace=False)
-                data = data.iloc[sampling_idx]
-
-                # Train tree to partition segments according to the model error
-                tree_partitioner = DecisionTreeRegressor(
-                    max_depth=1,
-                    min_samples_leaf=self.min_segment_size + np.finfo(float).eps,
-                    random_state=self.random_state
-                ).fit(data[[feature]], data[error_col_name])
-
-                if len(tree_partitioner.tree_.threshold) > 1:
-                    threshold = tree_partitioner.tree_.threshold[0]
-                    color_col = data[feature].ge(threshold)
-
-                    sampled_dataset = test_dataset.copy(test_dataset.data.iloc[sampling_idx])
-                    segment1_text, segment1_details = get_segment_details(model, scorer, sampled_dataset,
-                                                                          color_col)
-                    segment2_text, segment2_details = get_segment_details(model, scorer, sampled_dataset,
-                                                                          ~color_col)
-                    color_col = color_col.replace([True, False], [segment1_text, segment2_text])
-
-                    # Segment with lower performance is assigned to the weak color
-                    if segment1_details['score'] >= segment2_details['score']:
-                        color_map = {segment1_text: ok_color, segment2_text: weak_color}
-                    else:
-                        color_map = {segment1_text: weak_color, segment2_text: ok_color}
-                else:
-                    color_col = data[error_col_name]
-                    color_map = None
-                display.append(px.scatter(data, x=feature, y=error_col_name, color=color_col,
-                                          title=f'Segmentation of error by {feature}',
-                                          labels={error_col_name: 'model error'},
-                                          color_discrete_map=color_map))
-
-            if segment1_details:
-                value['feature_segments'][feature]['segment1'] = segment1_details
-            if segment2_details:
-                value['feature_segments'][feature]['segment2'] = segment2_details
-
-            display[-1].update_layout(width=1200, height=400)
+        display, value = error_model_display(error_fi,
+                        test_dataset,
+                        scorer,
+                        self.max_features_to_show,
+                        self.min_feature_contribution,
+                        self.n_display_samples,
+                        error_model_predicted,
+                        cat_features,
+                        self.min_segment_size,
+                        model,
+                        self.random_state)
 
         headnote = f"""<span>
             The following graphs show the distribution of error for top features that are most useful for distinguishing
-            high error samples from low error samples. Top features are calculated using `{importance_type}`.
+            high error samples from low error samples. Top features are calculated using `feature_importances_`.
         </span>"""
         display = [headnote] + display if display else None
 

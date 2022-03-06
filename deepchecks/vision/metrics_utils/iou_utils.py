@@ -9,7 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Module for computing Intersection over Unions."""
+from collections import defaultdict
+
 import numpy as np
+import torch
 
 
 def jaccard_iou(dt, gt):
@@ -45,3 +48,24 @@ def compute_pairwise_ious(detected, ground_truth):
         for d_idx, d in enumerate(detected):
             ious[d_idx, g_idx] = jaccard_iou(d, g)
     return ious
+
+
+def compute_class_ious(detected, ground_truth):
+    """Compute ious between bounding boxes of the same class"""
+    bb_info = defaultdict(lambda: {"detected": [], "ground_truth": []})
+
+    for d in detected:
+        if isinstance(d[5], torch.Tensor):
+            class_id = d[5].item()
+        else:
+            class_id = d[5]
+        bb_info[class_id]["detected"].append(d)
+    for g in ground_truth:
+        if isinstance(g[0], torch.Tensor):
+            class_id = g[0].item()
+        else:
+            class_id = g[0]
+        bb_info[class_id]["ground_truth"].append(g)
+
+    # Calculating pairwise IoUs per class
+    return {cid: compute_pairwise_ious(**bbs) for cid, bbs in bb_info.items()}
