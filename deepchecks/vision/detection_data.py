@@ -35,13 +35,12 @@ class DetectionData(VisionData):
                  data_loader: DataLoader,
                  num_classes: Optional[int] = None,
                  label_map: Optional[Dict[int, str]] = None,
-                 sample_size: int = 1000,
                  random_seed: int = 0,
                  transform_field: Optional[str] = 'transforms'):
 
-        super().__init__(data_loader, num_classes, label_map, sample_size,
+        super().__init__(data_loader, num_classes, label_map,
                          random_seed, transform_field)
-        self.task_type = TaskType.OBJECT_DETECTION
+        self._task_type = TaskType.OBJECT_DETECTION
         try:
             self.validate_label(next(iter(self._data_loader)))
             self._has_label = True

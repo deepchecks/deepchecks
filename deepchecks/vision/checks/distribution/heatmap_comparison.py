@@ -99,7 +99,7 @@ class HeatmapComparison(TrainTestCheck):
         # image_batch is a list of images, each of which is a numpy array of shape (H, W, C), produced by running
         # the image_formatter on the batch.
         if dataset_kind == DatasetKind.TRAIN:
-            image_batch = context.train.image_formatter(batch)
+            image_batch = context.train.batch_to_images(batch)
             summed_image = self._grayscale_sum_image(image_batch, self._shape)
             if self._train_grayscale_heatmap is None:
                 self._train_grayscale_heatmap = summed_image
@@ -107,7 +107,7 @@ class HeatmapComparison(TrainTestCheck):
                 self._train_grayscale_heatmap += summed_image
             self._train_counter += len(image_batch)
         elif dataset_kind == DatasetKind.TEST:
-            image_batch = context.test.image_formatter(batch)
+            image_batch = context.test.batch_to_images(batch)
             summed_image = self._grayscale_sum_image(image_batch, self._shape)
             if self._test_grayscale_heatmap is None:
                 self._test_grayscale_heatmap = summed_image
@@ -123,7 +123,7 @@ class HeatmapComparison(TrainTestCheck):
         # _label_to_image_batch
         if self._task_type == TaskType.OBJECT_DETECTION:
             if dataset_kind == DatasetKind.TRAIN:
-                label_batch = context.train.label_formatter(batch)
+                label_batch = context.train.batch_to_labels(batch)
                 label_image_batch = self._label_to_image_batch(label_batch, image_batch, self.classes_to_display)
                 summed_image = self._grayscale_sum_image(label_image_batch, self._shape)
                 if self._train_bbox_heatmap is None:
@@ -131,7 +131,7 @@ class HeatmapComparison(TrainTestCheck):
                 else:
                     self._train_bbox_heatmap += summed_image
             elif dataset_kind == DatasetKind.TEST:
-                label_batch = context.test.label_formatter(batch)
+                label_batch = context.test.batch_to_labels(batch)
                 label_image_batch = self._label_to_image_batch(label_batch, image_batch, self.classes_to_display)
                 summed_image = self._grayscale_sum_image(label_image_batch, self._shape)
                 if self._test_bbox_heatmap is None:
