@@ -13,13 +13,12 @@ import typing as t
 from collections import defaultdict
 
 import pandas as pd
-import torch
-from ignite.metrics import Metric
+import numpy as np
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.metrics import DeepcheckScorer
-from deepchecks.utils.performance.error_model import error_model_display
+from deepchecks.utils.performance.error_model import error_model_display, error_model_score, \
+    per_sample_binary_cross_entropy, error_model_display_dataframe
 
 from deepchecks.vision import TrainTestCheck, Context
 from deepchecks.vision.checks.distribution.image_property_drift import ImageProperty
@@ -32,27 +31,47 @@ from deepchecks.vision.utils import ImageFormatter
 
 
 class ModelErrorAnalysis(TrainTestCheck):
-    """TODO
+    """Find the properties that best split the data into segments of high and low model error.
+
+    The check trains a regression model to predict the error of the user's model. Then, the properties scoring the highest
+    feature importance for the error regression model are selected and the distribution of the error vs the feature
+    values is plotted. The check results are shown only if the error regression model manages to predict the error
+    well enough.
+
+    Parameters
+    ----------
+    image_properties : Optional[List[ImageProperty]] , default None
+        An optional dictionary of properties to extract from na image. If none given, using default properties.
+    max_properties_to_show : int , default: 3
+        maximal number of properties to show error distribution for.
+    min_property_contribution : float , default: 0.15
+        minimum feature importance of a property to the error regression model
+        in order to show the property.
+    min_error_model_score : float , default: 0.5
+        minimum r^2 score of the error regression model for displaying the check.
+    min_segment_size : float , default: 0.05
+        minimal fraction of data that can comprise a weak segment.
+    n_display_samples : int , default: 5_000
+        number of samples to display in scatter plot.
+    random_seed : int, default: 42
+        random seed for all check internals.
     """
 
     def __init__(self,
                  image_properties: t.Optional[t.List[ImageProperty]] = None,
-                 alternative_metrics: t.Dict[str, Metric] = None,
                  min_error_model_score: float = 0.5,
                  min_segment_size: float = 0.05,
                  max_properties_to_show: int = 20,
                  min_property_contribution: float = 0.15,
                  n_display_samples: int = 5_000,
-                 random_state: int = 42):
+                 random_seed: int = 42):
         super().__init__()
-        self.random_state = random_state
+        self.random_state = random_seed
         self.min_error_model_score = min_error_model_score
         self.min_segment_size = min_segment_size
         self.max_properties_to_show = max_properties_to_show
         self.min_property_contribution = min_property_contribution
         self.n_display_samples = n_display_samples
-        # todo: get metric type but it's not metric
-        self.alternative_metrics = alternative_metrics
 
         if image_properties is None:
             self.image_properties = ImageFormatter.IMAGE_PROPERTIES
@@ -65,21 +84,21 @@ class ModelErrorAnalysis(TrainTestCheck):
 
             if len(unknown_properties) > 0:
                 raise DeepchecksValueError(
-                    'receivedd list of unknown image properties '
+                    'received list of unknown image properties '
                     f'- {sorted(unknown_properties)}'
                 )
 
             self.image_properties = image_properties
 
     def initialize_run(self, context: Context):
-        """Initialize run."""
+        """Initialize property and score lists."""
         self.train_properties = defaultdict(list)
         self.test_properties = defaultdict(list)
         self.train_scores = []
         self.test_scores = []
 
     def update(self, context: Context, batch: t.Any, dataset_kind):
-        """Update."""
+        """Accumulate property data of images and scores."""
         if dataset_kind == DatasetKind.TRAIN:
             dataset = context.train
             properties = self.train_properties
@@ -104,7 +123,6 @@ class ModelErrorAnalysis(TrainTestCheck):
                     getattr(dataset.image_formatter, image_property)(images)
                 )
             elif callable(image_property):
-                # TODO: if it is a lambda it will have a name - <lambda>, that is a problem/
                 properties[image_property.__name__].extend(image_property(images))
             else:
                 raise DeepchecksValueError(
@@ -114,14 +132,9 @@ class ModelErrorAnalysis(TrainTestCheck):
 
         if dataset.task_type == TaskType.CLASSIFICATION:
             def scoring_func(predictions, labels):
-                import numpy as np
-                y_pred = predictions.detach().numpy()
-                y_true = labels.detach().numpy()
-                return - (np.tile(y_true.reshape((-1, 1)), (1, y_pred.shape[1])) *
-                          np.log(y_pred + np.finfo(float).eps)).sum(axis=1)
+                return per_sample_binary_cross_entropy(labels.detach().numpy(), predictions.detach().numpy())
 
         elif dataset.task_type == TaskType.OBJECT_DETECTION:
-            # TODO: conintue fixing this, ious are broken atm
             def scoring_func(predictions, labels):
                 mean_ious = []
                 for detected, ground_truth in zip(predictions, labels):
@@ -147,44 +160,47 @@ class ModelErrorAnalysis(TrainTestCheck):
 
                 return mean_ious
 
-
         # get score using scoring_function
         scores.extend(scoring_func(predictions, labels))
 
-
-
     def compute(self, context: Context) -> CheckResult:
-        """Compute the metric result using the ignite metrics compute method and create display."""
+        """Train a model on the properties and errors as labels to find properties that contribute to the error, then
+        get segments of these properties to display a split of the effected
+
+        Returns
+        -------
+        CheckResult:
+            value: dictionary of details for each property segment that split the effect on the error of the model
+            display: plots of results
+        """
         # build dataframe of properties and scores
         train_property_df = pd.DataFrame(self.train_properties).dropna(axis=1, how='all')
         test_property_df = pd.DataFrame(self.test_properties)[train_property_df.columns]
 
-        from deepchecks.utils.performance.error_model import error_model_score
+        error_fi, error_model_predicted = \
+            error_model_score(train_property_df,
+                              self.train_scores,
+                              test_property_df,
+                              self.test_scores,
+                              train_property_df.columns.to_list(),
+                              [],
+                              min_error_model_score=self.min_error_model_score,
+                              random_state=self.random_state)
 
-        error_fi, error_model_predicted, error_model = error_model_score(train_property_df,
-                                                                        self.train_scores,
-                                                                        test_property_df,
-                                                                        self.test_scores,
-                                                                        train_property_df.columns.to_list(),
-                                                                        [],
-                                                                        min_error_model_score=self.min_error_model_score,
-                                                                        random_state=self.random_state)
-
-        display, value = error_model_display(error_fi,
-                                      test_property_df,
-                                      DeepcheckScorer('accuracy', 'Accuracy'),
-                                      self.max_properties_to_show,
-                                      self.min_property_contribution,
-                                      self.n_display_samples,
-                                      error_model_predicted,
-                                      [],
-                                      self.min_segment_size,
-                                      error_model,
-                                      self.random_state)
+        display, value = error_model_display_dataframe(error_fi,
+                                                       error_model_predicted,
+                                                       test_property_df,
+                                                       [],
+                                                       self.max_properties_to_show,
+                                                       self.min_property_contribution,
+                                                       self.n_display_samples,
+                                                       self.min_segment_size,
+                                                       self.random_state)
 
         headnote = f"""<span>
-            The following graphs show the distribution of error for top properties that are most useful for distinguishing
-            high error samples from low error samples. Top properties are calculated using `feature_importances_`.
+            The following graphs show the distribution of error for top properties that are most useful for 
+            distinguishing high error samples from low error samples. Top properties are calculated using
+            `feature_importances_`.
         </span>"""
         display = [headnote] + display if display else None
 

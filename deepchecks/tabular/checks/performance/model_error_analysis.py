@@ -9,28 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """Module of model error analysis check."""
-from typing import Callable, Dict, Tuple, List, Hashable, Union
-
-import numpy as np
-import pandas as pd
-import plotly.express as px
-from category_encoders import TargetEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.impute import SimpleImputer
-from sklearn.metrics import r2_score
-from sklearn.pipeline import Pipeline
-from sklearn.tree import DecisionTreeRegressor
+from typing import Callable, Dict, Tuple, Union
 from sklearn import preprocessing
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
-from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.tabular import Context, TrainTestCheck, Dataset
-from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.metrics import ModelType
-from deepchecks.utils.performance.error_model import error_model_display
-from deepchecks.utils.plot import colors
-from deepchecks.utils.strings import format_number, format_percent
+from deepchecks.utils.performance.error_model import error_model_score, error_model_display, \
+    per_sample_binary_cross_entropy
+from deepchecks.utils.strings import format_percent
 
 
 __all__ = ['ModelErrorAnalysis']
@@ -148,9 +135,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         cat_features = train_dataset.cat_features
         numeric_features = [num_feature for num_feature in train_dataset.features if num_feature not in cat_features]
 
-        from deepchecks.utils.performance.error_model import error_model_score
-
-        error_fi, error_model_predicted, error_model = error_model_score(train_dataset.features_columns,
+        error_fi, error_model_predicted = error_model_score(train_dataset.features_columns,
                                                             train_scores,
                                                             test_dataset.features_columns,
                                                             test_scores,
@@ -160,16 +145,15 @@ class ModelErrorAnalysis(TrainTestCheck):
                                                             random_state=self.random_state)
 
         display, value = error_model_display(error_fi,
-                        test_dataset,
-                        scorer,
-                        self.max_features_to_show,
-                        self.min_feature_contribution,
-                        self.n_display_samples,
-                        error_model_predicted,
-                        cat_features,
-                        self.min_segment_size,
-                        model,
-                        self.random_state)
+                                             error_model_predicted,
+                                             test_dataset,
+                                             model,
+                                             scorer,
+                                             self.max_features_to_show,
+                                             self.min_feature_contribution,
+                                             self.n_display_samples,
+                                             self.min_segment_size,
+                                             self.random_state)
 
         headnote = f"""<span>
             The following graphs show the distribution of error for top features that are most useful for distinguishing
@@ -211,50 +195,5 @@ class ModelErrorAnalysis(TrainTestCheck):
         return self.add_condition(f'The performance difference of the detected segments must'
                                   f' not be greater than {format_percent(max_ratio_change)}', condition)
 
-
-def get_segment_details(model, scorer, dataset: Dataset,
-                        segment_condition_col: pd.Series) -> Tuple[str, Dict[str, float]]:
-    """Return a string with details about the data segment."""
-    performance = scorer(
-        model,
-        dataset.copy(dataset.data[segment_condition_col.values]))
-    n_samples = dataset.data[segment_condition_col].shape[0]
-    segment_label = \
-        f'{scorer.name}: {format_number(performance)}, ' \
-        f'Samples: {n_samples} ({format_percent(n_samples / len(dataset))})'
-
-    segment_details = {'score': performance, 'n_samples': n_samples, 'frac_samples': n_samples / len(dataset)}
-
-    return segment_label, segment_details
-
-
-def per_sample_binary_cross_entropy(y_true, y_pred):
-    y_true = np.array(y_true)
-    return - (np.tile(y_true.reshape((-1, 1)), (1, y_pred.shape[1])) *
-              np.log(y_pred + np.finfo(float).eps)).sum(axis=1)
-
-
 def per_sample_mse(y_true, y_pred):
     return (y_true - y_pred) ** 2
-
-
-def create_error_regression_model(dataset: Dataset, random_state=42) -> Tuple[Pipeline, List[Hashable]]:
-    cat_features = dataset.cat_features
-    numeric_features = [num_feature for num_feature in dataset.features if num_feature not in cat_features]
-
-    numeric_transformer = SimpleImputer()
-    categorical_transformer = Pipeline(
-        steps=[('imputer', SimpleImputer(strategy='most_frequent')), ('encoder', TargetEncoder())]
-    )
-
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ('num', numeric_transformer, numeric_features),
-            ('cat', categorical_transformer, cat_features),
-        ]
-    )
-
-    return Pipeline(steps=[
-        ('preprocessing', preprocessor),
-        ('model', RandomForestRegressor(max_depth=4, n_jobs=-1, random_state=random_state))
-    ]), numeric_features + dataset.cat_features

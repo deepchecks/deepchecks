@@ -1,4 +1,4 @@
-from typing import Tuple, List, Hashable, Dict, Union
+from typing import Tuple, List, Hashable, Dict, Any, Optional, Callable
 
 import numpy as np
 import pandas as pd
@@ -11,7 +11,6 @@ from sklearn.impute import SimpleImputer
 from sklearn.metrics import r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeRegressor
-from sklearn import preprocessing
 
 from deepchecks import tabular
 from deepchecks.core.errors import DeepchecksProcessError
@@ -27,7 +26,7 @@ def error_model_score(train_dataset: pd.DataFrame,
                       numeric_features: List,
                       categorical_features: List = [],
                       min_error_model_score=0.5,
-                      random_state=42):
+                      random_state=42) -> Tuple[pd.Series, pd.Series]:
     # Create and fit model to predict the per sample error
     error_model, new_feature_order = create_error_regression_model(numeric_features, categorical_features, random_state=random_state)
     error_model.fit(train_dataset, y=train_scores)
@@ -41,13 +40,12 @@ def error_model_score(train_dataset: pd.DataFrame,
         raise DeepchecksProcessError(f'Unable to train meaningful error model '
                                      f'(r^2 score: {format_number(error_model_score)})')
 
-
-    error_fi, importance_type = calculate_feature_importance(error_model,
-                                                             test_dataset)
+    error_fi, _ = calculate_feature_importance(error_model,
+                                               test_dataset)
     error_fi.index = new_feature_order
     error_fi.sort_values(ascending=False, inplace=True)
 
-    return error_fi, error_model_predicted, error_model
+    return error_fi, error_model_predicted
 
 
 def create_error_regression_model(numeric_features, cat_features, random_state=42) -> Tuple[Pipeline, List[Hashable]]:
@@ -69,34 +67,54 @@ def create_error_regression_model(numeric_features, cat_features, random_state=4
     ]), numeric_features + cat_features
 
 
-def per_sample_binary_cross_entropy(y_true, y_pred):
+def per_sample_binary_cross_entropy(y_true: np.array, y_pred: np.array):
     y_true = np.array(y_true)
     return - (np.tile(y_true.reshape((-1, 1)), (1, y_pred.shape[1])) *
               np.log(y_pred + np.finfo(float).eps)).sum(axis=1)
 
 
-def error_model_display(error_fi,
-                        test_dataset: Union[tabular.Dataset, pd.DataFrame],
-                        scorer,
-                        max_features_to_show,
-                        min_feature_contribution,
-                        n_display_samples,
-                        error_model_predicted,
-                        cat_features,
-                        min_segment_size,
-                        model,
-                        random_state):
-    if isinstance(test_dataset, tabular.Dataset):
-        dataset = test_dataset.data
-    else:
-        dataset = test_dataset
+def error_model_display_dataframe(error_fi: pd.Series,
+                                  error_model_predicted: pd.Series,
+                                  dataset: pd.DataFrame,
+                                  cat_features: List,
+                                  max_features_to_show: int,
+                                  min_feature_contribution: float,
+                                  n_display_samples: int,
+                                  min_segment_size: int,
+                                  random_state: int):
+    """Wraps error_model_display function for Dataframe."""
+    return error_model_display(error_fi,
+                               error_model_predicted,
+                               tabular.Dataset(dataset, cat_features=cat_features),
+                               None,
+                               None,
+                               max_features_to_show,
+                               min_feature_contribution,
+                               n_display_samples,
+                               min_segment_size,
+                               random_state)
 
+
+def error_model_display(error_fi: pd.Series,
+                        error_model_predicted: pd.Series,
+                        dataset: tabular.Dataset,
+                        # score related parameters
+                        model: Optional[Any],
+                        scorer: Optional[Callable],
+                        # Output related parameters
+                        max_features_to_show: int,
+                        min_feature_contribution: float,
+                        n_display_samples: int,
+                        min_segment_size: int,
+                        random_state: int) -> Tuple[List, Dict]:
+    """Calculate and display segments with large error discrepancies."""
+    print(n_display_samples)
     n_samples_display = min(n_display_samples, len(dataset))
     error_col_name = 'Deepchecks model error'
-    display_error = pd.Series(error_model_predicted, name=error_col_name, index=dataset.index)
+    display_error = pd.Series(error_model_predicted, name=error_col_name, index=dataset.data.index)
 
     display = []
-    value = {'scorer_name': scorer.name, 'feature_segments': {}}
+    value = {'scorer_name': scorer.name if scorer else None, 'feature_segments': {}}
     weak_color = '#d74949'
     ok_color = colors['Test']
 
@@ -104,13 +122,13 @@ def error_model_display(error_fi,
         if error_fi[feature] < min_feature_contribution:  # pylint: disable=unsubscriptable-object
             break
 
-        data = pd.concat([dataset[feature], display_error], axis=1)
+        data = pd.concat([dataset.data[feature], display_error], axis=1)
         value['feature_segments'][feature] = {}
         segment1_details = {}
         segment2_details = {}
 
         # Violin plot for categorical features, scatter plot for numerical features
-        if feature in cat_features:
+        if feature in dataset.cat_features:
             # find categories with the weakest performance
             error_per_segment_ser = (
                 data
@@ -128,14 +146,22 @@ def error_model_display(error_fi,
             ok_categories = error_per_segment_ser.index[~in_segment_indicis]
 
             # Calculate score for each group and assign label and color
-            ok_name_feature, segment1_details = get_segment_details(model, scorer, test_dataset,
-                                                                    data[feature].isin(ok_categories))
+            if scorer:
+                ok_name_feature, segment1_details = get_segment_details(model, scorer, dataset,
+                                                                        data[feature].isin(ok_categories))
+            else:
+                segment1_text, segment1_details = get_segment_details_using_error(error_col_name, data,
+                                                                                  data[feature].isin(ok_categories))
 
             color_map = {ok_name_feature: ok_color}
 
             if len(weak_categories) >= 1:
-                weak_name_feature, segment2_details = get_segment_details(model, scorer, test_dataset,
-                                                                          data[feature].isin(weak_categories))
+                if scorer:
+                    weak_name_feature, segment2_details = get_segment_details(model, scorer, dataset,
+                                                                              data[feature].isin(weak_categories))
+                else:
+                    segment1_text, segment1_details = get_segment_details_using_error(error_col_name, data,
+                                                                                      data[feature].isin(weak_categories))
 
                 color_map[weak_name_feature] = weak_color
             else:
@@ -168,14 +194,15 @@ def error_model_display(error_fi,
                 threshold = tree_partitioner.tree_.threshold[0]
                 color_col = data[feature].ge(threshold)
 
-                sampled_dataset = dataset.iloc[sampling_idx]
-                if isinstance(test_dataset, tabular.Dataset):
-                    segment1_text, segment1_details = get_segment_details(model, scorer, test_dataset.copy(sampled_dataset),
+                sampled_dataset = dataset.data.iloc[sampling_idx]
+                if scorer:
+                    segment1_text, segment1_details = get_segment_details(model, scorer, dataset.copy(sampled_dataset),
                                                                           color_col)
                     segment2_text, segment2_details = get_segment_details(model, scorer,
-                                                                          test_dataset.copy(sampled_dataset),
+                                                                          dataset.copy(sampled_dataset),
                                                                           ~color_col)
                 else:
+                    # If there is not scorer, we use the error calculation to describe the segments
                     segment1_text, segment1_details = get_segment_details_using_error(error_col_name, data, color_col)
                     segment2_text, segment2_details = get_segment_details_using_error(error_col_name, data, ~color_col)
                 color_col = color_col.replace([True, False], [segment1_text, segment2_text])
