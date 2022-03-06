@@ -13,7 +13,7 @@ import types
 
 import albumentations
 import numpy as np
-from deepchecks.vision.vision_data import VisionData
+from deepchecks.vision.datasets.detection.coco import COCOData, CocoDataset
 
 from tests.checks.utils import equal_condition_result
 from deepchecks.core.errors import DeepchecksValueError
@@ -66,10 +66,11 @@ def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detecti
     result = check.run(coco_train_visiondata, trained_yolov5_object_detection,
                        device=device)
     # Assert
+    print(result.value)
     assert_that(result.value, has_entries({
         'HueSaturationValue': has_entries({
-            'AP': has_entries(score=close_to(0.116, 0.001), diff=close_to(-0.051, 0.001)),
-            'AR': has_entries(score=close_to(0.116, 0.001), diff=close_to(-0.060, 0.001))
+            'AP': has_entries(score=close_to(0.308, 0.001), diff=close_to(-0.051, 0.001)),
+            'AR': has_entries(score=close_to(0.344, 0.001), diff=close_to(-0.060, 0.001))
         }),
     }))
     assert_that(result.conditions_results, has_items(
@@ -85,19 +86,16 @@ def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detecti
     ))
 
 
-def test_dataset_not_augmenting_labels(coco_train_visiondata: VisionData, trained_yolov5_object_detection, device):
+def test_dataset_not_augmenting_labels(coco_train_visiondata: COCOData, trained_yolov5_object_detection, device):
     # Arrange
-    vision_data = coco_train_visiondata.copy()
-    dataset = vision_data.data_loader.dataset
-
     def new_apply(self, img, bboxes):
         if self.transforms is not None:
             transformed = self.transforms(image=np.array(img), bboxes=bboxes)
             img = Image.fromarray(transformed['image'])
         return img, bboxes
+    vision_data = coco_train_visiondata.get_augmented_dataset(albumentations.ShiftScaleRotate(p=1))
+    dataset: CocoDataset = vision_data.data_loader.dataset
     dataset.apply_transform = types.MethodType(new_apply, dataset)
-
-    vision_data.get_augmented_dataset(albumentations.ShiftScaleRotate(p=1))
     # Act & Assert
     check = RobustnessReport()
     msg = r'Found that labels have not been affected by adding augmentation to field "transforms". This might be ' \
@@ -107,15 +105,13 @@ def test_dataset_not_augmenting_labels(coco_train_visiondata: VisionData, traine
                 raises(DeepchecksValueError, msg))
 
 
-def test_dataset_not_augmenting_data(coco_train_visiondata: VisionData, trained_yolov5_object_detection, device):
+def test_dataset_not_augmenting_data(coco_train_visiondata: COCOData, trained_yolov5_object_detection, device):
     # Arrange
-    vision_data = coco_train_visiondata.copy()
-    dataset = vision_data.data_loader.dataset
-
     def new_apply(self, img, bboxes):
         return img, bboxes
+    vision_data = coco_train_visiondata.get_augmented_dataset(albumentations.ShiftScaleRotate(p=1))
+    dataset: CocoDataset = vision_data.data_loader.dataset
     dataset.apply_transform = types.MethodType(new_apply, dataset)
-    vision_data.get_augmented_dataset(albumentations.ShiftScaleRotate(p=1))
 
     # Act & Assert
     check = RobustnessReport()

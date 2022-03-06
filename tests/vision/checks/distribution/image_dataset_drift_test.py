@@ -103,7 +103,7 @@ def test_with_drift_rgb(coco_train_dataloader, coco_test_dataloader, device):
             return pil_drift_formatter(batch)
 
     train = DriftCoco(coco_train_dataloader)
-    test = DriftCoco(coco_test_dataloader)
+    test = COCOData(coco_test_dataloader)
 
     check = ImageDatasetDrift()
 

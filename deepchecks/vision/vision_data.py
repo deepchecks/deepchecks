@@ -139,6 +139,11 @@ class VisionData:
         return self._data_loader
 
     @property
+    def transform_field(self) -> str:
+        """Return the data loader."""
+        return self._transform_field
+
+    @property
     def task_type(self) -> int:
         """Return the task type."""
         return self._task_type
@@ -187,6 +192,7 @@ class VisionData:
         """Validate transform field in the dataset, and return a copy of the vision data object
         with the augmentation in the start of it."""
         dataset_ref = self._data_loader.dataset
+        print(dataset_ref)
         # If no field exists raise error
         if not hasattr(dataset_ref, self._transform_field):
             msg = f'Underlying Dataset instance does not contain "{self._transform_field}" attribute. If your ' \
@@ -197,6 +203,7 @@ class VisionData:
         dataset_copy = copy(dataset_ref)
         dataset_copy.__setattr__(self._transform_field, new_transform)
         new_vision_data = self.copy(dataset_copy)
+        print(new_vision_data.data_loader.dataset)
         return new_vision_data
 
     def copy(self, new_dataset = None) -> VD:
@@ -330,5 +337,6 @@ class VisionData:
         if new_dataset is None:
             props['dataset'] = copy(self._data_loader.dataset)
         else:
+            print('added')
             props['dataset'] = copy(new_dataset)
         return self._data_loader.__class__(**props)
