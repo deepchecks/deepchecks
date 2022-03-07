@@ -32,7 +32,7 @@ def test_mnist(mnist_dataset_train, trained_mnist):
 
 def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detection):
     # Arrange
-    check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_not_less_than(0.5)\
+    check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_not_less_than(0.7)\
         .add_condition_score_from_mean_ratio_not_less_than(0.1)
     # Act
     result = check.run(coco_train_visiondata, trained_yolov5_object_detection)
@@ -70,9 +70,8 @@ def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detecti
         ),
         equal_condition_result(
             is_pass=False,
-            name='No segment with ratio between score to mean less than 50%',
+            name='No segment with ratio between score to mean less than 70%',
             details="Properties with failed segments: normalized_blue_mean: {'Range': '[0.33, inf)', 'Metric': 'AR', "
                     "'Ratio': 0.43}, normalized_green_mean: {'Range': '[0.341, 0.365)', 'Metric': 'AP', 'Ratio': 0.47}"
         )
     ))
-
