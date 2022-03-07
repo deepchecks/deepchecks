@@ -38,9 +38,11 @@ class SimpleDetectionData(DetectionData):
     def batch_to_labels(self, batch):
         return batch[1]
 
+
 class SimpleClassificationData(ClassificationData):
     def batch_to_labels(self, batch):
         return batch[1]
+
 
 def test_vision_data_number_of_classes_inference():
     dataset = t.cast(MNISTData, mnist.load_dataset(train=True, object_type='VisionData'))
