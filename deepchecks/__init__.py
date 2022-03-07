@@ -9,6 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Deepchecks."""
+import sys
+import types
 import os
 import pathlib
 import http.client
@@ -17,17 +19,8 @@ import matplotlib
 import plotly.io as pio
 from pkg_resources import parse_version
 
+import deepchecks.tabular
 from deepchecks.utils.ipython import is_notebook
-from deepchecks.tabular import (
-    Dataset,
-    Suite,
-    Context,
-    SingleDatasetCheck,
-    TrainTestCheck,
-    ModelOnlyCheck,
-    ModelComparisonCheck,
-    ModelComparisonSuite,
-)
 from deepchecks.core import (
     BaseCheck,
     BaseSuite,
@@ -43,21 +36,11 @@ from deepchecks.core import (
 )
 
 
-warnings.warn(
-    # TODO: better message
-    'Ability to import base tabular functionality from '
-    'the `deepchecks` directly is deprecated, please import from '
-    '`deepchecks.tabular` instead',
-    DeprecationWarning
-)
-
-
 __all__ = [
     'BaseCheck',
     'SingleDatasetBaseCheck',
     'TrainTestBaseCheck',
     'ModelOnlyBaseCheck',
-    'ModelComparisonCheck',
     'CheckResult',
     'CheckFailure',
     'Condition',
@@ -65,15 +48,6 @@ __all__ = [
     'ConditionCategory',
     'BaseSuite',
     'SuiteResult',
-
-    # tabular checks
-    'SingleDatasetCheck',
-    'TrainTestCheck',
-    'ModelOnlyCheck',
-    'Dataset',
-    'Suite',
-    'ModelComparisonSuite',
-    'Context'
 ]
 
 
@@ -81,6 +55,7 @@ __all__ = [
 # we can't use a GUI backend. Thus we must use a non-GUI backend.
 if not is_notebook():
     matplotlib.use('Agg')
+
 
 # We can't rely on that the user will have an active internet connection, thus we change the default backend to
 # "notebook" If plotly detects the 'notebook-connected' backend.
@@ -100,6 +75,7 @@ except:  # pylint: disable=bare-except # noqa
     # If version file can't be found, leave version empty
     __version__ = ''
 
+
 # Check for latest version
 try:
     disable = os.environ.get('DEEPCHECKS_DISABLE_LATEST', 'false').lower() == 'true'
@@ -113,3 +89,41 @@ try:
                           ' pip install -U deepchecks')
 except:  # pylint: disable=bare-except # noqa
     pass
+
+
+class _CurrentModule(types.ModuleType):
+    ROUTINES = (
+        'Dataset',
+        'Suite',
+        'Context',
+        'SingleDatasetCheck',
+        'TrainTestCheck',
+        'ModelOnlyCheck',
+        'ModelComparisonCheck',
+        'ModelComparisonSuite',
+    )
+
+    def __getattr__(self, name):
+        if name in self.ROUTINES:
+            breakpoint()
+            warnings.warn(
+                'Ability to import base tabular functionality from '
+                'the `deepchecks` directly is deprecated, please import from '
+                '`deepchecks.tabular` instead',
+                DeprecationWarning
+            )
+            return getattr(deepchecks.tabular, name)
+        else:
+            return super().__getattr__(name)
+    
+
+__origin_module__ = sys.modules[__name__]
+__substitute_module__ = _CurrentModule(__name__)
+
+
+for routine in __all__:
+    setattr(__substitute_module__, routine, getattr(__origin_module__, routine))
+
+
+warnings.simplefilter('once', category=DeprecationWarning) # by default DeprecationWarning is ignored
+sys.modules[__name__] = __substitute_module__
