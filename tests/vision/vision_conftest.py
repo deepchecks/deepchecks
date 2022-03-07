@@ -96,8 +96,9 @@ def mnist_drifted_datasets(mnist_dataset_train, mnist_dataset_test):  # pylint: 
         modified_batch = []
         for item in batch:
             _, label = item
-            if (label == 0) and (np.random.randint(10) == 0):
-                modified_batch.append(item)
+            if label == 0:
+                if np.random.randint(10) == 0:
+                    modified_batch.append(item)
             else:
                 modified_batch.append(item)
 

@@ -166,21 +166,20 @@ class TrainTestPredictionDrift(TrainTestCheck):
         return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
 
     def add_condition_drift_score_not_greater_than(self, max_allowed_psi_score: float = 0.15,
-                                                   max_allowed_earth_movers_score: float = 0.075
+                                                   max_allowed_earth_movers_score: float = 0.07
                                                    ) -> 'TrainTestPredictionDrift':
         """
         Add condition - require prediction measurements drift score to not be more than a certain threshold.
 
-        The industry standard for PSI limit is above 0.2.
+        The industry standard for PSI limit is above 0.2. We lowered this threshold to 0.15 because of the significance
+        of prediction drift compare to regular feature drift.
         Earth movers does not have a common industry standard.
-        In this condition both thresholds where lowered compared to feature drift due to the higher importance of drift
-        in the predictions
 
         Parameters
         ----------
-        max_allowed_psi_score: float , default: 0.15
+        max_allowed_psi_score: float , default: 0.2
             the max threshold for the PSI score
-        max_allowed_earth_movers_score: float , default: 0.075
+        max_allowed_earth_movers_score: float , default: 0.1
             the max threshold for the Earth Mover's Distance score
         Returns
         -------
