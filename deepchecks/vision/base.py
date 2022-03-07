@@ -99,14 +99,13 @@ class Context:
 
         self._device = torch.device(device) if isinstance(device, str) else (device if device else torch.device('cpu'))
 
-        # If no prediction_formatter is passed and model and train are defined, we will use the default one according
-        # to the dataset task type
         if model is not None:
             for dataset, dataset_type in zip([train, test], ['train', 'test']):
                 if dataset is not None:
                     try:
                         dataset.validate_prediction(next(iter(dataset.data_loader)), model, self._device)
-                    except ValidationError:
+                        print('ahh')
+                    except DeepchecksValueError:
                         logger.warning('validate_prediction() was not implemented in %s dataset, '
                                        'some checks will not run', dataset_type)
 
