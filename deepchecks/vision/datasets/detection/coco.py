@@ -53,7 +53,10 @@ def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cp
 
 
 class COCOData(DetectionData):
-
+    """
+    Class for loading the COCO dataset, inherits from :class:`~deepchecks.vision.DetectionData`.
+    Implement the necessary methods to load the dataset.
+    """
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
         def move_class(tensor):
             return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \

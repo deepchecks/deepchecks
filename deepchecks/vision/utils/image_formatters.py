@@ -10,7 +10,6 @@
 #
 """Module containing the image formatter class for the vision module."""
 from typing import Tuple, List
-import cv2
 import numpy as np
 
 __all__ = ['IMAGE_PROPERTIES',
@@ -101,7 +100,8 @@ def _normalized_rgb_mean(batch: List[np.ndarray]) -> List[Tuple[float, float, fl
     if _is_grayscale(batch) is True:
         return [(None, None, None)] * len(batch)
 
-    return [_normalize_pixelwise(img).mean(axis=(1,2)) for img in batch]
+    return [_normalize_pixelwise(img).mean(axis=(1, 2)) for img in batch]
+
 
 def _normalize_pixelwise(img: np.ndarray) -> np.ndarray:
     """Normalize the pixel values of an image.
@@ -119,6 +119,7 @@ def _normalize_pixelwise(img: np.ndarray) -> np.ndarray:
     s = img.sum(axis=2)
     return np.array([np.divide(img[:, :, i], s, out=np.zeros_like(img[:, :, i], dtype='float64'), where=s != 0)
                      for i in range(3)])
+
 
 def _is_grayscale(batch):
     return get_dimension(batch[0]) == 1

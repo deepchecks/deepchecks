@@ -103,7 +103,10 @@ def load_dataset(
 
 
 class MNISTData(ClassificationData):
-
+    """
+    Class for loading the MNIST dataset, inherits from :obj:`deepchecks.vision.classification_data.ClassificationData`.
+    Implement the necessary methods for the :obj:`deepchecks.vision.classification_data.ClassificationData` interface.
+    """
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
         return batch[1]
 

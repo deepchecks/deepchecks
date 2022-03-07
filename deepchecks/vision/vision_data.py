@@ -41,8 +41,6 @@ class VisionData:
         Number of classes in the dataset. If not provided, will be inferred from the dataset.
     label_map : Dict[int, str], optional
         A dictionary mapping class ids to their names.
-    random_seed : int, default: 0
-        Random seed used to generate the sample.
     transform_field : str, default: 'transforms'
         Name of transforms field in the dataset which holds transformations of both data and label.
 
@@ -78,10 +76,10 @@ class VisionData:
             self.validate_image_data(next(iter(self._data_loader)))
             self._has_images = True
         except DeepchecksValueError:
-            logger.warn('batch_to_images() was not implemented, some checks will not run')    
+            logger.warning('batch_to_images() was not implemented, some checks will not run')
         except ValidationError:
-            logger.warn('batch_to_images() was not implemented currectly, '
-                        'the validiation has failed, some checks will not run')
+            logger.warning('batch_to_images() was not implemented currectly, '
+                           'the validiation has failed, some checks will not run')
 
         self._n_of_samples_per_class = None
         self._task_type = None
@@ -91,30 +89,30 @@ class VisionData:
     @abstractmethod
     def get_classes(self, batch_labels: Union[List[torch.Tensor], torch.Tensor]):
         """Get a labels batch and return classes inside it."""
-        return NotImplementedError("get_classes() must be implemented in a subclass")
+        return NotImplementedError('get_classes() must be implemented in a subclass')
 
     @abstractmethod
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
         raise DeepchecksValueError(
-            "batch_to_labels() must be implemented in a subclass"
+            'batch_to_labels() must be implemented in a subclass'
         )
 
     @abstractmethod
     def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
         raise DeepchecksValueError(
-            "infer_on_batch() must be implemented in a subclass"
+            'infer_on_batch() must be implemented in a subclass'
         )
 
     @abstractmethod
     def validate_label(self, batch):
         raise DeepchecksValueError(
-            "validate_label() must be implemented in a subclass"
+            'validate_label() must be implemented in a subclass'
         )
 
     @abstractmethod
     def validate_prediction(self, batch, model, device):
         raise DeepchecksValueError(
-            "validate_prediction() must be implemented in a subclass"
+            'validate_prediction() must be implemented in a subclass'
         )
 
     @abstractmethod
@@ -122,10 +120,11 @@ class VisionData:
         """Infer on batch.
         Examples
         --------
-        >>> return batch[0]
+        >>> def batch_to_images(self, batch):
+        ...     return batch[0]
         """
         raise DeepchecksValueError(
-            "batch_to_images() must be implemented in a subclass"
+            'batch_to_images() must be implemented in a subclass'
         )
 
     @property
@@ -144,6 +143,11 @@ class VisionData:
     def transform_field(self) -> str:
         """Return the data loader."""
         return self._transform_field
+
+    @property
+    def has_label(self) -> bool:
+        """Return True if the data loader has labels."""
+        return self._has_label
 
     @property
     def task_type(self) -> int:
@@ -200,23 +204,11 @@ class VisionData:
                   f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
             raise DeepchecksValueError(msg)
         new_vision_data = self.copy()
-        new_dataset_ref = new_vision_data._data_loader.dataset
+        new_dataset_ref = new_vision_data.data_loader.dataset
         transform = new_dataset_ref.__getattribute__(self._transform_field)
         new_transform = add_augmentation_in_start(aug, transform)
         new_dataset_ref.__setattr__(self._transform_field, new_transform)
         return new_vision_data
-
-    # def add_augmentation(self, aug):
-    #     """Validate transform field in the dataset, and add the augmentation in the start of it."""
-    #     dataset_ref = self._data_loader.dataset
-    #     # If no field exists raise error
-    #     if not hasattr(dataset_ref, self.transform_field):
-    #         msg = f'Underlying Dataset instance does not contain "{self.transform_field}" attribute. If your ' \
-    #               f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
-    #         raise DeepchecksValueError(msg)
-    #     transform = dataset_ref.__getattribute__(self.transform_field)
-    #     new_transform = add_augmentation_in_start(aug, transform)
-    #     dataset_ref.__setattr__(self.transform_field, new_transform)
 
     def copy(self) -> VD:
         """Create new copy of this object, with the data-loader and dataset also copied."""
@@ -258,10 +250,10 @@ class VisionData:
             raise ValidationError('Check requires dataset to be of type VisionTask. instead got: '
                                   f'{type(other).__name__}')
 
-        if self._has_label != other._has_label:
+        if self._has_label != other.has_label:
             raise ValidationError('Datasets required to both either have or don\'t have labels')
 
-        if self._task_type != other._task_type:
+        if self._task_type != other.task_type:
             raise ValidationError('Datasets required to have same label type')
 
     def validate_image_data(self, batch):
@@ -335,7 +327,8 @@ class VisionData:
         }
         # Add batch sampler if exists, else sampler
         if data_loader.batch_sampler is not None:
-            # Can't deepcopy since generator is not pickle-able, so copying shallowly and then copies also sampler inside
+            # Can't deepcopy since generator is not pickle-able,
+            # so copying shallowly and then copies also sampler inside
             batch_sampler = copy(data_loader.batch_sampler)
             batch_sampler.sampler = copy(batch_sampler.sampler)
             # Replace generator instance so the copied dataset will not affect the original

@@ -19,7 +19,8 @@ from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedE
 from deepchecks.vision.base import Context, TrainTestCheck
 from deepchecks.utils.distribution.plot import drift_score_bar_traces
 from deepchecks.utils.plot import colors
-from deepchecks.vision.dataset import VisionData, TaskType
+from deepchecks.vision.dataset import TaskType
+from deepchecks.vision.vision_data import VisionData
 import numpy as np
 from collections import Counter
 import plotly.graph_objs as go

@@ -24,6 +24,7 @@ from deepchecks.vision.vision_data import VisionData
 
 logger = logging.getLogger('deepchecks')
 
+
 class DetectionData(VisionData):
     """
     DetectionData is an abstract class that defines the interface for
@@ -49,18 +50,19 @@ class DetectionData(VisionData):
             logger.warning('batch_to_labels() was not implemented, some checks will not run')
 
         except ValidationError:
-            logger.warn('batch_to_labels() was not implemented currectly, '
-                        'the validiation has failed, some checks will not run')
+            logger.warning('batch_to_labels() was not implemented currectly, '
+                           'the validiation has failed, some checks will not run')
 
     @abstractmethod
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
         """Infer on batch.
         Examples
         --------
-        >>> return batch[1]
+        >>> def batch_to_labels(self, batch):
+        ...     return batch[1]
         """
         raise DeepchecksValueError(
-            "batch_to_labels() must be implemented in a subclass"
+            'batch_to_labels() must be implemented in a subclass'
         )
 
     @abstractmethod
@@ -68,10 +70,11 @@ class DetectionData(VisionData):
         """Infer on batch.
         Examples
         --------
-        >>> return model.to(device)(batch[0].to(device))
+        >>> def infer_on_batch(self, batch, model, device):
+        ...     return model.to(device)(batch[0].to(device))
         """
         raise DeepchecksValueError(
-            "infer_on_batch() must be implemented in a subclass"
+            'infer_on_batch() must be implemented in a subclass'
         )
 
     def get_classes(self, batch_labels: List[torch.Tensor]):

@@ -107,13 +107,13 @@ class Context:
                     try:
                         dataset.validate_prediction(next(iter(dataset.data_loader)), model, self._device)
                     except ValidationError:
-                        logger.warning(f'validate_prediction() was not implemented in {dataset_type} dataset, '
-                                        'some checks will not run')
+                        logger.warning('validate_prediction() was not implemented in %s dataset, '
+                                       'some checks will not run', dataset_type)
 
         self._train = train
         self._test = test
         self._model = model
-        self._batch_prediction_cache = dict()
+        self._batch_prediction_cache = {}
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name

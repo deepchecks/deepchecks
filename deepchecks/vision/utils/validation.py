@@ -20,13 +20,13 @@ from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.utils.ipython import is_notebook
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.utils.image_functions import numpy_to_image_figure, label_bbox_add_to_figure
+from deepchecks.vision.vision_data import VisionData
+
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from PIL import Image
 from io import BytesIO
 from IPython.display import display, HTML
-
-from deepchecks.vision.vision_data import VisionData
 
 
 __all__ = ['set_seeds', 'apply_to_tensor', 'validate_extractors']
@@ -67,6 +67,7 @@ def apply_to_tensor(
     elif isinstance(x, dict):
         return type(x)((k, apply_to_tensor(v, fn)) for k, v in x.items())
     return x
+
 
 def validate_extractors(dataset: VisionData, model):
     """Validate for given data_loader and model that the extractors are valid."""
@@ -134,7 +135,7 @@ def validate_extractors(dataset: VisionData, model):
                     fig.update_xaxes(title='Prediction')
                     fig.update_layout(title='Visual example of an image with prediction data')
 
-        elif dataset.task_type  == TaskType.CLASSIFICATION:
+        elif dataset.task_type == TaskType.CLASSIFICATION:
             fig = go.Figure(numpy_to_image_figure(sample_image))
             # Create figure title
             title = 'Visual example of an image'

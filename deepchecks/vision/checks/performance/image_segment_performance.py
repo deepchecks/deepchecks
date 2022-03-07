@@ -88,7 +88,6 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         # the amount we will define the bins and populate them
         self._state = {'samples_for_binning': [], 'bins': None}
         # Initialize image properties. Doing this not in the init because we use the dataset object.
-        dataset = context.get_data_by_kind(dataset_kind)
         string_props = {p: getattr(image_formatters, p) for p in self.image_properties if isinstance(p, str)}
         func_props = {p.__name__: p for p in self.image_properties if callable(p)}
         self._state['properties_functions'] = {**string_props, **func_props}

@@ -10,9 +10,8 @@
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
 from abc import abstractmethod
-import copy
 import logging
-from typing import Any, List, Optional, Dict, Union
+from typing import List, Optional, Dict, Union
 import numpy as np
 
 import torch
@@ -26,12 +25,28 @@ logger = logging.getLogger('deepchecks')
 
 
 class ClassificationData(VisionData):
+    """
+    The ClassificationData class is a subclass of the VisionData class. It is used to load and preprocess data for a
+    classification task.
 
+    The ClassificationData class is containing additional data and general methods intended for easily accessing
+    metadata relevant for validating a computer vision classification ML models.
+
+    Parameters
+    ----------
+    data_loader : DataLoader
+        PyTorch DataLoader object. This is the data loader object that will be used to load the data.
+    num_classes : int, optional
+        Number of classes in the dataset. If not provided, will be inferred from the dataset.
+    label_map : Dict[int, str], optional
+        A dictionary mapping class ids to their names.
+    transform_field : str, default: 'transforms'
+        Name of transforms field in the dataset which holds transformations of both data and label.
+    """
     def __init__(self,
                  data_loader: DataLoader,
                  num_classes: Optional[int] = None,
                  label_map: Optional[Dict[int, str]] = None,
-                 random_seed: int = 0,
                  transform_field: Optional[str] = 'transforms'):
 
         super().__init__(data_loader, num_classes, label_map, transform_field)
@@ -44,18 +59,19 @@ class ClassificationData(VisionData):
         except DeepchecksValueError:
             logger.warning('batch_to_labels() was not implemented, some checks will not run')
         except ValidationError:
-            logger.warn('batch_to_labels() was not implemented currectly, '
-                        'the validiation has failed, some checks will not run')
+            logger.warning('batch_to_labels() was not implemented currectly, '
+                           'the validiation has failed, some checks will not run')
 
     @abstractmethod
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
         """Infer on batch.
         Examples
         --------
-        >>> return batch[1]
+        >>> def batch_to_labels(self, batch):
+        ...     return batch[1]
         """
         raise DeepchecksValueError(
-            "batch_to_labels() must be implemented in a subclass"
+            'batch_to_labels() must be implemented in a subclass'
         )
 
     @abstractmethod
@@ -63,10 +79,11 @@ class ClassificationData(VisionData):
         """Infer on batch.
         Examples
         --------
-        >>> return model.to(device)(batch[0].to(device))
+        >>> def infer_on_batch(self, batch, model, device):
+        >>>     return model.to(device)(batch[0].to(device))
         """
         raise DeepchecksValueError(
-            "infer_on_batch() must be implemented in a subclass"
+            'infer_on_batch() must be implemented in a subclass'
         )
 
     def get_classes(self, batch_labels: Union[List[torch.Tensor], torch.Tensor]):
@@ -115,4 +132,4 @@ class ClassificationData(VisionData):
             raise ValidationError(f'Check requires classification predictions to have {n_classes} columns')
         if any(abs(batch_predictions.sum(axis=1) - 1) > eps):
             raise ValidationError('Check requires classification} predictions to be a probability distribution and'
-                                       ' sum to 1 for each row')
+                                  ' sum to 1 for each row')
