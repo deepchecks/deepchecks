@@ -26,11 +26,7 @@ logger = logging.getLogger('deepchecks')
 
 
 class DetectionData(VisionData):
-    """
-    DetectionData is an abstract class that defines the interface for
-    object detection tasks.
-
-    """
+    """DetectionData is an abstract class that defines the interface for object detection tasks."""
 
     def __init__(self,
                  data_loader: DataLoader,
@@ -56,6 +52,7 @@ class DetectionData(VisionData):
     @abstractmethod
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
         """Infer on batch.
+
         Examples
         --------
         >>> def batch_to_labels(self, batch):
@@ -68,6 +65,7 @@ class DetectionData(VisionData):
     @abstractmethod
     def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
         """Infer on batch.
+
         Examples
         --------
         >>> def infer_on_batch(self, batch, model, device):

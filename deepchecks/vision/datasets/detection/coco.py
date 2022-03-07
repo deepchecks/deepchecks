@@ -53,11 +53,13 @@ def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cp
 
 
 class COCOData(DetectionData):
-    """
-    Class for loading the COCO dataset, inherits from :class:`~deepchecks.vision.DetectionData`.
+    """Class for loading the COCO dataset, inherits from :class:`~deepchecks.vision.DetectionData`.
+
     Implement the necessary methods to load the dataset.
     """
+
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
+        """Convert the batch to a list of labels."""
         def move_class(tensor):
             return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
                 if len(tensor) > 0 else tensor
@@ -65,6 +67,7 @@ class COCOData(DetectionData):
         return [move_class(tensor) for tensor in batch[1]]
 
     def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
+        """Infer on a batch of images."""
         return_list = []
 
         with warnings.catch_warnings():
@@ -82,6 +85,7 @@ class COCOData(DetectionData):
         return return_list
 
     def batch_to_images(self, batch) -> List[np.ndarray]:
+        """Convert the batch to a list of images."""
         return [np.array(x) for x in batch[0]]
 
 

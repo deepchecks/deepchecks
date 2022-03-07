@@ -93,24 +93,28 @@ class VisionData:
 
     @abstractmethod
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
+        """Transform a batch of data to labels."""
         raise DeepchecksValueError(
             'batch_to_labels() must be implemented in a subclass'
         )
 
     @abstractmethod
     def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
+        """Infer on a batch of data."""
         raise DeepchecksValueError(
             'infer_on_batch() must be implemented in a subclass'
         )
 
     @abstractmethod
     def validate_label(self, batch):
+        """Validate a batch of labels."""
         raise DeepchecksValueError(
             'validate_label() must be implemented in a subclass'
         )
 
     @abstractmethod
     def validate_prediction(self, batch, model, device):
+        """Validate a batch of predictions."""
         raise DeepchecksValueError(
             'validate_prediction() must be implemented in a subclass'
         )
@@ -118,6 +122,7 @@ class VisionData:
     @abstractmethod
     def batch_to_images(self, batch) -> List[np.ndarray]:
         """Infer on batch.
+
         Examples
         --------
         >>> def batch_to_images(self, batch):
@@ -195,8 +200,7 @@ class VisionData:
         return get_transforms_handler(transform)
 
     def get_augmented_dataset(self, aug) -> VD:
-        """Validate transform field in the dataset, and return a copy of the vision data object
-        with the augmentation in the start of it."""
+        """Return a copy of the vision data object with the augmentation in the start of it."""
         dataset_ref = self._data_loader.dataset
         # If no field exists raise error
         if not hasattr(dataset_ref, self._transform_field):
@@ -290,10 +294,7 @@ class VisionData:
     def _get_samples_per_class(self):
         """
         Get the number of samples per class.
-        Parameters
-        ----------
-        data_loader : DataLoader
-            DataLoader to get the samples per class from.
+
         Returns
         -------
         Counter

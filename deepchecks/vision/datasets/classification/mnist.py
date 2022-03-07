@@ -102,18 +102,22 @@ def load_dataset(
 
 
 class MNISTData(ClassificationData):
-    """
-    Class for loading the MNIST dataset, inherits from :obj:`deepchecks.vision.classification_data.ClassificationData`.
+    """Class for loading the MNIST dataset, inherits from :obj:`deepchecks.vision.classification_data.ClassificationData`.
+
     Implement the necessary methods for the :obj:`deepchecks.vision.classification_data.ClassificationData` interface.
     """
+
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
+        """Convert a batch of mnist data to labels."""
         return batch[1]
 
     def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
+        """Infer on a batch of mnist data."""
         preds = model.to(device)(batch[0].to(device))
         return nn.Softmax(dim=1)(preds)
 
     def batch_to_images(self, batch) -> List[np.ndarray]:
+        """Convert a batch of mnist data to images."""
         mean = (0.1307,)
         std = (0.3081,)
         tensor = batch[0]

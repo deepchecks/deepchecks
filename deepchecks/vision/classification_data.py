@@ -25,12 +25,10 @@ logger = logging.getLogger('deepchecks')
 
 
 class ClassificationData(VisionData):
-    """
-    The ClassificationData class is a subclass of the VisionData class. It is used to load and preprocess data for a
-    classification task.
+    """The ClassificationData class is used to load and preprocess data for a classification task.
 
-    The ClassificationData class is containing additional data and general methods intended for easily accessing
-    metadata relevant for validating a computer vision classification ML models.
+    It is a subclass of the VisionData class. The ClassificationData class is containing additional data and general
+    methods intended for easily accessing metadata relevant for validating a computer vision classification ML models.
 
     Parameters
     ----------
@@ -43,6 +41,7 @@ class ClassificationData(VisionData):
     transform_field : str, default: 'transforms'
         Name of transforms field in the dataset which holds transformations of both data and label.
     """
+
     def __init__(self,
                  data_loader: DataLoader,
                  num_classes: Optional[int] = None,
@@ -65,6 +64,7 @@ class ClassificationData(VisionData):
     @abstractmethod
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
         """Infer on batch.
+
         Examples
         --------
         >>> def batch_to_labels(self, batch):
@@ -77,6 +77,7 @@ class ClassificationData(VisionData):
     @abstractmethod
     def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
         """Infer on batch.
+
         Examples
         --------
         >>> def infer_on_batch(self, batch, model, device):
