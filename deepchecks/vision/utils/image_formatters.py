@@ -101,10 +101,24 @@ def _normalized_rgb_mean(batch: List[np.ndarray]) -> List[Tuple[float, float, fl
     if _is_grayscale(batch) is True:
         return [(None, None, None)] * len(batch)
 
-    return [cv2.mean(
-        cv2.normalize(img, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F))
-                           for img in batch]
+    return [_normalize_pixelwise(img).mean(axis=(1,2)) for img in batch]
 
+def _normalize_pixelwise(img: np.ndarray) -> np.ndarray:
+    """Normalize the pixel values of an image.
+
+    Parameters
+    ----------
+    img: np.ndarray
+        The image to normalize.
+
+    Returns
+    -------
+    np.ndarray
+        The normalized image.
+    """
+    s = img.sum(axis=2)
+    return np.array([np.divide(img[:, :, i], s, out=np.zeros_like(img[:, :, i], dtype='float64'), where=s != 0)
+                     for i in range(3)])
 
 def _is_grayscale(batch):
     return get_dimension(batch[0]) == 1
