@@ -18,7 +18,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.vision_data import VisionData
 
@@ -80,10 +80,10 @@ class ClassificationData(VisionData):
         """
         labels = self.batch_to_labels(batch)
         if not isinstance(labels, (torch.Tensor, np.ndarray)):
-            raise DeepchecksValueError('Check requires classification label to be a torch.Tensor or numpy array')
+            raise ValidationError('Check requires classification label to be a torch.Tensor or numpy array')
         label_shape = labels.shape
         if len(label_shape) != 1:
-            raise DeepchecksValueError('Check requires classification label to be a 1D tensor')
+            raise ValidationError('Check requires classification label to be a 1D tensor')
 
     def validate_prediction(self, model, device, n_classes: int = None, eps: float = 1e-3):
         """
@@ -103,13 +103,13 @@ class ClassificationData(VisionData):
         """
         batch_predictions = self.infer_on_batch(next(iter(self._data_loader)), model, device)
         if not isinstance(batch_predictions, (torch.Tensor, np.ndarray)):
-            raise DeepchecksValueError('Check requires classification predictions to be a torch.Tensor or numpy '
-                                       'array')
+            raise ValidationError('Check requires classification predictions to be a torch.Tensor or numpy '
+                                  'array')
         pred_shape = batch_predictions.shape
         if len(pred_shape) != 2:
-            raise DeepchecksValueError('Check requires classification predictions to be a 2D tensor')
+            raise ValidationError('Check requires classification predictions to be a 2D tensor')
         if n_classes and pred_shape[1] != n_classes:
-            raise DeepchecksValueError(f'Check requires classification predictions to have {n_classes} columns')
+            raise ValidationError(f'Check requires classification predictions to have {n_classes} columns')
         if any(abs(batch_predictions.sum(axis=1) - 1) > eps):
-            raise DeepchecksValueError('Check requires classification} predictions to be a probability distribution and'
+            raise ValidationError('Check requires classification} predictions to be a probability distribution and'
                                        ' sum to 1 for each row')

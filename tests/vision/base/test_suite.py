@@ -29,9 +29,6 @@ from deepchecks.vision.dataset import VisionData
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.base import SingleDatasetCheck
 from deepchecks.vision.base import Suite
-from deepchecks.vision.utils import ClassificationLabelFormatter
-from deepchecks.vision.utils import DetectionLabelFormatter
-from deepchecks.vision.utils.base_formatters import BaseLabelFormatter
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.datasets.classification import mnist
 

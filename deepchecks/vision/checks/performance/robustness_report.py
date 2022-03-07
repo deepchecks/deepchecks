@@ -156,7 +156,6 @@ class RobustnessReport(SingleDatasetCheck):
     def _validate_augmenting_affects(self, transform_handler, dataset: VisionData):
         """Validate the user is using the transforms' field correctly, and that if affects the image and label."""
         aug_dataset = dataset.get_augmented_dataset(transform_handler.get_test_transformation())
-        print(aug_dataset.data_loader.dataset)
         # Iterate both datasets and compare results
         baseline_sampler = iter(dataset.data_loader.dataset)
         aug_sampler = iter(aug_dataset.data_loader.dataset)

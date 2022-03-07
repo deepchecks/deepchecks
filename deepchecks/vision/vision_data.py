@@ -19,7 +19,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
 
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.vision.utils.image_functions import ImageInfo
 from deepchecks.vision.utils.transformations import add_augmentation_in_start, get_transforms_handler
 
@@ -66,8 +66,7 @@ class VisionData:
                  label_map: Optional[Dict[int, str]] = None,
                  transform_field: Optional[str] = 'transforms'):
 
-        self._data_loader = data_loader
-        self._data_loader = self._get_data_loader_copy()
+        self._data_loader = self._get_data_loader_copy(data_loader)
 
         self._num_classes = num_classes
         self._label_map = label_map
@@ -198,11 +197,23 @@ class VisionData:
                   f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
             raise DeepchecksValueError(msg)
         new_vision_data = self.copy()
-        new_dataset_ref = new_vision_data.data_loader.dataset
+        new_dataset_ref = new_vision_data._data_loader.dataset
         transform = new_dataset_ref.__getattribute__(self._transform_field)
         new_transform = add_augmentation_in_start(aug, transform)
         new_dataset_ref.__setattr__(self._transform_field, new_transform)
         return new_vision_data
+
+    # def add_augmentation(self, aug):
+    #     """Validate transform field in the dataset, and add the augmentation in the start of it."""
+    #     dataset_ref = self._data_loader.dataset
+    #     # If no field exists raise error
+    #     if not hasattr(dataset_ref, self.transform_field):
+    #         msg = f'Underlying Dataset instance does not contain "{self.transform_field}" attribute. If your ' \
+    #               f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
+    #         raise DeepchecksValueError(msg)
+    #     transform = dataset_ref.__getattribute__(self.transform_field)
+    #     new_transform = add_augmentation_in_start(aug, transform)
+    #     dataset_ref.__setattr__(self.transform_field, new_transform)
 
     def copy(self) -> VD:
         """Create new copy of this object, with the data-loader and dataset also copied."""
@@ -210,8 +221,8 @@ class VisionData:
                                          num_classes=self.num_classes,
                                          label_map=self._label_map,
                                          transform_field=self._transform_field)
-        if self._current_seed is not None:
-            new_vision_data.set_seed(self._current_seed)
+        # if self._current_seed is not None:
+        #     new_vision_data.set_seed(self._current_seed)
         return new_vision_data
 
     def to_batch(self, *samples):
@@ -241,14 +252,14 @@ class VisionData:
             if datasets don't have the same label
         """
         if not isinstance(other, VisionData):
-            raise DeepchecksValueError('Check requires dataset to be of type VisionTask. instead got: '
-                                       f'{type(other).__name__}')
+            raise ValidationError('Check requires dataset to be of type VisionTask. instead got: '
+                                  f'{type(other).__name__}')
 
         if self._has_label != other._has_label:
-            raise DeepchecksValueError('Datasets required to both either have or don\'t have labels')
+            raise ValidationError('Datasets required to both either have or don\'t have labels')
 
         if self._task_type != other._task_type:
-            raise DeepchecksValueError('Datasets required to have same label type')
+            raise ValidationError('Datasets required to have same label type')
 
     def validate_image_data(self, batch):
         """Validate that the data is in the required format.
@@ -307,29 +318,30 @@ class VisionData:
         """Return the number of batches in the dataset dataloader."""
         return len(self._data_loader)
 
-    def _get_data_loader_copy(self):
+    @staticmethod
+    def _get_data_loader_copy(data_loader: DataLoader):
         props = {
-            'num_workers': self._data_loader.num_workers,
-            'collate_fn': self._data_loader.collate_fn,
-            'pin_memory': self._data_loader.pin_memory,
-            'timeout': self._data_loader.timeout,
-            'worker_init_fn': self._data_loader.worker_init_fn,
-            'prefetch_factor': self._data_loader.prefetch_factor,
-            'persistent_workers': self._data_loader.persistent_workers,
+            'num_workers': data_loader.num_workers,
+            'collate_fn': data_loader.collate_fn,
+            'pin_memory': data_loader.pin_memory,
+            'timeout': data_loader.timeout,
+            'worker_init_fn': data_loader.worker_init_fn,
+            'prefetch_factor': data_loader.prefetch_factor,
+            'persistent_workers': data_loader.persistent_workers,
             'generator': torch.Generator()
         }
         # Add batch sampler if exists, else sampler
-        if self._data_loader.batch_sampler is not None:
+        if data_loader.batch_sampler is not None:
             # Can't deepcopy since generator is not pickle-able, so copying shallowly and then copies also sampler inside
-            batch_sampler = copy(self._data_loader.batch_sampler)
+            batch_sampler = copy(data_loader.batch_sampler)
             batch_sampler.sampler = copy(batch_sampler.sampler)
             # Replace generator instance so the copied dataset will not affect the original
             batch_sampler.sampler.generator = props['generator']
             props['batch_sampler'] = batch_sampler
         else:
-            sampler = copy(self._data_loader.sampler)
+            sampler = copy(data_loader.sampler)
             # Replace generator instance so the copied dataset will not affect the original
             sampler.generator = props['generator']
             props['sampler'] = sampler
-        props['dataset'] = copy(self._data_loader.dataset)
-        return self._data_loader.__class__(**props)
+        props['dataset'] = copy(data_loader.dataset)
+        return data_loader.__class__(**props)
