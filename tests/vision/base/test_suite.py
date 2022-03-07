@@ -25,7 +25,6 @@ from hamcrest import (
 
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.dataset import VisionData
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.base import SingleDatasetCheck
 from deepchecks.vision.base import Suite

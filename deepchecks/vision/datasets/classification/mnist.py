@@ -27,7 +27,6 @@ from typing_extensions import Literal
 
 from deepchecks.vision.classification_data import ClassificationData
 from deepchecks.vision.utils.transformations import un_normalize_batch
-from deepchecks.vision.dataset import VisionData
 
 
 __all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST', 'MNISTData']
@@ -47,7 +46,7 @@ def load_dataset(
     shuffle: bool = True,
     pin_memory: bool = True,
     object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader'
-) -> t.Union[DataLoader, VisionData]:
+) -> t.Union[DataLoader, ClassificationData]:
     """Download MNIST dataset.
 
     Parameters

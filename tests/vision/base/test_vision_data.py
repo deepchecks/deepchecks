@@ -25,10 +25,11 @@ from hamcrest import (
 
 from deepchecks.core.errors import ValidationError
 from deepchecks.vision.classification_data import ClassificationData
-from deepchecks.vision.dataset import VisionData
 from deepchecks.vision.dataset import TaskType
+from deepchecks.vision.datasets.classification.mnist import MNISTData
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.datasets.classification import mnist
+from deepchecks.vision.datasets.detection.coco import COCOData
 from deepchecks.vision.detection_data import DetectionData
 
 
@@ -41,7 +42,7 @@ class SimpleClassificationData(ClassificationData):
         return batch[1]
 
 def test_vision_data_number_of_classes_inference():
-    dataset = t.cast(VisionData, mnist.load_dataset(train=True, object_type='VisionData'))
+    dataset = t.cast(MNISTData, mnist.load_dataset(train=True, object_type='VisionData'))
     assert_that(dataset.num_classes, equal_to(10))
 
 
@@ -53,7 +54,7 @@ def test_vision_data_task_type_inference():
     # Act
     second_classification_dataset = SimpleClassificationData(mnist_loader)
     detection_dataset = SimpleDetectionData(coco_loader)
-    dataset_with_custom_formatter = VisionData(mnist_loader)
+    dataset_with_custom_formatter = MNISTData(mnist_loader)
 
     # Assert
     assert_that(second_classification_dataset.task_type == TaskType.CLASSIFICATION)
@@ -137,8 +138,8 @@ def test_vision_data_n_of_samples_per_class_inference_for_detection_dataset():
 
 def test_vision_data_label_comparison_with_different_datasets():
     # Arrange
-    coco_dataset = t.cast(VisionData, coco.load_dataset(train=True, object_type='VisionData'))
-    mnist_dataset = t.cast(VisionData, mnist.load_dataset(train=True, object_type='VisionData'))
+    coco_dataset = t.cast(COCOData, coco.load_dataset(train=True, object_type='VisionData'))
+    mnist_dataset = t.cast(MNISTData, mnist.load_dataset(train=True, object_type='VisionData'))
 
     # Act/Assert
     assert_that(

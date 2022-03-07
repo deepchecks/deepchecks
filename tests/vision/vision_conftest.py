@@ -10,24 +10,27 @@
 #
 import pathlib
 
+import numpy as np
 import pytest
 import torch
 from torch.utils.data import DataLoader, Dataset
+from torch.utils.data.dataloader import default_collate
 
+from deepchecks.vision import VisionData
 from deepchecks.vision.datasets.detection.coco import (
     load_model as load_yolov5_model,
     load_dataset as load_coco_dataset
 )
 from deepchecks.vision.datasets.classification.mnist import (
     load_model as load_mnist_net_model,
-    load_dataset as load_mnist_dataset
+    load_dataset as load_mnist_dataset, MNISTData
 )
+
 from tests.vision.utils_tests.mnist_imgaug import mnist_dataset_imgaug
 
 # Fix bug with torch.hub path on windows
 PROJECT_DIR = pathlib.Path(__file__).absolute().parent.parent.parent
 torch.hub.set_dir(str(PROJECT_DIR))
-
 
 __all__ = ['device',
            'mnist_data_loader_train',
@@ -43,7 +46,8 @@ __all__ = ['device',
            'coco_test_dataloader',
            'coco_test_visiondata',
            'two_tuples_dataloader',
-        ]
+           'mnist_drifted_datasets'
+           ]
 
 
 @pytest.fixture(scope='session')
@@ -76,6 +80,35 @@ def mnist_data_loader_test():
 def mnist_dataset_test():
     """Return MNist dataset as VisionData object."""
     return load_mnist_dataset(train=False, object_type='VisionData')
+
+
+@pytest.fixture
+def mnist_drifted_datasets(mnist_dataset_train, mnist_dataset_test):  # pylint: disable=redefined-outer-name
+    full_mnist = torch.utils.data.ConcatDataset([mnist_dataset_train.data_loader.dataset,
+                                                 mnist_dataset_test.data_loader.dataset])
+    train_dataset, test_dataset = torch.utils.data.random_split(full_mnist, [60000, 10000],
+                                                                generator=torch.Generator().manual_seed(42))
+
+    np.random.seed(42)
+
+    def collate_test(batch):
+        modified_batch = []
+        for item in batch:
+            _, label = item
+            if label == 0:
+                if np.random.randint(10) == 0:
+                    modified_batch.append(item)
+            else:
+                modified_batch.append(item)
+
+        return default_collate(modified_batch)
+
+    mod_train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64)
+    mod_test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, collate_fn=collate_test)
+    mod_train_ds = MNISTData(mod_train_loader)
+    mod_test_ds = MNISTData(mod_test_loader)
+
+    return mod_train_ds, mod_test_ds
 
 
 @pytest.fixture(scope='session')

@@ -30,6 +30,7 @@ with open(os.path.join(PROJECT_DIR, 'VERSION')) as version_file:
 project = 'Deepchecks'
 copyright = '2021, Deepchecks'
 author = 'Deepchecks'
+os.environ['DEEPCHECKS_DISABLE_LATEST'] = 'true'
 is_readthedocs = os.environ.get("READTHEDOCS")
 version = os.environ.get("READTHEDOCS_VERSION") or VERSION
 language = os.environ.get("READTHEDOCS_LANGUAGE")
