@@ -21,7 +21,7 @@ from deepchecks.core.errors import DeepchecksValueError
 
 
 __all__ = ['ImageInfo', 'numpy_to_image_figure', 'label_bbox_add_to_figure', 'numpy_grayscale_to_heatmap_figure',
-           'apply_heatmap_image_properties', 'plot_image_png']
+           'apply_heatmap_image_properties', 'numpy_to_html_image']
 
 
 class ImageInfo:
@@ -56,7 +56,14 @@ def numpy_to_image_figure(data: np.ndarray):
     return go.Image(z=data, hoverinfo='skip')
 
 
-def plot_image_png(data: np.ndarray, labels=None):
+def numpy_to_html_image(data: np.ndarray, labels=None):
+    """Use plotly to create PNG image out of numpy data.
+
+    Returns
+    ------
+    str
+        HTML img tag with the embedded picture
+    """
     dimension = data.shape[2]
     if dimension == 1:
         fig = go.Figure(go.Heatmap(z=data.squeeze(), colorscale='gray', hoverinfo='skip'))

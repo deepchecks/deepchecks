@@ -30,7 +30,7 @@ from deepchecks.vision.metrics_utils import calculate_metrics, metric_results_to
 from deepchecks.vision.utils.validation import set_seeds
 from deepchecks.vision.metrics_utils import get_scorers_list
 from deepchecks.utils.strings import format_percent, split_camel_case
-from deepchecks.vision.utils.image_functions import ImageInfo, plot_image_png
+from deepchecks.vision.utils.image_functions import ImageInfo, numpy_to_html_image
 
 __all__ = ['RobustnessReport']
 
@@ -260,8 +260,8 @@ class RobustnessReport(SingleDatasetCheck):
             class_name = dataset.label_id_to_name(sample[2])
             bboxes = sample[3] if len(sample) == 4 else (None, None)
 
-            html_base_images += f'<div class="item image-div">{plot_image_png(base_image, labels=bboxes[0])}</div>'
-            html_aug_images += f'<div class="item image-div">{plot_image_png(aug_image, labels=bboxes[1])}</div>'
+            html_base_images += f'<div class="item image-div">{numpy_to_html_image(base_image, labels=bboxes[0])}</div>'
+            html_aug_images += f'<div class="item image-div">{numpy_to_html_image(aug_image, labels=bboxes[1])}</div>'
             html_classes += f'<h4 class="item class-div">{class_name}</h4>'
 
         return HTML_TEMPLATE.format(class_names=html_classes, base_images=html_base_images, aug_images=html_aug_images,
@@ -410,35 +410,35 @@ HTML_TEMPLATE = """
     .row {{
       display: flex;
       flex-direction: row;
-      align-items: center;    
+      align-items: center;
     }}
-    
+
     .item {{
       flex: 1;
       min-width: 200px;
       position: relative;
       word-wrap: break-word;
     }}
-    
+
     .image-div {{
       min-height: 200px;
     }}
-    
+
     .class-div {{
       text-align: center;
     }}
-    
+
     h3,h4 {{
         font-family: "Open Sans", verdana, arial, sans-serif;
         color: #2a3f5f
     }}
-    
+
 </style>
 <h3>Augmentation "{aug_name}" Examples</h3>
 <div class="container">
     <div class="row">
         <h4 class="item">Class</h4>
-        {class_names}    
+        {class_names}
     </div>
     <div class="row">
         <h4 class="item">Base Image</h4>
