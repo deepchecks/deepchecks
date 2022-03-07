@@ -16,6 +16,9 @@ on:
   pull_request: 
     branches: [ main ]
 
+env:
+  DEEPCHECKS_DISABLE_LATEST: "true"
+
 jobs:
   tests:
     runs-on: ubuntu-latest

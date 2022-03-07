@@ -13,9 +13,8 @@ import typing as t
 from numbers import Number
 from collections import defaultdict
 
-import numpy as np
 import pandas as pd
-
+from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.core import DatasetKind
 from deepchecks.core import CheckResult
 from deepchecks.core import ConditionResult
@@ -23,7 +22,6 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import TrainTestCheck
 from deepchecks.vision import Context
 from deepchecks.vision.utils import image_formatters
-from .train_test_label_drift import calc_drift_and_plot
 
 
 __all__ = ['ImagePropertyDrift']
@@ -47,13 +45,13 @@ class ImagePropertyDrift(TrainTestCheck):
     Pramaters
     ---------
     image_properties : Optional[List[Union[str, Callable[..., Number]]]]
-    default_number_of_bins: int, default: 100
+    max_num_categories: int, default: 10
     """
 
     def __init__(
         self,
         image_properties: t.Optional[t.List[ImageProperty]] = None,
-        default_number_of_bins: int = 100
+        max_num_categories: int = 10
     ):
         super().__init__()
 
@@ -68,13 +66,13 @@ class ImagePropertyDrift(TrainTestCheck):
 
             if len(unknown_properties) > 0:
                 raise DeepchecksValueError(
-                    'receivedd list of unknown image properties '
+                    'received list of unknown image properties '
                     f'- {sorted(unknown_properties)}'
                 )
 
             self.image_properties = image_properties
 
-        self.default_number_of_bins = default_number_of_bins
+        self.max_num_categories = max_num_categories
         self.train_properties = defaultdict(list)
         self.test_properties = defaultdict(list)
 
@@ -93,8 +91,7 @@ class ImagePropertyDrift(TrainTestCheck):
             properties = self.test_properties
         else:
             raise RuntimeError(
-                'Internal Error! Part of code that must '
-                'be unreacheable was reached.'
+                f'Internal Error - Should not reach here! unknown dataset_kind: {dataset_kind}'
             )
 
         images = dataset.batch_to_images(batch)
@@ -129,49 +126,39 @@ class ImagePropertyDrift(TrainTestCheck):
         df_train = pd.DataFrame(self.train_properties)
         df_test = pd.DataFrame(self.test_properties)
 
-        figures = []
+        figures = {}
         drifts = {}
 
         for property_name in properties:
-            lower_bound = min(df_train[property_name].min(), df_test[property_name].min())
-            upper_bound = max(df_train[property_name].max(), df_test[property_name].max())
-            bounds = (lower_bound, upper_bound)
-
-            train_hist, train_edges = np.histogram(
-                df_train[property_name],
-                range=bounds,
-                bins=self.default_number_of_bins
-            )
-            test_hist, test_edges = np.histogram(
-                df_test[property_name],
-                range=bounds,
-                bins=self.default_number_of_bins
-            )
-
-            train_histogram = dict(zip(train_edges, train_hist))
-            test_histogram = dict(zip(test_edges, test_hist))
 
             score, _, figure = calc_drift_and_plot(
-                train_distribution=train_histogram,
-                test_distribution=test_histogram,
+                train_column=df_train[property_name],
+                test_column=df_test[property_name],
+                plot_title=property_name,
                 column_type='numerical',
-                plot_title=property_name
+                max_num_categories=self.max_num_categories
             )
 
-            figures.append(figure)
-            drifts[property_name] = {'Drift score': score}
+            figures[property_name] = figure
+            drifts[property_name] = score
 
         if drifts:
-            value = pd.DataFrame(drifts).T
-            headnote = ''  # TODO:
-            display = [headnote, *figures]
+            columns_order = sorted(properties, key=lambda col: drifts[col], reverse=True)
+
+            headnote = '<span>' \
+                       'The Drift score is a measure for the difference between two distributions. ' \
+                       'In this check, drift is measured ' \
+                       f'for the distribution of the following image properties: {properties}.' \
+                       '</span>'
+
+            displays = [headnote] + [figures[col] for col in columns_order]
         else:
-            value = None
-            display = []
+            drifts = None
+            displays = []
 
         return CheckResult(
-            value=value,
-            display=display,
+            value=drifts,
+            display=displays,
             header='Image Property Drift'
         )
 
@@ -193,10 +180,10 @@ class ImagePropertyDrift(TrainTestCheck):
             False if any column has passed the max threshold, True otherwise
         """
 
-        def condition(result: pd.DataFrame) -> ConditionResult:
+        def condition(result: t.Dict[str, float]) -> ConditionResult:
             failed_properties = [
                 (property_name, drift_score)
-                for property_name, drift_score in result.itertuples()
+                for property_name, drift_score in result.items()
                 if drift_score > max_allowed_drift_score
             ]
             if len(failed_properties) > 0:

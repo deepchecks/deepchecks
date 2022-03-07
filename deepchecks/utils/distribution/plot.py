@@ -146,6 +146,7 @@ def feature_distribution_traces(train_column,
         categories_list = [un_numpy(cat) for cat in categories_list]
         cat_df = pd.DataFrame({'Train dataset': expected_percents, 'Test dataset': actual_percents},
                               index=categories_list)
+        cat_df.sort_index(inplace=True)
         train_bar = go.Bar(
             x=cat_df.index,
             y=cat_df['Train dataset'],
@@ -166,9 +167,12 @@ def feature_distribution_traces(train_column,
 
         traces = [train_bar, test_bar]
 
+        max_y = max(*expected_percents, *actual_percents)
+        y_lim = 1 if max_y > 0.5 else max_y * 1.1
+
         xaxis_layout = dict(type='category')
         yaxis_layout = dict(fixedrange=True,
-                            range=(0, 1),
+                            range=(0, y_lim),
                             title='Percentage')
 
     else:

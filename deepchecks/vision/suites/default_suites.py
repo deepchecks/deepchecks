@@ -15,7 +15,7 @@ It is possible to customize these suites by editing the checks and conditions in
 """
 from deepchecks.vision.checks import ClassPerformance, TrainTestLabelDrift, MeanAveragePrecisionReport, \
     MeanAverageRecallReport, ImagePropertyDrift, ImageDatasetDrift, SimpleModelComparison, ConfusionMatrixReport, \
-    RobustnessReport
+    RobustnessReport, TrainTestPredictionDrift
 from deepchecks.vision import Suite
 
 
@@ -31,6 +31,7 @@ def train_test_validation() -> Suite:
         'Train Test Validation Suite',
         HeatmapComparison(),
         TrainTestLabelDrift(),
+        TrainTestPredictionDrift().add_condition_drift_score_not_greater_than(),
         ImagePropertyDrift().add_condition_drift_score_not_greater_than(),
         ImageDatasetDrift()
     )
