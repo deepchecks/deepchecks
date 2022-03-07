@@ -16,7 +16,7 @@ import torch
 from hamcrest import assert_that, equal_to, calling, raises, close_to
 from torch.utils.data import DataLoader, Dataset
 
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.utils import image_formatters
 from deepchecks.vision.utils.detection_formatters import verify_bbox_format_notation
@@ -24,6 +24,10 @@ from deepchecks.vision.utils.detection_formatters import convert_bbox
 from deepchecks.vision.utils.detection_formatters import convert_batch_of_bboxes
 from deepchecks.vision.vision_data import VisionData
 
+
+class SimpleImageData(VisionData):
+    def batch_to_images(self, batch):
+        return batch
 
 def numpy_shape_dataloader(shape: tuple = None, value: Union[float, np.ndarray] = 255, collate_fn=None):
     if collate_fn is None:
@@ -42,59 +46,41 @@ def numpy_shape_dataloader(shape: tuple = None, value: Union[float, np.ndarray] 
     return DataLoader(TwoTupleDataset(), batch_size=4, collate_fn=collate_fn)
 
 
-def test_classification_formatter_formatting_valid_label_shape(two_tuples_dataloader):
-    formatter = ClassificationLabelFormatter()
-
-    # Assert no exception raised
-    formatter.validate_label(next(iter(two_tuples_dataloader)))
-
-
-def test_classification_formatter_formatting_invalid_label_type(two_tuples_dataloader):
-    formatter = ClassificationLabelFormatter(lambda x: [x, x])
-
-    # Assert
-    assert_that(calling(formatter.validate_label).with_args(next(iter(two_tuples_dataloader))),
-                raises(DeepchecksValueError,
-                       'Check requires classification label to be a torch.Tensor or numpy array'))
-
-
 def test_data_formatter_not_iterable():
-    formatter = ImageFormatter(lambda x: x)
-
     batch = 1
     assert_that(
-        calling(formatter.validate_data).with_args(batch),
-        raises(DeepchecksValueError, 'The batch data must be an iterable.')
+        calling(SimpleImageData(numpy_shape_dataloader((10, 10, 3))).validate_image_data).with_args(batch),
+        raises(ValidationError, 'The batch data must be an iterable.')
     )
 
 
 def test_data_formatter_not_numpy():
-    formatter = ImageFormatter(lambda x: [[x] for x in x])
-
-    batch = next(iter(numpy_shape_dataloader((10, 10, 3))))
+    class BadImage(VisionData):
+        def batch_to_images(self, batch):
+            return [[x] for x in batch]
+    data_loader = numpy_shape_dataloader((10, 10, 3))
+    batch = next(iter(data_loader))
     assert_that(
-        calling(formatter.validate_data).with_args(batch),
-        raises(DeepchecksValueError, 'The data inside the iterable must be a numpy array.')
+        calling(BadImage(data_loader).validate_image_data).with_args(batch),
+        raises(ValidationError, 'The data inside the iterable must be a numpy array.')
     )
 
 
 def test_data_formatter_missing_dimensions():
-    formatter = ImageFormatter()
-
-    batch = next(iter(numpy_shape_dataloader((10, 10))))
+    data_loader = numpy_shape_dataloader((10, 10))
+    batch = next(iter(data_loader))
     assert_that(
-        calling(formatter.validate_data).with_args(batch),
-        raises(DeepchecksValueError, 'The data inside the iterable must be a 3D array.')
+        calling(SimpleImageData(data_loader).validate_image_data).with_args(batch),
+        raises(ValidationError, 'The data inside the iterable must be a 3D array.')
     )
 
 
 def test_data_formatter_wrong_color_channel():
-    formatter = ImageFormatter(lambda x: x)
-
-    batch = next(iter(numpy_shape_dataloader((3, 10, 10))))
+    data_loader = numpy_shape_dataloader((3, 10, 10))
+    batch = next(iter(data_loader))
     assert_that(
-        calling(formatter.validate_data).with_args(batch),
-        raises(DeepchecksValueError, 'The data inside the iterable must have 1 or 3 channels.')
+        calling(SimpleImageData(data_loader).validate_image_data).with_args(batch),
+        raises(ValidationError, 'The data inside the iterable must have 1 or 3 channels.')
     )
 
 
@@ -105,27 +91,23 @@ def test_data_formatter_invalid_values():
     batch = next(iter(numpy_shape_dataloader((10, 10, 3))))
     assert_that(
         calling(BadImage(numpy_shape_dataloader((10, 10, 3))).validate_image_data).with_args(batch),
-        raises(DeepchecksValueError, r'The data inside the iterable must be in the range \[0, 255\].')
+        raises(ValidationError, r'The data inside the iterable must be in the range \[0, 255\].')
     )
 
 
 def test_data_formatter_valid_dimensions():
-    class GoodImage(VisionData):
-        def batch_to_images(self, batch):
-            return batch
-
     data_loader = numpy_shape_dataloader((10, 10, 3))
     batch = next(iter(data_loader))
-    GoodImage(data_loader).validate_image_data(batch)
+    SimpleImageData(data_loader).validate_image_data(batch)
 
     batch = next(iter(numpy_shape_dataloader((10, 10, 3), collate_fn=list)))
     data_loader = numpy_shape_dataloader((10, 10, 3))
     batch = next(iter(data_loader))
-    GoodImage(data_loader).validate_image_data(batch)
+    SimpleImageData(data_loader).validate_image_data(batch)
 
     data_loader = numpy_shape_dataloader((10, 10, 3), collate_fn=tuple)
     batch = next(iter(data_loader))
-    GoodImage(data_loader).validate_image_data(batch)
+    SimpleImageData(data_loader).validate_image_data(batch)
 
 
 def test_brightness_grayscale():

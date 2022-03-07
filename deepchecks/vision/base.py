@@ -105,7 +105,7 @@ class Context:
             for dataset, dataset_type in zip([train, test], ['train', 'test']):
                 if dataset is not None:
                     try:
-                        dataset.validate_prediction(model, self._device)
+                        dataset.validate_prediction(next(iter(dataset.data_loader)), model, self._device)
                     except ValidationError:
                         logger.warning(f'validate_prediction() was not implemented in {dataset_type} dataset, '
                                         'some checks will not run')

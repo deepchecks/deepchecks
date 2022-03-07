@@ -37,12 +37,15 @@ class ClassificationData(VisionData):
         super().__init__(data_loader, num_classes, label_map, transform_field)
 
         self._task_type = TaskType.CLASSIFICATION
+        self._has_label = False
         try:
             self.validate_label(next(iter(self._data_loader)))
             self._has_label = True
         except DeepchecksValueError:
             logger.warning('batch_to_labels() was not implemented, some checks will not run')
-            self._has_label = False
+        except ValidationError:
+            logger.warn('batch_to_labels() was not implemented currectly, '
+                        'the validiation has failed, some checks will not run')
 
     @abstractmethod
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
@@ -85,7 +88,7 @@ class ClassificationData(VisionData):
         if len(label_shape) != 1:
             raise ValidationError('Check requires classification label to be a 1D tensor')
 
-    def validate_prediction(self, model, device, n_classes: int = None, eps: float = 1e-3):
+    def validate_prediction(self, batch, model, device, n_classes: int = None, eps: float = 1e-3):
         """
         Validate the prediction.
 
@@ -101,7 +104,7 @@ class ClassificationData(VisionData):
         eps : float , default: 1e-3
             Epsilon value to be used in the validation, by default 1e-3
         """
-        batch_predictions = self.infer_on_batch(next(iter(self._data_loader)), model, device)
+        batch_predictions = self.infer_on_batch(batch, model, device)
         if not isinstance(batch_predictions, (torch.Tensor, np.ndarray)):
             raise ValidationError('Check requires classification predictions to be a torch.Tensor or numpy '
                                   'array')

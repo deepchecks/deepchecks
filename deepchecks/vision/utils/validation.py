@@ -16,7 +16,7 @@ import numpy as np
 import torch
 import imgaug
 
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.utils.ipython import is_notebook
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.utils.image_functions import numpy_to_image_figure, label_bbox_add_to_figure
@@ -29,7 +29,7 @@ from IPython.display import display, HTML
 from deepchecks.vision.vision_data import VisionData
 
 
-__all__ = ['set_seeds', 'apply_to_tensor', 'validate_formatters']
+__all__ = ['set_seeds', 'apply_to_tensor', 'validate_extractors']
 
 
 def set_seeds(seed: int):
@@ -68,9 +68,9 @@ def apply_to_tensor(
         return type(x)((k, apply_to_tensor(v, fn)) for k, v in x.items())
     return x
 
-def validate_formatters(dataset: VisionData, model):
-    """Validate for given data_loader and model that the formatters are valid."""
-    print('Deepchecks will try to validate the formatters given...')
+def validate_extractors(dataset: VisionData, model):
+    """Validate for given data_loader and model that the extractors are valid."""
+    print('Deepchecks will try to validate the extractors given...')
     batch = next(iter(dataset.data_loader))
     images = None
     labels = None
@@ -82,7 +82,7 @@ def validate_formatters(dataset: VisionData, model):
     try:
         dataset.validate_label(batch)
         labels = dataset.batch_to_labels(batch)
-    except DeepchecksValueError as ex:
+    except ValidationError as ex:
         label_formatter_error = str(ex)
     except Exception:  # pylint: disable=broad-except
         label_formatter_error = 'Got exception \n' + traceback.format_exc()
@@ -90,7 +90,7 @@ def validate_formatters(dataset: VisionData, model):
     try:
         dataset.validate_image_data(batch)
         images = dataset.batch_to_images(batch)
-    except DeepchecksValueError as ex:
+    except ValidationError as ex:
         image_formatter_error = str(ex)
     except Exception:  # pylint: disable=broad-except
         image_formatter_error = 'Got exception \n' + traceback.format_exc()
@@ -98,7 +98,7 @@ def validate_formatters(dataset: VisionData, model):
     try:
         dataset.validate_prediction(batch, model, torch.device('cpu'))
         predictions = dataset.infer_on_batch(batch, model, torch.device('cpu'))
-    except DeepchecksValueError as ex:
+    except ValidationError as ex:
         prediction_formatter_error = str(ex)
     except Exception:  # pylint: disable=broad-except
         prediction_formatter_error = 'Got exception \n' + traceback.format_exc()

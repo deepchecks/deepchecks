@@ -17,7 +17,7 @@ from typing import Any, List, Optional, Dict, TypeVar, Union
 import logging
 import numpy as np
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.vision.utils.image_functions import ImageInfo
@@ -72,13 +72,16 @@ class VisionData:
         self._label_map = label_map
         self._transform_field = transform_field
         self._warned_labels = set()
+        self._has_images = False
 
         try:
             self.validate_image_data(next(iter(self._data_loader)))
             self._has_images = True
         except DeepchecksValueError:
-            logger.warn('batch_to_images() was not implemented, some checks will not run')
-            self._has_images = False
+            logger.warn('batch_to_images() was not implemented, some checks will not run')    
+        except ValidationError:
+            logger.warn('batch_to_images() was not implemented currectly, '
+                        'the validiation has failed, some checks will not run')
 
         self._n_of_samples_per_class = None
         self._task_type = None
@@ -109,7 +112,7 @@ class VisionData:
         )
 
     @abstractmethod
-    def validate_prediction(self, model, device):
+    def validate_prediction(self, batch, model, device):
         raise DeepchecksValueError(
             "validate_prediction() must be implemented in a subclass"
         )
@@ -280,17 +283,17 @@ class VisionData:
         try:
             sample: np.ndarray = data[0]
         except TypeError as err:
-            raise DeepchecksValueError('The batch data must be an iterable.') from err
+            raise ValidationError('The batch data must be an iterable.') from err
         if not isinstance(sample, np.ndarray):
-            raise DeepchecksValueError('The data inside the iterable must be a numpy array.')
+            raise ValidationError('The data inside the iterable must be a numpy array.')
         if sample.ndim != 3:
-            raise DeepchecksValueError('The data inside the iterable must be a 3D array.')
+            raise ValidationError('The data inside the iterable must be a 3D array.')
         if sample.shape[2] not in [1, 3]:
-            raise DeepchecksValueError('The data inside the iterable must have 1 or 3 channels.')
+            raise ValidationError('The data inside the iterable must have 1 or 3 channels.')
         if sample.min() < 0 or sample.max() > 255:
-            raise DeepchecksValueError('The data inside the iterable must be in the range [0, 255].')
+            raise ValidationError('The data inside the iterable must be in the range [0, 255].')
         if np.all(sample <= 1):
-            raise DeepchecksValueError('The data inside the iterable appear to be normalized.')
+            raise ValidationError('The data inside the iterable appear to be normalized.')
 
     def _get_samples_per_class(self):
         """

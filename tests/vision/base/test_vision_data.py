@@ -71,16 +71,17 @@ def test_initialization_of_vision_data_with_classification_dataset_that_contains
         (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), torch.tensor([1,2])),
         (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), torch.tensor([2,3])),
     ])
-
+    bad_type_data = SimpleClassificationData(loader_with_string_labels)
+    bad_shape_data = SimpleClassificationData(loader_with_labels_of_incorrect_shape)
     # Assert
     assert_that(
-        calling(SimpleClassificationData).with_args(loader_with_string_labels),
+        calling(bad_type_data.validate_label).with_args(next(iter(loader_with_string_labels))),
         raises(
             ValidationError,
             r'Check requires classification label to be a torch\.Tensor or numpy array')
     )
     assert_that(
-        calling(SimpleClassificationData).with_args(loader_with_labels_of_incorrect_shape),
+        calling(bad_shape_data.validate_label).with_args(next(iter(loader_with_labels_of_incorrect_shape))),
         raises(
             ValidationError,
             r'Check requires classification label to be a 1D tensor')
