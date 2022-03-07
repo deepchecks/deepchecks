@@ -75,4 +75,3 @@ def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detecti
                     "{'Range': '[0.34, 0.366)', 'Metric': 'AP', 'Ratio': 0.44}"
         )
     ))
-

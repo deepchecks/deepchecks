@@ -23,7 +23,7 @@ from hamcrest import (
     all_of
 )
 
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.errors import DatasetValidationError
 from deepchecks.vision.base import Context
@@ -86,7 +86,7 @@ def test_vision_context_initialization_with_datasets_from_different_tasks(mnist_
     assert_that(
         calling(Context).with_args(train=coco_train_visiondata, test=mnist_dataset_train),
         raises(
-            DeepchecksValueError,
+            ValidationError,
             r'Datasets required to have same label type')
     )
 
