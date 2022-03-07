@@ -31,6 +31,7 @@ from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.datasets.classification import mnist
 from deepchecks.vision.datasets.detection.coco import COCOData
 from deepchecks.vision.detection_data import DetectionData
+from deepchecks.vision.vision_data import VisionData
 
 
 class SimpleDetectionData(DetectionData):
@@ -54,12 +55,12 @@ def test_vision_data_task_type_inference():
     # Act
     second_classification_dataset = SimpleClassificationData(mnist_loader)
     detection_dataset = SimpleDetectionData(coco_loader)
-    dataset_with_custom_formatter = MNISTData(mnist_loader)
+    base_dataset = VisionData(mnist_loader)
 
     # Assert
     assert_that(second_classification_dataset.task_type == TaskType.CLASSIFICATION)
     assert_that(detection_dataset.task_type == TaskType.OBJECT_DETECTION)
-    assert_that(dataset_with_custom_formatter.task_type is None)
+    assert_that(base_dataset.task_type is None)
 
 
 def test_initialization_of_vision_data_with_classification_dataset_that_contains_incorrect_labels():
