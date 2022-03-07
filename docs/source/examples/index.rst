@@ -37,3 +37,13 @@ Computer Vision Examples
 
     vision/guides/index
     vision/checks/index
+
+General Examples
+----------------
+
+.. toctree::
+    :maxdepth: 2
+    :caption: General
+    :titlesonly:
+
+    general/index

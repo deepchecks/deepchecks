@@ -10,14 +10,18 @@ import sys
 import pathlib
 import functools
 from subprocess import check_output
+import deepchecks
+from deepchecks import vision
 
 
 # -- Path setup --------------------------------------------------------------
 
 CURRENT_DIR = pathlib.Path(__file__).parent
 PROJECT_DIR = CURRENT_DIR.parent.parent
+VISION_DIR = f'{PROJECT_DIR.absolute()}{os.sep}vision'
 
 sys.path.insert(0, str(PROJECT_DIR.absolute()))
+sys.path.insert(0, VISION_DIR)
 
 from deepchecks.utils.strings import to_snake_case
 
@@ -146,6 +150,7 @@ autosummary_filename_map = {
     "deepchecks.vision.checks": "../deepchecks.vision.checks",
 }
 
+autosummary_mock_imports = ["torch"]
 # -- autodoc settings --------------------------------------------------
 
 # Autodoc settings.
@@ -170,6 +175,7 @@ autodoc_typehints = 'signature'
 #   + 'short' – Suppress the leading module names of the typehints (default in version 5.0)
 #
 autodoc_typehints_format = 'short'
+autodoc_mock_imports = ["torch"]
 
 # True to convert the type definitions in the docstrings as references. Defaults to False.
 #
