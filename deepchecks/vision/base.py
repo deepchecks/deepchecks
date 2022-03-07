@@ -29,7 +29,7 @@ from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
 from deepchecks.core.errors import (
     DatasetValidationError, ModelValidationError,
-    DeepchecksNotSupportedError, DeepchecksValueError, ValidationError
+    DeepchecksNotSupportedError, DeepchecksValueError
 )
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.vision_data import VisionData

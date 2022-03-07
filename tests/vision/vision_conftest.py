@@ -16,7 +16,6 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.dataloader import default_collate
 
-from deepchecks.vision import VisionData
 from deepchecks.vision.datasets.detection.coco import (
     load_model as load_yolov5_model,
     load_dataset as load_coco_dataset
