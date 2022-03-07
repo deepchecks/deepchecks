@@ -22,6 +22,7 @@ def per_sample_binary_cross_entropy(y_true: np.array, y_pred: np.array):
 
 
 def per_sample_mean_iou(predictions, labels):
+    """Calculate mean iou for a single sample."""
     mean_ious = []
     for detected, ground_truth in zip(predictions, labels):
         if len(ground_truth) == 0:
@@ -53,4 +54,5 @@ def per_sample_mean_iou(predictions, labels):
 
 
 def per_sample_mse(y_true, y_pred):
+    """Calculate mean square error on a single value."""
     return (y_true - y_pred) ** 2

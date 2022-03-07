@@ -167,10 +167,11 @@ def error_model_display(error_fi: pd.Series,
         # Violin plot for categorical features, scatter plot for numerical features
         if feature in dataset.cat_features:
             # find categories with the weakest performance
+            # if we use a scorer we want max mean to be in ok group and min mean when using error
             error_per_segment_ser = (
                 data.groupby(feature)
                     .agg(['mean', 'count'])[error_col_name]
-                    .sort_values('mean', ascending=False)
+                    .sort_values('mean', ascending=not scorer)
             )
 
             cum_sum_ratio = error_per_segment_ser['count'].cumsum() / error_per_segment_ser['count'].sum()
@@ -186,8 +187,8 @@ def error_model_display(error_fi: pd.Series,
                 ok_name_feature, segment1_details = get_segment_details(model, scorer, dataset,
                                                                         data[feature].isin(ok_categories))
             else:
-                segment1_text, segment1_details = get_segment_details_using_error(error_col_name, data,
-                                                                                  data[feature].isin(ok_categories))
+                ok_name_feature, segment1_details = get_segment_details_using_error(error_col_name, data,
+                                                                                    data[feature].isin(ok_categories))
 
             color_map = {ok_name_feature: ok_color}
 
@@ -196,7 +197,7 @@ def error_model_display(error_fi: pd.Series,
                     weak_name_feature, segment2_details = get_segment_details(model, scorer, dataset,
                                                                               data[feature].isin(weak_categories))
                 else:
-                    segment1_text, segment1_details = \
+                    weak_name_feature, segment1_details = \
                         get_segment_details_using_error(error_col_name, data,
                                                         data[feature].isin(weak_categories))
 
@@ -240,8 +241,9 @@ def error_model_display(error_fi: pd.Series,
                                                                           ~color_col)
                 else:
                     # If there is not scorer, we use the error calculation to describe the segments
-                    segment1_text, segment1_details = get_segment_details_using_error(error_col_name, data, color_col)
-                    segment2_text, segment2_details = get_segment_details_using_error(error_col_name, data, ~color_col)
+                    # Colors are flipped, because lower error is better
+                    segment1_text, segment1_details = get_segment_details_using_error(error_col_name, data, ~color_col)
+                    segment2_text, segment2_details = get_segment_details_using_error(error_col_name, data, color_col)
                 color_col = color_col.replace([True, False], [segment1_text, segment2_text])
 
                 # Segment with lower performance is assigned to the weak color
@@ -295,5 +297,3 @@ def get_segment_details_using_error(error_column_name, dataset: pd.DataFrame,
     segment_details = {'score': performance, 'n_samples': n_samples, 'frac_samples': n_samples / len(dataset)}
 
     return segment_label, segment_details
-
-
