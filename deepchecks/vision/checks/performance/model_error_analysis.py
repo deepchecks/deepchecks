@@ -13,6 +13,7 @@ import typing as t
 from collections import defaultdict
 
 import pandas as pd
+import torch
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
@@ -129,11 +130,16 @@ class ModelErrorAnalysis(TrainTestCheck):
 
         if dataset.task_type == TaskType.CLASSIFICATION:
             def scoring_func(predictions, labels):
-                return per_sample_binary_cross_entropy(labels.detach().numpy(), predictions.detach().numpy())
+                return per_sample_binary_cross_entropy(labels, predictions)
 
         elif dataset.task_type == TaskType.OBJECT_DETECTION:
             def scoring_func(predictions, labels):
                 return per_sample_mean_iou(predictions, labels)
+
+        if isinstance(predictions, torch.Tensor):
+            predictions = predictions.detach().numpy()
+        if isinstance(labels, torch.Tensor):
+            labels = labels.detach().numpy()
 
         # get score using scoring_function
         scores.extend(scoring_func(predictions, labels))

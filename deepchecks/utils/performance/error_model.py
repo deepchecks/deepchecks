@@ -291,7 +291,7 @@ def get_segment_details_using_error(error_column_name, dataset: pd.DataFrame,
     n_samples = dataset[segment_condition_col].shape[0]
     performance = dataset[segment_condition_col][error_column_name].sum() / n_samples
     segment_label = \
-        f'performance: {format_number(performance)}, ' \
+        f'Error: {format_number(performance)}, ' \
         f'Samples: {n_samples} ({format_percent(n_samples / len(dataset))})'
 
     segment_details = {'score': performance, 'n_samples': n_samples, 'frac_samples': n_samples / len(dataset)}
