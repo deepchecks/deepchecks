@@ -102,7 +102,7 @@ def load_dataset(
 
 
 class MNISTData(ClassificationData):
-    """Class for loading the MNIST dataset, inherits from :obj:`deepchecks.vision.classification_data.ClassificationData`.
+    """Class for loading MNIST dataset, inherits from :obj:`deepchecks.vision.classification_data.ClassificationData`.
 
     Implement the necessary methods for the :obj:`deepchecks.vision.classification_data.ClassificationData` interface.
     """
