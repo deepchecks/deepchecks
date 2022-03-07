@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for defining functions related to image data."""
+import base64
 from typing import Tuple
 
 import cv2
@@ -20,7 +21,7 @@ from deepchecks.core.errors import DeepchecksValueError
 
 
 __all__ = ['ImageInfo', 'numpy_to_image_figure', 'label_bbox_add_to_figure', 'numpy_grayscale_to_heatmap_figure',
-           'apply_heatmap_image_properties']
+           'apply_heatmap_image_properties', 'plot_image_png']
 
 
 class ImageInfo:
@@ -55,6 +56,28 @@ def numpy_to_image_figure(data: np.ndarray):
     return go.Image(z=data, hoverinfo='skip')
 
 
+def plot_image_png(data: np.ndarray, labels=None):
+    dimension = data.shape[2]
+    if dimension == 1:
+        fig = go.Figure(go.Heatmap(z=data.squeeze(), colorscale='gray', hoverinfo='skip'))
+        apply_heatmap_image_properties(fig)
+        fig.update_traces(showscale=False)
+    elif dimension == 3:
+        fig = go.Figure(go.Image(z=data, hoverinfo='skip'))
+    else:
+        raise DeepchecksValueError(f'Don\'t know to plot images with {dimension} dimensions')
+
+    if labels:
+        label_bbox_add_to_figure(labels, fig)
+
+    fig.update_yaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
+    fig.update_xaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
+    fig.update_layout(margin={'l': 0, 'r': 0, 't': 0, 'b': 0})
+    png = base64.b64encode(fig.to_image('png')).decode('ascii')
+    style = 'position: absolute;margin: auto;top: 0;bottom: 0;left: 0; right: 0;max-width:100%;max-height:100%;'
+    return f'<img style="{style}" src="data:image/png;base64, {png}">'
+
+
 def numpy_grayscale_to_heatmap_figure(data: np.ndarray):
     """Create heatmap graph object from given numpy array data."""
     dimension = data.shape[2]
@@ -71,10 +94,10 @@ def apply_heatmap_image_properties(fig):
     fig.update_xaxes(constrain='domain')
 
 
-def label_bbox_add_to_figure(label: torch.Tensor, figure, row=None, col=None, color='red',
+def label_bbox_add_to_figure(labels: torch.Tensor, figure, row=None, col=None, color='red',
                              prediction=False):
     """Add a bounding box label and rectangle to given figure."""
-    for single in label:
+    for single in labels:
         if prediction:
             x, y, w, h, _, clazz = single.tolist()
         else:

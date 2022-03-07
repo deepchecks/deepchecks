@@ -29,9 +29,8 @@ from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.metrics_utils import calculate_metrics, metric_results_to_df
 from deepchecks.vision.utils.validation import set_seeds
 from deepchecks.vision.metrics_utils import get_scorers_list
-from deepchecks.utils.strings import format_percent
-from deepchecks.vision.utils.image_functions import numpy_to_image_figure, label_bbox_add_to_figure, ImageInfo
-
+from deepchecks.utils.strings import format_percent, split_camel_case
+from deepchecks.vision.utils.image_functions import ImageInfo, plot_image_png
 
 __all__ = ['RobustnessReport']
 
@@ -239,65 +238,36 @@ class RobustnessReport(SingleDatasetCheck):
         figures = []
         # Iterate augmentation names
         for augmentation, curr_data in aug_all_data.items():
-            figures.append(f'<h3>Augmentation: {augmentation}</h3>')
             # Create performance graph
-            figures.append(self._create_performance_graph(base_mean_results, curr_data['metrics_diff']))
+            figures.append(self._create_performance_graph(base_mean_results, curr_data['metrics_diff'], augmentation))
             # Create top affected graph
-            figures.append(self._create_top_affected_graph(curr_data['top_affected'], dataset))
+            figures.append(self._create_top_affected_graph(curr_data['top_affected'], dataset, augmentation))
             # Create example figures, return first n_pictures_to_show from original and then n_pictures_to_show from
             # augmented dataset
-            figures.append(self._create_example_figure(dataset, curr_data['images']))
-            figures.append('<br>')
+            figures.append(self._create_example_figure(dataset, curr_data['images'], augmentation))
+            figures.append('<hr>')
 
         return figures
 
-    def _create_example_figure(self, dataset: VisionData, images):
-        # Create tuple of ([base images], [aug images], [classes], <[bboxes]>)
-        transposed = list(zip(*images))
-        base_images = transposed[0]
-        aug_images = transposed[1]
-        classes = list(map(dataset.label_id_to_name, transposed[2]))
+    def _create_example_figure(self, dataset: VisionData, images, aug_name):
+        html_classes = ''
+        html_base_images = ''
+        html_aug_images = ''
 
-        # Create image figures
-        fig = make_subplots(rows=2, cols=len(classes), column_titles=classes, row_titles=['Origin', 'Augmented'],
-                            vertical_spacing=0.01, horizontal_spacing=0.01)
+        for sample in images:
+            base_image = sample[0]
+            aug_image = sample[1]
+            class_name = dataset.label_id_to_name(sample[2])
+            bboxes = sample[3] if len(sample) == 4 else (None, None)
 
-        # The width is accumulated and the height is taken by the max image
-        images_width = 0
-        max_height = 0
-        for index, (base_image, aug_image) in enumerate(zip(base_images, aug_images)):
-            # Add image figures
-            fig.append_trace(numpy_to_image_figure(base_image), row=1, col=index + 1)
-            fig.append_trace(numpy_to_image_figure(aug_image), row=2, col=index + 1)
-            # Update sizes
-            img_width, img_height = ImageInfo(base_image).get_size()
-            images_width += img_width
-            max_height = max(max_height, img_height)
+            html_base_images += f'<div class="item image-div">{plot_image_png(base_image, labels=bboxes[0])}</div>'
+            html_aug_images += f'<div class="item image-div">{plot_image_png(aug_image, labels=bboxes[1])}</div>'
+            html_classes += f'<h4 class="item class-div">{class_name}</h4>'
 
-        # Add 10 to space between image columns and another 20 for titles
-        width = images_width + 10 * len(base_images) + 20
-        # We have fixed 2 rows, and add 60 for titles space
-        height = max_height * 2 + 60
-        # Set minimum sizes in case of very small images
-        height = max(height, 400)
-        width = max(width, 800)
-        # Font size is annoying and not fixed, but relative to image size, so set the base font relative to height
-        base_font_size = height / 40
+        return HTML_TEMPLATE.format(class_names=html_classes, base_images=html_base_images, aug_images=html_aug_images,
+                                    aug_name=aug_name)
 
-        # If length is 4 means we also have bounding boxes to draw
-        if len(transposed) == 4:
-            for index, (base_bbox, aug_bbox) in enumerate(transposed[3]):
-                label_bbox_add_to_figure(base_bbox, fig, row=1, col=index + 1)
-                label_bbox_add_to_figure(aug_bbox, fig, row=2, col=index + 1)
-
-        (fig.update_layout(title=dict(text='Augmentation Samples', font=dict(size=base_font_size * 2)))
-         .update_yaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
-         .update_xaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
-         .update_annotations(font_size=base_font_size * 1.5))
-
-        return fig.to_image('svg', width=width, height=height).decode('utf-8')
-
-    def _create_performance_graph(self, base_scores: dict, augmented_scores: dict):
+    def _create_performance_graph(self, base_scores: dict, augmented_scores: dict, aug_name: str):
         metrics = sorted(list(base_scores.keys()))
         fig = make_subplots(rows=1, cols=len(metrics), subplot_titles=metrics)
 
@@ -310,13 +280,15 @@ class RobustnessReport(SingleDatasetCheck):
             fig.add_trace(go.Bar(x=x, y=y, customdata=diff, texttemplate='%{customdata}',
                                  textposition='auto'), col=index + 1, row=1)
 
+        title = f'Augmentation "{aug_name}" Performance Comparison<br><sup>Comparing performance ' \
+                f'before augmentation and after</sup>'
         (fig.update_layout(font=dict(size=12), height=300, width=400 * len(metrics), autosize=False,
-                           title=dict(text='Performance Comparison', font=dict(size=20)),
+                           title=dict(text=title, font=dict(size=20)), margin=dict(l=0, b=0),
                            showlegend=False)
          .update_xaxes(title=None, type='category', tickangle=30))
         return fig
 
-    def _create_top_affected_graph(self, top_affected_dict, dataset):
+    def _create_top_affected_graph(self, top_affected_dict, dataset, aug_name: str):
         metrics = sorted(top_affected_dict.keys())
         fig = make_subplots(rows=1, cols=len(metrics), subplot_titles=metrics)
 
@@ -333,12 +305,15 @@ class RobustnessReport(SingleDatasetCheck):
 
             # Plotly have a bug that if all y values are zero text position 'auto' doesn't work
             textposition = 'outside' if sum(y) == 0 else 'auto'
+            hover = 'Metric value: %{y:.2f}<br>Number of samples: %{customdata[1]}'
             fig.add_trace(go.Bar(name=metric, x=x, y=y, customdata=custom_data, texttemplate='%{customdata[0]}',
-                                 textposition=textposition, hovertemplate='Number of samples: %{customdata[1]}'),
+                                 textposition=textposition, hovertemplate=hover),
                           row=1, col=index + 1)
 
+        title = f'Augmentation "{aug_name}" Top Affected Classes<br><sup>Percentage shows difference in performance '\
+                f'between original data and augmented data</sup>'
         (fig.update_layout(font=dict(size=12), height=300, width=600 * len(metrics),
-                           title=dict(text='Top Affected Classes', font=dict(size=20)),
+                           title=dict(text=title, font=dict(size=20)), margin=dict(l=0, b=0),
                            showlegend=False)
          .update_xaxes(title=None, type='category', tickangle=30, tickprefix='Class ', automargin=True)
          .update_yaxes(automargin=True))
@@ -348,11 +323,13 @@ class RobustnessReport(SingleDatasetCheck):
 
 def augmentation_name(aug):
     if isinstance(aug, imgaug.augmenters.Augmenter):
-        return aug.name
+        name = aug.name
     elif isinstance(aug, albumentations.BasicTransform):
-        return aug.get_class_fullname()
+        name = aug.get_class_fullname()
     else:
         raise DeepchecksValueError(f'Unsupported augmentation type {type(aug)}')
+
+    return split_camel_case(name)
 
 
 def get_random_image_pairs_from_dataset(original_dataset: VisionData,
@@ -419,3 +396,57 @@ def get_random_image_pairs_from_dataset(original_dataset: VisionData,
 
     # Sort by diff but return only the tuple
     return [s for s, _ in sorted(zip(samples, sort_value), key=lambda pair: pair[1])]
+
+
+HTML_TEMPLATE = """
+<style>
+    .container {{
+        overflow-x: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }}
+
+    .row {{
+      display: flex;
+      flex-direction: row;
+      align-items: center;    
+    }}
+    
+    .item {{
+      flex: 1;
+      min-width: 200px;
+      position: relative;
+      word-wrap: break-word;
+    }}
+    
+    .image-div {{
+      min-height: 200px;
+    }}
+    
+    .class-div {{
+      text-align: center;
+    }}
+    
+    h3,h4 {{
+        font-family: "Open Sans", verdana, arial, sans-serif;
+        color: #2a3f5f
+    }}
+    
+</style>
+<h3>Augmentation "{aug_name}" Examples</h3>
+<div class="container">
+    <div class="row">
+        <h4 class="item">Class</h4>
+        {class_names}    
+    </div>
+    <div class="row">
+        <h4 class="item">Base Image</h4>
+        {base_images}
+    </div>
+    <div class="row">
+        <h4 class="item">Augmented Image</h4>
+        {aug_images}
+    </div>
+</div>
+"""
