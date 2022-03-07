@@ -31,7 +31,7 @@ def train_test_validation() -> Suite:
         'Train Test Validation Suite',
         HeatmapComparison(),
         TrainTestLabelDrift(),
-        TrainTestPredictionDrift(),
+        TrainTestPredictionDrift().add_condition_drift_score_not_greater_than(),
         ImagePropertyDrift().add_condition_drift_score_not_greater_than(),
         ImageDatasetDrift()
     )

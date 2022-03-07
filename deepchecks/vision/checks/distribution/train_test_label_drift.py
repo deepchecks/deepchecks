@@ -12,6 +12,8 @@
 from typing import Dict, List, Any
 
 import pandas as pd
+
+from deepchecks import ConditionResult
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 
 from deepchecks.core import DatasetKind, CheckResult
@@ -160,3 +162,48 @@ class TrainTestLabelDrift(TrainTestCheck):
         displays = [headnote] + [displays_dict[col] for col in columns_order]
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
+
+    def add_condition_drift_score_not_greater_than(self, max_allowed_psi_score: float = 0.15,
+                                                   max_allowed_earth_movers_score: float = 0.075
+                                                   ) -> 'TrainTestLabelDrift':
+        """
+        Add condition - require label measurements drift score to not be more than a certain threshold.
+
+        The industry standard for PSI limit is above 0.2.
+        Earth movers does not have a common industry standard.
+        The threshold was lowered by 25% compared to feature drift defaults due to the higher importance of label drift.
+
+        Parameters
+        ----------
+        max_allowed_psi_score: float , default: 0.15
+            the max threshold for the PSI score
+        max_allowed_earth_movers_score: float ,  default: 0.075
+            the max threshold for the Earth Mover's Distance score
+        Returns
+        -------
+        ConditionResult
+            False if any column has passed the max threshold, True otherwise
+        """
+
+        def condition(result: Dict) -> ConditionResult:
+            not_passing_categorical_columns = {measures: f'{d["Drift score"]:.2}' for measures, d in result.items() if
+                                               d['Drift score'] > max_allowed_psi_score and d['Method'] == 'PSI'}
+            not_passing_numeric_columns = {measures: f'{d["Drift score"]:.2}' for measures, d in result.items() if
+                                           d['Drift score'] > max_allowed_earth_movers_score
+                                           and d['Method'] == "Earth Mover's Distance"}
+            return_str = ''
+            if not_passing_categorical_columns:
+                return_str += f'Found non-continues label measurements with PSI drift score above threshold:' \
+                              f' {not_passing_categorical_columns}\n'
+            if not_passing_numeric_columns:
+                return_str += f'Found continues label measurements with Earth Mover\'s drift score above' \
+                              f' threshold: {not_passing_numeric_columns}\n'
+
+            if return_str:
+                return ConditionResult(False, return_str)
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
+                                  f'{max_allowed_earth_movers_score} for label drift',
+                                  condition)
