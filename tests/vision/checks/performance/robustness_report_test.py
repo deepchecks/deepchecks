@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+from random import seed
 import types
 
 
@@ -34,8 +35,8 @@ def test_mnist(mnist_dataset_train, trained_mnist, device):
     ]
     check = RobustnessReport(augmentations=augmentations)
     # Act
-    result = check.run(mnist_dataset_train, trained_mnist,
-                       device=device)
+    result = check.run(mnist_dataset_train, trained_mnist, device=device)
+    print(result.value)
     # Assert
     assert_that(result.value, has_entries({
         'RandomBrightnessContrast': has_entries({
@@ -63,8 +64,7 @@ def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detecti
     check.add_condition_degradation_not_greater_than(0.01)
 
     # Act
-    result = check.run(coco_train_visiondata, trained_yolov5_object_detection,
-                       device=device)
+    result = check.run(coco_train_visiondata, trained_yolov5_object_detection, device=device)
     # Assert
     print(result.value)
     assert_that(result.value, has_entries({

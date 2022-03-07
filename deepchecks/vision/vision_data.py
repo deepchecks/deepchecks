@@ -197,20 +197,19 @@ class VisionData:
             msg = f'Underlying Dataset instance does not contain "{self._transform_field}" attribute. If your ' \
                   f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
             raise DeepchecksValueError(msg)
-        transform = dataset_ref.__getattribute__(self._transform_field)
+        new_vision_data = self.copy()
+        new_dataset_ref = new_vision_data.data_loader.dataset
+        transform = new_dataset_ref.__getattribute__(self._transform_field)
         new_transform = add_augmentation_in_start(aug, transform)
-        dataset_copy = copy(dataset_ref)
-        dataset_copy.__setattr__(self._transform_field, new_transform)
-        new_vision_data = self.copy(dataset_copy)
+        new_dataset_ref.__setattr__(self._transform_field, new_transform)
         return new_vision_data
 
-    def copy(self, new_dataset = None) -> VD:
+    def copy(self) -> VD:
         """Create new copy of this object, with the data-loader and dataset also copied."""
-        new_data_loader = self._get_data_loader_copy(new_dataset)
-        new_vision_data =  self.__class__(new_data_loader,
-                                          num_classes=self.num_classes,
-                                          label_map=self._label_map,
-                                          transform_field=self._transform_field)
+        new_vision_data = self.__class__(self._data_loader,
+                                         num_classes=self.num_classes,
+                                         label_map=self._label_map,
+                                         transform_field=self._transform_field)
         if self._current_seed is not None:
             new_vision_data.set_seed(self._current_seed)
         return new_vision_data
@@ -308,7 +307,7 @@ class VisionData:
         """Return the number of batches in the dataset dataloader."""
         return len(self._data_loader)
 
-    def _get_data_loader_copy(self, new_dataset = None):
+    def _get_data_loader_copy(self):
         props = {
             'num_workers': self._data_loader.num_workers,
             'collate_fn': self._data_loader.collate_fn,
@@ -332,8 +331,5 @@ class VisionData:
             # Replace generator instance so the copied dataset will not affect the original
             sampler.generator = props['generator']
             props['sampler'] = sampler
-        if new_dataset is None:
-            props['dataset'] = copy(self._data_loader.dataset)
-        else:
-            props['dataset'] = copy(new_dataset)
+        props['dataset'] = copy(self._data_loader.dataset)
         return self._data_loader.__class__(**props)
