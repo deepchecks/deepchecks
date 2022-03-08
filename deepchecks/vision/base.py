@@ -475,7 +475,7 @@ class Suite(BaseSuite):
                     )
 
         # The results are ordered as they ran instead of in the order they were defined, therefore sort by key
-        sorted_result_values = [value for name, value in sorted(results.items(), key=lambda pair: pair[0])]
+        sorted_result_values = [value for name, value in sorted(results.items(), key=lambda pair: str(pair[0]))]
         return SuiteResult(self.name, sorted_result_values)
 
     def _update_loop(
