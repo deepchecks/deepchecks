@@ -78,7 +78,7 @@ class VisionData:
         except DeepchecksValueError:
             logger.warning('batch_to_images() was not implemented, some checks will not run')
         except ValidationError:
-            logger.warning('batch_to_images() was not implemented currectly, '
+            logger.warning('batch_to_images() was not implemented correctly, '
                            'the validiation has failed, some checks will not run')
 
         self._n_of_samples_per_class = None

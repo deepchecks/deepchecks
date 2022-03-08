@@ -25,6 +25,11 @@ Defining the data and model
     import deepchecks
     import matplotlib.pyplot as plt
     import numpy as np
+    import albumentations as A
+    from albumentations.pytorch import ToTensorV2
+    from torchvision.datasets import ImageFolder
+    import PIL.Image
+    import cv2
 Load Data
 ~~~~~~~~~
 We will use torchvision and torch.utils.data packages for loading the data.
@@ -35,6 +40,45 @@ This dataset is a very small subset of imagenet.
 
 .. code-block:: python
 
+    class AntsBeesDataset(ImageFolder):
+        def __init__(self, *args, **kwargs):
+            """
+            Overrides initialization method to replace default loader with OpenCV loader
+            :param args:
+            :param kwargs:
+            """
+            super(AntsBeesDataset, self).__init__(*args, **kwargs)
+
+        def __getitem__(self, index: int):
+            """
+            overrides __getitem__ to be compatible to albumentations
+            Args:
+                index (int): Index
+            Returns:
+                tuple: (sample, target) where target is class_index of the target class.
+            """
+            path, target = self.samples[index]
+            sample = self.loader(path)
+            sample = self.get_cv2_image(sample)
+            if self.transforms is not None:
+                transformed = self.transforms(image=sample, target=target)
+                sample, target = transformed["image"], transformed["target"]
+            else:
+                if self.transform is not None:
+                    sample = self.transform(image=sample)['image']
+                if self.target_transform is not None:
+                    target = self.target_transform(target)
+
+            return sample, target
+
+    def get_cv2_image(self, image):
+        if isinstance(image, PIL.Image.Image):
+            image_np = np.array(image)
+            return image_np
+        elif isinstance(image, np.ndarray):
+            return image
+        else:
+            raise RuntimeError("Only PIL.Image and CV2 loaders currently supported!")
     # Just normalization for validation
     data_transforms = transforms.Compose([
             transforms.Resize(256),
@@ -43,14 +87,25 @@ This dataset is a very small subset of imagenet.
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
 
-    data_dir = 'data/hymenoptera_data'
-    image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
-                                              data_transforms)
-                      for x in ['train', 'val']}
-    dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=4,
-                                                 shuffle=True, num_workers=4)
-                  for x in ['train', 'val']}
-    dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
+    data_dir = 'hymenoptera_data'
+    # Just normalization for validation
+    data_transforms = A.Compose([
+        A.Resize(height=256, width=256),
+        A.CenterCrop(height=224, width=224),
+        A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ToTensorV2(),
+    ])
+    train_dataset = AntsBeesDataset(root=os.path.join(data_dir,'train'))
+    train_dataset.transforms = data_transforms
+
+    val_dataset = AntsBeesDataset(root=os.path.join(data_dir,'val'))
+    val_dataset.transforms = data_transforms
+
+    dataloaders['train'] = torch.utils.data.DataLoader(train_dataset, batch_size=4,
+                                                 shuffle=True)
+    dataloaders['val'] = torch.utils.data.DataLoader(val_dataset, batch_size=4,
+                                                 shuffle=True)
+
     class_names = image_datasets['train'].classes
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -82,7 +137,7 @@ Let's visualize a few training images so as to understand the data augmentation.
 
     imshow(out, title=[class_names[x] for x in classes])
 
-.. image :: /_static/sphx_glr_transfer_learning_tutorial_001.png
+.. image :: /_static/ants-bees.png
   :width: 400
   :alt: Ants and Bees
 
@@ -185,19 +240,19 @@ To learn more about the expected format please visit the API reference for the
     where each image is a numpy array of shape (height, width, channels). The numbers in the array should be in the
     range [0, 255]
     """
-        inp = batch[0].detach().numpy().transpose((1, 2, 0))
+        inp = batch[0].detach().numpy().transpose((0, 2, 3, 1))
         mean = [0.485, 0.456, 0.406]
         std = [0.229, 0.224, 0.225]
         inp = std * inp + mean
         inp = np.clip(inp, 0, 1)
-        return inp
+        return inp*255
 
     def batch_to_labels(self, batch):
     """
     Convert a batch of data to labels in the expected format. The expected format is a tensor of shape (N,),
     where N is the number of samples. Each element is an integer representing the class index.
     """
-        return torch.Tensor(batch[1])
+        return batch[1]
 
     def infer_on_batch(self, batch, model, device):
     """
@@ -215,8 +270,9 @@ After defining the task class, we can validate it by running the following code:
   training_data = AntsBeesData(data_loader=dataloaders["train"])
   val_data = AntsBeesData(data_loader=dataloaders["val"])
 
-  training_data.validate_impl(model, device)
-  val_data.validate_impl(model, device)
+  from deepchecks.vision.utils.validation import validate_extractors
+  validate_extractors(training_data, model)
+  validate_extractors(val_data, model)
 
 And observe the output:
 
@@ -234,5 +290,7 @@ This can be done with this simple few lines of code:
 
 .. code-block:: python
 
-  suite = deepchecks.vision.suites.full_suite()
+  from deepchecks.vision.suites import full_suite
+
+  suite = full_suite()
   suite.run(training_data, val_data, model, device)

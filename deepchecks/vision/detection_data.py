@@ -46,7 +46,7 @@ class DetectionData(VisionData):
             logger.warning('batch_to_labels() was not implemented, some checks will not run')
 
         except ValidationError:
-            logger.warning('batch_to_labels() was not implemented currectly, '
+            logger.warning('batch_to_labels() was not implemented correctly, '
                            'the validiation has failed, some checks will not run')
 
     @abstractmethod
