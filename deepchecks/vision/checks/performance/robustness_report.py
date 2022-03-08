@@ -242,7 +242,7 @@ class RobustnessReport(SingleDatasetCheck):
         def sort_by_worst_func(aug_data):
             return sum([m['score'] for m in aug_data[1]['metrics_diff'].values()])
 
-        sorted_by_worst = {k: v for k, v in sorted(aug_all_data.items(), key=sort_by_worst_func)}
+        sorted_by_worst = dict(sorted(aug_all_data.items(), key=sort_by_worst_func))
 
         # Iterate augmentations
         for index, (augmentation, curr_data) in enumerate(sorted_by_worst.items()):
