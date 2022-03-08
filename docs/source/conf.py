@@ -150,7 +150,6 @@ autosummary_filename_map = {
     "deepchecks.vision.checks": "../deepchecks.vision.checks",
 }
 
-autosummary_mock_imports = ["torch"]
 # -- autodoc settings --------------------------------------------------
 
 # Autodoc settings.
@@ -175,14 +174,13 @@ autodoc_typehints = 'signature'
 #   + 'short' – Suppress the leading module names of the typehints (default in version 5.0)
 #
 autodoc_typehints_format = 'short'
-autodoc_mock_imports = ["torch"]
 
 # True to convert the type definitions in the docstrings as references. Defaults to False.
 #
 napoleon_preprocess_types = False
 
 # Report warnings for all validation checks
-numpydoc_validation_checks = {"all"}
+numpydoc_validation_checks = {"PR01", "PR02", "PR03", "RT03"}
 
 # -- nbsphinx extension settings --------------------------------------------------
 
@@ -410,7 +408,14 @@ html_context = {
 
 
 # -- Other -------------------------------------------------
+nitpick_ignore = []
 
+for line in open('nitpick-exceptions'):
+    if line.strip() == "" or line.startswith("#"):
+        continue
+    dtype, target = line.split(None, 1)
+    target = target.strip()
+    nitpick_ignore.append((dtype, target))
 
 def get_report_issue_url(pagename: str) -> str:
     template = (
