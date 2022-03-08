@@ -40,12 +40,12 @@ def test_mnist(mnist_dataset_train, trained_mnist, device):
     print(result.value)
     assert_that(result.value, has_entries({
         'RandomBrightnessContrast': has_entries({
-            'Precision': has_entries(score=close_to(0.985, 0.001), diff=close_to(-0.001, 0.001)),
-            'Recall': has_entries(score=close_to(0.987, 0.001), diff=close_to(-0.0004, 0.001))
+            'Precision': has_entries(score=close_to(0.984, 0.001), diff=close_to(-0.001, 0.001)),
+            'Recall': has_entries(score=close_to(0.986, 0.001), diff=close_to(-0.0003, 0.001))
         }),
         'ShiftScaleRotate': has_entries({
-            'Precision': has_entries(score=close_to(0.805, 0.001), diff=close_to(-0.183, 0.001)),
-            'Recall': has_entries(score=close_to(0.782, 0.001), diff=close_to(-0.207, 0.001))
+            'Precision': has_entries(score=close_to(0.804, 0.001), diff=close_to(-0.184, 0.001)),
+            'Recall': has_entries(score=close_to(0.775, 0.001), diff=close_to(-0.214, 0.001))
         }),
     }))
 
@@ -69,8 +69,8 @@ def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detecti
     print(result.value)
     assert_that(result.value, has_entries({
         'HueSaturationValue': has_entries({
-            'AP': has_entries(score=close_to(0.302, 0.001), diff=close_to(-0.067, 0.001)),
-            'AR': has_entries(score=close_to(0.350, 0.001), diff=close_to(-0.045, 0.001))
+            'AP': has_entries(score=close_to(0.304, 0.001), diff=close_to(-0.060, 0.001)),
+            'AR': has_entries(score=close_to(0.375, 0.001), diff=close_to(0.022, 0.001))
         }),
     }))
     assert_that(result.conditions_results, has_items(

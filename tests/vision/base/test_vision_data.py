@@ -25,7 +25,7 @@ from hamcrest import (
 
 from deepchecks.core.errors import ValidationError
 from deepchecks.vision.classification_data import ClassificationData
-from deepchecks.vision.dataset import TaskType
+from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.datasets.classification.mnist import MNISTData
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.datasets.classification import mnist

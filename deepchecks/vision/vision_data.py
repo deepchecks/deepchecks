@@ -12,6 +12,7 @@
 from collections import Counter
 from copy import copy
 from abc import abstractmethod
+from enum import Enum
 from typing import Any, List, Optional, Dict, TypeVar, Union
 
 import logging
@@ -26,6 +27,14 @@ from deepchecks.vision.utils.transformations import add_augmentation_in_start, g
 logger = logging.getLogger('deepchecks')
 VD = TypeVar('VD', bound='VisionData')
 
+__all__ = ['TaskType', 'VisionData']
+
+
+class TaskType(Enum):
+    """Enum containing supported task types."""
+
+    CLASSIFICATION = 'classification'
+    OBJECT_DETECTION = 'object_detection'
 
 class VisionData:
     """VisionData represent a base task in deepchecks. It wraps PyTorch DataLoader together with model related metadata.

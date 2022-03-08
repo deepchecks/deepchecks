@@ -31,8 +31,7 @@ from deepchecks.core.errors import (
     DatasetValidationError, ModelValidationError,
     DeepchecksNotSupportedError, DeepchecksValueError
 )
-from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.vision_data import VisionData
+from deepchecks.vision.vision_data import VisionData, TaskType
 from deepchecks.vision.utils.validation import apply_to_tensor
 
 logger = logging.getLogger('deepchecks')
@@ -91,12 +90,6 @@ class Context:
         if train and test:
             train.validate_shared_label(test)
 
-        # Set seeds to if possible
-        if train and random_state:
-            train.set_seed(random_state)
-        if test and random_state:
-            test.set_seed(random_state)
-
         self._device = torch.device(device) if isinstance(device, str) else (device if device else torch.device('cpu'))
 
         if model is not None:
@@ -108,6 +101,12 @@ class Context:
                     except DeepchecksValueError:
                         logger.warning('validate_prediction() was not implemented in %s dataset, '
                                        'some checks will not run', dataset_type)
+
+        # Set seeds to if possible (we set it after the validation to keep the seed state)
+        if train and random_state:
+            train.set_seed(random_state)
+        if test and random_state:
+            test.set_seed(random_state)
 
         self._train = train
         self._test = test

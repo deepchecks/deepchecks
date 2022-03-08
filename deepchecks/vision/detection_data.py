@@ -19,8 +19,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
-from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.vision_data import VisionData
+from deepchecks.vision.vision_data import VisionData, TaskType
 
 logger = logging.getLogger('deepchecks')
 

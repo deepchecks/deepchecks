@@ -20,7 +20,7 @@ from torch import nn
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 
-from deepchecks.vision.dataset import TaskType
+from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
 

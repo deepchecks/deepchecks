@@ -20,7 +20,7 @@ from ignite.metrics import Metric
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import Context, TrainTestCheck
-from deepchecks.vision.dataset import TaskType
+from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
 
 __all__ = ['SimpleModelComparison']

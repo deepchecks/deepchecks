@@ -19,7 +19,7 @@ from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.vision.base import Context, TrainTestCheck
-from deepchecks.vision.dataset import TaskType
+from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.utils.measurements import validate_measurements, \
     DEFAULT_CLASSIFICATION_PREDICTION_MEASUREMENTS, DEFAULT_OBJECT_DETECTION_PREDICTION_MEASUREMENTS, \
     get_prediction_measurements_on_batch

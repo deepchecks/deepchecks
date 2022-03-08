@@ -18,7 +18,7 @@ import pandas as pd
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import SingleDatasetCheck, Context
-from deepchecks.vision.dataset import TaskType
+from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
 
 __all__ = ['MeanAverageRecallReport']

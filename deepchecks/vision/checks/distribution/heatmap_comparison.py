@@ -14,15 +14,15 @@ from typing import Tuple, List, Any, Iterable, Optional
 import cv2
 import torch
 from plotly.subplots import make_subplots
+import numpy as np
+import plotly.graph_objs as go
 
 from deepchecks.vision.utils.image_functions import numpy_grayscale_to_heatmap_figure, apply_heatmap_image_properties
-
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.vision.base import Context, TrainTestCheck
-from deepchecks.vision.dataset import TaskType
-import numpy as np
-import plotly.graph_objs as go
+from deepchecks.vision.vision_data import TaskType
+
 
 __all__ = ['HeatmapComparison']
 

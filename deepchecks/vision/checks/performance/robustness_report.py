@@ -25,7 +25,7 @@ from ignite.metrics import Metric
 from deepchecks import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import VisionData, SingleDatasetCheck, Context
-from deepchecks.vision.dataset import TaskType
+from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils import calculate_metrics, metric_results_to_df
 from deepchecks.vision.utils.validation import set_seeds
 from deepchecks.vision.metrics_utils import get_scorers_list
@@ -83,7 +83,6 @@ class RobustnessReport(SingleDatasetCheck):
         -------
             CheckResult: value is dictionary in format 'score-name': score-value
         """
-        set_seeds(context.random_state)
         dataset = context.get_data_by_kind(dataset_kind)
         model = context.model
 
@@ -95,6 +94,7 @@ class RobustnessReport(SingleDatasetCheck):
             {k: m.compute() for k, m in self._state['metrics'].items()}, dataset
         )
         # TODO: update later the way we handle average metrics
+
         # Return dict of metric to value
         base_mean_results: dict = self._calc_median_metrics(base_results)
         # Get augmentations
@@ -105,6 +105,8 @@ class RobustnessReport(SingleDatasetCheck):
             aug_dataset = dataset.get_augmented_dataset(augmentation_func)
             # The metrics have saved state, but they are reset inside `calculate_metrics`
             metrics = self._state['metrics']
+            # we set the seed just before the metric to keep seed state
+            set_seeds(context.random_state)
             # Return dataframe of (Class, Metric, Value)
             aug_results = metric_results_to_df(
                 calculate_metrics(metrics, aug_dataset, model, context.device),

@@ -18,7 +18,7 @@ import imgaug
 
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.utils.ipython import is_notebook
-from deepchecks.vision.dataset import TaskType
+from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.utils.image_functions import numpy_to_image_figure, label_bbox_add_to_figure
 from deepchecks.vision.vision_data import VisionData
 
