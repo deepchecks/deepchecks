@@ -39,7 +39,7 @@ PR = TypeVar('PR', bound='RobustnessReport')
 
 
 class RobustnessReport(SingleDatasetCheck):
-    """Check several image enhancements for model robustness.
+    """Compare performance of model on original dataset and augmented dataset.
 
     Parameters
     ----------
@@ -100,7 +100,6 @@ class RobustnessReport(SingleDatasetCheck):
         augmentations = self.augmentations or transforms_handler.get_robustness_augmentations(dataset.data_dimension)
         aug_all_data = {}
         for augmentation_func in augmentations:
-            augmentation = augmentation_name(augmentation_func)
             aug_dataset = self._create_augmented_dataset(dataset, augmentation_func, context.random_state)
             # The metrics have saved state, but they are reset inside `calculate_metrics`
             metrics = self._state['metrics']
@@ -113,9 +112,9 @@ class RobustnessReport(SingleDatasetCheck):
             metrics_diff_dict = self._calc_performance_diff(base_mean_results, aug_results)
             # Return dict of metric to list {metric: [{'class': x, 'value': y, 'diff': z, 'samples': w}, ...], ...}
             top_affected_classes = self._calc_top_affected_classes(base_results, aug_results, dataset, 5)
-            # Return list of [(base image, augmented image, class), ...]
+            # Return list of [(base image, augmented image, class, [bbox,...]), ...]
             image_pairs = get_random_image_pairs_from_dataset(dataset, aug_dataset, top_affected_classes)
-            aug_all_data[augmentation] = {
+            aug_all_data[augmentation_name(augmentation_func)] = {
                 'metrics': aug_results,
                 'metrics_diff': metrics_diff_dict,
                 'top_affected': top_affected_classes,
@@ -123,6 +122,9 @@ class RobustnessReport(SingleDatasetCheck):
             }
 
         # Create figures to display
+        aug_names = ', '.join([augmentation_name(aug) for aug in augmentations])
+        info_message = 'Percentage shown are difference between the metric before augmentation and after.<br>' \
+                       f'Augmentations used (separately): {aug_names}'
         figures = self._create_augmentation_figure(dataset, base_mean_results, aug_all_data)
 
         # Save as result only the metrics diff per augmentation
@@ -131,7 +133,7 @@ class RobustnessReport(SingleDatasetCheck):
         return CheckResult(
             result,
             header='Robustness Report',
-            display=figures
+            display=[info_message, *figures]
         )
 
     def add_condition_degradation_not_greater_than(self, ratio: float = 0.02):
@@ -237,16 +239,16 @@ class RobustnessReport(SingleDatasetCheck):
     def _create_augmentation_figure(self, dataset, base_mean_results, aug_all_data):
         figures = []
         # Iterate augmentation names
-        for augmentation, curr_data in aug_all_data.items():
-            # Create performance graph
-            figures.append(self._create_performance_graph(base_mean_results, curr_data['metrics_diff'], augmentation))
-            # Create top affected graph
-            figures.append(self._create_top_affected_graph(curr_data['top_affected'], dataset, augmentation))
+        for index, (augmentation, curr_data) in enumerate(aug_all_data.items()):
             # Create example figures, return first n_pictures_to_show from original and then n_pictures_to_show from
             # augmented dataset
             figures.append(self._create_example_figure(dataset, curr_data['images'], augmentation))
-            figures.append('<hr>')
-
+            # Create performance graph
+            figures.append(self._create_performance_graph(base_mean_results, curr_data['metrics_diff']))
+            # Create top affected graph
+            figures.append(self._create_top_affected_graph(curr_data['top_affected'], dataset))
+            if index < len(aug_all_data) - 1:
+                figures.append('<hr style="background-color:#2a3f5f; height:5px">')
         return figures
 
     def _create_example_figure(self, dataset: VisionData, images, aug_name):
@@ -267,7 +269,7 @@ class RobustnessReport(SingleDatasetCheck):
         return HTML_TEMPLATE.format(class_names=html_classes, base_images=html_base_images, aug_images=html_aug_images,
                                     aug_name=aug_name)
 
-    def _create_performance_graph(self, base_scores: dict, augmented_scores: dict, aug_name: str):
+    def _create_performance_graph(self, base_scores: dict, augmented_scores: dict):
         metrics = sorted(list(base_scores.keys()))
         fig = make_subplots(rows=1, cols=len(metrics), subplot_titles=metrics)
 
@@ -280,15 +282,14 @@ class RobustnessReport(SingleDatasetCheck):
             fig.add_trace(go.Bar(x=x, y=y, customdata=diff, texttemplate='%{customdata}',
                                  textposition='auto'), col=index + 1, row=1)
 
-        title = f'Augmentation "{aug_name}" Performance Comparison<br><sup>Comparing performance ' \
-                f'before augmentation and after</sup>'
+        title = 'Performance Comparison'
         (fig.update_layout(font=dict(size=12), height=300, width=400 * len(metrics), autosize=False,
                            title=dict(text=title, font=dict(size=20)), margin=dict(l=0, b=0),
                            showlegend=False)
          .update_xaxes(title=None, type='category', tickangle=30))
         return fig
 
-    def _create_top_affected_graph(self, top_affected_dict, dataset, aug_name: str):
+    def _create_top_affected_graph(self, top_affected_dict, dataset):
         metrics = sorted(top_affected_dict.keys())
         fig = make_subplots(rows=1, cols=len(metrics), subplot_titles=metrics)
 
@@ -310,8 +311,7 @@ class RobustnessReport(SingleDatasetCheck):
                                  textposition=textposition, hovertemplate=hover),
                           row=1, col=index + 1)
 
-        title = f'Augmentation "{aug_name}" Top Affected Classes<br><sup>Percentage shows difference in performance '\
-                f'between original data and augmented data</sup>'
+        title = 'Top Affected Classes'
         (fig.update_layout(font=dict(size=12), height=300, width=600 * len(metrics),
                            title=dict(text=title, font=dict(size=20)), margin=dict(l=0, b=0),
                            showlegend=False)
@@ -404,7 +404,6 @@ HTML_TEMPLATE = """
         overflow-x: auto;
         display: flex;
         flex-direction: column;
-        gap: 10px;
     }}
 
     .row {{
@@ -434,7 +433,7 @@ HTML_TEMPLATE = """
     }}
 
 </style>
-<h3>Augmentation "{aug_name}" Examples</h3>
+<h3>Augmentation "{aug_name}"</h3>
 <div class="container">
     <div class="row">
         <h4 class="item">Class</h4>
