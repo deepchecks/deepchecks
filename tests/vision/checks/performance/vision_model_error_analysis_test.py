@@ -10,7 +10,7 @@
 #
 """Test functions of the VISION model error analysis."""
 
-from hamcrest import assert_that, equal_to, calling, raises
+from hamcrest import assert_that, equal_to, calling, raises, close_to
 
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision.checks import ModelErrorAnalysis
@@ -31,6 +31,10 @@ def test_classification(mnist_dataset_train, trained_mnist, device):
     # Assert
     assert_that(len(result.value['feature_segments']), equal_to(1))
     assert_that(result.value['feature_segments']['brightness']['segment1']['n_samples'], equal_to(502))
+    assert_that(result.value['feature_segments']['brightness']['segment1']['score'],
+                close_to(349.6174310035811, 0.0000001))
+    assert_that(result.value['feature_segments']['brightness']['segment2']['score'],
+                close_to(735.3282296397399, 0.0000001))
 
 
 def test_detection(coco_train_visiondata, coco_test_visiondata, trained_yolov5_object_detection, device):
@@ -44,11 +48,13 @@ def test_detection(coco_train_visiondata, coco_test_visiondata, trained_yolov5_o
                        trained_yolov5_object_detection,
                        prediction_formatter=pred_formatter,
                        device=device)
-    print(result)
-
     # Assert
     assert_that(len(result.value['feature_segments']), equal_to(5))
-    assert_that(result.value['feature_segments']['normalized_blue_mean']['segment1']['n_samples'], equal_to(20))
+    assert_that(result.value['feature_segments']['normalized_blue_mean']['segment1']['n_samples'], equal_to(21))
+    assert_that(result.value['feature_segments']['normalized_blue_mean']['segment1']['score'],
+                close_to(0.734074402215793, 0.0000001))
+    assert_that(result.value['feature_segments']['normalized_blue_mean']['segment2']['score'],
+                close_to(0.6964005116750382, 0.0000001))
 
 
 def test_classification_not_interesting(mnist_dataset_train, trained_mnist, device):
