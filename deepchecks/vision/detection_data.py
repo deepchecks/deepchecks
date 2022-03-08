@@ -82,12 +82,15 @@ class DetectionData(VisionData):
 
         Examples
         --------
-        >>> def batch_to_labels(self, batch):
-        ... # each bbox in the labels is (class_id, x, y, x, y). convert to (class_id, x, y, w, h)
-        ...    return [torch.stack(
+        >>> import torch
+        ...
+        ...
+        ... def batch_to_labels(self, batch):
+        ...     # each bbox in the labels is (class_id, x, y, x, y). convert to (class_id, x, y, w, h)
+        ...     return [torch.stack(
         ...            [torch.cat((bbox[0], bbox[1:3], bbox[4:] - bbox[1:3]), dim=0)
-        ...                 for bbox in image])
-        ...            for image in batch[1]]
+        ...                for bbox in image])
+        ...             for image in batch[1]]
 
         Notes
         -----
@@ -122,7 +125,10 @@ class DetectionData(VisionData):
 
         Examples
         --------
-        >>> def infer_on_batch(self, batch, model, device):
+        >>> import torch
+        ...
+        ...
+        ... def infer_on_batch(self, batch, model, device):
         ...     # Converts a yolo prediction batch to the accepted xywh format
         ...     return_list = []
         ...
