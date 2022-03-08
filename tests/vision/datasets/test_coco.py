@@ -10,7 +10,8 @@
 #
 import time
 from torch.utils.data import DataLoader
-from hamcrest import assert_that, instance_of, calling, raises
+from hamcrest import assert_that, instance_of, calling, raises, is_
+from unittest.mock import patch
 
 from deepchecks import vision
 from deepchecks.vision.datasets.detection.coco import (
@@ -18,9 +19,20 @@ from deepchecks.vision.datasets.detection.coco import (
     DATA_DIR,
     CocoDataset
 )
+from torchvision.datasets.utils import download_and_extract_archive
 
 
-def test_load_dataset():
+def patch_side_effect(*args, **kwargs):
+    print("hi i'm being called")
+    return download_and_extract_archive(*args, **kwargs)
+
+
+@patch('torchvision.datasets.utils.download_and_extract_archive', )
+def test_load_dataset(mock_download_and_extract_archive):
+    # mock object should call original function
+    mock_download_and_extract_archive.side_effect = patch_side_effect
+    print(mock_download_and_extract_archive)
+
     def verify(loader):
         assert_that(loader, instance_of(DataLoader))
         assert_that(loader.dataset, instance_of(CocoDataset))
@@ -37,10 +49,13 @@ def test_load_dataset():
         start = time.time()
         loader = load_dataset(train=True, object_type='DataLoader')
         end = time.time()
+        assert_that(mock_download_and_extract_archive.called, is_(False))
         verify(loader)
         assert_that(loader, instance_of(DataLoader))
-        assert_that((end - start) < 2,
-                    "Downloaded previously data was not used! Download took {} seconds".format(end - start))
+    print('hisdfoasdhfoadsfh')
+    print(mock_download_and_extract_archive.called)
+    print('fdsasdfasd')
+    assert_that(7, 8)
 
 
 def test_deepchecks_dataset_load():
