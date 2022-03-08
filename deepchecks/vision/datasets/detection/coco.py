@@ -15,7 +15,7 @@ import os
 import typing as t
 import warnings
 from pathlib import Path
-from typing import List, Union
+from typing import Iterable, List, Union
 
 import numpy as np
 import torch
@@ -84,7 +84,7 @@ class COCOData(DetectionData):
 
         return return_list
 
-    def batch_to_images(self, batch) -> List[np.ndarray]:
+    def batch_to_images(self, batch) -> Iterable[np.ndarray]:
         """Convert the batch to a list of images."""
         return [np.array(x) for x in batch[0]]
 

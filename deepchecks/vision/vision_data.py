@@ -13,7 +13,7 @@ from collections import Counter
 from copy import copy
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, List, Optional, Dict, TypeVar, Union
+from typing import Any, Iterable, List, Optional, Dict, TypeVar, Union
 
 import logging
 import numpy as np
@@ -110,7 +110,7 @@ class VisionData:
         )
 
     @abstractmethod
-    def batch_to_images(self, batch) -> List[np.ndarray]:
+    def batch_to_images(self, batch) -> Iterable[np.ndarray]:
         """
         Transform a batch of data to images in the accpeted format.
 
@@ -121,7 +121,7 @@ class VisionData:
 
         Returns
         -------
-        List[np.ndarray]
+        Iterable[np.ndarray]
             List of images in the accepted format. Each image in the iterable must be a [H, W, C] 3D numpy array.
             See notes for more details.
 

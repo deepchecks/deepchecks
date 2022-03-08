@@ -13,7 +13,7 @@ import typing as t
 import pathlib
 import logging
 import warnings
-from typing import List, Union
+from typing import Iterable, List, Union
 
 import numpy as np
 import torch
@@ -116,7 +116,7 @@ class MNISTData(ClassificationData):
         preds = model.to(device)(batch[0].to(device))
         return nn.Softmax(dim=1)(preds)
 
-    def batch_to_images(self, batch) -> List[np.ndarray]:
+    def batch_to_images(self, batch) -> Iterable[np.ndarray]:
         """Convert a batch of mnist data to images."""
         mean = (0.1307,)
         std = (0.3081,)
