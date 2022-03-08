@@ -243,8 +243,8 @@ class CocoDataset(VisionDataset):
     def download_coco128(cls, root: t.Union[str, Path]) -> t.Tuple[Path, str]:
         root = root if isinstance(root, Path) else Path(root)
         coco_dir = root / 'coco128'
-        images_dir = root / 'images' / 'train2017'
-        labels_dir = root / 'labels' / 'train2017'
+        images_dir = coco_dir / 'images' / 'train2017'
+        labels_dir = coco_dir / 'labels' / 'train2017'
 
         if not (root.exists() and root.is_dir()):
             raise RuntimeError(f'root path does not exist or is not a dir - {root}')
@@ -252,18 +252,24 @@ class CocoDataset(VisionDataset):
         if images_dir.exists() and labels_dir.exists():
             return coco_dir, 'train2017'
 
-        url = 'https://ultralytics.com/assets/coco128.zip'
-        md5 = '90faf47c90d1cfa5161c4298d890df55'
+        return download_coco128_from_ultralytics(root)
 
-        with open(os.devnull, 'w', encoding='utf8') as f, contextlib.redirect_stdout(f):
-            download_and_extract_archive(
-                url,
-                download_root=str(root),
-                extract_root=str(root),
-                md5=md5
-            )
 
-        return coco_dir, 'train2017'
+def download_coco128_from_ultralytics(path: Path):
+    """Download coco from ultralytics using torchvision download_and_extract_archive"""
+    coco_dir = path / 'coco128'
+    url = 'https://ultralytics.com/assets/coco128.zip'
+    md5 = '90faf47c90d1cfa5161c4298d890df55'
+
+    with open(os.devnull, 'w', encoding='utf8') as f, contextlib.redirect_stdout(f):
+        download_and_extract_archive(
+            url,
+            download_root=str(path),
+            extract_root=str(path),
+            md5=md5
+        )
+
+    return coco_dir, 'train2017'
 
 
 def yolo_prediction_formatter(batch, model, device) -> t.List[torch.Tensor]:

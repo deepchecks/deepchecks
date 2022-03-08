@@ -8,7 +8,6 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-import time
 from torch.utils.data import DataLoader
 from hamcrest import assert_that, instance_of, calling, raises, is_
 from unittest.mock import patch
@@ -17,22 +16,16 @@ from deepchecks import vision
 from deepchecks.vision.datasets.detection.coco import (
     load_dataset,
     DATA_DIR,
-    CocoDataset
+    CocoDataset,
+    download_coco128_from_ultralytics
 )
-from torchvision.datasets.utils import download_and_extract_archive
 
 
 def patch_side_effect(*args, **kwargs):
-    print("hi i'm being called")
-    return download_and_extract_archive(*args, **kwargs)
+    return download_coco128_from_ultralytics(*args, **kwargs)
 
 
-@patch('torchvision.datasets.utils.download_and_extract_archive', )
-def test_load_dataset(mock_download_and_extract_archive):
-    # mock object should call original function
-    mock_download_and_extract_archive.side_effect = patch_side_effect
-    print(mock_download_and_extract_archive)
-
+def load_dataset_test(mock_download_and_extract_archive):
     def verify(loader):
         assert_that(loader, instance_of(DataLoader))
         assert_that(loader.dataset, instance_of(CocoDataset))
@@ -43,19 +36,21 @@ def test_load_dataset(mock_download_and_extract_archive):
     if not (DATA_DIR / 'coco128').exists():
         loader = load_dataset(train=True, object_type='DataLoader')
         verify(loader)
-        test_load_dataset()
+        mock_download_and_extract_archive.reset_mock()
+        load_dataset_test(mock_download_and_extract_archive)
     else:
         # verifying that downloaded prev data was used and not re-downloaded
-        start = time.time()
         loader = load_dataset(train=True, object_type='DataLoader')
-        end = time.time()
         assert_that(mock_download_and_extract_archive.called, is_(False))
         verify(loader)
         assert_that(loader, instance_of(DataLoader))
-    print('hisdfoasdhfoadsfh')
-    print(mock_download_and_extract_archive.called)
-    print('fdsasdfasd')
-    assert_that(7, 8)
+
+
+@patch('deepchecks.vision.datasets.detection.coco.download_coco128_from_ultralytics')
+def test_load_dataset(mock_download_and_extract_archive):
+    # mock object should call original function
+    mock_download_and_extract_archive.side_effect = patch_side_effect
+    load_dataset_test(mock_download_and_extract_archive)
 
 
 def test_deepchecks_dataset_load():
