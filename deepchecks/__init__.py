@@ -14,10 +14,11 @@ import types
 import os
 import pathlib
 import http.client
-import warnings
 import matplotlib
 import plotly.io as pio
+import warnings
 from pkg_resources import parse_version
+from importlib._bootstrap import _init_module_attrs
 
 import deepchecks.tabular
 from deepchecks.utils.ipython import is_notebook
@@ -91,7 +92,23 @@ except:  # pylint: disable=bare-except # noqa
     pass
 
 
+# ================================================================
+
+warnings.filterwarnings(
+    action='once',
+    message=r'Ability to import.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
+
+# NOTE:
+# Code below is a temporary hack that exists only to provide backward compatibility
+# and will be removed in the next versions.
+
+
 class _CurrentModule(types.ModuleType):
+    """Substitute module type to provide backward compatibility."""
+
     ROUTINES = (
         'Dataset',
         'Suite',
@@ -105,25 +122,24 @@ class _CurrentModule(types.ModuleType):
 
     def __getattr__(self, name):
         if name in self.ROUTINES:
-            breakpoint()
             warnings.warn(
                 'Ability to import base tabular functionality from '
-                'the `deepchecks` directly is deprecated, please import from '
-                '`deepchecks.tabular` instead',
+                'the `deepchecks` package directly is deprecated, please '
+                'import from `deepchecks.tabular` instead',
                 DeprecationWarning
             )
             return getattr(deepchecks.tabular, name)
         else:
             return super().__getattr__(name)
-    
 
-__origin_module__ = sys.modules[__name__]
+
+__original_module__ = sys.modules[__name__]
 __substitute_module__ = _CurrentModule(__name__)
 
 
-for routine in __all__:
-    setattr(__substitute_module__, routine, getattr(__origin_module__, routine))
+for a in ['__spec__', '__version__', '__all__', '__original_module__'] + __all__:
+    setattr(__substitute_module__, a, getattr(__original_module__, a))
 
 
-warnings.simplefilter('once', category=DeprecationWarning) # by default DeprecationWarning is ignored
+_init_module_attrs(__substitute_module__.__spec__, __substitute_module__, override=True)
 sys.modules[__name__] = __substitute_module__
