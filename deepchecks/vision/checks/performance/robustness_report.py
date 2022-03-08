@@ -125,7 +125,7 @@ class RobustnessReport(SingleDatasetCheck):
         aug_names = ', '.join([augmentation_name(aug) for aug in augmentations])
         info_message = 'Percentage shown are difference between the metric before augmentation and after.<br>' \
                        f'Augmentations used (separately): {aug_names}'
-        figures = self._create_augmentation_figure(dataset, base_mean_results, aug_all_data)
+        figures = self._create_augmentation_figures(dataset, base_mean_results, aug_all_data)
 
         # Save as result only the metrics diff per augmentation
         result = {aug: data['metrics_diff'] for aug, data in aug_all_data.items()}
@@ -236,10 +236,16 @@ class RobustnessReport(SingleDatasetCheck):
         metrics_df = metrics_df[['Metric', 'Value']].groupby(['Metric']).median()
         return metrics_df.to_dict()['Value']
 
-    def _create_augmentation_figure(self, dataset, base_mean_results, aug_all_data):
+    def _create_augmentation_figures(self, dataset, base_mean_results, aug_all_data):
         figures = []
-        # Iterate augmentation names
-        for index, (augmentation, curr_data) in enumerate(aug_all_data.items()):
+
+        def sort_by_worst_func(aug_data):
+            return sum([m['score'] for m in aug_data[1]['metrics_diff'].values()])
+
+        sorted_by_worst = {k: v for k, v in sorted(aug_all_data.items(), key=sort_by_worst_func)}
+
+        # Iterate augmentations
+        for index, (augmentation, curr_data) in enumerate(sorted_by_worst.items()):
             # Create example figures, return first n_pictures_to_show from original and then n_pictures_to_show from
             # augmented dataset
             figures.append(self._create_example_figure(dataset, curr_data['images'], augmentation))
@@ -427,13 +433,13 @@ HTML_TEMPLATE = """
       text-align: center;
     }}
 
-    h3,h4 {{
+    h4 {{
         font-family: "Open Sans", verdana, arial, sans-serif;
         color: #2a3f5f
     }}
 
 </style>
-<h3>Augmentation "{aug_name}"</h3>
+<h4><b>Augmentation "{aug_name}"</b></h4>
 <div class="container">
     <div class="row">
         <h4 class="item">Class</h4>
