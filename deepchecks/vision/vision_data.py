@@ -20,7 +20,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from deepchecks.core.errors import DeepchecksValueError, ValidationError
+from deepchecks.core.errors import DeepchecksNotImplementedError, DeepchecksValueError, ValidationError
 from deepchecks.vision.utils.image_functions import ImageInfo
 from deepchecks.vision.utils.transformations import add_augmentation_in_start, get_transforms_handler
 
@@ -71,11 +71,11 @@ class VisionData:
         try:
             self.validate_image_data(next(iter(self._data_loader)))
             self._has_images = True
-        except DeepchecksValueError:
+        except DeepchecksNotImplementedError:
             logger.warning('batch_to_images() was not implemented, some checks will not run')
-        except ValidationError:
+        except ValidationError as ex:
             logger.warning('batch_to_images() was not implemented correctly, '
-                           'the validiation has failed, some checks will not run')
+                           f'the validiation has failed with the error: {str(ex)}')
 
         self._n_of_samples_per_class = None
         self._task_type = None
@@ -90,23 +90,17 @@ class VisionData:
     @abstractmethod
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
         """Transform a batch of data to labels."""
-        raise DeepchecksValueError(
-            'batch_to_labels() must be implemented in a subclass'
-        )
+        raise DeepchecksNotImplementedError('batch_to_labels() must be implemented in a subclass')
 
     @abstractmethod
     def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
         """Infer on a batch of data."""
-        raise DeepchecksValueError(
-            'infer_on_batch() must be implemented in a subclass'
-        )
+        raise DeepchecksNotImplementedError('infer_on_batch() must be implemented in a subclass')
 
     @abstractmethod
     def validate_label(self, batch):
         """Validate a batch of labels."""
-        raise DeepchecksValueError(
-            'validate_label() must be implemented in a subclass'
-        )
+        raise NotImplementedError('validate_label() must be implemented in a subclass')
 
     @abstractmethod
     def validate_prediction(self, batch, model, device):
@@ -143,9 +137,7 @@ class VisionData:
         the array should be in the range [0, 255]. Color images should be in RGB format and have 3 channels, while
         grayscale images should have 1 channel.
         """
-        raise DeepchecksValueError(
-            'batch_to_images() must be implemented in a subclass'
-        )
+        raise DeepchecksNotImplementedError('batch_to_images() must be implemented in a subclass')
 
     @property
     def n_of_samples_per_class(self) -> Dict[Any, int]:

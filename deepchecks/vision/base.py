@@ -28,7 +28,7 @@ from deepchecks.core.check import (
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
 from deepchecks.core.errors import (
-    DatasetValidationError, ModelValidationError,
+    DatasetValidationError, DeepchecksNotImplementedError, ModelValidationError,
     DeepchecksNotSupportedError, DeepchecksValueError
 )
 from deepchecks.vision.vision_data import VisionData, TaskType
@@ -97,8 +97,7 @@ class Context:
                 if dataset is not None:
                     try:
                         dataset.validate_prediction(next(iter(dataset.data_loader)), model, self._device)
-                        print('ahh')
-                    except DeepchecksValueError:
+                    except DeepchecksNotImplementedError:
                         logger.warning('validate_prediction() was not implemented in %s dataset, '
                                        'some checks will not run', dataset_type)
 

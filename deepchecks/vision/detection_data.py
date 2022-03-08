@@ -18,7 +18,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from deepchecks.core.errors import DeepchecksValueError, ValidationError
+from deepchecks.core.errors import DeepchecksNotImplementedError, DeepchecksValueError, ValidationError
 from deepchecks.vision.vision_data import VisionData, TaskType
 
 logger = logging.getLogger('deepchecks')
@@ -56,12 +56,11 @@ class DetectionData(VisionData):
         try:
             self.validate_label(next(iter(self._data_loader)))
             self._has_label = True
-        except DeepchecksValueError:
+        except DeepchecksNotImplementedError:
             logger.warning('batch_to_labels() was not implemented, some checks will not run')
-
-        except ValidationError:
+        except ValidationError as ex:
             logger.warning('batch_to_labels() was not implemented correctly, '
-                           'the validiation has failed, some checks will not run')
+                            f'the validiation has failed with the error: {str(ex)}')
 
     @abstractmethod
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
@@ -98,9 +97,7 @@ class DetectionData(VisionData):
         (class_id, x, y, w, h). x and y are the coordinates (in pixels) of the upper left corner of the bounding box, w
          and h are the width and height of the bounding box (in pixels) and class_id is the class id of the prediction.
         """
-        raise DeepchecksValueError(
-            'batch_to_labels() must be implemented in a subclass'
-        )
+        raise DeepchecksNotImplementedError('batch_to_labels() must be implemented in a subclass')
 
     @abstractmethod
     def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
@@ -149,9 +146,7 @@ class DetectionData(VisionData):
         of the bounding box, w and h are the width and height of the bounding box (in pixels), confidence is the
         confidence of the model and class_id is the class id.
         """
-        raise DeepchecksValueError(
-            'infer_on_batch() must be implemented in a subclass'
-        )
+        raise DeepchecksNotImplementedError('infer_on_batch() must be implemented in a subclass')
 
     def get_classes(self, batch_labels: List[torch.Tensor]):
         """Get a labels batch and return classes inside it."""
