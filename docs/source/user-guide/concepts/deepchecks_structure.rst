@@ -26,8 +26,8 @@ Each check can have two types of results:
 See Also
 ---------
 
-- :ref:`Check Demonstrations` - example notebooks demonstrating all of the checks implemented in the package.
-- :doc:`Checks API Reference </api/generated/deepchecks.tabular.checks>` - where all the check parameters and implemented conditions can be found.
+- :ref:`Checks Demonstrations` - example notebooks demonstrating all of the checks implemented in the package.
+- :doc:`Checks API Reference </api/deepchecks.tabular.checks>` - where all the check parameters and implemented conditions can be found.
 - :doc:`/examples/tabular/guides/add_a_custom_check` - for a tutorial of how to implement your own check
 
 
@@ -52,7 +52,7 @@ See Also
 ---------
 
 - :doc:`/examples/general/configure_check_conditions` - for a tutorial demonstrating how to modify a checks' conditions
-- :doc:`Check Base Classes API Reference </api/core>` - where all of the check and condition related base objects can be found.
+- :doc:`Check Base Classes API Reference </api/deepchecks.core>` - where all of the check and condition related base objects can be found.
 
 
 Suite
