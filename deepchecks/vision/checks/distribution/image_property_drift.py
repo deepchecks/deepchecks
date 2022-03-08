@@ -42,8 +42,8 @@ class ImagePropertyDrift(TrainTestCheck):
 
     See https://en.wikipedia.org/wiki/Wasserstein_metric
 
-    Pramaters
-    ---------
+    Paramaters
+    ----------
     image_properties : Optional[List[Union[str, Callable[..., Number]]]]
     max_num_categories: int, default: 10
     """

@@ -45,6 +45,7 @@ class SimpleModelComparison(TrainTestCheck):
     ----------
     strategy : str, default='prior'
         Strategy to use to generate the predictions of the simple model.
+
         * 'most_frequent' : The most frequent label in the training set is predicted.
           The probability vector is 1 for the most frequent label and 0 for the other predictions.
         * 'prior' : The probability vector always contains the empirical class prior distribution (i.e. the class
