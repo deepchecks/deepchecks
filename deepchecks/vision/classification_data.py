@@ -63,12 +63,28 @@ class ClassificationData(VisionData):
 
     @abstractmethod
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
-        """Infer on batch.
+        """Extract the labels from a batch of data.
+
+        Parameters
+        ----------
+        batch : torch.Tensor
+            The batch of data.
+
+        Returns
+        -------
+        Union[List[torch.Tensor], torch.Tensor]
+            The labels extracted from the batch. The labels should be in a tensor format of shape (N,), where N is the
+            number of samples in the batch. See the notes for more info.
 
         Examples
         --------
         >>> def batch_to_labels(self, batch):
         ...     return batch[1]
+
+        Notes
+        -----
+        The accepted label format for classification is a tensor of shape (N,), when N is the number of samples.
+        Each element is an integer representing the class index.
         """
         raise DeepchecksValueError(
             'batch_to_labels() must be implemented in a subclass'
@@ -76,12 +92,36 @@ class ClassificationData(VisionData):
 
     @abstractmethod
     def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
-        """Infer on batch.
+        """Return the predictions of the model on a batch of data.
+
+        Parameters
+        ----------
+        batch : torch.Tensor
+            The batch of data.
+        model : torch.nn.Module
+            The model to use for inference.
+        device : torch.device
+            The device to use for inference.
+
+        Returns
+        -------
+        Union[List[torch.Tensor], torch.Tensor]
+            The predictions of the model on the batch. The predictions should be in a OHE tensor format of shape
+            (N, n_classes), where N is the number of samples in the batch.
 
         Examples
         --------
-        >>> def infer_on_batch(self, batch, model, device):
-        >>>     return model.to(device)(batch[0].to(device))
+        >>> import torch.nn.functional as F
+        ...
+        ...
+        ... def infer_on_batch(self, batch, model, device):
+        ...     logits = model.to(device)(batch[0].to(device))
+        ...     return F.softmax(logits, dim=1)
+
+        Notes
+        -----
+        The accepted prediction format for classification is a tensor of shape (N, n_classes), where N is the number of
+        samples. Each element is an array of length n_classes that represent the probability of each class.
         """
         raise DeepchecksValueError(
             'infer_on_batch() must be implemented in a subclass'

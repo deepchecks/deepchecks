@@ -43,19 +43,6 @@ class VisionData:
         A dictionary mapping class ids to their names.
     transform_field : str, default: 'transforms'
         Name of transforms field in the dataset which holds transformations of both data and label.
-
-    Notes
-    -----
-    Accepted label formats are:
-        * Classification: tensor of shape (N,), When N is the number of samples. Each element is an integer
-          representing the class index.
-        * Object Detection: List of length N containing tensors of shape (B, 5), where N is the number of samples,
-          B is the number of bounding boxes in the sample and each bounding box is represented by 5 values: (class_id,
-          x, y, w, h). x and y are the coordinates (in pixels) of the upper left corner of the bounding box, w and h are
-          the width and height of the bounding box (in pixels) and class_id is the class id of the prediction.
-
-    The labels returned by the data loader (e.g. by using next(iter(data_loader))[1]) should be in the specified format,
-    or else the callable label_formatter should be able to transform the labels to the desired format.
     """
 
     def __init__(self,
@@ -121,12 +108,31 @@ class VisionData:
 
     @abstractmethod
     def batch_to_images(self, batch) -> List[np.ndarray]:
-        """Infer on batch.
+        """
+        Transform a batch of data to images in the accpeted format.
+
+        Parameters
+        ----------
+        batch : torch.Tensor
+            Batch of data to transform to images.
+
+        Returns
+        -------
+        List[np.ndarray]
+            List of images in the accepted format. Each image in the iterable must be a [H, W, C] 3D numpy array.
+            See notes for more details.
 
         Examples
         --------
         >>> def batch_to_images(self, batch):
         ...     return batch[0]
+
+        Notes
+        -----
+        Each image in the iterable must be a [H, W, C] 3D numpy array. The first dimension must be the image height
+        (y axis), the second being the image width (x axis), and the third being the number of channels. The numbers in
+        the array should be in the range [0, 255]. Color images should be in RGB format and have 3 channels, while
+        grayscale images should have 1 channel.
         """
         raise DeepchecksValueError(
             'batch_to_images() must be implemented in a subclass'

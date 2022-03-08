@@ -26,7 +26,22 @@ logger = logging.getLogger('deepchecks')
 
 
 class DetectionData(VisionData):
-    """DetectionData is an abstract class that defines the interface for object detection tasks."""
+    """The ClassificationData class is used to load and preprocess data for a object detection task.
+
+    It is a subclass of the VisionData class. The DetectionData class is containing additional data and general
+    methods intended for easily accessing metadata relevant for validating a computer vision object detection ML models.
+
+    Parameters
+    ----------
+    data_loader : DataLoader
+        PyTorch DataLoader object. This is the data loader object that will be used to load the data.
+    num_classes : int, optional
+        Number of classes in the dataset. If not provided, will be inferred from the dataset.
+    label_map : Dict[int, str], optional
+        A dictionary mapping class ids to their names.
+    transform_field : str, default: 'transforms'
+        Name of transforms field in the dataset which holds transformations of both data and label.
+    """
 
     def __init__(self,
                  data_loader: DataLoader,
@@ -51,12 +66,35 @@ class DetectionData(VisionData):
 
     @abstractmethod
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
-        """Infer on batch.
+        """Extract the labels from a batch of data.
+
+        Parameters
+        ----------
+        batch : torch.Tensor
+            The batch of data.
+
+        Returns
+        -------
+        Union[List[torch.Tensor], torch.Tensor]
+            The labels extracted from the batch. The labels should be a list of length N containing tensor of shape
+            (B, 5) where N is the number of samples, B is the number of bounding boxes in the sample and each bounding
+            box is represented by 5 values. See the notes for more info.
 
         Examples
         --------
         >>> def batch_to_labels(self, batch):
-        ...     return batch[1]
+        ... # each bbox in the labels is (class_id, x, y, x, y). convert to (class_id, x, y, w, h)
+        ...    return [torch.stack(
+        ...            [torch.cat((bbox[0], bbox[1:3], bbox[4:] - bbox[1:3]), dim=0)
+        ...                 for bbox in image])
+        ...            for image in batch[1]]
+
+        Notes
+        -----
+        The accepted label format for is a a list of length N containing tensors of shape (B, 5), where N is the number
+        of samples, B is the number of bounding boxes in the sample and each bounding box is represented by 5 values:
+        (class_id, x, y, w, h). x and y are the coordinates (in pixels) of the upper left corner of the bounding box, w
+         and h are the width and height of the bounding box (in pixels) and class_id is the class id of the prediction.
         """
         raise DeepchecksValueError(
             'batch_to_labels() must be implemented in a subclass'
@@ -64,12 +102,47 @@ class DetectionData(VisionData):
 
     @abstractmethod
     def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
-        """Infer on batch.
+        """Return the predictions of the model on a batch of data.
+
+        Parameters
+        ----------
+        batch : torch.Tensor
+            The batch of data.
+        model : torch.nn.Module
+            The model to use for inference.
+        device : torch.device
+            The device to use for inference.
+
+        Returns
+        -------
+        Union[List[torch.Tensor], torch.Tensor]
+            The predictions of the model on the batch. The predictions should be in a List of length N containing
+            tensors of shape (B, 6), where N is the number of images, B is the number of bounding boxes detected in the
+            sample and each bounding box is represented by 6 values. See the notes for more info.
 
         Examples
         --------
         >>> def infer_on_batch(self, batch, model, device):
-        ...     return model.to(device)(batch[0].to(device))
+        ...     # Converts a yolo prediction batch to the accepted xywh format
+        ...     return_list = []
+        ...
+        ...     predictions = model(batch[0])
+        ...     # yolo Detections objects have List[torch.Tensor] xyxy output in .pred
+        ...     for single_image_tensor in predictions.pred:
+        ...         pred_modified = torch.clone(single_image_tensor)
+        ...         pred_modified[:, 2] = pred_modified[:, 2] - pred_modified[:, 0]
+        ...         pred_modified[:, 3] = pred_modified[:, 3] - pred_modified[:, 1]
+        ...         return_list.append(pred_modified)
+        ...
+        ...     return return_list
+
+        Notes
+        -----
+        The accepted prediction format is a list of length N containing tensors of shape (B, 6), where N is the number
+        of images, B is the number of bounding boxes detected in the sample and each bounding box is represented by 6
+        values: [x, y, w, h, confidence, class_id]. x and y are the coordinates (in pixels) of the upper left corner
+        of the bounding box, w and h are the width and height of the bounding box (in pixels), confidence is the
+        confidence of the model and class_id is the class id.
         """
         raise DeepchecksValueError(
             'infer_on_batch() must be implemented in a subclass'
