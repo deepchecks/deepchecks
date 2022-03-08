@@ -18,12 +18,13 @@ import torch
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.performance.error_model import error_model_display_dataframe, model_error_contribution
-from deepchecks.utils.single_sample_metrics import per_sample_binary_cross_entropy, per_sample_mean_iou
+from deepchecks.utils.single_sample_metrics import per_sample_binary_cross_entropy
 
 from deepchecks.vision import TrainTestCheck, Context
 from deepchecks.vision.checks.distribution.image_property_drift import ImageProperty
 from deepchecks.vision.dataset import TaskType
 from deepchecks.vision.utils import ImageFormatter
+from deepchecks.vision.metrics_utils.iou_utils import per_sample_mean_iou
 
 __all__ = ['ModelErrorAnalysis']
 
@@ -90,21 +91,21 @@ class ModelErrorAnalysis(TrainTestCheck):
 
     def initialize_run(self, context: Context):
         """Initialize property and score lists."""
-        self.train_properties = defaultdict(list)
-        self.test_properties = defaultdict(list)
-        self.train_scores = []
-        self.test_scores = []
+        self._train_properties = defaultdict(list)
+        self._test_properties = defaultdict(list)
+        self._train_scores = []
+        self._test_scores = []
 
     def update(self, context: Context, batch: t.Any, dataset_kind):
         """Accumulate property data of images and scores."""
         if dataset_kind == DatasetKind.TRAIN:
             dataset = context.train
-            properties = self.train_properties
-            scores = self.train_scores
+            properties = self._train_properties
+            scores = self._train_scores
         elif dataset_kind == DatasetKind.TEST:
             dataset = context.test
-            properties = self.test_properties
-            scores = self.test_scores
+            properties = self._test_properties
+            scores = self._test_scores
         else:
             raise RuntimeError(
                 'Internal Error! Part of code that must '
@@ -121,7 +122,7 @@ class ModelErrorAnalysis(TrainTestCheck):
                     getattr(dataset.image_formatter, image_property)(images)
                 )
             elif callable(image_property):
-                properties[image_property.__name__].extend(image_property(images))
+                properties[image_property.__name__].extend(image_property(images))  # pylint: disable=not-callable
             else:
                 raise DeepchecksValueError(
                     'Do not know how to work with image'
@@ -154,14 +155,14 @@ class ModelErrorAnalysis(TrainTestCheck):
             display: plots of results
         """
         # build dataframe of properties and scores
-        train_property_df = pd.DataFrame(self.train_properties).dropna(axis=1, how='all')
-        test_property_df = pd.DataFrame(self.test_properties)[train_property_df.columns]
+        train_property_df = pd.DataFrame(self._train_properties).dropna(axis=1, how='all')
+        test_property_df = pd.DataFrame(self._test_properties)[train_property_df.columns]
 
         error_fi, error_model_predicted = \
             model_error_contribution(train_property_df,
-                                     self.train_scores,
+                                     self._train_scores,
                                      test_property_df,
-                                     self.test_scores,
+                                     self._test_scores,
                                      train_property_df.columns.to_list(),
                                      [],
                                      min_error_model_score=self.min_error_model_score,

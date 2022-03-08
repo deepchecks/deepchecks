@@ -91,7 +91,7 @@ def error_model_display_dataframe(error_fi: pd.Series,
                                   n_display_samples: int,
                                   min_segment_size: int,
                                   random_state: int):
-    """Run error_model_display function for Dataframe."""
+    """Wrap dataframe with tabular.Dataset for error_model_display with no scorer."""
     return error_model_display(error_fi,
                                error_model_predicted,
                                tabular.Dataset(dataset, cat_features=cat_features),

@@ -103,7 +103,7 @@ class ImagePropertyDrift(TrainTestCheck):
                 )
             elif callable(image_property):
                 # TODO: if it is a lambda it will have a name - <lambda>, that is a problem/
-                properties[image_property.__name__].extend(image_property(images))
+                properties[image_property.__name__].extend(image_property(images))  # pylint: disable=not-callable
             else:
                 raise DeepchecksValueError(
                     'Do not know how to work with image'

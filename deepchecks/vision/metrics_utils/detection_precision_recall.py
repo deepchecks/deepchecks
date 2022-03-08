@@ -16,7 +16,7 @@ from ignite.metrics import Metric
 from ignite.metrics.metric import sync_all_reduce, reinit__is_reduced
 import torch
 import numpy as np
-from .iou_utils import compute_pairwise_ious
+from .iou_utils import compute_pairwise_ious, build_class_bounding_box
 
 
 def _dict_conc(test_list):
@@ -134,22 +134,8 @@ class AveragePrecision(Metric):
 
     def _group_detections(self, detected, ground_truth):
         """Group gts and dts on a imageXclass basis."""
-        bb_info = defaultdict(lambda: {"detected": [], "ground_truth": []})
-
-        for d in detected:
-            if isinstance(d[5], torch.Tensor):
-                c_id = d[5].item()
-            else:
-                c_id = d[5]
-            bb_info[c_id]["detected"].append(d)
-        for g in ground_truth:
-            if isinstance(g[0], torch.Tensor):
-                c_id = g[0].item()
-            else:
-                c_id = g[0]
-            bb_info[c_id]["ground_truth"].append(g)
-
-        # Calculating pairwise IoUs
+        # Calculating pairwise IoUs on classes
+        bb_info = build_class_bounding_box(detected, ground_truth)
         ious = {k: compute_pairwise_ious(**v) for k, v in bb_info.items()}
 
         for class_id in ious.keys():
