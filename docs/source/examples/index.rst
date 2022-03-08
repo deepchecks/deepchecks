@@ -9,11 +9,7 @@ General Guides
     :titlesonly:
     :caption: General Guides
 
-    general/create_a_custom_suite
-    general/configure_check_conditions
-    general/save_suite_result_as_html
-    general/export_outputs_to_json
-
+    general/index
 
 Tabular Examples
 -----------------
@@ -37,13 +33,3 @@ Computer Vision Examples
 
     vision/guides/index
     vision/checks/index
-
-General Examples
-----------------
-
-.. toctree::
-    :maxdepth: 2
-    :caption: General
-    :titlesonly:
-
-    general/index
