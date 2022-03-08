@@ -33,7 +33,8 @@ TDataset = t.TypeVar('TDataset', bound='Dataset')
 
 
 class Dataset:
-    """Dataset wraps pandas DataFrame together with ML related metadata.
+    """
+    Dataset wraps pandas DataFrame together with ML related metadata.
 
     The Dataset class is containing additional data and methods intended for easily accessing
     metadata relevant for the training or validating of an ML models.
