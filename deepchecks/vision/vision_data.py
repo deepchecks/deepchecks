@@ -227,8 +227,8 @@ class VisionData:
                                          num_classes=self.num_classes,
                                          label_map=self._label_map,
                                          transform_field=self._transform_field)
-        # if self._current_seed is not None:
-        #     new_vision_data.set_seed(self._current_seed)
+        if self._current_seed is not None:
+            new_vision_data.set_seed(self._current_seed)
         return new_vision_data
 
     def to_batch(self, *samples):
