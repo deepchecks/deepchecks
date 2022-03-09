@@ -12,7 +12,7 @@
 from typing import Tuple, List
 import numpy as np
 
-__all__ = ['IMAGE_PROPERTIES',
+__all__ = ['image_properties',
            'aspect_ratio',
            'area',
            'brightness',
@@ -24,7 +24,7 @@ __all__ = ['IMAGE_PROPERTIES',
            'get_dimension']
 
 
-IMAGE_PROPERTIES = frozenset((
+image_properties = frozenset((
     'aspect_ratio',
     'area',
     'brightness',

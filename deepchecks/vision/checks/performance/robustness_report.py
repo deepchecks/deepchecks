@@ -105,7 +105,8 @@ class RobustnessReport(SingleDatasetCheck):
             aug_dataset = dataset.get_augmented_dataset(augmentation_func)
             # The metrics have saved state, but they are reset inside `calculate_metrics`
             metrics = self._state['metrics']
-            # we set the seed just before the metric to keep seed state
+            # The augmentations are pseudo-random and affected by the seeds.
+            # Setting it here to have fixed state just before the augmentations are run
             set_seeds(context.random_state)
             # Return dataframe of (Class, Metric, Value)
             aug_results = metric_results_to_df(

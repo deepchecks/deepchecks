@@ -37,7 +37,6 @@ def test_mnist(mnist_dataset_train, trained_mnist, device):
     # Act
     result = check.run(mnist_dataset_train, trained_mnist, device=device)
     # Assert
-    print(result.value)
     assert_that(result.value, has_entries({
         'RandomBrightnessContrast': has_entries({
             'Precision': has_entries(score=close_to(0.984, 0.001), diff=close_to(-0.001, 0.001)),
@@ -66,7 +65,6 @@ def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detecti
     # Act
     result = check.run(coco_train_visiondata, trained_yolov5_object_detection, device=device)
     # Assert
-    print(result.value)
     assert_that(result.value, has_entries({
         'HueSaturationValue': has_entries({
             'AP': has_entries(score=close_to(0.304, 0.001), diff=close_to(-0.060, 0.001)),
