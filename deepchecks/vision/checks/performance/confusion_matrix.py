@@ -172,7 +172,8 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             return self.unseen_class_idx
 
     def matrix_id_to_class_name(self, matrix_id, dataset):
-        return dataset.label_id_to_name(self.classes_list[matrix_id])
+        class_id = self.classes_list[matrix_id] if self.classes_list else matrix_id
+        return dataset.label_id_to_name(class_id)
 
     def update_object_detection(self, predictions, labels):
         """Update the confusion matrix by batch for object detection task."""
