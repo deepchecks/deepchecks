@@ -10,6 +10,7 @@
 #
 """Module for base vision abstractions."""
 # pylint: disable=broad-except,not-callable
+import logging
 from typing import Tuple, Mapping, Optional, Any, Union, Dict
 from collections import OrderedDict
 
@@ -18,7 +19,6 @@ from torch import nn
 from torch.utils.data import DataLoader
 from ignite.metrics import Metric
 
-from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 from deepchecks.core.check import (
     CheckFailure,
     SingleDatasetBaseCheck,
@@ -28,13 +28,13 @@ from deepchecks.core.check import (
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
 from deepchecks.core.errors import (
-    DatasetValidationError, ModelValidationError,
+    DatasetValidationError, DeepchecksNotImplementedError, ModelValidationError,
     DeepchecksNotSupportedError, DeepchecksValueError
 )
-from deepchecks.vision.dataset import VisionData, TaskType
+from deepchecks.vision.vision_data import VisionData, TaskType
 from deepchecks.vision.utils.validation import apply_to_tensor
-from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
+logger = logging.getLogger('deepchecks')
 
 __all__ = [
     'Context',
@@ -58,8 +58,6 @@ class Context:
         A scikit-learn-compatible fitted estimator instance
     model_name: str , default: ''
         The name of the model
-    prediction_formatter : BasePredictionFormatter, default: None
-        An encoder to convert predictions to a format that can be used by the metrics.
     scorers : Mapping[str, Metric] , default: None
         dict of scorers names to a Metric
     scorers_per_class : Mapping[str, Metric] , default: None
@@ -78,7 +76,6 @@ class Context:
                  test: VisionData = None,
                  model: nn.Module = None,
                  model_name: str = '',
-                 prediction_formatter: BasePredictionFormatter = None,
                  scorers: Mapping[str, Metric] = None,
                  scorers_per_class: Mapping[str, Metric] = None,
                  device: Union[str, torch.device, None] = 'cpu',
@@ -93,38 +90,30 @@ class Context:
         if train and test:
             train.validate_shared_label(test)
 
-        # Set seeds to if possible
+        self._device = torch.device(device) if isinstance(device, str) else (device if device else torch.device('cpu'))
+
+        if model is not None:
+            for dataset, dataset_type in zip([train, test], ['train', 'test']):
+                if dataset is not None:
+                    try:
+                        dataset.validate_prediction(next(iter(dataset.data_loader)), model, self._device)
+                    except DeepchecksNotImplementedError:
+                        logger.warning('validate_prediction() was not implemented in %s dataset, '
+                                       'some checks will not run', dataset_type)
+
+        # Set seeds to if possible (we set it after the validation to keep the seed state)
         if train and random_state:
             train.set_seed(random_state)
         if test and random_state:
             test.set_seed(random_state)
 
-        task_type = train.task_type if train else None
-        self._device = torch.device(device) if isinstance(device, str) else (device if device else torch.device('cpu'))
-
-        # If no prediction_formatter is passed and model and train are defined, we will use the default one according
-        # to the dataset task type
-        if model is not None and train is not None and prediction_formatter is None:
-            if task_type == TaskType.CLASSIFICATION:
-                prediction_formatter = ClassificationPredictionFormatter()
-            elif task_type == TaskType.OBJECT_DETECTION:
-                prediction_formatter = DetectionPredictionFormatter()
-            else:
-                raise DeepchecksValueError(f'Must pass prediction formatter for task_type {task_type}')
-
-        if prediction_formatter is not None:
-            if train is None or model is None:
-                raise DeepchecksValueError('Can\'t pass prediction formatter without model and train data')
-            prediction_formatter.validate_prediction(next(iter(train)), model, self._device)
-
         self._train = train
         self._test = test
         self._model = model
-        self._batch_prediction_cache = None
+        self._batch_prediction_cache = {}
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
-        self._prediction_formatter = prediction_formatter
         self.random_state = random_state
 
     # Properties
@@ -157,11 +146,6 @@ class Context:
         return self._model_name
 
     @property
-    def prediction_formatter(self):
-        """Return prediction formatter."""
-        return self._prediction_formatter
-
-    @property
     def device(self) -> torch.device:
         """Return device specified by the user."""
         return self._device
@@ -177,15 +161,16 @@ class Context:
                 f'Check is irrelevant for task of type {self.train.task_type}')
         return True
 
-    def infer(self, batch: Any) -> Any:
+    def infer(self, batch: Any, dataset_kind: DatasetKind) -> Any:
         """Return the predictions on the given batch, and cache them for later."""
-        if self._batch_prediction_cache is None:
-            self._batch_prediction_cache = self.prediction_formatter(batch, self.model, self.device)
-        return self._batch_prediction_cache
+        if self._batch_prediction_cache.get(dataset_kind) is None:
+            dataset = self.get_data_by_kind(dataset_kind)
+            self._batch_prediction_cache[dataset_kind] = dataset.infer_on_batch(batch, self.model, self.device)
+        return self._batch_prediction_cache[dataset_kind]
 
-    def flush_cached_inference(self):
+    def flush_cached_inference(self, dataset_kind: DatasetKind):
         """Flush the cached inference."""
-        self._batch_prediction_cache = None
+        self._batch_prediction_cache[dataset_kind] = None
 
     def get_data_by_kind(self, kind: DatasetKind):
         """Return the relevant VisionData by given kind."""
@@ -216,24 +201,22 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         self,
         dataset: VisionData,
         model: Optional[nn.Module] = None,
-        prediction_formatter: BasePredictionFormatter = None,
         device: Union[str, torch.device, None] = 'cpu',
         random_state: int = 42
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        context = self.context_type(dataset,
-                                    model=model,
-                                    prediction_formatter=prediction_formatter,
-                                    device=device,
-                                    random_state=random_state)
+        context: Context = self.context_type(dataset,
+                                             model=model,
+                                             device=device,
+                                             random_state=random_state)
 
         self.initialize_run(context, DatasetKind.TRAIN)
 
-        for batch in dataset.get_data_loader():
+        for batch in dataset:
             batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch, DatasetKind.TRAIN)
-            context.flush_cached_inference()
+            context.flush_cached_inference(DatasetKind.TRAIN)
 
         return finalize_check_result(self.compute(context, DatasetKind.TRAIN), self)
 
@@ -263,30 +246,28 @@ class TrainTestCheck(TrainTestBaseCheck):
         train_dataset: VisionData,
         test_dataset: VisionData,
         model: Optional[nn.Module] = None,
-        prediction_formatter: BasePredictionFormatter = None,
         device: Union[str, torch.device, None] = 'cpu',
         random_state: int = 42
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        context = self.context_type(train_dataset,
-                                    test_dataset,
-                                    model=model,
-                                    prediction_formatter=prediction_formatter,
-                                    device=device,
-                                    random_state=random_state)
+        context: Context = self.context_type(train_dataset,
+                                             test_dataset,
+                                             model=model,
+                                             device=device,
+                                             random_state=random_state)
 
         self.initialize_run(context)
 
-        for batch in context.train.get_data_loader():
+        for batch in context.train:
             batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch, DatasetKind.TRAIN)
-            context.flush_cached_inference()
+            context.flush_cached_inference(DatasetKind.TRAIN)
 
-        for batch in context.test.get_data_loader():
+        for batch in context.test:
             batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch, DatasetKind.TEST)
-            context.flush_cached_inference()
+            context.flush_cached_inference(DatasetKind.TEST)
 
         return finalize_check_result(self.compute(context), self)
 
@@ -316,7 +297,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        context = self.context_type(model=model, device=device, random_state=random_state)
+        context: Context = self.context_type(model=model, device=device, random_state=random_state)
 
         self.initialize_run(context)
         return finalize_check_result(self.compute(context), self)
@@ -343,7 +324,6 @@ class Suite(BaseSuite):
             train_dataset: Optional[VisionData] = None,
             test_dataset: Optional[VisionData] = None,
             model: nn.Module = None,
-            prediction_formatter: BasePredictionFormatter = None,
             scorers: Mapping[str, Metric] = None,
             scorers_per_class: Mapping[str, Metric] = None,
             device: Union[str, torch.device, None] = 'cpu',
@@ -359,8 +339,6 @@ class Suite(BaseSuite):
             object, representing data an estimator predicts on
         model : nn.Module , default None
             A scikit-learn-compatible fitted estimator instance
-        prediction_formatter : BasePredictionFormatter, default: None
-            An encoder to convert predictions to a format that can be used by the metrics.
         scorers : Mapping[str, Metric] , default None
             dict of scorers names to scorer sklearn_name/function
         scorers_per_class : Mapping[str, Metric], default None
@@ -382,7 +360,6 @@ class Suite(BaseSuite):
             train_dataset,
             test_dataset,
             model,
-            prediction_formatter=prediction_formatter,
             scorers=scorers,
             scorers_per_class=scorers_per_class,
             device=device,
@@ -422,7 +399,7 @@ class Suite(BaseSuite):
         if train_dataset is not None:
             self._update_loop(
                 checks=checks,
-                data_loader=train_dataset.get_data_loader(),
+                data_loader=train_dataset.data_loader,
                 context=context,
                 run_train_test_checks=run_train_test_checks,
                 results=results,
@@ -439,7 +416,7 @@ class Suite(BaseSuite):
         if test_dataset is not None:
             self._update_loop(
                 checks=checks,
-                data_loader=test_dataset.get_data_loader(),
+                data_loader=test_dataset.data_loader,
                 context=context,
                 run_train_test_checks=run_train_test_checks,
                 results=results,
@@ -525,7 +502,7 @@ class Suite(BaseSuite):
                 except Exception as exp:
                     results[check_idx] = CheckFailure(check, exp, type_suffix)
             progress_bar.inc_progress()
-            context.flush_cached_inference()
+            context.flush_cached_inference(dataset_kind)
 
         progress_bar.close()
 

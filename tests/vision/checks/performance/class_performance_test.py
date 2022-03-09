@@ -9,10 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 from deepchecks.vision.checks.performance.class_performance import ClassPerformance
-from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
-from deepchecks.vision.utils import DetectionPredictionFormatter
-from deepchecks.vision.utils.classification_formatters import ClassificationPredictionFormatter
-from deepchecks.vision.datasets.classification.mnist import  mnist_prediction_formatter
 
 import torch.nn as nn
 
@@ -25,7 +21,6 @@ def test_mnist_largest(mnist_dataset_train, mnist_dataset_test, trained_mnist, d
     check = ClassPerformance(n_to_show=2, show_only='largest')
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
-                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter),
                        device=device)
     first_row = result.value.sort_values(by='Number of samples', ascending=False).iloc[0]
     # Assert
@@ -41,7 +36,6 @@ def test_mnist_smallest(mnist_dataset_train, mnist_dataset_test, trained_mnist, 
     check = ClassPerformance(n_to_show=2, show_only='smallest')
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
-                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter),
                        device=device)
     first_row = result.value.sort_values(by='Number of samples', ascending=True).iloc[0]
 
@@ -58,7 +52,6 @@ def test_mnist_worst(mnist_dataset_train, mnist_dataset_test, trained_mnist, dev
     check = ClassPerformance(n_to_show=2, show_only='worst')
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
-                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter),
                        device=device)
     first_row = result.value.loc[result.value['Metric'] == 'Precision'].sort_values(by='Value', ascending=True).iloc[0]
 
@@ -73,7 +66,6 @@ def test_mnist_best(mnist_dataset_train, mnist_dataset_test, trained_mnist, devi
     check = ClassPerformance(n_to_show=2, show_only='best')
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
-                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter),
                        device=device)
     first_row = result.value.loc[result.value['Metric'] == 'Precision'].sort_values(by='Value', ascending=False).iloc[0]
 
@@ -84,11 +76,10 @@ def test_mnist_best(mnist_dataset_train, mnist_dataset_test, trained_mnist, devi
 
 def test_coco_best(coco_train_visiondata, coco_test_visiondata, trained_yolov5_object_detection, device):
     # Arrange
-    pred_formatter = DetectionPredictionFormatter(yolo_prediction_formatter)
     check = ClassPerformance(n_to_show=2, show_only='best')
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata,
-                       trained_yolov5_object_detection, prediction_formatter=pred_formatter, device=device)
+                       trained_yolov5_object_detection, device=device)
 
     # Assert
     assert_that(len(result.value), equal_to(8))
@@ -110,7 +101,6 @@ def test_class_list(mnist_dataset_train, mnist_dataset_test, trained_mnist, devi
     check = ClassPerformance(class_list_to_show=[1])
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, trained_mnist,
-                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter),
                        device=device)
 
     # Assert

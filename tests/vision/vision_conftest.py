@@ -16,16 +16,14 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.dataloader import default_collate
 
-from deepchecks.vision import VisionData
 from deepchecks.vision.datasets.detection.coco import (
     load_model as load_yolov5_model,
     load_dataset as load_coco_dataset
 )
 from deepchecks.vision.datasets.classification.mnist import (
     load_model as load_mnist_net_model,
-    load_dataset as load_mnist_dataset
+    load_dataset as load_mnist_dataset, MNISTData
 )
-from deepchecks.vision.utils import ClassificationLabelFormatter
 
 from tests.vision.utils_tests.mnist_imgaug import mnist_dataset_imgaug
 
@@ -85,8 +83,8 @@ def mnist_dataset_test():
 
 @pytest.fixture
 def mnist_drifted_datasets(mnist_dataset_train, mnist_dataset_test):  # pylint: disable=redefined-outer-name
-    full_mnist = torch.utils.data.ConcatDataset([mnist_dataset_train.get_data_loader().dataset,
-                                                 mnist_dataset_test.get_data_loader().dataset])
+    full_mnist = torch.utils.data.ConcatDataset([mnist_dataset_train.data_loader.dataset,
+                                                 mnist_dataset_test.data_loader.dataset])
     train_dataset, test_dataset = torch.utils.data.random_split(full_mnist, [60000, 10000],
                                                                 generator=torch.Generator().manual_seed(42))
 
@@ -106,8 +104,8 @@ def mnist_drifted_datasets(mnist_dataset_train, mnist_dataset_test):  # pylint: 
 
     mod_train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64)
     mod_test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, collate_fn=collate_test)
-    mod_train_ds = VisionData(mod_train_loader, label_formatter=ClassificationLabelFormatter())
-    mod_test_ds = VisionData(mod_test_loader, label_formatter=ClassificationLabelFormatter())
+    mod_train_ds = MNISTData(mod_train_loader)
+    mod_test_ds = MNISTData(mod_test_loader)
 
     return mod_train_ds, mod_test_ds
 

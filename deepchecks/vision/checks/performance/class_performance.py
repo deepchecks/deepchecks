@@ -19,7 +19,7 @@ from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.vision import TrainTestCheck, Context
-from deepchecks.vision.dataset import TaskType
+from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils.metrics import get_scorers_list, metric_results_to_df, \
     get_default_classification_scorers, get_default_object_detection_scorers, filter_classes_for_display
 
@@ -97,8 +97,8 @@ class ClassPerformance(TrainTestCheck):
     def update(self, context: Context, batch: Any, dataset_kind):
         """Update the metrics by passing the batch to ignite metric update method."""
         dataset = context.get_data_by_kind(dataset_kind)
-        label = dataset.label_formatter(batch)
-        prediction = context.infer(batch)
+        label = dataset.batch_to_labels(batch)
+        prediction = context.infer(batch, dataset_kind)
         for _, metric in self._state[dataset_kind]['scorers'].items():
             metric.update((prediction, label))
 

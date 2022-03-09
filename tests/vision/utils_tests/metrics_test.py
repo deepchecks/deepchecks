@@ -10,17 +10,14 @@
 #
 from hamcrest import has_items, assert_that, has_length, close_to
 
-from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
 from deepchecks.vision.metrics_utils.metrics import calculate_metrics
 from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
-from deepchecks.vision.utils.detection_formatters import DetectionPredictionFormatter
 from deepchecks.vision import VisionData
 
 
 def test_default_ap_ignite_complient(coco_test_visiondata: VisionData, trained_yolov5_object_detection, device):
     res = calculate_metrics({'AveragePrecision': AveragePrecision()},
                             coco_test_visiondata, trained_yolov5_object_detection,
-                            prediction_formatter=DetectionPredictionFormatter(yolo_prediction_formatter),
                             device=device)
     assert_that(res.keys(), has_length(1))
     assert_that(res['AveragePrecision'], has_length(59))
@@ -29,7 +26,6 @@ def test_default_ap_ignite_complient(coco_test_visiondata: VisionData, trained_y
 def test_ar_ignite_complient(coco_test_visiondata: VisionData, trained_yolov5_object_detection, device):
     res = calculate_metrics({'AveragePrecision': AveragePrecision(return_option=1)},
                             coco_test_visiondata, trained_yolov5_object_detection,
-                            prediction_formatter=DetectionPredictionFormatter(yolo_prediction_formatter),
                             device=device)
 
     assert_that(res.keys(), has_length(1))
@@ -38,10 +34,9 @@ def test_ar_ignite_complient(coco_test_visiondata: VisionData, trained_yolov5_ob
 
 def test_equal_pycocotools(coco_test_visiondata: VisionData, trained_yolov5_object_detection, device):
     metric = AveragePrecision(return_option=None)
-    for batch in coco_test_visiondata.get_data_loader():
-        label = coco_test_visiondata.label_formatter(batch)
-        prediction = DetectionPredictionFormatter(yolo_prediction_formatter)(batch, trained_yolov5_object_detection,
-                                                                             device)
+    for batch in coco_test_visiondata:
+        label = coco_test_visiondata.batch_to_labels(batch)
+        prediction = coco_test_visiondata.infer_on_batch(batch, trained_yolov5_object_detection, device)
         metric.update((prediction, label))
     res = metric.compute()[0]
 

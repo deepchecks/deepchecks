@@ -25,7 +25,7 @@ from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import SingleDatasetCheck, Context
-from deepchecks.vision.utils import ImageFormatter
+from deepchecks.vision.utils import image_formatters
 from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
 
 
@@ -61,13 +61,13 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         super().__init__()
 
         if image_properties is None:
-            self.image_properties = ImageFormatter.IMAGE_PROPERTIES
+            self.image_properties = image_formatters.image_properties
         else:
             if len(image_properties) == 0:
                 raise DeepchecksValueError('image_properties list cannot be empty')
 
             properties_by_name = {p for p in image_properties if isinstance(p, str)}
-            unknown_properties = properties_by_name.difference(ImageFormatter.IMAGE_PROPERTIES)
+            unknown_properties = properties_by_name.difference(image_formatters.image_properties)
 
             if len(unknown_properties) > 0:
                 raise DeepchecksValueError(
@@ -88,17 +88,16 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         # the amount we will define the bins and populate them
         self._state = {'samples_for_binning': [], 'bins': None}
         # Initialize image properties. Doing this not in the init because we use the dataset object.
-        dataset = context.get_data_by_kind(dataset_kind)
-        string_props = {p: getattr(dataset.image_formatter, p) for p in self.image_properties if isinstance(p, str)}
+        string_props = {p: getattr(image_formatters, p) for p in self.image_properties if isinstance(p, str)}
         func_props = {p.__name__: p for p in self.image_properties if callable(p)}
         self._state['properties_functions'] = {**string_props, **func_props}
 
     def update(self, context: Context, batch: t.Any, dataset_kind: DatasetKind):
         """Update the bins by the image properties."""
         dataset = context.get_data_by_kind(dataset_kind)
-        images = dataset.image_formatter(batch)
-        predictions = context.infer(batch)
-        labels = dataset.label_formatter(batch)
+        images = dataset.batch_to_images(batch)
+        predictions = context.infer(batch, dataset_kind)
+        labels = dataset.batch_to_labels(batch)
 
         samples_for_bin: t.List = self._state['samples_for_binning']
         bins = self._state['bins']
