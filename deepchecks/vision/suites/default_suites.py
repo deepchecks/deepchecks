@@ -15,7 +15,7 @@ It is possible to customize these suites by editing the checks and conditions in
 """
 from deepchecks.vision.checks import ClassPerformance, TrainTestLabelDrift, MeanAveragePrecisionReport, \
     MeanAverageRecallReport, ImagePropertyDrift, ImageDatasetDrift, SimpleModelComparison, ConfusionMatrixReport, \
-    RobustnessReport, TrainTestPredictionDrift
+    RobustnessReport, TrainTestPredictionDrift, ImageSegmentPerformance
 from deepchecks.vision import Suite
 
 
@@ -46,7 +46,8 @@ def model_evaluation() -> Suite:
         MeanAverageRecallReport(),
         SimpleModelComparison(),
         ConfusionMatrixReport(),
-        RobustnessReport().add_condition_degradation_not_greater_than()
+        RobustnessReport().add_condition_degradation_not_greater_than(),
+        ImageSegmentPerformance()
     )
 
 
