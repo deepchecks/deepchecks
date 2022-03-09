@@ -10,7 +10,9 @@
 #
 """Package for vision functionality."""
 import logging
-from .dataset import VisionData
+from .vision_data import VisionData
+from .classification_data import ClassificationData
+from .detection_data import DetectionData
 from .base import (
     Context,
     Suite,
@@ -31,6 +33,8 @@ except ImportError as error:
 
 __all__ = [
     "VisionData",
+    "ClassificationData",
+    "DetectionData",
     "Context",
     "SingleDatasetCheck",
     "TrainTestCheck",

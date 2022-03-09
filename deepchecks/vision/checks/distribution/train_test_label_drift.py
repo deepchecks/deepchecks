@@ -12,15 +12,15 @@
 from typing import Dict, List, Any
 
 import pandas as pd
+from collections import OrderedDict
 
 from deepchecks import ConditionResult
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
-
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.vision.base import Context, TrainTestCheck
-from deepchecks.vision.dataset import TaskType
-from collections import OrderedDict
+from deepchecks.vision.vision_data import TaskType
+
 
 __all__ = ['TrainTestLabelDrift']
 
@@ -83,6 +83,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         Function initializes the following private variables:
 
         Label measurements:
+
         _label_measurements: all label measurements to be calculated in run
 
         Label measurements caching:

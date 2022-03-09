@@ -35,6 +35,12 @@ class DeepchecksValueError(DeepchecksBaseError):
     pass
 
 
+class DeepchecksNotImplementedError(DeepchecksBaseError):
+    """Exception class that represent a function that was not implemnted."""
+
+    pass
+
+
 class DeepchecksNotSupportedError(DeepchecksBaseError):
     """Exception class that represents an unsupported action in Deepchecks."""
 

@@ -18,7 +18,7 @@ import pandas as pd
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import SingleDatasetCheck, Context
-from deepchecks.vision.dataset import TaskType
+from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
 
 __all__ = ['MeanAverageRecallReport']
@@ -47,8 +47,8 @@ class MeanAverageRecallReport(SingleDatasetCheck):
     def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
         """Update the metrics by passing the batch to ignite metric update method."""
         dataset = context.get_data_by_kind(dataset_kind)
-        label = dataset.label_formatter(batch)
-        prediction = context.infer(batch)
+        label = dataset.batch_to_labels(batch)
+        prediction = context.infer(batch, dataset_kind)
         self._ap_metric.update((prediction, label))
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
