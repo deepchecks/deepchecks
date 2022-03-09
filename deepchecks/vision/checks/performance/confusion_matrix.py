@@ -138,7 +138,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         if add_not_found_category:
             description += ['"No overlapping" categories are labels and prediction which did not have a matching '
                             'label/prediction. For example a predictions that did not have a sufficiently overlapping label bounding box '
-                            'IOU will be under the "No overlapping label" category']
+                            'will appear under the "No overlapping label" category']
             x += ['No overlapping prediction']
             y += ['No overlapping label']
         if add_unseen_category:
