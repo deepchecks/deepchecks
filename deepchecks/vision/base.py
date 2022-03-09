@@ -485,8 +485,6 @@ class Suite(BaseSuite):
             progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
             batch = apply_to_tensor(batch, lambda it: it.to(context.device))
             for check_idx, check in checks.items():
-                if results.get(check_idx):
-                    continue
                 try:
                     if isinstance(check, TrainTestCheck):
                         if run_train_test_checks is True:
