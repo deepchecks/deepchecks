@@ -14,17 +14,19 @@ from typing import Any, List
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.check_utils.single_feature_contribution_utils import get_single_feature_contribution
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
 import pandas as pd
 
 __all__ = ['SimpleFeatureContributionTrainTest']
 
-# TODO
 from deepchecks.vision.utils import image_formatters
+from deepchecks.vision.vision_data import TaskType
+import numpy as np
 
-pps_url = 'https://docs.deepchecks.com/en/stable/examples/tabular/' \
-          'checks/methodology/single_feature_contribution_train_test' \
+pps_url = 'https://docs.deepchecks.com/en/stable/examples/vision/' \
+          'checks/methodology/simple_feature_contribution' \
           '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
@@ -38,18 +40,31 @@ DEFAULT_IMAGE_PROPERTIES = ['aspect_ratio',
                             'normalized_blue_mean']
 
 
+def crop_img(img: np.array, x: int, y: int, w: int, h: int) -> np.array:
+    return img[y:y + h, x:x + w]
+
+
 class SimpleFeatureContributionTrainTest(TrainTestCheck):
     """
-    Return the Predictive Power Score of all features, in order to estimate each feature's ability to predict the label.
+    Return the Predictive Power Score of image properties, in order to estimate their ability to predict the label.
 
     The PPS represents the ability of a feature to single-handedly predict another feature or label.
-    In this check, we specifically use it to assess the ability of each feature to predict the label.
-    A high PPS (close to 1) can mean that this feature's success in predicting the label is actually due to data
-    leakage - meaning that the feature holds information that is based on the label to begin with.
+    In this check, we specifically use it to assess the ability to predict the label by an image property (e.g.
+    brightness, contrast etc.)
+    A high PPS (close to 1) can mean that there's a bias in the dataset, as a single property can predict the label
+    successfully, using simple classic ML algorithms - meaning that a deep learning algorithm may accidentally learn
+    these properties instead of more accurate complex abstractions.
+    For example, in a classification dataset of wolves and dogs photographs, if only wolves are photographed in the
+    snow, the brightness of the image may be used to predict the label "wolf" easily. In this case, a model might not
+    learn to discern wolf from dog by the animal's characteristics, but by using the background color.
 
-    When we compare train PPS to test PPS, A high difference can strongly indicate leakage,
-    as a feature that was "powerful" in train but not in test can be explained by leakage in train that does
+    When we compare train PPS to test PPS, A high difference can strongly indicate bias in the datasets,
+    as a property that was "powerful" in train but not in test can be explained by bias in train that does
     not affect a new dataset.
+
+    For classification tasks, this check uses PPS to predict the class by image properties.
+    For object detection tasks, this check uses PPS to predict the class of each bounding box, by the image properties
+    of that specific bounding box.
 
     Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
 
@@ -60,47 +75,11 @@ class SimpleFeatureContributionTrainTest(TrainTestCheck):
     n_show_top : int , default: 5
         Number of features to show, sorted by the magnitude of difference in PPS
     """
-
-    """
-    Calculate drift between the entire train and test datasets (based on image properties) using a trained model.
-
-    Check fits a new model to distinguish between train and test datasets, called a Domain Classifier.
-    The Domain Classifier is a tabular model, that cannot run on the images themselves. Therefore, the check calculates
-    properties for each image (such as brightness, aspect ratio etc.) and uses them as input features to the Domain
-    Classifier.
-    Once the Domain Classifier is fitted the check calculates the feature importance for the domain classifier
-    model. The result of the check is based on the AUC of the domain classifier model, and the check displays
-    the change in distribution between train and test for the top features according to the
-    calculated feature importance.
-
-    Parameters
-    ----------
-    alternative_image_properties : List[str] , default: None
-        List of alternative image properties names. Must be attributes of the ImageFormatter classes that are passed to
-        train and test's VisionData class. If None, check uses DEFAULT_IMAGE_PROPERTIES.
-    n_top_properties : int , default: 3
-        Amount of properties to show ordered by domain classifier feature importance. This limit is used together
-        (AND) with min_feature_importance, so less than n_top_columns features can be displayed.
-    min_feature_importance : float , default: 0.05
-        Minimum feature importance to show in the check display. The features are the image properties that are given
-        to the Domain Classifier as features to learn on.
-        Feature importance sums to 1, so for example the default value of 0.05 means that all features with importance
-        contributing less than 5% to the predictive power of the Domain Classifier won't be displayed. This limit is
-        used together (AND) with n_top_columns, so features more important than min_feature_importance can be hidden.
-    sample_size : int , default: 10_000
-        Max number of rows to use from each dataset for the training and evaluation of the domain classifier.
-    random_state : int , default: 42
-        Random seed for the check.
-    test_size : float , default: 0.3
-        Fraction of the combined datasets to use for the evaluation of the domain classifier.
-    """
-
     def __init__(
             self,
             alternative_image_properties: List[str] = None,
             n_top_properties: int = 3,
             ppscore_params: dict = None,
-
 
     ):
         super().__init__()
@@ -127,11 +106,28 @@ class SimpleFeatureContributionTrainTest(TrainTestCheck):
             dataset = context.test
             properties = self._test_properties
 
-        imgs = dataset.batch_to_images(batch)
+        if dataset.task_type == TaskType.CLASSIFICATION:
+            imgs = dataset.batch_to_images(batch)
+            properties['target'] += dataset.batch_to_labels(batch)
+        elif dataset.task_type == TaskType.OBJECT_DETECTION:
+            labels = dataset.batch_to_labels(batch)
+            orig_imgs = dataset.batch_to_images(batch)
+
+            classes = []
+            imgs = []
+            for img, label in zip(orig_imgs, labels):
+                classes += [int(x[0]) for x in label]
+
+                bboxes = [np.array(x[1:]).astype(int) for x in label]
+                imgs += [crop_img(img, *bbox) for bbox in bboxes]
+
+            properties['target'] += classes
+        else:
+            raise DeepchecksValueError(
+                f'Check {self.__class__.__name__} does not support task type {dataset.task_type}')
+
         for func_name in self.image_properties:
             properties[func_name] += getattr(image_formatters, func_name)(imgs)
-
-        properties['target'] += dataset.batch_to_labels(batch)
 
     def compute(self, context: Context) -> CheckResult:
         """Train a Domain Classifier on image property data that was collected during update() calls.
@@ -148,20 +144,19 @@ class SimpleFeatureContributionTrainTest(TrainTestCheck):
         df_test = pd.DataFrame(self._test_properties)
 
         text = [
-            'The Predictive Power Score (PPS) is used to estimate the ability of a feature to predict the '
-            f'label by itself. (Read more about {pps_html})'
+            'The Predictive Power Score (PPS) is used to estimate the ability of an image property (such as brightness)'
+            f'to predict the label by itself. (Read more about {pps_html})'
             '',
             '<u>In the graph above</u>, we should suspect we have problems in our data if:',
             ''
             '1. <b>Train dataset PPS values are high</b>:',
-            'Can indicate that this feature\'s success in predicting the label is actually due to data leakage, ',
-            '   meaning that the feature holds information that is based on the label to begin with.',
+            '   A high PPS (close to 1) can mean that there\'s a bias in the dataset, as a single property can predict' 
+            '   the label successfully, using simple classic ML algorithms',
             '2. <b>Large difference between train and test PPS</b> (train PPS is larger):',
-            '   An even more powerful indication of data leakage, as a feature that was powerful in train but not in '
-            'test ',
-            '   can be explained by leakage in train that is not relevant to a new dataset.',
+            '   An even more powerful indication of dataset bias, as an image property that was powerful in train',
+            '   but not in test can be explained by bias in train that is not relevant to a new dataset.',
             '3. <b>Large difference between test and train PPS</b> (test PPS is larger):',
-            '   An anomalous value, could indicate  drift in test dataset that caused a coincidental correlation to '
+            '   An anomalous value, could indicate drift in test dataset that caused a coincidental correlation to '
             'the target label.'
         ]
 
@@ -175,4 +170,4 @@ class SimpleFeatureContributionTrainTest(TrainTestCheck):
         if display:
             display += text
 
-        return CheckResult(value=ret_value, display=display, header='Single Feature Contribution Train-Test')
+        return CheckResult(value=ret_value, display=display, header='Simple Feature Contribution Train-Test')

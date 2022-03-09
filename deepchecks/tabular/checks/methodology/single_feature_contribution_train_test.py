@@ -89,7 +89,7 @@ class SingleFeatureContributionTrainTest(TrainTestCheck):
             'test ',
             '   can be explained by leakage in train that is not relevant to a new dataset.',
             '3. <b>Large difference between test and train PPS</b> (test PPS is larger):',
-            '   An anomalous value, could indicate  drift in test dataset that caused a coincidental correlation to '
+            '   An anomalous value, could indicate drift in test dataset that caused a coincidental correlation to '
             'the target label.'
         ]
 

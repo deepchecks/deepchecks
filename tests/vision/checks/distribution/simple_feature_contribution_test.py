@@ -9,11 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the VISION train test label drift."""
-from hamcrest import assert_that, has_entries, close_to, equal_to, raises, calling, empty, instance_of
+from hamcrest import assert_that, has_entries, close_to, equal_to
 
 import numpy as np
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision import VisionData
 from deepchecks.vision.checks import SimpleFeatureContributionTrainTest
 from tests.vision.vision_conftest import *
 
@@ -21,7 +19,7 @@ from deepchecks.vision.utils.transformations import un_normalize_batch
 
 
 # Create bias in the image_formatter that will
-def mnist_image_formatter_with_bias(batch):
+def mnist_batch_to_images_with_bias(batch):
     """Create function which inverse the data normalization."""
     tensor = batch[0]
     tensor = tensor.permute(0, 2, 3, 1)
@@ -29,6 +27,18 @@ def mnist_image_formatter_with_bias(batch):
     for i, label in enumerate(batch[1]):
         ret[i] = ret[i].clip(min=5 * label, max=180 + 5 * label)
     return ret
+
+
+def get_coco_batch_to_images_with_bias(label_formatter):
+    def ret_func(batch):
+        ret = [np.array(x) for x in batch[0]]
+        for i, labels in enumerate(label_formatter(batch)):
+            for label in labels:
+                if label[0] > 40:
+                    x, y, w, h = np.array(label[1:]).astype(int)
+                    ret[i][y:y+h, x:x+w] = ret[i][y:y+h, x:x+w].clip(min=200)
+        return ret
+    return ret_func
 
 
 def test_no_drift_classification(mnist_dataset_train):
@@ -41,15 +51,15 @@ def test_no_drift_classification(mnist_dataset_train):
 
     # Assert
     assert_that(result.value, has_entries({
-        'train': instance_of(dict),
-        'test': instance_of(dict),
-        'train-test difference': instance_of(dict)
+        'train': has_entries({'brightness': equal_to(0)}),
+        'test': has_entries({'brightness': equal_to(0)}),
+        'train-test difference': has_entries({'brightness': equal_to(0)})
     })
                 )
 
 
 def test_drift_classification(mnist_dataset_train, mnist_dataset_test):
-    mnist_dataset_test.batch_to_images = mnist_image_formatter_with_bias
+    mnist_dataset_test.batch_to_images = mnist_batch_to_images_with_bias
     mnist_dataset_train.batch_to_labels = lambda arr: [int(x) for x in arr[1]]
     mnist_dataset_test.batch_to_labels = lambda arr: [int(x) for x in arr[1]]
 
@@ -62,8 +72,44 @@ def test_drift_classification(mnist_dataset_train, mnist_dataset_test):
 
     # Assert
     assert_that(result.value, has_entries({
-        'train': instance_of(dict),
+        'train': has_entries({'brightness': equal_to(0)}),
         'test': has_entries({'brightness': close_to(0.43, 0.01)}),
-        'train-test difference': instance_of(dict)
+        'train-test difference': has_entries({'brightness': close_to(-0.43, 0.01)})
     })
                 )
+
+
+def test_no_drift_object_detection(coco_train_visiondata):
+    # Arrange
+    train, test = coco_train_visiondata, coco_train_visiondata
+    check = SimpleFeatureContributionTrainTest()
+
+    # Act
+    result = check.run(train, test)
+
+    # Assert
+    assert_that(result.value, has_entries({
+        'train': has_entries({'brightness': equal_to(0)}),
+        'test': has_entries({'brightness': equal_to(0)}),
+        'train-test difference': has_entries({'brightness': equal_to(0)}),
+    })
+                )
+
+def test_drift_object_detection(coco_train_visiondata, coco_test_visiondata):
+    # Arrange
+    train, test = coco_train_visiondata, coco_test_visiondata
+    check = SimpleFeatureContributionTrainTest()
+    train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
+
+    # Act
+    result = check.run(train, test)
+
+    # Assert
+    assert_that(result.value, has_entries({
+        'train': has_entries({'brightness': close_to(0.35, 0.01)}),
+        'test': has_entries({'brightness': equal_to(0)}),
+        'train-test difference':  has_entries({'brightness': close_to(0.35, 0.01)}),
+    })
+                )
+
+
