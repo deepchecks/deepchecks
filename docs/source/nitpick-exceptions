@@ -1,0 +1,20 @@
+# torch warnings
+py:obj torch.utils.data.DataLoader
+py:meth torch.optim.Optimizer.zero_grad
+py:attr dst_type
+py:attr non_blocking
+py:attr device
+py:attr dtype
+py:meth torch.Tensor.to
+py:meth torch.Tensor.share_memory_
+py:attr requires_grad
+py:attr grad_output
+py:attr grad_input
+py:attr persistent
+py:meth torch.nn.Module.register_full_backward_hook
+py:meth torch.nn.Module.state_dict
+py:attr strict
+py:meth torch.nn.Module.train
+py:func load_state_dict
+py:attr state_dict
+py:meth load_state_dict

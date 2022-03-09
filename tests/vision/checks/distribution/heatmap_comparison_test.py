@@ -15,12 +15,12 @@ from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedE
 from deepchecks.vision.checks.distribution import HeatmapComparison
 
 
-def test_object_detection(coco_train_visiondata, coco_test_visiondata):
+def test_object_detection(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     check = HeatmapComparison()
 
     # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata)
+    result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
 
     # Assert
     brightness_diff = result.value["diff"]
@@ -32,12 +32,12 @@ def test_object_detection(coco_train_visiondata, coco_test_visiondata):
     assert_that(bbox_diff.max(), less_than(25))
 
 
-def test_classification(mnist_dataset_train, mnist_dataset_test):
+def test_classification(mnist_dataset_train, mnist_dataset_test, device):
     # Arrange
     check = HeatmapComparison()
 
     # Act
-    result = check.run(mnist_dataset_train, mnist_dataset_test)
+    result = check.run(mnist_dataset_train, mnist_dataset_test, device=device)
 
     # Assert
     brightness_diff = result.value["diff"]
@@ -45,12 +45,12 @@ def test_classification(mnist_dataset_train, mnist_dataset_test):
     assert_that(brightness_diff.max(), less_than(10))
 
 
-def test_object_detection_limit_classes(coco_train_visiondata, coco_test_visiondata):
+def test_object_detection_limit_classes(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
-    check = HeatmapComparison(classes_to_display=['0'])
+    check = HeatmapComparison(classes_to_display=['person'])
 
     # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata)
+    result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
 
     # Assert
     brightness_diff = result.value["diff"]
@@ -62,24 +62,24 @@ def test_object_detection_limit_classes(coco_train_visiondata, coco_test_visiond
     assert_that(bbox_diff.max(), less_than(22))
 
 
-def test_limit_classes_for_classification(mnist_dataset_train, mnist_dataset_test):
+def test_limit_classes_for_classification(mnist_dataset_train, mnist_dataset_test, device):
     # Arrange
     check = HeatmapComparison(classes_to_display=['0'])
 
     # Act & Assert
     assert_that(
-        calling(check.run).with_args(mnist_dataset_test, mnist_dataset_test),
+        calling(check.run).with_args(mnist_dataset_train, mnist_dataset_test, device=device),
         raises(DeepchecksNotSupportedError, 'Classes to display is only supported for object detection tasks.')
     )
 
 
-def test_limit_classes_nonexistant_class(coco_train_visiondata, coco_test_visiondata):
+def test_limit_classes_nonexistant_class(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     check = HeatmapComparison(classes_to_display=['1000'])
 
     # Act & Assert
     assert_that(
-        calling(check.run).with_args(coco_train_visiondata, coco_test_visiondata),
+        calling(check.run).with_args(coco_train_visiondata, coco_test_visiondata, device=device),
         raises(DeepchecksValueError,
                r'Provided list of class ids to display \[\'1000\'\] not found in training dataset.')
     )

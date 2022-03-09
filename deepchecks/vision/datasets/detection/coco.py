@@ -15,6 +15,7 @@ import os
 import typing as t
 import warnings
 from pathlib import Path
+from typing import Iterable, List, Union
 
 import numpy as np
 import torch
@@ -28,11 +29,10 @@ from torchvision.datasets.utils import download_and_extract_archive
 from typing_extensions import Literal
 
 from deepchecks import vision
-from deepchecks.vision.utils.detection_formatters import DetectionLabelFormatter
-from deepchecks.vision.utils import ImageFormatter
+from deepchecks.vision import DetectionData
 
 
-__all__ = ['load_dataset', 'load_model', 'yolo_prediction_formatter', 'yolo_label_formatter', 'yolo_image_formatter']
+__all__ = ['load_dataset', 'load_model', 'COCOData']
 
 
 DATA_DIR = Path(__file__).absolute().parent
@@ -50,6 +50,43 @@ def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cp
     model.eval()
     logger.disabled = False
     return model
+
+
+class COCOData(DetectionData):
+    """Class for loading the COCO dataset, inherits from :class:`~deepchecks.vision.DetectionData`.
+
+    Implement the necessary methods to load the dataset.
+    """
+
+    def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
+        """Convert the batch to a list of labels."""
+        def move_class(tensor):
+            return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
+                if len(tensor) > 0 else tensor
+
+        return [move_class(tensor) for tensor in batch[1]]
+
+    def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
+        """Infer on a batch of images."""
+        return_list = []
+
+        with warnings.catch_warnings():
+            warnings.simplefilter(action='ignore', category=UserWarning)
+
+            predictions: 'ultralytics.models.common.Detections' = model.to(device)(batch[0])  # noqa: F821
+
+            # yolo Detections objects have List[torch.Tensor] xyxy output in .pred
+            for single_image_tensor in predictions.pred:
+                pred_modified = torch.clone(single_image_tensor)
+                pred_modified[:, 2] = pred_modified[:, 2] - pred_modified[:, 0]  # w = x_right - x_left
+                pred_modified[:, 3] = pred_modified[:, 3] - pred_modified[:, 1]  # h = y_bottom - y_top
+                return_list.append(pred_modified)
+
+        return return_list
+
+    def batch_to_images(self, batch) -> Iterable[np.ndarray]:
+        """Convert the batch to a list of images."""
+        return [np.array(x) for x in batch[0]]
 
 
 def load_dataset(
@@ -114,11 +151,8 @@ def load_dataset(
     if object_type == 'DataLoader':
         return dataloader
     elif object_type == 'VisionData':
-        return vision.VisionData(
+        return COCOData(
             data_loader=dataloader,
-            label_formatter=DetectionLabelFormatter(yolo_label_formatter),
-            # To display images we need them as numpy array
-            image_formatter=ImageFormatter(lambda batch: [np.array(x) for x in batch[0]]),
             num_classes=80,
             label_map=LABEL_MAP
         )
@@ -243,8 +277,8 @@ class CocoDataset(VisionDataset):
     def download_coco128(cls, root: t.Union[str, Path]) -> t.Tuple[Path, str]:
         root = root if isinstance(root, Path) else Path(root)
         coco_dir = root / 'coco128'
-        images_dir = root / 'images' / 'train2017'
-        labels_dir = root / 'labels' / 'train2017'
+        images_dir = coco_dir / 'images' / 'train2017'
+        labels_dir = coco_dir / 'labels' / 'train2017'
 
         if not (root.exists() and root.is_dir()):
             raise RuntimeError(f'root path does not exist or is not a dir - {root}')
@@ -302,6 +336,7 @@ def yolo_image_formatter(batch):
 
 
 LABEL_MAP = {
+    0: 'unknown',
     1: 'person',
     2: 'bicycle',
     3: 'car',
@@ -326,8 +361,11 @@ LABEL_MAP = {
     23: 'bear',
     24: 'zebra',
     25: 'giraffe',
+    26: 'hat',
     27: 'backpack',
     28: 'umbrella',
+    29: 'shoe',
+    30: 'eye glasses',
     31: 'handbag',
     32: 'tie',
     33: 'suitcase',
@@ -342,6 +380,7 @@ LABEL_MAP = {
     42: 'surfboard',
     43: 'tennis racket',
     44: 'bottle',
+    45: 'plate',
     46: 'wine glass',
     47: 'cup',
     48: 'fork',
@@ -362,8 +401,12 @@ LABEL_MAP = {
     63: 'couch',
     64: 'potted plant',
     65: 'bed',
+    66: 'mirror',
     67: 'dining table',
+    68: 'window',
+    69: 'desk',
     70: 'toilet',
+    71: 'door',
     72: 'tv',
     73: 'laptop',
     74: 'mouse',
@@ -375,11 +418,13 @@ LABEL_MAP = {
     80: 'toaster',
     81: 'sink',
     82: 'refrigerator',
+    83: 'blender',
     84: 'book',
     85: 'clock',
     86: 'vase',
     87: 'scissors',
     88: 'teddy bear',
     89: 'hair drier',
-    90: 'toothbrush'
+    90: 'toothbrush',
+    91: 'hairbrush'
 }

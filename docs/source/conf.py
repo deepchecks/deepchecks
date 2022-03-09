@@ -10,6 +10,8 @@ import sys
 import pathlib
 import functools
 from subprocess import check_output
+import deepchecks
+from deepchecks import vision
 
 import plotly.io as pio
 from plotly.io._sg_scraper import plotly_sg_scraper
@@ -20,8 +22,10 @@ pio.renderers.default = 'sphinx_gallery'
 
 CURRENT_DIR = pathlib.Path(__file__).parent
 PROJECT_DIR = CURRENT_DIR.parent.parent
+VISION_DIR = f'{PROJECT_DIR.absolute()}{os.sep}vision'
 
 sys.path.insert(0, str(PROJECT_DIR.absolute()))
+sys.path.insert(0, VISION_DIR)
 
 from deepchecks.utils.strings import to_snake_case
 
@@ -34,6 +38,7 @@ with open(os.path.join(PROJECT_DIR, 'VERSION')) as version_file:
 project = 'Deepchecks'
 copyright = '2021-2022, Deepchecks'
 author = 'Deepchecks'
+os.environ['DEEPCHECKS_DISABLE_LATEST'] = 'true'
 is_readthedocs = os.environ.get("READTHEDOCS")
 version = os.environ.get("READTHEDOCS_VERSION") or VERSION
 language = os.environ.get("READTHEDOCS_LANGUAGE")
@@ -185,7 +190,7 @@ autodoc_typehints_format = 'short'
 napoleon_preprocess_types = False
 
 # Report warnings for all validation checks
-numpydoc_validation_checks = {"all"}
+numpydoc_validation_checks = {"PR01", "PR02", "PR03", "RT03"}
 
 # -- nbsphinx extension settings --------------------------------------------------
 
@@ -413,7 +418,14 @@ html_context = {
 
 
 # -- Other -------------------------------------------------
+nitpick_ignore = []
 
+for line in open('nitpick-exceptions'):
+    if line.strip() == "" or line.startswith("#"):
+        continue
+    dtype, target = line.split(None, 1)
+    target = target.strip()
+    nitpick_ignore.append((dtype, target))
 
 def get_report_issue_url(pagename: str) -> str:
     template = (

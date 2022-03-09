@@ -23,19 +23,30 @@ from hamcrest import (
     all_of,
 )
 
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.dataset import VisionData
-from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.utils import ClassificationLabelFormatter
-from deepchecks.vision.utils import DetectionLabelFormatter
-from deepchecks.vision.utils.base_formatters import BaseLabelFormatter
+from deepchecks.core.errors import ValidationError
+from deepchecks.vision.classification_data import ClassificationData
+from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.datasets.classification.mnist import MNISTData
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.datasets.classification import mnist
+from deepchecks.vision.datasets.detection.coco import COCOData
+from deepchecks.vision.detection_data import DetectionData
+from deepchecks.vision.vision_data import VisionData
+
+
+class SimpleDetectionData(DetectionData):
+    def batch_to_labels(self, batch):
+        return batch[1]
+
+
+class SimpleClassificationData(ClassificationData):
+    def batch_to_labels(self, batch):
+        return batch[1]
 
 
 def test_vision_data_number_of_classes_inference():
-    dataset = t.cast(VisionData, mnist.load_dataset(train=True, object_type='VisionData'))
-    assert_that(dataset.n_of_classes, equal_to(10))
+    dataset = t.cast(MNISTData, mnist.load_dataset(train=True, object_type='VisionData'))
+    assert_that(dataset.num_classes, equal_to(10))
 
 
 def test_vision_data_task_type_inference():
@@ -43,27 +54,15 @@ def test_vision_data_task_type_inference():
     mnist_loader = t.cast(DataLoader, mnist.load_dataset(train=True, object_type='DataLoader'))
     coco_loader = t.cast(DataLoader, coco.load_dataset(train=True, object_type='DataLoader'))
 
-    class CustomLabelFormatter(BaseLabelFormatter):
-        def __init__(self, *args, **kwargs):
-            super().__init__(label_formatter=None)
-        def __call__(self, x):
-            return x
-        def validate_label(self, data_loader):
-            return
-        def get_samples_per_class(self, *args, **kwargs):
-            return {}
-        def get_classes(self, batch_labels):
-            return []
-
     # Act
-    second_classification_dataset = VisionData(mnist_loader, label_formatter=ClassificationLabelFormatter(lambda x: x))
-    detection_dataset = VisionData(coco_loader, label_formatter=DetectionLabelFormatter(lambda x: x))
-    dataset_with_custom_formatter = VisionData(mnist_loader, label_formatter=CustomLabelFormatter())
+    second_classification_dataset = SimpleClassificationData(mnist_loader)
+    detection_dataset = SimpleDetectionData(coco_loader)
+    base_dataset = VisionData(mnist_loader)
 
     # Assert
     assert_that(second_classification_dataset.task_type == TaskType.CLASSIFICATION)
     assert_that(detection_dataset.task_type == TaskType.OBJECT_DETECTION)
-    assert_that(dataset_with_custom_formatter.task_type is None)
+    assert_that(base_dataset.task_type is None)
 
 
 def test_initialization_of_vision_data_with_classification_dataset_that_contains_incorrect_labels():
@@ -76,57 +75,27 @@ def test_initialization_of_vision_data_with_classification_dataset_that_contains
         (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), torch.tensor([1,2])),
         (torch.tensor([[1,2,3],[1,2,3],[1,2,3]]), torch.tensor([2,3])),
     ])
-
-    # Act
-    first_dataset = VisionData(
-        loader_with_string_labels,
-        label_formatter=ClassificationLabelFormatter()
-    )
-    second_dataset = VisionData(
-        loader_with_labels_of_incorrect_shape,
-        label_formatter=ClassificationLabelFormatter()
-    )
-
+    bad_type_data = SimpleClassificationData(loader_with_string_labels)
+    bad_shape_data = SimpleClassificationData(loader_with_labels_of_incorrect_shape)
     # Assert
     assert_that(
-        calling(first_dataset.assert_label),
+        calling(bad_type_data.validate_label).with_args(next(iter(loader_with_string_labels))),
         raises(
-            DeepchecksValueError,
+            ValidationError,
             r'Check requires classification label to be a torch\.Tensor or numpy array')
     )
     assert_that(
-        calling(second_dataset.assert_label),
+        calling(bad_shape_data.validate_label).with_args(next(iter(loader_with_labels_of_incorrect_shape))),
         raises(
-            DeepchecksValueError,
+            ValidationError,
             r'Check requires classification label to be a 1D tensor')
     )
-
-
-def test_vision_data_sample_loader():
-    # Arrange
-    loader = t.cast(DataLoader, mnist.load_dataset(train=True, object_type='DataLoader'))
-    dataset = VisionData(loader, num_classes=10, sample_size=100)
-
-    # Act
-    samples = list(iter(dataset.sample_data_loader))
-
-    # Assert
-    assert_that(len(samples), equal_to(100))
-
-    for s in samples:
-        assert_that(len(s), equal_to(2))
-
-        x, y = s
-        assert_that(x, instance_of(torch.Tensor))
-        assert_that(y, instance_of(torch.Tensor))
-        assert_that(x.shape, equal_to((1, 1, 28, 28)))
-        assert_that(y.shape, equal_to((1,)))
 
 
 def test_vision_data_n_of_samples_per_class_inference_for_classification_dataset():
     # Arrange
     loader = t.cast(DataLoader, mnist.load_dataset(train=True, object_type="DataLoader"))
-    dataset = VisionData(loader, label_formatter=ClassificationLabelFormatter())
+    dataset = SimpleClassificationData(loader)
 
     real_n_of_samples = {}
     for index in range(len(loader.dataset)):
@@ -155,7 +124,7 @@ def test_vision_data_n_of_samples_per_class_inference_for_detection_dataset():
             real_n_of_samples[clazz] = 1 + real_n_of_samples.get(clazz, 0)
 
     # Act
-    dataset = VisionData(loader, label_formatter=DetectionLabelFormatter(coco.yolo_label_formatter))
+    dataset = coco.COCOData(loader)
     infered_n_of_samples = dataset.n_of_samples_per_class
 
     # Assert
@@ -172,14 +141,14 @@ def test_vision_data_n_of_samples_per_class_inference_for_detection_dataset():
 
 def test_vision_data_label_comparison_with_different_datasets():
     # Arrange
-    coco_dataset = t.cast(VisionData, coco.load_dataset(train=True, object_type='VisionData'))
-    mnist_dataset = t.cast(VisionData, mnist.load_dataset(train=True, object_type='VisionData'))
+    coco_dataset = t.cast(COCOData, coco.load_dataset(train=True, object_type='VisionData'))
+    mnist_dataset = t.cast(MNISTData, mnist.load_dataset(train=True, object_type='VisionData'))
 
     # Act/Assert
     assert_that(
         calling(coco_dataset.validate_shared_label).with_args(mnist_dataset),
         raises(
-            DeepchecksValueError,
+            ValidationError,
             r'Datasets required to have same label type')
     )
 
@@ -205,8 +174,8 @@ def test_vision_data_label_comparison_for_detection_task():
     first_loader = DataLoader([(first_X, first_label),], collate_fn=batch_collate)
     second_loader = DataLoader([(second_X, second_label),], collate_fn=batch_collate)
 
-    first_dataset = VisionData(first_loader, label_formatter=DetectionLabelFormatter())
-    second_dataset = VisionData(second_loader, label_formatter=DetectionLabelFormatter())
+    first_dataset = SimpleDetectionData(first_loader)
+    second_dataset = SimpleDetectionData(second_loader)
 
     # Act
     # it must not raise an error

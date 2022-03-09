@@ -20,7 +20,7 @@ from ignite.metrics import Metric
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import Context, TrainTestCheck
-from deepchecks.vision.dataset import TaskType
+from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
 
 __all__ = ['SimpleModelComparison']
@@ -45,6 +45,7 @@ class SimpleModelComparison(TrainTestCheck):
     ----------
     strategy : str, default='prior'
         Strategy to use to generate the predictions of the simple model.
+
         * 'most_frequent' : The most frequent label in the training set is predicted.
           The probability vector is 1 for the most frequent label and 0 for the other predictions.
         * 'prior' : The probability vector always contains the empirical class prior distribution (i.e. the class
@@ -117,7 +118,7 @@ class SimpleModelComparison(TrainTestCheck):
         self._state['Simple Model'] = get_scorers_list(context.train, self.alternative_metrics)
 
         if context.train.task_type == TaskType.CLASSIFICATION:
-            class_prior = np.zeros(context.train.n_of_classes)
+            class_prior = np.zeros(context.train.num_classes)
             n_samples = 0
             for label, total in context.train.n_of_samples_per_class.items():
                 class_prior[label] = total
@@ -125,7 +126,7 @@ class SimpleModelComparison(TrainTestCheck):
             class_prior /= n_samples
 
             if self.strategy == 'most_frequent':
-                dummy_prediction = np.zeros(context.train.n_of_classes)
+                dummy_prediction = np.zeros(context.train.num_classes)
                 dummy_prediction[np.argmax(class_prior)] = 1
                 self._state['dummy_prediction_generator'] = lambda: torch.from_numpy(dummy_prediction)
             elif self.strategy == 'prior':
@@ -135,7 +136,7 @@ class SimpleModelComparison(TrainTestCheck):
                     lambda: torch.from_numpy(np.random.multinomial(1, class_prior))
             elif self.strategy == 'uniform':
                 self._state['dummy_prediction_generator'] = \
-                    lambda: torch.from_numpy(np.ones(context.train.n_of_classes) / context.train.n_of_classes)
+                    lambda: torch.from_numpy(np.ones(context.train.num_classes) / context.train.num_classes)
             else:
                 raise DeepchecksValueError(
                     f'Unknown strategy type: {self.strategy}, expected one of {_allowed_strategies}.'
@@ -148,8 +149,8 @@ class SimpleModelComparison(TrainTestCheck):
         """Update the metrics for the check."""
         if dataset_kind == DatasetKind.TEST:
             dataset = context.get_data_by_kind(dataset_kind)
-            label = dataset.label_formatter(batch)
-            prediction = context.infer(batch)
+            label = dataset.batch_to_labels(batch)
+            prediction = context.infer(batch, dataset_kind)
             for _, metric in self._state[DatasetKind.TEST.value].items():
                 metric.update((prediction, label))
             for _, metric in self._state['Simple Model'].items():

@@ -110,6 +110,7 @@ See More
 For additional usage examples and for understanding the best practices of how to use the package, stay tuned,
 as this package is in active development!
 
+
 .. |binder badge| image:: /_static/binder-badge.svg
    :target: examples/tabular/guides/quickstart_in_5_minutes.html
 

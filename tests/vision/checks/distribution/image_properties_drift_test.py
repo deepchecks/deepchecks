@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Image Property Drift check tests"""
-import pandas as pd
 from hamcrest import (
     assert_that,
     instance_of,
@@ -20,24 +19,21 @@ from hamcrest import (
     has_properties,
     has_length,
     contains_exactly,
-    contains_inanyorder,
     greater_than,
-    # matches_regexp as matches,
-    equal_to
+    equal_to, has_key
 )
 
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.utils import ImageFormatter
+from deepchecks.vision.utils.image_formatters import image_properties
 from deepchecks.vision.checks.distribution import ImagePropertyDrift
 from deepchecks.vision.datasets.detection import coco
 
 
-
-def test_image_property_drift_check():
+def test_image_property_drift_check(device):
     train_dataset = coco.load_dataset(train=True, object_type='VisionData')
     test_dataset = coco.load_dataset(train=False, object_type='VisionData')
-    result = ImagePropertyDrift().run(train_dataset, test_dataset)
+    result = ImagePropertyDrift().run(train_dataset, test_dataset, device=device)
     assert_that(result, is_correct_image_property_drift_result())
 
 
@@ -51,18 +47,18 @@ def test_image_property_drift_initialization_with_empty_list_of_image_properties
 def test_image_property_drift_initialization_with_list_of_unknown_image_properties():
     assert_that(
         calling(ImagePropertyDrift).with_args(image_properties=['hello', 'aspect_ratio']),
-        raises(DeepchecksValueError, r'receivedd list of unknown image properties - \[\'hello\'\]')
+        raises(DeepchecksValueError, r'received list of unknown image properties - \[\'hello\'\]')
     )
 
 
-def test_image_property_drift_condition():
+def test_image_property_drift_condition(device):
     train_dataset = coco.load_dataset(train=True, object_type='VisionData')
     test_dataset = coco.load_dataset(train=False, object_type='VisionData')
 
     result = (
         ImagePropertyDrift()
         .add_condition_drift_score_not_greater_than()
-        .run(train_dataset, test_dataset)
+        .run(train_dataset, test_dataset, device=device)
     )
 
     assert_that(result, all_of(
@@ -97,9 +93,9 @@ def contains_passed_condition():
 
 def is_correct_image_property_drift_result():
     value_assertion = all_of(
-        instance_of(pd.DataFrame),
-        has_property('index', contains_inanyorder(*list(ImageFormatter.IMAGE_PROPERTIES))),
-    )
+        instance_of(dict),
+        *[has_key(property_name) for property_name in image_properties])
+
     display_assertion = all_of(
         instance_of(list),
         has_length(greater_than(1)),

@@ -14,15 +14,15 @@ from typing import Tuple, List, Any, Iterable, Optional
 import cv2
 import torch
 from plotly.subplots import make_subplots
+import numpy as np
+import plotly.graph_objs as go
 
 from deepchecks.vision.utils.image_functions import numpy_grayscale_to_heatmap_figure, apply_heatmap_image_properties
-
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.vision.base import Context, TrainTestCheck
-from deepchecks.vision.dataset import TaskType
-import numpy as np
-import plotly.graph_objs as go
+from deepchecks.vision.vision_data import TaskType
+
 
 __all__ = ['HeatmapComparison']
 
@@ -99,7 +99,7 @@ class HeatmapComparison(TrainTestCheck):
         # image_batch is a list of images, each of which is a numpy array of shape (H, W, C), produced by running
         # the image_formatter on the batch.
         if dataset_kind == DatasetKind.TRAIN:
-            image_batch = context.train.image_formatter(batch)
+            image_batch = context.train.batch_to_images(batch)
             summed_image = self._grayscale_sum_image(image_batch, self._shape)
             if self._train_grayscale_heatmap is None:
                 self._train_grayscale_heatmap = summed_image
@@ -107,7 +107,7 @@ class HeatmapComparison(TrainTestCheck):
                 self._train_grayscale_heatmap += summed_image
             self._train_counter += len(image_batch)
         elif dataset_kind == DatasetKind.TEST:
-            image_batch = context.test.image_formatter(batch)
+            image_batch = context.test.batch_to_images(batch)
             summed_image = self._grayscale_sum_image(image_batch, self._shape)
             if self._test_grayscale_heatmap is None:
                 self._test_grayscale_heatmap = summed_image
@@ -123,7 +123,7 @@ class HeatmapComparison(TrainTestCheck):
         # _label_to_image_batch
         if self._task_type == TaskType.OBJECT_DETECTION:
             if dataset_kind == DatasetKind.TRAIN:
-                label_batch = context.train.label_formatter(batch)
+                label_batch = context.train.batch_to_labels(batch)
                 label_image_batch = self._label_to_image_batch(label_batch, image_batch, self.classes_to_display)
                 summed_image = self._grayscale_sum_image(label_image_batch, self._shape)
                 if self._train_bbox_heatmap is None:
@@ -131,7 +131,7 @@ class HeatmapComparison(TrainTestCheck):
                 else:
                     self._train_bbox_heatmap += summed_image
             elif dataset_kind == DatasetKind.TEST:
-                label_batch = context.test.label_formatter(batch)
+                label_batch = context.test.batch_to_labels(batch)
                 label_image_batch = self._label_to_image_batch(label_batch, image_batch, self.classes_to_display)
                 summed_image = self._grayscale_sum_image(label_image_batch, self._shape)
                 if self._test_bbox_heatmap is None:
@@ -258,7 +258,7 @@ class HeatmapComparison(TrainTestCheck):
             if img.shape[2] == 1:
                 resized_img = img
             elif img.shape[2] == 3:
-                resized_img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+                resized_img = cv2.cvtColor(img.astype('float32'), cv2.COLOR_RGB2GRAY)
             else:
                 raise NotImplementedError('Images must be RGB or grayscale')
 

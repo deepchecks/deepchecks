@@ -17,7 +17,8 @@ __all__ = [
     'DeepchecksProcessError',
     'NumberOfFeaturesLimitError',
     'DatasetValidationError',
-    'ModelValidationError'
+    'ModelValidationError',
+    'DeepchecksNotImplementedError'
 ]
 
 
@@ -31,6 +32,12 @@ class DeepchecksBaseError(Exception):
 
 class DeepchecksValueError(DeepchecksBaseError):
     """Exception class that represent a fault parameter was passed to Deepchecks."""
+
+    pass
+
+
+class DeepchecksNotImplementedError(DeepchecksBaseError):
+    """Exception class that represent a function that was not implemnted."""
 
     pass
 

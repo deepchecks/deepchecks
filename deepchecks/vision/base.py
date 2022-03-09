@@ -10,15 +10,14 @@
 #
 """Module for base vision abstractions."""
 # pylint: disable=broad-except,not-callable
+import logging
 from typing import Tuple, Mapping, Optional, Any, Union, Dict
 from collections import OrderedDict
 
 import torch
 from torch import nn
-from torch.utils.data import DataLoader
 from ignite.metrics import Metric
 
-from deepchecks.vision.utils.base_formatters import BasePredictionFormatter
 from deepchecks.core.check import (
     CheckFailure,
     SingleDatasetBaseCheck,
@@ -28,13 +27,13 @@ from deepchecks.core.check import (
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
 from deepchecks.core.errors import (
-    DatasetValidationError, ModelValidationError,
+    DatasetValidationError, DeepchecksNotImplementedError, ModelValidationError,
     DeepchecksNotSupportedError, DeepchecksValueError
 )
-from deepchecks.vision.dataset import VisionData, TaskType
+from deepchecks.vision.vision_data import VisionData, TaskType
 from deepchecks.vision.utils.validation import apply_to_tensor
-from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
+logger = logging.getLogger('deepchecks')
 
 __all__ = [
     'Context',
@@ -58,8 +57,6 @@ class Context:
         A scikit-learn-compatible fitted estimator instance
     model_name: str , default: ''
         The name of the model
-    prediction_formatter : BasePredictionFormatter, default: None
-        An encoder to convert predictions to a format that can be used by the metrics.
     scorers : Mapping[str, Metric] , default: None
         dict of scorers names to a Metric
     scorers_per_class : Mapping[str, Metric] , default: None
@@ -78,7 +75,6 @@ class Context:
                  test: VisionData = None,
                  model: nn.Module = None,
                  model_name: str = '',
-                 prediction_formatter: BasePredictionFormatter = None,
                  scorers: Mapping[str, Metric] = None,
                  scorers_per_class: Mapping[str, Metric] = None,
                  device: Union[str, torch.device, None] = 'cpu',
@@ -93,38 +89,30 @@ class Context:
         if train and test:
             train.validate_shared_label(test)
 
-        # Set seeds to if possible
+        self._device = torch.device(device) if isinstance(device, str) else (device if device else torch.device('cpu'))
+
+        if model is not None:
+            for dataset, dataset_type in zip([train, test], ['train', 'test']):
+                if dataset is not None:
+                    try:
+                        dataset.validate_prediction(next(iter(dataset.data_loader)), model, self._device)
+                    except DeepchecksNotImplementedError:
+                        logger.warning('validate_prediction() was not implemented in %s dataset, '
+                                       'some checks will not run', dataset_type)
+
+        # Set seeds to if possible (we set it after the validation to keep the seed state)
         if train and random_state:
             train.set_seed(random_state)
         if test and random_state:
             test.set_seed(random_state)
 
-        task_type = train.task_type if train else None
-        self._device = torch.device(device) if isinstance(device, str) else (device if device else torch.device('cpu'))
-
-        # If no prediction_formatter is passed and model and train are defined, we will use the default one according
-        # to the dataset task type
-        if model is not None and train is not None and prediction_formatter is None:
-            if task_type == TaskType.CLASSIFICATION:
-                prediction_formatter = ClassificationPredictionFormatter()
-            elif task_type == TaskType.OBJECT_DETECTION:
-                prediction_formatter = DetectionPredictionFormatter()
-            else:
-                raise DeepchecksValueError(f'Must pass prediction formatter for task_type {task_type}')
-
-        if prediction_formatter is not None:
-            if train is None or model is None:
-                raise DeepchecksValueError('Can\'t pass prediction formatter without model and train data')
-            prediction_formatter.validate_prediction(next(iter(train)), model, self._device)
-
         self._train = train
         self._test = test
         self._model = model
-        self._batch_prediction_cache = None
+        self._batch_prediction_cache = {}
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
-        self._prediction_formatter = prediction_formatter
         self.random_state = random_state
 
     # Properties
@@ -157,11 +145,6 @@ class Context:
         return self._model_name
 
     @property
-    def prediction_formatter(self):
-        """Return prediction formatter."""
-        return self._prediction_formatter
-
-    @property
     def device(self) -> torch.device:
         """Return device specified by the user."""
         return self._device
@@ -177,15 +160,16 @@ class Context:
                 f'Check is irrelevant for task of type {self.train.task_type}')
         return True
 
-    def infer(self, batch: Any) -> Any:
+    def infer(self, batch: Any, dataset_kind: DatasetKind) -> Any:
         """Return the predictions on the given batch, and cache them for later."""
-        if self._batch_prediction_cache is None:
-            self._batch_prediction_cache = self.prediction_formatter(batch, self.model, self.device)
-        return self._batch_prediction_cache
+        if self._batch_prediction_cache.get(dataset_kind) is None:
+            dataset = self.get_data_by_kind(dataset_kind)
+            self._batch_prediction_cache[dataset_kind] = dataset.infer_on_batch(batch, self.model, self.device)
+        return self._batch_prediction_cache[dataset_kind]
 
-    def flush_cached_inference(self):
+    def flush_cached_inference(self, dataset_kind: DatasetKind):
         """Flush the cached inference."""
-        self._batch_prediction_cache = None
+        self._batch_prediction_cache[dataset_kind] = None
 
     def get_data_by_kind(self, kind: DatasetKind):
         """Return the relevant VisionData by given kind."""
@@ -216,24 +200,22 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         self,
         dataset: VisionData,
         model: Optional[nn.Module] = None,
-        prediction_formatter: BasePredictionFormatter = None,
         device: Union[str, torch.device, None] = 'cpu',
         random_state: int = 42
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        context = self.context_type(dataset,
-                                    model=model,
-                                    prediction_formatter=prediction_formatter,
-                                    device=device,
-                                    random_state=random_state)
+        context: Context = self.context_type(dataset,
+                                             model=model,
+                                             device=device,
+                                             random_state=random_state)
 
         self.initialize_run(context, DatasetKind.TRAIN)
 
-        for batch in dataset.get_data_loader():
+        for batch in dataset:
             batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch, DatasetKind.TRAIN)
-            context.flush_cached_inference()
+            context.flush_cached_inference(DatasetKind.TRAIN)
 
         return finalize_check_result(self.compute(context, DatasetKind.TRAIN), self)
 
@@ -263,30 +245,28 @@ class TrainTestCheck(TrainTestBaseCheck):
         train_dataset: VisionData,
         test_dataset: VisionData,
         model: Optional[nn.Module] = None,
-        prediction_formatter: BasePredictionFormatter = None,
         device: Union[str, torch.device, None] = 'cpu',
         random_state: int = 42
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        context = self.context_type(train_dataset,
-                                    test_dataset,
-                                    model=model,
-                                    prediction_formatter=prediction_formatter,
-                                    device=device,
-                                    random_state=random_state)
+        context: Context = self.context_type(train_dataset,
+                                             test_dataset,
+                                             model=model,
+                                             device=device,
+                                             random_state=random_state)
 
         self.initialize_run(context)
 
-        for batch in context.train.get_data_loader():
+        for batch in context.train:
             batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch, DatasetKind.TRAIN)
-            context.flush_cached_inference()
+            context.flush_cached_inference(DatasetKind.TRAIN)
 
-        for batch in context.test.get_data_loader():
+        for batch in context.test:
             batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch, DatasetKind.TEST)
-            context.flush_cached_inference()
+            context.flush_cached_inference(DatasetKind.TEST)
 
         return finalize_check_result(self.compute(context), self)
 
@@ -316,7 +296,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
-        context = self.context_type(model=model, device=device, random_state=random_state)
+        context: Context = self.context_type(model=model, device=device, random_state=random_state)
 
         self.initialize_run(context)
         return finalize_check_result(self.compute(context), self)
@@ -343,7 +323,6 @@ class Suite(BaseSuite):
             train_dataset: Optional[VisionData] = None,
             test_dataset: Optional[VisionData] = None,
             model: nn.Module = None,
-            prediction_formatter: BasePredictionFormatter = None,
             scorers: Mapping[str, Metric] = None,
             scorers_per_class: Mapping[str, Metric] = None,
             device: Union[str, torch.device, None] = 'cpu',
@@ -359,8 +338,6 @@ class Suite(BaseSuite):
             object, representing data an estimator predicts on
         model : nn.Module , default None
             A scikit-learn-compatible fitted estimator instance
-        prediction_formatter : BasePredictionFormatter, default: None
-            An encoder to convert predictions to a format that can be used by the metrics.
         scorers : Mapping[str, Metric] , default None
             dict of scorers names to scorer sklearn_name/function
         scorers_per_class : Mapping[str, Metric], default None
@@ -382,30 +359,11 @@ class Suite(BaseSuite):
             train_dataset,
             test_dataset,
             model,
-            prediction_formatter=prediction_formatter,
             scorers=scorers,
             scorers_per_class=scorers_per_class,
             device=device,
             random_state=random_state
         )
-
-        # Create instances of SingleDatasetCheck for train and test if train and test exist.
-        # This is needed because in the vision package checks update their internal state with update, so it will be
-        # easier to iterate and keep the check order if we have an instance for each dataset.
-        checks: Dict[
-            Union[str, int],
-            Union[SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck]
-        ] = OrderedDict({})
-
-        for check_idx, check in list(self.checks.items()):
-            if isinstance(check, (TrainTestCheck, ModelOnlyCheck)):
-                check.initialize_run(context)
-                checks[check_idx] = check
-            elif isinstance(check, SingleDatasetCheck):
-                if train_dataset is not None:
-                    checks[str(check_idx) + ' - Train'] = check
-                if test_dataset is not None:
-                    checks[str(check_idx) + ' - Test'] = check
 
         results: Dict[
             Union[str, int],
@@ -414,88 +372,73 @@ class Suite(BaseSuite):
 
         run_train_test_checks = train_dataset is not None and test_dataset is not None
 
+        # Initialize here all the checks that are not single dataset, since those are initialized inside the update loop
+        for index, check in self.checks.items():
+            if not isinstance(check, SingleDatasetCheck):
+                try:
+                    check.initialize_run(context)
+                except Exception as exp:
+                    results[index] = CheckFailure(check, exp)
+
         if train_dataset is not None:
             self._update_loop(
-                checks=checks,
-                data_loader=train_dataset.get_data_loader(),
                 context=context,
                 run_train_test_checks=run_train_test_checks,
                 results=results,
                 dataset_kind=DatasetKind.TRAIN
             )
-            for check_idx, check in checks.items():
-                if check_idx not in results:
-                    if str(check_idx).endswith('Train'):
-                        try:
-                            results[check_idx] = check.compute(context, dataset_kind=DatasetKind.TRAIN)
-                        except Exception as exp:
-                            results[check_idx] = CheckFailure(check, exp, ' - Train')
 
         if test_dataset is not None:
             self._update_loop(
-                checks=checks,
-                data_loader=test_dataset.get_data_loader(),
                 context=context,
                 run_train_test_checks=run_train_test_checks,
                 results=results,
                 dataset_kind=DatasetKind.TEST
             )
-            for check_idx, check in checks.items():
-                if check_idx not in results:
-                    if str(check_idx).endswith('Test'):
-                        try:
-                            results[check_idx] = check.compute(context, dataset_kind=DatasetKind.TEST)
-                        except Exception as exp:
-                            results[check_idx] = CheckFailure(check, exp, ' - Test')
 
-        for check_idx, check in checks.items():
-            if check_idx not in results:
-                try:
-                    if not isinstance(check, SingleDatasetCheck):
-                        results[check_idx] = check.compute(context)
-                except Exception as exp:
-                    results[check_idx] = CheckFailure(check, exp)
+        for check_idx, check in self.checks.items():
+            try:
+                # if check index in results we had failure, and SingleDatasetCheck have already been calculated inside
+                # the loops
+                if check_idx not in results and not isinstance(check, SingleDatasetCheck):
+                    result = check.compute(context)
+                    result = finalize_check_result(result, check)
+                    results[check_idx] = result
+            except Exception as exp:
+                results[check_idx] = CheckFailure(check, exp)
 
-        # Update check result names for SingleDatasetChecks and finalize results
-        for check_idx, result in results.items():
-            if isinstance(result, CheckResult):
-                result = finalize_check_result(result, checks[check_idx])
-                result.header = (
-                    f'{result.get_header()} - Train Dataset'
-                    if str(check_idx).endswith(' - Train')
-                    else f'{result.get_header()} - Test Dataset'
-                )
-                results[check_idx] = result
-
-        return SuiteResult(self.name, list(results.values()))
+        # The results are ordered as they ran instead of in the order they were defined, therefore sort by key
+        sorted_result_values = [value for name, value in sorted(results.items(), key=lambda pair: str(pair[0]))]
+        return SuiteResult(self.name, sorted_result_values)
 
     def _update_loop(
         self,
-        checks: Dict[
-            Union[str, int],
-            Union[SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck]
-        ],
-        data_loader: DataLoader,
         context: Context,
         run_train_test_checks: bool,
         results: Dict[Union[str, int], Union[CheckResult, CheckFailure]],
-        dataset_kind
+        dataset_kind: DatasetKind
     ):
-        if dataset_kind == DatasetKind.TEST:
-            type_suffix = ' - Test'
-        else:
-            type_suffix = ' - Train'
+        type_suffix = ' - Test Dataset' if dataset_kind == DatasetKind.TEST else ' - Train Dataset'
+        data_loader = context.get_data_by_kind(dataset_kind)
         n_batches = len(data_loader)
         progress_bar = ProgressBar(self.name + type_suffix, n_batches)
 
-        for idx, check in checks.items():
-            if str(idx).endswith(type_suffix):
-                check.initialize_run(context, dataset_kind=dataset_kind)
+        # SingleDatasetChecks have different handling, need to initialize them here (to have them ready for different
+        # dataset kind)
+        for idx, check in self.checks.items():
+            if isinstance(check, SingleDatasetCheck):
+                try:
+                    check.initialize_run(context, dataset_kind=dataset_kind)
+                except Exception as exp:
+                    results[idx] = CheckFailure(check, exp, type_suffix)
 
         for batch_id, batch in enumerate(data_loader):
             progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
             batch = apply_to_tensor(batch, lambda it: it.to(context.device))
-            for check_idx, check in checks.items():
+            for check_idx, check in self.checks.items():
+                # If index in results the check already failed before
+                if check_idx in results:
+                    continue
                 try:
                     if isinstance(check, TrainTestCheck):
                         if run_train_test_checks is True:
@@ -504,8 +447,7 @@ class Suite(BaseSuite):
                             msg = 'Check is irrelevant if not supplied with both train and test datasets'
                             results[check_idx] = self._get_unsupported_failure(check, msg)
                     elif isinstance(check, SingleDatasetCheck):
-                        if str(check_idx).endswith(type_suffix):
-                            check.update(context, batch, dataset_kind=dataset_kind)
+                        check.update(context, batch, dataset_kind=dataset_kind)
                     elif isinstance(check, ModelOnlyCheck):
                         pass
                     else:
@@ -513,9 +455,28 @@ class Suite(BaseSuite):
                 except Exception as exp:
                     results[check_idx] = CheckFailure(check, exp, type_suffix)
             progress_bar.inc_progress()
-            context.flush_cached_inference()
+            context.flush_cached_inference(dataset_kind)
 
         progress_bar.close()
+
+        # SingleDatasetChecks have different handling. If we had failure in them need to add suffix to the index of
+        # the results, else need to compute it.
+        for idx, check in self.checks.items():
+            if isinstance(check, SingleDatasetCheck):
+                index_of_kind = str(idx) + type_suffix
+                # If index in results we had a failure
+                if idx in results:
+                    results[index_of_kind] = results.pop(idx)
+                    continue
+                try:
+                    result = check.compute(context, dataset_kind=dataset_kind)
+                    result = finalize_check_result(result, check)
+                    # Update header with dataset type only if both train and test ran
+                    if run_train_test_checks:
+                        result.header = result.get_header() + type_suffix
+                    results[index_of_kind] = result
+                except Exception as exp:
+                    results[index_of_kind] = CheckFailure(check, exp, type_suffix)
 
     @classmethod
     def _get_unsupported_failure(cls, check, msg):
