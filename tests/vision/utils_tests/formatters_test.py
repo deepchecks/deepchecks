@@ -84,14 +84,23 @@ def test_data_formatter_wrong_color_channel():
     )
 
 
-def test_data_formatter_invalid_values():
+def test_data_formatter_large_values():
     class BadImage(VisionData):
         def batch_to_images(self, batch):
             return batch * 300
     batch = next(iter(numpy_shape_dataloader((10, 10, 3))))
     assert_that(
         calling(BadImage(numpy_shape_dataloader((10, 10, 3))).validate_image_data).with_args(batch),
-        raises(ValidationError, r'The data inside the iterable must be in the range \[0, 255\].')
+        raises(ValidationError, r'Image data found to be in range \[76500.0, 76500.0\] instead of expected range '
+                                r'\[0, 255\].')
+    )
+
+
+def test_data_formatter_normalized_data():
+    batch = next(iter(numpy_shape_dataloader((10, 10, 3), value=1)))
+    assert_that(
+        calling(SimpleImageData(numpy_shape_dataloader((10, 10, 3))).validate_image_data).with_args(batch),
+        raises(ValidationError, r'Image data found to be in range \[1.0, 1.0\] instead of expected range \[0, 255\].')
     )
 
 
