@@ -304,10 +304,11 @@ class VisionData:
             raise ValidationError('The data inside the iterable must be a 3D array.')
         if sample.shape[2] not in [1, 3]:
             raise ValidationError('The data inside the iterable must have 1 or 3 channels.')
-        if sample.min() < 0 or sample.max() > 255:
-            raise ValidationError('The data inside the iterable must be in the range [0, 255].')
-        if np.all(sample <= 1):
-            raise ValidationError('The data inside the iterable appear to be normalized.')
+        sample_min = sample.min()
+        sample_max = sample.max()
+        if sample_min < 0 or sample_max > 255 or sample_max <= 1:
+            raise ValidationError(f'Image data found to be in range [{sample_min}, {sample_max}] instead of expected '
+                                  f'range [0, 255].')
 
     def _get_samples_per_class(self):
         """
