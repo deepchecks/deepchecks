@@ -16,11 +16,12 @@ import numpy as np
 import torch
 import imgaug
 
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.utils.ipython import is_notebook
-from deepchecks.vision.utils.base_formatters import BaseLabelFormatter, BasePredictionFormatter
-from deepchecks.vision.utils import ImageFormatter, ClassificationLabelFormatter, DetectionLabelFormatter
+from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.utils.image_functions import numpy_to_image_figure, label_bbox_add_to_figure
+from deepchecks.vision.vision_data import VisionData
+
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from PIL import Image
@@ -28,7 +29,7 @@ from io import BytesIO
 from IPython.display import display, HTML
 
 
-__all__ = ['set_seeds', 'apply_to_tensor', 'validate_formatters']
+__all__ = ['set_seeds', 'apply_to_tensor', 'validate_extractors']
 
 
 def set_seeds(seed: int):
@@ -68,11 +69,10 @@ def apply_to_tensor(
     return x
 
 
-def validate_formatters(data_loader, model, label_formatter: BaseLabelFormatter, image_formatter: ImageFormatter,
-                        prediction_formatter: BasePredictionFormatter):
-    """Validate for given data_loader and model that the formatters are valid."""
-    print('Deepchecks will try to validate the formatters given...')
-    batch = next(iter(data_loader))
+def validate_extractors(dataset: VisionData, model):
+    """Validate for given data_loader and model that the extractors are valid."""
+    print('Deepchecks will try to validate the extractors given...')
+    batch = next(iter(dataset.data_loader))
     images = None
     labels = None
     predictions = None
@@ -81,38 +81,38 @@ def validate_formatters(data_loader, model, label_formatter: BaseLabelFormatter,
     prediction_formatter_error = None
 
     try:
-        label_formatter.validate_label(batch)
-        labels = label_formatter(batch)
-    except DeepchecksValueError as ex:
+        dataset.validate_label(batch)
+        labels = dataset.batch_to_labels(batch)
+    except ValidationError as ex:
         label_formatter_error = str(ex)
     except Exception:  # pylint: disable=broad-except
         label_formatter_error = 'Got exception \n' + traceback.format_exc()
 
     try:
-        image_formatter.validate_data(batch)
-        images = image_formatter(batch)
-    except DeepchecksValueError as ex:
+        dataset.validate_image_data(batch)
+        images = dataset.batch_to_images(batch)
+    except ValidationError as ex:
         image_formatter_error = str(ex)
     except Exception:  # pylint: disable=broad-except
         image_formatter_error = 'Got exception \n' + traceback.format_exc()
 
     try:
-        prediction_formatter.validate_prediction(batch, model, torch.device('cpu'))
-        predictions = prediction_formatter(batch, model, torch.device('cpu'))
-    except DeepchecksValueError as ex:
+        dataset.validate_prediction(batch, model, torch.device('cpu'))
+        predictions = dataset.infer_on_batch(batch, model, torch.device('cpu'))
+    except ValidationError as ex:
         prediction_formatter_error = str(ex)
     except Exception:  # pylint: disable=broad-except
         prediction_formatter_error = 'Got exception \n' + traceback.format_exc()
 
     # Classes
     if label_formatter_error is None:
-        classes = label_formatter.get_classes(labels)
+        classes = dataset.get_classes(labels)
     else:
         classes = None
     # Plot
     if image_formatter_error is None:
         sample_image = images[0]
-        if isinstance(label_formatter, DetectionLabelFormatter):
+        if dataset.task_type == TaskType.OBJECT_DETECTION:
             # In case both label and prediction are valid show image side by side
             if prediction_formatter_error is None and label_formatter_error is None:
                 fig = make_subplots(rows=1, cols=2)
@@ -135,7 +135,7 @@ def validate_formatters(data_loader, model, label_formatter: BaseLabelFormatter,
                     fig.update_xaxes(title='Prediction')
                     fig.update_layout(title='Visual example of an image with prediction data')
 
-        elif isinstance(label_formatter, ClassificationLabelFormatter):
+        elif dataset.task_type == TaskType.CLASSIFICATION:
             fig = go.Figure(numpy_to_image_figure(sample_image))
             # Create figure title
             title = 'Visual example of an image'
@@ -155,7 +155,7 @@ def validate_formatters(data_loader, model, label_formatter: BaseLabelFormatter,
             fig.update_layout(title=title)
             fig.update_xaxes(title=', '.join(x_title))
         else:
-            raise DeepchecksValueError(f'Not implemented for label formatter: {type(label_formatter).__name__}')
+            raise DeepchecksValueError(f'Not implemented for task type: {dataset.task_type}')
 
         fig.update_yaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)
         fig.update_xaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)

@@ -15,11 +15,7 @@ import typing as t
 from imgaug import augmenters as iaa
 from torch.utils.data import DataLoader
 
-
-from deepchecks.vision import VisionData
-from deepchecks.vision.datasets.classification.mnist import MODULE_DIR
-from deepchecks.vision.utils import ImageFormatter, ClassificationLabelFormatter
-from deepchecks.vision.utils.transformations import un_normalize_batch
+from deepchecks.vision.datasets.classification.mnist import MODULE_DIR, MNISTData
 
 
 class MNIST(datasets.MNIST):
@@ -65,11 +61,9 @@ def mnist_dataset_imgaug(train: bool = True, dataset=None):
         shuffle=True,
     )
 
-    return VisionData(
+    return MNISTData(
         data_loader=loader,
         num_classes=len(loader.dataset.classes),
-        label_formatter=ClassificationLabelFormatter(),
-        image_formatter=ImageFormatter(lambda batch: un_normalize_batch(batch[0], mean, std)),
         transform_field='transform'
     )
 

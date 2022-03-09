@@ -22,8 +22,8 @@ from deepchecks.utils.single_sample_metrics import per_sample_binary_cross_entro
 
 from deepchecks.vision import TrainTestCheck, Context
 from deepchecks.vision.checks.distribution.image_property_drift import ImageProperty
-from deepchecks.vision.dataset import TaskType
-from deepchecks.vision.utils import ImageFormatter
+from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.utils import image_formatters
 from deepchecks.vision.metrics_utils.iou_utils import per_sample_mean_iou
 
 __all__ = ['ModelErrorAnalysis']
@@ -73,13 +73,13 @@ class ModelErrorAnalysis(TrainTestCheck):
         self.n_display_samples = n_display_samples
 
         if image_properties is None:
-            self.image_properties = ImageFormatter.IMAGE_PROPERTIES
+            self.image_properties = image_formatters.image_properties
         else:
             if len(image_properties) == 0:
                 raise DeepchecksValueError('image_properties list cannot be empty')
 
             received_properties = {p for p in image_properties if isinstance(p, str)}
-            unknown_properties = received_properties.difference(ImageFormatter.IMAGE_PROPERTIES)
+            unknown_properties = received_properties.difference(image_formatters.image_properties)
 
             if len(unknown_properties) > 0:
                 raise DeepchecksValueError(
@@ -112,14 +112,14 @@ class ModelErrorAnalysis(TrainTestCheck):
                 'be unreacheable was reached.'
             )
 
-        images = dataset.image_formatter(batch)
-        predictions = context.infer(batch)
-        labels = dataset.label_formatter(batch)
+        images = dataset.batch_to_images(batch)
+        predictions = context.infer(batch, dataset_kind)
+        labels = dataset.batch_to_labels(batch)
 
         for image_property in self.image_properties:
             if isinstance(image_property, str):
                 properties[image_property].extend(
-                    getattr(dataset.image_formatter, image_property)(images)
+                    getattr(image_formatters, image_property)(images)
                 )
             elif callable(image_property):
                 properties[image_property.__name__].extend(image_property(images))  # pylint: disable=not-callable
