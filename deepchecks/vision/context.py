@@ -29,6 +29,7 @@ __all__ = [
     'Context'
 ]
 
+
 class Context:
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
 
