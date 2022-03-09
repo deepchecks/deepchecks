@@ -258,7 +258,7 @@ class HeatmapComparison(TrainTestCheck):
             if img.shape[2] == 1:
                 resized_img = img
             elif img.shape[2] == 3:
-                resized_img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+                resized_img = cv2.cvtColor(img.astype('float32'), cv2.COLOR_RGB2GRAY)
             else:
                 raise NotImplementedError('Images must be RGB or grayscale')
 
