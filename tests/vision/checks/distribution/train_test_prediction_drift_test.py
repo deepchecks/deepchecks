@@ -14,9 +14,6 @@ from tests.checks.utils import equal_condition_result
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import TrainTestPredictionDrift
-from deepchecks.vision.datasets.classification.mnist import mnist_prediction_formatter
-from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
-from deepchecks.vision.utils import ClassificationPredictionFormatter, DetectionPredictionFormatter
 
 
 def test_no_drift_classification(mnist_dataset_train, trained_mnist, device):
@@ -26,7 +23,6 @@ def test_no_drift_classification(mnist_dataset_train, trained_mnist, device):
 
     # Act
     result = check.run(train, test, trained_mnist,
-                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter),
                        device=device)
 
     # Assert
@@ -44,7 +40,6 @@ def test_no_drift_object_detection(coco_train_visiondata, trained_yolov5_object_
 
     # Act
     result = check.run(coco_train_visiondata, coco_train_visiondata, trained_yolov5_object_detection,
-                       prediction_formatter=DetectionPredictionFormatter(yolo_prediction_formatter),
                        device=device)
 
     # Assert
@@ -70,7 +65,6 @@ def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, trai
 
     # Act
     result = check.run(train, test, trained_mnist,
-                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter),
                        device=device)
 
     # Assert
@@ -89,8 +83,7 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
     check = TrainTestPredictionDrift()
 
     # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata, trained_yolov5_object_detection,
-                       prediction_formatter=DetectionPredictionFormatter(yolo_prediction_formatter), device=device)
+    result = check.run(coco_train_visiondata, coco_test_visiondata, trained_yolov5_object_detection, device=device)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -114,8 +107,7 @@ def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_
     check = TrainTestPredictionDrift(max_num_categories=100)
 
     # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata, trained_yolov5_object_detection,
-                       prediction_formatter=DetectionPredictionFormatter(yolo_prediction_formatter), device=device)
+    result = check.run(coco_train_visiondata, coco_test_visiondata, trained_yolov5_object_detection, device=device)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -141,8 +133,7 @@ def test_with_drift_object_detection_alternative_measurements(coco_train_visiond
     check = TrainTestPredictionDrift(alternative_prediction_measurements=alternative_measurements)
 
     # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata, trained_yolov5_object_detection,
-                       prediction_formatter=DetectionPredictionFormatter(yolo_prediction_formatter), device=device)
+    result = check.run(coco_train_visiondata, coco_test_visiondata, trained_yolov5_object_detection, device=device)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -160,9 +151,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, trained_mn
     mod_train_ds, mod_test_ds = mnist_drifted_datasets
 
     # Act
-    result = check.run(mod_train_ds, mod_test_ds, trained_mnist,
-                       prediction_formatter=ClassificationPredictionFormatter(mnist_prediction_formatter),
-                       device=device)
+    result = check.run(mod_train_ds, mod_test_ds, trained_mnist,device=device)
 
     condition_result, *_ = result.conditions_results
 

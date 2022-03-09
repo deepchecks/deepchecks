@@ -23,6 +23,8 @@ deepchecks.vision
     :caption: Classes
     
     VisionData
+    ClassificationData
+    DetectionData
     Context
     SingleDatasetCheck
     TrainTestCheck

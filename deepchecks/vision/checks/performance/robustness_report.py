@@ -25,7 +25,7 @@ from ignite.metrics import Metric
 from deepchecks import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import VisionData, SingleDatasetCheck, Context
-from deepchecks.vision.dataset import TaskType
+from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils import calculate_metrics, metric_results_to_df
 from deepchecks.vision.utils.validation import set_seeds
 from deepchecks.vision.metrics_utils import get_scorers_list
@@ -69,9 +69,9 @@ class RobustnessReport(SingleDatasetCheck):
     def update(self, context: Context, batch: Any, dataset_kind):
         """Accumulates batch data into the metrics."""
         dataset = context.get_data_by_kind(dataset_kind)
-        label = dataset.label_formatter(batch)
+        label = dataset.batch_to_labels(batch)
         # Using context.infer to get cached prediction if exists
-        prediction = context.infer(batch)
+        prediction = context.infer(batch, dataset_kind)
         for _, metric in self._state['metrics'].items():
             metric.update((prediction, label))
 
@@ -82,7 +82,6 @@ class RobustnessReport(SingleDatasetCheck):
         -------
             CheckResult: value is dictionary in format 'score-name': score-value
         """
-        set_seeds(context.random_state)
         dataset = context.get_data_by_kind(dataset_kind)
         model = context.model
 
@@ -94,18 +93,22 @@ class RobustnessReport(SingleDatasetCheck):
             {k: m.compute() for k, m in self._state['metrics'].items()}, dataset
         )
         # TODO: update later the way we handle average metrics
+
         # Return dict of metric to value
         base_mean_results: dict = self._calc_median_metrics(base_results)
         # Get augmentations
         augmentations = self.augmentations or transforms_handler.get_robustness_augmentations(dataset.data_dimension)
         aug_all_data = {}
         for augmentation_func in augmentations:
-            aug_dataset = self._create_augmented_dataset(dataset, augmentation_func, context.random_state)
+            aug_dataset = dataset.get_augmented_dataset(augmentation_func)
             # The metrics have saved state, but they are reset inside `calculate_metrics`
             metrics = self._state['metrics']
+            # The augmentations are pseudo-random and affected by the seeds.
+            # Setting it here to have fixed state just before the augmentations are run
+            set_seeds(context.random_state)
             # Return dataframe of (Class, Metric, Value)
             aug_results = metric_results_to_df(
-                calculate_metrics(metrics, aug_dataset, model, context.prediction_formatter, context.device),
+                calculate_metrics(metrics, aug_dataset, model, context.device),
                 aug_dataset
             )
             # Return dict of {metric: {'score': mean score, 'diff': diff from base}, ... }
@@ -154,23 +157,12 @@ class RobustnessReport(SingleDatasetCheck):
 
         return self.add_condition(f'Metrics degrade by not more than {format_percent(ratio)}', condition)
 
-    def _create_augmented_dataset(self, dataset: VisionData, augmentation_func, seed=None):
-        # Create a copy of data loader and the dataset
-        aug_dataset: VisionData = dataset.copy()
-        # Add augmentation in the first place
-        aug_dataset.add_augmentation(augmentation_func)
-        # Set seed for reproducibility - The order of images is affecting the metrics, since the augmentations are
-        # not fixed (in a certain range), so different order of images will cause the images to be augmented a bit
-        # different which will lead to different metrics.
-        aug_dataset.set_seed(seed)
-        return aug_dataset
-
     def _validate_augmenting_affects(self, transform_handler, dataset: VisionData):
         """Validate the user is using the transforms' field correctly, and that if affects the image and label."""
-        aug_dataset = self._create_augmented_dataset(dataset, transform_handler.get_test_transformation())
+        aug_dataset = dataset.get_augmented_dataset(transform_handler.get_test_transformation())
         # Iterate both datasets and compare results
-        baseline_sampler = iter(dataset.get_data_loader().dataset)
-        aug_sampler = iter(aug_dataset.get_data_loader().dataset)
+        baseline_sampler = iter(dataset.data_loader.dataset)
+        aug_sampler = iter(aug_dataset.data_loader.dataset)
 
         # Validating on a single sample that the augmentation had affected
         for (sample_base, sample_aug) in zip(baseline_sampler, aug_sampler):
@@ -180,7 +172,7 @@ class RobustnessReport(SingleDatasetCheck):
                 continue
 
             batch = dataset.to_batch(sample_base, sample_aug)
-            images = dataset.image_formatter(batch)
+            images = dataset.batch_to_images(batch)
             if ImageInfo(images[0]).is_equals(images[1]):
                 msg = f'Found that images have not been affected by adding augmentation to field ' \
                       f'"{dataset.transform_field}". This might be a problem with the implementation of ' \
@@ -189,7 +181,7 @@ class RobustnessReport(SingleDatasetCheck):
 
             # For classification does not check label for difference
             if dataset.task_type != TaskType.CLASSIFICATION:
-                labels = dataset.label_formatter(batch)
+                labels = dataset.batch_to_labels(batch)
                 if torch.equal(labels[0], labels[1]):
                     msg = f'Found that labels have not been affected by adding augmentation to field ' \
                           f'"{dataset.transform_field}". This might be a problem with the implementation of ' \
@@ -356,8 +348,8 @@ def get_random_image_pairs_from_dataset(original_dataset: VisionData,
         for class_info in classes_list
     }
 
-    baseline_sampler = iter(original_dataset.get_data_loader().dataset)
-    aug_sampler = iter(augmented_dataset.get_data_loader().dataset)
+    baseline_sampler = iter(original_dataset.data_loader.dataset)
+    aug_sampler = iter(augmented_dataset.data_loader.dataset)
     samples = []
     # Will use the diff value to sort by highest diff first
     sort_value = []
@@ -368,8 +360,8 @@ def get_random_image_pairs_from_dataset(original_dataset: VisionData,
             break
 
         batch = original_dataset.to_batch(sample_base, sample_aug)
-        batch_label: torch.Tensor = original_dataset.label_formatter(batch)
-        images: List[np.ndarray] = original_dataset.image_formatter(batch)
+        batch_label: torch.Tensor = original_dataset.batch_to_labels(batch)
+        images: List[np.ndarray] = original_dataset.batch_to_images(batch)
         base_label: torch.Tensor = batch_label[0]
         aug_label: torch.Tensor = batch_label[1]
         if original_dataset.task_type == TaskType.OBJECT_DETECTION:

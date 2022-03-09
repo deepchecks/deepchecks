@@ -68,7 +68,7 @@ def test_limit_classes_for_classification(mnist_dataset_train, mnist_dataset_tes
 
     # Act & Assert
     assert_that(
-        calling(check.run).with_args(mnist_dataset_test, mnist_dataset_test, device=device),
+        calling(check.run).with_args(mnist_dataset_train, mnist_dataset_test, device=device),
         raises(DeepchecksNotSupportedError, 'Classes to display is only supported for object detection tasks.')
     )
 
