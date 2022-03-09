@@ -18,16 +18,19 @@ import torch
 from torch import nn
 from ignite.metrics import Metric
 
-from deepchecks.core.check import (
-    CheckFailure,
+from deepchecks.core.check_result import (
+    CheckFailure, CheckResult
+)
+from deepchecks.core.checks import (
     SingleDatasetBaseCheck,
     TrainTestBaseCheck,
-    ModelOnlyBaseCheck, CheckResult, BaseCheck, DatasetKind
+    ModelOnlyBaseCheck,
+    DatasetKind
 )
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
 from deepchecks.core.errors import (
-    DeepchecksNotSupportedError, DeepchecksValueError
+    DeepchecksNotSupportedError
 )
 from deepchecks.vision.context import Context
 from deepchecks.vision.vision_data import VisionData
@@ -120,7 +123,7 @@ class TrainTestCheck(TrainTestBaseCheck):
             self.update(context, batch, DatasetKind.TEST)
             context.flush_cached_inference(DatasetKind.TEST)
 
-        return finalize_check_result(self.compute(context), self)
+        return self.finalize_check_result(self.compute(context))
 
     def initialize_run(self, context: Context):
         """Initialize run before starting updating on batches. Optional."""

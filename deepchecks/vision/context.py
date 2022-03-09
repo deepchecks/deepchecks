@@ -16,7 +16,7 @@ import torch
 from torch import nn
 from ignite.metrics import Metric
 
-from deepchecks.core.check import DatasetKind
+from deepchecks.core import DatasetKind
 from deepchecks.core.errors import (
     DatasetValidationError, DeepchecksNotImplementedError, ModelValidationError,
     DeepchecksNotSupportedError, DeepchecksValueError
@@ -26,11 +26,7 @@ from deepchecks.vision.vision_data import VisionData, TaskType
 logger = logging.getLogger('deepchecks')
 
 __all__ = [
-    'Context',
-    'Suite',
-    'SingleDatasetCheck',
-    'TrainTestCheck',
-    'ModelOnlyCheck',
+    'Context'
 ]
 
 class Context:

@@ -15,10 +15,12 @@ from typing import Union, Mapping, List, Any
 
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.context import Context
-from deepchecks.core.check import (
+from deepchecks.core.check_result import (
     CheckResult,
-    BaseCheck,
     CheckFailure,
+)
+from deepchecks.core.checks import (
+    BaseCheck,
     SingleDatasetBaseCheck,
     TrainTestBaseCheck,
     ModelOnlyBaseCheck
