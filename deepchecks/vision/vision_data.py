@@ -36,6 +36,7 @@ class TaskType(Enum):
     CLASSIFICATION = 'classification'
     OBJECT_DETECTION = 'object_detection'
 
+
 class VisionData:
     """VisionData represent a base task in deepchecks. It wraps PyTorch DataLoader together with model related metadata.
 
