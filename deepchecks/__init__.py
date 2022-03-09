@@ -129,6 +129,7 @@ warnings.filterwarnings(
 
 __original_module__ = sys.modules[__name__]
 
+
 class _SubstituteModule(types.ModuleType):
     """Substitute module type to provide backward compatibility."""
 
