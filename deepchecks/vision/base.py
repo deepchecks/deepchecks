@@ -16,7 +16,6 @@ from collections import OrderedDict
 
 import torch
 from torch import nn
-from torch.utils.data import DataLoader
 from ignite.metrics import Metric
 
 from deepchecks.core.check import (
