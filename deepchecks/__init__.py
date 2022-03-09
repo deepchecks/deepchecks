@@ -20,7 +20,6 @@ import warnings
 from pkg_resources import parse_version
 from importlib._bootstrap import _init_module_attrs
 
-import deepchecks.tabular
 from deepchecks.utils.ipython import is_notebook
 from deepchecks.core import (
     BaseCheck,
@@ -35,9 +34,21 @@ from deepchecks.core import (
     TrainTestBaseCheck,
     ModelOnlyBaseCheck
 )
+# TODO: remove in further versions
+from deepchecks.tabular import (
+    Dataset,
+    Suite,
+    Context,
+    SingleDatasetCheck,
+    TrainTestCheck,
+    ModelOnlyCheck,
+    ModelComparisonCheck,
+    ModelComparisonSuite,
+)
 
 
 __all__ = [
+    # core
     'BaseCheck',
     'SingleDatasetBaseCheck',
     'TrainTestBaseCheck',
@@ -49,6 +60,15 @@ __all__ = [
     'ConditionCategory',
     'BaseSuite',
     'SuiteResult',
+    # tabular
+    'Dataset',
+    'Suite',
+    'Context',
+    'SingleDatasetCheck',
+    'TrainTestCheck',
+    'ModelOnlyCheck',
+    'ModelComparisonCheck',
+    'ModelComparisonSuite',
 ]
 
 
@@ -101,12 +121,15 @@ warnings.filterwarnings(
     module=r'deepchecks.*'
 )
 
+
 # NOTE:
 # Code below is a temporary hack that exists only to provide backward compatibility
 # and will be removed in the next versions.
 
 
-class _CurrentModule(types.ModuleType):
+__original_module__ = sys.modules[__name__]
+
+class _SubstituteModule(types.ModuleType):
     """Substitute module type to provide backward compatibility."""
 
     ROUTINES = (
@@ -120,26 +143,22 @@ class _CurrentModule(types.ModuleType):
         'ModelComparisonSuite',
     )
 
-    def __getattr__(self, name):
-        if name in self.ROUTINES:
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__dict__.update(__original_module__.__dict__)
+
+    def __getattribute__(self, name):
+        routines = object.__getattribute__(self, 'ROUTINES')
+        if name in routines:
             warnings.warn(
                 'Ability to import base tabular functionality from '
                 'the `deepchecks` package directly is deprecated, please '
                 'import from `deepchecks.tabular` instead',
                 DeprecationWarning
             )
-            return getattr(deepchecks.tabular, name)
-        else:
-            return super().__getattr__(name)
+        return object.__getattribute__(self, name)
 
 
-__original_module__ = sys.modules[__name__]
-__substitute_module__ = _CurrentModule(__name__)
-
-
-for a in ['__spec__', '__version__', '__all__', '__original_module__'] + __all__:
-    setattr(__substitute_module__, a, getattr(__original_module__, a))
-
-
-_init_module_attrs(__substitute_module__.__spec__, __substitute_module__, override=True)
+__substitute_module__ = _SubstituteModule(__name__)
+_init_module_attrs(__original_module__.__spec__, __substitute_module__, override=True)
 sys.modules[__name__] = __substitute_module__
