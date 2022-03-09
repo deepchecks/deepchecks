@@ -9,25 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Deepchecks."""
+import sys
+import types
 import os
 import pathlib
 import http.client
-import warnings
 import matplotlib
 import plotly.io as pio
+import warnings
 from pkg_resources import parse_version
+from importlib._bootstrap import _init_module_attrs
 
 from deepchecks.utils.ipython import is_notebook
-from deepchecks.tabular import (
-    Dataset,
-    Suite,
-    Context,
-    SingleDatasetCheck,
-    TrainTestCheck,
-    ModelOnlyCheck,
-    ModelComparisonCheck,
-    ModelComparisonSuite,
-)
 from deepchecks.core import (
     BaseCheck,
     BaseSuite,
@@ -41,23 +34,25 @@ from deepchecks.core import (
     TrainTestBaseCheck,
     ModelOnlyBaseCheck
 )
-
-
-warnings.warn(
-    # TODO: better message
-    'Ability to import base tabular functionality from '
-    'the `deepchecks` directly is deprecated, please import from '
-    '`deepchecks.tabular` instead',
-    DeprecationWarning
+# TODO: remove in further versions
+from deepchecks.tabular import (
+    Dataset,
+    Suite,
+    Context,
+    SingleDatasetCheck,
+    TrainTestCheck,
+    ModelOnlyCheck,
+    ModelComparisonCheck,
+    ModelComparisonSuite,
 )
 
 
 __all__ = [
+    # core
     'BaseCheck',
     'SingleDatasetBaseCheck',
     'TrainTestBaseCheck',
     'ModelOnlyBaseCheck',
-    'ModelComparisonCheck',
     'CheckResult',
     'CheckFailure',
     'Condition',
@@ -65,15 +60,15 @@ __all__ = [
     'ConditionCategory',
     'BaseSuite',
     'SuiteResult',
-
-    # tabular checks
+    # tabular
+    'Dataset',
+    'Suite',
+    'Context',
     'SingleDatasetCheck',
     'TrainTestCheck',
     'ModelOnlyCheck',
-    'Dataset',
-    'Suite',
+    'ModelComparisonCheck',
     'ModelComparisonSuite',
-    'Context'
 ]
 
 
@@ -81,6 +76,7 @@ __all__ = [
 # we can't use a GUI backend. Thus we must use a non-GUI backend.
 if not is_notebook():
     matplotlib.use('Agg')
+
 
 # We can't rely on that the user will have an active internet connection, thus we change the default backend to
 # "notebook" If plotly detects the 'notebook-connected' backend.
@@ -100,6 +96,7 @@ except:  # pylint: disable=bare-except # noqa
     # If version file can't be found, leave version empty
     __version__ = ''
 
+
 # Check for latest version
 try:
     disable = os.environ.get('DEEPCHECKS_DISABLE_LATEST', 'false').lower() == 'true'
@@ -113,3 +110,56 @@ try:
                           ' pip install -U deepchecks')
 except:  # pylint: disable=bare-except # noqa
     pass
+
+
+# ================================================================
+
+warnings.filterwarnings(
+    action='once',
+    message=r'Ability to import.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
+
+
+# NOTE:
+# Code below is a temporary hack that exists only to provide backward compatibility
+# and will be removed in the next versions.
+
+
+__original_module__ = sys.modules[__name__]
+
+
+class _SubstituteModule(types.ModuleType):
+    """Substitute module type to provide backward compatibility."""
+
+    ROUTINES = (
+        'Dataset',
+        'Suite',
+        'Context',
+        'SingleDatasetCheck',
+        'TrainTestCheck',
+        'ModelOnlyCheck',
+        'ModelComparisonCheck',
+        'ModelComparisonSuite',
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__dict__.update(__original_module__.__dict__)
+
+    def __getattribute__(self, name):
+        routines = object.__getattribute__(self, 'ROUTINES')
+        if name in routines:
+            warnings.warn(
+                'Ability to import base tabular functionality from '
+                'the `deepchecks` package directly is deprecated, please '
+                'import from `deepchecks.tabular` instead',
+                DeprecationWarning
+            )
+        return object.__getattribute__(self, name)
+
+
+__substitute_module__ = _SubstituteModule(__name__)
+_init_module_attrs(__original_module__.__spec__, __substitute_module__, override=True)
+sys.modules[__name__] = __substitute_module__
