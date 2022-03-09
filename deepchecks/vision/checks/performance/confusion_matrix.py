@@ -145,7 +145,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                 # detections are empty, update matrix for labels
                 for label in image_labels:
                     gt_class = int(label[0].item())
-                    self.matrix[self.num_classes, gt_class] += 1
+                    self.matrix[gt_class, self.num_classes] += 1
                 continue
 
             all_ious = np.zeros((len(image_labels), len(detections_passed_threshold)))
@@ -174,18 +174,18 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                 gt_class = int(label[0])
                 if all_matches.shape[0] > 0 and all_matches[all_matches[:, 0] == i].shape[0] == 1:
                     detection_class = int(image_detections[int(all_matches[all_matches[:, 0] == i, 1][0])][5])
-                    self.matrix[detection_class, gt_class] += 1
+                    self.matrix[gt_class, detection_class] += 1
                 else:
-                    self.matrix[self.num_classes, gt_class] += 1
+                    self.matrix[gt_class, self.num_classes] += 1
 
             for i, detection in enumerate(image_detections):
                 if all_matches.shape[0] and all_matches[all_matches[:, 1] == i].shape[0] == 0:
                     detection_class = int(detection[5])
-                    self.matrix[detection_class, self.num_classes] += 1
+                    self.matrix[self.num_classes, detection_class] += 1
 
     def update_classification(self, predictions, labels):
         """Update the confusion matrix by batch for classification task."""
         for predicted_classes, image_labels in zip(predictions, labels):
             detected_class = max(range(len(predicted_classes)), key=predicted_classes.__getitem__)
 
-            self.matrix[detected_class, image_labels] += 1
+            self.matrix[image_labels, detected_class] += 1
