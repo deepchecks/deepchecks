@@ -117,7 +117,7 @@ class SuiteResult:
                 Default config is the suite name.
         """
         dedicated_run = set_wandb_run_state(dedicated_run, {'name': self.name}, **kwargs)
-        progress_bar = ProgressBar(self.name, len(self.results))
+        progress_bar = ProgressBar(self.name, len(self.results), 'Result')
         for res in self.results:
             res.to_wandb(False)
             progress_bar.inc_progress()

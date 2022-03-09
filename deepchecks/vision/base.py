@@ -355,6 +355,7 @@ class Suite(BaseSuite):
         SuiteResult
             All results by all initialized checks
         """
+        progress_bar = ProgressBar('Validating Input', 1, unit='')
         context = Context(
             train_dataset,
             test_dataset,
@@ -364,6 +365,8 @@ class Suite(BaseSuite):
             device=device,
             random_state=random_state
         )
+        progress_bar.inc_progress()
+        progress_bar.close()
 
         results: Dict[
             Union[str, int],
@@ -371,14 +374,19 @@ class Suite(BaseSuite):
         ] = OrderedDict({})
 
         run_train_test_checks = train_dataset is not None and test_dataset is not None
+        non_single_checks = {k: check for k, check in self.checks.items() if not isinstance(check, SingleDatasetCheck)}
 
         # Initialize here all the checks that are not single dataset, since those are initialized inside the update loop
-        for index, check in self.checks.items():
-            if not isinstance(check, SingleDatasetCheck):
+        if non_single_checks:
+            progress_bar = ProgressBar('Initializing Checks', len(non_single_checks), unit='Check')
+            for index, check in non_single_checks.items():
+                progress_bar.set_text(check.name())
                 try:
                     check.initialize_run(context)
                 except Exception as exp:
                     results[index] = CheckFailure(check, exp)
+                progress_bar.inc_progress()
+            progress_bar.close()
 
         if train_dataset is not None:
             self._update_loop(
@@ -396,16 +404,21 @@ class Suite(BaseSuite):
                 dataset_kind=DatasetKind.TEST
             )
 
-        for check_idx, check in self.checks.items():
-            try:
-                # if check index in results we had failure, and SingleDatasetCheck have already been calculated inside
-                # the loops
-                if check_idx not in results and not isinstance(check, SingleDatasetCheck):
-                    result = check.compute(context)
-                    result = finalize_check_result(result, check)
-                    results[check_idx] = result
-            except Exception as exp:
-                results[check_idx] = CheckFailure(check, exp)
+        # Need to compute only on not SingleDatasetCheck, since they computed inside the loop
+        if non_single_checks:
+            progress_bar = ProgressBar('Computing Checks', len(non_single_checks), unit='Check')
+            for check_idx, check in non_single_checks.items():
+                progress_bar.set_text(check.name())
+                try:
+                    # if check index in results we had failure
+                    if check_idx not in results:
+                        result = check.compute(context)
+                        result = finalize_check_result(result, check)
+                        results[check_idx] = result
+                except Exception as exp:
+                    results[check_idx] = CheckFailure(check, exp)
+                progress_bar.inc_progress()
+            progress_bar.close()
 
         # The results are ordered as they ran instead of in the order they were defined, therefore sort by key
         sorted_result_values = [value for name, value in sorted(results.items(), key=lambda pair: str(pair[0]))]
@@ -421,17 +434,22 @@ class Suite(BaseSuite):
         type_suffix = ' - Test Dataset' if dataset_kind == DatasetKind.TEST else ' - Train Dataset'
         data_loader = context.get_data_by_kind(dataset_kind)
         n_batches = len(data_loader)
-        progress_bar = ProgressBar(self.name + type_suffix, n_batches)
+        single_dataset_checks = {k: check for k, check in self.checks.items() if isinstance(check, SingleDatasetCheck)}
 
         # SingleDatasetChecks have different handling, need to initialize them here (to have them ready for different
         # dataset kind)
-        for idx, check in self.checks.items():
-            if isinstance(check, SingleDatasetCheck):
+        if single_dataset_checks:
+            progress_bar = ProgressBar('Initializing Checks' + type_suffix, len(single_dataset_checks), unit='Check')
+            for idx, check in single_dataset_checks.items():
+                progress_bar.set_text(check.name())
                 try:
                     check.initialize_run(context, dataset_kind=dataset_kind)
                 except Exception as exp:
                     results[idx] = CheckFailure(check, exp, type_suffix)
+                progress_bar.inc_progress()
+            progress_bar.close()
 
+        progress_bar = ProgressBar('Ingesting Batches' + type_suffix, n_batches, unit='Batch')
         for batch_id, batch in enumerate(data_loader):
             progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
             batch = apply_to_tensor(batch, lambda it: it.to(context.device))
@@ -458,11 +476,13 @@ class Suite(BaseSuite):
             context.flush_cached_inference(dataset_kind)
 
         progress_bar.close()
-
         # SingleDatasetChecks have different handling. If we had failure in them need to add suffix to the index of
         # the results, else need to compute it.
-        for idx, check in self.checks.items():
-            if isinstance(check, SingleDatasetCheck):
+        if single_dataset_checks:
+            progress_bar = ProgressBar('Computing Single Dataset Checks' + type_suffix, len(single_dataset_checks),
+                                       unit='Check')
+            for idx, check in single_dataset_checks.items():
+                progress_bar.set_text(check.name())
                 index_of_kind = str(idx) + type_suffix
                 # If index in results we had a failure
                 if idx in results:
@@ -477,6 +497,8 @@ class Suite(BaseSuite):
                     results[index_of_kind] = result
                 except Exception as exp:
                     results[index_of_kind] = CheckFailure(check, exp, type_suffix)
+                progress_bar.inc_progress()
+            progress_bar.close()
 
     @classmethod
     def _get_unsupported_failure(cls, check, msg):
