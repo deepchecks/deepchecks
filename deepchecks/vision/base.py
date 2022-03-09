@@ -403,7 +403,7 @@ class Suite(BaseSuite):
                 # the loops
                 if check_idx not in results and not isinstance(check, SingleDatasetCheck):
                     result = check.compute(context)
-                    result = finalize_check_result(result, result)
+                    result = finalize_check_result(result, check)
                     results[check_idx] = result
             except Exception as exp:
                 results[check_idx] = CheckFailure(check, exp)
