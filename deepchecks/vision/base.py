@@ -391,6 +391,8 @@ class Suite(BaseSuite):
                     checks[str(check_idx) + ' - Train'] = check
                 if test_dataset is not None:
                     checks[str(check_idx) + ' - Test'] = check
+            else:
+                raise DeepchecksNotSupportedError(f'Don\'t know to handle check type {type(check)}')
 
         run_train_test_checks = train_dataset is not None and test_dataset is not None
 
@@ -440,14 +442,18 @@ class Suite(BaseSuite):
         for check_idx, result in results.items():
             if isinstance(result, CheckResult):
                 result = finalize_check_result(result, checks[check_idx])
-                result.header = (
-                    f'{result.get_header()} - Train Dataset'
-                    if str(check_idx).endswith(' - Train')
-                    else f'{result.get_header()} - Test Dataset'
-                )
                 results[check_idx] = result
+                # Update header only if both train and test ran
+                if run_train_test_checks:
+                    result.header = (
+                        f'{result.get_header()} - Train Dataset'
+                        if str(check_idx).endswith(' - Train')
+                        else f'{result.get_header()} - Test Dataset'
+                    )
 
-        return SuiteResult(self.name, list(results.values()))
+        # The results are ordered as they ran instead of in the order they were defined, therefore sort by key
+        sorted_result_values = [value for name, value in sorted(results.items(), key=lambda pair: str(pair[0]))]
+        return SuiteResult(self.name, sorted_result_values)
 
     def _update_loop(
         self,
