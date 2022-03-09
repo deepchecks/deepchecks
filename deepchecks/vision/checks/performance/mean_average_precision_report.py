@@ -44,7 +44,9 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
         """Initialize run by asserting task type and initializing metric."""
         self._ap_metric = AveragePrecision(return_option=None, area_range=self._area_range)
+        print('mahhh')
         context.assert_task_type(TaskType.OBJECT_DETECTION)
+        print('howw')
 
     def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
         """Update the metrics by passing the batch to ignite metric update method."""
