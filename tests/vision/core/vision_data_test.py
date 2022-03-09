@@ -26,14 +26,13 @@ def test_get_transforms_type_albumentations(mnist_dataset_train):
     assert_that(transform_handler, instance_of(AlbumentationsTransformations.__class__))
 
 
-def test_add_augmentation_albumentations(mnist_dataset_train):
+def test_add_augmentation_albumentations(mnist_dataset_train: VisionData):
     # Arrange
-    copy_dataset = mnist_dataset_train.copy()
     augmentation = A.CenterCrop(1, 1)
     # Act
-    copy_dataset.add_augmentation(augmentation)
+    copy_dataset = mnist_dataset_train.get_augmented_dataset(augmentation)
     # Assert
-    batch = next(iter(copy_dataset.get_data_loader()))
+    batch = next(iter(copy_dataset.data_loader))
     data_sample = batch[0][0]
     assert_that(data_sample.numpy().shape, equal_to((1, 1, 1)))
 
@@ -44,7 +43,7 @@ def test_add_augmentation_albumentations_wrong_type(mnist_dataset_train):
     augmentation = iaa.CenterCropToFixedSize(1, 1)
     # Act & Assert
     msg = r'Transforms is of type albumentations, can\'t add to it type CenterCropToFixedSize'
-    assert_that(calling(copy_dataset.add_augmentation).with_args(augmentation),
+    assert_that(calling(copy_dataset.get_augmented_dataset).with_args(augmentation),
                 raises(DeepchecksValueError, msg))
 
 
@@ -55,25 +54,24 @@ def test_get_transforms_type_imgaug(mnist_dataset_train_imgaug):
     assert_that(transform_handler, instance_of(ImgaugTransformations.__class__))
 
 
-def test_add_augmentation_imgaug(mnist_dataset_train_imgaug):
+def test_add_augmentation_imgaug(mnist_dataset_train_imgaug: VisionData):
     # Arrange
-    copy_dataset = mnist_dataset_train_imgaug.copy()
     augmentation = iaa.CenterCropToFixedSize(1, 1)
     # Act
-    copy_dataset.add_augmentation(augmentation)
+    copy_dataset = mnist_dataset_train_imgaug.get_augmented_dataset(augmentation)
     # Assert
-    batch = next(iter(copy_dataset.get_data_loader()))
+    batch = next(iter(copy_dataset.data_loader))
     data_sample = batch[0][0]
     assert_that(data_sample.numpy().shape, equal_to((1, 1, 1)))
 
 
-def test_add_augmentation_imgaug_wrong_type(mnist_dataset_train_imgaug):
+def test_add_augmentation_imgaug_wrong_type(mnist_dataset_train_imgaug: VisionData):
     # Arrange
     copy_dataset = mnist_dataset_train_imgaug.copy()
     augmentation = A.CenterCrop(1, 1)
     # Act & Assert
     msg = r'Transforms is of type imgaug, can\'t add to it type CenterCrop'
-    assert_that(calling(copy_dataset.add_augmentation).with_args(augmentation),
+    assert_that(calling(copy_dataset.get_augmented_dataset).with_args(augmentation),
                 raises(DeepchecksValueError, msg))
 
 

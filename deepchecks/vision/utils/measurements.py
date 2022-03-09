@@ -11,6 +11,7 @@
 """Module containing measurements for labels and predictions."""
 from typing import List, Iterable
 
+from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import VisionData, Context
 
@@ -83,13 +84,14 @@ DEFAULT_OBJECT_DETECTION_PREDICTION_MEASUREMENTS = [
 
 def get_label_measurements_on_batch(batch, label_measurement, dataset: VisionData):
     """Calculate transformer result on batch of labels."""
-    calc_res = [label_measurement(arr, dataset) for arr in dataset.label_formatter(batch)]
+    calc_res = [label_measurement(arr, dataset) for arr in dataset.batch_to_labels(batch)]
     return flatten(calc_res)
 
 
-def get_prediction_measurements_on_batch(batch, prediction_measurement, dataset, context: Context):
+def get_prediction_measurements_on_batch(batch, prediction_measurement, dataset, context: Context,
+                                         dataset_kind: DatasetKind):
     """Calculate transformer result on batch of labels."""
-    calc_res = [prediction_measurement(arr, dataset) for arr in context.infer(batch)]
+    calc_res = [prediction_measurement(arr, dataset) for arr in context.infer(batch, dataset_kind)]
     return flatten(calc_res)
 
 
