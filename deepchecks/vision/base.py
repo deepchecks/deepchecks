@@ -11,7 +11,7 @@
 """Module for base vision abstractions."""
 # pylint: disable=broad-except,not-callable
 import logging
-from typing import Tuple, Mapping, Optional, Any, Union, Dict
+from typing import Tuple, Mapping, Optional, Any, Union, Dict, List
 from collections import OrderedDict
 
 import torch
@@ -355,7 +355,9 @@ class Suite(BaseSuite):
         SuiteResult
             All results by all initialized checks
         """
+        all_pbars = []
         progress_bar = ProgressBar('Validating Input', 1, unit='')
+        all_pbars.append(progress_bar)
         context = Context(
             train_dataset,
             test_dataset,
@@ -366,7 +368,6 @@ class Suite(BaseSuite):
             random_state=random_state
         )
         progress_bar.inc_progress()
-        progress_bar.close()
 
         results: Dict[
             Union[str, int],
@@ -379,6 +380,7 @@ class Suite(BaseSuite):
         # Initialize here all the checks that are not single dataset, since those are initialized inside the update loop
         if non_single_checks:
             progress_bar = ProgressBar('Initializing Checks', len(non_single_checks), unit='Check')
+            all_pbars.append(progress_bar)
             for index, check in non_single_checks.items():
                 progress_bar.set_text(check.name())
                 try:
@@ -386,14 +388,14 @@ class Suite(BaseSuite):
                 except Exception as exp:
                     results[index] = CheckFailure(check, exp)
                 progress_bar.inc_progress()
-            progress_bar.close()
 
         if train_dataset is not None:
             self._update_loop(
                 context=context,
                 run_train_test_checks=run_train_test_checks,
                 results=results,
-                dataset_kind=DatasetKind.TRAIN
+                dataset_kind=DatasetKind.TRAIN,
+                progress_bars=all_pbars
             )
 
         if test_dataset is not None:
@@ -401,12 +403,14 @@ class Suite(BaseSuite):
                 context=context,
                 run_train_test_checks=run_train_test_checks,
                 results=results,
-                dataset_kind=DatasetKind.TEST
+                dataset_kind=DatasetKind.TEST,
+                progress_bars=all_pbars
             )
 
         # Need to compute only on not SingleDatasetCheck, since they computed inside the loop
         if non_single_checks:
             progress_bar = ProgressBar('Computing Checks', len(non_single_checks), unit='Check')
+            all_pbars.append(progress_bar)
             for check_idx, check in non_single_checks.items():
                 progress_bar.set_text(check.name())
                 try:
@@ -418,10 +422,14 @@ class Suite(BaseSuite):
                 except Exception as exp:
                     results[check_idx] = CheckFailure(check, exp)
                 progress_bar.inc_progress()
-            progress_bar.close()
 
         # The results are ordered as they ran instead of in the order they were defined, therefore sort by key
         sorted_result_values = [value for name, value in sorted(results.items(), key=lambda pair: str(pair[0]))]
+
+        # Close all progress bars
+        for pbar in all_pbars:
+            pbar.close()
+
         return SuiteResult(self.name, sorted_result_values)
 
     def _update_loop(
@@ -429,7 +437,8 @@ class Suite(BaseSuite):
         context: Context,
         run_train_test_checks: bool,
         results: Dict[Union[str, int], Union[CheckResult, CheckFailure]],
-        dataset_kind: DatasetKind
+        dataset_kind: DatasetKind,
+        progress_bars: List
     ):
         type_suffix = ' - Test Dataset' if dataset_kind == DatasetKind.TEST else ' - Train Dataset'
         data_loader = context.get_data_by_kind(dataset_kind)
@@ -440,6 +449,7 @@ class Suite(BaseSuite):
         # dataset kind)
         if single_dataset_checks:
             progress_bar = ProgressBar('Initializing Checks' + type_suffix, len(single_dataset_checks), unit='Check')
+            progress_bars.append(progress_bar)
             for idx, check in single_dataset_checks.items():
                 progress_bar.set_text(check.name())
                 try:
@@ -447,9 +457,9 @@ class Suite(BaseSuite):
                 except Exception as exp:
                     results[idx] = CheckFailure(check, exp, type_suffix)
                 progress_bar.inc_progress()
-            progress_bar.close()
 
         progress_bar = ProgressBar('Ingesting Batches' + type_suffix, n_batches, unit='Batch')
+        progress_bars.append(progress_bar)
         for batch_id, batch in enumerate(data_loader):
             progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
             batch = apply_to_tensor(batch, lambda it: it.to(context.device))
@@ -475,12 +485,12 @@ class Suite(BaseSuite):
             progress_bar.inc_progress()
             context.flush_cached_inference(dataset_kind)
 
-        progress_bar.close()
         # SingleDatasetChecks have different handling. If we had failure in them need to add suffix to the index of
         # the results, else need to compute it.
         if single_dataset_checks:
             progress_bar = ProgressBar('Computing Single Dataset Checks' + type_suffix, len(single_dataset_checks),
                                        unit='Check')
+            progress_bars.append(progress_bar)
             for idx, check in single_dataset_checks.items():
                 progress_bar.set_text(check.name())
                 index_of_kind = str(idx) + type_suffix
@@ -498,7 +508,6 @@ class Suite(BaseSuite):
                 except Exception as exp:
                     results[index_of_kind] = CheckFailure(check, exp, type_suffix)
                 progress_bar.inc_progress()
-            progress_bar.close()
 
     @classmethod
     def _get_unsupported_failure(cls, check, msg):
