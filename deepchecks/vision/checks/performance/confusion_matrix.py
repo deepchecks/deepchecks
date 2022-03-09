@@ -137,13 +137,13 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
         if add_not_found_category:
             description += ['"No overlapping" categories are labels and prediction which did not have a matching '
-                            'label/prediction. For example a predictions that did not have a sufficiently overlapping label bounding box '
-                            'will appear under the "No overlapping label" category']
+                            'label/prediction. For example a predictions that did not have a sufficiently overlapping '
+                            'label bounding box will appear under the "No overlapping label" category']
             x += ['No overlapping prediction']
             y += ['No overlapping label']
         if add_unseen_category:
-            description += ['Unseen classes are classes that did not appear in the dataset labels, but did where predicted to be present.
-                            'which resulted in them.']
+            description += ['Unseen classes are classes that did not appear in the dataset labels, but did were '
+                            'predicted to be present.']
             x += ['Unseen classes']
             y += ['Unseen classes']
 
