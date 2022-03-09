@@ -19,7 +19,6 @@ from deepchecks.tabular.checks import *  # pylint: disable=wildcard-import
 
 
 warnings.warn(
-    # TODO: better message
     'Ability to import tabular checks from the `deepchecks.checks` '
     'is deprecated, please import from `deepchecks.tabular.checks` instead',
     DeprecationWarning
