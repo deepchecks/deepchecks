@@ -289,7 +289,7 @@ class CheckResult:
             controls if to serialize display or not
 
         Returns
-        --------
+        -------
         str
             {'name': .., 'params': .., 'header': ..,
              'summary': .., 'conditions_table': .., 'value', 'display': ..}

@@ -83,6 +83,7 @@ class TrainTestLabelDrift(TrainTestCheck):
         Function initializes the following private variables:
 
         Label measurements:
+
         _label_measurements: all label measurements to be calculated in run
 
         Label measurements caching:

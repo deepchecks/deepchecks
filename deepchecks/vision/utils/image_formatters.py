@@ -70,7 +70,7 @@ class ImageFormatter:
         batch
 
         Raises
-        -------
+        ------
         DeepchecksValueError
             If the batch data doesn't fit the format after being transformed by self().
 
