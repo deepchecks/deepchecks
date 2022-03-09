@@ -129,8 +129,17 @@ class VisionData:
 
         Examples
         --------
+        >>> import numpy as np
+        ...
+        ...
         >>> def batch_to_images(self, batch):
-        ...     return batch[0]
+        ...     # Converts a batch of normalized images to rgb images with range [0, 255]
+        ...     inp = batch[0].detach().numpy().transpose((0, 2, 3, 1))
+        ...     mean = [0.485, 0.456, 0.406]
+        ...     std = [0.229, 0.224, 0.225]
+        ...     inp = std * inp + mean
+        ...     inp = np.clip(inp, 0, 1)
+        ...     return inp*255
 
         Notes
         -----
