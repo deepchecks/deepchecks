@@ -260,7 +260,7 @@ class VisionData:
             if datasets don't have the same label
         """
         if not isinstance(other, VisionData):
-            raise ValidationError('Check requires dataset to be of type VisionTask. instead got: '
+            raise ValidationError('Check requires dataset to be of type VisionData. instead got: '
                                   f'{type(other).__name__}')
 
         if self._has_label != other.has_label:
