@@ -11,17 +11,15 @@
 """Module containing the image formatter class for the vision module."""
 from typing import Tuple, List
 import numpy as np
-from skimage import dtype_limits
 from skimage.measure import blur_effect
 
-from deepchecks.core.errors import DeepchecksValueError
 from skimage.color import rgb2gray
 
 __all__ = ['image_properties',
            'aspect_ratio',
            'area',
            'brightness',
-           'contrast',
+           'rms_contrast',
            'normalized_red_mean',
            'normalized_blue_mean',
            'normalized_green_mean',
@@ -33,9 +31,11 @@ image_properties = frozenset((
     'aspect_ratio',
     'area',
     'brightness',
+    'rms_contrast',
     'normalized_red_mean',
     'normalized_green_mean',
     'normalized_blue_mean',
+    'blur'
 ))
 
 
@@ -57,20 +57,20 @@ def brightness(batch: List[np.ndarray]) -> List[float]:
         return [rgb2gray(img).mean() for img in batch]
 
 
-def blur(self, batch: List[np.array]) -> List[float]:
+def blur(batch: List[np.array]) -> List[float]:
     """Return blur effect score of image.
 
     See https://hal.archives-ouvertes.fr/hal-00232709 for more details"""
-    if self._is_grayscale(batch) is True:
-        return [blur_effect(img.reshape(self.get_size(img))) for img in batch]
+    if _is_grayscale(batch) is True:
+        return [blur_effect(img.reshape(get_size(img))) for img in batch]
     else:
         return [blur_effect(rgb2gray(img)) for img in batch]
 
 
-def rms_contrast(self, batch: List[np.array]) -> List[float]:
+def rms_contrast(batch: List[np.array]) -> List[float]:
     """Return RMS contrast of image."""
 
-    if self._is_grayscale(batch) is False:
+    if _is_grayscale(batch) is False:
         batch = [rgb2gray(img) for img in batch]
 
     return [img.std() for img in batch]

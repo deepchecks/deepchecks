@@ -21,6 +21,8 @@ import pandas as pd
 __all__ = ['SimpleFeatureContributionTrainTest']
 
 # TODO
+from deepchecks.vision.utils import image_formatters
+
 pps_url = 'https://docs.deepchecks.com/en/stable/examples/tabular/' \
           'checks/methodology/single_feature_contribution_train_test' \
           '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
@@ -125,11 +127,11 @@ class SimpleFeatureContributionTrainTest(TrainTestCheck):
             dataset = context.test
             properties = self._test_properties
 
-        imgs = dataset.image_formatter(batch)
+        imgs = dataset.batch_to_images(batch)
         for func_name in self.image_properties:
-            image_property_function = dataset.image_formatter.__getattribute__(func_name)
-            properties[func_name] += image_property_function(imgs)
-        properties['target'] += dataset.label_formatter(batch)
+            properties[func_name] += getattr(image_formatters, func_name)(imgs)
+
+        properties['target'] += dataset.batch_to_labels(batch)
 
     def compute(self, context: Context) -> CheckResult:
         """Train a Domain Classifier on image property data that was collected during update() calls.
