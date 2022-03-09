@@ -165,6 +165,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         )
 
     def class_id_to_matrix_id(self, class_id):
+        """Convert a class id to its id in the matrix."""
         try:
             return self.classes_list.index(class_id)
         # If the class is not in the labels list (detection returned class not in the list) then return not found
@@ -172,6 +173,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             return self.unseen_class_idx
 
     def matrix_id_to_class_name(self, matrix_id, dataset):
+        """Convert matrix id to the real class id, and return its name if possible."""
         class_id = self.classes_list[matrix_id] if self.classes_list else matrix_id
         return dataset.label_id_to_name(class_id)
 
