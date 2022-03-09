@@ -60,7 +60,7 @@ class DetectionData(VisionData):
             logger.warning('batch_to_labels() was not implemented, some checks will not run')
         except ValidationError as ex:
             logger.warning('batch_to_labels() was not implemented correctly, '
-                            f'the validiation has failed with the error: {str(ex)}')
+                           'the validiation has failed with the error: %s', {str(ex)})
 
     @abstractmethod
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:

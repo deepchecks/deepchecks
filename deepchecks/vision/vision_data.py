@@ -75,7 +75,7 @@ class VisionData:
             logger.warning('batch_to_images() was not implemented, some checks will not run')
         except ValidationError as ex:
             logger.warning('batch_to_images() was not implemented correctly, '
-                           f'the validiation has failed with the error: {str(ex)}')
+                           'the validiation has failed with the error: %s', {str(ex)})
 
         self._n_of_samples_per_class = None
         self._task_type = None
@@ -124,6 +124,7 @@ class VisionData:
         Iterable[np.ndarray]
             List of images in the accepted format. Each image in the iterable must be a [H, W, C] 3D numpy array.
             See notes for more details.
+            :func: `batch_to_images` must be implemented in a subclass.
 
         Examples
         --------
