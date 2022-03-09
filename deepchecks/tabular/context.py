@@ -263,4 +263,3 @@ class Context:
         scorer_name = next(iter(scorers))
         single_scorer_dict = {scorer_name: scorers[scorer_name]}
         return init_validate_scorers(single_scorer_dict, self.model, self.train, class_avg, self.task_type)[0]
-

@@ -26,13 +26,14 @@ __all__ = [
     'ModelComparisonContext'
 ]
 
+
 class ModelComparisonSuite(BaseSuite):
     """Suite to run checks of types: CompareModelsBaseCheck."""
 
     @classmethod
-    def supported_checks(cls) -> Tuple:
+    def supported_checks(cls) -> Tuple:  # noqa: SC100
         """Return tuple of supported check types of this suite."""
-        from deepchecks.tabular.base_checks import ModelComparisonCheck # pylint: disable=import-outside-toplevel
+        from deepchecks.tabular.base_checks import ModelComparisonCheck  # pylint: disable=import-outside-toplevel
         return tuple([ModelComparisonCheck])
 
     def run(self,
