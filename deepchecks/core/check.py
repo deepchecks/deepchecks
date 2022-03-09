@@ -503,6 +503,20 @@ class BaseCheck(abc.ABC):
         return {k: v for k, v in vars(self).items()
                 if k in init_params and v != init_params[k].default}
 
+    def finalize_check_result(self, check_result: CheckResult) -> CheckResult:
+        """Finalize the check result by adding the check instance and processing the conditions."""
+        if not isinstance(check_result, CheckResult):
+            raise DeepchecksValueError(f'Check {self.name()} expected to return CheckResult but got: '
+                                    + type(check_result).__name__)
+        check_result.check = self
+        check_result.process_conditions()
+        return check_result
+
+    @classmethod
+    def name(cls):
+        """Name of class in split camel case."""
+        return split_camel_case(cls.__name__)
+
     def __repr__(self, tabs=0, prefix=''):
         """Representation of check as string.
 
@@ -528,11 +542,6 @@ class BaseCheck(abc.ABC):
             return f'{check_str}\n{tab_chr * (tabs + 1)}Conditions:{conditions_str}'
         else:
             return check_str
-
-    @classmethod
-    def name(cls):
-        """Name of class in split camel case."""
-        return split_camel_case(cls.__name__)
 
 
 class SingleDatasetBaseCheck(BaseCheck):

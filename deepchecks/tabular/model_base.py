@@ -18,6 +18,7 @@ from deepchecks.core.display_suite import ProgressBar
 from deepchecks.core.errors import (
     DeepchecksNotSupportedError, DeepchecksValueError
 )
+from deepchecks.tabular.context import Context
 
 __all__ = [
     'ModelOnlyCheck',

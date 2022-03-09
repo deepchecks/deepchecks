@@ -23,9 +23,7 @@ from deepchecks.core.check import (
     TrainTestBaseCheck,
     ModelOnlyBaseCheck
 )
-from deepchecks.core.errors import (
-    DeepchecksNotSupportedError, DeepchecksValueError
-)
+from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.tabular.model_base import ModelComparisonContext
 
 
@@ -37,17 +35,12 @@ __all__ = [
 ]
 
 
-def wrap_run(func, class_instance):
+def wrap_run(func, check_instance: BaseCheck):
     """Wrap the run function of checks, and sets the `check` property on the check result."""
     @wraps(func)
     def wrapped(*args, **kwargs):
         result = func(*args, **kwargs)
-        if not isinstance(result, CheckResult):
-            raise DeepchecksValueError(f'Check {class_instance.name()} expected to return CheckResult but got: '
-                                       + type(result).__name__)
-        result.check = class_instance
-        result.process_conditions()
-        return result
+        return check_instance.finalize_check_result(result)
 
     return wrapped
 

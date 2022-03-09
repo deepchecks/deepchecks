@@ -42,15 +42,6 @@ __all__ = [
     'ModelOnlyCheck',
 ]
 
-def finalize_check_result(check_result: CheckResult, class_instance: BaseCheck) -> CheckResult:
-    """Finalize the check result by adding the check instance and processing the conditions."""
-    if not isinstance(check_result, CheckResult):
-        raise DeepchecksValueError(f'Check {class_instance.name()} expected to return CheckResult but got: '
-                                   + type(check_result).__name__)
-    check_result.check = class_instance
-    check_result.process_conditions()
-    return check_result
-
 
 class SingleDatasetCheck(SingleDatasetBaseCheck):
     """Parent class for checks that only use one dataset."""
@@ -78,7 +69,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             self.update(context, batch, DatasetKind.TRAIN)
             context.flush_cached_inference(DatasetKind.TRAIN)
 
-        return finalize_check_result(self.compute(context, DatasetKind.TRAIN), self)
+        return self.finalize_check_result(self.compute(context, DatasetKind.TRAIN))
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize run before starting updating on batches. Optional."""
@@ -160,7 +151,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
         context: Context = self.context_type(model=model, device=device, random_state=random_state)
 
         self.initialize_run(context)
-        return finalize_check_result(self.compute(context), self)
+        return self.finalize_check_result(self.compute(context))
 
     def initialize_run(self, context: Context):
         """Initialize run before starting updating on batches. Optional."""
@@ -263,7 +254,7 @@ class Suite(BaseSuite):
                 # the loops
                 if check_idx not in results and not isinstance(check, SingleDatasetCheck):
                     result = check.compute(context)
-                    result = finalize_check_result(result, check)
+                    result = check.finalize_check_result(result)
                     results[check_idx] = result
             except Exception as exp:
                 results[check_idx] = CheckFailure(check, exp)
@@ -331,7 +322,7 @@ class Suite(BaseSuite):
                     continue
                 try:
                     result = check.compute(context, dataset_kind=dataset_kind)
-                    result = finalize_check_result(result, check)
+                    result = check.finalize_check_result(result)
                     # Update header with dataset type only if both train and test ran
                     if run_train_test_checks:
                         result.header = result.get_header() + type_suffix
