@@ -129,8 +129,17 @@ class VisionData:
 
         Examples
         --------
-        >>> def batch_to_images(self, batch):
-        ...     return batch[0]
+        >>> import numpy as np
+        ...
+        ...
+        ... def batch_to_images(self, batch):
+        ...     # Converts a batch of normalized images to rgb images with range [0, 255]
+        ...     inp = batch[0].detach().numpy().transpose((0, 2, 3, 1))
+        ...     mean = [0.485, 0.456, 0.406]
+        ...     std = [0.229, 0.224, 0.225]
+        ...     inp = std * inp + mean
+        ...     inp = np.clip(inp, 0, 1)
+        ...     return inp * 255
 
         Notes
         -----
@@ -295,10 +304,11 @@ class VisionData:
             raise ValidationError('The data inside the iterable must be a 3D array.')
         if sample.shape[2] not in [1, 3]:
             raise ValidationError('The data inside the iterable must have 1 or 3 channels.')
-        if sample.min() < 0 or sample.max() > 255:
-            raise ValidationError('The data inside the iterable must be in the range [0, 255].')
-        if np.all(sample <= 1):
-            raise ValidationError('The data inside the iterable appear to be normalized.')
+        sample_min = sample.min()
+        sample_max = sample.max()
+        if sample_min < 0 or sample_max > 255 or sample_max <= 1:
+            raise ValidationError(f'Image data found to be in range [{sample_min}, {sample_max}] instead of expected '
+                                  f'range [0, 255].')
 
     def _get_samples_per_class(self):
         """
