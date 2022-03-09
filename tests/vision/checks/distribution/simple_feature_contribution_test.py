@@ -9,132 +9,68 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the VISION train test label drift."""
-from hamcrest import assert_that, has_entries, close_to, equal_to, raises, calling
+from hamcrest import assert_that, has_entries, close_to, equal_to, raises, calling, empty, instance_of
 
 import numpy as np
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import VisionData
-from deepchecks.vision.checks import ImageDatasetDrift
-from deepchecks.vision.utils import ImageFormatter, DetectionLabelFormatter
+from deepchecks.vision.checks import SimpleFeatureContributionTrainTest
+from deepchecks.vision.utils import ImageFormatter, DetectionLabelFormatter, ClassificationLabelFormatter
 from tests.vision.vision_conftest import *
 
-
-def add_brightness(img):
-    reverse = 255 - img
-    addition_of_brightness = (reverse * 0.11).astype('uint8')
-    return img + addition_of_brightness
+from deepchecks.vision.utils.transformations import un_normalize_batch
 
 
-def pil_formatter(batch):
-    return [np.array(img) for img in batch[0]]
+def mnist_image_formatter(batch):
+    """Create function which inverse the data normalization."""
+    tensor = batch[0]
+    tensor = tensor.permute(0, 2, 3, 1)
+    return un_normalize_batch(tensor, (0.1307,), (0.3081,))
 
 
-def pil_drift_formatter(batch):
-    return [add_brightness(np.array(img)) for img in batch[0]]
+# Create bias in the image_formatter that will
+def mnist_image_formatter_with_bias(batch):
+    """Create function which inverse the data normalization."""
+    tensor = batch[0]
+    tensor = tensor.permute(0, 2, 3, 1)
+    ret = un_normalize_batch(tensor, (0.1307,), (0.3081,))
+    for i, label in enumerate(batch[1]):
+        ret[i] = ret[i].clip(min=5 * label, max=180 + 5 * label)
+    return ret
 
-
-def test_no_drift_grayscale(mnist_dataset_train):
+def test_no_drift_classification(mnist_dataset_train):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
-    check = ImageDatasetDrift()
+    check = SimpleFeatureContributionTrainTest()
 
     # Act
     result = check.run(train, test)
 
     # Assert
     assert_that(result.value, has_entries({
-        'domain_classifier_auc': close_to(0.48, 0.01),
-        'domain_classifier_drift_score': equal_to(0),
-        'domain_classifier_feature_importance': has_entries({
-            'brightness': equal_to(0),
-            'aspect_ratio': equal_to(0),
-            'area': equal_to(0),
-            'normalized_red_mean': equal_to(0),
-            'normalized_green_mean': equal_to(0),
-            'normalized_blue_mean': equal_to(0),
-        })
+        'train': instance_of(dict),
+        'test': instance_of(dict),
+        'train-test difference': instance_of(dict)
     })
                 )
 
 
-def test_drift_grayscale(mnist_dataset_train, mnist_dataset_test):
+def test_drift_classification(mnist_data_loader_train, mnist_data_loader_test):
     # Arrange
-    train, test = mnist_dataset_train, mnist_dataset_test
-    check = ImageDatasetDrift()
+    train = VisionData(mnist_data_loader_train, image_formatter=ImageFormatter(mnist_image_formatter),
+                       label_formatter=ClassificationLabelFormatter(lambda arr: [int(x) for x in arr[1]]))
+    test = VisionData(mnist_data_loader_test, image_formatter=ImageFormatter(mnist_image_formatter_with_bias),
+                      label_formatter=ClassificationLabelFormatter(lambda arr: [int(x) for x in arr[1]]))
+
+    check = SimpleFeatureContributionTrainTest()
 
     # Act
     result = check.run(train, test)
 
     # Assert
     assert_that(result.value, has_entries({
-        'domain_classifier_auc': close_to(0.52, 0.01),
-        'domain_classifier_drift_score': close_to(0.042, 0.01),
-        'domain_classifier_feature_importance': has_entries({
-            'brightness': close_to(0.34, 0.01),
-            'blur': close_to(0.65, 0.01),
-            'aspect_ratio': equal_to(0),
-            'area': equal_to(0),
-            'normalized_red_mean': equal_to(0),
-            'normalized_green_mean': equal_to(0),
-            'normalized_blue_mean': equal_to(0),
-        })
-    })
-                )
-
-
-def test_no_drift_rgb(coco_train_dataloader, coco_test_dataloader):
-    # Arrange
-    train = VisionData(coco_train_dataloader, image_formatter=ImageFormatter(pil_formatter),
-                       label_formatter=DetectionLabelFormatter())
-    test = VisionData(coco_test_dataloader, image_formatter=ImageFormatter(pil_formatter),
-                      label_formatter=DetectionLabelFormatter())
-
-    check = ImageDatasetDrift()
-
-    # Act
-    result = check.run(train, test)
-
-    # Assert
-    assert_that(result.value, has_entries({
-        'domain_classifier_auc': close_to(0.29, 0.01),
-        'domain_classifier_drift_score': equal_to(0),
-        'domain_classifier_feature_importance': has_entries({
-            'brightness': close_to(0.33, 0.01),
-            'blur': close_to(0.66, 0.01),
-            'aspect_ratio': equal_to(0),
-            'area': equal_to(0),
-            'normalized_red_mean': equal_to(0),
-            'normalized_green_mean': equal_to(0),
-            'normalized_blue_mean': equal_to(0),
-        })
-    })
-                )
-
-
-def test_with_drift_rgb(coco_train_dataloader, coco_test_dataloader):
-    # Arrange
-    train = VisionData(coco_train_dataloader, image_formatter=ImageFormatter(pil_drift_formatter),
-                       label_formatter=DetectionLabelFormatter())
-    test = VisionData(coco_test_dataloader, image_formatter=ImageFormatter(pil_formatter),
-                      label_formatter=DetectionLabelFormatter())
-
-    check = ImageDatasetDrift()
-
-    # Act
-    result = check.run(train, test)
-
-    # Assert
-    assert_that(result.value, has_entries({
-        'domain_classifier_auc': close_to(0.589, 0.001),
-        'domain_classifier_drift_score': close_to(0.179, 0.001),
-        'domain_classifier_feature_importance': has_entries({
-            'brightness': close_to(0.89, 0.01),
-            'blur': equal_to(0),
-            'aspect_ratio': equal_to(0),
-            'area': equal_to(0),
-            'normalized_red_mean': equal_to(0),
-            'normalized_green_mean': close_to(0.1, 0.01),
-            'normalized_blue_mean': equal_to(0),
-        })
+        'train': instance_of(dict),
+        'test': has_entries({'brightness': close_to(0.43, 0.01)}),
+        'train-test difference': instance_of(dict)
     })
                 )
