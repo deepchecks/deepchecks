@@ -267,8 +267,12 @@ After defining the task class, we can validate it by running the following code:
 
 .. code-block:: python
 
-  training_data = AntsBeesData(data_loader=dataloaders["train"])
-  val_data = AntsBeesData(data_loader=dataloaders["val"])
+  LABEL_MAP = {
+    0: 'ants',
+    1: 'bees'
+  }
+  training_data = AntsBeesData(data_loader=dataloaders["train"], label_map=LABEL_MAP)
+  val_data = AntsBeesData(data_loader=dataloaders["val"], label_map=LABEL_MAP)
 
   from deepchecks.vision.utils.validation import validate_extractors
   validate_extractors(training_data, model)
@@ -293,4 +297,18 @@ This can be done with this simple few lines of code:
   from deepchecks.vision.suites import full_suite
 
   suite = full_suite()
-  suite.run(training_data, val_data, model, device)
+  result = suite.run(training_data, val_data, model, device)
+
+Observing the results:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The results can be saved as a html file with the following code:
+
+.. code-block:: python
+
+  result.save_as_html('output.html')
+
+Or, if working inside a notebook, the output can be displayed directly by simply printing the result object:
+
+.. code-block:: python
+
+  result
