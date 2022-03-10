@@ -290,7 +290,7 @@ class CocoDataset(VisionDataset):
 
 
 def download_coco128_from_ultralytics(path: Path):
-    """Download coco from ultralytics using torchvision download_and_extract_archive"""
+    """Download coco from ultralytics using torchvision download_and_extract_archive."""
     coco_dir = path / 'coco128'
     url = 'https://ultralytics.com/assets/coco128.zip'
     md5 = '90faf47c90d1cfa5161c4298d890df55'
