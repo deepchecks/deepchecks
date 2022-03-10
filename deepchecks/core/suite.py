@@ -21,7 +21,8 @@ import jsonpickle
 
 from deepchecks.core.display_suite import ProgressBar, display_suite_result
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.core.check import CheckResult, CheckFailure, BaseCheck
+from deepchecks.core.check_result import CheckResult, CheckFailure
+from deepchecks.core.checks import BaseCheck
 from deepchecks.utils.ipython import is_notebook
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 
@@ -117,7 +118,7 @@ class SuiteResult:
                 Default config is the suite name.
         """
         dedicated_run = set_wandb_run_state(dedicated_run, {'name': self.name}, **kwargs)
-        progress_bar = ProgressBar(self.name, len(self.results))
+        progress_bar = ProgressBar(self.name, len(self.results), 'Result')
         for res in self.results:
             res.to_wandb(False)
             progress_bar.inc_progress()

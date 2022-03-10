@@ -15,8 +15,8 @@ import plotly.express
 from plotly.graph_objs import FigureWidget
 import plotly.io as pio
 
-from deepchecks import CheckResult
-from hamcrest import assert_that, equal_to, instance_of, has_length, is_, calling, raises, not_none
+from deepchecks.core.check_result import CheckResult
+from hamcrest import assert_that, instance_of, has_length, is_, calling, raises, not_none
 from ipywidgets import VBox
 
 from deepchecks.core.errors import DeepchecksValueError

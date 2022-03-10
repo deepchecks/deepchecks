@@ -20,7 +20,7 @@ import plotly.graph_objs as go
 from deepchecks.vision.utils.image_functions import numpy_grayscale_to_heatmap_figure, apply_heatmap_image_properties
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.vision.base import Context, TrainTestCheck
+from deepchecks.vision.base_checks import Context, TrainTestCheck
 from deepchecks.vision.vision_data import TaskType
 
 
@@ -258,7 +258,7 @@ class HeatmapComparison(TrainTestCheck):
             if img.shape[2] == 1:
                 resized_img = img
             elif img.shape[2] == 3:
-                resized_img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+                resized_img = cv2.cvtColor(img.astype('float32'), cv2.COLOR_RGB2GRAY)
             else:
                 raise NotImplementedError('Images must be RGB or grayscale')
 

@@ -19,7 +19,6 @@ from deepchecks.tabular.suites import * # pylint: disable=wildcard-import
 
 
 warnings.warn(
-    # TODO: better message
     'Ability to import tabular suites from the `deepchecks.suites` '
     'is deprecated, please import from `deepchecks.tabular.suites` instead',
     DeprecationWarning

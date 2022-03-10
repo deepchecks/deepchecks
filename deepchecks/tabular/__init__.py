@@ -10,17 +10,18 @@
 #
 """Package for tabular functionality."""
 from .dataset import Dataset
-from .base import (
-    Context,
-    Suite,
+from .context import Context
+from .suite import Suite
+from .base_checks import (
     SingleDatasetCheck,
     TrainTestCheck,
     ModelOnlyCheck,
-    ModelComparisonContext,
     ModelComparisonCheck,
+)
+from .model_base import (
+    ModelComparisonContext,
     ModelComparisonSuite
 )
-
 
 __all__ = [
     "Dataset",
