@@ -12,7 +12,6 @@
 from typing import Tuple, List
 import numpy as np
 from skimage.measure import blur_effect
-
 from skimage.color import rgb2gray
 
 __all__ = ['image_properties',
