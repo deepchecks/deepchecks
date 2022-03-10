@@ -9,15 +9,17 @@
 # ----------------------------------------------------------------------------
 #
 """Handle displays of pandas objects."""
-from typing import List, Union
+from deepchecks.utils.strings import get_docs_summary, get_ellipsis
+
+from typing import List, Union, TYPE_CHECKING
 import warnings
 
 import pandas as pd
 from pandas.io.formats.style import Styler
 
-from deepchecks.utils.strings import get_docs_summary, get_ellipsis
 
-from . import check  # pylint: disable=unused-import
+if TYPE_CHECKING:
+    from deepchecks.core.check_result import CheckResult
 
 
 __all__ = ['dataframe_to_html', 'get_conditions_table']
@@ -58,7 +60,7 @@ def dataframe_to_html(df: Union[pd.DataFrame, Styler]):
         return df.to_html()
 
 
-def get_conditions_table(check_results: Union['check.CheckResult', List['check.CheckResult']],
+def get_conditions_table(check_results: Union['CheckResult', List['CheckResult']],
                          unique_id: str = None, max_info_len: int = 3000, icon_html: bool = True) -> Styler:
     """Return the conditions table as DataFrame.
 
@@ -110,8 +112,7 @@ def get_conditions_table(check_results: Union['check.CheckResult', List['check.C
         return conditions_table.style.hide_index()
 
 
-def get_result_navigation_display(check_results: Union['check.CheckResult', List['check.CheckResult']],
-                                  unique_id: str):
+def get_result_navigation_display(check_results: List['CheckResult'], unique_id: str):
     """Display the results as a table with links for navigation.
 
     Parameters

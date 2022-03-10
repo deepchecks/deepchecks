@@ -13,7 +13,7 @@
 import pandas as pd
 from hamcrest import assert_that, calling, raises, equal_to, has_items
 
-from deepchecks.tabular import Dataset
+from deepchecks.tabular.dataset import Dataset
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks.integrity import NewLabelTrainTest
 

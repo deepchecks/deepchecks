@@ -14,16 +14,17 @@ Import objects to be available in parent deepchecks module.
 """
 from .suite import BaseSuite, SuiteResult
 from .condition import Condition, ConditionResult, ConditionCategory
-from .check import (
-    BaseCheck,
+from .check_result import (
     CheckResult,
     CheckFailure,
+)
+from .checks import (
+    DatasetKind,
+    BaseCheck,
     SingleDatasetBaseCheck,
     TrainTestBaseCheck,
     ModelOnlyBaseCheck,
-    DatasetKind
 )
-
 
 __all__ = [
     'BaseCheck',
