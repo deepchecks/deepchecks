@@ -16,7 +16,7 @@ from plotly.express import imshow
 from queue import PriorityQueue
 
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.vision import SingleDatasetCheck, Context
+from deepchecks.vision import SingleDatasetCheck, Context, Batch
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
 
@@ -96,15 +96,10 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
         self.matrix = np.zeros((matrix_size, matrix_size))
 
-    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind = DatasetKind.TRAIN):
+    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind = DatasetKind.TRAIN):
         """Add batch to confusion matrix."""
-        if dataset_kind == DatasetKind.TRAIN:
-            dataset = context.train
-        else:
-            dataset = context.test
-
-        labels = dataset.batch_to_labels(batch)
-        predictions = context.infer(batch, dataset_kind)
+        labels = batch.labels
+        predictions = batch.predictions
 
         if self.task_type == TaskType.CLASSIFICATION:
             self.update_classification(predictions, labels)

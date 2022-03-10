@@ -12,14 +12,16 @@
 from collections import OrderedDict
 from typing import Any, List
 
+import pandas as pd
+
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.vision import Context, TrainTestCheck
+from deepchecks.vision import Context, TrainTestCheck, Batch
 from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
 from deepchecks.vision.utils import image_formatters
 
-import pandas as pd
 
 __all__ = ['ImageDatasetDrift']
+
 
 DEFAULT_IMAGE_PROPERTIES = ['aspect_ratio',
                             'area',
@@ -89,16 +91,13 @@ class ImageDatasetDrift(TrainTestCheck):
         self._train_properties = OrderedDict([(k, []) for k in self.image_properties])
         self._test_properties = OrderedDict([(k, []) for k in self.image_properties])
 
-    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""
         if dataset_kind == DatasetKind.TRAIN:
-            dataset = context.train
             properties = self._train_properties
         else:
-            dataset = context.test
             properties = self._test_properties
-
-        imgs = dataset.batch_to_images(batch)
+        imgs = batch.images
         for func_name in self.image_properties:
             properties[func_name] += getattr(image_formatters, func_name)(imgs)
 

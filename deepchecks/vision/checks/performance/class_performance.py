@@ -18,12 +18,14 @@ from ignite.metrics import Metric
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent, format_number
-from deepchecks.vision import TrainTestCheck, Context
+from deepchecks.vision import TrainTestCheck, Context, Batch
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils.metrics import get_scorers_list, metric_results_to_df, \
     get_default_classification_scorers, get_default_object_detection_scorers, filter_classes_for_display
 
+
 __all__ = ['ClassPerformance']
+
 
 PR = TypeVar('PR', bound='ClassPerformance')
 
@@ -94,11 +96,11 @@ class ClassPerformance(TrainTestCheck):
         self._state[DatasetKind.TRAIN]['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
         self._state[DatasetKind.TEST]['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
 
-    def update(self, context: Context, batch: Any, dataset_kind):
+    def update(self, context: Context, batch: Batch, dataset_kind):
         """Update the metrics by passing the batch to ignite metric update method."""
         dataset = context.get_data_by_kind(dataset_kind)
-        label = dataset.batch_to_labels(batch)
-        prediction = context.infer(batch, dataset_kind)
+        label = batch.labels
+        prediction = batch.predictions
         for _, metric in self._state[dataset_kind]['scorers'].items():
             metric.update((prediction, label))
 
@@ -126,7 +128,7 @@ class ClassPerformance(TrainTestCheck):
             results_df = results_df.loc[results_df['Class'].isin(classes_to_show)]
 
         results_df = results_df.sort_values(by=['Dataset', 'Value'], ascending=False)
-
+        
         fig = px.histogram(
             results_df,
             x='Class Name',

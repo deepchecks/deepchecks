@@ -18,7 +18,7 @@ from deepchecks.utils.distribution.drift import calc_drift_and_plot
 
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.vision.base import Context, TrainTestCheck
+from deepchecks.vision.base import Context, TrainTestCheck, Batch
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.utils.measurements import validate_measurements, \
     DEFAULT_CLASSIFICATION_PREDICTION_MEASUREMENTS, DEFAULT_OBJECT_DETECTION_PREDICTION_MEASUREMENTS, \
@@ -108,7 +108,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
         self._train_prediction_properties = OrderedDict([(k['name'], []) for k in self._prediction_measurements])
         self._test_prediction_properties = OrderedDict([(k['name'], []) for k in self._prediction_measurements])
 
-    def update(self, context: Context, batch: Any, dataset_kind):
+    def update(self, context: Context, batch: Batch, dataset_kind):
         """Perform update on batch for train or test properties."""
         # For all transformers, calculate histograms by batch:
         if dataset_kind == DatasetKind.TRAIN:

@@ -10,27 +10,27 @@
 #
 """Module containing robustness report check."""
 from collections import defaultdict
+from typing import TypeVar, List, Optional, Any, Sized, Dict
 
 import imgaug
-from typing import TypeVar, List, Optional, Any, Sized, Dict
 import albumentations
 import numpy as np
-
 import pandas as pd
 import torch
-from plotly.subplots import make_subplots
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from ignite.metrics import Metric
 
 from deepchecks import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision import VisionData, SingleDatasetCheck, Context
+from deepchecks.vision import VisionData, SingleDatasetCheck, Context, Batch
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils import calculate_metrics, metric_results_to_df
 from deepchecks.vision.utils.validation import set_seeds
 from deepchecks.vision.metrics_utils import get_scorers_list
 from deepchecks.utils.strings import format_percent, split_camel_case
 from deepchecks.vision.utils.image_functions import ImageInfo, numpy_to_html_image
+
 
 __all__ = ['RobustnessReport']
 
@@ -66,12 +66,10 @@ class RobustnessReport(SingleDatasetCheck):
         # Set empty version of metrics
         self._state = {'metrics': get_scorers_list(dataset, self.alternative_metrics)}
 
-    def update(self, context: Context, batch: Any, dataset_kind):
+    def update(self, context: Context, batch: Batch, dataset_kind):
         """Accumulates batch data into the metrics."""
-        dataset = context.get_data_by_kind(dataset_kind)
-        label = dataset.batch_to_labels(batch)
-        # Using context.infer to get cached prediction if exists
-        prediction = context.infer(batch, dataset_kind)
+        label = batch.labels
+        prediction = batch.predictions
         for _, metric in self._state['metrics'].items():
             metric.update((prediction, label))
 

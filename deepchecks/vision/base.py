@@ -11,12 +11,15 @@
 """Module for base vision abstractions."""
 # pylint: disable=broad-except,not-callable
 import logging
-from typing import Tuple, Mapping, Optional, Any, Union, Dict
+from typing import Tuple, Mapping, Optional, Any, Union, Dict, Iterable, Sequence
 from collections import OrderedDict
+from functools import cached_property
 
 import torch
+import numpy as np
 from torch import nn
 from ignite.metrics import Metric
+from PIL.Image import Image
 
 from deepchecks.core.check import (
     CheckFailure,
@@ -33,7 +36,9 @@ from deepchecks.core.errors import (
 from deepchecks.vision.vision_data import VisionData, TaskType
 from deepchecks.vision.utils.validation import apply_to_tensor
 
+
 logger = logging.getLogger('deepchecks')
+
 
 __all__ = [
     'Context',
@@ -41,6 +46,7 @@ __all__ = [
     'SingleDatasetCheck',
     'TrainTestCheck',
     'ModelOnlyCheck',
+    'Batch'
 ]
 
 
@@ -213,9 +219,10 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         self.initialize_run(context, DatasetKind.TRAIN)
 
         for batch in dataset:
-            batch = apply_to_tensor(batch, lambda x: x.to(device))
+            batch = Batch(batch, context, DatasetKind.TRAIN)
+            # batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch, DatasetKind.TRAIN)
-            context.flush_cached_inference(DatasetKind.TRAIN)
+            # context.flush_cached_inference(DatasetKind.TRAIN)
 
         return finalize_check_result(self.compute(context, DatasetKind.TRAIN), self)
 
@@ -259,14 +266,16 @@ class TrainTestCheck(TrainTestBaseCheck):
         self.initialize_run(context)
 
         for batch in context.train:
-            batch = apply_to_tensor(batch, lambda x: x.to(device))
+            batch = Batch(batch, context, DatasetKind.TRAIN)
+            # batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch, DatasetKind.TRAIN)
-            context.flush_cached_inference(DatasetKind.TRAIN)
+            # context.flush_cached_inference(DatasetKind.TRAIN)
 
         for batch in context.test:
-            batch = apply_to_tensor(batch, lambda x: x.to(device))
+            batch = Batch(batch, context, DatasetKind.TEST)
+            # batch = apply_to_tensor(batch, lambda x: x.to(device))
             self.update(context, batch, DatasetKind.TEST)
-            context.flush_cached_inference(DatasetKind.TEST)
+            # context.flush_cached_inference(DatasetKind.TEST)
 
         return finalize_check_result(self.compute(context), self)
 
@@ -309,6 +318,38 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
         """Compute final check result."""
         raise NotImplementedError()
 
+
+class Batch:
+
+    def __init__(
+        self,
+        batch: Tuple[Iterable[Any], Iterable[Any]],
+        context: Context,
+        dataset_kind: DatasetKind
+    ):
+        self._context = context
+        self._dataset_kind = dataset_kind
+        self._batch = apply_to_tensor(batch, lambda it: it.to(self._context.device))
+
+    @cached_property
+    def labels(self):
+        dataset = self._context.get_data_by_kind(self._dataset_kind)
+        labels = dataset.batch_to_labels(self._batch)
+        return labels
+
+    @cached_property
+    def predictions(self):
+        dataset = self._context.get_data_by_kind(self._dataset_kind)
+        predictions = dataset.infer_on_batch(self._batch, self._context.model, self._context.device)
+        return predictions
+
+    @cached_property
+    def images(self):
+        dataset = self._context.get_data_by_kind(self._dataset_kind)
+        return dataset.batch_to_images(self._batch)
+
+    def __getitem__(self, index):
+        return self._batch[index]
 
 class Suite(BaseSuite):
     """Tabular suite to run checks of types: TrainTestCheck, SingleDatasetCheck, ModelOnlyCheck."""
@@ -434,7 +475,8 @@ class Suite(BaseSuite):
 
         for batch_id, batch in enumerate(data_loader):
             progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
-            batch = apply_to_tensor(batch, lambda it: it.to(context.device))
+            # batch = apply_to_tensor(batch, lambda it: it.to(context.device))
+            batch = Batch(batch, context, dataset_kind)
             for check_idx, check in self.checks.items():
                 # If index in results the check already failed before
                 if check_idx in results:
@@ -455,7 +497,7 @@ class Suite(BaseSuite):
                 except Exception as exp:
                     results[check_idx] = CheckFailure(check, exp, type_suffix)
             progress_bar.inc_progress()
-            context.flush_cached_inference(dataset_kind)
+            # context.flush_cached_inference(dataset_kind)
 
         progress_bar.close()
 

@@ -84,14 +84,14 @@ DEFAULT_OBJECT_DETECTION_PREDICTION_MEASUREMENTS = [
 
 def get_label_measurements_on_batch(batch, label_measurement, dataset: VisionData):
     """Calculate transformer result on batch of labels."""
-    calc_res = [label_measurement(arr, dataset) for arr in dataset.batch_to_labels(batch)]
+    calc_res = [label_measurement(arr, dataset) for arr in batch.labels]
     return flatten(calc_res)
 
 
 def get_prediction_measurements_on_batch(batch, prediction_measurement, dataset, context: Context,
                                          dataset_kind: DatasetKind):
     """Calculate transformer result on batch of labels."""
-    calc_res = [prediction_measurement(arr, dataset) for arr in context.infer(batch, dataset_kind)]
+    calc_res = [prediction_measurement(arr, dataset) for arr in batch.predictions]
     return flatten(calc_res)
 
 
