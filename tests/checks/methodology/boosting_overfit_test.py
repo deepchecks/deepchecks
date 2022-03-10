@@ -17,7 +17,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from hamcrest import assert_that, close_to, has_length
 
-from deepchecks.tabular import Dataset
+from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.checks.methodology.boosting_overfit import BoostingOverfit
 
 from tests.checks.utils import equal_condition_result

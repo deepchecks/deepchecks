@@ -11,7 +11,7 @@
 """Contains unit tests for the RegressionSystematicError check."""
 from hamcrest import assert_that, calling, raises, has_items, close_to
 
-from deepchecks.tabular import Dataset
+from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.checks.performance import RegressionSystematicError
 from deepchecks.core.errors import DeepchecksValueError, ModelValidationError, DeepchecksNotSupportedError
 from tests.checks.utils import equal_condition_result
