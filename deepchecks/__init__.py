@@ -14,11 +14,12 @@ import types
 import os
 import pathlib
 import http.client
+import warnings
+from importlib._bootstrap import _init_module_attrs
+
 import matplotlib
 import plotly.io as pio
-import warnings
 from pkg_resources import parse_version
-from importlib._bootstrap import _init_module_attrs
 
 from deepchecks.utils.ipython import is_notebook
 from deepchecks.core import (

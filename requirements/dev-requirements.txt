@@ -6,6 +6,7 @@ flake8
 flake8-spellcheck 
 flake8-eradicate 
 flake8-rst
+flake8-import-order
 
 pytest 
 pytest-cov 
