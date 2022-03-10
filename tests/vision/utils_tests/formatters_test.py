@@ -14,10 +14,9 @@ from itertools import permutations
 import numpy as np
 import torch
 from hamcrest import assert_that, equal_to, calling, raises, close_to
-from skimage.color import rgb2gray
 from torch.utils.data import DataLoader, Dataset
 
-from deepchecks.core.errors import  ValidationError
+from deepchecks.core.errors import ValidationError
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.utils import image_formatters
 from deepchecks.vision.utils.detection_formatters import verify_bbox_format_notation
