@@ -12,7 +12,6 @@
 from abc import abstractmethod
 import logging
 from typing import List, Optional, Dict, Union
-import numpy as np
 
 import torch
 from torch.utils.data import DataLoader

@@ -13,7 +13,6 @@ from abc import abstractmethod
 from itertools import chain
 import logging
 from typing import List, Optional, Dict, Union
-import numpy as np
 
 import torch
 from torch.utils.data import DataLoader
