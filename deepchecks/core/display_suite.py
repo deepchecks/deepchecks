@@ -76,9 +76,10 @@ class ProgressBar:
 
     """
 
-    def __init__(self, name, length):
+    def __init__(self, name, length, unit):
         """Initialize progress bar."""
-        shared_args = {'total': length, 'desc': name, 'unit': ' Check', 'leave': False, 'file': sys.stdout}
+        self.unit = unit
+        shared_args = {'total': length, 'desc': name, 'unit': f' {unit}', 'leave': False, 'file': sys.stdout}
         if is_widgets_enabled():
             self.pbar = tqdm_notebook(**shared_args, colour='#9d60fb')
         else:
@@ -93,7 +94,7 @@ class ProgressBar:
         ----------
         text
         """
-        self.pbar.set_postfix(Check=text)
+        self.pbar.set_postfix({self.unit: text})
 
     def close(self):
         """Close the progress bar."""
