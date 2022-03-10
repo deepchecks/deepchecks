@@ -11,7 +11,6 @@
 """Module containing the image formatter class for the vision module."""
 from typing import Tuple, List
 import numpy as np
-from skimage.measure import blur_effect
 from skimage.color import rgb2gray
 
 __all__ = ['image_properties',
@@ -33,8 +32,7 @@ image_properties = frozenset((
     'rms_contrast',
     'normalized_red_mean',
     'normalized_green_mean',
-    'normalized_blue_mean',
-    'blur'
+    'normalized_blue_mean'
 ))
 
 
@@ -54,16 +52,6 @@ def brightness(batch: List[np.ndarray]) -> List[float]:
         return [img.mean() for img in batch]
     else:
         return [rgb2gray(img).mean() for img in batch]
-
-
-def blur(batch: List[np.array]) -> List[float]:
-    """Return blur effect score of image.
-
-    See https://hal.archives-ouvertes.fr/hal-00232709 for more details"""
-    if _is_grayscale(batch) is True:
-        return [blur_effect(img.reshape(get_size(img))) for img in batch]
-    else:
-        return [blur_effect(rgb2gray(img)) for img in batch]
 
 
 def rms_contrast(batch: List[np.array]) -> List[float]:

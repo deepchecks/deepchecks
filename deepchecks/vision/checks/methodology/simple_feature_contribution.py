@@ -34,7 +34,6 @@ pps_url = 'https://docs.deepchecks.com/en/stable/examples/vision/' \
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
 DEFAULT_IMAGE_PROPERTIES = ['aspect_ratio',
-                            'blur',
                             'rms_contrast',
                             'area',
                             'brightness',

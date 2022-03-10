@@ -142,28 +142,6 @@ def test_brightness_rgb():
     assert_that(res[0], close_to(1.86, 0.01))
 
 
-def test_blur_grayscale():
-    np.random.seed(42)
-    value = np.random.randint(0, 255, (100, 100, 1))
-
-    batch = next(iter(numpy_shape_dataloader(value=value)))
-
-    res = image_formatters.blur(batch)
-
-    assert_that(res[0], close_to(0.12, 0.01))
-
-
-def test_blur_rgb():
-    np.random.seed(42)
-    value = np.random.randint(0, 255, (100, 100, 3))
-
-    batch = next(iter(numpy_shape_dataloader(value=value)))
-
-    res = image_formatters.blur(batch)
-
-    assert_that(res[0], close_to(0.12, 0.01))
-
-
 def test_rms_contrast_grayscale():
     value = np.concatenate([np.zeros((3, 10, 1)),  np.ones((7, 10, 1))], axis=0)
 
