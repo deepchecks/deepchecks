@@ -243,14 +243,11 @@ class CocoDataset(VisionDataset):
             x, y, w, h = label[1:]
             # Note: probably the normalization loses some accuracy in the coordinates as it truncates the number,
             # leading in some cases to `y - h / 2` or `x - w / 2` to be negative
-            n_x = max((x - w / 2) * img.width, 0)
-            n_y = max((y - h / 2) * img.height, 0)
-
             bboxes.append(np.array([
-                n_x,
-                n_y,
-                min(w * img.width, img.width - 1 - n_x),
-                min(h * img.height, img.height - 1 - n_y),
+                max((x - w / 2) * img.width, 0),
+                max((y - h / 2) * img.height, 0),
+                w * img.width,
+                h * img.height,
                 label[0]
             ]))
 

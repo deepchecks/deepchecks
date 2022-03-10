@@ -115,7 +115,12 @@ def label_bbox_add_to_figure(labels: torch.Tensor, figure, row=None, col=None, c
 
 
 def crop_image(img: np.array, x, y, w, h) -> np.array:
-    """Return the cropped numpy array image by xywh coordinates (top left corner, width and height."""
-    # Convert xywh to integers if not integers already:
+    """Return the cropped numpy array image by x, y, w, h coordinates (top left corner, width and height."""
+    # Convert x, y, w, h to integers if not integers already:
     x, y, w, h = [round(n) for n in [x, y, w, h]]
+
+    # Make sure w, h don't set the bounding box out of image dimensions:
+    h = min(h, img.shape[0] - y - 1)
+    w = min(w, img.shape[1] - x - 1)
+    
     return img[y:y + h, x:x + w]

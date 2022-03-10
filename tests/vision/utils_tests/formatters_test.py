@@ -29,6 +29,7 @@ class SimpleImageData(VisionData):
     def batch_to_images(self, batch):
         return batch
 
+
 def numpy_shape_dataloader(shape: tuple = None, value: Union[float, np.ndarray] = 255, collate_fn=None):
     if collate_fn is None:
         collate_fn = np.stack
