@@ -25,7 +25,7 @@ from hamcrest import (
 
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.utils.image_formatters import DEFAULT_IMAGE_PROPERTIES
+from deepchecks.vision.utils.image_formatters import default_image_properties
 from deepchecks.vision.checks.distribution import ImagePropertyDrift
 from deepchecks.vision.datasets.detection import coco
 
@@ -94,7 +94,7 @@ def contains_passed_condition():
 def is_correct_image_property_drift_result():
     value_assertion = all_of(
         instance_of(dict),
-        *[has_key(property_name) for property_name in DEFAULT_IMAGE_PROPERTIES])
+        *[has_key(property_name) for property_name in default_image_properties])
 
     display_assertion = all_of(
         instance_of(list),

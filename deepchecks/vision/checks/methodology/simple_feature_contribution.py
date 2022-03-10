@@ -21,7 +21,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.vision.utils import image_formatters
-from deepchecks.vision.utils.image_formatters import DEFAULT_IMAGE_PROPERTIES
+from deepchecks.vision.utils.image_formatters import default_image_properties
 from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.vision_data import TaskType
 
@@ -83,7 +83,7 @@ class SimpleFeatureContribution(TrainTestCheck):
         if alternative_image_properties:
             self.image_properties = alternative_image_properties
         else:
-            self.image_properties = DEFAULT_IMAGE_PROPERTIES
+            self.image_properties = default_image_properties
 
         self.n_top_properties = n_top_properties
         self.ppscore_params = ppscore_params or {}

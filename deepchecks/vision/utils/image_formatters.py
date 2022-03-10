@@ -13,7 +13,7 @@ from typing import Tuple, List
 import numpy as np
 from skimage.color import rgb2gray
 
-__all__ = ['DEFAULT_IMAGE_PROPERTIES',
+__all__ = ['default_image_properties',
            'aspect_ratio',
            'area',
            'brightness',
@@ -25,7 +25,7 @@ __all__ = ['DEFAULT_IMAGE_PROPERTIES',
            'get_dimension']
 
 
-DEFAULT_IMAGE_PROPERTIES = (
+default_image_properties = (
     'aspect_ratio',
     'area',
     'brightness',

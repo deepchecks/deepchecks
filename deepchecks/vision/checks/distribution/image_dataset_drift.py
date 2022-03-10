@@ -21,8 +21,6 @@ import pandas as pd
 
 __all__ = ['ImageDatasetDrift']
 
-from deepchecks.vision.utils.image_formatters import DEFAULT_IMAGE_PROPERTIES
-
 
 class ImageDatasetDrift(TrainTestCheck):
     """
@@ -73,7 +71,7 @@ class ImageDatasetDrift(TrainTestCheck):
         if alternative_image_properties:
             self.image_properties = alternative_image_properties
         else:
-            self.image_properties = DEFAULT_IMAGE_PROPERTIES
+            self.image_properties = image_formatters.default_image_properties
 
         self.n_top_properties = n_top_properties
         self.min_feature_importance = min_feature_importance
