@@ -73,7 +73,7 @@ This dataset is a very small subset of imagenet.
 
     def get_cv2_image(self, image):
         if isinstance(image, PIL.Image.Image):
-            image_np = np.array(image)
+            image_np = np.array(image).astype('uint8')
             return image_np
         elif isinstance(image, np.ndarray):
             return image
