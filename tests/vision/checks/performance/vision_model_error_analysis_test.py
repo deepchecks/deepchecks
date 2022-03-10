@@ -14,7 +14,6 @@ from hamcrest import assert_that, equal_to, calling, raises, close_to
 
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision.checks import ModelErrorAnalysis
-from deepchecks.vision.datasets.detection.coco import yolo_prediction_formatter
 
 
 def test_classification(mnist_dataset_train, trained_mnist, device):
@@ -25,6 +24,7 @@ def test_classification(mnist_dataset_train, trained_mnist, device):
     # Act
     result = check.run(train, test, trained_mnist,
                        device=device)
+    print(result.value)
     # Assert
     assert_that(len(result.value['feature_segments']), equal_to(1))
     assert_that(result.value['feature_segments']['brightness']['segment1']['n_samples'], equal_to(516))
@@ -43,6 +43,7 @@ def test_detection(coco_train_visiondata, coco_test_visiondata, trained_yolov5_o
                        coco_test_visiondata,
                        trained_yolov5_object_detection,
                        device=device)
+    print(result.value)
     # Assert
     assert_that(len(result.value['feature_segments']), equal_to(4))
     assert_that(result.value['feature_segments']['normalized_blue_mean']['segment1']['score'],

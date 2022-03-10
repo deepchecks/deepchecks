@@ -158,6 +158,8 @@ class ModelErrorAnalysis(TrainTestCheck):
         train_property_df = pd.DataFrame(self._train_properties).dropna(axis=1, how='all')
         test_property_df = pd.DataFrame(self._test_properties)[train_property_df.columns]
 
+        print(self._test_properties)
+
         error_fi, error_model_predicted = \
             model_error_contribution(train_property_df,
                                      self._train_scores,
