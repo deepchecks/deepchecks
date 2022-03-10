@@ -44,11 +44,6 @@ def model_error_contribution(train_dataset: pd.DataFrame,
                                                                    categorical_features,
                                                                    random_state=random_state)
     error_model.fit(train_dataset, y=train_scores)
-    print(train_dataset)
-    print(train_scores)
-    print(error_model.steps[-1][1].estimators_)
-    for est in error_model.steps[-1][1].estimators_[:2]:
-        print(est.tree_.value)
 
     # Check if fitted model is good enough
     error_model_predicted = error_model.predict(test_dataset)
