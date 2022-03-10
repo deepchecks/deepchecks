@@ -11,7 +11,7 @@
 """Tests for segment performance check."""
 from hamcrest import assert_that, has_entries, close_to, has_property, equal_to, calling, raises
 
-from deepchecks.tabular import Dataset
+from deepchecks.tabular.dataset import Dataset
 from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.tabular.checks.performance.segment_performance import SegmentPerformance
 

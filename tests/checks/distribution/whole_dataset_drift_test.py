@@ -11,7 +11,7 @@
 """Test functions of the whole dataset drift check."""
 from hamcrest import assert_that, has_entries, close_to
 
-from deepchecks.tabular import Dataset
+from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.checks import WholeDatasetDrift
 from tests.checks.utils import equal_condition_result
 

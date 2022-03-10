@@ -13,9 +13,9 @@ import logging
 from .vision_data import VisionData
 from .classification_data import ClassificationData
 from .detection_data import DetectionData
-from .base import (
-    Context,
-    Suite,
+from .context import Context
+from .suite import Suite
+from .base_checks import (
     SingleDatasetCheck,
     TrainTestCheck,
     ModelOnlyCheck,
