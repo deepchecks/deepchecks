@@ -44,10 +44,8 @@ def test_detection(coco_train_visiondata, coco_test_visiondata, trained_yolov5_o
                        device=device)
     # Assert
     assert_that(len(result.value['feature_segments']), equal_to(4))
-    assert_that(result.value['feature_segments']['normalized_green_mean']['segment1']['score'],
-                close_to(0.7386563274258412, 0.0001))
-    assert_that(result.value['feature_segments']['normalized_green_mean']['segment2']['score'],
-                close_to(0.6888304151824656, 0.0001))
+    assert_that(result.value['feature_segments']['normalized_green_mean']['segment1']['n_samples'],
+                equal_to(21))
 
 
 def test_classification_not_interesting(mnist_dataset_train, trained_mnist, device):
