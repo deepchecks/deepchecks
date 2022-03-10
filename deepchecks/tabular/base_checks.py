@@ -13,7 +13,7 @@ import abc
 from functools import wraps
 from typing import Union, Mapping, List, Any
 
-from deepchecks.tabular import Dataset
+from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.context import Context
 from deepchecks.core.check_result import (
     CheckResult,

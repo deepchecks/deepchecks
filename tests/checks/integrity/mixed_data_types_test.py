@@ -17,7 +17,7 @@ from hamcrest import assert_that, has_length, calling, raises, has_items, has_en
 
 from deepchecks.core import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular import Dataset
+from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.checks.integrity.mixed_data_types import MixedDataTypes
 
 from tests.checks.utils import equal_condition_result

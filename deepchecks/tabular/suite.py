@@ -14,7 +14,7 @@ from typing import Callable, Union, Tuple, Mapping, Optional
 
 import pandas as pd
 
-from deepchecks.tabular import Dataset
+from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.tabular.context import Context
 from deepchecks.utils.typing import BasicModel

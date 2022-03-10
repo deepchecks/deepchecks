@@ -12,7 +12,7 @@
 # pylint: disable=broad-except
 from typing import Union, Tuple, Mapping, List, Any
 
-from deepchecks.tabular import Dataset
+from deepchecks.tabular.dataset import Dataset
 from deepchecks.core.check_result import CheckFailure
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
