@@ -178,7 +178,7 @@ class SimpleFeatureContribution(TrainTestCheck):
         """Add new condition.
 
         Add condition that will check that difference between train
-        dataset feature pps and test dataset feature pps is not greater than X.
+        dataset property pps and test dataset property pps is not greater than X.
 
         Parameters
         ----------
@@ -203,13 +203,13 @@ class SimpleFeatureContribution(TrainTestCheck):
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Train-Test features\' Predictive Power Score difference is not greater than '
+        return self.add_condition(f'Train-Test properties\' Predictive Power Score difference is not greater than '
                                   f'{format_number(threshold)}', condition)
 
     def add_condition_feature_pps_in_train_not_greater_than(self: SFC, threshold: float = 0.7) -> SFC:
         """Add new condition.
 
-        Add condition that will check that train dataset feature pps is not greater than X.
+        Add condition that will check that train dataset property pps is not greater than X.
 
         Parameters
         ----------
@@ -234,5 +234,5 @@ class SimpleFeatureContribution(TrainTestCheck):
             else:
                 return ConditionResult(True)
 
-        return self.add_condition(f'Train features\' Predictive Power Score is not greater than '
+        return self.add_condition(f'Train properties\' Predictive Power Score is not greater than '
                                   f'{format_number(threshold)}', condition)
