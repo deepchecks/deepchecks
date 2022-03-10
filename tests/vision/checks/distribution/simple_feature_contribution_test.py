@@ -106,10 +106,8 @@ def test_drift_object_detection(coco_train_visiondata, coco_test_visiondata):
 
     # Assert
     assert_that(result.value, has_entries({
-        'train': has_entries({'brightness': close_to(0.41, 0.01)}),
+        'train': has_entries({'brightness': close_to(0.35, 0.01)}),
         'test': has_entries({'brightness': equal_to(0)}),
-        'train-test difference':  has_entries({'brightness': close_to(0.41, 0.01)}),
+        'train-test difference':  has_entries({'brightness': close_to(0.35, 0.01)}),
     })
                 )
-
-

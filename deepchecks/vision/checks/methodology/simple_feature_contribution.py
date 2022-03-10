@@ -118,7 +118,7 @@ class SimpleFeatureContribution(TrainTestCheck):
             for img, label in zip(orig_imgs, labels):
                 classes += [int(x[0]) for x in label]
 
-                bboxes = [np.array(x[1:]).astype(int) for x in label]
+                bboxes = [np.array(x[1:]) for x in label]
                 imgs += [crop_image(img, *bbox) for bbox in bboxes]
 
             properties['target'] += classes
