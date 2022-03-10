@@ -54,6 +54,7 @@ class Context:
         processing unit for use
     random_state : int
         A seed to set for pseudo-random functions
+    n_samples : int, default: None
     """
 
     def __init__(self,
@@ -64,7 +65,8 @@ class Context:
                  scorers: Mapping[str, Metric] = None,
                  scorers_per_class: Mapping[str, Metric] = None,
                  device: Union[str, torch.device, None] = 'cpu',
-                 random_state: int = 42
+                 random_state: int = 42,
+                 n_samples: int = None
                  ):
         # Validations
         if train is None and test is None and model is None:
@@ -86,11 +88,12 @@ class Context:
                         logger.warning('validate_prediction() was not implemented in %s dataset, '
                                        'some checks will not run', dataset_type)
 
-        # Set seeds to if possible (we set it after the validation to keep the seed state)
-        if train and random_state:
-            train.set_seed(random_state)
-        if test and random_state:
-            test.set_seed(random_state)
+        # The copy does 2 things: Sample n_samples if parameter exists, and replace the sampler with one with fixed
+        # order (after initializing it first in random order using the state)
+        if train:
+            train = train.copy(n_samples, random_state)
+        if test:
+            test = test.copy(n_samples, random_state)
 
         self._train = train
         self._test = test

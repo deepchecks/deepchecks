@@ -14,12 +14,12 @@ from collections import Counter
 from copy import copy
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, Iterable, List, Optional, Dict, TypeVar, Union
+from typing import Any, Iterable, List, Optional, Dict, TypeVar, Union, Iterator
 
 import logging
 import numpy as np
 import torch
-from torch.utils.data import DataLoader, SubsetRandomSampler, BatchSampler
+from torch.utils.data import DataLoader, BatchSampler, Sampler
 
 
 from deepchecks.core.errors import DeepchecksNotImplementedError, DeepchecksValueError, ValidationError
@@ -234,16 +234,18 @@ class VisionData:
         new_dataset_ref.__setattr__(self._transform_field, new_transform)
         return new_vision_data
 
-    def copy(self, data_loader=None) -> VD:
-        """Create new copy of this object, with the data-loader and dataset also copied.
+    def copy(self, n_samples: int = None, random_state: int = None) -> VD:
+        """Create new copy of this object, with the data-loader and dataset also copied, And using a sampler which \
+        always runs in the same order.
 
         Parameters
         ----------
-        data_loader : DataLoader
-            If received pass this data_loader to the new object, else copy the current data_loader
+        n_samples : int, default: None
+            Number of samples to sample from the data uniformly
+        random_state : int, default: None
+            State used to initialize the samples order of the copied data
         """
-        if data_loader is None:
-            data_loader = VisionData._get_data_loader_copy(self.data_loader)
+        data_loader = VisionData._get_data_loader_copy(self.data_loader, n_samples, random_state)
         new_vision_data = self.__class__(data_loader,
                                          num_classes=self.num_classes,
                                          label_map=self._label_map,
@@ -252,21 +254,9 @@ class VisionData:
             new_vision_data.set_seed(self._current_seed)
         return new_vision_data
 
-    def create_sampled(self, num_samples: int, random_state: Optional[int]) -> VD:
-        """Create new copy of this object with a sampled version of the data loader."""
-        data_loader = VisionData._get_data_loader_sampled(self.data_loader, num_samples, random_state)
-        return self.copy(data_loader)
-
     def to_batch(self, *samples):
         """Use the defined collate_fn to transform a few data items to batch format."""
         return self._data_loader.collate_fn(list(samples))
-
-    def set_seed(self, seed: int):
-        """Set seed for data loader."""
-        generator: torch.Generator = self._data_loader.generator
-        if generator is not None and seed is not None:
-            generator.set_state(torch.Generator().manual_seed(seed).get_state())
-            self._current_seed = seed
 
     def validate_shared_label(self, other: VD):
         """Verify presence of shared labels.
@@ -349,40 +339,8 @@ class VisionData:
         return len(self._data_loader)
 
     @staticmethod
-    def _get_data_loader_copy(data_loader: DataLoader):
-        props = VisionData._get_data_loader_props(data_loader)
-        # Can't deepcopy since generator is not pickle-able,
-        # so copying shallowly and then copies also sampler inside
-        batch_sampler = copy(data_loader.batch_sampler)
-        batch_sampler.sampler = copy(batch_sampler.sampler)
-        # Replace generator instance so the copied dataset will not affect the original
-        batch_sampler.sampler.generator = props['generator']
-        props['batch_sampler'] = batch_sampler
-
-        return data_loader.__class__(**props)
-
-    @staticmethod
-    def _get_data_loader_sampled(data_loader: DataLoader, num_samples: int, random_state: int):
-        props = VisionData._get_data_loader_props(data_loader)
-        # Using the batch sampler to get all indices
-        batch_sampler: BatchSampler = data_loader.batch_sampler
-        indices = []
-        for batch in batch_sampler:
-            indices += batch
-        size = min(num_samples, len(indices))
-        if random_state:
-            random.seed(random_state)
-        indices_sample = random.sample(indices, size)
-        # Create new sampler and batch sampler
-        sampler = SubsetRandomSampler(indices_sample, generator=props['generator'])
-        new_batch_sampler = BatchSampler(sampler, batch_sampler.batch_size, batch_sampler.drop_last)
-
-        props['batch_sampler'] = new_batch_sampler
-        return data_loader.__class__(**props)
-
-    @staticmethod
-    def _get_data_loader_props(data_loader: DataLoader):
-        return {
+    def _get_data_loader_copy(data_loader: DataLoader, num_samples: int = None, random_state: int = None):
+        props = {
             'num_workers': data_loader.num_workers,
             'collate_fn': data_loader.collate_fn,
             'pin_memory': data_loader.pin_memory,
@@ -392,5 +350,47 @@ class VisionData:
             'persistent_workers': data_loader.persistent_workers,
             'generator': torch.Generator(),
             'dataset': copy(data_loader.dataset)
-
         }
+        # Using the batch sampler to get all indices
+        # First set generator seed to make it reproducible
+        if data_loader.generator and random_state is not None:
+            data_loader.generator.set_state(torch.Generator().manual_seed(random_state).get_state())
+
+        batch_sampler: BatchSampler = data_loader.batch_sampler
+        indices = []
+        for batch in batch_sampler:
+            indices += batch
+        # If got number of samples than take random sample
+        if num_samples:
+            size = min(num_samples, len(indices))
+            if random_state is not None:
+                random.seed(random_state)
+            indices = random.sample(indices, size)
+        # Create new sampler and batch sampler
+        sampler = IndicesSequentialSampler(indices)
+        new_batch_sampler = BatchSampler(sampler, batch_sampler.batch_size, batch_sampler.drop_last)
+
+        props['batch_sampler'] = new_batch_sampler
+        return data_loader.__class__(**props)
+
+
+class IndicesSequentialSampler(Sampler[int]):
+    """Samples elements sequentially from a given list of indices, without replacement.
+
+    Args:
+        indices (sequence): a sequence of indices
+    """
+    indices: List[int]
+
+    def __init__(self, indices: List[int]) -> None:
+        self.indices = indices
+
+    def __iter__(self) -> Iterator[int]:
+        return iter(self.indices)
+
+    def __len__(self) -> int:
+        return len(self.indices)
+
+    def index_at(self, location):
+        """Return for a given location, the real index value."""
+        return self.indices.index(location)
