@@ -66,7 +66,9 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         self.categories_to_display = categories_to_display
         self.iou_threshold = iou_threshold
         self.matrix = None
-        self.num_classes = 0
+        self.classes_list = None
+        self.not_found_idx = None
+        self.unseen_class_idx = None
         self.task_type = None
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
@@ -78,9 +80,19 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         else:
             dataset = context.test
         self.task_type = dataset.task_type
-        self.num_classes = dataset.num_classes
 
-        matrix_size = self.num_classes if self.task_type == TaskType.CLASSIFICATION else self.num_classes + 1
+        # In case of object detection add last category for "not found label/prediction overlap"
+        if self.task_type == TaskType.OBJECT_DETECTION:
+            # In detection, we might have non-consecutive ids. For example, we might have class ids 10, 14, 20. So we
+            # will use the class list as a map of matrix id to class id: 0: 10, 1: 14, 2: 20
+            self.classes_list = sorted([int(x) for x in dataset.n_of_samples_per_class.keys()])
+            # Adding 2 extra categories. One for predictions with unseen before classes, and second for label and
+            # prediction that have no overlapping prediction/label
+            matrix_size = len(self.classes_list)
+            self.not_found_idx = matrix_size - 1
+            self.unseen_class_idx = matrix_size - 2
+        else:
+            matrix_size = dataset.num_classes
 
         self.matrix = np.zeros((matrix_size, matrix_size))
 
@@ -107,22 +119,39 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             dataset = context.test
         display_confusion_matrix, categories = filter_confusion_matrix(self.matrix, self.categories_to_display)
 
-        description = ''
+        description = []
 
         display_categories = []
+        add_not_found_category = False
+        add_unseen_category = False
         for category in categories:
-            if self.num_classes == category:
-                description += ('last category are detections that do not overlap with labeled data'
-                                ' and labels that have not been detected. ')
-                display_categories.append('not found')
+            if self.not_found_idx == category:
+                add_not_found_category = True
+            elif self.unseen_class_idx == category:
+                add_unseen_category = True
             else:
-                display_categories.append(dataset.label_id_to_name(category))
+                display_categories.append(self.matrix_id_to_class_name(category, dataset))
 
-        description += f'Showing {self.categories_to_display} of {self.num_classes} classes:'
+        x = display_categories
+        y = x.copy()
+
+        if add_not_found_category:
+            description += ['"No overlapping" categories are labels and prediction which did not have a matching '
+                            'label/prediction. For example a predictions that did not have a sufficiently overlapping '
+                            'label bounding box will appear under the "No overlapping label" category']
+            x += ['No overlapping prediction']
+            y += ['No overlapping label']
+        if add_unseen_category:
+            description += ['Unseen classes are classes that did not appear in the dataset labels, but did were '
+                            'predicted to be present.']
+            x += ['Unseen classes']
+            y += ['Unseen classes']
+
+        description += [f'Showing {self.categories_to_display} of {dataset.num_classes} classes:']
 
         fig = imshow(display_confusion_matrix,
-                     x=display_categories,
-                     y=display_categories,
+                     x=x,
+                     y=y,
                      text_auto=True)
 
         fig.update_layout(width=600, height=600)
@@ -132,8 +161,21 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         return CheckResult(
             self.matrix,
             header='Confusion Matrix',
-            display=[description, fig]
+            display=[*description, fig]
         )
+
+    def class_id_to_matrix_id(self, class_id):
+        """Convert a class id to its id in the matrix."""
+        try:
+            return self.classes_list.index(class_id)
+        # If the class is not in the labels list (detection returned class not in the list) then return not found
+        except ValueError:
+            return self.unseen_class_idx
+
+    def matrix_id_to_class_name(self, matrix_id, dataset):
+        """Convert matrix id to the real class id, and return its name if possible."""
+        class_id = self.classes_list[matrix_id] if self.classes_list else matrix_id
+        return dataset.label_id_to_name(class_id)
 
     def update_object_detection(self, predictions, labels):
         """Update the confusion matrix by batch for object detection task."""
@@ -144,8 +186,8 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             if len(detections_passed_threshold) == 0:
                 # detections are empty, update matrix for labels
                 for label in image_labels:
-                    gt_class = int(label[0].item())
-                    self.matrix[self.num_classes, gt_class] += 1
+                    gt_class = self.class_id_to_matrix_id(int(label[0].item()))
+                    self.matrix[gt_class, self.not_found_idx] += 1
                 continue
 
             all_ious = np.zeros((len(image_labels), len(detections_passed_threshold)))
@@ -171,21 +213,22 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                 all_matches = all_matches[np.unique(all_matches[:, 0], return_index=True)[1]]
 
             for i, label in enumerate(image_labels):
-                gt_class = int(label[0])
+                gt_class = self.class_id_to_matrix_id(int(label[0]))
                 if all_matches.shape[0] > 0 and all_matches[all_matches[:, 0] == i].shape[0] == 1:
                     detection_class = int(image_detections[int(all_matches[all_matches[:, 0] == i, 1][0])][5])
-                    self.matrix[detection_class, gt_class] += 1
+                    detection_class = self.class_id_to_matrix_id(detection_class)
+                    self.matrix[gt_class, detection_class] += 1
                 else:
-                    self.matrix[self.num_classes, gt_class] += 1
+                    self.matrix[gt_class, self.not_found_idx] += 1
 
             for i, detection in enumerate(image_detections):
                 if all_matches.shape[0] and all_matches[all_matches[:, 1] == i].shape[0] == 0:
-                    detection_class = int(detection[5])
-                    self.matrix[detection_class, self.num_classes] += 1
+                    detection_class = self.class_id_to_matrix_id(int(detection[5]))
+                    self.matrix[self.not_found_idx, detection_class] += 1
 
     def update_classification(self, predictions, labels):
         """Update the confusion matrix by batch for classification task."""
         for predicted_classes, image_labels in zip(predictions, labels):
             detected_class = max(range(len(predicted_classes)), key=predicted_classes.__getitem__)
 
-            self.matrix[detected_class, image_labels] += 1
+            self.matrix[image_labels, detected_class] += 1

@@ -11,12 +11,11 @@
 """Module for base vision abstractions."""
 # pylint: disable=broad-except,not-callable
 import logging
-from typing import Tuple, Mapping, Optional, Any, Union, Dict
+from typing import Tuple, Mapping, Optional, Any, Union, Dict, List
 from collections import OrderedDict
 
 import torch
 from torch import nn
-from torch.utils.data import DataLoader
 from ignite.metrics import Metric
 
 from deepchecks.core.check import (
@@ -356,6 +355,9 @@ class Suite(BaseSuite):
         SuiteResult
             All results by all initialized checks
         """
+        all_pbars = []
+        progress_bar = ProgressBar('Validating Input', 1, unit='')
+        all_pbars.append(progress_bar)
         context = Context(
             train_dataset,
             test_dataset,
@@ -365,126 +367,106 @@ class Suite(BaseSuite):
             device=device,
             random_state=random_state
         )
-
-        # Create instances of SingleDatasetCheck for train and test if train and test exist.
-        # This is needed because in the vision package checks update their internal state with update, so it will be
-        # easier to iterate and keep the check order if we have an instance for each dataset.
-        checks: Dict[
-            Union[str, int],
-            Union[SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck]
-        ] = OrderedDict({})
+        progress_bar.inc_progress()
 
         results: Dict[
             Union[str, int],
             Union[CheckResult, CheckFailure]
         ] = OrderedDict({})
 
-        for check_idx, check in list(self.checks.items()):
-            if isinstance(check, (TrainTestCheck, ModelOnlyCheck)):
+        run_train_test_checks = train_dataset is not None and test_dataset is not None
+        non_single_checks = {k: check for k, check in self.checks.items() if not isinstance(check, SingleDatasetCheck)}
+
+        # Initialize here all the checks that are not single dataset, since those are initialized inside the update loop
+        if non_single_checks:
+            progress_bar = ProgressBar('Initializing Checks', len(non_single_checks), unit='Check')
+            all_pbars.append(progress_bar)
+            for index, check in non_single_checks.items():
+                progress_bar.set_text(check.name())
                 try:
                     check.initialize_run(context)
                 except Exception as exp:
-                    results[check_idx] = CheckFailure(check, exp)
-                checks[check_idx] = check
-            elif isinstance(check, SingleDatasetCheck):
-                if train_dataset is not None:
-                    checks[str(check_idx) + ' - Train'] = check
-                if test_dataset is not None:
-                    checks[str(check_idx) + ' - Test'] = check
-            else:
-                raise DeepchecksNotSupportedError(f'Don\'t know to handle check type {type(check)}')
-
-        run_train_test_checks = train_dataset is not None and test_dataset is not None
+                    results[index] = CheckFailure(check, exp)
+                progress_bar.inc_progress()
 
         if train_dataset is not None:
             self._update_loop(
-                checks=checks,
-                data_loader=train_dataset.data_loader,
                 context=context,
                 run_train_test_checks=run_train_test_checks,
                 results=results,
-                dataset_kind=DatasetKind.TRAIN
+                dataset_kind=DatasetKind.TRAIN,
+                progress_bars=all_pbars
             )
-            for check_idx, check in checks.items():
-                if check_idx not in results:
-                    if str(check_idx).endswith('Train'):
-                        try:
-                            results[check_idx] = check.compute(context, dataset_kind=DatasetKind.TRAIN)
-                        except Exception as exp:
-                            results[check_idx] = CheckFailure(check, exp, ' - Train')
 
         if test_dataset is not None:
             self._update_loop(
-                checks=checks,
-                data_loader=test_dataset.data_loader,
                 context=context,
                 run_train_test_checks=run_train_test_checks,
                 results=results,
-                dataset_kind=DatasetKind.TEST
+                dataset_kind=DatasetKind.TEST,
+                progress_bars=all_pbars
             )
-            for check_idx, check in checks.items():
-                if check_idx not in results:
-                    if str(check_idx).endswith('Test'):
-                        try:
-                            results[check_idx] = check.compute(context, dataset_kind=DatasetKind.TEST)
-                        except Exception as exp:
-                            results[check_idx] = CheckFailure(check, exp, ' - Test')
 
-        for check_idx, check in checks.items():
-            if check_idx not in results:
+        # Need to compute only on not SingleDatasetCheck, since they computed inside the loop
+        if non_single_checks:
+            progress_bar = ProgressBar('Computing Checks', len(non_single_checks), unit='Check')
+            all_pbars.append(progress_bar)
+            for check_idx, check in non_single_checks.items():
+                progress_bar.set_text(check.name())
                 try:
-                    if not isinstance(check, SingleDatasetCheck):
-                        results[check_idx] = check.compute(context)
+                    # if check index in results we had failure
+                    if check_idx not in results:
+                        result = check.compute(context)
+                        result = finalize_check_result(result, check)
+                        results[check_idx] = result
                 except Exception as exp:
                     results[check_idx] = CheckFailure(check, exp)
-
-        # Update check result names for SingleDatasetChecks and finalize results
-        for check_idx, result in results.items():
-            if isinstance(result, CheckResult):
-                result = finalize_check_result(result, checks[check_idx])
-                results[check_idx] = result
-                # Update header only if both train and test ran
-                if run_train_test_checks:
-                    result.header = (
-                        f'{result.get_header()} - Train Dataset'
-                        if str(check_idx).endswith(' - Train')
-                        else f'{result.get_header()} - Test Dataset'
-                    )
+                progress_bar.inc_progress()
 
         # The results are ordered as they ran instead of in the order they were defined, therefore sort by key
         sorted_result_values = [value for name, value in sorted(results.items(), key=lambda pair: str(pair[0]))]
+
+        # Close all progress bars
+        for pbar in all_pbars:
+            pbar.close()
+
         return SuiteResult(self.name, sorted_result_values)
 
     def _update_loop(
         self,
-        checks: Dict[
-            Union[str, int],
-            Union[SingleDatasetCheck, TrainTestCheck, ModelOnlyCheck]
-        ],
-        data_loader: DataLoader,
         context: Context,
         run_train_test_checks: bool,
         results: Dict[Union[str, int], Union[CheckResult, CheckFailure]],
-        dataset_kind
+        dataset_kind: DatasetKind,
+        progress_bars: List
     ):
-        if dataset_kind == DatasetKind.TEST:
-            type_suffix = ' - Test'
-        else:
-            type_suffix = ' - Train'
+        type_suffix = ' - Test Dataset' if dataset_kind == DatasetKind.TEST else ' - Train Dataset'
+        data_loader = context.get_data_by_kind(dataset_kind)
         n_batches = len(data_loader)
-        progress_bar = ProgressBar(self.name + type_suffix, n_batches)
+        single_dataset_checks = {k: check for k, check in self.checks.items() if isinstance(check, SingleDatasetCheck)}
 
-        for idx, check in checks.items():
-            if str(idx).endswith(type_suffix):
+        # SingleDatasetChecks have different handling, need to initialize them here (to have them ready for different
+        # dataset kind)
+        if single_dataset_checks:
+            progress_bar = ProgressBar('Initializing Checks' + type_suffix, len(single_dataset_checks), unit='Check')
+            progress_bars.append(progress_bar)
+            for idx, check in single_dataset_checks.items():
+                progress_bar.set_text(check.name())
                 try:
                     check.initialize_run(context, dataset_kind=dataset_kind)
                 except Exception as exp:
                     results[idx] = CheckFailure(check, exp, type_suffix)
+                progress_bar.inc_progress()
 
+        progress_bar = ProgressBar('Ingesting Batches' + type_suffix, n_batches, unit='Batch')
+        progress_bars.append(progress_bar)
         for batch_id, batch in enumerate(data_loader):
             progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
             batch = apply_to_tensor(batch, lambda it: it.to(context.device))
-            for check_idx, check in checks.items():
+            for check_idx, check in self.checks.items():
+                # If index in results the check already failed before
+                if check_idx in results:
+                    continue
                 try:
                     if isinstance(check, TrainTestCheck):
                         if run_train_test_checks is True:
@@ -493,8 +475,7 @@ class Suite(BaseSuite):
                             msg = 'Check is irrelevant if not supplied with both train and test datasets'
                             results[check_idx] = self._get_unsupported_failure(check, msg)
                     elif isinstance(check, SingleDatasetCheck):
-                        if str(check_idx).endswith(type_suffix):
-                            check.update(context, batch, dataset_kind=dataset_kind)
+                        check.update(context, batch, dataset_kind=dataset_kind)
                     elif isinstance(check, ModelOnlyCheck):
                         pass
                     else:
@@ -504,7 +485,29 @@ class Suite(BaseSuite):
             progress_bar.inc_progress()
             context.flush_cached_inference(dataset_kind)
 
-        progress_bar.close()
+        # SingleDatasetChecks have different handling. If we had failure in them need to add suffix to the index of
+        # the results, else need to compute it.
+        if single_dataset_checks:
+            progress_bar = ProgressBar('Computing Single Dataset Checks' + type_suffix, len(single_dataset_checks),
+                                       unit='Check')
+            progress_bars.append(progress_bar)
+            for idx, check in single_dataset_checks.items():
+                progress_bar.set_text(check.name())
+                index_of_kind = str(idx) + type_suffix
+                # If index in results we had a failure
+                if idx in results:
+                    results[index_of_kind] = results.pop(idx)
+                    continue
+                try:
+                    result = check.compute(context, dataset_kind=dataset_kind)
+                    result = finalize_check_result(result, check)
+                    # Update header with dataset type only if both train and test ran
+                    if run_train_test_checks:
+                        result.header = result.get_header() + type_suffix
+                    results[index_of_kind] = result
+                except Exception as exp:
+                    results[index_of_kind] = CheckFailure(check, exp, type_suffix)
+                progress_bar.inc_progress()
 
     @classmethod
     def _get_unsupported_failure(cls, check, msg):
