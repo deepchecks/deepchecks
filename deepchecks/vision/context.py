@@ -11,7 +11,6 @@
 """Module for base vision context."""
 import logging
 from typing import Mapping, Union, Iterable, Any, Tuple
-from functools import cached_property
 
 import torch
 from torch import nn
@@ -44,23 +43,27 @@ class Batch:
         self._context = context
         self._dataset_kind = dataset_kind
         self._batch = apply_to_tensor(batch, lambda it: it.to(self._context.device))
+        self._labels = None
+        self._predictions = None
+        self._images = None
 
-    @cached_property
     def labels(self):
-        dataset = self._context.get_data_by_kind(self._dataset_kind)
-        labels = dataset.batch_to_labels(self._batch)
-        return labels
+        if self._labels is None:
+            dataset = self._context.get_data_by_kind(self._dataset_kind)
+            self._labels = dataset.batch_to_labels(self._batch)
+        return self._labels
 
-    @cached_property
     def predictions(self):
-        dataset = self._context.get_data_by_kind(self._dataset_kind)
-        predictions = dataset.infer_on_batch(self._batch, self._context.model, self._context.device)
-        return predictions
+        if self._predictions is None:
+            dataset = self._context.get_data_by_kind(self._dataset_kind)
+            self._predictions = dataset.infer_on_batch(self._batch, self._context.model, self._context.device)
+        return self._predictions
 
-    @cached_property
     def images(self):
-        dataset = self._context.get_data_by_kind(self._dataset_kind)
-        return dataset.batch_to_images(self._batch)
+        if self._images is None:
+            dataset = self._context.get_data_by_kind(self._dataset_kind)
+            self._images = dataset.batch_to_images(self._batch)
+        return self._images
 
     def __getitem__(self, index):
         return self._batch[index]
