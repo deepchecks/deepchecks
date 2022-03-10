@@ -112,7 +112,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
         is_pass=False,
         name='PSI <= 0.15 and Earth Mover\'s Distance <= 0.075 for label drift',
         details='Found non-continues label measurements with PSI drift score above threshold: {\'Samples per '
-                'class\': \'0.18\'}\n'
+                'class\': \'0.2\'}\n'
     ))
 
 

@@ -14,7 +14,7 @@ from collections import Counter
 from copy import copy
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, Iterable, List, Optional, Dict, TypeVar, Union, Iterator
+from typing import Any, List, Optional, Dict, TypeVar, Union, Iterator, Sequence
 
 import logging
 import numpy as np
@@ -83,7 +83,6 @@ class VisionData:
         self._n_of_samples_per_class = None
         self._task_type = None
         self._has_label = None
-        self._current_seed = None
 
     @abstractmethod
     def get_classes(self, batch_labels: Union[List[torch.Tensor], torch.Tensor]):
@@ -113,7 +112,7 @@ class VisionData:
         )
 
     @abstractmethod
-    def batch_to_images(self, batch) -> Iterable[np.ndarray]:
+    def batch_to_images(self, batch) -> Sequence[np.ndarray]:
         """
         Transform a batch of data to images in the accpeted format.
 
@@ -124,7 +123,7 @@ class VisionData:
 
         Returns
         -------
-        Iterable[np.ndarray]
+        Sequence[np.ndarray]
             List of images in the accepted format. Each image in the iterable must be a [H, W, C] 3D numpy array.
             See notes for more details.
             :func: `batch_to_images` must be implemented in a subclass.
@@ -227,7 +226,8 @@ class VisionData:
             msg = f'Underlying Dataset instance does not contain "{self._transform_field}" attribute. If your ' \
                   f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
             raise DeepchecksValueError(msg)
-        new_vision_data = self.copy()
+        # Want to always get the copied in the same state of images order
+        new_vision_data = self.copy(random_state=1)
         new_dataset_ref = new_vision_data.data_loader.dataset
         transform = new_dataset_ref.__getattribute__(self._transform_field)
         new_transform = add_augmentation_in_start(aug, transform)
@@ -250,8 +250,6 @@ class VisionData:
                                          num_classes=self.num_classes,
                                          label_map=self._label_map,
                                          transform_field=self._transform_field)
-        if self._current_seed is not None:
-            new_vision_data.set_seed(self._current_seed)
         return new_vision_data
 
     def to_batch(self, *samples):
@@ -356,8 +354,8 @@ class VisionData:
         if data_loader.generator and random_state is not None:
             data_loader.generator.set_state(torch.Generator().manual_seed(random_state).get_state())
 
-        batch_sampler: BatchSampler = data_loader.batch_sampler
         indices = []
+        batch_sampler = data_loader.batch_sampler
         for batch in batch_sampler:
             indices += batch
         # If got number of samples than take random sample

@@ -43,8 +43,8 @@ def test_mnist(mnist_dataset_train, trained_mnist, device):
             'Recall': has_entries(score=close_to(0.987, 0.001), diff=close_to(-0.0003, 0.001))
         }),
         'Shift Scale Rotate': has_entries({
-            'Precision': has_entries(score=close_to(0.794, 0.001), diff=close_to(-0.194, 0.001)),
-            'Recall': has_entries(score=close_to(0.776, 0.001), diff=close_to(-0.213, 0.001))
+            'Precision': has_entries(score=close_to(0.803, 0.001), diff=close_to(-0.186, 0.001)),
+            'Recall': has_entries(score=close_to(0.781, 0.001), diff=close_to(-0.208, 0.001))
         }),
     }))
 
@@ -67,8 +67,8 @@ def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detecti
     # Assert
     assert_that(result.value, has_entries({
         'Hue Saturation Value': has_entries({
-            'AP': has_entries(score=close_to(0.299, 0.001), diff=close_to(-0.079, 0.001)),
-            'AR': has_entries(score=close_to(0.316, 0.001), diff=close_to(-0.136, 0.001))
+            'AP': has_entries(score=close_to(0.316, 0.001), diff=close_to(-0.024, 0.001)),
+            'AR': has_entries(score=close_to(0.366, 0.001), diff=close_to(-0.001, 0.001))
         }),
     }))
     assert_that(result.conditions_results, has_items(

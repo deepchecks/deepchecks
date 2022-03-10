@@ -160,7 +160,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, trained_mn
         is_pass=False,
         name='PSI <= 0.15 and Earth Mover\'s Distance <= 0.075 for prediction drift',
         details='Found non-continues prediction measurements with PSI drift score above threshold: {\'Samples per '
-                'class\': \'0.17\'}\n'
+                'class\': \'0.19\'}\n'
     ))
 
 
