@@ -28,7 +28,7 @@ from ipywidgets.embed import embed_minimal_html
 from deepchecks.core import errors
 from deepchecks.utils.ipython import is_widgets_enabled
 from deepchecks.utils.strings import get_random_string
-from deepchecks.core.check import CheckResult, CheckFailure
+from deepchecks.core.check_result import CheckResult, CheckFailure
 from deepchecks.core.display_pandas import (
     dataframe_to_html, get_conditions_table,
     get_result_navigation_display
@@ -76,9 +76,10 @@ class ProgressBar:
 
     """
 
-    def __init__(self, name, length):
+    def __init__(self, name, length, unit):
         """Initialize progress bar."""
-        shared_args = {'total': length, 'desc': name, 'unit': ' Check', 'leave': False, 'file': sys.stdout}
+        self.unit = unit
+        shared_args = {'total': length, 'desc': name, 'unit': f' {unit}', 'leave': False, 'file': sys.stdout}
         if is_widgets_enabled():
             self.pbar = tqdm_notebook(**shared_args, colour='#9d60fb')
         else:
@@ -93,7 +94,7 @@ class ProgressBar:
         ----------
         text
         """
-        self.pbar.set_postfix(Check=text)
+        self.pbar.set_postfix({self.unit: text})
 
     def close(self):
         """Close the progress bar."""

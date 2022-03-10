@@ -26,8 +26,8 @@ from hamcrest import (
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.vision_data import TaskType
-from deepchecks.vision.base import SingleDatasetCheck
-from deepchecks.vision.base import Suite
+from deepchecks.vision.base_checks import SingleDatasetCheck
+from deepchecks.vision.suite import Suite
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.datasets.classification import mnist
 

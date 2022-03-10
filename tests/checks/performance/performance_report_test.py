@@ -17,7 +17,7 @@ from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
 from deepchecks.core import ConditionResult
-from deepchecks.tabular import Dataset
+from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.checks.performance import PerformanceReport
 from deepchecks.utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, DEFAULT_REGRESSION_SCORERS
 from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError, ModelValidationError, \
