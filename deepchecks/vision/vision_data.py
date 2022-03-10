@@ -252,7 +252,7 @@ class VisionData:
             new_vision_data.set_seed(self._current_seed)
         return new_vision_data
 
-    def create_sampled(self, num_samples: int, random_state: int) -> VD:
+    def create_sampled(self, num_samples: int, random_state: Optional[int]) -> VD:
         """Create new copy of this object with a sampled version of the data loader."""
         data_loader = VisionData._get_data_loader_sampled(self.data_loader, num_samples, random_state)
         return self.copy(data_loader)
@@ -390,5 +390,7 @@ class VisionData:
             'worker_init_fn': data_loader.worker_init_fn,
             'prefetch_factor': data_loader.prefetch_factor,
             'persistent_workers': data_loader.persistent_workers,
-            'generator': torch.Generator()
+            'generator': torch.Generator(),
+            'dataset': copy(data_loader.dataset)
+
         }
