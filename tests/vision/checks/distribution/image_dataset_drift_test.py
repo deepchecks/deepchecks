@@ -19,7 +19,7 @@ from tests.vision.vision_conftest import *
 
 def add_brightness(img):
     reverse = 255 - img
-    addition_of_brightness = (reverse * 0.2).astype(int)
+    addition_of_brightness = (reverse * 0.1).astype('uint8')
     return img + addition_of_brightness
 
 
@@ -111,11 +111,11 @@ def test_with_drift_rgb(coco_train_dataloader, coco_test_dataloader, device):
     result = check.run(train, test, random_state=42, device=device)
     # Assert
     assert_that(result.value, has_entries({
-        'domain_classifier_auc': close_to(0.731, 0.001),
-        'domain_classifier_drift_score': close_to(0.463, 0.001),
+        'domain_classifier_auc': close_to(0.79, 0.001),
+        'domain_classifier_drift_score': close_to(0.581, 0.001),
         'domain_classifier_feature_importance': has_entries({
-            'brightness': close_to(0.39, 0.01),
-            'rms_contrast': close_to(0.6, 0.01),
+            'brightness': close_to(0.92, 0.01),
+            'rms_contrast': close_to(0.07, 0.01),
             'aspect_ratio': equal_to(0),
             'area': equal_to(0),
             'normalized_red_mean': equal_to(0),
