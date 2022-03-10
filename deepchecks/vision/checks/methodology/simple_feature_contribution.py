@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains the domain classifier drift check."""
+"""Module contains the simple feature distribution check."""
 from collections import OrderedDict
 from typing import Any, List, TypeVar, Hashable, Dict
 import numpy as np
@@ -21,6 +21,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.vision.utils import image_formatters
+from deepchecks.vision.utils.image_formatters import DEFAULT_IMAGE_PROPERTIES
 from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.vision_data import TaskType
 
@@ -32,13 +33,6 @@ pps_url = 'https://docs.deepchecks.com/en/stable/examples/vision/' \
           '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
-DEFAULT_IMAGE_PROPERTIES = ['aspect_ratio',
-                            'rms_contrast',
-                            'area',
-                            'brightness',
-                            'normalized_red_mean',
-                            'normalized_green_mean',
-                            'normalized_blue_mean']
 
 SFC = TypeVar('SFC', bound='SimpleFeatureContribution')
 
@@ -204,14 +198,14 @@ class SimpleFeatureContribution(TrainTestCheck):
         return self.add_condition(f'Train-Test properties\' Predictive Power Score difference is not greater than '
                                   f'{format_number(threshold)}', condition)
 
-    def add_condition_feature_pps_in_train_not_greater_than(self: SFC, threshold: float = 0.7) -> SFC:
+    def add_condition_feature_pps_in_train_not_greater_than(self: SFC, threshold: float = 0.2) -> SFC:
         """Add new condition.
 
         Add condition that will check that train dataset property pps is not greater than X.
 
         Parameters
         ----------
-        threshold : float , default: 0.7
+        threshold : float , default: 0.2
             pps upper bound
 
         Returns

@@ -61,13 +61,13 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         super().__init__()
 
         if image_properties is None:
-            self.image_properties = image_formatters.image_properties
+            self.image_properties = image_formatters.DEFAULT_IMAGE_PROPERTIES
         else:
             if len(image_properties) == 0:
                 raise DeepchecksValueError('image_properties list cannot be empty')
 
             properties_by_name = {p for p in image_properties if isinstance(p, str)}
-            unknown_properties = properties_by_name.difference(image_formatters.image_properties)
+            unknown_properties = properties_by_name.difference(image_formatters.DEFAULT_IMAGE_PROPERTIES)
 
             if len(unknown_properties) > 0:
                 raise DeepchecksValueError(

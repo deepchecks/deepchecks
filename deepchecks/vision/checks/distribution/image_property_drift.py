@@ -56,13 +56,13 @@ class ImagePropertyDrift(TrainTestCheck):
         super().__init__()
 
         if image_properties is None:
-            self.image_properties = image_formatters.image_properties
+            self.image_properties = image_formatters.DEFAULT_IMAGE_PROPERTIES
         else:
             if len(image_properties) == 0:
                 raise DeepchecksValueError('image_properties list cannot be empty')
 
             received_properties = {p for p in image_properties if isinstance(p, str)}
-            unknown_properties = received_properties.difference(image_formatters.image_properties)
+            unknown_properties = received_properties.difference(image_formatters.DEFAULT_IMAGE_PROPERTIES)
 
             if len(unknown_properties) > 0:
                 raise DeepchecksValueError(

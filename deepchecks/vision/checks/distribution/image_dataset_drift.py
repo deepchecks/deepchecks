@@ -21,13 +21,7 @@ import pandas as pd
 
 __all__ = ['ImageDatasetDrift']
 
-DEFAULT_IMAGE_PROPERTIES = ['aspect_ratio',
-                            'rms_contrast',
-                            'area',
-                            'brightness',
-                            'normalized_red_mean',
-                            'normalized_green_mean',
-                            'normalized_blue_mean']
+from deepchecks.vision.utils.image_formatters import DEFAULT_IMAGE_PROPERTIES
 
 
 class ImageDatasetDrift(TrainTestCheck):

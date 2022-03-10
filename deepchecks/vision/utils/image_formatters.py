@@ -13,7 +13,7 @@ from typing import Tuple, List
 import numpy as np
 from skimage.color import rgb2gray
 
-__all__ = ['image_properties',
+__all__ = ['DEFAULT_IMAGE_PROPERTIES',
            'aspect_ratio',
            'area',
            'brightness',
@@ -25,7 +25,7 @@ __all__ = ['image_properties',
            'get_dimension']
 
 
-image_properties = frozenset((
+DEFAULT_IMAGE_PROPERTIES = (
     'aspect_ratio',
     'area',
     'brightness',
@@ -33,7 +33,7 @@ image_properties = frozenset((
     'normalized_red_mean',
     'normalized_green_mean',
     'normalized_blue_mean'
-))
+)
 
 
 def aspect_ratio(batch: List[np.ndarray]) -> List[float]:
