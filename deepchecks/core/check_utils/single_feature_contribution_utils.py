@@ -15,9 +15,8 @@ import numpy as np
 import pandas as pd
 import deepchecks.ppscore as pps
 from deepchecks.utils.plot import colors
-import plotly.graph_objects as go
-
 from deepchecks.utils.typing import Hashable
+import plotly.graph_objects as go
 
 
 def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Optional[Hashable], test_df: pd.DataFrame,
