@@ -9,8 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing mean average precision report check."""
-from collections import defaultdict
 import math
+from collections import defaultdict
 from typing import TypeVar, Tuple
 
 import pandas as pd

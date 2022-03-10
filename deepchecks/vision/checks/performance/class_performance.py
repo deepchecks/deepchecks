@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing class performance check."""
-from typing import TypeVar, List, Any, Dict
+from typing import TypeVar, List, Dict
 
 import pandas as pd
 import plotly.express as px
@@ -96,9 +96,8 @@ class ClassPerformance(TrainTestCheck):
         self._state[DatasetKind.TRAIN]['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
         self._state[DatasetKind.TEST]['scorers'] = get_scorers_list(context.train, self.alternative_metrics)
 
-    def update(self, context: Context, batch: Batch, dataset_kind):
+    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the metrics by passing the batch to ignite metric update method."""
-        dataset = context.get_data_by_kind(dataset_kind)
         label = batch.labels
         prediction = batch.predictions
         for _, metric in self._state[dataset_kind]['scorers'].items():
@@ -128,7 +127,7 @@ class ClassPerformance(TrainTestCheck):
             results_df = results_df.loc[results_df['Class'].isin(classes_to_show)]
 
         results_df = results_df.sort_values(by=['Dataset', 'Value'], ascending=False)
-        
+
         fig = px.histogram(
             results_df,
             x='Class Name',

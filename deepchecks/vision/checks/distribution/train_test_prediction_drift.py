@@ -121,8 +121,11 @@ class TrainTestPredictionDrift(TrainTestCheck):
 
         for prediction_measurement in self._prediction_measurements:
             properties[prediction_measurement['name']].extend(
-                get_prediction_measurements_on_batch(batch, prediction_measurement['method'], dataset, context,
-                                                     dataset_kind)
+                get_prediction_measurements_on_batch(
+                    batch,
+                    prediction_measurement['method'],
+                    dataset,
+                )
             )
 
     def compute(self, context: Context) -> CheckResult:

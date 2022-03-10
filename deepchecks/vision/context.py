@@ -10,7 +10,7 @@
 #
 """Module for base vision context."""
 import logging
-from typing import Mapping, Any, Union, Iterable, Any, Tuple
+from typing import Mapping, Union, Iterable, Any, Tuple
 from functools import cached_property
 
 import torch
@@ -33,6 +33,7 @@ logger = logging.getLogger('deepchecks')
 
 
 class Batch:
+    """Represents dataset batch returned by the dataloader during iteration."""
 
     def __init__(
         self,
@@ -130,7 +131,6 @@ class Context:
         self._train = train
         self._test = test
         self._model = model
-        self._batch_prediction_cache = {}
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
@@ -180,17 +180,6 @@ class Context:
             raise ModelValidationError(
                 f'Check is irrelevant for task of type {self.train.task_type}')
         return True
-
-    # def infer(self, batch: Any, dataset_kind: DatasetKind) -> Any:
-    #     """Return the predictions on the given batch, and cache them for later."""
-    #     if self._batch_prediction_cache.get(dataset_kind) is None:
-    #         dataset = self.get_data_by_kind(dataset_kind)
-    #         self._batch_prediction_cache[dataset_kind] = dataset.infer_on_batch(batch, self.model, self.device)
-    #     return self._batch_prediction_cache[dataset_kind]
-
-    # def flush_cached_inference(self, dataset_kind: DatasetKind):
-    #     """Flush the cached inference."""
-    #     self._batch_prediction_cache[dataset_kind] = None
 
     def get_data_by_kind(self, kind: DatasetKind):
         """Return the relevant VisionData by given kind."""

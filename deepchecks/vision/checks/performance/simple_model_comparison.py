@@ -28,7 +28,6 @@ from deepchecks.vision.metrics_utils.metrics import filter_classes_for_display
 __all__ = ['SimpleModelComparison']
 
 
-
 _allowed_strategies = (
     'most_frequent',
     'prior',

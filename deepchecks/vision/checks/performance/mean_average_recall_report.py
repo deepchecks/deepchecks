@@ -9,9 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing mean average recall report check."""
-from collections import defaultdict
 import math
-from typing import TypeVar, Tuple, Any
+from collections import defaultdict
+from typing import TypeVar, Tuple
 
 import pandas as pd
 

@@ -11,9 +11,8 @@
 """Module containing measurements for labels and predictions."""
 from typing import List, Iterable
 
-from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision import VisionData, Context
+from deepchecks.vision import VisionData
 
 
 # Labels
@@ -88,8 +87,7 @@ def get_label_measurements_on_batch(batch, label_measurement, dataset: VisionDat
     return flatten(calc_res)
 
 
-def get_prediction_measurements_on_batch(batch, prediction_measurement, dataset, context: Context,
-                                         dataset_kind: DatasetKind):
+def get_prediction_measurements_on_batch(batch, prediction_measurement, dataset):
     """Calculate transformer result on batch of labels."""
     calc_res = [prediction_measurement(arr, dataset) for arr in batch.predictions]
     return flatten(calc_res)
@@ -98,7 +96,7 @@ def get_prediction_measurements_on_batch(batch, prediction_measurement, dataset,
 def flatten(in_list: List) -> List:
     """Flatten a list of lists (nested infinitely) into a single level list."""
 
-    def inner_flatten(inner_list: Iterable) -> List:
+    def inner_flatten(inner_list: Iterable):
         for el in inner_list:
             if isinstance(el, Iterable) and not isinstance(el, (str, bytes)):
                 yield from inner_flatten(el)

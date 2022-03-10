@@ -10,7 +10,7 @@
 #
 """Module containing robustness report check."""
 from collections import defaultdict
-from typing import TypeVar, List, Optional, Any, Sized, Dict
+from typing import TypeVar, List, Optional, Sized, Dict
 
 import imgaug
 import albumentations

@@ -9,8 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing confusion matrix report check."""
-from typing import Any
-
 import numpy as np
 from plotly.express import imshow
 from queue import PriorityQueue

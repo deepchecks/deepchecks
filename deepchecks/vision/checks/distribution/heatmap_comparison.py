@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Train Test label Drift check."""
-from typing import Tuple, List, Any, Iterable, Optional
+from typing import Tuple, List, Iterable, Optional
 
 import cv2
 import torch
