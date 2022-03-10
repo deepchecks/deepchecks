@@ -11,9 +11,8 @@
 """Module for base vision abstractions."""
 # pylint: disable=broad-except,not-callable
 import logging
-from typing import Tuple, Mapping, Optional, Union, Dict, List, Any, Iterable
+from typing import Tuple, Mapping, Optional, Union, Dict, List
 from collections import OrderedDict
-from functools import cached_property
 
 import torch
 from torch import nn
@@ -27,46 +26,14 @@ from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.vision.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.vision.context import Context
 from deepchecks.vision.vision_data import VisionData
-from deepchecks.vision.utils.validation import apply_to_tensor
+
+from .context import Batch
 
 
-__all__ = ['Suite', 'Batch']
+__all__ = ['Suite']
 
 
 logger = logging.getLogger('deepchecks')
-
-
-class Batch:
-
-    def __init__(
-        self,
-        batch: Tuple[Iterable[Any], Iterable[Any]],
-        context: Context,
-        dataset_kind: DatasetKind
-    ):
-        self._context = context
-        self._dataset_kind = dataset_kind
-        self._batch = apply_to_tensor(batch, lambda it: it.to(self._context.device))
-
-    @cached_property
-    def labels(self):
-        dataset = self._context.get_data_by_kind(self._dataset_kind)
-        labels = dataset.batch_to_labels(self._batch)
-        return labels
-
-    @cached_property
-    def predictions(self):
-        dataset = self._context.get_data_by_kind(self._dataset_kind)
-        predictions = dataset.infer_on_batch(self._batch, self._context.model, self._context.device)
-        return predictions
-
-    @cached_property
-    def images(self):
-        dataset = self._context.get_data_by_kind(self._dataset_kind)
-        return dataset.batch_to_images(self._batch)
-
-    def __getitem__(self, index):
-        return self._batch[index]
 
 
 class Suite(BaseSuite):

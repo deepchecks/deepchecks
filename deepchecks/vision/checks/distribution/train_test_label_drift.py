@@ -18,7 +18,7 @@ from deepchecks import ConditionResult
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.vision.base import Context, TrainTestCheck, Batch
+from deepchecks.vision import Context, TrainTestCheck, Batch
 from deepchecks.vision.vision_data import TaskType
 
 
