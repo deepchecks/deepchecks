@@ -21,7 +21,7 @@ from deepchecks.core.errors import DeepchecksValueError
 
 
 __all__ = ['ImageInfo', 'numpy_to_image_figure', 'label_bbox_add_to_figure', 'numpy_grayscale_to_heatmap_figure',
-           'apply_heatmap_image_properties', 'numpy_to_html_image']
+           'apply_heatmap_image_properties', 'numpy_to_html_image', 'crop_image']
 
 
 class ImageInfo:
@@ -112,3 +112,7 @@ def label_bbox_add_to_figure(labels: torch.Tensor, figure, row=None, col=None, c
         figure.add_shape(type='rect', x0=x, y0=y, x1=x+w, y1=y+h, row=row, col=col, line=dict(color=color))
         figure.add_annotation(x=x + w / 2, y=y, text=str(clazz), showarrow=False, yshift=10, row=row, col=col,
                               font=dict(color=color))
+
+
+def crop_image(img: np.array, x: int, y: int, w: int, h: int) -> np.array:
+    return img[y:y + h, x:x + w]

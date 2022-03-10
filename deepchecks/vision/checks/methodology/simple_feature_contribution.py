@@ -21,6 +21,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.vision.utils import image_formatters
+from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.vision_data import TaskType
 
 
@@ -42,10 +43,6 @@ DEFAULT_IMAGE_PROPERTIES = ['aspect_ratio',
                             'normalized_blue_mean']
 
 SFC = TypeVar('SFC', bound='SimpleFeatureContribution')
-
-
-def crop_img(img: np.array, x: int, y: int, w: int, h: int) -> np.array:
-    return img[y:y + h, x:x + w]
 
 
 class SimpleFeatureContribution(TrainTestCheck):
@@ -123,7 +120,7 @@ class SimpleFeatureContribution(TrainTestCheck):
                 classes += [int(x[0]) for x in label]
 
                 bboxes = [np.array(x[1:]).astype(int) for x in label]
-                imgs += [crop_img(img, *bbox) for bbox in bboxes]
+                imgs += [crop_image(img, *bbox) for bbox in bboxes]
 
             properties['target'] += classes
         else:
