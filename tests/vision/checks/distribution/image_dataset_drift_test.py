@@ -83,7 +83,7 @@ def test_no_drift_rgb(coco_train_dataloader, device):
     result = check.run(train, test, random_state=42, device=device)
     # Assert
     assert_that(result.value, has_entries({
-        'domain_classifier_auc': close_to(0.2, 0.001),
+        'domain_classifier_auc': close_to(0.202, 0.001),
         'domain_classifier_drift_score': equal_to(0),
         'domain_classifier_feature_importance': has_entries({
             'brightness': equal_to(0),
