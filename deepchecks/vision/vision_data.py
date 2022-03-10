@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
+import random
 from collections import Counter
 from copy import copy
 from abc import abstractmethod
@@ -18,7 +19,8 @@ from typing import Any, Iterable, List, Optional, Dict, TypeVar, Union
 import logging
 import numpy as np
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, SubsetRandomSampler, BatchSampler
+
 
 from deepchecks.core.errors import DeepchecksNotImplementedError, DeepchecksValueError, ValidationError
 from deepchecks.vision.utils.image_functions import ImageInfo
@@ -61,7 +63,7 @@ class VisionData:
                  label_map: Optional[Dict[int, str]] = None,
                  transform_field: Optional[str] = 'transforms'):
 
-        self._data_loader = self._get_data_loader_copy(data_loader)
+        self._data_loader = data_loader
 
         self._num_classes = num_classes
         self._label_map = label_map
@@ -232,15 +234,28 @@ class VisionData:
         new_dataset_ref.__setattr__(self._transform_field, new_transform)
         return new_vision_data
 
-    def copy(self) -> VD:
-        """Create new copy of this object, with the data-loader and dataset also copied."""
-        new_vision_data = self.__class__(self._data_loader,
+    def copy(self, data_loader=None) -> VD:
+        """Create new copy of this object, with the data-loader and dataset also copied.
+
+        Parameters
+        ----------
+        data_loader : DataLoader
+            If received pass this data_loader to the new object, else copy the current data_loader
+        """
+        if data_loader is None:
+            data_loader = VisionData._get_data_loader_copy(self.data_loader)
+        new_vision_data = self.__class__(data_loader,
                                          num_classes=self.num_classes,
                                          label_map=self._label_map,
                                          transform_field=self._transform_field)
         if self._current_seed is not None:
             new_vision_data.set_seed(self._current_seed)
         return new_vision_data
+
+    def create_sampled(self, num_samples: int, random_state: int) -> VD:
+        """Create new copy of this object with a sampled version of the data loader."""
+        data_loader = VisionData._get_data_loader_sampled(self.data_loader, num_samples, random_state)
+        return self.copy(data_loader)
 
     def to_batch(self, *samples):
         """Use the defined collate_fn to transform a few data items to batch format."""
@@ -335,7 +350,39 @@ class VisionData:
 
     @staticmethod
     def _get_data_loader_copy(data_loader: DataLoader):
-        props = {
+        props = VisionData._get_data_loader_props(data_loader)
+        # Can't deepcopy since generator is not pickle-able,
+        # so copying shallowly and then copies also sampler inside
+        batch_sampler = copy(data_loader.batch_sampler)
+        batch_sampler.sampler = copy(batch_sampler.sampler)
+        # Replace generator instance so the copied dataset will not affect the original
+        batch_sampler.sampler.generator = props['generator']
+        props['batch_sampler'] = batch_sampler
+
+        return data_loader.__class__(**props)
+
+    @staticmethod
+    def _get_data_loader_sampled(data_loader: DataLoader, num_samples: int, random_state: int):
+        props = VisionData._get_data_loader_props(data_loader)
+        # Using the batch sampler to get all indices
+        batch_sampler: BatchSampler = data_loader.batch_sampler
+        indices = []
+        for batch in batch_sampler:
+            indices += batch
+        size = min(num_samples, len(indices))
+        if random_state:
+            random.seed(random_state)
+        indices_sample = random.sample(indices, size)
+        # Create new sampler and batch sampler
+        sampler = SubsetRandomSampler(indices_sample, generator=props['generator'])
+        new_batch_sampler = BatchSampler(sampler, batch_sampler.batch_size, batch_sampler.drop_last)
+
+        props['batch_sampler'] = new_batch_sampler
+        return data_loader.__class__(**props)
+
+    @staticmethod
+    def _get_data_loader_props(data_loader: DataLoader):
+        return {
             'num_workers': data_loader.num_workers,
             'collate_fn': data_loader.collate_fn,
             'pin_memory': data_loader.pin_memory,
@@ -345,19 +392,3 @@ class VisionData:
             'persistent_workers': data_loader.persistent_workers,
             'generator': torch.Generator()
         }
-        # Add batch sampler if exists, else sampler
-        if data_loader.batch_sampler is not None:
-            # Can't deepcopy since generator is not pickle-able,
-            # so copying shallowly and then copies also sampler inside
-            batch_sampler = copy(data_loader.batch_sampler)
-            batch_sampler.sampler = copy(batch_sampler.sampler)
-            # Replace generator instance so the copied dataset will not affect the original
-            batch_sampler.sampler.generator = props['generator']
-            props['batch_sampler'] = batch_sampler
-        else:
-            sampler = copy(data_loader.sampler)
-            # Replace generator instance so the copied dataset will not affect the original
-            sampler.generator = props['generator']
-            props['sampler'] = sampler
-        props['dataset'] = copy(data_loader.dataset)
-        return data_loader.__class__(**props)
