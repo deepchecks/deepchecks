@@ -12,13 +12,12 @@
 from hamcrest import assert_that, has_entries, close_to, equal_to
 
 import numpy as np
-from deepchecks.vision.checks import SimpleFeatureContributionTrainTest
+from deepchecks.vision.checks import SimpleFeatureContribution
 from tests.vision.vision_conftest import *
 
 from deepchecks.vision.utils.transformations import un_normalize_batch
 
 
-# Create bias in the image_formatter that will
 def mnist_batch_to_images_with_bias(batch):
     """Create function which inverse the data normalization."""
     tensor = batch[0]
@@ -44,7 +43,7 @@ def get_coco_batch_to_images_with_bias(label_formatter):
 def test_no_drift_classification(mnist_dataset_train):
     # Arrange
     train, test = mnist_dataset_train, mnist_dataset_train
-    check = SimpleFeatureContributionTrainTest()
+    check = SimpleFeatureContribution()
 
     # Act
     result = check.run(train, test)
@@ -65,7 +64,7 @@ def test_drift_classification(mnist_dataset_train, mnist_dataset_test):
 
     train, test = mnist_dataset_train, mnist_dataset_test
 
-    check = SimpleFeatureContributionTrainTest()
+    check = SimpleFeatureContribution()
 
     # Act
     result = check.run(train, test)
@@ -82,7 +81,7 @@ def test_drift_classification(mnist_dataset_train, mnist_dataset_test):
 def test_no_drift_object_detection(coco_train_visiondata):
     # Arrange
     train, test = coco_train_visiondata, coco_train_visiondata
-    check = SimpleFeatureContributionTrainTest()
+    check = SimpleFeatureContribution()
 
     # Act
     result = check.run(train, test)
@@ -95,10 +94,11 @@ def test_no_drift_object_detection(coco_train_visiondata):
     })
                 )
 
+
 def test_drift_object_detection(coco_train_visiondata, coco_test_visiondata):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
-    check = SimpleFeatureContributionTrainTest()
+    check = SimpleFeatureContribution()
     train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
 
     # Act

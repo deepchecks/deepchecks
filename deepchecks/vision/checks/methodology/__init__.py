@@ -9,8 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the distribution checks in the vision package."""
-from .simple_feature_contribution import SimpleFeatureContributionTrainTest
+from .simple_feature_contribution import SimpleFeatureContribution
 
 __all__ = [
-    'SimpleFeatureContributionTrainTest',
+    'SimpleFeatureContribution',
 ]

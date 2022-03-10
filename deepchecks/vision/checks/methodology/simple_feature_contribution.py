@@ -10,16 +10,18 @@
 #
 """Module contains the domain classifier drift check."""
 from collections import OrderedDict
-from typing import Any, List
+from typing import Any, List, TypeVar, Hashable, Dict
 
+from deepchecks import ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.check_utils.single_feature_contribution_utils import get_single_feature_contribution
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
 import pandas as pd
 
-__all__ = ['SimpleFeatureContributionTrainTest']
+__all__ = ['SimpleFeatureContribution']
 
 from deepchecks.vision.utils import image_formatters
 from deepchecks.vision.vision_data import TaskType
@@ -39,12 +41,14 @@ DEFAULT_IMAGE_PROPERTIES = ['aspect_ratio',
                             'normalized_green_mean',
                             'normalized_blue_mean']
 
+SFC = TypeVar('SFC', bound='SimpleFeatureContribution')
+
 
 def crop_img(img: np.array, x: int, y: int, w: int, h: int) -> np.array:
     return img[y:y + h, x:x + w]
 
 
-class SimpleFeatureContributionTrainTest(TrainTestCheck):
+class SimpleFeatureContribution(TrainTestCheck):
     """
     Return the Predictive Power Score of image properties, in order to estimate their ability to predict the label.
 
@@ -130,15 +134,13 @@ class SimpleFeatureContributionTrainTest(TrainTestCheck):
             properties[func_name] += getattr(image_formatters, func_name)(imgs)
 
     def compute(self, context: Context) -> CheckResult:
-        """Train a Domain Classifier on image property data that was collected during update() calls.
+        """Calculate the PPS between each property and the label
 
         Returns
         -------
         CheckResult
-            value: dictionary containing the domain classifier auc and a dict of column name to its feature
-            importance as calculated for the domain classifier model.
-            display: distribution graph for each column for the columns most explaining the dataset difference,
-            comparing the train and test distributions.
+            value: dictionaries of PPS values for train, test and train-test difference.
+            display: bar graph of the PPS of each feature.
         """
         df_train = pd.DataFrame(self._train_properties)
         df_test = pd.DataFrame(self._test_properties)
@@ -170,4 +172,67 @@ class SimpleFeatureContributionTrainTest(TrainTestCheck):
         if display:
             display += text
 
-        return CheckResult(value=ret_value, display=display, header='Simple Feature Contribution Train-Test')
+        return CheckResult(value=ret_value, display=display, header='Simple Feature Contribution')
+
+    def add_condition_feature_pps_difference_not_greater_than(self: SFC, threshold: float = 0.2) -> SFC:
+        """Add new condition.
+
+        Add condition that will check that difference between train
+        dataset feature pps and test dataset feature pps is not greater than X.
+
+        Parameters
+        ----------
+        threshold : float , default: 0.2
+            train test ps difference upper bound.
+
+        Returns
+        -------
+        SFC
+        """
+
+        def condition(value: Dict[Hashable, Dict[Hashable, float]]) -> ConditionResult:
+            failed_features = {
+                feature_name: format_number(pps_diff)
+                for feature_name, pps_diff in value['train-test difference'].items()
+                if pps_diff > threshold
+            }
+
+            if failed_features:
+                message = f'Features with PPS difference above threshold: {failed_features}'
+                return ConditionResult(False, message)
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'Train-Test features\' Predictive Power Score difference is not greater than '
+                                  f'{format_number(threshold)}', condition)
+
+    def add_condition_feature_pps_in_train_not_greater_than(self: SFC, threshold: float = 0.7) -> SFC:
+        """Add new condition.
+
+        Add condition that will check that train dataset feature pps is not greater than X.
+
+        Parameters
+        ----------
+        threshold : float , default: 0.7
+            pps upper bound
+
+        Returns
+        -------
+        SFC
+        """
+
+        def condition(value: Dict[Hashable, Dict[Hashable, float]]) -> ConditionResult:
+            failed_features = {
+                feature_name: format_number(pps_value)
+                for feature_name, pps_value in value['train'].items()
+                if pps_value > threshold
+            }
+
+            if failed_features:
+                message = f'Features in train dataset with PPS above threshold: {failed_features}'
+                return ConditionResult(False, message)
+            else:
+                return ConditionResult(True)
+
+        return self.add_condition(f'Train features\' Predictive Power Score is not greater than '
+                                  f'{format_number(threshold)}', condition)
