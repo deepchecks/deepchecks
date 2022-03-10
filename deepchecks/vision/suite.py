@@ -11,32 +11,62 @@
 """Module for base vision abstractions."""
 # pylint: disable=broad-except,not-callable
 import logging
-from typing import Tuple, Mapping, Optional, Union, Dict, List
+from typing import Tuple, Mapping, Optional, Union, Dict, List, Any, Iterable
 from collections import OrderedDict
+from functools import cached_property
 
 import torch
 from torch import nn
 from ignite.metrics import Metric
 
-from deepchecks.core.check_result import (
-    CheckFailure, CheckResult
-)
+from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.checks import DatasetKind
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
-from deepchecks.core.errors import (
-    DeepchecksNotSupportedError
-)
+from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.vision.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.vision.context import Context
 from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.utils.validation import apply_to_tensor
 
+
+__all__ = ['Suite', 'Batch']
+
+
 logger = logging.getLogger('deepchecks')
 
-__all__ = [
-    'Suite'
-]
+
+class Batch:
+
+    def __init__(
+        self,
+        batch: Tuple[Iterable[Any], Iterable[Any]],
+        context: Context,
+        dataset_kind: DatasetKind
+    ):
+        self._context = context
+        self._dataset_kind = dataset_kind
+        self._batch = apply_to_tensor(batch, lambda it: it.to(self._context.device))
+
+    @cached_property
+    def labels(self):
+        dataset = self._context.get_data_by_kind(self._dataset_kind)
+        labels = dataset.batch_to_labels(self._batch)
+        return labels
+
+    @cached_property
+    def predictions(self):
+        dataset = self._context.get_data_by_kind(self._dataset_kind)
+        predictions = dataset.infer_on_batch(self._batch, self._context.model, self._context.device)
+        return predictions
+
+    @cached_property
+    def images(self):
+        dataset = self._context.get_data_by_kind(self._dataset_kind)
+        return dataset.batch_to_images(self._batch)
+
+    def __getitem__(self, index):
+        return self._batch[index]
 
 
 class Suite(BaseSuite):
@@ -191,7 +221,7 @@ class Suite(BaseSuite):
         progress_bars.append(progress_bar)
         for batch_id, batch in enumerate(data_loader):
             progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
-            batch = apply_to_tensor(batch, lambda it: it.to(context.device))
+            batch = Batch(batch, context, dataset_kind)
             for check_idx, check in self.checks.items():
                 # If index in results the check already failed before
                 if check_idx in results:
