@@ -13,7 +13,7 @@ import re
 from hamcrest import assert_that, instance_of, only_contains, matches_regexp
 
 from deepchecks.core import CheckResult, ConditionCategory
-from deepchecks.tabular import Dataset
+from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.checks.methodology import ModelInferenceTime
 
 from tests.checks.utils import equal_condition_result, SCIENTIFIC_NOTATION_REGEXP

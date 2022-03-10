@@ -22,7 +22,7 @@ from hamcrest import (
 )
 
 from deepchecks.core.errors import ModelValidationError, DeepchecksValueError
-from deepchecks.tabular import Dataset
+from deepchecks.tabular.dataset import Dataset
 from deepchecks.utils.features import (
     calculate_feature_importance, calculate_feature_importance_or_none,
     column_importance_sorter_df, column_importance_sorter_dict

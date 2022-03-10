@@ -26,7 +26,7 @@ from hamcrest import (
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.errors import DatasetValidationError
-from deepchecks.vision.base import Context
+from deepchecks.vision.base_checks import Context
 
 
 def test_vision_context_initialization_for_classification_task(mnist_dataset_train, mnist_dataset_test,

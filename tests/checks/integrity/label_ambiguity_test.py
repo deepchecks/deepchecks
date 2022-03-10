@@ -12,7 +12,7 @@
 import pandas as pd
 from hamcrest import assert_that, has_length, equal_to, has_items, close_to
 
-from deepchecks.tabular import Dataset
+from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.checks.integrity.label_ambiguity import LabelAmbiguity
 from tests.checks.utils import equal_condition_result
 
