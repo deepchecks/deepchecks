@@ -29,10 +29,10 @@ default_image_properties = (
     'aspect_ratio',
     'area',
     'brightness',
-    'rms_contrast',
     'normalized_red_mean',
     'normalized_green_mean',
     'normalized_blue_mean'
+    #'rms_contrast'
 )
 
 
