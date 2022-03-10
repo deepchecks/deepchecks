@@ -82,7 +82,7 @@ def test_initialization_of_vision_data_with_classification_dataset_that_contains
         calling(bad_type_data.validate_label).with_args(next(iter(loader_with_string_labels))),
         raises(
             ValidationError,
-            r'Check requires classification label to be a torch\.Tensor or numpy array')
+            r'Check requires classification label to be a torch\.Tensor')
     )
     assert_that(
         calling(bad_shape_data.validate_label).with_args(next(iter(loader_with_labels_of_incorrect_shape))),
