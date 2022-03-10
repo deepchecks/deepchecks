@@ -209,7 +209,6 @@ class Suite(BaseSuite):
                 except Exception as exp:
                     results[check_idx] = CheckFailure(check, exp, type_suffix)
             progress_bar.inc_progress()
-            context.flush_cached_inference(dataset_kind)
 
         # SingleDatasetChecks have different handling. If we had failure in them need to add suffix to the index of
         # the results, else need to compute it.
