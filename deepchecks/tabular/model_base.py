@@ -63,7 +63,7 @@ class ModelComparisonSuite(BaseSuite):
         context = ModelComparisonContext(train_datasets, test_datasets, models)
 
         # Create progress bar
-        progress_bar = ProgressBar(self.name, len(self.checks))
+        progress_bar = ProgressBar(self.name, len(self.checks), 'Check')
 
         # Run all checks
         results = []

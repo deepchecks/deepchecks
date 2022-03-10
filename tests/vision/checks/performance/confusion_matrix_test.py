@@ -34,4 +34,4 @@ def test_detection(coco_train_visiondata, trained_yolov5_object_detection, devic
                        device=device)
 
     # Assert
-    assert_that(result.value.shape, equal_to((81, 81)))
+    assert_that(result.value.shape, equal_to((61, 61)))
