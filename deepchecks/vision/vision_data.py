@@ -378,6 +378,7 @@ class IndicesSequentialSampler(Sampler[int]):
     Args:
         indices (sequence): a sequence of indices
     """
+
     indices: List[int]
 
     def __init__(self, indices: List[int]) -> None:
