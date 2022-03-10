@@ -11,6 +11,8 @@
 """Module contains the domain classifier drift check."""
 from collections import OrderedDict
 from typing import Any, List, TypeVar, Hashable, Dict
+import numpy as np
+import pandas as pd
 
 from deepchecks import ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
@@ -18,14 +20,12 @@ from deepchecks.core.check_utils.single_feature_contribution_utils import get_si
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
-from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
-import pandas as pd
+from deepchecks.vision.utils import image_formatters
+from deepchecks.vision.vision_data import TaskType
+
 
 __all__ = ['SimpleFeatureContribution']
 
-from deepchecks.vision.utils import image_formatters
-from deepchecks.vision.vision_data import TaskType
-import numpy as np
 
 pps_url = 'https://docs.deepchecks.com/en/stable/examples/vision/' \
           'checks/methodology/simple_feature_contribution' \
@@ -152,7 +152,7 @@ class SimpleFeatureContribution(TrainTestCheck):
             '<u>In the graph above</u>, we should suspect we have problems in our data if:',
             ''
             '1. <b>Train dataset PPS values are high</b>:',
-            '   A high PPS (close to 1) can mean that there\'s a bias in the dataset, as a single property can predict' 
+            '   A high PPS (close to 1) can mean that there\'s a bias in the dataset, as a single property can predict'
             '   the label successfully, using simple classic ML algorithms',
             '2. <b>Large difference between train and test PPS</b> (train PPS is larger):',
             '   An even more powerful indication of dataset bias, as an image property that was powerful in train',
