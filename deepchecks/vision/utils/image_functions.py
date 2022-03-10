@@ -115,6 +115,7 @@ def label_bbox_add_to_figure(labels: torch.Tensor, figure, row=None, col=None, c
 
 
 def crop_image(img: np.array, x, y, w, h) -> np.array:
+    """Return the cropped numpy array image by xywh coordinates (top left corner, width and height."""
     # Convert xywh to integers if not integers already:
     x, y, w, h = [round(n) for n in [x, y, w, h]]
     return img[y:y + h, x:x + w]

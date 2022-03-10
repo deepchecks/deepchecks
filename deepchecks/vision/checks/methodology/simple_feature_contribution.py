@@ -27,7 +27,6 @@ from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['SimpleFeatureContribution']
 
-
 pps_url = 'https://docs.deepchecks.com/en/stable/examples/vision/' \
           'checks/methodology/simple_feature_contribution' \
           '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
@@ -70,17 +69,20 @@ class SimpleFeatureContribution(TrainTestCheck):
 
     Parameters
     ----------
-    ppscore_params : dict , default: None
-        dictionary of additional parameters for the ppscore predictor function
-    n_show_top : int , default: 5
+    alternative_image_properties : List[str] , default: None
+        List of alternative image properties names. Must be attributes of the ImageFormatter classes that are passed to
+        train and test's VisionData class. If None, check uses DEFAULT_IMAGE_PROPERTIES.
+    n_top_properties: int, default: 5
         Number of features to show, sorted by the magnitude of difference in PPS
+    ppscore_params: dict, default: None
+        dictionary of additional parameters for the ppscore predictor function
     """
+
     def __init__(
             self,
             alternative_image_properties: List[str] = None,
             n_top_properties: int = 3,
-            ppscore_params: dict = None,
-
+            ppscore_params: dict = None
     ):
         super().__init__()
 
@@ -130,7 +132,7 @@ class SimpleFeatureContribution(TrainTestCheck):
             properties[func_name] += getattr(image_formatters, func_name)(imgs)
 
     def compute(self, context: Context) -> CheckResult:
-        """Calculate the PPS between each property and the label
+        """Calculate the PPS between each property and the label.
 
         Returns
         -------

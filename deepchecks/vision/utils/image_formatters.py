@@ -56,7 +56,6 @@ def brightness(batch: List[np.ndarray]) -> List[float]:
 
 def rms_contrast(batch: List[np.array]) -> List[float]:
     """Return RMS contrast of image."""
-
     if _is_grayscale(batch) is False:
         batch = [rgb2gray(img) for img in batch]
 

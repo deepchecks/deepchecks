@@ -21,6 +21,33 @@ import plotly.graph_objects as go
 
 def get_single_feature_contribution(train_df: pd.DataFrame, train_label_name: Optional[Hashable], test_df: pd.DataFrame,
                                     test_label_name: Optional[Hashable], ppscore_params: dict, n_show_top: int):
+    """
+    Calculate the PPS for train, test and difference for single feature contribution checks.
+
+    The PPS represents the ability of a feature to single-handedly predict another feature or label.
+    This function calculates the PPS per feature for both train and test, and returns the data and display graph.
+
+    Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
+
+    Args:
+        train_df: pd.DataFrame
+            DataFrame of all train features and label
+        train_label_name:: str
+            name of label column in train dataframe
+        test_df:
+            DataFrame of all test features and label
+        test_label_name: str
+            name of label column in test dataframe
+        ppscore_params: dict
+            dictionary of additional parameters for the ppscore predictor function
+        n_show_top: int
+            Number of features to show, sorted by the magnitude of difference in PPS
+
+    Returns:
+        CheckResult
+            value: dictionaries of PPS values for train, test and train-test difference.
+            display: bar graph of the PPS of each feature.
+    """
     df_pps_train = pps.predictors(df=train_df, y=train_label_name,
                                   random_seed=42,
                                   **ppscore_params)
