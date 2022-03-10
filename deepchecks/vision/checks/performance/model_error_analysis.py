@@ -159,6 +159,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         test_property_df = pd.DataFrame(self._test_properties)[train_property_df.columns]
 
         print(self._test_properties)
+        print(train_property_df.columns.to_list())
 
         error_fi, error_model_predicted = \
             model_error_contribution(train_property_df,
@@ -169,6 +170,7 @@ class ModelErrorAnalysis(TrainTestCheck):
                                      [],
                                      min_error_model_score=self.min_error_model_score,
                                      random_state=self.random_state)
+        print(error_fi, error_model_predicted)
 
         display, value = error_model_display_dataframe(error_fi,
                                                        error_model_predicted,
