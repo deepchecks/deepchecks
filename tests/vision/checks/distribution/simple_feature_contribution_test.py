@@ -34,7 +34,7 @@ def get_coco_batch_to_images_with_bias(label_formatter):
         for i, labels in enumerate(label_formatter(batch)):
             for label in labels:
                 if label[0] > 40:
-                    x, y, w, h = np.array(label[1:]).astype(int)
+                    x, y, w, h = [round(float(n)) for n in label[1:]]
                     ret[i][y:y+h, x:x+w] = ret[i][y:y+h, x:x+w].clip(min=200)
         return ret
     return ret_func
@@ -106,9 +106,9 @@ def test_drift_object_detection(coco_train_visiondata, coco_test_visiondata):
 
     # Assert
     assert_that(result.value, has_entries({
-        'train': has_entries({'brightness': close_to(0.35, 0.01)}),
+        'train': has_entries({'brightness': close_to(0.41, 0.01)}),
         'test': has_entries({'brightness': equal_to(0)}),
-        'train-test difference':  has_entries({'brightness': close_to(0.35, 0.01)}),
+        'train-test difference':  has_entries({'brightness': close_to(0.41, 0.01)}),
     })
                 )
 

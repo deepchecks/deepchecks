@@ -114,5 +114,7 @@ def label_bbox_add_to_figure(labels: torch.Tensor, figure, row=None, col=None, c
                               font=dict(color=color))
 
 
-def crop_image(img: np.array, x: int, y: int, w: int, h: int) -> np.array:
+def crop_image(img: np.array, x, y, w, h) -> np.array:
+    # Convert xywh to integers if not integers already:
+    x, y, w, h = [round(n) for n in [x, y, w, h]]
     return img[y:y + h, x:x + w]
