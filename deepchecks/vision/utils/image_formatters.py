@@ -29,10 +29,10 @@ default_image_properties = (
     'aspect_ratio',
     'area',
     'brightness',
+    'rms_contrast',
     'normalized_red_mean',
     'normalized_green_mean',
     'normalized_blue_mean'
-    #'rms_contrast'
 )
 
 
@@ -51,13 +51,13 @@ def brightness(batch: List[np.ndarray]) -> List[float]:
     if _is_grayscale(batch) is True:
         return [img.mean() for img in batch]
     else:
-        return [rgb2gray(img).mean() for img in batch]
+        return [rgb2gray(img.astype('int8')).mean() for img in batch]
 
 
 def rms_contrast(batch: List[np.array]) -> List[float]:
     """Return RMS contrast of image."""
     if _is_grayscale(batch) is False:
-        batch = [rgb2gray(img) for img in batch]
+        batch = [rgb2gray(img.astype('int8')) for img in batch]
 
     return [img.std() for img in batch]
 
