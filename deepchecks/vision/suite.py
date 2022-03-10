@@ -38,6 +38,7 @@ __all__ = [
     'Suite'
 ]
 
+
 class Suite(BaseSuite):
     """Tabular suite to run checks of types: TrainTestCheck, SingleDatasetCheck, ModelOnlyCheck."""
 
