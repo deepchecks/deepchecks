@@ -13,6 +13,9 @@
      ~
    -->
 
+============================================
+Test Suites for Validating ML Models & Data
+============================================
 
 .. raw:: html
 
@@ -36,10 +39,11 @@
       </a>
    </p>
 
+.. raw:: html
 
-============================================
-Test Suites for Validating ML Models & Data
-============================================
+   <p align="center">
+      <img src="docs/images/checks-and-conditions.png">
+   </p>
 
 |build| |Documentation Status| |pkgVersion| |pyVersions|
 |Maintainability| |Coverage Status|
