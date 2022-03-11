@@ -13,10 +13,6 @@
      ~
    -->
 
-============================================
-Test Suites for Validating ML Models & Data
-============================================
-
 .. raw:: html
 
    <p align="center">
@@ -39,14 +35,21 @@ Test Suites for Validating ML Models & Data
       </a>
    </p>
 
+
+
+|build| |Documentation Status| |pkgVersion| |pyVersions|
+|Maintainability| |Coverage Status|
+
+============================================
+Test Suites for Validating ML Models & Data
+============================================
+
 .. raw:: html
 
    <p align="center">
       <img src="docs/images/checks-and-conditions.png">
    </p>
 
-|build| |Documentation Status| |pkgVersion| |pyVersions|
-|Maintainability| |Coverage Status|
 
 Deepchecks is a Python package for comprehensively validating your
 machine learning models and data with minimal effort. This includes
