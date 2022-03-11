@@ -174,6 +174,7 @@ requirements: $(ENV)
 		-r ./requirements/vision-requirements.txt \
 		-r ./requirements/nlp-requirements.txt
 	@$(PIP) install --no-deps -e .
+	$(PIP) freeze | grep torch  
 
 
 doc-requirements: $(ENV)
