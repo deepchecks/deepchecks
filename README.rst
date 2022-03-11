@@ -35,14 +35,14 @@
       </a>
    </p>
 
-
-
 |build| |Documentation Status| |pkgVersion| |pyVersions|
 |Maintainability| |Coverage Status|
 
-============================================
-Test Suites for Validating ML Models & Data
-============================================
+.. raw:: html
+
+   <h1 align="center">
+      Test Suites for Validating ML Models & Data
+   </h1>
 
 .. raw:: html
 
