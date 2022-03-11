@@ -221,7 +221,7 @@ test-win:
 	@$(WIN_ENV)\Scripts\activate.bat
 	$(PIP_WIN) install -q\
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" "torchaudio==0.10.2+cpu" \
-			-f https://download.pytorch.org/whl/cpu/torch_stable.html; \
+			-f https://download.pytorch.org/whl/cpu/torch_stable.html;
 	@$(PIP_WIN) install -U pip
 	@$(PIP_WIN) install -q \
 		-r ./requirements/requirements.txt \
