@@ -153,6 +153,6 @@ def test_train_test_condition_pps_train_fail(coco_train_visiondata, coco_test_vi
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Train properties\' Predictive Power Score is not greater than {condition_value}',
-        details='Features in train dataset with PPS above threshold: {\'rms_contrast\': \'0.41\', '
-                '\'brightness\': \'0.35\'}'
+        details='Features in train dataset with PPS above threshold: {\'brightness\': \'0.34\', '
+                '\'rms_contrast\': \'0.34\'}'
     ))
