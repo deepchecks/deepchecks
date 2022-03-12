@@ -65,7 +65,7 @@ class SimpleFeatureContribution(TrainTestCheck):
     ----------
     alternative_image_properties : List[str] , default: None
         List of alternative image properties names. Must be attributes of the ImageFormatter classes that are passed to
-        train and test's VisionData class. If None, check uses DEFAULT_IMAGE_PROPERTIES.
+        train and test's VisionData class. If None, check uses default_image_properties.
     n_top_properties: int, default: 5
         Number of features to show, sorted by the magnitude of difference in PPS
     ppscore_params: dict, default: None
