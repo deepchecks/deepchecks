@@ -9,11 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Deepchecks."""
-import sys
-import types
+import http.client
 import os
 import pathlib
-import http.client
+import sys
+import types
 import warnings
 from importlib._bootstrap import _init_module_attrs
 
@@ -21,7 +21,6 @@ import matplotlib
 import plotly.io as pio
 from pkg_resources import parse_version
 
-from deepchecks.utils.ipython import is_notebook
 from deepchecks.core import (
     BaseCheck,
     BaseSuite,
@@ -46,7 +45,7 @@ from deepchecks.tabular import (
     ModelComparisonCheck,
     ModelComparisonSuite,
 )
-
+from deepchecks.utils.ipython import is_notebook
 
 __all__ = [
     # core

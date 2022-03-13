@@ -20,7 +20,6 @@ from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_percent, format_list
 from deepchecks.utils.typing import Hashable
 
-
 __all__ = ['DataDuplicates']
 
 

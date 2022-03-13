@@ -19,11 +19,9 @@ from torch import nn
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-
+from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.vision_data import VisionData
-from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
-
 
 __all__ = [
     'get_scorers_list',

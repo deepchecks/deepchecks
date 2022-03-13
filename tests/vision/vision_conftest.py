@@ -16,15 +16,14 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.dataloader import default_collate
 
-from deepchecks.vision.datasets.detection.coco import (
-    load_model as load_yolov5_model,
-    load_dataset as load_coco_dataset
-)
 from deepchecks.vision.datasets.classification.mnist import (
     load_model as load_mnist_net_model,
     load_dataset as load_mnist_dataset, MNISTData
 )
-
+from deepchecks.vision.datasets.detection.coco import (
+    load_model as load_yolov5_model,
+    load_dataset as load_coco_dataset
+)
 from tests.vision.utils_tests.mnist_imgaug import mnist_dataset_imgaug
 
 # Fix bug with torch.hub path on windows

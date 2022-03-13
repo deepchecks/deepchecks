@@ -33,12 +33,6 @@
 
 
 import numpy as np
-
-from sklearn import tree
-from sklearn import preprocessing
-from sklearn.model_selection import cross_val_score
-from sklearn.metrics import mean_absolute_error, f1_score
-
 import pandas as pd
 from pandas.api.types import (
     is_numeric_dtype,
@@ -49,6 +43,10 @@ from pandas.api.types import (
     is_datetime64_any_dtype,
     is_timedelta64_dtype,
 )
+from sklearn import preprocessing
+from sklearn import tree
+from sklearn.metrics import mean_absolute_error, f1_score
+from sklearn.model_selection import cross_val_score
 
 from deepchecks.utils.typing import Hashable
 

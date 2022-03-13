@@ -3,12 +3,12 @@
 # This file only contains a selection of the most common options. For a full
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
-import typing as t
+import functools
 import inspect
 import os
-import sys
 import pathlib
-import functools
+import sys
+import typing as t
 from subprocess import check_output
 import deepchecks
 from deepchecks import vision

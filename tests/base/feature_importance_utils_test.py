@@ -13,13 +13,13 @@ import warnings
 
 import pandas as pd
 import pytest
+from hamcrest import (
+    equal_to, assert_that, calling, raises, is_,
+    close_to, not_none, none, has_length, any_of, contains_exactly
+)
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.neural_network import MLPClassifier
-from hamcrest import (
-    equal_to, assert_that, calling, raises, is_,
-    close_to, not_none, none, has_length, any_of, contains_exactly, has_item
-)
 
 from deepchecks.core.errors import ModelValidationError, DeepchecksValueError
 from deepchecks.tabular.dataset import Dataset

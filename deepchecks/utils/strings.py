@@ -10,13 +10,13 @@
 #
 """String functions."""
 import random
-import typing as t
 import re
-from datetime import datetime
-from string import ascii_uppercase, digits
+import typing as t
 from collections import defaultdict
-from decimal import Decimal
 from copy import copy
+from datetime import datetime
+from decimal import Decimal
+from string import ascii_uppercase, digits
 
 import pandas as pd
 from pandas.core.dtypes.common import is_numeric_dtype
@@ -24,7 +24,6 @@ from pandas.core.dtypes.common import is_numeric_dtype
 import deepchecks
 from deepchecks import core
 from deepchecks.utils.typing import Hashable
-
 
 __all__ = [
     'string_baseform',

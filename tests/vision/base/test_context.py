@@ -10,7 +10,6 @@
 #
 #
 import torch
-from torch import nn
 from hamcrest import (
     assert_that,
     calling,
@@ -22,10 +21,11 @@ from hamcrest import (
     same_instance,
     all_of
 )
+from torch import nn
 
-from deepchecks.core.errors import DeepchecksValueError, ValidationError
-from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.errors import DatasetValidationError
+from deepchecks.core.errors import DeepchecksNotSupportedError
+from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.vision.base_checks import Context
 
 

@@ -10,12 +10,12 @@
 #
 """The data_sample_leakage_report check module."""
 from typing import Dict
+
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_percent
-
 
 pd.options.mode.chained_assignment = None
 

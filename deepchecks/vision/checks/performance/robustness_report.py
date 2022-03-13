@@ -12,25 +12,24 @@
 from collections import defaultdict
 from typing import TypeVar, List, Optional, Sized, Dict
 
-import imgaug
 import albumentations
+import imgaug
 import numpy as np
 import pandas as pd
-import torch
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
+import torch
 from ignite.metrics import Metric
+from plotly.subplots import make_subplots
 
 from deepchecks import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision import VisionData, SingleDatasetCheck, Context, Batch
-from deepchecks.vision.vision_data import TaskType
-from deepchecks.vision.metrics_utils import calculate_metrics, metric_results_to_df
-from deepchecks.vision.utils.validation import set_seeds
-from deepchecks.vision.metrics_utils import get_scorers_list
 from deepchecks.utils.strings import format_percent, split_camel_case
+from deepchecks.vision import VisionData, SingleDatasetCheck, Context, Batch
+from deepchecks.vision.metrics_utils import calculate_metrics, metric_results_to_df
+from deepchecks.vision.metrics_utils import get_scorers_list
 from deepchecks.vision.utils.image_functions import ImageInfo, numpy_to_html_image
-
+from deepchecks.vision.utils.validation import set_seeds
+from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['RobustnessReport']
 

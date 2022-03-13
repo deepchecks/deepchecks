@@ -11,10 +11,9 @@
 """Module contains columns_info check."""
 import pandas as pd
 
-from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.core import CheckResult
+from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_dict
-
 
 __all__ = ['ColumnsInfo']
 

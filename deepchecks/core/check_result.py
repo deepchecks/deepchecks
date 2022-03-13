@@ -9,32 +9,31 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the check results classes."""
-# pylint: disable=broad-except
-from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
-from deepchecks.core.display_pandas import dataframe_to_html, get_conditions_table
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.strings import get_docs_summary
-from deepchecks.utils.ipython import is_notebook
-from deepchecks.utils.wandb_utils import set_wandb_run_state
-
 import base64
 import io
 import traceback
 import warnings
 from typing import Any, Callable, List, Tuple, Union, TYPE_CHECKING
 
+import ipywidgets as widgets
 import jsonpickle
 import matplotlib
-import pandas as pd
 import numpy as np
-import ipywidgets as widgets
-import plotly.graph_objects as go
+import pandas as pd
 import plotly
-from plotly.basedatatypes import BaseFigure
-from matplotlib import pyplot as plt
+import plotly.graph_objects as go
 from IPython.display import display_html
+from matplotlib import pyplot as plt
 from pandas.io.formats.style import Styler
+from plotly.basedatatypes import BaseFigure
 
+# pylint: disable=broad-except
+from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
+from deepchecks.core.display_pandas import dataframe_to_html, get_conditions_table
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.utils.ipython import is_notebook
+from deepchecks.utils.strings import get_docs_summary
+from deepchecks.utils.wandb_utils import set_wandb_run_state
 
 if TYPE_CHECKING:
     from deepchecks.core.checks import BaseCheck

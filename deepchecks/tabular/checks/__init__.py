@@ -9,6 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Module importing all tabular checks."""
+from .distribution import (
+    TrustScoreComparison,
+    TrainTestFeatureDrift,
+    TrainTestLabelDrift,
+    WholeDatasetDrift
+)
 from .integrity import (
     MixedNulls,
     StringMismatch,
@@ -23,7 +29,6 @@ from .integrity import (
     NewLabelTrainTest,
     LabelAmbiguity
 )
-
 from .methodology import (
     BoostingOverfit,
     UnusedFeatures,
@@ -37,19 +42,10 @@ from .methodology import (
     ModelInferenceTime,
     DatasetsSizeComparison
 )
-
 from .overview import (
     ModelInfo,
     ColumnsInfo
 )
-
-from .distribution import (
-    TrustScoreComparison,
-    TrainTestFeatureDrift,
-    TrainTestLabelDrift,
-    WholeDatasetDrift
-)
-
 from .performance import (
     PerformanceReport,
     ConfusionMatrixReport,
@@ -62,7 +58,6 @@ from .performance import (
     MultiModelPerformanceReport,
     ModelErrorAnalysis
 )
-
 
 __all__ = [
     # integrity checks

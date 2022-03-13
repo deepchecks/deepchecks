@@ -18,7 +18,6 @@ from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
-
 __all__ = ['LabelAmbiguity']
 
 

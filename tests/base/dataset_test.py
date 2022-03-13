@@ -10,20 +10,19 @@
 #
 """Contains unit tests for the Dataset class."""
 import typing as t
-import random
 
 import numpy as np
 import pandas as pd
-from sklearn.datasets import load_iris
-from sklearn.datasets import make_classification
 from hamcrest import (
     assert_that, instance_of, equal_to, is_,
     calling, raises, not_none, has_property, all_of, contains_exactly, has_item, has_length
 )
+from sklearn.datasets import load_iris
+from sklearn.datasets import make_classification
 
+from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.utils.validation import ensure_dataframe_type
-from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
 
 
 def assert_dataset(dataset: Dataset, args):

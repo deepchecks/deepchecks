@@ -15,10 +15,9 @@ from typing import List
 import pandas as pd
 
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.vision import Context, TrainTestCheck, Batch
 from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
+from deepchecks.vision import Context, TrainTestCheck, Batch
 from deepchecks.vision.utils import image_formatters
-
 
 __all__ = ['ImageDatasetDrift']
 

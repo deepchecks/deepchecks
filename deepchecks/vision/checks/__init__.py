@@ -9,9 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module importing all vision checks."""
-from .performance import ClassPerformance, MeanAveragePrecisionReport, MeanAverageRecallReport, \
-                         RobustnessReport, ConfusionMatrixReport, SimpleModelComparison, ImageSegmentPerformance
 from .distribution import TrainTestLabelDrift, ImageDatasetDrift, ImagePropertyDrift, TrainTestPredictionDrift
+from .performance import ClassPerformance, MeanAveragePrecisionReport, MeanAverageRecallReport, \
+    RobustnessReport, ConfusionMatrixReport, SimpleModelComparison, ImageSegmentPerformance
 
 __all__ = [
     'ClassPerformance',

@@ -8,15 +8,13 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-import imgaug.augmenters as iaa
 import albumentations as A
-
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.utils.transformations import AlbumentationsTransformations, ImgaugTransformations
+import imgaug.augmenters as iaa
 from hamcrest import assert_that, instance_of, equal_to, calling, raises
 
-from tests.vision.vision_conftest import *
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import VisionData
+from deepchecks.vision.utils.transformations import AlbumentationsTransformations, ImgaugTransformations
 
 
 def test_get_transforms_type_albumentations(mnist_dataset_train):

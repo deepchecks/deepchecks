@@ -13,6 +13,7 @@
 Each function returns a new suite that is initialized with a list of checks and default conditions.
 It is possible to customize these suites by editing the checks and conditions inside it after the suites' creation.
 """
+from deepchecks.tabular import Suite
 from deepchecks.tabular.checks import (
     MixedNulls, SpecialCharacters, StringLengthOutOfBounds, StringMismatch, MixedDataTypes,
     DateTrainTestLeakageDuplicates, SingleFeatureContributionTrainTest, TrainTestSamplesMix,
@@ -23,8 +24,6 @@ from deepchecks.tabular.checks import (
     ModelInfo, ColumnsInfo, DataDuplicates, IsSingleValue, LabelAmbiguity,
     DatasetsSizeComparison, UnusedFeatures, ModelInferenceTime, ModelErrorAnalysis, TrainTestLabelDrift
 )
-from deepchecks.tabular import Suite
-
 
 __all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validation',
            'model_evaluation', 'full_suite']

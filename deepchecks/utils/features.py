@@ -16,8 +16,8 @@
 import time
 import typing as t
 import warnings
-from warnings import warn
 from functools import lru_cache
+from warnings import warn
 
 import numpy as np
 import pandas as pd
@@ -28,9 +28,8 @@ from deepchecks import tabular
 from deepchecks.core import errors
 from deepchecks.utils import validation
 from deepchecks.utils.metrics import DeepcheckScorer, get_default_scorers, task_type_check, init_validate_scorers
-from deepchecks.utils.typing import Hashable
 from deepchecks.utils.model import get_model_of_pipeline
-
+from deepchecks.utils.typing import Hashable
 
 __all__ = [
     'calculate_feature_importance',

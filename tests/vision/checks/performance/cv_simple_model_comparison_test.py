@@ -8,9 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+from hamcrest import assert_that, close_to, equal_to, calling, raises
+
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks.performance.simple_model_comparison import SimpleModelComparison
-from hamcrest import assert_that, close_to, equal_to, is_in, calling, raises
 
 
 def test_mnist_prior_strategy(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):

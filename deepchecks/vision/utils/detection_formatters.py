@@ -16,7 +16,6 @@ import numpy as np
 import torch
 from PIL.Image import Image
 
-
 __all__ = ['verify_bbox_format_notation', 'convert_batch_of_bboxes', 'convert_bbox', ]
 
 

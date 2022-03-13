@@ -20,10 +20,9 @@ from ignite.metrics import Metric
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import Context, TrainTestCheck, Batch
-from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
 from deepchecks.vision.metrics_utils.metrics import filter_classes_for_display
-
+from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['SimpleModelComparison']
 

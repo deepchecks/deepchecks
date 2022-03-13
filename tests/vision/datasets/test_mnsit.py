@@ -9,8 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 import time
-from torch.utils.data import DataLoader
+
 from hamcrest import assert_that, instance_of, calling, raises
+from torch.utils.data import DataLoader
 
 from deepchecks.vision import VisionData
 from deepchecks.vision.datasets.classification.mnist import (

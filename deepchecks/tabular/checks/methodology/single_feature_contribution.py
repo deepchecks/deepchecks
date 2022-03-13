@@ -15,9 +15,8 @@ import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.plot import create_colorbar_barchart_for_check
-from deepchecks.utils.typing import Hashable
 from deepchecks.utils.strings import format_number
-
+from deepchecks.utils.typing import Hashable
 
 __all__ = ['SingleFeatureContribution']
 

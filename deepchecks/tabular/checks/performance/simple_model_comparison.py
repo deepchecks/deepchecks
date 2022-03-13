@@ -23,10 +23,9 @@ from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, TrainTestCheck, Dataset
 from deepchecks.utils.distribution.preprocessing import ScaledNumerics
-from deepchecks.utils.strings import format_percent
 from deepchecks.utils.metrics import ModelType, get_gain
 from deepchecks.utils.simple_models import RandomModel
-
+from deepchecks.utils.strings import format_percent
 
 __all__ = ['SimpleModelComparison']
 
@@ -62,7 +61,7 @@ class SimpleModelComparison(TrainTestCheck):
 
     .. code-block:: python
 
-        from sklearn.metrics import roc_auc_score, make_scorer
+        from sklearn.metrics import make_scorer, roc_auc_score
         auc_scorer = make_scorer(roc_auc_score)
 
     Or you can implement your own:

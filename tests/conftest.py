@@ -10,23 +10,23 @@
 #
 """Represents fixtures for unit testing using pytest."""
 # Disable this pylint check since we use this convention in pytest fixtures
-#pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name
 from typing import Tuple
 
-import numpy as np
-import pytest
-import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import pytest
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, GradientBoostingRegressor
 from sklearn.datasets import load_iris, load_diabetes
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import KBinsDiscretizer, OrdinalEncoder
 from sklearn.tree import DecisionTreeClassifier
 
-from deepchecks.tabular import Dataset, TrainTestCheck, Context
 from deepchecks.core.check_result import CheckResult
+from deepchecks.tabular import Dataset, TrainTestCheck, Context
 
 from .vision.vision_conftest import * #pylint: disable=wildcard-import, unused-wildcard-import
 

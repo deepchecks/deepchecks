@@ -9,13 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
+import logging
+from abc import abstractmethod
 from collections import Counter
 from copy import copy
-from abc import abstractmethod
 from enum import Enum
 from typing import Any, Iterable, List, Optional, Dict, TypeVar, Union
 
-import logging
 import numpy as np
 import torch
 from torch.utils.data import DataLoader

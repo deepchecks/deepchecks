@@ -10,12 +10,12 @@
 #
 """Module containing the performance check in the vision package."""
 from .class_performance import ClassPerformance
+from .confusion_matrix import ConfusionMatrixReport
+from .image_segment_performance import ImageSegmentPerformance
 from .mean_average_precision_report import MeanAveragePrecisionReport
 from .mean_average_recall_report import MeanAverageRecallReport
 from .robustness_report import RobustnessReport
-from .confusion_matrix import ConfusionMatrixReport
 from .simple_model_comparison import SimpleModelComparison
-from .image_segment_performance import ImageSegmentPerformance
 
 __all__ = [
     "ClassPerformance",

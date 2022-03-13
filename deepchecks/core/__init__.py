@@ -12,8 +12,6 @@
 
 Import objects to be available in parent deepchecks module.
 """
-from .suite import BaseSuite, SuiteResult
-from .condition import Condition, ConditionResult, ConditionCategory
 from .check_result import (
     CheckResult,
     CheckFailure,
@@ -25,6 +23,8 @@ from .checks import (
     TrainTestBaseCheck,
     ModelOnlyBaseCheck,
 )
+from .condition import Condition, ConditionResult, ConditionCategory
+from .suite import BaseSuite, SuiteResult
 
 __all__ = [
     'BaseCheck',

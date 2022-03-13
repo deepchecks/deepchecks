@@ -16,7 +16,6 @@ from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_number
 
-
 __all__ = ['RegressionSystematicError']
 
 

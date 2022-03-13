@@ -8,11 +8,9 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from deepchecks.vision.checks.performance.class_performance import ClassPerformance
-
-import torch.nn as nn
-
 from hamcrest import assert_that, close_to, equal_to, is_in
+
+from deepchecks.vision.checks.performance.class_performance import ClassPerformance
 
 
 def test_mnist_largest(mnist_dataset_train, mnist_dataset_test, trained_mnist, device):

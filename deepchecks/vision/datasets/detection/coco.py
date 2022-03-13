@@ -17,9 +17,9 @@ import warnings
 from pathlib import Path
 from typing import Iterable, List, Union
 
+import albumentations as A
 import numpy as np
 import torch
-import albumentations as A
 from PIL import Image
 from cv2 import cv2
 from torch import nn
@@ -30,7 +30,6 @@ from typing_extensions import Literal
 
 from deepchecks import vision
 from deepchecks.vision import DetectionData
-
 
 __all__ = ['load_dataset', 'load_model', 'COCOData']
 

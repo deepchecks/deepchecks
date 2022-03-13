@@ -9,20 +9,20 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the Suite object, used for running a set of checks together."""
-import io
 import abc
+import io
 import warnings
 from collections import OrderedDict
 from typing import Any, Union, List, Tuple
 
+import jsonpickle
 from IPython.core.display import display_html
 from IPython.core.getipython import get_ipython
-import jsonpickle
 
-from deepchecks.core.display_suite import ProgressBar, display_suite_result
-from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.check_result import CheckResult, CheckFailure
 from deepchecks.core.checks import BaseCheck
+from deepchecks.core.display_suite import ProgressBar, display_suite_result
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.ipython import is_notebook
 from deepchecks.utils.wandb_utils import set_wandb_run_state
 

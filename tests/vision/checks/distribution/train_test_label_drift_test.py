@@ -10,10 +10,10 @@
 #
 """Test functions of the VISION train test label drift."""
 from hamcrest import assert_that, has_entries, close_to, equal_to, raises, calling
-from tests.checks.utils import equal_condition_result
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import TrainTestLabelDrift
+from tests.checks.utils import equal_condition_result
 
 
 def test_no_drift_classification(mnist_dataset_train, device):

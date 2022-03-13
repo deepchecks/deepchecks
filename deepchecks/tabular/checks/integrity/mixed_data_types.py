@@ -10,9 +10,9 @@
 #
 """module contains Mixed Types check."""
 from typing import List, Union, Tuple
-import pandas as pd
 
 import numpy as np
+import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.tabular import Context, SingleDatasetCheck
@@ -20,7 +20,6 @@ from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import is_string_column, format_percent
 from deepchecks.utils.typing import Hashable
-
 
 __all__ = ['MixedDataTypes']
 

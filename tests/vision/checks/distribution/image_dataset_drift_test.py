@@ -9,12 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the VISION train test label drift."""
+import numpy as np
 from hamcrest import assert_that, has_entries, close_to, equal_to
 
-import numpy as np
 from deepchecks.vision.checks import ImageDatasetDrift
 from deepchecks.vision.datasets.detection.coco import COCOData
-from tests.vision.vision_conftest import *
 
 
 def add_brightness(img):

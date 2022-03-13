@@ -10,6 +10,7 @@
 #
 """Module containing the image formatter class for the vision module."""
 from typing import Tuple, List
+
 import numpy as np
 
 __all__ = ['image_properties',

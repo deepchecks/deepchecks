@@ -11,13 +11,12 @@
 """Contain functions for handling dataframes in checks."""
 import typing as t
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
-from deepchecks.core.errors import DeepchecksValueError
-
 
 __all__ = ['validate_columns_exist', 'select_from_dataframe', 'un_numpy']
 

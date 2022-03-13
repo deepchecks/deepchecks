@@ -19,7 +19,6 @@ from deepchecks.core.errors import DatasetValidationError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_number
 
-
 __all__ = ['IdentifierLeakage']
 
 

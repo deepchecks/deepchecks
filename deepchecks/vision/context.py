@@ -13,17 +13,16 @@ import logging
 from typing import Mapping, Union, Iterable, Any, Tuple
 
 import torch
-from torch import nn
 from ignite.metrics import Metric
+from torch import nn
 
 from deepchecks.core import DatasetKind
-from deepchecks.vision.vision_data import VisionData, TaskType
-from deepchecks.vision.utils.validation import apply_to_tensor
 from deepchecks.core.errors import (
     DatasetValidationError, DeepchecksNotImplementedError, ModelValidationError,
     DeepchecksNotSupportedError, DeepchecksValueError
 )
-
+from deepchecks.vision.utils.validation import apply_to_tensor
+from deepchecks.vision.vision_data import VisionData, TaskType
 
 __all__ = ['Context']
 

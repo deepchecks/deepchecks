@@ -10,30 +10,27 @@
 #
 """Module containing common WholeDatasetDriftCheck (domain classifier drift) utils."""
 
-from typing import List
 import warnings
+from typing import List
 
 import numpy as np
 import pandas as pd
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.metrics import roc_auc_score
+from sklearn.preprocessing import OrdinalEncoder
+from sklearn.model_selection import train_test_split
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore')
+    from sklearn.experimental import enable_hist_gradient_boosting  # noqa # pylint: disable=unused-import
+import plotly.graph_objects as go
 
 from deepchecks import Dataset  # TODO: Remove?
 from deepchecks.utils.distribution.plot import feature_distribution_traces, drift_score_bar_traces
 from deepchecks.utils.features import N_TOP_MESSAGE, calculate_feature_importance_or_none
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
-
-from sklearn.pipeline import Pipeline
-from sklearn.compose import ColumnTransformer
-
-with warnings.catch_warnings():
-    warnings.simplefilter('ignore')
-    from sklearn.experimental import enable_hist_gradient_boosting  # noqa # pylint: disable=unused-import
-
-from sklearn.ensemble import HistGradientBoostingClassifier
-from sklearn.metrics import roc_auc_score
-from sklearn.preprocessing import OrdinalEncoder
-from sklearn.model_selection import train_test_split
-import plotly.graph_objects as go
 
 
 def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.DataFrame,

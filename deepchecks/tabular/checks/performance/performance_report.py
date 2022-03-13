@@ -10,15 +10,15 @@
 #
 """Module containing performance report check."""
 from typing import Callable, TypeVar, Dict, cast
+
 import pandas as pd
 import plotly.express as px
 
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, ModelComparisonContext, TrainTestCheck, ModelComparisonCheck
-from deepchecks.utils.strings import format_percent, format_number
 from deepchecks.utils.metrics import MULTICLASS_SCORERS_NON_AVERAGE, ModelType
-
+from deepchecks.utils.strings import format_percent, format_number
 
 __all__ = ['PerformanceReport', 'MultiModelPerformanceReport']
 
@@ -46,7 +46,7 @@ class PerformanceReport(TrainTestCheck):
 
     .. code-block:: python
 
-        from sklearn.metrics import roc_auc_score, make_scorer
+        from sklearn.metrics import make_scorer, roc_auc_score
         auc_scorer = make_scorer(roc_auc_score)
 
     Or you can implement your own:

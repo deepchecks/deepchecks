@@ -8,22 +8,17 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from random import seed
 import types
-
 
 import albumentations
 import numpy as np
-from deepchecks.vision.datasets.detection.coco import COCOData, CocoDataset
-
-from tests.checks.utils import equal_condition_result
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.checks.performance.robustness_report import RobustnessReport
 from PIL import Image
 from hamcrest import assert_that, has_entries, close_to, calling, raises, has_items
 
-
-from tests.vision.vision_conftest import *
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.vision.checks.performance.robustness_report import RobustnessReport
+from deepchecks.vision.datasets.detection.coco import COCOData, CocoDataset
+from tests.checks.utils import equal_condition_result
 
 
 def test_mnist(mnist_dataset_train, trained_mnist, device):

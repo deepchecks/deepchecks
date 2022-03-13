@@ -12,22 +12,21 @@
 import random
 import traceback
 import typing as t
-import numpy as np
-import torch
+from io import BytesIO
+
 import imgaug
+import numpy as np
+import plotly.graph_objects as go
+import torch
+from IPython.display import display, HTML
+from PIL import Image
+from plotly.subplots import make_subplots
 
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.utils.ipython import is_notebook
-from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.utils.image_functions import numpy_to_image_figure, label_bbox_add_to_figure
+from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.vision_data import VisionData
-
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-from PIL import Image
-from io import BytesIO
-from IPython.display import display, HTML
-
 
 __all__ = ['set_seeds', 'apply_to_tensor', 'validate_extractors']
 

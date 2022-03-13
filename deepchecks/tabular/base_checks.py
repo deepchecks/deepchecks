@@ -13,8 +13,6 @@ import abc
 from functools import wraps
 from typing import Union, Mapping, List, Any
 
-from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.context import Context
 from deepchecks.core.check_result import (
     CheckResult,
     CheckFailure,
@@ -26,8 +24,9 @@ from deepchecks.core.checks import (
     ModelOnlyBaseCheck
 )
 from deepchecks.core.errors import DeepchecksNotSupportedError
+from deepchecks.tabular.context import Context
+from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.model_base import ModelComparisonContext
-
 
 __all__ = [
     'SingleDatasetCheck',

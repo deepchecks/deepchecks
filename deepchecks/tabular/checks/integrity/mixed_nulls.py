@@ -15,14 +15,13 @@ from typing import Union, Dict, List, Iterable
 import numpy as np
 import pandas as pd
 
-from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import string_baseform, format_percent
 from deepchecks.utils.typing import Hashable
-
 
 __all__ = ['MixedNulls']
 

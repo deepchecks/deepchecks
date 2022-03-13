@@ -15,13 +15,13 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 from category_encoders import TargetEncoder
+from sklearn import preprocessing
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeRegressor
-from sklearn import preprocessing
 
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.core.errors import DeepchecksProcessError
@@ -30,7 +30,6 @@ from deepchecks.utils.features import calculate_feature_importance
 from deepchecks.utils.metrics import ModelType
 from deepchecks.utils.plot import colors
 from deepchecks.utils.strings import format_number, format_percent
-
 
 __all__ = ['ModelErrorAnalysis']
 
@@ -75,7 +74,7 @@ class ModelErrorAnalysis(TrainTestCheck):
 
     .. code-block:: python
 
-        from sklearn.metrics import roc_auc_score, make_scorer
+        from sklearn.metrics import make_scorer, roc_auc_score
         auc_scorer = make_scorer(roc_auc_score)
 
     Or you can implement your own:

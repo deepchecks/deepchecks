@@ -24,9 +24,7 @@ from deepchecks.core.checks import (
 )
 from deepchecks.vision.context import Context
 from deepchecks.vision.vision_data import VisionData
-
 from .context import Batch
-
 
 logger = logging.getLogger('deepchecks')
 

@@ -13,15 +13,13 @@
 Each function returns a new suite that is initialized with a list of checks and default conditions.
 It is possible to customize these suites by editing the checks and conditions inside it after the suites' creation.
 """
+from deepchecks.vision import Suite
 from deepchecks.vision.checks import ClassPerformance, TrainTestLabelDrift, MeanAveragePrecisionReport, \
     MeanAverageRecallReport, ImagePropertyDrift, ImageDatasetDrift, SimpleModelComparison, ConfusionMatrixReport, \
     RobustnessReport, TrainTestPredictionDrift, ImageSegmentPerformance
-from deepchecks.vision import Suite
-
+from deepchecks.vision.checks.distribution import HeatmapComparison
 
 __all__ = ['train_test_validation', 'model_evaluation', 'full_suite']
-
-from deepchecks.vision.checks.distribution import HeatmapComparison
 
 
 def train_test_validation() -> Suite:

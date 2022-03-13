@@ -9,20 +9,20 @@
 # ----------------------------------------------------------------------------
 #
 """builtin suites tests"""
-#pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name
 import typing as t
-import pytest
 from datetime import datetime
 
 import pandas as pd
+import pytest
+from hamcrest import assert_that, instance_of, only_contains, any_of
+from hamcrest.core.matcher import Matcher
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.model_selection import train_test_split
-from hamcrest.core.matcher import Matcher
-from hamcrest import assert_that, instance_of, only_contains, any_of
 
 from deepchecks.core import SuiteResult, CheckResult, CheckFailure
-from deepchecks.tabular import suites, Dataset, SingleDatasetCheck, Suite
 from deepchecks.core.errors import DeepchecksBaseError
+from deepchecks.tabular import suites, Dataset, SingleDatasetCheck, Suite
 
 
 @pytest.fixture()

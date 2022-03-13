@@ -9,25 +9,24 @@
 # ----------------------------------------------------------------------------
 #
 """Module of segment performance check."""
-import math
 import typing as t
 from collections import defaultdict, Counter
 from numbers import Number
+import math
 
 import numpy as np
 import pandas as pd
+import plotly.express as px
 import torch
 from ignite.metrics import Metric
-import plotly.express as px
 
 from deepchecks import ConditionResult
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import SingleDatasetCheck, Context, Batch
-from deepchecks.vision.utils import image_formatters
 from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
-
+from deepchecks.vision.utils import image_formatters
 
 ImageProperty = t.Union[str, t.Callable[..., t.List[Number]]]
 

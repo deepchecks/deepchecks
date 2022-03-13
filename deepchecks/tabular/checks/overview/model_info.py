@@ -13,10 +13,9 @@ import warnings
 
 import pandas as pd
 
-from deepchecks.tabular import Context, ModelOnlyCheck
 from deepchecks.core import CheckResult
+from deepchecks.tabular import Context, ModelOnlyCheck
 from deepchecks.utils.model import get_model_of_pipeline
-
 
 __all__ = ['ModelInfo']
 

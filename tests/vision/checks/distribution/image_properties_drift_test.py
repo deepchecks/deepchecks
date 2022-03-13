@@ -25,9 +25,9 @@ from hamcrest import (
 
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.utils.image_formatters import image_properties
 from deepchecks.vision.checks.distribution import ImagePropertyDrift
 from deepchecks.vision.datasets.detection import coco
+from deepchecks.vision.utils.image_formatters import image_properties
 
 
 def test_image_property_drift_check(device):

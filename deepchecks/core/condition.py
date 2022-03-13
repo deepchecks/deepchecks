@@ -11,8 +11,8 @@
 """Module containing all the base classes for checks."""
 import enum
 from typing import Callable, Dict, cast
-from deepchecks.core.errors import DeepchecksValueError
 
+from deepchecks.core.errors import DeepchecksValueError
 
 __all__ = [
     'Condition',

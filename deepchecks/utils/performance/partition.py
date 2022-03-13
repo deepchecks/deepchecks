@@ -12,13 +12,14 @@
 from copy import deepcopy
 from typing import List, Callable
 
-# TODO: move tabular functionality to the tabular sub-package
-
 import numpy as np
 import pandas as pd
+
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
+
+# TODO: move tabular functionality to the tabular sub-package
 
 
 __all__ = ['partition_column', 'DeepchecksFilter']

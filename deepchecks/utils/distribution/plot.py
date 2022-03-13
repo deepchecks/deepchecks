@@ -9,18 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """A module containing utils for plotting distributions."""
+from typing import List, Union, Dict, Tuple
+
 import numpy as np
 import pandas as pd
-from scipy.stats import gaussian_kde
 import plotly.graph_objs as go
-
-__all__ = ['feature_distribution_traces', 'drift_score_bar_traces', 'get_density']
-
-from typing import List, Union, Dict, Tuple
+from scipy.stats import gaussian_kde
 
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.plot import colors
 from deepchecks.utils.dataframes import un_numpy
+
+__all__ = ['feature_distribution_traces', 'drift_score_bar_traces', 'get_density']
 
 
 def get_density(data, xs) -> np.ndarray:

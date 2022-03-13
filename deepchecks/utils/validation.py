@@ -13,12 +13,12 @@
 # TODO: move tabular functionality to the tabular sub-package
 
 import typing as t
+
 import pandas as pd
 
 from deepchecks import tabular  # pylint: disable=unused-import, is used in type annotations
 from deepchecks.core import errors
 from deepchecks.utils.typing import Hashable, BasicModel
-
 
 __all__ = [
     'model_type_validation',

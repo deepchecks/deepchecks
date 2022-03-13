@@ -12,15 +12,14 @@
 import jsonpickle
 import pandas as pd
 import plotly.express
-from plotly.graph_objs import FigureWidget
 import plotly.io as pio
-
-from deepchecks.core.check_result import CheckResult
 from hamcrest import assert_that, instance_of, has_length, is_, calling, raises, not_none
 from ipywidgets import VBox
+from plotly.graph_objs import FigureWidget
 
-from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.checks import ColumnsInfo, DataDuplicates, MixedNulls
+from deepchecks.core.check_result import CheckResult
+from deepchecks.core.errors import DeepchecksValueError
 
 pio.renderers.default = "json"
 

@@ -10,7 +10,7 @@
 #
 """Test functions of the VISION confusion matrix."""
 
-from hamcrest import assert_that, has_entries, close_to, equal_to, raises, calling
+from hamcrest import assert_that, equal_to
 
 from deepchecks.vision.checks import ConfusionMatrixReport
 

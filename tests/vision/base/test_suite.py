@@ -9,28 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 #
-import typing as t
-
-import torch
-from torch.utils.data import DataLoader
-from hamcrest import (
-    assert_that,
-    calling,
-    raises,
-    equal_to,
-    has_entries,
-    instance_of,
-    all_of,
-)
-
-from deepchecks.core import CheckResult
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.vision_data import TaskType
-from deepchecks.vision.base_checks import SingleDatasetCheck
-from deepchecks.vision.suite import Suite
-from deepchecks.vision.datasets.detection import coco
-from deepchecks.vision.datasets.classification import mnist
-
 
 
 # def test_suite_execution_with_list_of_single_dataset_checks():

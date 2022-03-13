@@ -10,9 +10,9 @@
 #
 from hamcrest import has_items, assert_that, has_length, close_to
 
-from deepchecks.vision.metrics_utils.metrics import calculate_metrics
-from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
 from deepchecks.vision import VisionData
+from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
+from deepchecks.vision.metrics_utils.metrics import calculate_metrics
 
 
 def test_default_ap_ignite_complient(coco_test_visiondata: VisionData, trained_yolov5_object_detection, device):

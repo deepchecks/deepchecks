@@ -9,19 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains all data integrity checks."""
-from .mixed_nulls import MixedNulls
-from .string_mismatch import StringMismatch
-from .mixed_data_types import MixedDataTypes
-from .is_single_value import IsSingleValue
-from .special_chars import SpecialCharacters
-from .string_length_out_of_bounds import StringLengthOutOfBounds
-from .string_mismatch_comparison import StringMismatchComparison
-from .dominant_frequency_change import DominantFrequencyChange
 from .data_duplicates import DataDuplicates
+from .dominant_frequency_change import DominantFrequencyChange
+from .is_single_value import IsSingleValue
+from .label_ambiguity import LabelAmbiguity
+from .mixed_data_types import MixedDataTypes
+from .mixed_nulls import MixedNulls
 from .new_category import CategoryMismatchTrainTest
 from .new_label import NewLabelTrainTest
-from .label_ambiguity import LabelAmbiguity
-
+from .special_chars import SpecialCharacters
+from .string_length_out_of_bounds import StringLengthOutOfBounds
+from .string_mismatch import StringMismatch
+from .string_mismatch_comparison import StringMismatchComparison
 
 __all__ = [
     'MixedNulls',

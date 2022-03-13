@@ -9,16 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """The model inference time check module."""
-import typing as t
 import timeit
+import typing as t
 
 import numpy as np
 
-from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_number
-
 
 __all__ = ['ModelInferenceTime']
 

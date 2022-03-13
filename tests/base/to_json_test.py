@@ -12,8 +12,8 @@
 import jsonpickle
 from hamcrest import assert_that, equal_to
 
-from deepchecks.tabular.suites import full_suite
 from deepchecks.tabular.checks import ColumnsInfo
+from deepchecks.tabular.suites import full_suite
 
 
 def test_check_full_suite_not_failing(iris_split_dataset_and_model):

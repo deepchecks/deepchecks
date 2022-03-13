@@ -11,11 +11,10 @@
 """Module contains is_single_value check."""
 from typing import Union, List
 
-from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.typing import Hashable
-
 
 __all__ = ['IsSingleValue']
 

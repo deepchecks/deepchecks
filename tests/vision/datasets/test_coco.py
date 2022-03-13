@@ -8,9 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from torch.utils.data import DataLoader
-from hamcrest import assert_that, instance_of, calling, raises, is_
 from unittest.mock import patch
+
+from hamcrest import assert_that, instance_of, calling, raises, is_
+from torch.utils.data import DataLoader
 
 from deepchecks import vision
 from deepchecks.vision.datasets.detection.coco import (

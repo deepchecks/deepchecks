@@ -19,7 +19,6 @@ import torch
 
 from deepchecks.core.errors import DeepchecksValueError
 
-
 __all__ = ['ImageInfo', 'numpy_to_image_figure', 'label_bbox_add_to_figure', 'numpy_grayscale_to_heatmap_figure',
            'apply_heatmap_image_properties', 'numpy_to_html_image']
 

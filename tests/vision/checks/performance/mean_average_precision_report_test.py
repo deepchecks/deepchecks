@@ -10,9 +10,9 @@
 #
 from hamcrest import assert_that, close_to, has_length, calling, raises
 
-from tests.checks.utils import equal_condition_result
 from deepchecks.core.errors import ModelValidationError
 from deepchecks.vision.checks.performance import MeanAveragePrecisionReport
+from tests.checks.utils import equal_condition_result
 
 
 def test_mnist_error(mnist_dataset_test, trained_mnist, device):

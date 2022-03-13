@@ -15,11 +15,10 @@ import plotly.graph_objects as go
 from deepchecks.core import CheckResult, ConditionResult, ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.utils.distribution.trust_score import TrustScore
-from deepchecks.utils.distribution.preprocessing import ScaledNumerics
 from deepchecks.utils.distribution.plot import feature_distribution_traces
+from deepchecks.utils.distribution.preprocessing import ScaledNumerics
+from deepchecks.utils.distribution.trust_score import TrustScore
 from deepchecks.utils.strings import format_percent
-
 
 __all__ = ['TrustScoreComparison']
 

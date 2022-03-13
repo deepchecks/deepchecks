@@ -9,20 +9,19 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing mean average precision report check."""
-import math
 from collections import defaultdict
 from typing import TypeVar, Tuple
+import math
 
+import numpy as np
 import pandas as pd
 import plotly.express as px
-import numpy as np
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import SingleDatasetCheck, Context, Batch
-from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
-
+from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['MeanAveragePrecisionReport']
 

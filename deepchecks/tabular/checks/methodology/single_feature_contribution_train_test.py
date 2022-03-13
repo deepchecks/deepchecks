@@ -10,16 +10,16 @@
 #
 """The single_feature_contribution check module."""
 import typing as t
+
 import numpy as np
 import plotly.graph_objects as go
 
 import deepchecks.ppscore as pps
-from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.plot import colors
-from deepchecks.utils.typing import Hashable
 from deepchecks.utils.strings import format_number
-
+from deepchecks.utils.typing import Hashable
 
 __all__ = ['SingleFeatureContributionTrainTest']
 

@@ -12,17 +12,15 @@
 
 from typing import Tuple, Union, Hashable, Callable
 
-from scipy.stats import wasserstein_distance
 import numpy as np
 import pandas as pd
-
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from scipy.stats import wasserstein_distance
 
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
-from deepchecks.core.errors import DeepchecksValueError
-
 
 PSI_MIN_PERCENTAGE = 0.01
 

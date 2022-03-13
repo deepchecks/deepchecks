@@ -12,10 +12,11 @@
 from collections import defaultdict
 from typing import List, Tuple, Union
 
+import numpy as np
+import torch
 from ignite.metrics import Metric
 from ignite.metrics.metric import sync_all_reduce, reinit__is_reduced
-import torch
-import numpy as np
+
 from .iou_utils import compute_pairwise_ious
 
 

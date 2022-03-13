@@ -11,10 +11,9 @@
 """The index_leakage check module."""
 import pandas as pd
 
-from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.core import CheckResult, ConditionResult
+from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_percent
-
 
 __all__ = ['IndexTrainTestLeakage']
 

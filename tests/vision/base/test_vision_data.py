@@ -12,7 +12,6 @@
 import typing as t
 
 import torch
-from torch.utils.data import DataLoader
 from hamcrest import (
     assert_that,
     calling,
@@ -22,15 +21,16 @@ from hamcrest import (
     instance_of,
     all_of,
 )
+from torch.utils.data import DataLoader
 
 from deepchecks.core.errors import ValidationError
 from deepchecks.vision.classification_data import ClassificationData
-from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.datasets.classification import mnist
 from deepchecks.vision.datasets.classification.mnist import MNISTData
 from deepchecks.vision.datasets.detection import coco
-from deepchecks.vision.datasets.classification import mnist
 from deepchecks.vision.datasets.detection.coco import COCOData
 from deepchecks.vision.detection_data import DetectionData
+from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.vision_data import VisionData
 
 
