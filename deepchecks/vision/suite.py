@@ -18,25 +18,22 @@ import torch
 from torch import nn
 from ignite.metrics import Metric
 
-from deepchecks.core.check_result import (
-    CheckFailure, CheckResult
-)
+from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.checks import DatasetKind
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.core.display_suite import ProgressBar
-from deepchecks.core.errors import (
-    DeepchecksNotSupportedError
-)
+from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.vision.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.vision.context import Context
 from deepchecks.vision.vision_data import VisionData
-from deepchecks.vision.utils.validation import apply_to_tensor
+
+from .context import Batch
+
+
+__all__ = ['Suite']
+
 
 logger = logging.getLogger('deepchecks')
-
-__all__ = [
-    'Suite'
-]
 
 
 class Suite(BaseSuite):
@@ -191,7 +188,7 @@ class Suite(BaseSuite):
         progress_bars.append(progress_bar)
         for batch_id, batch in enumerate(data_loader):
             progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
-            batch = apply_to_tensor(batch, lambda it: it.to(context.device))
+            batch = Batch(batch, context, dataset_kind)
             for check_idx, check in self.checks.items():
                 # If index in results the check already failed before
                 if check_idx in results:
@@ -212,7 +209,6 @@ class Suite(BaseSuite):
                 except Exception as exp:
                     results[check_idx] = CheckFailure(check, exp, type_suffix)
             progress_bar.inc_progress()
-            context.flush_cached_inference(dataset_kind)
 
         # SingleDatasetChecks have different handling. If we had failure in them need to add suffix to the index of
         # the results, else need to compute it.
