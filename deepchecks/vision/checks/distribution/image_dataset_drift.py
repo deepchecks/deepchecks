@@ -10,23 +10,17 @@
 #
 """Module contains the domain classifier drift check."""
 from collections import OrderedDict
-from typing import Any, List
-
-from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.vision import Context, TrainTestCheck
-from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
-from deepchecks.vision.utils import image_formatters
+from typing import List
 
 import pandas as pd
 
-__all__ = ['ImageDatasetDrift']
+from deepchecks.core import CheckResult, DatasetKind
+from deepchecks.vision import Context, TrainTestCheck, Batch
+from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
+from deepchecks.vision.utils import image_formatters
 
-DEFAULT_IMAGE_PROPERTIES = ['aspect_ratio',
-                            'area',
-                            'brightness',
-                            'normalized_red_mean',
-                            'normalized_green_mean',
-                            'normalized_blue_mean']
+
+__all__ = ['ImageDatasetDrift']
 
 
 class ImageDatasetDrift(TrainTestCheck):
@@ -78,7 +72,7 @@ class ImageDatasetDrift(TrainTestCheck):
         if alternative_image_properties:
             self.image_properties = alternative_image_properties
         else:
-            self.image_properties = DEFAULT_IMAGE_PROPERTIES
+            self.image_properties = image_formatters.default_image_properties
 
         self.n_top_properties = n_top_properties
         self.min_feature_importance = min_feature_importance
@@ -89,16 +83,13 @@ class ImageDatasetDrift(TrainTestCheck):
         self._train_properties = OrderedDict([(k, []) for k in self.image_properties])
         self._test_properties = OrderedDict([(k, []) for k in self.image_properties])
 
-    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""
         if dataset_kind == DatasetKind.TRAIN:
-            dataset = context.train
             properties = self._train_properties
         else:
-            dataset = context.test
             properties = self._test_properties
-
-        imgs = dataset.batch_to_images(batch)
+        imgs = batch.images
         for func_name in self.image_properties:
             properties[func_name] += getattr(image_formatters, func_name)(imgs)
 

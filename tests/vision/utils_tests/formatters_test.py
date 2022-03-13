@@ -16,7 +16,7 @@ import torch
 from hamcrest import assert_that, equal_to, calling, raises, close_to
 from torch.utils.data import DataLoader, Dataset
 
-from deepchecks.core.errors import  ValidationError
+from deepchecks.core.errors import ValidationError
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.utils import image_formatters
 from deepchecks.vision.utils.detection_formatters import verify_bbox_format_notation
@@ -28,6 +28,7 @@ from deepchecks.vision.vision_data import VisionData
 class SimpleImageData(VisionData):
     def batch_to_images(self, batch):
         return batch
+
 
 def numpy_shape_dataloader(shape: tuple = None, value: Union[float, np.ndarray] = 255, collate_fn=None):
     if collate_fn is None:
@@ -134,13 +135,39 @@ def test_brightness_rgb():
                             np.ones((10, 10, 1)) * 2,
                             np.ones((10, 10, 1)) * 3], axis=2)
 
-    expected_result = 2.0
-
     batch = next(iter(numpy_shape_dataloader(value=value)))
 
     res = image_formatters.brightness(batch)
 
-    assert_that(res, equal_to([expected_result]*4))
+    assert_that(res[0], close_to(1.86, 0.01))
+
+
+def test_rms_contrast_grayscale():
+    value = np.concatenate([np.zeros((3, 10, 1)),  np.ones((7, 10, 1))], axis=0)
+
+    expected_value = np.sqrt((70 * 0.3**2 + 30 * 0.7**2) / 100)
+
+    batch = next(iter(numpy_shape_dataloader(value=value)))
+
+    res = image_formatters.rms_contrast(batch)
+
+    assert_that(res[0], equal_to(expected_value))
+
+
+def test_rms_contrast_rgb():
+    # Create image that after turning from rgb to grayscale is 30% value 0 and 70% value 3:
+    value = np.concatenate([np.zeros((3, 10, 3)),  np.concatenate([np.ones((7, 10, 1)) * 1/0.2125,
+                                                                   np.ones((7, 10, 1)) * 1/0.7154,
+                                                                   np.ones((7, 10, 1)) * 1/0.0721], axis=2)],
+                           axis=0)
+
+    expected_value = np.sqrt((210 * 0.9**2 + 90 * 2.1**2) / 300)
+
+    batch = next(iter(numpy_shape_dataloader(value=value)))
+
+    res = image_formatters.rms_contrast(batch)
+
+    assert_that(res[0], close_to(expected_value, 0.00001))
 
 
 def test_aspect_ratio():

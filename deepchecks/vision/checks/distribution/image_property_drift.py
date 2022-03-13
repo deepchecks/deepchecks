@@ -21,6 +21,7 @@ from deepchecks.core import ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import TrainTestCheck
 from deepchecks.vision import Context
+from deepchecks.vision import Batch
 from deepchecks.vision.utils import image_formatters
 
 
@@ -56,13 +57,13 @@ class ImagePropertyDrift(TrainTestCheck):
         super().__init__()
 
         if image_properties is None:
-            self.image_properties = image_formatters.image_properties
+            self.image_properties = image_formatters.default_image_properties
         else:
             if len(image_properties) == 0:
                 raise DeepchecksValueError('image_properties list cannot be empty')
 
             received_properties = {p for p in image_properties if isinstance(p, str)}
-            unknown_properties = received_properties.difference(image_formatters.image_properties)
+            unknown_properties = received_properties.difference(image_formatters.default_image_properties)
 
             if len(unknown_properties) > 0:
                 raise DeepchecksValueError(
@@ -79,22 +80,20 @@ class ImagePropertyDrift(TrainTestCheck):
     def update(
         self,
         context: Context,
-        batch: t.Any,
+        batch: Batch,
         dataset_kind: DatasetKind
     ):
         """Calculate image properties for train or test batch."""
         if dataset_kind == DatasetKind.TRAIN:
-            dataset = context.train
             properties = self.train_properties
         elif dataset_kind == DatasetKind.TEST:
-            dataset = context.test
             properties = self.test_properties
         else:
             raise RuntimeError(
                 f'Internal Error - Should not reach here! unknown dataset_kind: {dataset_kind}'
             )
 
-        images = dataset.batch_to_images(batch)
+        images = batch.images
 
         for image_property in self.image_properties:
             if isinstance(image_property, str):
@@ -103,7 +102,7 @@ class ImagePropertyDrift(TrainTestCheck):
                 )
             elif callable(image_property):
                 # TODO: if it is a lambda it will have a name - <lambda>, that is a problem/
-                properties[image_property.__name__].extend(image_property(images))
+                properties[image_property.__name__].extend(image_property(images))  # pylint: disable=not-callable
             else:
                 raise DeepchecksValueError(
                     'Do not know how to work with image'
