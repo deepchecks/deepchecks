@@ -57,13 +57,13 @@ class ImagePropertyDrift(TrainTestCheck):
         super().__init__()
 
         if image_properties is None:
-            self.image_properties = image_formatters.image_properties
+            self.image_properties = image_formatters.default_image_properties
         else:
             if len(image_properties) == 0:
                 raise DeepchecksValueError('image_properties list cannot be empty')
 
             received_properties = {p for p in image_properties if isinstance(p, str)}
-            unknown_properties = received_properties.difference(image_formatters.image_properties)
+            unknown_properties = received_properties.difference(image_formatters.default_image_properties)
 
             if len(unknown_properties) > 0:
                 raise DeepchecksValueError(
@@ -102,7 +102,7 @@ class ImagePropertyDrift(TrainTestCheck):
                 )
             elif callable(image_property):
                 # TODO: if it is a lambda it will have a name - <lambda>, that is a problem/
-                properties[image_property.__name__].extend(image_property(images))
+                properties[image_property.__name__].extend(image_property(images))  # pylint: disable=not-callable
             else:
                 raise DeepchecksValueError(
                     'Do not know how to work with image'

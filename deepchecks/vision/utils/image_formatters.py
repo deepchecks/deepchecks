@@ -12,12 +12,13 @@
 from typing import Tuple, List
 
 import numpy as np
+from skimage.color import rgb2gray
 
-__all__ = ['image_properties',
+__all__ = ['default_image_properties',
            'aspect_ratio',
            'area',
            'brightness',
-           'contrast',
+           'rms_contrast',
            'normalized_red_mean',
            'normalized_blue_mean',
            'normalized_green_mean',
@@ -25,14 +26,15 @@ __all__ = ['image_properties',
            'get_dimension']
 
 
-image_properties = frozenset((
+default_image_properties = (
     'aspect_ratio',
     'area',
     'brightness',
+    'rms_contrast',
     'normalized_red_mean',
     'normalized_green_mean',
-    'normalized_blue_mean',
-))
+    'normalized_blue_mean'
+)
 
 
 def aspect_ratio(batch: List[np.ndarray]) -> List[float]:
@@ -50,12 +52,15 @@ def brightness(batch: List[np.ndarray]) -> List[float]:
     if _is_grayscale(batch) is True:
         return [img.mean() for img in batch]
     else:
-        return [(0.299*img[:, 0] + 0.587*img[:, 1] + 0.114 * img[:, 2]).mean() for img in batch]
+        return [rgb2gray(img).mean() for img in batch]
 
 
-def contrast(batch: List[np.ndarray]) -> List[float]:
-    """Return constrast of image."""
-    raise NotImplementedError('Not yet implemented')  # TODO
+def rms_contrast(batch: List[np.array]) -> List[float]:
+    """Return RMS contrast of image."""
+    if _is_grayscale(batch) is False:
+        batch = [rgb2gray(img) for img in batch]
+
+    return [img.std() for img in batch]
 
 
 def normalized_red_mean(batch: List[np.ndarray]) -> List[float]:

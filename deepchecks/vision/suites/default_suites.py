@@ -16,8 +16,9 @@ It is possible to customize these suites by editing the checks and conditions in
 from deepchecks.vision import Suite
 from deepchecks.vision.checks import ClassPerformance, TrainTestLabelDrift, MeanAveragePrecisionReport, \
     MeanAverageRecallReport, ImagePropertyDrift, ImageDatasetDrift, SimpleModelComparison, ConfusionMatrixReport, \
-    RobustnessReport, TrainTestPredictionDrift, ImageSegmentPerformance
-from deepchecks.vision.checks.distribution import HeatmapComparison
+    RobustnessReport, TrainTestPredictionDrift, ImageSegmentPerformance, SimpleFeatureContribution, \
+    HeatmapComparison
+from deepchecks.vision import Suite
 
 __all__ = ['train_test_validation', 'model_evaluation', 'full_suite']
 
@@ -31,7 +32,8 @@ def train_test_validation() -> Suite:
         TrainTestLabelDrift(),
         TrainTestPredictionDrift().add_condition_drift_score_not_greater_than(),
         ImagePropertyDrift().add_condition_drift_score_not_greater_than(),
-        ImageDatasetDrift()
+        ImageDatasetDrift(),
+        SimpleFeatureContribution().add_condition_feature_pps_difference_not_greater_than()
     )
 
 
@@ -54,5 +56,5 @@ def full_suite() -> Suite:
     return Suite(
         'Full Suite',
         model_evaluation(),
-        train_test_validation(),
+        train_test_validation()
     )

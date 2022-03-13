@@ -71,14 +71,15 @@ This dataset is a very small subset of imagenet.
 
             return sample, target
 
-    def get_cv2_image(self, image):
-        if isinstance(image, PIL.Image.Image):
-            image_np = np.array(image).astype('uint8')
-            return image_np
-        elif isinstance(image, np.ndarray):
-            return image
-        else:
-            raise RuntimeError("Only PIL.Image and CV2 loaders currently supported!")
+        def get_cv2_image(self, image):
+            if isinstance(image, PIL.Image.Image):
+                image_np = np.array(image).astype('uint8')
+                return image_np
+            elif isinstance(image, np.ndarray):
+                return image
+            else:
+                raise RuntimeError("Only PIL.Image and CV2 loaders currently supported!")
+
     # Just normalization for validation
     data_transforms = transforms.Compose([
             transforms.Resize(256),
@@ -101,12 +102,14 @@ This dataset is a very small subset of imagenet.
     val_dataset = AntsBeesDataset(root=os.path.join(data_dir,'val'))
     val_dataset.transforms = data_transforms
 
-    dataloaders['train'] = torch.utils.data.DataLoader(train_dataset, batch_size=4,
+    dataloaders = {
+        'train':torch.utils.data.DataLoader(train_dataset, batch_size=4,
+                                                 shuffle=True),
+        'val': torch.utils.data.DataLoader(val_dataset, batch_size=4,
                                                  shuffle=True)
-    dataloaders['val'] = torch.utils.data.DataLoader(val_dataset, batch_size=4,
-                                                 shuffle=True)
+    }
 
-    class_names = image_datasets['train'].classes
+    class_names = ['ants', 'bees']
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
