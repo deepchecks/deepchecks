@@ -12,6 +12,7 @@
 from .performance import ClassPerformance, MeanAveragePrecisionReport, MeanAverageRecallReport, ModelErrorAnalysis, \
                          RobustnessReport, ConfusionMatrixReport, SimpleModelComparison, ImageSegmentPerformance
 from .distribution import TrainTestLabelDrift, ImageDatasetDrift, ImagePropertyDrift, TrainTestPredictionDrift
+from .methodology import SimpleFeatureContribution
 
 __all__ = [
     'ClassPerformance',
@@ -25,5 +26,6 @@ __all__ = [
     'ImagePropertyDrift',
     'ModelErrorAnalysis',
     'TrainTestPredictionDrift',
-    'ImageSegmentPerformance'
+    'ImageSegmentPerformance',
+    'SimpleFeatureContribution'
 ]
