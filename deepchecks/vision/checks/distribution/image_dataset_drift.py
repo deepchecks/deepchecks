@@ -23,14 +23,6 @@ from deepchecks.vision.utils import image_formatters
 __all__ = ['ImageDatasetDrift']
 
 
-DEFAULT_IMAGE_PROPERTIES = ['aspect_ratio',
-                            'area',
-                            'brightness',
-                            'normalized_red_mean',
-                            'normalized_green_mean',
-                            'normalized_blue_mean']
-
-
 class ImageDatasetDrift(TrainTestCheck):
     """
     Calculate drift between the entire train and test datasets (based on image properties) using a trained model.
@@ -80,7 +72,7 @@ class ImageDatasetDrift(TrainTestCheck):
         if alternative_image_properties:
             self.image_properties = alternative_image_properties
         else:
-            self.image_properties = DEFAULT_IMAGE_PROPERTIES
+            self.image_properties = image_formatters.default_image_properties
 
         self.n_top_properties = n_top_properties
         self.min_feature_importance = min_feature_importance
