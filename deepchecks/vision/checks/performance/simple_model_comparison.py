@@ -19,13 +19,14 @@ from ignite.metrics import Metric
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision import Context, TrainTestCheck
+from deepchecks.vision import Context, TrainTestCheck, Batch
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
+from deepchecks.vision.metrics_utils.metrics import filter_classes_for_display
+
 
 __all__ = ['SimpleModelComparison']
 
-from deepchecks.vision.metrics_utils.metrics import filter_classes_for_display
 
 _allowed_strategies = (
     'most_frequent',
@@ -145,12 +146,11 @@ class SimpleModelComparison(TrainTestCheck):
         if not self.metric_to_show_by:
             self.metric_to_show_by = list(self._state[DatasetKind.TEST.value].keys())[0]
 
-    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the metrics for the check."""
         if dataset_kind == DatasetKind.TEST:
-            dataset = context.get_data_by_kind(dataset_kind)
-            label = dataset.batch_to_labels(batch)
-            prediction = context.infer(batch, dataset_kind)
+            label = batch.labels
+            prediction = batch.predictions
             for _, metric in self._state[DatasetKind.TEST.value].items():
                 metric.update((prediction, label))
             for _, metric in self._state['Simple Model'].items():
