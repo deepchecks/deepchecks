@@ -94,7 +94,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         return CheckResult(value=results, display=[results, fig])
 
     def add_condition_test_average_precision_not_less_than(self: MPR, min_score: float) -> MPR:
-        """Add condition - mAP score is not less than given score.
+        """Add condition - AP scores in different area thresholds is not less than given score.
 
         Parameters
         ----------
@@ -113,3 +113,21 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
             return ConditionResult(True)
 
         return self.add_condition(f'Scores are not less than {min_score}', condition)
+
+    def add_condition_test_mean_average_precision_not_less_than(self: MPR, min_score: float = 0.3) -> MPR:
+        """Add condition - mAP score in all areas is not less than given score.
+
+        Parameters
+        ----------
+        min_score : float
+            Minimum score to pass the check.
+        """
+        def condition(df: pd.DataFrame):
+            df = df.reset_index()
+            value = df.loc[df['Area size'] == 'All', :]['mAP@0.5..0.95 (%)'][0]
+            if value < min_score:
+                details = f'mAP score is: {format_number(value)}'
+                return ConditionResult(False, details)
+            return ConditionResult(True)
+
+        return self.add_condition(f'mAP score is not less than {min_score}', condition)

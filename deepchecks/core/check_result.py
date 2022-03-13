@@ -239,11 +239,11 @@ class CheckResult:
         for item in self.display:
             if isinstance(item, Styler):
                 wandb.log({f'{section_suffix}display_table_{table_i}':
-                           wandb.Table(dataframe=item.data, allow_mixed_types=True)}, commit=False)
+                           wandb.Table(dataframe=item.data.reset_index(), allow_mixed_types=True)}, commit=False)
                 table_i += 1
             elif isinstance(item, pd.DataFrame):
                 wandb.log({f'{section_suffix}display_table_{table_i}':
-                           wandb.Table(dataframe=item, allow_mixed_types=True)}, commit=False)
+                           wandb.Table(dataframe=item.reset_index(), allow_mixed_types=True)}, commit=False)
                 table_i += 1
             elif isinstance(item, str):
                 pass

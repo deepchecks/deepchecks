@@ -30,7 +30,7 @@ def train_test_validation() -> Suite:
     return Suite(
         'Train Test Validation Suite',
         HeatmapComparison(),
-        TrainTestLabelDrift(),
+        TrainTestLabelDrift().add_condition_drift_score_not_greater_than(),
         TrainTestPredictionDrift().add_condition_drift_score_not_greater_than(),
         ImagePropertyDrift().add_condition_drift_score_not_greater_than(),
         ImageDatasetDrift()
@@ -41,13 +41,12 @@ def model_evaluation() -> Suite:
     """Create a suite that is meant to test model performance and overfit."""
     return Suite(
         'Model Evaluation Suite',
-        ClassPerformance(),
-        MeanAveragePrecisionReport(),
+        ClassPerformance().add_condition_train_test_relative_degradation_not_greater_than(),
+        MeanAveragePrecisionReport().add_condition_test_mean_average_precision_not_less_than(),
         MeanAverageRecallReport(),
         SimpleModelComparison(),
         ConfusionMatrixReport(),
-        RobustnessReport().add_condition_degradation_not_greater_than(),
-        ImageSegmentPerformance()
+        ImageSegmentPerformance().add_condition_score_from_mean_ratio_not_less_than()
     )
 
 
