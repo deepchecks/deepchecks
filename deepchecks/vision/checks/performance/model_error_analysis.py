@@ -140,7 +140,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         if isinstance(predictions, torch.Tensor):
             predictions = predictions.cpu().detach().numpy()
         if isinstance(labels, torch.Tensor):
-            labels = labels.detach().numpy()
+            labels = labels.cpu().detach().numpy()
 
         # get score using scoring_function
         scores.extend(scoring_func(predictions, labels))
