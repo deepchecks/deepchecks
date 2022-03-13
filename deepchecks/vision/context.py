@@ -88,12 +88,14 @@ class Context:
                         logger.warning('validate_prediction() was not implemented in %s dataset, '
                                        'some checks will not run', dataset_type)
 
-        # The copy does 2 things: Sample n_samples if parameter exists, and replace the sampler with one with fixed
-        # order (after initializing it first in random order using the state)
+        # The copy does 2 things: Sample n_samples if parameter exists, and shuffle the data.
+        # we shuffle because the data in VisionData is in fixed order, so if the user wants to run without random_state
+        # we need to forcefully shuffle (to have different results on different runs from the same VisionData
+        # object), and if there is a random_state the shuffle will always have same result.
         if train:
-            train = train.copy(n_samples, random_state)
+            train = train.copy(shuffle=True, n_samples=n_samples, random_state=random_state)
         if test:
-            test = test.copy(n_samples, random_state)
+            test = test.copy(shuffle=True, n_samples=n_samples, random_state=random_state)
 
         self._train = train
         self._test = test

@@ -63,7 +63,8 @@ class VisionData:
                  label_map: Optional[Dict[int, str]] = None,
                  transform_field: Optional[str] = 'transforms'):
 
-        self._data_loader = data_loader
+        # Create data loader that uses IndicesSequentialSampler, which always return batches in the same order
+        self._data_loader = self._get_data_loader_sequential(data_loader)
 
         self._num_classes = num_classes
         self._label_map = label_map
@@ -226,15 +227,14 @@ class VisionData:
             msg = f'Underlying Dataset instance does not contain "{self._transform_field}" attribute. If your ' \
                   f'transformations field is named otherwise, you cat set it by using "transform_field" parameter'
             raise DeepchecksValueError(msg)
-        # Want to always get the copied in the same state of images order
-        new_vision_data = self.copy(random_state=1)
+        new_vision_data = self.copy()
         new_dataset_ref = new_vision_data.data_loader.dataset
         transform = new_dataset_ref.__getattribute__(self._transform_field)
         new_transform = add_augmentation_in_start(aug, transform)
         new_dataset_ref.__setattr__(self._transform_field, new_transform)
         return new_vision_data
 
-    def copy(self, n_samples: int = None, random_state: int = None) -> VD:
+    def copy(self, shuffle: bool = False, random_state: int = None, n_samples: int = None) -> VD:
         """Create new copy of this object, with the data-loader and dataset also copied, And using a sampler which \
         always runs in the same order.
 
@@ -245,16 +245,25 @@ class VisionData:
         random_state : int, default: None
             State used to initialize the samples order of the copied data
         """
-        data_loader = VisionData._get_data_loader_copy(self.data_loader, n_samples, random_state)
-        new_vision_data = self.__class__(data_loader,
-                                         num_classes=self.num_classes,
-                                         label_map=self._label_map,
-                                         transform_field=self._transform_field)
+        new_vision_data = copy(self)
+        new_vision_data._data_loader = self._get_data_loader_copy(self.data_loader,
+                                                                 shuffle=shuffle,
+                                                                 random_state=random_state,
+                                                                 n_samples=n_samples)
+        # If new data is sampled, then needs to remove cached info
+        if n_samples:
+            new_vision_data._n_of_samples_per_class = None
         return new_vision_data
 
     def to_batch(self, *samples):
         """Use the defined collate_fn to transform a few data items to batch format."""
         return self._data_loader.collate_fn(list(samples))
+
+    def image_at_batch_index(self, index):
+        index_in_dataset = self.data_loader.batch_sampler.sampler.index_at(index)
+        sample = self.data_loader.dataset[index_in_dataset]
+        batch_of_single = self.to_batch(sample)
+        return self.batch_to_images(batch_of_single)[0]
 
     def validate_shared_label(self, other: VD):
         """Verify presence of shared labels.
@@ -337,8 +346,36 @@ class VisionData:
         return len(self._data_loader)
 
     @staticmethod
-    def _get_data_loader_copy(data_loader: DataLoader, num_samples: int = None, random_state: int = None):
-        props = {
+    def _get_data_loader_copy(data_loader: DataLoader, n_samples: int = None, random_state: int = None,
+                              shuffle: bool = False):
+        # Get sampler and copy it indices if it's already IndicesSequentialSampler
+        batch_sampler = data_loader.batch_sampler
+        if isinstance(batch_sampler.sampler, IndicesSequentialSampler):
+            indices = batch_sampler.sampler.indices
+        else:
+            raise DeepchecksValueError('Expected data loader with sample of type IndicesSequentialSampler')
+        # If got number of samples than take random sample
+        if n_samples:
+            size = min(n_samples, len(indices))
+            if random_state is not None:
+                random.seed(random_state)
+            indices = random.sample(indices, size)
+        # Shuffle indices if need
+        if shuffle:
+            if random_state is not None:
+                random.seed(random_state)
+            indices = random.sample(indices, len(indices))
+        # Create new sampler and batch sampler
+        sampler = IndicesSequentialSampler(indices)
+        new_batch_sampler = BatchSampler(sampler, batch_sampler.batch_size, batch_sampler.drop_last)
+
+        props = VisionData._get_data_loader_props(data_loader)
+        props['batch_sampler'] = new_batch_sampler
+        return data_loader.__class__(**props)
+
+    @staticmethod
+    def _get_data_loader_props(data_loader: DataLoader):
+        return {
             'num_workers': data_loader.num_workers,
             'collate_fn': data_loader.collate_fn,
             'pin_memory': data_loader.pin_memory,
@@ -346,31 +383,27 @@ class VisionData:
             'worker_init_fn': data_loader.worker_init_fn,
             'prefetch_factor': data_loader.prefetch_factor,
             'persistent_workers': data_loader.persistent_workers,
-            'generator': torch.Generator(),
             'dataset': copy(data_loader.dataset)
         }
-        # Using the batch sampler to get all indices
-        # First set generator seed to make it reproducible
-        if data_loader.generator and random_state is not None:
-            data_loader.generator.set_state(torch.Generator().manual_seed(random_state).get_state())
 
+    @staticmethod
+    def _get_data_loader_sequential(data_loader: DataLoader):
+        # First set generator seed to make it reproducible
+        if data_loader.generator:
+            data_loader.generator.set_state(torch.Generator().manual_seed(42).get_state())
         indices = []
         batch_sampler = data_loader.batch_sampler
+        # Using the batch sampler to get all indices
         for batch in batch_sampler:
             indices += batch
-        # If got number of samples than take random sample
-        if num_samples:
-            size = min(num_samples, len(indices))
-            if random_state is not None:
-                random.seed(random_state)
-            indices = random.sample(indices, size)
+
         # Create new sampler and batch sampler
         sampler = IndicesSequentialSampler(indices)
         new_batch_sampler = BatchSampler(sampler, batch_sampler.batch_size, batch_sampler.drop_last)
 
+        props = VisionData._get_data_loader_props(data_loader)
         props['batch_sampler'] = new_batch_sampler
         return data_loader.__class__(**props)
-
 
 class IndicesSequentialSampler(Sampler[int]):
     """Samples elements sequentially from a given list of indices, without replacement.
@@ -392,4 +425,4 @@ class IndicesSequentialSampler(Sampler[int]):
 
     def index_at(self, location):
         """Return for a given location, the real index value."""
-        return self.indices.index(location)
+        return self.indices[location]
