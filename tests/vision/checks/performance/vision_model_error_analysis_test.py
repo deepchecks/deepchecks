@@ -26,11 +26,7 @@ def test_classification(mnist_dataset_train, trained_mnist, device):
                        device=device)
     # Assert
     assert_that(len(result.value['feature_segments']), equal_to(1))
-    assert_that(result.value['feature_segments']['brightness']['segment1']['n_samples'], equal_to(516))
-    assert_that(result.value['feature_segments']['brightness']['segment1']['score'],
-                close_to(345.6353296143254, 0.001))
-    assert_that(result.value['feature_segments']['brightness']['segment2']['score'],
-                close_to(737.3877666178693, 0.001))
+    assert_that(result.value['feature_segments']['brightness']['segment1']['n_samples'], equal_to(504))
 
 
 def test_detection(coco_train_visiondata, coco_test_visiondata, trained_yolov5_object_detection, device):
