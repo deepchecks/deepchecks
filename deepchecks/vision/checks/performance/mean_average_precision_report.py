@@ -9,9 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing mean average precision report check."""
-from collections import defaultdict
 import math
-from typing import TypeVar, Tuple, Any
+from collections import defaultdict
+from typing import TypeVar, Tuple
 
 import pandas as pd
 import plotly.express as px
@@ -19,9 +19,10 @@ import numpy as np
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.utils.strings import format_number
-from deepchecks.vision import SingleDatasetCheck, Context
+from deepchecks.vision import SingleDatasetCheck, Context, Batch
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
+
 
 __all__ = ['MeanAveragePrecisionReport']
 
@@ -46,11 +47,10 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         self._ap_metric = AveragePrecision(return_option=None, area_range=self._area_range)
         context.assert_task_type(TaskType.OBJECT_DETECTION)
 
-    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the metrics by passing the batch to ignite metric update method."""
-        dataset = context.get_data_by_kind(dataset_kind)
-        label = dataset.batch_to_labels(batch)
-        prediction = context.infer(batch, dataset_kind)
+        label = batch.labels
+        prediction = batch.predictions
         self._ap_metric.update((prediction, label))
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:

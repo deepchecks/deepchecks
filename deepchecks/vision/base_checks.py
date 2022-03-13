@@ -24,9 +24,12 @@ from deepchecks.core.checks import (
 )
 from deepchecks.vision.context import Context
 from deepchecks.vision.vision_data import VisionData
-from deepchecks.vision.utils.validation import apply_to_tensor
+
+from .context import Batch
+
 
 logger = logging.getLogger('deepchecks')
+
 
 __all__ = [
     'SingleDatasetCheck',
@@ -57,9 +60,8 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         self.initialize_run(context, DatasetKind.TRAIN)
 
         for batch in dataset:
-            batch = apply_to_tensor(batch, lambda x: x.to(device))
+            batch = Batch(batch, context, DatasetKind.TRAIN)
             self.update(context, batch, DatasetKind.TRAIN)
-            context.flush_cached_inference(DatasetKind.TRAIN)
 
         return self.finalize_check_result(self.compute(context, DatasetKind.TRAIN))
 
@@ -103,14 +105,12 @@ class TrainTestCheck(TrainTestBaseCheck):
         self.initialize_run(context)
 
         for batch in context.train:
-            batch = apply_to_tensor(batch, lambda x: x.to(device))
+            batch = Batch(batch, context, DatasetKind.TRAIN)
             self.update(context, batch, DatasetKind.TRAIN)
-            context.flush_cached_inference(DatasetKind.TRAIN)
 
         for batch in context.test:
-            batch = apply_to_tensor(batch, lambda x: x.to(device))
+            batch = Batch(batch, context, DatasetKind.TEST)
             self.update(context, batch, DatasetKind.TEST)
-            context.flush_cached_inference(DatasetKind.TEST)
 
         return self.finalize_check_result(self.compute(context))
 
