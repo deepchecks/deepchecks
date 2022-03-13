@@ -13,7 +13,6 @@
      ~
    -->
 
-
 .. raw:: html
 
    <p align="center">
@@ -36,21 +35,32 @@
       </a>
    </p>
 
-
-============================================
-Test Suites for Validating ML Models & Data
-============================================
-
 |build| |Documentation Status| |pkgVersion| |pyVersions|
 |Maintainability| |Coverage Status|
+
+.. raw:: html
+
+   <h1 align="center">
+      Test Suites for Validating ML Models & Data
+   </h1>
+
+.. raw:: html
+
+   <p align="center">
+      <img src="docs/images/checks-and-conditions.png">
+   </p>
+
+
+🧐 What is Deephchecks?
+==========================
 
 Deepchecks is a Python package for comprehensively validating your
 machine learning models and data with minimal effort. This includes
 checks related to various types of issues, such as model performance,
 data integrity, distribution mismatches, and more.
 
-Installation
-=============
+💻 Installation
+=================
 
 Using pip
 ----------
@@ -67,8 +77,8 @@ Using conda
    conda install -c conda-forge deepchecks
 
 
-Try it Out!
-============
+⏩ Try it Out!
+================
 
 Head over to the `Quickstart Notebook <https://docs.deepchecks.com/en/stable/
 examples/guides/quickstart_in_5_minutes.html?
@@ -76,8 +86,8 @@ utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it
 and choose the  |binder badge image|  or the  |colab badge image|  to have it up and running, and to then apply it on your own data and models.
 
 
-Usage Examples
-===============
+📊 Usage Examples
+====================
 
 Running a Suite
 ----------------
@@ -162,8 +172,8 @@ Will produce output of the type:
         <img src="docs/images/train-test-drift-output.png">
       </p>
 
-Key Concepts
-==============
+🗝️ Key Concepts
+==================
 
 Check
 ------
@@ -274,16 +284,16 @@ having a trained model that you wish to evaluate. See more about typical usage s
 `docs <https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utme_content=what_do_you_need_in_order_to_start_validating>`__.
 
 
-Documentation
---------------
+📖 Documentation
+====================
 
 -  `https://docs.deepchecks.com/ <https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation>`__
    - HTML documentation (stable release)
 -  `https://docs.deepchecks.com/en/latest <https://docs.deepchecks.com/en/latest/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation>`__
    - HTML documentation (latest release)
 
-Community
-==========
+👭 Community
+================
 
 -  Join our `Slack
    Community <https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg>`__
