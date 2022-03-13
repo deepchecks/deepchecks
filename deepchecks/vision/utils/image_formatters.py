@@ -25,7 +25,6 @@ __all__ = ['default_image_properties',
            'get_dimension']
 
 
-
 default_image_properties = [
     'aspect_ratio',
     'area',
