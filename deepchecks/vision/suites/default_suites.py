@@ -15,7 +15,7 @@ It is possible to customize these suites by editing the checks and conditions in
 """
 from deepchecks.vision.checks import ClassPerformance, TrainTestLabelDrift, MeanAveragePrecisionReport, \
     MeanAverageRecallReport, ImagePropertyDrift, ImageDatasetDrift, SimpleModelComparison, ConfusionMatrixReport, \
-    RobustnessReport, TrainTestPredictionDrift, ImageSegmentPerformance
+    TrainTestPredictionDrift, ImageSegmentPerformance
 from deepchecks.vision import Suite
 
 
