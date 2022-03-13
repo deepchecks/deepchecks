@@ -131,9 +131,9 @@ class Context:
                                        'some checks will not run', dataset_type)
 
         # The copy does 2 things: Sample n_samples if parameter exists, and shuffle the data.
-        # we shuffle because the data in VisionData is in fixed order, so if the user wants to run without random_state
-        # we need to forcefully shuffle (to have different results on different runs from the same VisionData
-        # object), and if there is a random_state the shuffle will always have same result.
+        # we shuffle because the data in VisionData is set to be sampled in a fixed order (in the init), so if the user
+        # wants to run without random_state we need to forcefully shuffle (to have different results on different runs
+        # from the same VisionData object), and if there is a random_state the shuffle will always have same result
         if train:
             train = train.copy(shuffle=True, n_samples=n_samples, random_state=random_state)
         if test:
