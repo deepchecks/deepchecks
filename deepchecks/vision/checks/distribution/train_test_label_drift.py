@@ -57,7 +57,7 @@ class TrainTestLabelDrift(TrainTestCheck):
     ----------
     alternative_label_measurements : List[Dict[str, Any]], default: None
         List of measurements. Replaces the default deepchecks measurements.
-        Each measurement is dictionary with keys 'name' (str), 'method' (Callable) and is_continuous (bool),
+        Each measurement is dictionary with keys 'name' (str), 'method' (Callable) and 'is_continuous' (bool),
         representing attributes of said method.
     max_num_categories : int , default: 10
         Only for non-continues measurements. Max number of allowed categories. If there are more,
