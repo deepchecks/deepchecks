@@ -17,13 +17,13 @@ import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore')
+    from sklearn.experimental import enable_hist_gradient_boosting  # noqa # pylint: disable=unused-import
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.model_selection import train_test_split
-with warnings.catch_warnings():
-    warnings.simplefilter('ignore')
-    from sklearn.experimental import enable_hist_gradient_boosting  # noqa # pylint: disable=unused-import
 import plotly.graph_objects as go
 
 from deepchecks import Dataset  # TODO: Remove?
