@@ -111,7 +111,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name='PSI <= 0.15 and Earth Mover\'s Distance <= 0.075 for label drift',
-        details='Found non-continues label measurements with PSI drift score above threshold: {\'Samples per '
+        details='Found non-continues label properties with PSI drift score above threshold: {\'Samples per '
                 'class\': \'0.18\'}\n'
     ))
 
@@ -139,11 +139,13 @@ def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_
     ))
 
 
-def test_with_drift_object_detection_alternative_measurements(coco_train_visiondata, coco_test_visiondata, device):
+def test_with_drift_object_detection_alternative_properties(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
-    alternative_measurements = [
-        {'name': 'test', 'method': lambda x, dataset: int(x[0][0]) if len(x) != 0 else 0, 'is_continuous': True}]
-    check = TrainTestLabelDrift(alternative_label_measurements=alternative_measurements)
+    def prop(labels):
+        return [int(x[0][0]) if len(x) != 0 else 0 for x in labels]
+    alternative_properties = [
+        {'name': 'test', 'method': prop, 'value_type': 'numerical'}]
+    check = TrainTestLabelDrift(alternative_label_properties=alternative_properties)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
@@ -158,26 +160,26 @@ def test_with_drift_object_detection_alternative_measurements(coco_train_visiond
     ))
 
 
-def test_with_drift_object_detection_defected_alternative_measurements():
+def test_with_drift_object_detection_defected_alternative_properties():
     # Arrange
-    alternative_measurements = [
-        {'name': 'test', 'method': lambda x, dataset: x[0][0] if len(x) != 0 else 0, 'is_continuous': True},
-        {'name234': 'test', 'method': lambda x, dataset: x[0][0] if len(x) != 0 else 0, 'is_continuous': True},
+    alternative_properties = [
+        {'name': 'test', 'method': lambda x: x[0][0] if len(x) != 0 else 0, 'value_type': 'numerical'},
+        {'name234': 'test', 'method': lambda x: x[0][0] if len(x) != 0 else 0, 'value_type': 'numerical'},
     ]
 
     # Assert
-    assert_that(calling(TrainTestLabelDrift).with_args(alternative_measurements),
+    assert_that(calling(TrainTestLabelDrift).with_args(alternative_properties),
                 raises(DeepchecksValueError,
-                       "Measurement must be of type dict, and include keys \['name', 'method', 'is_continuous'\]")
+                       r"Property must be of type dict, and include keys \['name', 'method', 'value_type'\]")
                 )
 
 
-def test_with_drift_object_detection_defected_alternative_measurements2():
+def test_with_drift_object_detection_defected_alternative_properties2():
     # Arrange
-    alternative_measurements = {'name': 'test', 'method': lambda x, dataset: x, 'is_continuous': True}
+    alternative_properties = {'name': 'test', 'method': lambda x, dataset: x, 'value_type': 'numerical'}
 
     # Assert
-    assert_that(calling(TrainTestLabelDrift).with_args(alternative_measurements),
+    assert_that(calling(TrainTestLabelDrift).with_args(alternative_properties),
                 raises(DeepchecksValueError,
-                       "Expected measurements to be a list, instead got dict")
+                       "Expected properties to be a list, instead got dict")
                 )

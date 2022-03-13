@@ -25,7 +25,7 @@ from hamcrest import (
 
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.utils.image_formatters import default_image_properties
+from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.checks.distribution import ImagePropertyDrift
 from deepchecks.vision.datasets.detection import coco
 
@@ -39,15 +39,15 @@ def test_image_property_drift_check(device):
 
 def test_image_property_drift_initialization_with_empty_list_of_image_properties():
     assert_that(
-        calling(ImagePropertyDrift).with_args(image_properties=[]),
+        calling(ImagePropertyDrift).with_args(image_properties={}),
         raises(DeepchecksValueError, r'image_properties list cannot be empty')
     )
 
 
-def test_image_property_drift_initialization_with_list_of_unknown_image_properties():
+def test_image_property_drift_initialization_with_list_of_invalid_image_properties():
     assert_that(
-        calling(ImagePropertyDrift).with_args(image_properties=['hello', 'aspect_ratio']),
-        raises(DeepchecksValueError, r'received list of unknown image properties - \[\'hello\'\]')
+        calling(ImagePropertyDrift).with_args(alternative_image_properties={'hello': 'string'}),
+        raises(DeepchecksValueError, 'Properties must include only callables in the values of the dictionary')
     )
 
 

@@ -10,8 +10,11 @@
 #
 """Module containing the image formatter class for the vision module."""
 from typing import Tuple, List
+
 import numpy as np
 from skimage.color import rgb2gray
+
+from deepchecks.core.errors import DeepchecksValueError
 
 __all__ = ['default_image_properties',
            'aspect_ratio',
@@ -22,18 +25,8 @@ __all__ = ['default_image_properties',
            'normalized_blue_mean',
            'normalized_green_mean',
            'get_size',
-           'get_dimension']
-
-
-default_image_properties = (
-    'aspect_ratio',
-    'area',
-    'brightness',
-    'rms_contrast',
-    'normalized_red_mean',
-    'normalized_green_mean',
-    'normalized_blue_mean'
-)
+           'get_dimension',
+           'validate_image_properties']
 
 
 def aspect_ratio(batch: List[np.ndarray]) -> List[float]:
@@ -138,3 +131,23 @@ def get_size(img) -> Tuple[int, int]:
 def get_dimension(img) -> int:
     """Return the number of dimensions of the image (grayscale = 1, RGB = 3)."""
     return img.shape[2]
+
+
+default_image_properties = {
+    'aspect_ratio': aspect_ratio,
+    'area': area,
+    'brightness': brightness,
+    'rms_contrast': rms_contrast,
+    'normalized_red_mean': normalized_red_mean,
+    'normalized_green_mean': normalized_green_mean,
+    'normalized_blue_mean': normalized_blue_mean
+}
+
+
+def validate_image_properties(properties):
+    """Validate structure of properties."""
+    if not isinstance(properties, dict):
+        raise DeepchecksValueError(
+            f'Expected image properties to be a dict, instead got {properties.__class__.__name__}')
+    if any(not callable(x) for x in properties.values()):
+        raise DeepchecksValueError(f'Properties must include only callables in the values of the dictionary')

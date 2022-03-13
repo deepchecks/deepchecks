@@ -12,7 +12,7 @@
 from typing import Dict, List, Any
 
 import pandas as pd
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 from deepchecks import ConditionResult
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
@@ -24,8 +24,8 @@ from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['TrainTestLabelDrift']
 
-from deepchecks.vision.utils.measurements import DEFAULT_CLASSIFICATION_LABEL_MEASUREMENTS, \
-    DEFAULT_OBJECT_DETECTION_LABEL_MEASUREMENTS, get_label_measurements_on_batch, validate_measurements
+from deepchecks.vision.utils.label_prediction_properties import DEFAULT_CLASSIFICATION_LABEL_PROPERTIES, \
+    DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES, validate_properties
 
 
 class TrainTestLabelDrift(TrainTestCheck):
@@ -33,12 +33,12 @@ class TrainTestLabelDrift(TrainTestCheck):
     Calculate label drift between train dataset and test dataset, using statistical measures.
 
     Check calculates a drift score for the label in test dataset, by comparing its distribution to the train
-    dataset. As the label may be complex, we run different measurements on the label and check their distribution.
+    dataset. As the label may be complex, we calculate different properties of the label and check their distribution.
 
-    A measurement on a label is any function that returns a single value or n-dimensional array of values. each value
-    represents a measurement on the label, such as number of objects in image or tilt of each bounding box in image.
+    A property on a label is any function that gets labels and returns list of numbers. each
+    number represents a property on the label, such as number of objects in image or tilt of each bounding box in image.
 
-    There are default measurements per task:
+    There are default properties per task:
     For classification:
     - distribution of classes
 
@@ -55,77 +55,77 @@ class TrainTestLabelDrift(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_label_measurements : List[Dict[str, Any]], default: None
-        List of measurements. Replaces the default deepchecks measurements.
-        Each measurement is dictionary with keys 'name' (str), 'method' (Callable) and 'is_continuous' (bool),
+    alternative_label_properties : List[Dict[str, Any]], default: None
+        List of properties. Replaces the default deepchecks properties.
+        Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'value_type' (str),
         representing attributes of said method.
     max_num_categories : int , default: 10
-        Only for non-continues measurements. Max number of allowed categories. If there are more,
+        Only for non-continues properties. Max number of allowed categories. If there are more,
         they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
         for both drift calculation and for distribution plots.
     """
 
     def __init__(
             self,
-            alternative_label_measurements: List[Dict[str, Any]] = None,
+            alternative_label_properties: List[Dict[str, Any]] = None,
             max_num_categories: int = 10
     ):
         super().__init__()
-        # validate alternative_label_measurements:
-        if alternative_label_measurements is not None:
-            validate_measurements(alternative_label_measurements)
-        self.alternative_label_measurements = alternative_label_measurements
+        # validate alternative_label_properties:
+        if alternative_label_properties is not None:
+            validate_properties(alternative_label_properties)
+        self.alternative_label_properties = alternative_label_properties
         self.max_num_categories = max_num_categories
+
+        self._label_properties = None
+        self._train_label_properties = None
+        self._test_label_properties = None
 
     def initialize_run(self, context: Context):
         """Initialize run.
 
         Function initializes the following private variables:
 
-        Label measurements:
+        Label properties:
 
-        _label_measurements: all label measurements to be calculated in run
+        _label_properties: all label properties to be calculated in run
 
-        Label measurements caching:
-        _train_label_properties, _test_label_properties: Dicts of lists accumulating the label measurements computed for
+        Label properties caching:
+        _train_label_properties, _test_label_properties: Dicts of lists accumulating the label properties computed for
         each batch.
         """
         train_dataset = context.train
 
         task_type = train_dataset.task_type
 
-        if self.alternative_label_measurements is not None:
-            self._label_measurements = self.alternative_label_measurements
+        if self.alternative_label_properties is not None:
+            self._label_properties = self.alternative_label_properties
         elif task_type == TaskType.CLASSIFICATION:
-            self._label_measurements = DEFAULT_CLASSIFICATION_LABEL_MEASUREMENTS
+            self._label_properties = DEFAULT_CLASSIFICATION_LABEL_PROPERTIES
         elif task_type == TaskType.OBJECT_DETECTION:
-            self._label_measurements = DEFAULT_OBJECT_DETECTION_LABEL_MEASUREMENTS
+            self._label_properties = DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
         else:
-            raise NotImplementedError('TrainTestLabelDrift must receive either alternative_label_measurements or run '
+            raise NotImplementedError('TrainTestLabelDrift must receive either alternative_label_properties or run '
                                       'on Classification or Object Detection class')
 
-        self._train_label_properties = OrderedDict([(k['name'], []) for k in self._label_measurements])
-        self._test_label_properties = OrderedDict([(k['name'], []) for k in self._label_measurements])
+        self._train_label_properties = defaultdict(list)
+        self._test_label_properties = defaultdict(list)
 
     def update(self, context: Context, batch: Batch, dataset_kind):
         """Perform update on batch for train or test properties."""
         # For all transformers, calculate histograms by batch:
         if dataset_kind == DatasetKind.TRAIN:
-            dataset = context.train
             properties = self._train_label_properties
         elif dataset_kind == DatasetKind.TEST:
-            dataset = context.test
             properties = self._test_label_properties
         else:
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
-        for label_measurement in self._label_measurements:
-            properties[label_measurement['name']].extend(
-                get_label_measurements_on_batch(batch, label_measurement['method'], dataset)
-            )
+        for label_property in self._label_properties:
+            properties[label_property['name']] += label_property['method'](batch.labels)
 
     def compute(self, context: Context) -> CheckResult:
-        """Calculate drift on label measurement samples that were collected during update() calls.
+        """Calculate drift on label properties samples that were collected during update() calls.
 
         Returns
         -------
@@ -135,29 +135,36 @@ class TrainTestLabelDrift(TrainTestCheck):
         """
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
-        label_measures_names = [x['name'] for x in self._label_measurements]
-        for label_measure in self._label_measurements:
-            measure_name = label_measure['name']
+        label_properties_names = [x['name'] for x in self._label_properties]
+        for label_property in self._label_properties:
+            name = label_property['name']
+            value_type = label_property['value_type']
+            # If type is class converts to label names
+            if value_type == 'class':
+                self._train_label_properties[name] = [context.train.label_id_to_name(class_id) for class_id in
+                                                      self._train_label_properties[name]]
+                self._test_label_properties[name] = [context.test.label_id_to_name(class_id) for class_id in
+                                                     self._test_label_properties[name]]
 
             value, method, display = calc_drift_and_plot(
-                train_column=pd.Series(self._train_label_properties[measure_name]),
-                test_column=pd.Series(self._test_label_properties[measure_name]),
-                plot_title=measure_name,
-                column_type='numerical' if label_measure['is_continuous'] else 'categorical',
+                train_column=pd.Series(self._train_label_properties[name]),
+                test_column=pd.Series(self._test_label_properties[name]),
+                plot_title=name,
+                column_type='categorical' if value_type == 'class' else value_type,
                 max_num_categories=self.max_num_categories
             )
-            values_dict[measure_name] = {
+            values_dict[name] = {
                 'Drift score': value,
                 'Method': method,
             }
-            displays_dict[measure_name] = display
+            displays_dict[name] = display
 
-        columns_order = sorted(label_measures_names, key=lambda col: values_dict[col]['Drift score'], reverse=True)
+        columns_order = sorted(label_properties_names, key=lambda col: values_dict[col]['Drift score'], reverse=True)
 
         headnote = '<span>' \
                    'The Drift score is a measure for the difference between two distributions. ' \
                    'In this check, drift is measured ' \
-                   f'for the distribution of the following label properties: {label_measures_names}.' \
+                   f'for the distribution of the following label properties: {label_properties_names}.' \
                    '</span>'
 
         displays = [headnote] + [displays_dict[col] for col in columns_order]
@@ -168,7 +175,7 @@ class TrainTestLabelDrift(TrainTestCheck):
                                                    max_allowed_earth_movers_score: float = 0.075
                                                    ) -> 'TrainTestLabelDrift':
         """
-        Add condition - require label measurements drift score to not be more than a certain threshold.
+        Add condition - require label properties drift score to not be more than a certain threshold.
 
         The industry standard for PSI limit is above 0.2.
         Earth movers does not have a common industry standard.
@@ -187,17 +194,17 @@ class TrainTestLabelDrift(TrainTestCheck):
         """
 
         def condition(result: Dict) -> ConditionResult:
-            not_passing_categorical_columns = {measures: f'{d["Drift score"]:.2}' for measures, d in result.items() if
+            not_passing_categorical_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
                                                d['Drift score'] > max_allowed_psi_score and d['Method'] == 'PSI'}
-            not_passing_numeric_columns = {measures: f'{d["Drift score"]:.2}' for measures, d in result.items() if
+            not_passing_numeric_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
                                            d['Drift score'] > max_allowed_earth_movers_score
                                            and d['Method'] == "Earth Mover's Distance"}
             return_str = ''
             if not_passing_categorical_columns:
-                return_str += f'Found non-continues label measurements with PSI drift score above threshold:' \
+                return_str += f'Found non-continues label properties with PSI drift score above threshold:' \
                               f' {not_passing_categorical_columns}\n'
             if not_passing_numeric_columns:
-                return_str += f'Found continues label measurements with Earth Mover\'s drift score above' \
+                return_str += f'Found continues label properties with Earth Mover\'s drift score above' \
                               f' threshold: {not_passing_numeric_columns}\n'
 
             if return_str:

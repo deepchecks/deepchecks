@@ -128,9 +128,11 @@ def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_
 def test_with_drift_object_detection_alternative_measurements(coco_train_visiondata, coco_test_visiondata,
                                                               trained_yolov5_object_detection, device):
     # Arrange
+    def prop(predictions):
+        return [int(x[0][0]) if len(x) != 0 else 0 for x in predictions]
     alternative_measurements = [
-        {'name': 'test', 'method': lambda x, dataset: int(x[0][0]) if len(x) != 0 else 0, 'is_continuous': True}]
-    check = TrainTestPredictionDrift(alternative_prediction_measurements=alternative_measurements)
+        {'name': 'test', 'method': prop, 'value_type': 'numerical'}]
+    check = TrainTestPredictionDrift(alternative_prediction_properties=alternative_measurements)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, trained_yolov5_object_detection, device=device)
@@ -159,31 +161,33 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, trained_mn
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name='PSI <= 0.15 and Earth Mover\'s Distance <= 0.075 for prediction drift',
-        details='Found non-continues prediction measurements with PSI drift score above threshold: {\'Samples per '
+        details='Found non-continues prediction properties with PSI drift score above threshold: {\'Samples per '
                 'class\': \'0.17\'}\n'
     ))
 
 
 def test_with_drift_object_detection_defected_alternative_measurements():
     # Arrange
+    def prop(predictions):
+        return [int(x[0][0]) if len(x) != 0 else 0 for x in predictions]
     alternative_measurements = [
-        {'name': 'test', 'method': lambda x, dataset: x[0][0] if len(x) != 0 else 0, 'is_continuous': True},
-        {'name234': 'test', 'method': lambda x, dataset: x[0][0] if len(x) != 0 else 0, 'is_continuous': True},
+        {'name': 'test', 'method': prop, 'value_type': 'numerical'},
+        {'name234': 'test', 'method': prop, 'value_type': 'numerical'},
     ]
 
     # Assert
     assert_that(calling(TrainTestPredictionDrift).with_args(alternative_measurements),
                 raises(DeepchecksValueError,
-                       "Measurement must be of type dict, and include keys \['name', 'method', 'is_continuous'\]")
+                       r"Property must be of type dict, and include keys \['name', 'method', 'value_type'\]")
                 )
 
 
 def test_with_drift_object_detection_defected_alternative_measurements2():
     # Arrange
-    alternative_measurements = {'name': 'test', 'method': lambda x, dataset: x, 'is_continuous': True}
+    alternative_measurements = {'name': 'test', 'method': lambda x: x, 'value_type': 'numerical'}
 
     # Assert
     assert_that(calling(TrainTestPredictionDrift).with_args(alternative_measurements),
                 raises(DeepchecksValueError,
-                       "Expected measurements to be a list, instead got dict")
+                       "Expected properties to be a list, instead got dict")
                 )
