@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
+# pylint: disable=protected-access
 import random
 from collections import Counter
 from copy import copy
@@ -234,22 +235,26 @@ class VisionData:
         new_dataset_ref.__setattr__(self._transform_field, new_transform)
         return new_vision_data
 
-    def copy(self, shuffle: bool = False, random_state: int = None, n_samples: int = None) -> VD:
-        """Create new copy of this object, with the data-loader and dataset also copied, And using a sampler which \
-        always runs in the same order.
+    def copy(self, n_samples: int = None, shuffle: bool = False, random_state: int = None) -> VD:
+        """Create new copy of this object, with the data-loader and dataset also copied, and altered by the given \
+        parameters.
 
         Parameters
         ----------
-        n_samples : int, default: None
-            Number of samples to sample from the data uniformly
-        random_state : int, default: None
-            State used to initialize the samples order of the copied data
+        n_samples : int , default: None
+            take only this number of samples to the copied DataLoader. The samples which will be chosen are affected
+            by random_state (fixed random state will return consistent sampels).
+        shuffle : bool, default: False
+            Whether to shuffle the samples order. The shuffle is affected random_state (fixed random state will return
+            consistent order)
+        random_state : int , default: None
+            random_state used for the psuedo-random actions (sampling and shuffling)
         """
         new_vision_data = copy(self)
         new_vision_data._data_loader = self._get_data_loader_copy(self.data_loader,
-                                                                 shuffle=shuffle,
-                                                                 random_state=random_state,
-                                                                 n_samples=n_samples)
+                                                                  shuffle=shuffle,
+                                                                  random_state=random_state,
+                                                                  n_samples=n_samples)
         # If new data is sampled, then needs to remove cached info
         if n_samples:
             new_vision_data._n_of_samples_per_class = None
@@ -260,6 +265,7 @@ class VisionData:
         return self._data_loader.collate_fn(list(samples))
 
     def batch_of_index(self, *indices):
+        """Return batch samples of the given batch indices."""
         samples = []
         for i in indices:
             index_in_dataset = self.data_loader.batch_sampler.sampler.index_at(i)
@@ -347,8 +353,23 @@ class VisionData:
         return len(self._data_loader)
 
     @staticmethod
-    def _get_data_loader_copy(data_loader: DataLoader, n_samples: int = None, random_state: int = None,
-                              shuffle: bool = False):
+    def _get_data_loader_copy(data_loader: DataLoader, n_samples: int = None, shuffle: bool = False,
+                              random_state: int = None):
+        """Get a copy of DataLoader which is already using IndicesSequentialSampler, altered by the given parameters.
+
+        Parameters
+        ----------
+        data_loader : DataLoader
+            DataLoader to copy
+        n_samples : int , default: None
+            take only this number of samples to the copied DataLoader. The samples which will be chosen are affected
+            by random_state (fixed random state will return consistent sampels).
+        shuffle : bool, default: False
+            Whether to shuffle the samples order. The shuffle is affected random_state (fixed random state will return
+            consistent order)
+        random_state : int , default: None
+            random_state used for the psuedo-random actions (sampling and shuffling)
+        """
         # Get sampler and copy it indices if it's already IndicesSequentialSampler
         batch_sampler = data_loader.batch_sampler
         if isinstance(batch_sampler.sampler, IndicesSequentialSampler):
@@ -376,6 +397,7 @@ class VisionData:
 
     @staticmethod
     def _get_data_loader_props(data_loader: DataLoader):
+        """Get properties relevant for the copy of a DataLoader."""
         return {
             'num_workers': data_loader.num_workers,
             'collate_fn': data_loader.collate_fn,
@@ -389,6 +411,8 @@ class VisionData:
 
     @staticmethod
     def _get_data_loader_sequential(data_loader: DataLoader):
+        """Create new DataLoader with sampler of type IndicesSequentialSampler. This makes the data loader have \
+        consistent batches order."""
         # First set generator seed to make it reproducible
         if data_loader.generator:
             data_loader.generator.set_state(torch.Generator().manual_seed(42).get_state())
@@ -406,6 +430,7 @@ class VisionData:
         props['batch_sampler'] = new_batch_sampler
         return data_loader.__class__(**props)
 
+
 class IndicesSequentialSampler(Sampler[int]):
     """Samples elements sequentially from a given list of indices, without replacement.
 
@@ -416,6 +441,7 @@ class IndicesSequentialSampler(Sampler[int]):
     indices: List[int]
 
     def __init__(self, indices: List[int]) -> None:
+        super().__init__(None)
         self.indices = indices
 
     def __iter__(self) -> Iterator[int]:

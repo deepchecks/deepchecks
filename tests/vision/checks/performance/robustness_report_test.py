@@ -36,7 +36,6 @@ def test_mnist(mnist_dataset_train, trained_mnist, device):
     check = RobustnessReport(augmentations=augmentations)
     # Act
     result = check.run(mnist_dataset_train, trained_mnist, device=device)
-    print(result.value)
     # Assert
     assert_that(result.value, has_entries({
         'Random Brightness Contrast': has_entries({
@@ -65,7 +64,6 @@ def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detecti
 
     # Act
     result = check.run(coco_train_visiondata, trained_yolov5_object_detection, device=device)
-    print(result.value)
     # Assert
     assert_that(result.value, has_entries({
         'Hue Saturation Value': has_entries({
