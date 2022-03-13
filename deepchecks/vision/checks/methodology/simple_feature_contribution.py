@@ -103,11 +103,11 @@ class SimpleFeatureContribution(TrainTestCheck):
             properties = self._test_properties
 
         if dataset.task_type == TaskType.CLASSIFICATION:
-            imgs = dataset.batch_to_images(batch)
-            properties['target'] += dataset.batch_to_labels(batch)
+            imgs = batch.images
+            properties['target'] += batch.labels
         elif dataset.task_type == TaskType.OBJECT_DETECTION:
-            labels = dataset.batch_to_labels(batch)
-            orig_imgs = dataset.batch_to_images(batch)
+            labels = batch.labels
+            orig_imgs = batch.images
 
             classes = []
             imgs = []
