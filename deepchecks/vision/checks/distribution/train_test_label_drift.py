@@ -140,7 +140,7 @@ class TrainTestLabelDrift(TrainTestCheck):
             name = label_property['name']
             value_type = label_property['value_type']
             # If type is class converts to label names
-            if value_type == 'class':
+            if value_type == 'class_id':
                 self._train_label_properties[name] = [context.train.label_id_to_name(class_id) for class_id in
                                                       self._train_label_properties[name]]
                 self._test_label_properties[name] = [context.test.label_id_to_name(class_id) for class_id in
@@ -150,7 +150,7 @@ class TrainTestLabelDrift(TrainTestCheck):
                 train_column=pd.Series(self._train_label_properties[name]),
                 test_column=pd.Series(self._test_label_properties[name]),
                 plot_title=name,
-                column_type='categorical' if value_type == 'class' else value_type,
+                column_type='categorical' if value_type == 'class_id' else value_type,
                 max_num_categories=self.max_num_categories
             )
             values_dict[name] = {
