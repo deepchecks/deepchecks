@@ -25,7 +25,7 @@ __all__ = ['default_image_properties',
            'get_dimension']
 
 
-default_image_properties = (
+default_image_properties = [
     'aspect_ratio',
     'area',
     'brightness',
@@ -33,7 +33,7 @@ default_image_properties = (
     'normalized_red_mean',
     'normalized_green_mean',
     'normalized_blue_mean'
-)
+]
 
 
 def aspect_ratio(batch: List[np.ndarray]) -> List[float]:
