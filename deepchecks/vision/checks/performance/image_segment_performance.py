@@ -24,7 +24,7 @@ from deepchecks import ConditionResult
 from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_number, format_percent
-from deepchecks.vision import SingleDatasetCheck, Context
+from deepchecks.vision import SingleDatasetCheck, Context, Batch
 from deepchecks.vision.utils import image_formatters
 from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
 
@@ -92,12 +92,12 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         func_props = {p.__name__: p for p in self.image_properties if callable(p)}
         self._state['properties_functions'] = {**string_props, **func_props}
 
-    def update(self, context: Context, batch: t.Any, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the bins by the image properties."""
         dataset = context.get_data_by_kind(dataset_kind)
-        images = dataset.batch_to_images(batch)
-        predictions = context.infer(batch, dataset_kind)
-        labels = dataset.batch_to_labels(batch)
+        images = batch.images
+        predictions = batch.predictions
+        labels = batch.labels
 
         samples_for_bin: t.List = self._state['samples_for_binning']
         bins = self._state['bins']
