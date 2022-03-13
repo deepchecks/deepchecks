@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 #
+import itertools
 import typing as t
 
 import torch
@@ -21,9 +22,12 @@ from hamcrest import (
     has_entries,
     instance_of,
     all_of,
+    contains_exactly
 )
+import albumentations as A
+import imgaug.augmenters as iaa
 
-from deepchecks.core.errors import ValidationError
+from deepchecks.core.errors import ValidationError, DeepchecksValueError
 from deepchecks.vision.classification_data import ClassificationData
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.datasets.classification.mnist import MNISTData
@@ -32,6 +36,7 @@ from deepchecks.vision.datasets.classification import mnist
 from deepchecks.vision.datasets.detection.coco import COCOData
 from deepchecks.vision.detection_data import DetectionData
 from deepchecks.vision.vision_data import VisionData
+from deepchecks.vision.utils.transformations import AlbumentationsTransformations, ImgaugTransformations
 
 
 class SimpleDetectionData(DetectionData):
@@ -180,3 +185,105 @@ def test_vision_data_label_comparison_for_detection_task():
     # Act
     # it must not raise an error
     first_dataset.validate_shared_label(second_dataset)
+
+
+def test_get_transforms_type_albumentations(mnist_dataset_train):
+    # Act
+    transform_handler = mnist_dataset_train.get_transform_type()
+    # Assert
+    assert_that(transform_handler, instance_of(AlbumentationsTransformations.__class__))
+
+
+def test_add_augmentation_albumentations(mnist_dataset_train: VisionData):
+    # Arrange
+    augmentation = A.CenterCrop(1, 1)
+    # Act
+    copy_dataset = mnist_dataset_train.get_augmented_dataset(augmentation)
+    # Assert
+    batch = next(iter(copy_dataset.data_loader))
+    data_sample = batch[0][0]
+    assert_that(data_sample.numpy().shape, equal_to((1, 1, 1)))
+
+
+def test_add_augmentation_albumentations_wrong_type(mnist_dataset_train):
+    # Arrange
+    copy_dataset = mnist_dataset_train.copy()
+    augmentation = iaa.CenterCropToFixedSize(1, 1)
+    # Act & Assert
+    msg = r'Transforms is of type albumentations, can\'t add to it type CenterCropToFixedSize'
+    assert_that(calling(copy_dataset.get_augmented_dataset).with_args(augmentation),
+                raises(DeepchecksValueError, msg))
+
+
+def test_get_transforms_type_imgaug(mnist_dataset_train_imgaug):
+    # Act
+    transform_handler = mnist_dataset_train_imgaug.get_transform_type()
+    # Assert
+    assert_that(transform_handler, instance_of(ImgaugTransformations.__class__))
+
+
+def test_add_augmentation_imgaug(mnist_dataset_train_imgaug: VisionData):
+    # Arrange
+    augmentation = iaa.CenterCropToFixedSize(1, 1)
+    # Act
+    copy_dataset = mnist_dataset_train_imgaug.get_augmented_dataset(augmentation)
+    # Assert
+    batch = next(iter(copy_dataset.data_loader))
+    data_sample = batch[0][0]
+    assert_that(data_sample.numpy().shape, equal_to((1, 1, 1)))
+
+
+def test_add_augmentation_imgaug_wrong_type(mnist_dataset_train_imgaug: VisionData):
+    # Arrange
+    copy_dataset = mnist_dataset_train_imgaug.copy()
+    augmentation = A.CenterCrop(1, 1)
+    # Act & Assert
+    msg = r'Transforms is of type imgaug, can\'t add to it type CenterCrop'
+    assert_that(calling(copy_dataset.get_augmented_dataset).with_args(augmentation),
+                raises(DeepchecksValueError, msg))
+
+
+def test_transforms_field_not_exists(mnist_data_loader_train):
+    # Arrange
+    data = VisionData(mnist_data_loader_train, transform_field='not_exists')
+    # Act & Assert
+    msg = r'Underlying Dataset instance does not contain "not_exists" attribute\. If your transformations field is ' \
+          r'named otherwise, you cat set it by using "transform_field" parameter'
+    assert_that(calling(data.get_transform_type).with_args(),
+                raises(DeepchecksValueError, msg))
+
+
+def test_sampler(mnist_dataset_train):
+    # Act
+    sampled = mnist_dataset_train.copy(n_samples=10, random_state=0)
+    # Assert
+    classes = list(itertools.chain(*[b[1].tolist() for b in sampled]))
+    assert_that(classes, contains_exactly(7, 7, 9, 6, 3, 2, 3, 7, 2, 7))
+
+    # Act
+    sampled = mnist_dataset_train.copy(n_samples=500, random_state=0)
+    # Assert
+    total = sum([len(b[0]) for b in sampled])
+    assert_that(total, equal_to(500))
+
+
+def test_data_at_batch_of_index(mnist_dataset_train):
+    # Arrange
+    samples_index = 100
+
+    i = 0
+    for data, labels in mnist_dataset_train.data_loader:
+        if i + len(data) >= samples_index:
+            single_data = data[samples_index - i]
+            single_label = labels[samples_index - i]
+            single_batch = mnist_dataset_train.to_batch((single_data, single_label))
+            break
+        else:
+            i += len(data)
+
+    # Act
+    batch = mnist_dataset_train.batch_of_index(samples_index)
+
+    # Assert
+    assert torch.equal(batch[0], single_batch[0])
+    assert torch.equal(batch[1], single_batch[1])
