@@ -18,7 +18,8 @@ __all__ = [
     'NumberOfFeaturesLimitError',
     'DatasetValidationError',
     'ModelValidationError',
-    'DeepchecksNotImplementedError'
+    'DeepchecksNotImplementedError',
+    'ValidationError'
 ]
 
 

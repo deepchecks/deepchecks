@@ -12,7 +12,6 @@
 from abc import abstractmethod
 import logging
 from typing import List, Optional, Dict, Union
-import numpy as np
 
 import torch
 from torch.utils.data import DataLoader
@@ -135,8 +134,8 @@ class ClassificationData(VisionData):
         batch
         """
         labels = self.batch_to_labels(batch)
-        if not isinstance(labels, (torch.Tensor, np.ndarray)):
-            raise ValidationError('Check requires classification label to be a torch.Tensor or numpy array')
+        if not isinstance(labels, torch.Tensor):
+            raise ValidationError('Check requires classification label to be a torch.Tensor')
         label_shape = labels.shape
         if len(label_shape) != 1:
             raise ValidationError('Check requires classification label to be a 1D tensor')
@@ -151,21 +150,20 @@ class ClassificationData(VisionData):
             Batch as outputed from DataLoader
         model: t.Any
             Model to run on batch
-        device: str
+        device: torch.device
         n_classes : int
             Number of classes.
         eps : float , default: 1e-3
             Epsilon value to be used in the validation, by default 1e-3
         """
         batch_predictions = self.infer_on_batch(batch, model, device)
-        if not isinstance(batch_predictions, (torch.Tensor, np.ndarray)):
-            raise ValidationError('Check requires classification predictions to be a torch.Tensor or numpy '
-                                  'array')
+        if not isinstance(batch_predictions, torch.Tensor):
+            raise ValidationError('Check requires classification predictions to be a torch.Tensor')
         pred_shape = batch_predictions.shape
         if len(pred_shape) != 2:
             raise ValidationError('Check requires classification predictions to be a 2D tensor')
         if n_classes and pred_shape[1] != n_classes:
             raise ValidationError(f'Check requires classification predictions to have {n_classes} columns')
-        if any(abs(batch_predictions.sum(axis=1) - 1) > eps):
+        if any(abs(batch_predictions.sum(dim=1) - 1) > eps):
             raise ValidationError('Check requires classification} predictions to be a probability distribution and'
                                   ' sum to 1 for each row')
