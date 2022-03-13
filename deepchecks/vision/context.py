@@ -10,24 +10,66 @@
 #
 """Module for base vision context."""
 import logging
-from typing import Mapping, Any, Union
+from typing import Mapping, Union, Iterable, Any, Tuple
 
 import torch
 from torch import nn
 from ignite.metrics import Metric
 
 from deepchecks.core import DatasetKind
+from deepchecks.vision.vision_data import VisionData, TaskType
+from deepchecks.vision.utils.validation import apply_to_tensor
 from deepchecks.core.errors import (
     DatasetValidationError, DeepchecksNotImplementedError, ModelValidationError,
     DeepchecksNotSupportedError, DeepchecksValueError
 )
-from deepchecks.vision.vision_data import VisionData, TaskType
+
+
+__all__ = ['Context']
+
 
 logger = logging.getLogger('deepchecks')
 
-__all__ = [
-    'Context'
-]
+
+class Batch:
+    """Represents dataset batch returned by the dataloader during iteration."""
+
+    def __init__(
+        self,
+        batch: Tuple[Iterable[Any], Iterable[Any]],
+        context: 'Context',
+        dataset_kind: DatasetKind
+    ):
+        self._context = context
+        self._dataset_kind = dataset_kind
+        self._batch = apply_to_tensor(batch, lambda it: it.to(self._context.device))
+        self._labels = None
+        self._predictions = None
+        self._images = None
+
+    @property
+    def labels(self):
+        if self._labels is None:
+            dataset = self._context.get_data_by_kind(self._dataset_kind)
+            self._labels = dataset.batch_to_labels(self._batch)
+        return self._labels
+
+    @property
+    def predictions(self):
+        if self._predictions is None:
+            dataset = self._context.get_data_by_kind(self._dataset_kind)
+            self._predictions = dataset.infer_on_batch(self._batch, self._context.model, self._context.device)
+        return self._predictions
+
+    @property
+    def images(self):
+        if self._images is None:
+            dataset = self._context.get_data_by_kind(self._dataset_kind)
+            self._images = dataset.batch_to_images(self._batch)
+        return self._images
+
+    def __getitem__(self, index):
+        return self._batch[index]
 
 
 class Context:
@@ -95,7 +137,6 @@ class Context:
         self._train = train
         self._test = test
         self._model = model
-        self._batch_prediction_cache = {}
         self._user_scorers = scorers
         self._user_scorers_per_class = scorers_per_class
         self._model_name = model_name
@@ -145,17 +186,6 @@ class Context:
             raise ModelValidationError(
                 f'Check is irrelevant for task of type {self.train.task_type}')
         return True
-
-    def infer(self, batch: Any, dataset_kind: DatasetKind) -> Any:
-        """Return the predictions on the given batch, and cache them for later."""
-        if self._batch_prediction_cache.get(dataset_kind) is None:
-            dataset = self.get_data_by_kind(dataset_kind)
-            self._batch_prediction_cache[dataset_kind] = dataset.infer_on_batch(batch, self.model, self.device)
-        return self._batch_prediction_cache[dataset_kind]
-
-    def flush_cached_inference(self, dataset_kind: DatasetKind):
-        """Flush the cached inference."""
-        self._batch_prediction_cache[dataset_kind] = None
 
     def get_data_by_kind(self, kind: DatasetKind):
         """Return the relevant VisionData by given kind."""
