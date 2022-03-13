@@ -74,7 +74,7 @@ def compute_class_ious(detected, ground_truth):
     bb_info = build_class_bounding_box(detected, ground_truth)
 
     # Calculating pairwise IoUs per class
-    return {cid: compute_pairwise_ious(**bbs) for cid, bbs in bb_info.items()}
+    return {class_id: compute_pairwise_ious(**bounding_boxes) for class_id, bounding_boxes in bb_info.items()}
 
 
 def per_sample_mean_iou(predictions, labels):
