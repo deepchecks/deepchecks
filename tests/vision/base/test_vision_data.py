@@ -258,10 +258,32 @@ def test_sampler(mnist_dataset_train):
     sampled = mnist_dataset_train.copy(n_samples=10, random_state=0)
     # Assert
     classes = list(itertools.chain(*[b[1].tolist() for b in sampled]))
-    assert_that(classes, contains_exactly(2, 4, 3, 2, 1, 9, 7, 3, 0, 4))
+    assert_that(classes, contains_exactly(7, 7, 9, 6, 3, 2, 3, 7, 2, 7))
 
     # Act
     sampled = mnist_dataset_train.copy(n_samples=500, random_state=0)
     # Assert
     total = sum([len(b[0]) for b in sampled])
     assert_that(total, equal_to(500))
+
+
+def test_data_at_batch_of_index(mnist_dataset_train):
+    # Arrange
+    samples_index = 100
+
+    i = 0
+    for data, labels in mnist_dataset_train.data_loader:
+        if i + len(data) >= samples_index:
+            single_data = data[samples_index - i]
+            single_label = labels[samples_index - i]
+            single_batch = mnist_dataset_train.to_batch((single_data, single_label))
+            break
+        else:
+            i += len(data)
+
+    # Act
+    batch = mnist_dataset_train.batch_of_index(samples_index)
+
+    # Assert
+    assert torch.equal(batch[0], single_batch[0])
+    assert torch.equal(batch[1], single_batch[1])

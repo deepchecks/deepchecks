@@ -259,11 +259,12 @@ class VisionData:
         """Use the defined collate_fn to transform a few data items to batch format."""
         return self._data_loader.collate_fn(list(samples))
 
-    def image_at_batch_index(self, index):
-        index_in_dataset = self.data_loader.batch_sampler.sampler.index_at(index)
-        sample = self.data_loader.dataset[index_in_dataset]
-        batch_of_single = self.to_batch(sample)
-        return self.batch_to_images(batch_of_single)[0]
+    def batch_of_index(self, *indices):
+        samples = []
+        for i in indices:
+            index_in_dataset = self.data_loader.batch_sampler.sampler.index_at(i)
+            samples.append(self.data_loader.dataset[index_in_dataset])
+        return self.to_batch(*samples)
 
     def validate_shared_label(self, other: VD):
         """Verify presence of shared labels.

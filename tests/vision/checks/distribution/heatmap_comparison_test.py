@@ -55,7 +55,7 @@ def test_object_detection_limit_classes(coco_train_visiondata, coco_test_visiond
     # Assert
     brightness_diff = result.value["diff"]
     assert_that(brightness_diff.mean(), less_than(11))
-    assert_that(brightness_diff.max(), less_than(45))
+    assert_that(brightness_diff.max(), less_than(46))
 
     bbox_diff = result.value["diff_bbox"]
     assert_that(bbox_diff.mean(), less_than(6))
