@@ -20,7 +20,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.performance.error_model import error_model_display_dataframe, model_error_contribution
 from deepchecks.utils.single_sample_metrics import per_sample_binary_cross_entropy
 
-from deepchecks.vision import TrainTestCheck, Context
+from deepchecks.vision import TrainTestCheck, Context, Batch
 from deepchecks.vision.checks.distribution.image_property_drift import ImageProperty
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.utils import image_formatters
@@ -96,7 +96,7 @@ class ModelErrorAnalysis(TrainTestCheck):
         self._train_scores = []
         self._test_scores = []
 
-    def update(self, context: Context, batch: t.Any, dataset_kind):
+    def update(self, context: Context, batch: Batch, dataset_kind):
         """Accumulate property data of images and scores."""
         if dataset_kind == DatasetKind.TRAIN:
             dataset = context.train
@@ -112,9 +112,9 @@ class ModelErrorAnalysis(TrainTestCheck):
                 'be unreacheable was reached.'
             )
 
-        images = dataset.batch_to_images(batch)
-        predictions = context.infer(batch, dataset_kind)
-        labels = dataset.batch_to_labels(batch)
+        images = batch.images
+        predictions = batch.predictions
+        labels = batch.labels
 
         for image_property in self.image_properties:
             if isinstance(image_property, str):
@@ -138,7 +138,7 @@ class ModelErrorAnalysis(TrainTestCheck):
                 return per_sample_mean_iou(predictions, labels)
 
         if isinstance(predictions, torch.Tensor):
-            predictions = predictions.detach().numpy()
+            predictions = predictions.cpu().detach().numpy()
         if isinstance(labels, torch.Tensor):
             labels = labels.detach().numpy()
 
