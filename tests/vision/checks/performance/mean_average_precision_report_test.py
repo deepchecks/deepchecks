@@ -31,7 +31,9 @@ def test_coco(coco_test_visiondata, trained_yolov5_object_detection, device):
     # Arrange
     check = MeanAveragePrecisionReport() \
             .add_condition_test_average_precision_not_less_than(0.1) \
-            .add_condition_test_average_precision_not_less_than(0.4)
+            .add_condition_test_average_precision_not_less_than(0.4) \
+            .add_condition_test_mean_average_precision_not_less_than() \
+            .add_condition_test_mean_average_precision_not_less_than(0.5)
 
     # Act
     result = check.run(coco_test_visiondata,
@@ -67,6 +69,17 @@ def test_coco(coco_test_visiondata, trained_yolov5_object_detection, device):
         name='Scores are not less than 0.4',
         details="Found scores below threshold:\n{'Small (area < 32^2)': {'AP@.50 (%)': '0.342'}, "
                 "'Medium (32^2 < area < 96^2)': {'AP@.75 (%)': '0.35'}}"
+    ))
+
+    assert_that(result.conditions_results[2], equal_condition_result(
+        is_pass=True,
+        name='mAP score is not less than 0.3'
+    ))
+
+    assert_that(result.conditions_results[3], equal_condition_result(
+        is_pass=False,
+        name='mAP score is not less than 0.5',
+        details="mAP score is: 0.41"
     ))
 
 
