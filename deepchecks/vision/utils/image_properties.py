@@ -26,7 +26,8 @@ __all__ = ['default_image_properties',
            'normalized_green_mean',
            'get_size',
            'get_dimension',
-           'validate_properties']
+           'validate_properties',
+           'get_column_type']
 
 
 def aspect_ratio(batch: List[np.ndarray]) -> List[float]:
@@ -162,6 +163,7 @@ def validate_properties(properties):
 
 
 def get_column_type(output_type):
+    """Get column type to use in drift functions."""
     # TODO smarter mapping based on data?
     mapper = {'continuous': 'numerical', 'discrete': 'categorical'}
     return mapper[output_type]

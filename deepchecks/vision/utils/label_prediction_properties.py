@@ -104,6 +104,7 @@ def validate_properties(properties):
 
 
 def get_column_type(output_type):
+    """Get column type to use in drift functions."""
     # TODO smarter mapping based on data?
     mapper = {'continuous': 'numerical', 'discrete': 'categorical', 'class_id': 'categorical'}
     return mapper[output_type]
