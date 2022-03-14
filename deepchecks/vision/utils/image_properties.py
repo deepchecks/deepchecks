@@ -157,5 +157,5 @@ def validate_properties(properties):
         if not isinstance(label_property, dict) or any(
                 key not in label_property.keys() for key in expected_keys):
             raise DeepchecksValueError(f'Property must be of type dict, and include keys {expected_keys}')
-        if label_property['output_type'] not in ['discrete', 'continuous']:
+        if label_property['output_type'] not in output_types:
             raise DeepchecksValueError(f'Property field "output_type" must be one of {output_types}')

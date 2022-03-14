@@ -131,7 +131,7 @@ def test_with_drift_object_detection_alternative_measurements(coco_train_visiond
     def prop(predictions):
         return [int(x[0][0]) if len(x) != 0 else 0 for x in predictions]
     alternative_measurements = [
-        {'name': 'test', 'method': prop, 'value_type': 'numerical'}]
+        {'name': 'test', 'method': prop, 'output_type': 'continuous'}]
     check = TrainTestPredictionDrift(alternative_prediction_properties=alternative_measurements)
 
     # Act
@@ -153,7 +153,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, trained_mn
     mod_train_ds, mod_test_ds = mnist_drifted_datasets
 
     # Act
-    result = check.run(mod_train_ds, mod_test_ds, trained_mnist,device=device)
+    result = check.run(mod_train_ds, mod_test_ds, trained_mnist, device=device)
 
     condition_result, *_ = result.conditions_results
 
@@ -171,20 +171,20 @@ def test_with_drift_object_detection_defected_alternative_measurements():
     def prop(predictions):
         return [int(x[0][0]) if len(x) != 0 else 0 for x in predictions]
     alternative_measurements = [
-        {'name': 'test', 'method': prop, 'value_type': 'numerical'},
-        {'name234': 'test', 'method': prop, 'value_type': 'numerical'},
+        {'name': 'test', 'method': prop, 'output_type': 'continuous'},
+        {'name234': 'test', 'method': prop, 'output_type': 'continuous'},
     ]
 
     # Assert
     assert_that(calling(TrainTestPredictionDrift).with_args(alternative_measurements),
                 raises(DeepchecksValueError,
-                       r"Property must be of type dict, and include keys \['name', 'method', 'value_type'\]")
+                       r"Property must be of type dict, and include keys \['name', 'method', 'output_type'\]")
                 )
 
 
 def test_with_drift_object_detection_defected_alternative_measurements2():
     # Arrange
-    alternative_measurements = {'name': 'test', 'method': lambda x: x, 'value_type': 'numerical'}
+    alternative_measurements = {'name': 'test', 'method': lambda x: x, 'output_type': 'continuous'}
 
     # Assert
     assert_that(calling(TrainTestPredictionDrift).with_args(alternative_measurements),

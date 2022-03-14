@@ -144,7 +144,7 @@ def test_with_drift_object_detection_alternative_properties(coco_train_visiondat
     def prop(labels):
         return [int(x[0][0]) if len(x) != 0 else 0 for x in labels]
     alternative_properties = [
-        {'name': 'test', 'method': prop, 'value_type': 'numerical'}]
+        {'name': 'test', 'method': prop, 'output_type': 'continuous'}]
     check = TrainTestLabelDrift(alternative_label_properties=alternative_properties)
 
     # Act
@@ -163,20 +163,20 @@ def test_with_drift_object_detection_alternative_properties(coco_train_visiondat
 def test_with_drift_object_detection_defected_alternative_properties():
     # Arrange
     alternative_properties = [
-        {'name': 'test', 'method': lambda x: x[0][0] if len(x) != 0 else 0, 'value_type': 'numerical'},
-        {'name234': 'test', 'method': lambda x: x[0][0] if len(x) != 0 else 0, 'value_type': 'numerical'},
+        {'name': 'test', 'method': lambda x: x[0][0] if len(x) != 0 else 0, 'output_type': 'continuous'},
+        {'name234': 'test', 'method': lambda x: x[0][0] if len(x) != 0 else 0, 'output_type': 'continuous'},
     ]
 
     # Assert
     assert_that(calling(TrainTestLabelDrift).with_args(alternative_properties),
                 raises(DeepchecksValueError,
-                       r"Property must be of type dict, and include keys \['name', 'method', 'value_type'\]")
+                       r"Property must be of type dict, and include keys \['name', 'method', 'output_type'\]")
                 )
 
 
 def test_with_drift_object_detection_defected_alternative_properties2():
     # Arrange
-    alternative_properties = {'name': 'test', 'method': lambda x, dataset: x, 'value_type': 'numerical'}
+    alternative_properties = {'name': 'test', 'method': lambda x, dataset: x, 'output_type': 'continuous'}
 
     # Assert
     assert_that(calling(TrainTestLabelDrift).with_args(alternative_properties),
