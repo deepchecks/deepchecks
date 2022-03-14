@@ -263,11 +263,28 @@ To learn more about the expected format please visit the API reference for the
 
     class TomatoData(DetectionData):
 
+        def __init__(self, *args, **kwargs):
+          super().__init__(*args, **kwargs)
+
         def batch_to_images(self, batch):
-            return [x.detach().numpy().transpose((1, 2, 0)) * 255 for x in batch[0]]
+        """
+        Convert a batch of data to images in the expected format. The expected format is an iterable of cv2 images,
+        where each image is a numpy array of shape (height, width, channels). The numbers in the array should be in the
+        range [0, 255]
+        """
+            inp = torch.stack(list(batch[0])).numpy().transpose((0, 2, 3, 1))
+            mean = [0.485, 0.456, 0.406]
+            std = [0.229, 0.224, 0.225]
+            inp = std * inp + mean
+            inp = np.clip(inp, 0, 1)
+            return inp * 255
 
         def batch_to_labels(self, batch):
-
+        """
+        Convert a batch of data to labels in the expected format. The expected format is a list of tensors of length N,
+        where N is the number of samples. Each tensor element is in a shape of [B, 5], where B is the number of bboxes
+        in the image, and each bounding box is in the structure of [class_id, x, y, w, h].
+        """
             tensor_annotations = batch[1]
             label = []
             for annotation in tensor_annotations:
@@ -277,9 +294,16 @@ To learn more about the expected format please visit the API reference for the
                     label.append(
                         torch.concat([torch.stack(annotation["labels"]).reshape((-1, 1)), bbox], dim=1)
                     )
+                else:
+                    label.append(torch.tensor([]))
             return label
 
         def infer_on_batch(self, batch, model, device):
+        """
+        Returns the predictions for a batch of data. The expected format is a list of tensors of shape length N, where N
+        is the number of samples. Each tensor element is in a shape of [B, 6], where B is the number of bboxes in the
+        predictions, and each bounding box is in the structure of [x, y, w, h, score, class_id].
+        """
             nm_thrs = 0.2
             score_thrs = 0.7
             imgs = list(img.to(device) for img in batch[0])
@@ -305,11 +329,11 @@ After defining the task class, we can validate it by running the following code:
 .. code-block:: python
 
     LABEL_MAP = {
-      0: 'ants',
-      1: 'bees'
+      0: 'No Tomato',
+      1: 'Tomato'
     }
-    training_data = AntsBeesData(data_loader=train_loader, label_map=LABEL_MAP)
-    val_data = AntsBeesData(data_loader=val_loader, label_map=LABEL_MAP)
+    training_data = TomatoData(data_loader=train_loader, label_map=LABEL_MAP)
+    val_data = TomatoData(data_loader=val_loader, label_map=LABEL_MAP)
 
     from deepchecks.vision.utils.validation import validate_extractors
     validate_extractors(training_data, model)
