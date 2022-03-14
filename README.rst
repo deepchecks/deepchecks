@@ -41,7 +41,7 @@
 .. raw:: html
 
    <h1 align="center">
-      Test Suites for Validating ML Models & Data
+      Testing and Validating ML Models & Data
    </h1>
 
 .. raw:: html
@@ -58,6 +58,14 @@ Deepchecks is a Python package for comprehensively validating your
 machine learning models and data with minimal effort. This includes
 checks related to various types of issues, such as model performance,
 data integrity, distribution mismatches, and more.
+
+
+🖼️ Computer Vision & 🔢 Tabular Support
+==========================================
+This README refers to the tabular version of deepchecks.
+**Deepchecks for Computer Vision & Images** is a separate subpackage, soon in beta release.
+Click `here <deepchecks/vision>`__ for more details.
+
 
 💻 Installation
 =================
