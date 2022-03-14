@@ -9,7 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Module for computing Intersection over Unions."""
+from collections import defaultdict
+
 import numpy as np
+import torch
 
 
 def jaccard_iou(dt, gt):
@@ -45,3 +48,62 @@ def compute_pairwise_ious(detected, ground_truth):
         for d_idx, d in enumerate(detected):
             ious[d_idx, g_idx] = jaccard_iou(d, g)
     return ious
+
+
+def build_class_bounding_box(detected, ground_truth):
+    """Group bounding box by class."""
+    class_bounding_boxes = defaultdict(lambda: {"detected": [], "ground_truth": []})
+
+    for d in detected:
+        if isinstance(d[5], torch.Tensor):
+            class_id = d[5].item()
+        else:
+            class_id = d[5]
+        class_bounding_boxes[class_id]["detected"].append(d)
+    for g in ground_truth:
+        if isinstance(g[0], torch.Tensor):
+            class_id = g[0].item()
+        else:
+            class_id = g[0]
+        class_bounding_boxes[class_id]["ground_truth"].append(g)
+    return class_bounding_boxes
+
+
+def compute_class_ious(detected, ground_truth):
+    """Compute ious between bounding boxes of the same class."""
+    bb_info = build_class_bounding_box(detected, ground_truth)
+
+    # Calculating pairwise IoUs per class
+    return {class_id: compute_pairwise_ious(**bounding_boxes) for class_id, bounding_boxes in bb_info.items()}
+
+
+def per_sample_mean_iou(predictions, labels):
+    """Calculate mean iou for a single sample."""
+    mean_ious = []
+    for detected, ground_truth in zip(predictions, labels):
+        if len(ground_truth) == 0:
+            if len(detected) == 0:
+                mean_ious.append(1)
+            else:
+                mean_ious.append(0)
+            continue
+        elif len(detected) == 0:
+            mean_ious.append(0)
+            continue
+
+        ious = compute_class_ious(detected, ground_truth)
+        count = 0
+        sum_iou = 0
+
+        for _, cls_ious in ious.items():
+            # Find best fit for each detection
+            for detection in cls_ious:
+                sum_iou += max(detection, default=0)
+                count += 1
+
+        if count:
+            mean_ious.append(sum_iou / count)
+        else:
+            mean_ious.append(0)
+
+    return mean_ious

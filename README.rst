@@ -305,7 +305,7 @@ having a trained model that you wish to evaluate. See more about typical usage s
 
 
 .. |build| image:: https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg
-.. |Documentation Status| image:: https://readthedocs.org/projects/deepchecks/badge/?version=latest
+.. |Documentation Status| image:: https://readthedocs.org/projects/deepchecks/badge/?version=stable
    :target: https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=badge
 .. |pkgVersion| image:: https://img.shields.io/pypi/v/deepchecks
 .. |pyVersions| image:: https://img.shields.io/pypi/pyversions/deepchecks
