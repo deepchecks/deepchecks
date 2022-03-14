@@ -12,7 +12,6 @@
 import math
 import typing as t
 from collections import defaultdict, Counter
-from numbers import Number
 
 import numpy as np
 import pandas as pd
@@ -22,14 +21,11 @@ import plotly.express as px
 
 from deepchecks import ConditionResult
 from deepchecks.core import DatasetKind, CheckResult
-from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import SingleDatasetCheck, Context, Batch
-from deepchecks.vision.utils import image_formatters
+from deepchecks.vision.utils import image_properties
 from deepchecks.vision.metrics_utils import get_scorers_list, metric_results_to_df
 
-
-ImageProperty = t.Union[str, t.Callable[..., t.List[Number]]]
 
 __all__ = ['ImageSegmentPerformance']
 
@@ -39,9 +35,10 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
     Parameters
     ----------
-    image_properties : List[Union[str, Callable]]
-        List of image properties by name (of functions in ImageFormatter class) or callable which receives batch
-        and return properties per image.
+    alternative_image_properties : List[Dict[str, Any]], default: None
+        List of properties. Replaces the default deepchecks properties.
+        Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
     alternative_metrics : Dict[str, Metric], default: None
         A dictionary of metrics, where the key is the metric name and the value is an ignite.Metric object whose score
         should be used. If None are given, use the default metrics.
@@ -53,29 +50,18 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
     def __init__(
         self,
-        image_properties: t.Optional[t.List[ImageProperty]] = None,
+        alternative_image_properties: t.List[t.Dict[str, t.Any]] = None,
         alternative_metrics: t.Optional[t.Dict[str, Metric]] = None,
         number_of_bins: int = 5,
         number_of_samples_to_infer_bins: int = 1000
     ):
         super().__init__()
 
-        if image_properties is None:
-            self.image_properties = image_formatters.default_image_properties
+        if alternative_image_properties:
+            image_properties.validate_properties(alternative_image_properties)
+            self.image_properties = alternative_image_properties
         else:
-            if len(image_properties) == 0:
-                raise DeepchecksValueError('image_properties list cannot be empty')
-
-            properties_by_name = {p for p in image_properties if isinstance(p, str)}
-            unknown_properties = properties_by_name.difference(image_formatters.default_image_properties)
-
-            if len(unknown_properties) > 0:
-                raise DeepchecksValueError(
-                    'received list of unknown image properties '
-                    f'- {sorted(unknown_properties)}'
-                )
-
-            self.image_properties = image_properties
+            self.image_properties = image_properties.default_image_properties
 
         self.alternative_metrics = alternative_metrics
         self.number_of_bins = number_of_bins
@@ -87,10 +73,6 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         # First we will aggregate samples up to defined amount (number_of_samples_to_infer_bins), when we reach
         # the amount we will define the bins and populate them
         self._state = {'samples_for_binning': [], 'bins': None}
-        # Initialize image properties. Doing this not in the init because we use the dataset object.
-        string_props = {p: getattr(image_formatters, p) for p in self.image_properties if isinstance(p, str)}
-        func_props = {p.__name__: p for p in self.image_properties if callable(p)}
-        self._state['properties_functions'] = {**string_props, **func_props}
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the bins by the image properties."""
@@ -101,13 +83,12 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
         samples_for_bin: t.List = self._state['samples_for_binning']
         bins = self._state['bins']
-        properties_functions: t.Dict = self._state['properties_functions']
 
         # Initialize a list of all properties per image sample
         batch_properties = [{} for _ in range(len(images))]
-        for prop_name, func in properties_functions.items():
-            for index, image_result in enumerate(func(images)):
-                batch_properties[index][prop_name] = image_result
+        for single_property in self.image_properties:
+            for index, image_result in enumerate(single_property['method'](images)):
+                batch_properties[index][single_property['name']] = image_result
 
         batch_data = zip(labels, predictions, batch_properties)
         # If we already defined bins, add the current data to them

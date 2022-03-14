@@ -10,7 +10,7 @@
 #
 """Module contains Train Test Prediction Drift check."""
 from typing import Dict, List, Any
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 import pandas as pd
 
@@ -20,10 +20,8 @@ from deepchecks.core import DatasetKind, CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.vision import Context, TrainTestCheck, Batch
 from deepchecks.vision.vision_data import TaskType
-from deepchecks.vision.utils.measurements import validate_measurements, \
-    DEFAULT_CLASSIFICATION_PREDICTION_MEASUREMENTS, DEFAULT_OBJECT_DETECTION_PREDICTION_MEASUREMENTS, \
-    get_prediction_measurements_on_batch
-
+from deepchecks.vision.utils.label_prediction_properties import validate_properties, \
+    DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES, DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES, get_column_type
 
 __all__ = ['TrainTestPredictionDrift']
 
@@ -33,14 +31,14 @@ class TrainTestPredictionDrift(TrainTestCheck):
     Calculate prediction drift between train dataset and test dataset, using statistical measures.
 
     Check calculates a drift score for the predictions in the test dataset, by comparing its distribution to the
-    train dataset. As the predictions may be complex, we run different measurements on the predictions and check
+    train dataset. As the predictions may be complex, we calculate different properties of the predictions and check
     their distribution.
 
-    A measurement on a prediction is any function that returns a single value or n-dimensional array of values. each
-    value represents a measurement on the prediction, such as number of objects in image or tilt of each bounding box
+    A prediction property is any function that gets predictions and returns list of values. each
+    value represents a property of the prediction, such as number of objects in image or tilt of each bounding box
     in image.
 
-    There are default measurements per task:
+    There are default properties per task:
     For classification:
     - distribution of classes
 
@@ -57,79 +55,74 @@ class TrainTestPredictionDrift(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_prediction_measurements : List[Dict[str, Any]], default: None
-        List of measurements. Replaces the default deepchecks measurements.
-        Each measurement is dictionary with keys 'name' (str), 'method' (Callable) and is_continuous (bool),
-        representing attributes of said method.
+    alternative_prediction_properties : List[Dict[str, Any]], default: None
+        List of properties. Replaces the default deepchecks properties.
+        Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'/'class_id'
     max_num_categories : int , default: 10
-        Only for non-continues measurements. Max number of allowed categories. If there are more,
+        Only for non-continues properties. Max number of allowed categories. If there are more,
         they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
         for both drift calculation and for distribution plots.
     """
 
     def __init__(
             self,
-            alternative_prediction_measurements: List[Dict[str, Any]] = None,
+            alternative_prediction_properties: List[Dict[str, Any]] = None,
             max_num_categories: int = 10
     ):
         super().__init__()
-        # validate alternative_prediction_measurements:
-        if alternative_prediction_measurements is not None:
-            validate_measurements(alternative_prediction_measurements)
-        self.alternative_prediction_measurements = alternative_prediction_measurements
+        # validate alternative_prediction_properties:
+        if alternative_prediction_properties is not None:
+            validate_properties(alternative_prediction_properties)
+        self.alternative_prediction_properties = alternative_prediction_properties
         self.max_num_categories = max_num_categories
+        self._prediction_properties = None
+        self._train_prediction_properties = None
+        self._test_prediction_properties = None
 
     def initialize_run(self, context: Context):
         """Initialize run.
 
         Function initializes the following private variables:
 
-        Prediction measurements:
-        _prediction_measurements: all label measurements to be calculated in run
+        Prediction properties:
+        _prediction_properties: all predictions properties to be calculated in run
 
-        Prediction measurements caching: _train_prediction_properties, _test_prediction_properties: Dicts of lists
-        accumulating the label measurements computed for each batch.
+        Prediction properties caching: _train_prediction_properties, _test_prediction_properties: Dicts of lists
+        accumulating the predictions properties computed for each batch.
         """
         train_dataset = context.train
 
         task_type = train_dataset.task_type
 
-        if self.alternative_prediction_measurements is not None:
-            self._prediction_measurements = self.alternative_prediction_measurements
+        if self.alternative_prediction_properties is not None:
+            self._prediction_properties = self.alternative_prediction_properties
         elif task_type == TaskType.CLASSIFICATION:
-            self._prediction_measurements = DEFAULT_CLASSIFICATION_PREDICTION_MEASUREMENTS
+            self._prediction_properties = DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES
         elif task_type == TaskType.OBJECT_DETECTION:
-            self._prediction_measurements = DEFAULT_OBJECT_DETECTION_PREDICTION_MEASUREMENTS
+            self._prediction_properties = DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES
         else:
-            raise NotImplementedError('TrainTestLabelDrift must receive either alternative_prediction_measurements or '
+            raise NotImplementedError('TrainTestLabelDrift must receive either alternative_prediction_properties or '
                                       'run on Classification or Object Detection class')
 
-        self._train_prediction_properties = OrderedDict([(k['name'], []) for k in self._prediction_measurements])
-        self._test_prediction_properties = OrderedDict([(k['name'], []) for k in self._prediction_measurements])
+        self._train_prediction_properties = defaultdict(list)
+        self._test_prediction_properties = defaultdict(list)
 
     def update(self, context: Context, batch: Batch, dataset_kind):
         """Perform update on batch for train or test properties."""
         # For all transformers, calculate histograms by batch:
         if dataset_kind == DatasetKind.TRAIN:
-            dataset = context.train
             properties = self._train_prediction_properties
         elif dataset_kind == DatasetKind.TEST:
-            dataset = context.test
             properties = self._test_prediction_properties
         else:
             raise DeepchecksNotSupportedError(f'Unsupported dataset kind {dataset_kind}')
 
-        for prediction_measurement in self._prediction_measurements:
-            properties[prediction_measurement['name']].extend(
-                get_prediction_measurements_on_batch(
-                    batch,
-                    prediction_measurement['method'],
-                    dataset,
-                )
-            )
+        for prediction_property in self._prediction_properties:
+            properties[prediction_property['name']] += prediction_property['method'](batch.predictions)
 
     def compute(self, context: Context) -> CheckResult:
-        """Calculate drift on prediction measurements samples that were collected during update() calls.
+        """Calculate drift on prediction properties samples that were collected during update() calls.
 
         Returns
         -------
@@ -139,29 +132,37 @@ class TrainTestPredictionDrift(TrainTestCheck):
         """
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
-        prediction_measures_names = [x['name'] for x in self._prediction_measurements]
-        for prediction_measure in self._prediction_measurements:
-            measure_name = prediction_measure['name']
+        prediction_properties_names = [x['name'] for x in self._prediction_properties]
+        for prediction_property in self._prediction_properties:
+            name = prediction_property['name']
+            output_type = prediction_property['output_type']
+            # If type is class converts to label names
+            if output_type == 'class_id':
+                self._train_prediction_properties[name] = [context.train.label_id_to_name(class_id) for class_id in
+                                                           self._train_prediction_properties[name]]
+                self._test_prediction_properties[name] = [context.test.label_id_to_name(class_id) for class_id in
+                                                          self._test_prediction_properties[name]]
 
             value, method, display = calc_drift_and_plot(
-                train_column=pd.Series(self._train_prediction_properties[measure_name]),
-                test_column=pd.Series(self._test_prediction_properties[measure_name]),
-                plot_title=measure_name,
-                column_type='numerical' if prediction_measure['is_continuous'] else 'categorical',
+                train_column=pd.Series(self._train_prediction_properties[name]),
+                test_column=pd.Series(self._test_prediction_properties[name]),
+                plot_title=name,
+                column_type=get_column_type(output_type),
                 max_num_categories=self.max_num_categories
             )
-            values_dict[measure_name] = {
+            values_dict[name] = {
                 'Drift score': value,
                 'Method': method,
             }
-            displays_dict[measure_name] = display
+            displays_dict[name] = display
 
-        columns_order = sorted(prediction_measures_names, key=lambda col: values_dict[col]['Drift score'], reverse=True)
+        columns_order = sorted(prediction_properties_names, key=lambda col: values_dict[col]['Drift score'],
+                               reverse=True)
 
         headnote = '<span>' \
                    'The Drift score is a measure for the difference between two distributions. ' \
                    'In this check, drift is measured ' \
-                   f'for the distribution of the following prediction properties: {prediction_measures_names}.' \
+                   f'for the distribution of the following prediction properties: {prediction_properties_names}.' \
                    '</span>'
 
         displays = [headnote] + [displays_dict[col] for col in columns_order]
@@ -172,7 +173,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
                                                    max_allowed_earth_movers_score: float = 0.075
                                                    ) -> 'TrainTestPredictionDrift':
         """
-        Add condition - require prediction measurements drift score to not be more than a certain threshold.
+        Add condition - require prediction properties drift score to not be more than a certain threshold.
 
         The industry standard for PSI limit is above 0.2.
         Earth movers does not have a common industry standard.
@@ -188,21 +189,21 @@ class TrainTestPredictionDrift(TrainTestCheck):
         Returns
         -------
         ConditionResult
-            False if any measurement has passed the max threshold, True otherwise
+            False if any property has passed the max threshold, True otherwise
         """
 
         def condition(result: Dict) -> ConditionResult:
-            not_passing_categorical_columns = {measures: f'{d["Drift score"]:.2}' for measures, d in result.items() if
+            not_passing_categorical_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
                                                d['Drift score'] > max_allowed_psi_score and d['Method'] == 'PSI'}
-            not_passing_numeric_columns = {measures: f'{d["Drift score"]:.2}' for measures, d in result.items() if
+            not_passing_numeric_columns = {props: f'{d["Drift score"]:.2}' for props, d in result.items() if
                                            d['Drift score'] > max_allowed_earth_movers_score
                                            and d['Method'] == "Earth Mover's Distance"}
             return_str = ''
             if not_passing_categorical_columns:
-                return_str += f'Found non-continues prediction measurements with PSI drift score above threshold:' \
+                return_str += f'Found non-continues prediction properties with PSI drift score above threshold:' \
                               f' {not_passing_categorical_columns}\n'
             if not_passing_numeric_columns:
-                return_str += f'Found continues prediction measurements with Earth Mover\'s drift score above' \
+                return_str += f'Found continues prediction properties with Earth Mover\'s drift score above' \
                               f' threshold: {not_passing_numeric_columns}\n'
 
             if return_str:
