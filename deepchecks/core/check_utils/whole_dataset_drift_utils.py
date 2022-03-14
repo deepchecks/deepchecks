@@ -10,7 +10,7 @@
 #
 """Module containing common WholeDatasetDriftCheck (domain classifier drift) utils."""
 
-from typing import List
+from typing import List, Optional
 import warnings
 
 import numpy as np
@@ -39,7 +39,7 @@ import plotly.graph_objects as go
 def run_whole_dataset_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.DataFrame,
                             numerical_features: List[Hashable], cat_features: List[Hashable], sample_size: int,
                             random_state: int, test_size: float, n_top_columns: int, min_feature_importance: float,
-                            max_num_categories: int, min_meaningful_drift_score: float):
+                            max_num_categories: Optional[int], min_meaningful_drift_score: float):
     """Calculate whole dataset drift."""
     domain_classifier = generate_model(numerical_features, cat_features, random_state)
 

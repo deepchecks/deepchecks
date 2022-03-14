@@ -26,7 +26,7 @@ __all__ = ['default_image_properties',
            'normalized_green_mean',
            'get_size',
            'get_dimension',
-           'validate_image_properties']
+           'validate_properties']
 
 
 def aspect_ratio(batch: List[np.ndarray]) -> List[float]:
@@ -133,21 +133,29 @@ def get_dimension(img) -> int:
     return img.shape[2]
 
 
-default_image_properties = {
-    'aspect_ratio': aspect_ratio,
-    'area': area,
-    'brightness': brightness,
-    'rms_contrast': rms_contrast,
-    'normalized_red_mean': normalized_red_mean,
-    'normalized_green_mean': normalized_green_mean,
-    'normalized_blue_mean': normalized_blue_mean
-}
+default_image_properties = [
+    {'name': 'Aspect Ratio', 'method': aspect_ratio, 'output_type': 'continuous'},
+    {'name': 'Area', 'method': area, 'output_type': 'continuous'},
+    {'name': 'Brightness', 'method': brightness, 'output_type': 'continuous'},
+    {'name': 'RMS Contrast', 'method': rms_contrast, 'output_type': 'continuous'},
+    {'name': 'Normalized Red Mean', 'method': normalized_red_mean, 'output_type': 'continuous'},
+    {'name': 'Normalized Blue Mean', 'method': normalized_blue_mean, 'output_type': 'continuous'},
+    {'name': 'Normalized Green Mean', 'method': normalized_green_mean, 'output_type': 'continuous'}
+]
 
 
-def validate_image_properties(properties):
-    """Validate structure of properties."""
-    if not isinstance(properties, dict):
+def validate_properties(properties):
+    """Validate structure of measurements."""
+    expected_keys = ['name', 'method', 'output_type']
+    output_types = ['discrete', 'continuous']
+    if not isinstance(properties, list):
         raise DeepchecksValueError(
-            f'Expected image properties to be a dict, instead got {properties.__class__.__name__}')
-    if any(not callable(x) for x in properties.values()):
-        raise DeepchecksValueError(f'Properties must include only callables in the values of the dictionary')
+            f'Expected properties to be a list, instead got {properties.__class__.__name__}')
+    if len(properties) == 0:
+        raise DeepchecksValueError('Properties list can\'t be empty')
+    for label_property in properties:
+        if not isinstance(label_property, dict) or any(
+                key not in label_property.keys() for key in expected_keys):
+            raise DeepchecksValueError(f'Property must be of type dict, and include keys {expected_keys}')
+        if label_property['output_type'] not in ['discrete', 'continuous']:
+            raise DeepchecksValueError(f'Property field "output_type" must be one of {output_types}')

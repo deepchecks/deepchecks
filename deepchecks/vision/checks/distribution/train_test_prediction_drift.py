@@ -35,8 +35,8 @@ class TrainTestPredictionDrift(TrainTestCheck):
     train dataset. As the predictions may be complex, we calculate different properties of the predictions and check
     their distribution.
 
-    A property on a prediction is any function that gets predictions and returns list of numbers. each
-    number represents a property of the prediction, such as number of objects in image or tilt of each bounding box
+    A prediction property is any function that gets predictions and returns list of values. each
+    value represents a property of the prediction, such as number of objects in image or tilt of each bounding box
     in image.
 
     There are default properties per task:
@@ -58,8 +58,8 @@ class TrainTestPredictionDrift(TrainTestCheck):
     ----------
     alternative_prediction_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
-        Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'value_type' (bool),
-        representing attributes of said method.
+        Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'/'class_id'
     max_num_categories : int , default: 10
         Only for non-continues properties. Max number of allowed categories. If there are more,
         they are binned into an "Other" category. If max_num_categories=None, there is no limit. This limit applies
@@ -136,9 +136,9 @@ class TrainTestPredictionDrift(TrainTestCheck):
         prediction_properties_names = [x['name'] for x in self._prediction_properties]
         for prediction_property in self._prediction_properties:
             name = prediction_property['name']
-            value_type = prediction_property['value_type']
+            output_type = prediction_property['output_type']
             # If type is class converts to label names
-            if value_type == 'class_id':
+            if output_type == 'class_id':
                 self._train_prediction_properties[name] = [context.train.label_id_to_name(class_id) for class_id in
                                                            self._train_prediction_properties[name]]
                 self._test_prediction_properties[name] = [context.test.label_id_to_name(class_id) for class_id in
@@ -148,7 +148,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
                 train_column=pd.Series(self._train_prediction_properties[name]),
                 test_column=pd.Series(self._test_prediction_properties[name]),
                 plot_title=name,
-                column_type='categorical' if value_type == 'class_id' else value_type,
+                column_type=get_column_type(output_type),
                 max_num_categories=self.max_num_categories
             )
             values_dict[name] = {
@@ -215,3 +215,9 @@ class TrainTestPredictionDrift(TrainTestCheck):
         return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
                                   f'{max_allowed_earth_movers_score} for prediction drift',
                                   condition)
+
+
+def get_column_type(output_type):
+    # TODO smarter mapping based on data?
+    mapper = {'continuous': 'numerical', 'discrete': 'categorical', 'class_id': 'categorical'}
+    return mapper[output_type]

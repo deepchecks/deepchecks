@@ -35,10 +35,10 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
     Parameters
     ----------
-    alternative_image_properties : Dict[str, Any], default: None
-        Dict of image properties. Replaces the default deepchecks properties.
-        Each property have a name (key of dict) and function which accepts a `List[np.ndarray]` as input. If None, check
-        uses `deepchecks.vision.utils.image_properties.default_image_properties`
+    alternative_image_properties : List[Dict[str, Any]], default: None
+        List of properties. Replaces the default deepchecks properties.
+        Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
     alternative_metrics : Dict[str, Metric], default: None
         A dictionary of metrics, where the key is the metric name and the value is an ignite.Metric object whose score
         should be used. If None are given, use the default metrics.
@@ -50,7 +50,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
     def __init__(
         self,
-        alternative_image_properties: t.Dict[str, t.Callable] = None,
+        alternative_image_properties: t.List[t.Dict[str, t.Any]] = None,
         alternative_metrics: t.Optional[t.Dict[str, Metric]] = None,
         number_of_bins: int = 5,
         number_of_samples_to_infer_bins: int = 1000
@@ -58,7 +58,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         super().__init__()
 
         if alternative_image_properties:
-            image_properties.validate_image_properties(alternative_image_properties)
+            image_properties.validate_properties(alternative_image_properties)
             self.image_properties = alternative_image_properties
         else:
             self.image_properties = image_properties.default_image_properties
@@ -86,9 +86,9 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
         # Initialize a list of all properties per image sample
         batch_properties = [{} for _ in range(len(images))]
-        for prop_name, func in self.image_properties.items():
-            for index, image_result in enumerate(func(images)):
-                batch_properties[index][prop_name] = image_result
+        for single_property in self.image_properties:
+            for index, image_result in enumerate(single_property['method'](images)):
+                batch_properties[index][single_property['name']] = image_result
 
         batch_data = zip(labels, predictions, batch_properties)
         # If we already defined bins, add the current data to them

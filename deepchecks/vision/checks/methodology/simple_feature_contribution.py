@@ -62,10 +62,10 @@ class SimpleFeatureContribution(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_image_properties : Dict[str, Any], default: None
-        Dict of image properties. Replaces the default deepchecks properties.
-        Each property have a name (key of dict) and function which accepts a `List[np.ndarray]` as input. If None, check
-        uses `deepchecks.vision.utils.image_properties.default_image_properties`
+    alternative_image_properties : List[Dict[str, Any]], default: None
+        List of properties. Replaces the default deepchecks properties.
+        Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
     n_top_properties: int, default: 5
         Number of features to show, sorted by the magnitude of difference in PPS
     ppscore_params: dict, default: None
@@ -81,7 +81,7 @@ class SimpleFeatureContribution(TrainTestCheck):
         super().__init__()
 
         if alternative_image_properties:
-            image_properties.validate_image_properties(alternative_image_properties)
+            image_properties.validate_properties(alternative_image_properties)
             self.image_properties = alternative_image_properties
         else:
             self.image_properties = image_properties.default_image_properties
@@ -123,8 +123,8 @@ class SimpleFeatureContribution(TrainTestCheck):
             raise DeepchecksValueError(
                 f'Check {self.__class__.__name__} does not support task type {dataset.task_type}')
 
-        for name, func in self.image_properties.items():
-            properties[name] += func(imgs)
+        for single_property in self.image_properties:
+            properties[single_property['name']].extend(single_property['method'](imgs))
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate the PPS between each property and the label.

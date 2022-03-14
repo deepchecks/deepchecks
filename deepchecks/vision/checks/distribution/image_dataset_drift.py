@@ -10,7 +10,7 @@
 #
 """Module contains the domain classifier drift check."""
 from collections import defaultdict
-from typing import Callable, Dict
+from typing import Dict, List, Any
 
 import pandas as pd
 
@@ -38,10 +38,10 @@ class ImageDatasetDrift(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_image_properties : Dict[str, Callable] , default: None
-        Dict of image properties. Replaces the default deepchecks properties.
-        Each property have a name (key of dict) and function which accepts a `List[np.ndarray]` as input. If None, check
-        uses `deepchecks.vision.utils.image_properties.default_image_properties`
+    alternative_image_properties : List[Dict[str, Any]], default: None
+        List of properties. Replaces the default deepchecks properties.
+        Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
     n_top_properties : int , default: 3
         Amount of properties to show ordered by domain classifier feature importance. This limit is used together
         (AND) with min_feature_importance, so less than n_top_columns features can be displayed.
@@ -61,7 +61,7 @@ class ImageDatasetDrift(TrainTestCheck):
 
     def __init__(
             self,
-            alternative_image_properties: Dict[str, Callable] = None,
+            alternative_image_properties: List[Dict[str, Any]] = None,
             n_top_properties: int = 3,
             min_feature_importance: float = 0.05,
             sample_size: int = 10_000,
@@ -70,7 +70,7 @@ class ImageDatasetDrift(TrainTestCheck):
     ):
         super().__init__()
         if alternative_image_properties:
-            image_properties.validate_image_properties(alternative_image_properties)
+            image_properties.validate_properties(alternative_image_properties)
             self.image_properties = alternative_image_properties
         else:
             self.image_properties = image_properties.default_image_properties
@@ -90,9 +90,10 @@ class ImageDatasetDrift(TrainTestCheck):
             properties = self._train_properties
         else:
             properties = self._test_properties
-        imgs = batch.images
-        for name, func in self.image_properties.items():
-            properties[name] += func(imgs)
+        images = batch.images
+
+        for single_property in self.image_properties:
+            properties[single_property['name']].extend(single_property['method'](images))
 
     def compute(self, context: Context) -> CheckResult:
         """Train a Domain Classifier on image property data that was collected during update() calls.
@@ -117,11 +118,15 @@ class ImageDatasetDrift(TrainTestCheck):
         </span>
         """
 
+        numeric_features = [p['name'] for p in self.image_properties if p['output_type'] == 'continuous']
+        categorical_features = [p['name'] for p in self.image_properties if p['output_type'] == 'discrete']
+
         values_dict, displays = run_whole_dataset_drift(
-            train_dataframe=df_train, test_dataframe=df_test, numerical_features=list(self.image_properties.keys()),
-            cat_features=[], sample_size=sample_size, random_state=context.random_state, test_size=self.test_size,
-            n_top_columns=self.n_top_properties, min_feature_importance=self.min_feature_importance,
-            max_num_categories=None, min_meaningful_drift_score=self.min_meaningful_drift_score
+            train_dataframe=df_train, test_dataframe=df_test, numerical_features=numeric_features,
+            cat_features=categorical_features, sample_size=sample_size, random_state=context.random_state,
+            test_size=self.test_size, n_top_columns=self.n_top_properties,
+            min_feature_importance=self.min_feature_importance, max_num_categories=None,
+            min_meaningful_drift_score=self.min_meaningful_drift_score
         )
 
         if displays:

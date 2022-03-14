@@ -44,13 +44,13 @@ def _get_samples_per_class_classification(labels: torch.Tensor) -> List[int]:
 
 
 DEFAULT_CLASSIFICATION_LABEL_PROPERTIES = [
-    {'name': 'Samples per class', 'method': _get_samples_per_class_classification, 'value_type': 'class'}
+    {'name': 'Samples per class', 'method': _get_samples_per_class_classification, 'output_type': 'class'}
 ]
 
 DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES = [
-    {'name': 'Samples per class', 'method': _get_samples_per_class_object_detection, 'value_type': 'class'},
-    {'name': 'Bounding box area (in pixels)', 'method': _get_bbox_area, 'value_type': 'numerical'},
-    {'name': 'Number of bounding boxes per image', 'method': _count_num_bboxes, 'value_type': 'numerical'},
+    {'name': 'Samples per class', 'method': _get_samples_per_class_object_detection, 'output_type': 'class'},
+    {'name': 'Bounding box area (in pixels)', 'method': _get_bbox_area, 'output_type': 'continuous'},
+    {'name': 'Number of bounding boxes per image', 'method': _count_num_bboxes, 'output_type': 'continuous'},
 ]
 
 
@@ -75,14 +75,14 @@ def _get_predicted_bbox_area(predictions: List[torch.Tensor]) -> List[int]:
 
 
 DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES = [
-    {'name': 'Samples per class', 'method': _get_samples_per_predicted_class_classification, 'value_type': 'class_id'}
+    {'name': 'Samples per class', 'method': _get_samples_per_predicted_class_classification, 'output_type': 'class_id'}
 ]
 
 DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES = [
     {'name': 'Samples per class', 'method': _get_samples_per_predicted_class_object_detection,
      'value_type': 'class_id'},
-    {'name': 'Bounding box area (in pixels)', 'method': _get_predicted_bbox_area, 'value_type': 'numerical'},
-    {'name': 'Number of bounding boxes per image', 'method': _count_num_bboxes, 'value_type': 'numerical'},
+    {'name': 'Bounding box area (in pixels)', 'method': _get_predicted_bbox_area, 'output_type': 'continuous'},
+    {'name': 'Number of bounding boxes per image', 'method': _count_num_bboxes, 'output_type': 'continuous'},
 ]
 
 
@@ -90,7 +90,8 @@ DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES = [
 
 def validate_properties(properties):
     """Validate structure of measurements."""
-    expected_keys = ['name', 'method', 'value_type']
+    expected_keys = ['name', 'method', 'output_type']
+    output_types = ['discrete', 'continuous', 'class_id']
     if not isinstance(properties, list):
         raise DeepchecksValueError(
             f'Expected properties to be a list, instead got {properties.__class__.__name__}')
@@ -98,3 +99,5 @@ def validate_properties(properties):
         if not isinstance(label_property, dict) or any(
                 key not in label_property.keys() for key in expected_keys):
             raise DeepchecksValueError(f'Property must be of type dict, and include keys {expected_keys}')
+        if label_property['output_type'] not in ['discrete', 'continuous']:
+            raise DeepchecksValueError(f'Property field "output_type" must be one of {output_types}')

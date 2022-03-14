@@ -40,21 +40,21 @@ class ImagePropertyDrift(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_image_properties : Dict[str, Any], default: None
-        Dict of image properties. Replaces the default deepchecks properties.
-        Each property have a name (key of dict) and function which accepts a `List[np.ndarray]` as input. If None, check
-        uses `deepchecks.vision.utils.image_properties.default_image_properties`
+    alternative_image_properties : List[Dict[str, Any]], default: None
+        List of properties. Replaces the default deepchecks properties.
+        Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
     max_num_categories: int, default: 10
     """
 
     def __init__(
         self,
-        alternative_image_properties: t.Dict[str, t.Any] = None,
+        alternative_image_properties: t.List[t.Dict[str, t.Any]] = None,
         max_num_categories: int = 10
     ):
         super().__init__()
-        if alternative_image_properties:
-            image_properties.validate_image_properties(alternative_image_properties)
+        if alternative_image_properties is not None:
+            image_properties.validate_properties(alternative_image_properties)
             self.image_properties = alternative_image_properties
         else:
             self.image_properties = image_properties.default_image_properties
@@ -81,8 +81,8 @@ class ImagePropertyDrift(TrainTestCheck):
 
         images = batch.images
 
-        for name, func in self.image_properties.items():
-            properties[name].extend(func(images))
+        for single_property in self.image_properties:
+            properties[single_property['name']].extend(single_property['method'](images))
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate drift score between train and test datasets for the collected image properties.
@@ -103,13 +103,15 @@ class ImagePropertyDrift(TrainTestCheck):
         figures = {}
         drifts = {}
 
-        for property_name in properties:
+        for single_property in self.image_properties:
+            property_name = single_property['name']
+            column_type = get_column_type(single_property['output_type'])
 
             score, _, figure = calc_drift_and_plot(
                 train_column=df_train[property_name],
                 test_column=df_test[property_name],
                 plot_title=property_name,
-                column_type='numerical',
+                column_type=column_type,
                 max_num_categories=self.max_num_categories
             )
 
@@ -173,3 +175,9 @@ class ImagePropertyDrift(TrainTestCheck):
             f'Earth Mover\'s Distance <= {max_allowed_drift_score} for image properties drift',
             condition
         )
+
+
+def get_column_type(output_type):
+    # TODO smarter mapping based on data?
+    mapper = {'continuous': 'numerical', 'discrete': 'categorical'}
+    return mapper[output_type]
