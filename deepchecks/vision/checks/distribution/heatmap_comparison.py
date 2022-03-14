@@ -104,7 +104,8 @@ class HeatmapComparison(TrainTestCheck):
             summed_image = self._grayscale_sum_image(valid_images)
             self._grayscale_heatmap[dataset_kind] += summed_image
             # For object detection tasks, we do the same for the bounding box average coverage of the image.
-            # The difference from the above code for the average grayscale image is that the averaged images are images of
+            # The difference from the above code for the average grayscale image is
+            # that the averaged images are images of
             # the places where the bounding boxes are located. These bounding box images are computed by
             # _label_to_image_batch
             if self._task_type == TaskType.OBJECT_DETECTION:
