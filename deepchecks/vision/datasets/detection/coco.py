@@ -107,7 +107,7 @@ def load_dataset(
         Batch size for the dataloader.
     num_workers : int, default: 0
         Number of workers for the dataloader.
-    shuffle : bool, default: False
+    shuffle : bool, default: True
         Whether to shuffle the dataset.
     pin_memory : bool, default: True
         If ``True``, the data loader will copy Tensors

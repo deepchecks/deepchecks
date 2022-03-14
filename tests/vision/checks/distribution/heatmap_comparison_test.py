@@ -24,11 +24,11 @@ def test_object_detection(coco_train_visiondata, coco_test_visiondata, device):
 
     # Assert
     brightness_diff = result.value["diff"]
-    assert_that(brightness_diff.mean(), close_to(11.142, 0.001))
-    assert_that(brightness_diff.max(), close_to(46, 0.001))
+    assert_that(brightness_diff.mean(), close_to(11.162, 0.001))
+    assert_that(brightness_diff.max(), close_to(47, 0.001))
 
     bbox_diff = result.value["diff_bbox"]
-    assert_that(bbox_diff.mean(), close_to(5.705, 0.001))
+    assert_that(bbox_diff.mean(), close_to(5.701, 0.001))
     assert_that(bbox_diff.max(), close_to(24, 0.001))
 
 

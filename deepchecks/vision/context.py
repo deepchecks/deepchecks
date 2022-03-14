@@ -96,6 +96,7 @@ class Context:
         processing unit for use
     random_state : int
         A seed to set for pseudo-random functions
+    n_samples : int, default: None
     """
 
     def __init__(self,
@@ -106,7 +107,8 @@ class Context:
                  scorers: Mapping[str, Metric] = None,
                  scorers_per_class: Mapping[str, Metric] = None,
                  device: Union[str, torch.device, None] = 'cpu',
-                 random_state: int = 42
+                 random_state: int = 42,
+                 n_samples: int = None
                  ):
         # Validations
         if train is None and test is None and model is None:
@@ -128,11 +130,14 @@ class Context:
                         logger.warning('validate_prediction() was not implemented in %s dataset, '
                                        'some checks will not run', dataset_type)
 
-        # Set seeds to if possible (we set it after the validation to keep the seed state)
-        if train and random_state:
-            train.set_seed(random_state)
-        if test and random_state:
-            test.set_seed(random_state)
+        # The copy does 2 things: Sample n_samples if parameter exists, and shuffle the data.
+        # we shuffle because the data in VisionData is set to be sampled in a fixed order (in the init), so if the user
+        # wants to run without random_state we need to forcefully shuffle (to have different results on different runs
+        # from the same VisionData object), and if there is a random_state the shuffle will always have same result
+        if train:
+            train = train.copy(shuffle=True, n_samples=n_samples, random_state=random_state)
+        if test:
+            test = test.copy(shuffle=True, n_samples=n_samples, random_state=random_state)
 
         self._train = train
         self._test = test
