@@ -9,3 +9,4 @@ Vision
 
     formatter_objects
     classification_tutorial
+    detection_tutorial
