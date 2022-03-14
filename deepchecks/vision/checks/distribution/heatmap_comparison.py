@@ -9,11 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Train Test label Drift check."""
-from collections import defaultdict
 from typing import Tuple, List, Iterable, Optional
 
 import cv2
-from matplotlib.pyplot import autoscale
 import torch
 from plotly.subplots import make_subplots
 import numpy as np
@@ -21,7 +19,7 @@ import plotly.graph_objs as go
 
 from deepchecks.vision.utils.image_functions import numpy_grayscale_to_heatmap_figure, apply_heatmap_image_properties
 from deepchecks.core import DatasetKind, CheckResult
-from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import Context, TrainTestCheck, Batch
 from deepchecks.vision.vision_data import TaskType
 
@@ -81,15 +79,15 @@ class HeatmapComparison(TrainTestCheck):
                 )
 
         # State members to store the average grayscale image throughout update steps
-        self._grayscale_heatmap = dict()
+        self._grayscale_heatmap = {}
         self._shape = None
-        self._counter = dict()
+        self._counter = {}
         self._counter[DatasetKind.TRAIN] = 0
         self._counter[DatasetKind.TEST] = 0
 
         # State members to store the average bounding box heatmap throughout update steps
         if self._task_type == TaskType.OBJECT_DETECTION:
-            self._bbox_heatmap = dict()
+            self._bbox_heatmap = {}
 
     def update(self, context: Context, batch: Batch, dataset_kind):
         """Perform update on batch for train or test counters and histograms."""
@@ -100,7 +98,7 @@ class HeatmapComparison(TrainTestCheck):
         image_batch = batch.images
         label_batch = batch.labels
         valid_labels, valid_images = self._filter_images(label_batch, image_batch)
-        if len(valid_images):
+        if len(valid_images) != 0:
             summed_image = self._grayscale_sum_image(valid_images)
             if self._grayscale_heatmap.get(dataset_kind) is None:
                 self._grayscale_heatmap[dataset_kind] = summed_image
@@ -183,7 +181,7 @@ class HeatmapComparison(TrainTestCheck):
         return np.abs(diff).astype(np.uint8)
 
     def _filter_images(self, label_batch: List[torch.Tensor], image_batch: List[np.ndarray]) -> \
-                      Tuple[List[torch.Tensor], List[np.ndarray]]:
+            Tuple[List[torch.Tensor], List[np.ndarray]]:
         """Filter the images by the classes to display and return the valid labels and images."""
         valid_images = []
         valid_labels = []
@@ -214,7 +212,8 @@ class HeatmapComparison(TrainTestCheck):
         y_max = (label[:, 2] + label[:, 4]).astype(np.int32)
         for i in range(len(label)):
             # If classes_to_display is set, don't display the bboxes for classes not in the list.
-            if self.classes_to_display is not None and self._class_to_string(class_idx[i]) not in self.classes_to_display:
+            if self.classes_to_display is not None and \
+               self._class_to_string(class_idx[i]) not in self.classes_to_display:
                 continue
             # For each bounding box, set the pixels inside the bounding box to white
             image[y_min[i]:y_max[i], x_min[i]:x_max[i]] = 255
