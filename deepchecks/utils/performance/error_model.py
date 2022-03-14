@@ -89,7 +89,7 @@ def error_model_display_dataframe(error_fi: pd.Series,
                                   max_features_to_show: int,
                                   min_feature_contribution: float,
                                   n_display_samples: int,
-                                  min_segment_size: int,
+                                  min_segment_size: float,
                                   random_state: int):
     """Wrap dataframe with tabular.Dataset for error_model_display with no scorer."""
     return error_model_display(error_fi,
@@ -114,7 +114,7 @@ def error_model_display(error_fi: pd.Series,
                         max_features_to_show: int,
                         min_feature_contribution: float,
                         n_display_samples: int,
-                        min_segment_size: int,
+                        min_segment_size: float,
                         random_state: int) -> Tuple[List, Dict]:
     """Calculate and display segments with large error discrepancies.
 
@@ -136,7 +136,7 @@ def error_model_display(error_fi: pd.Series,
         Minimum value to consider a feature to output.
     n_display_samples : int
         Maximum number of values to represent in the display
-    min_segment_size : int
+    min_segment_size : float
         Minimum segment size to consider.
     random_state: int
         Random seed
