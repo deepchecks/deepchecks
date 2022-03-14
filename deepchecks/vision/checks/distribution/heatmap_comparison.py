@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Train Test label Drift check."""
+from collections import defaultdict
 from typing import Tuple, List, Iterable, Optional
 
 import cv2
@@ -79,7 +80,7 @@ class HeatmapComparison(TrainTestCheck):
                 )
 
         # State members to store the average grayscale image throughout update steps
-        self._grayscale_heatmap = {}
+        self._grayscale_heatmap = defaultdict(lambda: 0)
         self._shape = None
         self._counter = {}
         self._counter[DatasetKind.TRAIN] = 0
@@ -87,7 +88,7 @@ class HeatmapComparison(TrainTestCheck):
 
         # State members to store the average bounding box heatmap throughout update steps
         if self._task_type == TaskType.OBJECT_DETECTION:
-            self._bbox_heatmap = {}
+            self._bbox_heatmap = defaultdict(lambda: 0)
 
     def update(self, context: Context, batch: Batch, dataset_kind):
         """Perform update on batch for train or test counters and histograms."""
@@ -99,22 +100,16 @@ class HeatmapComparison(TrainTestCheck):
         label_batch = batch.labels
         valid_labels, valid_images = self._filter_images(label_batch, image_batch)
         if len(valid_images) != 0:
-            summed_image = self._grayscale_sum_image(valid_images)
-            if self._grayscale_heatmap.get(dataset_kind) is None:
-                self._grayscale_heatmap[dataset_kind] = summed_image
-            else:
-                self._grayscale_heatmap[dataset_kind] += summed_image
             self._counter[dataset_kind] += len(valid_images)
-        # For object detection tasks, we do the same for the bounding box average coverage of the image.
-        # The difference from the above code for the average grayscale image is that the averaged images are images of
-        # the places where the bounding boxes are located. These bounding box images are computed by
-        # _label_to_image_batch
-        if self._task_type == TaskType.OBJECT_DETECTION:
-            label_image_batch = self._label_to_image_batch(valid_labels, valid_images)
-            summed_bbox_image = self._grayscale_sum_image(label_image_batch)
-            if self._bbox_heatmap.get(dataset_kind) is None:
-                self._bbox_heatmap[dataset_kind] = summed_bbox_image
-            else:
+            summed_image = self._grayscale_sum_image(valid_images)
+            self._grayscale_heatmap[dataset_kind] += summed_image
+            # For object detection tasks, we do the same for the bounding box average coverage of the image.
+            # The difference from the above code for the average grayscale image is that the averaged images are images of
+            # the places where the bounding boxes are located. These bounding box images are computed by
+            # _label_to_image_batch
+            if self._task_type == TaskType.OBJECT_DETECTION:
+                label_image_batch = self._label_to_image_batch(valid_labels, valid_images)
+                summed_bbox_image = self._grayscale_sum_image(label_image_batch)
                 self._bbox_heatmap[dataset_kind] += summed_bbox_image
 
     def compute(self, context: Context) -> CheckResult:
