@@ -118,8 +118,14 @@ class ImageDatasetDrift(TrainTestCheck):
         </span>
         """
 
-        numeric_features = [p['name'] for p in self.image_properties if p['output_type'] == 'continuous']
-        categorical_features = [p['name'] for p in self.image_properties if p['output_type'] == 'discrete']
+        numeric_features = []
+        categorical_features = []
+        for prop in self.image_properties:
+            col_type = image_properties.get_column_type(prop['output_type'])
+            if col_type == 'numerical':
+                numeric_features.append(prop['name'])
+            else:
+                categorical_features.append(prop['name'])
 
         values_dict, displays = run_whole_dataset_drift(
             train_dataframe=df_train, test_dataframe=df_test, numerical_features=numeric_features,

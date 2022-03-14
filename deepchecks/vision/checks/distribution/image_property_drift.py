@@ -105,13 +105,12 @@ class ImagePropertyDrift(TrainTestCheck):
 
         for single_property in self.image_properties:
             property_name = single_property['name']
-            column_type = get_column_type(single_property['output_type'])
 
             score, _, figure = calc_drift_and_plot(
                 train_column=df_train[property_name],
                 test_column=df_test[property_name],
                 plot_title=property_name,
-                column_type=column_type,
+                column_type=image_properties.get_column_type(single_property['output_type']),
                 max_num_categories=self.max_num_categories
             )
 
@@ -175,9 +174,3 @@ class ImagePropertyDrift(TrainTestCheck):
             f'Earth Mover\'s Distance <= {max_allowed_drift_score} for image properties drift',
             condition
         )
-
-
-def get_column_type(output_type):
-    # TODO smarter mapping based on data?
-    mapper = {'continuous': 'numerical', 'discrete': 'categorical'}
-    return mapper[output_type]

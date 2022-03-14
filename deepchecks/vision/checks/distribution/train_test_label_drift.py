@@ -25,7 +25,7 @@ from deepchecks.vision.vision_data import TaskType
 __all__ = ['TrainTestLabelDrift']
 
 from deepchecks.vision.utils.label_prediction_properties import DEFAULT_CLASSIFICATION_LABEL_PROPERTIES, \
-    DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES, validate_properties
+    DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES, validate_properties, get_column_type
 
 
 class TrainTestLabelDrift(TrainTestCheck):
@@ -215,9 +215,3 @@ class TrainTestLabelDrift(TrainTestCheck):
         return self.add_condition(f'PSI <= {max_allowed_psi_score} and Earth Mover\'s Distance <= '
                                   f'{max_allowed_earth_movers_score} for label drift',
                                   condition)
-
-
-def get_column_type(output_type):
-    # TODO smarter mapping based on data?
-    mapper = {'continuous': 'numerical', 'discrete': 'categorical', 'class_id': 'categorical'}
-    return mapper[output_type]

@@ -159,3 +159,9 @@ def validate_properties(properties):
             raise DeepchecksValueError(f'Property must be of type dict, and include keys {expected_keys}')
         if label_property['output_type'] not in output_types:
             raise DeepchecksValueError(f'Property field "output_type" must be one of {output_types}')
+
+
+def get_column_type(output_type):
+    # TODO smarter mapping based on data?
+    mapper = {'continuous': 'numerical', 'discrete': 'categorical'}
+    return mapper[output_type]
