@@ -184,7 +184,7 @@ class HeatmapComparison(TrainTestCheck):
 
     def _filter_images(self, label_batch: List[torch.Tensor], image_batch: List[np.ndarray]) -> \
                       Tuple[List[torch.Tensor], List[np.ndarray]]:
-        """Filter the images by the classes to display and return the valid labels and images"""
+        """Filter the images by the classes to display and return the valid labels and images."""
         valid_images = []
         valid_labels = []
         for image, label in zip(image_batch, label_batch):
