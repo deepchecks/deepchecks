@@ -1,6 +1,6 @@
-==============================================
-Object Detection Model Validation Tutorial
-==============================================
+==========================
+Object Detection Tutorial
+==========================
 
 In this tutorial, you will learn how to validate your **object detection model** using deepchecks test suites.
 You can read more about the different checks and suites for computer vision use cases at the
@@ -154,7 +154,7 @@ Let's visualize a few training images so as to understand the data augmentation.
     show(result)
 
 .. image :: /_static/tomatoes.png
-  :alt: Tomatoes with bbox
+:alt: Tomatoes with bbox
 
 Downloading a pre-trained model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -253,7 +253,8 @@ The appropriate class to implement should be selected according to you models ta
 we will implement the object detection task type by implementing a class that inherits from the
 :class:`deepchecks.vision.detection_data.DetectionData` class.
 
-The goal of this class is to make sure the outputs of the model and of the dataloader are in the correct format.
+The DetectionData class is containing additional data and general methods intended for easily accessing metadata
+relevant for validating a computer vision object detection ML models.
 To learn more about the expected format please visit the API reference for the
 :class:`deepchecks.vision.detection_data.DetectionData` class.
 
@@ -275,6 +276,7 @@ To learn more about the expected format please visit the API reference for the
             inp = torch.stack(list(batch[0])).numpy().transpose((0, 2, 3, 1))
             mean = [0.485, 0.456, 0.406]
             std = [0.229, 0.224, 0.225]
+            # Un-normalize the images
             inp = std * inp + mean
             inp = np.clip(inp, 0, 1)
             return inp * 255
@@ -290,11 +292,14 @@ To learn more about the expected format please visit the API reference for the
             for annotation in tensor_annotations:
                 if len(annotation["boxes"]):
                     bbox = torch.stack(annotation["boxes"])
+                    # Convert the Pascal VOC xyxy format to xywh format
                     bbox[:, 2:] = bbox[:, 2:] - bbox[:, :2]
+                    # The label shape is [class_id, x, y, w, h]
                     label.append(
                         torch.concat([torch.stack(annotation["labels"]).reshape((-1, 1)), bbox], dim=1)
                     )
                 else:
+                    # If it's an empty image, we need to add an empty label
                     label.append(torch.tensor([]))
             return label
 
@@ -307,10 +312,12 @@ To learn more about the expected format please visit the API reference for the
             nm_thrs = 0.2
             score_thrs = 0.7
             imgs = list(img.to(device) for img in batch[0])
+            # Getting the predictions of the model on the batch
             with torch.no_grad():
                 preds = model(imgs)
             processed_pred = []
             for pred in preds:
+                # Performoing non-maximum suppression on the detections
                 keep_boxes = torchvision.ops.nms(pred['boxes'], pred['scores'], nm_thrs)
                 score_filter = pred['scores'][keep_boxes] > score_thrs
 
@@ -328,8 +335,9 @@ After defining the task class, we can validate it by running the following code:
 
 .. code-block:: python
 
+    # We have a single label here, which is the tomato class
+    # The label_map is a dictionary that maps the class id to the class name.
     LABEL_MAP = {
-      0: 'No Tomato',
       1: 'Tomato'
     }
     training_data = TomatoData(data_loader=train_loader, label_map=LABEL_MAP)
@@ -355,10 +363,10 @@ This can be done with this simple few lines of code:
 
 .. code-block:: python
 
-  from deepchecks.vision.suites import full_suite
+    from deepchecks.vision.suites import full_suite
 
-  suite = full_suite()
-  result = suite.run(training_data, val_data, model, device)
+    suite = full_suite()
+    result = suite.run(training_data, val_data, model, device)
 
 Observing the results:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
