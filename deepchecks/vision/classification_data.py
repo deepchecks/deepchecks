@@ -165,5 +165,5 @@ class ClassificationData(VisionData):
         if n_classes and pred_shape[1] != n_classes:
             raise ValidationError(f'Check requires classification predictions to have {n_classes} columns')
         if any(abs(batch_predictions.sum(dim=1) - 1) > eps):
-            raise ValidationError('Check requires classification} predictions to be a probability distribution and'
+            raise ValidationError('Check requires classification predictions to be a probability distribution and'
                                   ' sum to 1 for each row')
