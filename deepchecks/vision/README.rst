@@ -63,7 +63,7 @@ data integrity, distribution mismatches, and more.
 🖼️ Computer Vision & 🔢 Tabular Support
 ==========================================
 This README refers to the Computer Vision & Images subpackage of deepchecks which is in beta release.
-For an overview of the deepchecks package and more details about the Tabular version, click `here <https://github.com/deepchecks/deepchecks>`__.
+For an overview of the deepchecks package and more details about the Tabular version, click `here <../../>`__.
 
 
 💻 Installation
