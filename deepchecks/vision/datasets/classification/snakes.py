@@ -57,7 +57,7 @@ def load_model(pretrained: bool = True) -> nn.Module:
     model.eval()
     model.cpu()
     if pretrained:
-        model.load_from_checkpoint(checkpoint_path=SNAKE_CKPT, num_classes=NUM_SNAKES)
+        model = model.load_from_checkpoint(checkpoint_path=SNAKE_CKPT, num_classes=NUM_SNAKES)
     return model
 
 
