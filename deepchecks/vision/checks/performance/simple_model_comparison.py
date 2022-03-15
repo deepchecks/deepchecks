@@ -134,7 +134,7 @@ class SimpleModelComparison(TrainTestCheck):
 
         metrics_to_eval = {
             DatasetKind.TEST.value: self._test_metrics,
-            'Simple Model': self._generate_simple_model_metrics(context.train)
+            'Simple Model': self._generate_simple_model_metrics(context.train, context.test)
         }
         for name, metrics in metrics_to_eval.items():
             dataset = context.get_data_by_kind(DatasetKind.TEST)
@@ -185,7 +185,7 @@ class SimpleModelComparison(TrainTestCheck):
             display=fig
         )
 
-    def _generate_simple_model_metrics(self, train):
+    def _generate_simple_model_metrics(self, train, test):
         class_prior = np.zeros(train.num_classes)
         n_samples = 0
         for label, total in train.n_of_samples_per_class.items():
@@ -211,7 +211,7 @@ class SimpleModelComparison(TrainTestCheck):
         # Create dummy predictions
         dummy_predictions = []
         labels = []
-        for label, count in train.n_of_samples_per_class.items():
+        for label, count in test.n_of_samples_per_class.items():
             labels.append([label] * count)
             for _ in range(count):
                 dummy_predictions.append(dummy_predictor())
