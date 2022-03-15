@@ -72,6 +72,7 @@ class VisionData:
         self._transform_field = transform_field
         self._warned_labels = set()
         self._has_images = False
+        self._last_index = len(self.data_loader.batch_sampler.sampler)
 
         try:
             self.validate_image_data(next(iter(self._data_loader)))
@@ -85,7 +86,7 @@ class VisionData:
         self._task_type = None
         self._has_label = None
         self._classes_indices = None
-        self._last_index = None
+        self._current_index = None
 
     @abstractmethod
     def get_classes(self, batch_labels: Union[List[torch.Tensor], torch.Tensor]) -> List[List[int]]:
@@ -159,13 +160,13 @@ class VisionData:
         classes_per_label = self.get_classes(labels)
         for batch_index, classes in enumerate(classes_per_label):
             for single_class in classes:
-                self._classes_indices[single_class].append(self._last_index + batch_index)
-        self._last_index += len(classes_per_label)
+                self._classes_indices[single_class].append(self._current_index + batch_index)
+        self._current_index += len(classes_per_label)
 
     def init_cache(self):
         """Initialize the cache of the classes' metadata info."""
         self._classes_indices = defaultdict(list)
-        self._last_index = 0
+        self._current_index = 0
 
     @property
     def classes_indices(self) -> Dict[int, List[int]]:
@@ -176,6 +177,9 @@ class VisionData:
             self.init_cache()
             for batch in self:
                 self.update_cache(self.batch_to_labels(batch))
+
+        if self._current_index < self._last_index:
+            raise DeepchecksValueError('Cached data loop is not completed yet')
         return self._classes_indices
 
     @property
