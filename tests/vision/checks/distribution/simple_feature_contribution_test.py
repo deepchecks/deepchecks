@@ -10,6 +10,8 @@
 #
 """Test functions of the VISION train test label drift."""
 from copy import copy
+
+import torch
 from hamcrest import assert_that, has_entries, close_to, equal_to
 
 import numpy as np
@@ -61,8 +63,6 @@ def test_no_drift_classification(mnist_dataset_train):
 
 def test_drift_classification(mnist_dataset_train, mnist_dataset_test):
     mnist_dataset_test.batch_to_images = mnist_batch_to_images_with_bias
-    mnist_dataset_train.batch_to_labels = lambda arr: [int(x) for x in arr[1]]
-    mnist_dataset_test.batch_to_labels = lambda arr: [int(x) for x in arr[1]]
 
     train, test = mnist_dataset_train, mnist_dataset_test
 
