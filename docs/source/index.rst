@@ -25,8 +25,8 @@ Get Started
 ============
 Head over to our quickstart tutorial notebook:
 
-- :doc:`Quickstart for Tabular Data </examples/tabular/guides/quickstart_in_5_minutes>`
-- :doc:`Quickstart for Computer Vision </examples/vision/guides/quickstart_in_5_minutes>`
+- :doc:`Quickstart for Tabular Data </tutorials/tabular/quickstart_in_5_minutes>`
+- :doc:`Quickstart for Classification Computer Vision </tutorials/vision/classification_tutorial>`
 
 and click on  |binder badge|  or on  |colab badge|  to launch it and see it in action,
 or see our :doc:`/getting-started/index` to install it locally and continue from there.
@@ -34,7 +34,7 @@ or see our :doc:`/getting-started/index` to install it locally and continue from
 .. note:: 
    The package's output is suited for running in any Python environment.
    The output can be conveniently viewed inline in Jupyter Notebooks (or JupyterLab),
-   and it can also be :doc:`exported as an HTML report </examples/general/save_suite_result_as_html>`,
+   and it can also be :doc:`exported as an HTML report </user-guide/structure/exporting_results/save_suite_result_as_html>`,
    to run it from any IDE.
 
 When Should You Use Deepchecks?
@@ -47,7 +47,7 @@ problems, and/or validate your model and evaluate it.
    :alt: When To Validate - ML Pipeline Schema
    :align: center
 
-See the :doc:`When Should You Use </user-guide/concepts/when_should_you_use>` Section in the User Guide for an elaborate explanation of the typical scenarios.
+See the :doc:`When Should You Use </getting-started/when_should_you_use>` Section in the User Guide for an elaborate explanation of the typical scenarios.
 
 
 
@@ -55,7 +55,7 @@ How Does it Work?
 ===================
 
 Suites are composed of checks. Each check contains outputs to display in a notebook and/or conditions with a pass/fail/warning output.
-For more information head over to our :doc:`/user-guide/concepts/deepchecks_structure` in the User Guide.
+For more information head over to our :doc:`/user-guide/structure/deepchecks_hierarchy` in the User Guide.
 
 What Do You Need in Order to Start?
 =====================================
@@ -88,6 +88,10 @@ See More
 
     getting-started/index
 
+.. toctree::
+    :maxdepth: 3
+
+    tutorials/index
 
 .. toctree::
     :maxdepth: 3
@@ -112,7 +116,7 @@ as this package is in active development!
 
 
 .. |binder badge| image:: /_static/binder-badge.svg
-   :target: examples/tabular/guides/quickstart_in_5_minutes.html
+   :target: tutorials/tabular/quickstart_in_5_minutes.html
 
 .. |colab badge| image:: /_static/colab-badge.svg
-   :target: examples/tabular/guides/quickstart_in_5_minutes.html
+   :target: tutorials/tabular/quickstart_in_5_minutes.html
