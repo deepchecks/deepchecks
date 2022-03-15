@@ -11,7 +11,7 @@
 """The vision/dataset module containing the vision Dataset class and its functions."""
 # pylint: disable=protected-access
 import random
-from collections import Counter
+from collections import Counter, defaultdict
 from copy import copy
 from abc import abstractmethod
 from enum import Enum
@@ -82,14 +82,15 @@ class VisionData:
             logger.warning('batch_to_images() was not implemented correctly, '
                            'the validiation has failed with the error: %s', {str(ex)})
 
-        self._n_of_samples_per_class = None
         self._task_type = None
         self._has_label = None
+        self._classes_indices = None
+        self._last_index = None
 
     @abstractmethod
-    def get_classes(self, batch_labels: Union[List[torch.Tensor], torch.Tensor]):
+    def get_classes(self, batch_labels: Union[List[torch.Tensor], torch.Tensor]) -> List[List[int]]:
         """Get a labels batch and return classes inside it."""
-        return NotImplementedError('get_classes() must be implemented in a subclass')
+        raise NotImplementedError('get_classes() must be implemented in a subclass')
 
     @abstractmethod
     def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
@@ -153,12 +154,32 @@ class VisionData:
         """
         raise DeepchecksNotImplementedError('batch_to_images() must be implemented in a subclass')
 
+    def update_cache(self, labels):
+        classes_per_label = self.get_classes(labels)
+        for batch_index, classes in enumerate(classes_per_label):
+            for single_class in classes:
+                self._classes_indices[single_class].append(self._last_index + batch_index)
+        self._last_index += len(classes_per_label)
+
+    def init_cache(self):
+        self._classes_indices = defaultdict(list)
+        self._last_index = 0
+
+    @property
+    def classes_indices(self) -> Dict[int, List[int]]:
+        """Return dict of classes as keys, and list of corresponding batch indices of samples that include this
+        class (in the label)."""
+        if self._classes_indices is None:
+            # TODO remove this from here after removing the usage from init_run of checks, and raise error instead
+            self.init_cache()
+            for batch in self:
+                self.update_cache(self.batch_to_labels(batch))
+        return self._classes_indices
+
     @property
     def n_of_samples_per_class(self) -> Dict[Any, int]:
         """Return a dictionary containing the number of samples per class."""
-        if self._n_of_samples_per_class is None:
-            self._n_of_samples_per_class = self._get_samples_per_class()
-        return copy(self._n_of_samples_per_class)
+        return {k: len(v) for k, v in self.classes_indices.items()}
 
     @property
     def data_loader(self) -> DataLoader:
@@ -184,7 +205,7 @@ class VisionData:
     def num_classes(self) -> int:
         """Return the number of classes in the dataset."""
         if self._num_classes is None:
-            self._num_classes = len(self.n_of_samples_per_class.keys())
+            self._num_classes = len(self.classes_indices.keys())
         return self._num_classes
 
     @property
@@ -255,9 +276,11 @@ class VisionData:
                                                                   shuffle=shuffle,
                                                                   random_state=random_state,
                                                                   n_samples=n_samples)
-        # If new data is sampled, then needs to remove cached info
+        # If new data is sampled, then needs to re-calculate cache
         if n_samples:
-            new_vision_data._n_of_samples_per_class = None
+            new_vision_data.init_cache()
+            for batch in new_vision_data:
+                new_vision_data.update_cache(self.batch_to_labels(batch))
         return new_vision_data
 
     def to_batch(self, *samples):
@@ -328,21 +351,6 @@ class VisionData:
         if sample_min < 0 or sample_max > 255 or sample_max <= 1:
             raise ValidationError(f'Image data found to be in range [{sample_min}, {sample_max}] instead of expected '
                                   f'range [0, 255].')
-
-    def _get_samples_per_class(self):
-        """
-        Get the number of samples per class.
-
-        Returns
-        -------
-        Counter
-            Counter of the number of samples per class.
-        """
-        counter = Counter()
-        for batch in self:
-            labels = self.batch_to_labels(batch)
-            counter.update(self.get_classes(labels))
-        return counter
 
     def __iter__(self):
         """Return an iterator over the dataset."""
