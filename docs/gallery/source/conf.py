@@ -67,7 +67,7 @@ extensions = [
     "sphinx_gallery.gen_gallery",
     "numpydoc",
     "sphinx.ext.autodoc",
-    "sphinx.ext.autosummary",
+    # "sphinx.ext.autosummary",
     "sphinx.ext.linkcode",
     "sphinx_copybutton",
     "sphinx.ext.githubpages",
