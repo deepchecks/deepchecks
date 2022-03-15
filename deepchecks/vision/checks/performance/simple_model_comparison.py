@@ -117,9 +117,6 @@ class SimpleModelComparison(TrainTestCheck):
 
         self._test_metrics = get_scorers_list(context.train, self.alternative_metrics)
 
-        if not self.metric_to_show_by:
-            self.metric_to_show_by = list(self._state[DatasetKind.TEST.value].keys())[0]
-
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the metrics for the check."""
         if dataset_kind == DatasetKind.TEST:
@@ -146,6 +143,9 @@ class SimpleModelComparison(TrainTestCheck):
             results.append(metrics_df)
 
         results_df = pd.concat(results)
+
+        if not self.metric_to_show_by:
+            self.metric_to_show_by = list(self._test_metrics.keys())[0]
 
         if self.class_list_to_show is not None:
             results_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
@@ -212,12 +212,12 @@ class SimpleModelComparison(TrainTestCheck):
         dummy_predictions = []
         labels = []
         for label, count in test.n_of_samples_per_class.items():
-            labels.append([label] * count)
+            labels += [label] * count
             for _ in range(count):
                 dummy_predictions.append(dummy_predictor())
 
         # Get scorers
         metrics = get_scorers_list(train, self.alternative_metrics)
         for _, metric in metrics.items():
-            metric.update((torch.Tensor(dummy_predictions), torch.Tensor(labels)))
+            metric.update((torch.stack(dummy_predictions), torch.LongTensor(labels)))
         return metrics
