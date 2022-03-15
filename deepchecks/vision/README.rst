@@ -31,7 +31,7 @@
 
    <p align="center">
       <a href="https://deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=logo">
-      <img src="docs/images/deepchecks-logo-with-white-wide-back.png">
+      <img src="/docs/images/deepchecks-logo-with-white-wide-back.png">
       </a>
    </p>
 
@@ -47,7 +47,7 @@
 .. raw:: html
 
    <p align="center">
-      <img src="docs/images/checks-and-conditions.png">
+      <img src="/docs/images/checks-and-conditions.png">
    </p>
 
 
@@ -93,3 +93,22 @@ Head over to the `Quickstart Notebook <https://docs.deepchecks.com/en/stable/
 examples/guides/quickstart_in_5_minutes.html?
 utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
 and choose the  |binder badge image|  or the  |colab badge image|  to have it up and running, and to then apply it on your own data and models.
+
+
+
+
+
+.. |build| image:: https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg
+.. |Documentation Status| image:: https://readthedocs.org/projects/deepchecks/badge/?version=stable
+   :target: https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=badge
+.. |pkgVersion| image:: https://img.shields.io/pypi/v/deepchecks
+.. |pyVersions| image:: https://img.shields.io/pypi/pyversions/deepchecks
+.. |Maintainability| image:: https://api.codeclimate.com/v1/badges/970b11794144139975fa/maintainability
+   :target: https://codeclimate.com/github/deepchecks/deepchecks/maintainability
+.. |Coverage Status| image:: https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main
+   :target: https://coveralls.io/github/deepchecks/deepchecks?branch=main
+
+.. |binder badge image| image:: /docs/source/_static/binder-badge.svg
+   :target: https://docs.deepchecks.com/en/stable/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out_binder
+.. |colab badge image| image:: /docs/source/_static/colab-badge.svg
+   :target: https://docs.deepchecks.com/en/stable/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out_colab
