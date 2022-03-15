@@ -72,7 +72,6 @@ class VisionData:
         self._transform_field = transform_field
         self._warned_labels = set()
         self._has_images = False
-        self._last_index = len(self._sampler)
 
         try:
             self.validate_image_data(next(iter(self._data_loader)))
@@ -179,7 +178,7 @@ class VisionData:
             for batch in self:
                 self.update_cache(self.batch_to_labels(batch))
 
-        if self._current_index < self._last_index:
+        if self._current_index < len(self._sampler):
             raise DeepchecksValueError('Cached data loop is not completed yet')
         return self._classes_indices
 
