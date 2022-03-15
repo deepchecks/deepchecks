@@ -10,7 +10,6 @@
 #
 """Module contains Image Property Drift check."""
 import typing as t
-from numbers import Number
 from collections import defaultdict
 
 import pandas as pd
@@ -18,16 +17,13 @@ from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.core import DatasetKind
 from deepchecks.core import CheckResult
 from deepchecks.core import ConditionResult
-from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import TrainTestCheck
 from deepchecks.vision import Context
-from deepchecks.vision.utils import image_formatters
+from deepchecks.vision import Batch
+from deepchecks.vision.utils import image_properties
 
 
 __all__ = ['ImagePropertyDrift']
-
-
-ImageProperty = t.Union[str, t.Callable[..., t.List[Number]]]
 
 
 TImagePropertyDrift = t.TypeVar('TImagePropertyDrift', bound='ImagePropertyDrift')
@@ -42,35 +38,26 @@ class ImagePropertyDrift(TrainTestCheck):
 
     See https://en.wikipedia.org/wiki/Wasserstein_metric
 
-    Paramaters
+    Parameters
     ----------
-    image_properties : Optional[List[Union[str, Callable[..., Number]]]]
+    alternative_image_properties : List[Dict[str, Any]], default: None
+        List of properties. Replaces the default deepchecks properties.
+        Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
     max_num_categories: int, default: 10
     """
 
     def __init__(
         self,
-        image_properties: t.Optional[t.List[ImageProperty]] = None,
+        alternative_image_properties: t.List[t.Dict[str, t.Any]] = None,
         max_num_categories: int = 10
     ):
         super().__init__()
-
-        if image_properties is None:
-            self.image_properties = image_formatters.image_properties
+        if alternative_image_properties is not None:
+            image_properties.validate_properties(alternative_image_properties)
+            self.image_properties = alternative_image_properties
         else:
-            if len(image_properties) == 0:
-                raise DeepchecksValueError('image_properties list cannot be empty')
-
-            received_properties = {p for p in image_properties if isinstance(p, str)}
-            unknown_properties = received_properties.difference(image_formatters.image_properties)
-
-            if len(unknown_properties) > 0:
-                raise DeepchecksValueError(
-                    'received list of unknown image properties '
-                    f'- {sorted(unknown_properties)}'
-                )
-
-            self.image_properties = image_properties
+            self.image_properties = image_properties.default_image_properties
 
         self.max_num_categories = max_num_categories
         self.train_properties = defaultdict(list)
@@ -79,36 +66,23 @@ class ImagePropertyDrift(TrainTestCheck):
     def update(
         self,
         context: Context,
-        batch: t.Any,
+        batch: Batch,
         dataset_kind: DatasetKind
     ):
         """Calculate image properties for train or test batch."""
         if dataset_kind == DatasetKind.TRAIN:
-            dataset = context.train
             properties = self.train_properties
         elif dataset_kind == DatasetKind.TEST:
-            dataset = context.test
             properties = self.test_properties
         else:
             raise RuntimeError(
                 f'Internal Error - Should not reach here! unknown dataset_kind: {dataset_kind}'
             )
 
-        images = dataset.batch_to_images(batch)
+        images = batch.images
 
-        for image_property in self.image_properties:
-            if isinstance(image_property, str):
-                properties[image_property].extend(
-                    getattr(image_formatters, image_property)(images)
-                )
-            elif callable(image_property):
-                # TODO: if it is a lambda it will have a name - <lambda>, that is a problem/
-                properties[image_property.__name__].extend(image_property(images))
-            else:
-                raise DeepchecksValueError(
-                    'Do not know how to work with image'
-                    f'property of type - {type(image_property).__name__}'
-                )
+        for single_property in self.image_properties:
+            properties[single_property['name']].extend(single_property['method'](images))
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate drift score between train and test datasets for the collected image properties.
@@ -129,13 +103,14 @@ class ImagePropertyDrift(TrainTestCheck):
         figures = {}
         drifts = {}
 
-        for property_name in properties:
+        for single_property in self.image_properties:
+            property_name = single_property['name']
 
             score, _, figure = calc_drift_and_plot(
                 train_column=df_train[property_name],
                 test_column=df_test[property_name],
                 plot_title=property_name,
-                column_type='numerical',
+                column_type=image_properties.get_column_type(single_property['output_type']),
                 max_num_categories=self.max_num_categories
             )
 

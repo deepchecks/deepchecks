@@ -26,7 +26,7 @@ from sklearn.preprocessing import KBinsDiscretizer, OrdinalEncoder
 from sklearn.tree import DecisionTreeClassifier
 
 from deepchecks.tabular import Dataset, TrainTestCheck, Context
-from deepchecks.core import CheckResult
+from deepchecks.core.check_result import CheckResult
 
 from .vision.vision_conftest import * #pylint: disable=wildcard-import, unused-wildcard-import
 

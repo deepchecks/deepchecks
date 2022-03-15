@@ -26,8 +26,8 @@ from hamcrest import (
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.errors import DatasetValidationError
-from deepchecks.vision.base import Context
-
+from deepchecks.vision.base_checks import Context
+from deepchecks.vision import ClassificationData, DetectionData
 
 def test_vision_context_initialization_for_classification_task(mnist_dataset_train, mnist_dataset_test,
                                                                trained_mnist, device):
@@ -42,8 +42,8 @@ def test_vision_context_initialization_for_classification_task(mnist_dataset_tra
 
     # Assert
     assert_that(context, has_properties({
-        'train': same_instance(mnist_dataset_train),
-        'test': same_instance(mnist_dataset_test),
+        'train': instance_of(ClassificationData),
+        'test': instance_of(ClassificationData),
         'model': same_instance(trained_mnist),
         'model_name': equal_to('MNIST'),
         'device': all_of(
@@ -66,8 +66,8 @@ def test_vision_context_initialization_for_object_detection_task(coco_train_visi
 
     # Assert
     assert_that(context, has_properties({
-        'train': same_instance(coco_train_visiondata),
-        'test': same_instance(coco_test_visiondata),
+        'train': instance_of(DetectionData),
+        'test': instance_of(DetectionData),
         'model': same_instance(trained_yolov5_object_detection),
         'model_name': equal_to('COCO'),
         'device': all_of(

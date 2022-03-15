@@ -16,9 +16,9 @@ import torch
 from hamcrest import assert_that, equal_to, calling, raises, close_to
 from torch.utils.data import DataLoader, Dataset
 
-from deepchecks.core.errors import  ValidationError
+from deepchecks.core.errors import ValidationError
 from deepchecks.vision.datasets.detection import coco
-from deepchecks.vision.utils import image_formatters
+from deepchecks.vision.utils import image_properties
 from deepchecks.vision.utils.detection_formatters import verify_bbox_format_notation
 from deepchecks.vision.utils.detection_formatters import convert_bbox
 from deepchecks.vision.utils.detection_formatters import convert_batch_of_bboxes
@@ -28,6 +28,7 @@ from deepchecks.vision.vision_data import VisionData
 class SimpleImageData(VisionData):
     def batch_to_images(self, batch):
         return batch
+
 
 def numpy_shape_dataloader(shape: tuple = None, value: Union[float, np.ndarray] = 255, collate_fn=None):
     if collate_fn is None:
@@ -124,7 +125,7 @@ def test_brightness_grayscale():
 
     batch = next(iter(numpy_shape_dataloader(value=value)))
 
-    res = image_formatters.brightness(batch)
+    res = image_properties.brightness(batch)
 
     assert_that(res, equal_to([0.7]*4))
 
@@ -134,19 +135,45 @@ def test_brightness_rgb():
                             np.ones((10, 10, 1)) * 2,
                             np.ones((10, 10, 1)) * 3], axis=2)
 
-    expected_result = 2.0
+    batch = next(iter(numpy_shape_dataloader(value=value)))
+
+    res = image_properties.brightness(batch)
+
+    assert_that(res[0], close_to(1.86, 0.01))
+
+
+def test_rms_contrast_grayscale():
+    value = np.concatenate([np.zeros((3, 10, 1)),  np.ones((7, 10, 1))], axis=0)
+
+    expected_value = np.sqrt((70 * 0.3**2 + 30 * 0.7**2) / 100)
 
     batch = next(iter(numpy_shape_dataloader(value=value)))
 
-    res = image_formatters.brightness(batch)
+    res = image_properties.rms_contrast(batch)
 
-    assert_that(res, equal_to([expected_result]*4))
+    assert_that(res[0], equal_to(expected_value))
+
+
+def test_rms_contrast_rgb():
+    # Create image that after turning from rgb to grayscale is 30% value 0 and 70% value 3:
+    value = np.concatenate([np.zeros((3, 10, 3)),  np.concatenate([np.ones((7, 10, 1)) * 1/0.2125,
+                                                                   np.ones((7, 10, 1)) * 1/0.7154,
+                                                                   np.ones((7, 10, 1)) * 1/0.0721], axis=2)],
+                           axis=0)
+
+    expected_value = np.sqrt((210 * 0.9**2 + 90 * 2.1**2) / 300)
+
+    batch = next(iter(numpy_shape_dataloader(value=value)))
+
+    res = image_properties.rms_contrast(batch)
+
+    assert_that(res[0], close_to(expected_value, 0.00001))
 
 
 def test_aspect_ratio():
     batch = next(iter(numpy_shape_dataloader((10, 20, 3))))
 
-    res = image_formatters.aspect_ratio(batch)
+    res = image_properties.aspect_ratio(batch)
 
     assert_that(res, equal_to([0.5]*4))
 
@@ -154,7 +181,7 @@ def test_aspect_ratio():
 def test_area():
     batch = next(iter(numpy_shape_dataloader((10, 20, 3))))
 
-    res = image_formatters.area(batch)
+    res = image_properties.area(batch)
 
     assert_that(res, equal_to([200]*4))
 
@@ -168,7 +195,7 @@ def test_normalized_mean_red():
 
     batch = next(iter(numpy_shape_dataloader(value=value)))
 
-    res = image_formatters.normalized_red_mean(batch)
+    res = image_properties.normalized_red_mean(batch)
 
     assert_that(res[0], close_to(expected_result, 0.0000001))
 
@@ -182,7 +209,7 @@ def test_normalized_mean_green():
 
     batch = next(iter(numpy_shape_dataloader(value=value)))
 
-    res = image_formatters.normalized_green_mean(batch)
+    res = image_properties.normalized_green_mean(batch)
 
     assert_that(res[0], close_to(expected_result, 0.0000001))
 
@@ -196,7 +223,7 @@ def test_normalized_mean_blue():
 
     batch = next(iter(numpy_shape_dataloader(value=value)))
 
-    res = image_formatters.normalized_blue_mean(batch)
+    res = image_properties.normalized_blue_mean(batch)
 
     assert_that(res[0], close_to(expected_result, 0.0000001))
 

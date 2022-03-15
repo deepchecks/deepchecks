@@ -25,7 +25,7 @@ from hamcrest import (
 
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.utils.image_formatters import image_properties
+from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.checks.distribution import ImagePropertyDrift
 from deepchecks.vision.datasets.detection import coco
 
@@ -39,15 +39,16 @@ def test_image_property_drift_check(device):
 
 def test_image_property_drift_initialization_with_empty_list_of_image_properties():
     assert_that(
-        calling(ImagePropertyDrift).with_args(image_properties=[]),
-        raises(DeepchecksValueError, r'image_properties list cannot be empty')
+        calling(ImagePropertyDrift).with_args(alternative_image_properties=[]),
+        raises(DeepchecksValueError, 'Properties list can\'t be empty')
     )
 
 
-def test_image_property_drift_initialization_with_list_of_unknown_image_properties():
+def test_image_property_drift_initialization_with_list_of_invalid_image_properties():
     assert_that(
-        calling(ImagePropertyDrift).with_args(image_properties=['hello', 'aspect_ratio']),
-        raises(DeepchecksValueError, r'received list of unknown image properties - \[\'hello\'\]')
+        calling(ImagePropertyDrift).with_args(alternative_image_properties=[{'hello': 'string'}]),
+        raises(DeepchecksValueError,
+               r"Property must be of type dict, and include keys \['name', 'method', 'output_type'\]")
     )
 
 
@@ -94,7 +95,7 @@ def contains_passed_condition():
 def is_correct_image_property_drift_result():
     value_assertion = all_of(
         instance_of(dict),
-        *[has_key(property_name) for property_name in image_properties])
+        *[has_key(single_property['name']) for single_property in default_image_properties])
 
     display_assertion = all_of(
         instance_of(list),

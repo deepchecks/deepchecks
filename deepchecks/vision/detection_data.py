@@ -13,7 +13,6 @@ from abc import abstractmethod
 from itertools import chain
 import logging
 from typing import List, Optional, Dict, Union
-import numpy as np
 
 import torch
 from torch.utils.data import DataLoader
@@ -175,9 +174,8 @@ class DetectionData(VisionData):
                                        'sample')
         if len(labels) == 0:
             raise DeepchecksValueError('Check requires object detection label to be a non-empty list')
-        if not isinstance(labels[0], (torch.Tensor, np.ndarray)):
-            raise DeepchecksValueError('Check requires object detection label to be a list of torch.Tensor or numpy '
-                                       'array')
+        if not isinstance(labels[0], torch.Tensor):
+            raise DeepchecksValueError('Check requires object detection label to be a list of torch.Tensor')
         if len(labels[0].shape) != 2:
             raise DeepchecksValueError('Check requires object detection label to be a list of 2D tensors')
         if labels[0].shape[1] != 5:
@@ -201,9 +199,8 @@ class DetectionData(VisionData):
                                   ' sample')
         if len(batch_predictions) == 0:
             raise ValidationError('Check requires detection predictions to be a non-empty list')
-        if not isinstance(batch_predictions[0], (torch.Tensor, np.ndarray)):
-            raise ValidationError('Check requires detection predictions to be a list of torch.Tensor or'
-                                  ' numpy array')
+        if not isinstance(batch_predictions[0], torch.Tensor):
+            raise ValidationError('Check requires detection predictions to be a list of torch.Tensor')
         if len(batch_predictions[0].shape) != 2:
             raise ValidationError('Check requires detection predictions to be a list of 2D tensors')
         if batch_predictions[0].shape[1] != 6:

@@ -9,9 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing mean average precision report check."""
-from collections import defaultdict
 import math
-from typing import TypeVar, Tuple, Any
+from collections import defaultdict
+from typing import TypeVar, Tuple
 
 import pandas as pd
 import plotly.express as px
@@ -19,9 +19,10 @@ import numpy as np
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.utils.strings import format_number
-from deepchecks.vision import SingleDatasetCheck, Context
+from deepchecks.vision import SingleDatasetCheck, Context, Batch
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.metrics_utils.detection_precision_recall import AveragePrecision
+
 
 __all__ = ['MeanAveragePrecisionReport']
 
@@ -46,11 +47,10 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         self._ap_metric = AveragePrecision(return_option=None, area_range=self._area_range)
         context.assert_task_type(TaskType.OBJECT_DETECTION)
 
-    def update(self, context: Context, batch: Any, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Update the metrics by passing the batch to ignite metric update method."""
-        dataset = context.get_data_by_kind(dataset_kind)
-        label = dataset.batch_to_labels(batch)
-        prediction = context.infer(batch, dataset_kind)
+        label = batch.labels
+        prediction = batch.predictions
         self._ap_metric.update((prediction, label))
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
@@ -94,7 +94,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         return CheckResult(value=results, display=[results, fig])
 
     def add_condition_test_average_precision_not_less_than(self: MPR, min_score: float) -> MPR:
-        """Add condition - mAP score is not less than given score.
+        """Add condition - AP scores in different area thresholds is not less than given score.
 
         Parameters
         ----------
@@ -113,3 +113,21 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
             return ConditionResult(True)
 
         return self.add_condition(f'Scores are not less than {min_score}', condition)
+
+    def add_condition_test_mean_average_precision_not_less_than(self: MPR, min_score: float = 0.3) -> MPR:
+        """Add condition - mAP score in all areas is not less than given score.
+
+        Parameters
+        ----------
+        min_score : float
+            Minimum score to pass the check.
+        """
+        def condition(df: pd.DataFrame):
+            df = df.reset_index()
+            value = df.loc[df['Area size'] == 'All', :]['mAP@0.5..0.95 (%)'][0]
+            if value < min_score:
+                details = f'mAP score is: {format_number(value)}'
+                return ConditionResult(False, details)
+            return ConditionResult(True)
+
+        return self.add_condition(f'mAP score is not less than {min_score}', condition)
