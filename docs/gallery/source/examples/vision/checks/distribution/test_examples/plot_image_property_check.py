@@ -38,6 +38,7 @@ from deepchecks.vision.checks.distribution import ImagePropertyDrift
 #%%
 # Prepare data
 # ------------
+from deepchecks.vision.utils import image_properties
 
 train_dataset = coco.load_dataset(train=True, object_type='VisionData')
 test_dataset = coco.load_dataset(train=False, object_type='VisionData')
@@ -86,8 +87,27 @@ check_result.show(show_additional_outputs=False)
 # * `normalized_green_mean`
 # * `normalized_blue_mean`
 
+from typing import List
+import numpy as np
+
+
+def area(images: List[np.ndarray]) -> List[int]:
+    # Return list of integers of image areas (height multiplied by width)
+    return [img.shape[0] * img.shape[1] for img in images]
+
+
+def aspect_ratio(images: List[np.ndarray]) -> List[float]:
+    # Return list of floats of image height to width ratio
+    return [img.shape[0] / img.shape[1] for img in images]
+
+
+properties = [
+    {'name': 'Area', 'method': area, 'output_type': 'continuous'},
+    {'name': 'Aspect Ratio', 'method': aspect_ratio, 'output_type': 'continuous'}
+]
+
 check_result = ImagePropertyDrift(
-    image_properties=['area', 'aspect_ratio'], 
+    alternative_image_properties=properties,
     max_num_categories=20
 ).run(train_dataset, test_dataset)
 

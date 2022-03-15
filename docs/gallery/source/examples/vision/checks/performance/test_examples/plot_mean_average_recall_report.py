@@ -24,7 +24,6 @@ detections per image amount and Area size.
 
 import numpy as np
 
-from deepchecks.vision.base import VisionData
 from deepchecks.vision.checks.performance import MeanAverageRecallReport
 from deepchecks.vision.datasets.detection import coco
 

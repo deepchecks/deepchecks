@@ -35,7 +35,6 @@ check, which will override the default metrics.
 # Imports
 # -------
 
-from deepchecks.vision.base import VisionData
 from deepchecks.vision.checks.performance import ClassPerformance
 
 #%%

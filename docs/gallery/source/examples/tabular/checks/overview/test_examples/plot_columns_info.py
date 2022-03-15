@@ -12,7 +12,7 @@ Imports
 import pandas as pd
 import numpy as np
 from deepchecks.tabular.checks.overview import ColumnsInfo
-from deepchecks.tabular.base import Dataset
+from deepchecks.tabular import Dataset
 
 #%%
 # Generating data

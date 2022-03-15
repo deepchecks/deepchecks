@@ -45,7 +45,6 @@ The available strategies are:
 # Generate data and model
 # -----------------------
 
-from deepchecks.vision.base import VisionData
 from deepchecks.vision.checks.performance import SimpleModelComparison
 
 #%%

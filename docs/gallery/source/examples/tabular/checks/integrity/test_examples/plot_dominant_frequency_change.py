@@ -12,7 +12,7 @@ import pandas as pd
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from deepchecks.tabular.checks.integrity import DominantFrequencyChange
-from deepchecks.tabular.base import Dataset
+from deepchecks.tabular import Dataset
 
 #%%
 # Generating Data

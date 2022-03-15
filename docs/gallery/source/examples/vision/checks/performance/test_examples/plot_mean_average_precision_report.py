@@ -24,7 +24,6 @@ value with the IoU and Area size.
 
 import numpy as np
 
-from deepchecks.vision.base import VisionData
 from deepchecks.vision.checks.performance import MeanAveragePrecisionReport
 from deepchecks.vision.datasets.detection import coco
 

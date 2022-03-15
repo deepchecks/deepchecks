@@ -7,7 +7,7 @@ New Category
 #%%
 
 from deepchecks.tabular.checks.integrity.new_category import CategoryMismatchTrainTest
-from deepchecks.tabular.base import Dataset
+from deepchecks.tabular import Dataset
 import pandas as pd
 
 #%%

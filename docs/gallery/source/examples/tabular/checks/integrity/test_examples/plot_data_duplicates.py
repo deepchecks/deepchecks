@@ -15,7 +15,7 @@ This notebooks provides an overview for using and understanding the data duplica
 #%%
 
 from deepchecks.tabular.checks.integrity.data_duplicates import DataDuplicates
-from deepchecks.tabular.base import Dataset, Suite
+from deepchecks.tabular import Dataset, Suite
 from datetime import datetime
 import pandas as pd
 
