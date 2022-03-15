@@ -5,7 +5,7 @@ Checks Demonstrations
     :maxdepth: 2
 
     distribution/test_autoexamples/index
-    integrity/index
+    integrity/test_autoexamples/index
     methodology/index
     performance/index
-    overview/index
+    overview/test_autoexamples/index

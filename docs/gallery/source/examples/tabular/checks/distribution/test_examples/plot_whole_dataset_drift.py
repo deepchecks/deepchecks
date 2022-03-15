@@ -26,8 +26,8 @@ Causes of data drift include:
 * Natural drift in the data, such as mean temperature changing with the seasons.
 * Change in relation between features, or covariate shift.
 
-The difference between a feature drift
-<https://docs.deepchecks.com/en/stable/examples/checks/distribution/train_test_feature_drift.html>
+The difference between a `feature drift
+<https://docs.deepchecks.com/en/stable/examples/checks/distribution/train_test_feature_drift.html>`__
 (or univariate dataset drift) and a multivariate drift is that in the
 latter the data drift occures in more that one feature.
 

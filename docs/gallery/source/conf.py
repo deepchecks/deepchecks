@@ -83,6 +83,8 @@ sphinx_gallery_conf = {
         "examples/vision/checks/performance/test_examples",
         "examples/tabular/guides/test_examples",
         "examples/tabular/checks/distribution/test_examples",
+        "examples/tabular/checks/overview/test_examples",
+        "examples/tabular/checks/integrity/test_examples",
     ],  # path to your example scripts
     "gallery_dirs": [
         "examples/vision/guides/test_autoexamples",
@@ -91,6 +93,8 @@ sphinx_gallery_conf = {
         "examples/vision/checks/performance/test_autoexamples",
         "examples/tabular/guides/test_autoexamples",
         "examples/tabular/checks/distribution/test_autoexamples",
+        "examples/tabular/checks/overview/test_autoexamples",
+        "examples/tabular/checks/integrity/test_autoexamples",
     ],  # path to where to save gallery generated output
     "image_scrapers": (
         plotly_sg_scraper,
