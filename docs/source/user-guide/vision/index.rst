@@ -9,3 +9,4 @@ Vision
 
     formatter_objects
     classification_tutorial
+    vision_properties
