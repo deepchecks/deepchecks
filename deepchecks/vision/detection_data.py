@@ -10,9 +10,8 @@
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
 from abc import abstractmethod
-from itertools import chain
 import logging
-from typing import List, Optional, Dict, Union
+from typing import List, Optional, Dict
 
 import torch
 from torch.utils.data import DataLoader

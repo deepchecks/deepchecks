@@ -11,7 +11,7 @@
 """The vision/dataset module containing the vision Dataset class and its functions."""
 # pylint: disable=protected-access
 import random
-from collections import Counter, defaultdict
+from collections import defaultdict
 from copy import copy
 from abc import abstractmethod
 from enum import Enum
@@ -155,6 +155,7 @@ class VisionData:
         raise DeepchecksNotImplementedError('batch_to_images() must be implemented in a subclass')
 
     def update_cache(self, labels):
+        """Get labels and update the classes' metadata info."""
         classes_per_label = self.get_classes(labels)
         for batch_index, classes in enumerate(classes_per_label):
             for single_class in classes:
@@ -162,12 +163,13 @@ class VisionData:
         self._last_index += len(classes_per_label)
 
     def init_cache(self):
+        """Initialize the cache of the classes' metadata info."""
         self._classes_indices = defaultdict(list)
         self._last_index = 0
 
     @property
     def classes_indices(self) -> Dict[int, List[int]]:
-        """Return dict of classes as keys, and list of corresponding batch indices of samples that include this
+        """Return dict of classes as keys, and list of corresponding batch indices of samples that include this\
         class (in the label)."""
         if self._classes_indices is None:
             # TODO remove this from here after removing the usage from init_run of checks, and raise error instead
