@@ -8,9 +8,9 @@ import torch
 from deepchecks.vision.nir_mixed.snake_data_module import SnakeDataModule
 from deepchecks.vision.nir_mixed.snake_lit_module import SnakeLitModule
 
-ckpt_path = "/home/ubuntu/code/DeepChecks/deepchecks/workdir/version_7/last.ckpt"
+ckpt_path = "~/code/DeepChecks/deepchecks/workdir/version_1/last.ckpt"
 batch_size = 256
-num_workers = 1
+num_workers = 4
 # validation has center crop, train has random crop + flip, otherwise same
 val_transforms = A.Compose([
     A.SmallestMaxSize(max_size=256),
@@ -22,7 +22,7 @@ val_transforms = A.Compose([
     ToTensorV2(),
 ])
 
-snake_test_module = SnakeDataModule(data_dir=os.path.expanduser("~/code/DeepChecks/Datasets/snakes/val"),
+snake_test_module = SnakeDataModule(data_dir=os.path.expanduser("~/code/DeepChecks/deepchecks/workdir/version_1/val"),
                                batch_size=batch_size,
                                val_transforms=val_transforms,
                                num_workers=num_workers)
@@ -30,10 +30,10 @@ net = SnakeLitModule(num_classes=snake_test_module.num_classes,
                      optimizer="adam",
                      finetune_last=True,
                      )
-net.load_from_checkpoint(checkpoint_path=ckpt_path, num_classes=snake_test_module.num_classes)
+net = net.load_from_checkpoint(checkpoint_path=ckpt_path, num_classes=snake_test_module.num_classes)
 # Test
 snake_test_dataloader = snake_test_module.test_dataloader()
 trainer = Trainer(gpus=1)
 test_result = trainer.test(net, dataloaders=snake_test_dataloader)
-result = trainer.predict(net, dataloaders=snake_test_dataloader)
+# result = trainer.predict(net, dataloaders=snake_test_dataloader)
 

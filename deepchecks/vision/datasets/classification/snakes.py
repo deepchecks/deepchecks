@@ -49,15 +49,15 @@ def load_train_data(transformed=False):
     return dataset
 
 
-def load_model(pretrained: bool = True) -> nn.Module:
+def load_model(pretrained: bool = True, device: str = "cpu") -> nn.Module:
     model = SnakeLitModule(num_classes=NUM_SNAKES,
                            optimizer="adam",
                            finetune_last=True,
                            )
-    model.eval()
-    model.cpu()
     if pretrained:
         model = model.load_from_checkpoint(checkpoint_path=SNAKE_CKPT, num_classes=NUM_SNAKES)
+    model = model.eval()
+    model = model.to(device)
     return model
 
 
