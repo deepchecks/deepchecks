@@ -279,7 +279,7 @@ class VisionData:
                                                                   random_state=random_state,
                                                                   n_samples=n_samples)
         # If new data is sampled, then needs to re-calculate cache
-        if n_samples:
+        if n_samples or shuffle:
             new_vision_data.init_cache()
             for batch in new_vision_data:
                 new_vision_data.update_cache(self.batch_to_labels(batch))
