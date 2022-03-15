@@ -11,7 +11,7 @@ data, you will need:
 
 -  Your train and test data (each a pytorch dataloader)
 -  (optional) A model object, for which calling ``model(batch)`` for a
-   dataloder batch returns the batch predictions. Required for running
+   dataloader batch returns the batch predictions. Required for running
    checks that need the model's predictions for running.
 
 To run your first suite on your data and model, you need only a few
@@ -26,10 +26,15 @@ Object <#fefine-a-visiondata-object>`__.
     !{sys.executable} -m pip install deepchecks -U --quiet #--user
 
 """
+import warnings
+from typing import Union, List
 
+import torch
+import numpy as np
+
+from deepchecks.vision.detection_data import DetectionData
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision import VisionData
-from deepchecks.vision.utils import DetectionLabelFormatter, DetectionPredictionFormatter
 from deepchecks.vision.suites import full_suite
 from deepchecks.vision.checks import TrainTestLabelDrift
 
@@ -42,43 +47,70 @@ from deepchecks.vision.checks import TrainTestLabelDrift
 # `yolov5s <https://pytorch.org/hub/ultralytics_yolov5/#load-from-pytorch-hub>`__
 # object detection model, both already included in the deepchecks package:
 
-yolo = coco.load_model(pretrained=True)
+device = torch.device('cuda') if torch.cuda.is_available() else 'cpu'
+yolo = coco.load_model(pretrained=True, device=device)
 coco_train_loader = coco.load_dataset(train=True)
 coco_test_loader = coco.load_dataset(train=False)
 
 #%%
-# Define a VisionData Object
+# Implement a Data Object
 # --------------------------
 #
-# Once you have your model and data, the next step is wrapping each
-# dataloader inside a VisionData object. These objects serve to the bundle
-# together several objects: 1. Your dataloader. 1. label_transformer -
-# Formatter used to state the task type (Classification, Object Detection
-# etc.) and the function that converts the batch labels to a standard
-# format. Visit the `User
-# Guide <../../../user-guide/vision/formatter_objects.rst>`__, the API
-# reference of the
-# `classification
-# <../../../api/generated/deepchecks.vision.utils.classification_formatters.ClassificationLabelFormatter.rst>`__
-# formatters, or the API reference of the `object
-# detection <../../../api/generated/deepchecks.vision.utils.detection_formatters.DetectionLabelFormatter.rst>`__
-# formatters for more info. 1. image_transformer- Formatter used to
-# convert the batch images to images in a standard format. See the `User
-# Guide <../../../user-guide/vision/formatter_objects.rst#the-image-formatter>`__
-# for more info.
+# Deepchecks’ checks and suites expect a data object that is specific for the task type. These data objects are used to
+# load a preprocess data for the particular task type, and all inherit from
+# `Vision Data <../../../api/generated/deepchecks.vision.VisionData.rst>`__.
 #
-# In the following example, no conversion is needed so
-# `DetectionLabelFormatter
-# <../../../api/generated/deepchecks.vision.utils.detection_formatters.DetectionLabelFormatter.rst>`__
-# is used with the unit callable to declare that this is an Object
-# Detection dataset.
+# For classification - the data class should inherit from
+# `ClassificationData <../../../api/generated/deepchecks.vision.ClassificationData.rst`__, and for detection from
+# `DetectionData <../../../api/generated/deepchecks.vision.DetectionData.rst>`__.
+#
+# Because our example here is a detection problem, we will create a class inherited from the DetectionData class, and
+# will implement the following requried functions:
+#
+# - batch_to_images - Transform a batch of data to images in the
+# accpeted format. For more info refer to the
+# `API reference <../../../api/generated/deepchecks.vision.DetectionData.batch_to_images.rst>`__.
+# - batch_to_labels - Extract the labels from a batch of data. For more info refer to the
+# `API reference <../../../api/generated/deepchecks.vision.DetectionData.batch_to_labels.rst>`__.
+# - infer_on_batch - Return the predictions of the model on a batch of data. For more info refer to the
+# `API reference <../../../api/generated/deepchecks.vision.DetectionData.infer_on_batch.rst>`__.
 
 
-# The num_classes is explicitly declared to aid computation, but would be inferred automatically otherwise.
-train_ds = VisionData(coco_train_loader, label_formatter=DetectionLabelFormatter(coco.yolo_label_formatter),
-                      num_classes=80)
-test_ds = VisionData(coco_test_loader, label_formatter=DetectionLabelFormatter(coco.yolo_label_formatter),
-                     num_classes=80)
+class COCOData(DetectionData):
+
+    def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
+        def move_class(tensor):
+            return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
+                if len(tensor) > 0 else tensor
+
+        return [move_class(tensor) for tensor in batch[1]]
+
+    def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
+        return_list = []
+
+        with warnings.catch_warnings():
+            warnings.simplefilter(action='ignore', category=UserWarning)
+
+            predictions: 'ultralytics.models.common.Detections' = model.to(device)(batch[0])  # noqa: F821
+
+            # yolo Detections objects have List[torch.Tensor] xyxy output in .pred
+            for single_image_tensor in predictions.pred:
+                pred_modified = torch.clone(single_image_tensor)
+                pred_modified[:, 2] = pred_modified[:, 2] - pred_modified[:, 0]  # w = x_right - x_left
+                pred_modified[:, 3] = pred_modified[:, 3] - pred_modified[:, 1]  # h = y_bottom - y_top
+                return_list.append(pred_modified)
+
+        return return_list
+
+    def batch_to_images(self, batch) -> List[np.ndarray]:
+        return [np.array(x) for x in batch[0]]
+
+#%%
+# Now, we will initialize instances of our COCOData class.
+
+
+train_ds = COCOData(coco_train_loader, label_map=coco.LABEL_MAP)
+test_ds = COCOData(coco_test_loader, label_map=coco.LABEL_MAP)
 
 #%%
 # Run a Deepchecks Suite
@@ -95,26 +127,7 @@ test_ds = VisionData(coco_test_loader, label_formatter=DetectionLabelFormatter(c
 
 suite = full_suite()
 
-#%%
-# The `ClassPerformance <../checks/performance/class_performance.ipynb>`__
-# check is one of the checks included in this suite, and this check
-# computes Object Detection metrics using the labels and the predictions
-# of the yolo model.
-#
-# In order to function, we must pass the check (and thus the suite) a
-# prediction_formatter function that converts the yolo predictions to a
-# standard format. In this example, the formatter is already included in
-# the package. For more info about prediction formatters, visit the `User
-# Guide <../../../user-guide/vision/formatter_objects.rst>`__, the API
-# reference of the
-# `classification
-# <../../../api/generated/deepchecks.vision.utils.classification_formatters.ClassificationPredictionFormatter.rst>`__
-# formatters, or the API reference of the `object
-# detection <../../../api/generated/deepchecks.vision.utils.detection_formatters.DetectionPredictionFormatter.rst>`__
-# formatters.
-
-det_formatter = DetectionPredictionFormatter(coco.yolo_prediction_formatter)
-result = suite.run(train_dataset=train_ds, test_dataset=test_ds, model=yolo, prediction_formatter=det_formatter)
+result = suite.run(train_dataset=train_ds, test_dataset=test_ds, model=yolo, device=device)
 
 #%%
 # In order to view the results, the result object can be exported to an
@@ -141,7 +154,7 @@ result
 # existing checks and their parameters.
 
 check = TrainTestLabelDrift()
-result = check.run(train_ds, test_ds)
+result = check.run(train_ds, test_ds, device=device)
 result
 
 #%%
