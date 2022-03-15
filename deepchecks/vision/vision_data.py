@@ -65,7 +65,7 @@ class VisionData:
                  transform_field: Optional[str] = 'transforms'):
 
         # Create data loader that uses IndicesSequentialSampler, which always return batches in the same order
-        self._data_loader = self._get_data_loader_sequential(data_loader)
+        self._data_loader, self._sampler = self._get_data_loader_sequential(data_loader)
 
         self._num_classes = num_classes
         self._label_map = label_map
@@ -160,7 +160,8 @@ class VisionData:
         classes_per_label = self.get_classes(labels)
         for batch_index, classes in enumerate(classes_per_label):
             for single_class in classes:
-                self._classes_indices[single_class].append(self._current_index + batch_index)
+                real_index_in_dataset = self._sampler.index_at(self._current_index + batch_index)
+                self._classes_indices[single_class].append(real_index_in_dataset)
         self._current_index += len(classes_per_label)
 
     def init_cache(self):
@@ -170,7 +171,7 @@ class VisionData:
 
     @property
     def classes_indices(self) -> Dict[int, List[int]]:
-        """Return dict of classes as keys, and list of corresponding batch indices of samples that include this\
+        """Return dict of classes as keys, and list of corresponding indices (in Dataset) of samples that include this\
         class (in the label)."""
         if self._classes_indices is None:
             # TODO remove this from here after removing the usage from init_run of checks, and raise error instead
@@ -283,7 +284,7 @@ class VisionData:
                                                                   random_state=random_state,
                                                                   n_samples=n_samples)
         # If new data is sampled, then needs to re-calculate cache
-        if n_samples or shuffle:
+        if n_samples:
             new_vision_data.init_cache()
             for batch in new_vision_data:
                 new_vision_data.update_cache(self.batch_to_labels(batch))
@@ -297,7 +298,7 @@ class VisionData:
         """Return batch samples of the given batch indices."""
         samples = []
         for i in indices:
-            index_in_dataset = self.data_loader.batch_sampler.sampler.index_at(i)
+            index_in_dataset = self._sampler.index_at(i)
             samples.append(self.data_loader.dataset[index_in_dataset])
         return self.to_batch(*samples)
 
@@ -442,7 +443,7 @@ class VisionData:
 
         props = VisionData._get_data_loader_props(data_loader)
         props['batch_sampler'] = new_batch_sampler
-        return data_loader.__class__(**props)
+        return data_loader.__class__(**props), sampler
 
 
 class IndicesSequentialSampler(Sampler[int]):
