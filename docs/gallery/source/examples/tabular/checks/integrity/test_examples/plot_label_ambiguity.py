@@ -20,7 +20,7 @@ confuse the model and can result in lower performance of the model.
 """
 # %%
 from deepchecks.tabular.checks.integrity import LabelAmbiguity
-from deepchecks.tabular.base import Dataset
+from deepchecks.tabular import Dataset
 import pandas as pd
 
 #%%

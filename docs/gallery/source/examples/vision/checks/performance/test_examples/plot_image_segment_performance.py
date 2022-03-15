@@ -39,7 +39,7 @@ result
 # segment. As the value of result we return all the information on the different segments:
 
 print(f'Properties: {result.value.keys()}')
-print(f'brightness bins: {result.value["brightness"]}')
+print(f'brightness bins: {result.value["Brightness"]}')
 
 #%%
 # Define a condition
