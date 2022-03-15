@@ -62,9 +62,8 @@ data integrity, distribution mismatches, and more.
 
 🖼️ Computer Vision & 🔢 Tabular Support
 ==========================================
-This README refers to the tabular version of deepchecks.
-**Deepchecks for Computer Vision & Images** is a separate subpackage, soon in beta release.
-Click `here <deepchecks/vision>`__ for more details.
+**This README refers to the tabular version** of deepchecks.
+Check out the **Deepchecks for Computer Vision & Images subpackage <deepchecks/vision>` for more details about deepchecks for CV, currently in beta version.
 
 
 💻 Installation

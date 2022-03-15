@@ -62,8 +62,15 @@ data integrity, distribution mismatches, and more.
 
 🖼️ Computer Vision & 🔢 Tabular Support
 ==========================================
-This README refers to the Computer Vision & Images subpackage of deepchecks which is in beta release.
-For an overview of the deepchecks package and more details about the Tabular version, click `here <https://github.com/deepchecks/deepchecks>`__.
+**This README refers to the Computer Vision & Images** subpackage of deepchecks which is in beta release.
+For an overview of the deepchecks package and more details about the Tabular version, `go here <https://github.com/deepchecks/deepchecks>`__.
+
+Currently Supported
+-----------------------
+
+- Pytorch Framework
+- Supported use cases: Some checks (e.g. those requiring only images without labels) are supported regardless of task type.
+  Built-in metrics exist for: Object detection, Classification, and additional use cases (segmentation, regression, pose estimation and more) have built-in supported for some checks (e.g. those requiring only images without labels), and can 
 
 
 💻 Installation
@@ -87,15 +94,33 @@ Using conda
 ⏩ Try it Out!
 ================
 
-TODO
-
-Head over to the `Quickstart Notebook <https://docs.deepchecks.com/en/stable/
-examples/guides/quickstart_in_5_minutes.html?
-utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
-and choose the  |binder badge image|  or the  |colab badge image|  to have it up and running, and to then apply it on your own data and models.
+Check out our `tutorials for a quick start <https://docs.deepchecks.com/en/stable/
+tutorials/vision/?
+utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>>` with deepchecks for CV.
 
 
 
+
+
+
+📖 Documentation
+====================
+
+-  `https://docs.deepchecks.com/ <https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation>`__
+   - HTML documentation (stable release)
+-  `https://docs.deepchecks.com/en/latest <https://docs.deepchecks.com/en/latest/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation>`__
+   - HTML documentation (latest release)
+
+👭 Community
+================
+
+-  Join our `Slack
+   Community <https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg>`__
+   to connect with the maintainers and follow users and interesting
+   discussions
+-  Post a `Github
+   Issue <https://github.com/deepchecks/deepchecks/issues>`__ to suggest
+   improvements, open an issue, or share feedback.
 
 
 .. |build| image:: https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg
