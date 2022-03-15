@@ -27,6 +27,7 @@ import numpy as np
 import ipywidgets as widgets
 import plotly.graph_objects as go
 import plotly
+from ipywidgets.embed import embed_minimal_html
 from plotly.io import to_html
 from plotly.basedatatypes import BaseFigure
 from matplotlib import pyplot as plt
@@ -115,7 +116,7 @@ class CheckResult:
                 raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
 
     def display_check(self, unique_id: str = None, as_widget: bool = False,
-                      show_additional_outputs=True, as_html: bool = False):
+                      show_additional_outputs=True):
         """Display the check result or return the display as widget.
 
         Parameters
@@ -134,7 +135,6 @@ class CheckResult:
         if as_widget:
             box = widgets.VBox()
             box_children = []
-        html_output = ''
         check_html = ''
         if unique_id:
             check_id = f'{self.check.__class__.__name__}_{unique_id}'
@@ -155,9 +155,6 @@ class CheckResult:
                 elif isinstance(item, str):
                     check_html += f'<div>{item}</div>'
                 elif isinstance(item, BaseFigure):
-                    html_output += check_html
-                    html_output += to_html(item, include_plotlyjs=False, full_html=False)
-
                     if as_widget:
                         box_children.append(widgets.HTML(check_html))
                         box_children.append(go.FigureWidget(data=item))
@@ -174,9 +171,6 @@ class CheckResult:
                                 plt.show()
                             box_children.append(widgets.HTML(check_html))
                             box_children.append(plt_out)
-
-                            html_output += check_html
-                            html_output += plt_out
                         else:
                             display_html(check_html, raw=True)
                             item()
@@ -190,18 +184,19 @@ class CheckResult:
             check_html += '<p><b>&#x2713;</b> Nothing found</p>'
         if unique_id:
             check_html += f'<br><a href="#summary_{unique_id}" style="font-size: 14px">Go to top</a>'
-
-        html_output += check_html
-
-        if as_html:
-            return html_output
-
         if as_widget:
             box_children.append(widgets.HTML(check_html))
             box.children = box_children
-
             return box
         display_html(check_html, raw=True)
+
+    def _repr_html_(self):
+        """Return html representation of check result."""
+        html_out = io.StringIO()
+        widgeted_output = self.display_check(as_widget=True)
+        embed_minimal_html(html_out, views=[widgeted_output])
+        return html_out.getvalue()
+
 
     def _display_to_json(self) -> List[Tuple[str, str]]:
         displays = []
@@ -261,11 +256,11 @@ class CheckResult:
         for item in self.display:
             if isinstance(item, Styler):
                 wandb.log({f'{section_suffix}display_table_{table_i}':
-                           wandb.Table(dataframe=item.data, allow_mixed_types=True)}, commit=False)
+                           wandb.Table(dataframe=item.data.reset_index(), allow_mixed_types=True)}, commit=False)
                 table_i += 1
             elif isinstance(item, pd.DataFrame):
                 wandb.log({f'{section_suffix}display_table_{table_i}':
-                           wandb.Table(dataframe=item, allow_mixed_types=True)}, commit=False)
+                           wandb.Table(dataframe=item.reset_index(), allow_mixed_types=True)}, commit=False)
                 table_i += 1
             elif isinstance(item, str):
                 pass
@@ -370,9 +365,6 @@ class CheckResult:
                                           show_additional_outputs=show_additional_outputs,)
         if as_widget:
             display_html(check_widget)
-
-    def _repr_html_(self):
-        return self.display_check(as_widget=True, as_html=True)
 
     def __repr__(self):
         """Return default __repr__ function uses value."""

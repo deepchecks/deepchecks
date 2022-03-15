@@ -76,7 +76,7 @@ class SuiteResult:
     def _repr_html_(self):
         """Return html representation of check result."""
         html_out = io.StringIO()
-        display_suite_result(self.name, self.results, html_out=html_out)
+        self.save_as_html(html_out)
         return html_out.getvalue()
 
     def save_as_html(self, file=None):

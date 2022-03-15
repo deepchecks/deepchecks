@@ -119,6 +119,7 @@ def _display_suite_widgets(summary: str,
                            light_hr: str,
                            html_out):  # pragma: no cover
     """Display results of suite in as Tab widget."""
+    widgets.Widget.close_all()
     tab = widgets.Tab()
     condition_tab = widgets.VBox()
     _add_widget_classes(condition_tab)
@@ -198,6 +199,8 @@ def _display_suite_widgets(summary: str,
             embed_minimal_html(html_out, views=[page], title='Suite Output', template=html_formatted)
     else:
         display(page)
+
+    page.close_all()
 
 
 def _display_suite_no_widgets(summary: str,
