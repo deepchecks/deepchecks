@@ -1,7 +1,7 @@
 .. _package_structure:
 
 =========
-Structure
+General
 =========
 
 .. toctree::

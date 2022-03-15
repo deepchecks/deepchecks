@@ -51,7 +51,7 @@ Each condition has a ``ConditionCategory`` type, which indicates whether an unme
 See Also
 ---------
 
-- :doc:`/user-guide/structure/customizations/configure_check_conditions` - for a tutorial demonstrating how to modify a checks' conditions
+- :doc:`/user-guide/general/customizations/configure_check_conditions` - for a tutorial demonstrating how to modify a checks' conditions
 - :doc:`Check Base Classes API Reference </api/deepchecks.core>` - where all of the check and condition related base objects can be found.
 
 
@@ -70,7 +70,7 @@ See Also
 ---------
 
 - `List of Existing Suites`_ - to learn more about the suites you can work with directly
-- :doc:`/user-guide/structure/customizations/create_a_custom_suite` - for a demonstration about creating your own suite
+- :doc:`/user-guide/general/customizations/create_a_custom_suite` - for a demonstration about creating your own suite
 
 
 .. _List of Existing Suites: https://github.com/deepchecks/deepchecks/tree/main/deepchecks/suites

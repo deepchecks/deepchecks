@@ -34,7 +34,7 @@ or see our :doc:`/getting-started/index` to install it locally and continue from
 .. note:: 
    The package's output is suited for running in any Python environment.
    The output can be conveniently viewed inline in Jupyter Notebooks (or JupyterLab),
-   and it can also be :doc:`exported as an HTML report </user-guide/structure/exporting_results/save_suite_result_as_html>`,
+   and it can also be :doc:`exported as an HTML report </user-guide/general/exporting_results/save_suite_result_as_html>`,
    to run it from any IDE.
 
 When Should You Use Deepchecks?
@@ -55,7 +55,7 @@ How Does it Work?
 ===================
 
 Suites are composed of checks. Each check contains outputs to display in a notebook and/or conditions with a pass/fail/warning output.
-For more information head over to our :doc:`/user-guide/structure/deepchecks_hierarchy` in the User Guide.
+For more information head over to our :doc:`/user-guide/general/deepchecks_hierarchy` in the User Guide.
 
 What Do You Need in Order to Start?
 =====================================
