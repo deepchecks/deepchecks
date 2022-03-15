@@ -13,8 +13,8 @@ output (name, parameters, result value and result display) not only in a visual 
 
 * `Load Data <#load-data>`__
 * `Run a Check <#run-a-check>`__
-* `Export Check to JSON <#export-check-to-json>`__
-* `Export Suite to JSON <#export-suite-to-json>`__
+* `Export Check to JSON <#export-a-check-s-output-checkresult-to-a-json-format>`__
+* `Export Suite to JSON <#exporting-a-suite-s-output-suiteresult-to-json>`__
 """
 
 #%%
@@ -122,6 +122,7 @@ len(json.loads(suite_json)['results'])
 
 #%%
 # Lets observe a specific check's output, which is similar to the `Check output's
-# JSON Structure`__ we saw before for each check
+# JSON Structure <#export-a-check-s-output-checkresult-to-a-json-format>`__ we saw
+# before for each check
 
 json.loads(json.loads(suite_json)['results'][0])
