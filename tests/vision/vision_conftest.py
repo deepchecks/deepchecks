@@ -93,10 +93,12 @@ def mnist_drifted_datasets(mnist_dataset_train, mnist_dataset_test):  # pylint: 
     def collate_test(batch):
         modified_batch = []
         for item in batch:
-            _, label = item
+            image, label = item
             if label == 0:
-                if np.random.randint(10) == 0:
+                if np.random.randint(5) == 0:
                     modified_batch.append(item)
+                else:
+                    modified_batch.append((image, 1))
             else:
                 modified_batch.append(item)
 

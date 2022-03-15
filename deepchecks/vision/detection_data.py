@@ -10,9 +10,8 @@
 #
 """The vision/dataset module containing the vision Dataset class and its functions."""
 from abc import abstractmethod
-from itertools import chain
 import logging
-from typing import List, Optional, Dict, Union
+from typing import List, Optional, Dict
 
 import torch
 from torch.utils.data import DataLoader
@@ -62,7 +61,7 @@ class DetectionData(VisionData):
                            'the validiation has failed with the error: %s', {str(ex)})
 
     @abstractmethod
-    def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
+    def batch_to_labels(self, batch) -> List[torch.Tensor]:
         """Extract the labels from a batch of data.
 
         Parameters
@@ -72,7 +71,7 @@ class DetectionData(VisionData):
 
         Returns
         -------
-        Union[List[torch.Tensor], torch.Tensor]
+        List[torch.Tensor]
             The labels extracted from the batch. The labels should be a list of length N containing tensor of shape
             (B, 5) where N is the number of samples, B is the number of bounding boxes in the sample and each bounding
             box is represented by 5 values. See the notes for more info.
@@ -99,7 +98,7 @@ class DetectionData(VisionData):
         raise DeepchecksNotImplementedError('batch_to_labels() must be implemented in a subclass')
 
     @abstractmethod
-    def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
+    def infer_on_batch(self, batch, model, device) -> List[torch.Tensor]:
         """Return the predictions of the model on a batch of data.
 
         Parameters
@@ -113,7 +112,7 @@ class DetectionData(VisionData):
 
         Returns
         -------
-        Union[List[torch.Tensor], torch.Tensor]
+        List[torch.Tensor]
             The predictions of the model on the batch. The predictions should be in a List of length N containing
             tensors of shape (B, 6), where N is the number of images, B is the number of bounding boxes detected in the
             sample and each bounding box is represented by 6 values. See the notes for more info.
@@ -152,7 +151,7 @@ class DetectionData(VisionData):
         def get_classes_from_single_label(tensor: torch.Tensor):
             return list(tensor[:, 0].tolist()) if len(tensor) > 0 else []
 
-        return list(chain(*[get_classes_from_single_label(x) for x in batch_labels]))
+        return [get_classes_from_single_label(x) for x in batch_labels]
 
     def validate_label(self, batch):
         """
