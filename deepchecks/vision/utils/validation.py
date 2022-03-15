@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for validation of the vision module."""
+import os
 import random
 import traceback
 import typing as t
@@ -17,7 +18,7 @@ import torch
 import imgaug
 
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
-from deepchecks.utils.ipython import is_notebook
+from deepchecks.utils.ipython import is_headless, is_notebook
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.utils.image_functions import numpy_to_image_figure, label_bbox_add_to_figure
 from deepchecks.vision.vision_data import VisionData
@@ -196,6 +197,11 @@ def validate_extractors(dataset: VisionData, model):
             display(HTML(fig.to_image('svg').decode('utf-8')))
     else:
         print(msg)
-        if fig:
+        if fig: 
             image = Image.open(BytesIO(fig.to_image('jpg')))
-            image.show()
+            if is_headless():
+                curr_path = os.getcwd()
+                full_image_path = os.path.join(curr_path, 'formatted_image.jpg')
+                image.save(full_image_path)
+            else:
+                image.show()
