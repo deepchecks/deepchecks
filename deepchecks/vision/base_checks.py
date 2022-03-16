@@ -59,8 +59,10 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
         self.initialize_run(context, DatasetKind.TRAIN)
 
+        dataset.init_cache()
         for batch in dataset:
             batch = Batch(batch, context, DatasetKind.TRAIN)
+            dataset.update_cache(batch.labels)
             self.update(context, batch, DatasetKind.TRAIN)
 
         return self.finalize_check_result(self.compute(context, DatasetKind.TRAIN))
@@ -104,12 +106,16 @@ class TrainTestCheck(TrainTestBaseCheck):
 
         self.initialize_run(context)
 
+        context.train.init_cache()
         for batch in context.train:
             batch = Batch(batch, context, DatasetKind.TRAIN)
+            context.train.update_cache(batch.labels)
             self.update(context, batch, DatasetKind.TRAIN)
 
+        context.test.init_cache()
         for batch in context.test:
             batch = Batch(batch, context, DatasetKind.TEST)
+            context.test.update_cache(batch.labels)
             self.update(context, batch, DatasetKind.TEST)
 
         return self.finalize_check_result(self.compute(context))

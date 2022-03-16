@@ -167,8 +167,8 @@ class Suite(BaseSuite):
         progress_bars: List
     ):
         type_suffix = ' - Test Dataset' if dataset_kind == DatasetKind.TEST else ' - Train Dataset'
-        data_loader = context.get_data_by_kind(dataset_kind)
-        n_batches = len(data_loader)
+        vision_data = context.get_data_by_kind(dataset_kind)
+        n_batches = len(vision_data)
         single_dataset_checks = {k: check for k, check in self.checks.items() if isinstance(check, SingleDatasetCheck)}
 
         # SingleDatasetChecks have different handling, need to initialize them here (to have them ready for different
@@ -184,11 +184,17 @@ class Suite(BaseSuite):
                     results[idx] = CheckFailure(check, exp, type_suffix)
                 progress_bar.inc_progress()
 
+        # Init cache of vision_data
+        vision_data.init_cache()
+
         progress_bar = ProgressBar('Ingesting Batches' + type_suffix, n_batches, unit='Batch')
         progress_bars.append(progress_bar)
-        for batch_id, batch in enumerate(data_loader):
+
+        # Run on all the batches
+        for batch_id, batch in enumerate(vision_data):
             progress_bar.set_text(f'{100 * batch_id / (1. * n_batches):.0f}%')
             batch = Batch(batch, context, dataset_kind)
+            vision_data.update_cache(batch.labels)
             for check_idx, check in self.checks.items():
                 # If index in results the check already failed before
                 if check_idx in results:

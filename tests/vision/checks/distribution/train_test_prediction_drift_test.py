@@ -11,7 +11,7 @@
 """Test functions of the VISION train test prediction drift."""
 from hamcrest import assert_that, has_entries, close_to, equal_to, raises, calling
 from tests.checks.utils import equal_condition_result
-
+import torch.nn as nn
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import TrainTestPredictionDrift
 
@@ -128,9 +128,11 @@ def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_
 def test_with_drift_object_detection_alternative_measurements(coco_train_visiondata, coco_test_visiondata,
                                                               trained_yolov5_object_detection, device):
     # Arrange
+    def prop(predictions):
+        return [int(x[0][0]) if len(x) != 0 else 0 for x in predictions]
     alternative_measurements = [
-        {'name': 'test', 'method': lambda x, dataset: int(x[0][0]) if len(x) != 0 else 0, 'is_continuous': True}]
-    check = TrainTestPredictionDrift(alternative_prediction_measurements=alternative_measurements)
+        {'name': 'test', 'method': prop, 'output_type': 'continuous'}]
+    check = TrainTestPredictionDrift(alternative_prediction_properties=alternative_measurements)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, trained_yolov5_object_detection, device=device)
@@ -150,8 +152,16 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, trained_mn
     check = TrainTestPredictionDrift().add_condition_drift_score_not_greater_than()
     mod_train_ds, mod_test_ds = mnist_drifted_datasets
 
+    def infer(batch, model, device):
+        preds = model.to(device)(batch[0].to(device))
+        preds[:, 0] = 0
+        preds = nn.Softmax(dim=1)(preds)
+        return preds
+
+    mod_test_ds.infer_on_batch = infer
+
     # Act
-    result = check.run(mod_train_ds, mod_test_ds, trained_mnist,device=device)
+    result = check.run(mod_train_ds, mod_test_ds, trained_mnist, device=device)
 
     condition_result, *_ = result.conditions_results
 
@@ -159,31 +169,33 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, trained_mn
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name='PSI <= 0.15 and Earth Mover\'s Distance <= 0.075 for prediction drift',
-        details='Found non-continues prediction measurements with PSI drift score above threshold: {\'Samples per '
-                'class\': \'0.17\'}\n'
+        details='Found non-continues prediction properties with PSI drift score above threshold: {\'Samples per '
+                'class\': \'3.9\'}\n'
     ))
 
 
 def test_with_drift_object_detection_defected_alternative_measurements():
     # Arrange
+    def prop(predictions):
+        return [int(x[0][0]) if len(x) != 0 else 0 for x in predictions]
     alternative_measurements = [
-        {'name': 'test', 'method': lambda x, dataset: x[0][0] if len(x) != 0 else 0, 'is_continuous': True},
-        {'name234': 'test', 'method': lambda x, dataset: x[0][0] if len(x) != 0 else 0, 'is_continuous': True},
+        {'name': 'test', 'method': prop, 'output_type': 'continuous'},
+        {'name234': 'test', 'method': prop, 'output_type': 'continuous'},
     ]
 
     # Assert
     assert_that(calling(TrainTestPredictionDrift).with_args(alternative_measurements),
                 raises(DeepchecksValueError,
-                       "Measurement must be of type dict, and include keys \['name', 'method', 'is_continuous'\]")
+                       r"Property must be of type dict, and include keys \['name', 'method', 'output_type'\]")
                 )
 
 
 def test_with_drift_object_detection_defected_alternative_measurements2():
     # Arrange
-    alternative_measurements = {'name': 'test', 'method': lambda x, dataset: x, 'is_continuous': True}
+    alternative_measurements = {'name': 'test', 'method': lambda x: x, 'output_type': 'continuous'}
 
     # Assert
     assert_that(calling(TrainTestPredictionDrift).with_args(alternative_measurements),
                 raises(DeepchecksValueError,
-                       "Expected measurements to be a list, instead got dict")
+                       "Expected properties to be a list, instead got dict")
                 )

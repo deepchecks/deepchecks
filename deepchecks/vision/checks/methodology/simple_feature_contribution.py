@@ -9,8 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains the simple feature distribution check."""
-from collections import OrderedDict
-from typing import Any, List, TypeVar, Hashable, Dict
+from collections import defaultdict
+from typing import Any, Callable, TypeVar, Hashable, Dict
 import numpy as np
 import pandas as pd
 
@@ -20,8 +20,7 @@ from deepchecks.core.check_utils.single_feature_contribution_utils import get_si
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Context, TrainTestCheck
-from deepchecks.vision.utils import image_formatters
-from deepchecks.vision.utils.image_formatters import default_image_properties
+from deepchecks.vision.utils import image_properties
 from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.vision_data import TaskType
 
@@ -63,9 +62,10 @@ class SimpleFeatureContribution(TrainTestCheck):
 
     Parameters
     ----------
-    alternative_image_properties : List[str] , default: None
-        List of alternative image properties names. Must be attributes of the ImageFormatter classes that are passed to
-        train and test's VisionData class. If None, check uses default_image_properties.
+    alternative_image_properties : List[Dict[str, Any]], default: None
+        List of properties. Replaces the default deepchecks properties.
+        Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        representing attributes of said method. 'output_type' must be one of 'continuous'/'discrete'
     n_top_properties: int, default: 5
         Number of features to show, sorted by the magnitude of difference in PPS
     ppscore_params: dict, default: None
@@ -74,22 +74,23 @@ class SimpleFeatureContribution(TrainTestCheck):
 
     def __init__(
             self,
-            alternative_image_properties: List[str] = None,
+            alternative_image_properties: Dict[str, Callable] = None,
             n_top_properties: int = 3,
             ppscore_params: dict = None
     ):
         super().__init__()
 
         if alternative_image_properties:
+            image_properties.validate_properties(alternative_image_properties)
             self.image_properties = alternative_image_properties
         else:
-            self.image_properties = default_image_properties
+            self.image_properties = image_properties.default_image_properties
 
         self.n_top_properties = n_top_properties
         self.ppscore_params = ppscore_params or {}
 
-        self._train_properties = OrderedDict([(k, []) for k in self.image_properties])
-        self._test_properties = OrderedDict([(k, []) for k in self.image_properties])
+        self._train_properties = defaultdict(list)
+        self._test_properties = defaultdict(list)
         self._train_properties['target'] = []
         self._test_properties['target'] = []
 
@@ -104,7 +105,7 @@ class SimpleFeatureContribution(TrainTestCheck):
 
         if dataset.task_type == TaskType.CLASSIFICATION:
             imgs = batch.images
-            properties['target'] += batch.labels
+            properties['target'] += batch.labels.tolist()
         elif dataset.task_type == TaskType.OBJECT_DETECTION:
             labels = batch.labels
             orig_imgs = batch.images
@@ -122,8 +123,8 @@ class SimpleFeatureContribution(TrainTestCheck):
             raise DeepchecksValueError(
                 f'Check {self.__class__.__name__} does not support task type {dataset.task_type}')
 
-        for func_name in self.image_properties:
-            properties[func_name] += getattr(image_formatters, func_name)(imgs)
+        for single_property in self.image_properties:
+            properties[single_property['name']].extend(single_property['method'](imgs))
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate the PPS between each property and the label.

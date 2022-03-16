@@ -21,9 +21,9 @@ def test_mnist(mnist_dataset_train, trained_mnist):
     result = ImageSegmentPerformance().run(mnist_dataset_train, trained_mnist)
     # Assert
     assert_that(result.value, has_entries({
-        'brightness': has_length(5),
-        'area': has_length(1),
-        'aspect_ratio': has_items(has_entries({
+        'Brightness': has_length(5),
+        'Area': has_length(1),
+        'Aspect Ratio': has_items(has_entries({
             'start': 1.0, 'stop': np.inf, 'count': 60000, 'display_range': '[1, inf)',
             'metrics': has_entries({'Precision': close_to(0.986, 0.001), 'Recall': close_to(0.987, 0.001)})
         })),
@@ -38,12 +38,12 @@ def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detecti
     result = check.run(coco_train_visiondata, trained_yolov5_object_detection)
     # Assert result
     assert_that(result.value, has_entries({
-        'normalized_blue_mean': has_length(5),
-        'normalized_green_mean': has_length(5),
-        'normalized_red_mean': has_length(5),
-        'brightness': has_length(5),
-        'area': has_length(4),
-        'aspect_ratio': has_items(
+        'Normalized Blue Mean': has_length(5),
+        'Normalized Green Mean': has_length(5),
+        'Normalized Red Mean': has_length(5),
+        'Brightness': has_length(5),
+        'Area': has_length(4),
+        'Aspect Ratio': has_items(
             has_entries({
                 'start': -np.inf, 'stop': 0.6671875, 'count': 12, 'display_range': '(-inf, 0.67)',
                 'metrics': has_entries({'AP': close_to(0.454, 0.001), 'AR': close_to(0.45, 0.001)})
@@ -71,7 +71,7 @@ def test_coco_and_condition(coco_train_visiondata, trained_yolov5_object_detecti
         equal_condition_result(
             is_pass=False,
             name='No segment with ratio between score to mean less than 50%',
-            details="Properties with failed segments: normalized_green_mean: "
+            details="Properties with failed segments: Normalized Green Mean: "
                     "{'Range': '[0.34, 0.366)', 'Metric': 'AP', 'Ratio': 0.44}"
         )
     ))

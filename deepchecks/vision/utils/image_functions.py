@@ -97,7 +97,7 @@ def numpy_grayscale_to_heatmap_figure(data: np.ndarray):
 
 def apply_heatmap_image_properties(fig):
     """For heatmap and grayscale images, need to add those properties which on Image exists automatically."""
-    fig.update_yaxes(autorange='reversed', scaleanchor='x', constrain='domain')
+    fig.update_yaxes(autorange='reversed', constrain='domain')
     fig.update_xaxes(constrain='domain')
 
 
