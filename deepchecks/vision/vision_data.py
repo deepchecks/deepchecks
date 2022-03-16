@@ -172,14 +172,8 @@ class VisionData:
     def classes_indices(self) -> Dict[int, List[int]]:
         """Return dict of classes as keys, and list of corresponding indices (in Dataset) of samples that include this\
         class (in the label)."""
-        if self._classes_indices is None:
-            # TODO remove this from here after removing the usage from init_run of checks, and raise error instead
-            self.init_cache()
-            for batch in self:
-                self.update_cache(self.batch_to_labels(batch))
-
-        if self._current_index < len(self._sampler):
-            raise DeepchecksValueError('Cached data loop is not completed yet')
+        if self.classes_indices is None or self._current_index < len(self._sampler):
+            raise DeepchecksValueError('Cached data is not computed on all the data yet.')
         return self._classes_indices
 
     @property
