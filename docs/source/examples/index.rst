@@ -1,17 +1,7 @@
-Examples
-========
+Checks Gallery
+==============
 
-General Guides
---------------
-
-.. toctree::
-    :maxdepth: 3
-    :titlesonly:
-    :caption: General Guides
-
-    general/index
-
-Tabular Examples
+Tabular Checks
 -----------------
 
 .. toctree::
@@ -19,11 +9,9 @@ Tabular Examples
     :caption: Tabular
     :titlesonly:
 
-    tabular/guides/index
-    tabular/use-cases/index
     tabular/checks/index
 
-Computer Vision Examples
+Computer Vision Checks
 ------------------------
 
 .. toctree::
