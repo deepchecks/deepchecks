@@ -52,6 +52,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
+        # Context is copying the data object, then not using the original after the init
         context: Context = self.context_type(dataset,
                                              model=model,
                                              device=device,
@@ -59,8 +60,10 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
         self.initialize_run(context, DatasetKind.TRAIN)
 
-        for batch in dataset:
+        context.train.init_cache()
+        for batch in context.train:
             batch = Batch(batch, context, DatasetKind.TRAIN)
+            context.train.update_cache(batch.labels)
             self.update(context, batch, DatasetKind.TRAIN)
 
         return self.finalize_check_result(self.compute(context, DatasetKind.TRAIN))
@@ -96,6 +99,7 @@ class TrainTestCheck(TrainTestBaseCheck):
     ) -> CheckResult:
         """Run check."""
         assert self.context_type is not None
+        # Context is copying the data object, then not using the original after the init
         context: Context = self.context_type(train_dataset,
                                              test_dataset,
                                              model=model,
@@ -104,12 +108,16 @@ class TrainTestCheck(TrainTestBaseCheck):
 
         self.initialize_run(context)
 
+        context.train.init_cache()
         for batch in context.train:
             batch = Batch(batch, context, DatasetKind.TRAIN)
+            context.train.update_cache(batch.labels)
             self.update(context, batch, DatasetKind.TRAIN)
 
+        context.test.init_cache()
         for batch in context.test:
             batch = Batch(batch, context, DatasetKind.TEST)
+            context.test.update_cache(batch.labels)
             self.update(context, batch, DatasetKind.TEST)
 
         return self.finalize_check_result(self.compute(context))
