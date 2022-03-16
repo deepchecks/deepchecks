@@ -38,6 +38,7 @@ class TaskType(Enum):
 
     CLASSIFICATION = 'classification'
     OBJECT_DETECTION = 'object_detection'
+    OTHER = 'other'
 
 
 class VisionData:
@@ -80,9 +81,9 @@ class VisionData:
             logger.warning('batch_to_images() was not implemented, some checks will not run')
         except ValidationError as ex:
             logger.warning('batch_to_images() was not implemented correctly, '
-                           'the validiation has failed with the error: %s', {str(ex)})
+                           'the validation has failed with the error: %s', {str(ex)})
 
-        self._task_type = None
+        self._task_type = TaskType.OTHER
         self._has_label = None
         self._classes_indices = None
         self._current_index = None
@@ -197,7 +198,7 @@ class VisionData:
         return self._has_label
 
     @property
-    def task_type(self) -> int:
+    def task_type(self) -> TaskType:
         """Return the task type."""
         return self._task_type
 
